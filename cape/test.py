@@ -25,6 +25,13 @@ ftpycart = os.path.join(ftest, 'pycart')
 ftpyfun  = os.path.join(ftest, 'pyfun')
 ftpyover = os.path.join(ftest, 'pyover')
 
+# Sphinx folders
+fdoc   = os.path.join(froot, "doc")
+fbuild = os.path.join(fdoc,  "_build")
+# Doctest folder
+fdoctest = os.path.join(fbuild, "doctest")
+
+
 # Wrapper for :func:`os.system` to write error message and exit on fail
 def callt(cmd, msg):
     """Call a message while checking the exit status
@@ -195,6 +202,22 @@ def test_val(val, targ, tol, msg=None):
         f.close()
         sys.exit(1)
         
-# Test a list
+# convert a results.txt file
+def convert_results():
+    """Convert the ``results.txt`` file created by ``make doctest`` to reST
+    
+    :Call:
+        >>> convert_results()
+    :Versions:
+        * 2018-03-27 ``@ddalle``: First version
+    """
+    # Get name of file
+    ftxt = os.path.join(fdoctest, "results.txt")
+    # Check if file exists
+    if not os.path.isfile(ftxt):
+        print("  No doctest file 'results.txt' file to interpret!")
+        return
+    # Converted file
+    frst = os.path.join(fdoc, "test", "results.rst")
 
 
