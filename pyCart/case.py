@@ -18,7 +18,7 @@ It also contains Cart3D-specific versions of some of the generic methods from
 # Reused classes
 from cape.case import *
 # Import options class
-from options.runControl import RunControl
+from .options.runControl import RunControl
 # Interface for writing commands
 from . import cmd, queue, manage, bin
 # Point sensors

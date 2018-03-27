@@ -33,7 +33,7 @@ from cape.bin import *
 from cape.bin import _assertfile, _upgradeDocString
 
 # Command option processing
-import cmd
+from . import cmd
 
 # Function to call cubes.
 def cubes(cart3d=None, opts=None, j=0, **kwargs):

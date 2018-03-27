@@ -2,7 +2,7 @@
 
 
 # Import options-specific utilities
-from util import odict, getel
+from .util import odict, getel
 
 
 # Class for output functional settings

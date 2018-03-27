@@ -46,8 +46,8 @@ from . import argread
 from . import manage
 
 # Functions and classes from other modules
-from trajectory import Trajectory
-from config     import Config, ConfigJSON
+from .trajectory import Trajectory
+from .config     import Config, ConfigJSON
 
 # Import triangulation
 from .tri  import Tri, ReadTriFile
@@ -285,7 +285,7 @@ class Cntl(object):
         # Get umask
         umask = self.opts.get_umask()
         # Apply mask
-        dmask = 0777 - umask
+        dmask = 0o777 - umask
         # Make the directory.
         os.mkdir(fdir, dmask)
         

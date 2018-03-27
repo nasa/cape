@@ -35,7 +35,7 @@ A typical example JSON section is showed below.
 """
 
 # Import options-specific utilities
-from util import rc0, odict
+from .util import rc0, odict
 
 
 # Class for FUN3D mesh settings

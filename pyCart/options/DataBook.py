@@ -44,7 +44,7 @@ The full description of the JSON options can be found in a
 """
 
 # Import options-specific utilities
-from util import rc0, getel, odict
+from .util import rc0, getel, odict
 
 
 # Import base class

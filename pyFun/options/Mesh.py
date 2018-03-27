@@ -27,7 +27,7 @@ external one) in combination with mesh adaptation.
 """
 
 # Import options-specific utilities
-from util import rc0, odict
+from .util import rc0, odict
 # Import Cape template
 import cape.options.Mesh
 

@@ -11,7 +11,7 @@ loaded in the ``"RunControl"`` section of the JSON file and the
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from .util import rc0, odict, getel
 # OS
 import os
 
@@ -433,7 +433,7 @@ class Archive(odict):
         # Get umask
         umask = self.get_umask()
         # Apply umask
-        dmask = 0777 - umask
+        dmask = 0o777 - umask
         # Make the directory.
         os.mkdir(fdir, dmask)
     

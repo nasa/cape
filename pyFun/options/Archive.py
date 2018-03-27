@@ -85,7 +85,7 @@ using the following code.  This is the *SkeletonFiles* setting.  Note that
 """
 
 # Import options-specific utilities
-from util import rc0
+from .util import rc0
 # Base module
 import cape.options.Archive
 

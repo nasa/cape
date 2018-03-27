@@ -49,7 +49,7 @@ description of all available options.
 
 
 # Import options-specific utilities
-from util import odict
+from .util import odict
 
 
 # Class for output functional settings

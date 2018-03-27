@@ -70,7 +70,7 @@ appropriate, even if the specified section does not exist.
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel, setel
+from .util import rc0, odict, getel, setel
 
 # Class for namelist settings
 class Fun3DNml(odict):

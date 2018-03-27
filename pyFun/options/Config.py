@@ -39,7 +39,7 @@ the JSON file.
 
 
 # Import options-specific utilities
-from util import rc0
+from .util import rc0
 
 # Import base class
 import cape.options.Config

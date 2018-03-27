@@ -92,7 +92,7 @@ The *TailFiles* settings causes pyOver to run the command
 """
 
 # Import options-specific utilities
-from util import rc0
+from .util import rc0
 # Base module
 import cape.options.Archive
 

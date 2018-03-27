@@ -20,7 +20,7 @@ repeated sections, use the options in the ``"Grids"`` section using
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from .util import rc0, odict, getel
 
 # Class for namelist settings
 class OverNml(odict):

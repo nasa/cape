@@ -13,7 +13,7 @@ loaded in the ``"RunControl"`` section of the JSON file and the
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from .util import rc0, odict, getel
 
 
 # Resource limits class

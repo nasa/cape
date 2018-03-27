@@ -13,7 +13,7 @@ This module provides options for PBS jobs in pyFun.  It is based on the
 
 
 # Import options-specific utilities
-from util import rc0
+from .util import rc0
 
 # Get PBS settings template
 import cape.options.pbs

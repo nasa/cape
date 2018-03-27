@@ -45,7 +45,7 @@ For other namelist settings that do not refer to grids, see
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from .util import rc0, odict, getel
 
 # Class for namelist settings
 class GridSystemNml(odict):

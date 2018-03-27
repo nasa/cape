@@ -68,16 +68,16 @@ from . import manage
 from . import dataBook
 
 # Functions and classes from other modules
-from trajectory import Trajectory
+from .trajectory import Trajectory
 
 # Import specific file control classes
-from inputCntl   import InputCntl
-from aeroCsh     import AeroCsh
-from preSpecCntl import PreSpecCntl
-from config      import Config
+from .inputCntl   import InputCntl
+from .aeroCsh     import AeroCsh
+from .preSpecCntl import PreSpecCntl
+from .config      import Config
 
 # Import triangulation
-from tri       import Tri
+from .tri      import Tri
 from cape.geom import RotatePoints
 
 # Get the root directory of the module.
