@@ -10,6 +10,8 @@ capabilities.
 # System interface
 import os, sys
 import subprocess as sp
+# Text tools
+import re
 
 # Paths
 fcape = os.path.split(os.path.abspath(__file__))[0]
@@ -226,39 +228,52 @@ def convert_results():
     fo.write("\n.. _test-results:\n\n")
     fo.write("Results of doctest builder\n")
     fo.write("==========================\n\n")
-    # Read header line
-    line = fi.readline()
+    # Read the input file
+    lines = fi.readlines()
+    # Close input file
+    fi.close()
     # Split to dates
-    tdate, ttime = line.strip().split()[-2:]
+    tdate, ttime = lines[0].strip().split()[-2:]
     # Write compiled date and time
     fo.write("This test was run on %s at time %s.\n\n" % (tdate, ttime))
+    # Write the summary
+    fo.write("**Summary**:\n")
+    # Write the last four lines (not counting empty line)
+    for i in range(-4,0):
+        # Write with a bullet
+        fo.write("    * %s" % lines[i])
+        
+    # Start looping through documents
+    i = 3
+    # Test following line
+    while lines[i].startswith("Document"):
+        # Process the line
+        i = convert_test_document(lines, fo, i)
     
-    # Throw away two lines
-    fi.readline()
-    fi.readline()
-    
-    # Close files
-    fi.close()
+    # Close output file
     fo.close()
 
 # Interpret one result
-def convert_test_document(fi, fo, line):
+def convert_test_document(lines, fo, i):
     """Convert the results of one document test
     
     :Call:
-        >>> convert_test_document(fi, fo, line)
+        >>> j = convert_test_document(lines, fo, i)
     :Inputs:
-        *fi*: :class:`file`
-            Input file created by ``make doctest``, open ``'r'``
+        *lines*: :class:`list` (:class:`str`)
+            Lines from input file
         *fo*: :class:`file`
             Output file of interpreted reST, open ``'w'``
-        *line*: :class:`str`
-            Most recently read line from *fi*
+        *i*: :class:`int`
+            Index of starting line for this document
+    :Outputs:
+        *j*: :class:`int`
+            Index of starting line for next content
     :Versions:
         * 2018-03-27 ``@ddalle``: First version
     """
     # Get the name of the doucment
-    txt, fdoc = line.strip().split()
+    txt, fdoc = lines[i].strip().split()
     # Make sure this is a document test
     if not txt.startswith("Document:"): return
     # Create section header
@@ -266,4 +281,66 @@ def convert_test_document(fi, fo, line):
     # Write it
     fo.write(txt + "\n")
     fo.write("-"*len(txt) + "\n")
+    # Discard header underlines
+    i += 2
+    # Loop through failed tests
+    while lines[i].startswith("******"):
+        # Read the next line
+        i += 1
+        # Check for summary line (dealing with extra '*******' line)
+        if re.match("[0-9]+ items", lines[i]):
+            break
+        # Write failure line summary (and extra blank line)
+        fo.write("Failure in f%s\n" % lines[i][1:])
+        # Go to next line
+        i += 1
+        # Loop until next '******' line found
+        while not lines[i].startswith("******"):
+            # Read key (strip colon at end)
+            hdr = lines[i].strip()[:-1]
+            # Write the header
+            fo.write("**%s**:\n\n" % hdr)
+            # Check type
+            if hdr == "Failed example":
+                # Write a Python code block
+                fo.write("    .. code-block:: python\n\n")
+            elif hdr == "Exception raised":
+                # Write a Python Traceback code block
+                fo.write("    .. code-block:: pytb\n\n")
+            else:
+                # Write raw text
+                fo.write("    .. code-block:: none\n\n")
+            # Loop until unindent
+            while lines[i+1].startswith("    "):
+                # Go to next line
+                i += 1
+                # Write the content
+                fo.write("    %s" % lines[i])
+            # Clean up
+            fo.write("\n")
+            # Go to next line
+            i += 1
+    # Process summary
+    fo.write("Document summary:\n\n")
+    # Set previous indent
+    indent = 0
+    # Loop through lines
+    while lines[i].strip():
+        # Check if line has a summary
+        if lines[i].startswith("    "):
+            # Indent
+            indent = 4
+            # Write line
+            fo.write("    - %s" % lines[i].lstrip())
+        else:
+            # Check for previous indent
+            if indent == 4:
+                fo.write("\n")
+            # Write line
+            fo.write("  * %s" % lines[i])
+        # Move to next line
+        i += 1
+    # End; skip blank line
+    return i + 1
+        
     

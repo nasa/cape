@@ -17,7 +17,7 @@ decision to use ``nodet`` or ``nodet_mpi`` is made based on the options input
 of keyword input ``"MPI"``.  For example, two versions of the command returned
 by :func:`nodet` could be
 
-    .. code-block::
+    .. code-block:: python
     
         ["mpiexec", "-np", "240", "nodet_mpi", "--plt_tecplot_output"]
         ["nodet", "--plt_tecplot_output"]
