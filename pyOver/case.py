@@ -198,9 +198,12 @@ def RestartCase(i0=None):
     i = GetPhaseNumber(rc)
     # Get restartability option
     qtime = (twall_avail > twall + dtwall)
-    print("Available time: %.2f hrs" % (twall_avail/3600.0))
-    print("Wall time used: %.2f hrs" % (twall/3600.0))
-    print("Previous phase: %.2f hrs" % (dtwall/3600.0))
+    # Status updates: available time
+    if twall_avail < 1e6:
+        print("   Available time: %.2f hrs" % (twall_avail/3600.0))
+    # Used time
+    print("   Wall time used: %.2f hrs" % (twall/3600.0))
+    print("   Previous phase: %.2f hrs" % (dtwall/3600.0))
     # Don't check time if moving to new phase
     qtime = qtime or (i0 is not None and i0!=i)
     # Check qsub status.
@@ -292,12 +295,11 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
         # Add to wall time used
         dtwall = 3600.0*t/n
         twall += dtwall
-        print("  ... used %s wall hours on one run of phase %i" % 
-            (dtwall/3600.0, i))
+        print("    Wall time used: %.2f hrs (phase %i)" % (dtwall/3600.0, i))
     except Exception:
         # Unknown time
         dtwall = 0.0
-        print("  ... failed to determine wall hours used on phase %i" % i)
+        print("    Wall time used: ??? hrs (phase %i)" % i)
         pass
 
 # Read wall time
