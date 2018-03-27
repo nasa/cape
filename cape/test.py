@@ -202,7 +202,7 @@ def test_val(val, targ, tol, msg=None):
         f.close()
         sys.exit(1)
         
-# convert a results.txt file
+# Convert a results.txt file
 def convert_results():
     """Convert the ``results.txt`` file created by ``make doctest`` to reST
     
@@ -219,5 +219,51 @@ def convert_results():
         return
     # Converted file
     frst = os.path.join(fdoc, "test", "results.rst")
+    # Open input and create output
+    fi = open(ftxt, 'r')
+    fo = open(frst, 'o')
+    # Start output file
+    fo.write("\n.. _test-results:\n\n")
+    fo.write("Results of doctest builder\n")
+    fo.write("==========================\n\n")
+    # Read header line
+    line = fi.readline()
+    # Split to dates
+    tdate, ttime = line.strip().split()[-2:]
+    # Write compiled date and time
+    fo.write("This test was run on %s at time %s.\n\n" % (tdate, ttime))
+    
+    # Throw away two lines
+    fi.readline()
+    fi.readline()
+    
+    # Close files
+    fi.close()
+    fo.close()
 
-
+# Interpret one result
+def convert_test_document(fi, fo, line):
+    """Convert the results of one document test
+    
+    :Call:
+        >>> convert_test_document(fi, fo, line)
+    :Inputs:
+        *fi*: :class:`file`
+            Input file created by ``make doctest``, open ``'r'``
+        *fo*: :class:`file`
+            Output file of interpreted reST, open ``'w'``
+        *line*: :class:`str`
+            Most recently read line from *fi*
+    :Versions:
+        * 2018-03-27 ``@ddalle``: First version
+    """
+    # Get the name of the doucment
+    txt, fdoc = line.strip().split()
+    # Make sure this is a document test
+    if not txt.startswith("Document:"): return
+    # Create section header
+    txt = "Document: :doc:`%s </%s>`" % (fdoc, fdoc)
+    # Write it
+    fo.write(txt + "\n")
+    fo.write("-"*len(txt) + "\n")
+    
