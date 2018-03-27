@@ -214,16 +214,16 @@ def convert_results():
         * 2018-03-27 ``@ddalle``: First version
     """
     # Get name of file
-    ftxt = os.path.join(fdoctest, "results.txt")
+    ftxt = os.path.join(fdoctest, "output.txt")
     # Check if file exists
     if not os.path.isfile(ftxt):
-        print("  No doctest file 'results.txt' file to interpret!")
+        print("  No doctest file 'output.txt' file to interpret!")
         return
     # Converted file
     frst = os.path.join(fdoc, "test", "results.rst")
     # Open input and create output
     fi = open(ftxt, 'r')
-    fo = open(frst, 'o')
+    fo = open(frst, 'w')
     # Start output file
     fo.write("\n.. _test-results:\n\n")
     fo.write("Results of doctest builder\n")
@@ -242,7 +242,8 @@ def convert_results():
     for i in range(-4,0):
         # Write with a bullet
         fo.write("    * %s" % lines[i])
-        
+    # Blank line
+    fo.write("\n\n")
     # Start looping through documents
     i = 3
     # Test following line
@@ -311,7 +312,7 @@ def convert_test_document(lines, fo, i):
                 # Write raw text
                 fo.write("    .. code-block:: none\n\n")
             # Loop until unindent
-            while lines[i+1].startswith("    "):
+            while (not lines[i+1].strip()) or lines[i+1].startswith("    "):
                 # Go to next line
                 i += 1
                 # Write the content
@@ -321,25 +322,29 @@ def convert_test_document(lines, fo, i):
             # Go to next line
             i += 1
     # Process summary
-    fo.write("Document summary:\n\n")
+    fo.write("**Document summary**:\n\n")
     # Set previous indent
     indent = 0
     # Loop through lines
     while lines[i].strip():
         # Check if line has a summary
-        if lines[i].startswith("    "):
+        if lines[i].startswith("   "):
             # Indent
             indent = 4
             # Write line
-            fo.write("    - %s" % lines[i].lstrip())
+            fo.write("      - %s" % lines[i].lstrip())
         else:
             # Check for previous indent
             if indent == 4:
                 fo.write("\n")
+            # Unset indeint
+            indent = 0
             # Write line
-            fo.write("  * %s" % lines[i])
+            fo.write("  * %s" % ('*'.join(lines[i].split("***"))))
         # Move to next line
         i += 1
+    # Clear some space
+    fo.write("\n\n")
     # End; skip blank line
     return i + 1
         
