@@ -523,4 +523,39 @@ case in the matrix (index 1 according to Python's 0-based indexing).
         
         ---=1, 
 
+As we can see, this ran OVERFLOW locally (i.e. without submitting a PBS job or
+similar) using the MPI version and 6 processors (cores).  The actions that
+pyOver takes are fairly simple.
+
+    1. Create the ``poweroff/m0.8a4.0b0.0/`` folder
+    2. Copy the requisite files into that folder
+    3. Run ``overrunmpi -np 6 run 01``
+    4. Run ``overrunmpi -np 6 run 02``
+    5. Run ``overrunmpi -np 6 run 03``
+    
+The basic JSON inputs that caused these actions to be taken are highlighted
+below.
+
+    .. code-block:: javascript
+    
+        // Options for overall run control and command-line inputs
+        "RunControl": {
+            // Run sequence
+            "PhaseSequence": [0,    1,    2],
+            "PhaseIters":    [1500, 2000, 2500],
+            // Operation modes
+            "Prefix": "run",
+            "MPI": true,
+            "qsub": false,
+            "mpicmd": null,
+            "nProc": 6,
+    
+            // OVERFLOW command-line interface
+            "overrun": {
+                "cmd": "overrunmpi",
+                "aux": null
+            }
+        
+            
+        
 
