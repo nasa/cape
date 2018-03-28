@@ -11,16 +11,17 @@ data/
 # Grid files
 common/*.in
 common/x.*
-common/*/fomo/grid.*
-common/*/fomo/zips.tri
-common/*/fomo/fort*
-common/*/fomo/x.save
-common/*/fomo/panel_weights.dat
-common/*/fomo/usurp*
-common/*/fomo/mixsur.o
-common/*/fomo/edge_list
-common/*/fomo/skipped.dat
-common/*/fomo/check_triangles.dat
+common/fomo/grid.*
+common/fomo/zips.tri
+common/fomo/fort*
+common/fomo/x.save
+common/fomo/panel_weights.dat
+common/fomo/usurp*
+common/fomo/mixsur.o
+common/fomo/mixsur.fmp
+common/fomo/edge_list
+common/fomo/skipped.dat
+common/fomo/check_triangles.dat
 common/*/irun2/
 common/*/x.save
 common/*/xrays.in

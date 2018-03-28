@@ -378,18 +378,81 @@ three surface grids combined into a single file.
         
 This file creates ``Composite.vol``, which is the primary volume grid that we
 need as input to run OVERFLOW.  Copy this file into the ``common/``
-subdirectory of the parent folder.
+subdirectory of the parent folder.  The surface grid file is not required, but
+can be convenient to have in a common location.
 
     .. code-block:: console
     
         $ cp Composite.vol ../common/grid.in
+        $ cp Composite.srf ../common/grid.srf
 
 Assembling inputs
 ^^^^^^^^^^^^^^^^^^
 The following two commands create the template OVERFLOW input namelist and
 ``mixsur`` input file, respectively.
 
+    .. code-block:: console
     
+        $ BuildOveri
+        $ BuildMixsuri
+    
+After running the first command, the files ``overflow.inp`` and ``xrays.in``
+are created.  Both of these files are also required for running, so they can be
+copied into the ``../common/`` folder, too.  However, the ``overflow.inp`` file
+is already provided; users can compare them to check that they are identical.
+
+    .. code-block:: console
+    
+        $ cp xrays.in ../common/
+        
+The ``BuildMixsuri`` command creates the file ``mixsur.i``.  We will need this
+file later, first let's apply the xrays by running OVERFLOW for zero
+iterations.  To run OVERFLOW in this manner, we set the namelist parameter
+*OMIGLB* > *IRUN* to ``2``.  The normal value is ``0``.  Fortunately, the
+``overflow.inp`` file we created already has *IRUN*\ =2.  Now we create a
+folder called ``irun2/`` and copy the necessary files into it.  The following
+commands can be run from the ``dcf/`` folder.
+
+    .. code-block:: console
+    
+        $ mkdir -p irun2
+        $ cp Composite.vol irun2/grid.in
+        $ cp overflow.inp irun2/
+        $ cp xrays.in irun2/
+        
+Now we can enter this folder and run OVERFLOW.
+
+    .. code-block:: console
+    
+        $ cd irun2
+        $ overrunmpi -np 6 overflow
+        
+Users who do not have a compiled MPI version of OVERFLOW can try .
+
+    .. code-block:: console
+    
+        $ overrun overflow
+
+This will run OVERFLOW and create quite a few output files. Most of these we
+can ignore, but we will need ``x.save`` to run ``mixsur``.  In addition, for
+more complex grids, this is the file that we inspect to see interpolation
+quality and check the number of orphan points.
+
+To run ``mixsur``, let's go up two folders and set things up to run ``mixsur``
+in the ``common/fomo/`` folder.  The term *fomo* is a common portmanteau for
+"force and moment" in the OVERFLOW world.
+
+    .. code-block:: console
+    
+        $ cd ../..
+        $ pwd
+        .../pyover/01_bullet
+        $ cp dcf/irun2/x.save common/fomo
+        
+The ``mixsur.i`` file is already in the ``fomo/`` folder.
+        
+
+
 
 Execution
 ----------
