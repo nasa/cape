@@ -9,6 +9,8 @@ batch-pbs/
 data/
 
 # Grid files
+common/*.in
+common/x.*
 common/*/fomo/grid.*
 common/*/fomo/zips.tri
 common/*/fomo/fort*

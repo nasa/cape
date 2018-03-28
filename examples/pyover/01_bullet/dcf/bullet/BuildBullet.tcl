@@ -147,6 +147,10 @@ proc CreateBullet { } {
     file delete $ftri $fcrv
     file delete {*}[glob ?.*]
     file delete -force minmax.com surf.i
+    file delete -force surf.com
+    file delete -force far.com
+    file delete -force edges.com
+    file delete -force stretch.i
   # >
 }
 

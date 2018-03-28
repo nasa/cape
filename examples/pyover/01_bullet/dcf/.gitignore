@@ -1,0 +1,17 @@
+
+*.tmp
+*.ovfi
+*.srf
+*.tri
+*.vol
+*.xry
+*.bvinp
+*.hypi
+*.com
+*.jou
+*.i
+*.mvlog
+
+*.in
+*.inp
+
