@@ -295,11 +295,11 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
         # Add to wall time used
         dtwall = 3600.0*t/n
         twall += dtwall
-        print("    Wall time used: %.2f hrs (phase %i)" % (dtwall/3600.0, i))
+        print("   Wall time used: %.2f hrs (phase %i)" % (dtwall/3600.0, i))
     except Exception:
         # Unknown time
         dtwall = 0.0
-        print("    Wall time used: ??? hrs (phase %i)" % i)
+        print("   Wall time used: ??? hrs (phase %i)" % i)
         pass
 
 # Read wall time
