@@ -6,9 +6,14 @@ OVERFLOW Bullet Example
 ------------------------
 
 This pyOver example looks at the process from grid generation to execution and
-post-processing for a simple bullet geometry.  The surface grid system is shown
-in :numref:`tab-pyover-bullet-01`, and one view of the volume grid is shown in
-:numref:`fig-pyover-bullet-01`.
+post-processing for a simple bullet geometry.  This example is located in 
+
+    * ``$CAPE/examples/pyover/01_bullet/``
+
+and the folder is fairly empty before beginning this example. This section
+guides the user through generating a grid system using Chimera Grid Tools. The
+resulting surface grid system is shown in :numref:`tab-pyover-bullet-01`, and
+one view of the volume grid is shown in :numref:`fig-pyover-bullet-01`.
 
     .. _tab-pyover-bullet-01:
     .. table:: OVERFLOW surface grid for bullet example
@@ -31,8 +36,51 @@ running OVERFLOW and creating a simple grid system.
         
 Grid generation
 ----------------
+While many users are opting to create overset grid systems using a graphical
+user interface (for example Pointwise), this example guides users through a
+traditional script-based grid generation process.  While there are really no
+special contributions of pyOver to this process, it may increase understanding
+of later tasks to explain how the grid system was generated.
 
+Some aspects of the grid generation example may rely on recent features of
+Chimera Grid Tools.
 
+Starting from the base directory for the example,
+``$CAPE/examples/pyover/01_bullet/``, the grid generation takes place in the
+``dcf/`` folder.  The initial contents of this folder include a ``geom/``
+folder that contains the basic definitions for the geometry and some TCL
+scripts for generating the grid.
+
+    * ``dcf/``
+    
+        - *GlobalDefs.tcl*: script to set overall variables for grid system
+        - *inputs.tcl*: various local variables such as grid spacing
+        - *config.tcl*: instructions for names of grids
+        - ``geom/``: geometry definitions folder
+        
+            * *bullet.i.tri*: surface geometry triangulation
+            * *bullet.stp*: STEP file of relevant curves
+            * *bullet.lr8.crv*: little-endian curve of axisymmetric radius
+            
+        - ``bullet/``: grid building are for **bullet** component
+        
+            * *BuildBullet.tcl*: main script to generate **bullet** grids
+            * *localinputs.tcl*: local settings for **bullet** component
+            * *Makefile*: ``make`` instructions for building surface grids
+
+Geometry definitions
+^^^^^^^^^^^^^^^^^^^^^
+The surface triangulation and curves generated from the natural boundaries of
+this triangulation are shown in :numref:`fig-pyover-bullet-02`.
+
+    .. _fig-pyover-bullet-02:
+    .. figure:: bullet-geom-01.png
+        :width: 3.5in
+        
+        Surface triangulation and curves for bullet example
+        
+        
+        
 
 Execution
 ----------

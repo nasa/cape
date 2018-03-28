@@ -684,25 +684,25 @@ class STEP(object):
             # Big-endian
             if kw.get('single', False):
                 # Single precision
-                self.WritePlot3DCurves_b4(fname, J)
+                self.WritePlot3DCurves_r4(fname, J)
             else:
                 # Double precision
-                self.WritePlot3DCurves_b8(fname, J)
+                self.WritePlot3DCurves_r8(fname, J)
         else:
             # Little-endian
             if kw.get('single', False):
                 # Single precision
-                self.WritePlot3DCurves_lb4(fname, J)
+                self.WritePlot3DCurves_lr4(fname, J)
             else:
                 # Double precision
-                self.WritePlot3DCurves_lb8(fname, J)
+                self.WritePlot3DCurves_lr8(fname, J)
         
     # Write curves to Plot3D file, big-endian double
-    def WritePlot3DCurves_b4(self, fname, J):
+    def WritePlot3DCurves_r4(self, fname, J):
         """Write list of curves to double-precision big-endian file
         
         :Call:
-            >>> stp.WritePlot3DCurves_b4(fname)
+            >>> stp.WritePlot3DCurves_r4(fname)
         :Inputs:
             *stp*: :class:`cape.step.STEP`
                 STEP file interface
@@ -716,26 +716,26 @@ class STEP(object):
         # Open the file
         f = open(fname, 'wb')
         # Number of curves
-        io.write_record_b4_i(f, len(J))
+        io.write_record_r4_i(f, len(J))
         # Assemble curve dimensions
         gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
         # Write grid dimensions: JE, KE, LE
-        io.write_record_b4_i(f, gdims.flatten())
+        io.write_record_r4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
             # Get the curve
             X = self.crvs[j]
             # Write coordinates
-            io.write_record_b4_f(f, X.transpose())
+            io.write_record_r4_f(f, X.transpose())
         # Close the file
         f.close()
         
     # Write curves to Plot3D file, big-endian double
-    def WritePlot3DCurves_b8(self, fname, J):
+    def WritePlot3DCurves_r8(self, fname, J):
         """Write list of curves to double-precision big-endian file
         
         :Call:
-            >>> stp.WritePlot3DCurves_b8(fname)
+            >>> stp.WritePlot3DCurves_r8(fname)
         :Inputs:
             *stp*: :class:`cape.step.STEP`
                 STEP file interface
@@ -749,26 +749,26 @@ class STEP(object):
         # Open the file
         f = open(fname, 'wb')
         # Number of curves
-        io.write_record_b4_i(f, len(J))
+        io.write_record_r4_i(f, len(J))
         # Assemble curve dimensions
         gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
         # Write grid dimensions: JE, KE, LE
-        io.write_record_b4_i(f, gdims.flatten())
+        io.write_record_r4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
             # Get the curve
             X = self.crvs[j]
             # Write coordinates
-            io.write_record_b8_f(f, X.transpose())
+            io.write_record_r8_f(f, X.transpose())
         # Close the file
         f.close()
         
     # Write curves to Plot3D file, little-endian double
-    def WritePlot3DCurves_lb8(self, fname, J):
+    def WritePlot3DCurves_lr8(self, fname, J):
         """Write list of curves to single-precision little-endian file
         
         :Call:
-            >>> stp.WritePlot3DCurves_lb4(fname)
+            >>> stp.WritePlot3DCurves_lr4(fname)
         :Inputs:
             *stp*: :class:`cape.step.STEP`
                 STEP file interface
@@ -782,26 +782,26 @@ class STEP(object):
         # Open the file
         f = open(fname, 'wb')
         # Number of curves
-        io.write_record_lb4_i(f, len(J))
+        io.write_record_lr4_i(f, len(J))
         # Assemble curve dimensions
         gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
         # Write grid dimensions: JE, KE, LE
-        io.write_record_lb4_i(f, gdims.flatten())
+        io.write_record_lr4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
             # Get the curve
             X = self.crvs[j]
             # Write coordinates
-            io.write_record_lb8_f(f, X.transpose())
+            io.write_record_lr8_f(f, X.transpose())
         # Close the file
         f.close()
         
     # Write curves to Plot3D file, little-endian double
-    def WritePlot3DCurves_lb4(self, fname, J):
+    def WritePlot3DCurves_lr4(self, fname, J):
         """Write list of curves to single-precision little-endian file
         
         :Call:
-            >>> stp.WritePlot3DCurves_lb4(fname)
+            >>> stp.WritePlot3DCurves_lr4(fname)
         :Inputs:
             *stp*: :class:`cape.step.STEP`
                 STEP file interface
@@ -815,17 +815,17 @@ class STEP(object):
         # Open the file
         f = open(fname, 'wb')
         # Number of curves
-        io.write_record_lb4_i(f, len(J))
+        io.write_record_lr4_i(f, len(J))
         # Assemble curve dimensions
         gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
         # Write grid dimensions: JE, KE, LE
-        io.write_record_lb4_i(f, gdims.flatten())
+        io.write_record_lr4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
             # Get the curve
             X = self.crvs[j]
             # Write coordinates
-            io.write_record_lb4_f(f, X.transpose())
+            io.write_record_lr4_f(f, X.transpose())
         # Close the file
         f.close()
     

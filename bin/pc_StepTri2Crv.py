@@ -32,6 +32,18 @@ STEP file at nodes from a surface triangulation.
     --ascii
         Write text curves file instead of binary
         
+    --lr8
+        Write double-precision little-endian curves (overrides later options)
+        
+    --r8
+        Write double-precision big-endian curves (overrides later options)
+        
+    --lr4
+        Write single-precision little-endian curves (overrides later options)
+        
+    --r4
+        Write single-precision big-endian curves (overrides later options)
+        
     --atol ATOL
         Maximum angle between node vector and curve tangent [60]
         
@@ -94,6 +106,14 @@ def StepTri2Crv(*a, **kw):
             Write curves as text file
         *endian*: {``None``} | ``"big"`` | ``"little"``
             Byte order
+        *r4*, *b4*: ``True`` | {``False``}
+            Write single-precision big-endian
+        *r8*, *b8*: ``True`` | {``False``}
+            Write double-precision big-endian
+        *lr4*, *lb4*: ``True`` | {``False``}
+            Write single-precision little-endian
+        *lr8*, *lb8*: ``True`` | {``False``}
+            Write double-precision little-endian
     :Versions:
         * 2016-09-29 ``@ddalle``: First version
     """
@@ -152,16 +172,16 @@ def StepTri2Crv(*a, **kw):
     if kw.get('ascii', False):
         # Write ASCII file
         stp.WritePlot3DCurvesASCII(fcrv)
-    elif kw.get('lb8', False):
+    elif kw.get('lb8', kw.get('lr8', False)):
         # Write little-endian double
         stp.WritePlot3DCurvesBin(fcrv, endian='little', single=False)
-    elif kw.get('b8', False):
+    elif kw.get('b8', kw.get('r8', False)):
         # Write big-endian double
         stp.WritePlot3DCurvesBin(fcrv, endian='big', single=False)
-    elif kw.get('lb4', False):
+    elif kw.get('lb4', kw.get('lr4', False)):
         # Write little-endian single
         stp.WritePlot3DCurvesBin(fcrv, endian='little', single=True)
-    elif kw.get('b4', False):
+    elif kw.get('b4', kw.get('r4', False)):
         # Write big-endian single
         stp.WritePlot3DCurvesBin(fcrv, endian='big', single=True)
     else:
