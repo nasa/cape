@@ -449,13 +449,50 @@ in the ``common/fomo/`` folder.  The term *fomo* is a common portmanteau for
         .../pyover/01_bullet
         $ cp dcf/irun2/x.save common/fomo
         
-The ``mixsur.i`` file is already in the ``fomo/`` folder.
-        
+The ``mixsur.i`` file is already in the ``fomo/`` folder.  Now we can enter
+that folder and run ``mixsur``.
 
+    .. code-block:: console
+    
+        $ cd common/fomo
+        $ mixsur < mixsur.i > mixsur.o
+        
+This creates a significant number of files, most of which are useful for at
+least one OVERFLOW data analysis scenario.  The file ``mixsur.fmp`` is critical
+because it provides instructions to OVERFLOW on how to integrate the surface
+pressures and viscous loads into component forces & moments.  In addition, the
+``grid.i.tri`` file is a unique surface triangulation created from the surface
+grid.
+
+    .. _fig-pyover-bullet-03:
+    .. figure:: bullet-tri-01.png
+        :width: 3.5 in
+        
+        Surface tri from ``mixsur`` of OVERFLOW bullet surface grid
+        
+The surface triangulation created by ``mixsur`` is shown in
+:numref:`fig-pyover-bullet-03`.  It shows that the surface has been divided
+into three families, a cap, fuselage, and base, and that these do not
+correspond to the boundaries between grids or something similar.  These
+boundaries are set within ``BuildBullet.tcl``.  In regions of overlapping
+grids, ``mixsur`` picks a unique triangle (roughly the smallest available,
+although this process becomes very complex in the general case) and then
+creates "zipper" triangles to join together the triangles that are selected
+from dividing the surface grid quads in half.
+
+At this point, we have created all of the grid files that are needed, and we
+are ready to start running OVERFLOW using pyOver.
 
 
 Execution
 ----------
+In addition to the grid input files, ``overflow.inp`` template namelist, and
+``mixsur.fmp`` file all described in the previous section, the ``01_bullet/``
+folder contains a master settings file ``pyOver.json`` and a run matrix
+``inputs/matrix.csv``.
+
+To run one case, we can run the following command.  This will run the second
+case in the matrix (index 1 according to Python's 0-based indexing).
 
     .. code-block:: console
     
@@ -485,4 +522,5 @@ Execution
         Submitted or ran 1 job(s).
         
         ---=1, 
+
 
