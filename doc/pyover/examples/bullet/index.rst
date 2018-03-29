@@ -555,7 +555,320 @@ below.
                 "cmd": "overrunmpi",
                 "aux": null
             }
+        }
+
+As with any of the solver-specific :mod:`cape` modules, the *PhaseSequence* and
+*PhaseIters* specify how many times and for how long the code is run.  Here we
+have phases ``0``, ``1``, and ``2``, which become runs ``01``, ``02``, and
+``03`` for OVERFLOW (specifically ``overrunmpi``).  These phases are run until
+there are 1500, 2000, and 2500 total global iterations run, respectively.
+
+Setting *MPI* to ``true`` instructs pyOver to use an MPI version of OVERFLOW,
+but setting *mpicmd* to ``null`` handles the special situation for
+``overrunmpi``.  The command-line calls to run OVERFLOW are handled by the
+*overrun* section, and since we have the command set to ``"overrunmpi"``,
+command-line calls do not start with ``mpiexec -np 6 ...`` the way that most
+MPI calls are.  The executable ``overrunmpi`` is a script that calls
+``mpiexec`` internally, so we eliminate this prefix for the command called by
+pyOver.
+
+The actual number of iterations in one run of each phase is not set in the
+*RunControl* section above.  Instead, it is set within the ``overflow.inp``
+namelist using the setting *GLOBAL*\ >*NSTEPS*.  Here we have 500 "steps"
+(iterations) for each phase, but one run of phase 0 actually ends with 1500
+iterations because this is ``NSTEPS[0] + FMGCYC[0][0] + FMGCYC[0][1]``.  We are
+requesting three levels of multigrid cycles on phase 0, so we add those cycles
+to the global iteration count.
         
-            
+    .. code-block:: javascript
+    
+        // Namelist inputs
+        "Overflow": {
+            "GLOBAL": {
+                "NQT": 102,
+                "NSTEPS": [500,  500,  500,  500],
+                "NSAVE":  [5000, 5000, 2000, 5000, -1000],
+                "FMG": [true, false],
+                "FMGCYC": [[500,500]],
+                "NGLVL": 3,
+                "ISTART_QAVG": 15000,
+                "WALLDIST": [2],
+                "DTPHYS": [0.0, 0.0, 0.0, 0.0, 1.0],
+                "NITNWT": [0,   0,   0,     0,   5]
+            },
+            "OMIGLB": {
+                "IRUN": 0,
+                "NADAPT":  [0, 100, 250, 500, 250, 0],
+                "NREFINE": [0, 1,   2],
+                "NBREFINE": 0,
+                "SIGERR": 5.0,
+                "MAX_SIZE": 600e6,
+                "MAX_GROWTH": 1.2
+            }
+        }
         
+Noe that the double list input for *FMGCYC* is important here because
+``"FMGCYC": [500, 500]`` would be interpreted as ``500`` for phase 0 and
+``500`` for all following phases.  We actually need this to be a list so
+``[[500, 500]]`` is interpreted as ``[500, 500]`` for all phases.
+
+We have to set *OMIGLB*\ >*IRUN* to ``0`` here so that OVERFLOW is actually run
+for more than 0 iterations.  The rest of the *OMIGLB* section sets mesh
+adaptation inputs.  The *Grids* top-level section of ``pyOver.json`` sets the
+CFL number for each grid and other key OVERFLOW input settings.  Below we have
+the *Mesh* section, which instructs pyOver which files to copy (or link) into
+each case folder.
+
+    .. code-block:: javascript
+    
+        // Mesh
+        "Mesh": {
+            // Folder containing definition files
+            "ConfigDir": "common",
+            // Grid type, dcf or peg5
+            "Type": "dcf",
+            // List or dictionary of files to link
+            "LinkFiles": [
+                "grid.in",
+                "xrays.in",
+                "fomo/grid.ibi",
+                "fomo/grid.nsf",
+                "fomo/grid.ptv"
+            ],
+            // List of files to copy instead of linking
+            "CopyFiles": [
+                "fomo/mixsur.fmp"
+            ]
+        }
+        
+For example, if the case is ``poweroff/m0.80a4.0b0.0``, this effectively runs
+the following commands.
+
+    .. code-block:: console
+    
+        $ ln -s common/grid.in poweroff/m0.80a4.0b0.0/
+        $ ln -s common/xrays.in poweroff/m0.80a4.0b0.0/
+        $ ln -s common/common/grid.ibi poweroff/m0.80a4.0b0.0/
+        $ ln -s common/common/grid.nsf poweroff/m0.80a4.0b0.0/
+        $ ln -s common/common/grid.ptv poweroff/m0.80a4.0b0.0/
+        $ cp common/fomo/mixsur.fmp poweroff/m0.80a4.0b0.0/
+        
+The last key section is the run matrix.
+
+    .. code-block:: javascript
+    
+        // Trajectory description
+        "Trajectory": {
+            // If a file is specified, and it exists, trajectory values will be
+            // read from it.  Trajectory values can also be specified locally.
+            "File": "inputs/matrix.csv",
+            "Keys": ["mach", "alpha", "beta"],
+            // Copy the mesh
+            "GroupMesh": true,
+            // Configuration name [default]
+            "GroupPrefix": "poweroff"
+        }
+        
+This example just has Mach number, angle of attack, and angle of sideslip as
+inputs.  This means that the Reynolds number per inch and freestream static
+temperature are whatever values are in the template ``common/overflow.inp``
+namelist.  In this case they are
+
+    .. code-block:: none
+    
+        $FLOINP
+             FSMACH = 0.8,
+             ALPHA = 0.0,
+             BETA = 0.0,
+             GAMINF = 1.4,
+             REY = 10000.0,
+             TINF = 450.0,
+             $END
+
+Case folders
+^^^^^^^^^^^^^
+After running case ``1`` as shown above, we can enter the folder to see what
+files are present.  First, let's set up case ``2`` and not run it.  That way we
+can compare the files before running and after.
+
+    .. code-block:: console
+    
+        $ pyover -I 2 --no-start
+        Case Config/Run Directory  Status  Iterations  Que CPU Time 
+        ---- --------------------- ------- ----------- --- --------
+        2    poweroff/m0.9a0.0b0.0 ---     /           .            
+          Case name: 'poweroff/m0.9a0.0b0.0' (index 2)
+        
+        Set up 1 job(s) but did not start.
+        
+        ---=1, 
+
+The ``--no-start`` flag has the effect of not starting the case (or submitting
+a job, if the *qsub* option were ``true``).  The files in this folder are
+described below.
+
+    * **case.json**: JSON *RunMatrix* settings for this case
+    * **conditions.json**: JSON file with values of pyOver run matrix keys
+    * *grid.ibi*: surface grid I-blanks file
+    * *grid.in*: main input volume grid (near-body)
+    * *grid.nsf*: another ``mixsur`` grid file
+    * *grid.ptv*: another ``mixsur`` grid file
+    * **mixsur.fmp**: weights for each surface point's contribution to F & M
+    * **run.01.inp**: input namelist for phase 0
+    * **run.02.inp**: input namelist for phase 1
+    * **run.03.inp**: input namelist for phase 2
+    * **run_overflow.pbs**: BASH script that can be executed or submitted
+    * *xrays.in*: input file for DCF X-ray generation
+
+If we look in the ``poweroff/m0.8a4.0b0.0`` folder that was already run, we
+have those files and the following additional ones:
+
+    * **brkset.restart**: brick grid file for adaptive off-body grids
+    * **brkset.save**: brick grid file for adaptive off-body grids
+    * **fomoco.out**: iterative force & moment history from most recent run
+    * **grdwghts.restart**: another adaptive off-body grid info file
+    * **grdwghts.save**: another adaptive off-body grid info file
+    * **log.out**: streamed output from ``overrunmpi``
+    * **mixsur.save**: most recently used version of **mixsur.fmp**
+    * **overrun.out**: STDOUT from most recent run
+    * **pyover_start.dat**: date and time of start of each run
+    * **pyover_time.dat**: time used for each run completed
+    * **q.restart**: primary volume grid solution file
+    * **q.save**: primary volume grid solution file
+    * **resid.out**: iterative residual history on each grid
+    * **rpmin.out**: minimum density and pressure on each grid, iterative
+    * **run.01.1500**: STDOUT/STDERR from run ``01``
+    * **run.01.2000**: STDOUT/STDERR from run ``02``
+    * **run.01.2500**: STDOUT/STDERR from run ``03``
+    * **run.fomoco**: assembled force & moment history
+    * **run.log**: assembled log file
+    * **run.resid**: assembled residual history
+    * **run.rpmin**: assembled minimum density and pressure history
+    * **run.timers**: OVERFLOW timing information
+    * **run.turb**: turbulence residual history
+    * **timers.out**: most recent OVERFLOW timing information
+    * **turb.out**: turbulence residuals from most recent run
+    * **x.restart**: final volume grid file
+    * **x.save**: final volume grid file
+    
+While a case is currently running there are also files such as ``fomoco.tmp``
+that accumulate the force & moment history or other iterative history only for
+the currently running phase.  When a run completes, these are moved into
+``fomoco.out`` and copied into ``run.fomoco``.
+
+Report generation
+^^^^^^^^^^^^^^^^^^
+This case is also set up to create a simple report with several iterative
+history plots.  The command is simple.
+
+    .. code-block:: console
+    
+        $ pyover --report -I 1
+
+This generates two tables, one of which shows the values of input variables and
+the other of which shows the iteratively averaged values and standard
+deviations of *CA*, *CY*, and *CN* on three mixsur families.
+
+    .. _tab-pyover-bullet-02:
+    .. table:: Sample iterative plots from OVERFLOW bullet case report for
+               ``poweroff/m0.8a4.0b0.0``
+        
+        +------------------------+------------------------+
+        |.. image:: arrow_CA.*   |.. image:: cap_CA.*     |
+        |    :width: 3.0in       |    :width: 3.0in       |
+        |                        |                        |
+        |``bullet``/*CA*         |``cap``/*CA*            |
+        +------------------------+------------------------+
+        |.. image:: arrow_CY.*   |.. image:: L2.*         |
+        |    :width: 3.0in       |    :width: 3.0in       |
+        |                        |                        |
+        |``bullet``/*CY*         |Global *L*\ 2 residual  |
+        +------------------------+------------------------+
+        |.. image:: arrow_CN.*   |.. image:: arrow_CLM.*  |
+        |    :width: 3.0in       |    :width: 3.0in       |
+        |                        |                        |
+        |``bullet``/*CN*         |``arrow``/*CLM*         |
+        +------------------------+------------------------+
+
+The averaging window for each coefficient is visible as a blue rectangle; the
+width of the box is the iterative averaging window and the height is one
+standard deviation above and below the mean value.  The averaging window can
+also be seen from where the dotted mean value horizontal line switches to a
+solid line.  The user can control the size of the iterative window (and give
+pyOver some freedom to decide if a range of values is given) in the *DataBook*
+section of ``pyOver.json`` using *nStats* and *nStatsMax*.  The height of the
+blue rectangle (as a multiple of the iterative standard deviation) is
+controlled using the *StandardDeviation* parameter within each subfigure's
+definition in the *Report* section.
+
+Extending a case
+^^^^^^^^^^^^^^^^^
+The plots in the previous subsection indicate that this case is not really
+converged.  To run the last phase another time, run the following simple
+commands.
+
+    .. code-block:: console
+    
+        $ pyover -I 1 --extend
+        poweroff/m0.8a4.0b0.0
+          Phase 2: 2500 --> 3000
+        $ pyover -I 1
+        Case Config/Run Directory  Status  Iterations  Que CPU Time 
+        ---- --------------------- ------- ----------- --- --------
+        1    poweroff/m0.8a4.0b0.0 INCOMP  2500/3000   .        1.1 
+             Starting case 'poweroff/m0.8a4.0b0.0'
+         > overrunmpi -np 6 run 03
+             (PWD = '/examples/pyover/01_bullet/poweroff/m0.8a4.0b0.0')
+             (STDOUT = 'overrun.out')
+           Wall time used: 0.06 hrs (phase 2)
+        
+        Submitted or ran 1 job(s).
+        
+        INCOMP=1,
+
+It is also possible to use a command like ``pyover -I 1 --extend 2``, which
+would have instructed pyOver to run the last phase ``2`` more times, so we
+would have had 3500 iterations overall.
+        
+Now we can check the overall status of the entire setup (four cases).  We
+should see something like the following.
+
+    .. code-block:: console
+    
+        $ pyover -c
+        Case Config/Run Directory  Status  Iterations  Que CPU Time 
+        ---- --------------------- ------- ----------- --- --------
+        0    poweroff/m0.8a0.0b0.0 ---     /           .            
+        1    poweroff/m0.8a4.0b0.0 DONE    3000/3000   .        1.5 
+        2    poweroff/m0.9a0.0b0.0 INCOMP  0/2500      .            
+        3    poweroff/m0.9a4.0b0.0 ---     /           .            
+        
+        ---=2, INCOMP=1, DONE=1,
+
+On the system that was used 1.5 core hours; divide this by 6 to get the wall
+time.  Users can also rerun the ``pyover -I 1 --report`` command to get updated
+iterative histories.  The ``--report`` command is fairly intelligent about
+deciding whether or not a figure needs to be updated when regenerating a
+report.
+
+Adding a new phase
+^^^^^^^^^^^^^^^^^^^
+Suppose instead of repeating the last phase we wanted to add another phase with
+slightly different inputs.  Then we can run very similar commands to above,
+presumably after making sure that phase ``3`` has the new OVERFLOW inputs we
+want in the ``pyOver.json`` file.  It is also possible to add the ``--submit``
+flag at the end to combine the settings change and case restart commands.
+
+    .. code-block:: console
+    
+        $ pyover -I 1 --apply --submit
+        
+Keeping the distinction between  ``--apply`` and ``--extend`` commands clear is
+not always intuitive, but just remember that ``--apply`` has the property that
+it is applying whatever settings are in the master JSON file to a case.  This
+command can be used to change other settings even if no additional phases are
+being added, although of course this will not affect phases that have already
+been run.
+
+    
 

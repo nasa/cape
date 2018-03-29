@@ -169,8 +169,8 @@
             "bullet_base"
         ],
         // Define what iterations to include
-        "nFirst": 8000,
-        "nStats": 1000,
+        "nFirst": 2100,
+        "nStats": 200,
         // Where to store the aero data
         "Folder": "data",
         // Key(s) by which to sort data book
@@ -224,10 +224,11 @@
             "arrow": {
                 "Type": "PlotCoeff",
                 "Component": "bullet_no_base",
-                "nPlotFirst": 1000,
-                "FigWidth": 5.5,
-                "FigHeight": 4.2,
-                "Width": 0.33
+                "nPlotFirst": 1200,
+                "FigWidth": 4.5,
+                "FigHeight": 3.4,
+                "Width": 0.33,
+                "StandardDeviation": 1.0
             },
             "arrow_CA": {"Type": "arrow", "Coefficient": "CA"},
             "arrow_CY": {"Type": "arrow", "Coefficient": "CY"},
@@ -236,11 +237,8 @@
             "arrow_CLM": {"Type": "arrow", "Coefficient": "CLM"},
             "arrow_CLN": {"Type": "arrow", "Coefficient": "CLN"},
             "cap": {
-                "Type": "PlotCoeff",
-                "Component": "bullet_no_base",
-                "FigWidth": 5.5,
-                "FigHeight": 4.2,
-                "Width": 0.33
+                "Type": "arrow",
+                "Component": "bullet_cap"
             },
             "cap_CA": {"Type": "cap", "Coefficient": "CA"},
             "cap_CY": {"Type": "cap", "Coefficient": "CY"},
