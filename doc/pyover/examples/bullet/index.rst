@@ -870,5 +870,176 @@ command can be used to change other settings even if no additional phases are
 being added, although of course this will not affect phases that have already
 been run.
 
+
+Using Tecplot®
+---------------
+It is possible to get pyOver and its automated reports to coordinate 
+effectively with Tecplot®.  The procedure is somewhat involved and can be
+summarized as consisting of the following steps:
+
+    1. Enter a case folder with an appropriate solution and create a desirable 
+       Tecplot layout manually
+    2. Save the layout file (``.lay``) to the ``inputs/`` folder or somewhere 
+       else accessible to pyOver
+    3. Modify that template layout file slightly for use with pyOver
+    4. Add the appropriate subfigure instructions to the *Report* section
+    5. Generate a report including the Tecplot-generated subfigure
+
+Creating a layout
+^^^^^^^^^^^^^^^^^^
+Using Tecplot with OVERFLOW solutions is much more involved than solutions of
+most other CFD solvers.  Users reaching this region of the example may already
+be experienced in generating Tecplot layouts, but this example includes a
+reduced step-by-step procedure for generating the examples in this file.
+
+First, go into the ``poweroff/m0.8a4.0b0.0`` folder that contains our solution
+files. Then launch Tecplot using whatever executable is set up on your system
+and go to 
+
+    :menuselection:`File --> "Load Data..."`. 
     
+Select "PLOT3D Loader" in the "*Files of type*" dropdown, and select and open
+``q.save`` and ``x.save``.
+
+This will open the solution but not draw any meaningful data yet. To find the
+surfaces, click the "*Zone Style...*" button on the main left toolbar
+and select the *Surfaces* tab. Select the first three zones, and then right
+click in the "*Surfaces to Plot*" and select "K-Planes".  You can close the
+"*Zone Style...*" window.  This is a good time to use the menu option
+
+    :menuselection:`View --> "Fit Surfaces..."`
+
+Next let's calculate pressure coefficient (*Cp*) and local Mach number.
+Fortunately this is already present in the
+    
+    :menuselection:`Analyze --> "Calculate Variables..."`
+
+Tecplot menu item.  Press the *Select...* button in the window that opens, and
+then select "Pressure Coefficient", press *Calculate*, and repeat for "Mach
+Number".
+
+Now we have to instruct Tecplot® to use the OVERFLOW I-blanks from our volume
+grid file.  (Why this is not the default is unclear.)  Open the menu item
+
+    :menuselection:`Plot --> Blanking --> "Value Blanking..."`
+
+and make the following selections:
+
+    * "Include value blanking" --> **checked**
+    * "Active" --> **checked**
+    * "Blank when* --> "*4: IBlank*", "*is equal to*", select *Constant*
+    
+Next we instruct Tecplot® what to plot on the surface and what to plot on the
+volume slice we will create.  Check the *Contour* box on the main left toolbar
+and press the *Details...* button.  In the window that opens, click the
+dropdown box in the top left and select "*12: Pressure Coefficient*".  We
+should still be in the "*Levels and Color*" tab, and from there let's press the
+"*Set Levels...*" button.
+
+This opens another window, and for this example let's check the "Min, max and
+delta" option from the "*Range Distribution*" box and make the following
+selections:
+
+    * "Minimum level": ``-0.8``
+    * "Maximum level": ``0.8``
+    * "Detla": ``0.1``
+    
+Press *OK* to close this window and then select "Diverging - Blue/Red" from the
+dropdown box just below the "*Color map options*" label and interactive color
+bar.  Now let's go to the *Legend* tab to tweak the legend and color bar drawn
+on our figure.  Make the following selections.
+
+    * "Alignment": *Horizontal*
+    * "Level skip": ``2``
+    * "Size" (below "Number font"): ``2``
+    * "Size" (below "Header font"): ``2``
+    
+Then click the "*Legend Box...*" and make the following selections:
+
+    * Top option: select *Fill*
+    * "Box color": *White*
+    
+Close this window and click the "*Number Format...*" button about two thirds of
+the way down the window.  In the window that opens make the following
+selections:
+
+    * "Type": *Float*
+    * "Precision": ``1``
+    
+After closing this window, we are still in the
+"*Contour & Multi-Coloring Details*" window.  Near the top of the window, click
+on the *2* button.  After clicking that, we set up the contour options for the
+second contour plot, which is going to be the Mach number volume slice.  After
+clicking the *2*, click on the top-left corner dropdown box and select 
+"*13: Mach Number*".  Then repeat all of the instructions above for the
+*Legend* tab that we should currently still be in.
+
+After repeating the *Legend* instructions, click again on the 
+"*Levels and Color*" tab and change the color map to
+"*Diverging - Purple/Green*".  The "*Set Levels..*" button can also be modified
+to the following settings:
+
+    * "*Range Distribution*": "*Min, max, and delta*"
+    * "Minimum level": ``0``
+    * "Maximum level": ``1.6``
+    * "Delta": ``0.2``
+    
+Finally we are finished with the contour details window.  To get a nice fixed
+view if the solution, click the *Z-X* button in the 
+"*Snap to orientation view*" near the top of the main left toolbar.  Then check
+the box to the left of *Slices* about half way down this toolbar and click the
+*Details...* button to its right.  We are going to make selections in several
+of the tabs of the window that opens, using the following outline.
+
+    * *Definition* tab
+    
+        - "Slice location": *Y-Planes*
+        
+    * *Contour* tab
+    
+        - "Show contours": **checked**
+        - "Flood by": *C2: Mach Number*
+        
+    * *Other* tab
+    
+        - "Show mesh": **checked**
+        - "Color" (mesh): *Cust 2* (lightest gray available)
+        - "Line thickness (%)": ``0.05``
+        
+Ok, now select tha arrow tool from the top toolbar and click and drag the color
+bar legends to the top left and top right (or anywhere else that looks good).
+Then move the main window around until the field of view is appropriate, and we
+have created a good layout.
+
+Finally we can select
+
+    :menuselection:`File --> "Save Layout as..."`
+    
+to save the layout file.  Save the layout as ``bullet-mach.lay`` so that we can
+customize it and apply to other OVERFLOW solutions.
+
+Tweaking layout file
+^^^^^^^^^^^^^^^^^^^^^
+We have to manually edit the layout file we just created, ``bullet-mach.lay``
+to make very slight changes to the text.  The third line of this file contains
+many settings in a big list of strings.  One of these will end with ``x.save``,
+and another will end with ``q.save``.  Replace these two strings (including any
+folder names or absolute paths that precede them) with ``x.pyover.p3d`` and
+``q.pyover.p3d``, respectively.
+
+These file names are automatically created by pyOver during the report
+generation file using its own logic to determine what is the most recently
+available grid and solution file.
+
+At this point you can compare your edited layout file with the one provided in
+the ``/examples/pyover/01_bullet/inputs/bullet-mach.lay`` file.  They should be
+quite close except for at least some minor differences in camera position.  If
+desired, users are encouraged to copy the layout just created to the
+``inputs/`` folder, preferably to a different file name so that the original
+layout is still available.
+
+Setting up a Tecplot® subfigure
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In the main ``pyOver.json`` file, we need to add another subfigure in the
+*Report* section to use this new layout file.
 
