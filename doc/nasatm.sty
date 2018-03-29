@@ -1,12 +1,13 @@
 \makeatletter
 
+\setcounter{tocdepth}{2}
+
 % Require listings package
 %\RequirePackage{listings}
 
 % Number figures within sections
-\numberwithin{figure}{section}
-\numberwithin{table}{section}
-\numberwithin{literal-block}{section}
+%\numberwithin{figure}{section}
+%\numberwithin{table}{section}
 
 % Tag for restriction
 \newcommand{\@restriction}{\TNA@restriction}
@@ -38,45 +39,72 @@
   \renewcommand{\footrulewidth}{0.4pt}
   % define chaptermark with \@chappos when \@chappos is available for Japanese
   \ifx\@chappos\undefined\else
-    \def\chaptermark##1{\markboth{\@chapapp\space\thechapter\space\@chappos\space ##1}{}}
+    \def\chaptermark##1{%
+        \markboth{\@chapapp\space\thechapter\space\@chappos\space ##1}{}}
   \fi
 }
 
 
-%  Hardwire some font sizes for the covers
-
-\newcommand\twelveptlarge{\@setfontsize\twelveptlarge\@xivpt{18}}
-\newcommand\twelveptnormalsize{\@setfontsize\twelveptnormalsize\@xiipt{14.5}}
-\newcommand\twelveptsmall{\@setfontsize\twelveptsmall\@xipt{13.6}}
-\newcommand\twelveptfootnotesize{\@setfontsize\twelveptfootnotesize\@xpt\@xiipt}
-
-% Change the title page to look a bit better, and fit in with the fncychap
-% ``Bjarne'' style a bit better.
+% ----------------------------------------------------------------------------
+% NASA TM Title Page
 %
-\renewcommand{\maketitle}{%
-  %\begin{titlepage}%
-   \pagestyle{tpage}
+\newcommand{\maketitlenasatm}{%
+  \begin{titlepage}%
+ \pagestyle{tpage}
    %\renewcommand{\thanks}[1]{\\ #1}
    \begin{flushleft}
    {\twelveptlarge NASA/\NC@type --\NC@year --\NC@number \par}%
    \vskip 2em%
-   \includegraphics[height=1.25in]{NASA_logo.pdf}\par%
+   \includegraphics[height=1.25in]{\NC@logo}\par%
    \vskip 1em%
    {\Huge\bfseries\NC@title\par}%
    {\Large\bfseries\NC@subtitle\par}%
    \vskip 2.5em%
    {\twelveptnormalsize\itshape\NC@authoraffiliation\par}%
    \vfill%
+   \end{flushleft}
+  \end{titlepage}%
+  \newpage%               
+  \setcounter{footnote}{0}%
+  \let\thanks\relax\let\maketitle\relax%
+  \null\newpage
+}
+
+% ----------------------------------------------------------------------------
+% NASA TM interior Title Page
+%
+\newcommand{\maketitlenasatmint}{%
+  \begin{titlepage}%
+ \pagestyle{tpage}
+   %\renewcommand{\thanks}[1]{\\ #1}
+   \begin{flushleft}
+   {\twelveptlarge NASA/\NC@type --\NC@year --\NC@number \par}%
+   \vskip 2em%
+   \includegraphics[height=1.25in]{\NC@logo}\par%
+   \vskip 1em%
+   {\Huge\bfseries\NC@title\par}%
+   {\Large\bfseries\NC@subtitle\par}%
+   \vskip 2.5em%
+   {\twelveptnormalsize\itshape\NC@authoraffiliation\par}%
+   \vfill%
+   {\twelveptnormalsize National Aeronautics and\\ %
+   Space Adminstration\par}%
    \makebox[0pt][l]{\hspace{-1in}\hspace{-\oddsidemargin}%
    \hspace{-\parindent}\rule{8in}{6pt}}
    \vskip 0.5em%              
    {\twelveptlarge\NC@monthlong\ \NC@year}%
    \end{flushleft}
-  %\end{titlepage}%
+  \end{titlepage}%
   \newpage%               
   \setcounter{footnote}{0}%
-  \let\thanks\relax\let\maketitle\relax
-   \pagestyle{empty}
+  \let\thanks\relax\let\maketitle\relax%
+}
+
+% ----------------------------------------------------------------------------
+% NASA STI in Profile page
+%
+\newcommand{\nasastiprofile}{%
+ \pagestyle{empty}
   %\gdef\@thanks{}\gdef\@author{}\gdef\@title{}
   %
     % back of cover page
@@ -166,16 +194,19 @@
      \renewcommand{\baselineskip}{\originalbaselineskip}
      \end{twelveptsmall}
      \vfill
-    %
-    % title page
-    %
-     \onecolumn
+}
+
+
+% ----------------------------------------------------------------------------
+% SLS Title Page
+%
+\newcommand{\maketitlesls}{%
+  \onecolumn
   \begin{titlepage}%
     \let\footnotesize\small
     \let\headrule\relax      
     \let\footnoterule\relax      
     \rule{\textwidth}{1pt}%
-    \ifsphinxpdfoutput
       \begingroup
       % These \defs are required to deal with multi-line authors; it
       % changes \\ to ', ' (comma-space), making it pass muster for
@@ -187,14 +218,13 @@
         /Title (\@title)
       }
       \endgroup
-    \fi
     % Add an SBU tag (or whatever)
     \begin{center}
      \vspace*{-3ex}
      \bfseries\sffamily\@restriction
     \end{center}
     \vspace{6ex}
-    \includegraphics[width=1.5in]{NASA_logo.pdf}\par
+    \includegraphics[width=1.5in]{\TNA@logo}\par
     \vspace{3ex}
     % Add table for header information
     \begin{minipage}{\textwidth}
@@ -251,6 +281,36 @@
   \cleardoublepage%
 }
 
+
+% ----------------------------------------------------------------------------
+% Assembled Title Pages
+%
+
+%  Hardwire some font sizes for the covers
+
+\newcommand\twelveptlarge{\@setfontsize\twelveptlarge\@xivpt{18}}
+\newcommand\twelveptnormalsize{\@setfontsize\twelveptnormalsize\@xiipt{14.5}}
+\newcommand\twelveptsmall{\@setfontsize\twelveptsmall\@xipt{13.6}}
+\newcommand\twelveptfootnotesize{\@setfontsize\twelveptfootnotesize\@xpt\@xiipt}
+
+% Change the title page to look a bit better, and fit in with the fncychap
+% ``Bjarne'' style a bit better.
+%
+\renewcommand{\maketitle}{%
+  \if@nasa@tm %
+    \maketitlenasatm%
+  \fi %
+  \if@nasa@tm@sti%
+    \nasastiprofile%
+  \fi %
+  \if@nasa@tm@interior%
+    \maketitlenasatmint%
+  \fi%
+  \if@tna@titlepage%
+    \maketitlesls%
+  \fi
+}
+
 % This section stolen from chngpage.sty by Peter Wilson
 \begingroup
 \catcode`\Q=3
@@ -279,212 +339,223 @@
   \@ifmtarg{#8}{}{\addtolength{\headsep}{#8}}%
   \@ifmtarg{#9}{}{\addtolength{\footskip}{#9}}%
 }
-
-%       Report Documentation Page
-\AtEndDocument{
- %\renewcommand{\thanks}[1]{\relax}
- \thispagestyle{empty}
- \changepage
-{}{2in}{-1in}{-1in}{}{}{}{}{}
- \begin{flushleft}
-  \enlargethispage{1in}
-  \begin{footnotesize}
-   \fontfamily{phv}%\selectfont% switch to helvetica font
-   \providecommand{\almosttiny}{\@setfontsize\almosttiny\@vipt\@viipt}
-   \providecommand{\almostscript}{\@setfontsize\almostscript\@viipt\@viiipt}
-   \setlength{\unitlength}{1mm}%
-   \begin{picture}(185,240)(-4,-251)\thicklines
+       
+% ----------------------------------------------------------------------------
+%  Report Documentation Page
 %
-% put a giant box around the whole thing (used for debugging)
-%
-%    \put(-4,-251){\dashbox(185,240){}}
-%
-    \put(0,-239){\framebox(182,239){}}
-    \put(0,-10){\line(1,0){182}}
-    \put(0,-24){\line(1,0){182}}
-    \put(0,-32){\line(1,0){182}}
-    \put(110,-42){\line(1,0){72}}
-    \put(110,-52){\line(1,0){72}}
-    \put(0,-62){\line(1,0){182}}
-    \put(110,-72){\line(1,0){72}}
-    \put(110,-82){\line(1,0){72}}
-    \put(0,-93){\line(1,0){182}}
-    \put(0,-114){\line(1,0){182}}
-    \put(121,-126){\line(1,0){61}}
-    \put(0,-138){\line(1,0){182}}
-    \put(0,-154){\line(1,0){182}}
-    \put(0,-166){\line(1,0){182}}
-    \put(0,-207){\line(1,0){182}}
-    \put(0,-222){\line(1,0){182}}
-    \put(0,-226){\line(1,0){60}}
-    \put(109,-230){\line(1,0){73}}
-%
-    \put(121,0){\line(0,-1){10}}
-    \put(48,-24){\line(0,-1){8}}
-    \put(121,-24){\line(0,-1){8}}
-    \put(110,-32){\line(0,-1){61}}
-    \put(121,-93){\line(0,-1){45}}
-    \put(60,-222){\line(0,-1){17}}
-    \put(91,-222){\line(0,-1){17}}
-    \put(109,-222){\line(0,-1){17}}
-    \put(20,-226){\line(0,-1){13}}
-    \put(40,-226){\line(0,-1){13}}
-%
-    \put(0,-10){\makebox(121,10){\bfseries REPORT DOCUMENTATION PAGE}}
-    \put(121,-10){\makebox(61,10){\scriptsize\slshape
-     \shortstack[c]{Form Approved\\[-.5mm] OMB No. 0704--0188}}}
-    \put(2,-12){\parbox[t]{6.9in}{\almosttiny
-     \setlength{\baselineskip}{6pt}
-     {The public reporting burden
-      for this collection of information is estimated to average 1 hour
-      per response, including the time for reviewing instructions,
-      searching existing data sources,
-\linebreak
-      gathering and maintaining the data needed, and completing and
-      reviewing the collection of information.
-      Send comments regarding this burden estimate or any other aspect
-      of this collection
-\linebreak
-      of information, including suggestions for reducing this
-      burden, to Department of Defense, Washington Headquarters
-      Services, Directorate for Information Operations and Reports
-\linebreak
-      (0704-0188), 1215 Jefferson Davis Highway, Suite 1204, Arlington,
-      VA 22202-4302.
-      Respondents should be aware that notwithstanding any other
-      provision of law, no person shall be
-%
-      subject to any penalty for failing to comply with a collection of
-      information if it does not display a currently valid OMB control
-      number.\\
-%
-      \bfseries\almostscript
-      PLEASE DO NOT RETURN YOUR FORM TO THE ABOVE ADDRESS.}}}
-%
-    \put(141,-240){\makebox(0,0)[tl]{ \almostscript
-     \shortstack[l]{\bfseries Standard Form 298 (Rev. 8/98)\\[-.5mm]
-     \almosttiny Prescribed by ANSI Std. Z39.18}}}
-%
-    \put(1,-32){\makebox(46,7.5)[lt]{\bfseries\almostscript 
- 1. REPORT DATE \mdseries\slshape (DD-MM-YYYY)}}
-    \put(2,-32){\makebox(45,4)[tl]{01-\NC@month-\NC@year}}
-%
-    \put(49,-32){\makebox(71,7.5)[lt]{\bfseries\almostscript 
- 2. REPORT TYPE}}
-    \put(50,-32){\makebox(70,4)[lt]{\NC@typelong}}
-%
-    \put(122,-32){\makebox(59,7.5)[lt]{\bfseries\almostscript 
- 3. DATES COVERED \mdseries\slshape (From - To)}}
-    \put(123,-32){\makebox(58,4)[lt]{\NC@datescovered}}
-%
-    \put(1,-62){\makebox(108,29.5)[tl]{\bfseries\almostscript 
- 4. TITLE AND SUBTITLE}}
-    \put(2,-38.5){\parbox[t]{107mm}{\raggedright \@title\par
-    \NC@subtitle}}
-%
-    \put(111,-42){\makebox(70,9.5)[tl]{\bfseries\almostscript
- 5a. CONTRACT NUMBER}}
-    \put(112,-42){\makebox(69,6)[tl]{\NC@contractnumber}}
-    \put(111,-52){\makebox(70,9.5)[tl]{\bfseries\almostscript
- 5b. GRANT NUMBER}}
-    \put(112,-52){\makebox(69,6)[tl]{\NC@grantnumber}}
-    \put(111,-62){\makebox(70,9.5)[tl]{\bfseries\almostscript
- 5c. PROGRAM ELEMENT NUMBER}}
-    \put(112,-62){\makebox(69,6)[tl]{\NC@programelementnumber}}
-    \put(111,-72){\makebox(70,9.5)[tl]{\bfseries\almostscript
- 5d. PROJECT NUMBER}}
-    \put(112,-72){\makebox(69,6)[tl]{\NC@projectnumber}}
-    \put(111,-82){\makebox(70,9.5)[tl]{\bfseries\almostscript
- 5e. TASK NUMBER}}
-    \put(112,-82){\makebox(69,6)[tl]{\NC@tasknumber}}
-    \put(111,-93){\makebox(70,10.5)[tl]{\bfseries\almostscript
- 5f. WORK UNIT NUMBER}}
-    \put(112,-93){\makebox(69,7)[tl]{\NC@workunitnumber}}
-%
-    \put(1,-93){\makebox(108,30.5)[lt]{\bfseries\almostscript 
- 6. AUTHOR(S)}}
-    \put(2,-68.5){\parbox[t]{107mm}{\raggedright \NC@author}}
-%
-    \put(1,-114){\makebox(119,20.5)[tl]{\bfseries\almostscript 
- 7. PERFORMING ORGANIZATION NAME(S) AND ADDRESS(ES)}}
-    \put(2,-114){\makebox(118,17)[tl]{\shortstack[l]
-     {NASA \NC@nasacenter}}}
-%
-    \put(122,-114){\makebox(59,20.5)[tl]{\bfseries\almostscript
-     \newlength{\tmpind}\settowidth{\tmpind}{8.}\shortstack[l]{
- 8. PERFORMING ORGANIZATION\\ \hspace*{\tmpind} REPORT NUMBER}}}
-    \put(123,-114){\makebox(58,14)[tl]{\NC@lnumber}}
-%
-    \put(1,-138){\makebox(119,23.5)[lt]{\bfseries\almostscript
- 9. SPONSORING/MONITORING AGENCY NAME(S) AND ADDRESS(ES)}}
-    \put(2,-138){\makebox(118,20)[tl]{\shortstack[l]{National 
-     Aeronautics and Space Administration\\ Washington, DC 20546-0001}}}
-%
-    \put(122,-126){\makebox(59,11.5)[tl]{\bfseries\almostscript
- 10. SPONSOR/MONITOR'S ACRONYM(S)}}
-    \put(123,-126){\makebox(58,8)[tl]{NASA}}
-%
-    \put(122,-138){\makebox(59,11.5)[tl]{\bfseries\almostscript
-     \settowidth{\tmpind}{11.} \shortstack[l]{
- 11. SPONSOR/MONITOR'S REPORT\\ \hspace{\tmpind} NUMBER(S)}}}
-    \put(123,-138){\makebox(58,5)[tl]{NASA/\NC@type --\NC@year --\NC@number}}
-%
-    \put(1,-154){\makebox(180,15.5)[tl]{\bfseries\almostscript
- 12. DISTRIBUTION/AVAILABILITY STATEMENT}}
-    \put(2,-144.5){\parbox[t]{179mm}{\raggedright
-     \NC@distribution \\
-     Subject Category \NC@category \\
-     Availability: NASA STI Program (757) 864-9658 \hspace{2cm}
-%      Distribution: \NC@distribution%
-}}
-%
-    \put(1,-166){\makebox(180,11.5)[lt]{\bfseries\almostscript
- 13. SUPPLEMENTARY NOTES}}
-    \put(2,-160.5){\parbox[t]{179mm}{\raggedright\scriptsize
-     An electronic version can be found at 
-     {http://ntrs.nasa.gov}.\\
-     \NC@supplenotes}}
-%
-    \put(1,-207){\makebox(180,40.5)[tl]{\bfseries\almostscript 
- 14. ABSTRACT}}
-    \put(2,-172.5){\parbox[t]{179mm}{\raggedright \NC@abstract}}
-%
-    \put(1,-222){\makebox(180,14.5)[tl]{\bfseries\almostscript 
- 15. SUBJECT TERMS}}
-    \put(2,-213.5){\parbox[t]{179mm}{\raggedright \NC@subjectterms}}
-%
-    \put(1,-226){\makebox(58,3.5)[tl]{\bfseries\almostscript
- 16. SECURITY CLASSIFICATION OF:}}
-    \put(1,-239){\makebox(18,12.5)[tl]{\bfseries\almostscript a. REPORT}}
-    \put(2,-239){\makebox(17,9){U}}
-    \put(21,-239){\makebox(18,12.5)[tl]{\bfseries\almostscript b. ABSTRACT}}
-    \put(22,-239){\makebox(17,9){U}}
-    \put(41,-239){\makebox(18,12.5)[tl]{\bfseries\almostscript c. THIS PAGE}}
-    \put(42,-239){\makebox(17,9){U}}
-%
-    \put(61,-239){\makebox(29,16.5)[tl]{\bfseries\almostscript
-     \settowidth{\tmpind}{17.}\shortstack[l]{
- 17. LIMITATION OF\\ \hspace{\tmpind} ABSTRACT}}}
-    \put(62,-239){\makebox(28,10){UU}}
-%
-    \put(92,-239){\makebox(16,16.5)[tl]{\bfseries\almostscript
-     \settowidth{\tmpind}{18.}\shortstack[l]{
- 18. NUMBER\\ \hspace{\tmpind} OF\\ \hspace{\tmpind} PAGES}}}
-    \put(93,-239){\makebox(15,7){\NC@pages}}
-%
-    \put(110,-230){\makebox(71,7.5)[tl]{\bfseries\almostscript
- 19a. NAME OF RESPONSIBLE PERSON}}
-    \put(111,-230){\makebox(70,4)[tl]{
-     STI Information Desk ({\tt help@sti.nasa.gov})}}
-%
-    \put(110,-239){\makebox(71,7.5)[tl]{\bfseries\almostscript
- 19b. TELEPHONE NUMBER \slshape (Include area code)}}
-    \put(111,-239){\makebox(70,4)[tl]{(757) 864-9658}}
-%
-   \end{picture}
-  \end{footnotesize}
- \end{flushleft}
+\newcommand{\tminfopage}{
+  \AtEndDocument{
+   %\renewcommand{\thanks}[1]{\relax}
+   \thispagestyle{empty}
+   \changepage
+    {}{2in}{-1in}{-1in}{}{}{}{}{}
+   \begin{flushleft}
+    \enlargethispage{1in}
+    \begin{footnotesize}
+     \fontfamily{phv}%\selectfont% switch to helvetica font
+     \providecommand{\almosttiny}{\@setfontsize\almosttiny\@vipt\@viipt}
+     \providecommand{\almostscript}{\@setfontsize\almostscript\@viipt\@viiipt}
+     \setlength{\unitlength}{1mm}%
+     \begin{picture}(185,240)(-4,-251)\thicklines
+     %
+     % put a giant box around the whole thing (used for debugging)
+     %
+     %    \put(-4,-251){\dashbox(185,240){}}
+     %
+      \put(0,-239){\framebox(182,239){}}
+      \put(0,-10){\line(1,0){182}}
+      \put(0,-24){\line(1,0){182}}
+      \put(0,-32){\line(1,0){182}}
+      \put(110,-42){\line(1,0){72}}
+      \put(110,-52){\line(1,0){72}}
+      \put(0,-62){\line(1,0){182}}
+      \put(110,-72){\line(1,0){72}}
+      \put(110,-82){\line(1,0){72}}
+      \put(0,-93){\line(1,0){182}}
+      \put(0,-114){\line(1,0){182}}
+      \put(121,-126){\line(1,0){61}}
+      \put(0,-138){\line(1,0){182}}
+      \put(0,-154){\line(1,0){182}}
+      \put(0,-166){\line(1,0){182}}
+      \put(0,-207){\line(1,0){182}}
+      \put(0,-222){\line(1,0){182}}
+      \put(0,-226){\line(1,0){60}}
+      \put(109,-230){\line(1,0){73}}
+      %
+      \put(121,0){\line(0,-1){10}}
+      \put(48,-24){\line(0,-1){8}}
+      \put(121,-24){\line(0,-1){8}}
+      \put(110,-32){\line(0,-1){61}}
+      \put(121,-93){\line(0,-1){45}}
+      \put(60,-222){\line(0,-1){17}}
+      \put(91,-222){\line(0,-1){17}}
+      \put(109,-222){\line(0,-1){17}}
+      \put(20,-226){\line(0,-1){13}}
+      \put(40,-226){\line(0,-1){13}}
+      %
+      \put(0,-10){\makebox(121,10){\bfseries REPORT DOCUMENTATION PAGE}}
+      \put(121,-10){\makebox(61,10){\scriptsize\slshape
+       \shortstack[c]{Form Approved\\[-.5mm] OMB No. 0704--0188}}}
+      \put(2,-12){\parbox[t]{6.9in}{\almosttiny
+       \setlength{\baselineskip}{6pt}
+       {The public reporting burden
+        for this collection of information is estimated to average 1 hour
+        per response, including the time for reviewing instructions,
+        searching existing data sources,
+        \linebreak
+        gathering and maintaining the data needed, and completing and
+        reviewing the collection of information.
+        Send comments regarding this burden estimate or any other aspect
+        of this collection
+        \linebreak
+        of information, including suggestions for reducing this
+        burden, to Department of Defense, Washington Headquarters
+        Services, Directorate for Information Operations and Reports
+        \linebreak
+        (0704-0188), 1215 Jefferson Davis Highway, Suite 1204, Arlington,
+        VA 22202-4302.
+        Respondents should be aware that notwithstanding any other
+        provision of law, no person shall be
+        %
+        subject to any penalty for failing to comply with a collection of
+        information if it does not display a currently valid OMB control
+        number.\\
+        %
+        \bfseries\almostscript
+        PLEASE DO NOT RETURN YOUR FORM TO THE ABOVE ADDRESS.}}}
+        %
+      \put(141,-240){\makebox(0,0)[tl]{ \almostscript
+       \shortstack[l]{\bfseries Standard Form 298 (Rev. 8/98)\\[-.5mm]
+       \almosttiny Prescribed by ANSI Std. Z39.18}}}
+       %
+      \put(1,-32){\makebox(46,7.5)[lt]{\bfseries\almostscript 
+   1. REPORT DATE \mdseries\slshape (DD-MM-YYYY)}}
+      \put(2,-32){\makebox(45,4)[tl]{01-\NC@month-\NC@year}}
+   %
+      \put(49,-32){\makebox(71,7.5)[lt]{\bfseries\almostscript 
+   2. REPORT TYPE}}
+      \put(50,-32){\makebox(70,4)[lt]{\NC@typelong}}
+   %
+      \put(122,-32){\makebox(59,7.5)[lt]{\bfseries\almostscript 
+   3. DATES COVERED \mdseries\slshape (From - To)}}
+      \put(123,-32){\makebox(58,4)[lt]{\NC@datescovered}}
+   %
+      \put(1,-62){\makebox(108,29.5)[tl]{\bfseries\almostscript 
+   4. TITLE AND SUBTITLE}}
+      \put(2,-38.5){\parbox[t]{107mm}{\raggedright \@title\par
+      \NC@subtitle}}
+   %
+      \put(111,-42){\makebox(70,9.5)[tl]{\bfseries\almostscript
+   5a. CONTRACT NUMBER}}
+      \put(112,-42){\makebox(69,6)[tl]{\NC@contractnumber}}
+      \put(111,-52){\makebox(70,9.5)[tl]{\bfseries\almostscript
+   5b. GRANT NUMBER}}
+      \put(112,-52){\makebox(69,6)[tl]{\NC@grantnumber}}
+      \put(111,-62){\makebox(70,9.5)[tl]{\bfseries\almostscript
+   5c. PROGRAM ELEMENT NUMBER}}
+      \put(112,-62){\makebox(69,6)[tl]{\NC@programelementnumber}}
+      \put(111,-72){\makebox(70,9.5)[tl]{\bfseries\almostscript
+   5d. PROJECT NUMBER}}
+      \put(112,-72){\makebox(69,6)[tl]{\NC@projectnumber}}
+      \put(111,-82){\makebox(70,9.5)[tl]{\bfseries\almostscript
+   5e. TASK NUMBER}}
+      \put(112,-82){\makebox(69,6)[tl]{\NC@tasknumber}}
+      \put(111,-93){\makebox(70,10.5)[tl]{\bfseries\almostscript
+   5f. WORK UNIT NUMBER}}
+      \put(112,-93){\makebox(69,7)[tl]{\NC@workunitnumber}}
+   %
+      \put(1,-93){\makebox(108,30.5)[lt]{\bfseries\almostscript 
+   6. AUTHOR(S)}}
+      \put(2,-68.5){\parbox[t]{107mm}{\raggedright \NC@author}}
+   %
+      \put(1,-114){\makebox(119,20.5)[tl]{\bfseries\almostscript 
+   7. PERFORMING ORGANIZATION NAME(S) AND ADDRESS(ES)}}
+      \put(2,-114){\makebox(118,17)[tl]{\shortstack[l]
+       {NASA \NC@nasacenter}}}
+   %
+      \put(122,-114){\makebox(59,20.5)[tl]{\bfseries\almostscript
+       \newlength{\tmpind}\settowidth{\tmpind}{8.}\shortstack[l]{
+   8. PERFORMING ORGANIZATION\\ \hspace*{\tmpind} REPORT NUMBER}}}
+      \put(123,-114){\makebox(58,14)[tl]{\NC@lnumber}}
+   %
+      \put(1,-138){\makebox(119,23.5)[lt]{\bfseries\almostscript
+   9. SPONSORING/MONITORING AGENCY NAME(S) AND ADDRESS(ES)}}
+      \put(2,-138){\makebox(118,20)[tl]{\shortstack[l]{National 
+       Aeronautics and Space Administration\\ Washington, DC 20546-0001}}}
+   %
+      \put(122,-126){\makebox(59,11.5)[tl]{\bfseries\almostscript
+   10. SPONSOR/MONITOR'S ACRONYM(S)}}
+      \put(123,-126){\makebox(58,8)[tl]{NASA}}
+   %
+      \put(122,-138){\makebox(59,11.5)[tl]{\bfseries\almostscript
+       \settowidth{\tmpind}{11.} \shortstack[l]{
+   11. SPONSOR/MONITOR'S REPORT\\ \hspace{\tmpind} NUMBER(S)}}}
+      \put(123,-138){\makebox(58,5)[tl]{NASA/\NC@type --\NC@year --\NC@number}}
+   %
+      \put(1,-154){\makebox(180,15.5)[tl]{\bfseries\almostscript
+   12. DISTRIBUTION/AVAILABILITY STATEMENT}}
+      \put(2,-144.5){\parbox[t]{179mm}{\raggedright
+       \NC@distribution \\
+       Subject Category \NC@category \\
+       Availability: NASA STI Program (757) 864-9658 \hspace{2cm}
+   %      Distribution: \NC@distribution%
+   }}
+   %
+      \put(1,-166){\makebox(180,11.5)[lt]{\bfseries\almostscript
+   13. SUPPLEMENTARY NOTES}}
+      \put(2,-160.5){\parbox[t]{179mm}{\raggedright\scriptsize
+       An electronic version can be found at 
+       {http://ntrs.nasa.gov}.\\
+       \NC@supplenotes}}
+   %
+      \put(1,-207){\makebox(180,40.5)[tl]{\bfseries\almostscript 
+   14. ABSTRACT}}
+      \put(2,-172.5){\parbox[t]{179mm}{\raggedright \NC@abstract}}
+   %
+      \put(1,-222){\makebox(180,14.5)[tl]{\bfseries\almostscript 
+   15. SUBJECT TERMS}}
+      \put(2,-213.5){\parbox[t]{179mm}{\raggedright \NC@subjectterms}}
+   %
+      \put(1,-226){\makebox(58,3.5)[tl]{\bfseries\almostscript
+   16. SECURITY CLASSIFICATION OF:}}
+      \put(1,-239){\makebox(18,12.5)[tl]{\bfseries\almostscript a. REPORT}}
+      \put(2,-239){\makebox(17,9){U}}
+      \put(21,-239){\makebox(18,12.5)[tl]{\bfseries\almostscript b. ABSTRACT}}
+      \put(22,-239){\makebox(17,9){U}}
+      \put(41,-239){\makebox(18,12.5)[tl]{\bfseries\almostscript c. THIS PAGE}}
+      \put(42,-239){\makebox(17,9){U}}
+   %
+      \put(61,-239){\makebox(29,16.5)[tl]{\bfseries\almostscript
+       \settowidth{\tmpind}{17.}\shortstack[l]{
+   17. LIMITATION OF\\ \hspace{\tmpind} ABSTRACT}}}
+      \put(62,-239){\makebox(28,10){UU}}
+   %
+      \put(92,-239){\makebox(16,16.5)[tl]{\bfseries\almostscript
+       \settowidth{\tmpind}{18.}\shortstack[l]{
+   18. NUMBER\\ \hspace{\tmpind} OF\\ \hspace{\tmpind} PAGES}}}
+      \put(93,-239){\makebox(15,7){\NC@pages}}
+   %
+      \put(110,-230){\makebox(71,7.5)[tl]{\bfseries\almostscript
+   19a. NAME OF RESPONSIBLE PERSON}}
+      \put(111,-230){\makebox(70,4)[tl]{
+       STI Information Desk ({\tt help@sti.nasa.gov})}}
+   %
+      \put(110,-239){\makebox(71,7.5)[tl]{\bfseries\almostscript
+   19b. TELEPHONE NUMBER \slshape (Include area code)}}
+      \put(111,-239){\makebox(70,4)[tl]{(757) 864-9658}}
+   %
+     \end{picture}
+    \end{footnotesize}
+   \end{flushleft}
+  }
 }
+
+% Apply the TechMemo info page?
+\if@nasa@tm %
+    \tminfopage %
+\else\if@nasa@tm@interior %
+    \tminfopage %
+\fi
 
 \makeatother
 

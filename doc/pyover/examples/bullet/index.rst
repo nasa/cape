@@ -18,12 +18,12 @@ one view of the volume grid is shown in :numref:`fig-pyover-bullet-01`.
     .. _tab-pyover-bullet-01:
     .. table:: OVERFLOW surface grid for bullet example
     
-        +------------------------------+------------------------------+
-        |.. image:: bullet-surf-01.png |.. image:: bullet-surf-02.png |
-        |    :width: 3.1in             |    :width: 3.1in             |
-        |                              |                              |
-        |Front and side view           |Aft view                      |
-        +------------------------------+------------------------------+
+        +---------------------------------+---------------------------------+
+        |.. image:: bullet-surf-01.png    |.. image:: bullet-surf-02.png    |
+        |    :width: 2.8in                |    :width: 2.8in                |
+        |                                 |                                 |
+        |Front and side view              |Aft view                         |
+        +---------------------------------+---------------------------------+
         
     .. _fig-pyover-bullet-01:
     .. figure:: bullet-vol-01.png
@@ -773,22 +773,22 @@ deviations of *CA*, *CY*, and *CN* on three mixsur families.
     .. table:: Sample iterative plots from OVERFLOW bullet case report for
                ``poweroff/m0.8a4.0b0.0``
         
-        +------------------------+------------------------+
-        |.. image:: arrow_CA.*   |.. image:: cap_CA.*     |
-        |    :width: 3.0in       |    :width: 3.0in       |
-        |                        |                        |
-        |``bullet``/*CA*         |``cap``/*CA*            |
-        +------------------------+------------------------+
-        |.. image:: arrow_CY.*   |.. image:: L2.*         |
-        |    :width: 3.0in       |    :width: 3.0in       |
-        |                        |                        |
-        |``bullet``/*CY*         |Global *L*\ 2 residual  |
-        +------------------------+------------------------+
-        |.. image:: arrow_CN.*   |.. image:: arrow_CLM.*  |
-        |    :width: 3.0in       |    :width: 3.0in       |
-        |                        |                        |
-        |``bullet``/*CN*         |``arrow``/*CLM*         |
-        +------------------------+------------------------+
+        +---------------------------------+---------------------------------+
+        |.. image:: arrow_CA.*            |.. image:: cap_CA.*              |
+        |    :width: 2.8in                |    :width: 2.8in                |
+        |                                 |                                 |
+        |``bullet``/*CA*                  |``cap``/*CA*                     |
+        +---------------------------------+---------------------------------+
+        |.. image:: arrow_CY.*            |.. image:: L2.*                  |
+        |    :width: 2.8in                |    :width: 2.8in                |
+        |                                 |                                 |
+        |``bullet``/*CY*                  |Global *L*\ 2 residual           |
+        +---------------------------------+---------------------------------+
+        |.. image:: arrow_CN.*            |.. image:: arrow_CLM.*           |
+        |    :width: 2.8in                |    :width: 2.8in                |
+        |                                 |                                 |
+        |``bullet``/*CN*                  |``arrow``/*CLM*                  |
+        +---------------------------------+---------------------------------+
 
 The averaging window for each coefficient is visible as a blue rectangle; the
 width of the box is the iterative averaging window and the height is one
