@@ -4726,11 +4726,11 @@ class Report(object):
                 # Check type
                 if t.endswith('dict') and "Value" in o:
                     # Read value and target specifiers from dictionary
-                    val = d.get("Value")
-                    k = d.get("TargetKey")
-                    v = d.get("TargetValue")
-                    n = d.get("Number", 0)
-                    p = d.get("Parameter")
+                    val = o.get("Value")
+                    k = o.get("TargetKey")
+                    v = o.get("TargetValue")
+                    n = o.get("Number", 0)
+                    p = o.get("Parameter")
                 else:
                     # Single value; no target information
                     val = o
@@ -4745,6 +4745,7 @@ class Report(object):
                 if p is not None: p = eval(self.EvalVar(p, i))
                 # Set the variable value
                 tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
+        
             
     # Function to prepare slice locations
     def PrepTecplotSlicePosition(self, tec, sfig, i):

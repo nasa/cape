@@ -185,7 +185,7 @@
             "Title": "OVERFLOW Bullet Example for pyOver",
             "Subtitle": "Example \\texttt{01\\_bullet}",
             "Restriction": "pyOver Example - Distribution Unlimited",
-            "Figures": ["CaseTables", "CasePlots"]
+            "Figures": ["CaseTables", "CasePlots", "FlowViz"]
         },
         // Define the figures
         "Figures": {
@@ -201,10 +201,64 @@
                     "arrow_CLL", "arrow_CLN", "arrow_CLM",
                     "cap_CA",    "L2",        "cap_CN"
                 ]
+            },
+            "FlowViz": {
+                "Header": "Flow visualization",
+                "Alignment": "center",
+                "Subfigures": [
+                    "MachSlice", "MachSlice-orange"
+                ]
             }
         },
         // Definitions for subfigures
         "Subfigures": {
+            // Tecplot figures
+            "MachSlice": {
+                "Type": "Tecplot",
+                "Layout": "inputs/bullet-mach.lay",
+                "FigWidth": 1024,
+                "Width": 0.48,
+                "Caption": "Surface $C_p$ and $y=0$ Mach slice",
+                "FieldMap": [3, 1000]
+            },
+            "MachSlice-orange": {
+                "Type": "MachSlice",
+                "ContourLevels": [
+                    {
+                        "NContour": 2,
+                        "MinLevel": 0,
+                        "MaxLevel": "max(1.4, 1.4*$mach)",
+                        "Delta": 0.05
+                    }
+                ],
+                "ColorMaps": [
+                    {
+                        "Name": "Diverging - Purple/Green modified",
+                        "NContour": 2,
+                        "ColorMap": {
+                            "0.0": "purple",
+                            "$mach": "white",
+                            "1.0": ["green", "orange"],
+                            "max(1.4,1.4*$mach)": "red"
+                        }
+                    }
+                ],
+                "Keys": {
+                    "GLOBALCONTOUR": {
+                        "LABELS": {
+                            "Value": {
+                                "AUTOLEVELSKIP": 2,
+                                "NUMFORMAT": {
+                                    "FORMATTING": "'FIXEDFLOAT'",
+                                    "PRECISION": 1,
+                                    "TIMEDATEFORMAT": "''"
+                                }
+                            },
+                            "Parameter": 2
+                        }
+                    }
+                }
+            },
             // Table of trajectory variables
             "CaseConds": {
                 "Type": "Conditions",

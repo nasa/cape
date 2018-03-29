@@ -155,9 +155,10 @@ $!GLOBALCONTOUR  2
     SHOW = YES
     XYPOS
       {
-      X = 68.003
+      X = 0.5506
       Y = 7.0172
       }
+    ANCHORALIGNMENT = TOPLEFT
     ISVERTICAL = NO
     HEADERTEXTSHAPE
       {
