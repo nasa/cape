@@ -74,6 +74,42 @@ href_h = np.array([
     3.6070e+07
 ])
 href_T = np.arange(0, 8000, 250)
+    
+# Sutherland's law (MKS)
+def SutherlandMKS(T, mu0=None, T0=None, C=None):
+    """Calculate viscosity using Sutherland's law using SI units
+    
+    This returns
+    
+        .. math::
+        
+            \\mu = \\mu_0 \\frac{T_0+C}{T+C}\\left(\\frac{T}{T_0}\\right)^{3/2}
+    
+    :Call:
+        >>> mu = SutherlandMKS(T)
+        >>> mu = SutherlandMKS(T, mu0=None, T0=None, C=None)
+    :Inputs:
+        *T*: :class:`float`
+            Static temperature in degrees Rankine
+        *mu0*: {``1.716e-5``} | :class:`float`
+            Reference viscosity [kg/m*s]
+        *T0*: {``273.15``} | :class:`float`
+            Reference temperature [K]
+        *C*: {``110.33333``} | :class:`float`
+            Reference temperature [K]
+    :Outputs:
+        *mu*: :class:`float`
+            Dynamic viscosity [kg/m*s]
+    :Versions:
+        * 2016-03-23 ``@ddalle``: First version
+    """
+    # Reference viscosity
+    if mu0 is None: mu0 = 1.716e-5
+    # Reference temperatures
+    if T0 is None: T0 = 273.15
+    if C  is None: C = 110.33333
+    # Sutherland's law
+    return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
 
 # Get atmosphere.
 def atm76(h):
@@ -259,6 +295,8 @@ class State(object):
             raise ValueError("Static temperature 'T' is required.")
         # Check for velocity.
         V = kw.get('V', 0)
+        # Check for viscosity
+        mu = kw.get('mu', SutherlandMKS(T))
         # Ratio of specific heats
         gamma = kw.get('gamma', 1.4)
         # Calculate gas constant.
@@ -275,6 +313,7 @@ class State(object):
         self.a = a
         self.V = V
         self.M = M
+        self.mu = mu
         self.gamma = gamma
         
     # Convert to FPS

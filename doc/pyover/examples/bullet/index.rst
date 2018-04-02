@@ -574,7 +574,7 @@ pyOver.
 
 The actual number of iterations in one run of each phase is not set in the
 *RunControl* section above.  Instead, it is set within the ``overflow.inp``
-namelist using the setting *GLOBAL*\ >*NSTEPS*.  Here we have 500 "steps"
+namelist using the setting *GLOBAL*\ >\ *NSTEPS*.  Here we have 500 "steps"
 (iterations) for each phase, but one run of phase 0 actually ends with 1500
 iterations because this is ``NSTEPS[0] + FMGCYC[0][0] + FMGCYC[0][1]``.  We are
 requesting three levels of multigrid cycles on phase 0, so we add those cycles
