@@ -347,13 +347,13 @@ def StopCase():
     
 
 # Function to read the local settings file.
-def ReadCaseJSON(fjson='cape.json'):
+def ReadCaseJSON(fjson='case.json'):
     """Read Cape settings for local case
     
     :Call:
         >>> rc = cape.case.ReadCaseJSON()
     :Inputs:
-        *fjson*: {``"cape.json"``} | :class:`str`
+        *fjson*: {``"case.json"``} | :class:`str`
             Name of JSON settings file
     :Outputs:
         *rc*: :class:`cape.options.runControl.RunControl`
