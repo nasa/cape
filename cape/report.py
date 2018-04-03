@@ -3294,6 +3294,8 @@ class Report(object):
             TolCons[kx] = CTol[kx]
         # Get list of targets
         targs = self.SubfigTargets(sfig)
+        # Number of targets
+        nTarg = len(targs)
        # --------------
        # Format Options
        # --------------
@@ -3490,7 +3492,7 @@ class Report(object):
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
                 kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", 
-                    k*nCoeff + targs.index(targ))
+                    k*nTarg + targs.index(targ))
                 # Target options index
                 j_t += 1
                 # Initialize target plot options.
