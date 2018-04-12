@@ -242,25 +242,6 @@ class Options(cape.options.Options):
         """
         self['Namelist'] = fname
     
-    # Get template file
-    def get_RubberDataFile(self, j=None):
-        """Get the ``rubber.data`` file name
-        
-        :Call:
-            >>> fname = opts.get_RubberFile(j=None)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *j*: {``None``} | :class:`int`
-                Phase number
-        :Outputs:
-            *fname*: :class:`str`
-                Name of file template
-        :Versions:
-            * 2016-04-27 ``@ddalle``: First version
-        """
-        return self.get_key('RubberData', j)
-    
     # Method to determine if groups have common meshes.
     def get_GroupMesh(self):
         """Determine whether or not groups have common meshes
@@ -511,6 +492,26 @@ class Options(cape.options.Options):
    # Configuration
    # =============
    # <
+    
+    # rubber.data file
+    def get_RubberDataFile(self, j=None):
+        self._Config()
+        return self['Config'].get_RubberDataFile(j)
+        
+    # tdata file
+    def get_TDataFile(self, j=None):
+        self._Config()
+        return self['Config'].get_TDataFile(j)
+        
+    # species_thermo_data file
+    def get_SpeciesThermoDataFile(self, j=None):
+        self._Config()
+        return self['Config'].get_SpeciesThermoDataFile(j)
+        
+    # kinetic_data file
+    def get_KineticDataFile(self, j=None):
+        self._Config()
+        return self['Config'].get_KineticDataFile(j)
     
     # Get components
     def get_ConfigInput(self, comp):

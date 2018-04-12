@@ -54,7 +54,10 @@ class Config(cape.options.Config):
     :Versions:
         * 2015-10-20 ``@ddalle``: First version
     """
-    
+   # ------------------
+   # Component Mapping
+   # ------------------
+   # [
     # Get inputs for a particular component
     def get_ConfigInput(self, comp):
         """Return the input for a particular component
@@ -93,7 +96,94 @@ class Config(cape.options.Config):
         self.setdefault("Inputs", {})
         # Set the value.
         self["Inputs"][comp] = inp
+   # ]
+   
+   # ------------
+   # Other Files
+   # ------------
+   # [
+    # Get template file
+    def get_RubberDataFile(self, j=None):
+        """Get the ``rubber.data`` file name
         
+        :Call:
+            >>> fname = opts.get_RubberFile(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file template
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+            * 2018-04-11 ``@ddalle``: Moved to *Config* section
+        """
+        return self.get_key('RubberDataFile', j)
+        
+    # Get template file
+    def get_TDataFile(self, j=None):
+        """Get the ``tdata`` file name
+        
+        :Call:
+            >>> fname = opts.get_TDataFile(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file template
+        :Versions:
+            * 2018-04-11 ``@ddalle``: First version
+        """
+        return self.get_key('TDataFile', j)
+    
+    # Get thermo data file
+    def get_SpeciesThermoDataFile(self, j=None):
+        """Get the ``species_thermo_data`` file, if any
+        
+        :Call:
+            >>> fname = opts.get_SpeciesThermoDataFile(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file template
+        :Versions:
+            * 2018-04-12 ``@ddalle``: First version
+        """
+        return self.get_key('SpeciesThermoDataFile', j)
+    
+    # Get kinetic data file
+    def get_KinetciDataFile(self, j=None):
+        """Get the ``kinetic_data`` file, if any
+        
+        :Call:
+            >>> fname = opts.get_KineticDataFile(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file template
+        :Versions:
+            * 2018-04-12 ``@ddalle``: First version
+        """
+        return self.get_key("KineticDataFile", j)
+   # ]
+        
+   # ----------
+   # Points
+   # ----------
+   # [
     # Boundary point groups
     def get_BoundaryPointGroups(self):
         """Get list of ``"boundary_point"`` geometries
@@ -202,6 +292,7 @@ class Config(cape.options.Config):
             self.setdefault("BoundaryPoints", {})
             # Set the group
             self["BoundaryPoints"][name] = PS
-        
+   # ]
+   
 # class Config
 

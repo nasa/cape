@@ -2539,7 +2539,7 @@ class Trajectory:
         return None
     
     # Get freestream pressure
-    def GetDynamicPressure(self, i=None):
+    def GetDynamicPressure(self, i=None, units=None):
         """Get dynamic freestream pressure (in psf or Pa)
         
         :Call:
@@ -2549,6 +2549,8 @@ class Trajectory:
                 Run matrix interface
             *i*: {``None``} | :class:`int` | :class:`list`
                 Case number(s)
+            *units*: {``None``} | ``"psf"`` | ``"mks"`` | :class:`str`
+                Output units
         :Outputs:
             *q*: :class:`float`
                 Dynamic pressure [psf | Pa]
