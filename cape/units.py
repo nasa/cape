@@ -256,6 +256,9 @@ def mks(unit_lbl):
     :Versions:
         * 2018-04-12 ``@dalle``: First version
     """
+    # Check for null input
+    if unit_lbl is None:
+        return 1.0
     # Localize input
     lbl = unicode(unit_lbl)
     # Replace exponent characters

@@ -2366,16 +2366,18 @@ class Trajectory:
    # -------------------------
    # [
     # Get Reynolds number
-    def GetReynoldsNumber(self, i=None):
+    def GetReynoldsNumber(self, i=None, units=None):
         """Get Reynolds number (per foot)
         
         :Call:
-            >>> Re = x.GetReynoldsNumber(i=None)
+            >>> Re = x.GetReynoldsNumber(i=None, units=None)
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int` | :class:`list`
                 Case number(s)
+            *units*: {``None``} | :class:`str` | :class:`unicode`
+                Requested units for output
         :Outputs:
             *Re*: :class:`float`
                 Reynolds number [1/inch | 1/ft]
@@ -2386,6 +2388,58 @@ class Trajectory:
         # Default list
         if i is None:
             i = np.arange(self.nCase)
+        # Check for Reynolds number key
+        kR = self.GetFirstKeyByType("Re")
+        # Check for Reynolds number key
+        if kR is not None:
+            # Get value directly
+            return self.GetKeyValue(k, i, units=units)
+        # Get parameters that could be used
+        kM = self.GetFirstKeyByType("Mach")
+        kT = self.GetFirstKeyByType("T")
+        kp = self.GetFirstKeyByType("p")
+        kq = self.GetFirstKeyByType("q")
+        # Likely to need *gamma*
+        gam = self.GetGamma(i)
+        # Likely to need gas constant
+        R = self.GetNormalizedGasConstant(i)
+        # Consider cases
+        if kM and kT and kq:
+            # Get values
+            M = self.GetMach(i)
+            T = self.GetTemperature(i)
+            q = self.GetDynamicPressure(i)
+            # Calculate static pressure
+            p = q / (0.5*gam*M*M)
+            # Get viscosity
+            mu = self.GetViscosity(i)
+            # Get dimensional speed
+            U = M*np.sqrt(gam*R*T)
+            # Get density
+            rho = p / (R*T)
+            # Convert Reynolds number
+            Re = rho*U/mu
+        elif kM and kT and kp:
+            # Get values
+            M = self.GetMach(i)
+            T = self.GetTemperature(i)
+            p = self.GetPressure(i)
+            # Get viscosity
+            mu = self.GetViscosity(i)
+            # Get dimensional speed
+            U = M*np.sqrt(gam*R*T)
+            # Get density
+            rho = p / (R*T)
+            # Convert Reynolds number
+            Re = rho*U/mu
+        else:
+            # Unprocessed
+            return None
+        # Reduce by requested units
+        return Re / mks(units)
+        
+        
+        
         # Process the key types.
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for Reynolds number
@@ -2465,33 +2519,6 @@ class Trajectory:
             return getattr(self,k)[i]
         # If we reach this point... no conversion figured out
         return None
-   # ]
-   
-   # ----------------
-   # Gas Description
-   # ----------------
-   # [
-    # Get parameter from freestream state
-    def GetGasProperty(self, k, vdef=None):
-        """Get property from the ``"Freestream"`` section
-        
-        :Call:
-            >>> v = x.GetGasProperty(k, vdef=None)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Run matrix interface
-            *k*: :class:`str`
-                Name of parameter
-            *vdef*: {``None``} | :class:`any`
-                Default value for the parameter
-        :Outputs:
-            *v*: :class:`float` | :class:`str` | :class:`any`
-                Value of the 
-        :Versions:
-            * 2016-03-24 ``@ddalle``: First version
-        """
-        # Get the parameter
-        return self.gas.get(k, vdef)
    # ]
    
    # -------------
@@ -2695,7 +2722,7 @@ class Trajectory:
         # Check for dynamic pressure
         if kq is not None:
             # Get value directly
-            return self.GetKeyValue(k, i, units=units, udef="psf")
+            return self.GetKeyValue(kq, i, units=units, udef="psf")
         # If we reach this point, we need two other parameters
         kM = self.GetFirstKeyByType("Mach")
         kT = self.GetFirstKeyByType("T")
@@ -2705,6 +2732,8 @@ class Trajectory:
         kR = self.GetFirstKeyByType("Re")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
+        # The gas constant is often needed
+        R = self.GetNormalizedGasConstant(i)
         # Search for a combination of parameters we can interpret
         if kV and kr:
             # Density and velocity; easy
@@ -2723,14 +2752,40 @@ class Trajectory:
             rho = self.GetKeyValue(kr, i)
             M   = self.GetKeyValue(kM, i)
             T   = self.GetKeyValue(kT, i)
-            # Get gas constant
-            R = self.GetNormalizedGasConstant(i)
             # Sound speed
             a = np.sqrt(gam*R*T)
             # Velocity
             V = a*M
             # Dynamic pressure
             q = 0.5*rho*V*V
+        elif kV and kp and kT:
+            # Pressure, Mach, and temperature
+            p = self.GetKeyValue(kp, i)
+            M = self.GetKeyValue(kM, i)
+            V = self.GetKeyValue(kV, i)
+            # Sound speed
+            a = np.sqrt(gam*R*T)
+            # Mach number
+            M = V/a
+            # Dynamic pressure
+            q = 0.5*gam*p*M*M
+        elif kR and kM and kT:
+            # Get Reynolds number, Mach number, and temperature
+            Re = self.GetKeyValue(kR, i)
+            M  = self.GetKeyValue(kM, i)
+            T  = self.GetKeyValue(kT, i)
+            # Sound speed
+            a = np.sqrt(gam*R*T)
+            # Velocity
+            U = M*a
+            # Viscosity
+            mu = self.GetViscosity(i)
+            # Velocity
+            V = M*a
+            # Pressure
+            p = Re*mu*R*T/V
+            # Dynamic pressure
+            q = 0.5*gam*p*M*M
             
         # Output with units
         if units is None:
@@ -2739,37 +2794,51 @@ class Trajectory:
         else:
             # Apply expected units
             return q / mks("units")
-            
-            
-        # Get temperature and Mach values
-        M = getattr(self,kM)[i]
-        T = getattr(self,kT)[i]
-        # Get units
-        u = self.defns[kT].get('Units', 'fps')
-        # Check for pressure specifier
-        if 'Re' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('Re')[0]
-            # Get the Reynolds number
-            Re = getattr(self,k)[i]
-            # Check units
-            if u.lower() in ['fps', 'r']:
-                # Imperial units; get pressure
-                p = convert.PressureFPSFromRe(Re*12, T, M)
-            else:
-                # MKS units
-                p = convert.PressureMKSFromRe(Re, T, M)
-            # Dynamic pressure
-            return 0.7*p*M*M
-        elif 'p' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('p')[0]
-            # Get the static pressure
-            p = getattr(self,k)[i]
-            # Calculate dynamic pressure
-            return p * (0.7*M*M)
-        # If we reach here, missing info.
-        return None
+        
+    # Get viscosity
+    def GetViscosity(self, i=None, units=None):
+        """Get the dynamic viscosity for case(s) *i*
+        
+        :Call:
+            >>> mu = x.GetViscosity(i=None, units=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int` | :class:`list`
+                Case number(s)
+            *units*: {``None``} | ``"mks"`` | :class:`str`
+                Output units
+        :Outputs:
+            *q*: :class:`float`
+                Dynamic pressure [psf | Pa | *units*]
+        :Versions:
+            * 2018-04-13 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Check for dynamic pressure key
+        k = self.GetFirstKeyByType('mu')
+        # Check for dynamic pressure
+        if k is not None:
+            # Get value directly
+            return self.GetKeyValue(k, i, units=units, udef="kg/m/s")
+        # Get temperature
+        T = self.GetTemperature(i)
+        # Reference parameters
+        mu0 = self.GetSutherland_mu0(i)
+        T0  = self.GetSutherland_T0(i)
+        C   = self.GetSutherland_C(i)
+        # Sutherland's law
+        mu = convert.SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+        # Check for units
+        if units is None:
+            # No conversion
+            return mu
+        else:
+            # Convert to requested units
+            return mu / mks(units)
+        
         
     # Get freestream stagnation pressure
     def GetTotalPressure(self, i=None):
@@ -2807,6 +2876,28 @@ class Trajectory:
    # Thermodynamic Properties
    # -------------------------
    # [
+    # Get parameter from freestream state
+    def GetGasProperty(self, k, vdef=None):
+        """Get property from the ``"Freestream"`` section
+        
+        :Call:
+            >>> v = x.GetGasProperty(k, vdef=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *k*: :class:`str`
+                Name of parameter
+            *vdef*: {``None``} | :class:`any`
+                Default value for the parameter
+        :Outputs:
+            *v*: :class:`float` | :class:`str` | :class:`any`
+                Value of the 
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Get the parameter
+        return self.gas.get(k, vdef)
+    
     # Get ratio of specific heats
     def GetGamma(self, i=None):
         """Get freestream ratio of specific heats
@@ -2837,6 +2928,205 @@ class Trajectory:
         else:
             # Use the trajectory value
             return getattr(self,k)[i]
+            
+    # Get molecular weight
+    def GetMolecularWeight(self, i=None, units=None):
+        """Get averaged freestream gas molecular weight
+        
+        :Call:
+            >>> W = x.GetMolecularWeight(i=None, units=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | :class:`str`
+                Requested units of output
+        :Outputs:
+            *W*: :class:`float`
+                Molecular weight [kg/kmol | *units* ]
+        :Versions:
+            * 2018-04-13 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Attempt to find a special key
+        kW = self.GetFirstKeyByType('MW')
+        # Check for a matching key
+        if kW is None:
+            # Check for molecular weight and gas constant from "Freestream"
+            MW = self.gas.get("MolecularWeight")
+            R  = self.gas.get("GasConstant")
+            Ru = self.gas.get("UniversalGasConstant", 8314.4598)
+            # Check special cases
+            if (MW is None) and (R is None):
+                # Use default molecular weight
+                W = Ru/287.00
+            elif MW is None:
+                # Infer from gas constant
+                W = Ru/R
+            else:
+                # Molecular weight is present
+                W = MW
+        else:
+            # Get from run matrix
+            W = getattr(self,kW)[i]
+        # Output with units
+        if units is None:
+            # No conversion
+            return W
+        else:
+            # Reduce by requested units
+            return W / mks(units)
+    
+    # Get normalized gas constant
+    def GetNormalizedGasConstant(self, i=None, units=None):
+        """Get averaged freestream gas molecular weight
+        
+        :Call:
+            >>> R = x.GetNormalizedGasConstant(i=None, units=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | :class:`str`
+                Requested units of output
+        :Outputs:
+            *R*: :class:`float`
+                Normalized gas constant [J/kg*K | *units* ]
+        :Versions:
+            * 2018-04-13 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Attempt to find a special key
+        kW = self.GetFirstKeyByType('MW')
+        # Check for a matching key
+        if kW is None:
+            # Check for molecular weight and gas constant from "Freestream"
+            MW = self.gas.get("MolecularWeight")
+            R  = self.gas.get("GasConstant")
+            Ru = self.gas.get("UniversalGasConstant", 8314.4598)
+            # Check special cases
+            if (MW is None) and (R is None):
+                # Use default gas constant
+                R = 287.00
+            elif R is None:
+                # Infer from molecular weight
+                R = Ru/MW
+            else:
+                # Gas constant is present
+                R = R
+        else:
+            # Get from run matrix
+            R = getattr(self,kR)[i]
+        # Output with units
+        if units is None:
+            # No conversion
+            return R
+        else:
+            # Reduce by requested units
+            return R / mks(units)
+    
+    # Sutherland's law reference viscosity
+    def GetSutherland_mu0(self, i=None, units=None):
+        """Get reference viscosity for Sutherland's Law
+        
+        :Call:
+            >>> mu0 = x.GetSutherland_mu0(i=None, units=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | :class:`str`
+                Requested units of output
+        :Outputs:
+            *mu0*: :class:`float`
+                Reference viscosity [ kg/m*s | *units* ]
+        :Versions:
+            * 2018-04-13 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Get value from freestream state
+        mu0 = self.gas.get("Sutherland_mu0", 1.716e-5)
+        # Check for units
+        if units is None:
+            # No conversion
+            return mu0
+        else:
+            # Reduce by requested units
+            return mu0 / mks(units)
+    
+    # Sutherland's law reference temperature
+    def GetSutherland_T0(self, i=None, units=None):
+        """Get reference temperature for Sutherland's Law
+        
+        :Call:
+            >>> T0 = x.GetSutherland_T0(i=None, units=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | :class:`str`
+                Requested units of output
+        :Outputs:
+            *T0*: :class:`float`
+                Reference temperature [ K | *units* ]
+        :Versions:
+            * 2018-04-13 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Get value from freestream state
+        T0 = self.gas.get("Sutherland_T0", 273.15)
+        # Check for units
+        if units is None:
+            # No conversion
+            return T0
+        else:
+            # Reduce by requested units
+            return T0 / mks(units)
+    
+    # Sutherland's law reference temperature
+    def GetSutherland_C(self, i=None, units=None):
+        """Get reference temperature for Sutherland's Law
+        
+        :Call:
+            >>> C = x.GetSutherland_C(i=None, units=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | :class:`str`
+                Requested units of output
+        :Outputs:
+            *C*: :class:`float`
+                Reference temperature [ K | *units* ]
+        :Versions:
+            * 2018-04-13 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Get value from freestream state
+        C = self.gas.get("Sutherland_C", 273.15)
+        # Check for units
+        if units is None:
+            # No conversion
+            return C
+        else:
+            # Reduce by requested units
+            return C / mks(units)
+    
    # ]
   # >
    
