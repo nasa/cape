@@ -70,7 +70,7 @@ prefix_dict = {
    'y' : 1e-24, # yocto
 }
 # List of prefix names
-prefix_name = prefix_cell.keys()
+prefix_name = prefix_dict.keys()
 
 # Basis units
 m    = 1.0
@@ -203,6 +203,7 @@ units_dict = {
    'slug'     : slug     , # slug
    'lbm'      : lbm      , # pound mass
    'st'       : 14*lbm   , # stone
+   'stone'    : 14*lbm   , # stone
    'Pa'       : Pa       , # Pascal
    'atm'      : atm      , # atmosphere
    'torr'     : torr     , # torr

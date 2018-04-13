@@ -80,6 +80,8 @@ import re, fnmatch
 import os
 # Conversions and constants
 from . import convert
+# Units tool
+from .units import mks
 
 
 # Trajectory class
@@ -128,10 +130,10 @@ class Trajectory:
         2014-05-28 ``@ddalle``: First version
         2014-06-05 ``@ddalle``: Generalized for user-defined keys
     """
-   # =============
-   # Configuration
-   # =============
-   # <
+  # =============
+  # Configuration
+  # =============
+  # <
     # Initialization method
     def __init__(self, **kwargs):
         """Initialization method"""
@@ -272,12 +274,12 @@ class Trajectory:
         # Output
         return y
     
-   # >
+  # >
     
-   # ========
-   # File I/O
-   # ========
-   # <
+  # ========
+  # File I/O
+  # ========
+  # <
     # Function to read a file
     def ReadTrajectoryFile(self, fname):
         """Read trajectory variable values from file
@@ -426,12 +428,12 @@ class Trajectory:
         f.write('}\n')
         # Close the file.
         f.close()
-   # >
+  # >
     
-   # ===============
-   # Key Definitions
-   # ===============
-   # <
+  # ===============
+  # Key Definitions
+  # ===============
+  # <
     # Function to process the role that each key name plays.
     def ProcessKeyDefinitions(self, defns):
         """
@@ -775,13 +777,40 @@ class Trajectory:
             # Not usable
             raise TypeError("Cannot search for keys of type '%s'" % KeyType)
         # Initialize list of matches to all ``False``
-        U = np.arange(len(self.keys)) < 0
+        U = np.zeros(len(self.keys), dtype="bool")
         # Loop through types given as input.
         for k in KeyType:
             # Search for this kind of key.
             U = np.logical_or(U, KT == k)
         # Output.
         return np.array(self.keys)[np.where(U)[0]]
+        
+    # Get first key by type
+    def GetFirstKeyByType(self, KeyType):
+        """Get all keys by type
+        
+        :Call:
+            >>> key = x.GetFirstKeyByType(KeyType)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of pyCart trajectory class
+            *KeyType*: :class:`str`
+                Key type to search for
+        :Outputs:
+            *key*: :class:`str` | ``None``
+                First key such that ``x.defns[key]['Type']`` matches *KeyType*
+        :Versions:
+            * 2018-04-13 ``@ddalle``: First version
+        """
+        # Loop through keys
+        for k in self.keys:
+            # Get the type
+            typ = self.defns[k].get("Type", "value")
+            # Check for a match
+            if typ == KeyType:
+                return k
+        # No match
+        return None
         
     # Get keys by type of its value
     def GetKeysByValue(self, val):
@@ -877,12 +906,12 @@ class Trajectory:
             # Output the key
             return key
     
-   # >
+  # >
     
-   # ============
-   # Folder Names
-   # ============
-   # <
+  # ============
+  # Folder Names
+  # ============
+  # <
     # Function to assemble a folder name based on a list of keys and an index
     def _AssembleName(self, keys, prefix, i):
         """
@@ -1199,12 +1228,12 @@ class Trajectory:
             # Return the whole list
             return dlist
     
-   # >
-    
-   # =======
-   # Filters
-   # =======
-   # <
+  # >
+   
+  # =======
+  # Filters
+  # =======
+  # <
     # Function to filter cases
     def Filter(self, cons, I=None):
         """Filter cases according to a set of constraints
@@ -1504,12 +1533,12 @@ class Trajectory:
         # Output
         return I
     
-   # >
-    
-   # ==================
-   # Trajectory Subsets
-   # ==================
-   # <
+  # >
+   
+  # ==================
+  # Trajectory Subsets
+  # ==================
+  # <
     # Function to get sweep based on constraints
     def GetSweep(self, M, **kw):
         """
@@ -1964,115 +1993,16 @@ class Trajectory:
         # Output
         return J
     
-   # >
-    
-   # =================
-   # Flight Conditions
-   # =================
-   # <
-    # Get Reynolds number
-    def GetReynoldsNumber(self, i=None):
-        """Get Reynolds number (per foot)
-        
-        :Call:
-            >>> Re = x.GetReynoldsNumber(i=None)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Run matrix interface
-            *i*: {``None``} | :class:`int` | :class:`list`
-                Case number(s)
-        :Outputs:
-            *Re*: :class:`float`
-                Reynolds number [1/inch | 1/ft]
-        :Versions:
-            * 2016-03-23 ``@ddalle``: First version
-            * 2017-07-19 ``@ddalle``: Added default conditions
-        """
-        # Default list
-        if i is None:
-            i = np.arange(self.nCase)
-        # Process the key types.
-        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-        # Check for Reynolds number
-        if 'Re' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('Re')[0]
-            # Set the value.
-            return getattr(self,k)[i]
-        # If reached here, we need 'T' and "Mach' at least
-        if 'Mach' not in KeyTypes:
-            return None
-        elif 'T' not in KeyTypes:
-            return None
-        # Get temperature and Mach keys
-        kM = self.GetKeysByType('Mach')[0]
-        kT = self.GetKeysByType('T')[0]
-        # Get temperature and Mach values
-        M = getattr(self,kM)[i]
-        T = getattr(self,kT)[i]
-        # Get units
-        u = self.defns[kT].get('Units', 'fps')
-        # Check for pressure specifier
-        if 'p' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('p')[0]
-            # Get the pressure
-            p = getattr(self,k)[i]
-            # Calculate Reynolds number
-            if u.lower() in ['fps', 'r']:
-                # Imperial units
-                return convert.ReynoldsPerFoot(p, T, M)/12
-            else:
-                # MKS units
-                return convert.ReynoldsPerMeter(p, T, M)
-        elif 'q' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('q')[0]
-            # Get the dynamic pressure
-            q = getattr(self,k)[i]
-            # Calculate static pressure
-            p = q / (0.7*M*M)
-            # Calculate Reynolds number
-            if u.lower() in ['fps', 'r']:
-                # Imperial units
-                return convert.ReynoldsPerFoot(p, T, M)/12
-            else:
-                # MKS units
-                return convert.ReynoldsPerMeter(p, T, M)
-        # If we reach here, missing info.
-        return None
-        
-    # Get Mach number
-    def GetMach(self, i=None):
-        """Get Mach number
-        
-        :Call:
-            >>> M = x.GetMach(i)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Run matrix interface
-            *i*: :class:`int`
-                Case number
-        :Outputs:
-            *M*: :class:`float`
-                Mach number
-        :Versions:
-            * 2016-03-24 ``@ddalle``: First version
-        """
-        # Default list
-        if i is None:
-            i = np.arange(self.nCase)
-        # Process the key types
-        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-        # Check for temperature
-        if 'Mach' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('Mach')[0]
-            # Return the value
-            return getattr(self,k)[i]
-        # If we reach this point... not doing this conversion
-        return None
-        
+  # >
+   
+  # =================
+  # Flight Conditions
+  # =================
+  # <
+   # ---------
+   # Angles
+   # ---------
+   # [
     # Get angle of attack
     def GetAlpha(self, i=None):
         """Get the angle of attack
@@ -2416,9 +2346,167 @@ class Trajectory:
             return av
         # no info
         return None
+   # ]
+   
+   # -------------------------
+   # Dimensionless Parameters
+   # -------------------------
+   # [
+    # Get Reynolds number
+    def GetReynoldsNumber(self, i=None):
+        """Get Reynolds number (per foot)
         
+        :Call:
+            >>> Re = x.GetReynoldsNumber(i=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int` | :class:`list`
+                Case number(s)
+        :Outputs:
+            *Re*: :class:`float`
+                Reynolds number [1/inch | 1/ft]
+        :Versions:
+            * 2016-03-23 ``@ddalle``: First version
+            * 2017-07-19 ``@ddalle``: Added default conditions
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Process the key types.
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for Reynolds number
+        if 'Re' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('Re')[0]
+            # Set the value.
+            return getattr(self,k)[i]
+        # If reached here, we need 'T' and "Mach' at least
+        if 'Mach' not in KeyTypes:
+            return None
+        elif 'T' not in KeyTypes:
+            return None
+        # Get temperature and Mach keys
+        kM = self.GetKeysByType('Mach')[0]
+        kT = self.GetKeysByType('T')[0]
+        # Get temperature and Mach values
+        M = getattr(self,kM)[i]
+        T = getattr(self,kT)[i]
+        # Get units
+        u = self.defns[kT].get('Units', 'fps')
+        # Check for pressure specifier
+        if 'p' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('p')[0]
+            # Get the pressure
+            p = getattr(self,k)[i]
+            # Calculate Reynolds number
+            if u.lower() in ['fps', 'r']:
+                # Imperial units
+                return convert.ReynoldsPerFoot(p, T, M)/12
+            else:
+                # MKS units
+                return convert.ReynoldsPerMeter(p, T, M)
+        elif 'q' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('q')[0]
+            # Get the dynamic pressure
+            q = getattr(self,k)[i]
+            # Calculate static pressure
+            p = q / (0.7*M*M)
+            # Calculate Reynolds number
+            if u.lower() in ['fps', 'r']:
+                # Imperial units
+                return convert.ReynoldsPerFoot(p, T, M)/12
+            else:
+                # MKS units
+                return convert.ReynoldsPerMeter(p, T, M)
+        # If we reach here, missing info.
+        return None
+        
+    # Get Mach number
+    def GetMach(self, i=None):
+        """Get Mach number
+        
+        :Call:
+            >>> M = x.GetMach(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *M*: :class:`float`
+                Mach number
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Search for key
+        k = self.GetFirstKeyByType("Mach")
+        # Check if found
+        if k is not None:
+            # Return the value
+            return getattr(self,k)[i]
+        # If we reach this point... no conversion figured out
+        return None
+   # ]
+   
+   # -------------
+   # Utilities
+   # -------------
+   # [
+    # Get unitized value
+    def GetKeyValue(self, k, i=None, units=None, udef="1"):
+        """Get the value of one key with appropriate dimensionalization
+        
+        :Call:
+            >>> v = x.GetKeyValue(k, i=None, units=None, udef="1")
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *k*: :class:`str`
+                Name of run matrix variable (trajectory key)
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | ``"mks"`` | :class:`str`
+                Output units
+        :Outputs:
+            *v*: :class:`float`
+                Value of key *k* for case *i* in units of *units*
+        :Versions:
+            * 2018-04-13 ``@ddalle``: First version
+        """
+        # Check if key exists
+        if k not in self.keys:
+            raise KeyError("No trajectory key called '%s'" % k)
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Get value of the variable for case(s) *i*
+        v = getattr(self,k)[i]
+        # Get the units
+        u = self.defns[k].get("Units", udef)
+        # Check units
+        if units is None:
+            # No conversion
+            return v
+        elif units.lower() == "mks":
+            # Convert input units to MKS
+            return v * mks(u)
+        else:
+            # Convert to requested units
+            return v * mks(u)/mks(units)
+   # ]
+   
+   # ----------------
+   # State Variables
+   # ----------------
+   # [
     # Get freestream temperature
-    def GetTemperature(self, i=None):
+    def GetTemperature(self, i=None, units=None):
         """Get static freestream temperature
         
         :Call:
@@ -2428,25 +2516,26 @@ class Trajectory:
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
+            *units*: {``None``} | ``"mks"`` | ``"F"`` | ``"R"``
+                Output units
         :Outputs:
             *T*: :class:`float`
                 Static temperature [R | K]
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
             * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
+            * 2018-04-13 ``@ddalle``: Units
         """
         # Default list
         if i is None:
             i = np.arange(self.nCase)
-        # Process the key types
-        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-        # Check for temperature
-        if 'T' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('T')[0]
-            # Return the value
-            return getattr(self,k)[i]
-        # If we reach this point... not doing this conversion
+        # Search for temperature key
+        k = self.GetFirstKeyByType('T')
+        # Check for temperature key hit
+        if k is not None:
+            # Get appropriately unitized value
+            return self.GetKeyValue(k, i, units=units, udef="K")
+        # If we reach this point... not trying other conversions
         return None
         
     # Get freestream stagnation temperature
@@ -2549,11 +2638,11 @@ class Trajectory:
                 Run matrix interface
             *i*: {``None``} | :class:`int` | :class:`list`
                 Case number(s)
-            *units*: {``None``} | ``"psf"`` | ``"mks"`` | :class:`str`
+            *units*: {``None``} | ``"mks"`` | :class:`str`
                 Output units
         :Outputs:
             *q*: :class:`float`
-                Dynamic pressure [psf | Pa]
+                Dynamic pressure [psf | Pa | *units*]
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
             * 2017-07-20 ``@ddalle``: Added default cases
@@ -2567,6 +2656,20 @@ class Trajectory:
         if 'q' in KeyTypes:
             # Find the key.
             k = self.GetKeysByType('q')[0]
+            # Get value
+            q = getattr(self,k)[i]
+            # Units
+            u = self.defns[k].get("Units", "Pa")
+            # Check for output units
+            if units is None:
+                # No conversion
+                return q
+            elif units.lower() == "mks":
+                # Return output in mks units
+                return q*mks(u)
+            else:
+                # Output in requested units
+                return q*mks(u)/mks(units)
             # Output
             return getattr(self,k)[i]
         # If we reach this point, we need at least Mach and temperature
@@ -2667,12 +2770,12 @@ class Trajectory:
             # Default value
             return 1.4
     
-   # >
-    
-   # ===========
-   # SurfBC Keys
-   # ===========
-   # <
+  # >
+   
+  # ===========
+  # SurfBC Keys
+  # ===========
+  # <
     # Get generic input for SurfBC key
     def GetSurfBC_ParamType(self, key, k, comp=None):
         """Get generic parameter value and type for a surface BC key
@@ -3944,5 +4047,5 @@ class Trajectory:
         # Process
         return self.GetSurfBC_Val(i, key, v, t)
     
-   # >
+  # >
 # class Trajectory
