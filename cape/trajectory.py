@@ -153,6 +153,8 @@ class Trajectory:
         # List of PASS and ERROR markers
         self.PASS = []
         self.ERROR = []
+        # Save freestream state
+        self.gas = kwargs.get("Freestream", {})
         # Process the key definitions.
         self.ProcessKeyDefinitions(defns)
         # Read the file.
@@ -223,6 +225,17 @@ class Trajectory:
         
     # Function to display things
     def __repr__(self):
+        """
+        Return the string representation of a trajectory.
+        
+        This looks like ``<cape.Trajectory(nCase=N, keys=['Mach','alpha'])>``
+        """
+        # Return a string.
+        return '<cape.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
+            self.keys)
+        
+    # Function to display things
+    def __str__(self):
         """
         Return the string representation of a trajectory.
         
@@ -2454,6 +2467,33 @@ class Trajectory:
         return None
    # ]
    
+   # ----------------
+   # Gas Description
+   # ----------------
+   # [
+    # Get parameter from freestream state
+    def GetGasProperty(self, k, vdef=None):
+        """Get property from the ``"Freestream"`` section
+        
+        :Call:
+            >>> v = x.GetGasProperty(k, vdef=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *k*: :class:`str`
+                Name of parameter
+            *vdef*: {``None``} | :class:`any`
+                Default value for the parameter
+        :Outputs:
+            *v*: :class:`float` | :class:`str` | :class:`any`
+                Value of the 
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Get the parameter
+        return self.gas.get(k, vdef)
+   # ]
+   
    # -------------
    # Utilities
    # -------------
@@ -2650,32 +2690,57 @@ class Trajectory:
         # Default list
         if i is None:
             i = np.arange(self.nCase)
-        # Process the key types
-        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for dynamic pressure key
+        kq = self.GetFirstKeyByType('q')
         # Check for dynamic pressure
-        if 'q' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('q')[0]
-            # Get value
-            q = getattr(self,k)[i]
-            # Units
-            u = self.defns[k].get("Units", "Pa")
-            # Check for output units
-            if units is None:
-                # No conversion
-                return q
-            elif units.lower() == "mks":
-                # Return output in mks units
-                return q*mks(u)
-            else:
-                # Output in requested units
-                return q*mks(u)/mks(units)
-            # Output
-            return getattr(self,k)[i]
-        # If we reach this point, we need at least Mach and temperature
-        # Get temperature and Mach keys
-        kM = self.GetKeysByType('Mach')[0]
-        kT = self.GetKeysByType('T')[0]
+        if kq is not None:
+            # Get value directly
+            return self.GetKeyValue(k, i, units=units, udef="psf")
+        # If we reach this point, we need two other parameters
+        kM = self.GetFirstKeyByType("Mach")
+        kT = self.GetFirstKeyByType("T")
+        kV = self.GetFirstKeyByType("V")
+        kp = self.GetFirstKeyByType("p")
+        kr = self.GetFirstKeyByType("rho")
+        kR = self.GetFirstKeyByType("Re")
+        # Get the ratio of specific heats in case we need to use it
+        gam = self.GetGamma(i)
+        # Search for a combination of parameters we can interpret
+        if kV and kr:
+            # Density and velocity; easy
+            rho = self.GetKeyValue(kr, i)
+            V   = self.GetKeyValue(kV, i)
+            # Calculate dynamic pressure
+            q = 0.5*rho*V*V
+        elif kM and kp:
+            # Pressure and Mach
+            rho = self.GetKeyValue(kr, i)
+            M   = self.GetKeyValue(kM, i)
+            # Calculate dynamic pressure
+            q = 0.5*gam*p*M*M
+        elif kM and kr and kT:
+            # Density and Mach (and temperature to get speed)
+            rho = self.GetKeyValue(kr, i)
+            M   = self.GetKeyValue(kM, i)
+            T   = self.GetKeyValue(kT, i)
+            # Get gas constant
+            R = self.GetNormalizedGasConstant(i)
+            # Sound speed
+            a = np.sqrt(gam*R*T)
+            # Velocity
+            V = a*M
+            # Dynamic pressure
+            q = 0.5*rho*V*V
+            
+        # Output with units
+        if units is None:
+            # No conversion
+            return q
+        else:
+            # Apply expected units
+            return q / mks("units")
+            
+            
         # Get temperature and Mach values
         M = getattr(self,kM)[i]
         T = getattr(self,kT)[i]
@@ -2736,7 +2801,12 @@ class Trajectory:
         g3 = g/(g-1)
         # Calculate stagnation pressure
         return p * (1+g2*M*M)**g3
-        
+   # ]
+   
+   # -------------------------
+   # Thermodynamic Properties
+   # -------------------------
+   # [
     # Get ratio of specific heats
     def GetGamma(self, i=None):
         """Get freestream ratio of specific heats
@@ -2758,18 +2828,16 @@ class Trajectory:
         # Default list
         if i is None:
             i = np.arange(self.nCase)
-        # Process the key types
-        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-        # Check for ratio of specific heats
-        if 'gamma' in KeyTypes:
-            # Find the key
-            k = self.GetKeysByType('gamma')[0]
-            # Use the value of that key
-            return getattr(self,k)[i]
+        # Attempt to find a special key
+        kg = self.GetFirstKeyByType('gamma')
+        # Check for a matching key
+        if kg is None:
+            # Get value from the gas definition
+            return self.gas.get("Gamma", 1.4)
         else:
-            # Default value
-            return 1.4
-    
+            # Use the trajectory value
+            return getattr(self,k)[i]
+   # ]
   # >
    
   # ===========
