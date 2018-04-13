@@ -2572,6 +2572,161 @@ class Trajectory:
    # State Variables
    # ----------------
    # [
+   
+    # Get freestream density
+    def GetDensity(self, i=None, units=None):
+        """Get freestream density
+        :Call:
+            >>> rho = x.GetDensity(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | ``"mks"`` | ``"F"`` | ``"R"``
+                Output units
+        :Outputs:
+            *r*: :class:`float`
+                freestream density [ ]
+        :Versions:
+            * 2018-04-13 ``@jmeeroff``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Check for dynamic pressure key
+        kr = self.GetFirstKeyByType('rho')
+        # Check for dynamic pressure
+        if kr is not None:
+            # Get value directly
+            return self.GetKeyValue(kr, i)
+        # If we reach this point, we need two other parameters
+        kM = self.GetFirstKeyByType("Mach")
+        kT = self.GetFirstKeyByType("T")
+        kV = self.GetFirstKeyByType("V")
+        kp = self.GetFirstKeyByType("p")
+        kq = self.GetFirstKeyByType("q")
+        kR = self.GetFirstKeyByType("Re")
+        # Get the ratio of specific heats in case we need to use it
+        gam = self.GetGamma(i)
+        # Search for a combination of parameters we can interpret
+        if kV and kq:
+            # Dynamic pressure and velocity
+            q   = self.GetKeyValue(kq, i)
+            V   = self.GetKeyValue(kV, i)
+            # Calculate density
+            rho = 2*q*(1/V)*(1/V)  
+        elif kT and kp:
+            # Pressure and Temperature (ideal gas law)
+            p   = self.GetKeyValue(kp, i)
+            T   = self.GetKeyValue(kT, i)
+            # Get gas constant R
+            R = self.GetNormalizedGasConstant(i)
+            # Calculate density
+            rho = p*(1/T)*(1/R)
+        elif kq and KM and KT:
+            # dynamic pressure and mach number (with Temperature)
+            q   = self.GetKeyValue(kq, i)
+            M   = self.GetKeyValue(kM, i)
+            T   = self.GetKeyValue(kT, i)
+            # Get gas constant
+            R = self.GetNormalizedGasConstant(i)
+            # Sound speed
+            a = np.sqrt(gam*R*T)
+            # Velocity
+            V = a*M
+            # Dynamic pressure
+            rho = 2*q*(1/V)*(1/V)          
+       
+        # Output with units
+        if units is None:
+            # No conversion
+            return rho
+        else:
+            # Apply expected units
+            return rho / mks("units")
+            
+        # If we reach this point... not trying other conversions
+        return None
+        
+    # Get velocity
+    def GetVelocity(self, i=None, units=None):
+        """Get velocity
+        :Call:
+            >>> V = x.GetVelocity(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | ``"mks"`` | ``"F"`` | ``"R"``
+                Output units
+        :Outputs:
+            *r*: :class:`float`
+                velocity [ mps | fps ]
+        :Versions:
+            * 2018-04-13 ``@jmeeroff``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Check for dynamic pressure key
+        kV = self.GetFirstKeyByType('V')
+        # Check for dynamic pressure
+        if kV is not None:
+            # Get value directly
+            return self.GetKeyValue(kr, i)
+        # If we reach this point, we need two other parameters
+        kM = self.GetFirstKeyByType("Mach")
+        kT = self.GetFirstKeyByType("T")
+        kr = self.GetFirstKeyByType("rho")
+        kp = self.GetFirstKeyByType("p")
+        kq = self.GetFirstKeyByType("q")
+        kR = self.GetFirstKeyByType("Re")
+        # Get the ratio of specific heats in case we need to use it
+        gam = self.GetGamma(i)
+        # Search for a combination of parameters we can interpret
+        if kV and kq:
+            # Mach number and Temperature
+            M   = self.GetKeyValue(kM, i)
+            T   = self.GetKeyValue(kT, i)
+            # Get gas constant
+            R = self.GetNormalizedGasConstant(i)
+            # Sound speed
+            a = np.sqrt(gam*R*T)
+            # Calculate velocity
+            V = M * a  
+        elif kr and kq:
+            # Density and dynamic pressure
+            r   = self.GetKeyValue(kr, i)
+            q   = self.GetKeyValue(kq, i)
+            # Calculate velocity
+            V = np.sqrt(2*q/r)
+        elif kM and kp and kr:
+            # Mach number, pressure, and density
+            M   = self.GetKeyValue(kM, i)
+            p   = self.GetKeyValue(kp, i)
+            r   = self.GetKeyValue(kr, i)
+            # gas constant
+            R = self.GetNormalizedGasConstant(i)
+            # speed of sound
+            a = np.sqrt(gam*p/r)
+            # Calculate velocity
+            V = M * a  
+
+        # Output with units
+        if units is None:
+            # No conversion
+            return V
+        else:
+            # Apply expected units
+            return V / mks("units")
+            
+        # If we reach this point... not trying other conversions
+        return None        
+        
+        
+        
     # Get freestream temperature
     def GetTemperature(self, i=None, units=None):
         """Get static freestream temperature
@@ -2743,7 +2898,7 @@ class Trajectory:
             q = 0.5*rho*V*V
         elif kM and kp:
             # Pressure and Mach
-            rho = self.GetKeyValue(kr, i)
+            p   = self.GetKeyValue(kp, i)
             M   = self.GetKeyValue(kM, i)
             # Calculate dynamic pressure
             q = 0.5*gam*p*M*M
