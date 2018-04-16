@@ -2639,7 +2639,7 @@ class Trajectory(object):
             q   = self.GetKeyValue(kq, i)
             V   = self.GetKeyValue(kV, i)
             # Calculate density
-            rho = 2*q*(1/V)*(1/V)  
+            rho = 2 * q * (1/V) * (1/V)  
         elif kT and kp:
             # Pressure and Temperature (ideal gas law)
             p   = self.GetKeyValue(kp, i)
@@ -2647,7 +2647,7 @@ class Trajectory(object):
             # Get gas constant R
             R = self.GetNormalizedGasConstant(i)
             # Calculate density
-            rho = p*(1/T)*(1/R)
+            rho = p * (1/T) * (1/R)
         elif kq and kM and kT:
             # dynamic pressure and mach number (with Temperature)
             q   = self.GetKeyValue(kq, i)
@@ -2660,7 +2660,7 @@ class Trajectory(object):
             # Velocity
             V = a*M
             # Dynamic pressure
-            rho = 2*q*(1/V)*(1/V)
+            rho = 2 * q * (1/V) * (1/V)
         elif kR and kV:
             #Reynolds number and velocity
             Re  = self.GetKeyValue(kR, i)
