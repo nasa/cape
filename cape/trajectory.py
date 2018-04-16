@@ -2753,10 +2753,19 @@ class Trajectory:
             i = np.arange(self.nCase)
         # Search for temperature key
         k = self.GetFirstKeyByType('T')
+        # Check unit system
+        us = self.gas.get("UnitSystem", "fps").lower()
+        # Check default units based on input
+        if us == "mks":
+            # MKS: Kelvins
+            udef = "K"
+        else:
+            # FPS: degrees Rankine
+            udef = "R"
         # Check for temperature key hit
         if k is not None:
             # Get appropriately unitized value
-            return self.GetKeyValue(k, i, units=units, udef="K")
+            return self.GetKeyValue(k, i, units=units, udef=udef)
         # If we reach this point... not trying other conversions
         return None
         
@@ -2974,22 +2983,29 @@ class Trajectory:
             i = np.arange(self.nCase)
         # Check for dynamic pressure key
         k = self.GetFirstKeyByType('mu')
+        # Check default units based on input
+        if us == "mks":
+            # MKS: Kelvins
+            udef = "kg/m/s"
+        else:
+            # FPS: degrees Rankine
+            udef = "lbm/ft/s"
         # Check for dynamic pressure
         if k is not None:
             # Get value directly
-            return self.GetKeyValue(k, i, units=units, udef="kg/m/s")
+            return self.GetKeyValue(k, i, units=units, udef=udef)
         # Get temperature
-        T = self.GetTemperature(i)
+        T = self.GetTemperature(i, units="K")
         # Reference parameters
-        mu0 = self.GetSutherland_mu0(i)
-        T0  = self.GetSutherland_T0(i)
-        C   = self.GetSutherland_C(i)
+        mu0 = self.GetSutherland_mu0(i, units="kg/m/s")
+        T0  = self.GetSutherland_T0(i, units="K")
+        C   = self.GetSutherland_C(i, units="K")
         # Sutherland's law
         mu = convert.SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
         # Check for units
         if units is None:
             # No conversion
-            return mu
+            return mu / mks(udef)
         else:
             # Convert to requested units
             return mu / mks(units)
