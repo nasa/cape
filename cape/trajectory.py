@@ -85,7 +85,7 @@ from .units import mks
 
 
 # Trajectory class
-class Trajectory:
+class Trajectory(object):
     """
     Read a list of configuration variables
     
@@ -573,6 +573,16 @@ class Trajectory:
                     "Format": "%s",
                     "Label": False,
                     "Abbreviation": "q"
+                }
+            elif key in ['U', 'V']:
+                # Freestream speed
+                defkey = {
+                    "Group": False,
+                    "Type": "V",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Label": False,
+                    "Abbreviation": "V"
                 }
             elif key.lower() in ['gamma']:
                 # Freestream ratio of specific heats
@@ -2389,11 +2399,20 @@ class Trajectory:
         if i is None:
             i = np.arange(self.nCase)
         # Check for Reynolds number key
-        kR = self.GetFirstKeyByType("Re")
+        k = self.GetFirstKeyByType("Re")
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
+        # Check default units based on input
+        if us == "mks":
+            # MKS: 1/m in general
+            udef = "1/m"
+        else:
+            # FPS: 1/inch ... watch out for 1/ft
+            udef = "1/inch"
         # Check for Reynolds number key
-        if kR is not None:
+        if k is not None:
             # Get value directly
-            return self.GetKeyValue(k, i, units=units)
+            return self.GetKeyValue(k, i, udef=udef, units=units)
         # Get parameters that could be used
         kM = self.GetFirstKeyByType("Mach")
         kT = self.GetFirstKeyByType("T")
@@ -2402,17 +2421,17 @@ class Trajectory:
         # Likely to need *gamma*
         gam = self.GetGamma(i)
         # Likely to need gas constant
-        R = self.GetNormalizedGasConstant(i)
+        R = self.GetNormalizedGasConstant(i, units="m^2/s^2/K")
         # Consider cases
         if kM and kT and kq:
             # Get values
             M = self.GetMach(i)
-            T = self.GetTemperature(i)
-            q = self.GetDynamicPressure(i)
+            T = self.GetTemperature(i, units="K")
+            q = self.GetDynamicPressure(i, units="Pa")
             # Calculate static pressure
             p = q / (0.5*gam*M*M)
             # Get viscosity
-            mu = self.GetViscosity(i)
+            mu = self.GetViscosity(i, units="kg/m/s")
             # Get dimensional speed
             U = M*np.sqrt(gam*R*T)
             # Get density
@@ -2436,7 +2455,12 @@ class Trajectory:
             # Unprocessed
             return None
         # Reduce by requested units
-        return Re / mks(units)
+        if units is None:
+            # Use default inputs
+            return Re / mks(udef)
+        else:
+            # Requested units
+            return Re / mks(units)
         
         
         
@@ -2909,10 +2933,19 @@ class Trajectory:
             i = np.arange(self.nCase)
         # Check for dynamic pressure key
         kq = self.GetFirstKeyByType('q')
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
+        # Check default units based on input
+        if us == "mks":
+            # MKS: N/m^2 ... kg/(m*s)
+            udef = "Pa"
+        else:
+            # FPS: lbf/ft^2
+            udef = "psf"
         # Check for dynamic pressure
         if kq is not None:
             # Get value directly
-            return self.GetKeyValue(kq, i, units=units, udef="psf")
+            return self.GetKeyValue(kq, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
         kM = self.GetFirstKeyByType("Mach")
         kT = self.GetFirstKeyByType("T")
@@ -3009,6 +3042,8 @@ class Trajectory:
             i = np.arange(self.nCase)
         # Check for dynamic pressure key
         k = self.GetFirstKeyByType('mu')
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
         # Check default units based on input
         if us == "mks":
             # MKS: Kelvins
@@ -3250,15 +3285,30 @@ class Trajectory:
         # Default list
         if i is None:
             i = np.arange(self.nCase)
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
+        # Check default units based on input
+        if us == "mks":
+            # MKS kg/m/s
+            udef = "kg/m/s"
+        else:
+            # FPS: ... maybe slug/ft/s instead of expected lbm/ft/s
+            udef = "slug/ft/s"
+        # Check for override on units
+        udef = self.gas.get("Sutherland_mu0_Units", udef)
+        # Conversion factor
+        cdef = mks(udef)
+        # Default value
+        mudef = 1.716e-5 / cdef
         # Get value from freestream state
-        mu0 = self.gas.get("Sutherland_mu0", 1.716e-5)
+        mu0 = self.gas.get("Sutherland_mu0", mudef)
         # Check for units
         if units is None:
             # No conversion
             return mu0
         else:
             # Reduce by requested units
-            return mu0 / mks(units)
+            return mu0 * cdef / mks(units)
     
     # Sutherland's law reference temperature
     def GetSutherland_T0(self, i=None, units=None):
@@ -3282,15 +3332,28 @@ class Trajectory:
         # Default list
         if i is None:
             i = np.arange(self.nCase)
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
+        # Check default units based on input
+        if us == "mks":
+            udef = "K"
+        else:
+            udef = "R"
+        # Check for units
+        udef = self.gas.get("Sutherland_T0_Units", udef)
+        # Conversion factor
+        cdef = mks(udef)
+        # Default temperature
+        Tdef = 273.15 / cdef
         # Get value from freestream state
-        T0 = self.gas.get("Sutherland_T0", 273.15)
+        T0 = self.gas.get("Sutherland_T0", Tdef)
         # Check for units
         if units is None:
             # No conversion
             return T0
         else:
             # Reduce by requested units
-            return T0 / mks(units)
+            return T0 * cdef / mks(units)
     
     # Sutherland's law reference temperature
     def GetSutherland_C(self, i=None, units=None):
@@ -3314,15 +3377,28 @@ class Trajectory:
         # Default list
         if i is None:
             i = np.arange(self.nCase)
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
+        # Check default units based on input
+        if us == "mks":
+            udef = "K"
+        else:
+            udef = "R"
+        # Check for units
+        udef = self.gas.get("Sutherland_C_Units", udef)
+        # Conversion factor
+        cdef = mks(udef)
+        # Default temperature
+        Cdef = 110.33333 / cdef
         # Get value from freestream state
-        C = self.gas.get("Sutherland_C", 273.15)
+        C = self.gas.get("Sutherland_C", Cdef)
         # Check for units
         if units is None:
             # No conversion
             return C
         else:
             # Reduce by requested units
-            return C / mks(units)
+            return C * cdef / mks(units)
     
    # ]
   # >
