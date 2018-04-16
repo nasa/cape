@@ -2636,8 +2636,28 @@ class Trajectory:
             # Velocity
             V = a*M
             # Dynamic pressure
-            rho = 2*q*(1/V)*(1/V)          
-       
+            rho = 2*q*(1/V)*(1/V)
+        elif kR and kV:
+            #Reynolds number and velocity
+            Re  = self.GetKeyValue(kR, i)
+            U   = self.GetKeyValue(kV, i)
+            #get viscocity
+            mu = self.GetViscosity(i)
+            #solve for density
+            rho = Re * mu * (1/U)
+        elif kR and kM and kT:
+            #Reynolds number and mach number (with temp)
+            Re  = self.GetKeyValue(kR, i)
+            M   = self.GetKeyValue(kM, i)
+            T   = self.GetKeyValue(kT, i)
+            #speed of sound first
+            a = np.sqrt(gam*R*T)
+            #now velocity
+            U = a*M        
+            #get viscocity
+            mu = self.GetViscosity(i)
+            #solve for density
+            rho = Re * mu * (1/U)
         # Output with units
         if units is None:
             # No conversion
@@ -2645,7 +2665,6 @@ class Trajectory:
         else:
             # Apply expected units
             return rho / mks("units")
-            
         # If we reach this point... not trying other conversions
         return None
         
@@ -2712,8 +2731,15 @@ class Trajectory:
             # speed of sound
             a = np.sqrt(gam*p/r)
             # Calculate velocity
-            U = M * a  
-
+            U = M * a
+        elif kR and kr:
+            #Reynolds number and density
+            r   = self.GetKeyValue(kr, i)
+            Re  = self.GetKeyValue(kR, i)
+            #get viscocity
+            mu = self.GetViscosity(i)
+            #solve for velocity
+            U = Re * mu * (1/r)
         # Output with units
         if units is None:
             # No conversion
