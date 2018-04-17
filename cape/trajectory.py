@@ -2661,59 +2661,58 @@ class Trajectory(object):
         # Search for a combination of parameters we can interpret
         if kV and kq:
             # Dynamic pressure and velocity
-            q = self.GetKeyValue(kq, i, units="Pa")
-            U = self.GetKeyValue(kV, i, units="m/s")
+            q = self.GetDynamicPressure(i, units="Pa")
+            U = self.GetVelocity(i, units="m/s")
             # Calculate density
             rho = 2 * q / (U*U)  
         elif kT and kp:
             # Pressure and Temperature (ideal gas law)
-            p = self.GetKeyValue(kp, i, units="Pa")
-            T = self.GetKeyValue(kT, i, units="K")
+            p = self.GetPressure(i, units="Pa")
+            T = self.GetTemperature(i, units="K")
             # Calculate density
             rho = p / (R*T)
         elif kq and kM and kT:
             # dynamic pressure and mach number (with Temperature)
-            q   = self.GetKeyValue(kq, i)
-            M   = self.GetKeyValue(kM, i)
-            T   = self.GetKeyValue(kT, i)
-            # Get gas constant
-            R = self.GetNormalizedGasConstant(i)
+            M = self.GetMach(i)
+            q = self.GetDynamicPressure(i, units="Pa")
+            T = self.GetTemperature(i, units="K")
             # Sound speed
             a = np.sqrt(gam*R*T)
             # Velocity
-            V = a*M
+            U = a*M
             # Dynamic pressure
-            rho = 2 * q * (1/V) * (1/V)
-        elif kR and kV:
-            #Reynolds number and velocity
-            Re  = self.GetKeyValue(kR, i)
-            U   = self.GetKeyValue(kV, i)
-            #get viscocity
-            mu = self.GetViscosity(i)
-            #solve for density
+            rho = 2 * q / (U*U)
+        elif kR and kV and kT:
+            # Reynolds number and velocity
+            Re = self.GetReynoldsNumber(i, units="1/m")
+            U  = self.GetVelocity(i, units="m/s")
+            # Get viscosity (uses temperature)
+            mu = self.GetViscosity(i, units="kg/m/s")
+            # Solve for density
             rho = Re * mu * (1/U)
         elif kR and kM and kT:
-            #Reynolds number and mach number (with temp)
-            Re  = self.GetKeyValue(kR, i)
-            M   = self.GetKeyValue(kM, i)
-            T   = self.GetKeyValue(kT, i)
+            # Reynolds number and mach number (with temp)
+            M  = self.GetMach(i)
+            Re = self.GetReynoldsNumber(i, units="1/m")
+            T  = self.GetTemperature(i, units="K")
             #speed of sound first
             a = np.sqrt(gam*R*T)
             #now velocity
             U = a*M        
-            #get viscocity
+            # Get viscocity
             mu = self.GetViscosity(i)
-            #solve for density
-            rho = Re * mu * (1/U)
+            # Solve for density
+            rho = Re * mu / U
+        else:
+            # If we reach this point... not trying other conversions
+            return None
         # Output with units
         if units is None:
             # No conversion
-            return rho
+            return rho / mks(udef)
         else:
             # Apply expected units
-            return rho / mks("units")
-        # If we reach this point... not trying other conversions
-        return None
+            return rho / mks(units)
         
     # Get velocity
     def GetVelocity(self, i=None, units=None):
