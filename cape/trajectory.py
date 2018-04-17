@@ -2415,9 +2415,12 @@ class Trajectory(object):
             return self.GetKeyValue(k, i, udef=udef, units=units)
         # Get parameters that could be used
         kM = self.GetFirstKeyByType("Mach")
+        kU = self.GetFirstKeyByType("V")
         kT = self.GetFirstKeyByType("T")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
+        kr = self.GetFirstKeyByType("r")
+        km = self.GetFirstKeyByType("mu")
         # Likely to need *gamma*
         gam = self.GetGamma(i)
         # Likely to need gas constant
@@ -2441,15 +2444,79 @@ class Trajectory(object):
         elif kM and kT and kp:
             # Get values
             M = self.GetMach(i)
-            T = self.GetTemperature(i)
-            p = self.GetPressure(i)
+            T = self.GetTemperature(i, units="K")
+            p = self.GetPressure(i, units="Pa")
             # Get viscosity
-            mu = self.GetViscosity(i)
+            mu = self.GetViscosity(i, units="kg/m/s")
             # Get dimensional speed
             U = M*np.sqrt(gam*R*T)
             # Get density
             rho = p / (R*T)
             # Convert Reynolds number
+            Re = rho*U/mu
+        elif kM and kT and kr:
+            # Get values
+            M   = self.GetMach(i)
+            T   = self.GetTemperature(i, units="K")
+            rho = self.GetDensity(i, units="kg/m^3")
+            # Get viscosity (temperature used here)
+            mu = self.GetViscosity(i, units="kg/m/s")
+            # Get dimensional speed
+            U = M*np.sqrt(gam*R*T)
+            # Calculate Reynolds number
+            Re = rho*U/mu
+        elif kM and kp and kr:
+            # Get values
+            M   = self.GetMach(i)
+            p   = self.GetDensity(i, units="Pa")
+            rho = self.GetDensity(i, units="kg/m^3")
+            # Calculate temperature
+            T = p / (rho*R)
+            # Get viscosity (has to calculate temperature internally)
+            mu = self.GetViscosity(i, units="kg/m/s")
+            # Get dimensional speed
+            U = M*np.sqrt(gam*R*T)
+            # Calculate Reynolds number
+            Re = rho*U/mu
+        elif kU and kT and kq:
+            # Get values
+            U = self.GetVelocity(i, units="m/s")
+            q = self.GetDynamicPressure(i, units="Pa")
+            # Calculate density
+            rho = q / (0.5*U*U)
+            # Get viscosity (uses temperature)
+            mu = self.GetViscosity(i, units="kg/m/s")
+            # Convert Reynolds number
+            Re = rho*U/mu
+        elif kU and kT and kp:
+            # Get values
+            U = self.GetVelocity(i, units="m/s")
+            T = self.GetTemperature(i, units="K")
+            p = self.GetPressure(i, units="Pa")
+            # Get viscosity
+            mu = self.GetViscosity(i, units="kg/m/s")
+            # Get density
+            rho = p / (R*T)
+            # Convert Reynolds number
+            Re = rho*U/mu
+        elif kU and kr and (kT or km):
+            # Get values
+            U   = self.GetVelocity(i, units="m/s")
+            rho = self.GetDensity(i, units="kg/m^3")
+            # Get viscosity (temperature used here)
+            mu = self.GetViscosity(i, units="kg/m/s")
+            # Calculate Reynolds number
+            Re = rho*U/mu
+        elif kU and kp and kr:
+            # Get values
+            U   = self.GetVelocity(i, units="m/s")
+            p   = self.GetPressure(i, units="Pa")
+            rho = self.GetDensity(i, units="kg/m^3")
+            # Calculate temperature
+            T = p / (rho*R)
+            # Get viscosity (temperature calculated internally)
+            mu = self.GetViscosity(i, units="kg/m/s")
+            # Calculate Reynolds number
             Re = rho*U/mu
         else:
             # Unprocessed
@@ -2461,59 +2528,6 @@ class Trajectory(object):
         else:
             # Requested units
             return Re / mks(units)
-        
-        
-        
-        # Process the key types.
-        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-        # Check for Reynolds number
-        if 'Re' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('Re')[0]
-            # Set the value.
-            return getattr(self,k)[i]
-        # If reached here, we need 'T' and "Mach' at least
-        if 'Mach' not in KeyTypes:
-            return None
-        elif 'T' not in KeyTypes:
-            return None
-        # Get temperature and Mach keys
-        kM = self.GetKeysByType('Mach')[0]
-        kT = self.GetKeysByType('T')[0]
-        # Get temperature and Mach values
-        M = getattr(self,kM)[i]
-        T = getattr(self,kT)[i]
-        # Get units
-        u = self.defns[kT].get('Units', 'fps')
-        # Check for pressure specifier
-        if 'p' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('p')[0]
-            # Get the pressure
-            p = getattr(self,k)[i]
-            # Calculate Reynolds number
-            if u.lower() in ['fps', 'r']:
-                # Imperial units
-                return convert.ReynoldsPerFoot(p, T, M)/12
-            else:
-                # MKS units
-                return convert.ReynoldsPerMeter(p, T, M)
-        elif 'q' in KeyTypes:
-            # Find the key.
-            k = self.GetKeysByType('q')[0]
-            # Get the dynamic pressure
-            q = getattr(self,k)[i]
-            # Calculate static pressure
-            p = q / (0.7*M*M)
-            # Calculate Reynolds number
-            if u.lower() in ['fps', 'r']:
-                # Imperial units
-                return convert.ReynoldsPerFoot(p, T, M)/12
-            else:
-                # MKS units
-                return convert.ReynoldsPerMeter(p, T, M)
-        # If we reach here, missing info.
-        return None
         
     # Get Mach number
     def GetMach(self, i=None):
@@ -2620,10 +2634,19 @@ class Trajectory(object):
             i = np.arange(self.nCase)
         # Check for dynamic pressure key
         kr = self.GetFirstKeyByType('rho')
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
+        # Check default units based on input
+        if us == "mks":
+            # MKS: kg/volume
+            udef = "kg/m^3"
+        else:
+            # FPS: use slugs instead of [lbm]?
+            udef = "slug/ft^3"
         # Check for dynamic pressure
         if kr is not None:
             # Get value directly
-            return self.GetKeyValue(kr, i)
+            return self.GetKeyValue(kr, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
         kM = self.GetFirstKeyByType("Mach")
         kT = self.GetFirstKeyByType("T")
@@ -2633,21 +2656,21 @@ class Trajectory(object):
         kR = self.GetFirstKeyByType("Re")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
+        # Get gas constant R
+        R = self.GetNormalizedGasConstant(i, units="m^2/s^2/K")
         # Search for a combination of parameters we can interpret
         if kV and kq:
             # Dynamic pressure and velocity
-            q   = self.GetKeyValue(kq, i)
-            V   = self.GetKeyValue(kV, i)
+            q = self.GetKeyValue(kq, i, units="Pa")
+            U = self.GetKeyValue(kV, i, units="m/s")
             # Calculate density
-            rho = 2 * q * (1/V) * (1/V)  
+            rho = 2 * q / (U*U)  
         elif kT and kp:
             # Pressure and Temperature (ideal gas law)
-            p   = self.GetKeyValue(kp, i)
-            T   = self.GetKeyValue(kT, i)
-            # Get gas constant R
-            R = self.GetNormalizedGasConstant(i)
+            p = self.GetKeyValue(kp, i, units="Pa")
+            T = self.GetKeyValue(kT, i, units="K")
             # Calculate density
-            rho = p * (1/T) * (1/R)
+            rho = p / (R*T)
         elif kq and kM and kT:
             # dynamic pressure and mach number (with Temperature)
             q   = self.GetKeyValue(kq, i)
@@ -2715,10 +2738,17 @@ class Trajectory(object):
             i = np.arange(self.nCase)
         # Check for dynamic pressure key
         kV = self.GetFirstKeyByType('V')
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
+        # Check default units based on input
+        if us == "mks":
+            udef = "m/s"
+        else:
+            udef = "ft/s"
         # Check for dynamic pressure
         if kV is not None:
             # Get value directly
-            return self.GetKeyValue(kV, i)
+            return self.GetKeyValue(kV, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
         kM = self.GetFirstKeyByType("Mach")
         kT = self.GetFirstKeyByType("T")
@@ -2728,53 +2758,50 @@ class Trajectory(object):
         kR = self.GetFirstKeyByType("Re")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
+        # Get gas constant
+        R = self.GetNormalizedGasConstant(i, units="m^2/s^2/K")
         # Search for a combination of parameters we can interpret
         if kM and kT:
             # Mach number and Temperature
-            M   = self.GetKeyValue(kM, i)
-            T   = self.GetKeyValue(kT, i)
-            # Get gas constant
-            R = self.GetNormalizedGasConstant(i)
+            M = self.GetKeyValue(kM, i)
+            T = self.GetKeyValue(kT, i, units="K")
             # Sound speed
             a = np.sqrt(gam*R*T)
             # Calculate velocity
             U = M * a  
         elif kr and kq:
             # Density and dynamic pressure
-            r   = self.GetKeyValue(kr, i)
-            q   = self.GetKeyValue(kq, i)
+            r = self.GetKeyValue(kr, i, units="kg/m^3")
+            q = self.GetKeyValue(kq, i, units="Pa")
             # Calculate velocity
             U = np.sqrt(2*q/r)
         elif kM and kp and kr:
             # Mach number, pressure, and density
-            M   = self.GetKeyValue(kM, i)
-            p   = self.GetKeyValue(kp, i)
-            r   = self.GetKeyValue(kr, i)
-            # gas constant
-            R = self.GetNormalizedGasConstant(i)
+            M = self.GetKeyValue(kM, i)
+            p = self.GetKeyValue(kp, i, units="Pa")
+            r = self.GetKeyValue(kr, i, units="kg/m^3")
             # speed of sound
             a = np.sqrt(gam*p/r)
             # Calculate velocity
             U = M * a
         elif kR and kr:
             #Reynolds number and density
-            r   = self.GetKeyValue(kr, i)
-            Re  = self.GetKeyValue(kR, i)
+            rho = self.GetKeyValue(kr, i, units="kg/m^3")
+            Re  = self.GetKeyValue(kR, i, units="1/m")
             #get viscocity
             mu = self.GetViscosity(i)
             #solve for velocity
-            U = Re * mu * (1/r)
+            U = Re * mu / rho
+        else:
+            # No known method
+            return None
         # Output with units
         if units is None:
             # No conversion
-            return U
+            return U / mks(udef)
         else:
             # Apply expected units
-            return U / mks("units")
-            
-        # If we reach this point... not trying other conversions
-        return None        
-        
+            return U / mks(units)
         
         
     # Get freestream temperature
@@ -2960,32 +2987,32 @@ class Trajectory(object):
         # Search for a combination of parameters we can interpret
         if kV and kr:
             # Density and velocity; easy
-            rho = self.GetKeyValue(kr, i)
-            V   = self.GetKeyValue(kV, i)
+            rho = self.GetKeyValue(kr, i, units="kg/m^3")
+            U   = self.GetKeyValue(kV, i, units="m/s")
             # Calculate dynamic pressure
-            q = 0.5*rho*V*V
+            q = 0.5*rho*U*U
         elif kM and kp:
             # Pressure and Mach
-            p   = self.GetKeyValue(kp, i)
+            p   = self.GetKeyValue(kp, i, units="Pa")
             M   = self.GetKeyValue(kM, i)
             # Calculate dynamic pressure
             q = 0.5*gam*p*M*M
         elif kM and kr and kT:
             # Density and Mach (and temperature to get speed)
-            rho = self.GetKeyValue(kr, i)
             M   = self.GetKeyValue(kM, i)
-            T   = self.GetKeyValue(kT, i)
+            rho = self.GetKeyValue(kr, i, units="kg/m^3")
+            T   = self.GetKeyValue(kT, i, units="K")
             # Sound speed
             a = np.sqrt(gam*R*T)
             # Velocity
-            V = a*M
+            U = a*M
             # Dynamic pressure
-            q = 0.5*rho*V*V
-        elif kV and kp and kT:
+            q = 0.5*rho*U*U
+        elif kU and kp and kT:
             # Pressure, Mach, and temperature
-            p = self.GetKeyValue(kp, i)
             M = self.GetKeyValue(kM, i)
-            V = self.GetKeyValue(kV, i)
+            p = self.GetKeyValue(kp, i, units="Pa")
+            U = self.GetKeyValue(kV, i, units="m/s")
             # Sound speed
             a = np.sqrt(gam*R*T)
             # Mach number
@@ -2994,29 +3021,27 @@ class Trajectory(object):
             q = 0.5*gam*p*M*M
         elif kR and kM and kT:
             # Get Reynolds number, Mach number, and temperature
-            Re = self.GetKeyValue(kR, i)
             M  = self.GetKeyValue(kM, i)
-            T  = self.GetKeyValue(kT, i)
+            Re = self.GetKeyValue(kR, i, units="1/m")
+            T  = self.GetKeyValue(kT, i, units="K")
             # Sound speed
             a = np.sqrt(gam*R*T)
             # Velocity
             U = M*a
             # Viscosity
             mu = self.GetViscosity(i)
-            # Velocity
-            V = M*a
-            # Pressure
-            p = Re*mu*R*T/V
+            # Density
+            rho = Re*mu/U
             # Dynamic pressure
-            q = 0.5*gam*p*M*M
+            q = 0.5*rho*U*U
             
         # Output with units
         if units is None:
             # No conversion
-            return q
+            return q / mks(udef)
         else:
             # Apply expected units
-            return q / mks("units")
+            return q / mks(units)
         
     # Get viscosity
     def GetViscosity(self, i=None, units=None):
@@ -3046,10 +3071,8 @@ class Trajectory(object):
         us = self.gas.get("UnitSystem", "fps")
         # Check default units based on input
         if us == "mks":
-            # MKS: Kelvins
             udef = "kg/m/s"
         else:
-            # FPS: degrees Rankine
             udef = "lbm/ft/s"
         # Check for dynamic pressure
         if k is not None:
@@ -3234,34 +3257,42 @@ class Trajectory(object):
         # Default list
         if i is None:
             i = np.arange(self.nCase)
-        # Attempt to find a special key
-        kW = self.GetFirstKeyByType('MW')
-        # Check for a matching key
-        if kW is None:
-            # Check for molecular weight and gas constant from "Freestream"
-            MW = self.gas.get("MolecularWeight")
-            R  = self.gas.get("GasConstant")
-            Ru = self.gas.get("UniversalGasConstant", 8314.4598)
-            # Check special cases
-            if (MW is None) and (R is None):
-                # Use default gas constant
-                R = 287.00
-            elif R is None:
-                # Infer from molecular weight
-                R = Ru/MW
-            else:
-                # Gas constant is present
-                R = R
+        # Default unit system
+        us = self.gas.get("UnitSystem", "fps")
+        # Check default units based on input
+        if us == "mks":
+            # MKS units for *R*
+            udef = "m^2/s^2/K"
         else:
-            # Get from run matrix
-            R = getattr(self,kR)[i]
+            # FPS units for *R*
+            udef = "ft^2/s^2/R"
+        # Check for override on units
+        udef = self.gas.get("GasConstant_Units", udef)
+        # Conversion factor
+        cdef = mks(udef)
+        # Default value
+        Rdef = 287.00 / cdef
+        # Check for molecular weight and gas constant from "Freestream"
+        MW = self.gas.get("MolecularWeight")
+        R  = self.gas.get("GasConstant")
+        Ru = self.gas.get("UniversalGasConstant", 8314.4598)
+        # Check special cases
+        if (MW is None) and (R is None):
+            # Use default gas constant
+            R = Rdef
+        elif R is None:
+            # Infer from molecular weight
+            R = Ru/MW / cdef
+        else:
+            # Gas constant is present
+            R = R
         # Output with units
         if units is None:
             # No conversion
             return R
         else:
             # Reduce by requested units
-            return R / mks(units)
+            return R * cdef / mks(units)
     
     # Sutherland's law reference viscosity
     def GetSutherland_mu0(self, i=None, units=None):
