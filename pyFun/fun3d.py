@@ -278,7 +278,7 @@ class Fun3d(Cntl):
             return nval
         else:
             # Default to the options
-            return self.opts_get_namelist_var(sec, key, i)
+            return self.opts.get_namelist_var(sec, key, j)
         
     # Get the project rootname
     def GetProjectRootName(self, j=0):
@@ -1185,6 +1185,12 @@ class Fun3d(Cntl):
         self.PrepareFAUXGeom(i)
         # Write list of surfaces to freeze if appropriate
         self.PrepareFreezeSurfs(i)
+        # Copy gas model file
+        self.PrepareTData(i)
+        # Copy species thermodynamics model
+        self.PrepareSpeciesThermoData(i)
+        # Copy kinetic data file
+        self.PrepareKineticData(i)
         # Write a JSON file with
         self.WriteCaseJSON(i)
         # Write the PBS script.
@@ -1215,6 +1221,7 @@ class Fun3d(Cntl):
             * 2014-06-04 ``@ddalle``: First version
             * 2014-06-06 ``@ddalle``: Low-level functionality for grid folders
             * 2014-09-30 ``@ddalle``: Changed to write only a single case
+            * 2018-04-19 ``@ddalle``: Moved flight conditions to new function
         """
         # Read namelist file
         self.ReadNamelist()
@@ -1223,22 +1230,8 @@ class Fun3d(Cntl):
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Set the flight conditions.
-        # Mach number
-        M = x.GetMach(i)
-        if M  is not None: self.Namelist.SetMach(M)
-        # Angle of attack
-        a = x.GetAlpha(i)
-        if a  is not None: self.Namelist.SetAlpha(a)
-        # Sideslip angle
-        b = x.GetBeta(i)
-        if b  is not None: self.Namelist.SetBeta(b)
-        # Reynolds number
-        Re = x.GetReynoldsNumber(i)
-        if Re is not None: self.Namelist.SetReynoldsNumber(Re)
-        # Temperature
-        T = x.GetTemperature(i)
-        if T  is not None: self.Namelist.SetTemperature(T)
+        # Set the flight conditions
+        self.PrepareNamelistFligntConditions(i)
         
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
@@ -1338,6 +1331,76 @@ class Fun3d(Cntl):
                 self.Namelist.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
+        
+    # Prepare freestream conditions
+    def PrepareNamelistFligntConditions(self, i):
+        """Set namelist flight conditions
+        
+        :Call:
+            >>> fun3d.PrepareNamelistFligntConditions(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of FUN3D control class
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2018-04-19 ``@ddalle``: First version
+        """
+        # Get equations type
+        eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
+        # Get temperature units
+        T_units = self.GetNamelistVar(
+            "reference_physical_properties", "temperature_units")
+        # Default temperature units
+        if T_units is None: T_units = "Kelvin"
+        # General code for temperature units [ "K" | "R" ]
+        try:
+            tu = T_units[0].upper()
+        except Exception:
+            raise ValueError("Failed to interpret temperature units [%s]"
+                % T_units)
+        # Check for generic model
+        if eqn_type == "generic":
+            # Set the dimensional conditions
+            self.Namelist.SetVar('reference_physical_properties',
+                'dim_input_type', 'dimensional-SI')
+            # Get properties
+            a   = self.x.GetAlpha(i)
+            b   = self.x.GetBeta(i)
+            rho = self.x.GetDensity(i, units="kg/m^3")
+            T   = self.x.GetTemperature(i, units=tu)
+            V   = self.x.GetVelocity(i, units="m/s")
+            # Angle of attack
+            if a is not None: self.Namelist.SetAlpha(a)
+            # Angle of sideslip
+            if b is not None: self.Namelist.SetBeta(b)
+            # Density
+            if rho is not None: self.Namelist.SetDensity(rho)
+            # Temperature
+            if T is not None: self.Namelist.SetTemperature(T)
+            # Velocity
+            if V is not None: self.Namelist.SetVelocity(V)
+        else:
+            # Set the mostly nondimensional conditions
+            self.Namelist.SetVar('reference_physical_properties',
+                'dim_input_type', 'nondimensional')
+            # Get properties
+            M  = self.x.GetMach(i)
+            a  = self.x.GetAlpha(i)
+            b  = self.x.GetBeta(i)
+            Re = self.x.GetReynoldsNumber(i)
+            T  = self.x.GetTemperature(i, units=tu)
+            # Mach number
+            if M  is not None: self.Namelist.SetMach(M)
+            # Angle of attack
+            if a  is not None: self.Namelist.SetAlpha(a)
+            # Sideslip angle
+            if b  is not None: self.Namelist.SetBeta(b)
+            # Reynolds number
+            if Re is not None: self.Namelist.SetReynoldsNumber(Re)
+            # Temperature
+            if T  is not None: self.Namelist.SetTemperature(T)
+            
             
     # Call function to apply namelist settings for case *i*
     def NamelistFunction(self, i):
@@ -1638,6 +1701,117 @@ class Fun3d(Cntl):
         for fj in fproj:
             # Write the file
             self.WriteFreezeSurfs('%s.freeze' % fj)
+        # Go back to original location
+        os.chdir(fpwd)
+        
+    # Prepare ``tdata`` file if appropriate
+    def PrepareTData(self, i):
+        """Prepare/edit a ``tdata`` input file for a case
+        
+        :Call:
+            >>> fun3d.PrepareTData(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2018-04-19 ``@ddalle``: First version
+        """
+        # Get name of TData file (if any)
+        fname = self.opts.get_TDataFile()
+        # Check if it's present
+        if fname is None:
+            return
+        # Safely go to the home directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run folder and check if it exists
+        frun = self.x.GetFullFolderNames(i)
+        # Check if file is present
+        if not os.path.isfile(fname):
+            os.chdir(fpwd)
+            return
+        # Create directory if necessary
+        if not os.path.isdir(frun): self.mkdir(frun)
+        # Destination file name
+        fout = os.path.join(frun, "tdata")
+        # Copy the file
+        shutil.copy(fname, fout)
+        # Go back to original location
+        os.chdir(fpwd)
+        
+    # Prepare ``speciesthermodata`` file if appropriate
+    def PrepareSpeciesThermoData(self, i):
+        """Prepare/edit a ``speciesthermodata`` input file for a case
+        
+        :Call:
+            >>> fun3d.PrepareSpeciesThermoData(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2018-04-19 ``@ddalle``: First version
+        """
+        # Get name of TData file (if any)
+        fname = self.opts.get_SpeciesThermoDataFile()
+        # Check if it's present
+        if fname is None:
+            return
+        # Safely go to the home directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run folder and check if it exists
+        frun = self.x.GetFullFolderNames(i)
+        # Check if file is present
+        if not os.path.isfile(fname):
+            os.chdir(fpwd)
+            return
+        # Create directory if necessary
+        if not os.path.isdir(frun): self.mkdir(frun)
+        # Destination file
+        fout = os.path.join(frun, "speciesthermodata")
+        # Copy the file
+        shutil.copy(fname, fout)
+        # Go back to original location
+        os.chdir(fpwd)
+        
+    # Prepare ``speciesthermodata`` file if appropriate
+    def PrepareKineticData(self, i):
+        """Prepare/edit a ``kineticdata`` input file for a case
+        
+        :Call:
+            >>> fun3d.PrepareKineticData(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2018-04-19 ``@ddalle``: First version
+        """
+        # Get name of TData file (if any)
+        fname = self.opts.get_KineticDataFile()
+        # Check if it's present
+        if fname is None:
+            return
+        # Safely go to the home directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run folder and check if it exists
+        frun = self.x.GetFullFolderNames(i)
+        # Check if file is present
+        if not os.path.isfile(fname):
+            os.chdir(fpwd)
+            return
+        # Create directory if necessary
+        if not os.path.isdir(frun): self.mkdir(frun)
+        # Destination file
+        fout = os.path.join(frun, "kineticdata")
+        # Copy the file
+        shutil.copy(fname, fout)
         # Go back to original location
         os.chdir(fpwd)
     

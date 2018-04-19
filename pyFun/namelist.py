@@ -241,6 +241,38 @@ class Namelist(cape.namelist.Namelist):
         self.SetVar('reference_physical_properties',
             'temperature_units', units)
         
+    # Set the density
+    def SetDensity(self, rho):
+        """Set the freestream density
+        
+        :Call:
+            >>> nml.SetDensity(rho)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *rho*: :class:`float`
+                Freestream density [kg/m^3]
+        :Versions:
+            * 2018-04-19 ``@ddalle``: First version
+        """
+        self.SetVar('reference_physical_properties', 'density', rho)
+        
+    # Set the velocity
+    def SetVelocity(self, V):
+        """Set the freestream velocity magnitude
+        
+        :Call:
+            >>> nml.SetTemperature(T)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *V*: :class:`float`
+                Magnitude of freestream velocity [m/s]
+        :Versions:
+            * 2018-04-19 ``@ddalle``: First version
+        """
+        self.SetVar('reference_physical_properties', 'velocity', V)
+        
     # Set the temperature
     def SetTemperature(self, T):
         """Set the freestream temperature
