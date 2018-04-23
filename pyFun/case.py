@@ -500,7 +500,10 @@ def GetPhaseNumber(rc):
                 # Purely adaptive; located in this folder
                 fadpt = 'adapt.%02i.out' % i
             # Check for the dual output file
-            if not os.path.isfile(fadpt):
+            qadpt = os.path.isfile(fadpt)
+            # Check for subseqnent phase outputs
+            qnext = len(glob.glob("run.%02i.*" % (i+1))) > 0
+            if not (qadpt or qnext):
                 return i
     # Case completed; just return the last value.
     return i

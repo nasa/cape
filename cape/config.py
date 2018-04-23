@@ -1065,6 +1065,7 @@ class ConfigMIXSUR(object):
         self.faces = {}
         self.comps = []
         self.parents = {}
+        self.refs = []
         # Grid list, for inputs
         self.grids = []
         # Open the file
@@ -1081,19 +1082,32 @@ class ConfigMIXSUR(object):
             self.TINF   = float(V[5])
         except Exception:
             pass
-        # Skip the next line
+        # Read the next line
         V = self.readline(f)
-        # Read reference quantities
-        V = self.readline(f)
-        # Save reference quantities
+        # Get number of reference conditions
         try:
-            self.Lref = float(V[0])
-            self.Aref = float(V[1])
-            self.XMRP = float(V[2])
-            self.YMRP = float(V[3])
-            self.ZMRP = float(V[4])
+            self.NREF = int(V[0])
         except Exception:
-            pass
+            self.NREF = 1
+        # Initialize reference quantities
+        self.Lref = np.zeros(self.NREF)
+        self.Aref = np.zeros(self.NREF)
+        self.XMRP = np.zeros(self.NREF)
+        self.YMRP = np.zeros(self.NREF)
+        self.ZMRP = np.zeros(self.NREF)
+        # Loop through reference lines
+        for i in range(self.NREF):
+            # Read reference quantities
+            V = self.readline(f)
+            # Save reference quantities
+            try:
+                self.Lref[i] = float(V[0])
+                self.Aref[i] = float(V[1])
+                self.XMRP[i] = float(V[2])
+                self.YMRP[i] = float(V[3])
+                self.ZMRP[i] = float(V[4])
+            except Exception:
+                pass
         # Number of components
         V = self.readline(f)
         nsurf = int(V[0])
@@ -1106,10 +1120,17 @@ class ConfigMIXSUR(object):
             V = self.readline(f)
             # Number of subsets
             nsub = int(V[0])
+            # Reference condition number to use
+            try:
+                nref = int(V[1])
+            except Exception:
+                nref = 1
             # Initialize component grid information
             comp = {}
             # Save number of subsets
             comp["NSUBS"] = nsub
+            # Save reference condition index
+            comp["NREF"] = nref
             # Initialize grids
             subs = np.zeros((nsub,8))
             # Loop through subsets
@@ -1160,6 +1181,11 @@ class ConfigMIXSUR(object):
             # Read the number of component IDs 
             V = self.readline(f)
             ni = int(V[0])
+            # Read the reference condition index
+            try:
+                nref = int(V[1])
+            except Exception:
+                nref = 1
             # Read the components
             V = self.readline(f)
             # Determine if this is a single component or group
@@ -1169,6 +1195,8 @@ class ConfigMIXSUR(object):
                 # Check *usurp*
                 # Add to list of components
                 self.comps.append(face)
+                # Save the reference condition
+                self.refs.append(nref)
                 # Add to the map
                 self.Surf2CompID[face] = compID
             else:
