@@ -271,6 +271,7 @@ class Trajectory(object):
         y.PASS   = self.PASS.copy()
         y.ERROR  = self.ERROR.copy()
         y.nCase  = self.nCase
+        y.gas    = self.gas
         # Copy definitions
         for k in self.defns:
             y.defns[k] = dict(self.defns[k])
