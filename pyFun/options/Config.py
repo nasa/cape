@@ -161,7 +161,7 @@ class Config(cape.options.Config):
         return self.get_key('SpeciesThermoDataFile', j)
     
     # Get kinetic data file
-    def get_KinetciDataFile(self, j=None):
+    def get_KineticDataFile(self, j=None):
         """Get the ``kinetic_data`` file, if any
         
         :Call:
