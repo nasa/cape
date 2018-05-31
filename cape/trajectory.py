@@ -19,7 +19,7 @@ number for case number *i* would be ``x.mach[i]``. If the name of the key to
 query is held within a variable *k*, use the following syntax to get the value.
 
     .. code-block:: python
-    
+
         # Name of trajectory key
         k = "alpha"
         # Case number
@@ -31,7 +31,7 @@ Each case has a particular folder name.  To get the name of the folder for case
 *i*, use the syntax
 
     .. code-block:: python
-        
+
         // Group folder name
         x.GetGroupFolderNames(i)
         // Case folder name
@@ -41,13 +41,13 @@ Each case has a particular folder name.  To get the name of the folder for case
 
 The trajectory class also contains several methods for filtering cases.  For
 example, the user may get the list of indices of cases with a Mach number
-greater than 1.0, or the user may restrict to cases containing the text "a1.0". 
+greater than 1.0, or the user may restrict to cases containing the text "a1.0".
 These use the methods :func:`cape.trajectory.Trajectory.Filter` and
 :func:`cape.trajectory.Trajectory.FilterString`, respectively.  Filtering
 examples are shown below.
 
     .. code-block:: python
-    
+
         // Constraints
         I = x.Filter(cons=['mach>=0.5', 'mach<1.0'])
         // Contains exact text
@@ -56,7 +56,7 @@ examples are shown below.
         I = x.FilterWildcard('m?.?a-*')
         // Contains a regular expression
         I = x.FilterRegex('m0\.[5-8]+a')
-        
+
 These methods are all combined in the
 :func:`cape.trajectory.Trajectory.GetIndices` method.  The
 :func:`cape.trajectory.Trajectory.GetSweeps` method provides a capability to
@@ -88,7 +88,7 @@ from .units import mks
 class Trajectory(object):
     """
     Read a list of configuration variables
-    
+
     :Call:
         >>> x = cape.Trajectory(**traj)
         >>> x = cape.Trajectory(File=fname, Keys=keys)
@@ -222,33 +222,33 @@ class Trajectory(object):
                 setattr(self, key, np.array(self.text[key]))
         # Process the groups (conditions in a group can use same grid).
         self.ProcessGroups()
-        
+
     # Function to display things
     def __repr__(self):
         """
         Return the string representation of a trajectory.
-        
+
         This looks like ``<cape.Trajectory(nCase=N, keys=['Mach','alpha'])>``
         """
         # Return a string.
         return '<cape.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
             self.keys)
-        
+
     # Function to display things
     def __str__(self):
         """
         Return the string representation of a trajectory.
-        
+
         This looks like ``<cape.Trajectory(nCase=N, keys=['Mach','alpha'])>``
         """
         # Return a string.
         return '<cape.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
             self.keys)
-        
+
     # Copy the trajectory
     def Copy(self):
         """Return a copy of the trajectory
-        
+
         :Call:
             >>> y = x.Copy()
         :Inputs:
@@ -287,9 +287,9 @@ class Trajectory(object):
         self.ProcessGroups()
         # Output
         return y
-    
+
   # >
-    
+
   # ========
   # File I/O
   # ========
@@ -297,7 +297,7 @@ class Trajectory(object):
     # Function to read a file
     def ReadTrajectoryFile(self, fname):
         """Read trajectory variable values from file
-        
+
         :Call:
             >>> x.ReadTrajectoryFile(fname)
         :Inputs:
@@ -393,11 +393,11 @@ class Trajectory(object):
                     self.text[keys[k]].append(str(v0))
         # Close the file.
         f.close()
-        
+
     # Function to write a JSON file with the trajectory variables.
     def WriteConditionsJSON(self, i, fname="conditions.json"):
         """Write a simple JSON file with exact trajectory variables
-        
+
         :Call:
             >>> x.WriteConditionsJSON(i, fname="conditions.json")
         :Inputs:
@@ -443,7 +443,7 @@ class Trajectory(object):
         # Close the file.
         f.close()
   # >
-    
+
   # ===============
   # Key Definitions
   # ===============
@@ -452,11 +452,11 @@ class Trajectory(object):
     def ProcessKeyDefinitions(self, defns):
         """
         Process definitions for the function of each trajectory variable
-        
+
         Many variables have default definitions, such as ``'Mach'``,
         ``'alpha'``, etc.  For user-defined trajectory keywords, defaults will
         be used for aspects of the definition that are missing from the inputs.
-        
+
         :Call:
             >>> x.ProcessKeyDefinitions(defns)
         :Inputs:
@@ -736,13 +736,13 @@ class Trajectory(object):
             self.defns[key] = optkey
             # Save the abbreviations.
             self.abbrv[key] = optkey.get("Abbreviation", key)
-        
+
     # Process the groups that need separate grids.
     def ProcessGroups(self):
         """
         Split trajectory variables into groups.  A "group" is a set of
         trajectory conditions that can use the same mesh.
-        
+
         :Call:
             >>> x.ProcessGroups()
         :Inputs:
@@ -798,11 +798,11 @@ class Trajectory(object):
         # Save the group index for *all* conditions.
         self.GroupID = np.array(gID)
         return None
-        
+
     # Get all keys by type
     def GetKeysByType(self, KeyType):
         """Get all keys by type
-        
+
         :Call:
             >>> keys = x.GetKeysByType(KeyType)
             >>> keys = x.GetKeysByType(KeyTypes)
@@ -838,11 +838,11 @@ class Trajectory(object):
             U = np.logical_or(U, KT == k)
         # Output.
         return np.array(self.keys)[np.where(U)[0]]
-        
+
     # Get first key by type
     def GetFirstKeyByType(self, KeyType):
         """Get all keys by type
-        
+
         :Call:
             >>> key = x.GetFirstKeyByType(KeyType)
         :Inputs:
@@ -865,11 +865,11 @@ class Trajectory(object):
                 return k
         # No match
         return None
-        
+
     # Get keys by type of its value
     def GetKeysByValue(self, val):
         """Get all keys with specified type of value
-        
+
         :Call:
             >>> keys = x.GetKeysByValue(val)
         :Inputs:
@@ -887,11 +887,11 @@ class Trajectory(object):
         KV = np.array([self.defns[k]['Value'] for k in self.keys])
         # Return matches
         return np.array(self.keys)[KV == val]
-        
+
     # Function to get the group index from the case index
     def GetGroupIndex(self, i):
         """Get group index from case index
-        
+
         :Call:
             k = x.GetGroupIndex(i)
         :Inputs:
@@ -917,14 +917,14 @@ class Trajectory(object):
         j = np.where(grps == grp)[0][0]
         # Output
         return j
-        
+
     # Get name of key based on type
     def GetKeyName(self, typ, key=None):
         """Get name of key by specified type; defaulting to first key with type
-        
+
         A ValueError exception is raised if input key has incorrect type or if
         no keys have that type.
-        
+
         :Call:
             >>> k = x.GetKeyName(typ, key=None)
         :Inputs:
@@ -959,9 +959,9 @@ class Trajectory(object):
                     ("actual type is '%s'" % (self.defns[key]['Type'])))
             # Output the key
             return key
-    
+
   # >
-    
+
   # ============
   # Folder Names
   # ============
@@ -970,7 +970,7 @@ class Trajectory(object):
     def _AssembleName(self, keys, prefix, i):
         """
         Assemble names using common code.
-        
+
         :Call:
             >>> dname = x._AssembleName(keys, prefix, i)
         :Inputs:
@@ -1028,7 +1028,7 @@ class Trajectory(object):
             # This is something like ``'%.2f' % x.alpha[i]``.
             lbl = self.defns[k]["Format"] % getattr(self,k)[i]
             # Append the text in the trajectory file.
-            dname += self.abbrv[k] + lbl 
+            dname += self.abbrv[k] + lbl
         # Check for suffix keys.
         for k in keys:
             # Only look for labels.
@@ -1041,12 +1041,12 @@ class Trajectory(object):
                 dname += (self.abbrv[k] + self.text[k][i])
         # Return the result.
         return dname
-        
-        
+
+
     # Get PBS name
     def GetPBSName(self, i, pre=None):
         """Get PBS name for a given case
-        
+
         :Call:
             >>> lbl = x.GetPBSName(i, pre=None)
         :Inputs:
@@ -1100,26 +1100,26 @@ class Trajectory(object):
             lbl = lbl[:15]
         # Output
         return lbl
-    
+
     # Function to return the full folder names.
     def GetFullFolderNames(self, i=None, prefix=None):
         """
         List full folder names for each of the cases in a trajectory.
-        
+
         The folder names will be of the form
-    
+
             ``Grid/F_m2.0a0.0b-0.5/``
-            
+
         if there are no trajectory keys that require separate grids or
-        
+
             ``Grid_d1.0/F_m2.0a0.0b-0.5/``
-            
+
         if there is a key called ``"delta"`` with abbreviation ``'d'`` that
         requires a separate mesh each time the value of that key changes.  All
         keys in the trajectory file are included in the folder name at one of
         the two levels.  The number of digits used will match the number of
         digits in the trajectory file.
-        
+
         :Call:
             >>> dname = x.GetFullFolderNames()
             >>> dname = x.GetFullFolderNames(i=None, prefix="F")
@@ -1147,26 +1147,26 @@ class Trajectory(object):
         else:
             # Just join the one.
             return os.path.join(glist, flist)
-    
+
     # Function to list directory names
     def GetFolderNames(self, i=None, prefix=None):
         """
         List folder names for each of the cases in a trajectory.
-        
+
         The folder names will be of the form
-    
+
             ``F_m2.0a0.0b-0.5/``
-            
+
         if the prefix is ``'F'``, or
-        
+
             ``m2.0a0.0b-0.5/``
-            
+
         if the prefix is empty.
-            
+
         Trajectory keys that require separate meshes for each value of the key
         will not be part of the folder name.  The number of digits used will
         match the number of digits in the trajectory file.
-        
+
         :Call:
             >>> dname = x.GetFolderNames()
             >>> dname = x.GetFolderNames(i=None, prefix="F")
@@ -1206,12 +1206,12 @@ class Trajectory(object):
                 dlist.append(dname)
         # Return the list.
         return dlist
-        
+
     # Function to get grid folder names
     def GetGroupFolderNames(self, i=None):
         """
         Get names of folders that require separate meshes
-        
+
         :Call:
             >>> x.GetGroupFolderNames()
             >>> x.GetGroupFolderNames(i)
@@ -1228,7 +1228,7 @@ class Trajectory(object):
             * 2014-06-05 ``@ddalle``: First version
         """
         # Check for prefix variables.
-        #if 
+        #if
         # Set the prefix.
         prefix = self.GroupPrefix
         # Process the index list.
@@ -1250,12 +1250,12 @@ class Trajectory(object):
                 dlist.append(dname)
         # Return the list.
         return dlist
-        
+
     # Function to get grid folder names
     def GetUniqueGroupFolderNames(self, i=None):
         """
         Get unique names of folders that require separate meshes
-        
+
         :Call:
             >>> x.GetUniqueGroupFolderNames()
             >>> x.GetUniqueGroupFolderNames(i)
@@ -1281,9 +1281,9 @@ class Trajectory(object):
         else:
             # Return the whole list
             return dlist
-    
+
   # >
-   
+
   # =======
   # Filters
   # =======
@@ -1291,20 +1291,20 @@ class Trajectory(object):
     # Function to filter cases
     def Filter(self, cons, I=None):
         """Filter cases according to a set of constraints
-        
+
         The constraints are specified as a list of strings that contain
         inequalities of variables that are in *x.keys*.
-        
+
         For example, if *m* is the name of a key (presumably meaning Mach
         number), and *a* is a variable presumably representing angle of attack,
         the following example finds the indices of all cases with Mach number
         greater than 1.5 and angle of attack equal to ``2.0``.
-        
+
             >>> i = x.Filter(['m>1.5', 'a==2.0'])
-            
+
         A warning will be produces if one of the constraints does not correspond
         to a trajectory variable or cannot be evaluated for any other reason.
-        
+
         :Call:
             >>> i = x.Filter(cons)
             >>> i = x.Fitler(cons, I)
@@ -1351,11 +1351,11 @@ class Trajectory(object):
                 print("Constraint '%s' failed to evaluate." % con)
         # Output
         return np.where(i)[0]
-        
+
     # Function to filter by checking if string is in the name
     def FilterString(self, txt, I=None):
         """Filter cases by whether or not they contain a substring
-        
+
         :Call:
             >>> i = x.FilterString(txt)
             >>> i = x.FilterString(txt, I)
@@ -1390,17 +1390,17 @@ class Trajectory(object):
                 i[j] = False
         # Output
         return np.where(i)[0]
-        
+
     # Function to filter by checking if string is in the name
     def FilterWildcard(self, txt, I=None):
         """Filter cases by whether or not they contain a substring
-        
+
         This function uses file wild cards, so for example
         ``x.FilterWildcard('*m?.0*')`` matches any case whose name contains
         ``m1.0`` or ``m2.0``, etc.  To make sure the ``?`` is a number, use
         ``*m[0-9].0``.  To obtain a filter that matches both ``m10.0`` and
         ``m1.0``, see :func:`FilterRegex`.
-        
+
         :Call:
             >>> i = x.FilterWildcard(txt)
             >>> i = x.FilterWildcard(txt, I)
@@ -1435,11 +1435,11 @@ class Trajectory(object):
                 i[j] = False
         # Output
         return np.where(i)[0]
-        
+
     # Function to filter by checking if string is in the name
     def FilterRegex(self, txt, I=None):
         """Filter cases by whether or not they match a regular expression
-        
+
         :Call:
             >>> i = x.FilterRegex(txt)
             >>> i = x.FilterRegex(txt, I)
@@ -1474,12 +1474,12 @@ class Trajectory(object):
                 i[j] = False
         # Output
         return np.where(i)[0]
-        
-        
+
+
     # Function to expand indices
     def ExpandIndices(self, itxt):
         """Expand string of subscripts into a list of indices
-        
+
         :Call:
             >>> I = x.ExpandIndices(itxt)
         :Inputs:
@@ -1532,11 +1532,11 @@ class Trajectory(object):
                 print("Index specification '%s' failed to evaluate." % i)
         # Return the matches.
         return I
-        
+
     # Get indices
     def GetIndices(self, **kw):
         """Get indices from either list or constraints or both
-        
+
         :Call:
             >>> I = x.GetIndices(I=None, cons=[], **kw)
         :Inputs:
@@ -1586,9 +1586,9 @@ class Trajectory(object):
             I = self.FilterString(kw.get('filter'), I)
         # Output
         return I
-    
+
   # >
-   
+
   # ==================
   # Trajectory Subsets
   # ==================
@@ -1597,14 +1597,14 @@ class Trajectory(object):
     def GetSweep(self, M, **kw):
         """
         Return a list of indices meeting sweep constraints
-        
+
         The sweep uses the index of the first entry of ``True`` in *M*, i.e.
         ``i0=np.where(M)[0][0]``.  Then the sweep contains all other points that
         meet all criteria with respect to trajectory point *i0*.
-        
+
         For example, using ``EqCons=['mach']`` will cause the method to return
         points with *x.mach* matching *x.mach[i0]*.
-        
+
         :Call:
             >>> I = x.GetSweep(M, **kw)
         :Inputs:
@@ -1680,7 +1680,7 @@ class Trajectory(object):
                 x0 = self.GetAlpha(i0)
                 # Extract matrix values
                 V = self.GetAlpha()
-            elif k == "beta": 
+            elif k == "beta":
                 # Get the target value
                 x0 = self.GetBeta(i0)
                 # Extract matrix values
@@ -1800,18 +1800,18 @@ class Trajectory(object):
             J = J[j]
         # Output
         return J
-            
+
     # Function to get sweep based on constraints
     def GetCoSweep(self, x0, i0, **kw):
         """
         Return a list of indices meeting sweep constraints
-        
+
         The sweep uses point *i0* of co-trajectory *x0* as the reference for the
         constraints.
-        
+
         For example, using ``EqCons=['mach']`` will cause the method to return
         points with *x.mach* matching *x0.mach[i0]*.
-        
+
         :Call:
             >>> I = x.GetSweep(x0, i0, **kw)
         :Inputs:
@@ -1890,7 +1890,7 @@ class Trajectory(object):
                 v0 = x0.GetAlpha(i0)
                 # Get trajectory values
                 V = self.GetAlpha()
-            elif k == "beta": 
+            elif k == "beta":
                 # Get the target value
                 v0 = x0.GetBeta(i0)
                 # Extract matrix values
@@ -1937,7 +1937,7 @@ class Trajectory(object):
                 v0 = x0.GetAlpha(i0)
                 # Get trajectory values
                 V = self.GetAlpha()
-            elif k == "beta": 
+            elif k == "beta":
                 # Get the target value
                 v0 = x0.GetBeta(i0)
                 # Extract matrix values
@@ -1979,16 +1979,16 @@ class Trajectory(object):
             J = J[j]
         # Output
         return J
-        
+
     # Function to get set of sweeps based on criteria
     def GetSweeps(self, **kw):
         """
         Return a list of index sets in which each list contains cases that
         satisfy specified criteria.
-        
+
         For example, using ``EqCons=['mach']`` will cause the method to return
         lists of points with the same Mach number.
-        
+
         :Call:
             >>> J = x.GetSweeps(**kw)
         :Inputs:
@@ -2046,9 +2046,9 @@ class Trajectory(object):
             M[I] = False
         # Output
         return J
-    
+
   # >
-   
+
   # =================
   # Flight Conditions
   # =================
@@ -2060,7 +2060,7 @@ class Trajectory(object):
     # Get angle of attack
     def GetAlpha(self, i=None):
         """Get the angle of attack
-        
+
         :Call:
             >>> alpha = x.GetAlpha(i=None)
         :Inputs:
@@ -2106,11 +2106,11 @@ class Trajectory(object):
             return a
         # No info
         return None
-        
+
     # Get maneuver angle of attack
     def GetAlphaManeuver(self, i=None):
         """Get the signed total angle of attack
-        
+
         :Call:
             >>> am = x.GetAlphaManeuver(i)
         :Inputs:
@@ -2169,12 +2169,12 @@ class Trajectory(object):
             return av
         # no info
         return None
-        
-        
+
+
     # Get total angle of attack
     def GetAlphaTotal(self, i=None):
         """Get the total angle of attack
-        
+
         :Call:
             >>> av = x.GetAlphaTotal(i)
         :Inputs:
@@ -2234,11 +2234,11 @@ class Trajectory(object):
             return av
         # no info
         return None
-        
+
     # Get angle of sideslip
     def GetBeta(self, i=None):
         """Get the sideslip angle
-        
+
         :Call:
             >>> beta = x.GetBeta(i)
         :Inputs:
@@ -2285,11 +2285,11 @@ class Trajectory(object):
             return b
         # No info
         return None
-        
+
     # Get velocity roll angle
     def GetPhi(self, i=None):
         """Get the velocity roll angle
-        
+
         :Call:
             >>> phiv = x.GetPhi(i)
         :Inputs:
@@ -2336,11 +2336,11 @@ class Trajectory(object):
             return rv
         # no info
         return None
-        
+
     # Get maneuver angle of attack
     def GetPhiManeuver(self, i=None):
         """Get the signed maneuver roll angle
-        
+
         :Call:
             >>> phim = x.GetPhiManeuver(i)
         :Inputs:
@@ -2401,7 +2401,7 @@ class Trajectory(object):
         # no info
         return None
    # ]
-   
+
    # -------------------------
    # Dimensionless Parameters
    # -------------------------
@@ -2409,7 +2409,7 @@ class Trajectory(object):
     # Get Reynolds number
     def GetReynoldsNumber(self, i=None, units=None):
         """Get Reynolds number (per foot)
-        
+
         :Call:
             >>> Re = x.GetReynoldsNumber(i=None, units=None)
         :Inputs:
@@ -2559,11 +2559,11 @@ class Trajectory(object):
         else:
             # Requested units
             return Re / mks(units)
-        
+
     # Get Mach number
     def GetMach(self, i=None):
         """Get Mach number
-        
+
         :Call:
             >>> M = x.GetMach(i)
         :Inputs:
@@ -2605,7 +2605,7 @@ class Trajectory(object):
             # Sound speed
             a = np.sqrt(gam*R*T)
             # Calculate velocity
-            M = U/a 
+            M = U/a
         elif kp and kq:
             # Pressure and dynamic pressure
             p = self.GetPressure(i, units="Pa")
@@ -2651,7 +2651,7 @@ class Trajectory(object):
         # Output: no units
         return M
    # ]
-   
+
    # -------------
    # Utilities
    # -------------
@@ -2659,7 +2659,7 @@ class Trajectory(object):
     # Get unitized value
     def GetKeyValue(self, k, i=None, units=None, udef="1"):
         """Get the value of one key with appropriate dimensionalization
-        
+
         :Call:
             >>> v = x.GetKeyValue(k, i=None, units=None, udef="1")
         :Inputs:
@@ -2698,12 +2698,12 @@ class Trajectory(object):
             # Convert to requested units
             return v * mks(u)/mks(units)
    # ]
-   
+
    # ----------------
    # State Variables
    # ----------------
    # [
-   
+
     # Get freestream density
     def GetDensity(self, i=None, units=None):
         """Get freestream density
@@ -2757,7 +2757,7 @@ class Trajectory(object):
             q = self.GetDynamicPressure(i, units="Pa")
             U = self.GetVelocity(i, units="m/s")
             # Calculate density
-            rho = 2 * q / (U*U)  
+            rho = 2 * q / (U*U)
         elif kT and kp:
             # Pressure and Temperature (ideal gas law)
             p = self.GetPressure(i, units="Pa")
@@ -2791,7 +2791,7 @@ class Trajectory(object):
             #speed of sound first
             a = np.sqrt(gam*R*T)
             #now velocity
-            U = a*M        
+            U = a*M
             # Get viscocity
             mu = self.GetViscosity(i)
             # Solve for density
@@ -2806,7 +2806,7 @@ class Trajectory(object):
         else:
             # Apply expected units
             return rho / mks(units)
-        
+
     # Get velocity
     def GetVelocity(self, i=None, units=None):
         """Get velocity
@@ -2861,7 +2861,7 @@ class Trajectory(object):
             # Sound speed
             a = np.sqrt(gam*R*T)
             # Calculate velocity
-            U = M * a  
+            U = M * a
         elif kr and kq:
             # Density and dynamic pressure
             rho = self.GetDensity(i, units="kg/m^3")
@@ -2895,12 +2895,12 @@ class Trajectory(object):
         else:
             # Apply expected units
             return U / mks(units)
-        
-        
+
+
     # Get freestream temperature
     def GetTemperature(self, i=None, units=None):
         """Get static freestream temperature
-        
+
         :Call:
             >>> T = x.GetTemperature(i)
         :Inputs:
@@ -2988,11 +2988,11 @@ class Trajectory(object):
         else:
             # Apply expected units
             return T / mks(units)
-        
+
     # Get freestream stagnation temperature
     def GetTotalTemperature(self, i=None, units=None):
         """Get freestream stagnation temperature
-        
+
         :Call:
             >>> T0 = x.GetTotalTemperature(i, units=None)
         :Inputs:
@@ -3041,11 +3041,11 @@ class Trajectory(object):
         else:
             # Apply expected units
             return T0 / mks(units)
-        
+
     # Get freestream pressure
     def GetPressure(self, i=None, units=None):
         """Get static freestream pressure (in psf or Pa)
-        
+
         :Call:
             >>> p = x.GetPressure(i)
         :Inputs:
@@ -3158,11 +3158,11 @@ class Trajectory(object):
         else:
             # Apply expected units
             return p / mks(units)
-    
+
     # Get freestream pressure
     def GetDynamicPressure(self, i=None, units=None):
         """Get dynamic freestream pressure (in psf or Pa)
-        
+
         :Call:
             >>> q = x.GetDynamicPressure(i=None)
         :Inputs:
@@ -3233,7 +3233,7 @@ class Trajectory(object):
             U = a*M
             # Dynamic pressure
             q = 0.5*rho*U*U
-        elif kU and kp and kT:
+        elif kV and kp and kT:
             # Pressure, Mach, and temperature
             M = self.GetMach(i)
             p = self.GetPressure(i, units="Pa")
@@ -3259,7 +3259,7 @@ class Trajectory(object):
             rho = Re*mu/U
             # Dynamic pressure
             q = 0.5*rho*U*U
-            
+
         # Output with units
         if units is None:
             # No conversion
@@ -3267,11 +3267,11 @@ class Trajectory(object):
         else:
             # Apply expected units
             return q / mks(units)
-        
+
     # Get viscosity
     def GetViscosity(self, i=None, units=None):
         """Get the dynamic viscosity for case(s) *i*
-        
+
         :Call:
             >>> mu = x.GetViscosity(i=None, units=None)
         :Inputs:
@@ -3318,12 +3318,12 @@ class Trajectory(object):
         else:
             # Convert to requested units
             return mu / mks(units)
-        
-        
+
+
     # Get freestream stagnation pressure
     def GetTotalPressure(self, i=None, units=None):
         """Get freestream stagnation pressure (in psf or Pa)
-        
+
         :Call:
             >>> p0 = x.GetTotalPressure(i)
         :Inputs:
@@ -3375,9 +3375,9 @@ class Trajectory(object):
         else:
             # Apply expected units
             return p0 / mks(units)
-        
+
    # ]
-   
+
    # -------------------------
    # Thermodynamic Properties
    # -------------------------
@@ -3385,7 +3385,7 @@ class Trajectory(object):
     # Get parameter from freestream state
     def GetGasProperty(self, k, vdef=None):
         """Get property from the ``"Freestream"`` section
-        
+
         :Call:
             >>> v = x.GetGasProperty(k, vdef=None)
         :Inputs:
@@ -3397,17 +3397,17 @@ class Trajectory(object):
                 Default value for the parameter
         :Outputs:
             *v*: :class:`float` | :class:`str` | :class:`any`
-                Value of the 
+                Value of the
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
         """
         # Get the parameter
         return self.gas.get(k, vdef)
-    
+
     # Get ratio of specific heats
     def GetGamma(self, i=None):
         """Get freestream ratio of specific heats
-        
+
         :Call:
             >>> gam = x.GetGamma(i)
         :Inputs:
@@ -3434,11 +3434,11 @@ class Trajectory(object):
         else:
             # Use the trajectory value
             return getattr(self,k)[i]
-            
+
     # Get molecular weight
     def GetMolecularWeight(self, i=None, units=None):
         """Get averaged freestream gas molecular weight
-        
+
         :Call:
             >>> W = x.GetMolecularWeight(i=None, units=None)
         :Inputs:
@@ -3485,11 +3485,11 @@ class Trajectory(object):
         else:
             # Reduce by requested units
             return W / mks(units)
-    
+
     # Get normalized gas constant
     def GetNormalizedGasConstant(self, i=None, units=None):
         """Get averaged freestream gas molecular weight
-        
+
         :Call:
             >>> R = x.GetNormalizedGasConstant(i=None, units=None)
         :Inputs:
@@ -3544,11 +3544,11 @@ class Trajectory(object):
         else:
             # Reduce by requested units
             return R * cdef / mks(units)
-    
+
     # Sutherland's law reference viscosity
     def GetSutherland_mu0(self, i=None, units=None):
         """Get reference viscosity for Sutherland's Law
-        
+
         :Call:
             >>> mu0 = x.GetSutherland_mu0(i=None, units=None)
         :Inputs:
@@ -3591,11 +3591,11 @@ class Trajectory(object):
         else:
             # Reduce by requested units
             return mu0 * cdef / mks(units)
-    
+
     # Sutherland's law reference temperature
     def GetSutherland_T0(self, i=None, units=None):
         """Get reference temperature for Sutherland's Law
-        
+
         :Call:
             >>> T0 = x.GetSutherland_T0(i=None, units=None)
         :Inputs:
@@ -3636,11 +3636,11 @@ class Trajectory(object):
         else:
             # Reduce by requested units
             return T0 * cdef / mks(units)
-    
+
     # Sutherland's law reference temperature
     def GetSutherland_C(self, i=None, units=None):
         """Get reference temperature for Sutherland's Law
-        
+
         :Call:
             >>> C = x.GetSutherland_C(i=None, units=None)
         :Inputs:
@@ -3681,10 +3681,10 @@ class Trajectory(object):
         else:
             # Reduce by requested units
             return C * cdef / mks(units)
-    
+
    # ]
   # >
-   
+
   # ===========
   # SurfBC Keys
   # ===========
@@ -3692,7 +3692,7 @@ class Trajectory(object):
     # Get generic input for SurfBC key
     def GetSurfBC_ParamType(self, key, k, comp=None):
         """Get generic parameter value and type for a surface BC key
-        
+
         :Call:
             >>> v, t = x.GetSurfBC_ParamType(key, k, comp=None)
         :Inputs:
@@ -3725,11 +3725,11 @@ class Trajectory(object):
             t = type(v).__name__
         # Output
         return v, t
-        
+
     # Process input for generic type
     def GetSurfBC_Val(self, i, key, v, t, vdef=None, **kw):
         """Default processing for processing a key by value
-        
+
         :Call:
             >>> V = x.GetSurfBC_Val(i, key, v, t, vdef=None)
         :Inputs:
@@ -3769,11 +3769,11 @@ class Trajectory(object):
         else:
             # Use the value directly.
             return v
-            
+
     # Process input for generic SurfBC key/param
     def GetSurfBC_Param(self, i, key, k, comp=None, vdef=None, **kw):
         """Process a single parameter of a SurfBC key
-        
+
         :Call:
             >>> v = x.GetSurfBC_Param(i, key, k, comp=None, vdef=None, **kw)
         :Inputs:
@@ -3808,11 +3808,11 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, k, comp=comp)
         # Get value
         return self.GetSurfBC_Val(i, key, v, t, vdef=vdef, **kw)
-    
+
     # Get thrust for SurfCT input
     def GetSurfCT_Thrust(self, i, key=None, comp=None):
         """Get thrust input for surface *CT* key
-        
+
         :Call:
             >>> CT = x.GetSurfCT_Thrust(i, key=None, comp=None)
         :Inputs:
@@ -3835,11 +3835,11 @@ class Trajectory(object):
         """
         # Process as SurfCT key
         return self.GetSurfBC_Param(i, key, 'Thrust', comp=comp, typ='SurfCT')
-            
+
     # Get reference dynamic pressure
     def GetSurfCT_RefDynamicPressure(self, i, key=None, comp=None):
         """Get reference dynamic pressure for surface *CT* key
-        
+
         :Call:
             >>> qinf = x.GetSurfCT_RefDynamicPressure(i, key=None, comp=None)
         :Inputs:
@@ -3867,11 +3867,11 @@ class Trajectory(object):
         k = 'RefDynamicPressure'
         # Process the key
         return self.GetSurfBC_Param(i, key, k, comp=comp, typ='SurfCT', **kw)
-            
+
     # Get total temperature
     def GetSurfCT_RefPressure(self, i, key=None, comp=None):
         """Get reference pressure input for surface *CT* total pressure
-        
+
         :Call:
             >>> Tref = x.GetSurfCT_RefPressure(i, key=None, comp=None)
         :Inputs:
@@ -3891,11 +3891,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_RefPressure(i, key, comp=comp, typ="SurfCT")
-            
+
     # Get pressure calibration factor
     def GetSurfCT_PressureCalibration(self, i, key=None, comp=None):
         """Get pressure calibration factor for *CT* key
-        
+
         :Call:
             >>> fp = x.GetSurfCT_PressureCalibration(i, key=None, comp=None)
         :Inputs:
@@ -3916,27 +3916,27 @@ class Trajectory(object):
         # Call the SurfBC equivalent
         return self.GetSurfBC_PressureCalibration(i, key,
             comp=comp, typ="SurfCT")
-            
+
     # Get pressure additive calibration
     def GetSurfCT_PressureOffset(self, i, key=None, comp=None):
         """Get offset used for calibration of static or stagnation pressure
-        
+
         The value used by :mod:`cape` is given by
-        
+
         .. math::
-            
+
             \\tilde{p} = \\frac{b + ap}{p_\\mathit{ref}}
-            
+
         where :math:`\\tilde{p}` is the value used in the namelist, *b* is the
         value from this function, *a* is the result of
         :func:`GetSurfBC_PressureCalibration`, *p* is the input value from the
         JSON file, and :math:`p_\\mathit{ref}` is the value from
         :func:`GetSurfBC_RefPressure`.  In code, this is
-        
+
         .. code-block:: python
-        
+
             p_tilde = (bp + fp*p) / pref
-        
+
         :Call:
             >>> bp = x.GetSurfCT_PressureOffset(i, key=None, comp=None)
         :Inputs:
@@ -3956,11 +3956,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_PressureOffset(i, key, comp=comp, typ="SurfCT")
-        
+
     # Get stagnation pressure input for SurfBC input
     def GetSurfCT_TotalPressure(self, i, key=None, comp=None):
         """Get stagnation pressure input for surface *CT* key
-        
+
         :Call:
             >>> p0 = x.GetSurfCT_TotalPressure(i, key=None, comp=None, **kw)
         :Inputs:
@@ -3972,7 +3972,7 @@ class Trajectory(object):
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *typ*: {``"SurfBC"``} | ``"SurfCT"`` | 
+            *typ*: {``"SurfBC"``} | ``"SurfCT"`` |
                 Type to use for checking properties of *key*
         :Outputs:
             *p0*: :class:`float`
@@ -3982,11 +3982,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_TotalPressure(i, key, comp=comp, typ="SurfCT")
-            
+
     # Get total temperature
     def GetSurfCT_TotalTemperature(self, i, key=None, comp=None):
         """Get total temperature input for surface *CT* key
-        
+
         :Call:
             >>> T0 = x.GetSurfCT_TotalTemperature(i, key=None, comp=None)
         :Inputs:
@@ -4007,11 +4007,11 @@ class Trajectory(object):
         # Call the SurfBC equivalent
         return self.GetSurfBC_TotalTemperature(i, key,
             comp=comp, typ="SurfCT")
-        
+
     # Get pressure calibration factor
     def GetSurfCT_TemperatureCalibration(self, i, key=None, comp=None):
         """Get temperature calibration factor for *CT* key
-        
+
         :Call:
             >>> fT = x.GetSurfCT_Temperature(i, key=None, comp=None)
         :Inputs:
@@ -4032,27 +4032,27 @@ class Trajectory(object):
         # Call the SurfBC equivalent
         return self.GetSurfBC_TemperatureCalibration(i, key,
             comp=comp, typ="SurfCT")
-    
+
     # Get pressure additive calibration
     def GetSurfCT_TemperatureOffset(self, i, key=None, comp=None):
         """Get offset used for calibration of static or stagnation temperature
-        
+
         The value used by :mod:`cape` is given by
-        
+
         .. math::
-            
+
             \\tilde{T} = \\frac{b + aT}{T_\\mathit{ref}}
-            
+
         where :math:`\\tilde{T}` is the value used in the namelist, *b* is the
         value from this function, *a* is the result of
         :func:`GetSurfBC_TemperatureCalibration`, *T* is the input value from
         the JSON file, and :math:`T_\\mathit{ref}` is the value from
         :func:`GetSurfBC_RefTemperature`.  In code, this is
-        
+
         .. code-block:: python
-        
+
             T_tilde = (bt + ft*T) / Tref
-        
+
         :Call:
             >>> bt = x.GetSurfCT_TemperatureOffset(i, key=None, comp=None)
         :Inputs:
@@ -4073,11 +4073,11 @@ class Trajectory(object):
         # Call the SurfBC equivalent
         return self.GetSurfBC_TemperatureOffset(i, key,
             comp=comp, typ="SurfCT")
-            
+
     # Get total temperature
     def GetSurfCT_RefTemperature(self, i, key=None, comp=None):
         """Get reference temperature input for surface *CT* total temperature
-        
+
         :Call:
             >>> Tref = x.GetSurfCT_RefTemperature(i, key=None, comp=None)
         :Inputs:
@@ -4097,11 +4097,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_RefTemperature(i, key, comp=comp, typ="SurfCT")
-    
+
     # Get Mach number
     def GetSurfCT_Mach(self, i, key=None, comp=None):
         """Get Mach number input for surface *CT* key
-        
+
         :Call:
             >>> M = x.GetSurfCT_TotalTemperature(i, key=None, comp=None)
         :Inputs:
@@ -4121,11 +4121,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Mach(i, key, comp=comp, typ="SurfCT")
-    
+
     # Get exit Mach number input for SurfCT input
     def GetSurfCT_ExitMach(self, i, key=None, comp=None):
         """Get Mach number input for surface *CT* key
-        
+
         :Call:
             >>> M2 = x.GetSurfCT_ExitMach(i, key=None, comp=None)
         :Inputs:
@@ -4155,11 +4155,11 @@ class Trajectory(object):
         else:
             # Use the fixed value
             return v
-    
+
     # Get area ratio
     def GetSurfCT_AreaRatio(self, i, key=None, comp=None):
         """Get area ratio for surface *CT* key
-        
+
         :Call:
             >>> AR = x.GetSurfCT_AreaRatio(i, key=None, comp=None)
         :Inputs:
@@ -4189,11 +4189,11 @@ class Trajectory(object):
         else:
             # Use the fixed value
             return v
-    
+
     # Get area ratio
     def GetSurfCT_ExitArea(self, i, key=None, comp=None):
         """Get exit area for surface *CT* key
-        
+
         :Call:
             >>> A2 = x.GetSurfCT_ExitArea(i, key=None, comp=None)
         :Inputs:
@@ -4223,13 +4223,13 @@ class Trajectory(object):
         else:
             # Use the fixed value
             return v
-            
+
     # Get reference area
     def GetSurfCT_RefArea(self, i, key=None, comp=None):
         """Get reference area for surface *CT* key, this divides *CT* value
-        
+
         If this is ``None``, it defaults to the vehicle reference area
-        
+
         :Call:
             >>> Aref = x.GetSurfCT_RefArea(i, key=None, comp=None)
         :Inputs:
@@ -4243,7 +4243,7 @@ class Trajectory(object):
                 Name of component
         :Outputs:
             *ARef*: {``None``} | :class:`float`
-                Reference area; if ``None``, use the vehicle area 
+                Reference area; if ``None``, use the vehicle area
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
@@ -4259,11 +4259,11 @@ class Trajectory(object):
         else:
             # Use the fixed value
             return v
-    
+
     # Get component ID(s) for input SurfCT key
     def GetSurfCT_CompID(self, i, key=None, comp=None):
         """Get component ID input for surface *CT* key
-        
+
         :Call:
             >>> compID = x.GetSurfCT_CompID(i, key=None, comp=None)
         :Inputs:
@@ -4283,11 +4283,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_CompID(i, key, comp=comp, typ="SurfCT")
-    
+
     # Get mass species
     def GetSurfCT_Species(self, i, key=None, comp=None):
         """Get species input for surface *CT* key
-        
+
         :Call:
             >>> Y = x.GetSurfCT_Species(i, key=None, comp=None)
         :Inputs:
@@ -4307,11 +4307,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Species(i, key, comp=comp, typ="SurfCT")
-    
+
     # Get grid name(s)/number(s) for input SurfCT key
     def GetSurfCT_Grids(self, i, key=None, comp=None):
         """Get list of grids for surface *CT* key
-        
+
         :Call:
             >>> compID = x.GetSurfCT_Grids(i, key=None, comp=None)
         :Inputs:
@@ -4331,11 +4331,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Grids(i, key, comp=comp, typ="SurfCT")
-        
+
     # Get ratio of specific heats for SurfCT key
     def GetSurfCT_Gamma(self, i, key=None, comp=None):
         """Get ratio of specific heats input for surface *CT* key
-        
+
         :Call:
             >>> gam = x.GetSurfCT_Gamma(i, key=None, comp=None)
         :Inputs:
@@ -4355,11 +4355,11 @@ class Trajectory(object):
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Gamma(i, key, comp=comp, typ="SurfCT")
-        
+
     # Get stagnation pressure input for SurfBC input
     def GetSurfBC_TotalPressure(self, i, key=None, comp=None, **kw):
         """Get stagnation pressure input for surface BC key
-        
+
         :Call:
             >>> p0 = x.GetSurfBC_TotalPressure(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4371,7 +4371,7 @@ class Trajectory(object):
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *typ*: {``"SurfBC"``} | ``"SurfCT"`` | 
+            *typ*: {``"SurfBC"``} | ``"SurfCT"`` |
                 Type to use for checking properties of *key*
         :Outputs:
             *p0*: :class:`float`
@@ -4387,11 +4387,11 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, 'TotalPressure', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t)
-            
+
     # Get reference pressure
     def GetSurfBC_RefPressure(self, i, key=None, comp=None, **kw):
         """Get reference pressure for surface BC key
-        
+
         :Call:
             >>> pinf = x.GetSurfBC_RefPressure(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4435,11 +4435,11 @@ class Trajectory(object):
         else:
             # Use the fixed value
             return v
-            
+
     # Get pressure scaling
     def GetSurfBC_PressureCalibration(self, i, key=None, comp=None, **kw):
         """Get total pressure scaling factor used for calibration
-        
+
         :Call:
             >>> fp = x.GetSurfBC_PressureCalibration(i,key=None,comp=None,**kw)
         :Inputs:
@@ -4467,27 +4467,27 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, 'PressureCalibration', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t, vdef=1.0)
-            
+
     # Get pressure additive calibration
     def GetSurfBC_PressureOffset(self, i, key=None, comp=None, **kw):
         """Get offset used for calibration of static or stagnation pressure
-        
+
         The value used by :mod:`cape` is given by
-        
+
         .. math::
-            
+
             \\tilde{p} = \\frac{b + ap}{p_\\mathit{ref}}
-            
+
         where :math:`\\tilde{p}` is the value used in the namelist, *b* is the
         value from this function, *a* is the result of
         :func:`GetSurfBC_PressureCalibration`, *p* is the input value from the
         JSON file, and :math:`p_\\mathit{ref}` is the value from
         :func:`GetSurfBC_RefPressure`.  In code, this is
-        
+
         .. code-block:: python
-        
+
             p_tilde = (bp + fp*p) / pref
-        
+
         :Call:
             >>> bp = x.GetSurfBC_PressureOffset(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4531,11 +4531,11 @@ class Trajectory(object):
         else:
             # Use the fixed value
             return v
-        
+
     # Get stagnation temperature input for SurfBC input
     def GetSurfBC_TotalTemperature(self, i, key=None, comp=None, **kw):
         """Get stagnation pressure input for surface BC key
-        
+
         :Call:
             >>> T0 = x.GetSurfBC_TotalTemperature(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4567,13 +4567,13 @@ class Trajectory(object):
             "stagnation": "GetTotalTemperature",
         }
         # Get the value
-        return self.GetSurfBC_Param(i, key, 'TotalTemperature', 
+        return self.GetSurfBC_Param(i, key, 'TotalTemperature',
             comp=comp, typ=typ, vdef=0.0, **kw_funcs)
-    
+
     # Get reference temperature
     def GetSurfBC_RefTemperature(self, i, key=None, comp=None, **kw):
         """Get reference temperature for surface BC key
-        
+
         :Call:
             >>> Tinf = x.GetSurfBC_RefTemperature(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4605,13 +4605,13 @@ class Trajectory(object):
             "stagnation": "GetTotalTemperature",
         }
         # Get the value
-        return self.GetSurfBC_Param(i, key, 'RefTemperature', 
+        return self.GetSurfBC_Param(i, key, 'RefTemperature',
             comp=comp, typ=typ, vdef=0.0, **kw_funcs)
-            
+
     # Get pressure scaling
     def GetSurfBC_TemperatureCalibration(self, i, key=None, comp=None, **kw):
         """Get total/static temperature scaling factor used for calibration
-        
+
         :Call:
            >>> fT=x.GetSurfBC_TemperatureCalibration(i,key=None,comp=None,**kw)
         :Inputs:
@@ -4639,27 +4639,27 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key,'TemperatureCalibration',comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t, vdef=1.0)
-        
+
     # Get pressure additive calibration
     def GetSurfBC_TemperatureOffset(self, i, key=None, comp=None, **kw):
         """Get offset used for calibration of static or stagnation temperature
-        
+
         The value used by :mod:`cape` is given by
-        
+
         .. math::
-            
+
             \\tilde{T} = \\frac{b + aT}{T_\\mathit{ref}}
-            
+
         where :math:`\\tilde{T}` is the value used in the namelist, *b* is the
         value from this function, *a* is the result of
         :func:`GetSurfBC_TemperatureCalibration`, *T* is the input value from
         the JSON file, and :math:`T_\\mathit{ref}` is the value from
         :func:`GetSurfBC_RefTemperature`.  In code, this is
-        
+
         .. code-block:: python
-        
+
             T_tilde = (bt + ft*T) / Tref
-        
+
         :Call:
             >>> bt = x.GetSurfBC_TemperatureOffset(i,key=None, comp=None, **kw)
         :Inputs:
@@ -4693,13 +4693,13 @@ class Trajectory(object):
             "stagnation": "GetTotalTemperature",
         }
         # Get the value
-        return self.GetSurfBC_Param(i, key, 'TemperatureOffset', 
+        return self.GetSurfBC_Param(i, key, 'TemperatureOffset',
             typ=typ, vdef=0.0, **kw_funcs)
-            
+
     # Get Mach number input for SurfBC input
     def GetSurfBC_Mach(self, i, key=None, comp=None, **kw):
         """Get Mach number input for surface BC key
-        
+
         :Call:
             >>> M = x.GetSurfBC_Mach(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4727,11 +4727,11 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, 'Mach', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t, vdef=1.0)
-            
+
     # Get ratio of specific heats input for SurfBC key
     def GetSurfBC_Gamma(self, i, key=None, comp=None, **kw):
         """Get ratio of specific heats for surface BC key
-        
+
         :Call:
             >>> gam = x.GetSurfBC_Gamma(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4758,29 +4758,29 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, 'Gamma', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t, vdef=1.4)
-        
+
     # Get species
     def GetSurfBC_Species(self, i, key=None, comp=None, **kw):
         """Get species information for a surface BC key
-        
+
         The species can be specified using several different manners.
-        
+
         The first and most common approach is to simply set a fixed list, for
         example setting ``"Species"`` to ``[0.0, 1.0, 0.0]`` to specify use of
         the second species, or ``[0.2, 0.8, 0.1]`` to specify a mix of three
         difference species.
-        
+
         A second method is to specify an integer.  For example, if ``"Species"``
         is set to ``2`` and ``"nSpecies"`` is set to ``4``, the output will be
         ``[0.0, 1.0, 0.0, 0.0]``.
-        
+
         The third method is a generalization of the first.  An alternative to
         simply setting a fixed list of numeric species mass fractions, the
         entries in the list can depend on the values of other trajectory keys.
         For example, setting ``"Species"`` to ``['YH2', 'YO2']`` will translate
         the mass fractions according to the values of trajectory keys ``"YH2"``
         and ``"YO2"``.
-        
+
         :Call:
             >>> Y = x.GetSurfBC_Species(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4830,11 +4830,11 @@ class Trajectory(object):
                 Y[i] = getattr(self,y)[i]
         # Output
         return Y
-            
+
     # Get number of species
     def GetSurfBC_nSpecies(self, i, key=None, comp=None, **kw):
         """Get number of species for a surface BC key
-        
+
         :Call:
             >>> nY = x.GetSurfBC_nSpecies(i, key=None, comp=None, **kw)
         :Inptus:
@@ -4862,12 +4862,12 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, 'nSpecies', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t)
-        
-            
+
+
     # Get component ID(s) input for SurfBC key
     def GetSurfBC_CompID(self, i, key=None, comp=None, **kw):
         """Get component ID input for surface BC key
-        
+
         :Call:
             >>> compID = x.GetSurfBC_CompID(i, key=None, comp=None, **kw)
         :Inputs:
@@ -4895,11 +4895,11 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, 'CompID', comp=comp)
         # Do not process this one
         return v
-            
+
     # Get column index input for SurfBC key
     def GetSurfBC_BCIndex(self, i, key=None, comp=None, **kw):
         """Get namelist/column/etc. index for a surface BC key
-        
+
         :Call:
             >>> inds = x.GetSurfBC_BCIndex(i, key=None, comp=None)
         :Inputs:
@@ -4927,11 +4927,11 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, 'BCIndex', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t)
-            
+
     # Get component ID(s) input for SurfBC key
     def GetSurfBC_Grids(self, i, key=None, comp=None, **kw):
         """Get list of grids for surface BC key
-        
+
         :Call:
             >>> grids = x.GetSurfBC_Grids(i, key=None, comp=None)
         :Inputs:
@@ -4959,6 +4959,6 @@ class Trajectory(object):
         v, t = self.GetSurfBC_ParamType(key, 'Grids', comp=comp)
         # Process
         return self.GetSurfBC_Val(i, key, v, t)
-    
+
   # >
 # class Trajectory

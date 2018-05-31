@@ -1231,7 +1231,7 @@ class Fun3d(Cntl):
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Set the flight conditions
-        self.PrepareNamelistFligntConditions(i)
+        self.PrepareNamelistFlightConditions(i)
         
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
@@ -1333,7 +1333,7 @@ class Fun3d(Cntl):
         os.chdir(fpwd)
         
     # Prepare freestream conditions
-    def PrepareNamelistFligntConditions(self, i):
+    def PrepareNamelistFlightConditions(self, i):
         """Set namelist flight conditions
         
         :Call:
@@ -1924,14 +1924,22 @@ class Fun3d(Cntl):
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
         """
+        # Get equations type
+        eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the inputs
         p0 = self.x.GetSurfBC_TotalPressure(i, key)
         T0 = self.x.GetSurfBC_TotalTemperature(i, key)
         # Calibration
         fp = self.x.GetSurfBC_PressureCalibration(i, key)
         # Reference pressure/temp
-        pinf = self.x.GetSurfBC_RefPressure(i, key)
-        Tinf = self.x.GetSurfBC_RefTemperature(i, key)
+        if eqn_type == "generic":
+            # Do not nondimensionalize
+            pinf = 1.0
+            Tinf = 1.0
+        else:
+            # User-specified reference conditions
+            pinf = self.x.GetSurfBC_RefPressure(i, key)
+            Tinf = self.x.GetSurfBC_RefTemperature(i, key)
         # Output
         return fp*p0/pinf, T0/Tinf
         
@@ -1956,6 +1964,8 @@ class Fun3d(Cntl):
         :Versions:
             * 2016-04-13 ``@ddalle``: First version
         """
+        # Get equations type
+        eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the thrust value
         CT = self.x.GetSurfCT_Thrust(i, key)
         # Get the exit parameters
