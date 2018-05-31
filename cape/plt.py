@@ -726,7 +726,7 @@ class Plt(object):
                     ]
             else:
                 # Unknown
-                qvars = ["var%s" for i in range(nq)]
+                qvars = ["var%s" i for i in range(nq)]
         # Set number of variables
         self.nVar = 3 + len(qvars)
         # Check number of variables
