@@ -9474,7 +9474,7 @@ class CaseResid(object):
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(0, iB-n, nFirst) + 1
+        i0 = max(self.i[0], iB-n+1, nFirst)
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = self.GetIterationIndex(i0)
         # Reselect *iA* in case initial value was not in *FM.i*.
@@ -9483,7 +9483,7 @@ class CaseResid(object):
         # Plotting
         # --------
         # Extract iteration numbers and residuals.
-        i  = self.i[i0:]
+        i  = self.i[j0:]
         # Handling for multiple residuals at same iteration
         di = np.diff(i) != 0
         # First residual at each iteration and last residual at each iteration
@@ -9493,12 +9493,12 @@ class CaseResid(object):
         I0 = np.logical_and(I0, np.logical_not(I1))
         # Nominal residual
         try:
-            L1 = getattr(self,c)[i0:]
+            L1 = getattr(self,c)[j0:]
         except Exception:
             L1 = np.nan*np.ones_like(i)
         # Residual before subiterations
         try:
-            L0 = getattr(self,c+'0')[i0:]
+            L0 = getattr(self,c+'0')[j0:]
         except Exception:
             L0 = np.nan*np.ones_like(i)
         # Check if L0 is too long.
