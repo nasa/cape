@@ -138,11 +138,13 @@ def Step2Crv(*a, **kw):
     ds  = kw.get('ds')
     dth = kw.get('dth')
     da  = kw.get('da')
+    tol = kw.get('tol', 1.0)
     # Convert as necessary
     if n   is not None: n   = int(n)
     if ds  is not None: ds  = float(ds)
     if dth is not None: dth = float(dth)
     if da  is not None: da  = float(da)
+    if tol is not None: tol = float(tol)
     
     # Sample curves
     stp.SampleCurves(n=n, ds=ds, dth=dth, da=da)
@@ -153,10 +155,10 @@ def Step2Crv(*a, **kw):
     # Link/sort as requested
     if nlnk != True and axis == True and axis != False:
         # Default sorting
-        stp.LinkCurves()
+        stp.LinkCurves(ds=tol)
     elif nlnk != True and axis != False:
         # Specialized sorting
-        stp.LinkCurves(axis=axis)
+        stp.LinkCurves(axis=axis, ds=tol)
     
     # Write the curves
     if kw.get('ascii', False):
