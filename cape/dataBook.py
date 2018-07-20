@@ -3885,6 +3885,12 @@ class DBBase(dict):
         elif coeff in ["cp"]:
             # Try calculating center of pressure (nondimensional)
             yv = xMRP/Lref - self["CLM"][I]/self["CN"][I]
+        elif coeff in ["CPY"]:
+            # Try calculating center of pressure
+            yv = xMRP - self["CLN"][I]*Lref/self["CY"][I]
+        elif coeff in ["cpy"]:
+            # Try calculating center of pressure (nondimensional)
+            yv = xMRP/Lref - self["CLN"][I]/self["CY"][I]
         else:
             raise ValueError("Unrecognized coefficient '%s'" % coeff)
         # Check for override parameters

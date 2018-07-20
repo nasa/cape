@@ -922,9 +922,6 @@ class Cntl(object):
         :Versions:
             * 2014-10-03 ``@ddalle``: First version
         """
-        # Check the case
-        if self.CheckCase(i) is None:
-            return None
         # Read the local case.json file.
         rc = self.ReadCaseJSON(i)
         # Check for null file

@@ -3447,7 +3447,8 @@ class Report(object):
                 # Check if the *comp*/*coeff* combination is available.
                 if qdup:
                     # Check if we have the data
-                    if (coeff not in DBTc) and (coeff not in ["cp","CP","CT"]):
+                    if (coeff not in DBTc) and (
+                            coeff not in ["cp","CP","cpy","CPY","CT"]):
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("coeff '%s/%s' not in target" % (comp,coeff)))
@@ -3467,6 +3468,9 @@ class Report(object):
                             ("comp '%s' not in target" % compo))
                         continue
                     elif ccoeff in ["cp", "CP"] and "CLM" in DBTc.ckeys[comp]:
+                        # Can reconstruct a center of pressure (probably)
+                        pass
+                    elif ccoeff in ["cpy","CPY"] and "CLN" in DBTc.ckeys[comp]:
                         # Can reconstruct a center of pressure (probably)
                         pass
                     elif ccoeff not in DBTc.ckeys[compo]:
