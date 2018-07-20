@@ -2009,12 +2009,12 @@ def get_ylim(ha, pad=0.05):
             if len(ydata) > 0:
                 ymin = min(ymin, min(h.get_ydata()))
                 ymax = max(ymax, max(h.get_ydata()))
-        elif t == 'PolyCollection':
-            # Get the path.
-            P = h.get_paths()[0]
-            # Get the coordinates.
-            ymin = min(ymin, min(P.vertices[:,1]))
-            ymax = max(ymax, max(P.vertices[:,1]))
+        elif t in ['PathCollection', 'PolyCollection']:
+            # Loop through paths
+            for P in h.get_paths():
+                # Get the coordinates
+                ymin = min(ymin, min(P.vertices[:,1]))
+                ymax = max(ymax, max(P.vertices[:,1]))
     # Check for identical values
     if ymax - ymin <= 0.1*pad:
         # Expand by manual amount,.
@@ -2063,6 +2063,12 @@ def get_xlim(ha, pad=0.05):
             if len(xdata) > 0:
                 xmin = min(xmin, min(h.get_xdata()))
                 xmax = max(xmax, max(h.get_xdata()))
+        elif t in ['PathCollection', 'PolyCollection']:
+            # Loop through paths
+            for P in h.get_paths():
+                # Get the coordinates
+                xmin = min(xmin, min(P.vertices[:,1]))
+                xmax = max(xmax, max(P.vertices[:,1]))
     # Check for identical values
     if xmax - xmin <= 0.1*pad:
         # Expand by manual amount,.
@@ -2073,7 +2079,7 @@ def get_xlim(ha, pad=0.05):
     xmaxv = (1+pad)*xmax - pad*xmin
     # Output
     return xminv, xmaxv
-# DataBook Plot functions
+# def get_xlim
 
 
 # Data book for an individual component
