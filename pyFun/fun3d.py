@@ -2356,14 +2356,14 @@ class Fun3d(Cntl):
             rc.set_PhaseIters(nIter, j)
             # Status update
             print("  Adding phase %s (to %s iterations)" % (j, nIter))
-            # Copy other sections
-            for k in rco:
-                # Don't copy phase and iterations
-                if k in ["PhaseIters", "PhaseSequence"]: continue
-                # Otherwise, overwrite
-                rc[k] = rco[k]
-            # Write it.
-            self.WriteCaseJSON(i, rc=rc)
+        # Copy other sections
+        for k in rco:
+            # Don't copy phase and iterations
+            if k in ["PhaseIters", "PhaseSequence"]: continue
+            # Otherwise, overwrite
+            rc[k] = rco[k]
+        # Write it.
+        self.WriteCaseJSON(i, rc=rc)
         # Rewriting phases
         print("  Writing input namelists 0 to %s" % (nPhase-1))
         self.PrepareNamelist(i)

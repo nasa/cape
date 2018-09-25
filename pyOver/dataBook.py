@@ -197,14 +197,24 @@ def ReadResidGrids(fname):
     comps = []
     # Open the file
     f = open(fname, 'r')
-    # Read the first line and last component
-    comp = f.readline().split()[-1]
+    # Read the first line
+    line = f.readline()
+    # Get component name
+    try:
+        comp = ' '.join(line.split()[14:])
+    except Exception:
+        comp = line.split()[-1]
     # Loop until a component repeates
-    while comp not in comps:
+    while len(comps)==0 or comp!=comps[0]:
         # Add the component
         comps.append(comp)
-        # Read the next grid name
-        comp = f.readline().split()[-1]
+        # Read the next line
+        line = f.readline()
+        # Get component name
+        try:
+            comp = ' '.join(line.split()[14:])
+        except Exception:
+            comp = line.split()[-1]
     # Close the file
     f.close()
     # Output

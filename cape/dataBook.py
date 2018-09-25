@@ -2009,12 +2009,12 @@ def get_ylim(ha, pad=0.05):
             if len(ydata) > 0:
                 ymin = min(ymin, min(h.get_ydata()))
                 ymax = max(ymax, max(h.get_ydata()))
-        elif t == 'PolyCollection':
-            # Get the path.
-            P = h.get_paths()[0]
-            # Get the coordinates.
-            ymin = min(ymin, min(P.vertices[:,1]))
-            ymax = max(ymax, max(P.vertices[:,1]))
+        elif t in ['PathCollection', 'PolyCollection']:
+            # Loop through paths
+            for P in h.get_paths():
+                # Get the coordinates
+                ymin = min(ymin, min(P.vertices[:,1]))
+                ymax = max(ymax, max(P.vertices[:,1]))
     # Check for identical values
     if ymax - ymin <= 0.1*pad:
         # Expand by manual amount,.
@@ -2063,6 +2063,12 @@ def get_xlim(ha, pad=0.05):
             if len(xdata) > 0:
                 xmin = min(xmin, min(h.get_xdata()))
                 xmax = max(xmax, max(h.get_xdata()))
+        elif t in ['PathCollection', 'PolyCollection']:
+            # Loop through paths
+            for P in h.get_paths():
+                # Get the coordinates
+                xmin = min(xmin, min(P.vertices[:,1]))
+                xmax = max(xmax, max(P.vertices[:,1]))
     # Check for identical values
     if xmax - xmin <= 0.1*pad:
         # Expand by manual amount,.
@@ -2073,7 +2079,7 @@ def get_xlim(ha, pad=0.05):
     xmaxv = (1+pad)*xmax - pad*xmin
     # Output
     return xminv, xmaxv
-# DataBook Plot functions
+# def get_xlim
 
 
 # Data book for an individual component
@@ -3885,6 +3891,12 @@ class DBBase(dict):
         elif coeff in ["cp"]:
             # Try calculating center of pressure (nondimensional)
             yv = xMRP/Lref - self["CLM"][I]/self["CN"][I]
+        elif coeff in ["CPY"]:
+            # Try calculating center of pressure
+            yv = xMRP - self["CLN"][I]*Lref/self["CY"][I]
+        elif coeff in ["cpy"]:
+            # Try calculating center of pressure (nondimensional)
+            yv = xMRP/Lref - self["CLN"][I]/self["CY"][I]
         else:
             raise ValueError("Unrecognized coefficient '%s'" % coeff)
         # Check for override parameters
@@ -9474,7 +9486,7 @@ class CaseResid(object):
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(0, iB-n, nFirst) + 1
+        i0 = max(self.i[0], iB-n+1, nFirst)
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = self.GetIterationIndex(i0)
         # Reselect *iA* in case initial value was not in *FM.i*.
@@ -9483,7 +9495,7 @@ class CaseResid(object):
         # Plotting
         # --------
         # Extract iteration numbers and residuals.
-        i  = self.i[i0:]
+        i  = self.i[j0:]
         # Handling for multiple residuals at same iteration
         di = np.diff(i) != 0
         # First residual at each iteration and last residual at each iteration
@@ -9493,12 +9505,12 @@ class CaseResid(object):
         I0 = np.logical_and(I0, np.logical_not(I1))
         # Nominal residual
         try:
-            L1 = getattr(self,c)[i0:]
+            L1 = getattr(self,c)[j0:]
         except Exception:
             L1 = np.nan*np.ones_like(i)
         # Residual before subiterations
         try:
-            L0 = getattr(self,c+'0')[i0:]
+            L0 = getattr(self,c+'0')[j0:]
         except Exception:
             L0 = np.nan*np.ones_like(i)
         # Check if L0 is too long.
