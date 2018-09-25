@@ -3298,7 +3298,7 @@ class Trajectory(object):
         if us == "mks":
             udef = "kg/m/s"
         else:
-            udef = "lbm/ft/s"
+            udef = "slug/ft/s"
         # Check for dynamic pressure
         if k is not None:
             # Get value directly
