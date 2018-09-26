@@ -3207,8 +3207,8 @@ class Trajectory(object):
         kR = self.GetFirstKeyByType("Re")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
-        # The gas constant is often needed
-        R = self.GetNormalizedGasConstant(i)
+        # The gas constant is often needed, but in mks
+        R = self.GetNormalizedGasConstant(i, units='mks')
         # Search for a combination of parameters we can interpret
         if kV and kr:
             # Density and velocity; easy
