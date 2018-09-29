@@ -52,17 +52,38 @@ def MakeRelease(ver):
     CopyTree(fdoc, os.path.join(fdir, 'doc'), docignore, depth=16)
     
     # Files to ignore for examples
-    exignore = ['poweroff', 'poweron', 'invisc']
+    exignore = [
+        'powerof*', 'poweron', 'invisc', 'batch-pbs', 'report-*',
+        "*.ugrid", "arrow"
+    ]
     # Create destination folders for examples
     os.mkdir(os.path.join(fdir, 'examples'), dmask)
     os.mkdir(os.path.join(fdir, 'examples', 'pycart'), dmask)
-    os.mkdir(os.path.join(fdir, 'examples', 'pyfun'), dmask)
+    os.mkdir(os.path.join(fdir, 'examples', 'pyfun'),  dmask)
+    os.mkdir(os.path.join(fdir, 'examples', 'pyover'), dmask)
     # pyCart Examples folder
     fexi = os.path.join('examples', 'pycart')
     fexo = os.path.join(fdir, 'examples', 'pycart')
     # Copy each example individually.
-    CopyTree(os.path.join(fexi, 'bullet'), fexo, exignore, depth=2)
-    CopyTree(os.path.join(fexi, 'bJet'),   fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '01_bullet'),         fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '02_arrow'),          fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '03_fins'),           fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '04_bJet'),           fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '05_adapt_bJet'),     fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '06_lineload_arrow'), fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '07_data_arrow'),     fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '08_thrust'),         fexo, exignore, depth=2)
+    # pyFun Examples folder
+    fexi = os.path.join('examples', 'pyfun')
+    fexo = os.path.join(fdir, 'examples', 'pyfun')
+    # Copy each example individually.
+    CopyTree(os.path.join(fexi, '01_arrow'),          fexo, exignore, depth=2)
+    CopyTree(os.path.join(fexi, '02_bullet'),         fexo, exignore, depth=2)
+    # pyOver Examples folder
+    fexi = os.path.join('examples', 'pyover')
+    fexo = os.path.join(fdir, 'examples', 'pyover')
+    # Copy each example individually.
+    CopyTree(os.path.join(fexi, '01_bullet'),         fexo, exignore, depth=3)
     
     # Destination tar
     ftar = os.path.join('release', fdir+'.tar.gz')
@@ -76,7 +97,7 @@ def MakeRelease(ver):
     
     # Return to original location
     os.chdir(fpwd)
-    
+# def MakeRelease
     
 # Copy a folder using a glob
 def CopyTree(fsrc, fdst, ignore=[], depth=2):
@@ -144,6 +165,7 @@ def CopyTree(fsrc, fdst, ignore=[], depth=2):
         else:
             # Copy the file
             shutil.copy(frel, fdst)
+# def CopyTree
 
 
 # Check if called as script
