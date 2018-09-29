@@ -52,7 +52,7 @@ for all CFD solvers.
 """
 
 # File interface
-import os, glob
+import os, glob, shutil
 # Basic numerics
 import numpy as np
 # Advanced text (regular expressions)
@@ -655,6 +655,8 @@ class CaseFM(cape.dataBook.CaseFM):
         except Exception:
             # Copy to extra file
             fname1 = fname + '1'
+            # Copy the file
+            shutil.copy(fname, fname1)
             # Attempt to remove null characters
             try:
                 os.system("sed -i 's/\\x0//g' %s" % fname1)
@@ -703,6 +705,8 @@ class CaseFM(cape.dataBook.CaseFM):
         except Exception:
             # Copy file and remove null chars
             fname1 = fname + '1'
+            # Copy the file
+            shutil.copy(fname, fname1)
             # Attempt to remove null characters
             try:
                 os.system("sed -i 's/\\x0//g' %s" % fname1)
