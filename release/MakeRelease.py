@@ -45,9 +45,9 @@ def MakeRelease(ver):
     shutil.copy('config.cfg', fdir)
     
     # Files to ignore for documentation
-    docignore = ['']
+    docignore = ['_*', "Makefile", "make.bat"]
     # Documentation folder to copy
-    fdoc = os.path.join('doc', '_build', 'html')
+    fdoc = os.path.join('doc')
     # Copy the documentation
     CopyTree(fdoc, os.path.join(fdir, 'doc'), docignore, depth=16)
     
@@ -86,12 +86,31 @@ def MakeRelease(ver):
     CopyTree(os.path.join(fexi, '01_bullet'),         fexo, exignore, depth=3)
     
     # Destination tar
-    ftar = os.path.join('release', fdir+'.tar.gz')
+    fzip = os.path.join('release', fdir+'.zip')
+    fdoc = os.path.join('release', fdir+'_doc.zip')
+    fsam = os.path.join('release', fdir+'_examples.zip')
     # Check for the tar ball
-    if os.path.isfile(ftar):
-        raise SystemError("Release '%s' exists; aborting" % ftar)
+    for f in [fzip, fdoc, fsam]:
+        if os.path.isfile(f):
+            raise SystemError("Release '%s' exists; aborting" % f)
+    # Subfolders to zip
+    fzmain = [                    
+        os.path.join(fdir, 'bin'),
+        os.path.join(fdir, 'cape'),
+        os.path.join(fdir, 'config.cfg'),
+        os.path.join(fdir, 'Makefile'),
+        os.path.join(fdir, 'pyCart'),
+        os.path.join(fdir, 'pyFun'),
+        os.path.join(fdir, 'pyOver'),
+        os.path.join(fdir, 'modulefiles'),
+        os.path.join(fdir, 'settings'),
+    ]
+    fzdoc = os.path.join(fdir, 'doc')
+    fzsam = os.path.join(fdir, 'examples') 
     # Zip the folder
-    sp.call(['tar', '-czf', ftar, fdir])
+    sp.call(['zip', fzip, '-r'] + fzmain)
+    sp.call(['zip', fdoc, '-r', fzdoc])
+    sp.call(['zip', fsam, '-r', fzsam])
     # Remove the folder
     shutil.rmtree(fdir)
     

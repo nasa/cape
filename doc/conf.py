@@ -126,6 +126,9 @@ source_encoding = 'utf-8-sig'
 # The master toctree document.
 master_doc = 'index'
 
+# Please don't go around testing every code definition
+doctest_test_doctest_blocks = ''
+
 # ---- DEFAULTS ----------------------------------------------
 # Default codes
 TNAdef = {
