@@ -1,8 +1,8 @@
 
 .. _test-cape-cli:
 
-Testing :mod:`cape` Command-Line Interface
-===========================================
+Testing :mod:`cape`: Command-Line Interface
+=================================================
 
 This section tests basic command-line interface usage for the CAPE package.
 These examples use the ``cape`` executable.  While this is not necessary the
