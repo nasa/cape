@@ -90,7 +90,7 @@ def SutherlandMKS(T, mu0=None, T0=None, C=None):
         >>> mu = SutherlandMKS(T, mu0=None, T0=None, C=None)
     :Inputs:
         *T*: :class:`float`
-            Static temperature in degrees Rankine
+            Static temperature in degrees Kelvins
         *mu0*: {``1.716e-5``} | :class:`float`
             Reference viscosity [kg/m*s]
         *T0*: {``273.15``} | :class:`float`

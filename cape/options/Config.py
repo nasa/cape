@@ -28,7 +28,7 @@ from .util import rc0, odict
 
 # Class for PBS settings
 class Config(odict):
-    """Dictionary-based interfaced for surface configuration
+    """Dictionary-based interface for surface configuration
     
     It is primarily used for naming surface components, grouping them, defining
     moment reference points, defining other points, and requesting components
