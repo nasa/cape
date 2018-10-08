@@ -1,0 +1,16 @@
+{
+    "aflr3": {
+        "i": "Components.surf",
+        "o": "Components.lb8.ugrid",
+        "blr": 10,
+        "flags": {
+            "someflag": 2
+        },
+        "keys": {
+            "somekey": "c"
+        }
+    },
+    "intersect": {
+        "T": true
+    }
+}
