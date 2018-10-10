@@ -181,7 +181,7 @@ class Cntl(object):
             
     # Function to apply initialization function
     def InitFunction(self):
-        """Run one or more "initialization functions
+        """Run one or more "initialization functions"
         
         This calls the function(s) in the global ``"InitFunction"`` option from
         the JSON file.  These functions must take *cntl* as an input, and they

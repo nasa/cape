@@ -1,0 +1,6 @@
+"BatchShellCmds": [
+        "module load tecplot/2017r1",
+        "module load texlive/2016",
+        "module use -a /u/serogers/share/modulefiles",
+        "module load cgt/2.1s++_dp"
+    ]
