@@ -34,6 +34,7 @@ def MakeRelease(ver):
     CopyTree('cape',   fdir, modignore, depth=2)
     CopyTree('pyCart', fdir, modignore, depth=2)
     CopyTree('pyFun',  fdir, modignore, depth=2)
+    CopyTree('pyOver', fdir, modignore, depth=2)
     
     # Other settings
     CopyTree('bin',         fdir, modignore, depth=2)
@@ -45,7 +46,7 @@ def MakeRelease(ver):
     shutil.copy('config.cfg', fdir)
     
     # Files to ignore for documentation
-    docignore = ['_*', "Makefile", "make.bat"]
+    docignore = ['_*']
     # Documentation folder to copy
     fdoc = os.path.join('doc')
     # Copy the documentation
