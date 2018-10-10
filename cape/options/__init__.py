@@ -46,6 +46,7 @@ from .util import *
 
 # Import more specific modules for controlling subgroups of options
 from .pbs        import PBS
+from .slurm      import Slurm
 from .DataBook   import DataBook, DBTarget
 from .Report     import Report
 from .Mesh       import Mesh
@@ -278,7 +279,76 @@ class Options(odict):
         for line in self.get_ShellCmds(typ=typ):
             # Write it.
             f.write('%s\n' % line)
-            
+    
+    
+    # Write a Slurm header
+    def WriteSlurmHeader(self, f, lbl, j=0, typ=None, wd=None):
+        """Write common part of Slurm script
+        
+        :Call:
+            >>> opts.WriteSlurmHeader(f, i=None, j=0, typ=None, wd=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *f*: :class:`file`
+                Open file handle
+            *lbl*: :class:`str`
+                Name of the Slurm job
+            *j*: :class:`int`
+                Phase number
+            *typ*: {``None``} | ``"batch"`` | ``"post"``
+                Group of PBS options to use
+            *wd*: {``None``} | :class:`str`
+                Folder to enter when starting the job
+        :Versions:
+            * 2018-10-10 ``@ddalle``: Forked from :func:`WritePBSHeader`
+        """
+        # Get the shell path (must be bash)
+        sh = self.get_Slurm_shell(j, typ=typ)
+        # Write to script both ways.
+        f.write('#!%s\n' % sh)
+        # Write it to the script
+        f.write('#SBATCH --job-name %s\n' % lbl)
+        # Get the number of nodes, etc.
+        acct  = self.get_Slurm_A(j, typ=typ)
+        nnode = self.get_Slurm_N(j, typ=typ)
+        ncpus = self.get_Slurm_n(j, typ=typ)
+        que   = self.get_Slurm_p(j, typ=typ)
+        gid   = self.get_Slurm_gid(j, typ=typ)
+        # Write commands
+        if acct:  f.write("#SBATCH -A %s\n" % acct)
+        if nnode: f.write("#SBATCH -N %s\n" % nnode)
+        if ncpus: f.write("#SBATCH -n %s\n" % ncpus)
+        if que:   f.write("#SBATCH -p %s\n" % que)
+        if gid:   f.write("#SBATCH --gid %s\n" % gid)
+        # Get the walltime.
+        t = self.get_Slurm_time(j, typ=typ)
+        # Write it.
+        f.write('#SBATCH --time=%s\n' % t)
+        # Process working directory
+        if wd is None:
+            # Default to current directory
+            pbsdir = os.getcwd()
+        else:
+            # Use the input
+            pbsdir = wd
+        # Go to the working directory.
+        f.write('# Go to the working directory.\n')
+        f.write('cd %s\n\n' % pbsdir)
+
+        # Get umask option
+        umask = self.get_umask()
+        # Write the umask
+        if umask > 0:
+            f.write('# Set umask.\n')
+            f.write('umask %04o\n\n' % umask)
+        
+        # Write a header for the shell commands.
+        f.write('# Additional shell commands\n')
+        # Loop through the shell commands.
+        for line in self.get_ShellCmds(typ=typ):
+            # Write it.
+            f.write('%s\n' % line)
    # >
     
    # ============
@@ -358,6 +428,57 @@ class Options(odict):
             # Copy any implicit settings from main "PBS" section
             for k in self['PBS']:
                 self['PostPBS'].setdefault(k, self['PBS'][k])
+            
+    # Initialization and confirmation for Slurm options
+    def _Slurm(self):
+        """Initialize Slurm options if necessary"""
+        # Check status.
+        if 'Slurm' not in self:
+            # Missing entirely
+            self['Slurm'] = Slurm()
+        elif type(self['Slurm']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['Slurm']:
+                tmp["Slurm_"+k] = self['Slurm'][k]
+            # Convert to special class.
+            self['Slurm'] = Slurm(**tmp)
+            
+    # Initialize pre-processing Slurm options
+    def _BatchSlurm(self):
+        """Initialize preprocessing/batch Slurm options if necessary"""
+        # Check status
+        if 'BatchSlurm' not in self:
+            # Missing entirely; copy from 'Slurm'
+            self['BatchSlurm'] = self['Slurm']
+        elif type(self['BatchSlurm']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['BatchSlurm']:
+                tmp["Slurm_"+k] = self['BatchSlurm'][k]
+            # Convert to special class
+            self['BatchSlurm'] = Slurm(**tmp)
+            # Copy any non-explicit settings from main "Slurm" section
+            for k in self['Slurm']:
+                self['BatchSlurm'].setdefault(k, self['Slurm'][k])
+                
+    # Initialize post-processing Slurm options
+    def _PostSlurm(self):
+        """Initialize post-processing Slurm options if necessary"""
+        # Check status
+        if 'PostSlurm' not in self:
+            # Missing entirely; copy from 'Slurm'
+            self['PostSlurm'] = self['Slurm']
+        elif type(self['PostSlurm']).__name__ == 'dict':
+            # Add prefix to all the keys
+            tmp = {}
+            for k in self['PostSlurm']:
+                tmp["Slurm_"+k] = self['PostSlurm'][k]
+            # Convert to special class
+            self['PostSlurm'] = Slurm(**tmp)
+            # Copy any implicit settings from main "Slurm" section
+            for k in self['Slurm']:
+                self['PostSlurm'].setdefault(k, self['Slurm'][k])
             
     # Initialization method for databook
     def _DataBook(self):
@@ -755,6 +876,16 @@ class Options(odict):
         self._RunControl()
         self['RunControl'].set_qsub(qsub, i)
         
+    # Get the submittable/nonsubmittalbe status
+    def get_sbatch(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_sbatch(i)
+        
+    # Set the submittable/nonsubmittalbe status
+    def set_sbatch(self, sbatch=rc0('sbatch'), i=None):
+        self._RunControl()
+        self['RunControl'].set_sbatch(sbatch, i)
+        
     # Get the resubmittable/nonresubmittalbe status
     def get_Resubmit(self, i=None):
         self._RunControl()
@@ -787,7 +918,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['nIter', 'PhaseSequence', 'PhaseIters', 'Environ', 'ulimit',
-            'MPI', 'nProc', 'mpicmd', 'qsub',
+            'MPI', 'nProc', 'mpicmd', 'qsub', 'sbatch',
             'Resubmit', 'Continue', 'PreMesh']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
@@ -1585,6 +1716,260 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(PBS,'set_'+k).__doc__
+   # > 
+        
+   # ==============
+   # Slurm settings
+   # ==============
+   # <
+    
+    # Get number of unique Slurm scripts
+    def get_nSlurm(self, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_nSlurm()
+        elif typ == 'post':
+            self._PostSlurm()
+            return self['PostSlurm'].get_nSlurm()
+        else:
+            self._Slurm()
+            return self['Slurm'].get_nSlurm()
+    get_nSlurm.__doc__ = Slurm.get_nSlurm.__doc__
+    
+    # Get Slurm shell setting
+    def get_Slurm_shell(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_shell(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            return self['PostSlurm'].get_Slurm_shell(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_shell(i)
+        
+    # Set Slurm shell setting
+    def set_Slurm_shell(self, S=rc0('Slurm_shell'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            self['BatchSlurm'].set_Slurm_shell(S, i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].set_Slurm_shell(S, i)
+        else:
+            self._Slurm()
+            self['Slurm'].set_Slurm_shell(S, i)
+    
+    # Get Slurm nNodes setting
+    def get_Slurm_N(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_N(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].get_Slurm_N(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_N(i)
+        
+    # Set Slurm nNodes setting
+    def set_Slurm_N(self, N=rc0('Slurm_N'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            self['BatchSlurm'].set_Slurm_N(n, i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].set_Slurm_N(n, i)
+        else:
+            self._Slurm()
+            self['Slurm'].set_Slurm_N(n, i)
+    
+    # Get Slurm CPUs/node setting
+    def get_Slurm_n(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_n(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            return self['PostSlurm'].get_Slurm_n(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_n(i)
+        
+    # Set Slurm CPUs/node setting
+    def set_Slurm_n(self, n=rc0('Slurm_n'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            self['BatchSlurm'].set_Slurm_n(n, i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].set_Slurm_n(n, i)
+        else:
+            self._Slurm()
+            self['Slurm'].set_Slurm_n(n, i)
+    
+    # Get Slurm queue
+    def get_Slurm_p(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_p(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            return self['PostSlurm'].get_Slurm_p(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_p(i)
+        
+    # Set Slurm queue
+    def set_Slurm_p(self, p=None, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            self['BatchSlurm'].set_Slurm_p(p, i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].set_Slurm_p(p, i)
+        else:
+            self._Slurm()
+            self['Slurm'].set_Slurm_p(p, i)
+    
+    # Get Slurm account
+    def get_Slurm_A(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_A(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            return self['PostSlurm'].get_Slurm_A(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_A(i)
+        
+    # Set Slurm account
+    def set_Slurm_A(self, A=None, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            self['BatchSlurm'].set_Slurm_A(A, i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].set_Slurm_A(A, i)
+        else:
+            self._Slurm()
+            self['Slurm'].set_Slurm_A(A, i)
+    
+    # Get Slurm group setting
+    def get_Slurm_gid(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_gid(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            return self['PostSlurm'].get_Slurm_gid(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_gid(i)
+        
+    # Set Slurm group setting
+    def set_Slurm_gid(self, gid=rc0('Slurm_gid'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            self['BatchSlurm'].set_Slurm_gid(gid, i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].set_Slurm_gid(gid, i)
+        else:
+            self._Slurm()
+            self['Slurm'].set_Slurm_gid(gid, i)
+    
+    # Get Slurm time setting
+    def get_Slurm_time(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_time(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            return self['PostSlurm'].get_Slurm_time(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_time(i)
+        
+    # Set Slurm walltime setting
+    def set_Slurm_time(self, t=rc0('Slurm_time'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            self['BatchSlurm'].set_Slurm_time(t, i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].set_Slurm_time(t, i)
+        else:
+            self._Slurm()
+            self['Slurm'].set_Slurm_time(t, i)
+        
+    # Copy over the documentation.
+    for k in ['Slurm_gid', 'Slurm_A', 'Slurm_p', 'Slurm_shell',
+            'Slurm_N', 'Slurm_n', 'Slurm_time']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Slurm,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Slurm,'set_'+k).__doc__
    # > 
    
     

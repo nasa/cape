@@ -41,7 +41,7 @@ class PBS(odict):
         :Call:
             >>> n = opts.get_nPBS()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *n*: :class:`int`
@@ -68,7 +68,7 @@ class PBS(odict):
         :Call:
             >>> n = opts.get_PBS_select(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -88,7 +88,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_select(n, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *n*: :class:`int`
                 PBS number of nodes
@@ -108,7 +108,7 @@ class PBS(odict):
         :Call:
             >>> n = opts.get_PBS_ncpus(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -128,7 +128,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_ncpus(n, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *n*: :class:`int`
                 PBS number of CPUs per node
@@ -148,7 +148,7 @@ class PBS(odict):
         :Call:
             >>> n = opts.get_PBS_ncpus(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -168,7 +168,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_ncpus(n, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *n*: :class:`int`
                 PBS number of MPI processes per node
@@ -188,7 +188,7 @@ class PBS(odict):
         :Call:
             >>> s = opts.get_PBS_model(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -208,7 +208,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_model(s, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *s*: :class:`str`
                 Name of architecture/model to use
@@ -228,7 +228,7 @@ class PBS(odict):
         :Call:
             >>> p = opts.get_PBS_p(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -247,7 +247,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_p(p, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *p*: :class:`int`
                 PBS priority level
@@ -266,7 +266,7 @@ class PBS(odict):
         :Call:
             >>> s = opts.get_PBS_model(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -285,7 +285,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_aoe(s, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *s*: :class:`str`
                 Name of (alternate) operating environment to use
@@ -341,7 +341,7 @@ class PBS(odict):
         :Call:
             >>> t = opts.get_PBS_walltime(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -361,7 +361,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_walltime(t, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *t*: :class:`str`
                 Maximum wall clock time (e.g. ``'8:00:00'``)
@@ -381,7 +381,7 @@ class PBS(odict):
         :Call:
             >>> W = opts.get_PBS_W(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -401,7 +401,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_W(W, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *W*: :class:`str`
                 PBS *W* setting; usually ``'group_list=$grp'``
@@ -421,7 +421,7 @@ class PBS(odict):
         :Call:
             >>> q = opts.get_PBS_q()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -441,7 +441,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_q(q, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *q*: :class:`str`
                 Name of PBS queue to submit to
@@ -463,7 +463,7 @@ class PBS(odict):
         :Call:
             >>> j = opts.get_PBS_j(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -483,7 +483,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_j(j, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *j*: :class:`str`
                 PBS *j* setting; ``'oe'`` to join outputs
@@ -503,7 +503,7 @@ class PBS(odict):
         :Call:
             >>> o = opts.get_PBS_o(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -522,7 +522,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_o(o, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *o*: :class:`str`
                 PBS *o* setting; explicit STDOUT file
@@ -541,7 +541,7 @@ class PBS(odict):
         :Call:
             >>> e = opts.get_PBS_o(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -560,7 +560,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_e(e, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *e*: :class:`str`
                 PBS *o* setting; explicit STDERR file
@@ -579,7 +579,7 @@ class PBS(odict):
         :Call:
             >>> r = opts.get_PBS_r(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -599,7 +599,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_r(r, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *r*: :class:`str`
                 PBS *r* setting; ``'n'`` for non-rerunable
@@ -619,7 +619,7 @@ class PBS(odict):
         :Call:
             >>> r = opts.get_PBS_S(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Index to select
@@ -639,7 +639,7 @@ class PBS(odict):
         :Call:
             >>> opts.set_PBS_S(S, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *S*: :class:`str`
                 PBS *shell* setting; ``'/bin/bash'`` in most cases

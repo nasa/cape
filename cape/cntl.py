@@ -485,8 +485,10 @@ class Cntl(object):
         qCheck = kw.get('c', False)
         # Get flag to show job IDs
         qJobID = kw.get('j', False)
+        # PBS flag
+        qSlurm = opts.get_sbatch(0)
         # Check whether or not to kill PBS jobs
-        qKill = kw.get('qdel', kw.get('kill', False))
+        qKill = kw.get('qdel', kw.get('kill', kw.get('scancel', False)))
         # Check whether to execute scripts
         ecmd = kw.get('exec', kw.get('e'))
         qExec = (ecmd is not None)
@@ -512,6 +514,8 @@ class Cntl(object):
         # Check for --no-qsub option
         if not kw.get('qsub', True):
             self.opts.set_qsub(False)
+        if not kw.get('sbatch', True):
+            self.opts.set_sbatch(False)
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
         # Get list of indices.
@@ -520,7 +524,12 @@ class Cntl(object):
         fruns = self.x.GetFullFolderNames(I)
         
         # Get the qstat info (safely; do not raise an exception).
-        jobs = queue.qstat(u=kw.get('u'))
+        if qSlurm:
+            # Slurm: squeue
+            jobs = queue.squeue(u=kw.get('u'))
+        else:
+            # PBS: qstat
+            jobs = queue.qstat(u=kw.get('u'))
         # Save the jobs.
         self.jobs = jobs
         # Initialize number of submitted jobs
@@ -962,7 +971,12 @@ class Cntl(object):
         # Check for auto-status
         if (jobs=={}) and auto:
             # Call qstat.
-            self.jobs = queue.qstat(u=u)
+            if self.opts.get_sbatch(0):
+                # Call slurm instead of PBS
+                self.jobs = queue.squeue(u=u)
+            else:
+                # Use qstat to get job info
+                self.jobs = queue.qstat(u=u)
             jobs = self.jobs
         # Check if the case is prepared.
         if self.CheckError(i):
@@ -2001,7 +2015,7 @@ class Cntl(object):
         
     # Write a PBS header
     def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None, pre=None):
-        """Write common part of PBS script
+        """Write common part of PBS or Slurm script
         
         :Call:
             >>> cntl.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
@@ -2034,8 +2048,13 @@ class Cntl(object):
         else:
             # Case PBS job name
             lbl = self.GetPBSName(i, pre=pre)
-        # Call the function from *opts*
-        self.opts.WritePBSHeader(f, lbl, j=j, typ=typ, wd=wd)
+        # Check the task manager
+        if self.opts.get_sbatch(j):
+            # Write the Slurm header
+            self.opts.WriteSlurmHeader(f, lbl, j=j, typ=typ, wd=wd)
+        else:
+            # Call the function from *opts*
+            self.opts.WritePBSHeader(f, lbl, j=j, typ=typ, wd=wd)
             
     # Write batch PBS job
     def SubmitBatchPBS(self, argv):
@@ -2162,7 +2181,12 @@ class Cntl(object):
         # Submit and Cleanup
         # ------------------
         # Submit the job
-        pbs = queue.pqsub(fpbs)
+        if self.opts.get_sbatch(0):
+            # Submit Slurm job
+            pbs = queue.sbatch(fpbs)
+        else:
+            # Submit PBS job
+            pbs = queue.pqsub(fpbs)
         # Return to original location
         os.chdir(fpwd)
    # >

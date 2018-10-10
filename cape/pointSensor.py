@@ -1039,7 +1039,7 @@ class DBTriqPoint(DBPointSensor):
             * 2015-12-04 ``@ddalle``: First version
         """
         pass
-   # >       
+  # >       
 # class DBPointSensor
 
 

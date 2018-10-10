@@ -317,7 +317,13 @@ def StartCase():
     # Determine the run index.
     i = GetInputNumber(fc)
     # Check qsub status.
-    if fc.get_qsub(i):
+    if fc.get_sbatch(i):
+        # Get the name of the Slurm file.
+        fpbs = GetPBSScript(i)
+        # Submit the case.
+        pbs = queue.psbatch(fpbs)
+        return pbs
+    elif fc.get_qsub(i):
         # Get the name of the PBS file.
         fpbs = GetPBSScript(i)
         # Submit the case.
@@ -336,10 +342,19 @@ def StopCase():
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
+    # Get the config.
+    fc = ReadCaseJSON()
+    # Determine the run index.
+    i = GetInputNumber(fc)
     # Get the job number.
     jobID = queue.pqjob()
     # Try to delete it.
-    queue.qdel(jobID)
+    if fc.get_sbatch(i):
+        # Delete Slurm job
+        queue.scancel(jobID)
+    else:
+        # Delete PBS job
+        queue.qdel(jobID)
     # Check if the RUNNING file exists.
     if os.path.isfile('RUNNING'):
         # Delete it.
@@ -582,7 +597,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
         # Append to the file
         f = open(fname, 'a')
     # Check for job ID
-    if rc.get_qsub(i):
+    if rc.get_qsub(i) or rc.get_sbatch(i):
         try:
             # Try to read it and convert to integer
             jobID = open('jobID.dat').readline().split()[0]
@@ -635,7 +650,7 @@ def WriteStartTimeProg(tic, rc, i, fname, prog):
         # Append to file
         f = open(fname, 'a')
     # Check for job ID
-    if rc.get_qsub(i):
+    if rc.get_qsub(i) or rc.get_sbatch(i):
         try:
             # Try to read it and convert to integer
             jobID = open('jobID.dat').readline().split()[0]

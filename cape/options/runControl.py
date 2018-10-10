@@ -1470,6 +1470,43 @@ class RunControl(odict):
             * 2014-10-05 ``@ddalle``: First version
         """
         self.set_key('qsub', qsub, i)
+    
+    # Get the submittable-job status
+    def get_sbatch(self, i=None):
+        """Determine whether or not to submit jobs using SLURM
+        
+        :Call:
+            >>> sbatch = opts.get_sbatch(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Phase number
+        :Outputs:
+            *sbatch*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to submit case to SLURM
+        :Versions:
+            * 2018-10-10 ``@ddalle``: First version
+        """
+        return self.get_key('sbatch', i)
+    
+    # Set the submittable-job status
+    def set_sbatch(self, sbatch=rc0('sbatch'), i=None):
+        """Set jobs as submittable or nonsubmittable via SLURM
+        
+        :Call:
+            >>> opts.set_sbatch(sbatch, i)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *sbatch*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to submit case to SLURM
+            *i*: :class:`int` or ``None``
+                Phase number
+        :Versions:
+            * 2018-10-10 ``@ddalle``: First version
+        """
+        self.set_key('sbatch', sbatch, i)
         
     
     # Get the resubmittable-job status

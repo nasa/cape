@@ -114,7 +114,13 @@ def StartCase():
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Check qsub status.
-    if rc.get_qsub(i):
+    if rc.get_sbatch(i):
+        # Getthe name of the PBS file.
+        fpbs = GetPBSScript(i)
+        # Submit the case
+        pbs = queue.sbatch(fpbs)
+        return pbs
+    elif rc.get_qsub(i):
         # Get the name of the PBS file.
         fpbs = GetPBSScript(i)
         # Submit the case.
@@ -196,6 +202,9 @@ def RestartCase(i0=None):
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Task manager
+    qpbs = rc.get_qsub(i)
+    qslr = rc.get_sbatch(i)
     # Get restartability option
     qtime = (twall_avail > twall + dtwall)
     # Status updates: available time
@@ -207,7 +216,7 @@ def RestartCase(i0=None):
     # Don't check time if moving to new phase
     qtime = qtime or (i0 is not None and i0!=i)
     # Check qsub status.
-    if not rc.get_qsub(i):
+    if not (qpbs or qslr):
         # Run the case.
         run_overflow()
     elif rc.get_Resubmit(i):
@@ -216,7 +225,15 @@ def RestartCase(i0=None):
             # Get the name of the PBS file.
             fpbs = GetPBSScript(i)
             # Submit the case.
-            pbs = queue.pqsub(fpbs)
+            if qslr:
+                # Slurm
+                pbs = queue.psbatch(fpbs)
+            elif qpbs:
+                # PBS
+                pbs = queue.pqsub(fpbs)
+            else:
+                # No task manager
+                raise NotImplementedError("Could not determine task manager")
             return pbs
         else:
             # Continue on the same job

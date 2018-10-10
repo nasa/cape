@@ -320,7 +320,13 @@ def StartCase():
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Check qsub status.
-    if rc.get_qsub(i):
+    if rc.get_sbatch(i):
+        # Get the name of the PBS file
+        fpbs = GetPBSScript(i)
+        # Submit the Slurm case
+        pbs = queue.psbatch(fpbs)
+        return pbs
+    elif rc.get_qsub(i):
         # Get the name of the PBS file.
         fpbs = GetPBSScript(i)
         # Submit the case.
@@ -351,11 +357,14 @@ def RestartCase(i0=None):
     i = GetPhaseNumber(rc)
     # Get restart iteration
     n = GetRestartIter()
+    # Task manager
+    qpbs = rc.get_qsub(i)
+    qslr = rc.get_sbatch(i)
     # Check for exit
     if n >= rc.get_LastIter():
         return
     # Check qsub status.
-    if not rc.get_qsub(i):
+    if not (qpbs or qslr):
         # Run the case.
         run_fun3d()
     elif rc.get_Resubmit(i):
@@ -364,7 +373,15 @@ def RestartCase(i0=None):
             # Get the name of the PBS file.
             fpbs = GetPBSScript(i)
             # Submit the case.
-            pbs = queue.pqsub(fpbs)
+            if qslr:
+                # Slurm
+                pbs = queue.psbatch(fpbs)
+            elif qpbs:
+                # PBS
+                pbs = queue.pqsub(fpbs)
+            else:
+                # No task manager
+                raise NotImplementedError("Could not determine task manager")
             return pbs
         else:
             # Continue on the same job
