@@ -50,7 +50,7 @@ def calli(cmdi, f=None, shell=None, v=True):
     """Call a command with alternate STDOUT by filename
     
     :Call:
-        >>> calli(cmdi, f=None, shell=None, v=True)
+        >>> ierr = calli(cmdi, f=None, shell=None, v=True)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`

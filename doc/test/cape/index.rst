@@ -16,4 +16,6 @@ command-line interface is not really a practical tool.
     subset
     argread
     atm
+    case
+    cmd
     

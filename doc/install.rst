@@ -151,7 +151,7 @@ The following commands give an example of the first step.
 
     .. code-block:: bash
     
-        $ tar -xzf cape_v0.8.tar.gz
+        $ tar -xzf cape_0.9.1.tar.gz
         
 We are using ``$CAPE`` as a variable to store the location of the folder that
 gets created.  If this is unclear, run the following two commands in a BASH
@@ -159,14 +159,14 @@ environment.
 
     .. code-block:: bash
     
-        $ CAPE=$PWD/pycart0.8
+        $ CAPE=$PWD/cape_0.9.1
         $ echo $CAPE
         
 Or, in a csh environment, the following will work.
 
     .. code-block:: csh
     
-        $ setenv CAPE $PWD/pycart0.8
+        $ setenv CAPE $PWD/cape_0.9.1
         $ echo $CAPE
 
 The second part of the installation procedure is to edit two environment
@@ -184,14 +184,14 @@ system.
 
     .. code-block:: bash
     
-        export PATH=$PATH:$CAPE/scriptlib
+        export PATH=$PATH:$CAPE/bin
         export PYTHONPATH=$CAPE:$PYTHONPATH
         
 The following is appropriate for ``csh``.
 
     .. code-block:: csh
     
-        setenv PATH $PATH:$CAPE/scriptlib
+        setenv PATH $PATH:$CAPE/bin
         setenv PYTHONPATH $CAPE:$PYTHONPATH
         
 Add the appropriate set of commands to the appropriate ``.bashrc`` or
@@ -209,7 +209,7 @@ file contains a line
 
     .. code-block:: csh
     
-        set  CAPE   $HOME/pycart0.8
+        set  CAPE   $HOME/cape_0.9.1
         
 Just edit this line so that it points to the appropriate location (i.e.
 wherever you untarred the original file), and the module is ready for use. Then

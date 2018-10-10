@@ -43,14 +43,14 @@ extensions = [
 ]
 
 # Main title
-title = "SLS Transonic Force & Moment Test CFD"
+title = "Manual for CAPE version 0.8"
 
 # Switches
 latex_opts = {
     "nasa@tm": False,
     "nasa@tm@sti": False,
     "nasa@tm@interior": False,
-    "tna@titlepage": True,
+    "tna@titlepage": False,
     "tna@memo": False,
     "tna@report": False,
 }
@@ -294,7 +294,7 @@ html_theme = 'sphinxdoc'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = "CAPE %s" % release
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
