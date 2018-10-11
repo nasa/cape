@@ -486,7 +486,7 @@ class Cntl(object):
         # Get flag to show job IDs
         qJobID = kw.get('j', False)
         # PBS flag
-        qSlurm = opts.get_sbatch(0)
+        qSlurm = self.opts.get_sbatch(0)
         # Check whether or not to kill PBS jobs
         qKill = kw.get('qdel', kw.get('kill', kw.get('scancel', False)))
         # Check whether to execute scripts
