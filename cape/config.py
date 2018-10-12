@@ -1280,7 +1280,7 @@ class ConfigMIXSUR(object):
             * 2014-11-24 ``@ddalle``: First version
         """
         # Initialize object.
-        cfg = Config()
+        cfg = ConfigMIXSUR()
         # Copy the dictionaries.
         cfg.faces = self.faces.copy()
         cfg.parents = self.parents.copy()
@@ -1442,10 +1442,15 @@ class ConfigJSON(object):
         :Versions:
             * 2016-10-21 ``@ddalle``: First version
         """
-        # Read the settings from an expanded and decommented JSON file
-        opts = util.loadJSONFile(fname)
-        # Convert to special options class
-        opts = util.odict(**opts)
+        # Check for a file
+        if fname is not None:
+            # Read the settings from an expanded and decommented JSON file
+            opts = util.loadJSONFile(fname)
+            # Convert to special options class
+            opts = util.odict(**opts)
+        else:
+            # Empty options
+            opts = util.odict()
         # Get major sections
         self.props = opts.get("Properties")
         self.tree  = opts.get("Tree")
@@ -1461,7 +1466,7 @@ class ConfigJSON(object):
         self.faces = {}
         self.parents = {}
         # Loop through the tree
-        for c in self.opts["Tree"]:
+        for c in self.tree:
             # Check if already processed
             if c in self.faces:
                 continue
@@ -1573,7 +1578,7 @@ class ConfigJSON(object):
             * 2014-11-24 ``@ddalle``: First version
         """
         # Initialize object.
-        cfg = Config()
+        cfg = ConfigJSON(fname=None)
         # Copy the dictionaries.
         cfg.faces = self.faces.copy()
         cfg.props = self.props.copy()

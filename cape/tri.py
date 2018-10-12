@@ -3036,8 +3036,11 @@ class TriBase(object):
                     # Get the two faces
                     face0 = self.config.faces[face]
                     face1 = tri.config.faces[face]
+                    # Types
+                    q0 = face0.__class__.__name__.startswith("int")
+                    q1 = face1.__class__.__name__.startswith("int")
                     # Check the situation
-                    if face0 == face1:
+                    if q0 and q1 and (face0 == face1):
                         # Do nothing
                         pass
                     else:
@@ -3045,12 +3048,59 @@ class TriBase(object):
                         face0 = np.array(face0).flatten()
                         face1 = np.array(face1).flatten()
                         # Union the two faces
-                        self.config.faces[face] = np.union1d(face0, face1)
+                        u = np.union1d(face0, face1)
+                        # Save as a list
+                        self.config.faces[face] = list(u)
                 else:
                     # Add the face
                     self.config.faces[face] = tri.config.faces[face]
         except AttributeError:
             # No configurations to merge
+            pass
+        # Check for Confg
+        try:
+            # Check for a configuration in both triangulations
+            self.Conf
+            tri.Conf
+            # Loop through the faces in the added configuration
+            for face in tri.Conf:
+                # Check if present
+                if face not in self.Conf:
+                    # Just add it (easy case)
+                    self.Conf[face] = tri.Conf[face]
+                    continue
+                # Otherwise, get both values
+                face0 = self.Conf[face]
+                face1 = self.Conf[face]
+                # Check types
+                q0 = face0.__class__.__name__.startswith("int")
+                q1 = face1.__class__.__name__.startswith("int")
+                # Combine them
+                if q0 and q1:
+                    # Check if different
+                    if face0 != face1:
+                        # Use a list of both values
+                        self.Conf[face] = [face0, face1]
+                elif q1:
+                    # New triangulation is an integer
+                    if face1 not in face0:
+                        # Append to the list
+                        self.Conf[face].append(face1)
+                elif q0:
+                    # Original configuration is an integer
+                    if face0 not in face1:
+                        # Append to the list
+                        face1.append(face0)
+                    # Save the list
+                    self.Conf[face] = face1
+                else:
+                    # Both are lists; loop through new set
+                    for k in face1:
+                        # Check if present
+                        if k not in face0:
+                            self.Conf[face].append(k)
+        except AttributeError:
+            # No *Conf* to merge
             pass
 
     # Add a second triangulation without altering component numbers.
@@ -3728,7 +3778,6 @@ class TriBase(object):
                 print("%12s  %6s  %s" % ("", cID, face))
         # Reset component IDs
         self.CompID = CompID
-
 
     # Function to get compIDs by name
     def GetCompID(self, face=None):
