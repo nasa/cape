@@ -6261,19 +6261,53 @@ class Triq(TriBase):
         x0 = self.Nodes[i0]
         x1 = self.Nodes[i1]
         x2 = self.Nodes[i2]
-        # Get interpolation fractions
-        th1 = np.dot(x-x0, x1-x0) / np.dot(x1-x0, x1-x0)
-        th2 = np.dot(x-x0, x2-x0) / np.dot(x2-x0, x2-x0)
+
+        # Begin new sub-triangles area based approach
+        # If the projected point xp is outside of the triangle,
+        # then the sum of a0,a1,a2 will be greater than the total
+        # area of the triangle, but this method scales the weights 
+        # to account for this
+        #
+        # projected point
+        xp = x - T["z1"]*self.e3[k]
+        # dot products
+        dp0 = np.cross(xp-x1, xp-x2)
+        dp1 = np.cross(xp-x2, xp-x0)
+        dp2 = np.cross(xp-x0, xp-x1)
+        #dpa = np.cross(x0-x1, x0-x2)
+        # Areas of the sub triangles
+        a0 = np.sqrt(np.dot(dp0,dp0))
+        a1 = np.sqrt(np.dot(dp1,dp1))
+        a2 = np.sqrt(np.dot(dp2,dp2))
+        # Area of the entire triangle
+        #aa = np.sqrt(np.dot(dpa,dpa))
+        sa = a0+a1+a2
+        # Compute the weights for each node
+        w0 = a0/sa
+        w1 = a1/sa
+        w2 = a2/sa
         # Get states
         q0 = self.q[i0]
         q1 = self.q[i1]
         q2 = self.q[i2]
         # Interpolation
-        q = q0 + th1*(q1-q0) + th2*(q2-q0)
-        # Point projection
-        x0 = x - T["z1"]*self.e3[k]
-        # Output
-        return x0, q
+        q = w0*q0 + w1*q1 + w2*q2
+        return xp, q
+
+        # Original version
+        # Get interpolation fractions
+        #th1 = np.dot(x-x0, x1-x0) / np.dot(x1-x0, x1-x0)
+        #th2 = np.dot(x-x0, x2-x0) / np.dot(x2-x0, x2-x0)
+        ## Get states
+        #q0 = self.q[i0]
+        #q1 = self.q[i1]
+        #q2 = self.q[i2]
+        ## Interpolation
+        #q = q0 + th1*(q1-q0) + th2*(q2-q0)
+        ## Point projection
+        #x0 = x - T["z1"]*self.e3[k]
+        ## Output
+        #return x0, q
   # >
 
   # ============
