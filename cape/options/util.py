@@ -145,6 +145,7 @@ rc["ztoldef"] = 5e-2
 rc["antoldef"] = 3e-2
 rc["rntoldef"] = 1e-4
 rc["cntoldef"] = 1e-3
+rc["rztoldef"] = 1e-5
 
 # Intersect options
 rc['intersect_rm'] = False

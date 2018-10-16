@@ -53,6 +53,7 @@ ztoldef  = cape.options.rc.get("ztoldef", 5e-2)
 antoldef = cape.options.rc.get("antoldef", 2e-2)
 rntoldef = cape.options.rc.get("rntoldef", 1e-4)
 cntoldef = cape.options.rc.get("cntoldef", 1e-4)
+rztoldef = cape.options.rc.get("rztoldef", 1e-5)
 
 # Attempt to load the compiled helper module.
 try:
@@ -4905,6 +4906,8 @@ class TriBase(object):
                 Array of *x*, *y*, and *z* coordinates of test point
             *ztol*: {_ztol_} | positive :class:`float`
                 Maximum extra projection distance
+            *rztol*: {_antol_} | positive :class:`float`
+                Maximum relative projection distance
         :Outputs:
             *T*: :class:`dict`
                 Dictionary of match parameters
@@ -4958,6 +4961,13 @@ class TriBase(object):
         zmin = zi[kmin]
         # Process max tol
         ztol = kw.get("ztol", ztoldef)
+        rztol = kw.get("rztol", rztoldef)
+        # Scale of vehicle
+        bbox = self.GetCompBBox()
+        # Use largest dimension of bbox
+        Lref = np.max(bbox[1::2] - bbox[::2])
+        # Relative tolerance
+        ztol = ztol + rztol*Lref
         # Get indices of points within *zmin* and *ztol*
         I = zi <= zmin + ztol
         K = np.where(I)[0]
@@ -5026,6 +5036,7 @@ class TriBase(object):
         return T
     # Edit default tolerances
     GetNearestTri.__doc__=GetNearestTri.__doc__.replace("_ztol_",str(ztoldef))
+    GetNearestTri.__doc__=GetNearestTri.__doc__.replace("_rztol_",str(rztoldef))
 
     # Get tris by bbox
     def FilterTrisBBox(self, bbox):
