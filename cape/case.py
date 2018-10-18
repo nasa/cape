@@ -344,12 +344,10 @@ def StopCase():
     """
     # Get the config.
     fc = ReadCaseJSON()
-    # Determine the run index.
-    i = GetInputNumber(fc)
     # Get the job number.
     jobID = queue.pqjob()
     # Try to delete it.
-    if fc.get_sbatch(i):
+    if fc.get_sbatch(0):
         # Delete Slurm job
         queue.scancel(jobID)
     else:
