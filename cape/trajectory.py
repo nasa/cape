@@ -4284,6 +4284,32 @@ class Trajectory(object):
         # Call the SurfBC equivalent
         return self.GetSurfBC_CompID(i, key, comp=comp, typ="SurfCT")
 
+    # Get gas ID(s) input for SurfBC key
+    def GetSurfCT_PlenumID(self, i, key=None, comp=None, **kw):
+        """Get gas ID input for surface *CT* key
+
+        :Call:
+            >>> pID = x.GetSurfCT_PlenumID(i, key=None, comp=None, **kw)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+            *comp*: {``None``} | :class:`str`
+                Name of component
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
+        :Outputs:
+            *pID*: :class:`int`
+                Gas number for plenum boundary condition
+        :Versions:
+            * 2018-10-18 ``@ddalle``: First version
+        """
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_PlenumID(i, key, comp=comp, typ="SurfCT")
+
     # Get mass species
     def GetSurfCT_Species(self, i, key=None, comp=None):
         """Get species input for surface *CT* key
@@ -4893,6 +4919,39 @@ class Trajectory(object):
         key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'CompID', comp=comp)
+        # Do not process this one
+        return v
+
+
+    # Get gas ID(s) input for SurfBC key
+    def GetSurfBC_PlenumID(self, i, key=None, comp=None, **kw):
+        """Get gas ID input for surface BC key
+
+        :Call:
+            >>> pID = x.GetSurfBC_PlenumID(i, key=None, comp=None, **kw)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+            *comp*: {``None``} | :class:`str`
+                Name of component
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
+        :Outputs:
+            *pID*: :class:`int`
+                Gas number for plenum boundary condition
+        :Versions:
+            * 2018-10-18 ``@ddalle``: First version
+        """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
+        # Process key
+        key = self.GetKeyName(typ, key)
+        # Get the parameter and value
+        v, t = self.GetSurfBC_ParamType(key, 'PlenumID', comp=comp)
         # Do not process this one
         return v
 

@@ -122,7 +122,7 @@ class Tri(cape.tri.Tri):
             Component number for each triangle
     """
     pass
-
+# class Tri
 
 # Regular triangulation class
 class Triq(cape.tri.Triq):
@@ -262,5 +262,5 @@ class Triq(cape.tri.Triq):
         # Update the pressure coefficient
         if M is not None:
             self.q[:,0] = (self.q[:,5] - 1/1.4) / (0.5*M*M)
-
+# class Triq
 

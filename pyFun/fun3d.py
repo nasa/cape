@@ -1203,7 +1203,6 @@ class Fun3d(Cntl):
    # Namelist
    # --------
    # [
-        
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i):
         """
@@ -1846,6 +1845,8 @@ class Fun3d(Cntl):
             * 2016-03-29 ``@ddalle``: First version
             * 2016-04-13 ``@ddalle``: Added SurfCT compatibility
         """
+        # Get equations type
+        eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the BC inputs
         if CT:
             # Use thrust as input variable
@@ -1875,11 +1876,22 @@ class Fun3d(Cntl):
             # Convert to ID (if needed) and get the BC number to set
             compID = self.MapBC.GetCompID(compID)
             surfID = self.MapBC.GetSurfID(compID)
-            # Set the BC to the correct value
-            self.MapBC.SetBC(compID, 7011)
-            # Set the BC
-            nml.SetVar(sec, 'total_pressure_ratio',    p0, surfID)
-            nml.SetVar(sec, 'total_temperature_ratio', T0, surfID)
+            # Check equation type
+            if eqn_type.lower() == "generic":
+                # Set the BC to the "rcs_jet"
+                self.MapBC.SetBC(compID, 7021)
+                # Get gas ID number
+                pID = self.x.GetSurfBC_PlenumID(i, key, typ=typ)
+                # Set the BC
+                nml.SetVar(sec, 'plenum_p0', p0,  surfID)
+                nml.SetVar(sec, 'plenum_t0', T0,  surfID)
+                nml.SetVar(sec, 'plenum_id', pID, surfID)
+            else:
+                # Set the BC to the correct value
+                self.MapBC.SetBC(compID, 7011)
+                # Set the BC
+                nml.SetVar(sec, 'total_pressure_ratio',    p0, surfID)
+                nml.SetVar(sec, 'total_temperature_ratio', T0, surfID)
             # Get the flow initialization volume
             x1, x2, r = self.GetSurfBCVolume(key, compID)
             # Get the surface normal
@@ -1964,8 +1976,6 @@ class Fun3d(Cntl):
         :Versions:
             * 2016-04-13 ``@ddalle``: First version
         """
-        # Get equations type
-        eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the thrust value
         CT = self.x.GetSurfCT_Thrust(i, key)
         # Get the exit parameters
@@ -2069,6 +2079,8 @@ class Fun3d(Cntl):
             * 2016-03-29 ``@ddalle``: First version
             * 2016-04-13 ``@ddalle``: Added *CT*/BC capability
         """
+        # Get equations type
+        eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the boundary condition states
         if CT == True:
             # Use *SurfCT* thrust definition
@@ -2078,6 +2090,14 @@ class Fun3d(Cntl):
             # Use *SurfBC* direct definitions of *p0*, *T0*
             p0, T0 = self.GetSurfBCState(key, i)
             typ = "SurfBC"
+        # Normalize conditions for generic (real gas)
+        if eqn_type.lower() == "generic":
+            # Get freestream conditions
+            pinf = self.x.GetPressure(i, units="Pa")
+            Tinf = self.x.GetTemperature(i, units="K")
+            # Normalize
+            p0 = p0 / pinf
+            T0 = T0 / Tinf
         # Get the Mach number and blending fraction
         M = self.x.defns[key].get('Mach', 0.2)
         f = self.x.defns[key].get('Blend', 0.9)
