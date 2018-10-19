@@ -512,6 +512,10 @@ class Cntl(object):
             # Rewrite namelists and possibly add phases
             self.ApplyCases(**kw)
             return 'apply'
+        elif kw.get('check') and kw.get('aero') or kw.get('checkFM'):
+            # Check aero databook
+            self.CheckFM(**kw)
+            return "checkFM"
         elif kw.get('aero') or kw.get('fm'):
             # Collect force and moment data.
             self.UpdateFM(**kw)
@@ -3405,18 +3409,19 @@ class Cntl(object):
             self.DataBook[comp].UpdateTrajectory()
         # Longest component name
         maxcomp = max(map(len, comps))
-        # Format to include user
-        fmtc = "%%-%is" % maxcomp
+        # Format to include user and format to display iteration number
+        fmtc = "    %%-%is: " % maxcomp
+        fmti = "%%%ii" % int(np.ceil(np.log10(self.x.nCase)))
         # Loop through cases
-        for j,i in enumerate(I):
+        for i in I:
             # Skip if we have a blocked user
             if ku:
                 # Get the user
                 ui = getattr(self.x, uk)[i]
                 # Simplify the value
-                uj = ui.lstrip('@').lower()
+                ui = ui.lstrip('@').lower()
                 # Check if it's blocked
-                if uj == "blocked": continue
+                if ui == "blocked": continue
             else:
                 # Empty user
                 ui = None
@@ -3429,8 +3434,70 @@ class Cntl(object):
                 # Get interface to component
                 DBc = self.DataBook[comp]
                 # See if it's missing
-                
-            
+                j = DBc.x.FindMatch(self.x, i, **kw)
+                # Check for missing case
+                if j is None:
+                    # Missing case
+                    txt += (fmt % comp)
+                    txt += "missing\n"
+                    continue
+                # Otherwise, check iteration
+                try:
+                    # Get the recorded iteration number
+                    nIter = self["nIter"][j]
+                except KeyError:
+                    # No iteration number found
+                    nIter = nLast
+                # Check for out-of date iteration
+                if nIter < nLast:
+                    # Out-of-date case
+                    txt += (fmt % comp)
+                    txt += "out-of-date (%i --> %i)\n" % (nIter, nLast)
+            # If we have any text, print a header
+            if txt:
+                # Folder name
+                frun = self.x.GetFullFolderNames(i)
+                # Print header
+                if ku:
+                    # Include user
+                    print("Case %s: %s (%s)" % (fmti % i, frun, ui))
+                else:
+                    # No user
+                    print("Case %s: %s" % (fmti % i, frun))
+                # Display the text
+                print(txt)
+        # Loop back through the databook components
+        for comp in comps:
+            # Get component handle
+            DBc = self.DataBook[comp]
+            # Initialize text
+            txt = ""
+            # Loop through database entries
+            for j in range(DBc.x.nCase):
+                # Check for a find in master matrix
+                i = self.x.FindMatch(DBc.x, j, **kw)
+                # Check for a match
+                if i is None:
+                    # This case is not in the run matrix
+                    txt += ("    Extra case: %s\n"
+                        % DBc.x.GetFullFolderNames(j))
+                    continue
+                # Check for a user filter
+                if ku:
+                    # Get the user value
+                    uj = DBc[ku][j]
+                    # Strip it
+                    uj = uj.lstrip('@').lower()
+                    # Check if it's blocked
+                    if uj == "blocked":
+                        # Blocked case
+                        txt += ("    Blocked case: %s\n"
+                            % DBc.x.GetFullFolderNames(j))
+            # If there is text, display the info
+            if txt:
+                # Header
+                print("Checking component '%s' % comp")
+                print(txt[:-1])
             
    # >
 # class Cntl
