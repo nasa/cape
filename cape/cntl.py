@@ -3387,7 +3387,7 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: First version
         """
         # Get component option
-        comps = kw.get("checkFM", kw.get("fm", kw.get("aero")))
+        comps = kw.get("fm", kw.get("aero", kw.get("checkFM")))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comps)
         # Apply constraints
@@ -3417,7 +3417,7 @@ class Cntl(object):
             # Skip if we have a blocked user
             if ku:
                 # Get the user
-                ui = getattr(self.x, uk)[i]
+                ui = getattr(self.x, ku)[i]
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
@@ -3438,13 +3438,13 @@ class Cntl(object):
                 # Check for missing case
                 if j is None:
                     # Missing case
-                    txt += (fmt % comp)
+                    txt += (fmtc % comp)
                     txt += "missing\n"
                     continue
                 # Otherwise, check iteration
                 try:
                     # Get the recorded iteration number
-                    nIter = self["nIter"][j]
+                    nIter = DBc["nIter"][j]
                 except KeyError:
                     # No iteration number found
                     nIter = nLast
