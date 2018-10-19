@@ -71,6 +71,7 @@ class Options(cape.options.Options):
             self[k] = kw[k]
         # Upgrade important groups to their own classes.
         self._PBS()
+        self._Slurm()
         self._DataBook()
         self._Report()
         self._RunControl()

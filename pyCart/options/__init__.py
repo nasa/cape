@@ -104,6 +104,7 @@ class Options(cape.options.Options):
         self._RunControl()
         self._Mesh()
         self._PBS()
+        self._Slurm()
         self._Config()
         self._Functional()
         self._DataBook()
