@@ -3407,6 +3407,9 @@ class Cntl(object):
             kw.get("checkFM", kw.get("check"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comps)
+        # Exit if no components
+        if len(comps) == 0:
+            return
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Check for a user key
@@ -3538,6 +3541,9 @@ class Cntl(object):
         comps = kw.get("ll", kw.get("checkLL", kw.get("check")))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("LineLoad", comps)
+        # Exit if no components
+        if len(comps) == 0:
+            return
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Check for a user key
@@ -3554,7 +3560,7 @@ class Cntl(object):
         # Loop through the components
         for comp in comps:
             # Read the line load component
-            self.DataBook.ReadLine(comp)
+            self.DataBook.ReadLineLoad(comp)
             # Restrict the trajectory to cases in the databook
             self.DataBook.LineLoads[comp].UpdateTrajectory()
         # Longest component name
@@ -3671,6 +3677,9 @@ class Cntl(object):
         comps = kw.get("triqfm", kw.get("checkTriqFM", kw.get("check")))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("TriqFM", comps)
+        # Exit if no components
+        if len(comps) == 0:
+            return
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Check for a user key
@@ -3804,6 +3813,9 @@ class Cntl(object):
         comps = kw.get("pt", kw.get("checkPt", kw.get("check")))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("TriqPoint", comps)
+        # Exit if no components
+        if len(comps) == 0:
+            return
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Check for a user key

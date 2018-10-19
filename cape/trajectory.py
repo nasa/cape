@@ -1721,6 +1721,9 @@ class Trajectory(object):
         :Versions:
             * 2017-07-21 ``@ddalle``: First version
         """
+        # Check for empty matrix
+        if self.nCase == 0:
+            return np.array([], dtype="int")
         # Key list
         if keys is None:
             # Use all labeling keys
