@@ -77,6 +77,7 @@ the major parts of the file.
             
             // Settings for creating PBS scripts, if applicable
             "PBS": {},
+            "Slurm": {},
             
             // Primary settings for running Cart3D
             "RunControl": {
@@ -141,6 +142,7 @@ of how the options are used.
     
     uncategorized
     PBS
+    slurm
     runControl
     flowCart
     adjointCart

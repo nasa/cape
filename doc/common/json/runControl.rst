@@ -30,6 +30,7 @@ The universal options for this section have the following JSON syntax.
             // Job type
             "MPI": false,
             "qsub": false,
+            "sbatch": false,
             "Resubmit": false,
             "Continue": true,
             "nProc": 1,
@@ -127,6 +128,9 @@ The dictionary of options is explained below.
         
     *qsub*: {``true``} | ``false`` | :class:`list` (:class:`bool`)
         Whether or not to submit job PBS queue
+        
+    *sbatch*: ``true`` | {``false``} | :class:`list` (:class:`bool`)
+        Whether or not to submit job to SLURM queue
         
     *Resubmit*: ``true`` | {``false``} | :class:`list` (:class:`bool`)
         Whether or not to terminate a job and resubmit new one between phases

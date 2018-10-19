@@ -128,6 +128,7 @@ of how the options are used.
     
     uncategorized
     PBS
+    slurm
     runControl
     Archive
     DataBook

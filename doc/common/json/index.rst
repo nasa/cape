@@ -108,6 +108,7 @@ follow.
     
     uncategorized
     PBS
+    slurm
     runControl
     Archive
     Config
