@@ -202,6 +202,51 @@ class Cart3d(Cntl):
             self.opts.get_TriFile())
         
   # >
+  
+  # =======================
+  # Command-Line Interface
+  # =======================
+  # <
+    # Baseline function
+    def cli(self, *a, **kw):
+        """Command-line interface
+        
+        :Call:
+            >>> cart3d.cli(*a, **kw)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
+                Unprocessed keyword arguments
+        :Outputs:
+            *cmd*: ``None`` | :class:`str`
+                Name of command that was processed, if any
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+        """
+        # Preprocess command-line inputs
+        a, kw = self.cli_preprocess(*a, **kw)
+        # Call the common interface
+        cmd = self.cli_cape(*a, **kw)
+        # Test for a command
+        if cmd is not None:
+            return
+        # Otherwise fall back to code-specific commands
+        if kw.get('pt'):
+            # Cart3D point sensor
+            self.UpdatePointSensor(**kw)
+        elif kw.get('a'):
+            # Archive folders
+            self.TarAdapt(**kw)
+            self.TarViz(**kw)
+        elif kw.get('explode'):
+            # Break out each named component.
+            self.ExplodeTri()
+        else:
+            # Submit the jobs
+            self.SubmitJobs(**kw)
+    
+  # >
     
   # ==========
   # File Input
@@ -238,6 +283,28 @@ class Cart3d(Cntl):
         self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
         # Return to original folder.
         os.chdir(fpwd)
+        
+    # Function to read a report
+    def ReadReport(self, rep):
+        """Read a report interface
+        
+        :Call:
+            >>> R = cart3d.ReadReport(rep)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *R*: :class:`pyFun.report.Report`
+                Report interface
+        :Versions:
+            * 2018-10-19 ``@ddalle``: First version
+        """
+        # Read the report
+        R = report.Report(self, rep)
+        # Output
+        return R
         
   # >
     

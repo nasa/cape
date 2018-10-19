@@ -1,11 +1,11 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-# Import the full module
+# System modules
+import sys
+# CAPE modules
 import pyOver
-# Automated report generation
-import pyOver.report
-# Input parsing
-from cape.argread import readflagstar
+import cape.argread
 
 # Import docstring (makes the docstring available to module import)
 import po_doc
@@ -14,19 +14,13 @@ __doc__ = po_doc.__doc__
 # Check if run as a script.
 if __name__ == "__main__":
     # Parse inputs.
-    a, kw = readflagstar(pyOver.os.sys.argv)
+    a, kw = cape.argread.readflagstar(sys.argv)
     
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
         import cape.text
         print(cape.text.markdown(__doc__))
-        pyOver.os.sys.exit()
-    
-    # Get constraints and convert text to list.
-    cons  = kw.get('cons',        '').split(',')
-    cons += kw.get('constraints', '').split(',')
-    # Set the constraints back into the keywords.
-    kw['cons'] = [con.strip() for con in cons]
+        sys.exit()
         
     # Get file name.
     fname = kw.get('f', 'pyOver.json')
@@ -34,72 +28,6 @@ if __name__ == "__main__":
     # Try to read it.
     ofl = pyOver.Overflow(fname)
     
-    # Get list of scripts in the "_old" section
-    kwx = [ki['x'] for ki in kw.get('_old', {}) if 'x' in ki]
-    # Append the last "-x" input
-    if 'x' in kw:
-        kwx.append(kw['x'])
-    # Apply all scripts
-    for fx in kwx:
-        execfile(fx)
-    
-    # Process index list.
-    if ('I' in kw) and (kw['I'] != True):
-        # Turn into a single list
-        kw['I'] = ofl.x.ExpandIndices(kw['I'])
-        
-    # Process inputs.
-    if kw.get('c'):
-        # Display status.
-        ofl.DisplayStatus(**kw)
-    elif kw.get('batch'):
-        # Process a batch job
-        ofl.SubmitBatchPBS(pyOver.os.sys.argv)
-    elif kw.get('stop'):
-        # Stop one or more cases gently
-        ofl.StopCases(n=kw['stop'], **kw)
-    elif kw.get('extend'):
-        # Extend the number of iterations in a phase
-        ofl.ExtendCases(**kw)
-    elif kw.get('apply'):
-        # Rewrite namelists and possibly add phases
-        ofl.ApplyCases(**kw)
-    elif kw.get('aero'):
-        # Collect force and moment data.
-        ofl.Aero(**kw)
-    elif kw.get('ll'):
-        # Update line load data book
-        ofl.UpdateLineLoad(**kw)
-    elif kw.get('triqfm'):
-        # Update TriqFM data book
-        ofl.UpdateTriqFM(**kw)
-    elif kw.get('archive'):
-        # Archive cases
-        ofl.ArchiveCases(**kw)
-    elif kw.get('skeleton'):
-        # Replace case with its skeleton
-        ofl.SkeletonCases(**kw)
-    elif kw.get('unarchive'):
-        # Unarchive cases
-        ofl.UnarchiveCases(**kw)
-    elif kw.get('clean'):
-        # Clean up cases
-        ofl.CleanCases(**kw)
-    elif kw.get('report'):
-        # Get the report(s) to create.
-        if kw['report'] == True:
-            # All reports
-            reps = [ofl.opts.get_ReportList()[0]]
-        else:
-            # User-specified report
-            reps = [kw['report']]
-        # Loop through reports.
-        for rep in reps:
-            # Get the report.
-            R = pyOver.report.Report(ofl, rep)
-            # Update according to other options
-            R.UpdateReport(**kw)
-    else:
-        # Do it.
-        ofl.SubmitJobs(**kw)
+    # Call the command-line interface
+    ofl.cli(*a, **kw)
     

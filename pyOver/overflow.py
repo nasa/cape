@@ -58,6 +58,7 @@ from . import options
 from . import case
 from . import dataBook
 from . import manage
+from . import report
 # Unmodified CAPE modules
 from cape import convert
 
@@ -108,6 +109,10 @@ class Overflow(Cntl):
         * 2015-10-16 ``@ddalle``: Started
         * 2016-02-02 ``@ddalle``: First version
     """ 
+  # =======
+  # Config
+  # =======
+  # <
     # Initialization method
     def __init__(self, fname="pyOver.json"):
         """Initialization method for :mod:`cape.cntl.Cntl`"""
@@ -150,6 +155,44 @@ class Overflow(Cntl):
         # Display basic information from all three areas.
         return "<pyOver.Overflow(nCase=%i)>" % (
             self.x.nCase)
+  # >
+  
+  # =======================
+  # Command-Line Interface
+  # =======================
+  # <
+    # Baseline function
+    def cli(self, *a, **kw):
+        """Command-line interface
+        
+        :Call:
+            >>> ofl.cli(*a, **kw)
+        :Inputs:
+            *ofl*: :class:`pyOver.overflow.Overflow`
+                Instance of control class containing relevant parameters
+            *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
+                Unprocessed keyword arguments
+        :Outputs:
+            *cmd*: ``None`` | :class:`str`
+                Name of command that was processed, if any
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+        """
+        # Preprocess command-line inputs
+        a, kw = self.cli_preprocess(*a, **kw)
+        # Call the common interface
+        cmd = self.cli_cape(*a, **kw)
+        # Test for a command
+        if cmd is not None:
+            return
+        # Otherwise fall back to code-specific commands
+        if kw.get('stop'):
+            # Update point sensor data book
+            self.StopCases(n=kw['stop'], **kw)
+        else:
+            # Submit the jobs
+            self.SubmitJobs(**kw)
+  # >
         
     # Function to read the databook.
     def ReadDataBook(self, comp=None):
@@ -221,6 +264,28 @@ class Overflow(Cntl):
             self.Namelist0 = nml
         # Go back to original location
         os.chdir(fpwd)
+        
+    # Function to read a report
+    def ReadReport(self, rep):
+        """Read a report interface
+        
+        :Call:
+            >>> R = ofl.ReadReport(rep)
+        :Inputs:
+            *ofl*: :class:`pyOver.overflow.Overflow`
+                Instance of control class containing relevant parameters
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *R*: :class:`pyOver.report.Report`
+                Report interface
+        :Versions:
+            * 2018-10-19 ``@ddalle``: First version
+        """
+        # Read the report
+        R = report.Report(self, rep)
+        # Output
+        return R
         
     # Get namelist var
     def GetNamelistVar(self, sec, key, j=0):

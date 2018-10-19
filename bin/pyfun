@@ -1,11 +1,11 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-# Import the full module
+# System modules
+import sys
+# CAPE modules
 import pyFun
-# Automated report generation
-import pyFun.report
-# Input parsing
-from cape.argread import readflagstar
+import cape.argread
 
 # Import docstring (makes the docstring available to module import)
 import pf_doc
@@ -14,19 +14,13 @@ __doc__ = pf_doc.__doc__
 # Check if run as a script.
 if __name__ == "__main__":
     # Parse inputs.
-    a, kw = readflagstar(pyFun.os.sys.argv)
+    a, kw = cape.argread.readflagstar(sys.argv)
     
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
         import cape.text
         print(cape.text.markdown(__doc__))
-        pyFun.os.sys.exit()
-    
-    # Get constraints and convert text to list.
-    cons  = kw.get('cons',        '').split(',')
-    cons += kw.get('constraints', '').split(',')
-    # Set the constraints back into the keywords.
-    kw['cons'] = [con.strip() for con in cons]
+        sys.exit()
         
     # Get file name.
     fname = kw.get('f', 'pyFun.json')
@@ -34,71 +28,6 @@ if __name__ == "__main__":
     # Try to read it.
     fun3d = pyFun.Fun3d(fname)
     
-    # Get list of scripts in the "_old" section
-    kwx = [ki['x'] for ki in kw.get('_old', {}) if 'x' in ki]
-    # Append the last "-x" input
-    if 'x' in kw:
-        kwx.append(kw['x'])
-    # Apply all scripts
-    for fx in kwx:
-        execfile(fx)
-    
-    # Process index list.
-    if ('I' in kw) and (kw['I'] != True):
-        # Turn into a single list
-        kw['I'] = fun3d.x.ExpandIndices(kw['I'])
-    # Process inputs.
-    if kw.get('c'):
-        # Display status.
-        fun3d.DisplayStatus(**kw)
-    elif kw.get('batch'):
-        # Process a batch job
-        fun3d.SubmitBatchPBS(pyFun.os.sys.argv)
-    elif kw.get('extend'):
-        # Extend the number of iterations in a phase
-        fun3d.ExtendCases(**kw)
-    elif kw.get('apply'):
-        # Rewrite namelists and possibly add phases
-        fun3d.ApplyCases(**kw)
-    elif kw.get('aero'):
-        # Collect force and moment data.
-        fun3d.Aero(**kw)
-    elif kw.get('ll'):
-        # Update line load data book
-        fun3d.UpdateLineLoad(**kw)
-    elif kw.get('triqfm'):
-        # Update TriqFM data book
-        fun3d.UpdateTriqFM(**kw)
-    elif kw.get('pt'):
-        # Update point sensor data book
-        fun3d.UpdateTriqPoint(**kw)
-    elif kw.get('archive'):
-        # Archive cases
-        fun3d.ArchiveCases(**kw)
-    elif kw.get('unarchive'):
-        # Unarchive cases
-        fun3d.UnarchiveCases(**kw)
-    elif kw.get('skeleton'):
-        # Replace case with its skeleton
-        fun3d.SkeletonCases(**kw)
-    elif kw.get('clean'):
-        # Clean up cases
-        fun3d.CleanCases(**kw)
-    elif kw.get('report'):
-        # Get the report(s) to create.
-        if kw['report'] == True:
-            # All reports
-            reps = [fun3d.opts.get_ReportList()[0]]
-        else:
-            # User-specified report
-            reps = [kw['report']]
-        # Loop through reports.
-        for rep in reps:
-            # Get the report.
-            R = pyFun.report.Report(fun3d, rep)
-            # Update according to other options
-            R.UpdateReport(**kw)
-    else:
-        # Do it.
-        fun3d.SubmitJobs(**kw)
+    # Call the command-line interface
+    fun3d.cli(*a, **kw)
     

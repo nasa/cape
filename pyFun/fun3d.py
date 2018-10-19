@@ -62,6 +62,7 @@ from . import case
 from . import mapbc
 from . import faux
 from . import dataBook
+from . import report
 # Unmodified CAPE modules
 from cape import convert
 from cape.util import RangeString
@@ -165,6 +166,44 @@ class Fun3d(Cntl):
             self.x.nCase)
   # >
   
+  # =======================
+  # Command-Line Interface
+  # =======================
+  # <
+    # Baseline function
+    def cli(self, *a, **kw):
+        """Command-line interface
+        
+        :Call:
+            >>> fun3d.cli(*a, **kw)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
+                Unprocessed keyword arguments
+        :Outputs:
+            *cmd*: ``None`` | :class:`str`
+                Name of command that was processed, if any
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+        """
+        # Preprocess command-line inputs
+        a, kw = self.cli_preprocess(*a, **kw)
+        # Call the common interface
+        cmd = self.cli_cape(*a, **kw)
+        # Test for a command
+        if cmd is not None:
+            return
+        # Otherwise fall back to code-specific commands
+        if kw.get('pt'):
+            # Update point sensor data book
+            self.UpdateTriqPoint(**kw)
+        else:
+            # Submit the jobs
+            self.SubmitJobs(**kw)
+    
+  # >
+  
   # ========
   # Readers
   # ========
@@ -200,6 +239,27 @@ class Fun3d(Cntl):
         # Return to original folder.
         os.chdir(fpwd)
         
+    # Function to read a report
+    def ReadReport(self, rep):
+        """Read a report interface
+        
+        :Call:
+            >>> R = fun3d.ReadReport(rep)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *R*: :class:`pyFun.report.Report`
+                Report interface
+        :Versions:
+            * 2018-10-19 ``@ddalle``: First version
+        """
+        # Read the report
+        R = report.Report(self, rep)
+        # Output
+        return R
   # >
   
   # ========
@@ -359,7 +419,6 @@ class Fun3d(Cntl):
   # Other Files
   # ===========
   # <
-  
     # Read the boundary condition map
     def ReadMapBC(self, j=0, q=True):
         """Read the FUN3D boundary condition map
@@ -570,7 +629,6 @@ class Fun3d(Cntl):
   # Case
   # =====
   # <
-                                                                 
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
         """Get the current iteration number from the appropriate module

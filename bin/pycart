@@ -2,10 +2,8 @@
 
 # System modules
 import sys
-# pyCart modules
+# CAPE modules
 import pyCart
-import pyCart.report
-# Common modules
 import cape.argread
 
 # Import docstring (makes the docstring available to module import)
@@ -32,85 +30,6 @@ if __name__ == "__main__":
     # Try to read it.
     cart3d = pyCart.Cart3d(fname)
     
-    # Get constraints and convert text to list.
-    cons  = kw.get('cons',        '').split(',')
-    cons += kw.get('constraints', '').split(',')
-    # Set the constraints back into the keywords.
-    kw['cons'] = [con.strip() for con in cons]
-    
-    # Get list of scripts in the "_old" section
-    kwx = [ki['x'] for ki in kw.get('_old', {}) if 'x' in ki]
-    # Append the last "-x" input
-    if 'x' in kw:
-        kwx.append(kw['x'])
-    # Apply all scripts
-    for fx in kwx:
-        execfile(fx)
-    
-    # Process index list.
-    if ('I' in kw) and (kw['I'] != True):
-        # Turn into a single list
-        kw['I'] = cart3d.x.ExpandIndices(kw['I'])
-        
-    # Process inputs.
-    if kw.get('c'):
-        # Display status.
-        cart3d.DisplayStatus(**kw)
-    elif kw.get('batch'):
-        # Process a batch job
-        cart3d.SubmitBatchPBS(pyCart.os.sys.argv)
-    elif kw.get('extend'):
-        # Extend the number of iterations in a phase
-        cart3d.ExtendCases(**kw)
-    elif kw.get('apply'):
-        # Rewrite namelists and possibly add phases
-        cart3d.ApplyCases(**kw)
-    elif kw.get('aero') or kw.get("fm"):
-        # Collect force and moment data.
-        cart3d.Aero(**kw)
-    elif kw.get('pt'):
-        # Update point sensor(s) data book
-        cart3d.UpdatePointSensor(**kw)
-    elif kw.get('ll'):
-        # Update line load data book
-        cart3d.UpdateLineLoad(**kw)
-    elif kw.get('triqfm'):
-        # Update TriqFM data book
-        cart3d.UpdateTriqFM(**kw)
-    elif kw.get('a'):
-        # Archive folders
-        cart3d.TarAdapt(**kw)
-        cart3d.TarViz(**kw)
-    elif kw.get('expand'):
-        # Archive folders
-        cart3d.UntarAdapt(**kw)
-    elif kw.get('archive'):
-        # Archive cases
-        cart3d.ArchiveCases(**kw)
-    elif kw.get('unarchive'):
-        # Unarchive cases
-        cart3d.UnarchiveCases(**kw)
-    elif kw.get('clean'):
-        # Clean up cases
-        cart3d.CleanCases(**kw)
-    elif kw.get('explode'):
-        # Break out each named component.
-        cart3d.ExplodeTri()
-    elif kw.get('report'):
-        # Get the report(s) to create.
-        if kw['report'] == True:
-            # All reports
-            reps = [cart3d.opts.get_ReportList()[0]]
-        else:
-            # User-specified report
-            reps = [kw['report']]
-        # Loop through reports.
-        for rep in reps:
-            # Get the report.
-            R = pyCart.report.Report(cart3d, rep)
-            # Update according to other options
-            R.UpdateReport(**kw)
-    else:
-        # Do it.
-        cart3d.SubmitJobs(**kw)
+    # Call the command-line interface
+    cart3d.cli(*a, **kw)
     

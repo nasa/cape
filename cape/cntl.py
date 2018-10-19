@@ -432,6 +432,156 @@ class Cntl(object):
    # Command-Line Interface
    # ======================
    # <
+    # Baseline function
+    def cli_preprocess(self, *a, **kw):
+        """Preprocess command-line arguments and flags/keywords
+        
+        :Call:
+            >>> a, kw = cntl.cli_preprocess(*a, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
+                Command-line keyword arguments and flags
+        :Outputs:
+            *a*: :class:`tuple`
+                List of non-flag arguments with any additional preprocessing
+            *kw*: :class:`dict`
+                Flags with any additional preprocessing performed
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+        """
+        # Get constraints and convert text to list
+        cons  = kw.get('cons',        '').split(',')
+        cons += kw.get('constraints', '').split(',')
+        # Set the constraints back into the keywords.
+        kw['cons'] = [con.strip() for con in cons]
+    
+        # Process index list.
+        if 'I' in kw:
+            # Turn into a single list
+            kw['I'] = self.x.ExpandIndices(kw['I'])
+    
+        # Get list of scripts in the "_old" section
+        kwx = [ki['x'] for ki in kw.get('_old', {}) if 'x' in ki]
+        # Append the last "-x" input
+        if 'x' in kw:
+            kwx.append(kw['x'])
+        # Apply all scripts
+        for fx in kwx:
+            execfile(fx)
+            
+        # Output
+        return a, kw
+        
+    # Baseline function
+    def cli_cape(self, *a, **kw):
+        """Command-line interface
+        
+        This function is applied after the command-line arguments are parsed
+        using :func:`cape.argread.readflagstar` and the control interface has
+        already been read according to the ``-f`` flag.
+        
+        :Call:
+            >>> cmd = cntl.cli_cape(*a, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *kw*: :class:`dict`
+                Preprocessed command-line keyword arguments
+        :Outputs:
+            *cmd*: ``None`` | :class:`str`
+                Name of command that was processed, if any
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+        """
+        # Check for recognized command
+        if kw.get('c'):
+            # Display status.
+            self.DisplayStatus(**kw)
+            return 'c'
+        elif kw.get('batch'):
+            # Process a batch job
+            self.SubmitBatchPBS(os.sys.argv)
+            return 'batch'
+        elif kw.get('extend'):
+            # Extend the number of iterations in a phase
+            self.ExtendCases(**kw)
+            return 'extend'
+        elif kw.get('apply'):
+            # Rewrite namelists and possibly add phases
+            self.ApplyCases(**kw)
+            return 'apply'
+        elif kw.get('aero') or kw.get('fm'):
+            # Collect force and moment data.
+            self.UpdateFM(**kw)
+            return 'fm'
+        elif kw.get('ll'):
+            # Update line load data book
+            self.UpdateLineLoad(**kw)
+            return 'll'
+        elif kw.get('triqfm'):
+            # Update TriqFM data book
+            self.UpdateTriqFM(**kw)
+            return 'triqfm'
+        elif kw.get('archive'):
+            # Archive cases
+            self.ArchiveCases(**kw)
+            return 'archive'
+        elif kw.get('unarchive'):
+            # Unarchive cases
+            self.UnarchiveCases(**kw)
+            return 'unarchive'
+        elif kw.get('skeleton'):
+            # Replace case with its skeleton
+            self.SkeletonCases(**kw)
+            return 'skeleton'
+        elif kw.get('clean'):
+            # Clean up cases
+            self.CleanCases(**kw)
+            return 'clean'
+        elif kw.get('report'):
+            # Get the report(s) to create.
+            if kw['report'] == True:
+                # First report
+                rep = self.opts.get_ReportList()[0]
+            else:
+                # User-specified report
+                rep = kw['report']
+            # Get the report
+            R = self.ReadReport(rep)
+            # Update according to other options
+            R.UpdateReport(**kw)
+            return 'report'
+            
+    # Baseline function
+    def cli(self, *a, **kw):
+        """Command-line interface
+        
+        :Call:
+            >>> cntl.cli(*a, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
+                Unprocessed keyword arguments
+        :Outputs:
+            *cmd*: ``None`` | :class:`str`
+                Name of command that was processed, if any
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+        """
+        # Preprocess command-line inputs
+        a, kw = self.cli_preprocess(*a, **kw)
+        # Call the common interface
+        cmd = self.cli_cape(*a, **kw)
+        # Test for a command
+        if cmd is not None:
+            return
+        # Submit jobs as fallback
+        self.SubmitJobs(**kw)
+        
+        
     # Function to display current status
     def DisplayStatus(self, **kw):
         """Display current status for all cases
@@ -3047,14 +3197,16 @@ class Cntl(object):
    # =================
    # <
     # Function to collect statistics
-    def Aero(self, **kw):
+    def UpdateFM(self, **kw):
         """Collect force and moment data
         
         :Call:
-            >>> cntl.Aero(cons=[], **kw)
+            >>> cntl.UpdateFM(cons=[], **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
+            *fm*, *aero*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
             *I*: :class:`list` (:class:`int`)
                 List of indices
             *cons*: :class:`list` (:class:`str`)
@@ -3068,7 +3220,7 @@ class Cntl(object):
             * 2017-04-25 ``@ddalle``: Added wild cards
         """
         # Get component option
-        comp = kw.get("aero")
+        comp = kw.get("fm", kw.get("aero"))
         # Get full list of components
         comp = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comp)
         # Save current location.
