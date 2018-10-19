@@ -532,6 +532,8 @@ class Cntl(object):
             self.CheckLL(**kw)
             print("---- Checking TriqFM DataBook components ----")
             self.CheckTriqFM(**kw)
+            # Output
+            return "check"
         elif kw.get('aero') or kw.get('fm'):
             # Collect force and moment data.
             self.UpdateFM(**kw)
@@ -544,6 +546,16 @@ class Cntl(object):
             # Update TriqFM data book
             self.UpdateTriqFM(**kw)
             return 'triqfm'
+        elif kw.get('data', kw.get('db')):
+            # Update all
+            print("---- Updating FM DataBook components ----")
+            self.UpdateFM(**kw)
+            print("---- Updating LineLoad DataBook components ----")
+            self.UpdateLL(**kw)
+            print("---- Updating TriqFM DataBook components ----")
+            self.UpdateTriqFM(**kw)
+            # Output
+            return "db"
         elif kw.get('archive'):
             # Archive cases
             self.ArchiveCases(**kw)
