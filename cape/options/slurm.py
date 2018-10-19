@@ -179,7 +179,7 @@ class Slurm(odict):
         """Return Slurm *gid* setting, usually for setting groups
         
         :Call:
-            >>> W = opts.get_Slurm_gid(i)
+            >>> gid = opts.get_Slurm_gid(i)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -269,7 +269,7 @@ class Slurm(odict):
         """
         return self.get_key('Slurm_A', i)
         
-    # Set "join" setting
+    # Set account setting
     def set_Slurm_A(self, A=rc0('Slurm_A'), i=None):
         """Set the Slurm *A* (account) setting
         

@@ -1296,6 +1296,8 @@ class Cart3d(Cntl):
         :Versions:
             * 2017-03-31 ``@ddalle``: First version
         """
+        # Ignore cases marked PASS
+        if self.x.PASS[i]: return
         # Read the ``case.json`` file
         rc = self.ReadCaseJSON(i)
         # Exit if none
@@ -1343,6 +1345,8 @@ class Cart3d(Cntl):
         :Versions:
             * 2016-03-31 ``@ddalle``: First version
         """
+        # Ignore cases marked PASS
+        if self.x.PASS[i]: return
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.

@@ -902,6 +902,8 @@ class Overflow(Cntl):
         :Versions:
             * 2014-12-13 ``@ddalle``: First version
         """
+        # Ignore cases marked PASS
+        if self.x.PASS[i]: return
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
@@ -1345,6 +1347,8 @@ class Overflow(Cntl):
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
         """
+        # Ignore cases marked PASS
+        if self.x.PASS[i]: return
         # Read the ``case.json`` file
         rc = self.ReadCaseJSON(i)
         # Exit if none
