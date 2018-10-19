@@ -28,20 +28,7 @@ values as they could be written in a JSON pyCart settings file
             
             // Manual volume meshing customizations
             "BBox": [],
-            "XLev": [],
-            
-            "autoInputs": {
-                "r": 8,
-                "nDiv": 4,
-            },
-            
-            "cubes": {
-                "maxR": 10,
-                "cubes_a": 10,
-                "cubes_b": 2,
-                "reorder": true,
-                "sf": 0
-            }
+            "XLev": []
         }
         
 Preprocessing Steps
@@ -193,57 +180,20 @@ This example increases the refinement near the surface of two components
 groups of components, and pyCart would work equally well) and adds three manual
 refinement boxes.
 
-The first refinement box finds the smallest box that contains all triangles with
-component ID of either 1 or 2 and adds some margin in the y- and z-directions to
-that box.  It tells `cubes` that everything within that box must have at least 8
-refinements, which is a modes number.  This is the kind of box that can be used
-to slightly increase the resolution away from the body.
+The first refinement box finds the smallest box that contains all triangles
+with component ID of either 1 or 2 and adds some margin in the y- and
+z-directions to that box. It tells `cubes` that everything within that box must
+have at least 8 refinements, which is a modes number. This is the kind of box
+that can be used to slightly increase the resolution away from the body.
 
 The other two bounding boxes specify a higher resolution (at least 11
-refinements) in the smallest box containing an elevon.  It might be tempting to
+refinements) in the smallest box containing an elevon. It might be tempting to
 combine these two into a single *BBox*, but that would yield a different result
-because pyCart would create a *single* box that contains all triangles in *both*
-elevons.  That would add refinement in the region between the two elevons that
-is probably not intended.
+because pyCart would create a *single* box that contains all triangles in
+*both* elevons. That would add refinement in the region between the two elevons
+that is probably not intended.
 
-The *XLev* is slightly more straightforward to use.  The number (2 in this
+The *XLev* is slightly more straightforward to use. The number (2 in this
 example) tends to be smaller because this is a number of *additional*
-refinements.  Furthermore, there is no danger to grouping components into lists.
+refinements. Furthermore, there is no danger to grouping components into lists.
 
-Options for `autoInputs`
-========================
-
-The description of `autoInputs` controls are shown below.  The user can also
-tell pyCart not to use `autoInputs` (and use a premade :file:`input.c3d`
-instead) by adding ``"autoInputs": {}`` to :file:`pyCart.json`.
-
-    *r*: {``8``} | :class:`float`
-        Mesh radius.  This defines the dimensions of the flow domain;
-        specifically the limits are set *r* times the largest dimension of the
-        surface away from the surface.
-        
-    *nDiv*: {``4``} | :class:`int`
-        Number of divisions in the initial mesh.  An exponent of 2 is highly
-        recommended for efficiency purposes.
-        
-
-Options for `cubes`
-===================
-
-The program that actually creates the volume mesh in Cart3D is called `cubes`.
-The options that apply to it directly are shown below.
-
-    *maxR*: {``10``} | :class:`int`
-        Maximum number of refinements in volume mesh before *XLevs*
-        
-    *cubes_a*: {``10``} | :class:`float`
-        Angle criterion for cut cell refinement
-        
-    *cubes_b*: {``2``} | :class:`int`
-        Number of additional buffer layers
-        
-    *reorder*: {``true``} | ``false``
-        Whether or not to reorder cells for optimal performance
-        
-    *sf*: {``0``} | :class:`int`
-        Number of additional refinements for sharp features

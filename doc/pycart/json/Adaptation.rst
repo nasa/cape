@@ -1,4 +1,6 @@
 
+.. _pycart-json-Adaptation:
+
 ------------------
 Adaptation Options
 ------------------

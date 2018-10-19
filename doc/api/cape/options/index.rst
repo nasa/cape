@@ -21,6 +21,7 @@
     intersect
     Archive
     pbs
+    slurm
     Config
     Mesh
     DataBook

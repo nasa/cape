@@ -48,6 +48,9 @@ The universal options for this section have the following JSON syntax.
                 "u": 127812,
                 "v": "unlimited"
             },
+            // Surface mesh preparation
+            "verify": false,
+            "intersect": { },
             // Archive settings
             "Archive": {
                 "ArchiveFolder": "",
@@ -210,4 +213,40 @@ and the possible values is given below.
     *v*: nonnegative :class:`int` | {``"unlimited"``}
         Maximum virtual memory in kilobytes
         
+.. _cape-json-intersect:
+
+Surface Triangulation Intersection
+====================================
+
+The ``"intersect"`` subsection alters settings for Boolean operations on
+surface triangulations (used in coordination with either ``cubes`` for Cart3D
+or ``aflr3`` for any unstructured solver).  For the most part, making this a
+nonempty value (either a :class:`dict` with at least one setting or ``True``)
+will instruct the various CAPE modules to perform intersection.  This is often
+done in a special phase 0 with no iterations so that the intersection (and
+possibly mesh generation) can be performed in a sort of preprocessing job with
+only one node before submitting the compute job as a subsequent multi-node job.
+
+    *i*: :class:`str`
+        Name of the input triangulation, usually automatically determined by
+        the appropriate module; for example this is ``Components.tri`` for
+        pyCart jobs
+        
+    *o*: :class:`str`
+        Name of the output file, usually automatically determined by the
+        appropriate module; for example this is ``Components.o.tri`` for pyCart
+        jobs.  This file needs to have the original component IDs mapped back
+        onto it
+        
+    *ascii*: {``true``} | ``false``
+        Create ASCII output triangulation
+        
+    *cutout*: ``true`` | {``false``}
+        Perform subtraction operations instead of unions
+        
+    *intersect_rm*: ``true`` | {``false``}
+        Option to remove small triangles
+        
+    *intersect_smalltri*: {``1e-4``} | :class:`float` > 0
+        Cutoff size if using *rm* option
 

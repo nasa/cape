@@ -111,7 +111,7 @@ option, which sets the number of nodes, becomes
         "N": [1, 10]
 
 SLURM Option Dictionary
-=====================
+========================
 
 This section provides a list of what the options mean and provides a
 description of what values might be available.  The format of the list is the
