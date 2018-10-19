@@ -190,20 +190,20 @@ class DataBook(dict):
         # Lock status
         check = kw.get("check", False)
         lock  = kw.get("lock",  False)
-        # Save the components
-        self.Components = opts.get_DataBookComponents(targ=targ)
         # Get list of components
-        comp = kw.get('comp', self.Components)
+        comp = kw.get('comp')
         # Default list of components
         if comp is None:
             # Default: all components
-            comps = self.Components
+            comps = opts.get_DataBookComponents(targ=targ)
         elif type(comp).__name__ in ['str', 'unicode']:
             # Split by comma (also ensures list)
             comps = comp.split(',')
         else:
             # Already a list?
             comps = comp
+        # Save the components
+        self.Components = comps
         # Save the folder
         if targ is None:
             # Root data book

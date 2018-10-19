@@ -3218,6 +3218,7 @@ class Cntl(object):
             * 2014-12-12 ``@ddalle``: First version
             * 2014-12-22 ``@ddalle``: Completely rewrote with DataBook class
             * 2017-04-25 ``@ddalle``: Added wild cards
+            * 2018-10-19 ``@ddalle``: Renamed :func:`Aero` to :func:`UpdateFM`
         """
         # Get component option
         comp = kw.get("fm", kw.get("aero"))
@@ -3357,6 +3358,80 @@ class Cntl(object):
             self.DataBook.UpdateTriqPoint(I, comp=comp)
         # Return to original location.
         os.chdir(fpwd)
+   # >
+   
+   # =================
+   # DataBook Checkers
+   # =================
+   # <
+    # Function to check FM component status
+    def CheckFM(self, **kw):
+        """Display missing force & moment components
+        
+        :Call:
+            >>> cntl.CheckFM(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *fm*, *aero*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2018-10-19 ``@ddalle``: First version
+        """
+        # Get component option
+        comps = kw.get("checkFM", kw.get("fm", kw.get("aero")))
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comps)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Check for a user key
+        ku = self.x.GetKeysByType("user")
+        # Check for a find
+        if ku:
+            # One key, please
+            ku = ku[0]
+        else:
+            # No user key
+            ku = None
+        # Read the existing data book
+        self.ReadDataBook(comp=comps)
+        # Loop through the components
+        for comp in comps:
+            # Restrict the trajectory to cases in the databook
+            self.DataBook[comp].UpdateTrajectory()
+        # Longest component name
+        maxcomp = max(map(len, comps))
+        # Format to include user
+        fmtc = "%%-%is" % maxcomp
+        # Loop through cases
+        for j,i in enumerate(I):
+            # Skip if we have a blocked user
+            if ku:
+                # Get the user
+                ui = getattr(self.x, uk)[i]
+                # Simplify the value
+                uj = ui.lstrip('@').lower()
+                # Check if it's blocked
+                if uj == "blocked": continue
+            else:
+                # Empty user
+                ui = None
+            # Get the last iteration for this case
+            nLast = self.GetLastIter(i)
+            # Initialize text
+            txt = ""
+            # Loop through components
+            for comp in comps:
+                # Get interface to component
+                DBc = self.DataBook[comp]
+                # See if it's missing
+                
+            
+            
    # >
 # class Cntl
     

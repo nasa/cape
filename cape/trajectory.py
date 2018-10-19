@@ -1689,6 +1689,118 @@ class Trajectory(object):
         return I
 
   # >
+  
+  # =========
+  # Matching
+  # =========
+  # <
+    
+   
+    # Find a match
+    def FindMatches(self, y, i, keys=None, **kw):
+        """Find index or indices of cases matching another trajectory case
+        
+        :Call:
+            >>> I = x.FindMatches(y, i, keys=None)
+        :Inputs:
+            *x*: :class:`attdb.trajectory.Trajectory`
+                Run matrix conditions interface
+            *y*: :class:`attdb.trajectory.Trajectory`
+                Target run matrix conditions interface
+            *i*: :class:`int`
+                Case number of case in *y*
+            *keys*: {``None``} | :class:`list` (:class:`str`)
+                List of keys to test for equivalence
+            *tol*: {``1e-8``} | :class:`float` >= 0
+                Tolerance for two values to be ideintal
+            *machtol*: {*tol*} | :class:`float` >= 0
+                Tolerance for *mach* key, for instance
+        :Outputs:
+            *I*: :class:`np.ndarray` (:class:`int`)
+                List of indices matching all constraints
+        :Versions:
+            * 2017-07-21 ``@ddalle``: First version
+        """
+        # Key list
+        if keys is None:
+            # Use all labeling keys
+            keys = []
+            # Loop through all keys
+            for k in self.keys:
+                # Get definition
+                defn = self.defns.get(k, {})
+                # Check the *Label* option
+                if not defn.get("Label", True):
+                    # Do not include keys that don't affect folder name
+                    continue
+                elif defn.get("Group", False) and defn.get("Value")=="str":
+                    # Do not include (text) group keys
+                    continue
+                # Include this key
+                keys.append(k)
+        # Default tolerance
+        tol = kw.get("tol", 1e-8)
+        # Initialize list
+        I = np.ones(self.nCase, dtype="bool")
+        # Loop through keys
+        for k in keys:
+            # Check for specific tolerance
+            ktol = kw.get("%stol"%k, tol)
+            # Get values from this trajectory
+            V = self.GetValue(k)
+            # Get values from target trajectory
+            v = y.GetValue(k, i)
+            # Types
+            T = V[0].__class__.__name__
+            t = v.__class__.__name__
+            # Apply constraints
+            if T != t:
+                # Do not process mismatching types
+                continue
+            elif t.startswith("float"):
+                # Use tolerance
+                I = np.logical_and(I, np.abs(V-v)<=ktol)
+            else:
+                # Use exact match
+                I = np.logical_and(I, V==v)
+        # Output
+        return np.where(I)[0]
+        
+    # Find the first match
+    def FindMatch(self, y, i, keys=None, **kw):
+        """Find the first case index (if any) matching another trajectory case
+        
+        :Call:
+            >>> j = x.FindMatch(y, i, keys=None)
+        :Inputs:
+            *x*: :class:`attdb.trajectory.Trajectory`
+                Run matrix conditions interface
+            *y*: :class:`attdb.trajectory.Trajectory`
+                Target run matrix conditions interface
+            *i*: :class:`int`
+                Case number of case in *y*
+            *keys*: {``None``} | :class:`list` (:class:`str`)
+                List of keys to test for equivalence
+            *tol*: {``1e-8``} | :class:`float` >= 0
+                Tolerance for two values to be ideintal
+            *machtol*: {*tol*} | :class:`float` >= 0
+                Tolerance for *mach* key, for instance
+        :Outputs:
+            *j*: ``None`` | :class:`int`
+                Index of first matching case, if any
+        :Versions:
+            * 2017-07-21 ``@ddalle``: First version
+        """
+        # Find all matches
+        I = self.FindMatches(y, i, keys=keys, **kw)
+        # Check for a match
+        if len(I) > 0:
+            # Use first match
+            return I[0]
+        else:
+            # Use ``None`` to indicate no match
+            return None
+  # >
 
   # ==================
   # Trajectory Subsets
