@@ -1492,46 +1492,53 @@ class Trajectory(object):
                 Array of indices matching any of the input indices
         :Examples:
             >>> x.ExpandIndices(':5')
-            array([0, 1, 2, 3, 4])
+            [0, 1, 2, 3, 4]
             >>> x.ExpandIndices(':4;7,8')
-            array([0, 1, 2, 3, 7, 8])
+            [0, 1, 2, 3, 7, 8]
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
+            * 2018-10-19 ``@ddalle``: Multi ranges, ``1:4,5,6:10``
         """
+        # Get type
+        t = itxt.__class__.__name__
         # Check the input.
-        if type(itxt).__name__ in ['list', 'ndarray']:
+        if t in ['list', 'ndarray']:
             # Already split
             ITXT = itxt
-        elif type(itxt).__name__ in ['str', 'unicode']:
+        elif t in ['str', 'unicode']:
             # Split.
-            ITXT = itxt.split(';')
+            ITXT = itxt.split(',')
         else:
             # Invalid format
             return []
-        # Get the full list of indices.
-        I0 = range(self.nCase)
         # Initialize output
         I = []
         # Split the input by semicolons.
         for i in ITXT:
+            # Get type
+            t = i.__class__.__name__
+            # Check for integer
+            if t.startswith("int"):
+                # Save index and move on
+                I.append(i)
+                continue
             # Ignore []
             i = i.lstrip('[').rstrip(']')
             try:
                 # Check for a ':'
                 if ':' in i:
-                    # Add a range.
-                    I += eval('I0[%s]' % i)
-                elif ',' in i:
-                    # List
-                    I += list(eval(i))
+                    # Get beginning and end of range
+                    a, b = map(int, i.split(":"))
+                    # Add a range
+                    I += range(a,b)
                 else:
                     # Individual case
-                    I += [eval(i)]
+                    I.append(int(i))
             except Exception:
                 # Status update.
                 print("Index specification '%s' failed to evaluate." % i)
         # Return the matches.
-        return I
+        return sorted(I)
 
     # Get indices
     def GetIndices(self, **kw):
