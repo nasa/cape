@@ -512,10 +512,26 @@ class Cntl(object):
             # Rewrite namelists and possibly add phases
             self.ApplyCases(**kw)
             return 'apply'
-        elif kw.get('check') and kw.get('aero') or kw.get('checkFM'):
+        elif kw.get('checkFM'):
             # Check aero databook
             self.CheckFM(**kw)
             return "checkFM"
+        elif kw.get('checkLL'):
+            # Check aero databook
+            self.CheckLL(**kw)
+            return "checkLL"
+        elif kw.get('checkTriqFM'):
+            # Check aero databook
+            self.CheckTriqFM(**kw)
+            return "checkTriqFM"
+        elif kw.get('check'):
+            # Check all
+            print("---- Checking FM DataBook components ----")
+            self.CheckFM(**kw)
+            print("---- Checking LineLoad DataBook components ----")
+            self.CheckLL(**kw)
+            print("---- Checking TriqFM DataBook components ----")
+            self.CheckTriqFM(**kw)
         elif kw.get('aero') or kw.get('fm'):
             # Collect force and moment data.
             self.UpdateFM(**kw)
@@ -3387,7 +3403,8 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: First version
         """
         # Get component option
-        comps = kw.get("fm", kw.get("aero", kw.get("checkFM")))
+        comps = kw.get("fm", kw.get("aero",
+            kw.get("checkFM", kw.get("check"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comps)
         # Apply constraints
@@ -3496,9 +3513,424 @@ class Cntl(object):
             # If there is text, display the info
             if txt:
                 # Header
-                print("Checking component '%s' % comp")
+                print("Checking component '%s'" % comp)
                 print(txt[:-1])
             
+    # Function to check LL component status
+    def CheckLL(self, **kw):
+        """Display missing line load components
+        
+        :Call:
+            >>> cntl.CheckLL(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *fm*, *aero*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2018-10-19 ``@ddalle``: First version
+        """
+        # Get component option
+        comps = kw.get("ll", kw.get("checkLL", kw.get("check")))
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob("LineLoad", comps)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Check for a user key
+        ku = self.x.GetKeysByType("user")
+        # Check for a find
+        if ku:
+            # One key, please
+            ku = ku[0]
+        else:
+            # No user key
+            ku = None
+        # Read the existing data book
+        self.ReadDataBook(comp=[])
+        # Loop through the components
+        for comp in comps:
+            # Read the line load component
+            self.DataBook.ReadLine(comp)
+            # Restrict the trajectory to cases in the databook
+            self.DataBook.LineLoads[comp].UpdateTrajectory()
+        # Longest component name
+        maxcomp = max(map(len, comps))
+        # Format to include user and format to display iteration number
+        fmtc = "    %%-%is: " % maxcomp
+        fmti = "%%%ii" % int(np.ceil(np.log10(self.x.nCase)))
+        # Loop through cases
+        for i in I:
+            # Skip if we have a blocked user
+            if ku:
+                # Get the user
+                ui = getattr(self.x, ku)[i]
+                # Simplify the value
+                ui = ui.lstrip('@').lower()
+                # Check if it's blocked
+                if ui == "blocked": continue
+            else:
+                # Empty user
+                ui = None
+            # Get the last iteration for this case
+            nLast = self.GetLastIter(i)
+            # Initialize text
+            txt = ""
+            # Loop through components
+            for comp in comps:
+                # Get interface to component
+                DBc = self.DataBook.LineLoads[comp]
+                # See if it's missing
+                j = DBc.x.FindMatch(self.x, i, **kw)
+                # Check for missing case
+                if j is None:
+                    # Missing case
+                    txt += (fmtc % comp)
+                    txt += "missing\n"
+                    continue
+                # Otherwise, check iteration
+                try:
+                    # Get the recorded iteration number
+                    nIter = DBc["nIter"][j]
+                except KeyError:
+                    # No iteration number found
+                    nIter = nLast
+                # Check for out-of date iteration
+                if nIter < nLast:
+                    # Out-of-date case
+                    txt += (fmt % comp)
+                    txt += "out-of-date (%i --> %i)\n" % (nIter, nLast)
+            # If we have any text, print a header
+            if txt:
+                # Folder name
+                frun = self.x.GetFullFolderNames(i)
+                # Print header
+                if ku:
+                    # Include user
+                    print("Case %s: %s (%s)" % (fmti % i, frun, ui))
+                else:
+                    # No user
+                    print("Case %s: %s" % (fmti % i, frun))
+                # Display the text
+                print(txt)
+        # Loop back through the databook components
+        for comp in comps:
+            # Get component handle
+            DBc = self.DataBook.LineLoads[comp]
+            # Initialize text
+            txt = ""
+            # Loop through database entries
+            for j in range(DBc.x.nCase):
+                # Check for a find in master matrix
+                i = self.x.FindMatch(DBc.x, j, **kw)
+                # Check for a match
+                if i is None:
+                    # This case is not in the run matrix
+                    txt += ("    Extra case: %s\n"
+                        % DBc.x.GetFullFolderNames(j))
+                    continue
+                # Check for a user filter
+                if ku:
+                    # Get the user value
+                    uj = DBc[ku][j]
+                    # Strip it
+                    uj = uj.lstrip('@').lower()
+                    # Check if it's blocked
+                    if uj == "blocked":
+                        # Blocked case
+                        txt += ("    Blocked case: %s\n"
+                            % DBc.x.GetFullFolderNames(j))
+            # If there is text, display the info
+            if txt:
+                # Header
+                print("Checking component '%s'" % comp)
+                print(txt[:-1])
+            
+    # Function to check TriqFM component status
+    def CheckTriqFM(self, **kw):
+        """Display missing TriqFM components
+        
+        :Call:
+            >>> cntl.CheckTriqFM(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *fm*, *aero*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2018-10-19 ``@ddalle``: First version
+        """
+        # Get component option
+        comps = kw.get("triqfm", kw.get("checkTriqFM", kw.get("check")))
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob("TriqFM", comps)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Check for a user key
+        ku = self.x.GetKeysByType("user")
+        # Check for a find
+        if ku:
+            # One key, please
+            ku = ku[0]
+        else:
+            # No user key
+            ku = None
+        # Read the existing data book
+        self.ReadDataBook(comp=[])
+        # Loop through the components
+        for comp in comps:
+            # Read the line load component
+            self.DataBook.ReadTriqFM(comp)
+            # Restrict the trajectory to cases in the databook
+            self.DataBook.TriqFM[comp][None].UpdateTrajectory()
+        # Longest component name
+        maxcomp = max(map(len, comps))
+        # Format to include user and format to display iteration number
+        fmtc = "    %%-%is: " % maxcomp
+        fmti = "%%%ii" % int(np.ceil(np.log10(self.x.nCase)))
+        # Loop through cases
+        for i in I:
+            # Skip if we have a blocked user
+            if ku:
+                # Get the user
+                ui = getattr(self.x, ku)[i]
+                # Simplify the value
+                ui = ui.lstrip('@').lower()
+                # Check if it's blocked
+                if ui == "blocked": continue
+            else:
+                # Empty user
+                ui = None
+            # Get the last iteration for this case
+            nLast = self.GetLastIter(i)
+            # Initialize text
+            txt = ""
+            # Loop through components
+            for comp in comps:
+                # Get interface to component
+                DBc = self.DataBook.TriqFM[comp][None]
+                # See if it's missing
+                j = DBc.x.FindMatch(self.x, i, **kw)
+                # Check for missing case
+                if j is None:
+                    # Missing case
+                    txt += (fmtc % comp)
+                    txt += "missing\n"
+                    continue
+                # Otherwise, check iteration
+                try:
+                    # Get the recorded iteration number
+                    nIter = DBc["nIter"][j]
+                except KeyError:
+                    # No iteration number found
+                    nIter = nLast
+                # Check for out-of date iteration
+                if nIter < nLast:
+                    # Out-of-date case
+                    txt += (fmt % comp)
+                    txt += "out-of-date (%i --> %i)\n" % (nIter, nLast)
+            # If we have any text, print a header
+            if txt:
+                # Folder name
+                frun = self.x.GetFullFolderNames(i)
+                # Print header
+                if ku:
+                    # Include user
+                    print("Case %s: %s (%s)" % (fmti % i, frun, ui))
+                else:
+                    # No user
+                    print("Case %s: %s" % (fmti % i, frun))
+                # Display the text
+                print(txt)
+        # Loop back through the databook components
+        for comp in comps:
+            # Get component handle
+            DBc = self.DataBook.TriqFM[comp][None]
+            # Initialize text
+            txt = ""
+            # Loop through database entries
+            for j in range(DBc.x.nCase):
+                # Check for a find in master matrix
+                i = self.x.FindMatch(DBc.x, j, **kw)
+                # Check for a match
+                if i is None:
+                    # This case is not in the run matrix
+                    txt += ("    Extra case: %s\n"
+                        % DBc.x.GetFullFolderNames(j))
+                    continue
+                # Check for a user filter
+                if ku:
+                    # Get the user value
+                    uj = DBc[ku][j]
+                    # Strip it
+                    uj = uj.lstrip('@').lower()
+                    # Check if it's blocked
+                    if uj == "blocked":
+                        # Blocked case
+                        txt += ("    Blocked case: %s\n"
+                            % DBc.x.GetFullFolderNames(j))
+            # If there is text, display the info
+            if txt:
+                # Header
+                print("Checking component '%s'" % comp)
+                print(txt[:-1])
+                
+    # Function to check TriqFM component status
+    def CheckTriqPoint(self, **kw):
+        """Display missing TriqPoint components
+        
+        :Call:
+            >>> cntl.CheckTriqPoint(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *fm*, *aero*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2018-10-19 ``@ddalle``: First version
+        """
+        # Get component option
+        comps = kw.get("pt", kw.get("checkPt", kw.get("check")))
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob("TriqPoint", comps)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Check for a user key
+        ku = self.x.GetKeysByType("user")
+        # Check for a find
+        if ku:
+            # One key, please
+            ku = ku[0]
+        else:
+            # No user key
+            ku = None
+        # Read the existing data book
+        self.ReadDataBook(comp=[])
+        # Component list for text
+        complist = []
+        # Loop through the components
+        for comp in comps:
+            # Read the line load component
+            self.DataBook.ReadTriqPoint(comp)
+            # Get point group
+            DBG = self.DataBook.TriqPoint[comp]
+            # Loop through points
+            for pt in DBG.pts:
+                # Restrict the trajectory to cases in the databook
+                DBG[pt].UpdateTrajectory()
+                # Add to the list
+                complist.append("%s/%s" % (comp, pt))
+                
+        # Longest component name (plus room for the '/' char)
+        maxcomp = max(map(len, complist)) + 1
+        # Format to include user and format to display iteration number
+        fmtc = "    %%-%is: " % maxcomp
+        fmti = "%%%ii" % int(np.ceil(np.log10(self.x.nCase)))
+        # Loop through cases
+        for i in I:
+            # Skip if we have a blocked user
+            if ku:
+                # Get the user
+                ui = getattr(self.x, ku)[i]
+                # Simplify the value
+                ui = ui.lstrip('@').lower()
+                # Check if it's blocked
+                if ui == "blocked": continue
+            else:
+                # Empty user
+                ui = None
+            # Get the last iteration for this case
+            nLast = self.GetLastIter(i)
+            # Initialize text
+            txt = ""
+            # Loop through components
+            for comp in comps:
+                # Get point group
+                DBG = self.DataBook.TriqPoint[comp]
+                # Loop through points
+                for pt in DBG.pts:
+                    # Get interface to component
+                    DBc = DBG[pt]
+                    # See if it's missing
+                    j = DBc.x.FindMatch(self.x, i, **kw)
+                    # Check for missing case
+                    if j is None:
+                        # Missing case
+                        txt += (fmtc % ("%s/%s" % (comp, pt)))
+                        txt += "missing\n"
+                        continue
+                    # Otherwise, check iteration
+                    try:
+                        # Get the recorded iteration number
+                        nIter = DBc["nIter"][j]
+                    except KeyError:
+                        # No iteration number found
+                        nIter = nLast
+                    # Check for out-of date iteration
+                    if nIter < nLast:
+                        # Out-of-date case
+                        txt += (fmt % comp)
+                        txt += "out-of-date (%i --> %i)\n" % (nIter, nLast)
+                # If we have any text, print a header
+                if txt:
+                    # Folder name
+                    frun = self.x.GetFullFolderNames(i)
+                    # Print header
+                    if ku:
+                        # Include user
+                        print("Case %s: %s (%s)" % (fmti % i, frun, ui))
+                    else:
+                        # No user
+                        print("Case %s: %s" % (fmti % i, frun))
+                    # Display the text
+                    print(txt)
+        # Loop back through the databook components
+        for comp in comps:
+            # Get group
+            DBG = self.DataBook.TriqPoint[comp]
+            # Loop through points
+            for pt in DBG.pts:
+                # Get component handle
+                DBc = DBG[pt]
+                # Initialize text
+                txt = ""
+                # Loop through database entries
+                for j in range(DBc.x.nCase):
+                    # Check for a find in master matrix
+                    i = self.x.FindMatch(DBc.x, j, **kw)
+                    # Check for a match
+                    if i is None:
+                        # This case is not in the run matrix
+                        txt += ("    Extra case: %s\n"
+                            % DBc.x.GetFullFolderNames(j))
+                        continue
+                    # Check for a user filter
+                    if ku:
+                        # Get the user value
+                        uj = DBc[ku][j]
+                        # Strip it
+                        uj = uj.lstrip('@').lower()
+                        # Check if it's blocked
+                        if uj == "blocked":
+                            # Blocked case
+                            txt += ("    Blocked case: %s\n"
+                                % DBc.x.GetFullFolderNames(j))
+                # If there is text, display the info
+                if txt:
+                    # Header
+                    print("Checking point sensor '%s/%s'" % (comp, pt))
+                    print(txt[:-1])
    # >
 # class Cntl
     

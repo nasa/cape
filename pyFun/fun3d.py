@@ -189,6 +189,31 @@ class Fun3d(Cntl):
         """
         # Preprocess command-line inputs
         a, kw = self.cli_preprocess(*a, **kw)
+        # Preemptive command
+        if kw.get('check'):
+            # Check all
+            print("---- Checking FM DataBook components ----")
+            self.CheckFM(**kw)
+            print("---- Checking LineLoad DataBook components ----")
+            self.CheckLL(**kw)
+            print("---- Checking TriqFM DataBook components ----")
+            self.CheckTriqFM(**kw)
+            print("---- Checking TriqPoint DataBook components ----")
+            self.CheckTriqPoint(**kw)
+            # Quit
+            return
+        elif kw.get('data', kw.get('db')):
+            # Update all
+            print("---- Updating FM DataBook components ----")
+            self.UpdateFM(**kw)
+            print("---- Updating LineLoad DataBook components ----")
+            self.UpdateLL(**kw)
+            print("---- Updating TriqFM DataBook components ----")
+            self.UpdateTriqFM(**kw)
+            print("---- Updating TriqPoint DataBook components ----")
+            self.UpdateTriqPoint(**kw)
+            # Output
+            return 
         # Call the common interface
         cmd = self.cli_cape(*a, **kw)
         # Test for a command
@@ -198,6 +223,9 @@ class Fun3d(Cntl):
         if kw.get('pt'):
             # Update point sensor data book
             self.UpdateTriqPoint(**kw)
+        elif kw.get('checkTriqPoint'):
+            # Check aero databook
+            self.CheckTriqPoint(**kw)
         else:
             # Submit the jobs
             self.SubmitJobs(**kw)
