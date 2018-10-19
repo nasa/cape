@@ -961,6 +961,87 @@ class Trajectory(object):
             return key
 
   # >
+  
+  # ================
+  # Value Extraction
+  # ================
+  # <
+    # Find a value
+    def GetValue(self, k, I=None):
+        """Get value from a trajectory key, including specially named keys
+        
+        :Call:
+            >>> V = x.GetValue(k)
+            >>> V = x.GetValue(k, I)
+            >>> v = x.GetValue(k, i)
+        :Inputs:
+            *x*: :class:`attdb.trajectory.Trajectory`
+                Run matrix conditions interface
+            *k*: :class:`str`
+                Trajectory key name
+            *i*: :class:`int`
+                Case index
+            *I*: :class:`np.ndarray` (:class:`int`)
+                Array of case indices
+        :Outputs:
+            *V*: :class:`np.ndarray`
+                Array of values from one or more cases
+            *v*: :class:`np.any`
+                Value for individual case *i*
+        :Versions:
+            * 2018-10-03 ``@ddalle``: First version
+        """
+        if k in self.keys:
+            # The key is present directly
+            V = getattr(self,k)
+            # Index input type
+            t = I.__class__.__name__
+            # Process indices
+            if I is None:
+                # Return entire array
+                pass
+            else:
+                # Subset
+                V = V[I]
+        elif k.lower() in ["aoa", "alpha"]:
+            # Angle of attack
+            V = self.GetAlpha(I)
+        elif k.lower() in ["aos", "beta"]:
+            # Sideslip angle
+            V = self.GetBeta(I)
+        elif k.lower() in ["alpha_t", "aoap"]:
+            # Total angle of attack
+            V = self.GetAlphaTotal(I)
+        elif k.lower() in ["phi", "phip"]:
+            # Velocity roll angle
+            V = self.GetPhi(I)
+        elif k.lower() in ["alpha_m", "aoav"]:
+            # Total angle of attack
+            V = self.GetAlphaManeuver(I)
+        elif k.lower() in ["phi_m", "phim", "phiv"]:
+            # Velocity roll angle
+            V = self.GetPhiManeuver(I)
+        elif k in ["q"]:
+            # Dynamic pressure
+            V = self.GetDynamicPressure(I)
+        elif k in ["p", "pinf"]:
+            # Static pressure
+            V = self.GetPressure(I)
+        else:
+            # Evaluate an expression, for example "mach%1.0"
+            V = eval('self.' + k)
+            # Index input type
+            t = I.__class__.__name__
+            # Process indices
+            if I is None:
+                # Return entire array
+                pass
+            else:
+                # Subset
+                V = V[I]
+        # Output
+        return V
+  # >
 
   # ============
   # Folder Names
@@ -1336,16 +1417,28 @@ class Trajectory(object):
         for con in cons:
             # Check for empty constraints.
             if len(con.strip()) == 0: continue
-            # Perform substitutions on constraint
-            con = con.strip().replace('=', '==')
-            con = con.replace('====', '==')
-            con = con.replace('>==', '>=')
-            con = con.replace('<==', '<=')
-            con = con.replace('!==', '!=')
+            # Check for escape characters
+            if re.search('[\'"\n]', con):
+                print("Constraint %s contains escape character; skipping")
+                continue
+            # Substitute '=' -> '==' while leaving '==', '<=', '>=', '!=' 
+            con = re.sub("(?<![<>=!~])=(?!=)", "==", con)
+            # Replace variable names with calls to GetValue()
+            # But don't replace functions
+            #    "sin(phi)"      --> "sin(self.GetValue('phi'))"
+            #    "np.sin(phi)"   --> "np.sin(self.GetValue('phi'))"
+            #    "sin(self.phi)" --> "sin(self.phi)"
+            con = re.sub(
+                r"(?<![\w.])([A-Za-z_]\w*)(?![\w(.])",
+                r"self.GetValue('\1')", con)
+            # Replace any raw function calls with numpy ones
+            con = re.sub(
+                r"(?<![\w.])([A-Za-z_]\w*)(?=\()",
+                r"np.\1", con)
             # Constraint may fail with bad input.
             try:
                 # Apply the constraint.
-                i = np.logical_and(i, eval('self.' + con))
+                i = np.logical_and(i, eval(con))
             except Exception:
                 # Print a warning and move on.
                 print("Constraint '%s' failed to evaluate." % con)

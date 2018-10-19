@@ -60,10 +60,10 @@ if __name__ == "__main__":
         cart3d.SubmitBatchPBS(pyCart.os.sys.argv)
     elif kw.get('extend'):
         # Extend the number of iterations in a phase
-        fun3d.ExtendCases(**kw)
+        cart3d.ExtendCases(**kw)
     elif kw.get('apply'):
         # Rewrite namelists and possibly add phases
-        fun3d.ApplyCases(**kw)
+        cart3d.ApplyCases(**kw)
     elif kw.get('aero'):
         # Collect force and moment data.
         cart3d.Aero(**kw)
