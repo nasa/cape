@@ -1418,18 +1418,19 @@ class Trajectory(object):
             # Check for empty constraints.
             if len(con.strip()) == 0: continue
             # Check for escape characters
-            if re.search('[\'"\n]', con):
+            if re.search('[\n]', con):
                 print("Constraint %s contains escape character; skipping")
                 continue
             # Substitute '=' -> '==' while leaving '==', '<=', '>=', '!=' 
             con = re.sub("(?<![<>=!~])=(?!=)", "==", con)
             # Replace variable names with calls to GetValue()
             # But don't replace functions
-            #    "sin(phi)"      --> "sin(self.GetValue('phi'))"
-            #    "np.sin(phi)"   --> "np.sin(self.GetValue('phi'))"
-            #    "sin(self.phi)" --> "sin(self.phi)"
+            #     sin(phi)      --> sin(self.GetValue('phi'))
+            #     np.sin(phi)   --> np.sin(self.GetValue('phi'))
+            #     sin(self.phi) --> sin(self.phi)
+            #     user=="@user" --> self.GetValue('user')=="@user"
             con = re.sub(
-                r"(?<![\w.])([A-Za-z_]\w*)(?![\w(.])",
+                r"(?<!['\"@\w.])([A-Za-z_]\w*)(?![\w(.'\"])",
                 r"self.GetValue('\1')", con)
             # Replace any raw function calls with numpy ones
             con = re.sub(
