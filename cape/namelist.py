@@ -363,6 +363,8 @@ class Namelist(FileCntl):
         if type(val).__name__ not in ['str', 'unicode']:
             # Not a string; return as is.
             return val
+        # Strip whitespace
+        val = val.strip()
         # Split to parts
         V = val.split()
         # Check the value.

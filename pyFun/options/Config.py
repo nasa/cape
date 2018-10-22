@@ -122,6 +122,25 @@ class Config(cape.options.Config):
         """
         return self.get_key('RubberDataFile', j)
         
+    # Moving body
+    def get_MovingBodyInputFile(self, j=None):
+        """Get the ``moving_body.input`` file name
+        
+        :Call:
+            >>> fname = opts.get_MovingBodyInputFile(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file template
+        :Versions:
+            * 2018-10-22 ``@ddalle``: First version
+        """
+        return self.get_key('MovingBodyInputFile', j)
+        
     # Get template file
     def get_TDataFile(self, j=None):
         """Get the ``tdata`` file name

@@ -90,11 +90,20 @@ def PrepareFiles(rc, i=None):
         i = GetPhaseNumber(rc)
     # Check for dual phase
     if rc.get_Dual(): os.chdir('Flow')
-    # Delete any input file.
+    # Delete any input file (primary namelist)
     if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
         os.remove('fun3d.nml')
-    # Create the correct namelist.
+    # Create the correct namelist
     os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
+    # Delete any moving_body.input namelist linke
+    fmove = 'moving_body.input'
+    if os.path.isfile(fmove) or os.path.islink(fmove):
+        os.remove(fmove)
+    # Target moving_body.[0-9][0-9].input file
+    ftarg = 'moving_body.%02i.input' % i
+    # Create the correct namelist
+    if os.path.isfile(ftarg):
+        os.symlink(ftarg, fmove)
     # Return to original folder
     if rc.get_Dual(): os.chdir('..')
 

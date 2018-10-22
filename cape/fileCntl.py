@@ -135,7 +135,7 @@ def _num(s):
         
 
 # File control class
-class FileCntl:
+class FileCntl(object):
     """
     Base file control class
     
@@ -162,8 +162,7 @@ class FileCntl:
     # Initialization method; not useful for derived classes
     def __init__(self, fname=None):
         # Read the file.
-        if fname is not None:
-            self.Read(fname)
+        self.Read(fname)
         # Save the file name.
         self.fname = fname
     
@@ -207,8 +206,13 @@ class FileCntl:
         :Versions:
             * 2014-06-03 ``@ddalle``: First version
         """
-        # Open the file and read the lines.
-        self.lines = open(fname).readlines()
+        # Read the file.
+        if fname is None or not os.path.isfile(fname):
+            # No file: initialize empty content
+            self.lines = []
+        else:
+            # Open the file and read the lines.
+            self.lines = open(fname).readlines()
         # Initialize update statuses.
         self._updated_sections = False
         self._updated_lines = False

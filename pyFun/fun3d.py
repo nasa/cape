@@ -139,8 +139,9 @@ class Fun3d(Cntl):
         # Job list
         self.jobs = {}
         
-        # Read the namelist.
+        # Read the namelist(s)
         self.ReadNamelist()
+        self.ReadMovingBodyInputFile()
         
         # Check for dual
         if self.opts.get_Dual():
@@ -299,7 +300,7 @@ class Fun3d(Cntl):
         """Read the :file:`fun3d.nml` file
         
         :Call:
-            >>> fun3d.ReadInputCntl(j=0, q=True)
+            >>> fun3d.ReadNamelist(j=0, q=True)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of the pyFun control class
@@ -311,11 +312,17 @@ class Fun3d(Cntl):
             * 2015-10-16 ``@ddalle``: First version
             * 2015-12-31 ``@ddalle``: Added *Namelist0*
         """
-        # Change to root safely.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Read the file.
-        nml = Namelist(self.opts.get_Namelist(j))
+        # Namelist file
+        fnml = self.opts.get_FUN3DNamelist(j)
+        # Check for empty value
+        if fnml is None:
+            return
+        # Check for absolute path
+        if not os.path.isabs(fnml):
+            # Use path relative to JSON root
+            fnml = os.path.join(self.RootDir, fnml)
+        # Read the file
+        nml = Namelist(fnml)
         # Save it.
         if q:
             # Read to main slot for modification
@@ -323,8 +330,6 @@ class Fun3d(Cntl):
         else:
             # Template for reading original parameters
             self.Namelist0 = nml
-        # Go back to original location
-        os.chdir(fpwd)
     
     # Get namelist var
     def GetNamelistVar(self, sec, key, j=0):
@@ -553,6 +558,46 @@ class Fun3d(Cntl):
             surf = self.EvalSurfID(comp)
             # Set the geometry
             self.FAUXGeom.SetGeom(surf, ofaux[comp])
+            
+    # Read the ``moving_body.input`` file
+    def ReadMovingBodyInputFile(self, j=0, q=True):
+        """Read the :file:`moving_body.input` template
+        
+        :Call:
+            >>> fun3d.ReadMovingBodyInputFile(j=0, q=True)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of the pyFun control class
+            *j*: :class:`int`
+                Phase number
+            *q*: :class:`bool`
+                Whether or not to read to *Namelist*, else *Namelist0*
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+            * 2015-12-31 ``@ddalle``: Added *Namelist0*
+            * 2018-10-22 ``@ddalle``: Forked from :func:`ReadNamelist`
+        """
+        # Namelist file
+        fnml = self.opts.get_MovingBodyInputFile(j)
+        # Check for empty value
+        if fnml is None:
+            # Empty input
+            pass
+        elif os.path.isabs(fnml):
+            # Valid input file
+            pass
+        else:
+            # Use path relative to JSON root
+            fnml = os.path.join(self.RootDir, fnml)
+        # Read the file
+        nml = Namelist(fnml)
+        # Save it.
+        if q:
+            # Read to main slot for modification
+            self.MovingBodyInput = nml
+        else:
+            # Template for reading original parameters
+            self.MovingBodyInput0 = nml
         
         
     # Write FreezeSurfs
@@ -1367,6 +1412,7 @@ class Fun3d(Cntl):
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
             dopts = self.opts.select_dual_namelist(j)
+            mopts = self.opts.select_moving_body_input(j)
             # Apply them to this namelist
             self.Namelist.ApplyDict(nopts)
             # Ensure correct *project_rootname*
@@ -1414,6 +1460,21 @@ class Fun3d(Cntl):
                     self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
                 self.Namelist.Write(fout)
+            # Apply "moving_body.input" parameters, if any
+            if mopts:
+                self.MovingBodyInput.ApplyDict(mopts)
+            # Check for valid "moving_body.input" instructions
+            if self.MovingBodyInput.GetVar("global", "moving_grid"):
+                # Name out oufput file
+                if self.opts.get_Dual():
+                    # Write in the "Flow/" folder
+                    fout = os.path.join(frun,
+                        'Flow', 'moving_body.%02i.input' % j)
+                else:
+                    # Write in the case folder
+                    fout = os.path.join(frun, 'moving_body.%02i.input' % j)
+                # Write the file
+                self.MovingBodyInput.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
         

@@ -136,6 +136,17 @@ class Options(cape.options.Options):
         elif type(self['DualFun3D']).__name__ == 'dict':
             # Convert to special class
             self['DualFun3D'] = Fun3DNml(**self['DualFun3D'])
+            
+    # Initialization for dual namelist variables
+    def _MovingBodyInput(self):
+        """Initialize ``dual`` namelist options"""
+        # Check status
+        if 'MovingBodyInput' not in self:
+            # Missing entirely
+            self['MovingBodyInput'] = Fun3DNml()
+        elif type(self['MovingBodyInput']).__name__ == 'dict':
+            # Convert to special class
+            self['MovingBodyInput'] = Fun3DNml(**self['MovingBodyInput'])
     
     # Initialization method for mesh settings
     def _Mesh(self):
@@ -209,11 +220,11 @@ class Options(cape.options.Options):
    # <
     
     # Method to get the namelist template
-    def get_Namelist(self, j=None):
+    def get_FUN3DNamelist(self, j=None):
         """Return the name of the master :file:`fun3d.nml` file
         
         :Call:
-            >>> fname = opts.get_Namelist(j=None)
+            >>> fname = opts.get_FUN3DNamelist(j=None)
         :Inputs:
             *opts*: :class:`pyFun.options.Options`
                 Options interface
@@ -228,11 +239,11 @@ class Options(cape.options.Options):
         return self.get_key('Namelist', j)
         
     # Method to set the namelist template
-    def set_Namelist(self, fname):
+    def set_FUN3DNamelist(self, fname):
         """Set the name of the master :file:`fun3d.nml` file
         
         :Call:
-            >>> opts.set_Namelist(fname)
+            >>> opts.set_FUN3DNamelist(fname)
         :Inputs:
             *opts*: :class:`pyFun.options.Options`
                 Options interface
@@ -415,6 +426,11 @@ class Options(cape.options.Options):
         self._DualFun3D()
         return self['DualFun3D'].select_namelist(i)
     select_dual_namelist.__doc__ = Fun3DNml.select_namelist.__doc__
+    # Downselect moving body namelist
+    def select_moving_body_input(self, i=None):
+        self._MovingBodyInput()
+        return self['MovingBodyInput'].select_namelist(i)
+    select_moving_body_input.__doc__ = Fun3DNml.select_namelist.__doc__
     
     # Get value from dual namelist
     def get_dual_namelist_var(self, sec, key, i=None):
@@ -498,6 +514,11 @@ class Options(cape.options.Options):
     def get_RubberDataFile(self, j=None):
         self._Config()
         return self['Config'].get_RubberDataFile(j)
+    
+    # moving_body.input file
+    def get_MovingBodyInputFile(self, j=None):
+        self._Config()
+        return self['Config'].get_MovingBodyInputFile(j)
         
     # tdata file
     def get_TDataFile(self, j=None):
