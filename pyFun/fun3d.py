@@ -1390,8 +1390,12 @@ class Fun3d(Cntl):
         else:
             # Main folder
             fout = os.path.join(frun, '%s.mapbc'%self.GetProjectRootName(0))
+            
+        # Prepare internal boundary conditions
+        self.PrepareNamelistBoundaryConditions()
         # Write the BC file
         self.MapBC.Write(fout)
+        
         
         # Make folder if necessary.
         if not os.path.isdir(frun): self.mkdir(frun)
@@ -1655,6 +1659,53 @@ class Fun3d(Cntl):
             nml.SetVar('component_parameters', 'component_count', -1, k)
         # Set the number of components
         nml.SetVar('component_parameters', 'number_of_components', n)
+        
+    # Set boundary condition flags
+    def PrepareNamelistBoundaryConditions(self):
+        """Prepare any boundary condition flags if needed
+        
+        :Call:
+            >>> fun3d.PrepareNamelistBoundaryConditions()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                FUN3D settings interface
+        :Versions:
+            * 2018-10-24 ``@ddalle``: First version
+        """
+        # Get equations type
+        eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
+        # Check for default
+        if eqn_type.lower() != "generic":
+            # Let's not do anything for now
+            return
+        # Namelist handle
+        nml = self.Namelist
+        # Save some labels
+        bcs = "boundary_conditions"
+        wtf = "wall_temp_flag"
+        wrf = "wall_radeq_flag"
+        wtk = "wall_temperature"
+        # Set the wall temperature flag for adiabatic wall
+        for k in range(self.MapBC.n):
+            # Get the boundary type
+            BC = self.MapBC.BCs[k]
+            # Check for viscous wall
+            if BC in [4000, 4100, 4110]:
+                # Get current options
+                flag = nml.GetVar(bcs, wtf, k+1)
+                vwrf = nml.GetVar(bcs, wrf, k+1)
+                temp = nml.GetVar(bcs, wtk, k+1)
+                # Escape if using wall radiative equilibrium
+                if vwrf:
+                    continue
+                # Set the wall temperature flag
+                if flag is None:
+                    # Use a wall temperature
+                    nml.SetVar(bcs, wtf, True, k+1)
+                # Set the temperature
+                if temp is None:
+                    # Use adiabatic wall
+                    nml.SetVar(bcs, wtk, -1, k+1)
     
     # Set boundary points
     def PrepareNamelistBoundaryPoints(self):
