@@ -1622,7 +1622,21 @@ class Trajectory(object):
                 # Check for a ':'
                 if ':' in i:
                     # Get beginning and end of range
-                    a, b = map(int, i.split(":"))
+                    a, b = i.split(":")
+                    # Check for empty values
+                    if a.strip() == "":
+                        # Start from first case
+                        a = 0
+                    else:
+                        # Convert to integer
+                        a = int(a)
+                    # Check for empty ending
+                    if b.strip() == "":
+                        # Go to end case
+                        b = self.nCase
+                    else:
+                        # Convert to integer
+                        b = int(b)
                     # Add a range
                     I += range(a,b)
                 else:
@@ -1694,8 +1708,6 @@ class Trajectory(object):
   # Matching
   # =========
   # <
-    
-   
     # Find a match
     def FindMatches(self, y, i, keys=None, **kw):
         """Find index or indices of cases matching another trajectory case
@@ -2923,6 +2935,7 @@ class Trajectory(object):
     # Get freestream density
     def GetDensity(self, i=None, units=None):
         """Get freestream density
+        
         :Call:
             >>> rho = x.GetDensity(i)
         :Inputs:
@@ -3026,6 +3039,7 @@ class Trajectory(object):
     # Get velocity
     def GetVelocity(self, i=None, units=None):
         """Get velocity
+        
         :Call:
             >>> U = x.GetVelocity(i)
         :Inputs:

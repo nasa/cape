@@ -6,7 +6,7 @@
 .. automodule:: pyFun.options
     
     .. autoclass:: pyFun.options.Options
-        :members: get_Namelist, set_Namelist, get_RubberDataFile,
+        :members: get_FUN3DNamelist, set_FUN3DNamelist, get_RubberDataFile,
             get_GroupMesh, set_GroupMesh
     
 .. toctree::
