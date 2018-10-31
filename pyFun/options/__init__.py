@@ -415,6 +415,17 @@ class Options(cape.options.Options):
     for k in ['namelist_var']:
         eval('set_'+k).__doc__ = getattr(Fun3DNml,'set_'+k).__doc__
         
+        
+    # Set generic value for "dual" namelist
+    def set_dual_namelist_var(self, sec, key, val, i=None):
+        self._DualFun3D()
+        return self['DualFun3D'].set_namelist_var(sec, key, val, i)
+        
+    # Set generic value for "moving_body.input" namelist
+    def set_moving_body_var(self, sec, key, val, i=None):
+        self._MovingBodyInput()
+        return self['MovingBodyInput'].set_namelist_var(sec, key, val, i)
+        
     
     # Downselect
     def select_namelist(self, i=None):
