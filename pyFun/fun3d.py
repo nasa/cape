@@ -1468,7 +1468,7 @@ class Fun3d(Cntl):
             if mopts:
                 self.MovingBodyInput.ApplyDict(mopts)
             # Check for valid "moving_body.input" instructions
-            if self.MovingBodyInput.GetVar("global", "moving_grid"):
+            if self.Namelist.GetVar("global", "moving_grid"):
                 # Name out oufput file
                 if self.opts.get_Dual():
                     # Write in the "Flow/" folder
