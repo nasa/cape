@@ -238,7 +238,7 @@ class X(object):
                 # Read the number of grids
                 ng = io.fromfile_lb4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_lb4_i(f, ng*3).reshape((ng,3))
+                dims = io.fromfile_lb4_i(f, ng*3).reshape((ng[0],3))
             else:
                 # Read the dimensions
                 dims = io.fromfile_lb4_i(f, 3).reshape((1,3))
@@ -254,7 +254,7 @@ class X(object):
                 # Read the number of grids
                 ng = io.fromfile_b4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_b4_i(f, ng*3).reshape((ng,3))
+                dims = io.fromfile_b4_i(f, ng*3).reshape((ng[0],3))
             else:
                 # Read the dimensions
                 dims = io.fromfile_b4_i(f, 3).reshape((1,3))
@@ -1468,7 +1468,7 @@ class Q(X):
                 # Read the number of grids
                 ng = io.fromfile_lb4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_lb4_i(f, ng*4).reshape((ng,4))
+                dims = io.fromfile_lb4_i(f, ng*4).reshape((ng[0],4))
             else:
                 # Read the dimensions
                 dims = io.fromfile_lb4_i(f, 4).reshape((1,4))
@@ -1484,7 +1484,7 @@ class Q(X):
                 # Read the number of grids
                 ng = io.fromfile_b4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_b4_i(f, ng*4).reshape((ng,4))
+                dims = io.fromfile_b4_i(f, ng*4).reshape((ng[0],4))
             else:
                 # Read the dimensions
                 dims = io.fromfile_b4_i(f, 4).reshape((1,4))
