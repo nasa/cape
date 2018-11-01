@@ -3906,19 +3906,19 @@ class Cntl(object):
                         # Out-of-date case
                         txt += (fmt % comp)
                         txt += "out-of-date (%i --> %i)\n" % (nIter, nLast)
-                # If we have any text, print a header
-                if txt:
-                    # Folder name
-                    frun = self.x.GetFullFolderNames(i)
-                    # Print header
-                    if ku:
-                        # Include user
-                        print("Case %s: %s (%s)" % (fmti % i, frun, ui))
-                    else:
-                        # No user
-                        print("Case %s: %s" % (fmti % i, frun))
-                    # Display the text
-                    print(txt)
+            # If we have any text, print a header
+            if txt:
+                # Folder name
+                frun = self.x.GetFullFolderNames(i)
+                # Print header
+                if ku:
+                    # Include user
+                    print("Case %s: %s (%s)" % (fmti % i, frun, ui))
+                else:
+                    # No user
+                    print("Case %s: %s" % (fmti % i, frun))
+                # Display the text
+                print(txt)
         # Loop back through the databook components
         for comp in comps:
             # Get group

@@ -224,7 +224,7 @@ class Fun3d(Cntl):
         if kw.get('pt'):
             # Update point sensor data book
             self.UpdateTriqPoint(**kw)
-        elif kw.get('checkTriqPoint'):
+        elif kw.get('checkTriqPoint') or kw.get('checkPt'):
             # Check aero databook
             self.CheckTriqPoint(**kw)
         else:
