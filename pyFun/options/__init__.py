@@ -475,6 +475,39 @@ class Options(cape.options.Options):
         else:
             # Return the main value
             return dopts.get_namelist_var(sec, key, i)
+    
+    # Get value from dual namelist
+    def get_moving_body_var(self, sec, key, i=None):
+        """Get namelist variable from ``"MovingBodyInput"`` section
+        
+        :Call:
+            >>> v = opts.get_moving_body_var(sec, key, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *sec*: :class:`str`
+                Name of namelist section
+            *key*: :class:`str`
+                Name of variable in namelist section
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *v*: :class:`any`
+                Value of variable for phase *i*
+        :Versions:
+            * 2016-05-02 ``@ddalle``: First version
+        """
+        # Initialize sections as appropriate
+        self._MovingBodyInput()
+        # Options for dual namelist
+        dopts = self['MovingBodyInput']
+        # Get the value from the dual section if appropriate
+        if sec not in dopts or key not in dopts[sec]:
+            # Fall back to the main value
+            return self.get_namelist_var(sec, key, i)
+        else:
+            # Return the main value
+            return dopts.get_namelist_var(sec, key, i)
    # >
    
     

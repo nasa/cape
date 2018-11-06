@@ -177,6 +177,16 @@ class Namelist(FileCntl):
             self.AddSection(sec)
         # Check format
         if k is None:
+            # Check for list
+            qV = val.__class__.__name__ in ["list", "ndarray"]
+            # If list, recurse
+            if qV and len(val) > 2:
+                # Loop through values
+                for k in range(len(val)):
+                    # Repeat command with entry
+                    self.SetVar(sec, name, val, k=k)
+                # Do not set one big list
+                return
             # Format: '   component = "something"'
             # Line regular expression: "XXXX=" but with white spaces
             reg = '^\s*%s\s*[=\n]' % name
