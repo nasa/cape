@@ -182,9 +182,9 @@ class Namelist(FileCntl):
             # If list, recurse
             if qV and len(val) > 2:
                 # Loop through values
-                for k in range(len(val)):
+                for k,v in enumerate(val):
                     # Repeat command with entry
-                    self.SetVar(sec, name, val, k=k)
+                    self.SetVar(sec, name, v, k=k)
                 # Do not set one big list
                 return
             # Format: '   component = "something"'
