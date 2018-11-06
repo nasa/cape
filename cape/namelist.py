@@ -184,7 +184,7 @@ class Namelist(FileCntl):
                 # Loop through values
                 for k,v in enumerate(val):
                     # Repeat command with entry
-                    self.SetVar(sec, name, v, k=k)
+                    self.SetVar(sec, name, v, k=k+1)
                 # Do not set one big list
                 return
             # Format: '   component = "something"'
