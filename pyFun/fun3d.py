@@ -208,7 +208,7 @@ class Fun3d(Cntl):
             print("---- Updating FM DataBook components ----")
             self.UpdateFM(**kw)
             print("---- Updating LineLoad DataBook components ----")
-            self.UpdateLL(**kw)
+            self.UpdateLineLoad(**kw)
             print("---- Updating TriqFM DataBook components ----")
             self.UpdateTriqFM(**kw)
             print("---- Updating TriqPoint DataBook components ----")

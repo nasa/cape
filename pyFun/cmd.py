@@ -33,7 +33,7 @@ by :func:`nodet` could be
 # File checking.
 import os.path
 # Options for the binaries
-from .options import runControl
+from .options import runControl, getel
 
 
 # Function to create ``nodet`` or ``nodet_mpi`` command
@@ -97,7 +97,7 @@ def nodet(opts=None, i=0, **kw):
         return cmdi
     # Loop through command-line inputs
     for k in cli_nodet:
-        # Get the value.
+        # Get the value
         v = cli_nodet[k]
         # Check the type
         if v == True:
@@ -107,9 +107,11 @@ def nodet(opts=None, i=0, **kw):
             # Do not use.
             pass
         else:
+            # Select option for this phase
+            vi = getel(v, i)
             # Append the option and value 
             cmdi.append('--'+k)
-            cmdi.append(str(v))
+            cmdi.append(str(vi))
     # Output
     return cmdi
 
@@ -209,9 +211,11 @@ def dual(opts=None, i=0, **kw):
             # Do not use.
             pass
         else:
+            # Select phase option
+            vi = getel(v, i)
             # Append the option and value 
             cmdi.append('--'+k)
-            cmdi.append(str(v))
+            cmdi.append(str(vi))
     # Output
     return cmdi
         
