@@ -867,7 +867,7 @@ class DataBook(dict):
             # Loop through remaining components
             for compi in compID[1:]:
                 # Check for minus sign
-                if compi.startswith('-1'):
+                if compi.startswith('-'):
                     # Subtract the component
                     FM -= self.ReadCaseFM(compi.lstrip('-'))
                 else:
