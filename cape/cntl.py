@@ -1631,7 +1631,7 @@ class Cntl(object):
         if imax: imax = int(imax)
         # Restart inputs
         qsub = kw.get("restart", kw.get("qsub", False))
-        nsub = kw.get("n", 10)
+        nsub = kw.get("n", 150)
         jsub = 0
         # Loop through folders
         for i in self.x.GetIndices(**kw):
@@ -1690,7 +1690,7 @@ class Cntl(object):
             n = int(n)
         # Restart inputs
         qsub = kw.get("restart", kw.get("qsub", False))
-        nsub = kw.get("n", 10)
+        nsub = kw.get("n", 150)
         jsub = 0
         # Loop through folders
         for i in self.x.GetIndices(**kw):
