@@ -42,6 +42,7 @@ from . import options
 from . import queue
 from . import case
 from . import convert
+from . import console
 from . import argread
 from . import manage
 
@@ -663,10 +664,15 @@ class Cntl(object):
             * 2014-10-05 ``@ddalle``: First version
             * 2014-12-09 ``@ddalle``: Added constraints
         """
+       # -----------------------
+       # Command Determination
+       # -----------------------
         # Get flag that tells pycart only to check jobs.
         qCheck = kw.get('c', False)
         # Get flag to show job IDs
         qJobID = kw.get('j', False)
+        # Whether or not to delete cases
+        qDel = kw.get('rm', False)
         # PBS flag
         qSlurm = self.opts.get_sbatch(0)
         # Check whether or not to kill PBS jobs
@@ -676,6 +682,9 @@ class Cntl(object):
         qExec = (ecmd is not None)
         # No submissions if we're just deleting.
         if qKill or qExec: qCheck = True
+       # ---------
+       # Options
+       # ---------
         # Check if we should start cases
         if kw.get("nostart") or (not kw.get("start", True)):
             # Set cases up but do not start them
@@ -700,11 +709,16 @@ class Cntl(object):
             self.opts.set_sbatch(False)
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
+       # --------
+       # Cases
+       # --------
         # Get list of indices.
         I = self.x.GetIndices(**kw)
         # Get the case names.
         fruns = self.x.GetFullFolderNames(I)
-        
+       # -------
+       # Queue
+       # -------
         # Get the qstat info (safely; do not raise an exception).
         if qSlurm:
             # Slurm: squeue
@@ -714,10 +728,9 @@ class Cntl(object):
             jobs = queue.qstat(u=kw.get('u'))
         # Save the jobs.
         self.jobs = jobs
-        # Initialize number of submitted jobs
-        nSub = 0
-        # Initialize number of jobs in queue.
-        nQue = 0
+       # -------------
+       # Formatting
+       # -------------
         # Maximum length of one of the names
         if len(fruns) > 0:
             # Check the cases
@@ -747,15 +760,24 @@ class Cntl(object):
                 "Iterations", "Que", "CPU Time"))
             # Print "---- --------" etc.
             print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*8)
+       # -------
+       # Loop
+       # -------
+        # Initialize number of submitted jobs
+        nSub = 0
+        # Initialize number of jobs in queue.
+        nQue = 0
         # Initialize dictionary of statuses.3
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
             'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0, 'ZOMBIE':0}
         # Loop through the runs.
         for j in range(len(I)):
+           # --- Case ID ---
             # Case index.
             i = I[j]
             # Extract case
             frun = fruns[j]
+           # --- Status ---
             # Check status.
             sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'))
             # Get active job number.
@@ -791,6 +813,7 @@ class Cntl(object):
                 else:
                     # Not found by qstat (or not a jobID at all)
                     que = "."
+           # --- Display ---
             # Print info
             if qJobID and jobID in jobs:
                 # Print job number.
@@ -801,17 +824,24 @@ class Cntl(object):
             else:
                 # No job number.
                 print(stncl % (i, frun, sts, itr, que, CPUt))
+           # --- Execution ---
             # Check for queue killing
             if qKill and (n is not None) and (jobID in jobs):
                 # Delete it.
                 self.StopCase(i)
                 continue
             # Check for script
-            #if qExec and (n is not None):
             if qExec:
                 # Execute script
                 self.ExecScript(i, ecmd)
                 continue
+            # Check for deletion
+            if qDel and (not n) and (sts in ["INCOMP", "ERROR", "---"]):
+                # Delete folder
+                self.DeleteCase(i, **kw)
+            elif qDel:
+                # Delete but forcing prompt
+                self.DeleteCase(i, prompt=True)
             # Check status.
             if qCheck: continue
             # If submitting is allowed, check the job status.
@@ -825,6 +855,9 @@ class Cntl(object):
                 nSub += 1
             # Don't continue checking if maximum submissions reached.
             if nSub >= nSubMax: break
+       # ---------
+       # Summary
+       # ---------
         # Extra line.
         print("")
         # State how many jobs submitted.
@@ -1711,6 +1744,55 @@ class Cntl(object):
                     jsub += 1
                 # Check submission limit
                 if jsub >= nsub: return
+                
+    # Function to delete a case folder: qdel and rm
+    def DeleteCase(self, i, **kw):
+        """Delete a case
+        
+        This function deletes a case's PBS job and removes the entire
+        directory.  By default, the method prompts for user's confirmation
+        before deleting; set *prompt* to ``False`` to delete without prompt.
+        
+        :Call:
+            >>> cntl.StopCase(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Cape control interface
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *prompt*: {``True``} | ``False``
+                Whether or not to prompt user before deleting case
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+                
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name and go there.
+        frun = self.x.GetFullFolderNames(i)
+        # Check if folder exists
+        if not os.path.isdir(frun):
+            # Nothing to do
+            pass
+        # Check for prompt option
+        elif kw.get('prompt', True):
+            # Prompt text
+            txt = "Delete case '%s'? y/n" % frun
+            # Get option from user
+            prompt = console.prompt_color(txt, "n")
+            # Check option
+            if (prompt is None) or (prompt.lower() != "y"):
+                # Do not delete
+                pass
+            else:
+                # Delete folder
+                shutil.rmtree(frun)
+        else:
+            # Delete without prompt
+            shutil.rmtree(frun)
+        # Go back.
+        os.chdir(fpwd)
    # >
     
    # =========
