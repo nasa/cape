@@ -767,6 +767,8 @@ class Cntl(object):
         nSub = 0
         # Initialize number of jobs in queue.
         nQue = 0
+        # Number of deleted jobs
+        nDel = 0
         # Initialize dictionary of statuses.3
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
             'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0, 'ZOMBIE':0}
@@ -838,10 +840,10 @@ class Cntl(object):
             # Check for deletion
             if qDel and (not n) and (sts in ["INCOMP", "ERROR", "---"]):
                 # Delete folder
-                self.DeleteCase(i, **kw)
+                nDel += self.DeleteCase(i, **kw)
             elif qDel:
                 # Delete but forcing prompt
-                self.DeleteCase(i, prompt=True)
+                nDel += self.DeleteCase(i, prompt=True)
             # Check status.
             if qCheck: continue
             # If submitting is allowed, check the job status.
@@ -868,6 +870,9 @@ class Cntl(object):
             else:
                 # We can still count cases set up
                 print("Set up %i job(s) but did not start.\n" % nSub)
+        # State how many jobs deleted
+        if nDel:
+            print("Deleted %s jobs" % nDel)
         # Status summary
         fline = ""
         for key in total:
@@ -1754,7 +1759,7 @@ class Cntl(object):
         before deleting; set *prompt* to ``False`` to delete without prompt.
         
         :Call:
-            >>> cntl.StopCase(i)
+            >>> n = cntl.StopCase(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Cape control interface
@@ -1762,10 +1767,18 @@ class Cntl(object):
                 Index of the case to check (0-based)
             *prompt*: {``True``} | ``False``
                 Whether or not to prompt user before deleting case
+        :Outputs:
+            *n*: ``0`` | ``1``
+                Number of folders deleted
         :Versions:
-            * 2014-12-27 ``@ddalle``: First version
+            * 2018-11-20 ``@ddalle``: First version
         """
-                
+        # Local function to perform deletion
+        def del_folder(frun):
+            # Delete the folder using :mod:`shutil`
+            shutil.rmtree(frun)
+            # Status update
+            print("   Deleted folder '%s'" % frun)
         # Safely go to root directory.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -1774,7 +1787,7 @@ class Cntl(object):
         # Check if folder exists
         if not os.path.isdir(frun):
             # Nothing to do
-            pass
+            n = 0
         # Check for prompt option
         elif kw.get('prompt', True):
             # Prompt text
@@ -1784,15 +1797,19 @@ class Cntl(object):
             # Check option
             if (prompt is None) or (prompt.lower() != "y"):
                 # Do not delete
-                pass
+                n = 0
             else:
                 # Delete folder
-                shutil.rmtree(frun)
+                del_folder(frun)
+                n = 1
         else:
             # Delete without prompt
-            shutil.rmtree(frun)
+            del_folder(frun)
+            n = 1
         # Go back.
         os.chdir(fpwd)
+        # Output
+        return n
    # >
     
    # =========
