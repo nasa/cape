@@ -335,7 +335,6 @@ class Cntl(object):
         dmask = 0o777 - umask
         # Make the directory.
         os.mkdir(fdir, dmask)
-        
    # >
     
    # =============
@@ -727,7 +726,7 @@ class Cntl(object):
         ecmd = kw.get('exec', kw.get('e'))
         qExec = (ecmd is not None)
         # No submissions if we're just deleting.
-        if qKill or qExec: qCheck = True
+        if qKill or qExec or qDel: qCheck = True
        # ---------
        # Options
        # ---------
@@ -1806,7 +1805,7 @@ class Cntl(object):
         before deleting; set *prompt* to ``False`` to delete without prompt.
         
         :Call:
-            >>> n = cntl.StopCase(i)
+            >>> n = cntl.DeleteCase(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Cape control interface
