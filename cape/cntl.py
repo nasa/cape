@@ -28,11 +28,13 @@ customized for the various CFD solvers. The individualized modules are below.
 
 # Numerics
 import numpy as np
-# Configuration file processor
+# System modules
+import os
+import shutil
+import glob
 import json
 import re
-# File system
-import os, shutil, glob
+import functools
 # Timing
 from datetime import datetime
 import time
@@ -53,6 +55,47 @@ from .config     import Config, ConfigJSON
 # Import triangulation
 from .tri  import Tri, ReadTriFile
 from .geom import RotatePoints
+
+# Decorator for moving directories
+def rundir(fdir):
+    """Decorator to run a function within a specified folder
+    
+    :Call:
+        @rundir(fdir)
+    :Inputs:
+        *fdir*: :class:`str`
+            Absolute path in which to run
+    :Versions:
+        * 2018-11-20 ``@ddalle``: First version
+    """
+    # Declare wrapper function to change directory
+    @functools.wraps(func)
+    def wrapper_func(*args, **kwargs):
+        # Recall current directory
+        fpwd = os.getcwd()
+        # Go to specified directory
+        os.chdir(fdir)
+        # Run the function with exception handling
+        try:
+            # Attempt to run the function
+            v = func(*args, **kwargs)
+        except Exception as e:
+            # Go back to original folder
+            os.chdir(fpwd)
+            # Raise the error
+            raise e
+        except KeyboardInterrupt as e:
+            # Go back to original folder
+            os.chdir(fpwd)
+            # Raise the error
+            raise e
+        # Go back to original folder
+        os.chdir(fpwd)
+        # Return function values
+        return v
+    # Apply the wrapper
+    return wrapper_func
+# def rundir
 
 # Class to read input files
 class Cntl(object):
@@ -1751,6 +1794,7 @@ class Cntl(object):
                 if jsub >= nsub: return
                 
     # Function to delete a case folder: qdel and rm
+    @rundir(self.RootDir)
     def DeleteCase(self, i, **kw):
         """Delete a case
         
@@ -1779,9 +1823,6 @@ class Cntl(object):
             shutil.rmtree(frun)
             # Status update
             print("   Deleted folder '%s'" % frun)
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get the case name and go there.
         frun = self.x.GetFullFolderNames(i)
         # Check if folder exists
@@ -1806,8 +1847,6 @@ class Cntl(object):
             # Delete without prompt
             del_folder(frun)
             n = 1
-        # Go back.
-        os.chdir(fpwd)
         # Output
         return n
    # >
