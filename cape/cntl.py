@@ -56,47 +56,6 @@ from .config     import Config, ConfigJSON
 from .tri  import Tri, ReadTriFile
 from .geom import RotatePoints
 
-# Decorator for moving directories
-def rundir(fdir):
-    """Decorator to run a function within a specified folder
-    
-    :Call:
-        @rundir(fdir)
-    :Inputs:
-        *fdir*: :class:`str`
-            Absolute path in which to run
-    :Versions:
-        * 2018-11-20 ``@ddalle``: First version
-    """
-    # Declare wrapper function to change directory
-    @functools.wraps(func)
-    def wrapper_func(*args, **kwargs):
-        # Recall current directory
-        fpwd = os.getcwd()
-        # Go to specified directory
-        os.chdir(fdir)
-        # Run the function with exception handling
-        try:
-            # Attempt to run the function
-            v = func(*args, **kwargs)
-        except Exception as e:
-            # Go back to original folder
-            os.chdir(fpwd)
-            # Raise the error
-            raise e
-        except KeyboardInterrupt as e:
-            # Go back to original folder
-            os.chdir(fpwd)
-            # Raise the error
-            raise e
-        # Go back to original folder
-        os.chdir(fpwd)
-        # Return function values
-        return v
-    # Apply the wrapper
-    return wrapper_func
-# def rundir
-
 # Class to read input files
 class Cntl(object):
     """
@@ -332,7 +291,6 @@ class Cntl(object):
         dmask = 0o777 - umask
         # Make the directory.
         os.mkdir(fdir, dmask)
-        
    # >
     
    # =============
@@ -724,7 +682,7 @@ class Cntl(object):
         ecmd = kw.get('exec', kw.get('e'))
         qExec = (ecmd is not None)
         # No submissions if we're just deleting.
-        if qKill or qExec: qCheck = True
+        if qKill or qExec or qDel: qCheck = True
        # ---------
        # Options
        # ---------
@@ -1794,7 +1752,6 @@ class Cntl(object):
                 if jsub >= nsub: return
                 
     # Function to delete a case folder: qdel and rm
-    @rundir(self.RootDir)
     def DeleteCase(self, i, **kw):
         """Delete a case
         
@@ -1803,7 +1760,7 @@ class Cntl(object):
         before deleting; set *prompt* to ``False`` to delete without prompt.
         
         :Call:
-            >>> n = cntl.StopCase(i)
+            >>> n = cntl.DeleteCase(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Cape control interface
@@ -1825,6 +1782,9 @@ class Cntl(object):
             print("   Deleted folder '%s'" % frun)
         # Get the case name and go there.
         frun = self.x.GetFullFolderNames(i)
+        # Go to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
         # Check if folder exists
         if not os.path.isdir(frun):
             # Nothing to do
@@ -1847,6 +1807,8 @@ class Cntl(object):
             # Delete without prompt
             del_folder(frun)
             n = 1
+        # Return to original folder
+        os.chdir(fpwd)
         # Output
         return n
    # >
