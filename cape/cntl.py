@@ -57,24 +57,27 @@ from .tri  import Tri, ReadTriFile
 from .geom import RotatePoints
 
 # Decorator for moving directories
-def rundir(fdir):
+def rundir(func):
     """Decorator to run a function within a specified folder
     
     :Call:
-        @rundir(fdir)
+        >>> @rundir(func)
+        >>> v = self.func(*a, **kw)
     :Inputs:
-        *fdir*: :class:`str`
-            Absolute path in which to run
+        *func*: :class:`func`
+            Name of function
+        *cntl*: :class:`Cntl`
+            Control instance from which to use *cntl.RootDir*
     :Versions:
         * 2018-11-20 ``@ddalle``: First version
     """
     # Declare wrapper function to change directory
     @functools.wraps(func)
-    def wrapper_func(*args, **kwargs):
+    def wrapper_func(self, *args, **kwargs):
         # Recall current directory
         fpwd = os.getcwd()
         # Go to specified directory
-        os.chdir(fdir)
+        os.chdir(self.RootDir)
         # Run the function with exception handling
         try:
             # Attempt to run the function
@@ -1794,7 +1797,7 @@ class Cntl(object):
                 if jsub >= nsub: return
                 
     # Function to delete a case folder: qdel and rm
-    @rundir(self.RootDir)
+    @rundir
     def DeleteCase(self, i, **kw):
         """Delete a case
         
