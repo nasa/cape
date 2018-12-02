@@ -2089,6 +2089,7 @@ class Cntl(object):
    # =========
    # <
     # Get CPU hours (actually core hours)
+    @run_rootdir
     def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
         """Read a Cape-style core-hour file
         
@@ -2109,33 +2110,26 @@ class Cntl(object):
         """
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
-        # Go to root folder.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
-            os.chdir(fpwd)
             return None
         # Go to the case folder.
         os.chdir(frun)
         # Check if the file exists.
         if not os.path.isfile(fname):
-            os.chdir(fpwd)
             return None
         # Read the time.
         try:
             # Read the first column of data
             CPUt = np.loadtxt(fname, comments='#', usecols=(0,), delimiter=',')
-            # Return to original folder.
-            os.chdir(fpwd)
             # Return the total.
             return np.sum(CPUt)
         except Exception:
             # Could not read file
-            os.chdir(fpwd)
             return None
             
     # Get CPU hours currently running
+    @run_rootdir
     def GetCPUTimeFromStartFile(self, i, fname='cape_start.dat'):
         """Read a Cape-style start time file and compare to current time
         
@@ -2156,19 +2150,13 @@ class Cntl(object):
         """
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
-        # Go to root folder.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
-            os.chdir(fpwd)
             return 0.0
         # Go to the case folder.
         os.chdir(frun)
         # Try to read the file
         nProc, tic = case.ReadStartTimeProg(fname)
-        # Return to original case
-        os.chdir(fpwd)
         # Check for empty
         if tic is None:
             # Could not read or nothing to read
