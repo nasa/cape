@@ -17,6 +17,8 @@ All of the functions from :mod:`cape.case` are imported here.  Thus they are
 available unless specifically overwritten by specific :mod:`pyFun` versions.
 
 """
+# System modules
+import re
 
 # Import cape stuff
 from cape.case import *
@@ -28,6 +30,8 @@ from .namelist import Namelist
 # Interface for writing commands
 from . import bin, cmd, queue
 
+# Regular expression to find a line with an iteration
+regex = re.compile("\s+(?P<iter>[1-9][0-9]*)\s{2,}[-0-9]")
 
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_fun3d():
@@ -829,7 +833,7 @@ def GetRunningIter():
         # Do not use restart iterations
         nr = None
     # Get the last few lines of :file:`fun3d.out`
-    lines = bin.tail(fflow, 100).strip().split('\n')
+    lines = bin.tail(fflow, 200).strip().split('\n')
     lines.reverse()
     # Initialize output
     n = None
@@ -842,14 +846,14 @@ def GetRunningIter():
                 n = int(line.split()[-1])
                 nr = None
                 break
-            # Split the line
-            V = line.split()
-            nV = len(V)
-            # Make sure there are iterations
-            if nV < 2 or nV > 6: continue
-            # Try to use an integer for the first entry.
-            n = int(V[0])
-            break
+            # Use the iteration regular expression
+            match = regex.match(line)
+            # Check for match
+            if match:
+                # Get the iteration number from the line
+                n = int(match.group('iter'))
+                # Search completed
+                break
         except Exception:
             continue
     # Output
