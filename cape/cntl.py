@@ -342,6 +342,7 @@ class Cntl(object):
    # =============
    # <
     # Function to prepare the triangulation for each grid folder
+    @run_rootdir
     def ReadTri(self):
         """Read initial triangulation file(s)
         
@@ -363,9 +364,6 @@ class Cntl(object):
         ftri = self.opts.get_TriFile()
         # Status update.
         print("  Reading tri file(s) from root directory.")
-        # Go to root folder safely.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Name of config file
         fxml = self.opts.get_ConfigFile()
         # Check for a config file.
@@ -417,10 +415,9 @@ class Cntl(object):
             self.tri.ReadBCs_AFLR3(fbc)
         # Make a copy of the original to revert to after rotations, etc.
         self.tri0 = self.tri.Copy()
-        # Return to original location.
-        os.chdir(fpwd)
         
     # Read configuration (without tri file if necessary)
+    @run_rootdir
     def ReadConfig(self):
         """Read ``Config.xml`` or ``Config.json`` file if not already present
         
@@ -456,9 +453,6 @@ class Cntl(object):
         else:
             # Get the extension
             fext = fext[-1].lower()
-        # Change to root directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Read the configuration if it can be found
         if fxml is None or not os.path.isfile(fxml):
             # Nothing to read
@@ -469,8 +463,6 @@ class Cntl(object):
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)
-        # Return to original location
-        os.chdir(fpwd)
     
    # >
     
@@ -929,6 +921,7 @@ class Cntl(object):
         if fline: print(fline)
         
     # Execute script
+    @run_rootdir
     def ExecScript(self, i, cmd):
         """Execute a script in a given case folder
         
@@ -950,12 +943,8 @@ class Cntl(object):
         """
         # Get the case folder name
         frun = self.x.GetFullFolderNames(i)
-        # Go safely to root directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Check for the folder
         if not os.path.isdir(frun):
-            os.chdir(fpwd)
             return
         # Enter the folder
         os.chdir(frun)
@@ -987,8 +976,6 @@ class Cntl(object):
             print("    %s" % cmd)
             # Pass to dangerous system command
             ierr = os.system(cmd)
-        # Return to original location
-        os.chdir(fpwd)
         # Output
         print("    exit(%s)" % ierr)
         return ierr
@@ -1031,6 +1018,7 @@ class Cntl(object):
         
             
     # Function to start a case: submit or run
+    @run_rootdir
     def StartCase(self, i):
         """Start a case by either submitting it 
         
@@ -1071,8 +1059,6 @@ class Cntl(object):
             # Case already running!
             return
         # Safely go to the folder.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         os.chdir(frun)
         # Print status.
         print("     Starting case '%s'" % frun)
@@ -1081,8 +1067,6 @@ class Cntl(object):
         # Display the PBS job ID if that's appropriate.
         if pbs:
             print("     Submitted job: %i" % pbs)
-        # Go back.
-        os.chdir(fpwd)
         # Output
         return pbs
     
@@ -1108,6 +1092,7 @@ class Cntl(object):
         return case.StartCase()
         
     # Function to terminate a case: qdel and remove RUNNING file
+    @run_rootdir
     def StopCase(self, i):
         """Stop a case if running
         
@@ -1128,16 +1113,11 @@ class Cntl(object):
         if self.CheckCase(i) is None:
             # Case not ready
             return
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get the case name and go there.
         frun = self.x.GetFullFolderNames(i)
         os.chdir(frun)
         # Stop the job if possible.
         case.StopCase()
-        # Go back.
-        os.chdir(fpwd)
         
    # >
         
@@ -1298,6 +1278,7 @@ class Cntl(object):
         return sts
         
     # Check a case.
+    @run_rootdir
     def CheckCase(self, i, v=False):
         """Check current status of run *i*
         
@@ -1330,10 +1311,6 @@ class Cntl(object):
                 "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
         # Initialize iteration number.
         n = 0
         # Check if the folder exists.
@@ -1353,8 +1330,6 @@ class Cntl(object):
                 n = None
         # If zero, check if the required files are set up.
         if (n == 0) and self.CheckNone(v): n = None
-        # Return to original folder.
-        os.chdir(fpwd)
         # Output.
         return n
         
@@ -1381,6 +1356,7 @@ class Cntl(object):
         return case.GetCurrentIter()
         
     # Check a case's phase output files
+    @run_rootdir
     def CheckUsedPhase(self, i, v=False):
         """Check maximum phase number run at least once
         
@@ -1408,10 +1384,6 @@ class Cntl(object):
                 "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
         # Initialize phase number.
         j = 0
         # Check if the folder exists.
@@ -1440,12 +1412,11 @@ class Cntl(object):
                 if len(glob.glob("run.%02i.[1-9]*" % j)) > 0:
                     # Found it.
                     break
-        # Return to original folder.
-        os.chdir(fpwd)
         # Output.
         return j, phases[-1]
         
     # Check a case's phase number
+    @run_rootdir
     def CheckPhase(self, i, v=False):
         """Check current phase number of run *i*
         
@@ -1464,16 +1435,12 @@ class Cntl(object):
         :Versions:
             * 2017-06-29 ``@ddalle``: First version
         """
-         # Check input.
+        # Check input.
         if type(i).__name__ not in ["int", "int64", "int32"]:
             raise TypeError(
                 "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
         # Initialize iteration number.
         n = 0
         # Check if the folder exists.
@@ -1491,8 +1458,6 @@ class Cntl(object):
             except Exception:
                 # At least one file missing that is required
                 n = 0
-        # Return to original folder.
-        os.chdir(fpwd)
         # Output.
         return n
         
@@ -1550,6 +1515,7 @@ class Cntl(object):
         return False 
     
     # Check if a case is running.
+    @run_rootdir
     def CheckRunning(self, i):
         """Check if a case is currently running
         
@@ -1566,19 +1532,15 @@ class Cntl(object):
         :Versions:
             * 2014-10-03 ``@ddalle``: First version
         """
-        # Safely go to root.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get run name
         frun = self.x.GetFullFolderNames(i)
         # Check for the RUNNING file.
         q = os.path.isfile(os.path.join(frun, 'RUNNING'))
-        # Go home.
-        os.chdir(fpwd)
         # Output
         return q
             
-    # Check for a failure.
+    # Check for a failure
+    @run_rootdir
     def CheckError(self, i):
         """Check if a case has a failure
         
@@ -1595,21 +1557,17 @@ class Cntl(object):
         :Versions:
             * 2015-01-02 ``@ddalle``: First version
         """
-        # Safely go to root.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get run name
         frun = self.x.GetFullFolderNames(i)
         # Check for the RUNNING file.
         q = os.path.isfile(os.path.join(frun, 'FAIL'))
         # Check ERROR flag
         q = q or self.x.ERROR[i]
-        # Go home.
-        os.chdir(fpwd)
         # Output
         return q
         
     # Check for no unchanged files
+    @run_rootdir
     def CheckZombie(self, i):
         """Check a case for ``ZOMBIE`` status
         
@@ -1636,15 +1594,10 @@ class Cntl(object):
         # If not running, cannot be a zombie
         if not qrun:
             return False
-        # Safely go to root.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get run name
         frun = self.x.GetFullFolderNames(i)
         # Check if the folder exists
         if not os.path.isdir(frun):
-            # Go home
-            os.chdir(fpwd)
             return False
         # Enter the folder
         os.chdir(frun)
@@ -1667,8 +1620,6 @@ class Cntl(object):
             ti = (toc - os.path.getmtime(fname))/60
             # Running minimum
             t = min(t, ti)
-        # Go home
-        os.chdir(fpwd)
         # Output
         return (t >= tmax)
    # >
@@ -1858,6 +1809,7 @@ class Cntl(object):
    # =========
    # <
     # Function to archive results and remove files
+    @run_rootdir
     def ArchiveCases(self, **kw):
         """Archive completed cases and clean them up if specified
         
@@ -1878,8 +1830,6 @@ class Cntl(object):
         fmt = self.opts.get_ArchiveAction()
         # Check for directive not to archive
         if not fmt or not self.opts.get_ArchiveFolder(): return
-        # Save current path.
-        fpwd = os.getcwd()
         # Loop through folders
         for i in self.x.GetIndices(**kw):
             # Go to root folder
@@ -1904,8 +1854,6 @@ class Cntl(object):
                 continue
             # Archive
             self.ArchivePWD(phantom=kw.get("phantom",False))
-        # Got back to original location
-        os.chdir(fpwd)
     
     # Individual case archive function
     def ArchivePWD(self, phantom=False):
@@ -1925,6 +1873,7 @@ class Cntl(object):
         manage.ArchiveFolder(self.opts, phantom=False)
     
     # Function to archive results and remove files
+    @run_rootdir
     def SkeletonCases(self, **kw):
         """Archive completed cases and delete all but a few files
         
@@ -1945,8 +1894,6 @@ class Cntl(object):
         fmt = self.opts.get_ArchiveAction()
         # Check for directive not to archive
         if not fmt or not self.opts.get_ArchiveFolder(): return
-        # Save current path.
-        fpwd = os.getcwd()
         # Loop through folders
         for i in self.x.GetIndices(**kw):
             # Go to root folder
@@ -1971,8 +1918,6 @@ class Cntl(object):
                 continue
             # Archive
             self.SkeletonPWD(phantom=kw.get("phantom",False))
-        # Got back to original location
-        os.chdir(fpwd)
     
     # Individual case archive function
     def SkeletonPWD(self, phantom=False):
@@ -1992,6 +1937,7 @@ class Cntl(object):
         manage.SkeletonFolder(self.opts, phantom=phantom)
         
     # Clean a set of cases
+    @run_rootdir
     def CleanCases(self, **kw):
         """Clean a list of cases using *Progress* archive options only
         
@@ -2003,8 +1949,6 @@ class Cntl(object):
         :Versions:
             * 2017-03-13 ``@ddalle``: First version
         """
-        # Save current folder
-        fpwd = os.getcwd()
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
             # Go to root folder
@@ -2020,8 +1964,6 @@ class Cntl(object):
             os.chdir(frun)
             # Perform cleanup
             self.CleanPWD(phantom=kw.get("phantom",False))
-        # Go back to original location
-        os.chdir(fpwd)
     
     # Individual case archive function
     def CleanPWD(self, phantom=False):
@@ -2042,6 +1984,7 @@ class Cntl(object):
         manage.CleanFolder(self.opts, phantom=phantom)
         
     # Unarchive cases
+    @run_rootdir
     def UnarchiveCases(self, **kw):
         """Unarchive a list of cases
         
@@ -2053,8 +1996,6 @@ class Cntl(object):
         :Versions:
             * 2017-03-13 ``@ddalle``: First version
         """
-        # Save current folder
-        fpwd = os.getcwd()
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
             # Go to root folder
@@ -2080,8 +2021,6 @@ class Cntl(object):
                 os.chdir('..')
                 # Delete the folder
                 os.rmdir(fdir)
-        # Return to original location
-        os.chdir(fpwd)
    # >
     
    # =========
@@ -2089,6 +2028,7 @@ class Cntl(object):
    # =========
    # <
     # Get CPU hours (actually core hours)
+    @run_rootdir
     def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
         """Read a Cape-style core-hour file
         
@@ -2109,33 +2049,26 @@ class Cntl(object):
         """
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
-        # Go to root folder.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
-            os.chdir(fpwd)
             return None
         # Go to the case folder.
         os.chdir(frun)
         # Check if the file exists.
         if not os.path.isfile(fname):
-            os.chdir(fpwd)
             return None
         # Read the time.
         try:
             # Read the first column of data
             CPUt = np.loadtxt(fname, comments='#', usecols=(0,), delimiter=',')
-            # Return to original folder.
-            os.chdir(fpwd)
             # Return the total.
             return np.sum(CPUt)
         except Exception:
             # Could not read file
-            os.chdir(fpwd)
             return None
             
     # Get CPU hours currently running
+    @run_rootdir
     def GetCPUTimeFromStartFile(self, i, fname='cape_start.dat'):
         """Read a Cape-style start time file and compare to current time
         
@@ -2156,19 +2089,13 @@ class Cntl(object):
         """
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
-        # Go to root folder.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
-            os.chdir(fpwd)
             return 0.0
         # Go to the case folder.
         os.chdir(frun)
         # Try to read the file
         nProc, tic = case.ReadStartTimeProg(fname)
-        # Return to original case
-        os.chdir(fpwd)
         # Check for empty
         if tic is None:
             # Could not read or nothing to read
@@ -2291,6 +2218,7 @@ class Cntl(object):
         return self.x.GetPBSName(i, pre=pre)
     
     # Get PBS job ID if possible
+    @run_rootdir
     def GetPBSJobID(self, i):
         """Get PBS job number if one exists
         
@@ -2309,9 +2237,6 @@ class Cntl(object):
         """
         # Check the case.
         if self.CheckCase(i) is None: return None
-        # Go to the root folder
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
         # Go there.
@@ -2330,8 +2255,6 @@ class Cntl(object):
         else:
             # No file.
             pbs = None
-        # Return to original directory.
-        os.chdir(fpwd)
         # Output
         return pbs
         
@@ -2379,6 +2302,7 @@ class Cntl(object):
             self.opts.WritePBSHeader(f, lbl, j=j, typ=typ, wd=wd)
             
     # Write batch PBS job
+    @run_rootdir
     def SubmitBatchPBS(self, argv):
         """Write a PBS script for a batch run
         
@@ -2474,9 +2398,6 @@ class Cntl(object):
         # ------------------
         # Folder preparation
         # ------------------
-        # Go to the root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Create the folder if necessary
         if not os.path.isdir('batch-pbs'): os.mkdir('batch-pbs')
         # Enter the batch pbs folder
@@ -2509,15 +2430,14 @@ class Cntl(object):
         else:
             # Submit PBS job
             pbs = queue.pqsub(fpbs)
-        # Return to original location
-        os.chdir(fpwd)
    # >
     
    # ================
    # Case Preparation
    # ================
    # <
-    # Prepare a case.
+    # Prepare a case
+    @run_rootdir
     def PrepareCase(self, i):
         """Prepare case for running if necessary
         
@@ -2543,10 +2463,6 @@ class Cntl(object):
         if n is not None: return None
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
-        # Save current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
         # Case function
         self.CaseFunction(i)
         # Make the directory if necessary.
@@ -2555,12 +2471,8 @@ class Cntl(object):
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
-        
-        # Write a JSON files with flowCart and plot settings.
+        # Write a JSON files with contents of "RunControl" section
         self.WriteCaseJSON(i)
-        
-        # Return to original location.
-        os.chdir(fpwd)
             
     # Function to apply transformations to config
     def PrepareConfig(self, i):
@@ -2600,6 +2512,7 @@ class Cntl(object):
         self.WriteConfig(i)
     
     # Write run control options to JSON file
+    @run_rootdir
     def WriteCaseJSON(self, i, rc=None):
         """Write JSON file with run control and related settings for case *i*
         
@@ -2616,15 +2529,10 @@ class Cntl(object):
             * 2015-10-19 ``@ddalle``: First version
             * 2013-03-31 ``@ddalle``: Can now write other options
         """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
         # Check if it exists.
         if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
             return
         # Go to the folder.
         os.chdir(frun)
@@ -2639,10 +2547,9 @@ class Cntl(object):
             json.dump(rc, f, indent=1)
         # Close the file.
         f.close()
-        # Return to original location
-        os.chdir(fpwd)
         
     # Read run control options from case JSON file
+    @run_rootdir
     def ReadCaseJSON(self, i):
         """Read ``case.json`` file from case *i* if possible
         
@@ -2660,15 +2567,10 @@ class Cntl(object):
             * 2016-12-12 ``@ddalle``: First version
             * 2017-04-12 ``@ddalle``: Added to :mod:`cape.Cntl`
         """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
         # Check if it exists.
         if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
             return
         # Go to the folder.
         os.chdir(frun)
@@ -2679,8 +2581,6 @@ class Cntl(object):
         else:
             # Read the file
             rc = case.ReadCaseJSON()
-        # Return to original location
-        os.chdir(fpwd)
         # Output
         return rc
         
@@ -3369,6 +3269,7 @@ class Cntl(object):
    # =================
    # <
     # Function to collect statistics
+    @run_rootdir
     def UpdateFM(self, **kw):
         """Collect force and moment data
         
@@ -3396,9 +3297,6 @@ class Cntl(object):
         comp = kw.get("fm", kw.get("aero"))
         # Get full list of components
         comp = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comp)
-        # Save current location.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Check if we are deleting or adding.
@@ -3412,10 +3310,9 @@ class Cntl(object):
             self.ReadDataBook(comp=[])
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
-        # Return to original location.
-        os.chdir(fpwd)
     
     # Update line loads
+    @run_rootdir
     def UpdateLineLoad(self, **kw):
         """Update one or more line load data books
         
@@ -3439,9 +3336,6 @@ class Cntl(object):
         """
         # Get component option
         comp = kw.get("ll")
-        # Save current location.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Read the data book handle
@@ -3454,10 +3348,9 @@ class Cntl(object):
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.config)
-        # Return to original location.
-        os.chdir(fpwd)
     
     # Update TriqFM data book
+    @run_rootdir
     def UpdateTriqFM(self, **kw):
         """Update one or more TriqFM data books
         
@@ -3477,9 +3370,6 @@ class Cntl(object):
         """
         # Get component option
         comp = kw.get("triqfm")
-        # Save current location.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Read the data book handle
@@ -3491,10 +3381,9 @@ class Cntl(object):
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateTriqFM(I, comp=comp)
-        # Return to original location.
-        os.chdir(fpwd)
     
     # Update TriqPointGroup data book
+    @run_rootdir
     def UpdateTriqPoint(self, **kw):
         """Update one or more TriqPoint extracted point sensor data books
         
@@ -3514,9 +3403,6 @@ class Cntl(object):
         """
         # Get component option
         comp = kw.get("pt")
-        # Save current location.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Read the data book handle
@@ -3528,8 +3414,6 @@ class Cntl(object):
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateTriqPoint(I, comp=comp)
-        # Return to original location.
-        os.chdir(fpwd)
    # >
    
    # =================
