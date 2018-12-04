@@ -3586,6 +3586,9 @@ class Cntl(object):
         fmti = "%%%ii" % int(np.ceil(np.log10(self.x.nCase)))
         # Loop through cases
         for i in I:
+            # Skip marked errors
+            if self.x.ERROR[i]:
+                continue
             # Skip if we have a blocked user
             if ku:
                 # Get the user
