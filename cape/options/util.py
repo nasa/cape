@@ -13,8 +13,11 @@ role in the entire Cape coding strategy.
 
 # Interaction with the OS
 import os
+import io
 # Text processing
 import re, json
+# Numerics
+import numpy as np
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -304,105 +307,120 @@ def rc0(p):
     return getel(rc.get(p), 0)
     
     
-# Function to delete comment lines.
-def stripComments(lines, char='#'):
-    """
-    Delete lines that begin with a certain comment character.
-    
-    :Call:
-        >>> txt = stripComments(lines, char='#')
-    :Inputs:
-        *lines*: :class:`list` of :class:`str`
-            List of lines
-        *char*: :class:`str`
-            String that represents start of a comment
-    :Outputs:
-        *txt*: :class:`str`
-            Lines joined into a single string but with comments removed
-    :Versions:
-        * 2014-06-03 ``@ddalle``: First version
-    """
-    # Start with the first line.
-    i = 0
-    # Check for combined lines.
-    if type(lines) == str:
-        # Split into lines.
-        lines = lines.split('\n')
-    # Loop until last line
-    for i in range(len(lines)):
-        # Get the line and strip leading and trailing white space.
-        line = lines[i].strip()
-        # Check it.
-        if line.startswith(char):
-            # Remove the content.
-            lines[i] = ""
-        else:
-            # Remove the newline if appropriate
-            lines[i] = lines[i].rstrip()
-    # Return the remaining lines.
-    return '\n'.join(lines)
-    
+
+
+# Regular expression for JSON file inclusion
+regex = re.compile(
+    r'(?P<before>.*)' +
+    r'(?P<cmd>JSONFile\("(?P<json>[-\w.+= /\\]+)"\))' +
+    r'(?P<after>.*)')
 
 # Function to expand CSV file inputs
-def expandJSONFile(lines):
+def expandJSONFile(fname):
     """Expand contents of other JSON files
     
     :Call:
-        >>> L = expandJSONFile(lines)
-        >>> L = expandJSONFile(txt)
+        >>> txt, fnames, linenos = expandJSONFile(fname)
     :Inputs:
-        *lines*: :class:`list` (:class:`str`)
-            List of lines from a file
-        *txt*: :class:`str`
-            Single string of text including newline characters
+        *fname*: :class:`str` | :class:`unicode`
+            Name of JSON file to read
     :Outputs:
-        *L*: (:class:`str`)
+        *txt*: :class:`unicode`
             Full text with references to JSON file(s) expanded
+        *fnames*: :class:`list` (:class:`str`)
+            List of files read (can include the same file multiple times)
+            including *fname* and any other expanded ``JSONFile()`` directives
+        *linenos*: :class:`np.ndarray` (:class:`int`, ndim=2)
+            Line numbers in original files; column *j* represents the line
+            number of each line in file *j*; ``0`` for lines not from file *j*
     :Versions:
-        * 2015-10-14 ``@ddalle``: First version
+        * 2015-12-10 ``@ddalle``: First version
     """
-    # Strip comments
-    lines = stripComments(lines, '#')
-    lines = stripComments(lines, '//')
+    # Read the input file.
+    txt = io.open(fname, mode="r", encoding="utf-8").read()
     # Split lines
-    lines = lines.split('\n')
+    lines = txt.rstrip().split('\n')
+    # Number of lines
+    n = len(lines)
+    # Initialize line numbers
+    linenos = np.zeros((n,1), dtype="int")
+    linenos[:,0] = 1 + np.arange(n)
+    # Initialize list of file names
+    fnames = [fname]
+    # Number of JSON files read (can read same file more than once)
+    nf = 1
     # Start with the first line.
     i = 0
     # Loop through lines.
     while i < len(lines):
-        # Get the line.
+        # Get the line
         line = lines[i]
-        # Check for JSON file
-        if 'JSONFile' not in line:
-            # Go to next line.
+        # Check if line starts with a comment
+        if line.lstrip().startswith("//"):
+            # Javascript-style comment
+            lines[i] = ""
+            continue
+        elif line.lstrip().startswith("#"):
+            # Python-style comment
+            lines[i] = ""
+            continue
+        # Check for an inclusion
+        match = regex.search(line)
+        # If no match, move along
+        if match is None:
+            # Go to next line
             i += 1
             continue
-        # Get the tag.
-        txt = re.findall('JSONFile\([-"/\\w.= ]+\)', line)
-        # Double-check match
-        if len(txt) == 0:
-            # Go to next line.
-            i += 1
-            continue
-        # Split the line on the JSONFile() command
-        j = line.index('JSONFile(')
         # Extract the file name.
-        fjson = re.findall('"[-/\\w.= ]+"', txt[0])[0].strip('"')
-        # Read that file.
-        lines_json = open(fjson, 'r').readlines()
-        # Strip that file of comments.
-        lines_json = stripComments(lines_json, '#')
-        lines_json = stripComments(lines_json, '//')
-        # Return to list format
-        lines_json = lines_json.split('\n')
-        # Split the line on this command.
-        line_0 = [line[:j] + lines_json[0]]
-        line_1 = [lines_json[-1] + line[j+len(txt[0]):]]
-        # Insert the new line set.
-        lines = lines[:i] + line_0 + lines_json[1:-1] + line_1 + lines[i+1:]
+        fjson = match.group("json")
+        # Expand that JSON file
+        t_j, F_j, ln_j = expandJSONFile(fjson)
+        # Split text to lines
+        lines_j = t_j.rstrip().split("\n")
+        # Number of lines
+        n_j = len(lines_j)
+        # Number of included files
+        nf_j = len(F_j)
+        # Pad line counts with zeros for lines of new file
+        if n_j > 1:
+            # Split current line and insert n_j-1 zeros
+            linenos = np.vstack((
+                linenos[:i+1,:], np.zeros((n_j-2,nf), dtype="int"),
+                linenos[i:,:]))
+        # Create line counts for new file
+        linenos_json = np.vstack((
+            np.zeros((i,nf_j), dtype="int"), ln_j,
+            np.zeros((n-i-1,nf_j), dtype="int")))
+        # Accumulate line numbers and file list
+        fnames += F_j
+        linenos = np.hstack((linenos, linenos_json))
+        # Modify line count and file count
+        n  += (n_j-1)
+        nf += nf_j
+        # Update first and last line of expansion
+        if n_j == 1:
+            # One-line inclusion
+            lines[i] = line.replace(match.group("cmd"), lines_j[0])
+        else:
+            # Update first line
+            lines[i] = match.group("before") + lines_j[0]
+            # Update last line of inclusion
+            lines_j[-1] = lines_j[-1].rstrip() + match.group("after")
+            # Update line set
+            lines = lines[:i+1] + lines_j[1:] + lines[i+1:]
+        # Check for multiple inclusions
+        if regex.search(lines[i]):
+            # Remain on this line
+            pass
+        else:
+            # Move past expanded file
+            i += n_j
     # Return the lines as one string.
-    return '\n'.join(lines)
-    
+    txt = "\n".join(lines) + "\n"
+    # Output
+    return txt, fnames, linenos
+# def expandJSONFile
+
 # Function to read JSON file with all the works
 def loadJSONFile(fname):
     """Read a JSON file with helpful error handling and comment stripping
@@ -418,33 +436,38 @@ def loadJSONFile(fname):
     :Versions:
         * 2015-12-15 ``@ddalle``: First version
     """
-     # Read the input file.
-    lines = open(fname).readlines()
-    # Expand references to other JSON files and strip comments
-    lines = expandJSONFile(lines)
+    # Read the input file
+    txt, fnames, linenos = expandJSONFile(fname)
     # Process into dictionary
     try:
         # Process into dictionary
-        d = json.loads(lines)
+        d = json.loads(txt)
     except Exception as e:
         # Get the line number
         try:
             # Read from the error message
-            txt = re.findall('line [0-9]+', e.args[0])[0]
+            etxt = re.findall('line [0-9]+', e.args[0])[0]
             # Line number
-            n = int(txt.split()[1])
-            # Check type
-            if type(lines).__name__ in ['str', 'unicode']:
-                # Not useful; split into list of lines
-                lines = lines.split('\n')
+            n = int(etxt.split()[1])
+            # Get lines so we can print surrounding text by line number
+            lines = txt.split("\n")
             # Start and end line number
             n0 = max(n-3, 0)
             n1 = min(n+2, len(lines))
             # Initialize message with 
             msg = "Error while reading JSON file '%s':\n" % fname
             # Add the exception's message
-            msg += "\n".join(list(e.args))
-            msg += "\n\nLines surrounding problem area (comments stripped):\n"
+            msg += "\n".join(list(e.args)) + "\n"
+            # Loop through individual files
+            for i, fn in enumerate(fnames):
+                # Get line number 
+                lni = linenos[n-1,i]
+                # Skip if ``0``
+                if lni == 0: continue
+                # Add to report
+                msg += "    (line %i of file '%s')\n" % (lni, fn)
+            # Additional header
+            msg += "\nLines surrounding problem area (comments stripped):\n"
             # Print some lines around the problem
             for i in range(n0, n1):
                 # Add line with line number
@@ -464,6 +487,7 @@ def loadJSONFile(fname):
             raise e
     # Output
     return d
+# def loadJSONFile
 
 
 # Function to get the default settings.
@@ -482,13 +506,8 @@ def getDefaults(fname):
         * 2014-06-03 ``@ddalle``: First version
         * 2014-07-28 ``@ddalle``: Moved to new options module
     """
-    # Read the fixed default file.
-    lines = open(fname).readlines()
-    # Strip comments and join list into a single string.
-    lines = stripComments(lines, '#')
-    lines = stripComments(lines, '//')
     # Process the default input file.
-    return json.loads(lines)
+    return loadJSONFile(fname)
     
 # Function to get the default CAPE settings
 def getCapeDefaults():
@@ -626,9 +645,9 @@ class odict(dict):
         :Inputs:
             *k*: :class:`str`
                 Name of key to get
-            *i*: :class:`int` or ``None``
+            *i*: :class:`int` | ``None``
                 Index to apply
-            *rck*: :class:`str` or ``None``
+            *rck*: :class:`str` | ``None``
                 Name of key in *rc0* default option dictionary; defaults to *k*
         :Outputs:
             *v*: any
@@ -662,11 +681,11 @@ class odict(dict):
         :Inputs:
             *k*: :class:`str`
                 Name of key to set
-            *i*: :class:`int` or ``None``
+            *i*: :class:`int` | ``None``
                 Index to apply
             *v*: any
                 Value to set
-            *rck*: :class:`str` or ``None``
+            *rck*: :class:`str` | ``None``
                 Name of key in *rc0* default option dictionary; defaults to *k*
         :See also:
             * :func:`cape.options.util.setel`
