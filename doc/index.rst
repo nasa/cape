@@ -106,11 +106,11 @@ pyCart.  Some capabilities are highlighted below.
 
     * Copy FUN3D input files to run files and edit them according to run matrix
       variables and global input settings
-      
+    
     * Interface with AFLR3 for volume mesh generation, which can be used to
       have multiple bodies in different relative positions for each case in a
       run matrix
-      
+    
     * Interface to Chimera Grid Tools ``triload`` to calculate sectional loads
     
 The basic usage for this module is to create a file called :file:`pyFun.json`

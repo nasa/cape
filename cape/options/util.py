@@ -11,10 +11,11 @@ role in the entire Cape coding strategy.
 
 """
 
-# Interaction with the OS
+# Standard library modules
 import os
-# Text processing
-import re, json
+import re
+import json
+import copy
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -684,5 +685,34 @@ class odict(dict):
         V = self.get(k, rc.get(rck))
         # Assign the input value .
         self[k] = setel(V, i, v)
+    
+    # Copy
+    def copy(self):
+        """Create a copy of an options interface
+        
+        :Call:
+            >>> opts1 = opts.copy()
+        :Inputs:
+            *opts*: :class:`odict`
+                Options instance
+        :Outputs:
+            *opts1*: :class:`odict`
+                Copy of options instance with all :class:`dict` keys copied
+        :Versions:
+            * 2019-05-10 ``@ddalle``: First version
+        """
+        # Initialize copy
+        opts = self.__class__()
+        # Loop through keys
+        for k, v in self.items():
+            # Check the type
+            if not isinstance(v, dict):
+                # Save a copy of the key
+                opts[k] = copy.copy(v)
+            else:
+                # Recurse
+                opts[k] = v.copy()
+        # Output
+        return opts
 # class odict
 

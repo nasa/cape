@@ -14,7 +14,11 @@
 
 import sys
 import os
+import re
 import datetime
+
+# Current date
+now = datetime.datetime.now()
 
 # Add the path to the pyCart modules (duh)
 sys.path.append(os.path.abspath('..'))
