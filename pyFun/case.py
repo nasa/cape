@@ -36,7 +36,7 @@ regex_dict = {
     "iter": "(?P<iter>[1-9][0-9]*)",
 }
 # Combine them; different format for steady and time-accurate modes
-regex = re.compile("\s+%(time)s?\s*%(iter)s\s{2,}[-0-9]" % regex_dict)
+regex = re.compile("\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % regex_dict)
 
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_fun3d():
