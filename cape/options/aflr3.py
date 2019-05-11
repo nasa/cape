@@ -77,12 +77,73 @@ class aflr3(odict):
         # Get "keys" key
         d = self.get("keys", {})
         # Check type
-        if type(d).__name__ != "dict":
+        if not isinstance(d, dict):
             # Wrong type
-            raise TypeError("AFLR3 option 'keys' must be diction;\n" +
+            raise TypeError("AFLR3 option 'keys' must be dictionary;\n" +
                 ("           Received type: '%s'" % type(d).__name__))
         # Output
         return d
+        
+    # Get single key from AFLR3 *keys* key
+    def get_aflr3_key(self, k, j=0, vdef=None):
+        """Get AFLR3 AFLR3 option that uses *key=val* format
+        
+        :Call:
+            >>> v = opts.get_aflr3_key(k, j=0, vdef=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *k*: :class:`str`
+                Name of key to query
+            *j*: {``0``} | ``None`` | :class:`int`
+                Phase number
+            *vdef*: {``None``} | :class:`any`
+                Manually specified default
+        :Outputs:
+            *v*: :class:`any`
+                Value of AFLR3 key *k*
+        :Versions:
+            * 2019-05-11 ``@ddalle``: First version
+        """
+        # Get "Keys" key
+        d = self.get("keys", {})
+        # Check type
+        if not isinstance(d, dict):
+            # Wrong type
+            raise TypeError("AFLR3 option 'keys' must be dictionary;\n" +
+                ("           Received type: '%s'" % type(d).__name__))
+        # Get option from dictionary
+        v = d.get(k, vdef)
+        # Apply phase input
+        return getel(v, j)
+        
+    # Set single key from AFLR3 *keys* section
+    def set_aflr3_key(self, k, v, j=None):
+        """Get AFLR3 AFLR3 option that uses *key=val* format
+        
+        :Call:
+            >>> opts.get_aflr3_key(k, v, j=0)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *k*: :class:`str`
+                Name of key to query
+            *v*: :class:`any`
+                Value of AFLR3 key *k*
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2019-05-11 ``@ddalle``: First version
+        """
+        # Get or create "keys" key
+        d = self.setdefault("keys", {})
+        # Check type
+        if not isinstance(d, dict):
+            # Wrong type
+            raise TypeError("AFLR3 option 'keys' must be dictionary;\n" +
+                ("           Received type: '%s'" % type(d).__name__))
+        # Set value
+        d[k] = setel(d.get(k), j, v)
         
     # Boundary condition file
     def get_aflr3_BCFile(self, j=0):

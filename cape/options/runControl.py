@@ -480,6 +480,16 @@ class RunControl(odict):
     def set_aflr3_o(self, fname, j=0):
         self._aflr3()
         self['aflr3'].set_aflr3_o(fname, j)
+        
+    # AFLR3 general *keys*
+    def get_aflr3_key(self, k, j=0, vdef=None):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_key(k, j=j, vdef=vdef)
+        
+    # AFLR3 general *keys*
+    def set_aflr3_key(self, k, v, j=None):
+        self._aflr3()
+        self['aflr3'].set_aflr3_key(k, v, j=j)
     
     # Get AFLR3 boundary condition file
     def get_aflr3_BCFile(self, j=0):
@@ -622,9 +632,11 @@ class RunControl(odict):
         self['aflr3'].set_aflr3_angqbf(angqbf, j)
         
     # Copy documentation
-    for k in ['i', 'o', 'BCFile',
-        'blc', 'blr', 'blds', 'bli', 'grow',
-        'cdfr', 'cdfs', 'nqual', 'mdf', 'mdsblf', 'angblisimx', 'angqbf']:
+    for k in [
+            'i', 'o', 'BCFile', 'key',
+            'blc', 'blr', 'blds', 'bli', 'grow',
+            'cdfr', 'cdfs', 'nqual', 'mdf', 'mdsblf', 'angblisimx', 'angqbf'
+    ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_aflr3_'+k).__doc__ = getattr(
             aflr3.aflr3,'get_aflr3_'+k).__doc__
