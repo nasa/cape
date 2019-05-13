@@ -103,11 +103,9 @@ def getPyOverDefaults():
         * 2014-07-28 ``@ddalle``: Moved to new options module
         * 2015-12-29 ``@ddalle``: OVERFLOW version
     """
-    # Read the fixed default file.
-    lines = open(os.path.join(PyOverFolder, 
-        "..", "settings", "pyOver.default.json")).readlines()
-    # Strip comments and join list into a single string.
-    lines = expandJSONFile(lines)
-    # Process the default input file.
-    return json.loads(lines)
+    # Fixed default file
+    fname = os.path.join(PyOverFolder, 
+        "..", "settings", "pyOver.default.json")
+    # Process the default input file
+    return loadJSONFile(fname)
     

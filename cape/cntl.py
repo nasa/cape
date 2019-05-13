@@ -3646,7 +3646,7 @@ class Cntl(object):
                 # Check for out-of date iteration
                 if nIter < nLast:
                     # Out-of-date case
-                    txt += (fmt % comp)
+                    txt += (fmtc % comp)
                     txt += "out-of-date (%i --> %i)\n" % (nIter, nLast)
             # If we have any text, print a header
             if txt:

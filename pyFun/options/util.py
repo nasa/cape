@@ -113,12 +113,10 @@ def getPyFunDefaults():
         * 2014-06-03 ``@ddalle``: First version
         * 2014-07-28 ``@ddalle``: Moved to new options module
     """
-    # Read the fixed default file.
-    lines = open(os.path.join(PyFunFolder, 
-        "..", "settings", "pyFun.default.json")).readlines()
-    # Strip comments and join list into a single string.
-    lines = expandJSONFile(lines)
+    # Fixed default file
+    fname = os.path.join(PyFunFolder, 
+        "..", "settings", "pyFun.default.json")
     # Process the default input file.
-    return json.loads(lines)
+    return loadJSONFile(fname)
 
 

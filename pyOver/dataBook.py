@@ -1676,7 +1676,7 @@ class CaseResid(cape.dataBook.CaseResid):
         # Grid range
         KGrid = np.arange(kGrid)
         # Number of iterations to skip
-        nIterSkip = max(0, n-i0+1)
+        nIterSkip = int(max(0, n-i0+1))
         # Skip *nGrid* rows for each iteration
         nSkip = int(nIterSkip * nGrid)
         # Number of iterations to be read
