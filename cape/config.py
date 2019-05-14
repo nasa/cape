@@ -1802,13 +1802,12 @@ class ConfigJSON(object):
         # Loop through the elements
         for face in faces:
             # Get the compID
-            compID = self.faces[face]
+            compID = self.faces.get(face)
             # Don't mess around with ``None``
-            if compID is None: continue
-            # Type
-            t = type(compID).__name__
+            if compID is None:
+                continue
             # Check if it's a basic face or a container
-            if t.startswith('int'):
+            if isinstance(compID, int):
                 # Integers are already faces
                 q = True
                 # Check for valid face
@@ -2041,21 +2040,22 @@ class ConfigJSON(object):
         """
         # Get the current component number
         compi = self.faces[face]
-        t = type(compi).__name__
         # Reset it
-        if t in ['list', 'ndarray']:
+        if isinstance(compi, (list, np.ndarray)):
             # Extract the original component ID from singleton list
             compi = compi[0]
-            # Reset it (list)
-            self.faces[face] = [compID]
+            # Reset it as a face (from list)
+            self.faces[face] = compID
+            # Add to list of components
+            if face not in self.comps:
+                self.comps.append(face)
         else:
             # Reset it (number)
             self.faces[face] = compID
         # Get the component ID from "Properties"
         compp = self.props[face]
-        t = type(compp).__name__
         # Check for single number
-        if t == 'dict':
+        if isinstance(compp, dict):
             # Set the CompID property
             self.props[face]["CompID"] = compID
         else:
