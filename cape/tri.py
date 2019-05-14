@@ -4772,7 +4772,9 @@ class TriBase(object):
             I = self.GetNodesFromCompID(comp)
             # Check node count
             if len(I) == 0:
-                print("Warning: No nodes mapped for component '%s'" % comp)
+                print(
+                    ("Warning [MapBCs_AFLR3]: ") +
+                    ("No nodes mapped for component '%s'" % comp))
                 continue
             # Modify those BL spacings
             self.blds[I] = blds[comp]

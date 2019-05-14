@@ -2048,14 +2048,12 @@ class Fun3d(Cntl):
         # Get the BC inputs
         if CT:
             # Use thrust as input variable
-            p0, T0 = self.GetSurfCTState(key, i)
+            fp0 = self.GetSurfCTState
             typ = "SurfCT"
         else:
             # Use *p0* and *T0* directly as inputs
-            p0, T0 = self.GetSurfBCState(key, i)
+            fp0 = self.GetSurfBCState
             typ = "SurfBC"
-        # Get the flow initialization volume state
-        rho, U, a = self.GetSurfBCFlowInitState(key, i, CT=CT)
         # Get the namelist
         nml = self.Namelist
         # Get the components
@@ -2071,6 +2069,10 @@ class Fun3d(Cntl):
         for compID in compIDs:
             # Increase volume number
             n += 1
+            # Get the BC inputs
+            p0, T0 = fp0(key, i, comp=compID)
+            # Get the flow initialization volume state
+            rho, U, a = self.GetSurfBCFlowInitState(key, i, CT=CT, comp=compID)
             # Convert to ID (if needed) and get the BC number to set
             compID = self.MapBC.GetCompID(compID)
             surfID = self.MapBC.GetSurfID(compID)
@@ -2114,11 +2116,11 @@ class Fun3d(Cntl):
         nml.SetNFlowInitVolumes(n)
     
     # Get surface BC inputs
-    def GetSurfBCState(self, key, i):
+    def GetSurfBCState(self, key, i, comp=None):
         """Get stagnation pressure and temperature ratios
         
         :Call:
-            >>> p0, T0 = fun3d.GetSurfBCState(key, i)
+            >>> p0, T0 = fun3d.GetSurfBCState(key, i, comp=None)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of global pyFun settings object
@@ -2126,6 +2128,8 @@ class Fun3d(Cntl):
                 Name of key to process
             *i*: :class:`int`
                 Case index
+            *comp*: {``None``} | :class:`str`
+                Name of component for which to get BCs
         :Outputs:
             *p0*: :class:`float`
                 Ratio of BC stagnation pressure to freestream static pressure
@@ -2137,10 +2141,13 @@ class Fun3d(Cntl):
         # Get equations type
         eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the inputs
-        p0 = self.x.GetSurfBC_TotalPressure(i, key)
-        T0 = self.x.GetSurfBC_TotalTemperature(i, key)
+        p0 = self.x.GetSurfBC_TotalPressure(i, key, comp=comp)
+        T0 = self.x.GetSurfBC_TotalTemperature(i, key, comp=comp)
         # Calibration
-        fp = self.x.GetSurfBC_PressureCalibration(i, key)
+        ap = self.x.GetSurfBC_PressureCalibration(i, key, comp=comp)
+        bp = self.x.GetSurfBC_PressureOffset(i, key, comp=comp)
+        aT = self.x.GetSurfBC_TemperatureCalibration(i, key, comp=comp)
+        bT = self.x.GetSurfBC_TemperatureOffset(i, key, comp=comp)
         # Reference pressure/temp
         if eqn_type == "generic":
             # Do not nondimensionalize
@@ -2148,17 +2155,20 @@ class Fun3d(Cntl):
             Tinf = 1.0
         else:
             # User-specified reference conditions
-            pinf = self.x.GetSurfBC_RefPressure(i, key)
-            Tinf = self.x.GetSurfBC_RefTemperature(i, key)
+            pinf = self.x.GetSurfBC_RefPressure(i, key, comp=comp)
+            Tinf = self.x.GetSurfBC_RefTemperature(i, key, comp=comp)
+        # Calibrated outputs
+        p = (ap*p0 + bp) / pinf
+        T = (aT*T0 + bT) / Tinf
         # Output
-        return fp*p0/pinf, T0/Tinf
+        return p, T
         
     # Get surface CT state inputs
-    def GetSurfCTState(self, key, i):
+    def GetSurfCTState(self, key, i, comp=None):
         """Get stagnation pressure and temperature ratios for *SurfCT* key
         
         :Call:
-            >>> p0, T0 = fun3d.GetSurfCTState(key, i)
+            >>> p0, T0 = fun3d.GetSurfCTState(key, i, comp=None)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of global pyFun settings object
@@ -2166,6 +2176,8 @@ class Fun3d(Cntl):
                 Name of key to process
             *i*: :class:`int`
                 Case index
+            *comp*: {``None``} | :class:`str`
+                Name of component for which to get BCs
         :Outputs:
             *p0*: :class:`float`
                 Ratio of BC stagnation pressure to freestream static pressure
@@ -2175,20 +2187,20 @@ class Fun3d(Cntl):
             * 2016-04-13 ``@ddalle``: First version
         """
         # Get the thrust value
-        CT = self.x.GetSurfCT_Thrust(i, key)
+        CT = self.x.GetSurfCT_Thrust(i, key, comp=comp)
         # Get the exit parameters
-        M2 = self.GetSurfCT_ExitMach(key, i)
-        A2 = self.GetSurfCT_ExitArea(key, i)
+        M2 = self.GetSurfCT_ExitMach(key, i, comp=comp)
+        A2 = self.GetSurfCT_ExitArea(key, i, comp=comp)
         # Reference values
-        pinf = self.x.GetSurfCT_RefPressure(i, key)
-        Tinf = self.x.GetSurfCT_RefTemperature(i, key)
+        pinf = self.x.GetSurfCT_RefPressure(i, key, comp=comp)
+        Tinf = self.x.GetSurfCT_RefTemperature(i, key, comp=comp)
         # Ratio of specific heats
-        gam = self.x.GetSurfCT_Gamma(i, key)
+        gam = self.x.GetSurfCT_Gamma(i, key, comp=comp)
         # Derivative gas constants
         g2 = 0.5 * (gam-1)
         g3 = gam / (gam-1)
         # Get reference dynamic pressure
-        qref = self.x.GetSurfCT_RefDynamicPressure(i, key)
+        qref = self.x.GetSurfCT_RefDynamicPressure(i, key, comp=comp)
         # Get reference area
         Aref = self.GetSurfCT_RefArea(key, i)
         # Get option to include pinf
@@ -2203,11 +2215,14 @@ class Fun3d(Cntl):
         # Adiabatic relationship
         p0 = p2 * (1+g2*M2*M2)**g3
         # Temperature inputs
-        T0 = self.x.GetSurfCT_TotalTemperature(i, key)
+        T0 = self.x.GetSurfCT_TotalTemperature(i, key, comp=comp)
         # Calibration
-        fp = self.x.GetSurfCT_PressureCalibration(i, key)
+        ap = self.x.GetSurfCT_PressureCalibration(i, key, comp=comp)
+        bp = self.x.GetSurfCT_PressureOffset(i, key, comp=comp)
+        aT = self.x.GetSurfCT_TemperatureCalibration(i, key, comp=comp)
+        bT = self.x.GetSurfCT_TemperatureOffset(i, key, comp=comp)
         # Output
-        return fp*p0/pinf, T0/Tinf
+        return (ap*p0+bp)/pinf, (aT*T0+bT)/Tinf
         
     # Get startup volume for a surface BC input
     def GetSurfBCVolume(self, key, compID):
@@ -2252,7 +2267,7 @@ class Fun3d(Cntl):
         return x1, x2, r
         
     # Get startup conditions for surface BC input
-    def GetSurfBCFlowInitState(self, key, i, CT=False):
+    def GetSurfBCFlowInitState(self, key, i, CT=False, comp=None):
         """Get nondimensional state for flow initialization volumes
         
         :Call:
@@ -2266,6 +2281,8 @@ class Fun3d(Cntl):
                 Case index
             *CT*: ``True`` | {``False``}
                 Whether this key has thrust as input (else *p0*, *T0* directly)
+            *comp*: {``None``} | :class:`str`
+                Name of component for which to get BCs
         :Outputs:
             *rho*: :class:`float`
                 Normalized static density, *rho/rhoinf*
@@ -2282,11 +2299,11 @@ class Fun3d(Cntl):
         # Get the boundary condition states
         if CT == True:
             # Use *SurfCT* thrust definition
-            p0, T0 = self.GetSurfCTState(key, i)
+            p0, T0 = self.GetSurfCTState(key, i, comp=comp)
             typ = "SurfCT"
         else:
             # Use *SurfBC* direct definitions of *p0*, *T0*
-            p0, T0 = self.GetSurfBCState(key, i)
+            p0, T0 = self.GetSurfBCState(key, i, comp=comp)
             typ = "SurfBC"
         # Normalize conditions for generic (real gas)
         if eqn_type.lower() == "generic":
@@ -2300,7 +2317,7 @@ class Fun3d(Cntl):
         M = self.x.defns[key].get('Mach', 0.2)
         f = self.x.defns[key].get('Blend', 0.9)
         # Ratio of specific heats
-        gam = self.x.GetSurfBC_Gamma(i, key, typ=typ)
+        gam = self.x.GetSurfBC_Gamma(i, key, typ=typ, comp=comp)
         # Calculate stagnation temperature ratio
         rT = 1 + (gam-1)/2*M*M
         # Stagnation-to-static ratios
