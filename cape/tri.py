@@ -20,30 +20,31 @@ a method like :func:`cape.tri.TriBase.WriteFast` for the compiled version and
 
 """
 
-# Required modules
-# Numerics
-import numpy as np
-# File system and operating system management
-import os, shutil
+# Standard modules
+import os
+import sys
+import shutil
 import subprocess as sp
+
 # Specific commands to copy files and call commands.
 from shutil import copy
-# Ordered dictionaries
 from collections import OrderedDict
 
-# Utilities
-from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
-from .config import Config, ConfigJSON, ConfigMIXSUR
+# Third-party modules 
+import numpy as np
+
+# Absolute imports from this package
+import cape.options
+import cape.cgns
 
 # Input/output and geometry modules
 from . import io
 from . import geom
 from . import volcomp
 
-# Import options
-import cape.options
-# Other mesh modules
-import cape.cgns
+# Utilities
+from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
+from .config import Config, ConfigJSON, ConfigMIXSUR
 
 # Default tolerances for mapping triangulations
 atoldef  = cape.options.rc.get("atoldef", 1e-2)
@@ -3105,19 +3106,21 @@ class TriBase(object):
             pass
 
     # Add a second triangulation without altering component numbers.
-    def AddRawCompID(self, tri):
+    def AddRawCompID(self, tri, warn=False):
         """
         Add a second triangulation to the current one without changing
         component numbers of either triangulation.  No checks are performed,
         and intersections are not analyzed.
 
         :Call:
-            >>> tri.AddRawCompID(tri2)
+            >>> tri.AddRawCompID(tri2, warn=False)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be altered
             *tri2*: :class:`cape.tri.Tri`
                 Triangulation instance to be added to the first
+            *warn*: ``True`` | {``False``}
+                Whether or not to warn about components in both
         :Effects:
             All nodes and triangles from *tri2* are added to *tri*.  As a
             result, the number of nodes, number of tris, and number of
@@ -3125,11 +3128,31 @@ class TriBase(object):
         :Versions:
             * 2014-06-12 ``@ddalle``: First version
         """
-        # Concatenate the node matrix.
+        # Concatenate the node matrix
         self.Nodes = np.vstack((self.Nodes, tri.Nodes))
-        # Concatenate the triangle node index matrix.
+        # Concatenate the triangle node index matrix
         self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
-        # Concatenate the component vector.
+        # Check for overlaps
+        if warn:
+            # Unique component lists
+            CompID0 = np.unique(self.CompID)
+            CompID1 = np.unique(tri.CompID)
+            # Intersection
+            CompID_common = np.intersect1d(CompID0, CompID1)
+            # Loop through those
+            for c in CompID_common:
+                # Start of warning message
+                msg = "  WARNING [AddRawCompID]: component %i " % c
+                # Try to get face names
+                face0 = self.GetCompName(c)
+                face1 = tri.GetCompName(c)
+                # Add names to message
+                msg += "(%s, %s) " % (face0, face1)
+                # Complete message
+                msg += "in both grids"
+                # Show it
+                print(msg)
+        # Concatenate the component vector
         self.CompID = np.hstack((self.CompID, tri.CompID))
         # Loop through confs
         try:
@@ -3729,54 +3752,84 @@ class TriBase(object):
         # Clean up extra entries in faces
         for face in self.config.faces:
             # Skip if already processed
-            if face in faces: continue
+            if face in faces:
+                continue
             # Get the component number
             compf = self.config.faces[face]
             # Make sure it's a list
-            if type(compf).__name__ not in ['list', 'ndarray']:
+            if not isinstance(compf, (list, np.ndarray)):
+                # This should have been a face
+                faces.append(face)
                 continue
             # Loop through components
-            for compi in compf:
+            for compi in list(compf):
                 # Delete it if not in the renumbered list
                 if compi not in compIDs:
-                    #print("  Deleting %s from %s (index %s)"
-                    #    % (compi, face, compf.index(compi)))
-                    del compf[compf.index(compi)]
+                    compf.remove(compi)
+        # Get full list of faces
+        face_candidates = list(faces)
+        # Loop through all named faces
+        for face in sorted(self.config.faces.keys()):
+            # Skip if already present
+            if face in face_candidates:
+                continue
+            # Get component number(s)
+            compi = self.config.faces[face]
+            # Check type
+            if isinstance(compi, int):
+                # Single face; good candidate
+                face_candidates.append(face)
+            elif len(compi) != 1:
+                # List; not a candidate
+                continue
+            # Get name from *compi* (to check for parent with one child)
+            facei = self.GetCompName(compi[0])
+            # Check if name for *compi* matches *face*
+            if face == facei:
+                # Singleton face; candidate
+                face_candidates.append(face)
         # Loop through sorted faces
-        for face in faces:
+        for face in face_candidates:
             # Get the component number
             compi = self.config.faces[face]
-            # Make sure it's an integer
-            if type(compi).__name__ in ['list', 'ndarray']:
+            # Check for singleton candidate (list w/ >1 entry not candidate)
+            if not isinstance(compi, int):
                 # Extract element from singleton
                 compi = compi[0]
             # Check if that compID is present
             if compi not in compIDs:
+                # This component is not present in the current triangulation
+                # Mark for deletion
                 self.config.RenumberCompID(face, -compi)
                 continue
-            # Otherwise, reset it.
+            # Otherwise, assign new component ID number
+            # Find indices of triangles in this component
             I = np.where(self.CompID==compi)[0]
+            # Increase component count
             ncomp += 1
+            # Assign updated component number
             CompID[I] = ncomp
             # Renumber the components in the *config*
             self.config.RenumberCompID(face, ncomp)
         # Check for zero
         if np.any(CompID == 0):
             # General warning
-            print("  WARNING: At least one tri has unset component ID")
+            print(
+                "  WARNING [RenumberCompIDs]: "
+                + "At least one tri has unset component ID")
             # Get the locations of missed triangles
             I = np.where(CompID == 0)[0]
             # Get list of missed components
             C = np.unique(self.CompID[I])
             # Print the list of original component IDs from here
-            print("%10sList of original component IDs that were missed" % "")
-            print("%10s  CompID  Name" % "")
+            print("  Table of original component IDs that were missed:")
+            print("      CompID  Name")
             # Loop through such missing components
             for cID in C:
                 # Attempt to get the name
                 face = tri.GetCompName(cID)
                 # Error message
-                print("%12s  %6s  %s" % ("", cID, face))
+                print("%4s  %6s  %s" % ("", cID, face))
         # Reset component IDs
         self.CompID = CompID
 
@@ -3841,9 +3894,8 @@ class TriBase(object):
             for comp in self.Conf:
                 # Get value
                 v = self.Conf[comp]
-                t = type(v).__name__
                 # Append if appropriate
-                if t.startswith('int'):
+                if isinstance(v, int):
                     Comps.append(comp)
                     CompIDs.append(v)
             # Check if CompID is present
@@ -4050,6 +4102,132 @@ class TriBase(object):
                 K = np.logical_or(K, self.CompID==comp)
         # Turn boolean vector into vector of indices]
         return np.where(K)[0]
+        
+    # Get tri indices from node indices
+    def GetTrisFromNodes(self, I, skip=1):
+        """Find indices of triangles from node indices
+        
+        :Call:
+            >>> K = tri.GetTrisFromNodes(I, skip=1)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Array of node indices
+            *skip*: {``1``} | :class:`int` > 0
+                Only analyze every *skip*\ th node
+        :Outputs:
+            *K*: :class:`np.ndarray`\ [:class:`int`]
+                Array of triangle indices
+        :Versions:
+            * 2019-05-14 ``@ddalle``: First version
+        """
+        # Initialize True|{False} array of each triangle
+        Q = np.arange(self.nTri) < 0
+        # Handle to triangle indices
+        T = self.Tris
+        # Loop through nodes
+        for i in I[::skip]:
+            # Status update
+            sys.stdout.write("   %5i/%5i\r" % (i, np.max(I)))
+            sys.stdout.flush()
+            # Process three columns of *Tris*
+            Q[T[:,0] == i] = True
+            Q[T[:,1] == i] = True
+            Q[T[:,2] == i] = True
+        # Clean up prompt
+        sys.stdout.write("%14s\r" % "")
+        sys.stdout.flush()
+        # Get indices
+        return np.where(Q)[0]
+        
+    # Get components from compIDs
+    def GetFacesFromTris(self, K, nmin=10):
+        """Find components from triangles
+        
+        :Call:
+            >>> faces = tri.GetFacesFromTris(K, nmin=10)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *K*: :class:`np.ndarray`\ [:class:`int`]
+                Array of triangle indices
+            *nmin*: {``10``} | :class:`int` > 0
+                Only return faces with at least *nmin* triangles
+        :Outputs:
+            *faces*: :class:`list`\ [:class:`str`]  
+                List of face names (if available) or numbers
+        :Versions:
+            * 2019-05-14 ``@ddalle``: First version
+        """
+        # Component numbers of *K* triangles
+        CompID = self.CompID[K]
+        # Get list of component IDs
+        CompIDs = np.unique(CompID)
+        # Initialize faces
+        faces = []
+        # Loop through found component IDs
+        for comp in CompIDs:
+            # Count number of triangles
+            ntri = np.where(CompID == comp)[0].size
+            # Skip if less than *nmin*
+            if ntri < nmin:
+                continue
+            # Otherwise get face name/number
+            face = self.GetCompName(comp)
+            # Save it
+            if face:
+                # Save face name
+                faces.append(face)
+            else:
+                # Save number
+                faces.append(comp)
+        # Output
+        return faces
+        
+    # Get components from compIDs
+    def GetFacesFromQuads(self, K, nmin=10):
+        """Find components from triangles
+        
+        :Call:
+            >>> faces = tri.GetFacesFromQuads(K, nmin=10)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *K*: :class:`np.ndarray`\ [:class:`int`]
+                Array of quadrilateral indices
+            *nmin*: {``10``} | :class:`int` > 0
+                Only return faces with at least *nmin* triangles
+        :Outputs:
+            *faces*: :class:`list`\ [:class:`str`]  
+                List of face names (if available) or numbers
+        :Versions:
+            * 2019-05-14 ``@ddalle``: First version
+        """
+        # Component numbers of *K* triangles
+        CompID = self.CompIDQuad[K]
+        # Get list of component IDs
+        CompIDs = np.unique(CompID)
+        # Initialize faces
+        faces = []
+        # Loop through found component IDs
+        for comp in CompIDs:
+            # Count number of triangles
+            ntri = np.where(CompID == comp)[0].size
+            # Skip if less than *nmin*
+            if ntri < nmin:
+                continue
+            # Otherwise get face name/number
+            face = self.GetCompName(comp)
+            # Save it
+            if face:
+                # Save face name
+                faces.append(face)
+            else:
+                # Save number
+                faces.append(comp)
+        # Output
+        return faces
 
     # Function to get tri indices from component ID(s)
     def GetQuadsFromCompID(self, compID=None):
@@ -4507,18 +4685,38 @@ class TriBase(object):
             else:
                 # Status message for ignored component
                 print("  Component '%s' has no nodes" % comp)
-        # Check for untouched nodes
-        if np.any(ntouch):
-            # Get nodes that were not touched
-            X = self.Nodes[ntouch,:]
-            # Get bounding box
-            xmin = np.min(X[:,0]); xmax = np.max(X[:,0])
-            ymin = np.min(X[:,1]); ymax = np.max(X[:,1])
-            zmin = np.min(X[:,2]); zmax = np.max(X[:,2])
+        # Check for untouched triangles
+        if np.any(ttouch):
+            # Get said untouched triangles
+            K = np.where(ttouch)[0]
+            # Count
+            nK = K.size
             # Warning
-            print("  There were %i nodes with no BC information" % X.shape[0])
-            print("  Bounding box ([%s,%s], [%s,%s], [%s,%s]" %
-                (xmin, xmax, ymin, ymax, zmin, zmax))
+            print(
+                ("  WARNING [MapBCs_ConfigAFLR3]: ") +
+                ("%i tris with no BC information" % nK))
+            # Get face names
+            faces = self.GetFacesFromTris(K, nmin=10)
+            # List of faces
+            print("  Faces with at least 10 triangles:")
+            for face in faces:
+                print("    %s" % face)
+        # Check for untouched triangles
+        if np.any(qtouch):
+            # Get said untouched triangles
+            K = np.where(qtouch)[0]
+            # Count
+            nK = K.size
+            # Warning
+            print(
+                ("  WARNING [MapBCs_ConfigAFLR3]: ") +
+                ("%i quads with no BC information" % nK))
+            # Get face names
+            faces = self.GetFacesFromQuads(K, nmin=10)
+            # List of faces
+            print("  Faces with at least 10 quads:")
+            for face in faces:
+                print("    %s" % face)
 
 
     # Map boundary condition tags
