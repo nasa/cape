@@ -385,7 +385,7 @@ def RestartCase(i0=None):
     if not (qpbs or qslr):
         # Run the case.
         run_fun3d()
-    elif rc.get_Resubmit(i):
+    elif rc.get_Resubmit(max(0,i-1)):
         # Check for continuance
         if (i0 is None) or (i>i0) or (not rc.get_Continue(i)):
             # Get the name of the PBS file.

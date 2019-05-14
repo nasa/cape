@@ -165,22 +165,21 @@ def aflr3(opts=None, j=0, **kw):
     if mdsblf is not None: cmdi += ['-mdsblf', str(mdsblf)]
     if nqual  is not None: cmdi += ['nqual=%i' % nqual]
     # Loop through flags
-    for k in flags:
-        # Get value
-        v = flags[k]
+    for k, v in flags.items():
         # Check type
-        if type(v).__name__ == "bool":
+        if isinstance(v, bool):
             # Check Boolean value
             if v:
                 # Add '-$k' to command
                 cmdi += ['-%s' % k]
-        else:
+        elif v is not None:
             # Convert to string, '-$k $v'
             cmdi += ['-%s' % k, '%s' % v]
     # Loop though keys
-    for k in keys:
-        # Get value
-        v = keys[k]
+    for k, v in keys.items():
+        # Skip if None
+        if v is None:
+            continue
         # Append to command
         cmdi += ['%s=%s' % (k, v)]
     # Output
