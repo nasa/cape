@@ -475,6 +475,11 @@ class TriBase(object):
             self.ReadTriBin(fname)
             # Save number of iterations included in average
             self.n = n
+        # Ensure quads are present
+        try:
+            self.nQuad
+        except AttributeError:
+            self.nQuad = 0
 
     # Function to read a .triq file
     def ReadTriQ(self, fname, n=1):

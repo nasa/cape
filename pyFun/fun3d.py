@@ -1194,6 +1194,11 @@ class Fun3d(Cntl):
                 shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
             # Surface configuration file
             fxml = self.opts.get_ConfigFile()
+            # Get file type from primary input tri file 
+            try:
+                ftri_ext = self.tri.ext
+            except AttributeError:
+                ftri_ext = "ascii"
             # Write it if necessary
             if fxml:
                 # Absolute file name
