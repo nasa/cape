@@ -3115,7 +3115,7 @@ class Cntl(object):
    # ==================
    # <
     # Get exit area for SurfCT boundary condition
-    def GetSurfCT_ExitArea(self, key, i):
+    def GetSurfCT_ExitArea(self, key, i, comp=None):
         """Get exit area for a *CT* trajectory key
         
         This can use either the area ratio (if available) or calculate from the
@@ -3140,6 +3140,8 @@ class Cntl(object):
                 Name of trajectory key to check
             *i*: :class:`int`
                 Case number
+            *comp*: {``None``} | :class:`str`
+                Name of component for which to get BCs
         :Outputs:
             *A2*: :class:`list` (:class:`float`)
                 Exit area for each component referenced by this key
@@ -3147,17 +3149,20 @@ class Cntl(object):
             * 2016-04-13 ``@ddalle``: First version
         """
         # Check for exit area
-        A2 = self.x.GetSurfCT_ExitArea(i, key)
+        A2 = self.x.GetSurfCT_ExitArea(i, key, comp=comp)
         # Check for a results
         if A2 is not None: return A2
         # Ensure triangulation if necessary
         self.ReadTri()
         # Get component(s)
-        compID = self.x.GetSurfCT_CompID(i, key)
-        # Ensure list
-        if type(compID).__name__ in ['list', 'ndarray']: compID = compID[0]
+        if comp is None:
+            # Hopefully there is only one component
+            comp = self.x.GetSurfCT_CompID(i, key)
+            # Ensure one component
+            if isinstance(comp, (list, np.ndarray)):
+                comp = comp[0]
         # Input area(s)
-        A1 = self.tri.GetCompArea(compID)
+        A1 = self.tri.GetCompArea(comp)
         # Check for area ratio
         AR = self.x.GetSurfCT_AreaRatio(i, key)
         # Check if we need to use Mach number
@@ -3175,7 +3180,7 @@ class Cntl(object):
         return A1*AR
         
     # Get exit Mach number for SurfCT boundary condition
-    def GetSurfCT_ExitMach(self, key, i):
+    def GetSurfCT_ExitMach(self, key, i, comp=None):
         """Get exit Mach number for a *CT* trajectory key
         
         This can use either the ``"ExitMach"`` parameter (if available) or
@@ -3199,6 +3204,8 @@ class Cntl(object):
                 Name of trajectory key to check
             *i*: :class:`int`
                 Case number
+            *comp*: {``None``} | :class:`str`
+                Name of component for which to get BCs
         :Outputs:
             *M2*: :class:`float`
                 Exit Mach number
@@ -3206,17 +3213,17 @@ class Cntl(object):
             * 2016-04-13 ``@ddalle``: First version
         """
         # Get exit Mach number
-        M2 = self.x.GetSurfCT_ExitMach(i, key)
+        M2 = self.x.GetSurfCT_ExitMach(i, key, comp=comp)
         # Check if we need to use area ratio
         if M2 is None:
             # Get input Mach number
-            M1 = self.x.GetSurfCT_Mach(i, key)
+            M1 = self.x.GetSurfCT_Mach(i, key, comp=comp)
             # Get area ratio
-            AR = self.x.GetSurfCT_AreaRatio(i, key)
+            AR = self.x.GetSurfCT_AreaRatio(i, key, comp=comp)
             # Ratio of specific heats
-            gam = self.x.GetSurfCT_Gamma(i, key)
+            gam = self.x.GetSurfCT_Gamma(i, key, comp=comp)
             # Calculate exit Mach number
-            M2 = convert.ExitMachFromAreaRatio(AR, M1, gam)
+            M2 = convert.ExitMachFromAreaRatio(AR, M1, gam, comp=comp)
         # Output
         return M2
         
