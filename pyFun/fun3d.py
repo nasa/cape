@@ -1416,14 +1416,14 @@ class Fun3d(Cntl):
             else:
                 # Later sequence; restart
                 self.Namelist.SetVar('code_run_control', 'restart_read', 'on')
-            # Set number of iterations
-            self.Namelist.SetnIter(self.opts.get_nIter(j))
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
             dopts = self.opts.select_dual_namelist(j)
             mopts = self.opts.select_moving_body_input(j)
             # Apply them to this namelist
             self.Namelist.ApplyDict(nopts)
+            # Set number of iterations
+            self.Namelist.SetnIter(self.opts.get_nIter(j))
             # Ensure correct *project_rootname*
             self.Namelist.SetRootname(self.GetProjectRootName(j))
             # Check for adaptive phase
