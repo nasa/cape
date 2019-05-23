@@ -1097,23 +1097,32 @@ class Trajectory(object):
             dname = ""
         # Append based on the keys.
         for k in keys:
+            # Get definitions for this key
+            defns = self.defns.get(k, {})
+            # Useful values
+            val = defns.get("Value", "float")
+            grp = defns.get("Group", True)
+            fmt = defns.get("Format", "%s")
+            qlbl = defns.get("Label", True)
+            abbrev = defns.get("Abbreviation", k)
+            # Get the value
+            v = getattr(self, k)[i]
             # Skip text
-            if self.defns[k]["Value"] == "str":
+            if (val == "str") and grp:
+                # Special considerations for labels
                 continue
             # Check for unlabeled values
-            if (not self.defns[k].get("Label", True)):
+            if (not qlbl):
                 continue
             # Skip unentered values
-            if (i>=len(self.text[k])) or (not self.text[k][i]):
+            if (i>=len(self.text[k])) or (not self.text[k][i].strip()):
                 continue
             # Check for "SkipZero" flag
-            if self.defns[k].get("SkipIfZero", False):
+            if (defns.get("SkipIfZero", False)) and (not v):
                 continue
             # Check for "make positive" option
-            qnn = self.defns[k].get("NonnegativeFormat", False)
-            qabs = self.defns[k].get("AbsoluteValueFormat", False)
-            # Get value
-            v = getattr(self, k)[i]
+            qnn  = defns.get("NonnegativeFormat", False)
+            qabs = defns.get("AbsoluteValueFormat", False)
             # Check for nonnegative flag
             if qnn:
                 # Replace negative values with zero
@@ -1124,9 +1133,9 @@ class Trajectory(object):
                 v = abs(v)
             # Make the string of what's going to be printed.
             # This is something like ``'%.2f' % x.alpha[i]``.
-            lbl = self.defns[k]["Format"] % v
+            lbl = fmt % v
             # Append the text in the trajectory file.
-            dname += self.abbrv[k] + lbl
+            dname += abbrev + lbl
         # Check for suffix keys.
         for k in keys:
             # Only look for labels.
@@ -1134,7 +1143,8 @@ class Trajectory(object):
             # Check the value.
             if (i < len(self.text[k])) and self.text[k][i].strip():
                 # Add underscore if necessary.
-                if dname: dname += "_"
+                if dname:
+                    dname += "_"
                 # Add the label itself
                 dname += (self.abbrv[k] + self.text[k][i])
         # Return the result.
