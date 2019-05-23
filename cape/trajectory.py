@@ -1098,16 +1098,33 @@ class Trajectory(object):
         # Append based on the keys.
         for k in keys:
             # Skip text
-            if self.defns[k]["Value"] == "str": continue
+            if self.defns[k]["Value"] == "str":
+                continue
             # Check for unlabeled values
-            if (not self.defns[k].get("Label", True)): continue
+            if (not self.defns[k].get("Label", True)):
+                continue
             # Skip unentered values
-            if (i>=len(self.text[k])) or (not self.text[k][i]): continue
+            if (i>=len(self.text[k])) or (not self.text[k][i]):
+                continue
             # Check for "SkipZero" flag
-            if self.defns[k].get("SkipIfZero", False): continue
+            if self.defns[k].get("SkipIfZero", False):
+                continue
+            # Check for "make positive" option
+            qnn = self.defns[k].get("NonnegativeFormat", False)
+            qabs = self.defns[k].get("AbsoluteValueFormat", False)
+            # Get value
+            v = getattr(self, k)[i]
+            # Check for nonnegative flag
+            if qnn:
+                # Replace negative values with zero
+                v = max(0, v)
+            # Check for absolute value flag
+            if qabs:
+                # Replace value with magnitude
+                v = abs(v)
             # Make the string of what's going to be printed.
             # This is something like ``'%.2f' % x.alpha[i]``.
-            lbl = self.defns[k]["Format"] % getattr(self,k)[i]
+            lbl = self.defns[k]["Format"] % v
             # Append the text in the trajectory file.
             dname += self.abbrv[k] + lbl
         # Check for suffix keys.
