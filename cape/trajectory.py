@@ -1104,11 +1104,12 @@ class Trajectory(object):
             grp = defns.get("Group", True)
             fmt = defns.get("Format", "%s")
             qlbl = defns.get("Label", True)
+            qpre = defns.get("Prefix", False)
             abbrev = defns.get("Abbreviation", k)
             # Get the value
             v = getattr(self, k)[i]
             # Skip text
-            if (val == "str") and grp:
+            if (val == "str") and (not qpre):
                 # Special considerations for labels
                 continue
             # Check for unlabeled values
