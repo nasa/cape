@@ -27,8 +27,66 @@ import cape.plot3d
 
 # OVERFLOW Plot3D template
 class P3D(cape.plot3d.X):
+    """
+    Base OVERFLOW Plot3D file interface
     
+    :Call:
+        >>> q = pyOver.plot3d.P3D(fname, endian=None)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+        *endian*: {``None``} | "big" | "little"
+            Manually-specified byte order
+    :Outputs:
+        *q*: :class:`pyOver.plot3d.Q`
+            General OVERFLOW q-file interface
+    :Versions:
+        * 2016-02-26 ``@ddalle``: First version
+    """
+    
+    # Open a function
+    def open(self):
+        """Open a file with appropriate flags
         
+        :Call:
+            >>> q.open()
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.P3D`
+                General OVERFLOW Plot3D file interface
+        :Attributes:
+            *q.f*: :class:`file`
+                File handle open ``"rb"``
+        :Versions:
+            * 2019-05-24 ``@ddalle``: First version
+        """
+        # Check if the file is open
+        if isinstance(self.f, file) and (not self.f.closed):
+            # Already open
+            self.f.seek(0)
+            return
+        # Otherwise open the file
+        self.f = open(self.fname, "rb")
+
+    # Check if file is open
+    def close(self):
+        """Close a file if open
+        
+        :Call:
+            >>> q.close()
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.P3D`
+                General OVERFLOW Plot3D file interface
+        :Attributes:
+            *q.f*: :class:`file`
+                File handle closed
+        :Versions:
+            * 2019-05-24 ``@ddalle``: First version
+        """
+        # Check if the file is open
+        if isinstance(self.f, file) and (not self.f.closed):
+            # Close the file
+            self.f.close()
+    
     # Determine byte order
     def get_byteorder(self, endian=None):
         """Determine the proper byte order automatically if necessary
@@ -85,6 +143,66 @@ class P3D(cape.plot3d.X):
             # Big-endian 64-bit flags
             self.itype = ">i4"
             self.ftype = ">f8"
+            
+    # Read integer
+    def read_int(self, n=None):
+        """Read one or more integers
+        
+        :Call:
+            >>> i = q.read_int()
+            >>> I = q.read_int(n)
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.Q`
+                General OVERFLOW q-file interface
+            *n*: {``None``} | :class:`int` > 0
+                Read *n* integers, if ``None``, return a scalar
+        :Outputs:
+            *i*: :class:`int`
+                Integer read from file
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Array of *n* integers
+        :Versions:
+            * 2019-05-24 ``@ddalle``: First version
+        """
+        # Check output type
+        if n is None:
+            # Read one value
+            i, = np.fromfile(self.f, count=1, dtype=self.itype)
+            # Output
+            return i
+        else:
+            # Read array
+            return np.fromfile(self.f, count=n, dtype=self.itype)
+            
+    # Read integer
+    def read_float(self, n=None):
+        """Read one or more floats (doubles)
+        
+        :Call:
+            >>> v = q.read_float()
+            >>> V = q.read_float(n)
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.Q`
+                General OVERFLOW q-file interface
+            *n*: {``None``} | :class:`int` > 0
+                Read *n* integers, if ``None``, return a scalar
+        :Outputs:
+            *v*: :class:`float`
+                Real number read from file
+            *V*: :class:`np.ndarray`\ [:class:`float`]
+                Array of *n* real numbers
+        :Versions:
+            * 2019-05-24 ``@ddalle``: First version
+        """
+        # Check output type
+        if n is None:
+            # Read one value
+            v, = np.fromfile(self.f, count=1, dtype=self.ftype)
+            # Output
+            return v
+        else:
+            # Read array
+            return np.fromfile(self.f, count=n, dtype=self.ftype)
     
     # Get grid indices
     def expand_grid_indices(self, IG, **kw):
@@ -229,8 +347,7 @@ class Q(P3D):
             * 2016-02-26 ``@ddalle``: First version
         """
         # Open file if necessary
-        if self.closed == True:
-            self.open()
+        self.open()
         # Get number of grids
         nGrid = self.GetNGrid()
         # Read grid dimensions
@@ -338,7 +455,7 @@ class Q(P3D):
         # Save dimensions of each grid
         self.JD = D[0:-2:3]
         self.KD = D[1:-2:3]
-        self.LD = D[1:-2:3]
+        self.LD = D[2:-2:3]
         # Save *NQ*, the number of conserved values
         self.NQ = D[-2]
         # Save *NQC*, the number of species
