@@ -42,6 +42,9 @@ labels, and so therefore the contents are quite solver-specific.
 # Standard library
 import re
 
+# Standard third-party modules
+import numpy as np
+
 # Base file control class
 import cape.fileCntl
 import cape.namelist
@@ -72,6 +75,7 @@ class InputInp(cape.namelist.Namelist):
         * 2019-06-06 ``@ddalle``: First version
     """
    # --- Hard-Coded Orders ---
+    # Parameter names in [CFD_SOLVER] block
     CFD_SOLVER_keys = [
         ["nstop",  "ires",  "nplot",  "iconr", "impl",   "kmax",   "kmaxo"],
         ["ivisc",  "ivib",  "ichem",  "itrb",  "ibase",  "idiss_g"],
@@ -80,6 +84,15 @@ class InputInp(cape.namelist.Namelist):
         ["npfac",  "npvol"],
         ["cfl",    "epsj",  "wdis"]
     ]
+    # Current values of BCs table
+    BCNames = []
+    BCTable = {}
+    # Mass fractions
+    BC_Y = {}
+    # Direction cosines
+    BC_cos = {}
+    # Number of lines in the BC Table
+    BCTable_rows = 0
     
    # --- Config ---
     # Initialization method (not based off of FileCntl)
@@ -1470,7 +1483,109 @@ class InputInp(cape.namelist.Namelist):
    
    # [CFD_BCS]
     # Read BCs table
-    def ReadBCsTable(self):
-        pass
+    def ReadBCs(self):
+        """Read boundary condition table
+        
+        :Call:
+            >>> BCs = inp.ReadBCs()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *BCs*: :class:`dict`
+                Dictionary of *zone*, *bcn*, *igrow*, *name*, and
+                *params* for each boundary condition
+        :Attributes:
+            *inp.BCNames*: :class:`list`\ [:class:`str`]
+                List of boundary condition names
+            *inp.BCTable*: *BCs*
+                Boundary condition properties
+            *inp.BCTable_rows*: :class:`int`
+                Number of rows in the BC table section
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        # Name of section
+        sec = "CFD_BCS"
+        # Check if section is present
+        if sec not in self.Section:
+            # Don't update tables
+            return self.BCTable
+        # Initialize properties
+        BCTable = {}
+        BCNames = []
+        BCRows = {}
+        BC_Y = {}
+        BC_cos = {}
+        # Number of zones found
+        nzone = 0
+        # Loop through rows
+        for (i, line) in enumerate(self.Section[sec][1:-1]):
+            # Check if line is a comment
+            if line.lstrip().startswith("!"):
+                # Comment
+                continue
+            elif line.strip() == "":
+                # Empty line
+                continue
+            # Check if table is over
+            if line.strip() == "done":
+                # End of table
+                self.BCTable_rows = i + 1
+                break
+            # Otherwise, process the line
+            V = line.strip().split()
+            # Check line length
+            if len(V) < 4:
+                raise ValueError(
+                    "Boundary condition %i has only %i/%i required columns"
+                    % (nzone+1, len(V), 4))
+            # Get name
+            name = V[3].strip('"').strip("'")
+            # Append to list
+            BCNames.append(name)
+            # Save required parameters
+            BCTable[name] = {
+                "row":    i + 1,
+                "zone":   self.ConvertToVal(V[0]),
+                "bcn":    self.ConvertToVal(V[1]),
+                "igrow":  self.ConvertToVal(V[2]),
+                "params": " ".join(V[4:]),
+            }
+        # Loop through remaining rows
+        # Save values
+        self.BCTable = BCTable
+        self.BCNames = BCNames
+        # Output
+        return BCTable
+
+    # Read mass fractoins
+    def GetBCMassFraction(self, name, i=None):
+        
+        # Name of section
+        sec = "CFD_BCS"
+        # Check if section is present
+        if sec not in self.Section:
+            # Nothing to search
+            return
+        # Regular expression to search for
+        regex = "^\s*['\"]%s['\"]" % name
+        # Use section searcher for lines starting with whitespace plus name
+        lines = self.GetLineInSectionSearch(sec, regex, 1)
+        # Check for a match
+        if len(lines) < 1:
+            return
+        # Separate line into space-separated values
+        txts = lines[0].split()[1:]
+        # Evaluate each entry
+        vals = [self.ConvertToVal(txt) for txt in txts]
+        # Check for index
+        if i is None:
+            # Return entire
+            return vals
+        elif i < len(vals):
+            # Return indexed value
+            return vals[i]
+            
    # [/CFD_BCS]
 # class InputInp
