@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 :mod:`pyFun.fun3d`: FUN3D control module 
 =========================================
@@ -38,15 +40,17 @@ also available here.
 
 """
 
-# Basic numerics
-import numpy as np
-# Configuration file processor
+# System modules
+import os
 import json
-# Date processing
-from datetime import datetime
-# File system and operating system management
-import os, shutil
+import shutil
 import subprocess as sp
+
+# Standard library direct inports
+from datetime import datetime
+
+# Third-party modules
+import numpy as np
 
 # Import template class
 from cape.cntl import Cntl
@@ -63,6 +67,7 @@ from . import mapbc
 from . import faux
 from . import dataBook
 from . import report
+
 # Unmodified CAPE modules
 from cape import convert
 from cape.util import RangeString
@@ -82,7 +87,7 @@ class Fun3d(Cntl):
     Class for handling global options and setup for FUN3D.
     
     This class is intended to handle all settings used to describe a group
-    of Cart3D cases.  For situations where it is not sufficiently
+    of FUN3D cases.  For situations where it is not sufficiently
     customized, it can be used partially, e.g., to set up a Mach/alpha sweep
     for each single control variable setting.
     
