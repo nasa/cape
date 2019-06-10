@@ -176,7 +176,7 @@ def RunPhase(rc, i):
         # Get the `nodet` or `nodet_mpi` command
         cmdi = cmd.nodet(rc, i=i)
         # Call the command.
-        bin.callf(cmdi, f='fun3d.out')
+        bin.callf(cmdi, f='fun3d.out', e="fun3d.err")
         # Get new iteration number
         n1 = GetCurrentIter()
         # Check for lack of progress

@@ -46,16 +46,18 @@ def check_output(cmdi):
     return out[0]
 
 # Function to call commands with a different STDOUT
-def calli(cmdi, f=None, shell=None, v=True):
+def calli(cmdi, f=None, e=None, shell=None, v=True):
     """Call a command with alternate STDOUT by filename
     
     :Call:
-        >>> ierr = calli(cmdi, f=None, shell=None, v=True)
+        >>> ierr = calli(cmdi, f=None, e=None, shell=None, v=True)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
         *f*: :class:`str`
             File name to which to store STDOUT
+        *e*: {*f*} | :class:`str`
+            Name of separate file to write STDERR to
         *shell*: :class:`bool`
             Whether or not a shell is needed
         *v*: {``True``} | :class:`False`
@@ -67,6 +69,7 @@ def calli(cmdi, f=None, shell=None, v=True):
         * 2014-08-30 ``@ddalle``: First version
         * 2015-02-13 ``@ddalle``: Split into part with return code
         * 2017-03-12 ``@ddalle``: Added *v* option
+        * 2019-06-10 ``@ddalle``: Added *e* option
     """
     # Process the shell option
     shell = bool(shell)
@@ -79,11 +82,21 @@ def calli(cmdi, f=None, shell=None, v=True):
     if f:
         # Print the location of STDOUT
         if v:
-            print("     (STDOUT = '%s')" % str(f))
-        # Open the file.
+            print("     (STDOUT = '%s')" % os.path.split(f)[-1])
+        # Print the location of STDERR
+        if v and (e is not None):
+            print("     (STDERR = '%s')" % os.path.split(e)[-1])
+        # Open the files for STDOUT and STDERR
         fid = open(f, 'w')
+        # Check for separate STDERR file
+        if e is None:
+            # Use STDOUT file
+            fe = fid
+        else:
+            # Open separate file
+            fe = open(e, 'w')
         # Call the command.
-        ierr = sp.call(cmdi, stdout=fid, stderr=fid, shell=shell)
+        ierr = sp.call(cmdi, stdout=fid, stderr=fe, shell=shell)
         # Close the file.
         fid.close()
     else:
@@ -93,27 +106,30 @@ def calli(cmdi, f=None, shell=None, v=True):
     return ierr
         
 # Function to call commands with a different STDOUT
-def callf(cmdi, f=None, shell=None, v=True, check=True):
+def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
     """Call a command with alternate STDOUT by filename
     
     :Call:
-        >>> callf(cmdi, f=None, shell=None, v=True, check=True)
+        >>> callf(cmdi, f=None, e=None, shell=None, v=True, check=True)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
         *f*: :class:`str`
             File name to which to store STDOUT
+        *e*: {*f*} | :class:`str`
+            Separate file name for STDERR
         *shell*: :class:`bool`
             Whether or not a shell is needed
         *v*: {``True``} | :class:`False`
             Verbose option; display *PWD* and *STDOUT* values
     :Versions:
         * 2014-08-30 ``@ddalle``: First version
-        * 2015-02-13 ``@ddalle``: Split most of code to :func:`cape.bin.calli`
+        * 2015-02-13 ``@ddalle``: Moved much to :func:`cape.bin.calli`
         * 2017-03-12 ``@ddalle``: Added *v* option
+        * 2019-06-10 ``@ddalle``: Added *e* option
     """
     # Call the command with output status
-    ierr = calli(cmdi, f, shell, v=v)
+    ierr = calli(cmdi, f, e, shell, v=v)
     # Check the status.
     if ierr and check:
         # Remove RUNNING file.
