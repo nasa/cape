@@ -150,7 +150,7 @@ class Namelist(FileCntl):
         return nml
         
     # Function to set generic values, since they have the same format.
-    def SetVar(self, sec, name, val, k=None):
+    def SetVar(self, sec, name, val, k=None, **kw):
         """Set generic :file:`fun3d.nml` variable value
         
         :Call:
@@ -167,10 +167,19 @@ class Namelist(FileCntl):
                 Value to which variable is set in final script
             *k*: :class:`int`
                 Namelist index
+            *indent*: {``4``} | :class:`int` >= 0
+                Number of spaces for indent
+            *tab*: {``" " * indent``} | :class:`str`
+                Specific indent string
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
             * 2015-10-20 ``@ddalle``: Added Fortran index
+            * 2019-06-04 ``@ddalle``: Added indentation
         """
+        # Number of spaces in tab
+        indent = kw.get("indent", 4)
+        # Create the tab
+        tab = kw.get("tab", " " * indent)
         # Check sections
         if sec not in self.SectionNames:
             # Add the section
@@ -191,7 +200,8 @@ class Namelist(FileCntl):
             # Line regular expression: "XXXX=" but with white spaces
             reg = '^\s*%s\s*[=\n]' % name
             # Form the output line.
-            line = '    %s = %s\n' % (name, self.ConvertToText(val))
+            line = tab
+            line += '%s = %s\n' % (name, self.ConvertToText(val))
         else:
             # Format: '   component(1) = "something"'
             # Format: '   component(1,3) = "something"'
@@ -210,7 +220,8 @@ class Namelist(FileCntl):
             # Line regular expression: "XXXX([0-9]+)=" but with white spaces
             reg = '^\s*%s\(%s\)\s*[=\n]' % (name, sk)
             # Form the output line.
-            line = '    %s(%s) = %s\n' % (name, sk, self.ConvertToText(val))
+            line = tab
+            line += '%s(%s) = %s\n' % (name, sk, self.ConvertToText(val))
         # Replace the line; prepend it if missing
         self.ReplaceOrAddLineToSectionSearch(sec, reg, line, -1)
         
@@ -394,10 +405,10 @@ class Namelist(FileCntl):
                 return None
             elif len(V) == 1:
                 # Convert to float/integer
-                return eval(val)
+                return eval(val.replace("d", "e"))
             else:
                 # List
-                return [eval(v) for v in V]
+                return [eval(v.replace("d", "e")) for v in V]
         except Exception:
             # Give it back, whatever it was.
             return val
@@ -431,7 +442,7 @@ class Namelist(FileCntl):
         elif t in ['bool']:
             # Boolean
             return ".false."
-        elif type(v).__name__ in ['list', 'ndarray']:
+        elif t in ['list', 'ndarray', "tuple"]:
             # List (convert to string first)
             V = [str(vi) for vi in v]
             return " ".join(V)

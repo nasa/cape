@@ -174,11 +174,16 @@ class FileCntl(object):
         #  2014.06.03 @ddalle  : First version
         
         # Initialize the string.
-        s = '<FileCntl("%s", %i lines' % (self.fname, len(self.lines))
+        s = '<%s("%s", %i lines' % (
+            self.__class__.__name__,
+            self.fname,
+            len(self.lines))
         # Check for number of sections.
         if hasattr(self, 'SectionNames'):
-            # Write the number of sections.
-            s = s + ", %i sections)>" % len(self.SectionNames)
+            # Count non trivial section names
+            nsec = sum([not sec.startswith("_") for sec in self.SectionNames])
+            # Write the number of sections
+            s = s + ", %i sections)>" % nsec
         else:
             # Just close the string.
             s = s + ")>"
@@ -219,13 +224,13 @@ class FileCntl(object):
     
     
     # Function to split into sections
-    def SplitToSections(self, reg="\$__([\w_]+)", ngr=1):
+    def SplitToSections(self, reg="\$__([\w_]+)", ngr=1, begin=True):
         """
         Split lines into sections based on starting regular expression
         
         :Call:
             >>> FC.SplitToSections()
-            >>> FC.SplitToSections(reg="\$__([\w_]+)", ngr=1)
+            >>> FC.SplitToSections(reg="\$__([\w_]+)", ngr=1, **kw)
         :Inputs:
             *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
@@ -233,14 +238,23 @@ class FileCntl(object):
                 Regular expression for recognizing the start of a new section.
                 By default this looks for sections that start with "$__" as in
                 the 'input.cntl' files.  The regular expression must also
-                include a group (meaning content between parentheses) to capture
-                the *name* of the section.  Thus the default value of
+                include a group (meaning content between parentheses) to
+                capture the *name* of the section.  Thus the default value of
                 ``"\$__([\w_]+)"`` finds any name that consists of word
                 characters and/or underscores.
-            *ngr*: :class:`int`
-                Group number from which to take name of section.  This is always
-                ``1`` unless the section-starting regular expression has more
-                than one group.
+            *ngr*: {``1``} | :class:`int` | :class:`str`
+                Group number from which to take name of section.  This is
+                always ``1`` unless the section-starting regular expression has
+                more than one explicit group.  Note that using ``1`` instead of
+                ``0`` means that an explicit group using parentheses is
+                required.  A string can be used if the groups have names in the
+                regular expression *reg*.
+            *begin*: {``True``} | ``False``
+                Whether or not section regular expression must begin line
+            *endreg*: {``None``} | :class:`str`
+                Optional regular expression for end of section.  If used, some
+                lines will end up in sections called ``"_inter1"``,
+                ``"_inter2"``, etc.
         :Effects:
             *FC.SectionNames*: :class:`list`
                 List of section names is created (includes "_header")
@@ -254,22 +268,153 @@ class FileCntl(object):
         # Initialize the sections.
         self.SectionNames = [sec]
         self.Section = {sec: []}
-        # Loop through the lines.
+        # Compile regular expression
+        regexa = re.compile(reg)
         for line in self.lines:
-            # Search for the new-section regular expression.
-            m = re.search(reg, line)
+            # Search for the new-section regular expression
+            if begin:
+                # Search from beginning of line (neglecting whitespace)
+                m = regexa.match(line.lstrip())
+            else:
+                # Search anywhere in line
+                m = regexa.search(line)
             # Check if there was a match.
             if m:
-                # Get the new section name.
+                # Get the new section name
                 sec = m.group(ngr)
-                # Start the new section.
+                # Start the new section
                 self.SectionNames.append(sec)
                 self.Section[sec] = [line]
             else:
                 # Append the line to the current section.
                 self.Section[sec].append(line)
-        # Done.
-        return None
+    
+    # Function to split into sections with ends
+    def SplitToBlocks(
+            self, reg="\$__([\w_]+)", ngr=1, **kw):
+        """
+        Split lines into sections based on starting regular expression
+        
+        :Call:
+            >>> FC.SplitToBlocks()
+            >>> FC.SplitToBlocks(reg="\$__([\w_]+)", ngr=1, **kw)
+        :Inputs:
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
+                File control instance
+            *reg*: :class:`str`
+                Regular expression for recognizing the start of a new section.
+                By default this looks for sections that start with "$__" as in
+                the 'input.cntl' files.  The regular expression must also
+                include a group (meaning content between parentheses) to
+                capture the *name* of the section.  Thus the default value of
+                ``"\$__([\w_]+)"`` finds any name that consists of word
+                characters and/or underscores.
+            *ngr*: {``1``} | :class:`int` | :class:`str`
+                Group number from which to take name of section.  This is
+                always ``1`` unless the section-starting regular expression has
+                more than one explicit group.  Note that using ``1`` instead of
+                ``0`` means that an explicit group using parentheses is
+                required. A string can be used if the groups have names in the
+                regular expression *reg*.
+            *begin*: {``True``} | ``False``
+                Whether or not section regular expression must begin line
+            *endreg*: {``None``} | :class:`str`
+                Optional regular expression for end of section.  If used, some
+                lines will end up in sections called ``"_inter1"``,
+                ``"_inter2"``, etc.
+            *endbegin*: {*begin*} | ``True`` | ``False``
+                Whether or not section-end regular expression must begin line
+            *endngr*: {*ngr*} | :class:`int` | :class:`str`
+                Group number of name for title of end-of-section regex
+        :Effects:
+            *FC.SectionNames*: :class:`list`
+                List of section names is created (includes "_header")
+            *FC.Section*: :class:`dict`
+                Dictionary of section line lists is created
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
+        """
+        # Process inputs
+        begin  = kw.pop("begin", True)
+        endreg = kw.pop("endreg", None)
+        ngrb   = kw.pop("endngr", ngr)
+        endbeg = kw.pop("endbegin", begin)
+        # Check for unprocessed keywords
+        if kw:
+            # Get first key
+            k, v = kw.popitem()
+            raise IOError("Received unrecognized keyword '%s'" % k)
+        # Initial section name
+        sec = "_header"
+        # Number of intermediate sections
+        nint = 0
+        # Initialize the sections.
+        self.SectionNames = [sec]
+        self.Section = {sec: []}
+        # Compile regular expression
+        regexa = re.compile(reg)
+        # End of line
+        if endreg is None:
+            # No end-of-section
+            regexb = None
+        else:
+            # Compile end-of-section regular expression
+            regexb = re.compile(endreg)
+        # Loop through the lines.
+        for line in self.lines:
+            # Search for the new-section regular expression
+            if begin:
+                # Search from beginning of line (neglecting whitespace)
+                m = regexa.match(line.lstrip())
+            else:
+                # Search anywhere in line
+                m = regexa.search(line)
+            # Check if there was a match.
+            if m:
+                # Get the new section name
+                grp = m.group(ngr)
+                # Very special check for formats with section ends
+                if (regexb is None) or (grp != sec):
+                    # Start the new section
+                    sec = grp
+                    self.SectionNames.append(sec)
+                    self.Section[sec] = [line]
+                    # Do not allow begin section to also end section
+                    continue
+                else:
+                    # This is still part of previous section
+                    self.Section[sec].append(line)
+            else:
+                # Append the line to the current section.
+                self.Section[sec].append(line)
+            # Check for end-of-section check
+            if regexb:
+                # Check the end-of-section regex
+                if endbeg:
+                    # Search from beginning of line
+                    m = regexb.match(line.lstrip())
+                else:
+                    # Search anywhere in line
+                    m = regexb.search(line)
+                # Check if there was a match
+                if m:
+                    # Try to check the section name
+                    try:
+                        # Get group name
+                        grp = m.group(ngrb)
+                        # Check name
+                        if sec != grp:
+                            raise ValueError(
+                                "Section '%s' ends with '%s'" % (sec, grp))
+                    except IndexError:
+                        # End-of-section marker probably doesn't have group
+                        pass
+                    # Move to next intermediate section
+                    nint += 1
+                    sec = "_inter%i" % nint
+                    # Start the section
+                    self.SectionNames.append(sec)
+                    self.Section[sec] = []
         
     # Function to update the text based on the section content.
     def UpdateLines(self):

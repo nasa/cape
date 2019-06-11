@@ -1,5 +1,5 @@
 """
-:mod:`pyFun.trajectory`: FUN3D run matrix module 
+:mod:`pyUS.trajectory`: US3D run matrix module 
 ==================================================
 
 This module handles classes and methods that are specific to the list of run
@@ -35,9 +35,9 @@ a JSON file, and *fun3d.x* is the run matrix.
 
     .. code-block:: pycon
     
-        >>> import pyFun
-        >>> fun3d = pyFun.Fun3d("pyFun.json")
-        >>> fun3d.x.GetFullFolderNames()
+        >>> import pyUS
+        >>> cntl = pyUS.US3D("pyUS.json")
+        >>> cntl.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
         
 For this module, there are no methods that are particular to FUN3D.  All
@@ -45,7 +45,7 @@ functionality is inherited from :class:`cape.trajectory.Trajectory`.
 
 :See Also:
     * :mod:`cape.trajectory`
-    * :mod:`pyFun.fun3d`
+    * :mod:`pyUS.us3d`
 """
 
 # Import the cape module.
@@ -104,10 +104,10 @@ class Trajectory(cape.trajectory.Trajectory):
         """
         Return the string representation of a trajectory.
         
-        This looks like ``<pyFun.Trajectory(nCase=N, keys=['Mach','alpha'])>``
+        This looks like ``<pyUS.Trajectory(nCase=N, keys=['Mach','alpha'])>``
         """
         # Return a string.
-        return '<pyFun.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
+        return '<pyUS.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
             self.keys)
         
     
