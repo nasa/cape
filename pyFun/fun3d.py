@@ -903,13 +903,16 @@ class Fun3d(Cntl):
         """
         # Get the file names from *opts*
         fname = self.opts.get_MeshFile()
-        # Ensure list.
-        if type(fname).__name__ not in ['list', 'ndarray']:
+        # Ensure list
+        if fname is None:
+            # Remove ``None``
+            return []
+        elif isinstance(fname, (list, np.ndarray, tuple)):
+            # Return list-like as list
+            return list(fname)
+        else:
             # Convert to list.
             return [fname]
-        else:
-            # Return output
-            return fname
         
     # Get list of mesh file names that should be in a case folder.
     def GetProcessedMeshFileNames(self):

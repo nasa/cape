@@ -1305,7 +1305,7 @@ class Cntl(object):
             * 2015-10-14 ``@ddalle``: Removed dependence on :mod:`case`
             * 2017-02-22 ``@ddalle``: Added verbose flag
         """
-         # Check input.
+        # Check input.
         if type(i).__name__ not in ["int", "int64", "int32"]:
             raise TypeError(
                 "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
