@@ -146,6 +146,8 @@ class Trajectory(object):
         groupPrefix = kwargs.get('GroupPrefix', "Grid")
         # Process the definitions.
         defns = kwargs.get('Definitions', {})
+        # Save file name
+        self.fname = fname
         # Save properties.
         self.keys = keys
         self.prefix = prefix
@@ -153,24 +155,48 @@ class Trajectory(object):
         # List of PASS and ERROR markers
         self.PASS = []
         self.ERROR = []
+        # Text
+        self.lines = []
+        # Line numbers corresponding to each case
+        self.linenos = []
         # Save freestream state
         self.gas = kwargs.get("Freestream", {})
         # Process the key definitions.
         self.ProcessKeyDefinitions(defns)
-        # Read the file.
+        # Check for extant run matrix file
         if fname and os.path.isfile(fname):
+            # Read the file
             self.ReadTrajectoryFile(fname)
+        # Get number of cases from first key (not totally ideal)
+        nCase = len(self.text[keys[0]])
+        # Save the number of cases
+        self.nCase = nCase
         # Loop through the keys to see if any were specified in the inputs.
         for key in keys:
             # Check inputs for that key.
-            if key not in kwargs: continue
+            if key not in kwargs:
+                continue
             # Check the specification type.
             if type(kwargs[key]).__name__ not in ['list']:
                 # Use the same value for all cases
-                self.text[key] = [str(kwargs[key])] * len(self.text[keys[0]])
+                self.text[key] = [str(kwargs[key])] * nCase
             else:
                 # Set it with the new value.
                 self.text[key] = [str(v) for v in kwargs[key]]
+        # Create text if necessary
+        if len(self.lines) == 0:
+            # Create simple header
+            line = "# " + (", ".join(keys))
+            # Save header line
+            self.lines.append(line)
+            # Use text
+            for i in range(nCase):
+                # Create line
+                line = ", ".join([self.text[key][i] for key in keys])
+                # Save the line
+                self.lines.append("  " + line)
+            # Create row numbers
+            self.linenos = np.arange(1, nCase+1)
         # Check if PASS markers are specified.
         if 'PASS' in kwargs:
             self.PASS = kwargs['PASS']
@@ -180,17 +206,16 @@ class Trajectory(object):
         # Convert PASS and ERROR list to numpy.
         self.PASS  = np.array(self.PASS)
         self.ERROR = np.array(self.ERROR)
-        # Save the number of cases.
-        nCase = len(self.text[keys[0]])
-        self.nCase = nCase
         # Number of entries
         nPass = len(self.PASS)
         nErr  = len(self.ERROR)
         # Make sure PASS and ERROR fields have correct length
         if nPass < nCase:
-            self.PASS = np.hstack((self.PASS, False*np.ones(nCase-nPass)))
+            self.PASS = np.hstack(
+                (self.PASS, np.zeros(nCase-nPass, dtype="bool")))
         if nErr < nCase:
-            self.ERROR = np.hstack((self.ERROR, False*np.ones(nCase-nErr)))
+            self.ERROR = np.hstack(
+                (self.ERROR, np.zeros(nCase-nErr, dtype="bool")))
         # Create the numeric versions.
         for key in keys:
             # Check the key type.
@@ -308,19 +333,27 @@ class Trajectory(object):
         :Versions:
             * 2014-10-13 ``@ddalle``: Cut code from __init__ method
         """
-        # Open the file.
-        f = open(fname)
         # Extract the keys.
         keys = self.keys
         # Number of variables
         nVar = len(keys)
+        # Read lines of file
+        with open(fname, "r") as f:
+            # Get contents
+            lines = f.readlines()
+        # Save the original contents
+        self.lines = lines
+        # Initiate line lookup
+        linenos = []
         # Loop through the lines.
-        for line in f.readlines():
+        for (nline, line) in enumerate(lines):
             # Strip the line.
             line = line.strip()
             # Check for empty line or comment
             if line.startswith('#') or len(line)==0:
                 continue
+            # Save line number
+            linenos.append(nline)
             # Group string literals by '"' and "'"
             grp1 = re.findall('"[^"]*"', line)
             grp2 = re.findall("'[^']*'", line)
@@ -347,25 +380,12 @@ class Trajectory(object):
                 raw = grp2[i].strip("'")
                 # Make replacements
                 v = [vi.replace(txt, raw) for vi in v]
-            # Check v[0]
-            if v[-1].lower() in ['$p', 'pass']:
-                # Case is marked as passed.
-                self.PASS.append(True)
-                self.ERROR.append(False)
-                # Shift the entries.
-                v.pop()
             elif v[0].lower() in ['p', '$p', 'pass']:
                 # Case is marked as passed.
                 self.PASS.append(True)
                 self.ERROR.append(False)
                 # Shift the entries.
                 v.pop(0)
-            elif v[-1].lower() in ['$e', 'error']:
-                # Case is marked as error.
-                self.PASS.append(False)
-                self.ERROR.append(True)
-                # Shift the entries.
-                v.pop()
             elif v[0].lower() in ['e', '$e', 'error']:
                 # Case is marked as error.
                 self.PASS.append(False)
@@ -377,22 +397,22 @@ class Trajectory(object):
                 self.PASS.append(False)
                 self.ERROR.append(False)
             # Save the strings.
-            for k in range(nVar):
+            for (i, k) in enumerate(keys):
                 # Check for text.
-                if k < len(v):
+                if i < len(v):
                     # Save the text.
-                    self.text[keys[k]].append(v[k])
-                elif self.defns[keys[k]]['Value'] == 'str':
+                    self.text[k].append(v[i])
+                elif self.defns[k]['Value'] == 'str':
                     # No text (especially useful for optional labels)
                     # Default value.
-                    v0 = self.defns[keys[k]].get('Default', '')
-                    self.text[keys[k]].append(v0)
+                    v0 = self.defns[k].get('Default', '')
+                    self.text[k].append(v0)
                 else:
                     # No text (especially useful for optional labels)
-                    v0 = self.defns[keys[k]].get('Default', '0')
-                    self.text[keys[k]].append(str(v0))
-        # Close the file.
-        f.close()
+                    v0 = self.defns[k].get('Default', '0')
+                    self.text[k].append(str(v0))
+        # Save line numbers
+        self.linenos = np.asarray(linenos)
 
     # Function to write a JSON file with the trajectory variables.
     def WriteConditionsJSON(self, i, fname="conditions.json"):
