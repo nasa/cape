@@ -123,20 +123,27 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     fatri = '%s.a.tri' % proj
     futri = '%s.u.tri' % proj
     fitri = '%s.i.tri' % proj
-    # Write the triangulation.
-    trii.Write(fatri)
-    # Remove unused nodes
-    infix = "RemoveUnusedNodes"
-    fi = open('triged.%s.i' % infix, 'w')
-    # Write inputs to the file
-    fi.write('%s\n' % fatri)
-    fi.write('10\n')
-    fi.write('%s\n' % futri)
-    fi.write('1\n')
-    fi.close()
-    # Run triged to remove unused nodes
-    print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
-    os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    # Check if we can use ``triged`` to remove unused triangles
+    if rc.get_intersect_triged():
+        # Write the triangulation.
+        trii.Write(fatri)
+        # Remove unused nodes
+        infix = "RemoveUnusedNodes"
+        fi = open('triged.%s.i' % infix, 'w')
+        # Write inputs to the file
+        fi.write('%s\n' % fatri)
+        fi.write('10\n')
+        fi.write('%s\n' % futri)
+        fi.write('1\n')
+        fi.close()
+        # Run triged to remove unused nodes
+        print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
+        os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    else:
+        # Trim unused trianlges (internal)
+        trii.TrimUnusedNodes()
+        # Write trimmed triangulation
+        trii.Write(futri)
     # Check options
     if rc.get_intersect_rm():
         # Input file to remove small tris

@@ -20,7 +20,10 @@
             "y_is_spanwise": true
         },
         // Intersections?
-        "intersect": true,
+        "intersect": {
+            "run": true,
+            "triged": false
+        },
         // Defines the flow domain automatically
         "autoInputs": {"r": 6},
         // Volume mesh options
@@ -86,7 +89,7 @@
         ],
         "RefPoint": {
             "missile_no_base": "MRP",
-            "missrotationile_no_thrust": "MRP",
+            "missile_no_thrust": "MRP",
             "missile_thrust": "MRP",
             "missile_total": "MRP",
             "fins": "MRP"

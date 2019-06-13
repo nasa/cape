@@ -3223,7 +3223,7 @@ class Cntl(object):
             # Ratio of specific heats
             gam = self.x.GetSurfCT_Gamma(i, key, comp=comp)
             # Calculate exit Mach number
-            M2 = convert.ExitMachFromAreaRatio(AR, M1, gam, comp=comp)
+            M2 = convert.ExitMachFromAreaRatio(AR, M1, gam)
         # Output
         return M2
         

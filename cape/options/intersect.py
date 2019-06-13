@@ -256,6 +256,39 @@ class intersect(odict):
             * 2017-06-24 ``@ddalle``: First version
         """
         self.set_key('smalltri', smalltri)
+    
+    # Get option to remove unused tris using triged
+    def get_intersect_triged(self):
+        """Get the option to use or not use ``triged`` from CGT
+        
+        :Call:
+            >>> q = opts.get_intersect_triged()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not to allow ``triged`` to be used
+        :Versions:
+            * 2019-06-11 ``@ddalle``: First version
+        """
+        return self.get_key('triged', rck='intersect_triged')
+
+    # Set option to remove unused tris using triged
+    def set_intersect_triged(self, q=rc0('intersect_triged')):
+        """Get the option to use or not use ``triged`` from CGT
+
+        :Call:
+            >>> opts.set_intersect_triged(q)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *q*: ``True`` | ``False``
+                Whether or not to allow ``triged`` to be used
+        :Versions:
+            * 2019-06-11 ``@ddalle``: First version
+        """
+        self.set_key('triged', q)
         
 # class intersect
 

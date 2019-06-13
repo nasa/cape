@@ -153,6 +153,7 @@ rc["rztoldef"] = 1e-5
 # Intersect options
 rc['intersect_rm'] = False
 rc['intersect_smalltri'] = 1e-4
+rc['intersect_triged'] = True
 
 # AFLR3 settings
 rc['aflr3_cdfr']   = 1.1

@@ -743,9 +743,21 @@ class RunControl(odict):
         self._intersect()
         self['intersect'].set_intersect_smalltri(A)
         
+    # Use triged to remove unused tris
+    def get_intersect_triged(self):
+        self._intersect()
+        return self['intersect'].get_intersect_triged()
+        
+    # Use triged to remove unused tris
+    def set_intersect_triged(self, q=rc0('intersect_triged')):
+        self._intersect()
+        self['intersect'].set_intersect_triged(q)
+        
     # Copy documentation
-    for k in ['intersect_i', 'intersect_o',
-    'intersect_rm', 'intersect_smalltri']:
+    for k in [
+        'intersect_i', 'intersect_o',
+        'intersect_rm', 'intersect_smalltri', 'intersect_triged'
+    ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(intersect.intersect,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(intersect.intersect,'set_'+k).__doc__
