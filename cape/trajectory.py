@@ -72,16 +72,32 @@ pressure, which relieves the user from having to do the conversions before
 creating the run matrix conditions.
 """
 
-# Basic numerics
-import numpy as np
-# More powerful text processing
-import re, fnmatch
-# File system and operating system management
+# Standard library modules
 import os
-# Conversions and constants
+import re
+import fnmatch
+
+# Standard third-party libraries
+import numpy as np
+
+# Local imports (relative)
 from . import convert
-# Units tool
+# Local partial imports (relative)
 from .units import mks
+
+# Regular expression for splitting a line
+#   Example 1: "  2.00, -3.7,  45.0, poweron\n"
+#         -->  ["  2.00,", " -3.7,", "  45.0,", " poweron"]
+#   Example 2: "  2.00 -3.7  45.0 poweron\n"
+#         -->  ["  2.00", " -3.7", "  45.0", " poweron"]
+# The comma and no-comma cases are handled by completely separate
+# expressions to avoid the confusing way groups are handled under
+# :func:`re.findall`.
+regex_line_parts = re.compile("\s*[^\s,]*\s*,|\s*[^\s,]+")
+
+# Regular expression for determining float formats
+regex_float = re.compile(
+    "[+-]?[0-9]*\.(?P<dec>[0-9]+)(?P<exp>[DdEe][+-][0-9]{1,3})")
 
 
 # Trajectory class
@@ -319,6 +335,10 @@ class Trajectory(object):
   # File I/O
   # ========
   # <
+   # --------
+   # CSV I/O
+   # --------
+   # [
     # Function to read a file
     def ReadTrajectoryFile(self, fname):
         """Read trajectory variable values from file
@@ -380,7 +400,7 @@ class Trajectory(object):
                 raw = grp2[i].strip("'")
                 # Make replacements
                 v = [vi.replace(txt, raw) for vi in v]
-            elif v[0].lower() in ['p', '$p', 'pass']:
+            if v[0].lower() in ['p', '$p', 'pass']:
                 # Case is marked as passed.
                 self.PASS.append(True)
                 self.ERROR.append(False)
@@ -413,7 +433,40 @@ class Trajectory(object):
                     self.text[k].append(str(v0))
         # Save line numbers
         self.linenos = np.asarray(linenos)
+        
+    # Write trajectory file
+    def WriteTrajectoryFile(self, fname=None):
+        """Write run matrix values to file based on original text
 
+        Differences between the text and the working values (created
+        by specifying values in the trajectory) are preserved.
+        
+        :Call:
+            >>> x.WriteTrajectoryFile()
+            >>> x.WriteTrajectoryFile(fname)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the trajectory class
+            *fname*: {*x.fname*} | :class:`str`
+                Name of trajectory file to write
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Default file name
+        if fname is None:
+            fname = self.fname
+        # Open the file
+        with open(fname, 'w') as f:
+            # Loop through lines
+            for line in self.lines:
+                # Write each line
+                f.write(line)
+   # ]
+   
+   # ------------
+   # JSON Output
+   # ------------
+   # [
     # Function to write a JSON file with the trajectory variables.
     def WriteConditionsJSON(self, i, fname="conditions.json"):
         """Write a simple JSON file with exact trajectory variables
@@ -421,6 +474,8 @@ class Trajectory(object):
         :Call:
             >>> x.WriteConditionsJSON(i, fname="conditions.json")
         :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the trajectory class
             *i*: :class:`int`
                 Index of the run case to print
             *fname*: :class:`str`
@@ -462,6 +517,244 @@ class Trajectory(object):
         f.write('}\n')
         # Close the file.
         f.close()
+   # ]
+   
+   # -----------
+   # Alteration
+   # -----------
+   # [
+    # Set a value
+    def SetValue(self, k, i, v, align="right"):
+        """Set the value of one key for one case to *v*
+        
+        Also write the value to the appropriate line of text
+        
+        :Call:
+            >>> x.SetValue(k, i, v, align="right")
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the trajectory class
+            *k*: :class:`str`
+                Name of trajectory key to alter
+            *i*: :class:`int`
+                Index of the run case to print
+            *v*: :class:`any`
+                Value to write to file
+            *align*: {``"right"``} | ``"left"``
+                Alignment option relative to white space
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Alter the text first
+        self._set_line_value(k, i, v, align=align)
+        # Get data for this key
+        V = getattr(self, k)
+        # Save that value to the data
+        V[i] = v
+        
+    # Pass a case
+    def MarkPASS(self, i, flag="p"):
+        """Mark a case as **PASS**
+        
+        This result in a status of ``PASS*`` if the case would is not
+        otherwise ``DONE``.
+        
+        :Call:
+            >>> x.MarkPASS(i, flag="p")
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the trajectory class
+            *i*: :class:`int`
+                Index of the run case to print
+            *flag*: {``"p"``} | ``"P"``| ``"$p"`` | ``"PASS"``
+                Marker to use to denote status
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Check for line number
+        if i > len(self.linenos):
+            raise ValueError("No text line for case %i" % i)
+        # Set the marker in the attribute
+        self.PASS[i] = True
+        # Get the line number
+        nline = self.linenos[i]
+        # Get line
+        line = self.lines[nline]
+        # Split into values
+        parts = regex_line_parts.findall(line)
+        # Get first column value; remove commas and white space
+        v0 = parts[0].replace(",", "").strip()
+        # Check if it's already a marker
+        if v0.lower() in ["p", "$p", "pass"]:
+            # Already done
+            return
+        # Get first column so we can try to replace spaces
+        v0 = parts[0]
+        # Number of charaters
+        n0 = len(v0)
+        # Count number of leading spaces
+        nspace = n0 - len(v0.lstrip()) - 1
+        # Create new flag
+        flagtxt = ("%%-%is" % nspace) % flag
+        # Reassemble line
+        self.lines[nline] = flagtxt + line[nspace:]
+        
+    # Error a case
+    def MarkERROR(self, i, flag="E"):
+        """Mark a case as **ERROR**
+        
+        :Call:
+            >>> x.MarkERROR(i, flag="E")
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the trajectory class
+            *i*: :class:`int`
+                Index of the run case to print
+            *flag*: {``"E"``} | ``"e"``| ``"$E"`` | ``"ERROR"``
+                Marker to use to denote status
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Check for line number
+        if i > len(self.linenos):
+            raise ValueError("No text line for case %i" % i)
+        # Set the marker in the attribute
+        self.ERROR[i] = True
+        # Get the line number
+        nline = self.linenos[i]
+        # Get line
+        line = self.lines[nline]
+        # Split into values
+        parts = regex_line_parts.findall(line)
+        # Get first column value; remove commas and white space
+        v0 = parts[0].replace(",", "").strip()
+        # Check if it's already a marker
+        if v0.lower() in ["e", "$e", "error"]:
+            # Already done
+            return
+        # Get first column so we can try to replace spaces
+        v0 = parts[0]
+        # Number of charaters
+        n0 = len(v0)
+        # Count number of leading spaces
+        nspace = n0 - len(v0.lstrip()) - 1
+        # Create new flag
+        flagtxt = ("%%-%is" % nspace) % flag
+        # Reassemble line
+        self.lines[nline] = flagtxt + line[nspace:]
+        
+    # Set a value in a line
+    def _set_line_value(self, k, i, v, align="right"):
+        """Write a value to the appropriate line of text
+        
+        :Call:
+            >>> x._set_line_value(k, i, v, align="right")
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the trajectory class
+            *k*: :class:`str`
+                Name of trajectory key to alter
+            *i*: :class:`int`
+                Index of the run case to print
+            *v*: :class:`any`
+                Value to write to file
+            *align*: {``"right"``} | ``"left"``
+                Alignment option relative to white space
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Check if key is present
+        if k not in self.keys:
+            raise KeyError("No run matrix key '%s'" % k)
+        # Check for line number
+        if i > len(self.linenos):
+            raise ValueError("No text line for case %i" % i)
+        # Get index of key within list
+        j = self.keys.index(k)
+        # Get line number
+        nline = self.linenos[i]
+        # Extract appropriate line
+        line = self.lines[nline]
+        # Split into values
+        parts = regex_line_parts.findall(line)
+        # Append if necessary (last entry may be blank)
+        if j >= len(parts):
+            parts.append("")
+        # Get current value (text)
+        txt = parts[j]
+        # Raw string length
+        ntxt = len(txt)
+        # Initialize fixed prefixes and suffixes
+        prefix = ""
+        suffix = ""
+        # Count number of characters available
+        if txt.endswith(","):
+            # Don't overwrite the comma
+            ntxt -= 1
+            suffix = ","
+        # Check preceding entry
+        if (j > 0) and (not parts[j-1].endswith(",")):
+            # Leave a space before to avoid comma
+            ntxt -= 1
+            prefix = " "
+        # Special cases
+        if ntxt <= 0:
+            # Must be at least one slot
+            ntxt = 1
+            # Generally want a prefix in this case; adding a column
+            prefix = " "
+        # Convert value to string
+        if isinstance(v, str):
+            # Already a string
+            vtxt = v
+        elif self.defns[k].get("Value", "float") == "float":
+            # Try to count decimals and detect scientific notation
+            match = regex_float.search(txt)
+            # Process regular expression results
+            if match is None:
+                # Use format from definition
+                fmt = self.defns[k].get("Format", "%s")
+            else:
+                # Get specific search results
+                dec = match.group("dec")
+                exp = match.group("exp")
+                # Length
+                ltxt = max(1, len(match.group()))
+                # Check decimals
+                if dec is None:
+                    # Default is 6
+                    ndec = 6
+                else:
+                    # Copy number of digits right of '.'
+                    ndec = len(dec)
+                # Check for scientific
+                if exp is None:
+                    # Regular float
+                    fmt = "%%%i.%if" % (ltxt, ndec)
+                else:
+                    # Scientific
+                    fmt = "%%%i.%ie" % (ltxt, ndec)
+            # Convert value to string
+            vtxt = fmt % v
+        else:
+            # Just convert to string
+            vtxt = v
+        # Update the "text" of this key
+        self.text[k][i] = vtxt
+        # Fill in available slots (pad with spaces or overfill)
+        if align == "left":
+            # Left-aligned string using "%-10s"
+            otxt = ("%%-%is" % ntxt) % vtxt
+        else:
+            # Right-aligned string using "%10s"
+            otxt = ("%%%is" % ntxt) % vtxt
+        # Replace entry *j* of this row
+        parts[j] = prefix + otxt + suffix
+        # Reset line
+        self.lines[nline] = "".join(parts) + "\n"
+        
+            
+   # ]
   # >
 
   # ===============
@@ -1061,6 +1354,13 @@ class Trajectory(object):
                 V = V[I]
         # Output
         return V
+  # >
+  
+  # ================
+  # Value Alteration
+  # ================
+  # <
+   
   # >
 
   # ============
