@@ -574,6 +574,11 @@ class Trajectory(object):
         # Check for line number
         if i > len(self.linenos):
             raise ValueError("No text line for case %i" % i)
+        # Ensure flag type
+        flag = str(flag)
+        # Check flag
+        if flag.lower() not in ["p", "pass", "$p"]:
+            raise ValueError("Flag '%s' does not denote PASS status") 
         # Set the marker in the attribute
         self.PASS[i] = True
         # Get the line number
@@ -634,12 +639,56 @@ class Trajectory(object):
             return
         # Get first column so we can try to replace spaces
         v0 = parts[0]
-        # Number of charaters
+        # Number of characters
         n0 = len(v0)
         # Count number of leading spaces
         nspace = n0 - len(v0.lstrip()) - 1
         # Create new flag
         flagtxt = ("%%-%is" % nspace) % flag
+        # Reassemble line
+        self.lines[nline] = flagtxt + line[nspace:]
+        
+    # Unmark a case
+    def UnmarkCase(self, i):
+        """Unmark a case's **PASS** or **ERROR** flag
+        
+        :Call:
+            >>> x.UnmarkCase(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the trajectory class
+            *i*: :class:`int`
+                Index of the run case to print
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Check for line number
+        if i > len(self.linenos):
+            raise ValueError("No text line for case %i" % i)
+        # Set the marker in the attribute
+        self.ERROR[i] = True
+        # Get the line number
+        nline = self.linenos[i]
+        # Get line
+        line = self.lines[nline]
+        # Split into values
+        parts = regex_line_parts.findall(line)
+        # Get first column value; remove commas and white space
+        v0 = parts[0].replace(",", "").strip()
+        # Check if it's already a marker
+        if v0.lower() not in ["e", "$e", "error", "p", "$p", "pass"]:
+            # Nothing to do
+            return
+        # Get first column so we can use same number of chars
+        v0 = parts[0]
+        # Copy into white spaces
+        flagtxt = " " * len(v0)
+        # Check for comma
+        if v0.endswith(","):
+            # Replace all but last character
+            flagtxt = flagtxt[:-1]
+        # Number of characters
+        nspace = len(flagtxt)
         # Reassemble line
         self.lines[nline] = flagtxt + line[nspace:]
         

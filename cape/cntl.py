@@ -538,6 +538,18 @@ class Cntl(object):
             # Display status.
             self.DisplayStatus(**kw)
             return 'c'
+        elif kw.get("PASS"):
+            # Pass jobs
+            self.MarkPASS(**kw)
+            return "PASS"
+        elif kw.get("ERROR"):
+            # Mark jobs as permanent errors
+            self.MarkERROR(**kw)
+            return "ERROR"
+        elif kw.get("unmark"):
+            # Unmark jobs
+            self.UnmarkCase(**kw)
+            return "unmark"
         elif kw.get('batch'):
             # Process a batch job
             self.SubmitBatchPBS(os.sys.argv)
@@ -650,7 +662,6 @@ class Cntl(object):
             return
         # Submit jobs as fallback
         self.SubmitJobs(**kw)
-        
         
     # Function to display current status
     def DisplayStatus(self, **kw):
@@ -920,6 +931,92 @@ class Cntl(object):
         # Print the line.
         if fline: print(fline)
         
+    # Mark a case as PASS
+    @run_rootdir
+    def MarkPASS(self, **kw):
+        """Mark one or more cases as **PASS** and rewrite matrix
+        
+        :Call:
+            >>> cntl.MarkPASS(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+            *flag*: {``"p"``} | ``"P"`` | ``"PASS"`` | ``"$p"``
+                Marker to use to denote status
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Get indices
+        I = self.x.GetIndices(**kw)
+        # Process flag option
+        flag = kw.get("flag", "p")
+        # Loop through cases
+        for i in I:
+            # Mark case
+            self.x.MarkPASS(i, flag=flag)
+        # Write the trajectory
+        self.x.WriteTrajectoryFile()
+        
+    # Mark a case as PASS
+    @run_rootdir
+    def MarkERROR(self, **kw):
+        """Mark one or more cases as **ERROR** and rewrite matrix
+        
+        :Call:
+            >>> cntl.MarkERROR(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+            *flag*: {``"E"``} | ``"e"`` | ``"ERROR"`` | ``"$E"``
+                Marker to use to denote status
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Get indices
+        I = self.x.GetIndices(**kw)
+        # Process flag option
+        flag = kw.get("flag", "E")
+        # Loop through cases
+        for i in I:
+            # Mark case
+            self.x.MarkERROR(i, flag=flag)
+        # Write the trajectory
+        self.x.WriteTrajectoryFile()
+        
+    # Remove PASS and ERROR markers
+    @run_rootdir
+    def UnmarkCase(self, **kw):
+        """Mark one or more cases as **ERROR** and rewrite matrix
+        
+        :Call:
+            >>> cntl.UnmarkCase(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2019-06-14 ``@ddalle``: First version
+        """
+        # Get indices
+        I = self.x.GetIndices(**kw)
+        # Loop through cases
+        for i in I:
+            # Mark case
+            self.x.UnmarkCase(i)
+        # Write the trajectory
+        self.x.WriteTrajectoryFile()
+    
     # Execute script
     @run_rootdir
     def ExecScript(self, i, cmd):
