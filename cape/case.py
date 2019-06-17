@@ -162,10 +162,6 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     else:
         # Rename file
         os.rename(futri, fitri)
-    # Clean up
-    if os.path.isfile(fitri):
-        if os.path.isfile(fatri): os.remove(fatri)
-        if os.path.isfile(futri): os.remove(futri)
 
     
 # Function to verify if requested
