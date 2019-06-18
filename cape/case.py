@@ -141,7 +141,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
     else:
         # Trim unused trianlges (internal)
-        trii.TrimUnusedNodes()
+        trii.RemoveUnusedNodes()
         # Write trimmed triangulation
         trii.Write(futri)
     # Check options

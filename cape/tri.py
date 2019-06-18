@@ -4327,16 +4327,16 @@ class TriBase(object):
         # Save the reduced number of tris.
         tri0.nTri = k.size
         # Trim unused nodes to save space
-        tri0.TrimUnusedNodes()
+        tri0.RemoveUnusedNodes()
         # Output
         return tri0
 
     # Eliminate unused nodes
-    def TrimUnusedNodes(self):
+    def RemoveUnusedNodes(self):
         """Remove any nodes that are not used in any triangles
 
         :Call:
-            >>> tri.TrimUnusedNodes()
+            >>> tri.RemoveUnusedNodes()
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance

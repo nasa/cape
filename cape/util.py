@@ -154,7 +154,7 @@ def TrimUnused(T):
             Nodal matrix with nodes 1 to *n* with same dimensions as *T*
     :Versions:
         * 2017-02-10 ``@ddalle``: First version
-        * 2017-03-30 ``@ddalle``: From :func:`cape.tri.Tri.TrimUnusedNodes`
+        * 2017-03-30 ``@ddalle``: From :func:`cape.tri.Tri.RemoveUnusedNodes`
     """
     # Get nodes that are used
     N = np.unique(T)
