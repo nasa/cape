@@ -3142,6 +3142,8 @@ class TriBase(object):
             self.Nodes = np.vstack((self.Nodes, tri.Nodes))
             # Concatenate the triangle node index matrix
             self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
+            # Update number of nodes
+            self.nNode += tri.nNode
         else:
             # Concatenate the triangle node index matrix, unaltered
             self.Tris = np.vstack((self.Tris, tri.Tris))
@@ -3209,9 +3211,8 @@ class TriBase(object):
                     self.Conf[comp] = vt
         except Exception:
             pass
-        # Update the statistics.
-        self.nNode += tri.nNode
-        self.nTri  += tri.nTri
+        # Update the number of tris
+        self.nTri += tri.nTri
         # Done
         return None
 
@@ -3388,7 +3389,7 @@ class TriBase(object):
             # That's it.
             return
         # Make copy of the target indices.
-        K0 = np.array(kc).copy()
+        K0 = kc.copy()
         # Extract target triangle vertices
         x0 = tric.Nodes[tric.Tris[K0]-1,0]
         y0 = tric.Nodes[tric.Tris[K0]-1,1]

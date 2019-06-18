@@ -118,7 +118,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         # Read the farfield, sources, and other non-intersected surfaces
         trif = Tri(ftrif)
         # Add it to the mapped triangulation
-        trii.AddRawCompID(trif, newnodes=False)
+        trii.AddRawCompID(trif)
     # Names of intermediate steps
     fatri = '%s.a.tri' % proj
     futri = '%s.u.tri' % proj
