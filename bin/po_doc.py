@@ -111,6 +111,15 @@ relatively simple commands.
         section of *FNAME*; only process components matching wildcard *GLOB* if
         if is specified
         
+    --PASS
+        Mark cases with "p" to denote that they have been deemed complete
+        
+    --ERROR
+        Mark cases with "E" to denote that they cannot run
+        
+    --unmark
+        Remove PASS or ERROR markings from selected cases
+        
     --apply
         Apply the settings in *FNAME* to all cases; way to quickly change
         settings for a set of runs
