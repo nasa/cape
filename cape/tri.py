@@ -3111,14 +3111,14 @@ class TriBase(object):
             pass
 
     # Add a second triangulation without altering component numbers.
-    def AddRawCompID(self, tri, warn=False):
+    def AddRawCompID(self, tri, warn=False, newnodes=False):
         """
         Add a second triangulation to the current one without changing
         component numbers of either triangulation.  No checks are performed,
         and intersections are not analyzed.
 
         :Call:
-            >>> tri.AddRawCompID(tri2, warn=False)
+            >>> tri.AddRawCompID(tri2, warn=False, newnodes=True)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be altered
@@ -3126,17 +3126,27 @@ class TriBase(object):
                 Triangulation instance to be added to the first
             *warn*: ``True`` | {``False``}
                 Whether or not to warn about components in both
+            *newnodes*: {``True``} | ``False``
+                If ``False``, do not add nodes of second triangulation
         :Effects:
             All nodes and triangles from *tri2* are added to *tri*.  As a
             result, the number of nodes, number of tris, and number of
             components in *tri* will all increase.
         :Versions:
             * 2014-06-12 ``@ddalle``: First version
+            * 2019-06-17 ``@ddalle``: Added *newnodes* keyword
         """
-        # Concatenate the node matrix
-        self.Nodes = np.vstack((self.Nodes, tri.Nodes))
-        # Concatenate the triangle node index matrix
-        self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
+        # Check for separate node lists
+        if newnodes:
+            # Concatenate the node matrix
+            self.Nodes = np.vstack((self.Nodes, tri.Nodes))
+            # Concatenate the triangle node index matrix
+            self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
+            # Update number of nodes
+            self.nNode += tri.nNode
+        else:
+            # Concatenate the triangle node index matrix, unaltered
+            self.Tris = np.vstack((self.Tris, tri.Tris))
         # Check for overlaps
         if warn:
             # Unique component lists
@@ -3201,9 +3211,8 @@ class TriBase(object):
                     self.Conf[comp] = vt
         except Exception:
             pass
-        # Update the statistics.
-        self.nNode += tri.nNode
-        self.nTri  += tri.nTri
+        # Update the number of tris
+        self.nTri += tri.nTri
         # Done
         return None
 
@@ -3380,7 +3389,7 @@ class TriBase(object):
             # That's it.
             return
         # Make copy of the target indices.
-        K0 = np.array(kc).copy()
+        K0 = kc.copy()
         # Extract target triangle vertices
         x0 = tric.Nodes[tric.Tris[K0]-1,0]
         y0 = tric.Nodes[tric.Tris[K0]-1,1]

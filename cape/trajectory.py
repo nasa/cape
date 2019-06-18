@@ -549,6 +549,20 @@ class Trajectory(object):
         self._set_line_value(k, i, v, align=align)
         # Get data for this key
         V = getattr(self, k)
+        # Check for string type
+        t = self.defns[k].get("Value", "float")
+        # If string, make sure we have enough length
+        if t == "str":
+            # Length of input string, *v*
+            nv = len(v)
+            # Get dtype of existing array
+            dt = V.dtype
+            # Create bigger array if necessary
+            if nv > dt.itemsize:
+                # Create new array
+                V = np.asarray(V, dtype="|S%i" % nv)
+                # Save it
+                setattr(self, k, V)
         # Save that value to the data
         V[i] = v
         
