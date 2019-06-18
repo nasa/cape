@@ -4336,21 +4336,14 @@ class TriBase(object):
         """
         # Get nodes that are used
         N = np.unique(self.Tris)
-        # New number of nodes
-        nNode = len(N)
-        # Renumbered nodes
-        I = np.arange(1, nNode+1)
         # Extract triangles
         T = self.Tris
         # Loop through the nodes that are used
-        for j in range(nNode):
-            # Get values
-            i = I[j]
-            n = N[j]
+        for (j, n) in enumerate(N):
             # Make replacement
-            T[T==n] = i
+            T[T==n] = j+1
         # Downselect nodes
-        self.nNode = nNode
+        self.nNode = j+1
         self.Nodes = self.Nodes[N-1,:]
         # Downselect *q* if available
         try:
