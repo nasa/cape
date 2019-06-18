@@ -3111,7 +3111,7 @@ class TriBase(object):
             pass
 
     # Add a second triangulation without altering component numbers.
-    def AddRawCompID(self, tri, warn=False, newnodes=False):
+    def AddRawCompID(self, tri, warn=False, newnodes=True):
         """
         Add a second triangulation to the current one without changing
         component numbers of either triangulation.  No checks are performed,
@@ -3213,8 +3213,6 @@ class TriBase(object):
             pass
         # Update the number of tris
         self.nTri += tri.nTri
-        # Done
-        return None
 
   # >
 
