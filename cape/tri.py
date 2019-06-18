@@ -4345,19 +4345,24 @@ class TriBase(object):
         """
         # Get nodes that are used
         N = np.unique(self.Tris)
+        # Output number of nodes
+        nNode = N.size
+        # Initialize array of new indices
+        # This is a map from node i -> I[i-1]
+        I = np.zeros(self.nNode, dtype="int")
+        # Create the map using vector operation
+        I[N-1] = np.arange(1, nNode+1)
         # Extract triangles
         T = self.Tris
-        # Loop through the nodes that are used
-        for (j, n) in enumerate(N):
-            # Make replacement
-            T[T==n] = j+1
+        # Renumber triangles using *I* as a map
+        self.Tris = I[T-1]
         # Downselect nodes
-        self.nNode = j+1
+        self.nNode = nNode
         self.Nodes = self.Nodes[N-1,:]
         # Downselect *q* if available
         try:
             self.q = self.q[N-1,:]
-        except Exception:
+        except AttributeError:
             pass
 
 
