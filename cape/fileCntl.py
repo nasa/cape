@@ -569,7 +569,7 @@ class FileCntl(object):
         
         
     # Method to replace a line that starts with a given string
-    def ReplaceLineStartsWith(self, start, line):
+    def ReplaceLineStartsWith(self, start, line, imin=0, nmax=None):
         """
         Find all lines that begin with a certain string and replace them with
         another string.  Note that the entire line is replaced, not just the
@@ -578,9 +578,8 @@ class FileCntl(object):
         Leading spaces are ignored during the match tests.
         
         :Call:
-            >>> n = FC.ReplaceLineStartsWith(start, line)
-            >>> n = FC.ReplaceLineStartsWith(start, lines)
-        
+            >>> n = FC.ReplaceLineStartsWith(start, line, imin=0, nmax=None)
+            >>> n = FC.ReplaceLineStartsWith(start, lines, imin=0, nmax=None)
         :Inputs:
             *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
@@ -590,15 +589,16 @@ class FileCntl(object):
                 String to replace every match with
             *lines*: :class:`list`
                 List of strings to match first ``len(lines)`` matches with
-        
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
+            *nmax*: {``None``} | :class:`int` > 0
+                Make at most *nmax* substitutions
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
-                
         :Effects:
             *FC.lines*: Some of the lines may be affected
             *FC._updated_lines*: Set to ``True``
-        
         :Examples:
             Suppose that *FC* has the following two lines.
             
@@ -623,6 +623,7 @@ class FileCntl(object):
                 
         :Versions:
             * 2014-06-03 ``@ddalle``: First version
+            * 2019-06-19 ``@ddalle``: Added *imin* and *nmax*
         """
         # Set the update status.
         self.UpdateLines()
@@ -635,6 +636,11 @@ class FileCntl(object):
             L = self.lines[i]
             # Check for a match.
             if L.startswith(start):
+                # Check *imin* index
+                if i < imin:
+                    # Increase count but don't substitute
+                    n += 1
+                    continue
                 # Check for the replacement type.
                 if type(line) is str:
                     # Replace the line.
@@ -646,19 +652,24 @@ class FileCntl(object):
                     # Increase the match count.
                     n += 1
                     # Check for end of matches.
-                    if n >= len(line): return len(line)
+                    if n >= len(line):
+                        return len(line)
+                # Check maximum substitution count
+                if (nmax is not None) and (n >= nmax):
+                    break
         # Done
-        return n
+        return n - max(imin, 0)
         
     # Method to replace a line only in a certain section
-    def ReplaceLineInSectionStartsWith(self, sec, start, line):
+    def ReplaceLineInSectionStartsWith(
+            self, sec, start, line, imin=0, nmax=None):
         """
         Find all lines in a certain section that start with a specified literal
         string and replace the entire line with the specified text.
         
         :Call:
-            >>> n = FC.ReplaceLineInSectionStartsWith(sec, start, line)
-            >>> n = FC.ReplaceLineInSectionStartsWith(sec, start, lines)
+            >>> n = FC.ReplaceLineInSectionStartsWith(sec, start, line, **kw)
+            >>> n = FC.ReplaceLineInSectionStartsWith(sec, start, lines, **kw)
         :Inputs:
             *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
@@ -670,6 +681,10 @@ class FileCntl(object):
                 String to replace every match with
             *lines*: :class:`list`
                 List of strings to match first ``len(lines)`` matches with
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
+            *nmax*: {``None``} | :class:`int` > 0
+                Make at most *nmax* substitutions
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
@@ -696,6 +711,11 @@ class FileCntl(object):
             L = self.Section[sec][i]
             # Check for a match.
             if L.startswith(start):
+                # Check *imin* index
+                if i < imin:
+                    # Increase count but don't substitute
+                    n += 1
+                    continue
                 # Check for the replacement type.
                 if type(line) is str:
                     # Replace the line.
@@ -707,9 +727,13 @@ class FileCntl(object):
                     # Increase the match count.
                     n += 1
                     # Check for end of matches.
-                    if n >= len(line): return len(line)
+                    if n >= len(line):
+                        return len(line)
+                # Check maximum substitution count
+                if (nmax is not None) and (n >= nmax):
+                    break
         # Done.
-        return n
+        return n - max(imin, 0)
         
         
     # Method to insert a line somewhere
@@ -958,14 +982,14 @@ class FileCntl(object):
         
                 
     # Replace a line or add it if not found
-    def ReplaceOrAddLineStartsWith(self, start, line, i=None):
+    def ReplaceOrAddLineStartsWith(self, start, line, i=None, **kw):
         """
         Replace a line that starts with a given literal string or add the line
         if no matches are found.
         
         :Call:
-            >>> FC.ReplaceOrAddLineStartsWith(start, line)
-            >>> FC.ReplaceOrAddLineStartsWith(start, line, i)
+            >>> FC.ReplaceOrAddLineStartsWith(start, line, **kw)
+            >>> FC.ReplaceOrAddLineStartsWith(start, line, i, **kw)
         :Inputs:
             *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
@@ -973,15 +997,19 @@ class FileCntl(object):
                 String to test as literal match for beginning of each line
             *line*: :class:`str`
                 String to replace every match with
-            *i*: :class:`int`
-                Location to add line (by default it is appended)
+            *i*: {``None``} | :class:`int`
+                Location to add line, negative ok, (default is append)
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
+            *nmax*: {``None``} | :class:`int` > 0
+                Make at most *nmax* substitutions
         :Effects:
             Replaces line in section *FC.lines* or adds it if not found
         :Versions:
             * 2014-06-03 ``@ddalle``: First version
         """
         # Call the replace method (only perform once).
-        n = self.ReplaceLineStartsWith(start, [line])
+        n = self.ReplaceLineStartsWith(start, [line], **kw)
         # Check for a match.
         if not n:
             # Check where to add the line.
@@ -1000,11 +1028,10 @@ class FileCntl(object):
                 else:
                     # Insert at specified location.
                     lines.insert(i, line)
-        # Done
-        return None
         
     # Replace a line or add (from one section) if not found
-    def ReplaceOrAddLineToSectionStartsWith(self, sec, start, line, i=None):
+    def ReplaceOrAddLineToSectionStartsWith(
+            self, sec, start, line, i=None, **kw):
         """
         Replace a line in a specified section that starts with a given literal 
         string or add the line to the section if no matches are found.
@@ -1023,13 +1050,17 @@ class FileCntl(object):
                 String to replace every match with
             *i*: :class:`int`
                 Location to add line (by default it is appended)
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
+            *nmax*: {``None``} | :class:`int` > 0
+                Make at most *nmax* substitutions
         :Effects:
             Replaces line in section *FC.Section[sec]* or adds it if not found
         :Versions:
             * 2014-06-03 ``@ddalle``: First version
         """
         # Call the replace method (only perform once).
-        n = self.ReplaceLineInSectionStartsWith(sec, start, [line])
+        n = self.ReplaceLineInSectionStartsWith(sec, start, [line], **kw)
         # Must have the section.
         self.AssertSection(sec)
         # Check for a match.
@@ -1055,7 +1086,7 @@ class FileCntl(object):
         
         
     # Method to replace a line that starts with a regular expression
-    def ReplaceLineSearch(self, reg, line):
+    def ReplaceLineSearch(self, reg, line, imin=0, nmax=None):
         """
         Find all lines that begin with a certain regular expression and replace
         them with another string.  Note that the entire line is replaced, not
@@ -1064,9 +1095,8 @@ class FileCntl(object):
         Leading spaces are ignored during the match tests.
         
         :Call:
-            >>> n = FC.ReplaceLineSearch(reg, line)
-            >>> n = FC.ReplaceLineSearch(reg, lines)
-        
+            >>> n = FC.ReplaceLineSearch(reg, line, imin=0, nmax=None)
+            >>> n = FC.ReplaceLineSearch(reg, lines, imin=0, nmax=None)
         :Inputs:
             *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1076,15 +1106,16 @@ class FileCntl(object):
                 String to replace every match with
             *lines*: :class:`list`
                 List of strings to match first ``len(lines)`` matches with
-        
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
+            *nmax*: {``None``} | :class:`int` > 0
+                Make at most *nmax* substitutions
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
-                
         :Effects:
             *FC.lines*: Some of the lines may be affected
             *FC._updated_lines*: Set to ``True``
-        
         :Examples:
             Suppose that *FC* has the following two lines.
             
@@ -1121,6 +1152,11 @@ class FileCntl(object):
             L = self.lines[i]
             # Check for a match.
             if re.search(reg, L):
+                # Check *imin* index
+                if i < imin:
+                    # Increase count but don't substitute
+                    n += 1
+                    continue
                 # Check for the replacement type.
                 if type(line) is str:
                     # Replace the line.
@@ -1132,30 +1168,38 @@ class FileCntl(object):
                     # Increase the match count.
                     n += 1
                     # Check for end of matches.
-                    if n >= len(line): return len(line)
+                    if n >= len(line):
+                        return len(line)
+                # Check maximum substitution count
+                if (nmax is not None) and (n >= nmax):
+                    break
         # Done
-        return n
+        return n - max(0, imin)
         
     # Method to replace a line only in a certain section
-    def ReplaceLineInSectionSearch(self, sec, reg, line):
+    def ReplaceLineInSectionSearch(self, sec, reg, line, imin=0, nmax=None):
         """
         Find all lines in a certain section that start with a specified regular
         expression and replace the entire lines with the specified text.
         
         :Call:
-            >>> n = FC.ReplaceLineInSectionSearch(sec, reg, line)
-            >>> n = FC.ReplaceLineInSectionSearch(sec, reg, lines)
+            >>> n = FC.ReplaceLineInSectionSearch(sec, reg, line, **kw)
+            >>> n = FC.ReplaceLineInSectionSearch(sec, reg, lines, **kw)
         :Inputs:
             *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
             *reg*: :class:`str`
-                Regular expression to search for match at beginning of each line
+                Regular expression to search for at beginning of each line
             *line*: :class:`str`
                 String to replace every match with
             *lines*: :class:`list`
                 List of strings to match first ``len(lines)`` matches with
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
+            *nmax*: {``None``} | :class:`int` > 0
+                Make at most *nmax* substitutions
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
@@ -1182,6 +1226,11 @@ class FileCntl(object):
             L = self.Section[sec][i]
             # Check for a match.
             if re.search(reg, L):
+                # Check *imin* index
+                if i < imin:
+                    # Increase count but don't substitute
+                    n += 1
+                    continue
                 # Check for the replacement type.
                 if type(line) is str:
                     # Replace the line.
@@ -1193,20 +1242,24 @@ class FileCntl(object):
                     # Increase the match count.
                     n += 1
                     # Check for end of matches.
-                    if n >= len(line): return len(line)
+                    if n >= len(line):
+                        return len(line)
+                # Check maximum substitution count
+                if (nmax is not None) and (n >= nmax):
+                    break
         # Done.
         return n
         
         
     # Replace a line or add it if not found
-    def ReplaceOrAddLineSearch(self, reg, line, i=None):
+    def ReplaceOrAddLineSearch(self, reg, line, i=None, **kw):
         """
         Replace a line that starts with a given regular expression or add the
         line if no matches are found.
         
         :Call:
-            >>> FC.ReplaceOrAddLineSearch(reg, line)
-            >>> FC.ReplaceOrAddLineSearch(reg, line, i)
+            >>> FC.ReplaceOrAddLineSearch(reg, line, **kw)
+            >>> FC.ReplaceOrAddLineSearch(reg, line, i, **kw)
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1216,13 +1269,17 @@ class FileCntl(object):
                 String to replace first match with
             *i*: :class:`int`
                 Location to add line (by default it is appended)
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
+            *nmax*: {``None``} | :class:`int` > 0
+                Make at most *nmax* substitutions
         :Effects:
             Replaces line in section *FC.lines* or adds it if not found
         :Versions:
             * 2014-06-04 ``@ddalle``: First version
         """
         # Call the replace method (only perform once).
-        n = self.ReplaceLineSearch(reg, [line])
+        n = self.ReplaceLineSearch(reg, [line], **kw)
         # Check for a match.
         if not n:
             # Check where to add the line.

@@ -1559,9 +1559,28 @@ class InputInp(cape.namelist.Namelist):
         # Output
         return BCTable
 
-    # Read mass fractoins
+    # Read mass fractions
     def GetBCMassFraction(self, name, i=None):
+        """Get boundary condition mass fraction(s) for specified BC
         
+        :Call:
+            >>> Y = inp.GetBCMassFraction(name)
+            >>> y = inp.GetBCMassFraction(name, i)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *name*: :class:`str`
+                Name of boundary condition zone
+            *i*: {``None``} | :class:`int` >= 0
+                Species index
+        :Outputs:
+            *y*: :class:`float` | ``None``
+                Mass fraction of species *i*
+            *Y*: :class:`list`\ [:class:`float`]
+                List of species mass fractions
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
         # Name of section
         sec = "CFD_BCS"
         # Check if section is present
@@ -1587,5 +1606,160 @@ class InputInp(cape.namelist.Namelist):
             # Return indexed value
             return vals[i]
             
+    # Set mass fraction
+    def SetBCMassFraction(self, name, Y, i=None):
+        """Set list of boundary condition mass fraction(s)
+        
+        
+        :Call:
+            >>> inp.SetBCMassFraction(name, Y)
+            >>> inp.SetBCMassFraction(name, y, i)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *name*: :class:`str`
+                Name of boundary condition zone
+            *y*: :class:`float` | ``None``
+                Mass fraction of species *i*
+            *Y*: :class:`list`\ [:class:`float`]
+                List of species mass fractions
+            *i*: {``None``} | :class:`int` >= 0
+                Species index
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Check if setting list or one species
+        if i is not None:
+            # Get existing values
+            Y0 = self.GetBCMassFraction(name)
+            # Append if necessary
+            for j in range(len(Y0), i):
+                Y0.append(0.0)
+            # Set value
+            Y0[i] = Y
+            # Transfer variables
+            Y = Y0
+        # Convert to text
+        Ytxt = self.ConvertToText(Y)
+        # Relevant section name
+        sec = "CFD_BCS"
+        # Regular expression to search for
+        regex = "^\s*['\"]%s['\"]" % name
+        # Use section searcher for lines starting with whitespace plus name
+        lines = self.GetLineInSectionSearch(sec, regex, 1)
+        # Check for a match
+        if len(lines) < 1:
+            # No existing line; use default of two leading spaces
+            line0 = '  "%s"' % name
+        else:
+            # Replace the *first* line
+            line0 = lines[0]
+        # Copy previous number of spaces
+        indent = re.match("\s*", line0).group()
+        # Create output line
+        line = indent + ('"%s"  ' % name) + Ytxt + "\n"
+        # Set the line
+        self.ReplaceOrAddLineToSectionStartsWith(sec, line0, line)
+        
+    # Get direction cosines
+    def GetBCDirectionCosines(self, name="inflow", i=None):
+        """Get direction cosine(s) for specified BC
+        
+        :Call:
+            >>> U = inp.GetBCDirectionCosines(name="inflow")
+            >>> u = inp.GetBCDirectionCosines(name="inflow", i)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+            *i*: {``None``} | :class:`int` >= 0 <= *i* < 3
+                Axis index
+        :Outputs:
+            *u*: :class:`float` | ``None``
+                Direction cosine for BC *name*, index *i*
+            *U*: :class:`list`\ [:class:`float`] (size=3)
+                Unit vector of direction cosine
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Name of section
+        sec = "CFD_BCS"
+        # Check if section is present
+        if sec not in self.Section:
+            # Nothing to search
+            return
+        # Regular expression to search for
+        regex = "^\s*['\"]%s['\"]" % name
+        # Use section searcher for lines starting with whitespace plus name
+        lines = self.GetLineInSectionSearch(sec, regex, 2)
+        # Check for a match
+        if len(lines) < 2:
+            return
+        # Separate line into space-separated values
+        txts = lines[1].split()[1:]
+        # Evaluate each entry
+        vals = [self.ConvertToVal(txt) for txt in txts]
+        # Check for index
+        if i is None:
+            # Return entire
+            return vals
+        elif i < len(vals):
+            # Return indexed value
+            return vals[i]
+            
+    # Set direction cosines
+    def SetBCDirectionCosines(self, U, name="inflow", i=None):
+        """Set direction cosine(s) for specified BC
+        
+        :Call:
+            >>> inp.GetBCDirectionCosines(U, name="inflow")
+            >>> inp.GetBCDirectionCosines(u, name="inflow", i=None)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *u*: :class:`float` | ``None``
+                Direction cosine for BC *name*, index *i*
+            *U*: :class:`list`\ [:class:`float`] (size=3)
+                Unit vector of direction cosine
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+            *i*: {``None``} | :class:`int` >= 0 <= *i* < 3
+                Axis index
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Check if setting list or one species
+        if i is not None:
+            # Get existing values
+            U0 = self.GetBCDirectionCosines(name)
+            # Append if necessary
+            for j in range(len(U0), i):
+                U0.append(0.0)
+            # Set value
+            U0[i] = U
+            # Transfer variables
+            U = U0
+        # Convert to text
+        Utxt = self.ConvertToText(U)
+        # Relevant section name
+        sec = "CFD_BCS"
+        # Regular expression to search for
+        regex = "^\s*['\"]%s['\"]" % name
+        # Use section searcher for lines starting with whitespace plus name
+        lines = self.GetLineInSectionSearch(sec, regex, 2)
+        # Check for a match
+        if len(lines) < 2:
+            # No existing line; use default of two leading spaces
+            line0 = '  "%s" NEW' % name
+        else:
+            # Replace the *second* line
+            line0 = lines[1]
+        # Copy previous number of spaces
+        indent = re.match("\s*", line0).group()
+        # Create output line
+        line = indent + ('"%s"  ' % name) + Utxt + "\n"
+        # Set the line
+        self.ReplaceOrAddLineToSectionStartsWith(sec, line0, line)
    # [/CFD_BCS]
 # class InputInp
