@@ -41,8 +41,17 @@ called *units_dict* that contains a full dictionary of recognized unit names.
 """
 
 # System modules
+import sys
 import re
+
+# Third-party modules
 import numpy as np
+
+
+# Prepare for Python 3 if needed
+if int(sys.version[0]) > 2:
+    # Create function called :func:`unicode`, which does nothing
+    unicode = str
 
 # List of SI prefixes
 prefix_dict = {

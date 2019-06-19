@@ -56,19 +56,26 @@ example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
     
 """
 
-# File system inreface
-import os, json, shutil, glob
-# Text processing
+# Standard library modules
+import os
+import json
+import shutil
+import glob
 import re
-# Numerics
+
+# Third-party modules
 import numpy as np
+
+# Specific imports from third-party modules
 from numpy import sqrt, sin, cos, tan, exp
+
+# Local modules
+from . import tex
+from . import tar
+
 # Paraview/Tecplot interfaces
 from .bin     import pvpython
 from .tecplot import ExportLayout, Tecscript
-
-# Local modules needed
-import tex, tar
 
 # Class to interface with report generation and updating.
 class Report(object):

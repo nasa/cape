@@ -859,7 +859,7 @@ class Trajectory(object):
         odefkey.setdefault('Format', '%s')
         # Initialize the dictionaries.
         self.text = {}
-        self.defns = {}
+        self.defns = defns
         self.abbrv = {}
         # Initialize the fields.
         for key in self.keys:
@@ -1366,12 +1366,11 @@ class Trajectory(object):
                 Value for individual case *i*
         :Versions:
             * 2018-10-03 ``@ddalle``: First version
+            * 2019-06-19 ``@ddalle``: Hooked to :func:`GetValue_Derived`
         """
         if k in self.keys:
             # The key is present directly
-            V = getattr(self,k)
-            # Index input type
-            t = I.__class__.__name__
+            V = getattr(self, k)
             # Process indices
             if I is None:
                 # Return entire array
@@ -1379,6 +1378,9 @@ class Trajectory(object):
             else:
                 # Subset
                 V = V[I]
+        elif k in self.defns:
+            # Get derived value
+            V = self.GetValue_Derived(k, I)
         elif k.lower() in ["aoa", "alpha"]:
             # Angle of attack
             V = self.GetAlpha(I)
@@ -1406,8 +1408,6 @@ class Trajectory(object):
         else:
             # Evaluate an expression, for example "mach%1.0"
             V = eval('self.' + k)
-            # Index input type
-            t = I.__class__.__name__
             # Process indices
             if I is None:
                 # Return entire array
@@ -1417,6 +1417,62 @@ class Trajectory(object):
                 V = V[I]
         # Output
         return V
+        
+    # Get value from matrix
+    def GetValue_Derived(self, k, I=None):
+        """Get value from a trajectory key, including specially named keys
+        
+        :Call:
+            >>> V = x.GetValue(k)
+            >>> V = x.GetValue(k, I)
+            >>> v = x.GetValue(k, i)
+        :Inputs:
+            *x*: :class:`attdb.trajectory.Trajectory`
+                Run matrix conditions interface
+            *k*: :class:`str`
+                Non-trajectory key name still described in *x.defns*
+            *i*: :class:`int`
+                Case index
+            *I*: :class:`np.ndarray` (:class:`int`)
+                Array of case indices
+        :Outputs:
+            *V*: :class:`np.ndarray`
+                Array of values from one or more cases
+            *v*: :class:`np.any`
+                Value for individual case *i*
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version (*CT* only)
+        """
+        # Get definitions
+        defns = self.defns.get(k, {})
+        # Get type
+        typ = defns.get("Type", "CT")
+        # Get name of source key
+        k0 = defns.get("Source", "")
+        # Check if *this* is a key (avoids recursion)
+        if k0 not in self.keys:
+            raise ValueError("Var '%s' derived from non-key '%s'" % (k, k0))
+        # Get source value(s)
+        if I is None:
+            # Get all values
+            v0 = getattr(self, k0)
+        else:
+            # Subset
+            v0 = getattr(self, k0)[I]
+        # Filter type
+        if typ == "CT":
+            # Reference area
+            Aref = defns.get("RefArea")
+            # Default: get from source
+            if Aref is None:
+                Aref = self.GetSurfCT_RefArea(I, k0)
+            # Get reference dynamic pressure
+            qref = defns.get("RefDynamicPressure")
+            # Default: get from source
+            if qref is None:
+                qref = self.GetSurfCT_RefDynamicPressure(I, k0)
+            # Convert value
+            return v0 / (Aref * qref)
   # >
   
   # ================
