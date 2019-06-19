@@ -478,6 +478,146 @@ class InputInp(cape.namelist.Namelist):
         # Otherwise, convert value
         return self.ConvertToVal(vals[col])
         
+    # Get a value from a space-separated table section
+    def GetSectionTable(self, sec, **kw):
+        """Get entire contents in a table-like space-separated section
+        
+        :Call:
+            >>> table = inp.GetSectionTable(sec, **kw)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *comment*: {``"!"``} | :class:`str`
+                Character denoting start of comment line
+            *skiprows*: {``0``} | :class:`int` >= 0
+                Number of non-comment rows to not count towards *row*
+        :Outputs:
+            *table*: :class:`list`
+                List of values in each row
+        :See also:
+            * :func:`cape.namelist.Namelist.ConvertToVal`
+            * :func:`pyUS.inputInp.InputInp.GetSectionTableValue`
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Get comment character
+        comment = kw.pop("comment", kw.pop("comment_char", "!"))
+        # Number of non-comment rows to skip
+        skiprows = kw.pop("skiprows", 0)
+        maxrows  = kw.pop("maxrows", None)
+        # Number of spaces in header
+        indent = kw.pop("indent", 0)
+        # Initialize table
+        table = []
+        # Counter for number of lines found
+        n = 0
+        # Check if section is present
+        if sec not in self.Section:
+            return table
+        # Start with line *i0* and loop
+        for (i, line) in enumerate(self.Section[sec][1:-1]):
+            # Otherwise, check count
+            if maxrows and i >= maxrows:
+                break
+            # Skip if comment
+            if line.lstrip().startswith(comment):
+                continue
+            # Read the line; split into list
+            grps = line[indent:].split()
+            # Convert to Python values
+            vals = [self.ConvertToVal(g) for g in grps]
+            # Append to table
+            table.append(vals)
+        # Output
+        return table
+        
+    # Get a value from a space-separated table section
+    def GetSectionTableLines(self, sec, **kw):
+        """Get indices of lines in a table-like space-separated section
+        
+        :Call:
+            >>> I = inp.GetSectionTableLines(sec, **kw)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *comment*: {``"!"``} | :class:`str`
+                Character denoting start of comment line
+            *skiprows*: {``0``} | :class:`int` >= 0
+                Number of non-comment rows to not count towards *row*
+        :Outputs:
+            *I*: :class:`list`\ [:class:`int`]
+                List of values in each row
+        :See also:
+            * :func:`cape.namelist.Namelist.ConvertToVal`
+            * :func:`pyUS.inputInp.InputInp.GetSectionTableValue`
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Get comment character
+        comment = kw.pop("comment", kw.pop("comment_char", "!"))
+        # Number of non-comment rows to skip
+        skiprows = kw.pop("skiprows", 0)
+        maxrows  = kw.pop("maxrows", None)
+        # Initialize line numbers
+        I = []
+        # Check if section is present
+        if sec not in self.Section:
+            return I
+        # Start with line *i0* and loop
+        for (i, line) in enumerate(self.Section[sec][1:-1]):
+            # Otherwise, check count
+            if maxrows and i >= maxrows:
+                break
+            # Skip if comment
+            if line.lstrip().startswith(comment):
+                continue
+            # Count this line
+            I.append(i)
+        # Output
+        return I
+        
+    # Set an entire section table
+    def SetSectionTable(self, sec, table, **kw):
+        """Set entire contents in a table-like space-separated section
+        
+        :Call:
+            >>> inp.SetSectionTable(sec, table, **kw)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *table*: :class:`list`
+                List of values in each row
+            *comment*: {``"!"``} | :class:`str`
+                Character denoting start of comment line
+            *skiprows*: {``0``} | :class:`int` >= 0
+                Number of non-comment rows to not count towards *row*
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Create section if necessary
+        if sec not in self.Section:
+            self.AddSection(sec)
+        # Get current non-comment line indices
+        I = self.GetSectionTableLines(sec, **kw)
+        # Get handle to lines of section
+        lines = self.Section[sec]
+        # Delete all those lines
+        if len(I) > 0:
+            # Delete existing lines
+            for i in I[::-1]:
+                lines.pop(i+1)
+            # Get first line
+            i0 = I[0] + 1
+        else:
+            # Insert at beginning of section
+            i0 = 1
+        # Loop through table in reverse order
+        for V in table[::-1]:
+            # Convert list entry to text
+            line = self.ConvertToText(V) + "\n"
+            # Insert the line
+            self.Section[sec].insert(i0, line)
+        
   # --- Specific Settings ---
    # [CFD_SOLVER]
     # Generic parameter (get)
@@ -1893,6 +2033,40 @@ class InputInp(cape.namelist.Namelist):
         self.SetBCDirectionCosines(U, name=name)
    # [/CFD_BCS/angles]
    
+   # [MANAGE]
+    # Get manage section table
+    def get_MANAGE_table(self):
+        """Get entire table of *MANAGE* CFL schedule
+        
+        :Call:
+            >>> table = inp.get_MANAGE_table()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *table*: :class:`list`
+                List of values in each row
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        return self.GetSectionTable("MANAGE")
+
+    # Set manage section table
+    def set_MANAGE_table(self, table):
+        """Set entire table of *MANAGE* CFL schedule
+        
+        :Call:
+            >>> inp.set_MANAGE_table(table)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *table*: :class:`list`
+                List of values in each row
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        self.SetSectionTable("MANAGE", table)
+   # [/MANAGE]
    
    # [TAILOR]
     # Generic parameter (get)
