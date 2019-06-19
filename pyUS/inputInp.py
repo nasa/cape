@@ -85,6 +85,11 @@ class InputInp(cape.namelist.Namelist):
         ["npfac",  "npvol"],
         ["cfl",    "epsj",  "wdis"]
     ]
+    # Parameter names in [TAILOR] block
+    TAILOR_keys = [
+        ["igtm", "igtt", "sens"],
+        ["ngts", "ngtp", "igti"]
+    ]
     # Current values of BCs table
     BCNames = []
     BCTable = {}
@@ -551,7 +556,7 @@ class InputInp(cape.namelist.Namelist):
                 Namelist file control instance
         :Outputs:
             *nstop*: :class:`int`
-                Maximum iteration number
+                Value in ``input.inp`` file
         :Versions:
             * 2019-06-06 ``@ddalle``: First version
         """
@@ -566,7 +571,7 @@ class InputInp(cape.namelist.Namelist):
             *inp*: :class:`pyUS.inputInp.InputInp`
                 Namelist file control instance
             *nstop*: :class:`int`
-                Maximum iteration number
+                Value in ``input.inp`` file
         :Versions:
             * 2019-06-06 ``@ddalle``: First version
         """
@@ -1887,4 +1892,261 @@ class InputInp(cape.namelist.Namelist):
         # Set those direction cosines
         self.SetBCDirectionCosines(U, name=name)
    # [/CFD_BCS/angles]
+   
+   
+   # [TAILOR]
+    # Generic parameter (get)
+    def get_TAILOR_key(self, key):
+        """Get value of parameter *key* from ``TAILOR`` section
+        
+        :Call:
+            >>> val = inp.get_TAILOR_key(key)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *key*: :class:`str`
+                Name of parameter
+        :Outputs:
+            *val*: :class:`int` | :class:`float` | ``None``
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        # Initialize column index
+        col = None
+        # Loop through rows
+        for (i, row) in enumerate(self.TAILOR_keys):
+            # Check if *k* is in row
+            if key in row:
+                # Get index
+                col = row.index(key)
+                # Stop searching
+                break
+        # If not found, raise exception
+        if col is None:
+            # Use namelist
+            return self.GetVar("TAILOR", key)
+        # Otherwise, return the value
+        return self.GetSectionTableValue("TAILOR", i, col)
+    
+    # Generic parameter (set)
+    def set_TAILOR_key(self, key, val):
+        """Get value of parameter *key* from ``TAILOR`` section
+        
+        :Call:
+            >>> inp.set_TAILOR_key(key, val)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *key*: :class:`str`
+                Name of parameter
+            *val*: :class:`int` | :class:`float` | ``None``
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        # Initialize column index
+        col = None
+        # Loop through rows
+        for (i, row) in enumerate(self.TAILOR_keys):
+            # Check if *k* is in row
+            if key in row:
+                # Get index
+                col = row.index(key)
+                # Stop searching
+                break
+        # If not found, use namelist interface
+        if col is None:
+            # Use namelist interface
+            self.SetVar("TAILOR", key, val, tab="")
+        # Otherwise, return the value
+        return self.SetSectionTableValue("TAILOR", i, col, val)
+        
+    # Hard-coded methods
+    def get_TAILOR_igtm(self):
+        """Get *igtm* from ``TAILOR`` section
+        
+        :Call:
+            >>> igtm = inp.get_TAILOR_igtm()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *igtm*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.GetSectionTableValue("TAILOR", 0, 0)
+        
+    def set_TAILOR_igtm(self, igtm):
+        """Set *igtm* in ``TAILOR`` section
+        
+        :Call:
+            >>> inp.set_TAILOR_igtm(igtm)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *igtm*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.SetSectionTableValue("TAILOR", 0, 0, igtm)
+        
+    def get_TAILOR_igtt(self):
+        """Get *igtt* from ``TAILOR`` section
+        
+        :Call:
+            >>> igtt = inp.get_TAILOR_igtt()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *igtt*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.GetSectionTableValue("TAILOR", 0, 1)
+        
+    def set_TAILOR_igtt(self, igtt):
+        """Set *igtm* in ``TAILOR`` section
+        
+        :Call:
+            >>> inp.set_TAILOR_igtm(igtm)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *igtt*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.SetSectionTableValue("TAILOR", 0, 1, igtt)
+        
+    def get_TAILOR_sens(self):
+        """Get *sens* from ``TAILOR`` section
+        
+        :Call:
+            >>> sens = inp.get_TAILOR_sens()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *sens*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.GetSectionTableValue("TAILOR", 0, 2)
+        
+    def set_TAILOR_sens(self, sens):
+        """Set *sens* in ``TAILOR`` section
+        
+        :Call:
+            >>> inp.set_TAILOR_sens(sens)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *sens*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.SetSectionTableValue("TAILOR", 0, 2, sens)
+        
+    def get_TAILOR_ngts(self):
+        """Get *ngts* from ``TAILOR`` section
+        
+        :Call:
+            >>> ngts = inp.get_TAILOR_sens()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *ngts*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.GetSectionTableValue("TAILOR", 1, 0)
+        
+    def set_TAILOR_ngts(self, ngts):
+        """Set *ngts* in ``TAILOR`` section
+        
+        :Call:
+            >>> inp.set_TAILOR_ngts(ngts)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *ngts*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.SetSectionTableValue("TAILOR", 1, 0, ngts)
+        
+    def get_TAILOR_ngtp(self):
+        """Get *ngtp* from ``TAILOR`` section
+        
+        :Call:
+            >>> ngtp = inp.get_TAILOR_ngtp()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *ngtp*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.GetSectionTableValue("TAILOR", 1, 1)
+        
+    def set_TAILOR_ngtp(self, ngtp):
+        """Set *ngtp* in ``TAILOR`` section
+        
+        :Call:
+            >>> inp.set_TAILOR_ngtp(ngtp)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *ngtp*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.SetSectionTableValue("TAILOR", 1, 1, ngtp)
+        
+    def get_TAILOR_igti(self):
+        """Get *igti* from ``TAILOR`` section
+        
+        :Call:
+            >>> igti = inp.get_TAILOR_igti()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *igti*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.GetSectionTableValue("TAILOR", 1, 2)
+        
+    def set_TAILOR_igti(self, igti):
+        """Set *igti* in ``TAILOR`` section
+        
+        :Call:
+            >>> inp.set_TAILOR_igti(igti)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *igti*: :class:`int`
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        return self.SetSectionTableValue("TAILOR", 1, 2, igti)
+   # [/TAILOR]
 # class InputInp
