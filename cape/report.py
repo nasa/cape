@@ -2165,8 +2165,10 @@ class Report(object):
             if k in x.defns:
                 # Get reference value(s)
                 v = x.GetValue(k, I)
+                # Local definitions
+                defns = x.defns.get(k, {})
                 # Get abbreviation
-                abrv = x.defns.get(k, k)
+                abrv = defns.get("Abbreviation", k)
             elif func is None:
                 # No value to get; skip
                 continue
