@@ -1119,19 +1119,18 @@ class Fun3d(Cntl):
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
         """
-        # ---------
-        # Case info
-        # ---------
-        # Check the mesh.
-        if self.CheckMesh(i):
-            return None
+       # ---------
+       # Case info
+       # ---------
+        # Check if the mesh is already prepared
+        qmsh = self.CheckMesh(i)
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
         # Get the name of the group.
         fgrp = self.x.GetGroupFolderNames(i)
-        # ------------------
-        # Folder preparation
-        # ------------------
+       # ------------------
+       # Folder preparation
+       # ------------------
         # Remember current location.
         fpwd = os.getcwd()
         # Go to root folder.
@@ -1158,13 +1157,15 @@ class Fun3d(Cntl):
             # Do we need "Adapt" and "Flow" folders?
             if self.opts.get_Dual():
                 # Create folder for the primal solution
-                if not os.path.isdir('Flow'):    self.mkdir('Flow')
-                if not os.path.isdir('Adjoint'): self.mkdir('Adjoint')
+                if not os.path.isdir('Flow'):
+                    self.mkdir('Flow')
+                if not os.path.isdir('Adjoint'):
+                    self.mkdir('Adjoint')
                 # Enter
                 os.chdir('Flow')
-        # ----------
-        # Copy files
-        # ----------
+       # ----------
+       # Copy files
+       # ----------
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
@@ -1176,11 +1177,11 @@ class Fun3d(Cntl):
             f0 = os.path.join(self.RootDir, finp[j])
             f1 = fmsh[j]
             # Copy fhe file.
-            if os.path.isfile(f0):
+            if os.path.isfile(f0) and not os.path.isfile(f1):
                 shutil.copyfile(f0, f1)
-        # ------------------
-        # Triangulation prep
-        # ------------------
+       # ------------------
+       # Triangulation prep
+       # ------------------
         # Check for triangulation
         if self.opts.get_aflr3():
             # Status update
@@ -1216,22 +1217,38 @@ class Fun3d(Cntl):
                 shutil.copyfile(fxml, '%s.xml' % fproj)
             # Check intersection status.
             if self.opts.get_intersect():
+                # Names of triangulation files
+                fvtri = "%s.tri" % fproj
+                fctri = "%s.c.tri" % fproj
+                fftri = "%s.f.tri" % fproj
                 # Write tri file as non-intersected; each volume is one CompID
-                self.tri.WriteVolTri('%s.tri' % fproj)
+                if not os.path.isfile(fvtri):
+                    self.tri.WriteVolTri(fvtri)
                 # Write the existing triangulation with existing CompIDs.
-                self.tri.WriteCompIDTri('%s.c.tri' % fproj)
-                self.tri.WriteFarfieldTri('%s.f.tri' % fproj)
+                if not os.path.isfile(fctri):
+                    self.tri.WriteCompIDTri(fctri)
+                # Write the farfield and source triangulation files
+                if not os.path.isfile(fftri):
+                    self.tri.WriteFarfieldTri(fftri)
             elif self.opts.get_verify():
+                # Names of surface mesh files
+                fitri = "%s.i.tri" % fproj
+                fsurf = "%s.surf" % fproj
                 # Write the tri file
-                self.tri.Write('%s.i.tri' % fproj)
+                if not os.path.isfile(fitri):
+                    self.tri.Write(fitri)
                 # Write the AFLR3 surface file
-                self.tri.WriteSurf('%s.surf' % fproj)
+                if not os.path.isfile(fsurf):
+                    self.tri.WriteSurf(fsurf)
             else:
+                # Names of surface mesh files
+                fsurf = "%s.surf" % fproj
                 # Write the AFLR3 surface file only
-                self.tri.WriteSurf('%s.surf' % fproj)
-        # --------------------
-        # Volume mesh creation
-        # --------------------
+                if not os.path.isfile(fsurf):
+                    self.tri.WriteSurf(fsurf)
+       # --------------------
+       # Volume mesh creation
+       # --------------------
         # Get functions for mesh functions.
         keys = self.x.GetKeysByType('MeshFunction')
         # Loop through the mesh functions
@@ -1240,17 +1257,20 @@ class Fun3d(Cntl):
             func = self.x.defns[key]['Function']
             # Apply it.
             exec("%s(self.%s,i=%i)" % (func, getattr(self.x,key)[i], i))
-        # Check for jumpstart.
-        if self.opts.get_PreMesh(0) and self.opts.get_aflr3():
+        # Check for jumpstart (creating mesh before starting job)
+        if qmsh:
+            # Do not create already-created mesh
+            pass
+        elif self.opts.get_PreMesh(0) and self.opts.get_aflr3():
             # Run ``intersect`` if appropriate
             case.CaseIntersect(rc, fproj, 0)
             # Run ``verify`` if appropriate
             case.CaseVerify(rc, fproj, 0)
             # Create the mesh if appropriate
             case.CaseAFLR3(rc, proj=fproj, fmt=self.nml.GetGridFormat(), n=0)
-        # -------
-        # Cleanup
-        # -------
+       # -------
+       # Cleanup
+       # -------
         # Return to original folder
         os.chdir(fpwd)
 
