@@ -48,6 +48,7 @@ import numpy as np
 # Base file control class
 import cape.fileCntl
 import cape.namelist
+import cape.convert
 
 # Base this class off of the main file control class
 class InputInp(cape.namelist.Namelist):
@@ -74,7 +75,7 @@ class InputInp(cape.namelist.Namelist):
     :Version:
         * 2019-06-06 ``@ddalle``: First version
     """
-   # --- Hard-Coded Orders ---
+  # --- Hard-Coded Orders ---
     # Parameter names in [CFD_SOLVER] block
     CFD_SOLVER_keys = [
         ["nstop",  "ires",  "nplot",  "iconr", "impl",   "kmax",   "kmaxo"],
@@ -94,7 +95,7 @@ class InputInp(cape.namelist.Namelist):
     # Number of lines in the BC Table
     BCTable_rows = 0
     
-   # --- Config ---
+  # --- Config ---
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="input.inp"):
         """Initialization method"""
@@ -1761,5 +1762,129 @@ class InputInp(cape.namelist.Namelist):
         line = indent + ('"%s"  ' % name) + Utxt + "\n"
         # Set the line
         self.ReplaceOrAddLineToSectionStartsWith(sec, line0, line)
-   # [/CFD_BCS]
+   # [/CFD_BCS].
+   
+   # [CFD_BCS/angles]
+    # Get angle of attack
+    def GetAlpha(self, name="inflow"):
+        """Get angle of attack for specified BC
+        
+        :Call:
+            >>> alpha = inp.GetAlpha(name="inflow")
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+        :Outputs:
+            *alpha*: :class:`float`
+                Angle of attack [deg] (``0.0`` if not specified)
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Get direction cosines
+        U = self.GetBCDirectionCosines(name)
+        # Check validity
+        if len(U) != 3:
+            # Invalid length
+            return 0.0
+        elif any([not isinstance(u, (int, float)) for u in U]):
+            # At least one non-float
+            return 0.0
+        # Unpack values
+        u, v, w = U
+        # Calculate length
+        V = np.sqrt(u*u + v*v + w*w)
+        # Check zero length
+        if V <= 1e-6:
+            return 0.0
+        # Otherwise, convert to values
+        alpha, beta = cape.convert.DirectionCosines2AlphaBeta(u, v, w)
+        # Return angle of attack
+        return alpha
+        
+    # Get angle of sideslip
+    def GetBeta(self, name="inflow"):
+        """Get angle of sideslip for specified BC
+        
+        :Call:
+            >>> beta = inp.GetBeta(name="inflow")
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+        :Outputs:
+            *beta*: :class:`float`
+                Angle of sideslip [deg] (``0.0`` if not specified)
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Get direction cosines
+        U = self.GetBCDirectionCosines(name)
+        # Check validity
+        if len(U) != 3:
+            # Invalid length
+            return 0.0
+        elif any([not isinstance(u, (int, float)) for u in U]):
+            # At least one non-float
+            return 0.0
+        # Unpack values
+        u, v, w = U
+        # Calculate length
+        V = np.sqrt(u*u + v*v + w*w)
+        # Check zero length
+        if V <= 1e-6:
+            return 0.0
+        # Otherwise, convert to angles
+        alpha, beta = cape.convert.DirectionCosines2AlphaBeta(u, v, w)
+        # Return angle of sideslip
+        return beta
+        
+    # Set angle of attack
+    def SetAlpha(self, alpha, name="inflow"):
+        """Set angle of attack for specified BC
+        
+        :Call:
+            >>> inp.SetAlpha(alpha, name="inflow")
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+            *alpha*: :class:`float`
+                Angle of attack [deg] (``0.0`` if not specified)
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Get sideslip angle
+        beta = self.GetBeta(name=name)
+        # Calculate direction cosines
+        U = cape.convert.AlphaBeta2DirectionCosines(alpha, beta)
+        # Set those direction cosines
+        self.SetBCDirectionCosines(U, name=name)
+        
+    # Set angle of sideslip
+    def SetBeta(self, beta, name="inflow"):
+        """Set angle of sideslip for specified BC
+        
+        :Call:
+            >>> inp.SetBeta(beta, name="inflow")
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+            *beta*: :class:`float`
+                Angle of sideslip [deg] (``0.0`` if not specified)
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Get angle of attack
+        alpha = self.GetAlpha(name=name)
+        # Calculate direction cosines
+        U = cape.convert.AlphaBeta2DirectionCosines(alpha, beta)
+        # Set those direction cosines
+        self.SetBCDirectionCosines(U, name=name)
+   # [/CFD_BCS/angles]
 # class InputInp

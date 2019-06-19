@@ -118,6 +118,136 @@ def AlphaBeta2AlphaTPhi(alpha, beta):
     alpha_t = np.arccos(u) / deg
     # Output
     return alpha_t, phi
+
+# Convert (aoa, aos) to (u, v, w)
+def AlphaBeta2DirectionCosines(alpha, beta):
+    """Convert angle of attack and sideslip to direction cosines
+    
+    :Call:
+        >>> u, v, w = cape.AlphaBeta2DirectionCosines(alpha, beta)
+    :Inputs:
+        *alpha*: :class:`float` | :class:`numpy.array`
+            Angle of attack
+        *beta*: :class:`float` | :class:`numpy.array`
+            Sideslip angle
+    :Outputs:
+        *u*: :class:`float` | :class:`numpy.array`
+            *x*-component of body-frame velocity unit vector
+        *v*: :class:`float` | :class:`numpy.array`
+            *y*-component of body-frame velocity unit vector
+        *w*: :class:`float` | :class:`numpy.array`
+            *z*-component of body-frame velocity unit vector
+    :Versions:
+        * 2019-06-19 ``@ddalle``: First version
+    """
+    # Trig functions.
+    ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
+    sa = np.sin(alpha*deg); sb = np.sin(beta*deg)
+    # Get the components of the normalized velocity vector.
+    u = cb * ca
+    v = sb
+    w = cb * sa
+    # Output
+    return u, v, w
+
+# Convert (u, v, w) to (aoa, aos)
+def DirectionCosines2AlphaBeta(u, v, w):
+    """Convert direction cosines to angle of attack and sideslip
+    
+    :Call:
+        >>> alpha, beta = cape.DirectionCosines2AlphaBeta(u, v, w)
+    :Inputs:
+        *u*: :class:`float` | :class:`numpy.array`
+            *x*-component of body-frame velocity unit vector
+        *v*: :class:`float` | :class:`numpy.array`
+            *y*-component of body-frame velocity unit vector
+        *w*: :class:`float` | :class:`numpy.array`
+            *z*-component of body-frame velocity unit vector
+    :Outputs:
+        *alpha*: :class:`float` | :class:`numpy.array`
+            Angle of attack
+        *beta*: :class:`float` | :class:`numpy.array`
+            Sideslip angle
+    :Versions:
+        * 2019-06-19 ``@ddalle``: First version
+    """
+    # 2-norm
+    V = np.sqrt(u*u + v*v + w*w)
+    # Normalize
+    u = 1.0e-8 * np.fix(1e8 * u / V)
+    v = 1.0e-8 * np.fix(1e8 * v / V)
+    w = 1.0e-8 * np.fix(1e8 * w / V)
+    # Convert to alpha, beta
+    alpha = np.arctan2(w, u) / deg
+    beta = np.arcsin(v) / deg
+    # Output
+    return alpha, beta
+
+
+# Convert (aoa, aos) to (u, v, w)
+def AlphaTPhi2DirectionCosines(aoap, phip):
+    """Convert total angle of attack and roll to direction cosines
+    
+    :Call:
+        >>> u, v, w = cape.AlphaTPhi2DirectionCosines(aoap, phip)
+    :Inputs:
+        *aoap*: :class:`float` | :class:`numpy.array`
+            Total angle of attack
+        *phip*: :class:`float` | :class:`numpy.array`
+            Missile-axis to body-z roll angle
+    :Outputs:
+        *u*: :class:`float` | :class:`numpy.array`
+            *x*-component of body-frame velocity unit vector
+        *v*: :class:`float` | :class:`numpy.array`
+            *y*-component of body-frame velocity unit vector
+        *w*: :class:`float` | :class:`numpy.array`
+            *z*-component of body-frame velocity unit vector
+    :Versions:
+        * 2019-06-19 ``@ddalle``: First version
+    """
+    # Trig functions.
+    ca = np.cos(aoap*deg); cp = np.cos(phip*deg)
+    sa = np.sin(aoap*deg); sp = np.sin(phip*deg)
+    # Get the components of the normalized velocity vector.
+    u = 1.0e-8*np.fix(1e8*ca)
+    v = 1.0e-8*np.fix(1e8*sa * sp)
+    w = 1.0e-8*np.fix(1e8*sa * cp)
+    # Output
+    return u, v, w
+
+# Convert (u, v, w) to (aoap, phip)
+def DirectionCosines2AlphaTPhi(u, v, w):
+    """Convert direction cosines to total angle of attack and roll
+    
+    :Call:
+        >>> aoap, phip = cape.DirectionCosines2AlphaBeta(u, v, w)
+    :Inputs:
+        *u*: :class:`float` | :class:`numpy.array`
+            *x*-component of body-frame velocity unit vector
+        *v*: :class:`float` | :class:`numpy.array`
+            *y*-component of body-frame velocity unit vector
+        *w*: :class:`float` | :class:`numpy.array`
+            *z*-component of body-frame velocity unit vector
+    :Outputs:
+        *aoap*: :class:`float` | :class:`numpy.array`
+            Total angle of attack
+        *phip*: :class:`float` | :class:`numpy.array`
+            Missile-axis to body-z roll angle
+    :Versions:
+        * 2019-06-19 ``@ddalle``: First version
+    """
+    # 2-norm
+    V = np.sqrt(u*u + v*v + w*w)
+    # Normalize
+    u = 1.0e-8 * np.fix(1e8 * u / V)
+    v = 1.0e-8 * np.fix(1e8 * v / V)
+    w = 1.0e-8 * np.fix(1e8 * w / V)
+    # Convert to alpha_t, phi
+    phip = 180 - np.arctan2(v, -w) / deg
+    aoap = np.arccos(u) / deg
+    # Output
+    return aoap, phip
+    
     
 # Convert (aoa, aos) to (maneuver angle of attack, maneuver roll angle)
 def AlphaBeta2AlphaMPhi(alpha, beta):
