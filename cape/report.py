@@ -2031,14 +2031,14 @@ class Report(object):
         except Exception:
             # Use the run matrix trajectory.
             x = self.cntl.x
-        # Check input type.
-        if type(I).__name__ in ['list', 'ndarray']:
-            # Extract firs index.
-            i = I[0]
-        else:
+        # Check input type
+        if isinstance(I, int):
             # Use index value given and make a list with one entry.
             i = I
             I = np.array([i])
+        else:
+            # Extract first index
+            i = I[0]
         # Get the vertical alignment.
         hv = self.cntl.opts.get_SubfigOpt(sfig, 'Position')
         # Get subfigure width
@@ -2159,32 +2159,37 @@ class Report(object):
         }
         # Loop through special variables
         for k in spvars:
-            # Write the variable name
-            line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
             # Get the information on this parameter
             abrv, func = spdict.get(k, ["", None])
-            # Append the abbreviation
-            line += " & {\\small\\textsf{%s}} & " % abrv.replace('_', '\_')
             # Get value
-            if func is None:
-                # No value to get
-                v = None
+            if k in x.defns:
+                # Get reference value(s)
+                v = x.GetValue(k, I)
+                # Get abbreviation
+                abrv = x.defns.get(k, k)
+            elif func is None:
+                # No value to get; skip
+                continue
             else:
                 # Evaluate the function
                 v = eval("x.%s(np.%s)" % (func, I.__repr__()))
-                # Round principal value
-                v = np.around(v, decimals=8)
-                # Get first value and min/max
-                v0 = v[0]
-                vmin = min(v)
-                vmax = max(v)
+            # Round principal value
+            v = np.around(v, decimals=8)
+            # Get first value and min/max
+            v0 = v[0]
+            vmin = min(v)
+            vmax = max(v)
+            # Write the variable name
+            line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
+            # Append the abbreviation
+            line += " & {\\small\\textsf{%s}} & " % abrv.replace('_', '\_')
             # Type
             tv = type(vmin).__name__
             # Append the value.
             if tv in ['str', 'unicode']:
                 # Put the value in sans serif
                 line += "{\\small\\textsf{%s}} \\\\\n"%v[0].replace('_','\_')
-            elif tv.startswith('float') or tv.startswith('int'):
+            elif isinstance(vmin, (float, int)):
                 # Check for range.
                 if vmax > vmin:
                     # Perform substitutions
