@@ -617,7 +617,7 @@ class Q(P3D):
         # Read the values
         qi = self.read_float(NPT*NQ)
         # Reshape and save
-        self.Q[IG-1] = np.reshape(qi, (NQ, JD, KD, LD))
+        self.Q[IG-1] = np.reshape(qi, (NQ, LD, KD, JD))
         # Read end-of-record
         self.read_int()
         
