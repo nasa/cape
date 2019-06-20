@@ -4438,8 +4438,10 @@ class TriBase(object):
         # edge removed by being adjacent to a small tri
         # First we find the delta-node-index for each edge
         DI = T[:,[1,2,0]] - T
+        # Find the smallest node-delta in absolute terms for each tri
+        DImin = np.min(np.abs(DI), axis=1)
         # Any time there's a zero in a row marks a trivialized tri
-        K1 = np.where(np.count_nonzero(DI==0, axis=1))[0]
+        K1 = np.where(DImin == 0)[0]
         # Final removal count
         if v:
             print("Removing %i additional tris trivialized by edge removal"
