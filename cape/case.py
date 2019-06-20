@@ -92,37 +92,49 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     # Check for intersect status.
     if not rc.get_intersect(): return
     # Check for initial run
-    if n > 0: return
+    if n > 0:
+        return
+    # Triangulation file names
+    ftri  = "%s.tri" % proj
+    fftri = "%s.f.tri" % proj
+    fotri = "%s.o.tri" % proj
+    fctri = "%s.c.tri" % proj
+    fatri = "%s.a.tri" % proj
+    futri = "%s.u.tri" % proj
+    fitri = "%s.i.tri" % proj
     # Check for triangulation file.
-    if os.path.isfile('%s.i.tri' % proj):
+    if os.path.isfile(fitri):
         # Note this.
-        print("File '%s.i.tri' already exists; aborting intersect."%proj)
+        print("File '%s' already exists; aborting intersect." % fitri)
         return
     # Set file names
-    rc.set_intersect_i('%s.tri' % proj)
-    rc.set_intersect_o('%s.o.tri' % proj) 
-    # Run intersect.
-    bin.intersect(opts=rc)
+    rc.set_intersect_i(ftri)
+    rc.set_intersect_o(fotri) 
+    # Run intersect
+    if not os.path.isfile(fotri):
+        bin.intersect(opts=rc)
     # Read the original triangulation.
-    tric = Tri('%s.c.tri' % proj)
+    tric = Tri(fctri)
     # Read the intersected triangulation.
-    trii = Tri('%s.o.tri' % proj)
+    trii = Tri(fotri)
     # Read the pre-intersection triangulation.
-    tri0 = Tri('%s.tri' % proj)
-    # Map the Component IDs.
-    trii.MapCompID(tric, tri0)
-    # Name of farfield/source tri (if any)
-    ftrif = '%s.f.tri' % proj
-    # Read it
-    if os.path.isfile(ftrif):
-        # Read the farfield, sources, and other non-intersected surfaces
-        trif = Tri(ftrif)
-        # Add it to the mapped triangulation
-        trii.AddRawCompID(trif)
-    # Names of intermediate steps
-    fatri = '%s.a.tri' % proj
-    futri = '%s.u.tri' % proj
-    fitri = '%s.i.tri' % proj
+    tri0 = Tri(ftri)
+    # Map the Component IDs
+    if os.path.isfile(fatri):
+        # Just read the mapped file
+        trii = Tri(fatri)
+    elif os.path.isfile(futri):
+        # Just read the mapped file w/o unused nodes
+        trii = Tri(futri)
+    else:
+        # Perform the mapping
+        trii.MapCompID(tric, tri0)
+        # Add in far-field, sources, non-intersect comps
+        if os.path.isfile(fftri):
+            # Read the tri file
+            trif = Tri(fftri)
+            # Add it to the mapped triangulation
+            trii.AddRawCompID(trif)
     # Intersect post-process options
     o_rm = rc.get_intersect_rm()
     o_triged = rc.get_intersect_triged()
