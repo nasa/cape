@@ -128,7 +128,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     o_triged = rc.get_intersect_triged()
     o_smalltri = rc.get_intersect_smalltri()
     # Check if we can use ``triged`` to remove unused triangles
-    if o_triged():
+    if o_triged:
         # Write the triangulation.
         trii.Write(fatri)
         # Remove unused nodes
