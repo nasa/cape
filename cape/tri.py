@@ -4403,17 +4403,14 @@ class TriBase(object):
             return
         # Get the node indices of the small tris
         I = self.Tris[K] - 1
-        # Append first column to the end so we can calculate
-        # edge lengths with one less step
-        I = np.hstack((I, I[:,[0]]))
         # Get the coordinates of all nodes involved in small triangles
         X = self.Nodes[I, 0]
         Y = self.Nodes[I, 1]
         Z = self.Nodes[I, 2]
         # Edge distance components
-        dx = X[:,1:] - X[:,:-1]
-        dy = Y[:,1:] - Y[:,:-1]
-        dz = Z[:,1:] - Z[:,:-1]
+        dx = X[:,[1,2,0]] - X
+        dy = Y[:,[1,2,0]] - Y
+        dz = Z[:,[1,2,0]] - Z
         # Distances
         D = np.sqrt(dx*dx + dy*dy + dz*dz)
         # Find the shortest edge of each small triangle
@@ -4436,14 +4433,26 @@ class TriBase(object):
             I1[ia] = ib
         # Make new triangle index array with replacements
         T = I1[self.Tris - 1] + 1
+        # Once the nodes have been updated, look for tris with repeats
+        # This can happen if a (sufficiently) large triangle has an
+        # edge removed by being adjacent to a small tri
+        # First we find the delta-node-index for each edge
+        DI = T[:,[1,2,0]] - T
+        # Any time there's a zero in a row marks a trivialized tri
+        K1 = np.where(np.count_nonzero(DI==0, axis=1))[0]
+        # Final removal count
+        if v:
+            print("Removing %i additional tris trivialized by edge removal"
+                % (K1.size - nsmall))
+            print("Removing %i triangles in total" % K1.size)
         # Remove the small triangles
-        self.Tris = np.delete(T, K, axis=0)
-        # Don't forget to delete them elsewhere
-        self.Areas = np.delete(self.Areas, K, axis=0)
-        self.Normals = np.delete(self.Normals, K, axis=0)
+        self.Tris = np.delete(T, K1, axis=0)
+        # Delete area calculations, some of which will need updating
+        delattr(self, "Areas")
+        delattr(self, "Normals")
         # Component IDs should be there, but let's be safe
         try:
-            self.CompID = np.delete(self.CompID, K, axis=0)
+            self.CompID = np.delete(self.CompID, K1, axis=0)
         except AttributeError:
             pass
         # Remove those removed nodes
