@@ -4373,11 +4373,11 @@ class TriBase(object):
             pass
         
     # Eliminate small triangles
-    def RemoveSmallTris(self, smalltri=1e-5, v=False):
+    def RemoveSmallTris(self, smalltri=1e-5, v=False, recurse=True):
         """Remove any triangles that are below a certain size
 
         :Call:
-            >>> tri.RemoveSmallTris(smalltri=1e-5, v=False)
+          >>> tri.RemoveSmallTris(smalltri=1e-5, v=False, recurse=True)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
@@ -4385,6 +4385,8 @@ class TriBase(object):
                 Minimum allowable triangle area
             *v*: ``True`` | {``False``}
                 Verbosity flag
+            *recurse*: {``True``} | ``False``
+                Whether or not to remove newly created small tris
         :Versions:
             * 2017-06-19 ``@ddalle``: First version
         """
@@ -4415,6 +4417,31 @@ class TriBase(object):
         D = np.sqrt(dx*dx + dy*dy + dz*dz)
         # Find the shortest edge of each small triangle
         J = np.argmin(D, axis=1)
+        # Loop through the tri to check for neighbor-neighbor issues
+        for (i, k) in enumerate(K):
+            # Get the neighbors
+            k0, k1, k2 = self.FindNeighbors(k)
+            # Get neighbors' neighbors
+            N1 = self.FindNeighbors(k1)
+            N2 = self.FindNeighbors(k2)
+            # Initialize indices of edges whose adjacent tris are
+            # neighbors of other neighbors
+            Ji = np.zeros(3, dtype="bool")
+            # Check if *k0* is a neighbor of *k1*
+            if np.any(k0 == N1):
+                # Neighs of edges 0 and 1 are neighs
+                Ji = [0, 1]
+            elif np.any(k0 == N2):
+                # Neighs of edges 0 and 2 are neighs
+                Ji = [0, 2]
+            elif np.any(k1 == N2):
+                # Neighs of edges 1 and 2 are neighs
+                Ji = [1, 2]
+            else:
+                # No double-neighbors
+                continue
+            # If we have double neighbors, prioritize such edges
+            J[i] = Ji[np.argmin(D[i,Ji])]
         # Combine start/end node indices
         I0 = np.array([I[i][[j, (j + 1) % 3]] for (i, j) in enumerate(J)])
         # Sort the node pairs so we mark the same node for deletion
@@ -4431,6 +4458,8 @@ class TriBase(object):
         # Loop through node replacements
         for (ia, ib) in I0:
             I1[ia] = ib
+        # Outgoing nodes
+        IA = np.unique(I0[:,0])
         # Make new triangle index array with replacements
         T = I1[self.Tris - 1] + 1
         # Once the nodes have been updated, look for tris with repeats
@@ -4453,9 +4482,12 @@ class TriBase(object):
             print("Removing %i triangles in total" % ndel)
         # Remove the small triangles
         self.Tris = np.delete(T, K2, axis=0)
+        # Update number of triangles
+        self.nTri = self.Tris.shape[0]
         # Delete area calculations, some of which will need updating
         delattr(self, "Areas")
         delattr(self, "Normals")
+        delattr(self, "EdgeTable")
         # Component IDs should be there, but let's be safe
         try:
             self.CompID = np.delete(self.CompID, K2, axis=0)
@@ -4464,7 +4496,7 @@ class TriBase(object):
         # Remove those removed nodes
         self.RemoveUnusedNodes(v=v)
         # Recurse if needed
-        if ndel > 0:
+        if recurse and (ndel > 0):
             # Status update
             if v:
                 print("Recursing to check for *new* small triangles")
@@ -5466,6 +5498,122 @@ class TriBase(object):
         I = np.lexsort((E[:,1], E[:,0]))
         # Save sorted edges
         self.Edges = E[I,:]
+        
+    # Get edges
+    def GetEdgeTable(self):
+        """Get the list of edges and triangle of origin
+
+        :Call:
+            >>> tri.GetEdgeTable()
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation instance
+        :Effects:
+            *tri.EdgeTable*: :class:`np.ndarray`, shape=(3*nTri, 3)
+                Array of node indices defining each edge
+        :Versions:
+            * 2019-06-20 ``@ddalle``: First version
+        """
+        # Check for edges
+        try:
+            self.EdgeTable
+            return
+        except Exception:
+            pass
+        # Groups: edges from 0->1, 1->2, 2->0
+        i0 = 0
+        i1 = self.nTri
+        i2 = 2*i1
+        i3 = 3*i1
+        # Initialize table of edge node 0, node 1, tri index
+        E = np.zeros((3*self.nTri, 3), dtype="int")
+        # Triangulation handles
+        T = self.Tris
+        # Edge 0: 0->1
+        E[i0:i1, 0] = T[:,0]
+        E[i0:i1, 1] = T[:,1]
+        E[i0:i1, 2] = np.arange(1, self.nTri+1)
+        # Edge 1: 1->2
+        E[i1:i2, 0] = T[:,1]
+        E[i1:i2, 1] = T[:,2]
+        E[i1:i2, 2] = E[i0:i1, 2]
+        # Edge 2: 2->0
+        E[i2:i3, 0] = T[:,2]
+        E[i2:i3, 1] = T[:,0]
+        E[i2:i3, 2] = E[i0:i1, 2]
+        # Sort by end node then start node
+        I = np.lexsort((E[:,1], E[:,0]))
+        # Save sorted edges
+        self.EdgeTable = E[I,:]
+        
+    # Find neighbor
+    def FindTriFromEdge(self, i0, i1):
+        """Find the triangle index from a specified edge
+
+        :Call:
+            >>> k = tri.FindTriFromEdge(i0, i1)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation instance
+            *i0*: :class:`int` > 0
+                Edge start node index [1-based]
+            *i1*: :class:`int` > 0
+                Edge end node index [1-based]
+        :Outputs:
+            *k*: :class:`int` >= 0
+                Triangle index containing edge *i0* -> *i1* [1-based],
+                if no match, returns ``0``
+        :Versions:
+            * 2019-06-20 ``@ddalle``: First version
+        """
+        # Get edge table
+        self.GetEdgeTable()
+        # Get handle
+        ET = self.EdgeTable
+        # Find edges starting with node *i0*
+        j0 = np.where(ET[:,0] == i0)[0]
+        # Of these, find the one with *i1* as the end
+        j1 = np.where(ET[j0,1] == i1)[0]
+        # Check validity
+        if j1.size != 1:
+            return 0
+        # Get edge index
+        j = j0[j1[0]]
+        # Get triangle index from table
+        return ET[j, 2]
+        
+        
+    # Find neighbors of a triangle
+    def FindNeighbors(self, k):
+        """Find the triangles neighboring one triangle
+
+        :Call:
+            >>> k0, k1, k2 = tri.FindNeighbors(k)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation instance
+            *k*: :class:`int` > 0
+                Triangle index [1-based]
+        :Outputs:
+            *K*: :class:`np.ndarray`\ [:class:`int`]
+                Neighboring triangles of *k*
+            *k0*: :class:`int` >= 0
+                Triangle index sharing edge 1 of triangle *k*
+            *k1*: :class:`int` >= 0
+                Triangle index sharing edge 1 of triangle *k*
+            *k2*: :class:`int` >= 0
+                Triangle index sharing edge 1 of triangle *k*
+        :Versions:
+            * 2019-06-20 ``@ddalle``: First version
+        """
+        # Get nodes of this triangle
+        i0, i1, i2 = self.Tris[k]
+        # Find triangles containing reversed edges
+        k0 = self.FindTriFromEdge(i1, i0)
+        k1 = self.FindTriFromEdge(i2, i1)
+        k2 = self.FindTriFromEdge(i0, i2)
+        # Output
+        return np.array([k0, k1, k2])
    # }
 
    # ++++++++++
