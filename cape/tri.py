@@ -4394,13 +4394,13 @@ class TriBase(object):
         K = np.where(self.Areas <= smalltri)[0]
         # Number of triangles to remove
         nsmall = K.size
+        # Check for nothing to do
+        if nsmall == 0:
+            return
         # Status update
         if v:
             print("Removing %i small triangles (A<=%.2e)"
                 % (nsmall, smalltri))
-        # Check for nothing to do
-        if nsmall == 0:
-            return
         # Get the node indices of the small tris
         I = self.Tris[K] - 1
         # Get the coordinates of all nodes involved in small triangles
@@ -4442,23 +4442,34 @@ class TriBase(object):
         DImin = np.min(np.abs(DI), axis=1)
         # Any time there's a zero in a row marks a trivialized tri
         K1 = np.where(DImin == 0)[0]
+        # Let's be safe and make sure the original tris are removed
+        K2 = np.union1d(K, K1)
+        # Total removal count
+        ndel = K2.size
         # Final removal count
         if v:
             print("Removing %i additional tris trivialized by edge removal"
-                % (K1.size - nsmall))
-            print("Removing %i triangles in total" % K1.size)
+                % (ndel - nsmall))
+            print("Removing %i triangles in total" % ndel)
         # Remove the small triangles
-        self.Tris = np.delete(T, K1, axis=0)
+        self.Tris = np.delete(T, K2, axis=0)
         # Delete area calculations, some of which will need updating
         delattr(self, "Areas")
         delattr(self, "Normals")
         # Component IDs should be there, but let's be safe
         try:
-            self.CompID = np.delete(self.CompID, K1, axis=0)
+            self.CompID = np.delete(self.CompID, K2, axis=0)
         except AttributeError:
             pass
         # Remove those removed nodes
         self.RemoveUnusedNodes(v=v)
+        # Recurse if needed
+        if ndel > 0:
+            # Status update
+            if v:
+                print("Recursing to check for *new* small triangles")
+            # Recursive call
+            self.RemoveSmallTris(smalltri, v=v)
 
 
     # Map triangles to components based on another file
