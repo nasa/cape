@@ -4372,6 +4372,42 @@ class TriBase(object):
         except AttributeError:
             pass
         
+    # Remove one triangle
+    def _RemoveTri(self, k, KT, KE):
+        # Check if already deleted
+        if not KT[k-1]:
+            return 0
+        # Delete it
+        KT[k-1] = 0
+        # Deletion count
+        n = 1
+        # Get nodes in this triangle
+        I = self.Tris[k-1] - 1
+        # Get the coordinates of all nodes involved in small triangles
+        X = self.Nodes[I, 0]
+        Y = self.Nodes[I, 1]
+        Z = self.Nodes[I, 2]
+        # Edge distance components
+        dx = X[:,[1,2,0]] - X
+        dy = Y[:,[1,2,0]] - Y
+        dz = Z[:,[1,2,0]] - Z
+        # Distances
+        D = np.sqrt(dx*dx + dy*dy + dz*dz)
+        # Get index of shortest edge
+        j0 = np.argmin(D)
+        # Otherwise, get node end
+        j1 = (j0 + 1) % 3
+        # Indices
+        ia = I[j0] + 1
+        ib = I[j1] + 1
+        # Get adjacent triangle
+        k1 = self.FindTriFromEdge(ia, ib)
+        # Check for neighbor
+        if k1:
+            # Delete it
+            KT[k1-1] = False
+            
+        
     # Eliminate small triangles
     def RemoveSmallTris(self, smalltri=1e-5, v=False, recurse=True):
         """Remove any triangles that are below a certain size
@@ -4458,6 +4494,7 @@ class TriBase(object):
         I1 = np.arange(self.nNode)
         # Loop through node replacements
         for (ia, ib) in I0:
+            # Make assignment
             I1[ia] = ib
         # Outgoing nodes
         IA = np.unique(I0[:,0])
@@ -4481,7 +4518,7 @@ class TriBase(object):
             print("Removing %i additional tris trivialized by edge removal"
                 % (ndel - nsmall))
             print("Removing %i triangles in total" % ndel)
-        # Remove the small triangles
+        # Remove the small or trivialized triangles
         self.Tris = np.delete(T, K2, axis=0)
         # Update number of triangles
         self.nTri = self.Tris.shape[0]
