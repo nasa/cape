@@ -4426,10 +4426,10 @@ class TriBase(object):
         # Each node in the left column is replaced by node in right
         # To avoid loops, we sort in dictionary order; higher node
         # indices are favored
-        O1 = np.lexsort(I0.T)
+        O1 = np.lexsort((I0[:,1], I0[:,0]))
         # Apply sorting
-        I0 = I0[O1,:]
-        # Initialize node index map; node i --> node I1[i]
+        I0 = I0[O1]
+        # Initialize node index map; node i --> node I1[i] (0-based)
         I1 = np.arange(self.nNode)
         # Loop through node replacements
         for (ia, ib) in I0:

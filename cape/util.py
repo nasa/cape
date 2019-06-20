@@ -52,7 +52,7 @@ def stackcol(cols):
     """
     # We have to do this stupid VSTACK thing for old versions of NUMPY
     # First, create tuple of 1xN row vector matrices
-    V = ([c] for c in cols)
+    V = tuple([c] for c in cols)
     # Stack as row vectors and then transpose
     return np.transpose(np.vstack(V))
             
