@@ -123,8 +123,12 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     fatri = '%s.a.tri' % proj
     futri = '%s.u.tri' % proj
     fitri = '%s.i.tri' % proj
+    # Intersect post-process options
+    o_rm = rc.get_intersect_rm()
+    o_triged = rc.get_intersect_triged()
+    o_smalltri = rc.get_intersect_smalltri()
     # Check if we can use ``triged`` to remove unused triangles
-    if rc.get_intersect_triged():
+    if o_triged():
         # Write the triangulation.
         trii.Write(fatri)
         # Remove unused nodes
@@ -141,24 +145,29 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
     else:
         # Trim unused trianlges (internal)
-        trii.RemoveUnusedNodes()
+        trii.RemoveUnusedNodes(v=True)
         # Write trimmed triangulation
         trii.Write(futri)
-    # Check options
-    if rc.get_intersect_rm():
+    # Check if we should remove small triangles
+    if o_rm and o_triged:
         # Input file to remove small tris
         infix = "RemoveSmallTris"
         fi = open('triged.%s.i' % infix, 'w')
         # Write inputs to file
         fi.write('%s\n' % futri)
         fi.write('19\n')
-        fi.write('%f\n' % rc.get("SmallArea", rc.get_intersect_smalltri()))
+        fi.write('%f\n' % rc.get("SmallArea", o_smalltri))
         fi.write('%s\n' % fitri)
         fi.write('1\n')
         fi.close()
         # Run triged to remove small tris
         print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
         os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    elif o_rm:
+        # Remove small triangles (internally)
+        trii.RemoveSmallTris(o_smalltri, v=True)
+        # Write final triangulation file
+        trii.Write(fitri)
     else:
         # Rename file
         os.rename(futri, fitri)

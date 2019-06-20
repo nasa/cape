@@ -4330,21 +4330,30 @@ class TriBase(object):
         return tri0
 
     # Eliminate unused nodes
-    def RemoveUnusedNodes(self):
+    def RemoveUnusedNodes(self, v=False):
         """Remove any nodes that are not used in any triangles
 
         :Call:
-            >>> tri.RemoveUnusedNodes()
+            >>> tri.RemoveUnusedNodes(v=False)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
+            *v*: ``True`` | {``False``}
+                Verbosity flag
         :Versions:
             * 2017-02-10 ``@ddalle``: First version
+            * 2019-06-18 ``@ddalle``: NO LOOPS
         """
         # Get nodes that are used
         N = np.unique(self.Tris)
         # Output number of nodes
         nNode = N.size
+        # Status update
+        if v:
+            print("Removing %i unused nodes" % (self.nNode - nNode))
+        # Check for no unused nodes
+        if nNode == self.nNode:
+            return
         # Initialize array of new indices
         # This is a map from node i -> I[i-1]
         I = np.zeros(self.nNode, dtype="int")
@@ -4362,6 +4371,83 @@ class TriBase(object):
             self.q = self.q[N-1,:]
         except AttributeError:
             pass
+        
+    # Eliminate small triangles
+    def RemoveSmallTris(self, smalltri=1e-5, v=False):
+        """Remove any triangles that are below a certain size
+
+        :Call:
+            >>> tri.RemoveSmallTris(smalltri=1e-5, v=False)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *smalltri*: {``1e-5``} | :class:`float` > 0
+                Minimum allowable triangle area
+            *v*: ``True`` | {``False``}
+                Verbosity flag
+        :Versions:
+            * 2017-06-19 ``@ddalle``: First version
+        """
+        # Calculate areas
+        self.GetNormals()
+        # Filter areas
+        K = np.where(self.Areas <= smalltri)[0]
+        # Number of triangles to remove
+        nsmall = K.size
+        # Status update
+        if v:
+            print("Removing %i small triangles (A<=%.2e)"
+                % (nsmall, smalltri))
+        # Check for nothing to do
+        if nsmall == 0:
+            return
+        # Get the node indices of the small tris
+        I = self.Tris[K] - 1
+        # Append first column to the end so we can calculate
+        # edge lengths with one less step
+        I = np.hstack((I, I[:,[0]]))
+        # Get the coordinates of all nodes involved in small triangles
+        X = self.Nodes[I, 0]
+        Y = self.Nodes[I, 1]
+        Z = self.Nodes[I, 2]
+        # Edge distance components
+        dx = X[:,1:] - X[:,:-1]
+        dy = Y[:,1:] - Y[:,:-1]
+        dz = Z[:,1:] - Z[:,:-1]
+        # Distances
+        D = np.sqrt(dx*dx + dy*dy + dz*dz)
+        # Find the shortest edge of each small triangle
+        J = np.argmin(D, axis=1)
+        # Combine start/end node indices
+        I0 = np.array([I[i][[j, (j + 1) % 3]] for (i, j) in enumerate(J)])
+        # Sort the node pairs so we mark the same node for deletion
+        # regardless of order
+        I0.sort(axis=1)
+        # Each node in the left column is replaced by node in right
+        # To avoid loops, we sort in dictionary order; higher node
+        # indices are favored
+        O1 = np.lexsort(I0.T)
+        # Apply sorting
+        I0 = I0[O1,:]
+        # Initialize node index map; node i --> node I1[i]
+        I1 = np.arange(self.nNode)
+        # Loop through node replacements
+        for (ia, ib) in I0:
+            I1[ia] = ib
+        # Make new triangle index array with replacements
+        T = I1[self.Tris - 1] + 1
+        # Remove the small triangles
+        self.Tris = np.delete(T, K, axis=0)
+        # Don't forget to delete them elsewhere
+        self.Areas = np.delete(self.Areas, K, axis=0)
+        self.Normals = np.delete(self.Normals, K, axis=0)
+        # Component IDs should be there, but let's be safe
+        try:
+            self.CompID = np.delete(self.CompID, K, axis=0)
+        except AttributeError:
+            pass
+        # Remove those removed nodes
+        self.RemoveUnusedNodes(v=v)
 
 
     # Map triangles to components based on another file
