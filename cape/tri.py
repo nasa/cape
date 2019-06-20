@@ -4440,8 +4440,8 @@ class TriBase(object):
             else:
                 # No double-neighbors
                 continue
-            # If we have double neighbors, prioritize such edges
-            J[i] = Ji[np.argmin(D[i,Ji])]
+            # If we have double neighbors, remove those edges, too
+            J = np.hstack((J, Ji))
         # Combine start/end node indices
         I0 = np.array([I[i][[j, (j + 1) % 3]] for (i, j) in enumerate(J)])
         # Sort the node pairs so we mark the same node for deletion
