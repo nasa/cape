@@ -4416,56 +4416,27 @@ class TriBase(object):
         dz = Z[:,[1,2,0]] - Z
         # Distances
         D = np.sqrt(dx*dx + dy*dy + dz*dz)
+        # Estimate edge tolerance
+        dmin = np.sqrt(smalltri)
         # Find the shortest edge of each small triangle
         J = np.argmin(D, axis=1)
         # Combine start/end node indices
         I0 = np.array([I[i][[j, (j + 1) % 3]] for (i, j) in enumerate(J)])
+        # Additional node replacements
+        I2 = []
         # Loop through the tri to check for neighbor-neighbor issues
         for (i, k) in enumerate(K):
-            # Get the nodes
-            i1, i2, i3 = I[i]
-            # Get the neighbors
-            k1, k2, k3 = self.FindNeighbors(k+1)
-            # Get neighbors' neighbors
-            N2 = self.FindNeighbors(k2)
-            N3 = self.FindNeighbors(k3)
-            # Initialize indices of edges whose adjacent tris are
-            # neighbors of other neighbors
-            Ji = np.zeros(3, dtype="bool")
-            # Check if *k0* is a neighbor of *k1*
-            if np.any(k1 == N2):
-                # E1 neighbor is neighbor of E2 neighbor
-                # Nodes of E1 neighbor
-                j1, j2, j3 = self.Tris[k1-1] - 1
-                # Find which is new
-                for ib in [j1, j2, j3]:
-                    if ib not in [i1, i2]:
-                        break
-                # Expand tri *k* into tri *k1* and *k2*
-                I0 = np.vstack((I0, [i2, ib]))
-            elif np.any(k1 == N3):
-                # E1 neighbor is neighbor of E3 neighbor
-                # Nodes of E1 neighbor
-                j1, j2, j3 = self.Tris[k1-1] - 1
-                # Find which is new
-                for ib in [j1, j2, j3]:
-                    if ib not in [i1, i2]:
-                        break
-                # Expand tri *k* into tri *k1* and *k2*
-                I0 = np.vstack((I0, [i1, ib]))
-            elif np.any(k2 == N3):
-                # E2 neighbor is neighbor of E3 neighbor
-                # Nodes of E2 neighbor
-                j1, j2, j3 = self.Tris[k2-1] - 1
-                # Find which is new
-                for ib in [j1, j2, j3]:
-                    if ib not in [i2, i3]:
-                        break
-                # Expand tri *k* into tri *k1* and *k2*
-                I0 = np.vstack((I0, [[i3, ib]]))
-            else:
-                # No double-neighbors
-                continue
+            # Check maximum length
+            if np.max(D[i]) <= dmin:
+                # Get the nodes
+                i1, i2, i3 = I[i]
+                # Just shift the triangle to a point
+                I2.append([i1, i2])
+                I2.append([i1, i3])
+                I2.append([i2, i3])
+        # Append additional deletions
+        if len(I2) > 0:
+            I0 = np.vstack((I0, I2))
         # Sort the node pairs so we mark the same node for deletion
         # regardless of order
         I0.sort(axis=1)
@@ -4512,7 +4483,7 @@ class TriBase(object):
         # Delete area calculations, some of which will need updating
         delattr(self, "Areas")
         delattr(self, "Normals")
-        delattr(self, "EdgeTable")
+        #delattr(self, "EdgeTable")
         # Final removal count
         if v:
             print("Removing %i triangles in total" % ndel)
