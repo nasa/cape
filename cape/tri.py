@@ -4371,41 +4371,6 @@ class TriBase(object):
             self.q = self.q[N-1,:]
         except AttributeError:
             pass
-        
-    # Remove one triangle
-    def _RemoveTri(self, k, KT, KE):
-        # Check if already deleted
-        if not KT[k-1]:
-            return 0
-        # Delete it
-        KT[k-1] = 0
-        # Deletion count
-        n = 1
-        # Get nodes in this triangle
-        I = self.Tris[k-1] - 1
-        # Get the coordinates of all nodes involved in small triangles
-        X = self.Nodes[I, 0]
-        Y = self.Nodes[I, 1]
-        Z = self.Nodes[I, 2]
-        # Edge distance components
-        dx = X[:,[1,2,0]] - X
-        dy = Y[:,[1,2,0]] - Y
-        dz = Z[:,[1,2,0]] - Z
-        # Distances
-        D = np.sqrt(dx*dx + dy*dy + dz*dz)
-        # Get index of shortest edge
-        j0 = np.argmin(D)
-        # Otherwise, get node end
-        j1 = (j0 + 1) % 3
-        # Indices
-        ia = I[j0] + 1
-        ib = I[j1] + 1
-        # Get adjacent triangle
-        k1 = self.FindTriFromEdge(ia, ib)
-        # Check for neighbor
-        if k1:
-            # Delete it
-            KT[k1-1] = False
             
         
     # Eliminate small triangles
@@ -4547,83 +4512,7 @@ class TriBase(object):
         # Delete area calculations, some of which will need updating
         delattr(self, "Areas")
         delattr(self, "Normals")
-        #delattr(self, "EdgeTable")
-        ## Loop until no wrapped triangles
-        #nun = 1
-        #iun = 0
-        #while (nun > 0) and (iun < 5):
-        #    # Increment loop count
-        #    iun += 1
-        #    # Renew edge table
-        #    delattr(self, "EdgeTable")
-        #    # Calculate new edge table
-        #    self.GetEdgeTable()
-        #    # Create list of additional substitutions
-        #    I0 = []
-        #    # Loop through deletions
-        #    for ia in IA:
-        #        # Get destination node
-        #        ib = I1[ia] + 1
-        #        # Find nodes starting with this
-        #        J = np.where(self.EdgeTable[:,0] == ib)[0]
-        #        # Extract this part of edge table
-        #        E = self.EdgeTable[J,:]
-        #        # Check for multiples of this edge
-        #        DI = E[1:,1] - E[:-1,1]
-        #        # Check count of multiple edges 
-        #        if np.min(DI) == 0:
-        #            # Get indices of duplicate edge
-        #            J = np.where(DI == 0)[0]
-        #            J = np.hstack((J, [max(J)+1]))
-        #            # Get destination node(s)
-        #            IC = np.unique(E[J,1])
-        #            # Get triangles involved
-        #            KC = E[J,2]
-        #            # DELETE any edges to be safe-ish
-        #            for ic in IC:
-        #                I0.append([ib-1, ic-1])
-        #    # Check for something to do in this step
-        #    if len(I0) > 0:
-        #        # Ensure array
-        #        I0 = np.array(I0)
-        #        # Get removed indices
-        #        IA = np.unique(I0[:,0])
-        #        # Sort it
-        #        O1 = np.lexsort((I0[:,1], I0[:,0]))
-        #        I0 = I0[O1]
-        #        # Initialize node index map; node i --> node I1[i] (0-based)
-        #        I1 = np.arange(self.nNode)
-        #        # Loop through node replacements
-        #        for (ia, ib) in I0:
-        #            # Make assignment
-        #            I1[ia] = ib
-        #        # Make new triangle index array with replacements
-        #        T = I1[self.Tris - 1] + 1
-        #        # Once the nodes have been updated, look for tris with repeats
-        #        # This can happen if a (sufficiently) large triangle has an
-        #        # edge removed by being adjacent to a small tri
-        #        # First we find the delta-node-index for each edge
-        #        DI = T[:,[1,2,0]] - T
-        #        # Find the smallest node-delta in absolute terms for each tri
-        #        DImin = np.min(np.abs(DI), axis=1)
-        #        # Any time there's a zero in a row marks a trivialized tri
-        #        K1 = np.where(DImin == 0)[0]
-        #        # Total removal count
-        #        nun = K1.size
-        #        # Remove the small or trivialized tris from orig and remapped
-        #        self.Tris = np.delete(T, K1, axis=0)
-        #        # Update number of triangles
-        #        self.nTri = self.Tris.shape[0]
-        #        # Extra removal count
-        #        if v:
-        #            print(
-        #                "Removing %i additional tris inverted by edge removal"
-        #                % nun)
-        #        # Update cumulative total
-        #        ndel += nun
-        #    else:
-        #        # No removals
-        #        break
+        delattr(self, "EdgeTable")
         # Final removal count
         if v:
             print("Removing %i triangles in total" % ndel)
