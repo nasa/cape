@@ -4453,124 +4453,57 @@ class TriBase(object):
         D = np.sqrt(dx*dx + dy*dy + dz*dz)
         # Find the shortest edge of each small triangle
         J = np.argmin(D, axis=1)
+        # Combine start/end node indices
+        I0 = np.array([I[i][[j, (j + 1) % 3]] for (i, j) in enumerate(J)])
         # Loop through the tri to check for neighbor-neighbor issues
         for (i, k) in enumerate(K):
+            # Get the nodes
+            i1, i2, i3 = I[i]
             # Get the neighbors
-            k0, k1, k2 = self.FindNeighbors(k)
+            k1, k2, k3 = self.FindNeighbors(k+1)
             # Get neighbors' neighbors
-            N1 = self.FindNeighbors(k1)
             N2 = self.FindNeighbors(k2)
+            N3 = self.FindNeighbors(k3)
             # Initialize indices of edges whose adjacent tris are
             # neighbors of other neighbors
             Ji = np.zeros(3, dtype="bool")
             # Check if *k0* is a neighbor of *k1*
-            if np.any(k0 == N1):
-                # Neighs of edges 0 and 1 are neighs
-                Ji = [0, 1]
-            elif np.any(k0 == N2):
-                # Neighs of edges 0 and 2 are neighs
-                Ji = [0, 2]
-            elif np.any(k1 == N2):
-                # Neighs of edges 1 and 2 are neighs
-                Ji = [1, 2]
+            if np.any(k1 == N2):
+                # E1 neighbor is neighbor of E2 neighbor
+                # Nodes of E1 neighbor
+                j1, j2, j3 = self.Tris[k1-1] - 1
+                # Find which is new
+                for ib in [j1, j2, j3]:
+                    if ib not in [i1, i2]:
+                        break
+                # Expand tri *k* into tri *k1* and *k2*
+                I0 = np.vstack((I0, [i2, ib]))
+            elif np.any(k1 == N3):
+                # E1 neighbor is neighbor of E3 neighbor
+                # Nodes of E1 neighbor
+                j1, j2, j3 = self.Tris[k1-1] - 1
+                # Find which is new
+                for ib in [j1, j2, j3]:
+                    if ib not in [i1, i2]:
+                        break
+                # Expand tri *k* into tri *k1* and *k2*
+                I0 = np.vstack((I0, [i1, ib]))
+            elif np.any(k2 == N3):
+                # E2 neighbor is neighbor of E3 neighbor
+                # Nodes of E2 neighbor
+                j1, j2, j3 = self.Tris[k2-1] - 1
+                # Find which is new
+                for ib in [j1, j2, j3]:
+                    if ib not in [i2, i3]:
+                        break
+                # Expand tri *k* into tri *k1* and *k2*
+                I0 = np.vstack((I0, [[i3, ib]]))
             else:
                 # No double-neighbors
                 continue
-            # If we have double neighbors, remove the shorter of these
-            J = np.hstack((J, [Ji[np.argmin(D[i,Ji])]]))
-            I = np.vstack((I, I[[i]]))
-        # Combine start/end node indices
-        I0 = np.array([I[i][[j, (j + 1) % 3]] for (i, j) in enumerate(J)])
         # Sort the node pairs so we mark the same node for deletion
         # regardless of order
         I0.sort(axis=1)
-        ## Initialize list of edges to delete due to previous edge
-        ## deletions causing degenerate triangles
-        #J0 = []
-        ## Loop through node replacements
-        #for (ia, ib) in I0:
-        #    # Get the neighboring tris
-        #    k = self.FindTriFromEdge(ia+1, ib+1)
-        #    # Process *k1*
-        #    if k != 0:
-        #        # Node indices
-        #        i0, i1, i2 = self.Tris[k-1] - 1
-        #        # Find extra index
-        #        if i0 == ia:
-        #            if i1 == ib:
-        #                ic = i2
-        #            else:
-        #                ic = i1
-        #        elif i0 == ib:
-        #            if i1 == ia:
-        #                ic = i2
-        #            else:
-        #                ic = i1
-        #        else:
-        #            ic = i0
-        #        # Find k1's neighbors
-        #        k0, k1, k2 = self.FindNeighbors(k)
-        #        # Get their neighbors
-        #        N1 = self.FindNeighbors(k1)
-        #        N2 = self.FindNeighbors(k2)
-        #        # Check if any neighbors are neighbors of neighbors
-        #        if np.any(k0 == N1):
-        #            # Neighs of edges 0 and 1 are neighbors
-        #            print("  A (%i->%i) --> %i" % (ia+1, ib+1, ic+1))
-        #            J0.append([ia, ic])
-        #            J0.append([ib, ic])
-        #        elif np.any(k0 == N2):
-        #            # Neighs of edges 0 and 2 are neighbors
-        #            print("  B (%i->%i) --> %i" % (ia+1, ib+1, ic+1))
-        #            J0.append([ia, ic])
-        #            J0.append([ib, ic])
-        #        elif np.any(k1 == N2):
-        #            # Neighs of edges 1 and 2 are neighbors
-        #            print("  C (%i->%i) --> %i" % (ia+1, ib+1, ic+1))
-        #            J0.append([ia, ic])
-        #            J0.append([ib, ic])
-        #    # Get the other neighboring tri
-        #    k = self.FindTriFromEdge(ib+1, ia+1)
-        #    # Process *k1*
-        #    if k != 0:
-        #        # Node indices
-        #        i0, i1, i2 = self.Tris[k-1] - 1
-        #        # Find extra index
-        #        if i0 == ia:
-        #            if i1 == ib:
-        #                ic = i2
-        #            else:
-        #                ic = i1
-        #        elif i0 == ib:
-        #            if i1 == ia:
-        #                ic = i2
-        #            else:
-        #                ic = i1
-        #        else:
-        #            ic = i0
-        #        # Find k1's neighbors
-        #        k0, k1, k2 = self.FindNeighbors(k)
-        #        # Get their neighbors
-        #        N1 = self.FindNeighbors(k1)
-        #        N2 = self.FindNeighbors(k2)
-        #        # Check if any neighbors are neighbors of neighbors
-        #        if np.any(k0 == N1):
-        #            # Neighs of edges 0 and 1 are neighbors
-        #            print("  A (%i->%i) --> %i" % (ia+1, ib+1, ic+1))
-        #            J0.append([ia, ic])
-        #            J0.append([ib, ic])
-        #        elif np.any(k0 == N2):
-        #            # Neighs of edges 0 and 2 are neighbors
-        #            print("  B (%i->%i) --> %i" % (ia+1, ib+1, ic+1))
-        #            J0.append([ia, ic])
-        #            J0.append([ib, ic])
-        #        elif np.any(k1 == N2):
-        #            # Neighs of edges 1 and 2 are neighbors
-        #            print("  C (%i->%i) --> %i" % (ia+1, ib+1, ic+1))
-        #            J0.append([ia, ic])
-        #            J0.append([ib, ic])
-        ## Combine edge deletions marked by small tri and degenerate tri
-        #I0 = np.vstack((I0, J0))
         # Each node in the left column is replaced by node in right
         # To avoid loops, we sort in dictionary order; higher node
         # indices are favored
@@ -4604,15 +4537,96 @@ class TriBase(object):
         if v:
             print("Removing %i additional tris trivialized by edge removal"
                 % (ndel - nsmall))
-            print("Removing %i triangles in total" % ndel)
-        # Remove the small or trivialized triangles
-        self.Tris = np.delete(T, K2, axis=0)
+        # Remove the small or trivialized tris from orig and remapped
+        T1 = np.delete(self.Tris, K2, axis=0)
+        T2 = np.delete(T, K2, axis=0)
+        # Save triangles
+        self.Tris = T2
         # Update number of triangles
         self.nTri = self.Tris.shape[0]
         # Delete area calculations, some of which will need updating
         delattr(self, "Areas")
         delattr(self, "Normals")
-        delattr(self, "EdgeTable")
+        #delattr(self, "EdgeTable")
+        ## Loop until no wrapped triangles
+        #nun = 1
+        #iun = 0
+        #while (nun > 0) and (iun < 5):
+        #    # Increment loop count
+        #    iun += 1
+        #    # Renew edge table
+        #    delattr(self, "EdgeTable")
+        #    # Calculate new edge table
+        #    self.GetEdgeTable()
+        #    # Create list of additional substitutions
+        #    I0 = []
+        #    # Loop through deletions
+        #    for ia in IA:
+        #        # Get destination node
+        #        ib = I1[ia] + 1
+        #        # Find nodes starting with this
+        #        J = np.where(self.EdgeTable[:,0] == ib)[0]
+        #        # Extract this part of edge table
+        #        E = self.EdgeTable[J,:]
+        #        # Check for multiples of this edge
+        #        DI = E[1:,1] - E[:-1,1]
+        #        # Check count of multiple edges 
+        #        if np.min(DI) == 0:
+        #            # Get indices of duplicate edge
+        #            J = np.where(DI == 0)[0]
+        #            J = np.hstack((J, [max(J)+1]))
+        #            # Get destination node(s)
+        #            IC = np.unique(E[J,1])
+        #            # Get triangles involved
+        #            KC = E[J,2]
+        #            # DELETE any edges to be safe-ish
+        #            for ic in IC:
+        #                I0.append([ib-1, ic-1])
+        #    # Check for something to do in this step
+        #    if len(I0) > 0:
+        #        # Ensure array
+        #        I0 = np.array(I0)
+        #        # Get removed indices
+        #        IA = np.unique(I0[:,0])
+        #        # Sort it
+        #        O1 = np.lexsort((I0[:,1], I0[:,0]))
+        #        I0 = I0[O1]
+        #        # Initialize node index map; node i --> node I1[i] (0-based)
+        #        I1 = np.arange(self.nNode)
+        #        # Loop through node replacements
+        #        for (ia, ib) in I0:
+        #            # Make assignment
+        #            I1[ia] = ib
+        #        # Make new triangle index array with replacements
+        #        T = I1[self.Tris - 1] + 1
+        #        # Once the nodes have been updated, look for tris with repeats
+        #        # This can happen if a (sufficiently) large triangle has an
+        #        # edge removed by being adjacent to a small tri
+        #        # First we find the delta-node-index for each edge
+        #        DI = T[:,[1,2,0]] - T
+        #        # Find the smallest node-delta in absolute terms for each tri
+        #        DImin = np.min(np.abs(DI), axis=1)
+        #        # Any time there's a zero in a row marks a trivialized tri
+        #        K1 = np.where(DImin == 0)[0]
+        #        # Total removal count
+        #        nun = K1.size
+        #        # Remove the small or trivialized tris from orig and remapped
+        #        self.Tris = np.delete(T, K1, axis=0)
+        #        # Update number of triangles
+        #        self.nTri = self.Tris.shape[0]
+        #        # Extra removal count
+        #        if v:
+        #            print(
+        #                "Removing %i additional tris inverted by edge removal"
+        #                % nun)
+        #        # Update cumulative total
+        #        ndel += nun
+        #    else:
+        #        # No removals
+        #        break
+        # Final removal count
+        if v:
+            print("Removing %i triangles in total" % ndel)
         # Component IDs should be there, but let's be safe
         try:
             self.CompID = np.delete(self.CompID, K2, axis=0)
