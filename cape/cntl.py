@@ -755,6 +755,16 @@ class Cntl(object):
             self.opts.set_qsub(False)
         if not kw.get('sbatch', True):
             self.opts.set_sbatch(False)
+        # Check for skipping marked cases
+        if kw.get("unmarked", False):
+            # Unmarked cases
+            q_umark = True
+        elif kw.get("nomarked", False) or (not kw.get("marked", False)):
+            # Only show unmarked cases
+            q_umark = True
+        else:
+            # Show all cases
+            q_umark = False
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
        # --------
@@ -827,6 +837,10 @@ class Cntl(object):
             i = I[j]
             # Extract case
             frun = fruns[j]
+           # --- Mark check ---
+            # Check for unmarked-only flag
+            if q_umark and (self.PASS[i] or self.ERROR[i]):
+                continue
            # --- Status ---
             # Check status.
             sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'))
