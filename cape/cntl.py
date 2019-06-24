@@ -759,7 +759,7 @@ class Cntl(object):
         if kw.get("unmarked", False):
             # Unmarked cases
             q_umark = True
-        elif kw.get("nomarked", False) or (not kw.get("marked", False)):
+        elif kw.get("nomarked", False) or (not kw.get("marked", True)):
             # Only show unmarked cases
             q_umark = True
         else:
