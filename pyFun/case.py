@@ -36,7 +36,7 @@ regex_dict = {
     "iter": "(?P<iter>[1-9][0-9]*)",
 }
 # Combine them; different format for steady and time-accurate modes
-regex = re.compile("\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % regex_dict)
+regex_f3dout = re.compile("\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % regex_dict)
 
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_fun3d():
@@ -837,30 +837,42 @@ def GetRunningIter():
     else:
         # Do not use restart iterations
         nr = None
-    # Get the last few lines of :file:`fun3d.out`
-    lines = bin.tail(fflow, 200).strip().split('\n')
-    lines.reverse()
-    # Initialize output
-    n = None
-    # Try each line.
-    for line in lines:
-        try:
-            # Check for direct specification
-            if 'current history iterations' in line:
-                # Direct specification
-                n = int(line.split()[-1])
-                nr = None
-                break
-            # Use the iteration regular expression
-            match = regex.match(line)
-            # Check for match
-            if match:
-                # Get the iteration number from the line
-                n = int(match.group('iter'))
-                # Search completed
-                break
-        except Exception:
-            continue
+    # Length of chunk at end of line to check
+    nchunk = 10
+    # Maximum number of chunks to scan
+    mchunk = 50
+    # Loop until chunk found with iteration number
+    for ichunk in range(mchunk):
+        # Get (cumulative) size of chunk and previous chunk
+        ia = ichunk * nchunk
+        ib = ia + nchunk
+        # Get the last few lines of :file:`fun3d.out`
+        lines = bin.tail(fflow, ib).strip().split('\n')
+        lines.reverse()
+        # Initialize output
+        n = None
+        # Try each line
+        for line in lines[ia:]:
+            try:
+                # Check for direct specification
+                if 'current history iterations' in line:
+                    # Direct specification
+                    n = int(line.split()[-1])
+                    nr = None
+                    break
+                # Use the iteration regular expression
+                match = regex_f3dout.match(line)
+                # Check for match
+                if match:
+                    # Get the iteration number from the line
+                    n = int(match.group('iter'))
+                    # Search completed
+                    break
+            except Exception:
+                continue
+        # Exit if valid line was found
+        if n is not None:
+            break
     # Output
     if n is None:
         return nr
