@@ -839,7 +839,7 @@ class Cntl(object):
             frun = fruns[j]
            # --- Mark check ---
             # Check for unmarked-only flag
-            if q_umark and (self.PASS[i] or self.ERROR[i]):
+            if q_umark and (self.x.PASS[i] or self.x.ERROR[i]):
                 continue
            # --- Status ---
             # Check status.
