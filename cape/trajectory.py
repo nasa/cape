@@ -184,21 +184,40 @@ class Trajectory(object):
             # Read the file
             self.ReadTrajectoryFile(fname)
         # Get number of cases from first key (not totally ideal)
-        nCase = len(self.text[keys[0]])
-        # Save the number of cases
+        nCase = max(1, len(self.text[keys[0]]))
+        # Loop through the keys to see if any were specified in the inputs.
+        for key in keys:
+            # Check inputs for that key.
+            if key not in kwargs:
+                continue
+            # Get values
+            V = kwargs[key]
+            # Check the specification type.
+            if isinstance(V, (list, tuple, np.ndarray)):
+                # Update *nCase*
+                if (nCase > 1) and (nCase != len(V)):
+                    # Mismatching arrays given
+                    raise ValueError(
+                        ("Keyword input for key '%s' has " % key) +
+                        ("%i values; expecting %s" % (len(V), nCase)))
+                elif nCase == 1:
+                    # Update the value
+                    nCase = len(V)
+                # Set it with the new value.
+                self.text[key] = [str(v) for v in V]
+        # Save case count
         self.nCase = nCase
         # Loop through the keys to see if any were specified in the inputs.
         for key in keys:
             # Check inputs for that key.
             if key not in kwargs:
                 continue
+            # Get values
+            V = kwargs[key]
             # Check the specification type.
-            if type(kwargs[key]).__name__ not in ['list']:
+            if not isinstance(V, (list, tuple, np.ndarray)):
                 # Use the same value for all cases
                 self.text[key] = [str(kwargs[key])] * nCase
-            else:
-                # Set it with the new value.
-                self.text[key] = [str(v) for v in kwargs[key]]
         # Create text if necessary
         if len(self.lines) == 0:
             # Create simple header
