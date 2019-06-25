@@ -2588,7 +2588,8 @@ class Fun3d(Cntl):
             * 2016-03-31 ``@ddalle``: First version
         """
         # Ignore cases marked PASS
-        if self.x.PASS[i]: return
+        if self.x.PASS[i] or self.x.ERROR[i]:
+            return
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
@@ -2596,7 +2597,8 @@ class Fun3d(Cntl):
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
-        if rc is None: return
+        if rc is None: 
+            return
         # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
