@@ -1304,8 +1304,10 @@ class Fun3d(Cntl):
         qdual = self.opts.get_Dual()
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
-        # Enter the run directory.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        # Create run directory if necessary
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
+        # Enter the run directory
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
@@ -1336,7 +1338,8 @@ class Fun3d(Cntl):
         # Reread namelist
         self.ReadNamelist()
         # Reread rubber.data
-        if qdual: self.ReadRubberData()
+        if qdual:
+            self.ReadRubberData()
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
             # Apply it.
@@ -2636,8 +2639,11 @@ class Fun3d(Cntl):
             if k in ["PhaseIters", "PhaseSequence"]: continue
             # Otherwise, overwrite
             rc[k] = rco[k]
-        # Write it.
+        # Write it
         self.WriteCaseJSON(i, rc=rc)
+        # (Re)Prepare mesh in case needed
+        print("  Checking mesh preparations")
+        self.PrepareMesh(i)
         # Rewriting phases
         print("  Writing input namelists 0 to %s" % (nPhase-1))
         self.PrepareNamelist(i)
