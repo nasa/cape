@@ -62,7 +62,7 @@ def CombineTri(*a, **kw):
     # Check for trivial combinations.
     if len(a) < 2:
         # Required input.
-        print __doc__
+        print(__doc__)
         raise IOError("At least two inputs required.")
         sys.exit(1)
     

@@ -119,7 +119,7 @@ def UH3D2Tri(*a, **kw):
     # Must have a file name.
     if fuh3d is None:
         # Required input.
-        print __doc__
+        print(__doc__)
         raise IOError("At least one input required.")
         
     # Get binary option

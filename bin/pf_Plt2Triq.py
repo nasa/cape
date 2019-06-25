@@ -83,7 +83,7 @@ def Plt2Triq(*a, **kw):
     # Must have a file name.
     if fplt is None:
         # Required input.
-        print __doc__
+        print(__doc__)
         raise IOError("At least one input required.")
     # Default file name
     ftriq = fplt.rstrip('plt').rstrip('dat') + 'triq'

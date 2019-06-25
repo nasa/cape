@@ -117,7 +117,7 @@ if __name__ == "__main__":
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
         import cape.text
-        print cape.text.markdown(__doc__)
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Run the main function.
     Tri2UH3D(*a, **kw)

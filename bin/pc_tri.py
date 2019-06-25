@@ -244,7 +244,7 @@ if __name__ == "__main__":
     (a, kw) = argr.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        print __doc__
+        print(__doc__)
         sys.exit()
         
     # Set input files

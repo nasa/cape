@@ -259,7 +259,7 @@ if __name__ == "__main__":
     a, kw = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        print cape.text.markdown(__doc__)
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Run the main function.
     MapTriqTri(*a, **kw)

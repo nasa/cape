@@ -82,7 +82,7 @@ def Tri2Surf(*a, **kw):
     # Must have a file name.
     if ftri is None:
         # Required input.
-        print __doc__
+        print(__doc__)
         raise IOError("At least one input required.")
     
     # Get the file pyCart settings file name.
