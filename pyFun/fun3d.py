@@ -1711,7 +1711,7 @@ class Fun3d(Cntl):
         # Get equations type
         eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Check for default
-        if eqn_type.lower() != "generic":
+        if eqn_type and (eqn_type.lower() != "generic"):
             # Let's not do anything for now
             return
         # Namelist handle

@@ -228,7 +228,7 @@ class Config(cape.options.Config):
             # Get the "BoundaryPoints"
             PS = self.get("BoundaryPoints", {})
             # Get the keys
-            BP = PS.keys()
+            BP = list(PS.keys())
             # Sort them.
             BP.sort()
         # Output
