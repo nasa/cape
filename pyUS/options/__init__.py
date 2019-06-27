@@ -180,6 +180,7 @@ class Options(cape.options.Options):
             self['Config'] = Config(**tmp)
    # >
     
+    
    # ==============
    # Global Options
    # ==============
@@ -256,7 +257,6 @@ class Options(cape.options.Options):
    # >
    
    
-    
    # ===================
    # Overall run control
    # ===================
@@ -268,7 +268,6 @@ class Options(cape.options.Options):
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
    
    # >
-   
    
    
    # =================
@@ -319,6 +318,77 @@ class Options(cape.options.Options):
         self._US3D()
         return self['US3D'].select_InputInp(j)
     select_InputInp.__doc__ = InputInpOpts.select_InputInp.__doc__
+   # >
+   
+    
+   # =============
+   # Mesh settings
+   # =============
+   # <
+        
+    # Copy documentation
+    for k in []:
+        eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
+   # >
+    
+    
+   # =============
+   # Configuration
+   # =============
+   # <
+    # Get components
+    def get_ConfigInput(self, comp):
+        self._Config()
+        return self['Config'].get_ConfigInput(comp)
+        
+    # Set components
+    def set_ConfigInput(self, comp, inp):
+        self._Config()
+        self['Config'].set_ConfigInput(comp, inp)
+        
+    # Copy over the documentation.
+    for k in [
+            'ConfigInput'
+    ]:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
+   # >
+    
+   # ============
+   # PBS settings
+   # ============
+   # <
+   # >
+    
+    
+   # =================
+   # Folder management
+   # =================
+   # <
+   # >
+    
+   # =========
+   # Data book
+   # =========
+   # <
+    
+    # Copy over the documentation.
+    for k in []:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
+   # >
+   
+    
+   # =======
+   # Reports
+   # =======
+   # <
+    
+    # Copy over the documentation
+    for k in []:
+        # Get the documentation from the submodule
+        eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__
    # >
    
    
