@@ -4,7 +4,7 @@
 
 This module handles classes and methods that are specific to the list of run
 cases (i.e., the "trajectory").  It is defined in the ``"Trajectory"`` section
-of the master JSON file (e.g. :file:`pyFun.json`), and is usually read from a
+of the master JSON file (e.g. :file:`pyUS.json`), and is usually read from a
 modified comma-separated or space-separated text file.
 
 The primary FUN3D state variables are Mach number, angle of attack, and
@@ -36,8 +36,8 @@ a JSON file, and *fun3d.x* is the run matrix.
     .. code-block:: pycon
     
         >>> import pyUS
-        >>> cntl = pyUS.US3D("pyUS.json")
-        >>> cntl.x.GetFullFolderNames()
+        >>> fun3d = pyUS.Fun3d("pyUS.json")
+        >>> fun3d.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
         
 For this module, there are no methods that are particular to FUN3D.  All
@@ -45,7 +45,7 @@ functionality is inherited from :class:`cape.trajectory.Trajectory`.
 
 :See Also:
     * :mod:`cape.trajectory`
-    * :mod:`pyUS.us3d`
+    * :mod:`pyUS.fun3d`
 """
 
 # Import the cape module.
@@ -58,8 +58,8 @@ class Trajectory(cape.trajectory.Trajectory):
     Read a simple list of configuration variables
     
     :Call:
-        >>> x = pyFun.Trajectory(**traj)
-        >>> x = pyFun.Trajectory(File=fname, Keys=keys)
+        >>> x = pyUS.Trajectory(**traj)
+        >>> x = pyUS.Trajectory(File=fname, Keys=keys)
     :Inputs:
         *traj*: :class:`dict`
             Dictionary of options from ``fun3d.Options["Trajectory"]``
@@ -77,7 +77,7 @@ class Trajectory(cape.trajectory.Trajectory):
         *Definitions*: :class:`dict`
             Dictionary of definitions for each key
     :Outputs:
-        *x*: :class:`pyFun.trajectory.Trajectory`
+        *x*: :class:`pyUS.trajectory.Trajectory`
             Instance of the trajectory class
     :Data members:
         *x.nCase*: :class:`int`

@@ -122,6 +122,11 @@ class US3D(Cntl):
             # Raise error but suppress traceback
             os.sys.tracebacklimit = 0
             raise ValueError("No pyUS control file '%s' found" % fname)
+            
+        # Get the real path
+        fjson = os.path.realpath(fname)
+        # Save it
+        self.fname = fjson
         
         # Read settings
         self.opts = options.Options(fname=fname)
@@ -139,10 +144,10 @@ class US3D(Cntl):
         self.jobs = {}
         
         # Read the input file template(s)
-        self.ReadInputInp()
+        #self.ReadInputInp()
         
         # Read the configuration
-        self.ReadConfig()
+        #self.ReadConfig()
         
         # Set umask
         os.umask(self.opts.get_umask())
@@ -154,7 +159,8 @@ class US3D(Cntl):
     def __repr__(self):
         """Output representation for the class."""
         # Display basic information from all three areas.
-        return "<pyUS.US3D(nCase=%i)>" % (
+        return '<pyUS.US3D("%s", nCase=%i)>' % (
+            os.path.split(self.fname)[1],
             self.x.nCase)
   # >
     

@@ -1,71 +1,45 @@
 """
-:mod:`pyFun.options.fun3dnml`: FUN3D namelist options
+:mod:`pyUS.options.inputInp`: US3D ``input.inp`` options 
 =========================================================
 
 This module provides a class to interpret JSON options that are converted to
-Fortran namelist format for FUN3D.  The
-module provides a class, :class:`pyFun.options.fun3dnml.Fun3DNml`, which
-interprets the settings of the ``"Fun3D"`` section of the master JSON file.
+``input.inp`` settings for FUN3D.  The
+module provides a class, :class:`pyUS.options.inputInp.InputInpOpts`, which
+interprets the settings of the ``"US3D"`` section of the master JSON file.
 These settings are then applied to the main OVERFLOW input file, the
-``fun3d.nml`` namelist.
+``input.inp`` input file, which is in a format specific to US3D.
 
 An example JSON setting is shown below.
 
     .. code-block:: javascript
     
-        "Fun3D": {
-            "nonlinear_solver_parameters": {
-                "schedule_cfl": [[1.0, 5.0], [5.0, 20.0], [20.0, 20.0]],
-                "time_accuracy": ["steady", "steady", "2ndorder"],
-                "time_step_nondim": 2.0,
-                "subiterations": 5
+        "US3D": {
+            "CFD_SOLVER": {
+                "nstop": 30000,
+                "ivisc": 11,
+                "cfl": [1.1, 5.1, 10.1]
             },
-            "boundary_output_variables": {
-                "boundary_list": "7-52",
-                "turres1": true,
-                "p_tavg": [false, false, true]
+            "CFD_SOLVER_OPTS": {
+                "chem_vibr_diso": 1.0
+            },
+            "MANAGE": {
+                "flag": 4
             }
         }
         
-This will cause the following settings to be applied to ``fun3d.00.nml``.
-
-    .. code-block:: none
-    
-        &nonlinear_solver_parameters
-            schedule_cfl = 1.0 5.0
-            time_accuracy = 'steady'
-            time_step_nondim = 2.0
-            subiterations = 5
-        /
-        &boundary_output_variables
-            boundary_list = '7-52'
-            turres1 = .true.
-            p_tavg = .false.
-        /
+This will cause or partially cause changes to the sections ``[CFD_SOVER]``,
+``[CFD_SOLVER_OPTS]``, and ``[MANAGE]`` in the ``input.00.inp`` file.
         
-The edits to ``fun3d.02.nml`` are from the third entries of each list:
-
-    .. code-block:: none
-    
-        &nonlinear_solver_parameters
-            schedule_cfl = 20.0 20.0
-            time_accuracy = '2ndorder'
-            time_step_nondim = 2.0
-            subiterations = 5
-        /
-        &boundary_output_variables
-            boundary_list = '7-52'
-            turres1 = .true.
-            p_tavg = .true.
-        /
+The edits to ``input.02.inp`` are from the third entries of each list, so the
+*cfl* parameter would be ``10.1`` instead of ``1.1``.
             
-Each setting and section in the ``"Fun3D"`` section may be either present in
-the template namelist or missing.  It will be either edited or added as
-appropriate, even if the specified section does not exist.
+Each setting and section in the ``"US"`` section may be either present in
+the template ``input.inp`` file or missing.  It will be either edited or added
+as appropriate, even if the specified section does not exist.
 
 :See also:
-    * :mod:`pyFun.namelist`
-    * :mod:`pyFun.fun3d`
+    * :mod:`pyUS.inputInp`
+    * :mod:`pyUS.us3d`
     * :mod:`cape.namelist`
 """
 
@@ -73,8 +47,8 @@ appropriate, even if the specified section does not exist.
 from .util import rc0, odict, getel, setel
 
 # Class for namelist settings
-class Fun3DNml(odict):
-    """Dictionary-based interface for FUN3D namelists"""
+class InputInpOpts(odict):
+    """Dictionary-based interface for US3D input file ``input.inp``"""
     
     # Get the project namelist
     def get_project(self, i=None):
