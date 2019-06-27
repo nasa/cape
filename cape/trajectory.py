@@ -184,7 +184,7 @@ class Trajectory(object):
             # Read the file
             self.ReadTrajectoryFile(fname)
         # Get number of cases from first key (not totally ideal)
-        nCase = 0
+        nCase = len(self.text[keys[0]])
         # Loop through the keys to see if any were specified in the inputs.
         for key in keys:
             # Check inputs for that key.
@@ -195,12 +195,12 @@ class Trajectory(object):
             # Check the specification type.
             if isinstance(V, (list, tuple, np.ndarray)):
                 # Update *nCase*
-                if (nCase > 0) and (nCase != len(V)):
+                if (nCase > 1) and (nCase != len(V)):
                     # Mismatching arrays given
                     raise ValueError(
                         ("Keyword input for key '%s' has " % key) +
                         ("%i values; expecting %s" % (len(V), nCase)))
-                elif nCase == 0:
+                elif nCase <= 1:
                     # Update the value
                     nCase = len(V)
                 # Set it with the new value.

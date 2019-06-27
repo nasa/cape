@@ -17,18 +17,29 @@ All of the functions from :mod:`cape.case` are imported here.  Thus they are
 available unless specifically overwritten by specific :mod:`pyFun` versions.
 
 """
-# System modules
+
+# Standard library modules
+import os
+import glob
+import json
+import shutil
+import resource
 import re
 
 # Import cape stuff
 from cape.case import *
+
+# CAPE modules
 import cape.manage as manage
-# Import options class
+
+# Local imports
+from . import bin
+from . import cmd
+from . import queue
+
+# Partial local imports
 from .options.runControl import RunControl
-# Import the namelist
 from .namelist import Namelist
-# Interface for writing commands
-from . import bin, cmd, queue
 
 # Regular expression to find a line with an iteration
 regex_dict = {
@@ -52,8 +63,8 @@ def run_fun3d():
     if os.path.isfile('RUNNING'):
         # Case already running
         raise IOError('Case already running!')
-    # Touch the running file.
-    os.system('touch RUNNING')
+    # Touch (create) the running file
+    open("RUNNING", "w").close()
     # Start timer
     tic = datetime.now()
     # Get the run control settings
@@ -71,7 +82,8 @@ def run_fun3d():
     # Clean up files
     FinalizeFiles(rc, i)
     # Remove the RUNNING file.
-    if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    if os.path.isfile('RUNNING'):
+        os.remove('RUNNING')
     # Save time usage
     WriteUserTime(tic, rc, i)
     # Check for errors
@@ -450,7 +462,7 @@ def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
     :Versions:
         * 2015-12-09 ``@ddalle``: First version
     """
-    # Call the function from :mode:`cape.case`
+    # Call the function from :mod:`cape.case`
     WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
 
 # Function to determine which PBS script to call

@@ -353,6 +353,20 @@ class Options(cape.options.Options):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
+    
+    # post.scr file
+    def get_PostScrFile(self, j=None):
+        self._Config()
+        return self['Config'].get_PostScrFile(j)
+        
+    # Copy over the documentation.
+    for k in [
+            'PostScrFile'
+    ]:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
+        
+    
    # >
     
    # ============

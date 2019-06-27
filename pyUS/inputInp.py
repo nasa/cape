@@ -619,6 +619,60 @@ class InputInp(cape.namelist.Namelist):
             self.Section[sec].insert(i0, line)
         
   # --- Specific Settings ---
+   # [general]
+    # Get a generic parameter
+    def GetVar(sec, key):
+        """Get value of *key* from section *sec* of ``input.inp``
+        
+        :Call:
+            >>> val = inp.GetVar(sec, key)
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+            *key*: :class:`str`
+                Name of parameter
+        :Outputs:
+            *val*: :class:`int` | :class:`float` | ``None``
+                Value in ``input.inp`` file
+        :Versions:
+            * 2019-06-27 ``@ddalle``: First version
+        """
+        # Check which section
+        if sec == "CFD_SOLVER":
+            # Tabled list
+            return self.get_CFDSOLVER_key(key)
+        elif sec == "CFD_SOLVER_OPTS":
+            # Namelist
+            return self.get_CFDSOLVEROPTS_key(key)
+        elif sec == "CFD_BCS":
+            # Boundary condition section, check key
+            raise NotImplementedError(
+                "Interface to CFD_BCS section of input.inp has " +
+                "not been generalized.")
+        elif sec == "MANAGE":
+            # Manage section
+            if key in ["flag"]:
+                # Get the flag
+                return self.get_MANAGE_flag()
+            elif key in ["table"]:
+                # Get the entire table
+                return self.get_MANAGE_table()
+            elif key in ["schedule"]:
+                # Get the other rows in the table
+                return se.f.get_MANAGE_schedule()
+            else:
+                # Unknown
+                raise ValueError(
+                    ("Unknown input.inp parameter '%s' " % key) +
+                    ("from MANAGE section"))
+        elif sec == "TAILOR":
+            # Tabled list
+            return self.get_TAILOR_key(key)
+        else:
+            # What section is this?
+            raise ValueError("Unknown input.inp section '%s'" % sec)
+   # [/general]
+   
    # [CFD_SOLVER]
     # Generic parameter (get)
     def get_CFDSOLVER_key(self, key):
@@ -2034,6 +2088,43 @@ class InputInp(cape.namelist.Namelist):
    # [/CFD_BCS/angles]
    
    # [MANAGE]
+    # Get first entry
+    def get_MANAGE_flag(self):
+        """Get flag from *MANAGE* section, first table entry
+        
+        :Call:
+            >>> flag = inp.get_MANAGE_table()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *flag*: :class:`int` >= 0
+                Flag for what action for US3D to take
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        return self.GetSectionTableValue("MANAGE", 0, 0)
+        
+    # Get manage section table
+    def get_MANAGE_schedule(self):
+        """Get CFL schedule from *MANAGE* section
+        
+        :Call:
+            >>> table = inp.get_MANAGE_schedule()
+        :Inputs:
+            *inp*: :class:`pyUS.inputInp.InputInp`
+                Namelist file control instance
+        :Outputs:
+            *table*: :class:`list`
+                List of values in each row
+        :Versions:
+            * 2019-06-19 ``@ddalle``: First version
+        """
+        # Get the entire table
+        table = self.get_MANAGE_table()
+        # Skip first entry
+        return table[1:]
+        
     # Get manage section table
     def get_MANAGE_table(self):
         """Get entire table of *MANAGE* CFL schedule

@@ -1,0 +1,87 @@
+{
+    // Settings for the PBS script
+    "PBS": {
+        "j": "oe",
+        "r": "n",
+        "S": "/bin/bash",
+        "select": 1,
+        "ncpus": 12,
+        "mpiprocs": 12,
+        "model": "",
+        "W": "",
+        "q": "normal",
+        "walltime": "2:00:00"
+    },
+    
+	// The names of these two files have the obvious defaults.
+	"InputInp": "input.inp",
+
+    // Settings for ``input.inp``
+    "US3D": {
+        "CFD_SOLVER": {
+            "cfl": 5.0
+        },
+        "CFD_SOLVER_OPTS": {
+            "chem_vir_diso": 1.0
+        },
+        "MANAGE": {
+            "flag": 4
+        }
+    },
+	
+	// Commands to load at head of run scripts (run_cart3d.pbs)
+	"ShellCmds": [
+	    ". $MODULESHOME/init/bash",
+	    "module load us3d",
+	    "module load cape"
+	],
+	
+	// Iteration control and command-line inputs
+	"RunControl": {
+	    // Run sequence
+	    "PhaseSequence": [0],
+	    "PhaseIters": [1000],
+	    // Number of threads
+	    "nProc": 8,
+	    // Mode
+	    "Adaptive": false,
+	    "MPI": false,
+	    "qsub": false,
+	    "Resubmit": false,
+	    "Continue": true,
+	    // System interface
+	    "mpicmd": "mpiexec",
+        "Environ": {},
+        "ulimit": {
+            "s": 4194304
+        },
+        // nodet inputs
+        "nodet": {
+            "animation_freq": -1
+        }
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        
+    },
+    
+    // Run matrix description
+    "Trajectory": {
+        // File and variable list
+        "File": "matrix.csv",
+        "Keys": [
+            "mach", "alpha", "beta", "q", "T", "config", "Label"
+        ],
+        // Modify one definition
+        "Definitions": {
+            "mach": {"Format": "%.2f"},
+            "alpha": {"Format": "%04.1f"}
+        },
+        // Group settings
+        "GroupMesh": false,
+        // Label universal
+        "Label": "",
+        "config": "bullet"
+    }
+}

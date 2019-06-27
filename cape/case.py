@@ -23,24 +23,28 @@ Actual functionality is left to individual modules listed below.
 Several of the key methods for this API module are described below.
 """
 
-# Import options class
-from .options.runControl import RunControl
+# Standard library modules
+import os
+import glob
+import json
+import shutil
+import resource
+
+# Partial standard library modules
+from datetime import datetime
+
+# Third-party modules
+import numpy as np
+from numpy import nan, isnan, argmax
+
 # Interface for writing commands
 from . import queue
 from . import bin
 
-# Need triangulations for cases with `intersect`
+# Partial local imports
 from .tri import Tri, Triq
+from .options.runControl import RunControl
 
-# Read the local JSON file.
-import json
-# Timing
-from datetime import datetime
-# File control
-import os, resource, glob, shutil
-# Basic numerics
-import numpy as np
-from numpy import nan, isnan, argmax
 
 
 # Function to intersect geometry if appropriate

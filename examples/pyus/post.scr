@@ -1,0 +1,14 @@
+pob_init 1
+echo -- Current solution contains $(US3D_NRUNS) runs
+do i = 1~$(US3D_NRUNS)
+   pob_init $(i)
+   pob_write_bgrid file=grid-bounds.$(i).dat
+   pob_write_vgrid file=grid-full.$(i).dat
+   !pob_write_fvs_vars file=solution.$(i).dat vars=rhos,rho,uvw,p,t,tv,m,ht
+   pob_write_aslice_vars np=1 file=slice.$(i).dat vars=rhos,rho,uvw,p,t,tv,m,ht
+   0 0.0001 0.0 0 0 1
+   !pob_write_wvars file=wall.$(i).dat vars=rhos,t,tv,m,qw,p,d
+   pob_dest
+enddo i
+
+

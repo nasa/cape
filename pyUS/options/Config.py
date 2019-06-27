@@ -100,7 +100,24 @@ class Config(cape.options.Config):
    # Other Files
    # ------------
    # [
-   
+    # Get the post.scr template file
+    def get_PostScrFile(self, j=None):
+        """Get the ``post.scr`` file name
+        
+        :Call:
+            >>> fname = opts.get_PostScrFile(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file template
+        :Versions:
+            * 2019-06-27 ``@ddalle``: First version
+        """
+        return self.get_key('PostScrFile', j)
    
    # ]
         
