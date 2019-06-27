@@ -50,25 +50,31 @@ from .util import rc0, odict, getel, setel
 class InputInpOpts(odict):
     """Dictionary-based interface for US3D input file ``input.inp``"""
     
-    # Get the project namelist
-    def get_project(self, i=None):
-        """Return the ``project`` namelist
+   # ---------
+   # General
+   # ---------
+   # <
+    # Get the settings for a section namelist
+    def get_section(self, sec, j=None):
+        """Return a settings :class:`dict` for an ``input.inp`` section
         
         :Call:
-            >>> d = opts.get_project(i=None)
+            >>> d = opts.get_section(sec, j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :pyUS.options.Options`
                 Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
+            *sec*: :class:`str`
+                Name of appropriate ``input.inp`` section
+            *j*: {``None``} | :class:`int`
+                Phase number
         :Outputs:
-            *d*: :class:`pyFun.options.odict`
-                Project namelist
+            *d*: :class:`cape.options.odict`
+                Settings for that section
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2019-06-27 ``@ddalle``: First version
         """
         # Get the value
-        d = getel(self.get('project'), i) 
+        d = getel(self.get(sec), j) 
         # Check for None
         if d is None:
             # Return empty dict
@@ -77,167 +83,154 @@ class InputInpOpts(odict):
             # Convert dictionary to odict
             return odict(**d)
     
-    # Get the project namelist
-    def get_raw_grid(self, i=None):
-        """Return the ``raw_grid`` namelist
+    # Reduce entire options dict to a single phase
+    def select_InputInp(self, j=0):
+        """Reduce ``input.inp`` options to options for a single phase
         
         :Call:
-            >>> d = opts.get_raw_grid(i=None)
+            >>> d = opts.select_InputInp(j=0)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`pyUS.options.Options`
                 Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
+            *j*: {``0``} | :class:`int`
+                Phase number
         :Outputs:
-            *d*: :class:`pyFun.options.odict`
-                Grid namelist
+            *d*: :class:`cape.options.odict`
+                Project settings for phase *j*
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
-        """
-        # Get the value
-        d = getel(self.get('raw_grid'), i) 
-        # Check for None
-        if d is None:
-            # Return empty dict
-            return odict()
-        else:
-            # Convert dictionary to odict
-            return odict(**d)
-            
-    # Get rootname
-    def get_project_rootname(self, i=None):
-        """Return the project root name
-        
-        :Call:
-            >>> rname = opts.get_project_rootname(i=None)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
-        :Outputs:
-            *rname*: :class:`str`
-                Project root name
-        :Versions:
-            * 2015-10-18 ``@ddalle``: First version
-        """
-        # Get the namelist
-        d = self.get_project(i)
-        # Get the value.
-        return d.get_key('project_rootname', i)
-        
-    # Grid format
-    def get_grid_format(self, i=None):
-        """Return the grid format
-        
-        :Call:
-            >>> fmat = opts.get_grid_format(i=None)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
-        :Outputs:
-            *fmat*: :class:`str`
-                Grid format
-        :Versions:
-            * 2015-10-18 ``@ddalle``: First version
-        """
-        # Get the raw_grid namelist
-        d = self.get_raw_grid(i)
-        # Get the value.
-        return d.get_key('grid_format', i)
-        
-        
-    # Reduce to a single run sequence
-    def select_namelist(self, i=0):
-        """Reduce namelist options to a single instance (i.e. sample lists)
-        
-        :Call:
-            >>> d = opts.select_namelist(i)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
-        :Outputs:
-            *d*: :class:`pyFun.options.odict`
-                Project namelist
-        :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2019-06-27 ``@ddalle``: First version
         """
         # Initialize output
-        d = {}
+        d = odict()
         # Loop through keys
         for sec in self:
             # Get the list
-            L = getel(self[sec], i)
+            L = getel(self[sec], j)
             # Initialize this list.
             d[sec] = {}
             # Loop through subkeys
             for k in L:
                 # Select the key and assign it.
-                d[sec][k] = getel(L[k], i)
+                d[sec][k] = getel(L[k], j)
         # Output
         return d
         
     # Get value by name
-    def get_namelist_var(self, sec, key, i=None):
-        """Select a namelist key from a specified section
+    def get_InputInp_key(self, sec, key, j=None):
+        """Select an ``input.inp`` setting from a specified section
         
         Roughly, this returns ``opts[sec][key]``.
         
         :Call:
-            >>> val = opts.get_namelist_var(sec, key, i=None)
+            >>> val = opts.get_namelist_key(sec, key, j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`pyUS.options.Options`
                 Options interface
             *sec*: :class:`str`
                 Section name
             *key*: :class:`str`
                 Variable name
-            *i*: :class:`int` | ``None``
-                Run sequence index
+            *j*: {``None``} | :class:`int`
+                Phase number
         :Outputs:
-            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
+            *val*: JSON-type
                 Value from JSON options
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
+            * 2019-06-27 ``@ddalle``: From :func:`get_namelist_var`
         """
         # Check for namelist
-        if sec not in self: return None
+        if sec not in self:
+            return None
         # Select the namelist
-        d = getel(self[sec], i)
+        d = getel(self[sec], j)
         # Select the value.
-        return getel(d.get(key), i)
+        return getel(d.get(key), j)
         
     # Set value by name
-    def set_namelist_var(self, sec, key, val, i=None):
+    def set_InputInp_key(self, sec, key, val, j=None):
         """Set a namelist key for a specified phase or phases
         
-        Roughly, this sets ``opts["Fun3D"][sec][key]`` or
-        ``opts["Fun3D"][sec][key][i]`` equal to *val*
+        Roughly, this sets ``opts["US3D"][sec][key]`` or
+        ``opts["US3D"][sec][key][i]`` equal to *val*
         
         :Call:
-            >>> opts.set_namelist_var(sec, key, val, i=None)
+            >>> opts.set_InputInp_key(sec, key, val, j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`pyUS.options.Options`
                 Options interface
             *sec*: :class:`str`
                 Section name
             *key*: :class:`str`
                 Variable name
-            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
-                Value from JSON options
-            *i*: :class:`int` | ``None``
-                Run sequence index
+            *val*: JSON-type
+                Value for JSON options
+            *j*: {``None``} | :class:`int`
+                Phase number
         :Versions:
             * 2017-04-05 ``@ddalle``: First version
+            * 2019-06-27 ``@ddalle``: From :func:`set_namelist_var`
         """
         # Initialize section
-        if sec not in self: self[sec] = {}
+        if sec not in self:
+            self[sec] = {}
         # Initialize key
-        if key not in self[sec]: self[sec][key] = None
+        if key not in self[sec]:
+            self[sec][key] = None
         # Set value
-        self[sec][key] = setel(self[sec][key], i, val)
+        self[sec][key] = setel(self[sec][key], j, val)
+   # >
+   
+   # -----------
+   # CFD_SOLVER
+   # -----------
+   # <
+    # Get entire section for CFD_SOLVER
+    def get_CFDSOLVER(self, j=None):
+        """Return a ``"CFD_SOLVER"`` settings :class:`dict`
+        
+        :Call:
+            >>> d = opts.get_CFDSOLVER(sec, j=None)
+        :Inputs:
+            *opts*: :pyUS.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *d*: :class:`cape.options.odict`
+                Settings for that section
+        :Versions:
+            * 2019-06-27 ``@ddalle``: First version
+        """
+        return self.get_section("CFD_SOLVER", j=j)
+    
+    # Get an options from the "CFD_SOLVER" section
+    def get_CFDSOLVER_key(self, k, j=None):
+        """Return a named parameter from the *CFD_SOLVER* section
+        
+        :Call:
+            >>> v = opts.get_CFDSOLVER_key(k, j=None)
+        :Inputs:
+            *opts*: :pyUS.options.Options`
+                Options interface
+            *k*: :class:`str`
+                Name of appropriate key from ``input.inp`` section
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *v*: :class:`int` | :class:`float` | :class:`list`
+                Value for (numeric) parameter
+        :Versions:
+            * 2019-06-27 ``@ddalle``: First version
+        """
+        # Get section
+        d = self.get_section("CFD_SOLVER", j=j)
+        # Check for empty setting
+        if d is None:
+            return None
+        # Get key from that section
+        return d.get_key(k, j)
+    
+    
+   # >
         

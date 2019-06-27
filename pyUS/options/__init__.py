@@ -72,6 +72,7 @@ class Options(cape.options.Options):
         # Upgrade important groups to their own classes.
         self._PBS()
         self._Slurm()
+        self._US3D()
         self._DataBook()
         self._Report()
         self._RunControl()
@@ -87,7 +88,6 @@ class Options(cape.options.Options):
    # Initializers
    # ============
    # <
-    
     # Initialization and confirmation for PBS options
     def _PBS(self):
         """Initialize PBS options if necessary"""
@@ -179,3 +179,148 @@ class Options(cape.options.Options):
             # Convert to special class.
             self['Config'] = Config(**tmp)
    # >
+    
+   # ==============
+   # Global Options
+   # ==============
+   # <
+    # Method to get the ``input.inp`` template file name
+    def get_InputInp(self, j=None):
+        """Return the name of the master :file:`fun3d.nml` file
+        
+        :Call:
+            >>> fname = opts.get_InputInp(j=None)
+        :Inputs:
+            *opts*: :class:`pyUS.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fname*: :class:`str`
+                Name of US3D ``input.inp`` template file
+        :Versions:
+            * 2019-06-27 ``@ddalle``: First version
+        """
+        return self.get_key('InputInp', j)
+        
+    # Method to set the ``input.inp`` template file name
+    def set_InputInp(self, fname):
+        """Set the name of the master :file:`fun3d.nml` file
+        
+        :Call:
+            >>> opts.set_InputInp(fname)
+        :Inputs:
+            *opts*: :class:`pyUS.options.Options`
+                Options interface
+            *fname*: :class:`str`
+                Name of US3D ``input.inp`` template file
+        :Versions:
+            * 2019-06-27 ``@ddalle``: First version
+        """
+        self['InputInp'] = fname
+    
+    # Method to determine if groups have common meshes.
+    def get_GroupMesh(self):
+        """Determine whether or not groups have common meshes
+        
+        :Call:
+            >>> qGM = opts.get_GroupMesh()
+        :Inputs:
+            *opts* :class:`pyUS.options.Options`
+                Options interface
+        :Outputs:
+            *qGM*: :class:`bool`
+                True all cases in a group use the same (starting) mesh
+        :Versions:
+            * 2014-10-06 ``@ddalle``: First version
+        """
+        # Safely get the trajectory.
+        x = self.get('Trajectory', {})
+        return x.get('GroupMesh', rc0('GroupMesh'))
+        
+    # Method to specify that meshes do or do not use the same mesh
+    def set_GroupMesh(self, qGM=rc0('GroupMesh')):
+        """Specify that groups do or do not use common meshes
+        
+        :Call:
+            >>> opts.get_GroupMesh(qGM)
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+            *qGM*: :class:`bool`
+                True all cases in a group use the same (starting) mesh
+        :Versions:
+            * 2014-10-06 ``@ddalle``: First version
+        """
+        self['Trajectory']['GroupMesh'] = qGM
+   # >
+   
+   
+    
+   # ===================
+   # Overall run control
+   # ===================
+   # <
+    
+        
+    # Copy documentation
+    for k in []:
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+   
+   # >
+   
+   
+   
+   # =================
+   # Namelist settings
+   # =================
+   # <
+    
+    # CFD_SOLVER section
+    def get_CFDSOLVER(self, j=None):
+        self._US3D()
+        return self['US3D'].get_CFDSOLVER(j)
+        
+    # One CFD_SOLVER setting
+    def get_CFDSOLVER_key(self, k, j=None):
+        self._US3D()
+        return self['US3D'].get_CFDSOLVER_key(k, j)
+        
+    # Project rootname
+    def get_section(self, sec, j=None):
+        self._US3D()
+        return self['US3D'].get_section(sec, j)
+        
+    # Grid format
+    def get_grid_format(self, j=None):
+        self._Fun3D()
+        return self['Fun3D'].get_grid_format(j)
+        
+    # Generic value
+    def get_InputInp_key(self, sec, key, j=None):
+        self._US3D()
+        return self['US3D'].get_InputInp_key(sec, key, j)
+        
+    # Copy documentation
+    for k in ['CFDSOLVER', 'CFDSOLVER_key', 'section', 'InputInp_key']:
+        eval('get_'+k).__doc__ = getattr(InputInpOpts,'get_'+k).__doc__
+        
+    # Set generic value
+    def set_InputInp_key(self, sec, key, val, j=None):
+        self._US3D()
+        return self['US3D'].set_InputInp_key(sec, key, val, j)
+        
+    # Copy documentation
+    for k in ['InputInp_key']:
+        eval('set_'+k).__doc__ = getattr(InputInpOpts,'set_'+k).__doc__
+        
+    # Downselect
+    def select_InputInp(self, j=0):
+        self._US3D()
+        return self['US3D'].select_InputInp(j)
+    select_InputInp.__doc__ = InputInpOpts.select_InputInp.__doc__
+   # >
+   
+   
+
+# class Options

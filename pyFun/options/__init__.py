@@ -261,7 +261,7 @@ class Options(cape.options.Options):
         :Call:
             >>> qGM = opts.get_GroupMesh()
         :Inputs:
-            *opts* :class:`pyCart.options.Options`
+            *opts* :class:`pyFun.options.Options`
                 Options interface
         :Outputs:
             *qGM*: :class:`bool`
@@ -280,7 +280,7 @@ class Options(cape.options.Options):
         :Call:
             >>> opts.get_GroupMesh(qGM)
         :Inputs:
-            *opts* :class:`pyCart.options.Options`
+            *opts* :class:`pyFun.options.Options`
                 Options interface
             *qGM*: :class:`bool`
                 True all cases in a group use the same (starting) mesh
