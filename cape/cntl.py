@@ -966,6 +966,10 @@ class Cntl(object):
         """
         # Get indices
         I = self.x.GetIndices(**kw)
+        # Check sanity
+        if len(I) > 100:
+            raise ValueError(
+                "Attempting to mark %i ERRORs; that's too many!" % len(I))
         # Process flag option
         flag = kw.get("flag", "p")
         # Loop through cases
@@ -996,6 +1000,10 @@ class Cntl(object):
         """
         # Get indices
         I = self.x.GetIndices(**kw)
+        # Check sanity
+        if len(I) > 100:
+            raise ValueError(
+                "Attempting to mark %i ERRORs; that's too many!" % len(I))
         # Process flag option
         flag = kw.get("flag", "E")
         # Loop through cases
