@@ -7,6 +7,19 @@
 This module primarily provides a simple class, :class:`TestOpts`, that reads a
 JSON file for a small number of options the dictate how a test will be run.
 
+
+The allowable options and their default values are contained in the variable
+*rc* from this module.  They are tabulated below:
+
+    =============  ===============  ========================================
+    Option         Default Value    Description
+    =============  ===============  ========================================
+    *stdout*       ``"STDOUT"``     Name of file to capture standard out
+    *stderr*       ``"STDERR"``     Name of file to capture standard error
+    *CopyFiles*    ``[]``           Files to copy into test folder
+    *LinkFiles*    ``[]``           Files to link into test folder
+    *Commands*     ``[]``           List of commands to run during test
+    =============  ===============  ========================================
 """
 
 # Standard library modules
