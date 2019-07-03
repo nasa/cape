@@ -38,6 +38,28 @@ from . import crawleropts
 
 # Crawler class
 class TestCrawler(object):
+    """Test crawler class
+    
+    :Call:
+        >>> crawler = TestCrawler(**kw)
+    :Inputs:
+        *f*, *json*: {``"cape-test.json"``} | :class:`str`
+            Name of JSON settings file
+    :Outputs:
+        *crawler*: :class:`cape.testutils.crawler.TestCrawler`
+            Test crawler controller
+    :Attributes:
+        *fname*: :class:`str`
+            Name of JSON file actually read
+        *RootDir*: :class:`str`
+            Absolute path to directory where instance is created
+        *opts*: :class:`TestCrawlerOpts`
+            Options for the test crawler
+        *testdirs*: :class:`list`\ [:class:`str`]
+            List of test folders
+    :Versions:
+        * 2019-07-03 ``@ddalle``: First version
+    """
     
     # Standard attributes
     fname = "cape-test.json"
@@ -105,14 +127,14 @@ class TestCrawler(object):
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Get option for which folders to enter
-        o_glob = opts.get("Glob")
+        o_glob = self.opts.get("Glob")
         # Convert to list
         if isinstance(o_glob, (list, tuple)):
             # Already a list; pass variable
             L_glob = o_glob
         elif o_glob is None:
             # Check all folders
-            L_glob = []
+            L_glob = ["*"]
         else:
             # Convert singleton to list
             L_glob = [o_glob]
@@ -129,7 +151,7 @@ class TestCrawler(object):
                 # Only process true folders
                 if os.path.islink(fdir):
                     continue
-                elif not os.path.islink(fdir):
+                elif not os.path.isdir(fdir):
                     continue
                 # Check if it's already in the combined list
                 if fdir not in testdirs:
@@ -174,7 +196,7 @@ def cli(*a, **kw):
     :Call:
         >>> cli(*a, **kw)
     :Inputs:
-        *f*, *fname*: {``"cape-test.json"``} | :class:`str`
+        *f*, *json*: {``"cape-test.json"``} | :class:`str`
             Name of JSON settings file for crawler
     :Versions:
         * 2019-07-03 ``@ddalle``: First version
