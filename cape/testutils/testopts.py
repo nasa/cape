@@ -111,10 +111,11 @@ class TestOpts(dict):
         if not kw:
             return
         # Initialize error text
-        msg = "TestOptions received unrecognized options:\n"
+        msg = "TestOpts received unrecognized options:\n"
         # Loop through any remaining optoins
         for (k, v) in kw.items():
             # Append to error message
             msg += "  '%s'\n" % k
         # Raise exception using this message message
         raise ValueError(msg)
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`cape.testutils.testcall`: Shell utilities for CAPE testing system
+:mod:`cape.testutils.testshell`: Shell utilities for CAPE testing system
 =======================================================================
 
 This module contains various methods to perform system calls using the
