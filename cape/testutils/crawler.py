@@ -32,7 +32,7 @@ import os
 import glob
 
 # Local modules
-from . import testshell
+from . import fileutils
 from . import crawleropts
 
 
@@ -128,34 +128,11 @@ class TestCrawler(object):
         os.chdir(self.RootDir)
         # Get option for which folders to enter
         o_glob = self.opts.get("Glob")
-        # Convert to list
-        if isinstance(o_glob, (list, tuple)):
-            # Already a list; pass variable
-            L_glob = o_glob
-        elif o_glob is None:
-            # Check all folders
-            L_glob = ["*"]
-        else:
-            # Convert singleton to list
-            L_glob = [o_glob]
-        # Initialize list of tests
-        testdirs = []
-        # Loop through candidate globs
-        for pattern in L_glob:
-            # Find the matches
-            fglob = glob.glob(pattern)
-            # Sort these matches (no global sort in case user gives order)
-            fglob.sort()
-            # Loop through matches to add them to overall list
-            for fdir in fglob:
-                # Only process true folders
-                if os.path.islink(fdir):
-                    continue
-                elif not os.path.isdir(fdir):
-                    continue
-                # Check if it's already in the combined list
-                if fdir not in testdirs:
-                    testdirs.append(fdir)
+        # By default, check all folders
+        if o_glob is None:
+            o_glob = ["*"]
+        # Get list of folders
+        testdirs = fileutils.expand_file_list(o_glob, typ="d", error=False)
         # Save the tests
         self.testdirs = testdirs
         # Return to original location

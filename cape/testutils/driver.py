@@ -27,8 +27,10 @@ options to the test crawler.
 
 # Standard library modules
 import os
+import shutil
 
 # Local modules
+from . import fileutils
 from . import testshell
 from . import testopts
 
@@ -78,6 +80,55 @@ class TestDriver(object):
     
     # Prepare a test
     def prepare_files(self):
-        pass
+        """Prepare test folder for execution
+        
+        :Call:
+            >>> driver.prepare_files()
+        :Inputs:
+            *driver*: :class:`cape.testutils.driver.TestDriver`
+                Test driver controller
+        :Versions:
+            * 2019-07-03 ``@ddalle``: First version
+        """
+        # Name of container folder
+        fwork = self.opts.get("ContainerName", "work")
+        # Delete contents if present
+        if os.path.isdir(fwork):
+            shutil.rmtree(fwork)
+        # Create folder
+        os.mkdir(fwork)
+        # Get files to copy/link
+        fcopy = self.opts.get("CopyFiles", [])
+        flink = self.opts.get("LinkFiles", [])
+        dcopy = self.opts.get("CopyDirs", [])
+        dlink = self.opts.get("LinkDirs", [])
+        # Copy files
+        for fname in fileutils.expand_file_list(fcopy, typ="f"):
+            # Double-check for file
+            if not os.path.isfile(fname):
+                continue
+            # Copy it
+            shutil.copy(fname, os.path.join(fwork, fname))
+        # Link files
+        for fname in fileutils.expand_file_list(flink, typ="f"):
+            # Double-check for file
+            if not os.path.isfile(fname):
+                continue
+            # Link it
+            os.symlink(fname, os.path.join(fwork, fname))
+        # Copy dirs
+        for fname in fileutils.expand_file_list(dcopy, typ="d"):
+            # Double-check for dir
+            if not os.path.isdir(fname):
+                continue
+            # Copy folder and its contents
+            shutil.copytree(fname, os.path.join(fwork, fname))
+        # Link dirs
+        for fname in fileutils.expand_file_list(dlink, typ="d"):
+            # Double-check for dir
+            if not os.path.isdir(fname):
+                continue
+            # Create link to folder and its contents
+            os.symlink(fname, os.path.join(fwork, fname))
 # class TestDriver
 
