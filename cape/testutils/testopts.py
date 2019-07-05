@@ -38,14 +38,18 @@ if ver > 2:
 
 # Default attributes
 rc = {
-    "STDOUT": "test.%02i.out",
-    "STDERR": "test.%02i.err",
     "CopyFiles": [],
     "LinkFiles": [],
     "Commands": [],
+    "STDOUT": "test.%02i.out",
+    "STDERR": "test.%02i.err",
     "MaxTime": None,
     "MaxTimeCheckInterval": None,
     "ExitStatus": 0,
+    "TargetSTDOUT": None,
+    "TargetSTDERR": None,
+    "RootLevel": 2,
+    "DocFolder": "doc/test",
 }
 
 

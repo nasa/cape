@@ -8,11 +8,14 @@
 *~
 *#
 
+# Working test folders
+test/*/*/work
+
 # Cart3D huge files.
 *.c3d
 
-# pyCart Python/C binaries
-pyCart/build/
+# CAPE Python/C binaries
+*/build/
 *.o
 *.so
 

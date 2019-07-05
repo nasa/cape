@@ -1,0 +1,9 @@
+{
+    "CopyFiles": [
+        "test01_import.py",
+        "test01a_py2.sh"
+    ],
+    "Commands": [
+        "bash test01a_py2.sh"
+    ]
+}
