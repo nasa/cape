@@ -50,6 +50,11 @@ rc = {
     "TargetSTDERR": None,
     "RootLevel": 2,
     "DocFolder": "doc/test",
+    "MAXLINES": 10000,
+    "NORMALIZE_WHITESPACE": False,
+    "REGULAR_EXPRESSION": False,
+    "VALUE_INTERVAL": True,
+    "ELLIPSIS": True,
 }
 
 
@@ -360,4 +365,114 @@ class TestOpts(dict):
             raise TypeError(
                 "STDERR has unrecognized type '%s'" %
                 fnerr.__class__.__name__)
+        
+    # Get STDOUT comparison file
+    def get_TargetSTDOUT(self, i):
+        """Get target STDOUT file for case *i*
+        
+        :Call:
+            >>> fnout = opts.get_TargetSTDOUT(i)
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+            *i*: {``None``} | :class:`int`
+                Index
+        :Outputs:
+            *fnout*: ``None`` | :class:`str`
+                Output file name, if appropriate
+        :Versions:
+            * 2019-07-05 ``@ddalle``: First version
+        """
+        # Get option for *i*
+        fnout = self.getel("TargetSTDOUT", i, vdef=rc["TargetSTDOUT"])
+        # Check type
+        if fnout is None:
+            # No target STDOUT option
+            return None
+        elif isinstance(fnout, (str, unicode)):
+            # Check for '%' sign
+            if '%' in fnout:
+                # Use the index (1-based)
+                fnouti = fnout % (i+1)
+            else:
+                # Fixed STDOUT file
+                fnouti = fnout
+            # Output
+            return fnouti
+        else:
+            raise TypeError(
+                "Target STDOUT has unrecognized type '%s'" %
+                fnout.__class__.__name__)
+        
+    # Get STDOUT comparison file
+    def get_TargetSTDERR(self, i):
+        """Get target STDERR file for case *i*
+        
+        :Call:
+            >>> fnerr = opts.get_TargetSTDERR(i)
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+            *i*: {``None``} | :class:`int`
+                Index
+        :Outputs:
+            *fnerr*: ``None`` | :class:`str`
+                Output file name, if appropriate
+        :Versions:
+            * 2019-07-05 ``@ddalle``: First version
+        """
+        # Get option for *i*
+        fnerr = self.getel("TargetSTDERR", i, vdef=rc["TargetSTDERR"])
+        # Check type
+        if fnerr is None:
+            # No target STDOUT option
+            return None
+        elif isinstance(fnerr, (str, unicode)):
+            # Check for '%' sign
+            if '%' in fnout:
+                # Use the index (1-based)
+                fneri = fnerr % (i+1)
+            else:
+                # Fixed STDOUT file
+                fnerri = fnerr
+            # Output
+            return fnerri
+        else:
+            raise TypeError(
+                "Target STDERR has unrecognized type '%s'" %
+                fnerr.__class__.__name__)
 
+    # Get options for file comparison
+    def get_FileComparisonOpts(self, i=0):
+        """Get options for file comparison tests
+        
+        :Call:
+            >>> kw_comp = opts.get_FileComparisonOpts(i=0)
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+            *i*: {``0``} | :class:`int`
+                Index
+        :Outputs:
+            *kw_comp*: :class:`dict`
+                Options for text file comparison
+        :See also:
+            * :func:`cape.testutils.fileutils.compare_files`
+            * :func:`cape.testutils.fileutils.compare_lines`
+        :Versions:
+            * 2019-07-05 ``@ddalle``: First version
+        """
+        # Initialize options
+        kw_comp = {}
+        # Loop through comparison options
+        for k in [
+            "MAX_LINES",
+            "NORMALIZE_WHITESPACE",
+            "REGULAR_EXPRESSION",
+            "VALUE_INTERVAL",
+            "ELLIPSIS"
+        ]:
+            # Save option
+            kw_comp[k] = self.getel(k, i, vdef=rc[k])
+        # Output
+        return kw_comp

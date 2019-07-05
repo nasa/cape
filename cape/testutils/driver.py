@@ -130,9 +130,8 @@ class TestDriver(object):
         """
         # Get commands to run
         cmds = self.opts.get("Commands", [])
-        # Get output file names
-        fnout = self.opts.get("STDOUT", "STDOUT")
-        fnerr = self.opts.get("STDERR", "STDERR")
+        # Ensure list
+        cmds = testopts.enlist(cmds)
         # Maximum allowed time
         tmax = self.opts.get("MaxTime", None)
         tstp = self.opts.get("MaxTimeCheckInterval", None)
@@ -140,6 +139,8 @@ class TestDriver(object):
         sts = self.opts.get("ExitStatus", 0)
         # Total Time used
         ttot = 0.0
+        # Initialize status
+        q = True
         # Number of commands
         ncmd = len(cmds)
         # Loop through commands
@@ -154,10 +155,17 @@ class TestDriver(object):
             # Call the command
             t, ierr, out, err = testshell.comm(
                 cmdi, maxtime=tmax, dt=tstp, stdout=fout, stderr=ferr)
+            # Close files
+            if isinstance(fout, file):
+                fout.close()
+            # (No concern about closing same file twice if STDERR==STDOUT)
+            if isinstance(ferr, file):
+                ferr.close()
             # Update time used
             ttot += t
             # Check for nonzero exit status
             if ierr != stsi:
+                q = False
                 break
             # Process maximum time consideration
             if tmax:
@@ -165,15 +173,40 @@ class TestDriver(object):
                 tmax -= t
                 # Check for expiration
                 if tmax <= 0:
+                    q = False
                     break
-        # Close files
-        if isinstance(fout, file):
-            fout.close()
-        # (No concern about closing same file twice if STDERR==STDOUT)
-        if isinstance(ferr, file):
-            ferr.close()
-        # return exit status and total time used
-        return ierr, ttot
+            # Get target files
+            fntout = self.opts.get_TargetSTDOUT(i)
+            fnterr = self.opts.get_TargetSTDERR(i)
+            # Get options
+            kw_comp = self.opts.get_FileComparisonOpts(i)
+            # Perform test on STDOUT
+            if fntout and isinstance(fnout, (str, unicode)):
+                # Target is in the parent folder
+                if not os.path.isabs(fntout):
+                    # If relative, compare to parent
+                    fntout = os.path.join(os.path.realpath(".."), fntout)
+                # Compare STDOUT files
+                qi = fileutils.compare_files(fnout, fntout, **kw_comp)
+                # Exit if failed comparison
+                if not qi:
+                    q = False
+                    break
+            # Perform test on STDERR
+            if fnterr and isinstance(
+                    fnerr, (str, unicode)) and (fnerr != fnout):
+                # Target is in the parent folder
+                if not os.path.isabs(fnterr):
+                    # If relative, compare to parent
+                    fnterr = os.path.join(os.path.realpath(".."), fnterr)
+                # Compare STDOUT files
+                qi = fileutils.compare_files(fnerr, fnterr, **kw_comp)
+                # Exit if failed comparison
+                if not qi:
+                    q = False
+                    break
+        # Return exit status and total time used
+        return q, ttot
 
     # Prepare a test
     def prepare_files(self):
