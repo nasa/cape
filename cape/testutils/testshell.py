@@ -22,6 +22,10 @@ if ver > 2:
     unicode = str
 
 
+# OS error exit code
+OSERROR = -1
+
+
 # Convert time string to seconds
 def _time2sec(t):
     """Convert a time :class:`float` or :class:`str` to seconds
@@ -137,27 +141,41 @@ def comm(cmd, maxtime=None, dt=None, stdout=sp.PIPE, stderr=sp.PIPE):
         tstp = max(0.001, 0.001*tmax)
     # Start timer
     tic = time.time()
-    # Create a Popen process (starts running immediately)
-    proc = sp.Popen(cmd, stdout=stdout, stderr=stderr)
-    # Loop through timer
-    while tmax:
-        # Check time
-        if time.time() - tic >= tmax:
-            # Kill the process
-            proc.kill()
-            # Exit loop
-            break
-        # Check if process has ended
+    # Check for system errors
+    try:
+        # Create a Popen process (starts running immediately)
+        proc = sp.Popen(cmd, stdout=stdout, stderr=stderr)
+        # Loop through timer
+        while tmax:
+            # Check time
+            if time.time() - tic >= tmax:
+                # Kill the process
+                proc.kill()
+                # Exit loop
+                break
+            # Check if process has ended
+            ierr = proc.poll()
+            # If still running, this will be ``None``
+            if ierr is not None:
+                break
+            # Pause *dt* seconds before trying again
+            time.sleep(tstp)
+        # Run the command
+        out, err = proc.communicate()
+        # Update *returncode*
         ierr = proc.poll()
-        # If still running, this will be ``None``
-        if ierr is not None:
-            break
-        # Pause *dt* seconds before trying again
-        time.sleep(tstp)
-    # Run the command
-    out, err = proc.communicate()
-    # Update *returncode*
-    ierr = proc.poll()
+    except OSError:
+        # Usually a missing file
+        ierr = OSERROR
+        # Create appropriate empty STDOUT and STDERR data
+        if stdout == sp.PIPE:
+            out = ""
+        else:
+            out = None
+        if stderr == sp.PIPE:
+            err = ""
+        else:
+            err = None
     # Get total time
     toc = time.time()
     # Output

@@ -28,6 +28,7 @@ options to the test crawler.
 # Standard library modules
 import os
 import time
+import shlex
 import shutil
 
 # Local modules
@@ -79,62 +80,101 @@ class TestDriver(object):
     # Representation method
     
     
+    # Run the main test
+    def exec_test(self):
+        """Execute the test controlled by the driver
+        
+        :Call:
+            >>> ierr, ttot = driver.exec_test()
+        :Inputs:
+            *driver*: :class:`cape.testutils.driver.TestDriver`
+                Test driver controller
+        :Outputs:
+            *ierr*: :class:`int`
+                Exit status from last command or first to fail
+            *ttot*: :class:`float`
+                Total time used 
+        :Versions:
+            * 2019-07-05 ``@ddalle``: First version
+        """
+        # Go to home folder
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Prepare files (also enters working folder)
+        self.prepare_files()
+        # Run any commands
+        ierr, ttot = self.run_commands()
+        
+        # Return to original location
+        os.chdir(fpwd)
+        # Output
+        return ierr, ttot
+    
+    
     # Execute test
     def run_commands(self):
         """Execute tests in the current folder
         
         :Call:
-            >>> statuses = driver.run_commands()
+            >>> ierr, ttot = driver.run_commands()
         :Inputs:
             *driver*: :class:`cape.testutils.driver.TestDriver`
                 Test driver controller
         :Outputs:
+            *ierr*: :class:`int`
+                Exit status from last command or first to fail
+            *ttot*: :class:`float`
+                Total time used 
         :Versions:
-            * 2019-07-03 ``@ddalle``: First version
+            * 2019-07-05 ``@ddalle``: First version
         """
         # Get commands to run
         cmds = self.opts.get("Commands", [])
         # Get output file names
-        fnout = self.opts.get("stdout", "STDOUT")
-        fnerr = self.opts.get("stderr", "STDERR")
+        fnout = self.opts.get("STDOUT", "STDOUT")
+        fnerr = self.opts.get("STDERR", "STDERR")
         # Maximum allowed time
-        
-        # Open output files
-        if fnout is None:
-            # No output file
-            fout = None
-        elif isinstance(fnout, int):
-            # Identifier; leave as is
-            fout = fnout
-        else:
-            # Open file
-            fout = open(fnout, 'w')
-        # Open STDERR file
-        if fnerr is None:
-            # No error file
-            ferr = None
-        elif isinstance(fnerr, int):
-            # Identifier; leave as is
-            ferr = fnerr
-        elif fnerr == fnout:
-            # Directing both streams to same file
-            ferr = fout
-        else:
-            # Open STDERR file
-            ferr = open(fnerr, 'w')
+        tmax = self.opts.get("MaxTime", None)
+        tstp = self.opts.get("MaxTimeCheckInterval", None)
+        # Target exit status
+        sts = self.opts.get("ExitStatus", 0)
+        # Total Time used
+        ttot = 0.0
+        # Number of commands
+        ncmd = len(cmds)
         # Loop through commands
         for i, cmd in enumerate(cmds):
-            # Call the command 
+            # Break command into parts
+            cmdi = shlex.split(cmd)
+            # Get handles
+            fnout, fout = self.opts.get_STDOUT(i)
+            fnerr, ferr = self.opts.get_STDERR(i, fout)
+            # Target exit status
+            stsi = self.opts.getel("ExitStatus", i, vdef=0)
+            # Call the command
             t, ierr, out, err = testshell.comm(
-                cmd, maxtime=tmax, dt=dt, stdout=stdout, stderr=stderr)
+                cmdi, maxtime=tmax, dt=tstp, stdout=fout, stderr=ferr)
+            # Update time used
+            ttot += t
+            # Check for nonzero exit status
+            if ierr != stsi:
+                break
+            # Process maximum time consideration
+            if tmax:
+                # Update time available
+                tmax -= t
+                # Check for expiration
+                if tmax <= 0:
+                    break
         # Close files
         if isinstance(fout, file):
             fout.close()
+        # (No concern about closing same file twice if STDERR==STDOUT)
         if isinstance(ferr, file):
             ferr.close()
-            
-    
-    
+        # return exit status and total time used
+        return ierr, ttot
+
     # Prepare a test
     def prepare_files(self):
         """Prepare test folder for execution
@@ -187,5 +227,7 @@ class TestDriver(object):
                 continue
             # Create link to folder and its contents
             os.symlink(fname, os.path.join(fwork, fname))
+        # Enter the folder
+        os.chdir(fwork)
 # class TestDriver
 

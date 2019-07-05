@@ -29,11 +29,14 @@ options to the test crawler.
 
 # Standard library modules
 import os
+import sys
 import glob
+import math
 
 # Local modules
-from . import fileutils
 from . import crawleropts
+from . import driver
+from . import fileutils
 
 
 # Crawler class
@@ -57,6 +60,8 @@ class TestCrawler(object):
             Options for the test crawler
         *testdirs*: :class:`list`\ [:class:`str`]
             List of test folders
+        *crawldirs*: :class:`list`\ [:class:`str`]
+            List of folders to recurse crawler in
     :Versions:
         * 2019-07-03 ``@ddalle``: First version
     """
@@ -66,6 +71,7 @@ class TestCrawler(object):
     RootDir = None
     opts = {}
     testdirs = []
+    crawldirs = []
     
     # Initialization method
     def __init__(self, *a, **kw):
@@ -140,6 +146,40 @@ class TestCrawler(object):
         # Output
         return self.testdirs
         
+    # Process recursive crawl list
+    def get_crawl_dirs(self):
+        """Process list of test directories to recurse crawler in
+        
+        This process the option *CrawlGlob* in *crawler.opts*
+        
+        :Call:
+            >>> crawldirs = crawler.get_crawl_dirs()
+        :Inputs:
+            *crawler*: :class:`TestCrawler`
+                Test crawler controller
+        :Attributes:
+            *crawler.crawldirs*: :class:`list`\ [:class:`str`]
+                List of folders in which to recurse crawler
+        :Versions:
+            * 2019-07-05 ``@ddalle``: First version
+        """
+        # Safely change to root folder
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get option for which folders to enter
+        o_glob = self.opts.get("CrawlGlob")
+        # By default, check all folders
+        if o_glob is None:
+            o_glob = []
+        # Get list of folders
+        crawldirs = fileutils.expand_file_list(o_glob, typ="d", error=False)
+        # Save the tests
+        self.crawldirs = crawldirs
+        # Return to original location
+        os.chdir(fpwd)
+        # Output
+        return self.crawldirs
+        
     # Primary function
     def crawl(self, **kw):
         """Execute tests
@@ -151,16 +191,56 @@ class TestCrawler(object):
                 Test crawler controller
         :Versions:
             * 2019-07-03 ``@ddalle``: First version
+            * 2019-07-05 ``@ddalle``: Added recursion
         """
-        # Update test list if inecessary
+        # Update test list if necessary
         self.get_test_dirs()
-        # Safely change to root folder
+        self.get_crawl_dirs()
+        # Save current location
         fpwd = os.getcwd()
-        os.chdir(self.RootDir)
+        # First status update
+        print("Test folder '%s':" % os.path.split(self.RootDir)[1])
+        # Number of tests
+        ntest = len(self.testdirs)
+        # Number of digits
+        if ntest == 0:
+            itest = 1
+        else:
+            itest = int(math.floor(math.log10(ntest))) + 1
+        # Format string for status updates
+        fmt = "  Test %%%ii: %%s" % itest
+        # Running and completed versions
+        fmt1 = fmt + " ...\r"
+        fmt2 = fmt + " %s: (%.4g seconds)\n"
         # Loop through the tests
-        for fdir in self.testdirs:
-            
-            pass
+        for (i, fdir) in enumerate(self.testdirs):
+            # Status update
+            sys.stdout.write(fmt1 % (i+1, fdir))
+            sys.stdout.flush()
+            # Enter the test folder
+            os.chdir(self.RootDir)
+            os.chdir(fdir)
+            # Create a driver
+            testd = driver.TestDriver()
+            # Run the test
+            ierr, ttot = testd.exec_test()
+            # Determine status
+            if ierr:
+                sts = "FAIL"
+            else:
+                sts = "PASS"
+            # Final update
+            sys.stdout.write(fmt2 % (i+1, fdir, sts, ttot))
+            sys.stdout.flush()
+        # Get recursive folder list
+        for fdir in self.crawldirs:
+            # Enter the test folder
+            os.chdir(self.RootDir)
+            os.chdir(fdir)
+            # Create a crawler
+            crawler = self.__class__(**kw)
+            # Run the crawler
+            crawler.crawl()
         # Go back to original location
         os.chdir(fpwd)
 # class TestCrawler

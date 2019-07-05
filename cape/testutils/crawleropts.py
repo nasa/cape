@@ -21,6 +21,7 @@ from .testopts import read_json
 # Default options
 rc = {
     "Glob": "*",
+    "CrawlGlob": [],
 }
 
 # Options calss
