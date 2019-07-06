@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-CAPE test crawler
+CAPE single-case test driver
 
-The test crawler completes a simple task, namely that enters zero or
-more folders and runs the main CAPE test utility.  This list of
-folders is set by the user either directly or by pattern.  The default
-is to run a test in each subfolder that exists.
+The test driver executes a test in the current folder.  This consists
+of several steps that run the test in a subfolder (which is called
+work/ by default).  If that subfolder exists, it is deleted at the
+beginning of the test.
 
 :Usage:
     .. code-block:: console
         
-        $ pc_TestCrawler.py [OPTIONS]
+        $ pc_TestCase.py [OPTIONS]
 
 :Options:
     -f, --json FNAME
         Read settings from file *FNAME* {cape-test.json}
 
 :Versions:
-    * 2019-07-03 ``@ddalle``: First version
+    * 2019-07-06 ``@ddalle``: First version
 """
 
 # Standard library modules
@@ -26,23 +26,23 @@ import sys
 
 # Import test modules
 import cape.testutils.argread
-import cape.testutils.crawler
+import cape.testutils.driver
 
 
 # Primary function
-def crawler(*a, **kw):
-    """Test crawler command-line interface
+def driver(*a, **kw):
+    """Test driver command-line interface
     
     :Call:
-        >>> crawler(*a, **kw)
+        >>> driver(*a, **kw)
     :Inputs:
         *f*, *json*: {``"cape-test.json"``} | :class:`str`
             Name of JSON settings file for crawler
     :Versions:
-        * 2019-07-03 ``@ddalle``: First version
+        * 2019-07-06 ``@ddalle``: First version
     """
     # Run the command-line interface from the module
-    cape.testutils.crawler.cli(*a, **kw)
+    cape.testutils.driver.cli(*a, **kw)
     
     
 # Check if called as a script
@@ -55,5 +55,5 @@ if __name__ == "__main__":
         print(__doc__)
         sys.exit(1)
     # Call the function
-    crawler(*a, **kw)
+    driver(*a, **kw)
 

@@ -263,4 +263,21 @@ class TestDriver(object):
         # Enter the folder
         os.chdir(fwork)
 # class TestDriver
-
+    
+    
+# Command-line interface
+def cli(*a, **kw):
+    """Test case command-line interface
+    
+    :Call:
+        >>> cli(*a, **kw)
+    :Inputs:
+        *f*, *json*: {``"cape-test.json"``} | :class:`str`
+            Name of JSON settings file for crawler
+    :Versions:
+        * 2019-07-03 ``@ddalle``: First version
+    """
+    # Get an instance of the crawler class
+    driver = TestDriver(**kw)
+    # Run the crawler
+    driver.exec_test()
