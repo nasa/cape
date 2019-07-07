@@ -59,11 +59,11 @@ class TestDriver(object):
     opts = {}
     # Results attributes
     TestStatus = False
-    TestName = ""
-    TestPath = ""
     TestRunTimeTotal = 0.0
     TestRunTimeList = []
     TestReturnCodes = []
+    TestCommandsNum = 0
+    TestCommandsRun = 0
     
     # Initialization method
     def __init__(self, *a, **kw):
@@ -87,6 +87,26 @@ class TestDriver(object):
     # Representation method
     
     
+    # Reset results for test
+    def init_test_results(self):
+        """(Re)initialize attributes that store results of test
+        
+        :Call:
+            >>> driver.init_test_results()
+        :Inputs:
+            *driver*: :class:`cape.testutils.driver.TestDriver`
+                Test driver controller
+        :Versions:
+            * 2019-07-07 ``@ddalle``: First version
+        """
+        # Reset test results attributes
+        self.TestStatus = None
+        self.TestRunTimeTotal = 0.0
+        self.TestRunTimeList = []
+        self.TestReturnCodes = []
+        self.TestCommandsNum = 0
+        self.TestCommandsRun = 0
+        
     # Run the main test
     def exec_test(self):
         """Execute the test controlled by the driver
