@@ -72,6 +72,7 @@ class TestCrawler(object):
     opts = {}
     testdirs = []
     crawldirs = []
+    results = {}
     
     # Initialization method
     def __init__(self, *a, **kw):

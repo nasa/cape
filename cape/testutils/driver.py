@@ -57,6 +57,13 @@ class TestDriver(object):
     fname = "cape-test.json"
     RootDir = None
     opts = {}
+    # Results attributes
+    TestStatus = False
+    TestName = ""
+    TestPath = ""
+    TestRunTimeTotal = 0.0
+    TestRunTimeList = []
+    TestReturnCodes = []
     
     # Initialization method
     def __init__(self, *a, **kw):
