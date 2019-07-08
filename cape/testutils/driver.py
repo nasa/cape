@@ -118,11 +118,11 @@ class TestDriver(object):
         self.TestCommandsRun = 0
         
     # Run the main test
-    def exec_test(self):
+    def run(self):
         """Execute the test controlled by the driver
         
         :Call:
-            >>> results = testd.exec_test()
+            >>> results = testd.run()
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
@@ -138,7 +138,7 @@ class TestDriver(object):
         # Prepare files (also enters working folder)
         self.prepare_files()
         # Run any commands
-        results = self.run_commands()
+        results = self.exec_commands()
         # Return to original location
         os.chdir(fpwd)
         # Output
@@ -200,11 +200,11 @@ class TestDriver(object):
         os.chdir(fwork)
 
     # Execute test
-    def run_commands(self):
+    def exec_commands(self):
         """Execute tests in the current folder
         
         :Call:
-            >>> results = testd.run_commands()
+            >>> results = testd.exec_commands()
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
@@ -555,15 +555,39 @@ def cli(*a, **kw):
     """Test case command-line interface
     
     :Call:
-        >>> cli(*a, **kw)
+        >>> results = cli(*a, **kw)
     :Inputs:
         *f*, *json*: {``"cape-test.json"``} | :class:`str`
             Name of JSON settings file for crawler
+    :Outputs:
+        *results*: :class:`dict`
+            Dictionary of results with the following keys
+        *TestStatus*: ``True`` | ``False``
+            Overall result of the test
+        *TestCommandsNum*: :class:`int` >= 0
+            Number of commands proscribed
+        *TestCommandsRun*: :class:`int` >= 0
+            Number of commands actually run
+        *TestStatus_ReturnCode*: :class:`list`\ [:class:`bool`]
+            Return code test results for each command
+        *TestStatus_MaxTime*: :class:`list`\ [:class:`bool`]
+            Timeout test results for each command
+        *TestStatus_STDOUT*: :class:`list`\ [:class:`bool`]
+            STDOUT comparison test results for each command
+        *TestStatus_STDERR*: :class:`list`\ [:class:`bool`]
+            STDERR comparison test results for each command
+        *TestReturnCodes*: :class:`list`\ [:class:`int`]
+            Return codes fro each command run
+        *TestRunTimeTotal*: :class:`float`
+            Total time taken by all commands run
+        *TestRunTimeList*: :class:`list`\ [:class:`float`]
+            Time taken by each command run
     :Versions:
         * 2019-07-03 ``@ddalle``: First version
+        * 2019-07-08 ``@ddalle``: Added output
     """
     # Get an instance of the crawler class
     driver = TestDriver(**kw)
     # Run the crawler
-    testd.exec_test()
+    return testd.run()
 

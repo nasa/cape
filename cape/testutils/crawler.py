@@ -223,7 +223,7 @@ class TestCrawler(object):
             # Create a driver
             testd = driver.TestDriver()
             # Run the test
-            results = testd.exec_test()
+            results = testd.run()
             # Get execution time
             ttot = results["TestRunTimeTotal"]
             # Determine status
