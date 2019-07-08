@@ -58,7 +58,11 @@ class TestDriver(object):
     RootDir = None
     opts = {}
     # Results attributes
-    TestStatus = False
+    TestStatus = True
+    TestStatus_Return = True
+    TestStatus_Timers = True
+    TestStatus_STDOUT = True
+    TestStatus_STDERR = True
     TestRunTimeTotal = 0.0
     TestRunTimeList = []
     TestReturnCodes = []
@@ -101,6 +105,7 @@ class TestDriver(object):
         """
         # Reset test results attributes
         self.TestStatus = None
+        self.TestStatus_Return = []
         self.TestRunTimeTotal = 0.0
         self.TestRunTimeList = []
         self.TestReturnCodes = []
@@ -162,8 +167,6 @@ class TestDriver(object):
         # Maximum allowed time
         tmax = self.opts.get("MaxTime", None)
         tstp = self.opts.get("MaxTimeCheckInterval", None)
-        # Target exit status
-        sts = self.opts.get("ExitStatus", 0)
         # Total Time used
         ttot = 0.0
         # Initialize status
@@ -177,8 +180,8 @@ class TestDriver(object):
             # Get handles
             fnout, fout = self.opts.get_STDOUT(i)
             fnerr, ferr = self.opts.get_STDERR(i, fout)
-            # Target exit status
-            stsi = self.opts.getel("ExitStatus", i, vdef=0)
+            # Target return code
+            rc_target = self.opts.getel("ReturnCode", i, vdef=0)
             # Call the command
             t, ierr, out, err = testshell.comm(
                 cmdi, maxtime=tmax, dt=tstp, stdout=fout, stderr=ferr)
@@ -191,8 +194,17 @@ class TestDriver(object):
             # Update time used
             ttot += t
             # Check for nonzero exit status
-            if ierr != stsi:
-                q = False
+            if ierr == rc_target:
+                # Update status lists
+                self.TestStatus_Return.append(True)
+            else:
+                # Update status lists
+                self.TestStatus_Return.append(False)
+                self.TestStatus_Timers.append(False)
+                self.TestStatus_STDOUT.append(None)
+                self.TestStatus_STDERR.append(None)
+                # Fail the test and abort
+                self.TestStatus = False
                 break
             # Process maximum time consideration
             if tmax:

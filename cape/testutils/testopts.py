@@ -45,7 +45,7 @@ rc = {
     "STDERR": "test.%02i.err",
     "MaxTime": None,
     "MaxTimeCheckInterval": None,
-    "ExitStatus": 0,
+    "ReturnCode": 0,
     "TargetSTDOUT": None,
     "TargetSTDERR": None,
     "RootLevel": 2,
