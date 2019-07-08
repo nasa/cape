@@ -209,10 +209,9 @@ class TestCrawler(object):
         else:
             itest = int(math.floor(math.log10(ntest))) + 1
         # Format string for status updates
-        fmt = "  Test %%%ii: %%s" % itest
-        # Running and completed versions
-        fmt1 = fmt + " ...\r"
-        fmt2 = fmt + " %s: (%.4g seconds)\n"
+        fmt1 = "  Test %%%ii: %%s ...\n" % itest
+        fmt2 = "    PASS (%.4g seconds)\n"
+        fmt3 = "    FAIL (command %i, %s) (%.4g seconds)\n"
         # Loop through the tests
         for (i, fdir) in enumerate(self.testdirs):
             # Status update
@@ -224,14 +223,39 @@ class TestCrawler(object):
             # Create a driver
             testd = driver.TestDriver()
             # Run the test
-            ierr, ttot = testd.exec_test()
+            results = testd.exec_test()
+            # Get execution time
+            ttot = results["TestRunTimeTotal"]
             # Determine status
-            if ierr:
-                sts = "FAIL"
+            if results["TestStatus"]:
+                # Success: show time
+                msg = fmt2 % ttot
             else:
-                sts = "PASS"
+                # Failure: find reason
+                tstrc  = results.get("TestStatus_ReturnCode", [])
+                tstt   = results.get("TestStatus_MaxTime",  [])
+                tstout = results.get("TestStatus_STDOUT", [])
+                tsterr = results.get("TestStatus_STDERR", [])
+                # Find the first cause of failure, with preferred order
+                if not all(tstrc):
+                    ifail = tstrc.index(False)
+                    reason = "return code"
+                elif not all(tstt):
+                    ifail = tstt.index(False)
+                    reason = "max time"
+                elif not all(tstout):
+                    ifail = testout.index(False)
+                    reason = "STDOUT"
+                elif not all(tsterr):
+                    ifail = testerr.index(False)
+                    reason = "STDERR"
+                else:
+                    ifail = 0
+                    reason = "no reason..."
+                # Failure: show command and cause
+                msg = fmt3 % (ifail+1, reason, ttot)
             # Final update
-            sys.stdout.write(fmt2 % (i+1, fdir, sts, ttot))
+            sys.stdout.write(msg)
             sys.stdout.flush()
         # Get recursive folder list
         for fdir in self.crawldirs:
