@@ -89,9 +89,7 @@ class TestDriver(object):
         # Process options
         self.opts = testopts.TestOpts(fname)
         # Get commands to run
-        cmds = self.opts.get("Commands", [])
-        # Ensure list
-        cmds = testopts.enlist(cmds)
+        cmds = self.opts.get_commands()
         # Save number of commands
         self.TestCommandsNum = len(cmds)
         
@@ -105,7 +103,7 @@ class TestDriver(object):
         return "<%s('%s', n=%i)>" % (
             self.__class__.__name__,
             self.dirname,
-            len(testopts.enlist(self.opts.get("Commands", []))))
+            len(self.opts.get_commands()))
 
     # Representation method
     def __repr__(self):
@@ -117,7 +115,7 @@ class TestDriver(object):
         return "<%s('%s', n=%i)>" % (
             self.__class__.__name__,
             self.dirname,
-            len(testopts.enlist(self.opts.get("Commands", []))))
+            len(self.opts.get_commands()))
 
     # Reset results for test
     def init_test_results(self):
@@ -351,17 +349,21 @@ class TestDriver(object):
         else:
             # Standard timezone name
             tz = time.tzname[0]
+        # Create an indent
+        tab = "    "
+        # Get handle to save some characters
+        f = self.frst
         # Write a header comment
-        self.frst.write("\n")
-        self.frst.write(".. This documentation written by TestDriver()\n")
-        self.frst.write("   on ")
-        self.frst.write("%04i-%02i-%02i " % (t.tm_year, t.tm_mon, t.tm_mday))
-        self.frst.write("at %02i:%02i %s" % (t.tm_hour, t.tm_min, tz))
-        self.frst.write("\n\n")
+        f.write("\n")
+        f.write(".. This documentation written by TestDriver()\n")
+        f.write("   on ")
+        f.write("%04i-%02i-%02i " % (t.tm_year, t.tm_mon, t.tm_mday))
+        f.write("at %02i:%02i %s" % (t.tm_hour, t.tm_min, tz))
+        f.write("\n\n")
         # Write title
-        self.frst.write(ttl + "\n")
-        self.frst.write("=" * (len(ttl) + 2))
-        self.frst.write("\n\n")
+        f.write(ttl + "\n")
+        f.write("=" * (len(ttl) + 2))
+        f.write("\n\n")
         # Check for intro written beforehand
         fintro = self.opts.get("DocIntroFile")
         # Check if it's a file name and exists
@@ -382,9 +384,25 @@ class TestDriver(object):
             if not os.path.isfile(fintro):
                 raise SystemError("DocIntroFile '%s' does not exist" % fintro)
             # Otherwise, copy the file
-            self.fsrt.write(open(fintro).read())
+            f.write(open(fintro).read())
             # Add a blank line for good measure
-            self.frst.write("\n")
+            f.write("\n")
+        # Summary: location
+        f.write("This test is run in the folder:\n\n")
+        f.write("    ``%s%s``\n\n" % (self.RootDir, os.sep))
+        # Summary: container
+        fwork = self.opts.get("ContainerName", "work")
+        f.write("and the working folder for the test is\n\n")
+        f.write("    ``%s%s``\n\n" % (fwork, os.sep))
+        # Summary: commands
+        f.write("The commands executed by this test are\n\n")
+        f.write(tab + ".. code-block:: console\n\n")
+        # Loop through commands
+        for cmd in self.opts.get_commands():
+            f.write(2*tab + "$ " + cmd + "\n")
+        # Blank line
+        f.write("\n")
+        
     
     # Close ReST file
     def close_rst(self):
@@ -424,9 +442,7 @@ class TestDriver(object):
             * 2019-07-05 ``@ddalle``: First version
         """
         # Get commands to run
-        cmds = self.opts.get("Commands", [])
-        # Ensure list
-        cmds = testopts.enlist(cmds)
+        cmds = self.opts.get_commands()
         # Initialize test results
         self.init_test_results()
         # Save number of commands
@@ -441,25 +457,30 @@ class TestDriver(object):
             # Maximum allowed time
             tmax = self.opts.getel("MaxTime", i, vdef=None)
             tstp = self.opts.getel("MaxTimeCheckInterval", i, vdef=None)
+            # Convert maximum time to seconds
+            tsec = testshell._time2sec(tmax)
             # Total time is cumulative
-            if tmax:
-                tmax = tmax - self.TestRunTimeTotal
+            if tsec:
+                # Subtract any existing time from previous commands
+                tsec = tsec - self.TestRunTimeTotal
             # Call the command
             t, ierr, out, err = testshell.comm(
-                cmdi, maxtime=tmax, dt=tstp, stdout=fout, stderr=ferr)
+                cmdi, maxtime=tsec, dt=tstp, stdout=fout, stderr=ferr)
             # Close files
             if isinstance(fout, file):
                 fout.close()
             # (No concern about closing same file twice if STDERR==STDOUT)
             if isinstance(ferr, file):
                 ferr.close()
+            # Start the log for this command
+            self.process_results_summary(i, cmd)
             # Check the return code
-            self.check_status_returncode(i, ierr)
+            self.process_results_returncode(i, ierr)
             # Check for timeout and update timers
-            self.check_status_maxtime(i, t)
+            self.process_results_maxtime(i, t)
             # Check STDOUT and STDERR against targets
-            self.check_status_stdout(i, fnout)
-            self.check_status_stderr(i, fnerr, fnout)
+            self.process_results_stdout(i, fnout)
+            self.process_results_stderr(i, fnerr, fnout)
             # Update number of commands run
             self.TestCommandsRun = i + 1
             # Exit if a failure was detected
@@ -495,12 +516,40 @@ class TestDriver(object):
         for j in range(n, i+1):
             V.append(None)
 
+    # Start log output
+    def process_results_summary(self, i, cmd):
+        """Start the reST results summary for command *i*
+        
+        :Call:
+            >>> testd.process_results_summary(i, cmd)
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+            *i*: :class:`int`
+                Command number
+            *cmd*: :class:`str`
+                The command that was run in step *i*
+        :Versions:
+            * 2019-07-09 ``@ddalle``: First version
+        """
+        # Get file handle
+        f = self.frst
+        # reST output
+        if isinstance(f, file) and (not f.closed):
+            # Form the title for subsection
+            ttl = "Command %i: ``%s``\n" % (i+1, cmd[:68])
+            # Write title
+            f.write(ttl)
+            # Delimiter line
+            f.write("-" * len(ttl))
+            f.write("\n")
+            
     # Check return code status
-    def check_status_returncode(self, i, ierr):
+    def process_results_returncode(self, i, ierr):
         """Check the return code against target for command *i*
         
         :Call:
-            >>> q = testd.check_status_returncode(i, ierr)
+            >>> q = testd.process_results_returncode(i, ierr)
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
@@ -539,15 +588,29 @@ class TestDriver(object):
             self.TestStatus_ReturnCode[i] = False
             # Fail the test and abort
             self.TestStatus = False
+        # Get file handle
+        f = self.frst
+        # reST output
+        if isinstance(f, file) and (not f.closed):
+            # Return code section
+            f.write(":Return Code:\n")
+            # Write status of the test
+            if q:
+                f.write("    * **PASS**\n")
+            else:
+                f.write("    * **FAIL**\n")
+            # Write targets
+            f.write("    * Output: ``%i``\n" % ierr)
+            f.write("    * Target: ``%i``\n" % rc_target)
         # Output
         return q
         
     # Check timer status
-    def check_status_maxtime(self, i, t):
+    def process_results_maxtime(self, i, t):
         """Check the maximum time for command *i*
         
         :Call:
-            >>> q = testd.check_status_maxtime(i, t)
+            >>> q = testd.process_results_maxtime(i, t)
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
@@ -572,6 +635,8 @@ class TestDriver(object):
         """
         # Maximum time
         tmax = self.opts.getel("MaxTime", i, vdef=None)
+        # Convert to seconds
+        tsec = testshell._time2sec(tmax)
         # Number of entries in *TestStatus_MaxTime*
         ntest = len(self.TestStatus_MaxTime)
         # Check if already processed
@@ -583,9 +648,9 @@ class TestDriver(object):
         self.TestRunTimeList.append(t)
         self.TestRunTimeTotal += t
         # Process maximum time consideration
-        if tmax:
+        if tsec:
             # Check for expiration
-            q = (ttot + t < tmax)
+            q = (ttot + t < tsec)
         else:
             # No test to fail
             q = True
@@ -593,15 +658,32 @@ class TestDriver(object):
         self.TestStatus_MaxTime.append(q)
         # Update overall status
         self.TestStatus = self.TestStatus and q
+        # Get file handle
+        f = self.frst
+        # reST output
+        if isinstance(f, file) and (not f.closed):
+            # Return code section
+            f.write(":Time Taken:\n")
+            # Write status of the test
+            if q:
+                f.write("    * **PASS**\n")
+            else:
+                f.write("    * **FAIL**\n")
+            # Write time taken
+            f.write("    * Command took %4g seconds\n" % t)
+            f.write("    * Cumulative time: %4g seconds\n" % (ttot + t))
+            # Write constraint
+            if tsec:
+                f.write("    * Max allowed: %4g seconds (%s)\n" % (tsec, tmax))
         # Output
         return q
         
     # Check contents of STDOUT
-    def check_status_stdout(self, i, fnout):
+    def process_results_stdout(self, i, fnout):
         """Compare STDOUT from command *i* to target
         
         :Call:
-            >>> q = testd.check_status_stdout(i, fnout)
+            >>> q = testd.process_results_stdout(i, fnout)
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
@@ -646,15 +728,56 @@ class TestDriver(object):
             q = fileutils.compare_files(fnout, fntout, **kw_comp)
         # Save result
         self.TestStatus_STDOUT[i] = q
+        # Get file handle
+        f = self.frst
+        # Indentation
+        tab = "    "
+        # reST output
+        if isinstance(f, file) and (not f.closed):
+            # Return code section
+            f.write(":STDOUT:\n")
+            # Write status of the test
+            if q:
+                f.write("    * **PASS**\n")
+            else:
+                f.write("    * **FAIL**\n")
+            # Show actual STDOUT
+            if isinstance(fnout, (str, unicode)) and os.path.isfile(fnout):
+                # Read it
+                txt = open(fnout).read()
+                # Check for content
+                if len(txt) > 0:
+                    # Write header information
+                    f.write(tab + "* Actual::\n\n")
+                    # Loop through lines
+                    for line in txt.split("\n"):
+                        # Indent it 8 spaces
+                        f.write(tab + tab + line + "\n")
+                    # Blank line
+                    f.write("\n")
+            # Show target STDOUT
+            if isinstance(fntout, (str, unicode)) and os.path.isfile(fntout):
+                # Read it
+                txt = open(fntout).read()
+                # Check for content
+                if len(txt) > 0:
+                    # Write header information
+                    f.write(tab + "* Target::\n\n")
+                    # Loop through lines
+                    for line in txt.split("\n"):
+                        # Indent it 8 spaces
+                        f.write(tab + tab + line + "\n")
+                    # Blank line
+                    f.write("\n")
         # Output
         return q
 
     # Check contents of STDERR
-    def check_status_stderr(self, i, fnerr, fnout):
+    def process_results_stderr(self, i, fnerr, fnout):
         """Compare STDERR from command *i* to target
         
         :Call:
-            >>> q = testd.check_status_stderr(i, fnerr, fnout)
+            >>> q = testd.process_results_stderr(i, fnerr, fnout)
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
@@ -704,6 +827,49 @@ class TestDriver(object):
             q = fileutils.compare_files(fnerr, fnterr, **kw_comp)
         # Save result
         self.TestStatus_STDERR[i] = q
+        # Get file handle
+        f = self.frst
+        # Indentation
+        tab = "    "
+        # reST output
+        if isinstance(f, file) and (not f.closed):
+            # Return code section
+            f.write(":STDERR:\n")
+            # Write status of the test
+            if q:
+                f.write("    * **PASS**\n")
+            else:
+                f.write("    * **FAIL**\n")
+            # Show actual STDOUT
+            if isinstance(fnerr, (str, unicode)) and os.path.isfile(fnerr):
+                # Read it
+                txt = open(fnerr).read()
+                # Check for content
+                if len(txt) > 0:
+                    # Write header information
+                    f.write(tab + "* Actual::\n\n")
+                    # Loop through lines
+                    for line in txt.split("\n"):
+                        # Indent it 8 spaces
+                        f.write(tab + tab + line + "\n")
+                    # Blank line
+                    f.write("\n")
+            # Show target STDOUT
+            if isinstance(fnterr, (str, unicode)) and os.path.isfile(fnterr):
+                # Read it
+                txt = open(fnterr).read()
+                # Check for content
+                if len(txt) > 0:
+                    # Write header information
+                    f.write(tab + "* Target::\n\n")
+                    # Loop through lines
+                    for line in txt.split("\n"):
+                        # Indent it 8 spaces
+                        f.write(tab + tab + line + "\n")
+                    # Blank line
+                    f.write("\n")
+            # End section
+            f.write("\n")
         # Output
         return q
 

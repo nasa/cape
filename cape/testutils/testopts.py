@@ -45,6 +45,7 @@ rc = {
     "STDERR": "test.%02i.err",
     "MaxTime": None,
     "MaxTimeCheckInterval": None,
+    "ContainerName": "work",
     "ReturnCode": 0,
     "TargetSTDOUT": None,
     "TargetSTDERR": None,
@@ -262,6 +263,28 @@ class TestOpts(dict):
         V = self.get(k, vdef)
         # Use indexing function
         return getel(V, i)
+        
+    # Get list of commands
+    def get_commands(self):
+        """Get list of commands
+        
+        :Call:
+            >>> cmds = opts.get_commands()
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+        :Outputs:
+            *cmds*: :class:`list`\ [:class:`str`]
+                List of commands to run in this test
+        :Versions:
+            * 2019-07-09 ``@ddalle``: First version
+        """
+        # Get commands to run
+        cmds = self.get("Commands", [])
+        # Ensure list
+        cmds = enlist(cmds)
+        # Output
+        return cmds
         
     # Get STDOUT and prepare it
     def get_STDOUT(self, i):

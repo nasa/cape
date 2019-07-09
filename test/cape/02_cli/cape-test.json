@@ -1,10 +1,10 @@
 {
     "CopyFiles": [
-        "test01_import.py"
+        "matrix.csv",
+        "cape.json"
     ],
     "Commands": [
-        "python2 test01_import.py",
-        "python3 test01_import.py"
+        "cape -c"
     ],
     "DocFolder": "doc/test/cape",
     "RootLevel": -3
