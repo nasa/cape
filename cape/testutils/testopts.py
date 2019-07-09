@@ -48,7 +48,7 @@ rc = {
     "ReturnCode": 0,
     "TargetSTDOUT": None,
     "TargetSTDERR": None,
-    "RootLevel": 2,
+    "RootLevel": None,
     "DocFolder": "doc/test",
     "MAXLINES": 10000,
     "NORMALIZE_WHITESPACE": False,

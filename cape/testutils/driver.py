@@ -54,9 +54,10 @@ class TestDriver(object):
     """
     
     # Standard attributes
-    fname = "cape-test.json"
-    RootDir = None
     opts = {}
+    fname = "cape-test.json"
+    frst = None
+    RootDir = None
     # Results attributes
     TestStatus = True
     TestStatus_ReturnCode = True
@@ -198,6 +199,94 @@ class TestDriver(object):
             os.symlink(fname, os.path.join(fwork, fname))
         # Enter the folder
         os.chdir(fwork)
+        
+    # Start log file
+    def init_rst(self):
+        # Get option for root level
+        nroot = self.opts.get("RootLevel")
+        # Relative path to test documentation from "root"
+        fdoc_rel = self.opts.get("DocFolder")
+        # Check these options
+        if nroot is None:
+            # No root level
+            self.close_rst()
+            return
+        elif fdoc_rel is None:
+            # No documentation folder
+            self.close_rst()
+            return
+        elif not isinstance(froot, int):
+            # Bad type for root level
+            raise TypeError(
+                "'RootLevel' option must be int (got '%s')"
+                % froot.__class__.__name__)
+        elif nroot > 0:
+            # Bad root level
+            raise ValueError(
+                "'RootLevel' option must be <= 0 (got %i)" % nroot)
+        elif not isinstance(fdoc_rel, (str, unicode)):
+            # Bad type for doc folder
+            raise TypeError(
+                "'DocFolder' option must be str (got '%s')"
+                % fdoc_rel.__class__.__name__)
+        # Initialize root folder for documentation
+        fdoc = self.RootDir
+        # Go up *nroot* levels
+        for i in range(-nroot):
+            # Raise one level
+            fdoc = os.path.dirname(fdoc)
+        # Remember current location
+        fpwd = os.getcwd()
+        # Catch errors during folder generation
+        try:
+            # Change to documentation root folder
+            os.chdir(fdoc)
+            # Create folders as needed
+            for fdir in fdoc_rel.split("/"):
+                # Check if folder exists
+                if os.path.isdir(fdir):
+                    continue
+                # Otherwise, create it
+                os.mkdir(fdir)
+                # Enter it
+                os.chdir(fdir)
+                # Join to doc folder
+                fdoc = os.path.join(fdir)
+            # Return to original location
+            os.chdir(fpwd)
+        except Exception:
+            # Return to original location
+            os.chdir(fpwd)
+            # Fail
+            raise SystemError(
+                "Failed to create folder '%s' in '%s'" % (fdir, fdoc))
+        # Total path
+        fname = os.path.join(fdoc, "index.rst")
+        # Open the file
+        self.frst = open(fname, "w")
+            
+            
+    # Close ReST file
+    def close_rst(self):
+        """Close ReST log file, if open
+        
+        :Call:
+            >>> testd.close_rst()
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+        :Attributes:
+            *testd.frst*: ``None`` | :class:`file`
+                Closed file handle if applicable
+        :Versions:
+            * 2019-07-08 ``@ddalle``: First version
+        """
+        # Check if *frst* is a file
+        if isinstance(self.frst, file):
+            # Close it
+            self.frst.close()
+            # Delete handle
+            self.frst = None
 
     # Execute test
     def exec_commands(self):
