@@ -50,6 +50,8 @@ rc = {
     "TargetSTDERR": None,
     "RootLevel": None,
     "DocFolder": "doc/test",
+    "DocTitle": None,
+    "DocIntroFile": None,
     "MAXLINES": 10000,
     "NORMALIZE_WHITESPACE": False,
     "REGULAR_EXPRESSION": False,

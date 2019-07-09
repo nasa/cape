@@ -5,5 +5,7 @@
     ],
     "Commands": [
         "bash test01a_py2.sh"
-    ]
+    ],
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3
 }

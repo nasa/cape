@@ -58,6 +58,7 @@ class TestDriver(object):
     fname = "cape-test.json"
     frst = None
     RootDir = None
+    dirname = None
     # Results attributes
     TestStatus = True
     TestStatus_ReturnCode = True
@@ -83,15 +84,41 @@ class TestDriver(object):
         self.fname = os.path.split(fname)[1]
         # Save current directory
         self.RootDir = os.getcwd()
+        # Save directory name
+        self.dirname = os.path.split(self.RootDir)[1]
         # Process options
         self.opts = testopts.TestOpts(fname)
+        # Get commands to run
+        cmds = self.opts.get("Commands", [])
+        # Ensure list
+        cmds = testopts.enlist(cmds)
+        # Save number of commands
+        self.TestCommandsNum = len(cmds)
         
     # String method
-    
-    
+    def __str__(self):
+        """String method
+        
+        :Versions:
+            * 2019-07-09 ``@ddalle``: <TestDriver('$dirname', n=$ncommands)>
+        """
+        return "<%s('%s', n=%i)>" % (
+            self.__class__.__name__,
+            self.dirname,
+            len(testopts.enlist(self.opts.get("Commands", []))))
+
     # Representation method
-    
-    
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2019-07-09 ``@ddalle``: <TestDriver('$dirname', n=$ncommands)>
+        """
+        return "<%s('%s', n=%i)>" % (
+            self.__class__.__name__,
+            self.dirname,
+            len(testopts.enlist(self.opts.get("Commands", []))))
+
     # Reset results for test
     def init_test_results(self):
         """(Re)initialize attributes that store results of test
@@ -138,8 +165,12 @@ class TestDriver(object):
         os.chdir(self.RootDir)
         # Prepare files (also enters working folder)
         self.prepare_files()
+        # Begin documentation
+        self.write_rst_intro()
         # Run any commands
         results = self.exec_commands()
+        # Close file
+        self.close_rst()
         # Return to original location
         os.chdir(fpwd)
         # Output
@@ -154,6 +185,9 @@ class TestDriver(object):
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
+        :Attributes:
+            *testd.frst*: ``None`` | :class:`file`
+                File handle to new ReST file if applicable
         :Versions:
             * 2019-07-03 ``@ddalle``: First version
         """
@@ -202,6 +236,22 @@ class TestDriver(object):
         
     # Start log file
     def init_rst(self):
+        """Initialize ReST file of test results
+        
+        :Call:
+            >>> testd.init_rst()
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+        :Attributes:
+            *testd.frst*: ``None`` | :class:`file`
+                Open or newly opened file handle if applicable
+        :Versions:
+            * 2019-07-09 ``@ddalle``: First version
+        """
+        # If *frst* is already a file, do nothing
+        if isinstance(self.frst, file):
+            return
         # Get option for root level
         nroot = self.opts.get("RootLevel")
         # Relative path to test documentation from "root"
@@ -215,7 +265,7 @@ class TestDriver(object):
             # No documentation folder
             self.close_rst()
             return
-        elif not isinstance(froot, int):
+        elif not isinstance(nroot, int):
             # Bad type for root level
             raise TypeError(
                 "'RootLevel' option must be int (got '%s')"
@@ -241,17 +291,18 @@ class TestDriver(object):
         try:
             # Change to documentation root folder
             os.chdir(fdoc)
+            # List of subdirectories, last one copies test folder name
+            docdirs = fdoc_rel.split("/") + [self.dirname]
             # Create folders as needed
-            for fdir in fdoc_rel.split("/"):
+            for fdir in docdirs:
                 # Check if folder exists
-                if os.path.isdir(fdir):
-                    continue
-                # Otherwise, create it
-                os.mkdir(fdir)
+                if not os.path.isdir(fdir):
+                    # Otherwise, create it
+                    os.mkdir(fdir)
                 # Enter it
                 os.chdir(fdir)
                 # Join to doc folder
-                fdoc = os.path.join(fdir)
+                fdoc = os.path.join(fdoc, fdir)
             # Return to original location
             os.chdir(fpwd)
         except Exception:
@@ -264,8 +315,77 @@ class TestDriver(object):
         fname = os.path.join(fdoc, "index.rst")
         # Open the file
         self.frst = open(fname, "w")
-            
-            
+
+    # Write header for ReST file
+    def write_rst_intro(self):
+        """Write intro section for ReST log file
+        
+        :Call:
+            >>> testd.write_rst_intro()
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+        :Attributes:
+            *testd.frst*: ``None`` | :class:`file`
+                File handle to which intro is written, if applicable
+        :Versions:
+            * 2019-07-09 ``@ddalle``: First version
+        """
+        # Open file
+        self.init_rst()
+        # Check if file is actually open
+        if self.frst is None:
+            return
+        # Get title
+        ttl = self.opts.get("DocTitle")
+        # Default title
+        if ttl is None:
+            # Use the folder name
+            ttl = "Test ``%s``" % self.dirname
+        # Get the current time
+        t = time.localtime()
+        # Get timezone name using DST flag
+        if t.tm_isdst:
+            # Daylight savings timezone name
+            tz = time.tzname[1]
+        else:
+            # Standard timezone name
+            tz = time.tzname[0]
+        # Write a header comment
+        self.frst.write("\n")
+        self.frst.write(".. This documentation written by TestDriver()\n")
+        self.frst.write("   on ")
+        self.frst.write("%04i-%02i-%02i " % (t.tm_year, t.tm_mon, t.tm_mday))
+        self.frst.write("at %02i:%02i %s" % (t.tm_hour, t.tm_min, tz))
+        self.frst.write("\n\n")
+        # Write title
+        self.frst.write(ttl + "\n")
+        self.frst.write("=" * (len(ttl) + 2))
+        self.frst.write("\n\n")
+        # Check for intro written beforehand
+        fintro = self.opts.get("DocIntroFile")
+        # Check if it's a file name and exists
+        if fintro is None:
+            # Do nothing
+            pass
+        elif not isinstance(fintro, (str, unicode)):
+            # Invalid type
+            raise TypeError(
+                "'DocIntroFile' must be a string (got '%s')"
+                % fintro.__class__.__name__)
+        else:
+            # Absolute path
+            if not os.path.isabs(fintro):
+                # Relative to test folder, not working folder
+                fintro = os.path.join(self.RootDir, fintro)
+            # Check if file exists
+            if not os.path.isfile(fintro):
+                raise SystemError("DocIntroFile '%s' does not exist" % fintro)
+            # Otherwise, copy the file
+            self.fsrt.write(open(fintro).read())
+            # Add a blank line for good measure
+            self.frst.write("\n")
+    
     # Close ReST file
     def close_rst(self):
         """Close ReST log file, if open
