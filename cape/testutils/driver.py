@@ -56,6 +56,7 @@ class TestDriver(object):
     # Standard attributes
     opts = {}
     fname = "cape-test.json"
+    fdoc = None
     frst = None
     RootDir = None
     dirname = None
@@ -309,6 +310,8 @@ class TestDriver(object):
             # Fail
             raise SystemError(
                 "Failed to create folder '%s' in '%s'" % (fdir, fdoc))
+        # Save documentation folder
+        self.fdoc = fdoc
         # Total path
         fname = os.path.join(fdoc, "index.rst")
         # Open the file
@@ -535,14 +538,30 @@ class TestDriver(object):
         # Get file handle
         f = self.frst
         # reST output
-        if isinstance(f, file) and (not f.closed):
-            # Form the title for subsection
-            ttl = "Command %i: ``%s``\n" % (i+1, cmd[:68])
-            # Write title
-            f.write(ttl)
-            # Delimiter line
-            f.write("-" * len(ttl))
-            f.write("\n")
+        if not isinstance(f, file) or f.closed:
+            return
+        # Get subtitle
+        subt = self.opts.getel("CommandTitles", i, vdef=None)
+        # Create an indent
+        tab = "    "
+        # Form the title for subsection
+        if subt:
+            # Include subtitle
+            ttl = "Command %i: %s\n" % (i+1, subt)
+        else:
+            # No subtitle; just command number
+            ttl = "Command %i\n" % (i+1)
+        # Write title
+        f.write(ttl)
+        # Delimiter line
+        f.write("-" * len(ttl))
+        f.write("\n\n")
+        # Show the command
+        f.write(":Command:\n")
+        f.write(tab)
+        f.write(".. code-block:: console\n\n")
+        f.write(tab + tab + "$ " + cmd)
+        f.write("\n\n")
             
     # Check return code status
     def process_results_returncode(self, i, ierr):
@@ -708,14 +727,15 @@ class TestDriver(object):
         # Extend attributes as necessary
         self._extend_attribute_list("TestStatus_STDOUT", i)
         # Individual tests on whether STDOUT and TargetSTDOUT exist
-        qtartyp = fntout and isinstance(fntout, (str, unicode))
+        qtarget = fntout and isinstance(fntout, (str, unicode))
         qactual = fnout  and isinstance(fnout,  (str, unicode))
+        # Absolutize the path to *fntout*; usually in parent folder
+        if qtarget and not os.path.isabs(fntout):
+            # If relative, compare to parent
+            fntout = os.path.join(os.path.realpath(".."), fntout)
         # Check if files exist
         qtarget = qtarget and os.path.isfile(fntout)
         qactual = qactual and os.path.isfile(fnout)
-        # Check for zero-size file
-        qtarget_empty = qtarget and (os.path.getsize(fntout) == 0)
-        qactual_empty = qactual and (os.path.getsize(fnout)  == 0)
         # Perform test on STDOUT
         if not fntout:
             # No target: PASS
@@ -723,69 +743,93 @@ class TestDriver(object):
         elif not fnout:
             # No STDOUT file: unacceptable if target
             q = False
-        elif not isinstance(fnout, (str, unicode)):
+        elif not qactual:
             # STDOUT not mapped to file: unacceptable if target
             q = False
         else:
             # Get options for file comparisons
             kw_comp = self.opts.get_FileComparisonOpts(i)
-            # Target is in the parent folder
-            if not os.path.isabs(fntout):
-                # If relative, compare to parent
-                fntout = os.path.join(os.path.realpath(".."), fntout)
             # Compare STDOUT files
             q = fileutils.compare_files(fnout, fntout, **kw_comp)
         # Save result
         self.TestStatus_STDOUT[i] = q
         # Get file handle
         f = self.frst
+        # Check for file
+        if not isinstance(f, file) or f.closed:
+            # If no file, exit now
+            return q
         # Indentation
         tab = "    "
-        # reST output
-        if isinstance(f, file) and (not f.closed):
-            # Return code section
-            f.write(":STDOUT:\n")
-            # Write status of the test
-            if q:
-                f.write("    * **PASS**\n")
+        # reST settings
+        show_out = self.opts.getel("ShowSTDOUT", i, vdef=None)
+        link_out = self.opts.getel("LinkSTDOUT", i, vdef=False)
+        show_trg = self.opts.getel("ShowTargetSTDOUT", i, vdef=True)
+        link_trg = self.opts.getel("LinkTargetSTDOUT", i, vdef=False)
+        # Get language for Lexer
+        lang = self.opts.getel("LexerSTDOUT", i, vdef="none")
+        # Return code section
+        f.write(":STDOUT:\n")
+        # Write status of the test
+        if q:
+            f.write("    * **PASS**\n")
+        else:
+            f.write("    * **FAIL**\n")
+        # Show actual STDOUT
+        if qactual and link_out:
+            # Link file name
+            flink = "STDOUT.%02i" % (i+1)
+            # Copy the file
+            shutil.copy(fnout, os.path.join(self.fdoc, flink))
+            # Create the link
+            f.write(tab)
+            f.write("* Actual: :download:`%s`\n" % flink)
+        elif qactual and (
+                (show_out is None and not (q and show_trg)) or show_out):
+            # Read it
+            txt = open(fnout).read()
+            # Check for content
+            if len(txt) > 0:
+                # Write header information
+                f.write(tab + "* Actual:\n\n")
+                # Use language
+                f.write(tab + "  .. code-block:: %s\n\n" % lang)
+                # Loop through lines
+                for line in txt.split("\n"):
+                    # Indent it 8 spaces
+                    f.write(tab + tab + line + "\n")
+                # Blank line
+                f.write("\n")
             else:
-                f.write("    * **FAIL**\n")
-            # Show actual STDOUT
-            if isinstance(fnout, (str, unicode)) and os.path.isfile(fnout):
-                # Read it
-                txt = open(fnout).read()
-                # Check for content
-                if len(txt) > 0:
-                    # Write header information
-                    f.write(tab + "* Actual:\n\n")
-                    # Get language for Lexer
-                    lang = self.opts.getel("LexerSTDOUT", i, vdef="none")
-                    # Use language
-                    f.write(tab + "  .. code-block:: %s\n\n" % lang)
-                    # Loop through lines
-                    for line in txt.split("\n"):
-                        # Indent it 8 spaces
-                        f.write(tab + tab + line + "\n")
-                    # Blank line
-                    f.write("\n")
-            # Show target STDOUT
-            if isinstance(fntout, (str, unicode)) and os.path.isfile(fntout):
-                # Read it
-                txt = open(fntout).read()
-                # Check for content
-                if len(txt) > 0:
-                    # Write header information
-                    f.write(tab + "* Target:\n\n")
-                    # Get language for Lexer
-                    lang = self.opts.getel("LexerSTDOUT", i, vdef="none")
-                    # Use language
-                    f.write(tab + "  .. code-block:: %s\n\n" % lang)
-                    # Loop through lines
-                    for line in txt.split("\n"):
-                        # Indent it 8 spaces
-                        f.write(tab + tab + line + "\n")
-                    # Blank line
-                    f.write("\n")
+                # Write empty actual
+                f.write(tab + "* Actual: (empty)\n")
+        # Show target STDOUT
+        if qtarget and link_trg:
+            # Link file name
+            flink = "STDOUT-target.%02i" % (i+1)
+            # Copy the file
+            shutil.copy(fnout, os.path.join(self.fdoc, flink))
+            # Create the link
+            f.write(tab)
+            f.write("* Target: :download:`%s`\n" % flink)
+        elif qtarget and show_trg:
+            # Read it
+            txt = open(fntout).read()
+            # Check for content
+            if len(txt) > 0:
+                # Write header information
+                f.write(tab + "* Target:\n\n")
+                # Use language
+                f.write(tab + "  .. code-block:: %s\n\n" % lang)
+                # Loop through lines
+                for line in txt.split("\n"):
+                    # Indent it 8 spaces
+                    f.write(tab + tab + line + "\n")
+                # Blank line
+                f.write("\n")
+            else:
+                # Write empty actual
+                f.write(tab + "* Target: (empty)\n")
         # Output
         return q
 
@@ -820,6 +864,16 @@ class TestDriver(object):
         fnterr = self.opts.get_TargetSTDERR(i)
         # Extend attributes as necessary
         self._extend_attribute_list("TestStatus_STDERR", i)
+        # Individual tests on whether STDOUT and TargetSTDOUT exist
+        qtarget = fnterr and isinstance(fnterr, (str, unicode))
+        qactual = fnerr  and isinstance(fnerr,  (str, unicode))
+        # Absolutize the path to *fntout*; usually in parent folder
+        if qtarget and not os.path.isabs(fnterr):
+            # If relative, assume it's in parent folder
+            fnterr = os.path.join(os.path.realpath(".."), fnterr)
+        # Check if files exist
+        qtarget = qtarget and os.path.isfile(fnterr)
+        qactual = qactual and os.path.isfile(fnerr)
         # Perform test on STDERR
         if not fnterr:
             # No target: check for actual
@@ -830,7 +884,7 @@ class TestDriver(object):
                 # STDERR not mapped to file: unknowable
                 q = True
             elif (fnerr == fnout):
-                # STDERR mapped to STDOUT file; fine
+                # STDERR mapped to STDOUT file; test elsewhere
                 q = True
             elif os.path.isfile(fnerr):
                 # Actual reported; check if it's empty
@@ -838,7 +892,7 @@ class TestDriver(object):
         elif not fnerr:
             # No STDERR file: unacceptable if target
             q = False
-        elif not isinstance(fnerr, (str, unicode)):
+        elif not qactual:
             # STDERR not mapped to file: unacceptable if target
             q = False
         elif (fnerr == fnout):
@@ -857,55 +911,83 @@ class TestDriver(object):
         self.TestStatus_STDERR[i] = q
         # Get file handle
         f = self.frst
+        # Check for a log file
+        if not isinstance(f, file) or f.closed:
+            # Early output
+            return q
         # Indentation
         tab = "    "
-        # reST output
-        if isinstance(f, file) and (not f.closed):
-            # Return code section
-            f.write(":STDERR:\n")
-            # Write status of the test
-            if q:
-                f.write("    * **PASS**\n")
+        # reST settings
+        show_out = self.opts.getel("ShowSTDERR", i, vdef=None)
+        link_out = self.opts.getel("LinkSTDERR", i, vdef=False)
+        show_trg = self.opts.getel("ShowTargetSTDERR", i, vdef=True)
+        link_trg = self.opts.getel("LinkTargetSTDERR", i, vdef=False)
+        # Get language for Lexer
+        lang = self.opts.getel("LexerSTDERR", i, vdef="none")
+        # Return code section
+        f.write(":STDERR:\n")
+        # Write status of the test
+        if q:
+            f.write("    * **PASS**\n")
+        else:
+            f.write("    * **FAIL**\n")
+        # Show actual STDERR
+        if qactual and link_out:
+            # Link file name
+            flink = "STDERR.%02i" % (i+1)
+            # Copy the file
+            shutil.copy(fnout, os.path.join(self.fdoc, flink))
+            # Create the link
+            f.write(tab)
+            f.write("* Actual: :download:`%s`\n" % flink)
+        elif qactual and (
+                (show_out is None and not (q and show_trg)) or show_out):
+            # Read it
+            txt = open(fnerr).read()
+            # Check for content
+            if len(txt) > 0:
+                # Write header information
+                f.write(tab + "* Actual:\n\n")
+                # Use language
+                f.write(tab + "  .. code-block:: %s\n\n" % lang)
+                # Loop through lines
+                for line in txt.split("\n"):
+                    # Indent it 8 spaces
+                    f.write(tab + tab + line + "\n")
+                # Blank line
+                f.write("\n")
             else:
-                f.write("    * **FAIL**\n")
-            # Show actual STDOUT
-            if isinstance(fnerr, (str, unicode)) and os.path.isfile(fnerr):
-                # Read it
-                txt = open(fnerr).read()
-                # Check for content
-                if len(txt) > 0:
-                    # Write header information
-                    f.write(tab + "* Actual:\n\n")
-                    # Get language for Lexer
-                    lang = self.opts.getel("LexerSTDERR", i, vdef="none")
-                    # Use language
-                    f.write(tab + "  .. code-block:: %s\n\n" % lang)
-                    # Loop through lines
-                    for line in txt.split("\n"):
-                        # Indent it 8 spaces
-                        f.write(tab + tab + line + "\n")
-                    # Blank line
-                    f.write("\n")
-            # Show target STDOUT
-            if isinstance(fnterr, (str, unicode)) and os.path.isfile(fnterr):
-                # Read it
-                txt = open(fnterr).read()
-                # Check for content
-                if len(txt) > 0:
-                    # Write header information
-                    f.write(tab + "* Target:\n\n")
-                    # Get language for Lexer
-                    lang = self.opts.getel("LexerSTDERR", i, vdef="none")
-                    # Use language
-                    f.write(tab + "  .. code-block:: %s\n\n" % lang)
-                    # Loop through lines
-                    for line in txt.split("\n"):
-                        # Indent it 8 spaces
-                        f.write(tab + tab + line + "\n")
-                    # Blank line
-                    f.write("\n")
-            # End section
-            f.write("\n")
+                # Write empty actual
+                f.write(tab + "* Actual: (empty)\n")
+        # Show target STDERR
+        if qtarget and link_trg:
+            # Link file name
+            flink = "STDERR-target.%02i" % (i+1)
+            # Copy the file
+            shutil.copy(fnout, os.path.join(self.fdoc, flink))
+            # Create the link
+            f.write(tab)
+            f.write("* Target: :download:`%s`\n" % flink)
+        elif qtarget and show_trg:
+            # Read it
+            txt = open(fnterr).read()
+            # Check for content
+            if len(txt) > 0:
+                # Write header information
+                f.write(tab + "* Target:\n\n")
+                # Use language
+                f.write(tab + "  .. code-block:: %s\n\n" % lang)
+                # Loop through lines
+                for line in txt.split("\n"):
+                    # Indent it 8 spaces
+                    f.write(tab + tab + line + "\n")
+                # Blank line
+                f.write("\n")
+            else:
+                # Write empty actual
+                f.write(tab + "* Actual: (empty)\n")
+        # End section
+        f.write("\n")
         # Output
         return q
 

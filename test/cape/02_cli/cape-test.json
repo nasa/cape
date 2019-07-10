@@ -4,10 +4,31 @@
         "cape.json"
     ],
     "Commands": [
-        "cape -c"
+        "cape -c",
+        "cape -c --filter b2",
+        "cape -c --cons 'beta==2,Mach%1==0.5'",
+        "cape -c --glob 'poweroff/m0*'",
+        "cape -c --re 'm.\\.5.*b2'",
+        "cape -c -I 2:5,7,18:",
+        "cape -c -I 15: --cons Mach%1=0.5 --re b2"
+    ],
+    "CommandTitles": [
+        "Status",
+        "Filter",
+        "Constraints",
+        "Glob",
+        "Regular Expression",
+        "Index List",
+        "Compound Subsets"
     ],
     "TargetSTDOUT": [
-        "test.01.out"
+        "test.01.out",
+        "test.02.out",
+        "test.03.out",
+        "test.04.out",
+        "test.05.out",
+        "test.06.out",
+        "test.07.out"
     ],
     "TargetSTDERR": null,
     "DocFolder": "doc/test/cape",
