@@ -707,6 +707,15 @@ class TestDriver(object):
         fntout = self.opts.get_TargetSTDOUT(i)
         # Extend attributes as necessary
         self._extend_attribute_list("TestStatus_STDOUT", i)
+        # Individual tests on whether STDOUT and TargetSTDOUT exist
+        qtartyp = fntout and isinstance(fntout, (str, unicode))
+        qactual = fnout  and isinstance(fnout,  (str, unicode))
+        # Check if files exist
+        qtarget = qtarget and os.path.isfile(fntout)
+        qactual = qactual and os.path.isfile(fnout)
+        # Check for zero-size file
+        qtarget_empty = qtarget and (os.path.getsize(fntout) == 0)
+        qactual_empty = qactual and (os.path.getsize(fnout)  == 0)
         # Perform test on STDOUT
         if not fntout:
             # No target: PASS

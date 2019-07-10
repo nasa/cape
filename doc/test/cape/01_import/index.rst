@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-07-09 at 21:54 PDT
+   on 2019-07-09 at 21:55 PDT
 
 Test ``01_import``
 ====================
@@ -28,8 +28,8 @@ Command 1: ``python2 test01_import.py``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.222433 seconds
-    * Cumulative time: 0.222433 seconds
+    * Command took 0.221288 seconds
+    * Cumulative time: 0.221288 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -43,8 +43,8 @@ Command 2: ``python3 test01_import.py``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.104608 seconds
-    * Cumulative time: 0.327041 seconds
+    * Command took 0.101548 seconds
+    * Cumulative time: 0.322836 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
