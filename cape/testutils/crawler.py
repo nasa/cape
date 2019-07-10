@@ -32,6 +32,7 @@ import os
 import sys
 import glob
 import math
+import traceback
 
 # Local modules
 from . import crawleropts
@@ -221,23 +222,47 @@ class TestCrawler(object):
             os.chdir(self.RootDir)
             os.chdir(fdir)
             # Create a driver
-            testd = driver.TestDriver()
+            try:
+                # Create the driver
+                testd = driver.TestDriver()
+            except Exception as e:
+                # Get the message
+                fmt = "%s: %s\n" % (e.__class__.__name__, e.message)
+                # Indent it
+                fmt = "".join(
+                    ["    " + line + "\n" for line in fmt.split("\n")])
+                # Show the STDERR output
+                sys.stderr.write(fmt.rstrip() + "\n")
+                sys.stderr.flush()
+                # Some other problem
+                testd = None
+                # Create results
+                results = {
+                    "TestStatus": False,
+                    "TestStatus_Init": False
+                }
             # Run the test
-            results = testd.run()
+            if testd is not None:
+                # Run the driver to get results
+                results = testd.run()
             # Get execution time
-            ttot = results["TestRunTimeTotal"]
+            ttot = results.get("TestRunTimeTotal", 0.0)
             # Determine status
             if results["TestStatus"]:
                 # Success: show time
                 msg = fmt2 % ttot
             else:
                 # Failure: find reason
+                tststr = results.get("TestStatus_Init", True)
                 tstrc  = results.get("TestStatus_ReturnCode", [])
                 tstt   = results.get("TestStatus_MaxTime",  [])
                 tstout = results.get("TestStatus_STDOUT", [])
                 tsterr = results.get("TestStatus_STDERR", [])
                 # Find the first cause of failure, with preferred order
-                if not all(tstrc):
+                if not tststr:
+                    ifail = 0
+                    reason = "JSON read"
+                elif not all(tstrc):
                     ifail = tstrc.index(False)
                     reason = "return code"
                 elif not all(tstt):

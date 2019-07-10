@@ -49,6 +49,8 @@ rc = {
     "ReturnCode": 0,
     "TargetSTDOUT": None,
     "TargetSTDERR": None,
+    "LexerSTDOUT": "none",
+    "LexerSTDERR": "none",
     "RootLevel": None,
     "DocFolder": "doc/test",
     "DocTitle": None,
@@ -229,7 +231,7 @@ class TestOpts(dict):
             # Append to error message
             msg += "  '%s'\n" % k
         # Raise exception using this message message
-        raise ValueError(msg)
+        raise KeyError(msg)
         
     # Get entry
     def getel(self, k, i=None, vdef=None):

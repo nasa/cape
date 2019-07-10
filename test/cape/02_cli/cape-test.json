@@ -6,6 +6,11 @@
     "Commands": [
         "cape -c"
     ],
+    "TargetSTDOUT": [
+        "test.01.out"
+    ],
+    "TargetSTDERR": null,
     "DocFolder": "doc/test/cape",
-    "RootLevel": -3
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
 }

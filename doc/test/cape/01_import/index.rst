@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-07-09 at 15:02 PDT
+   on 2019-07-09 at 21:54 PDT
 
 Test ``01_import``
 ====================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/01_import/``
+    ``/home/dalle/usr/pycart/test/cape/01_import/``
 
 and the working folder for the test is
 
@@ -28,8 +28,8 @@ Command 1: ``python2 test01_import.py``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.347636 seconds
-    * Cumulative time: 0.347636 seconds
+    * Command took 0.222433 seconds
+    * Cumulative time: 0.222433 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -38,15 +38,29 @@ Command 1: ``python2 test01_import.py``
 Command 2: ``python3 test01_import.py``
 ----------------------------------------
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53513 seconds
-    * Cumulative time: 0.882766 seconds
+    * Command took 0.104608 seconds
+    * Cumulative time: 0.327041 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: pytb
+
+        Traceback (most recent call last):
+          File "test01_import.py", line 5, in <module>
+            import cape
+          File "/home/dalle/usr/pycart/cape/__init__.py", line 102, in <module>
+            from .tri    import Tri, Triq
+          File "/home/dalle/usr/pycart/cape/tri.py", line 34, in <module>
+            import numpy as np
+        ModuleNotFoundError: No module named 'numpy'
+        
+
 

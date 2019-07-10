@@ -748,7 +748,11 @@ class TestDriver(object):
                 # Check for content
                 if len(txt) > 0:
                     # Write header information
-                    f.write(tab + "* Actual::\n\n")
+                    f.write(tab + "* Actual:\n\n")
+                    # Get language for Lexer
+                    lang = self.opts.getel("LexerSTDOUT", i, vdef="none")
+                    # Use language
+                    f.write(tab + "  .. code-block:: %s\n\n" % lang)
                     # Loop through lines
                     for line in txt.split("\n"):
                         # Indent it 8 spaces
@@ -762,7 +766,11 @@ class TestDriver(object):
                 # Check for content
                 if len(txt) > 0:
                     # Write header information
-                    f.write(tab + "* Target::\n\n")
+                    f.write(tab + "* Target:\n\n")
+                    # Get language for Lexer
+                    lang = self.opts.getel("LexerSTDOUT", i, vdef="none")
+                    # Use language
+                    f.write(tab + "  .. code-block:: %s\n\n" % lang)
                     # Loop through lines
                     for line in txt.split("\n"):
                         # Indent it 8 spaces
@@ -805,8 +813,19 @@ class TestDriver(object):
         self._extend_attribute_list("TestStatus_STDERR", i)
         # Perform test on STDERR
         if not fnterr:
-            # No target: PASS
-            q = True
+            # No target: check for actual
+            if not fnerr:
+                # Neither
+                q = True
+            elif not isinstance(fnerr, (str, unicode)):
+                # STDERR not mapped to file: unknowable
+                q = True
+            elif (fnerr == fnout):
+                # STDERR mapped to STDOUT file; fine
+                q = True
+            elif os.path.isfile(fnerr):
+                # Actual reported; check if it's empty
+                q = os.path.getsize(fnerr) == 0
         elif not fnerr:
             # No STDERR file: unacceptable if target
             q = False
@@ -847,7 +866,11 @@ class TestDriver(object):
                 # Check for content
                 if len(txt) > 0:
                     # Write header information
-                    f.write(tab + "* Actual::\n\n")
+                    f.write(tab + "* Actual:\n\n")
+                    # Get language for Lexer
+                    lang = self.opts.getel("LexerSTDERR", i, vdef="none")
+                    # Use language
+                    f.write(tab + "  .. code-block:: %s\n\n" % lang)
                     # Loop through lines
                     for line in txt.split("\n"):
                         # Indent it 8 spaces
@@ -861,7 +884,11 @@ class TestDriver(object):
                 # Check for content
                 if len(txt) > 0:
                     # Write header information
-                    f.write(tab + "* Target::\n\n")
+                    f.write(tab + "* Target:\n\n")
+                    # Get language for Lexer
+                    lang = self.opts.getel("LexerSTDERR", i, vdef="none")
+                    # Use language
+                    f.write(tab + "  .. code-block:: %s\n\n" % lang)
                     # Loop through lines
                     for line in txt.split("\n"):
                         # Indent it 8 spaces
