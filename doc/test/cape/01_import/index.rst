@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-07-10 at 13:45 PDT
+   on 2019-07-11 at 09:34 PDT
 
 Test ``01_import``
 ====================
@@ -20,6 +20,17 @@ The commands executed by this test are
         $ python2 test01_import.py
         $ python3 test01_import.py
 
+**Included file:** ``test01_import.py``
+
+    .. code-block:: python
+
+        #!/usr/bin/env python
+        # -*- coding: utf-8 -*-
+        
+        # Import cape module(s)
+        import cape
+        import cape.options
+
 Command 1
 ----------
 
@@ -34,8 +45,8 @@ Command 1
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.360641 seconds
-    * Cumulative time: 0.360641 seconds
+    * Command took 0.326502 seconds
+    * Cumulative time: 0.326502 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -55,8 +66,8 @@ Command 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.588851 seconds
-    * Cumulative time: 0.949492 seconds
+    * Command took 0.443223 seconds
+    * Cumulative time: 0.769725 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

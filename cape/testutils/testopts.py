@@ -62,7 +62,10 @@ rc = {
     "RootLevel": None,
     "DocFolder": "doc/test",
     "DocTitle": None,
-    "DocIntroFile": None,
+    "DocFileIntro": None,
+    "DocFilesLink": [],
+    "DocFilesShow": [],
+    "DocFilesLexer": "none",
     "CommandTitles": None,
     "MAX_LINES": 10000,
     "NORMALIZE_WHITESPACE": False,
@@ -465,7 +468,7 @@ class TestOpts(dict):
             return None
         elif isinstance(fnerr, (str, unicode)):
             # Check for '%' sign
-            if '%' in fnout:
+            if '%' in fnerr:
                 # Use the index (1-based)
                 fneri = fnerr % (i+1)
             else:

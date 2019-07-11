@@ -367,8 +367,10 @@ class TestDriver(object):
         f.write(ttl + "\n")
         f.write("=" * (len(ttl) + 2))
         f.write("\n\n")
+        # Indentation
+        tab = "    "
         # Check for intro written beforehand
-        fintro = self.opts.get("DocIntroFile")
+        fintro = self.opts.get("DocFileIntro")
         # Check if it's a file name and exists
         if fintro is None:
             # Do nothing
@@ -376,7 +378,7 @@ class TestDriver(object):
         elif not isinstance(fintro, (str, unicode)):
             # Invalid type
             raise TypeError(
-                "'DocIntroFile' must be a string (got '%s')"
+                "'DocFileIntro' must be a string (got '%s')"
                 % fintro.__class__.__name__)
         else:
             # Absolute path
@@ -385,7 +387,7 @@ class TestDriver(object):
                 fintro = os.path.join(self.RootDir, fintro)
             # Check if file exists
             if not os.path.isfile(fintro):
-                raise SystemError("DocIntroFile '%s' does not exist" % fintro)
+                raise SystemError("DocFileIntro '%s' does not exist" % fintro)
             # Otherwise, copy the file
             f.write(open(fintro).read())
             # Add a blank line for good measure
@@ -405,6 +407,54 @@ class TestDriver(object):
             f.write(2*tab + "$ " + cmd + "\n")
         # Blank line
         f.write("\n")
+        # Check for files to print in folder
+        fshow_list = self.opts.get("DocFilesShow", [])
+        fshow_list = testopts.enlist(fshow_list)
+        # Loop through files
+        for (i, fshow) in enumerate(fshow_list):
+            # Absolute path
+            if not os.path.isabs(fshow):
+                fshow = os.path.join(self.RootDir, fshow)
+            # # Check if file exists
+            if not os.path.isfile(fshow):
+                raise SystemError("DocFilesShow '%s' does not exist" % fshow)
+            # Get lexer
+            lang = self.opts.getel("DocFilesLexer", i, vdef="none")
+            # Split into parts
+            fdir, fname = os.path.split(fshow)
+            # Create a header
+            f.write("**Included file:** ``%s``\n\n" % fname)
+            # Start a code block
+            f.write(tab + (".. code-block:: %s\n\n" % lang))
+            # Insert contents
+            for line in open(fshow).readlines():
+                # Write it
+                f.write(tab + tab + line)
+            # Blank line
+            f.write("\n")
+        # Check for files to link
+        flink_list = self.opts.get("DocFilesLink", [])
+        flink_list = testopts.enlist(flink_list)
+        # Create header if appropriate
+        if len(flink_list) > 0:
+            # Start bullet list
+            f.write(":Included Files:\n")
+        # Loop through files
+        for flink in flink_list:
+            # Absolute path
+            if not os.path.isabs(flink):
+                flink = os.path.join(self.RootDir, flink)
+            # # Check if file exists
+            if not os.path.isfile(flink):
+                raise SystemError("DocFilesLink '%s' does not exist" % flink)
+            # Split into parts
+            fdir, fname = os.path.split(flink)
+            # Copy the file
+            shutil.copy(flink, os.path.join(self.fdoc, fname))
+            # Create link
+            f.write("    * :donwload:`%s`\n" % fname)
+            
+            
         
     
     # Close ReST file
@@ -753,6 +803,8 @@ class TestDriver(object):
             q = fileutils.compare_files(fnout, fntout, **kw_comp)
         # Save result
         self.TestStatus_STDOUT[i] = q
+        # Update overall status
+        self.TestStatus = self.TestStatus and q
         # Get file handle
         f = self.frst
         # Check for file
@@ -909,6 +961,8 @@ class TestDriver(object):
             q = fileutils.compare_files(fnerr, fnterr, **kw_comp)
         # Save result
         self.TestStatus_STDERR[i] = q
+        # Update overall status
+        self.TestStatus = self.TestStatus and q
         # Get file handle
         f = self.frst
         # Check for a log file
@@ -1080,7 +1134,7 @@ def cli(*a, **kw):
         * 2019-07-08 ``@ddalle``: Added output
     """
     # Get an instance of the crawler class
-    driver = TestDriver(**kw)
+    testd = TestDriver(**kw)
     # Run the crawler
     return testd.run()
 

@@ -187,10 +187,17 @@ class TestCrawler(object):
         """Execute tests
         
         :Call:
-            >>> crawler.crawl()
+            >>> stats = crawler.crawl()
         :Inputs:
             *crawler*: :class:`TestCrawler`
                 Test crawler controller
+        :Outputs:
+            *stats*: :class:`dict`\ [:class:`int`]
+                Number of cases that passed and failed
+            *stats["PASS"]*: :class:`int`
+                Number of successful tests
+            *stats["FAIL"]*: :class:`int`
+                Number of failed tests
         :Versions:
             * 2019-07-03 ``@ddalle``: First version
             * 2019-07-05 ``@ddalle``: Added recursion
@@ -209,6 +216,11 @@ class TestCrawler(object):
             itest = 1
         else:
             itest = int(math.floor(math.log10(ntest))) + 1
+        # Cumulative statistics
+        stats = {
+            "PASS": 0,
+            "FAIL": 0,
+        }
         # Format string for status updates
         fmt1 = "  Test %%%ii: %%s ...\n" % itest
         fmt2 = "    PASS (%.4g seconds)\n"
@@ -244,24 +256,47 @@ class TestCrawler(object):
             # Run the test
             if testd is not None:
                 # Run the driver to get results
-                results = testd.run()
+                try:
+                    results = testd.run()
+                except Exception as e:
+                    # Get the message
+                    fmt = "%s: %s\n" % (e.__class__.__name__, e.message)
+                    # Indent it
+                    fmt = "".join(
+                        ["    " + line + "\n" for line in fmt.split("\n")])
+                    # Show the STDERR output
+                    sys.stderr.write(fmt.rstrip() + "\n")
+                    sys.stderr.flush()
+                    # Create results
+                    results = {
+                        "TestStatus": False,
+                        "TestStatus_Exec": False
+                    }
             # Get execution time
             ttot = results.get("TestRunTimeTotal", 0.0)
             # Determine status
             if results["TestStatus"]:
-                # Success: show time
+                # Success: show the time used
                 msg = fmt2 % ttot
+                # Track statustics
+                stats["PASS"] += 1
             else:
                 # Failure: find reason
                 tststr = results.get("TestStatus_Init", True)
+                tstex  = results.get("TestStatus_Exec", True)
                 tstrc  = results.get("TestStatus_ReturnCode", [])
                 tstt   = results.get("TestStatus_MaxTime",  [])
                 tstout = results.get("TestStatus_STDOUT", [])
                 tsterr = results.get("TestStatus_STDERR", [])
+                # Track result
+                stats["FAIL"] += 1
                 # Find the first cause of failure, with preferred order
                 if not tststr:
                     ifail = 0
                     reason = "JSON read"
+                elif not tstex:
+                    ifail = 0
+                    reason = "test driver execution"
                 elif not all(tstrc):
                     ifail = tstrc.index(False)
                     reason = "return code"
@@ -282,6 +317,11 @@ class TestCrawler(object):
             # Final update
             sys.stdout.write(msg)
             sys.stdout.flush()
+        # Status update
+        sys.stdout.write(
+            "  %i tests PASS and %i tests FAILED\n" % 
+            (stats["PASS"], stats["FAIL"]))
+        sys.stdout.flush()
         # Get recursive folder list
         for fdir in self.crawldirs:
             # Enter the test folder
@@ -290,9 +330,20 @@ class TestCrawler(object):
             # Create a crawler
             crawler = self.__class__(**kw)
             # Run the crawler
-            crawler.crawl()
+            stats_sub = crawler.crawl()
+            # Accumulate stats
+            stats["PASS"] += stats_sub["PASS"]
+            stats["FAIL"] += stats_sub["FAIL"]
+        # Status update
+        if len(self.crawldirs) > 0:
+            sys.stdout.write(
+                "  %i tests PASS and %i tests FAILED\n" % 
+                (stats["PASS"], stats["FAIL"]))
+            sys.stdout.flush()
         # Go back to original location
         os.chdir(fpwd)
+        # Output
+        return stats
 # class TestCrawler
     
     

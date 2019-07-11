@@ -1,0 +1,91 @@
+{
+    // Options for overall run control and command-line inputs
+    "RunControl": {
+        // Run sequence
+        "PhaseSequence": [0],
+        "PhaseIters": [200],
+        // Operation modes
+        "nProc": 4,
+        "MPI": false,
+        
+        // Command-line inputs to `flowCart`
+        "flowCart": {
+            // flowCart order
+            "first_order": 0,
+            // Basic number of iterations
+            "it_fc": 200,
+            // Use MPI?
+            "mpi_fc": 0,
+            // Nominal CFL number
+            "cfl": 1.1,
+            "cflmin": 0.8,
+            // Multigrid levels for flowcart
+            "mg_fc": 3,
+            // Limiter type
+            "limiter": 2,
+            // Cut cells first-order?
+            "tm": 0,
+            // If this is set to true, angle of attack changes z-velocity
+            "y_is_spanwise": true
+	    },
+        
+        // Parameters for autoInputs
+        "autoInputs": {
+            // Nominal mesh radius (set to [], "", 0, or false to turn off)
+            "r": 8
+        },
+        
+        // Parameters for cubes
+        "cubes": {
+            // Number of refinements
+            "maxR": 10,
+            // Prespecified bounding boxes (set to [] or "" to turn off)
+            "pre": "preSpec.c3d.cntl",
+            // Internal parameters
+            "cubes_a": 10,
+            "cubes_b": 2,
+            "reorder": true
+        }
+	},
+
+	// Parameters for creating the mesh
+    "Mesh": {
+        // This can be a list of .tri files.
+        "TriFile": "bullet.tri"
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        // Defer to a file for most things.
+        "File": "Config.xml",
+        // Which forces should be reported
+        "Force": ["cap", "body", "bullet_no_base", "bullet_total"],
+        // Reference values
+        "RefArea": 3.14159,
+        "RefLength": 1.0,
+        // The moment point can be specified as a dictionary of components.
+        "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]}
+    },
+    
+    // Trajectory description
+    "Trajectory": {
+        // If a file is specified, and it exists, trajectory values will be
+        // read from it.  Trajectory values can also be specified locally.
+        "Keys": ["mach", "alpha", "beta", "config"],
+        # Values
+        "mach":  [0.8, 0.8, 0.9, 0.9, 1.05, 1.05],
+        "alpha": [0.0, 4.0, 0.0, 4.0, 0.00, 4.00],
+        "beta":  0.0,
+        "config": "poweroff",
+        // Copy the mesh
+        "GroupMesh": true,
+        // Configuration name [default]
+        "GroupPrefix": "poweroff",
+        // Definitions
+        "Definitions": {
+            "mach": {
+                "Format": "%.2f"
+            }
+        }
+    }
+}

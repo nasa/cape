@@ -1,0 +1,39 @@
+{
+    "CopyFiles": [
+        "matrix.csv",
+        "cape-json.json",
+        "cape-mixed.json"
+    ],
+    "Commands": [
+        "cape -c",
+        "cape -c -f cape-json.json",
+        "cape -c -f cape-json.json --re a0",
+        "cape -c -f cape-mixed.json",
+        "cape -c -f cape-mixed.json --re a2"
+    ],
+    "CommandTitles": [
+        "Missing JSON File",
+        "JSON-only Matrix",
+        "JSON-only with RegEx",
+        "Mixed CSV and JSON",
+        "Mixed CSV and JSON with RegEx"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.02.out",
+        "test.03.out",
+        "test.04.out",
+        "test.05.out"
+    ],
+    "TargetSTDERR": [
+        "test.01.err",
+        null
+    ],
+    "ReturnCode": [
+        1,
+        0
+    ],
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
