@@ -402,7 +402,9 @@ class Trajectory(object):
             for i in range(len(grp2)):
                 line = line.replace(grp2[i], "grp2-%s" % i)
             # Separate by any white spaces and/or at most one comma
-            v = re.split("\s*,{0,1}\s*", line)
+            print("Label 0010")
+            v = re.split("\s+|\s*,\s*", line)
+            print("Label 0011")
             # Substitute back in original literals
             for i in range(len(grp1)):
                 # Replacement text

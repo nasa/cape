@@ -1,0 +1,24 @@
+{
+    "CopyFiles": [
+        "test01_subset.py",
+        "cape.json",
+        "matrix.csv"
+    ],
+    "Commands": [
+        "python2 test01_subset.py",
+        "python3 test01_subset.py"
+    ],
+    "CommandTitles": [
+        "Python 2",
+        "Python 3"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.02.out"
+    ],
+    "DocFilesShow": "test01_subset.py",
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

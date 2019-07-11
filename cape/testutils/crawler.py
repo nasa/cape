@@ -304,10 +304,10 @@ class TestCrawler(object):
                     ifail = tstt.index(False)
                     reason = "max time"
                 elif not all(tstout):
-                    ifail = testout.index(False)
+                    ifail = tstout.index(False)
                     reason = "STDOUT"
                 elif not all(tsterr):
-                    ifail = testerr.index(False)
+                    ifail = tsterr.index(False)
                     reason = "STDERR"
                 else:
                     ifail = 0
