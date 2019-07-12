@@ -1,0 +1,12 @@
+['run']
+{'filter': 'b2', 'c': True, '_old': []}
+['run']
+{'filter': 'b2', 'c': True, '_old': []}
+[]
+{'c': True, 'aero': 'fin', '_old': [{'aero': 'body'}, {'aero': 'base'}]}
+['run']
+{'filter': 'b2', 'c': True, '_old': []}
+['run', 'b2']
+{'c': True, 'r': True, '_old': [], 'f': True}
+['run']
+{'c': True, 'r': 'b2', '_old': [], 'f': True}
