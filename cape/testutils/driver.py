@@ -430,6 +430,11 @@ class TestDriver(object):
             for line in open(fshow).readlines():
                 # Write it
                 f.write(tab + tab + line)
+            # Check for that stupid modern convention that the last
+            # line doesn't end with a newline
+            if not line.endswith("\n"):
+                # End the damn line
+                f.write("\n")
             # Blank line
             f.write("\n")
         # Check for files to link
