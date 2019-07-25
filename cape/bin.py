@@ -159,7 +159,10 @@ def callo(cmdi, shell=False):
     :Versions:
         * 2016-04-01 ``@ddalle``: First version
     """
-    return sp.Popen(cmdi, stdout=sp.PIPE, shell=shell).communicate()[0]
+    # Call command and get output
+    txt = sp.Popen(cmdi, stdout=sp.PIPE, shell=shell).communicate()[0]
+    # Convert to unicode text
+    return txt.decode("utf-8")
 
 # Grep lines from a file
 def grep(regex, fname):

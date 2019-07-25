@@ -1,0 +1,40 @@
+{
+    "CopyFiles": [
+        "test01_atm76.py",
+        "test02_sutherlandMKS.py",
+        "test03_h.py"
+    ],
+    "Commands": [
+        "python2 test01_atm76.py",
+        "python3 test01_atm76.py",
+        "python2 test02_sutherlandMKS.py",
+        "python3 test02_sutherlandMKS.py",
+        "python2 test03_h.py",
+        "python3 test03_h.py"
+    ],
+    "CommandTitles": [
+        "Standard Atmosphere: Python 2",
+        "Standard Atmosphere: Python 3",
+        "Sutherland's Law: Python 2",
+        "Sutherland's Law: Python 3",
+        "Temperature from Enthalpy: Python 2",
+        "Temperature from Enthalpy: Python 3"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out",
+        "test.03.out",
+        "test.03.out",
+        "test.05.out",
+        "test.05.out"
+    ],
+    "DocFilesShow": [
+        "test01_atm76.py",
+        "test02_sutherlandMKS.py",
+        "test03_h.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

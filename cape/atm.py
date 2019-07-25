@@ -21,6 +21,8 @@ altitudes.
 
 # Basic numerics
 import numpy as np
+
+
 # Radius of earth [km]
 RE = 6371.
 # Acceleration
@@ -110,6 +112,7 @@ def SutherlandMKS(T, mu0=None, T0=None, C=None):
     if C  is None: C = 110.33333
     # Sutherland's law
     return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
+
 
 # Get atmosphere.
 def atm76(h):
@@ -208,7 +211,8 @@ def atm76(h):
     
     # Output
     return State(p=p, rho=rho, T=T)
-    
+
+
 # Enthalpy
 def get_h(T):
     """Get air specific enthalpy using a lookup table
@@ -226,7 +230,8 @@ def get_h(T):
     """
     # Interpolate
     return np.interp(T, href_T, href_h)
-    
+
+
 # Get temperature from enthalpy
 def get_T(h):
     """Get temperature from specific enthalpy
@@ -244,7 +249,8 @@ def get_T(h):
     """
     # Interpolate
     return np.interp(h, href_h, href_T)
-    
+
+
 # Atmospheric state
 class State(object):
     """Atmospheric state
