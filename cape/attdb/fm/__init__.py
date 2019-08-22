@@ -31,23 +31,15 @@ import scipy.io.matlab.mio5_params as siom
 # Spreadsheet interfaces
 import xlrd
 
+# CAPE modules
+import cape.convert    as convert
 # Toolkit modules
-import cape.tnakit.db.db1  as db1
-import cape.convert as convert
-# Direct imports
-from cape.tnakit.stats import *
+import cape.tnakit.db.db1        as db1
+import cape.tnakit.plotutils.mpl as mpl
+import cape.tnakit.statutils     as stats
+# Local modules
+from .. import trajectory
 
-# Other template modules
-import cape.trajectory as trajectory
-
-# Plotting
-if getattr(os.sys, 'frozen', False):
-    # Running in a bundle
-    plt = None
-else:
-    # Import plotting
-    import matplotlib.pyplot as plt
-# Sys check
 
 # Force and moment class
 class DBCoeff(db1.DBCoeff):
@@ -127,7 +119,7 @@ class DBCoeff(db1.DBCoeff):
         # Degrees of freedom
         df = J.size
         # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
-        ksig = student.ppf(0.5+0.5*cov, df)
+        ksig = stats.student.ppf(0.5+0.5*cov, df)
         # Outlier flag
         osig = kw.get("OutlierSigma", 1.5*ksig)
        # --- Initial Stats ---
@@ -2888,7 +2880,7 @@ class DBCoeffMAB(DBCoeffFM):
         # Dictionary of translators for key names
         kwt = kw.get("trajectory", kw.get("Trajectory", {}))
         # Initialize information for trajectory
-        kwx = {}
+        kwx = dict(kw)
         # Get expected trajectory key names
         kmach = kwt.get("mach",    "mach")
         kaoav = kwt.get("alpha_t", "alpha_t")
@@ -4402,7 +4394,7 @@ def interp_trilinear(m, a, b, bkpt, k1, k2, k3, FM, coeffs=None):
         return C[0]
     else:
         return C
-# interp_trilinear
+
             
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, pad=0.05):
@@ -4511,6 +4503,4 @@ def get_xlim(ha, pad=0.05):
     xmaxv = (1+pad)*xmax - pad*xmin
     # Output
     return xminv, xmaxv
-# def get_xlim
-
 
