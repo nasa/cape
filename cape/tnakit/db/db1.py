@@ -35,7 +35,7 @@ from .. import arrayutils
 from .. import typeutils
 
 # Relative local modules
-from ..plot import mpl
+from ..plotutils import mpl
 
 # Statistics
 try:
@@ -5550,7 +5550,7 @@ class DBCoeff(dict):
                 # Set values
                 kw["yerr"] = np.array([uyM, uyP])
             # Call the main function
-            hi = mpl.plot_base(xv, yv, **kw)
+            hi = mpl.plot(xv, yv, **kw)
             # Apply markers
             if qmark:
                 # Get line handle
@@ -5574,7 +5574,7 @@ class DBCoeff(dict):
                 # Set values
                 kw["yerr"] = np.array([uyeM, uyeP])
             # Plot exact data
-            he = mpl.plot_base(xe, ye, **kw)
+            he = mpl.plot(xe, ye, **kw)
             # Combine
             h = dict(h, **he)
        # --- Cleanup ---
@@ -5737,14 +5737,14 @@ class DBCoeff(dict):
         # Marked and interpolated data
         if qinterp:
             # Call the main function
-            hi = mpl.plot_base(xv, yv, **kw)
+            hi = mpl.plot(xv, yv, **kw)
             # Combine
             h = dict(h, **hi)
        # --- Exact Plot ---
         # Plot exact values
         if qexact:
             # Plot exact data
-            he = mpl.plot_base(xe, ye, **kw)
+            he = mpl.plot(xe, ye, **kw)
             # Combine
             h = dict(h, **he)
        # --- Cleanup ---

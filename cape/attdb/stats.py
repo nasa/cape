@@ -11,8 +11,9 @@ outlier checks and Gaussian-based coverage analysis.
 
 """
 
-# Common third-party modules
+# Numerics
 import numpy as np
+
 
 # Statistics modules from SciPy
 try:
@@ -106,7 +107,7 @@ def get_range(R, cov, **kw):
         width = max(1,ksig/kcov) * width
    # --- Output ---
     return width
-
+# def get_range
 
 # Calculate interval
 def get_cov_interval(dx, cov, **kw):
@@ -196,6 +197,7 @@ def get_cov_interval(dx, cov, **kw):
         b = vmu + width
    # --- Output ---
     return a, b
+# def get_cov_interval
 
 
 # Filter outliers
@@ -264,4 +266,5 @@ def check_outliers(dx, cov, **kw):
         n1 = np.count_nonzero(J)
     # Output
     return I
+# def check_outliers
 
