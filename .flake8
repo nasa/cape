@@ -1,0 +1,25 @@
+[flake8]
+# Ignored codes:
+# W293: blank line contains whitespace
+# E226: no white space around arithmetic operators (in default 'ignore' list)
+# E241: Multiple space after ':'
+# E114: Comment indentation is not a multiple of four
+# E221: Multiple spaces before operator
+# E701: Multiple statements on one line (colon)
+# W391: Blank line at end of file
+# W504: Line break after binary operator (in default 'ignore' list)
+# N806: Variable in function should be lowercase
+ignore = W293, E226, E241, E114, E221, E701, W391, W504, N806
+# Folders to avoid if used from command line
+exclude =
+    .git
+    doc
+    examples
+    modulefiles
+    release
+    samples
+    sandbox
+    settings
+    templates
+    test
+    tools

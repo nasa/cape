@@ -1,5 +1,6 @@
 # Python binaries
 *.py[co]
+__pychache__
 
 # Autosaves and such
 *.asv
