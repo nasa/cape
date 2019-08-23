@@ -31,7 +31,7 @@ from . import mplopts
 
 # TNA toolkit modules
 from .. import typeutils
-from .. import stats
+from .. import statutils as stats
 
 # TNA toolkit submodules
 from ..optutils import optitem
@@ -47,13 +47,13 @@ plt = object()
 # Import :mod:`matplotlib`
 def import_matplotlib():
     """Function to import Matplotlib if possible
-    
+
     This function checks if the global variable *mpl* is already a
     module.  If so, the function exits without doing anything.
     Otherwise it imports :mod:`matplotlib` as *mpl*.  If the operating
     system is not Windows, and there is no environment variable
     *DISPLAY*, the backend is set to ``"Agg"``.
-    
+
     :Call:
         >>> import_matplotlib()
     :Versions:
@@ -79,12 +79,12 @@ def import_matplotlib():
 # Import :mod:`matplotlib`
 def import_pyplot():
     """Function to import Matplotlib's PyPlot if possible
-    
+
     This function checks if the global variable *plt* is already a
     module.  If so, the function exits without doing anything.
     Otherwise it imports :mod:`matplotlib.pyplot` as *plt* after
     calling :func:`import_matplotlib`.
-    
+
     :Call:
         >>> import_pyplot()
     :See also:
@@ -397,7 +397,7 @@ def hist(v, **kw):
    # --- Plot an Interval ---
     # Get flag for manual interval plot
     qint = kw.pop("PlotInterval", False)
-    # Process options 
+    # Process options
     kw_interval = mplopts.interval_options(kw, kw_p, kw_u)
     # Plot if necessary
     if qint:
@@ -897,7 +897,7 @@ def plot_gaussian(ax, vmu, vstd, **kw):
         # Get existing horizontal limits
         xmin, xmax = ax.get_xlim()
     else:
-        # Get existing 
+        # Get existing
         xmin, xmax = ax.get_ylim()
     # Number of points to plot
     ngauss = kw.pop("ngauss", 151)

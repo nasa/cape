@@ -29,7 +29,7 @@ import scipy.io as sio
 import scipy.io.matlab.mio5_params as siom
 
 # Local modules
-from .. import stats
+from .. import statutils as stats
 from .. import convert
 from .. import arrayutils
 from .. import typeutils
@@ -75,7 +75,7 @@ RBF_FUNCS = [
 # Force and moment class
 class DBCoeff(dict):
     """Generic coefficient database and interpolation class
-    
+
     :Call:
         >>> DBc = DBCoeff(mat=None, xls=None, csv=None, **kw)
     :Inputs:
@@ -105,40 +105,40 @@ class DBCoeff(dict):
     # Initialization method
     def __init__(self, mat=None, xls=None, csv=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
             * 2019-02-27 ``@ddalle``: Offloaded to :func:`read_db1_DBCoeff`
         """
         # Defer to class-specific reader
         self.read_db1_DBCoeff(mat=mat, xls=xls, csv=csv, **kw)
-            
+
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
         """
         return "<%s ncoeff=%s>" % (self.__class__.__name__, len(self.coeffs))
-            
+
     # String method
     def __str__(self):
         """String method
-        
+
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
         """
         return "<%s ncoeff=%s>" % (self.__class__.__name__, len(self.coeffs))
-    
+
    # --- Init ---
     # No-func
-    
+
    # --- Read ---
     # Read
     def read_db1_DBCoeff(self, **kw):
         """Read scalar database data
-        
+
         :Call:
             >>> DBc.read_db1_DBCoeff(**kw)
         :Inputs:
@@ -181,12 +181,12 @@ class DBCoeff(dict):
         else:
             # Initialize coefficient list
             self.coeffs = []
-        
+
    # --- Copy ---
     # Copy
     def copy(self):
         """Copy a coefficient lookup database
-        
+
         :Call:
             >>> DBi = DBc.copy()
         :Inputs:
@@ -204,11 +204,11 @@ class DBCoeff(dict):
         self.copy_db1_DBCoeff(DBi)
         # Output
         return DBi
-        
+
     # Copy to other databse
     def copy_db1_DBCoeff(self, DBi):
         """Copy a coefficient lookup database
-        
+
         :Call:
             >>> DBc.copy_db1_DBCoeff(DBi)
         :Inputs:
@@ -244,11 +244,11 @@ class DBCoeff(dict):
         self.copyattr(DBi, "uq_funcs_shift")
         # Output
         return DBi
-        
+
     # Copy an attribute if present
     def copyattr(self, DBi, k, vdef={}):
         """Make a shallow copy of an attribute if present
-        
+
         :Call:
             >>> DBc.copyattr(DBi, k, vdef={})
         :Inputs:
@@ -284,7 +284,7 @@ class DBCoeff(dict):
             # No copy
             setattr(DBi, k, v)
   # >
-  
+
   # =============
   # Eval/CALL
   # =============
@@ -293,7 +293,7 @@ class DBCoeff(dict):
     # Evaluate interpolation
     def __call__(self, *a, **kw):
         """Generic evaluation function
-        
+
         :Call:
             >>> v = DBc(*a, **kw)
             >>> v = DBc(coeff, x0, x1, ...)
@@ -373,7 +373,7 @@ class DBCoeff(dict):
             arg_aliases = self.eval_arg_aliases.get(coeff, {})
         # Process aliases in *kw*
         for k in dict(kw):
-            # Check if there's an alias for *k* 
+            # Check if there's an alias for *k*
             if k not in arg_aliases: continue
             # Get alias for keyword *k*
             alias_k = arg_aliases[k]
@@ -444,12 +444,12 @@ class DBCoeff(dict):
             V = V.reshape(dims)
             # Output
             return V
-        
+
    # --- Alternative Evaluation ---
     # Evaluate only exact matches
     def EvalExact(self, *a, **kw):
         """Evaluate a coefficient but only at points with exact matches
-        
+
         :Call:
             >>> V, I, J, X = DBc.EvalExact(*a, **kw)
             >>> V, I, J, X = DBc(coeff, x0, X1, ...)
@@ -527,18 +527,18 @@ class DBCoeff(dict):
             V = self.__call__(coeff, *X, **kw)
         # Output
         return V, I, J, X
- 
+
     # Evaluate UQ from coefficient
     def EvalUQ(self, *a, **kw):
         """Evaluate specified UQ coefficients for a specified coefficient
-        
+
         This function will evaluate the UQ coefficients savd for a given
         nominal coefficient by referencing the appropriate subset of
         *DBc.eval_args* for any UQ coefficients.  For example if *CN* is a
         function of ``"mach"``, ``"alpha"``, and ``"beta"``; and *UCN* is a
         function of ``"mach"`` only, this function passes only the Mach numbers
         to *UCN* for evaluation.
-        
+
         :Call:
             >>> U = DBc.EvalUQ(*a, **kw)
             >>> U = DBc.EvalUQ(coeff, x0, X1, ...)
@@ -621,7 +621,7 @@ class DBCoeff(dict):
                 UX.append(X[args_coeff.index(ai)])
             # Evaluate
             U[uk] = self.__call__(uk, *UX, **kw)
-        
+
        # --- Output ---
         # Check for scalar output
         if qscalar:
@@ -630,14 +630,14 @@ class DBCoeff(dict):
         else:
             # Return list
             return U
-            
+
     # Evaluate coefficient from arbitrary list of arguments
     def EvalFromArgList(self, coeff, args, *a, **kw):
         """Evaluate coefficient from arbitrary argument list
-        
+
         This function is used to evaluate a coefficient when given the
-        arguments to some other coefficient.  
-        
+        arguments to some other coefficient.
+
         :Call:
             >>> V = DBc.EvalFromArgList(coeff, args, *a, **kw)
             >>> V = DBc.EvalFromArgList(coeff, args, x0, X1, ...)
@@ -713,14 +713,14 @@ class DBCoeff(dict):
                 ("'%s', not provided in argument list" % ai))
         # Evaluate
         return self.__call__(coeff, *A, **kw)
-            
+
     # Evaluate coefficient from arbitrary list of arguments
     def EvalFromIndex(self, coeff, I, **kw):
         """Evaluate coefficient from indices
-        
+
         This function looks up the appropriate input variables and uses them to
         generate inputs to the database evaluation method.
-        
+
         :Call:
             >>> V = DBc.EvalFromArgList(coeff, I, **kw)
             >>> v = DBc.EvalFromArgList(coeff, i, **kw)
@@ -753,12 +753,12 @@ class DBCoeff(dict):
             A.append(self.GetXValues(ai, I, **kw))
         # Evaluate
         return self.__call__(coeff, *A, **kw)
-        
+
    # --- Attributes ---
     # Get argument list
     def get_eval_arg_list(self, coeff):
         """Get list of evaluation arguments
-        
+
         :Call:
             >>> args = DBc.get_eval_arg_list(coeff)
         :Inputs:
@@ -770,9 +770,9 @@ class DBCoeff(dict):
             *args*: :class:`list` (:class:`str`)
                 List of parameters used to evaluate *coeff*
         :Versions:
-            * 2019-03-11 ``@ddalle``: Forked from :func:`__call__` 
+            * 2019-03-11 ``@ddalle``: Forked from :func:`__call__`
         """
-        # Attempt to get default 
+        # Attempt to get default
         try:
             # Check for attribute and "_" default
             args_def = self.eval_args["_"]
@@ -789,11 +789,11 @@ class DBCoeff(dict):
             raise ValueError("Coeff '%s' is not an evaluation coeff" % coeff)
         # Output a copy
         return list(args_coeff)
-        
+
     # Get evaluation method
     def get_eval_method(self, coeff):
         """Get evaluation method (if any) for a coefficient
-        
+
         :Call:
             >>> meth = DBc.get_eval_method(coeff)
         :Inputs:
@@ -818,11 +818,11 @@ class DBCoeff(dict):
             eval_methods = self.eval_method
         # Get method
         return eval_methods.get(coeff)
-    
+
     # Get evaluation argument converter
     def get_eval_arg_converter(self, k):
         """Get evaluation argument converter
-        
+
         :Call:
             >>> f = DBc.get_eval_arg_converter(k)
         :Inputs:
@@ -854,11 +854,11 @@ class DBCoeff(dict):
             raise TypeError("Converter for '%s' is not callable" % k)
         # Output
         return f
-    
+
     # Get UQ coefficient
     def get_uq_coeff(self, coeff):
         """Get name of UQ coefficient(s) for *coeff*
-        
+
         :Call:
             >>> ucoeff = DBc.get_uq_coeff(coeff)
             >>> ucoeffs = DBc.get_uq_coeff(coeff)
@@ -886,12 +886,12 @@ class DBCoeff(dict):
             uq_coeffs = self.uq_coeffs
         # Get entry for this coefficient
         return uq_coeffs.get(coeff)
-    
+
    # --- Arguments ---
     # Process coefficient name
     def _process_coeff(self, *a, **kw):
         """Process coefficient name from arbitrary inputs
-        
+
         :Call:
             >>> coeff, a, kw = DBc._process_coeff(*a, **kw)
             >>> coeff, a, kw = DBc._process_coeff(coeff, *a, **kw)
@@ -933,11 +933,11 @@ class DBCoeff(dict):
                 return coeff, a, kw
         # Must be string-like
         raise TypeError("Coefficient must be a string")
-        
+
     # Get argument value
     def get_arg_value(self, i, k, *a, **kw):
         """Get the value of the *i*\ th argument to a function
-        
+
         :Call:
             >>> v = DBc.get_arg_value(i, k, *a, **kw)
         :Inputs:
@@ -999,15 +999,15 @@ class DBCoeff(dict):
         else:
             # Final output
             return xi
-            
+
     # Get dictionary of argument values
     def get_arg_value_dict(self, *a, **kw):
         """Return a dictionary of normalized argument variables
-        
+
         Specifically, he dictionary contains a key for every argument used to
         evaluate the coefficient that is either the first argument or uses the
         keyword argument *coeff*.
-        
+
         :Call:
             >>> X = DBc.get_arg_value_dict(*a, **kw)
             >>> X = DBc.get_arg_value_dict(coeff, x1, x2, ..., k3=x3)
@@ -1057,14 +1057,14 @@ class DBCoeff(dict):
             X[k] = xn[i]
         # Output
         return X
-        
-            
+
+
     # Attempt to get all values of an argument
     def get_all_values(self, k):
         """Attempt to get all values of a specified argument
-        
+
         This will use *eval_arg_converters* if possible
-        
+
         :Call:
             >>> V = DBc.get_all_values(k)
         :Inputs:
@@ -1099,12 +1099,12 @@ class DBCoeff(dict):
         except Exception:
             # Failed
             return None
-    
+
     # Normalize arguments
     @staticmethod
     def NormalizeArguments(x, asarray=False):
         """Normalized mixed float and array arguments
-        
+
         :Call:
             >>> X, dims = DBCoeff.NormalizeArguments(x, asarray=False)
         :Inputs:
@@ -1165,12 +1165,12 @@ class DBCoeff(dict):
                 X.append(xi.flatten())
         # Output
         return X, dims
-        
+
    # --- Options ---
     # Set a default value for an argument
     def set_arg_default(self, k, v):
         """Set a default value for an evaluation argument
-        
+
         :Call:
             >>> DBc.set_arg_default(k, v)
         :Inputs:
@@ -1190,11 +1190,11 @@ class DBCoeff(dict):
             self.eval_arg_defaults = {}
         # Save key/value
         self.eval_arg_defaults[k] = v
-        
+
     # Set a conversion function for input variables
     def set_arg_converter(self, k, fn):
         """Set a function to evaluation argument for a specific argument
-        
+
         :Call:
             >>> DBc.set_arg_converter(k, fn)
         :Inputs:
@@ -1214,12 +1214,12 @@ class DBCoeff(dict):
             self.eval_arg_converters = {}
         # Save function
         self.eval_arg_converters[k] = fn
-            
+
    # --- Declaration ---
     # Set evaluation methods
     def SetEvalMethod(self, coeffs=None, method=None, args=None, *a, **kw):
         """Set evaluation method for a one or more coefficients
-        
+
         :Call:
             >>> DBc.SetEvalMethod(coeff, method=None, args=None, **kw)
             >>> DBc.SetEvalMethod(coeffs, method=None, args=None, **kw)
@@ -1258,11 +1258,11 @@ class DBCoeff(dict):
         # Loop through coefficients
         for coeff in coeffs:
             self._set_method1(coeff, method, args, *a, **kw)
-        
+
     # Save a method for one coefficient
     def _set_method1(self, coeff=None, method=None, args=None, *a, **kw):
         """Set evaluation method for a single coefficient
-        
+
         :Call:
             >>> DBc._set_method1(coeff=None, method=None, args=None, **kw)
         :Inputs:
@@ -1389,11 +1389,11 @@ class DBCoeff(dict):
             else:
                 # Function better be a keyword because there are no args
                 fn = None
-                
+
             # Save the function
             self.eval_func[coeff] = kw.get("function", kw.get("func", fn))
             self.eval_func_self[coeff] = kw.get("self", True)
-            
+
             # Dedicated function
             self.eval_method[coeff] = "function"
         else:
@@ -1401,12 +1401,12 @@ class DBCoeff(dict):
                 "Did not recognize evaluation type '%s'" % method)
         # Argument list is the same for all methods
         self.eval_args[coeff] = args
-    
+
    # --- Schedule Tools ---
     # Return break points for schedule
     def get_schedule(self, args, x, extrap=True):
         """Get lookup points for interpolation scheduled by master key
-        
+
         This is a utility that is used for situations where the break
         points of some keys may vary as a schedule of another one.
         For example if the maximum angle of attack in the database is
@@ -1415,7 +1415,7 @@ class DBCoeff(dict):
         at the value of the first key both above and below the input
         value.  The first argument, ``args[0]``, is the master key
         that controls the schedule.
-        
+
         :Call:
             >>> i0, i1, f, x0, x1 = DBc.get_schedule(args, x, **kw)
         :Inputs:
@@ -1520,7 +1520,7 @@ class DBCoeff(dict):
     # Return break points for schedule
     def _get_schedule(self, args, x, extrap=True):
         """Get lookup points for interpolation scheduled by master key
-        
+
         This is a utility that is used for situations where the break
         points of some keys may vary as a schedule of another one.
         For example if the maximum angle of attack in the database is
@@ -1529,7 +1529,7 @@ class DBCoeff(dict):
         at the value of the first key both above and below the input
         value.  The first argument, ``args[0]``, is the master key
         that controls the schedule.
-        
+
         :Call:
             >>> i0, i1, f, x0, x1 = DBc.get_schedule(args, x, **kw)
         :Inputs:
@@ -1599,12 +1599,12 @@ class DBCoeff(dict):
             x1[j] = (1-fj)*xmin1 + fj*xmax1
         # Output
         return i0, i1, f, x0, x1
-    
+
    # --- Breakpoints ---
     # Function to get interpolation weights for uq
     def get_bkpt_index(self, k, v):
         """Get interpolation weights for 1D linear interpolation
-        
+
         :Call:
             >>> i0, i1, f = DBc.get_bkpt_index(k, v)
         :Inputs:
@@ -1637,11 +1637,11 @@ class DBCoeff(dict):
                 "Lookup key '%s' is not present in break point dict" % k)
         # Output
         return self._bkpt_index(V, v)
-        
+
     # Function to get interpolation weights for uq
     def get_bkpt_index_schedule(self, k, v, j):
         """Get weights 1D interpolation of *k* at a slice of master key
-        
+
         :Call:
             >>> i0, i1, f = DBc.get_bkpt_index_schedule(k, v, j)
         :Inputs:
@@ -1668,11 +1668,11 @@ class DBCoeff(dict):
         V = self._scheduled_bkpts(k, j)
         # Lookup within this vector
         return self._bkpt(V, v)
-    
+
     # Get break point from vector
     def _bkpt_index(self, V, v):
         """Get interpolation weights for 1D interpolation
-        
+
         :Call:
             >>> i0, i1, f = DBc._bkpt_index(V, v)
         :Inputs:
@@ -1711,11 +1711,11 @@ class DBCoeff(dict):
         f = (v - V[i0]) / (V[i1] - V[i0])
         # Output
         return i0, i1, f
-        
+
     # Get a break point, with error checking
     def get_bkpt(self, k, *I):
         """Extract a breakpoint by index, with error checking
-        
+
         :Call:
             >>> v = DBc.get_bkpt(k, *I)
             >>> v = DBc.get_bkpt(k)
@@ -1764,11 +1764,11 @@ class DBCoeff(dict):
                     ("array but found %i-dim" % n))
         # Output
         return v
-        
+
     # Get all break points
     def _scheduled_bkpts(self, k, j):
         """Get list of break points for key *k* at schedule *j*
-        
+
         :Call:
             *DBc*: :class:`tnakit.db.db1.DBCoeff`
                 Coefficient database interface
@@ -1812,15 +1812,15 @@ class DBCoeff(dict):
                 raise ValueError("Found zero break points for key '%s'" % k)
         # Output
         return V
-   
+
    # --- Linear ---
     # Multilinear lookup
     def eval_multilinear(self, coeff, args, x, **kw):
         """Perform linear interpolation in as many dimensions as necessary
-        
+
         This assumes the database is ordered with the first entry of *args*
         varying the most slowly and that the data is perfectly regular.
-        
+
         :Call:
             >>> y = DBc.eval_multilinear(coeff, args, x)
         :Inputs:
@@ -1842,14 +1842,14 @@ class DBCoeff(dict):
         """
         # Call root method without two of the options
         return self._eval_multilinear(coeff, args, x, **kw)
-        
+
     # Evaluate multilinear interpolation with caveats
     def _eval_multilinear(self, coeff, args, x, I=None, j=None, **kw):
         """Perform linear interpolation in as many dimensions as necessary
-        
+
         This assumes the database is ordered with the first entry of *args*
         varying the most slowly and that the data is perfectly regular.
-        
+
         :Call:
             >>> y = DBc._eval_multilinear(coeff, args, x, I=None, j=None)
         :Inputs:
@@ -1972,15 +1972,15 @@ class DBCoeff(dict):
             F *= Fi
         # Perform interpolation
         return np.sum(F*V[J])
-   
+
    # --- Multilinear-schedule ---
     # Multilinear lookup at each value of arg
     def eval_multilinear_schedule(self, coeff, args, x, **kw):
         """Perform linear interpolation in as many dimensions as necessary
-        
+
         This assumes the database is ordered with the first entry of *args*
         varying the most slowly and that the data is perfectly regular.
-        
+
         :Call:
             >>> y = DBc.eval_multilinear(coeff, args, x)
         :Inputs:
@@ -2017,12 +2017,12 @@ class DBCoeff(dict):
         y1 = self._eval_multilinear(coeff, args, x1, I=I1, j=i1)
         # Linear interpolation in the schedule key
         return (1-f)*y0 + f*y1
-    
+
    # --- Radial Basis Functions ---
     # Get an RBF
     def get_rbf(self, coeff, *I):
         """Extract a radial basis function, with error checking
-        
+
         :Call:
             >>> f = DBc.get_rbf(coeff, *I)
             >>> f = DBc.get_rbf(coeff)
@@ -2074,11 +2074,11 @@ class DBCoeff(dict):
             raise TypeError("RBF '%s' index %i is not callable" % (coeff, I))
         # Output
         return fn
-        
+
     # RBF lookup
     def eval_rbf(self, coeff, args, x, **kw):
         """Evaluate a single radial basis function
-        
+
         :Call:
             >>> y = DBc.eval_rbf(coeff, args, x)
         :Inputs:
@@ -2100,12 +2100,12 @@ class DBCoeff(dict):
         f = self.get_rbf(coeff)
         # Evaluate
         return f(*x)
-    
+
    # --- Generic Function ---
     # Generic function
     def eval_function(self, coeff, args, x, **kw):
         """Evaluate a single user-saved function
-        
+
         :Call:
             >>> y = DBc.eval_function(coeff, args, x)
         :Inputs:
@@ -2141,12 +2141,12 @@ class DBCoeff(dict):
         else:
             # Stand-alone function
             return f(*x, **kw)
-        
+
    # --- RBF-linear ---
     # Multiple RBF lookup
     def eval_rbf_linear(self, coeff, args, x, **kw):
         """Evaluate two RBFs at slices of first *arg* and interpolate
-        
+
         :Call:
             >>> y = DBc.eval_rbf_linear(coeff, args, x)
         :Inputs:
@@ -2176,12 +2176,12 @@ class DBCoeff(dict):
         y = (1-f)*y0 + f*y1
         # Output
         return y
-        
+
    # --- RBF-schedule ---
     # Multiple RBF lookup, curvilinear
     def eval_rbf_schedule(self, coeff, args, x, **kw):
         """Evaluate a single radial basis function
-        
+
         :Call:
             >>> y = DBc.eval_rbf_schedule(coeff, args, x)
         :Inputs:
@@ -2213,12 +2213,12 @@ class DBCoeff(dict):
         y = (1-f)*y0 + f*y1
         # Output
         return y
-   
+
    # --- Nearest ---
     # Exact match
     def eval_exact(self, coeff, args, x, **kw):
         """Evaluate a coefficient by looking up exact matches
-        
+
         :Call:
             >>> y = DBc.eval_exact(coeff, args, x, **kw)
             >>> Y = DBc.eval_exact(coeff, args, x, **kw)
@@ -2276,11 +2276,11 @@ class DBCoeff(dict):
         else:
             # Multiple outputs
             return V[I]
-        
+
     # Lookup nearest value
     def eval_nearest(self, coeff, args, x, **kw):
         """Evaluate a coefficient by looking up nearest match
-        
+
         :Call:
             >>> y = DBc.eval_nearest(coeff, args, x, **kw)
         :Inputs:
@@ -2325,12 +2325,12 @@ class DBCoeff(dict):
         j = np.argmin(d)
         # Use that value
         return V[j]
-    
+
    # --- RBF construction ---
     # Regularization
     def CreateGlobalRBFs(self, coeffs, args, I=None, **kw):
         """Create global radial basis functions for one or more coeffs
-        
+
         :Call:
             >>> DBc.CreateGlobalRBFs(coeffs, args, I=None)
         :Inputs:
@@ -2390,11 +2390,11 @@ class DBCoeff(dict):
             self.rbf[coeff] = f
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
-        
+
     # Regularization
     def CreateSliceRBFs(self, coeffs, args, I=None, **kw):
         """Create global radial basis functions for each slice of first *arg*
-        
+
         The first entry in *args* is interpreted as a "slice" key; RBFs will be
         constructed at constant values
         :Call:
@@ -2474,7 +2474,7 @@ class DBCoeff(dict):
                 # Save it
                 self.rbf[coeff].append(f)
   # >
-  
+
   # ============
   # Data
   # ============
@@ -2483,7 +2483,7 @@ class DBCoeff(dict):
     # Add a field
     def AddCoeff(self, coeff, V, **kw):
         """Add a coefficient to the database, with checks as requested
-        
+
         :Call:
             >>> DBc.AddCoeff(coeff, V, **kw)
         :Inputs:
@@ -2514,19 +2514,19 @@ class DBCoeff(dict):
         # Add to coefficient list if needed
         if coeff not in self.coeffs:
             self.coeffs.append(coeff)
-            
+
    # --- Independent Key Values ---
     # Get the value of an independent variable if possible
     def GetXValues(self, k, I=None, **kw):
         """Get values of specified coefficients, which may need conversion
-        
+
         This function can be used to calculate independent variables that are
         derived from extant data columns.  For example if columns *alpha* and
         *beta* (for angle of attack and angle of sideslip, respectively) are
         present and the user wants to get the total angle of attack *aoap*,
         this function will attempt to use ``DBc.eval_arg_converters["aoap"]``
         to convert available *alpha* and *beta* data.
-        
+
         :Call:
             >>> V = DBc.GetXValues(k, I=None, **kw)
         :Inputs:
@@ -2579,16 +2579,16 @@ class DBCoeff(dict):
         else:
             # Not subsettable
             return V
-            
+
     # Get independent variable from eval inputs
     def GetEvalXValues(self, k, *a, **kw):
         """Return values of a coefficient from inputs to :func:`__call__`
-        
+
         For example, this can be used to derive the total angle of attack from
         inputs to an evaluation call to *CN* when it is a function of *mach*,
         *alpha*, and *beta*.  This function attempts to use
         :func:`DBc.eval_arg_converters`.
-        
+
         :Call:
             >>> V = DBc.GetEvalXValues(k, *a, **kw)
             >>> V = DBc.GetEvalXValues(k, coeff, x1, x2, ..., k3=x3)
@@ -2639,12 +2639,12 @@ class DBCoeff(dict):
                 raise ValueError("Conversion function for '%s' failed" % k)
             # Output
             return V
-        
+
    # --- Dependent Key Values ---
     # Get exact values
     def GetExactYValues(self, coeff, I=None, **kw):
         """Get exact values of a data coefficient
-        
+
         :Call:
             >>> V = DBc.GetExactYValues(coeff, I=None, **kw)
         :Inputs:
@@ -2682,12 +2682,12 @@ class DBCoeff(dict):
             V = self.__call__(coeff, *a)
             # Output
             return V
-    
+
    # --- Search ---
     # Find matches
     def FindMatches(self, args, *a, **kw):
         """Find cases that match a condition within a certain tolerance
-        
+
         :Call:
             >>> I, J = DBc.FindMatches(args, *a, **kw)
         :Inputs:
@@ -2779,11 +2779,11 @@ class DBCoeff(dict):
         J = np.where(MJ)[0]
         # Return combined set of matches
         return I, J
-        
+
     # Find matches
     def FindMatchesPair(self, DB2, args, args_test, *a, **kw):
         """Find cases that match conditions in two databases within tolerances
-        
+
         :Call:
             >>> I1, I2, J = DBc.FindMatchesPair(DB2, args, args_test, *a, **kw)
         :Inputs:
@@ -2935,11 +2935,11 @@ class DBCoeff(dict):
         J = np.where(M)[0]
         # Return combined set of matches
         return I1, I2, J
-        
+
     # Find matches
     def FindMatchesPairIndex(self, DB2, args_test, I=None, **kw):
         """Find indices of cases that have matches in both databases
-        
+
         :Call:
             >>> I1, I2, J = DBc.FindMatches(DB2, args_test, I=None, **kw)
         :Inputs:
@@ -3043,7 +3043,7 @@ class DBCoeff(dict):
         # Return combined set of matches
         return I1, I2, J
   # >
-  
+
   # ===========
   # I/O
   # ===========
@@ -3052,7 +3052,7 @@ class DBCoeff(dict):
     # Read a spreadsheet
     def ReadXLS(self, fxls, sheet, prefix=None, **kw):
         """Read a simple table from one worksheet
-        
+
         :Call:
             >>> DBc.ReadXLS(fxls, sheet, prefix=None, **kw)
             >>> DBc.ReadXLS(ws, sheet, prefix=None, **kw)
@@ -3203,12 +3203,12 @@ class DBCoeff(dict):
             self[coeff] = np.array([v for v in V if v != ""])
             # Add to coefficient list
             self.coeffs.append(coeff)
-   
+
    # --- CSV Files ---
     # Read a CSV file
     def ReadCSV(self, fcsv, prefix=None, delim=",", **kw):
         """Read comma-separated value file
-        
+
         :Call:
             >>> DBc.ReadCSV(fcsv, prefix=None, delimiter=",", **kw)
         :Inputs:
@@ -3320,11 +3320,11 @@ class DBCoeff(dict):
             self[coeff] = V
             # Add to coefficient list
             self.coeffs.append(coeff)
-        
+
     # Write a CSV file
     def WriteCSV(self, fcsv, coeffs=None, fmt=None, **kw):
         """Write a comma-separated file of some of the coefficients
-        
+
         :Call:
             >>> DBc.WriteCSV(fcsv, coeffs=None, fmt=None, **kw)
         :Inputs:
@@ -3369,13 +3369,13 @@ class DBCoeff(dict):
                 sys.stderr.flush()
                 # Delete it
                 del coeffs[i]
-        
+
         # Dictionary of translators
         translators = kw.get("translators", {})
         # Get comment character and delimiter
         cchar = kw.get("comments", "#")
         delim = kw.get("delim", ", ")
-            
+
         # Default line format
         if fmt is None:
             # Set up printing format
@@ -3410,7 +3410,7 @@ class DBCoeff(dict):
             fmt = delim.join(fmt_list)
         # Apply translators to the headers
         cols = [translators.get(coeff, coeff) for coeff in coeffs]
-            
+
         # Create the file
         f = open(fcsv, 'w')
         # Write header
@@ -3425,15 +3425,15 @@ class DBCoeff(dict):
             f.write(fmt % V)
             # Newline
             f.write("\n")
-        
+
         # Close the file
         f.close()
-   
+
    # --- RBF CSV files ---
     # Write a CSV file for radial basis functions
     def WriteRBFCSV(self, fcsv, coeffs, **kw):
         """Write an ASCII file of radial basis func coefficients
-        
+
         :Call:
             >>> DBc.WriteRBFCSV(fcsv, coeffs=None, **kw)
         :Inputs:
@@ -3534,7 +3534,7 @@ class DBCoeff(dict):
         # Get comment character and delimiter
         cchar = kw.get("comments", "#")
         delim = kw.get("delim", ", ")
-            
+
         # Set up printing format
         fmts = kw.get("fmts", {})
         # Options for default print flag
@@ -3546,7 +3546,7 @@ class DBCoeff(dict):
         precs = kw.get("precs", kw.get("precisions", {}))
         emaxs = kw.get("emaxs", {})
         emins = kw.get("emins", {})
-        
+
         # Initialize final format
         fmt_list = []
         # Initialize final column list
@@ -3570,7 +3570,7 @@ class DBCoeff(dict):
             fmti = fmts.get(col, fmti)
             # Save to list
             fmt_list.append(fmti)
-            
+
         # Append type
         for k in ["eval_method"]:
             # Check for alias
@@ -3592,7 +3592,7 @@ class DBCoeff(dict):
             fmti = fmts.get(col, fmti)
             # Save to list
             fmt_list.append(fmti)
-        
+
         # Extra columns for each output coeff
         COEFF_COLS = ["", "rbf", "func", "eps", "smooth"]
         # Loop through coefficients
@@ -3612,7 +3612,7 @@ class DBCoeff(dict):
             # Loop through suffixes
             for suf in COEFF_COLS:
                 # Append suffix
-                col = ("%s_%s" % (k, suf)).rstrip("_") 
+                col = ("%s_%s" % (k, suf)).rstrip("_")
                 # Check for translation
                 col = translators.get(col, col)
                 # Add actual value at that point
@@ -3621,12 +3621,12 @@ class DBCoeff(dict):
                 fmti = fmts.get(col, "%%13.6%s" % echr)
                 # Save to list
                 fmt_list.append(fmti)
-                
+
         # Just use the delimiter
         fmt = delim.join(fmt_list)
         # Number of columns
         ncol = len(cols)
-            
+
         # Create the file
         f = open(fcsv, 'w')
         # Write header
@@ -3680,14 +3680,14 @@ class DBCoeff(dict):
                 f.write(fmt % tuple(V[i]))
                 # Newline
                 f.write("\n")
-        
+
         # Close the file
         f.close()
 
     # Read RBF function
     def ReadRBFCSV(self, fcsv, prefix=None, delim=",", **kw):
         """Read ASCII file of radial basis function coefficients
-        
+
         :Call:
             >>> DBc.ReadRBFCSV(fcsv, prefix=None, delimiter=",", **kw)
         :Inputs:
@@ -3777,7 +3777,7 @@ class DBCoeff(dict):
         V = np.loadtxt(
             fcsv, delimiter=delim,
             skiprows=nskip, comments=comments, ndmin=2)
-        
+
        # --- Save values ---
         # Loop through arg columns
         for (j, col) in enumerate(arg_cols + coeff_cols):
@@ -3786,7 +3786,7 @@ class DBCoeff(dict):
                 # First *narg* columns are lookup variables
                 i = j
             else:
-                # After *eval_method*, 
+                # After *eval_method*,
                 i = narg + 1 + (j-narg)*5
             # Apply translators
             col = translators.get(col, col)
@@ -3852,8 +3852,8 @@ class DBCoeff(dict):
             Z = ([0.0, 1.0],) * (narg - 1)
             # Get unique values of first *arg*
             xs = np.unique(V[:, 0])
-            
-            
+
+
         # # Loop through coefficients
         for j, coeff in enumerate(coeffs):
             # Save evaluation arguments
@@ -3920,13 +3920,13 @@ class DBCoeff(dict):
                 self.GetBreakPoints(args[0:1])
                 # Get break points at each slice
                 self.ScheduleBreakPoints(args[1:], args[0])
-        
-        
+
+
    # --- Matlab Files ---
     # Read a Matlab file
     def ReadMat(self, fmat, **kw):
         """Read a Matlab ``.mat`` file to import data
-        
+
         :Call:
             >>> DBc.ReadMat(fmat, **kw)
         :Inputs:
@@ -3944,10 +3944,10 @@ class DBCoeff(dict):
         except AttributeError:
             # Empty list
             self.coeffs = []
-            
+
         # Read the MAT file using SciPy
         FM = sio.loadmat(fmat, struct_as_record=False, squeeze_me=True)
-        
+
         # Get primary data interface
         DB = FM["DB"]
         # Loop through keys
@@ -3957,7 +3957,7 @@ class DBCoeff(dict):
             # Append coefficient name, if necessary
             if k not in self.coeffs:
                 self.coeffs.append(k)
-        
+
         # Initialize break points if needed
         try:
             # See if break points are present
@@ -3976,14 +3976,14 @@ class DBCoeff(dict):
         except KeyError:
             # No break points
             pass
-                
+
         # Save Matlab object
         self.mat = FM
-        
+
     # Prepare a Matlab file output
     def prepmat_db1_DBCoeff(self, **kw):
         """Create a Matlab object for output
-        
+
         :Call:
             >>> DBc.prepmat_db1_DBCoeff(**kw)
         :Inputs:
@@ -4027,11 +4027,11 @@ class DBCoeff(dict):
             pass
         # Output
         return FM
-        
+
     # Prepare a Matlab file output
     def PrepareMat(self, **kw):
         """Create a Matlab object for output
-        
+
         :Call:
             >>> FM = DBc.PrepareMat(**kw)
         :Inputs:
@@ -4048,11 +4048,11 @@ class DBCoeff(dict):
         FM = self.prepmat_db1_DBCoeff(**kw)
         # Output
         return FM
-    
+
     # Write a generic Matlab file
     def WriteMat(self, fmat, **kw):
         """Write a generic Matlab ``.mat`` file as a struct
-        
+
         :Call:
             >>> DBc.WriteMat(fmat, **kw)
         :Inputs:
@@ -4071,7 +4071,7 @@ class DBCoeff(dict):
         # Output
         sio.savemat(fmat, FM, oned_as="column")
   # >
-  
+
   # ===============
   # Interpolation
   # ===============
@@ -4080,7 +4080,7 @@ class DBCoeff(dict):
     # Get automatic break points
     def GetBreakPoints(self, keys, nmin=5, tol=1e-12):
         """Create automatic list of break points for interpolation
-        
+
         :Call:
             >>> DBc.GetBreakPoints(key, nmin=5, tol=1e-12)
             >>> DBc.GetBreakPoints(keys, nmin=5, tol=1e-12)
@@ -4134,11 +4134,11 @@ class DBCoeff(dict):
                     T.append(v)
             # Save these break points
             self.bkpts[k] = np.array(T)
-            
+
     # Map break points from other key
     def MapBreakPoints(self, keys, skey):
         """Create automatic list of break points for interpolation
-        
+
         :Call:
             >>> DBc.MapBreakPoints(keys, skey)
         :Inputs:
@@ -4173,11 +4173,11 @@ class DBCoeff(dict):
                 T.append(v)
             # Save break points
             self.bkpts[k] = np.array(T)
-            
+
     # Schedule break points at slices at other key
     def ScheduleBreakPoints(self, keys, skey, nmin=5, tol=1e-12):
         """Create automatic list of scheduled break points for interpolation
-        
+
         :Call:
             >>> DBc.MapBreakPoints(keys, skey)
         :Inputs:
@@ -4215,7 +4215,7 @@ class DBCoeff(dict):
                 # Check for broken break point
                 if len(I) == 0:
                     raise ValueError("No points matching slice at " +
-                        ("%s = %.2f" % (skey, m))) 
+                        ("%s = %.2f" % (skey, m)))
                 # First value
                 i = I[0]
                 # Get unique values on the slice
@@ -4235,13 +4235,13 @@ class DBCoeff(dict):
                 X.append(np.asarray(T))
             # Save break points
             self.bkpts[k] = X
-            
-  
+
+
    # --- Key Lookup ---
     # Look up a generic key
     def get_key(self, k=None, defs=[], **kw):
         """Process a key name, using an ordered list of defaults
-        
+
         :Call:
             >>> ka = DBc.get_key(k3=None)
         :Inputs:
@@ -4290,7 +4290,7 @@ class DBCoeff(dict):
         # Error message
         raise KeyError("No %s key found" % ttl)
   # >
-  
+
   # =====
   # UQ
   # =====
@@ -4299,7 +4299,7 @@ class DBCoeff(dict):
     # Get dictionary of test values
     def _get_test_values(self, arg_list, **kw):
         """Get test values for creating windows or comparing databases
-        
+
         :Call:
             >>> vals, bkpts = DBc._get_test_values(arg_list, **kw)
         :Inputs:
@@ -4354,11 +4354,11 @@ class DBCoeff(dict):
                 bkpts[k] = np.unique(vals[k])
        # --- Output ---
         return vals, bkpts
-        
+
     # Find *N* neighbors based on list of args
     def _get_uq_conditions(self, arg_list, **kw):
         """Get list of points at which to estimate UQ database
-        
+
         :Call:
             >>> A = DBc.GetWindows_DB(arg_list, **kw)
             >>> [[a00, a01, ...], [a10, ...]] = DBc.GetWindows_DB(...)
@@ -4398,11 +4398,11 @@ class DBCoeff(dict):
         A = np.vstack(V).T
         # Output
         return A
-        
+
     # Find *N* neighbors based on list of args
     def GetWindow(self, n, arg_list, *a, **kw):
-        """Get indices of neighboring 
-        
+        """Get indices of neighboring
+
         :Call:
             >>> I = DBc.GetWindow(n, arg_list, *a, **kw)
         :Inputs:
@@ -4520,15 +4520,15 @@ class DBCoeff(dict):
        # --- Output ---
         # Output
         return np.where(I)[0]
-        
-    
-        
-   
+
+
+
+
    # ---  Pairwise UQ ---
     # Single-point UQ estimate with indices determined
     def _estimate_UQ_point(self, FM2, coeff, ucoeff, I, **kw):
         """Quantify uncertainty interval for a single point or window
-        
+
         :Call:
             >>> u, = FM1._estimateUQ_point(FM2, coeff, ucoeff, I, **kw)
             >>> U  = FM1._estimateUQ_point(FM2, coeff, ucoeff, I, **kw)
@@ -4693,11 +4693,11 @@ class DBCoeff(dict):
        # --- Output ---
         # Return all extra values
         return (u,) + a_extra
-        
+
     # Single-point UQ estimate
-    def EstimateUQ_point(self, FM2, coeff, ucoeff, *a, **kw): 
+    def EstimateUQ_point(self, FM2, coeff, ucoeff, *a, **kw):
         """Quantify uncertainty interval for a single point or window
-        
+
         :Call:
             >>> u, = FM1.EstimateUQ_point(FM2, coeff, ucoeff, *a, **kw)
             >>> U  = FM1.EstimateUQ_point(FM2, coeff, ucoeff, *a, **kw)
@@ -4768,11 +4768,11 @@ class DBCoeff(dict):
         U = self._estimate_UQ_point(FM2, coeff, ucoeff, I, **kw)
        # --- Output ---
         return U
-        
+
     # Single-point UQ estimate
     def EstimateUQ_coeff(self, FM2, coeff, ucoeff, **kw):
         """Quantify uncertainty interval for all points of one UQ coefficient
-        
+
         :Call:
             >>> A, U  = FM1.EstimateUQ_coeff(FM2, coeff, ucoeff, **kw)
         :Inputs:
@@ -4849,15 +4849,15 @@ class DBCoeff(dict):
         for (i,a) in enumerate(A):
             # Get window
             I = self.GetWindow(nmin, argsu, *a, **kw)
-            # Estimate UQ for this window 
+            # Estimate UQ for this window
             U[i] = self._estimate_UQ_point(FM2, coeff, ucoeff, I, **kw)
        # --- Output ---
         return A, U
-        
+
     # Single-point UQ estimate
     def EstimateUQ_DB(self, FM2, **kw):
         """Quantify uncertainty for all available coefficient pairings in a DB
-        
+
         :Call:
             >>> FM1.EstimateUQ_DB(FM2, **kw)
         :Inputs:
@@ -4938,7 +4938,7 @@ class DBCoeff(dict):
                 keys_extra = uq_keys_extra.get(ucoeff, [])
                 # Ensure list
                 if type(keys_extra) in [str, unicode]:
-                    keys_extra = [keys_extra] 
+                    keys_extra = [keys_extra]
                 # Call particular method
                 A, U = self.EstimateUQ_coeff(FM2, coeff, ucoeff, **kw)
                 # Save primary key
@@ -4949,9 +4949,9 @@ class DBCoeff(dict):
                     self[k] = U[:,j+1]
         # Clean up prompt
         sys.stdout.write("%60s\r" % "")
-                
+
   # >
-  
+
   # =============
   # Increment
   # =============
@@ -4960,7 +4960,7 @@ class DBCoeff(dict):
     # Generate slices for interpolation
     def _get_test_slices(self, arg_list, slice_args, **kw):
         """Get test values for creating windows or comparing databases
-        
+
         :Call:
             >>> vals,bkpts,J = DBc._get_test_slices(arg_list,slice_args, **kw)
         :Inputs:
@@ -5041,12 +5041,12 @@ class DBCoeff(dict):
             J.append(I)
         # Output
         return vals, bkpts, J
-   
+
    # --- Pairwise Deltas ---
     # Generate raw deltas
     def DiffDB(self, FM2, coeffs, skeys=[], **kw):
         """Create database of raw deltas between two databases
-        
+
         :Call:
             >>> dFM = FM1.DiffDB(FM2, coeffs, skeys=[], **kw)
         :Inputs:
@@ -5190,11 +5190,11 @@ class DBCoeff(dict):
             dFM.eval_method[coeff] = "nearest"
         # Output
         return dFM
-        
+
     # Create increment
     def CreateIncrementDB(self, FM2, coeffs, skeys=[], **kw):
         """Create database of raw deltas between two databases
-        
+
         :Call:
             >>> dFM = FM1.CreateIncrementDB(FM2, coeffs, skeys=[], **kw)
         :Inputs:
@@ -5260,7 +5260,7 @@ class DBCoeff(dict):
         # Output
         return dFM1
   # >
-  
+
   # ===========
   # Plot
   # ===========
@@ -5269,7 +5269,7 @@ class DBCoeff(dict):
     # Process arguments to PlotCoeff()
     def _process_plot_args1(self, *a, **kw):
         """Process arguments to :func:`PlotCoeff` and other plot methods
-        
+
         :Call:
             >>> coeff, I, J, a, kw = DBc._process_plot_args1(*a, **kw)
             >>> coeff, I, J, a, kw = DBc._process_plot_args1(I, **kw)
@@ -5384,19 +5384,19 @@ class DBCoeff(dict):
        # --- Cleanup ---
         # Output
         return coeff, I, J, a, kw
-        
+
    # --- Base Plot Commands ---
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, *a, **kw):
         """Plot a sweep of one coefficient or quantity over several cases
-        
+
         This is the base method upon which data book sweep plotting is built.
         Other methods may call this one with modifications to the default
         settings.  For example :func:`cape.dataBook.DBTarget.PlotCoeff` changes
         the default *LineOptions* to show a red line instead of the standard
         black line.  All settings can still be overruled by explicit inputs to
         either this function or any of its children.
-        
+
         :Call:
             >>> h = DBc.PlotCoeff(coeff, *a, **kw)
             >>> h = DBc.PlotCoeff(coeff, I, **kw)
@@ -5581,18 +5581,18 @@ class DBCoeff(dict):
         # Output
         return h
        # ---
-       
+
     # Plot a sweep of one or more coefficients
     def PlotCoeffDiff(self, DB2, *a, **kw):
         """Plot a sweep of one coefficient or quantity over several cases
-        
+
         This is the base method upon which data book sweep plotting is built.
         Other methods may call this one with modifications to the default
         settings.  For example :func:`cape.dataBook.DBTarget.PlotCoeff` changes
         the default *LineOptions* to show a red line instead of the standard
         black line.  All settings can still be overruled by explicit inputs to
         either this function or any of its children.
-        
+
         :Call:
             >>> h = DBc.PlotCoeffDiff(DB2, coeff, *a, **kw)
             >>> h = DBc.PlotCoeffDiff(DB2, coeff, I, **kw)
@@ -5699,7 +5699,7 @@ class DBCoeff(dict):
             if revy:
                 ye = ye1 - ye2
             else:
-                ye = ye2 - ye1 
+                ye = ye2 - ye1
         # Y-axis values: evaluated/interpolated
         if qinterp:
             # Get values for *x*-axis
@@ -5751,11 +5751,11 @@ class DBCoeff(dict):
         # Output
         return h
        # ---
-        
+
     # Plot a sweep of one or more coefficients
     def PlotHistBase(self, V, **kw):
         """Plot a histogram of one coefficient over several cases
-        
+
         :Call:
             >>> h = DBc.PlotHistBase(V, **kw)
         :Inputs:
@@ -5861,7 +5861,7 @@ class DBCoeff(dict):
             vtarg = []
         elif type(vtarg).__name__ not in ['list', 'tuple', 'ndarray']:
             vtarg = [vtarg]
-        # Create appropriate target list for 
+        # Create appropriate target list for
         if type(ltarg).__name__ not in ['list', 'tuple', 'ndarray']:
             ltarg = [ltarg]
        # --- Histogram Plot ---
@@ -6243,11 +6243,11 @@ class DBCoeff(dict):
         # Output.
         return h
        # ---
-        
+
     # Plot a sweep of one or more coefficients
     def PlotRangeHistBase(self, V, **kw):
         """Plot a range histogram of one coefficient over several cases
-        
+
         :Call:
             >>> h = DBc.PlotRangeHistBase(V, **kw)
         :Inputs:
@@ -6365,7 +6365,7 @@ class DBCoeff(dict):
             vtarg = []
         elif type(vtarg).__name__ not in ['list', 'tuple', 'ndarray']:
             vtarg = [vtarg]
-        # Create appropriate target list for 
+        # Create appropriate target list for
         if type(ltarg).__name__ not in ['list', 'tuple', 'ndarray']:
             ltarg = [ltarg]
        # --- Plotting ---
@@ -6666,7 +6666,7 @@ class DBCoeff(dict):
             try: h['sig'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the standard deviation.
-        if len(V)>2 and ((cov and kw.get("ShowRange", True)) 
+        if len(V)>2 and ((cov and kw.get("ShowRange", True))
                 or kw.get("ShowRange", False)):
             # Printf-style flag
             flbl = kw.get("RangeFormat", "%.4f")
@@ -6710,7 +6710,7 @@ class DBCoeff(dict):
 # Function to fix "NoneType is not iterable" nonsense
 def denone(x):
     """Replace ``None`` with ``[]`` to avoid iterative problems
-    
+
     :Call:
         >>> y = denone(x)
     :Inputs:
@@ -6732,10 +6732,10 @@ def denone(x):
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, pad=0.05):
     """Calculate appropriate *y*-limits to include all lines in a plot
-    
+
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
     :class:`matplotlib.collections.PolyCollection` are checked.
-    
+
     :Call:
         >>> ymin, ymax = get_ylim(ha, pad=0.05)
     :Inputs:
@@ -6782,14 +6782,14 @@ def get_ylim(ha, pad=0.05):
     ymaxv = (1+pad)*ymax - pad*ymin
     # Output
     return yminv, ymaxv
-    
+
 # Function to automatically get inclusive data limits.
 def get_xlim(ha, pad=0.05):
     """Calculate appropriate *x*-limits to include all lines in a plot
-    
+
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
     checked.
-    
+
     :Call:
         >>> xmin, xmax = get_xlim(ha, pad=0.05)
     :Inputs:
