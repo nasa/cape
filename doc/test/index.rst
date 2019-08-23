@@ -13,7 +13,9 @@ circumstances, a failed call to a C method falls back to a Python method.
 
 .. toctree::
     :glob:
+    :maxdepth: 2
     
-    cape/[0-9][0-9]*/index
+    cape/index
+    pycart/index
 
     

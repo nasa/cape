@@ -11,12 +11,10 @@ subsetting commands, are tested here despite the fact that the ``cape``
 command-line interface is not really a practical tool.
 
 .. toctree::
-
-    cli
-    subset
-    argread
-    atm
-    case
-    cmd
-    dataBook
+    :glob:
     
+    [0-9][0-9]*/index
+    cmd
+    cntl
+    dataBook
+

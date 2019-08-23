@@ -296,7 +296,7 @@ def compare_lines(line1, line2, **kw):
             elif (match.group("c2") == ")") and (v == vmax):
                 # Edge of open interval
                 return False
-            # Lengths of regular ixpressions
+            # Lengths of regular expressions
             l1 = m1.end()
             l2 = match.end()
             # Make replacement
