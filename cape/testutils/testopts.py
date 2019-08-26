@@ -17,6 +17,7 @@ The allowable options and their default values are contained in the variable
     *stdout*       ``"STDOUT"``     Name of file to capture standard out
     *stderr*       ``"STDERR"``     Name of file to capture standard error
     *CopyFiles*    ``[]``           Files to copy into test folder
+    *CopyDirs*     ``[]``           Directories to copy into test folder
     *LinkFiles*    ``[]``           Files to link into test folder
     *Commands*     ``[]``           List of commands to run during test
     =============  ===============  ========================================
@@ -39,6 +40,7 @@ if ver > 2:
 # Default attributes
 rc = {
     "CopyFiles": [],
+    "CopyDirs": [],
     "LinkFiles": [],
     "Commands": [],
     "STDOUT": "test.%02i.out",
@@ -78,7 +80,7 @@ rc = {
 # Read JSON file
 def read_json(fname):
     """Read options settings from a JSON file
-    
+
     :Call:
         >>> optsd = read_json(fname)
     :Inputs:
@@ -104,7 +106,7 @@ def read_json(fname):
 # Convert to list
 def enlist(v):
     """Convert item to list, if necessary
-    
+
     :Call:
         >>> V = enlist(v)
     :Inputs:
@@ -137,9 +139,9 @@ def enlist(v):
 # Get *n*th element of list, repeating last entry
 def getel(V, i=None):
     """Get an element from a list, repeating last entry
-    
+
     This will repeat the *first* entry if needed when *i* is negative
-    
+
     :Call:
         >>> V = getel(V)
         >>> v = getel(V, i)
@@ -185,7 +187,7 @@ def getel(V, i=None):
 # Options class
 class TestOpts(dict):
     """Simple options class for :mod:`cape.testutils`
-    
+
     :Call:
         >>> opts = TestOpts(fname="cape-test.json")
     :Inputs:
@@ -200,7 +202,7 @@ class TestOpts(dict):
     # Initialize
     def __init__(self, fname="cape-test.json"):
         """Initialization file
-        
+
         :Versions:
             * 2019-06-28 ``@ddalle``: JSON only
         """
@@ -214,11 +216,11 @@ class TestOpts(dict):
         self["Commands"] = cmds
         # Save number of commands
         self.n = len(cmds)
-        
+
     # Process the options
     def process_kwargs(self, **kw):
         """Loop through known options and check for unknown keywords
-        
+
         :Call:
             >>> opts.process_kwargs(**kw)
         :Inputs:
@@ -244,13 +246,13 @@ class TestOpts(dict):
             msg += "  '%s'\n" % k
         # Raise exception using this message message
         raise KeyError(msg)
-        
+
     # Get entry
     def getel(self, k, i=None, vdef=None):
         """Get an element from a list, repeating last entry
-    
+
         This will repeat the *first* entry if needed when *i* is negative
-        
+
         :Call:
             >>> V = opts.getel(k)
             >>> v = opts.getel(k, i, vdef=None)
@@ -277,11 +279,11 @@ class TestOpts(dict):
         V = self.get(k, vdef)
         # Use indexing function
         return getel(V, i)
-        
+
     # Get list of commands
     def get_commands(self):
         """Get list of commands
-        
+
         :Call:
             >>> cmds = opts.get_commands()
         :Inputs:
@@ -299,11 +301,11 @@ class TestOpts(dict):
         cmds = enlist(cmds)
         # Output
         return cmds
-        
+
     # Get STDOUT and prepare it
     def get_STDOUT(self, i):
         """Get STDOUT option for case *i*, creating file if needed
-        
+
         :Call:
             >>> fnout, fout = opts.get_STDOUT(i)
         :Inputs:
@@ -344,11 +346,11 @@ class TestOpts(dict):
             raise TypeError(
                 "STDOUT has unrecognized type '%s'" %
                 fnout.__class__.__name__)
-        
+
     # Get STDERR and prepare it
     def get_STDERR(self, i, fout=None):
         """Get STDERR option for case *i*, creating file if needed
-        
+
         :Call:
             >>> fnerr, ferr = opts.get_STDERR(i, fout=None)
         :Inputs:
@@ -404,11 +406,11 @@ class TestOpts(dict):
             raise TypeError(
                 "STDERR has unrecognized type '%s'" %
                 fnerr.__class__.__name__)
-        
+
     # Get STDOUT comparison file
     def get_TargetSTDOUT(self, i):
         """Get target STDOUT file for case *i*
-        
+
         :Call:
             >>> fnout = opts.get_TargetSTDOUT(i)
         :Inputs:
@@ -442,11 +444,11 @@ class TestOpts(dict):
             raise TypeError(
                 "Target STDOUT has unrecognized type '%s'" %
                 fnout.__class__.__name__)
-        
+
     # Get STDOUT comparison file
     def get_TargetSTDERR(self, i):
         """Get target STDERR file for case *i*
-        
+
         :Call:
             >>> fnerr = opts.get_TargetSTDERR(i)
         :Inputs:
@@ -484,7 +486,7 @@ class TestOpts(dict):
     # Get options for file comparison
     def get_FileComparisonOpts(self, i=0):
         """Get options for file comparison tests
-        
+
         :Call:
             >>> kw_comp = opts.get_FileComparisonOpts(i=0)
         :Inputs:

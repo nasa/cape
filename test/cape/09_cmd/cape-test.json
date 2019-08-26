@@ -1,0 +1,33 @@
+{
+    "CopyFiles": [
+        "test01_cmd.py",
+        "test02_cmd.py",
+        "case.json"
+    ],
+    "Commands": [
+        "python2 test01_cmd.py",
+        "python2 test02_cmd.py",
+        "python3 test01_cmd.py",
+        "python3 test02_cmd.py"
+    ],
+    "CommandTitles": [
+        "AFLR3 Commands Python 2",
+        "CART3D ``intersect`` Commands Python 2",
+        "AFLR3 Commands Python 3",
+        "CART3D ``intersect`` Commands Python 3"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.02.out",
+        "test.03.out",
+        "test.04.out"
+    ],
+    "DocFilesShow": [
+        "test01_cmd.py",
+        "test02_cmd.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

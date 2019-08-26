@@ -1,0 +1,30 @@
+{
+    "CopyFiles": [
+        "test01_cntl.py",
+        "BatchShell.json",
+        "bullet.tri",
+        "cape.json",
+        "Config.xml",
+        "matrix.csv"
+    ],
+    "CopyDirs" : [
+        "tools/"
+    ],
+    "Commands": [
+        "python2 test01_cntl.py",
+        "python3 test01_cntl.py"
+    ],
+    "CommandTitles": [
+        "Python 2",
+        "Python 3"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.02.out"
+    ],
+    "DocFilesShow": "test01_cntl.py",
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

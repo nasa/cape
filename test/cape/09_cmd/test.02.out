@@ -1,0 +1,2 @@
+intersect -i Components.tri -o Components.i.tri -ascii -T
+intersect -i Components.tri -o Components.i.tri -ascii -T

@@ -36,7 +36,7 @@ ParaviewFolder = os.path.join(rootFolder, "templates", "paraview")
 # Stack vectors
 def stackcol(cols):
     """Create a matrix out of vectors that are assumed to be columns
-    
+
     :Call:
         >>> A = stackcols(cols)
     :Inputs:
@@ -55,12 +55,12 @@ def stackcol(cols):
     V = tuple([c] for c in cols)
     # Stack as row vectors and then transpose
     return np.transpose(np.vstack(V))
-            
+
 
 # Split text by either comma or space
 def SplitLineGeneral(line):
     """Split a string in which uses a mix of commas and spaces as delimiters
-    
+
     :Call:
         >>> V = SplitLineGeneral(line)
     :Inputs:
@@ -85,7 +85,7 @@ def SplitLineGeneral(line):
 # Convert a list of numbers to a compact string
 def RangeString(rng):
     """Convert a list of ascending integers to a string like "1-10,12,14-15"
-    
+
     :Call:
         >>> txt = RangeString(rng)
     :Inputs:
@@ -133,17 +133,17 @@ def RangeString(rng):
             iend = icur
     # Output
     return ",".join(txt)
-    
+
 # Eliminate unused nodes
 def TrimUnused(T):
-    """Remove any node numbers that are not used 
-    
+    """Remove any node numbers that are not used
+
     For example:
-    
+
         .. code-block:: none
-        
+
             [[1, 4, 5], [4, 8, 90]] --> [[1, 2, 3], [2, 6, 7]]
-    
+
     :Call:
         >>> U = cape.util.TrimUnused(T)
     :Inputs:
@@ -179,7 +179,7 @@ def TrimUnused(T):
 # Convert matrix of truth values to BC lists
 def GetBCBlock2(I):
     """Get largest rectangle of boundary conditions
-    
+
     :Call:
         >>> js, je, ks, ke = GetBCBlock(I)
     :Inputs:
@@ -250,13 +250,13 @@ def GetBCBlock2(I):
 # Function to get uncertainty in the mean
 def SigmaMean(x):
     """Calculate standard deviation of mean of an array of values
-    
+
     Specifically, this returns the standard deviation of an array generated in
     the following way.  If you created 100 sets with the same statistical
     properties as *x* and created an array *X* which contained the means of each
     of those 100 sets, the purpose of this function is to estimate what the
     standard deviation of *X* would be.
-    
+
     :Call:
         >>> sig = cape.util.SigmaMean(x)
     :Inputs:
@@ -273,25 +273,25 @@ def SigmaMean(x):
     # Best length to break list into
     ni = int(np.sqrt(n))
     # Number of sublists
-    mi = n / ni
+    mi = n // ni
     # Split into chunks
     X = np.array([np.mean(x[i*ni:(i+1)*ni]) for i in range(mi)])
     # Standard deviation of the sub-means
     si = np.std(X)
     # Output
     return si * np.sqrt(float(ni)/float(n))
-    
+
 # Use Welch's method (or a crude estimate) to get a primary frequency
 def GetBestFrequency(y, fs=1.0, **kw):
     """Get best frequency using :func:`scipy.signal.welch` if available
-    
+
     If SciPy is not available, use a crude count of how many times the signal
     crosses the mean value (with a window to avoid overcounting small
     oscillations right around the mean value).  The dimensions of this output
     are such that the signal matches sinusoids such as :math:`\sin(\omega x)`.
     To meet this format, the output is 2 times the peak frequency from
     :func:`scipy.signal.welch`.
-    
+
     :Call:
         >>> w = GetBestFrequency(y, fs=1.0)
     :Inputs:
@@ -332,17 +332,17 @@ def GetBestFrequency(y, fs=1.0, **kw):
     k = np.count_nonzero(J[1:]*J[:-1] == -1)
     # Convert to a frequency
     return float(k)*np.pi/n
-    
+
 # Function to fit a line plus a sinusoid
 def FitLinearSinusoid(x, y, w):
     """Find the best fit of a line plus a sinusoid with a specified frequency
-    
+
     The function returns the best fit for
-    
+
         .. math::
-        
+
                 y = a_0 + a_1x + a_2\\cos(\\omega x) + a_3\\sin(\\omega x)
-                
+
     :Call:
         >>> a = FitLinearSinusoid(x, y, w)
         >>> a0, a1, a2, a3 = FitLinearSinusoid(x, y, w)
@@ -415,11 +415,11 @@ def FitLinearSinusoid(x, y, w):
             a = np.array([y1/n, 0.0, 0.0, 0.0])
     # Output
     return a
-    
+
 # Function to select the best best line+sine fit
 def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     """Find the best window size to minimize the slope of a linear/sine fit
-    
+
     :Call:
         >>> F = SearchSinusoidFitRange(x, y, nAvg, nMax, dn=None, **kw)
     :Inputs:
@@ -508,14 +508,14 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     i = np.argmin(u)
     # Output
     return F[i]
-    
-    
-    
-    
+
+
+
+
 # Function to calculate best linear/sinusoidal fit within a range of windows
 def SearchSinusoidFit(x, y, N1, N2, **kw):
     """Find the best window size to minimize the slope of a linear/sine fit
-    
+
     :Call:
         >>> F = SearchSinusoidFit(x, y, N1, N2, **kw)
     :Inputs:
@@ -630,14 +630,14 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
         "min": np.min(yi),
         "max": np.max(yi),
     }
-    
-    
-    
-    
+
+
+
+
 # Function to calculate window with lowest linear fit
 def BisectLinearFit(I, x, N1, N2, **kw):
-    """Calculate window size that results in 
-    
+    """Calculate window size that results in
+
     :Call:
         >>> N, dx = BisectLinearFit(I, x, N1, N2, **kw)
     :Inputs:
@@ -716,13 +716,13 @@ def BisectLinearFit(I, x, N1, N2, **kw):
             a1, N1 = a, N
     # Output
     return N, a*(I[-1] - I[-N])
-        
-        
-    
+
+
+
 # Function to get a non comment line
 def readline(f, comment='#'):
     """Read line that is nonempty and not a comment
-    
+
     :Call:
         >>> line = readline(f, comment='#')
     :Inputs:
@@ -752,14 +752,14 @@ def readline(f, comment='#'):
         lstrp = line.strip()
     # Return the line.
     return line
-    
+
 # Function to get Tecplot command
 def GetTecplotCommand():
     """Return the Tecplot 360 command on the current system
-    
+
     The preference is 'tec360EX', 'tec360', 'tecplot'.  An exception is raised
     if none of these commands can be found.
-    
+
     :Call:
         >>> cmd = cape.util.GetTecplotCommand()
     :Outputs:
@@ -784,7 +784,7 @@ def GetTecplotCommand():
 # Function to fix "NoneType is not iterable" nonsense
 def denone(x):
     """Replace ``None`` with ``[]`` to avoid iterative problems
-    
+
     :Call:
         >>> y = cape.util.denone(x)
     :Inputs:
@@ -800,11 +800,11 @@ def denone(x):
         return []
     else:
         return x
-        
+
 # Check if an object is a list.
 def islist(x):
     """Check if an object is a list or not
-    
+
     :Call:
         >>> q = cape.util.islist(x)
     :Inputs:
@@ -821,10 +821,10 @@ def islist(x):
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, ypad=0.05, **kw):
     """Calculate appropriate *y*-limits to include all lines in a plot
-    
+
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
     :class:`matplotlib.collections.PolyCollection` are checked.
-    
+
     :Call:
         >>> ymin, ymax = get_ylim(ha, ypad=0.05, ym=None, yp=None)
     :Inputs:
@@ -878,14 +878,14 @@ def get_ylim(ha, ypad=0.05, **kw):
     ymaxv = (1+yp)*ymax - yp*ymin
     # Output
     return yminv, ymaxv
-    
+
 # Function to automatically get inclusive data limits.
 def get_xlim(ha, xpad=0.05, **kw):
     """Calculate appropriate *x*-limits to include all lines in a plot
-    
+
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
     checked.
-    
+
     :Call:
         >>> xmin, xmax = get_xlim(ha, pad=0.05)
     :Inputs:
@@ -938,16 +938,16 @@ def get_xlim(ha, xpad=0.05, **kw):
     xmaxv = (1+xp)*xmax - xp*xmin
     # Output
     return xminv, xmaxv
-    
+
 # Function to automatically get inclusive data limits.
 def get_ylim_ax(ha, ypad=0.05, **kw):
     """Calculate appropriate *y*-limits to include all lines in a plot
-    
+
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
     :class:`matplotlib.collections.PolyCollection` are checked.
-    
+
     This version is specialized for equal-aspect ratio axes.
-    
+
     :Call:
         >>> ymin, ymax = get_ylim_ax(ha, ypad=0.05, ym=None, yp=None)
     :Inputs:
@@ -1007,16 +1007,16 @@ def get_ylim_ax(ha, ypad=0.05, **kw):
     ymaxv = ymax + yp*max(xmax-xmin, ymax-ymin)
     # Output
     return yminv, ymaxv
-    
+
 # Function to automatically get inclusive data limits.
 def get_xlim_ax(ha, xpad=0.05, **kw):
     """Calculate appropriate *x*-limits to include all lines in a plot
-    
+
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
     checked.
-    
+
     This version is specialized for equal-aspect ratio axes.
-    
+
     :Call:
         >>> xmin, xmax = get_xlim_ax(ha, pad=0.05)
     :Inputs:
@@ -1077,5 +1077,5 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
     return xminv, xmaxv
 
 
-            
-    
+
+

@@ -12,9 +12,6 @@ command-line interface is not really a practical tool.
 
 .. toctree::
     :glob:
-    
+
     [0-9][0-9]*/index
-    cmd
-    cntl
-    dataBook
 
