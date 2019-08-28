@@ -1,0 +1,32 @@
+{
+    "CopyFiles": [
+        "test01_db.py",
+        "cape.json",
+        "arrow.tri",
+        "arrow.xml",
+        "input.cntl",
+        "matrix.csv"
+    ],
+    "CopyDirs" : [
+        "data"
+    ],
+    "Commands": [
+        "python2 test01_db.py",
+        "python3 test01_db.py"
+    ],
+    "CommandTitles": [
+        "Python 2",
+        "Python 3"
+    ],  
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.02.out"
+    ],
+    "DocFilesShow": [
+        "test01_db.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
