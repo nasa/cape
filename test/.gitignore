@@ -5,6 +5,4 @@ FAIL
 test.out
 
 # Results folders
-poweroff/
-data/
-report/
+work/
