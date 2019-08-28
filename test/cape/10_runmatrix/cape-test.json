@@ -4,18 +4,25 @@
     ],
     "Commands": [
         "python2 test01_nofile.py",
-        "python3 test01_nofile.py"
+        "python3 test01_nofile.py",
+        "python2 test02_conditions.py",
+        "python3 test02_conditions.py"
     ],
     "CommandTitles": [
         "Run Matrix w/o File: Python 2",
-        "Run Matrix w/o File: Python 3"
+        "Run Matrix w/o File: Python 3",
+        "Conversions: Python 2",
+        "Conversions: Python 3"
     ],
     "TargetSTDOUT": [
         "test.01.out",
-        "test.01.out"
+        "test.01.out",
+        "test.02.out",
+        "test.02.out"
     ],
-    "DocFilesShow": [
-        "test01_nofile.py"
+    "DocFilesLink": [
+        "test01_nofile.py",
+        "test02_conditions.py"
     ],
     "DocFilesLexer": "python",
     "DocFolder": "doc/test/cape",
