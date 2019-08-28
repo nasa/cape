@@ -1,0 +1,22 @@
+{
+    "CopyFiles": [
+        "test01_units.py"
+    ],
+    "Commands": [
+        "python2 test01_units.py",
+        "python3 test01_units.py"
+    ],
+    "CommandTitles": [
+        "Python 2",
+        "Python 3"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out"
+    ],
+    "DocFilesShow": "test01_units.py",
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
