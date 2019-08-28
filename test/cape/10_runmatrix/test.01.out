@@ -1,0 +1,24 @@
+01: Folder names
+m1.4a0.0b0.0
+m1.4a4.0b0.0
+m1.4a0.0b4.0
+m1.4a4.0b4.0
+02: Full folder names
+poweroff/m1.4a0.0b0.0
+poweroff/m1.4a4.0b0.0
+poweroff/m1.4a0.0b4.0
+poweroff/m1.4a4.0b4.0
+03: Total angle of attack
+aoap = 0.00, phip =  0.00
+aoap = 4.00, phip =  0.00
+aoap = 4.00, phip = 90.00
+aoap = 5.65, phip = 45.07
+04: Modified format
+m1.40_a0.0b4.0
+05: Conditions JSON file
+{
+ "mach": 1.4,
+ "alpha": 4.0,
+ "beta": 0.0,
+ "config": "poweroff"
+}

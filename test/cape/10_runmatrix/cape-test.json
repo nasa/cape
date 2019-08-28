@@ -1,0 +1,24 @@
+{
+    "CopyFiles": [
+        "test01_nofile.py"
+    ],
+    "Commands": [
+        "python2 test01_nofile.py",
+        "python3 test01_nofile.py"
+    ],
+    "CommandTitles": [
+        "Run Matrix w/o File: Python 2",
+        "Run Matrix w/o File: Python 3"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out"
+    ],
+    "DocFilesShow": [
+        "test01_nofile.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

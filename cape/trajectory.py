@@ -2928,7 +2928,7 @@ class Trajectory(object):
             # Output
             return aoav
         # Check for angle of attack
-        if 'alpha' in nKeyTypes:
+        if 'alpha' in KeyTypes:
             # Get the key
             k = self.GetKeysByType('alpha')[0]
             # Get the value
@@ -3030,7 +3030,7 @@ class Trajectory(object):
             # Return the value
             return getattr(self,k)[i]
         # Check for angle of attack
-        if 'alpha' in nKeyTypes:
+        if 'alpha' in KeyTypes:
             # Get the key
             k = self.GetKeysByType('alpha')[0]
             # Get the value
