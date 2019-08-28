@@ -1,6 +1,7 @@
 {
     "CopyFiles": [
-        "test01_nofile.py"
+        "test01_nofile.py",
+        "test02_conditions.py"
     ],
     "Commands": [
         "python2 test01_nofile.py",

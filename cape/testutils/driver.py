@@ -457,7 +457,11 @@ class TestDriver(object):
             # Copy the file
             shutil.copy(flink, os.path.join(self.fdoc, fname))
             # Create link
-            f.write("    * :donwload:`%s`\n" % fname)
+            f.write("    * :download:`%s`\n" % fname)
+        # Blank line after download list
+        if len(flink_list) > 0:
+            # Start bullet list
+            f.write("\n")
             
             
         

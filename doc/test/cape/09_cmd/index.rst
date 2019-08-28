@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-08-26 at 15:25 PDT
+   on 2019-08-28 at 13:14 PDT
 
 Test ``09_cmd``
 =================
 
 This test is run in the folder:
 
-    ``/u/wk/jmeeroff/usr/pycart/test/cape/09_cmd/``
+    ``/u/wk/ddalle/usr/pycart/test/cape/09_cmd/``
 
 and the working folder for the test is
 
@@ -85,8 +85,8 @@ Command 1: AFLR3 Commands Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.269634 seconds
-    * Cumulative time: 0.269634 seconds
+    * Command took 0.374422 seconds
+    * Cumulative time: 0.374422 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -114,8 +114,8 @@ Command 2: CART3D ``intersect`` Commands Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.342109 seconds
-    * Cumulative time: 0.611743 seconds
+    * Command took 0.345837 seconds
+    * Cumulative time: 0.720259 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -143,8 +143,8 @@ Command 3: AFLR3 Commands Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.405975 seconds
-    * Cumulative time: 1.01772 seconds
+    * Command took 0.670958 seconds
+    * Cumulative time: 1.39122 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -172,8 +172,8 @@ Command 4: CART3D ``intersect`` Commands Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.40413 seconds
-    * Cumulative time: 1.42185 seconds
+    * Command took 0.563043 seconds
+    * Cumulative time: 1.95426 seconds
 :STDOUT:
     * **PASS**
     * Target:

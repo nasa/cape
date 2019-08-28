@@ -912,7 +912,7 @@ class Trajectory(object):
                     "Format": "%s",
                     "Abbreviation": "b"
                 }
-            elif key.lower() in ['alpha_t', 'alpha_total', 'aoav']:
+            elif key.lower() in ['alpha_t', 'alpha_total', 'aoap']:
                 # Total angle of attack; non group
                 defkey = {
                     "Group": False,
@@ -921,7 +921,7 @@ class Trajectory(object):
                     "Format": "%s",
                     "Abbreviation": "a"
                 }
-            elif key.lower() in ['phi', 'phiv']:
+            elif key.lower() in ['phi', 'phip']:
                 # Total roll angle; non group
                 defkey = {
                     "Group": False,
@@ -2863,7 +2863,7 @@ class Trajectory(object):
             # Output
             return aoam
         # Check for angle of attack
-        if 'alpha' in nKeyTypes:
+        if 'alpha' in KeyTypes:
             # Get the key
             k = self.GetKeysByType('alpha')[0]
             # Get the value
@@ -3094,7 +3094,7 @@ class Trajectory(object):
             # Output
             return phim
         # Check for angle of attack
-        if 'alpha' in nKeyTypes:
+        if 'alpha' in KeyTypes:
             # Get the key
             k = self.GetKeysByType('alpha')[0]
             # Get the value
@@ -3111,7 +3111,7 @@ class Trajectory(object):
             # Convert to alpha total, phi
             av, rv = convert.AlphaBeta2AlphaMPhi(a, b)
             # Output
-            return av
+            return rv
         # no info
         return None
    # ]
