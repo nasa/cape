@@ -181,6 +181,7 @@ units_dict = {
    'furlong'  : 660*ft   , # furlong
    'acre'     : acre     , # acre
    'ha'       : ha       , # hectare
+   'hectare'  : ha       , # hectare
    'L'        : L        , # Litre
    'gal'      : gal      , # gallon
    'min'      : 60*s     , # minute

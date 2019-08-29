@@ -7,8 +7,8 @@
         "python3 test01_units.py"
     ],
     "CommandTitles": [
-        "Python 2",
-        "Python 3"
+        "Unit Conversions: Python 2",
+        "Unit Conversions: Python 3"
     ],
     "TargetSTDOUT": [
         "test.01.out",

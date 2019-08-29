@@ -1,19 +1,20 @@
-01: Simple Conversions
-inch to meter
-0.0254
-horsepower to Watt
-745699.872377
-hectare to meter
-404685.64224
-02: More complicated units
-ft/s to m/s
-0.3048
-psi to N/(m*m)
-6894.75730051
-03: Conversions with numbers
-slinch to kg
-175.126835433
-518 Rankine to Kelvin
-287.777777778
-50 revs per hour to rad/s
-0.0872664625997
+01 (length): 1.00 in --> m
+  0.02540
+02 (imperial w/ mks prefix): 1.00 khp --> W
+  745699.87238
+03 (area): 1.00 hectare --> m^2
+  10000.000
+04 (slash): 1.00 ft/mhr --> m/s
+  0.08467
+05 (micro): 1.00 um --> m
+  1.00e-06
+06 (double-prefix): 1.00 nGm --> m
+  1.00e+00
+07 (asterisk): 5.00 ft*lbf --> N*m
+  6.7791
+08 (space): 5.00 ft*lbf --> N*m
+  6.7791
+09 (exponent): 100.00 in^3 --> L
+  1.6387
+10 (exponent): 12.00 slug --> kg
+  175.1268
