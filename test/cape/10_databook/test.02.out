@@ -10,12 +10,12 @@ fin2
 fin3
 fin4
 <DBComp fin1, nCase=30>
-b'poweroff'/m0.50a02.0_b''
-b'poweroff'/m0.80a02.0_b''
-b'poweroff'/m0.95a02.0_b''
-b'poweroff'/m1.10a02.0_b''
-b'poweroff'/m1.40a02.0_b''
-b'poweroff'/m2.20a02.0_b''
+poweroff/m0.50a02.0
+poweroff/m0.80a02.0
+poweroff/m0.95a02.0
+poweroff/m1.10a02.0
+poweroff/m1.40a02.0
+poweroff/m2.20a02.0
 <dataBook.CaseFM('fin', i=500)>
 Mean value: 1.4149
 Min value: 0.6555
