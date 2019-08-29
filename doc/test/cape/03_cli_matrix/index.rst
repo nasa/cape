@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-08-29 at 09:48 PDT
+   on 2019-08-29 at 09:49 PDT
 
 Test ``03_cli_matrix``
 ========================
@@ -37,8 +37,8 @@ Command 1: Missing JSON File
     * Target: ``1``
 :Time Taken:
     * **PASS**
-    * Command took 0.685994 seconds
-    * Cumulative time: 0.685994 seconds
+    * Command took 0.696846 seconds
+    * Cumulative time: 0.696846 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -81,8 +81,8 @@ Command 2: JSON-only Matrix
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.408987 seconds
-    * Cumulative time: 1.09498 seconds
+    * Command took 0.416343 seconds
+    * Cumulative time: 1.11319 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -118,8 +118,8 @@ Command 3: JSON-only with RegEx
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.416362 seconds
-    * Cumulative time: 1.51134 seconds
+    * Command took 0.376014 seconds
+    * Cumulative time: 1.4892 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -152,8 +152,8 @@ Command 4: Mixed CSV and JSON
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.416928 seconds
-    * Cumulative time: 1.92827 seconds
+    * Command took 0.410719 seconds
+    * Cumulative time: 1.89992 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -193,8 +193,8 @@ Command 5: Mixed CSV and JSON with RegEx
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.371399 seconds
-    * Cumulative time: 2.29967 seconds
+    * Command took 0.417999 seconds
+    * Cumulative time: 2.31792 seconds
 :STDOUT:
     * **PASS**
     * Target:

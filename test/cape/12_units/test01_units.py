@@ -121,7 +121,7 @@ u2 = "kg"
 v1 = 12.0
 s1 = "12 slug"
 # Status update
-print("%02i (exponent): %.2f %s --> %s" % (n, v1, u1, u2))
+print("%02i (number): %.2f %s --> %s" % (n, v1, u1, u2))
 # Display conversion
 print("  %.4f" % (mks(s1)))
 
