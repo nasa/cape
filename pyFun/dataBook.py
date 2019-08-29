@@ -149,8 +149,6 @@ class DataBook(cape.dataBook.DataBook):
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
             * 2017-04-13 ``@ddalle``: Self-contained and renameed
         """
-        # Save the project name
-        self.proj = self.opts.get_project_rootname()
         # Read the data book
         self[comp] = DBComp(comp, self.x, self.opts,
             targ=self.targ, check=check, lock=lock)
