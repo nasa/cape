@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Load CAPE and Cart3D
-module load cart3d
+# Load CAPE and FUN3D
+module load fun3d
 module load pycart
 
 # Run the CAPE test script
