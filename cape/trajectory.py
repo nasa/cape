@@ -753,6 +753,10 @@ class Trajectory(object):
             raise ValueError("No text line for case %i" % i)
         # Get index of key within list
         j = self.keys.index(k)
+        # Check for marked case
+        if (self.PASS[i]) or (self.ERROR[i]):
+            # Extra column in the beginning
+            j += 1
         # Get line number
         nline = self.linenos[i]
         # Extract appropriate line
@@ -1598,14 +1602,20 @@ class Trajectory(object):
         # Check for suffix keys.
         for k in keys:
             # Only look for labels.
-            if self.defns[k].get("Type") != "Label": continue
-            # Check the value.
-            if (i < len(self.text[k])) and self.text[k][i].strip():
+            if self.defns[k].get("Type") != "Label":
+                continue
+            # Check for end of matrix
+            if i >= len(self.text[k]):
+                continue
+            # Get the label
+            lbl = self.text[k][i]
+            # Check the value
+            if (lbl is not None) and (len(lbl) > 0):
                 # Add underscore if necessary.
                 if dname:
                     dname += "_"
                 # Add the label itself
-                dname += (self.abbrv[k] + self.text[k][i])
+                dname += (self.abbrv[k] + lbl)
         # Return the result.
         return dname
 

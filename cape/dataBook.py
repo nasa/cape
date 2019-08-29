@@ -2298,7 +2298,8 @@ class DBBase(dict):
                 # get the type.
                 t = self.x.defns[k].get('Value', 'float')
                 # convert type
-                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
+                if t in ['hex', 'oct', 'octal', 'bin']:
+                    t = 'int'
                 # Initialize an empty array.
                 self[k] = np.array([], dtype=str(t))
             # Initialize float parameters
@@ -2328,7 +2329,7 @@ class DBBase(dict):
                 dt = 'int'
             elif t.startswith('str'):
                 # Initialize a string with decent length
-                dt = 'S64'
+                dt = 'U64'
             elif t.startswith('unicode'):
                 # Initialize a unicode string with decent length
                 dt = 'U64'
@@ -2346,7 +2347,6 @@ class DBBase(dict):
         # Open the file
         f = open(fname)
         # Go to first data position
-        #f.seek(pos)
         # Warning counter
         nWarn = 0
         # Initialize count
@@ -7069,7 +7069,7 @@ class DBTarget(DBBase):
                 pass
             # Try reading as a string last.
             self.data.append(np.loadtxt(fname, delimiter=delimiter,
-                skiprows=skiprows, dtype=str, usecols=(i,)))
+                skiprows=skiprows, dtype="U", usecols=(i,)))
         # Number of cases
         self.n = len(self.data[0])
 
