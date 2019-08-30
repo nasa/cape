@@ -143,6 +143,7 @@ class X(object):
         elif kw.get('ascii'):
             # Read as an ASCII file
             self.Read_ASCII(fname)
+            return
         # Get the basic file type
         ext = self.GetFileType(fname)
         # Check extension
@@ -204,7 +205,7 @@ class X(object):
         if self.filetype == 'ascii':
             # This requires no action
             self.ext = 'ascii'
-            return
+            return self.ext
         # Open the file
         f = open(fname, 'rb')
         # Check byte order
@@ -844,7 +845,7 @@ class X(object):
         # Get the number of elements
         if len(v) == 1:
             # Number of zones
-            self.NG = int(v)
+            self.NG = int(v[0])
             # Read dimensions line
             v = [int(vi) for vi in f.readline().split()]
         else:
@@ -1873,7 +1874,7 @@ class Q(X):
         # Get the number of elements
         if len(v) == 1:
             # Number of zones
-            self.NG = int(v)
+            self.NG = int(v[0])
             # Read dimensions line
             v = [int(vi) for vi in f.readline().split()]
         else:
