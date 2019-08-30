@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-08-29 at 14:36 PDT
+   on 2019-08-30 at 05:57 PDT
 
 Test ``01_bullet``
 ====================
@@ -37,8 +37,8 @@ Command 1: Run Case 8
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 46.6189 seconds
-    * Cumulative time: 46.6189 seconds
+    * Command took 44.0493 seconds
+    * Cumulative time: 44.0493 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -79,8 +79,8 @@ Command 2: Show DONE Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.656991 seconds
-    * Cumulative time: 47.2759 seconds
+    * Command took 0.551784 seconds
+    * Cumulative time: 44.6011 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -111,8 +111,8 @@ Command 3: Collect Aero
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.901045 seconds
-    * Cumulative time: 48.1769 seconds
+    * Command took 0.943651 seconds
+    * Cumulative time: 45.5447 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -132,10 +132,17 @@ Command 4: Check DataBook (Python 2)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.425219 seconds
-    * Cumulative time: 48.6021 seconds
+    * Command took 0.444943 seconds
+    * Cumulative time: 45.9897 seconds
 :STDOUT:
     * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.461
+        
+
     * Target:
 
       .. code-block:: none
@@ -160,10 +167,17 @@ Command 5: Check DataBook (Python 3)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.897933 seconds
-    * Cumulative time: 49.5001 seconds
+    * Command took 0.802367 seconds
+    * Cumulative time: 46.792 seconds
 :STDOUT:
     * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.461
+        
+
     * Target:
 
       .. code-block:: none

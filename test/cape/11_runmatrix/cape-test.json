@@ -1,5 +1,7 @@
 {
     "CopyFiles": [
+        "matrix.csv",
+        "cape.json",
         "test01_nofile.py",
         "test02_conditions.py"
     ],
