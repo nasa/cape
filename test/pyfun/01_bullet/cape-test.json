@@ -1,0 +1,45 @@
+{
+    "CopyFiles": [
+        "pyFun.json",
+        "fun3d.nml",
+        "matrix.csv",
+        "bullet-far.tri",
+        "bullet-inviscid.ugrid",
+        "bullet-inviscid.mapbc",
+        "bullet.xml",
+        "matrix.csv",
+        "test_databook.py"
+    ],
+    "Commands": [
+        "pyfun -I 8",
+        "pyfun -I 8 -c",
+        "pyfun -I 8 --fm",
+        "python2 test_databook.py",
+        "python3 test_databook.py"
+    ],
+    "CommandTitles": [
+        "Run Case 8",
+        "Show DONE Status",
+        "Collect Aero",
+        "Check DataBook (Python 2)",
+        "Check DataBook (Python 3)"
+    ],
+    "TargetSTDOUT": [
+        null,
+        "test.01.out",
+        null,
+        "test.04.out",
+        "test.04.out"
+    ],
+    "ShowSTDOUT": [
+        true,
+        true,
+        false,
+        true,
+        true
+    ],
+    "VALUE_INTERVAL": true,
+    "DocFolder": "doc/test/pyfun",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

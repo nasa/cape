@@ -611,7 +611,14 @@ class Trajectory(object):
         flag = str(flag)
         # Check flag
         if flag.lower() not in ["p", "pass", "$p"]:
-            raise ValueError("Flag '%s' does not denote PASS status") 
+            raise ValueError("Flag '%s' does not denote PASS status")
+        # Check status
+        if self.PASS[i]:
+            # Nothing to do
+            return
+        elif self.ERROR[i]:
+            # Unmark
+            self.UnmarkCase(i)
         # Set the marker in the attribute
         self.PASS[i] = True
         # Get the line number
@@ -628,14 +635,16 @@ class Trajectory(object):
             return
         # Get first column so we can try to replace spaces
         v0 = parts[0]
-        # Number of charaters
+        # Number of characters
         n0 = len(v0)
         # Count number of leading spaces
-        nspace = n0 - len(v0.lstrip()) - 1
+        nlspace = n0 - len(v0.lstrip())
+        # Number of cols available to flag without extending line
+        nmcols = max(1, nlspace-1)
         # Create new flag
-        flagtxt = ("%%-%is" % nspace) % flag
+        flagtxt = ("%%-%is " % nmcols) % flag
         # Reassemble line
-        self.lines[nline] = flagtxt + line[nspace:]
+        self.lines[nline] = flagtxt + line[nlspace:]
         
     # Error a case
     def MarkERROR(self, i, flag="E"):
@@ -656,6 +665,13 @@ class Trajectory(object):
         # Check for line number
         if i > len(self.linenos):
             raise ValueError("No text line for case %i" % i)
+        # Check status
+        if self.ERROR[i]:
+            # Nothing to do
+            return
+        elif self.PASS[i]:
+            # Unmark
+            self.UnmarkCase(i)
         # Set the marker in the attribute
         self.ERROR[i] = True
         # Get the line number
@@ -675,11 +691,13 @@ class Trajectory(object):
         # Number of characters
         n0 = len(v0)
         # Count number of leading spaces
-        nspace = n0 - len(v0.lstrip()) - 1
+        nlspace = n0 - len(v0.lstrip())
+        # Number of cols available to flag without extending line
+        nmcols = max(1, nlspace-1)
         # Create new flag
-        flagtxt = ("%%-%is" % nspace) % flag
+        flagtxt = ("%%-%is " % nmcols) % flag
         # Reassemble line
-        self.lines[nline] = flagtxt + line[nspace:]
+        self.lines[nline] = flagtxt + line[nlspace:]
         
     # Unmark a case
     def UnmarkCase(self, i):

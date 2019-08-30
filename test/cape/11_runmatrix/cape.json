@@ -2,8 +2,8 @@
     // Options for overall run control and command-line inputs
     "RunControl": {
         // Run sequence
-        "InputSeq": [0],
-        "IterSeq": [200],
+        "PhaseSequence": [0],
+        "PhaseIters": [200],
         // Operation modes
         "nProc": 4,
         "MPI": false,
@@ -38,7 +38,7 @@
         // Parameters for cubes
         "cubes": {
             // Number of refinements
-            "maxR": 8,
+            "maxR": 10,
             // Prespecified bounding boxes (set to [] or "" to turn off)
             "pre": "preSpec.c3d.cntl",
             // Internal parameters
@@ -66,25 +66,14 @@
         // The moment point can be specified as a dictionary of components.
         "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]}
     },
-
-    // DataBook
-    "DataBook": {
-        "Components": ["bullet_no_base"],
-        "nStats": 50,
-        "nMin": 140,
-        "Folder": "data"
-
-    },
     
     // Trajectory description
     "Trajectory": {
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  Trajectory values can also be specified locally.
         "File": "matrix.csv",
-        "Keys": ["Mach", "alpha", "beta"],
-        // Copy the mesh
-        "GroupMesh": true,
-        // Configuration name [default]
-        "GroupPrefix": "poweroff"
+        "Keys": ["mach", "alpha", "beta", "config", "Label"]
+        // Set some formats
+        
     }
 }
