@@ -18,5 +18,5 @@ circumstances, a failed call to a C method falls back to a Python method.
     cape/index
     pycart/index
     pyfun/index
+    pyover/index
 
-    

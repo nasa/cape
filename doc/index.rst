@@ -177,8 +177,8 @@ defined.  In general the required files are the following.
     .. toctree::
         :maxdepth: 2
 
-        test/index
-        test/results
         test/cape/index
         test/pycart/index
+        test/pyfun/index
+        test/pyover/index
         

@@ -108,17 +108,22 @@ with one function from this module.
 
 """
 
-# File management modules
-import os, shutil, glob
-# Command-line interface
+# Standard library modules
+import os
+import shutil
+import glob
+
+# Standard library, renamed
 import subprocess as sp
-# Numerics
-import numpy as np
-# Date string
+
+# Standard library, partial
 from datetime import datetime
-# Options module
+
+# Third-party modules
+import numpy as np
+
+# Local modules, partial imports
 from .options import Archive
-# Local STDOUT catcher
 from .bin import check_output, tail
 
 # Write date to archive
@@ -141,6 +146,7 @@ def write_log_date(fname='archive.log'):
     # Close the file
     f.close()
 
+
 # Write an action to log
 def write_log(txt, fname='archive.log'):
     """Write the date to the archive log
@@ -160,6 +166,7 @@ def write_log(txt, fname='archive.log'):
     # Close the file
     f.close()
 
+
 # File tests
 def isfile(fname):
     """Handle to test if file **or** link
@@ -176,7 +183,8 @@ def isfile(fname):
         * 2016-03-14 ``@ddalle``: First version
     """
     return os.path.isfile(fname) or os.path.islink(fname)
-    
+
+
 # Get modification time of a file
 def getmtime(fname):
     """Get the modification time of a file, using ``ssh`` if necessary
@@ -222,6 +230,7 @@ def getmtime(fname):
             # No file
             return None
 
+
 # Get latest modification time of a glob
 def getmtime_glob(fglob):
     """Get the modification time of a glob, using ``ssh`` if necessary
@@ -251,7 +260,8 @@ def getmtime_glob(fglob):
         t = None
     # Output
     return t
-    
+
+
 # File is broken link
 def isbrokenlink(fname):
     """Handle to test if a file is a broken link
@@ -268,7 +278,8 @@ def isbrokenlink(fname):
         * 2016-03-14 ``@ddalle``: First version
     """
     return os.path.islink(fname) and not os.path.isfile(fname)
-    
+
+
 # Sort files by time
 def sortfiles(fglob):
     """Sort a glob of files based on the time of their last edit
@@ -292,6 +303,7 @@ def sortfiles(fglob):
     i = np.argsort(t)
     # Return the files in order
     return [fglob[j] for j in i]
+
 
 # Archive group
 def process_ArchiveGroup(grp):
@@ -326,7 +338,8 @@ def process_ArchiveGroup(grp):
     fpat = grp[fgrp]
     # Output
     return fgrp, fpat
-    
+
+
 # File name count
 def process_ArchiveFile(f, n=1):
     """Process a file glob description
@@ -428,7 +441,8 @@ def GetSearchDirs(fsub=None, fsort=None):
     fdirs.append('.')
     # Output
     return fdirs
-    
+
+
 # Get list of matches, generic
 def GetMatches(fname,
     fsub=None, fkeep=None, ftest=None, n=0, fsort=None, qdel=False):
@@ -517,7 +531,8 @@ def GetMatches(fname,
             fglob.append(fgn)
     # Output
     return fglob
-    
+
+
 # Get list of matches to a list of globs, generic
 def GetMatchesList(flist, fsub=None, ftest=None, n=0, qdel=False):
     """Get matches from a list of file glob descriptors
@@ -581,7 +596,8 @@ def GetMatchesList(flist, fsub=None, ftest=None, n=0, qdel=False):
             fglob.append(fn)
     # Output
     return fglob
-    
+
+
 # Get file/link matches
 def GetFileMatches(fname, fsub=None, n=0, qdel=False):
     """Get list of all files or links matching a list of patterns
@@ -613,7 +629,8 @@ def GetFileMatches(fname, fsub=None, n=0, qdel=False):
     fglob = GetMatchesList(fname, fsub=fsub, ftest=isfile, n=n, qdel=qdel)
     # Output
     return fglob
-    
+
+
 # Get link matches
 def GetLinkMatches(fname, fsub=None, n=0, qdel=False):
     """Get list of all links matching a list of patterns
@@ -646,7 +663,8 @@ def GetLinkMatches(fname, fsub=None, n=0, qdel=False):
         fsub=fsub, ftest=os.path.islink, n=n, qdel=qdel)
     # Output
     return fglob
-    
+
+
 # Expand any links in a glob
 def ExpandLinks(fglob):
     """Expand any links in a full glob if linked to relative file
@@ -683,7 +701,8 @@ def ExpandLinks(fglob):
         flst[i] = fname
     # Output
     return flst
-                
+
+  
 # Get folder matches
 def GetDirMatches(fname, fsub=None, n=0, qdel=False):
     """Get list of all folders matching a list of patterns
@@ -716,7 +735,8 @@ def GetDirMatches(fname, fsub=None, n=0, qdel=False):
         fsub=fsub, ftest=os.path.isdir, n=n, qdel=qdel)
     # Output
     return fglob
-    
+
+
 # List of folders implied by list of files
 def GetImpliedFolders(fglob, fdirs=[]):
     """Check a list of files to get list of folders implied by that list
@@ -753,6 +773,7 @@ def GetImpliedFolders(fglob, fdirs=[]):
     # Output
     return fsubs
 
+
 # Function to delete files according to full descriptor
 def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
     """Delete files that match a list of globs
@@ -787,7 +808,8 @@ def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
         if phantom: continue
         # Delete it.
         os.remove(fn)
-        
+
+
 # Function to delete all files *except* specified list
 def DeleteFilesExcept(fskel, dskel=[], fsub=None, n=0, phantom=False):
     """Delete all files except those that match a list of globs
@@ -860,7 +882,8 @@ def DeleteFilesExcept(fskel, dskel=[], fsub=None, n=0, phantom=False):
             if phantom: continue
             # Delete it
             os.remove(fn)
-        
+
+
 # Function to delete all files *except* specified list
 def TailFiles(ftail, fsub=None, n=1, phantom=False):
     """Tail a list of files
@@ -925,9 +948,9 @@ def TailFiles(ftail, fsub=None, n=1, phantom=False):
             if os.path.isfile(fn): os.remove(fn)
     
 
-# -----------------------------------------------------
+# ----------------------------------------------------------------------------
 # PHASE ACTIONS
-
+# ----------------------------------------------------------------------------
 # Perform in-progress file management after each run
 def ManageFilesProgress(opts=None, fsub=None, phantom=False):
     """Delete or group files and folders at end of each run
@@ -953,8 +976,8 @@ def ManageFilesProgress(opts=None, fsub=None, phantom=False):
     ProgressDeleteDirs(opts, phantom=phantom)
     ProgressTarGroups(opts)
     ProgressTarDirs(opts)
-# def ManageFilesProgress
-    
+
+
 # Perform pre-archive management
 def ManageFilesPre(opts=None, fsub=None, phantom=False):
     """Delete or group files and folders before creating archive
@@ -980,8 +1003,8 @@ def ManageFilesPre(opts=None, fsub=None, phantom=False):
     PreDeleteDirs(opts, phantom=phantom)
     PreTarGroups(opts)
     PreTarDirs(opts)
-# def ManageFilesPre
-    
+
+
 # Perform post-archive management
 def ManageFilesPost(opts=None, fsub=None, phantom=False):
     """Delete or group files and folders after creating archive
@@ -1007,13 +1030,12 @@ def ManageFilesPost(opts=None, fsub=None, phantom=False):
     PostDeleteDirs(opts, phantom=phantom)
     PostTarGroups(opts)
     PostTarDirs(opts)
-# def ManageFilesPost
-
 # ----------------------------------------------------------------------------
+
+
 # ----------------------------------------------------------------------------
 # MAIN FUNCTION
 # ----------------------------------------------------------------------------
-
 # Clear folder
 def CleanFolder(opts, fsub=[], phantom=False):
     """Delete files before archiving and regardless of status
@@ -1035,7 +1057,7 @@ def CleanFolder(opts, fsub=[], phantom=False):
     opts = Archive.auto_Archive(opts)
     # Perform deletions
     ManageFilesProgress(opts, phantom=phantom)
-        
+
 
 # Archive folder
 def ArchiveFolder(opts, fsub=[], phantom=False):
@@ -1109,7 +1131,7 @@ def ArchiveFolder(opts, fsub=[], phantom=False):
         PostDeleteFiles(opts, fsub=fsub)
         PostUpdateFiles(opts, fsub=fsub)
         PostDeleteDirs(opts)
-# def ArchiveFolder
+
 
 # Unarchive folder
 def UnarchiveFolder(opts):
@@ -1230,7 +1252,7 @@ def UnarchiveFolder(opts):
                 print("  ARCHIVE/%s --> %s" % (fname, fname))
                 # Copy the file
                 shutil.copy(fsrc, fname)
-# def UnarchiveFolder
+
 
 # Clean out folder afterward
 def SkeletonFolder(opts, fsub=[], phantom=False):
@@ -1255,12 +1277,12 @@ def SkeletonFolder(opts, fsub=[], phantom=False):
     # Run the skeleton commands
     SkeletonTailFiles(opts, fsub=fsub, phantom=phantom)
     SkeletonDeleteFiles(opts, fsub=fsub, phantom=phantom)
-
 # ----------------------------------------------------------------------------
+
+
 # ----------------------------------------------------------------------------
 # SECOND-LEVEL FUNCTIONS
 # ----------------------------------------------------------------------------
-
 # Function to copy files to archive for one glob
 def ArchiveFiles(opts, fsub=None, phantom=False):
     """Delete files that match a list of glob
@@ -1346,7 +1368,8 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
             if phantom: continue
             # Local copy
             shutil.copy(fsrc, fto)
-            
+
+
 # Archive an entire case as a single tar ball
 def ArchiveCaseWhole(opts):
     """Archive an entire run folder
@@ -1426,7 +1449,8 @@ def ArchiveCaseWhole(opts):
         
     # Return to folder
     os.chdir(fdir)
-    
+
+
 # Restore an archive
 def UnarchiveCaseWhole(opts):
     """Unarchive a tar ball that stores results for an entire folder
@@ -1498,8 +1522,8 @@ def UnarchiveCaseWhole(opts):
         
     # Return to folder
     os.chdir(fdir)
-        
-    
+
+
 # Function to delete folders according to full descriptor
 def DeleteDirs(fdel, fsub=None, n=1, phantom=False):
     """Delete folders that match a glob
@@ -1533,7 +1557,8 @@ def DeleteDirs(fdel, fsub=None, n=1, phantom=False):
         if phantom: continue
         # Delete the folder
         shutil.rmtree(fn)
-        
+
+
 # Archive groups
 def TarGroup(cmd, ftar, fname, n=0, clean=False):
     """Archive a group of files and delete the files
@@ -1593,7 +1618,8 @@ def TarGroup(cmd, ftar, fname, n=0, clean=False):
         if isfile(fn):
             write_log('  rm %s' % fn)
             os.remove(fn)
-        
+
+
 # Tar all links
 def TarLinks(cmd, ext, clean=True):
     """Tar all links existing in the current folder
@@ -1637,7 +1663,8 @@ def TarLinks(cmd, ext, clean=True):
         if os.path.islink(fn):
             write_log('  rm %s' % fn)
             os.remove(fn)
-    
+
+
 # Tar a folder
 def TarDir(cmd, ftar, fdir, clean=True):
     """Archive a folder and delete the folder
@@ -1690,7 +1717,8 @@ def TarDir(cmd, ftar, fdir, clean=True):
     if os.path.isdir(fdir):
         write_log('  rm -r %s' % fdir)
         shutil.rmtree(fdir)
-        
+
+
 # Untar a folder
 def Untar(cmd, ftar):
     """Unarchive a tar ball and then delete it
@@ -1719,8 +1747,10 @@ def Untar(cmd, ftar):
     if os.path.isfile(ftar):
         write_log('  rm %s' % ftar)
         os.remove(ftar)
-    
+
+
 # ----------------------------
+
 
 # ----------------------------
 # PRE-ARCHIVE ACTION FUNCTIONS
@@ -1754,7 +1784,8 @@ def PreDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<PreDeleteFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=0, phantom=phantom)
-    
+
+
 # Function to pre-delete dirs
 def PreDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     """Delete folders that match a list of file name patterns before archiving
@@ -1785,6 +1816,7 @@ def PreDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     # Delete
     DeleteDirs(fdel, fsub=fsub, n=0, phantom=phantom)
 
+
 # Function to pre-update files
 def PreUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list, keeping the most recent file by default
@@ -1814,7 +1846,8 @@ def PreUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<PreUpdateFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=1, phantom=phantom)
-    
+
+
 # Function to pre-tar files
 def PreTarGroups(opts, fsub=None, aa=None):
     """Tar file/folder groups
@@ -1854,6 +1887,7 @@ def PreTarGroups(opts, fsub=None, aa=None):
         # Archive
         TarGroup(cmdu, ftar, fname, n=0, clean=True)
 
+
 # Function to pre-tar dirs
 def PreTarDirs(opts, fsub=None, aa=None):
     """Tar folders before archiving
@@ -1892,8 +1926,10 @@ def PreTarDirs(opts, fsub=None, aa=None):
         ftar = '%s.%s' % (fdir, ext)
         # Command t
         TarDir(cmdu, ftar, fdir, clean=True)
-    
+
+
 # ----------------------------
+
 
 # -----------------------------
 # POST-ARCHIVE ACTION FUNCTIONS
@@ -1927,7 +1963,8 @@ def PostDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<PostDeleteFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=0, phantom=phantom)
-    
+
+
 # Function to post-delete dirs
 def PostDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     """Delete folders that match a list of file name patterns before archiving
@@ -1958,6 +1995,7 @@ def PostDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     # Delete
     DeleteDirs(fdel, fsub=fsub, n=0, phantom=phantom)
 
+
 # Function to post-update files
 def PostUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list, keeping the most recent file by default
@@ -1987,7 +2025,8 @@ def PostUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<PostUpdateFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=1, phantom=phantom)
-    
+
+
 # Function to post-tar files
 def PostTarGroups(opts, fsub=None, aa=None, frun=None):
     """Tar file/folder groups
@@ -2035,6 +2074,7 @@ def PostTarGroups(opts, fsub=None, aa=None, frun=None):
             ftar = '%s.%s' % (fgrp, ext)
         # Archive
         TarGroup(cmdu, ftar, fname, n=0, clean=False)
+
 
 # Function to post-tar dirs
 def PostTarDirs(opts, fsub=None, aa=None, frun=None):
@@ -2085,8 +2125,10 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
             ftar = '%s.%s' % (fdir, ext)
         # Perform grouping/compression
         TarDir(cmdu, ftar, fdir, clean=False)
-    
+
+
 # ----------------------------
+
 
 # -------------------------
 # PROGRESS ACTION FUNCTIONS
@@ -2120,7 +2162,8 @@ def ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<ProgressDeleteFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=0, phantom=phantom)
-    
+
+
 # Function for in-progress file archiving
 def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
     """Archive files that match a list of file name patterns in progress
@@ -2150,7 +2193,8 @@ def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<ProgressArchiveFiles>')
     # Copy
     ArchiveFiles(opts, fglob, fsub=fsub, n=0, phantom=phantom)
-    
+
+
 # Function for in-progress folder deletion
 def ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     """Delete folders that match a list of file name patterns before archiving
@@ -2181,6 +2225,7 @@ def ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     # Delete
     DeleteDirs(fdel, fsub=fsub, n=0, phantom=phantom)
 
+
 # Function for in-progress file updates
 def ProgressUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list, keeping the most recent file by default
@@ -2210,7 +2255,8 @@ def ProgressUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<ProgressUpdateFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=1, phantom=phantom)
-    
+
+
 # Function to tar groups in progress
 def ProgressTarGroups(opts, fsub=None, aa=None):
     """Tar file/folder groups after each run
@@ -2255,6 +2301,7 @@ def ProgressTarGroups(opts, fsub=None, aa=None):
         # Archive
         TarGroup(cmdu, ftar, fname, n=0, clean=True)
 
+
 # Function for in-progress folder compression
 def ProgressTarDirs(opts, fsub=None, aa=None):
     """Tar folders after each run
@@ -2293,8 +2340,8 @@ def ProgressTarDirs(opts, fsub=None, aa=None):
         ftar = '%s.%s' % (fdir, ext)
         # Command t
         TarDir(cmdu, ftar, fdir, clean=False)
-
 # -------------------------
+
 
 # -------------------------
 # SKELETON ACTION FUNCTIONS
@@ -2346,7 +2393,8 @@ def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<SkeletonDeleteFiles>')
     # Delete the files
     DeleteFilesExcept(fskel, dskel, fsub=fsub, n=0, phantom=phantom)
-    
+
+
 # Function for tailing files during skeleton action
 def SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False):
     """Replace some files with their last few lines, possibly in a new file
@@ -2376,9 +2424,8 @@ def SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False):
     write_log('<SkeletonTailFiles>')
     # Delete the files
     TailFiles(ftail, fsub=fsub, n=1, phantom=phantom)
-    
-
 # -------------------------
+
 
 # -------------
 # ARCHIVE SETUP
@@ -2413,6 +2460,7 @@ def CreateArchiveFolder(opts):
         if not os.path.isdir(flfe):
             # Create it.
             opts.mkdir(flfe)
+
 
 # Create archive group folders
 def CreateArchiveCaseFolder(opts):
@@ -2472,6 +2520,7 @@ def CreateArchiveCaseFolder(opts):
     # Return to the folder
     os.chdir(fdir)
 
+
 # Create archive group folders
 def CreateArchiveGroupFolder(opts):
     """Create the group folder in the archive, as appropriate
@@ -2518,6 +2567,5 @@ def CreateArchiveGroupFolder(opts):
         if not os.path.isdir(flgrp):
             # Create it.
             opts.mkdir(flgrp)
-    
 # -------------
 

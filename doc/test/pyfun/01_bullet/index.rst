@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-08-30 at 05:57 PDT
+   on 2019-08-30 at 14:34 PDT
 
 Test ``01_bullet``
 ====================
@@ -37,8 +37,8 @@ Command 1: Run Case 8
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 44.0493 seconds
-    * Cumulative time: 44.0493 seconds
+    * Command took 46.3383 seconds
+    * Cumulative time: 46.3383 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -79,8 +79,8 @@ Command 2: Show DONE Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.551784 seconds
-    * Cumulative time: 44.6011 seconds
+    * Command took 0.652393 seconds
+    * Cumulative time: 46.9907 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -111,8 +111,8 @@ Command 3: Collect Aero
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.943651 seconds
-    * Cumulative time: 45.5447 seconds
+    * Command took 0.913123 seconds
+    * Cumulative time: 47.9038 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -132,8 +132,8 @@ Command 4: Check DataBook (Python 2)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.444943 seconds
-    * Cumulative time: 45.9897 seconds
+    * Command took 0.423674 seconds
+    * Cumulative time: 48.3275 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -167,8 +167,8 @@ Command 5: Check DataBook (Python 3)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.802367 seconds
-    * Cumulative time: 46.792 seconds
+    * Command took 0.785731 seconds
+    * Cumulative time: 49.1132 seconds
 :STDOUT:
     * **PASS**
     * Actual:

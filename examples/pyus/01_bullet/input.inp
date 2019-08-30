@@ -1,0 +1,298 @@
+[CFD_SOLVER]
+!-----------------------------------------------------------------------
+!   nstop      ires     nplot     iconr      impl      kmax    kmaxo
+    30000         0       300       0         21        10       4
+!
+!   ivisc      ivib     ichem      itrb     ibase   idiss_g
+      11          2         1         0         0       1
+!
+!   ivmod     ikmod     idmod       ikv      icfl     dtfix
+        3      -999         3        11         1     0.0d0
+!
+!  iorder      iuem      ikve       kbl      iman
+        2         3        11        80       100
+!
+!   npfac     npvol
+       0         0
+!
+!     cfl      epsj      wdis
+     1.1d0      0.3     0.001d+0
+!-----------------------------------------------------------------------
+[/CFD_SOLVER]
+
+
+!N2,O2,NO,NO+,N2+,O2+,N,O,N+,O+,e
+[CFD_SOLVER_OPTS]
+chem_vibr_diso     = 1.0d0
+chem_vibr_feii     = 0.5d0
+[/CFD_SOLVER_OPTS]
+
+
+
+[CFD_BCS]
+!-----------------------------------------------------------------------
+! Boundary condition section
+!
+! zone    bcn    igrow   name                 [parameters]  ...
+! ----    ----   -----   ------------------   ------------     
+     4     10      0     "inflow"   1.14823E-03 270.650 270.650 7080.000
+     5     36      0     "outflow"         
+     6      3     300    "wall"     4 0.85
+
+done
+!
+! Required mass fractions
+! -----------------------
+  "inflow"   0.767100 0.232900 0.00000 0.0000 0.0000 0.00000 0.0000 0.0000 0.000000 0.000000 0.000000
+!
+! Required direction cosines
+! --------------------------
+  "inflow"  0.949972  0.000000  0.312334
+!
+!-----------------------------------------------------------------------
+[/CFD_BCS]
+
+[MANAGE]
+!-----------------------------------------------------------------------
+  4
+  0      1.0  
+ 100     2.0
+ 200     5.0   
+ 300    10.0    
+ 400    20.0
+ 500    50.0    
+ 600   100.0
+ 700   500.0
+ 800  1000.0
+ 900  2000.0
+1000  5000.0
+-1 -1 
+! -- Legend for managing flags -----------------------------------------
+!
+!  0    = Do absolutely nothing
+!  1    = Change the CFL to the real number on the second line
+!  2    = Stop the simulation without writing restart file
+!  3    = Stop the simulation and write restart file
+!  4    = Use the list below to match running iteration number and change
+!         the CFL number when the iteration is reached.  Use a double -1
+!         to terminate the list.  The running iteration number is read in
+!         during restarts and always increases.
+!  5    = Use the list below to match the current-run iteration number
+!         and change the CFL number when the iteration is reached.  Use a
+!         double -1 to terminate the list.  The current-run iteration
+!         number always starts at zero, even during a restart.
+!
+! -- The next flags when set cause US3D to do something when the flag
+!    if first set, then pause and wait for the flag to be changed
+!    to something else before continuing
+!
+! 10    = Pause the simulation
+! 11    = Force writing a restart solution, then pause
+! 12    = Re-initialize the tailoring infrastructure, if present
+! 20    = Call user_manage, then pause (if return_paused=.true.)
+!-----------------------------------------------------------------------
+[/MANAGE]
+
+
+[/TAILOR]
+!-----------------------------------------------------------------------
+!    igtm      igtt        sens
+      4         1         0.001d0
+!
+!    ngts       ngtp       igti          ! One line for each tailoring pass
+      10          20         1
+!     4000          8        0
+!
+! --- Optional parameters.  Uncomment to change
+  tailor_cellre      = 2.0d0
+!  tailor_yplus       = 0.01d0
+!tailor_y0min       = 1.0d-10
+!tailor_y0max       = 1.0d+10
+!tailor_push_sh     = 1.1d0
+!tailor_ibt_wall    = 3
+!tailor_ibt_inflow  = 10
+!tailor_ibt_outflow = 36
+!tailor_incr_rest   = 1
+!-----------------------------------------------------------------------
+!
+! igtm  - Grid point redistribution method. If zero, no tailoring.  See manual.
+! igtt  - Number of tailoring steps to perform. If zero, no tailoring.  See manual.
+! sens  - Shock detection sensitivity.  See manual.
+! ngts  - Number of CFD solver timesteps before attempting tailoring
+! ngtp  - Number of smoothing passes
+! igti  - Flow re-initialization method after tailoring:
+!          0 = Initialize to free-stream
+!          1 = Continue running current solution
+!         -1 = Initialize to low density stagnant flow
+!
+! tailor_cellre      - If defined, sets the spacing \Delta y based on this value of Re_{c}
+! tailor_yplus       - If defined, sets the spacing \Delta y based on this value of y^{+}.
+! tailor_y0min       - The minimum wall spacing to allow, for any method other than 1.
+!                      This limits the wall spacing nominally set by \Delta y
+! tailor_y0max       - The maximum wall spacing to allow, for any method other than 1.
+!                      This limits the wall spacing nominally set by \Delta y
+! tailor_push_sh     - If igtm>=100, push the shock out by this factor at each tailoring
+!                      step. This can be useful if you find that a tailoring step tends to
+!                      bring the shock in too far initially, or if you adjust parameters
+!                      such as the Mach number or angle of attack and the grid no longer
+!                      encloses the shock surface.
+! tailor_ibt_wall    - Boundary type number to consider the wall for talioring.
+! tailor_ibt_inflow  - Boundary type number to consider the inflow for tailoring.
+! tailor_ibt_outflow - Boundary type number to consider the outflow for tailoring.
+! tailor_incr_rest   - This variable indicates whether the solution restart number should
+!                      be incremented when grid tailoring is performed. Valid values are:
+!                       0 = Do not automatically increment the run number when tailoring.
+!                       1 = Increment the run number only the first time tailoring is
+!                         = performed. This is the default.
+!                       2 = Increment the run number each time tailoring is performed.
+!
+[/TAILOR]
+
+
+!-----------------------------------------------------------------------
+! Switches for code operation:
+!
+! nstop= int  number of time steps to run
+!
+! ires= 0    Write only the RMS residual, add the following integers for more output
+!       1    Mass balance      (kg/s)
+!       2    Momentum balance  (N)
+!       4    Wall forces       (N)
+!       8    Wall moments      (N-m)
+!
+! nplot= int  write solution every nplot time steps if nplot>0
+!
+! iconr=-1    initialize from stagnant low pressure condition
+!        0    initialize with free-stream and artificial boundary layer
+!        1    continue simulation from restart file
+!
+! impl = -3       3rd order Runge-Kutta explicit time integration
+!        -2       2nd order Runge-Kutta explicit time integration
+!        -1       Iterative explicit Euler time integration
+!         0       Explicit time integration
+!         1       Implicit DPLR time integration (where possible)
+!         2       Implicit FMDP time integration
+!         10      2nd order implicit Crank-Nicolson time integration, line relaxation
+!         20      2nd order implicit Crank-Nicolson time integration, point relaxation
+!         21      2nd order implicit Euler time integration, line relaxation
+!         22      2nd order implicit Euler time integration, point relaxation
+!         100     Decoupled chemistry with line relaxation
+!         (other) Call user_time_advance
+!
+! kmax  = int  number of subiterations to be used for DPLR/FMDP methods
+!
+! kmaxo = int  number of iterations to use for explicit Euler time integration
+!
+!
+! Switches for physical models:
+!-----------------------------------------------------------------------
+!
+! ivisc= 0    inviscid
+!        1    viscous (grads computed with weighted least-squares fits)
+!             (no wall fix in certain cases)
+!        2    viscous (grads computed with the Green-Gauss integral)
+!             (wall-fix is not necessary)
+!        3    viscous (grads computed using the chain rule using cell-centered
+!             metrics within all hexahedral cells and using weighted least
+!             squares fits everywhere else)
+!             (no wall fix in certain cases)
+!       11    same as 1 but communication is performed for wall data
+!       12    same as 2 but communication is performed for wall data (DONT USE)
+!       13    same as 3 but communication is performed for wall data
+!
+! ivib = Internal vibrational and electronic energy modeling
+!        0    vibration and electronic disabled
+!        1    vibration enabled, using SHO model for each species
+!        2    vibration-electronic energy relaxation enabled using NASA Lewis data
+!        3    Vibration-electronic energy enabled using NASA Lewis data and
+!             assuming thermal equilibrium.
+!
+! ichem= 0    no chemistry or vibrational relaxation
+!        1    chemical kinetics and vibrational relaxation active
+!
+! itrb = 0    Laminar flow
+!        1    Turbulent with Compressible Form of Spalart-Allmaras One-Equation Model (SA-Catris)
+!        2    Turbulent with Negative Spalart-Allmaras One-Equation Model (SA-neg)
+!        3    Detatched eddy simulation DES97 with original Spalart-Allmaras model (SA-Catris)
+!        4    Detatched eddy simulation DDES with original Spalart-Allmaras model (SA-Catris)
+!        5    Detatched eddy simulation IDDES with original Spalart-Allmaras model (SA-Catris)
+!        10   Turbulent with Menter SST Two-Equation Model and Vorticity Source Term (SST-V)
+!        100  Baldwin-Lomax algebraic turbulence model
+!
+! ivmod= 1    Blottner viscosity fits with Wilke mixing rule
+!        2    Sutherland viscosity with K based on first species, Kv=0
+!        3    Gupta collision integral-based transport properties
+!       11    Blottner viscosity fits with Armaly-Sutton mixing rule
+!       14    AEDC Tunnel 9 Nitrogen viscosity model, Kv=0
+!        ?    Unknown values trigger call to user_trans and ivmod is passed in
+!
+! ikmod= X    Placeholder for thermal conductivity model.  Not currently used, as
+!             ivmod currently sets thermal conductivity through Eucken relation
+!             and viscosity.
+!
+! idmod= 0    Molecular diffusion turned off
+!        1    Derive diffusion coefficient from constant Lewis number
+!        2    Derive diffusion coefficient from constant Schmidt number
+!        3    SCEBD with Gupta-Yos collision integral data
+!       13    SCEBD with Gupta-Yos collision integral data: small e- mass approx.
+!
+! ikv  = 1    vibrational energy flux with ev gradients
+!       11    vibrational energy flux with Tv gradients
+!
+! icfl = 0    use a fixed timestep dtfix
+!      = 1    use CFL number to get timestep
+!
+! Switches for flux evaluation method:
+!-----------------------------------------------------------------------
+!
+! iorder=1    1st order inviscid fluxes in space
+!        2    2nd order inviscid fluxes in space
+!
+! iuem = 0    2nd order upwind on conserved variables with pressure limiter
+!        1    2nd order MUSCL on conserved variables
+!        2    2nd order MUSCL on rhos,u,v,w,nut,ev/Tv,T
+!        3    2nd order MUSCL on rhos,u,v,w,nut,ev/Tv,p.  Use this!
+!        4    2nd order MUSCL on rho,u,v,w,nut,ev/Tv,T and averaged cs (?)
+!        5    2nd order MUSCL on rho,u,v,w,nut,ev/Tv,p and averaged cs
+!        6    MUSCL [rho,u,v,w,rnu,ev/Tv,p]
+!        7    3rd order upwind-biased
+!       12    MUSCL [rhos,u,v,w,rnu,ev,T] w/ gradient
+!       13    MUSCL [rhos,u,v,w,rnu,ev,p] w/ gradient
+!       14    MUSCL [rho,u,v,w,rnu,ev,T] avg Cs. w/ grad
+!       15    MUSCL [rho,u,v,w,rnu,ev,p] avg Cs. w/ grad
+!
+! ikve = 1    2nd order extrapolation with ev
+!       11    2nd order extrapolation with Tv
+!
+! ibase = 0   Modified Steger-Warming flux-vector splitting
+!         1   2nd-order central
+!         2   4th-order central
+!         3   6th-order central
+!         4   Call user subroutine user_flux for inviscid fluxes
+!
+! idiss_g : Whether to add dissipative fluxes when ibase>0
+!           =  1  Add dissipative fluxes
+!           =  0  Do not add dissipative fluxes
+!           = -1  Use Ducros switch
+!           = -2  Mach number switch
+!           = -3  Arithmetic mean value of Ducros and Mach number switches
+!           = -4  Geometric mean value of Ducros and Mach number switches
+!           = -10 Call the user subroutine user_dswitch
+!
+! Additional switches:
+!-----------------------------------------------------------------------
+!
+! kbl  = int  approximate number of points in boundary layer.  Beyond this
+!             point in lines, epsilon is ramped from zero to specified value
+!
+! iman = int  query manage.inp every iman time steps
+!
+! npfac= int number of iterations between consecutive face slice dumps
+!
+! npvol= int number of iterations between consecutive volume slice dumps
+!
+! cfl  = real initial CFL number (modified by manage.inp)
+!
+! epsj = real eigenvalue limiter
+!
+! wdis = real approximate BL thickness used in initialization
