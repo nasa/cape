@@ -338,7 +338,7 @@ class RunMatrix(dict):
         # Loop through keys to copy values.
         for k in self.cols:
             # Copy the array
-            y[k] = self[k].copy())
+            y[k] = self[k].copy()
         # Process groups to make it a full trajectory.
         self.ProcessGroups()
         # Output
