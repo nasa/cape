@@ -101,7 +101,7 @@ regex_float = re.compile(
     "[+-]?[0-9]*\.(?P<dec>[0-9]+)(?P<exp>[DdEe][+-][0-9]{1,3})")
 
 
-# Trajectory class
+# RunMatrix class
 class RunMatrix(dict):
     """
     Read a list of configuration variables
@@ -114,7 +114,7 @@ class RunMatrix(dict):
             Dictionary of options from ``opts["RunMatrix"]``
     :Keyword arguments:
         *File*: :class:`str`
-            Name of file to read, defaults to ``'Trajectory.dat'``
+            Name of file to read, defaults to ``'RunMatrix.dat'``
         *Keys*: :class:`list` of :class:`str` items
             List of variable names, defaults to ``['Mach','alpha','beta']``
         *Prefix*: :class:`str`
@@ -183,7 +183,7 @@ class RunMatrix(dict):
         # Check for extant run matrix file
         if fname and os.path.isfile(fname):
             # Read the file
-            self.ReadTrajectoryFile(fname)
+            self.ReadRunMatrixFile(fname)
         # Get number of cases from first key (not totally ideal)
         nCase = len(self.text[keys[0]])
         # Loop through the keys to see if any were specified in the inputs.
@@ -317,7 +317,7 @@ class RunMatrix(dict):
             * 2015-05-22 ``@ddalle``
         """
         # Initialize an empty trajectory.
-        y = Trajectory(Empty=True)
+        y = RunMatrix(Empty=True)
         # Copy the fields.
         y.defns  = {}
         y.abbrv  = dict(self.abbrv)
@@ -355,11 +355,11 @@ class RunMatrix(dict):
    # --------
    # [
     # Function to read a file
-    def ReadTrajectoryFile(self, fname):
+    def ReadRunMatrixFile(self, fname):
         """Read trajectory variable values from file
 
         :Call:
-            >>> x.ReadTrajectoryFile(fname)
+            >>> x.ReadRunMatrixFile(fname)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Instance of the trajectory class
@@ -450,15 +450,15 @@ class RunMatrix(dict):
         self.linenos = np.asarray(linenos)
         
     # Write trajectory file
-    def WriteTrajectoryFile(self, fname=None):
+    def WriteRunMatrixFile(self, fname=None):
         """Write run matrix values to file based on original text
 
         Differences between the text and the working values (created
         by specifying values in the trajectory) are preserved.
         
         :Call:
-            >>> x.WriteTrajectoryFile()
-            >>> x.WriteTrajectoryFile(fname)
+            >>> x.WriteRunMatrixFile()
+            >>> x.WriteRunMatrixFile(fname)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Instance of the trajectory class
@@ -1320,7 +1320,7 @@ class RunMatrix(dict):
         """
         # Check inputs.
         if not type(i).__name__.startswith('int'):
-            raise TypeError("Input to :func:`Trajectory.GetGroupIndex` must"
+            raise TypeError("Input to :func:`RunMatrix.GetGroupIndex` must"
                 + " be :class:`int`.")
         # Get name of group for case *i*.
         grp = self.GetGroupFolderNames(i)
@@ -1391,7 +1391,7 @@ class RunMatrix(dict):
             *x*: :class:`attdb.trajectory.RunMatrix`
                 Run matrix conditions interface
             *k*: :class:`str`
-                Trajectory key name
+                RunMatrix key name
             *i*: :class:`int`
                 Case index
             *I*: :class:`np.ndarray` (:class:`int`)
@@ -1754,9 +1754,10 @@ class RunMatrix(dict):
 
         if the prefix is empty.
 
-        Trajectory keys that require separate meshes for each value of the key
-        will not be part of the folder name.  The number of digits used will
-        match the number of digits in the trajectory file.
+        Run matrix keys that require separate meshes for each value of
+        the key will not be part of the folder name.  The number of
+        digits used will match the number of digits in the run matrix
+        file.
 
         :Call:
             >>> dname = x.GetFolderNames()
@@ -2328,7 +2329,7 @@ class RunMatrix(dict):
   # >
 
   # ==================
-  # Trajectory Subsets
+  # Run Matrix Subsets
   # ==================
   # <
     # Function to get sweep based on constraints
@@ -4445,7 +4446,7 @@ class RunMatrix(dict):
             *comp*: ``None`` | :class:`str`
                 If *v* is a dict, use *v[comp]* if *comp* is nontrivial
             *typ*: ``"SurfBC"`` | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *v*: ``None`` | :class:`any`
                 Value of the parameter
@@ -4530,7 +4531,7 @@ class RunMatrix(dict):
             *vdef*: ``None`` | :class:`any`
                 Default value for *v* if *v* is ``None``
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Keyword arguments:
             *j*: :class:`str`
                 Name of function to use if parameter is a string
@@ -5040,7 +5041,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *pID*: :class:`int`
                 Gas number for plenum boundary condition
@@ -5170,7 +5171,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *pinf*: :class:`float`
                 Reference pressure to use, this divides the *p0* value
@@ -5218,7 +5219,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
@@ -5266,7 +5267,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *bp*: {``0.0``} | :class:`float`
                 Stagnation or static pressure offset
@@ -5314,7 +5315,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *T0*: :class:`float`
                 Stagnation temperature parameter, usually *T0/Tinf*
@@ -5352,7 +5353,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *Tinf*: :class:`float`
                 Reference temperature to use, this divides the *T0* value
@@ -5390,7 +5391,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
@@ -5438,7 +5439,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *bt*: {``0.0``} | :class:`float`
                 Stagnation or static temperature offset
@@ -5478,7 +5479,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *M*: :class:`float`
                 Surface boundary condition Mach number
@@ -5508,7 +5509,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *gam*: :class:`float`
                 Surface boundary condition ratio of specific heats
@@ -5559,7 +5560,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *Y*: :class:`list` (:class:`float`)
                 List of species mass fractions for boundary condition
@@ -5613,7 +5614,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *nY*: {``1``} | :class:`int`
                 Number of species
@@ -5646,7 +5647,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *compID*: :class:`list` | :class:`str` | :class:`dict`
                 Surface boundary condition component ID(s)
@@ -5679,7 +5680,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *pID*: :class:`int`
                 Gas number for plenum boundary condition
@@ -5711,7 +5712,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *inds*: :class:`list` | :class:`str` | :class:`dict`
                 Column index for each grid or component
@@ -5743,7 +5744,7 @@ class RunMatrix(dict):
             *comp*: {``None``} | :class:`str`
                 Name of component
             *typ*: {``"SurfBC"``} | :class:`str`
-                Trajectory key type to process
+                RunMatrix key type to process
         :Outputs:
             *grids*: :class:`list` (:class:`int` | :class:`str`)
                 Surface boundary condition grids
@@ -5760,4 +5761,4 @@ class RunMatrix(dict):
         return self.GetSurfBC_Val(i, key, v, t)
 
   # >
-# class Trajectory
+# class RunMatrix
