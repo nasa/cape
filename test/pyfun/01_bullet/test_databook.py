@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # CAPE modules
-import pyFun
+import cape.pyfun
 
 
 # Get control interface
-cntl = pyFun.Cntl()
+cntl = cape.pyfun.Cntl()
 
 # Read the databook
 cntl.ReadDataBook()

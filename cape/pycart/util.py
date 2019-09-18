@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.util`: Utilities for pyCart 
-========================================
+:mod:`cape.pycart.util`: Utilities for pyCart 
+==============================================
 
 This module imports the generic utilities using
 
@@ -13,7 +13,7 @@ module as the variable *pyCartFolder*.
 
 The module also provides several other methods for reading multiple files to
 determine the situational status of the Cart3D solution in the present working
-directory.  These methods may be duplicated in :mod:`pyCart.case`.
+directory.  These methods may be duplicated in :mod:`cape.pycart.case`.
 
 :See also:
     * :mod:`cape.util`

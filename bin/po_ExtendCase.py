@@ -34,7 +34,7 @@ for the last phase and reading *NSTEPS* from the *GLOBAL* section.
 """
 
 # Import tools from pyOver
-import pyOver.case
+import cape.pyover.case
 # Input parsing
 import cape.argread
 

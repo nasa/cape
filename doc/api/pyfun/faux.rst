@@ -1,4 +1,4 @@
 
-.. automodule:: pyFun.faux
+.. automodule:: cape.pyfun.faux
     :members:
 

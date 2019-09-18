@@ -1,11 +1,11 @@
 
 ==================================================
-:mod:`pyCart.options`: Cart3D and pyCart Settings 
+:mod:`cape.pycart.options`: Cart3D and pyCart Settings 
 ==================================================
 
-.. automodule:: pyCart.options
+.. automodule:: cape.pycart.options
     
-    .. autoclass:: pyCart.options.Options
+    .. autoclass:: cape.pycart.options.Options
         :members: get_InputCntl, set_InputCntl, get_AeroCsh, set_AeroCsh,
             get_mg, set_mg
     

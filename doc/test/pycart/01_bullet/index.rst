@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 12:35 PDT
+   on 2019-09-18 at 13:05 PDT
 
 Test ``01_bullet``
 ====================
@@ -32,13 +32,13 @@ Command 1: Run Matrix Status
         $ pycart -c
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.823873 seconds
-    * Cumulative time: 0.823873 seconds
+    * Command took 0.552373 seconds
+    * Cumulative time: 0.552373 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -56,25 +56,127 @@ Command 1: Run Matrix Status
         
 
 :STDERR:
-    * **FAIL**
+    * **PASS**
+
+Command 2: Run Case 0
+----------------------
+
+:Command:
+    .. code-block:: console
+
+        $ pycart -I 0
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 8.04344 seconds
+    * Cumulative time: 8.59582 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+Command 3: Collect Aero Data
+-----------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ pycart -I 0 --aero
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.594554 seconds
+    * Cumulative time: 9.19037 seconds
+:STDOUT:
+    * **PASS**
     * Actual:
 
-      .. code-block:: pytb
+      .. code-block:: none
 
-        Traceback (most recent call last):
-          File "/u/wk/ddalle/usr/pycart/bin/pycart", line 31, in <module>
-            cntl = cape.pycart.Cntl(fname)
-          File "/u/wk/ddalle/usr/pycart/cape/pycart/cntl.py", line 169, in __init__
-            self.opts = options.Options(fname=fname)
-          File "/u/wk/ddalle/usr/pycart/cape/pycart/options/__init__.py", line 96, in __init__
-            defs = getPyCartDefaults()
-          File "/u/wk/ddalle/usr/pycart/cape/pycart/options/util.py", line 172, in getPyCartDefaults
-            return loadJSONFile(fname)
-          File "/u/wk/ddalle/usr/pycart/cape/options/util.py", line 441, in loadJSONFile
-            txt, fnames, linenos = expandJSONFile(fname)
-          File "/u/wk/ddalle/usr/pycart/cape/options/util.py", line 341, in expandJSONFile
-            txt = io.open(fname, mode="r", encoding="utf-8").read()
-        IOError: [Errno 2] No such file or directory: '/u/wk/ddalle/usr/pycart/cape/pycart/../settings/pyCart.default.json'
+        Force component 'bullet_no_base'...
+        poweroff/m1.5a0.0b0.0
+          Adding new databook entry at iteration 200.
+        Writing 1 new or updated entries
         
 
+:STDERR:
+    * **PASS**
+
+Command 4: Test DataBook Value
+-------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.540842 seconds
+    * Cumulative time: 9.73121 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.745
+        
+
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.744,0.746]
+        
+
+:STDERR:
+    * **PASS**
+
+Command 5: Test DataBook Value
+-------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.906264 seconds
+    * Cumulative time: 10.6375 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.745
+        
+
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.744,0.746]
+        
+
+:STDERR:
+    * **PASS**
 

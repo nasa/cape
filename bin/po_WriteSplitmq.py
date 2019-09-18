@@ -42,7 +42,7 @@ import numpy as np
 # Command-line input parser
 import cape.argread as argr
 # Get the Tecplot module.
-import pyOver.overNamelist
+import cape.pyover.overNamelist
 
 # Main function
 def Nml2Splitmq(*a, **kw):

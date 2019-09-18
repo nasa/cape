@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.options.overnml`: OVERFLOW namelist options
-=========================================================
+:mod:`cape.pyover.options.overnml`: OVERFLOW namelist options
+==============================================================
 
 This module provides a class to mirror the Fortran namelist capability.  The
 module provides a class, :class:`pyOver.options.overnml.OverNml`, which
@@ -13,8 +13,8 @@ repeated sections, use the options in the ``"Grids"`` section using
 :class:`pyOver.options.gridSystem.GridSystem`.
 
 :See also:
-    * :mod:`pyOver.options.gridSystem`
-    * :mod:`pyOver.overNamelist`
+    * :mod:`cape.pyover.options.gridSystem`
+    * :mod:`cape.pyover.overNamelist`
     * :mod:`cape.pyover.cntl`
     * :mod:`cape.namelist2`
 """

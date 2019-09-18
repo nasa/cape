@@ -1,5 +1,5 @@
 """
-:mod:`pyUS.case`: Case control module
+:mod:`cape.pyus.case`: Case control module
 ======================================
 
 This module contains the important function :func:`case.run_us3d`, which

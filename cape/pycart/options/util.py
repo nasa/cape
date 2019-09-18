@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options.util`: Utilities for pyCart Options Module
-===============================================================
+:mod:`cape.pycart.options.util`: Utilities for pyCart Options Module
+=====================================================================
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pycart`.  It is based off of the :mod:`cape.options.util` module and
@@ -23,7 +23,7 @@ parameter should be is below.
     
 :See Also:
     * :mod:`cape.options.util`
-    * :mod:`pyCart.options`
+    * :mod:`cape.pycart.options`
 """
 
 # Import CAPE options utilities
@@ -167,7 +167,7 @@ def getPyCartDefaults():
     """
     # Fixed default file
     fname = os.path.join(PyCartFolder, 
-        "..", "settings", "pyCart.default.json")
+        "..", "..", "settings", "pyCart.default.json")
     # Process the default input file
     return loadJSONFile(fname)
     

@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options.Mesh`: pyCart Meshing Options
-==================================================
+:mod:`cape.pycart.options.Mesh`: pyCart Meshing Options
+========================================================
 
 This module provides options for creating volume meshes in Cart3D.  This
 consists of three parts, with the latter two being the generally more useful
@@ -24,7 +24,7 @@ These ``BBox`` and ``XLev`` instructions edit the file
 
 :See Also:
     * :mod:`cape.options.Mesh`
-    * :mod:`pyCart.preSpecCntl.PreSpecCntl`
+    * :mod:`cape.pycart.preSpecCntl.PreSpecCntl`
 """
 
 

@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.util`: Utilities for pyOver 
-========================================
+:mod:`cape.pyover.util`: Utilities for pyOver 
+==============================================
 
 This module imports the generic utilities using
 

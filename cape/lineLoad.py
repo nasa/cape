@@ -18,9 +18,9 @@ In addition to a database interface, this module also creates line loads.
 Specific modifications to the generic template provided here are needed for
 each individual CFD solver:
 
-    * :mod:`pyCart.lineLoad`
-    * :mod:`pyFun.lineLoad`
-    * :mod:`pyOver.lineLoad`
+    * :mod:`cape.pycart.lineLoad`
+    * :mod:`cape.pyfun.lineLoad`
+    * :mod:`cape.pyover.lineLoad`
     
 To calculate line loads, this module utilizes the Chimera Grid Tools executable
 called ``triloadCmd``.  This works by taking a Cart3D annotated surface

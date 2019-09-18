@@ -1,4 +1,4 @@
 
-.. automodule:: pyFun.pointSensor
+.. automodule:: cape.pyfun.pointSensor
     :members:
 

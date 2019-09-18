@@ -56,11 +56,15 @@ Modules included within this one are outlined below.
 
 """
 
+# Standard library
+import os
+
 # Import Control module
 from .cntl import Cntl, RunMatrix
 
 # Save version number
 version = "1.0"
+__version__ = version
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

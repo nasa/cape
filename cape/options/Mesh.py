@@ -57,7 +57,7 @@ class Mesh(odict):
                 Surface triangulation file
         :Versions:
             * 2014-08-03 ``@ddalle``: First version
-            * 2016-03-29 ``@ddalle``: Copied from :mod:`pyCart.options`
+            * 2016-03-29 ``@ddalle``: Copied from :mod:`cape.pycart.options`
         """
         return self.get_key('TriFile', i)
 

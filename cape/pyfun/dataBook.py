@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.dataBook`: pyFun data book module 
-===============================================
+:mod:`cape.pyfun.dataBook`: pyFun data book module 
+===================================================
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.  Data books are usually created by
@@ -46,9 +46,9 @@ for all CFD solvers.
     * :mod:`cape.dataBook`
     * :mod:`cape.lineLoad`
     * :mod:`cape.pointSensor`
-    * :mod:`pyFun.lineLoad`
+    * :mod:`cape.pyfun.lineLoad`
     * :mod:`cape.options.DataBook`
-    * :mod:`pyFun.options.DataBook`
+    * :mod:`cape.pyfun.options.DataBook`
 """
 
 # File interface
@@ -67,8 +67,8 @@ from . import case
 from . import lineLoad
 from . import pointSensor
 # Special class
-import pyFun.plt
-import pyFun.mapbc
+import cape.pyfun.plt
+import cape.pyfun.mapbc
 
 # Template module
 import cape.dataBook

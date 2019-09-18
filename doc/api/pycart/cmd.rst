@@ -1,4 +1,4 @@
 
-.. automodule:: pyCart.cmd
+.. automodule:: cape.pycart.cmd
     :members: 
 

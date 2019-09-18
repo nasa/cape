@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.preSpecCntl`: Cart3D *preSpec.c3d.cntl* Interface
-==============================================================
+:mod:`cape.pycart.preSpecCntl`: Cart3D *preSpec.c3d.cntl* Interface
+===================================================================
 
 This is a module built off of the :class:`cape.fileCntl.FileCntl` class
 customized for manipulating :file:`preSpec.c3d.cntl` files.  Such files are
@@ -15,7 +15,7 @@ refinement boxes and additional *XLev* surface refinements.
 :See Also:
     * :mod:`cape.fileCntl`
     * :mod:`cape.pycart.cntl`
-    * :mod:`pyCart.options.Mesh`
+    * :mod:`cape.pycart.options.Mesh`
 """
 
 # Import the base file control class.

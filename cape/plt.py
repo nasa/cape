@@ -17,7 +17,7 @@ post-processing based on the :mod:`cape.tri` module.
 See also:
 
     * :mod:`cape.tri`
-    * :mod:`pyFun.plt`
+    * :mod:`cape.pyfun.plt`
     * :mod:`pc_Tri2Plt`
     * :mod:`pc_Plt2Tri`
 

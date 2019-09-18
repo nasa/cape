@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.options.Report`: pyFun Report Options
-===================================================
+:mod:`cape.pyfun.options.Report`: pyFun Report Options
+======================================================
 
 This module provides options for creating automated reports for pyFun results.
 Although there are some subfigure types that are unique to pyFun, all of the
@@ -13,7 +13,7 @@ figures and subfigures (along with other options).
 :See Also:
     * :mod:`cape.options.Report`
     * :mod:`cape.report`
-    * :mod:`pyFun.report`
+    * :mod:`cape.pyfun.report`
 """
 
 

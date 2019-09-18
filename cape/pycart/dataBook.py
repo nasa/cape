@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.dataBook`: pyCart data book module 
-===============================================
+:mod:`cape.pycart.dataBook`: pyCart data book module 
+====================================================
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.  Data books are usually created by
@@ -44,9 +44,9 @@ for all CFD solvers.
     * :mod:`cape.dataBook`
     * :mod:`cape.lineLoad`
     * :mod:`cape.pointSensor`
-    * :mod:`pyCart.lineLoad`
+    * :mod:`cape.pycart.lineLoad`
     * :mod:`cape.options.DataBook`
-    * :mod:`pyCart.options.DataBook`
+    * :mod:`cape.pycart.options.DataBook`
 """
 
 # File interface

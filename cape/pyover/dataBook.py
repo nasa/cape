@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.dataBook`: pyOver data book module 
-===============================================
+:mod:`cape.pyover.dataBook`: pyOver data book module 
+=====================================================
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.  Data books are usually created by
@@ -45,9 +45,9 @@ for all CFD solvers.
     * :mod:`cape.dataBook`
     * :mod:`cape.lineLoad`
     * :mod:`cape.pointSensor`
-    * :mod:`pyOver.lineLoad`
+    * :mod:`cape.pyover.lineLoad`
     * :mod:`cape.options.DataBook`
-    * :mod:`pyOver.options.DataBook`
+    * :mod:`cape.pyover.options.DataBook`
 """
 
 # File interface

@@ -1,5 +1,5 @@
 
-.. automodule:: pyFun.report
+.. automodule:: cape.pyfun.report
     
-    .. autoclass:: pyFun.report.Report
+    .. autoclass:: cape.pyfun.report.Report
         :members:

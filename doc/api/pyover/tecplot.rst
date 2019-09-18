@@ -1,4 +1,4 @@
 
-.. automodule:: pyOver.tecplot
+.. automodule:: cape.pyover.tecplot
     :members:
 

@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.util`: Utilities for pyFun 
-========================================
+:mod:`cape.pyfun.util`: Utilities for pyFun 
+============================================
 
 This module imports the generic utilities using
 

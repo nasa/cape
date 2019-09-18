@@ -1,3 +1,3 @@
 
-.. automodule:: pyCart.case
+.. automodule:: cape.pycart.case
     :members: 

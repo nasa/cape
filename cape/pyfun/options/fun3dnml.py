@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.options.fun3dnml`: FUN3D namelist options
-=========================================================
+:mod:`cape.pyfun.options.fun3dnml`: FUN3D namelist options
+===========================================================
 
 This module provides a class to interpret JSON options that are converted to
 Fortran namelist format for FUN3D.  The
@@ -64,7 +64,7 @@ the template namelist or missing.  It will be either edited or added as
 appropriate, even if the specified section does not exist.
 
 :See also:
-    * :mod:`pyFun.namelist`
+    * :mod:`cape.pyfun.namelist`
     * :mod:`cape.pyfun.cntl`
     * :mod:`cape.namelist`
 """

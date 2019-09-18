@@ -1,3 +1,3 @@
 
-.. automodule:: pyFun.case
+.. automodule:: cape.pyfun.case
     :members: 

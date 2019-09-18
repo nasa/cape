@@ -1,3 +1,3 @@
 
-.. automodule:: pyFun.options.util
+.. automodule:: cape.pyfun.options.util
     :members:

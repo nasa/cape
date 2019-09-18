@@ -1,6 +1,6 @@
 """
-:mod:`pyUS.options.runControl.RunControl`: pyUS run control options
-========================================================================
+:mod:`cape.pyus.options.runControl.RunControl`: Run control options
+=====================================================================
 
 Options interface for aspects of running a case of US3D.  The settings are
 read from the ``"RunControl"`` of a JSON file, and the contents of this section
@@ -36,7 +36,7 @@ also available to :class:`pyFun.options.runControl.RunControl`.
     * :mod:`cape.options.runControl`
     * :mod:`cape.options.ulimit`
     * :mod:`cape.options.intersect`
-    * :mod:`pyUS.options.Archive`
+    * :mod:`cape.pyus.options.Archive`
 """
 
 # Import options-specific utilities

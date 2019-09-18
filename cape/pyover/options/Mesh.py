@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.options.Mesh`: OVERFLOW meshing options
-=====================================================
+:mod:`cape.pyover.options.Mesh`: OVERFLOW meshing options
+==========================================================
 
 This module provides options for OVERFLOW grid systems.  OVERFLOW grid systems
 have a complex file structure, but the pyOver options are relatively simple.
@@ -30,8 +30,8 @@ A typical example JSON section is showed below.
 
 :See Also:
     * :mod:`cape.options.Mesh`
-    * :mod:`pyFun.options.runControl`
-    * :mod:`pyFun.options.overnml`
+    * :mod:`cape.pyfun.options.runControl`
+    * :mod:`cape.pyfun.options.overnml`
 """
 
 # Import options-specific utilities

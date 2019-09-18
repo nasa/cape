@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.tecplot`: Interface to FUN3D Tecplot scripts 
-============================================================
+:mod:`cape.pyfun.tecplot`: Interface to FUN3D Tecplot scripts 
+==============================================================
 
 This is a module built off of the :mod:`cape.fileCntl` module customized for
 manipulating Tecplot layout files and macros.  The FUN3D version of this

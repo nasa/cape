@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.tecplot`: Interface to Cart3D Tecplot scripts 
-============================================================
+:mod:`cape.pycart.tecplot`: Interface to Cart3D Tecplot scripts 
+================================================================
 
 This is a module built off of the :mod:`cape.fileCntl` module customized for
 manipulating Tecplot layout files and macros.  The Cart3D version of this

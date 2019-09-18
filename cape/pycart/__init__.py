@@ -81,7 +81,8 @@ Modules included within this one are outlined below.
 import os
 
 # Save version number
-version = "0.8"
+version = "1.0"
+__version__ = version
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

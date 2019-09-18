@@ -1,11 +1,11 @@
 
 ===============================================
-:mod:`pyFun.options`: FUN3D and pyFun settings 
+:mod:`cape.pyfun.options`: FUN3D and pyFun settings 
 ===============================================
 
-.. automodule:: pyFun.options
+.. automodule:: cape.pyfun.options
     
-    .. autoclass:: pyFun.options.Options
+    .. autoclass:: cape.pyfun.options.Options
         :members: get_FUN3DNamelist, set_FUN3DNamelist, get_RubberDataFile,
             get_GroupMesh, set_GroupMesh
     

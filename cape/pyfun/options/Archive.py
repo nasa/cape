@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.options.Archive`: FUN3D archiving options
-======================================================
+:mod:`cape.pyfun.options.Archive`: FUN3D archiving options
+===========================================================
 
 This module provides FUN3D-specific modifications to the base archiving options
 module in :mod:`cape.options.Archive`.  Default options for which files to
@@ -141,7 +141,7 @@ SkeletonFiles = [
 
 # Turn dictionary into Archive options
 def auto_Archive(opts):
-    """Automatically convert dict to :mod:`pyCart.options.Archive.Archive`
+    """Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
     
     :Call:
         >>> opts = auto_Archive(opts)

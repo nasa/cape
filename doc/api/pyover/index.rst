@@ -4,7 +4,7 @@
 The :mod:`cape.pyover` module
 ********************************
 
-.. automodule:: pyOver
+.. automodule:: cape.pyover
         
     The following lists the pyOver submodules, which contain the main
     functionality and define the classes that are the workhorses of pyOver.

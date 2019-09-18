@@ -41,9 +41,9 @@ below.
     
 In addition, each solver has its own version of this module:
 
-    * :mod:`pyCart.dataBook`
-    * :mod:`pyFun.dataBook`
-    * :mod:`pyOver.dataBook`
+    * :mod:`cape.pycart.dataBook`
+    * :mod:`cape.pyfun.dataBook`
+    * :mod:`cape.pyover.dataBook`
 
 The parent class :class:`cape.dataBook.DataBook` provides a common interface to
 all of the requested force, moment, point sensor, etc. quantities that have

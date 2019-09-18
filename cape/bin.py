@@ -253,16 +253,16 @@ def _assertfile(fname):
         
 # Function to automate minor changes to docstrings to make them pyCart.Cntl
 def _upgradeDocString(doccmd):
-    """Upgrade docstrings from the :mod:`pyCart.bin` class
+    """Upgrade docstrings from the :mod:`cape.pycart.bin` class
     
     :Call:
         >>> docbin = _upgradDocString(doccmd)
     :Inputs:
         *doccmd*: :class:`str`
-            Docstring from method from :mod:`pyCart.cmd`
+            Docstring from method from :mod:`cape.pycart.cmd`
     :Outputs:
         *docbin*: :class:`str`
-            Docstring for :mod:`pyCart.bin`
+            Docstring for :mod:`cape.pycart.bin`
     :Versions:
         * 2014-09-10 ``@ddalle``: First version
     """

@@ -133,7 +133,7 @@ the major parts of the file.
         
         
 For more information on these options see the following sections, and the
-documentation for the module :mod:`pyCart.options` also provides descriptions
+documentation for the module :mod:`cape.pycart.options` also provides descriptions
 of how the options are used.
 
 

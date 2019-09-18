@@ -80,7 +80,7 @@ Syntax                     Formatted             Description/Purpose
 \*a>b\*                    *a>b*                 Key *b* of *a*, ``a["b"]``
 \:Inputs:                  :Inputs:              Dictionary-style header
 \:file:\`pyCart.json`      :file:`pyCart.json`   File name
-\:mod:\`pyCart.tri`        :mod:`pyCart.tri`     Module name
+\:mod:\`pyCart.tri`        :mod:`cape.pycart.tri`     Module name
 \:class:\`int`             :class:`int`          Class or type of variable
 \:func:\`SetAlpha`         :func:`SetAlpha`      Function name
 ========================   ===================   ==============================

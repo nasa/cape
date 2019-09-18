@@ -1,4 +1,4 @@
 
-.. automodule:: pyOver.overNamelist
+.. automodule:: cape.pyover.overNamelist
     :members:
 

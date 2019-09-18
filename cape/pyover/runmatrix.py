@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.runmatrix`: OVERFLOW run matrix module 
-=====================================================
+:mod:`cape.pyover.runmatrix`: OVERFLOW run matrix module 
+=========================================================
 
 This module handles classes and methods that are specific to the list of run
 cases (i.e., the "trajectory").  It is defined in the ``"RunMatrix"`` section
@@ -35,7 +35,7 @@ a JSON file, and *ofl.x* is the run matrix.
 
     .. code-block:: pycon
     
-        >>> import pyOver
+        >>> import cape.pyover
         >>> cntl = pyOver.Cntl("pyOver.json")
         >>> cntl.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_a']
@@ -45,7 +45,7 @@ functionality is inherited from :class:`cape.runmatrix.RunMatrix`.
 
 :See Also:
     * :mod:`cape.runmatrix`
-    * :mod:`pyOver.cart3d`
+    * :mod:`cape.pyover.cart3d`
 """
 
 # Import the cape module.

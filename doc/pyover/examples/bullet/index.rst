@@ -212,7 +212,7 @@ the template OVERFLOW namelist, ``overflow.inp``:
         set Ovr(walldist) 2
         
 Of course, these can be altered later by :mod:`cape.pyover` using the
-:mod:`pyOver.overNamelist` interface.  Finally, the *mixsurcomp* variable can
+:mod:`cape.pyover.overNamelist` interface.  Finally, the *mixsurcomp* variable can
 be used to group surface families into larger components, which affects the
 file ``mixsur.i`` that is built by ``BuildMixsuri``.
 

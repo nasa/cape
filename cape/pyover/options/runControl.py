@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.options.runControl.RunControl`: pyOver run control options
-========================================================================
+:mod:`cape.pyover.options.runControl.RunControl`: Run control options
+======================================================================
 
 Options interface for aspects of running a case of OVERFLOW.  The settings are
 read from the ``"RunControl"`` of a JSON file, and the contents of this section
@@ -34,7 +34,7 @@ also available to :class:`pyOver.options.runControl.RunControl`.
 :See Also:
     * :mod:`cape.options.runControl`
     * :mod:`cape.options.ulimit`
-    * :mod:`pyOver.options.Archive`
+    * :mod:`cape.pyover.options.Archive`
 """
 
 # Import options-specific utilities

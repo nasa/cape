@@ -1,3 +1,3 @@
 
-.. automodule:: pyOver.case
+.. automodule:: cape.pyover.case
     :members: 

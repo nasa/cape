@@ -1,4 +1,4 @@
 
-.. automodule:: pyOver.util
+.. automodule:: cape.pyover.util
     :members:
 

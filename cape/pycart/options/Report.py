@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options.Report`: pyCart Report Options
-===================================================
+:mod:`cape.pycart.options.Report`: pyCart Report Options
+=========================================================
 
 This module provides options for creating automated reports for pyCart results.
 Although there are some subfigure types that are unique to pyCart, all of the
@@ -14,7 +14,7 @@ subfigures (along with other options).
 :See Also:
     * :mod:`cape.options.Report`
     * :mod:`cape.report`
-    * :mod:`pyCart.report`
+    * :mod:`cape.pycart.report`
 """
 
 

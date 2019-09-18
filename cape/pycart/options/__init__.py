@@ -31,18 +31,18 @@ instance of :class:`cape.pycart.cntl.Cntl`.
 This module and the classes it provides are based heavily on the generic
 version, :mod:`cape.options`.  In addition, the :class:`pyCart.options.Options`
 class inherits methods from the classes in its submodules, such as
-:mod:`pyCart.options.PBS` and :mod:`pyCart.options.RunControl`.
+:mod:`cape.pycart.options.PBS` and :mod:`cape.pycart.options.RunControl`.
 
 :See Also:
     * :mod:`cape.options`
     * :mod:`cape.options.util`
-    * :mod:`pyCart.options.runControl`
-    * :mod:`pyCart.options.Mesh`
-    * :mod:`pyCart.options.pbs`
-    * :mod:`pyCart.options.Config`
-    * :mod:`pyCart.options.Functional`
-    * :mod:`pyCart.options.DataBook`
-    * :mod:`pyCart.options.Report`
+    * :mod:`cape.pycart.options.runControl`
+    * :mod:`cape.pycart.options.Mesh`
+    * :mod:`cape.pycart.options.pbs`
+    * :mod:`cape.pycart.options.Config`
+    * :mod:`cape.pycart.options.Functional`
+    * :mod:`cape.pycart.options.DataBook`
+    * :mod:`cape.pycart.options.Report`
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)

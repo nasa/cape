@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options.pbs`: pyCart PBS Job Options
-=================================================
+:mod:`cape.pycart.options.pbs`: pyCart PBS Job Options
+======================================================
 
 This module provides options for PBS jobs in pyCart.  It is based on the
 :mod:`cape.options.pbs` module with no modifications.
@@ -8,7 +8,7 @@ This module provides options for PBS jobs in pyCart.  It is based on the
 :See Also:
     * :mod:`cape.options.pbs`
     * :mod:`cape.options`
-    * :mod:`pyCart.options`
+    * :mod:`cape.pycart.options`
 """
 
 

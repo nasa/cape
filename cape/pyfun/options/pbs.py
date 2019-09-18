@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.options.pbs`: pyFun PBS Job Options
-=================================================
+:mod:`cape.pyfun.options.pbs`: pyFun PBS Job Options
+=====================================================
 
 This module provides options for PBS jobs in pyFun.  It is based on the
 :mod:`cape.options.pbs` module with no modifications.
@@ -8,7 +8,7 @@ This module provides options for PBS jobs in pyFun.  It is based on the
 :See Also:
     * :mod:`cape.options.pbs`
     * :mod:`cape.options`
-    * :mod:`pyFun.options`
+    * :mod:`cape.pyfun.options`
 """
 
 

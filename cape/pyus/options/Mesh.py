@@ -1,6 +1,6 @@
 """
-:mod:`pyUS.options.Mesh`: US3D Meshing Options
-==================================================
+:mod:`cape.pyus.options.Mesh`: US3D Meshing Options
+====================================================
 
 This module provides options for surface and  volume meshes in US3D.  This
 consists of three parts, although the second or third option (but never both)
@@ -17,8 +17,8 @@ may be optional depending of the configuration
 :See Also:
     * :mod:`cape.options.Mesh`
     * :mod:`cape.options.aflr3`
-    * :mod:`pyUS.options.runControl`
-    * :mod:`pyUS.options.Config`
+    * :mod:`cape.pyus.options.runControl`
+    * :mod:`cape.pyus.options.Config`
 """
 
 # Import options-specific utilities

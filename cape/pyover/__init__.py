@@ -61,6 +61,9 @@ Modules included within this one are outlined below.
 
 """
 
+# Standard library
+import os
+
 # Local tools
 from .cntl  import Cntl, RunMatrix
 

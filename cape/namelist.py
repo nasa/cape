@@ -73,8 +73,8 @@ to apply multiple settings using a :class:`dict` as input.
 See also:
 
     * :mod:`cape.namelist2`
-    * :mod:`pyFun.namelist`
-    * :mod:`pyOver.overNamelist`
+    * :mod:`cape.pyfun.namelist`
+    * :mod:`cape.pyover.overNamelist`
     * :func:`pyFun.case.GetNamelist`
     * :func:`cape.pyfun.cntl.Cntl.ReadNamelist`
     * :func:`cape.pyover.cntl.Cntl.ReadNamelist`

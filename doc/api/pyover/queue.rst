@@ -1,3 +1,3 @@
 
-.. automodule:: pyOver.queue
+.. automodule:: cape.pyover.queue
     :members: 

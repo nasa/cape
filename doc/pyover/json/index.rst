@@ -54,7 +54,7 @@ Within a Python script, the settings can be loaded with the following code.
 
     .. code-block:: python
     
-        import pyOver
+        import cape.pyover
         
         # Loads pyOver.json
         c1 = pyOver.Cntl()
@@ -119,7 +119,7 @@ the major parts of the file.
         
         
 For more information on these options see the following sections, and the
-documentation for the module :mod:`pyOver.options` also provides descriptions
+documentation for the module :mod:`cape.pyover.options` also provides descriptions
 of how the options are used.
 
 

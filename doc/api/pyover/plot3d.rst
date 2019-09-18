@@ -1,9 +1,9 @@
 
-.. automodule:: pyOver.plot3d
+.. automodule:: cape.pyover.plot3d
     :members:
 
-    .. autoclass:: pyOver.plot3d.X
+    .. autoclass:: cape.pyover.plot3d.X
         :members:
         
-    .. autoclass:: pyOver.plot3d.Q
+    .. autoclass:: cape.pyover.plot3d.Q
         :members:

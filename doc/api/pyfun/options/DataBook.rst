@@ -1,9 +1,9 @@
 
-.. automodule:: pyFun.options.DataBook
+.. automodule:: cape.pyfun.options.DataBook
 
-    .. autoclass:: pyFun.options.DataBook.DataBook
+    .. autoclass:: cape.pyfun.options.DataBook.DataBook
         :members:
 
-    .. autoclass:: pyFun.options.DataBook.DBTarget
+    .. autoclass:: cape.pyfun.options.DataBook.DBTarget
         :members:
 

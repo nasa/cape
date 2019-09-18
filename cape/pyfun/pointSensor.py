@@ -1,5 +1,5 @@
 """
-:mod:`pyFun.pointSensor`: FUN3D point sensors module
+:mod:`cape.pyfun.pointSensor`: FUN3D point sensors module
 ========================================================
 
 This module contains several classes for extracting point sensor data from
@@ -16,9 +16,9 @@ FUN3D output that can be requested from ``fun3d.nml``.
 
 :See also:
     * :mod:`cape.pointSensor`
-    * :mod:`pyFun.dataBook`
+    * :mod:`cape.pyfun.dataBook`
     * :mod:`cape.pyfun.cntl`
-    * :mod:`pyFun.plt`
+    * :mod:`cape.pyfun.plt`
     * :mod:`cape.dataBook`
     * :mod:`cape.tri`
 """
@@ -33,7 +33,7 @@ from datetime import datetime
 from . import util
 from . import case
 from . import mapbc
-import pyFun.plt
+import cape.pyfun.plt
 
 # Basis module
 import cape.dataBook

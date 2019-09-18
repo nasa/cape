@@ -1,4 +1,4 @@
 
-.. automodule:: pyCart.tecplot
+.. automodule:: cape.pycart.tecplot
     :members:
 

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # CAPE modules
-import pyOver
+import cape.pyover
 
 
 # Get control interface
-cntl = pyOver.Cntl()
+cntl = cape.pyover.Cntl()
 
 # Read the databook
 cntl.ReadDataBook()

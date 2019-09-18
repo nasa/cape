@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.manage`: Manage pyFun case folders
-=================================================
+:mod:`cape.pyfun.manage`: Manage pyFun case folders
+=====================================================
 
 This module is a derivative of the main solution folder management module
 :mod:`cape.manage`.  It provides FUN3D-specific versions of the three top-level
@@ -33,7 +33,7 @@ called directly.
 
 :See also:
     * :mod:`cape.manage`
-    * :mod:`pyFun.options.Archive`
+    * :mod:`cape.pyfun.options.Archive`
     * :mod:`cape.options.Archive`
 """
 

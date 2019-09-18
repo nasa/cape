@@ -1,4 +1,4 @@
 
-.. automodule:: pyFun.tecplot
+.. automodule:: cape.pyfun.tecplot
     :members:
 

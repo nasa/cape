@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.plt`: Interface to FUN3D Tecplot PLT files
-========================================================
+:mod:`cape.pyfun.plt`: Interface to FUN3D Tecplot PLT files
+============================================================
 
 This module provides the class :class:`pyFun.plt.Plt`, which intends to read
 and write Tecplot binary or ASCII PLT files for surface grid solutions from
@@ -23,7 +23,7 @@ post-processing based on the :mod:`cape.tri` module.
 :See also:
     * :mod:`cape.plt`
     * :mod:`cape.tri`
-    * :mod:`pyFun.mapbc`
+    * :mod:`cape.pyfun.mapbc`
     * :mod:`pc_Tri2Plt`
     * :mod:`pc_Plt2Tri`
 
@@ -38,7 +38,7 @@ import cape.io
 import cape.plt
 import cape.tri
 # Local tool for MapBC file interface
-import pyFun.mapbc
+import cape.pyfun.mapbc
 
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):

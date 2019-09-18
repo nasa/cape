@@ -1,6 +1,6 @@
 """
-Module to interface with Cart3D configuration files: :mod:`pyCart.Config`
-=========================================================================
+:mod:`cape.pycart.Config`: Interface with Cart3D configuration files
+=====================================================================
 
 This is a module to interact with :file:`Config.xml` files.
 """

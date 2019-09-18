@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options.runControl.RunControl`: pyCart run control options
-========================================================================
+:mod:`cape.pycart.options.runControl.RunControl`: Run control options
+======================================================================
 
 Options interface for aspects of running a case of Cart3D.  The settings are
 read from the ``"RunControl"`` of a JSON file, and the contents of this section
@@ -40,7 +40,7 @@ also available to :class:`pyCart.options.runControl.RunControl`.
 :See Also:
     * :mod:`cape.options.runControl`
     * :mod:`cape.options.ulimit`
-    * :mod:`pyCart.options.Archive`
+    * :mod:`cape.pycart.options.Archive`
 """
 
 

@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.options.util`: Utilities for pyFun options module
-===============================================================
+:mod:`cape.pyfun.options.util`: Utilities for pyFun options module
+===================================================================
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pyfun`.  It is based off of the :mod:`cape.options.util` module and
@@ -22,7 +22,7 @@ parameter should be is below.
     
 :See Also:
     * :mod:`cape.options.util`
-    * :mod:`pyFun.options`
+    * :mod:`cape.pyfun.options`
 """
 
 # Import CAPE options utilities
@@ -115,7 +115,7 @@ def getPyFunDefaults():
     """
     # Fixed default file
     fname = os.path.join(PyFunFolder, 
-        "..", "settings", "pyFun.default.json")
+        "..", "..", "settings", "pyFun.default.json")
     # Process the default input file.
     return loadJSONFile(fname)
 

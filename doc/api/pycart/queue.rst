@@ -1,3 +1,3 @@
 
-.. automodule:: pyCart.queue
+.. automodule:: cape.pycart.queue
     :members: 

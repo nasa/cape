@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.options.DataBook`: Data book options 
-==================================================
+:mod:`cape.pyover.options.DataBook`: Data book options 
+=======================================================
 
 This module contains the interface for data book options for pyOver and 
 OVERFLOW. The classes in this module are subclassed as

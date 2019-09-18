@@ -1,6 +1,6 @@
 """
-:mod:`pyUS.options.Report`: pyUS Report Options
-===================================================
+:mod:`cape.pyus.options.Report`: pyUS Report Options
+=====================================================
 
 This module provides options for creating automated reports for pyUS results.
 Although there are some subfigure types that are unique to pyUS, all of the
@@ -13,7 +13,7 @@ figures and subfigures (along with other options).
 :See Also:
     * :mod:`cape.options.Report`
     * :mod:`cape.report`
-    * :mod:`pyUS.report`
+    * :mod:`cape.pyus.report`
 """
 
 

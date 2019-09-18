@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.manage`: Manage pyCart case folders
-=================================================
+:mod:`cape.pycart.manage`: Manage pyCart case folders
+======================================================
 
 This module is a derivative of the main solution folder management module
 :mod:`cape.manage`. It provides Cart3D-specific versions of the three
@@ -34,7 +34,7 @@ just called directly.
 
 :See also:
     * :mod:`cape.manage`
-    * :mod:`pyCart.options.Archive`
+    * :mod:`cape.pycart.options.Archive`
     * :mod:`cape.options.Archive`
 """
 

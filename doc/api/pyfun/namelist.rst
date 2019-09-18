@@ -1,6 +1,6 @@
 
-.. automodule:: pyFun.namelist
+.. automodule:: cape.pyfun.namelist
     
-    .. autoclass:: pyFun.namelist.Namelist
+    .. autoclass:: cape.pyfun.namelist.Namelist
         :members:
 

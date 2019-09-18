@@ -16,9 +16,9 @@ have already been initialized or are already running.
 
 Actual functionality is left to individual modules listed below.
 
-    * :mod:`pyCart.case`
-    * :mod:`pyFun.case`
-    * :mod:`pyOver.case`
+    * :mod:`cape.pycart.case`
+    * :mod:`cape.pyfun.case`
+    * :mod:`cape.pyover.case`
 
 Several of the key methods for this API module are described below.
 """
@@ -611,7 +611,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
             Time at which time delta was measured
     :Versions:
         * 2015-12-09 ``@ddalle``: First version
-        * 2015-12-22 ``@ddalle``: Copied from :mod:`pyCart.case`
+        * 2015-12-22 ``@ddalle``: Copied from :mod:`cape.pycart.case`
     """
     # Check if the file exists
     if not os.path.isfile(fname):

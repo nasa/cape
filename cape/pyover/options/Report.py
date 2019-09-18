@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.options.Report`: pyOver Report Options
-===================================================
+:mod:`cape.pyover.options.Report`: pyOver Report Options
+=========================================================
 
 This module provides options for creating automated reports for pyOver results.
 Although there are some subfigure types that are unique to pyOver, all of the
@@ -13,7 +13,7 @@ available figures and subfigures (along with other options).
 :See Also:
     * :mod:`cape.options.Report`
     * :mod:`cape.report`
-    * :mod:`pyOver.report`
+    * :mod:`cape.pyover.report`
 """
 
 

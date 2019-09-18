@@ -1,11 +1,11 @@
 
 ====================================================
-:mod:`pyOver.options`: OVERFLOW and pyOver Settings 
+:mod:`cape.pyover.options`: OVERFLOW and pyOver Settings 
 ====================================================
 
-.. automodule:: pyOver.options
+.. automodule:: cape.pyover.options
     
-    .. autoclass:: pyOver.options.Options
+    .. autoclass:: cape.pyover.options.Options
         :members: get_OverNamelist,
             get_GroupMesh, set_GroupMesh
     

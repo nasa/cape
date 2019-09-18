@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options.Archive`: pyCart Archiving Options
-=======================================================
+:mod:`cape.pycart.options.Archive`: pyCart Archiving Options
+============================================================
 
 Options interface for archiving one or more Cart3D solutions that was managed
 by pyCart.  Archiving generally means two tasks:
@@ -36,7 +36,7 @@ are all available to this command.
 
 :See Also:
     * :mod:`cape.options.Archive`
-    * :mod:`pyCart.options.runControl`
+    * :mod:`cape.pycart.options.runControl`
 """
 
 # Import options-specific utilities
@@ -82,7 +82,7 @@ RunFiles = [
 
 # Turn dictionary into Archive options
 def auto_Archive(opts):
-    """Automatically convert dict to :mod:`pyCart.options.Archive.Archive`
+    """Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
     
     :Call:
         >>> opts = auto_Archive(opts)

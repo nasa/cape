@@ -1,4 +1,4 @@
 
-.. automodule:: pyFun.rubberData
+.. automodule:: cape.pyfun.rubberData
     :members:
 

@@ -4,7 +4,7 @@ Python interface for US3D: **pyus**
 =====================================
 
 This function provides a master interface for pyUS.  All of the functionality
-from this script is also accessible from the :mod:`pyUS` module using
+from this script is also accessible from the :mod:`cape.pyus` module using
 relatively simple commands.
 
 :Usage:

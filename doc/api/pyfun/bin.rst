@@ -1,3 +1,3 @@
 
-.. automodule:: pyFun.bin
+.. automodule:: cape.pyfun.bin
     :members: 

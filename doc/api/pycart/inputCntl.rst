@@ -1,6 +1,6 @@
 
-.. automodule:: pyCart.inputCntl
+.. automodule:: cape.pycart.inputCntl
 
-    .. autoclass:: pyCart.inputCntl.InputCntl
+    .. autoclass:: cape.pycart.inputCntl.InputCntl
         :members:
     

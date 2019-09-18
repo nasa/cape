@@ -64,15 +64,16 @@ Modules included within this one are outlined below.
 # System
 import os
 
+# Import Control module
+from .cntl  import Cntl, RunMatrix
+
 # Save version number
-version = "0.8"
+version = "1.0"
+__version__ = version
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyFunFolder = os.path.split(_fname)[0]
-
-# Import Control module
-from .cntl  import Cntl, RunMatrix
 

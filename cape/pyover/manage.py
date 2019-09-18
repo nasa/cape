@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.manage`: Manage pyOver case folders
-=================================================
+:mod:`cape.pyover.manage`: Manage pyOver case folders
+=======================================================
 
 This module is a derivative of the main solution folder management module
 :mod:`cape.manage`. It provides OVERFLOW-specific versions of the three
@@ -32,7 +32,7 @@ just called directly.
 
 :See also:
     * :mod:`cape.manage`
-    * :mod:`pyOver.options.Archive`
+    * :mod:`cape.pyover.options.Archive`
     * :mod:`cape.options.Archive`
 """
 

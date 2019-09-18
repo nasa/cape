@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.cmd`: Create commands for OVERFLOW executables 
-=============================================================
+:mod:`cape.pyover.cmd`: Create commands for OVERFLOW executables 
+=================================================================
 
 This module creates system commands as lists of strings for executable binaries
 or scripts for OVERFLOW.  While OVERFLOW has only one main executable, there
@@ -41,8 +41,8 @@ As a very simple example, the system command ``"ls -lh"`` becomes the list
 :See also:
     * :mod:`cape.cmd`
     * :mod:`cape.bin`
-    * :mod:`pyOver.bin`
-    * :mod:`pyOver.options.runControl`
+    * :mod:`cape.pyover.bin`
+    * :mod:`cape.pyover.options.runControl`
 
 """
 

@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.case`: Case Control Module
-=======================================
+:mod:`cape.pycart.case`: Case Control Module
+=============================================
 
 This module contains the important function :func:`case.run_flowCart`, which
 actually runs ``flowCart`` or ``aero.csh``, along with the utilities that

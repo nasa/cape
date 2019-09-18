@@ -1,6 +1,6 @@
 """
-:mod:`pyUS.options.pbs`: pyUS PBS Job Options
-=================================================
+:mod:`cape.pyus.options.pbs`: pyUS PBS Job Options
+===================================================
 
 This module provides options for PBS jobs in pyUS.  It is based on the
 :mod:`cape.options.pbs` module with no modifications.
@@ -8,7 +8,7 @@ This module provides options for PBS jobs in pyUS.  It is based on the
 :See Also:
     * :mod:`cape.options.pbs`
     * :mod:`cape.options`
-    * :mod:`pyUS.options`
+    * :mod:`cape.pyus.options`
 """
 
 

@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.report`: Automated report interface
-=================================================
+:mod:`cape.pyover.report`: Automated report interface
+======================================================
 
 The pyOver module for generating automated results reports using PDFLaTeX
 provides a single class :class:`pyOver.report.Report`, which is based off the
@@ -44,7 +44,7 @@ example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 
 :See also:
     * :mod:`cape.report`
-    * :mod:`pyOver.options.Report`
+    * :mod:`cape.pyover.options.Report`
     * :mod:`cape.options.Report`
     * :class:`cape.dataBook.DBComp`
     * :class:`cape.dataBook.CaseFM`

@@ -1,5 +1,5 @@
 """
-:mod:`pyFun.cmd`: Create commands for FUN3D executables 
+:mod:`cape.pyfun.cmd`: Create commands for FUN3D executables 
 =============================================================
 
 This module creates system commands as lists of strings for executable binaries
@@ -25,8 +25,8 @@ by :func:`nodet` could be
 :See also:
     * :mod:`cape.cmd`
     * :mod:`cape.bin`
-    * :mod:`pyFun.bin`
-    * :mod:`pyFun.options.runControl`
+    * :mod:`cape.pyfun.bin`
+    * :mod:`cape.pyfun.options.runControl`
 
 """
 

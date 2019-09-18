@@ -1,3 +1,3 @@
 
-.. automodule:: pyOver.bin
+.. automodule:: cape.pyover.bin
     :members: 

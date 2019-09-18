@@ -1,5 +1,5 @@
 """
-:mod:`pyCart.options.Functional`: Cart3D Objective Function Options
+:mod:`cape.pycart.options.Functional`: Objective Function Options
 ===================================================================
 
 This module provides an interface for defining Cart3D's output functional for
@@ -43,8 +43,8 @@ See the :ref:`JSON "Functional" section <json-Functional>` for a
 description of all available options.
 
 :See Also:
-    * :mod:`pyCart.options.Config`
-    * :mod:`pyCart.inputCntl`
+    * :mod:`cape.pycart.options.Config`
+    * :mod:`cape.pycart.inputCntl`
 """
 
 

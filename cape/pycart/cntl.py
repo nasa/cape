@@ -1,6 +1,6 @@
 """
 :mod:`cape.pycart.cntl`: Cart3D control module
-=============================================
+===============================================
 
 This module provides tools to quickly setup basic Cart3D runs or a complex
 Cart3D setup from a small set of input files. Alternatively, the methods and

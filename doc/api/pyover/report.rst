@@ -1,5 +1,5 @@
 
-.. automodule:: pyOver.report
+.. automodule:: cape.pyover.report
     
-    .. autoclass:: pyOver.report.Report
+    .. autoclass:: cape.pyover.report.Report
         :members:

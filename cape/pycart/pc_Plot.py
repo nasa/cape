@@ -1,6 +1,6 @@
 """
-Command-line plotting interface: :mod:`pyCart.pc_Plot`
-======================================================
+Command-line plotting interface: :mod:`cape.pycart.pc_Plot`
+===========================================================
 
 
 """

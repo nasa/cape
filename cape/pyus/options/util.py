@@ -1,6 +1,6 @@
 """
-:mod:`pyUS.options.util`: Utilities for pyUS options module
-===============================================================
+:mod:`cape.pyus.options.util`: Utilities for pyUS options module
+=================================================================
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pyfun`.  It is based off of the :mod:`cape.options.util` module and
@@ -22,7 +22,7 @@ parameter should be is below.
     
 :See Also:
     * :mod:`cape.options.util`
-    * :mod:`pyUS.options`
+    * :mod:`cape.pyus.options`
 """
 
 # Import CAPE options utilities
@@ -92,7 +92,7 @@ def getPyUSDefaults():
     """
     # Fixed default file
     fname = os.path.join(PyUSFolder, 
-        "..", "settings", "pyUS.default.json")
+        "..", "..", "settings", "pyUS.default.json")
     # Process the default input file.
     return loadJSONFile(fname)
 

@@ -1,4 +1,4 @@
 
-.. automodule:: pyOver.cmd
+.. automodule:: cape.pyover.cmd
     :members: 
 

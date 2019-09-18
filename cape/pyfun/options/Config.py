@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.options.Config`: pyFun configurations options
-==========================================================
+:mod:`cape.pyfun.options.Config`: pyFun configurations options
+===============================================================
 
 This module provides options for defining some aspects of the surface
 configuration for a FUN3D run.  It can point to a surface configuration file
@@ -34,7 +34,7 @@ the JSON file.
 :See Also:
     * :mod:`cape.options.Config`
     * :mod:`cape.config`
-    * :mod:`pyFun.namelist`
+    * :mod:`cape.pyfun.namelist`
 """
 
 

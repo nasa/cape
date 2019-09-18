@@ -1,6 +1,6 @@
 """
-:mod:`pyUS.options.inputInp`: US3D ``input.inp`` options 
-=========================================================
+:mod:`cape.pyus.options.inputInp`: US3D ``input.inp`` options 
+==============================================================
 
 This module provides a class to interpret JSON options that are converted to
 ``input.inp`` settings for FUN3D.  The
@@ -38,8 +38,8 @@ the template ``input.inp`` file or missing.  It will be either edited or added
 as appropriate, even if the specified section does not exist.
 
 :See also:
-    * :mod:`pyUS.inputInp`
-    * :mod:`pyUS.us3d`
+    * :mod:`cape.pyus.inputInp`
+    * :mod:`cape.pyus.us3d`
     * :mod:`cape.namelist`
 """
 

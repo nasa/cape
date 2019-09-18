@@ -1,6 +1,6 @@
 
-.. automodule:: pyFun.mapbc
+.. automodule:: cape.pyfun.mapbc
     
-    .. autoclass:: pyFun.mapbc.MapBC
+    .. autoclass:: cape.pyfun.mapbc.MapBC
         :members:
 

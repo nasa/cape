@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.report`: Automated report interface
-=================================================
+:mod:`cape.pycart.report`: Automated report interface
+=====================================================
 
 The pyCart module for generating automated results reports using PDFLaTeX
 provides a single class :class:`pyCart.report.Report`, which is based off the
@@ -44,7 +44,7 @@ example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 
 :See also:
     * :mod:`cape.report`
-    * :mod:`pyCart.options.Report`
+    * :mod:`cape.pycart.options.Report`
     * :mod:`cape.options.Report`
     * :class:`cape.dataBook.DBComp`
     * :class:`cape.dataBook.CaseFM`
@@ -73,7 +73,7 @@ from .config import Config
 
 # Dedicated function to load pointSensor only when needed.
 def ImportPointSensor():
-    """Import :mod:`pyCart.pointSensor` if not loaded
+    """Import :mod:`cape.pycart.pointSensor` if not loaded
     
     :Call:
         >>> pyCart.report.ImportPointSensor()
@@ -91,7 +91,7 @@ def ImportPointSensor():
 
 # Dedicated function to load lineLoad only when needed.
 def ImportLineLoad():
-    """Import :mod:`pyCart.lineLoad` if not loaded
+    """Import :mod:`cape.pycart.lineLoad` if not loaded
     
     :Call:
         >>> pyCart.report.ImportLineLoad()

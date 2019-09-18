@@ -53,7 +53,7 @@ following syntax would work.
     .. code-block:: python
     
         # Load relevant module
-        import pyFun
+        import cape.pyfun
         # Read JSON file
         cntl = pyFun.Cntl('poweroff.json')
         # Apply scripts

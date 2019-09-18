@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`pyUS.inputInp`: US3D primary input file interface
+:mod:`cape.pyus.inputInp`: US3D primary input file interface
 ========================================================
 
 This is a module built off of the :mod:`cape.fileCntl.FileCntl` module

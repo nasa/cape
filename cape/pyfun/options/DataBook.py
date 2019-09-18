@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.options.DataBook`: Data book options 
-================================================
+:mod:`cape.pyfun.options.DataBook`: Data book options 
+=====================================================
 
 This module contains the interface for data book options for pyFun and FUN3D.
 The classes in this module are subclassed as

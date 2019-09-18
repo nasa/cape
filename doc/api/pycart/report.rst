@@ -1,3 +1,3 @@
 
-.. automodule:: pyCart.report
+.. automodule:: cape.pycart.report
     :members:

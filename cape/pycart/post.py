@@ -1,6 +1,6 @@
 """
-Post-processing module: :mod:`pyCart.post`
-==========================================
+Post-processing module: :mod:`cape.pycart.post`
+===============================================
 
 This is the :mod:`cape.pycart` post-processing module.  Primarily it is focused on
 reading :file:`loadsCC.dat` and :file:`loadsTRI.dat` files.

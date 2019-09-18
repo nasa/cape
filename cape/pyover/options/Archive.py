@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.options.Archive`: OVERFLOW archiving options
-==========================================================
+:mod:`cape.pyover.options.Archive`: OVERFLOW archiving options
+===============================================================
 
 This module provides OVERFLOW-specific modifications to the base archiving
 options module in :mod:`cape.options.Archive`. Default options for which files
@@ -147,7 +147,7 @@ TailFiles = [
 
 # Turn dictionary into Archive options
 def auto_Archive(opts):
-    """Automatically convert dict to :mod:`pyCart.options.Archive.Archive`
+    """Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
     
     :Call:
         >>> opts = auto_Archive(opts)

@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.options.util`: Utilities for pyOver options module
-===============================================================
+:mod:`cape.pyover.options.util`: Utilities for pyOver options module
+=====================================================================
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pyover`. It is based off of the :mod:`cape.options.util` module and
@@ -22,7 +22,7 @@ parameter should be is below.
     
 :See Also:
     * :mod:`cape.options.util`
-    * :mod:`pyOver.options`
+    * :mod:`cape.pyover.options`
 """
 
 # Import CAPE options utilities
@@ -105,7 +105,7 @@ def getPyOverDefaults():
     """
     # Fixed default file
     fname = os.path.join(PyOverFolder, 
-        "..", "settings", "pyOver.default.json")
+        "..", "..", "settings", "pyOver.default.json")
     # Process the default input file
     return loadJSONFile(fname)
     

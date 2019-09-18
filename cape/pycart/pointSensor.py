@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.pointSensor`: Cart3D point sensors module
-========================================================
+:mod:`cape.pycart.pointSensor`: Cart3D point sensors module
+============================================================
 
 This module contains several classes for reading and averaging point sensors.
 The database classes, :class:`DBPointSensorGroup` and :class:`DBPointSensor`,
@@ -18,9 +18,9 @@ solution file (``"TriqPoint"`` data book type).
 
 :See also:
     * :mod:`cape.pointSensor`
-    * :mod:`pyCart.dataBook`
+    * :mod:`cape.pycart.dataBook`
     * :mod:`cape.pycart.cntl`
-    * :mod:`pyCart.inputCntl`
+    * :mod:`cape.pycart.inputCntl`
     * :mod:`cape.dataBook`
 """
 

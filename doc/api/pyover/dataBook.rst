@@ -1,30 +1,30 @@
 
-.. automodule:: pyOver.dataBook
+.. automodule:: cape.pyover.dataBook
 
     Global pyOver data book: :class:`pyOver.dataBook.DataBook`
     ----------------------------------------------------------
     
-        .. autoclass:: pyOver.dataBook.DataBook
+        .. autoclass:: cape.pyover.dataBook.DataBook
             
     
     Individual data books
     ---------------------
                 
-        .. autoclass:: pyOver.dataBook.DBComp
+        .. autoclass:: cape.pyover.dataBook.DBComp
             
         
-        .. autoclass:: pyOver.dataBook.DBTarget
+        .. autoclass:: cape.pyover.dataBook.DBTarget
             
                 
     Data book classes for individual cases
     --------------------------------------
             
-        .. autoclass:: pyOver.dataBook.CaseFM
+        .. autoclass:: cape.pyover.dataBook.CaseFM
             
                 
-        .. autoclass:: pyOver.dataBook.CaseResid
+        .. autoclass:: cape.pyover.dataBook.CaseResid
             
             
             
-    Other :mod:`pyOver.dataBook` methods
+    Other :mod:`cape.pyover.dataBook` methods
     -------------------------------------

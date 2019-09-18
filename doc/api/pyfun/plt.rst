@@ -1,4 +1,4 @@
 
-.. automodule:: pyFun.plt
+.. automodule:: cape.pyfun.plt
     :members:
 

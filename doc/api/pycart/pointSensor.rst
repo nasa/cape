@@ -1,4 +1,4 @@
 
-.. automodule:: pyCart.pointSensor
+.. automodule:: cape.pycart.pointSensor
     :members:
 

@@ -1,6 +1,6 @@
 """
-:mod:`pyFun.report`: Automated report interface
-=================================================
+:mod:`cape.pyfun.report`: Automated report interface
+======================================================
 
 The pyFun module for generating automated results reports using PDFLaTeX
 provides a single class :class:`pyFun.report.Report`, which is based off the
@@ -44,7 +44,7 @@ example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 
 :See also:
     * :mod:`cape.report`
-    * :mod:`pyFun.options.Report`
+    * :mod:`cape.pyfun.options.Report`
     * :mod:`cape.options.Report`
     * :class:`cape.dataBook.DBComp`
     * :class:`cape.dataBook.CaseFM`

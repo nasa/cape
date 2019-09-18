@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options.Config`: pyCart Configuration Options
-==========================================================
+:mod:`cape.pycart.options.Config`: pyCart Configuration Options
+===============================================================
 
 This module provides options for defining some aspects of the surface
 configuration for a Cart3D run.  In addition to specifying a template
@@ -54,7 +54,7 @@ final iteration but also the history of relevant conditions at each iteration.
 :See Also:
     * :mod:`cape.options.Config`
     * :mod:`cape.config`
-    * :mod:`pyCart.inputCntl`
+    * :mod:`cape.pycart.inputCntl`
 """
 
 

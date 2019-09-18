@@ -1,6 +1,6 @@
 """
-:mod:`pyUS.options.DataBook`: Data book options 
-================================================
+:mod:`cape.pyus.options.DataBook`: Data book options 
+=====================================================
 
 This module contains the interface for data book options for pyUS and US3D.
 The classes in this module are subclassed as

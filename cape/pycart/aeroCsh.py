@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.aeroCsh`: Cart3D ``aero.csh`` interface
-=====================================================
+:mod:`cape.pycart.aeroCsh`: Cart3D ``aero.csh`` interface
+=========================================================
 
 This is a module built off of the :mod:`cape.fileCntl` module customized for
 manipulating :file:`aero.csh` files.  Such files are actually C shell scripts
@@ -14,7 +14,7 @@ method creates an executable script.
 Parameters that are set in the header section of :file:`aero.csh` include
 inputs to ``cubes``, ``mgPrep``, ``flowCart``, and ``adjointCart``.  This is in
 addition to the overall mesh adaptation parameters set in
-:mod:`pyCart.options.runControl.Adaptation`.
+:mod:`cape.pycart.options.runControl.Adaptation`.
     
 :See Also:
     * :mod:`cape.fileCntl`

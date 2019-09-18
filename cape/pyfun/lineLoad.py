@@ -1,10 +1,10 @@
 """
-:mod:`pyFun.lineLoad`: Sectional loads module
-==============================================
+:mod:`cape.pyfun.lineLoad`: Sectional loads module
+==================================================
 
 This module contains functions for reading and processing sectional loads. It
 is a version of :mod:`cape.lineLoad` that is closely tied to
-:mod:`pyFun.dataBook`.
+:mod:`cape.pyfun.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
 is a subclass of :class:`cape.dataBook.DBBase`.  This class is an interface to
@@ -19,7 +19,7 @@ Finally, reading seam curves from individual cases utilizes the class
 :See also:
     * :mod:`cape.lineLoad`
     * :mod:`cape.dataBook`
-    * :mod:`pyFun.dataBook`
+    * :mod:`cape.pyfun.dataBook`
 """
 
 # File interface
@@ -38,7 +38,7 @@ from cape import tar
 # Line load template
 import cape.lineLoad
 # Import plt
-import pyFun.plt
+import cape.pyfun.plt
 
 
 # Data book of line loads

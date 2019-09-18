@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options.DataBook`: pyCart DataBook Options
-=======================================================
+:mod:`cape.pycart.options.DataBook`: pyCart DataBook Options
+=============================================================
 
 This module provides database options specific to pyCart/Cart3D.  The vast
 majority of database options are common to all solvers and are thus inherited
@@ -40,7 +40,7 @@ The full description of the JSON options can be found in a
 
 :See Also:
     * :mod:`cape.options.DataBook`
-    * :mod:`pyCart.options.config.Config`
+    * :mod:`cape.pycart.options.config.Config`
 """
 
 # Import options-specific utilities

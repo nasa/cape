@@ -6,7 +6,7 @@ import cape.pycart
 
 
 # Get control interface
-cntl = pyCart.Cntl()
+cntl = cape.pycart.Cntl()
 
 # Read the databook
 cntl.ReadDataBook()

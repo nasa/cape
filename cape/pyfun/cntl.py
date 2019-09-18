@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 :mod:`cape.pyfun.cntl`: FUN3D control module 
-=========================================
+================================================
 
 This module provides tools to quickly setup basic or complex FUN3D run matrices
 and serve as an executive for pre-processing, running, post-processing, and
@@ -2809,7 +2809,7 @@ class Cntl(cape.cntl.Cntl):
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
         
-        This function relies on :mod:`pyCart.case`, and so it is customized for
+        This function relies on :mod:`cape.pycart.case`, and so it is customized for
         the Cart3D solver only in that it calles the correct *case* module.
         
         :Call:

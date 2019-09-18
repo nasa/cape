@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.queue`: PBS queue interface for pyCart 
-====================================================
+:mod:`cape.pycart.queue`: PBS queue interface for pyCart 
+========================================================
 
 This module contains a Cart3D-specific interface to PBS commands such as
 ``qsub`` and ``qstat``.  It is a null module and consists solely of the code

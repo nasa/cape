@@ -52,7 +52,7 @@ import numpy as np
 # Command-line input parser
 import cape.argread as argr
 # Get the Tecplot module.
-import pyFun.plt
+import cape.pyfun.plt
 
 # Main function
 def Plt2Triq(*a, **kw):

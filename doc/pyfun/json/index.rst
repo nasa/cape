@@ -53,7 +53,7 @@ Within a Python script, the settings can be loaded with the following code.
 
     .. code-block:: python
     
-        import pyFun
+        import cape.pyfun
         
         # Loads pyFun.json
         c1 = pyFun.Cntl()
@@ -115,7 +115,7 @@ the major parts of the file.
         
         
 For more information on these options see the following sections, and the
-documentation for the module :mod:`pyFun.options` also provides descriptions
+documentation for the module :mod:`cape.pyfun.options` also provides descriptions
 of how the options are used.
 
 

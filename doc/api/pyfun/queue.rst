@@ -1,3 +1,3 @@
 
-.. automodule:: pyFun.queue
+.. automodule:: cape.pyfun.queue
     :members: 

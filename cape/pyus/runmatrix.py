@@ -1,5 +1,5 @@
 """
-:mod:`pyUS.runmatrix`: US3D run matrix module 
+:mod:`cape.pyus.runmatrix`: US3D run matrix module 
 ==================================================
 
 This module handles classes and methods that are specific to the list of run
@@ -35,7 +35,7 @@ a JSON file, and *fun3d.x* is the run matrix.
 
     .. code-block:: pycon
     
-        >>> import pyUS
+        >>> import cape.pyus
         >>> cntl = pyUS.Cntl("pyUS.json")
         >>> cntl.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
@@ -45,7 +45,7 @@ functionality is inherited from :class:`cape.runmatrix.RunMatrix`.
 
 :See Also:
     * :mod:`cape.runmatrix`
-    * :mod:`pyUS.fun3d`
+    * :mod:`cape.pyus.fun3d`
 """
 
 # Import the cape module.

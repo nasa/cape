@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.runmatrix`: Cart3D Run Matrix Module 
-==================================================
+:mod:`cape.pycart.runmatrix`: Cart3D Run Matrix Module 
+=======================================================
 
 This module handles classes and methods that are specific to the list of run
 cases (i.e., the "trajectory").  It is defined in the ``"RunMatrix"`` section

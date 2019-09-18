@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.case`: Case control module
-========================================
+:mod:`cape.pyover.case`: Case control module
+=============================================
 
 This module contains the important function :func:`case.run_overflow`, which
 actually runs ``overrunmpi`` or whichever executable is specified by the user,
@@ -455,7 +455,7 @@ def GetNamelist(rc=None, i=None):
             Namelist interface
     :Versions:
         * 2015-12-29 ``@ddalle``: First version
-        * 2015-02-02 ``@ddalle``: Copied from :mod:`pyFun.case`
+        * 2015-02-02 ``@ddalle``: Copied from :mod:`cape.pyfun.case`
         * 2016-12-12 ``@ddalle``: Added phase as optional input
     """
     # Check for detailed inputs

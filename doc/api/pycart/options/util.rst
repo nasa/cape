@@ -1,3 +1,3 @@
 
-.. automodule:: pyCart.options.util
+.. automodule:: cape.pycart.options.util
     :members:

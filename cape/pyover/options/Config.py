@@ -1,6 +1,6 @@
 """
-:mod:`pyOver.options.Config`: pyOver configurations options
-============================================================
+:mod:`cape.pyover.options.Config`: pyOver configurations options
+=================================================================
 
 This module provides options for defining some aspects of the surface
 configuration for an OVERFLOW run.  Because OVERFLOW contains its own
@@ -36,7 +36,7 @@ below.
 :See Also:
     * :mod:`cape.options.Config`
     * :mod:`cape.config`
-    * :mod:`pyOver.overNamelist`
+    * :mod:`cape.pyover.overNamelist`
 """
 
 # Import options-specific utilities
