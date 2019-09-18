@@ -14,7 +14,7 @@ obviously a solver-specific task.  It also contains the function
 recent output created by FUN3D.
 
 All of the functions from :mod:`cape.case` are imported here.  Thus they are
-available unless specifically overwritten by specific :mod:`pyFun` versions.
+available unless specifically overwritten by specific :mod:`cape.pyfun` versions.
 
 """
 

@@ -21,13 +21,13 @@ here are the links to the example pages for the main solvers:
 Currently, CAPE has interfaces for `Cart3D
 <http://people.nas.nasa.gov/~aftosmis/cart3d/>`_, `OVERFLOW
 <http://overflow.arc.nasa.gov>`_, and `FUN3D <http://fun3d.larc.nasa.gov/>`_.
-The Cart3D interface, :mod:`pyCart` has been used for several NASA projects.
+The Cart3D interface, :mod:`cape.pycart` has been used for several NASA projects.
 One example was the creation of an aerodynamic database for booster separation
 for the Space Launch System, which included over 10,000 different adaptive
 Cart3D runs in a 12-dimensional run matrix.
 
-The FUN3D interface, :mod:`pyFun`, reuses most of the code used to build
-:mod:`pyCart`, and the OVERFLOW interface, :mod:`pyOver` was constructed in a
+The FUN3D interface, :mod:`cape.pyfun`, reuses most of the code used to build
+:mod:`cape.pycart`, and the OVERFLOW interface, :mod:`cape.pyover` was constructed in a
 similar manner. All modules are built off of common tools in the :mod:`cape`
 module, and so much of the usage is common between the two interfaces. These
 interfaces can be used to run OVERFLOW/FUN3D, interact with databases, and

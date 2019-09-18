@@ -39,7 +39,7 @@ their description can be found in the :ref:`Cape JSON section <cape-json>`.
 
 The master settings file is loaded in one of two ways: a command-line call to
 the script `pyover` or loading an instance of the
-:class:`pyOver.overflow.Overflow` class. In both cases, the default name of the
+:class:`cape.pyover.cntl.Cntl` class. In both cases, the default name of the
 file is :file:`pyOver.json`, but it is possible to use other file names. The
 following two examples show the status of the run matrix; the first load the
 inputs from :file:`pyOver.json`, and the second loads the inputs from
@@ -57,9 +57,9 @@ Within a Python script, the settings can be loaded with the following code.
         import pyOver
         
         # Loads pyOver.json
-        c1 = pyOver.Overflow()
+        c1 = pyOver.Cntl()
         # Loads run/poweron.json
-        c2 = pyOver.Overflow('run/poweron.json')
+        c2 = pyOver.Cntl('run/poweron.json')
 
 The location from which either of these two methods is called (i.e., the current
 working directory) is remembered as the root directory for the run.  Locations

@@ -1,10 +1,10 @@
 """
 
-The :mod:`pyOver` module contains the top-level interface for OVERFLOW setup,
+The :mod:`cape.pyover` module contains the top-level interface for OVERFLOW setup,
 execution, and post-processing. It loads some of the most important methods
 from the various submodules so that they are easier to access. Most tasks using
 the pyOver API can be accessed by loading this module and reading one instance
-of the :class:`pyOver.overflow.Overflow` class.
+of the :class:`cape.pyover.cntl.Cntl` class.
 
     .. code-block:: python
     
@@ -18,7 +18,7 @@ you intended.)
     .. code-block:: python
         
         import pyOver
-        ofl = pyOver.Overflow()
+        cntl = pyOver.Cntl()
         
 Most of the pyOver submodules essentially contain a single class definition,
 which is derived from a similarly named :mod:`cape` module.  For example,
@@ -28,16 +28,16 @@ customization for OVERFLOW.  For example, reading iterative force & moment
 histories require a customized method for each solver.
 
 The following classes are imported in this module, so that code like
-``pyOver.Overflow`` will work (although ``pyOver.overflow.Overflow`` will also
+``pyOver.Cntl`` will work (although ``cape.pyover.cntl.Cntl`` will also
 work).
 
-    * :class:`pyOver.overflow.Overflow`
+    * :class:`cape.pyover.cntl.Cntl`
     * :class:`pyOver.runmatrix.RunMatrix`
 
 Modules included within this one are outlined below.
 
     * Core modules:
-        - :mod:`pyOver.overflow`
+        - :mod:`cape.pyover.cntl`
         - :mod:`pyOver.case`
         - :mod:`pyOver.manage`
         - :mod:`pyOver.dataBook`

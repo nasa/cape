@@ -13,7 +13,7 @@ documentation strings) are generally informative.
 
     .. code-block:: none
     
-        >>> import pyCart
+        >>> import cape.pycart
         >>> print(pyCart.AlphaTPhi2AlphaBeta.__doc__)
         
         Convert total angle of attack and total roll angle to angle of attack and

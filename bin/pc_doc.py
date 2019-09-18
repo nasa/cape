@@ -4,7 +4,7 @@ Python interface for Cart3D: **pycart**
 =======================================
 
 This function provides a master interface for pyCart. The functionality from
-this script is also accessible from the :mod:`pyCart` module using relatively
+this script is also accessible from the :mod:`cape.pycart` module using relatively
 simple commands.
 
 :Usage:

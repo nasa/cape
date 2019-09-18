@@ -25,7 +25,7 @@ Expand all :file:`adapt??.tar` files and delete the tar balls.
 
 # Modules
 import cape.argread
-import pyCart.manage
+import cape.pycart.manage
 # System interface.
 import sys
         
@@ -41,5 +41,5 @@ if __name__ == "__main__":
         print(cape.text.markdown(__doc__))
         sys.exit()
     # Do the plotting.
-    pyCart.manage.ExpandAdapt()
+    cape.pycart.manage.ExpandAdapt()
     

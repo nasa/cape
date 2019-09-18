@@ -23,7 +23,7 @@ that can be divided into several categories:
     
 :See Also:
     * :mod:`cape.fileCntl`
-    * :mod:`pyCart.cart3d`
+    * :mod:`cape.pycart.cntl`
 """
 
 # Import the base file control class.

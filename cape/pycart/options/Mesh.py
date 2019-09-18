@@ -19,7 +19,7 @@ capabilities.
       
 These ``BBox`` and ``XLev`` instructions edit the file
 :file:`preSpec.c3d.cntl`.  The ``BBox`` instructions are applied via the method
-:func:`pyCart.cart3d.Cart3d.PreparePreSpecCntl`.  This file is an input file to
+:func:`cape.pycart.cntl.Cntl.PreparePreSpecCntl`.  This file is an input file to
 ``cubes`` and affects the resolution of the volume created.
 
 :See Also:

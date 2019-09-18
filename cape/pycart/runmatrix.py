@@ -35,9 +35,9 @@ a JSON file, and *cart3d.x* is the run matrix.
 
     .. code-block:: pycon
     
-        >>> import pyCart
-        >>> cart3d = pyCart.Cart3d("pyCart.json")
-        >>> cart3d.x.GetFullFolderNames()
+        >>> import cape.pycart
+        >>> cntl = pyCart.Cntl("pyCart.json")
+        >>> cntl.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
         
 For this module, there are no methods that are particular to Cart3D.  All
@@ -45,7 +45,7 @@ functionality is inherited from :class:`cape.runmatrix.RunMatrix`.
 
 :See Also:
     * :mod:`cape.runmatrix`
-    * :mod:`pyCart.cart3d`
+    * :mod:`cape.pycart.cntl`
 """
 
 # Import the cape module.

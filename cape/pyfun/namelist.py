@@ -79,8 +79,8 @@ See also:
 
     * :mod:`cape.namelist`
     * :func:`pyFun.case.GetNamelist`
-    * :func:`pyFun.fun3d.Fun3d.ReadNamelist`
-    * :func:`pyFun.fun3d.Fun3d.PrepareNamelist`
+    * :func:`cape.pyfun.cntl.Cntl.ReadNamelist`
+    * :func:`cape.pyfun.cntl.Cntl.PrepareNamelist`
 
 """
 

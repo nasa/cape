@@ -8,7 +8,7 @@ The various methods used by pyCart, pyFun, and pyOver are based on a set of
 Python modules with a few capabilities written in C (with a full Python/C
 interface).  In order to reduce the number of lines, most of the base
 functionality is provided by a common module :mod:`cape`.  Then each of the
-modules for individual solvers (:mod:`pyCart`, :mod:`pyFun`, :mod:`pyOver`) are
+modules for individual solvers (:mod:`cape.pycart`, :mod:`cape.pyfun`, :mod:`cape.pyover`) are
 based off of this module.  Furthermore, pyCart is a heavily object-oriented
 implementation in which the vast majority of capabilities come from customized
 classes.
@@ -23,27 +23,27 @@ primary command-line interface via a command such as
     
         $ pycart -f run/poweroff.json -c
         
-the program works by loading an instance of :class:`pyCart.cart3d.Cart3d` by
+the program works by loading an instance of :class:`cape.pycart.cntl.Cntl` by
 reading :file:`run/poweroff.json` and using methods of that instance.  In this
 case, the Python version of the above is shown below.
 
     .. code-block:: python
         
         # Load the pyCart API module
-        import pyCart
+        import cape.pycart
         
         # Read the settings from the JSON file
-        cart3d = pyCart.Cart3d('run/powroff.json')
+        cntl = pyCart.Cntl('run/powroff.json')
         
         # Do something (in this case, the "-c" command)
-        cart3d.DisplayStatus()
+        cntl.DisplayStatus()
 
 The basic modules based on this model are listed below:
 
     * :mod:`cape.cntl.Cntl`
-    * :mod:`pyCart.cart3d.Cart3d`
-    * :mod:`pyFun.fun3d.Fun3d`
-    * :mod:`pyOver.overflow.Overflow`
+    * :mod:`cape.pycart.cntl.Cntl`
+    * :mod:`cape.pyfun.cntl.Cntl`
+    * :mod:`cape.pyover.cntl.Cntl`
     
 Reading the JSON files depends heavily on the :mod:`cape.options` module.  The
 majority of :ref:`JSON settings <cape-json>` are defined in :mod:`cape.json`,
@@ -53,7 +53,7 @@ defined in :mod:`pyCart.options`, etc.
 There are also a collection of helper modules, such as :mod:`pyCart.report`.
 These typically provide one or more classes (such as
 :class:`pyCart.report.Report`) which add a few methods to the :mod:`cape`
-version.  This leads to a definition for the :mod:`pyCart` version of the
+version.  This leads to a definition for the :mod:`cape.pycart` version of the
 module that starts something like the following.
 
     .. code-block:: python

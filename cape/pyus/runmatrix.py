@@ -36,8 +36,8 @@ a JSON file, and *fun3d.x* is the run matrix.
     .. code-block:: pycon
     
         >>> import pyUS
-        >>> fun3d = pyUS.Fun3d("pyUS.json")
-        >>> fun3d.x.GetFullFolderNames()
+        >>> cntl = pyUS.Cntl("pyUS.json")
+        >>> cntl.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
         
 For this module, there are no methods that are particular to FUN3D.  All

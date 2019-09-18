@@ -1,7 +1,7 @@
 .. Documentation for the overall pyCart module.
 
 ************************
-The :mod:`pyCart` module
+The :mod:`cape.pycart` module
 ************************
 
 .. automodule:: pyCart

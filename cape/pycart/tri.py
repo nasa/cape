@@ -43,7 +43,7 @@ such a configuration can be done with the following commands.
 
     .. code-block:: python
     
-        import pyCart.tri
+        import cape.pycart.tri
         tri = pyCart.tri.Tri("Components.i.tri", c="Config.xml")
         
 Note that Cart3D's interpretation of the XML file is very strict.  There cannot

@@ -42,7 +42,7 @@ def cubes(cart3d=None, opts=None, j=0, **kw):
         >>> cmd = pyCart.cmd.cubes(opts=rc, j=0)
         >>> cmd = pyCart.cmd.cubes(maxR=11, reorder=True, **kwargs)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Global pyCart settings instance
         *j*: {``0``} | :class:`int`
             Phase number
@@ -72,7 +72,7 @@ def cubes(cart3d=None, opts=None, j=0, **kw):
     # Check cart3d input
     if cart3d is not None:
         # Extract options
-        opts = cart3d.opts
+        opts = cntl.opts
     # Check input method
     if opts is not None:
         # Apply values
@@ -110,7 +110,7 @@ def mgPrep(cart3d=None, opts=None, j=0, **kw):
         >>> cmd = pyCart.cmd.mgPrep(opts=rc, j=0)
         >>> cmd = pyCart.cmd.mgPrep(**kw)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Global pyCart settings instance
         *j*: {``0``} | :class:`int`
             Phase number
@@ -129,7 +129,7 @@ def mgPrep(cart3d=None, opts=None, j=0, **kw):
     # Check cart3d input.
     if cart3d is not None:
         # Extract the options
-        opts = cart3d.opts
+        opts = cntl.opts
     # Check input type
     if opts is not None:
         # Apply values
@@ -157,7 +157,7 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
         >>> cmd = pyCart.cmd.autoInputs(opts=rc, j=0)
         >>> cmd = pyCart.cmd.autoInputs(ftri='Components.i.tri', **kw)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Global pyCart settings instance
         *j*: {``0``} | :class:`int`
             Phase number
@@ -180,7 +180,7 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
     # Check cart3d input.
     if cart3d is not None:
         # Extract options
-        opts = cart3d.opts
+        opts = cntl.opts
     # Check input type
     if opts is not None:
         # Apply values
@@ -219,7 +219,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         >>> cmdi = pyCart.cmd.flowCart(fc=None, i=0)
         >>> cmdi = pyCart.cmd.flowCart(**kwargs)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Global pyCart settings instance
         *fc*: :class:`pyCart.options.flowCart.flowCart`
             Direct reference to ``cart3d.opts['flowCart']``
@@ -270,29 +270,29 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     # Check for cart3d input
     if cart3d is not None:
         # Get values from internal settings.
-        mpi_fc  = cart3d.opts.get_MPI(i)
-        it_fc   = cart3d.opts.get_it_fc(i)
-        it_avg  = cart3d.opts.get_it_avg(i)
-        it_sub  = cart3d.opts.get_it_sub(i)
-        limiter = cart3d.opts.get_limiter(i)
-        y_span  = cart3d.opts.get_y_is_spanwise(i)
-        binIO   = cart3d.opts.get_binaryIO(i)
-        tecO    = cart3d.opts.get_tecO(i)
-        cfl     = cart3d.opts.get_cfl(i)
-        cflmin  = cart3d.opts.get_cflmin(i)
-        mg_fc   = cart3d.opts.get_mg_fc(i)
-        fmg     = cart3d.opts.get_fmg(i)
-        tm      = cart3d.opts.get_tm(i)
-        nProc   = cart3d.opts.get_nProc(i)
-        mpicmd  = cart3d.opts.get_mpicmd(i)
-        buffLim = cart3d.opts.get_buffLim(i)
-        td_fc   = cart3d.opts.get_unsteady(i)
-        dt      = cart3d.opts.get_dt(i)
-        chkptTD = cart3d.opts.get_checkptTD(i)
-        vizTD   = cart3d.opts.get_vizTD(i)
-        clean   = cart3d.opts.get_fc_clean(i)
-        nstats  = cart3d.opts.get_fc_stats(i)
-        clic    = cart3d.opts.get_clic(i)
+        mpi_fc  = cntl.opts.get_MPI(i)
+        it_fc   = cntl.opts.get_it_fc(i)
+        it_avg  = cntl.opts.get_it_avg(i)
+        it_sub  = cntl.opts.get_it_sub(i)
+        limiter = cntl.opts.get_limiter(i)
+        y_span  = cntl.opts.get_y_is_spanwise(i)
+        binIO   = cntl.opts.get_binaryIO(i)
+        tecO    = cntl.opts.get_tecO(i)
+        cfl     = cntl.opts.get_cfl(i)
+        cflmin  = cntl.opts.get_cflmin(i)
+        mg_fc   = cntl.opts.get_mg_fc(i)
+        fmg     = cntl.opts.get_fmg(i)
+        tm      = cntl.opts.get_tm(i)
+        nProc   = cntl.opts.get_nProc(i)
+        mpicmd  = cntl.opts.get_mpicmd(i)
+        buffLim = cntl.opts.get_buffLim(i)
+        td_fc   = cntl.opts.get_unsteady(i)
+        dt      = cntl.opts.get_dt(i)
+        chkptTD = cntl.opts.get_checkptTD(i)
+        vizTD   = cntl.opts.get_vizTD(i)
+        clean   = cntl.opts.get_fc_clean(i)
+        nstats  = cntl.opts.get_fc_stats(i)
+        clic    = cntl.opts.get_clic(i)
     elif fc is not None:
         # Get values from direct settings.
         mpi_fc  = fc.get_MPI(i)

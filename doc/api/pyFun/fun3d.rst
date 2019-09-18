@@ -1,11 +1,11 @@
 .. Documentation for the main fun3d submodule
 
-.. automodule:: pyFun.fun3d
+.. automodule:: cape.pyfun.cntl
      
     
-    FUN3D executive class: :class:`pyFun.fun3d.Fun3d`
+    FUN3D executive class: :class:`cape.pyfun.cntl.Cntl`
     -----------------------------------------------------
 
-    .. autoclass:: pyFun.fun3d.Fun3d
+    .. autoclass:: cape.pyfun.cntl.Cntl
         :members:
     

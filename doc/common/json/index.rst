@@ -7,7 +7,7 @@ Common JSON Settings
 
 The following JSON settings are available to the :mod:`cape` basis module and
 apply to each of the solvers.  Most of these settings will have the same
-meaning for :mod:`pyCart`, :mod:`pyFun`, and :mod:`pyOver`, although some of
+meaning for :mod:`cape.pycart`, :mod:`cape.pyfun`, and :mod:`cape.pyover`, although some of
 them are superseded by modified options in those derived modules.
 
 The template name for the baseline control file is :file:`cape.json`.  It can

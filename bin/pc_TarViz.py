@@ -27,7 +27,7 @@ the following changes are made.
 
 # Modules
 import cape.argread
-import pyCart.manage
+import cape.pycart.manage
 # System interface.
 import sys
         

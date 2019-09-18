@@ -59,9 +59,9 @@ There is also a method :func:`MapBC.SetBC` that can be used to change the
 FUN3D boundary condition indices.
 
 :See also:
-    * :mod:`pyFun.fun3d`
-    * :func:`pyFun.fun3d.Fun3d.ReadMapBC`
-    * :func:`pyFun.fun3d.Fun3d.PrepareNamelistConfig`
+    * :mod:`cape.pyfun.cntl`
+    * :func:`cape.pyfun.cntl.Cntl.ReadMapBC`
+    * :func:`cape.pyfun.cntl.Cntl.PrepareNamelistConfig`
 
 """
 

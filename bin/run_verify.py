@@ -11,7 +11,7 @@ if a restart is appropriate, etc.), sets that case up, and runs it.
 """
 
 # Import the module specifically for this task.
-import pyCart.bin
+import cape.pycart.bin
 
 # Simple function to call the main function of that module.
 def run_verify():

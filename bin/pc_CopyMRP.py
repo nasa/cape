@@ -32,14 +32,19 @@ Go through folders and copy the MRP from one component to another component.
     * 2015-03-23 ``@ddalle``: First version
 """
 
-# Import the full module
-import pyCart
-# Input parsing
-from cape.argread import readkeys
-# File control
-import os, glob
-# Numerics
+# Standard library
+import os
+import sys
+import glob
+
+# Third-party
 from numpy import sqrt
+
+# Local
+import cape.pycart
+# Local, relative
+from cape.argread import readkeys
+
 
 # Function to fix an individual case
 def CopyCaseMRP(cart3d, comp1, comp2):
@@ -53,7 +58,7 @@ def CopyCaseMRP(cart3d, comp1, comp2):
     :Call:
         >>> CopyCaseMRP(cart3d, comp1, comp2)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Master Cart3D interface instance
         *comp1*: :class:`str`
             Name of component that will be copied from
@@ -86,7 +91,7 @@ def CopyCaseMRP(cart3d, comp1, comp2):
     # Get the distance between the two.
     L = sqrt((xo[0]-xi[0])**2 + (xo[1]-xi[1])**2 + (xo[2]-xi[2])**2)
     # Reference length
-    Lref = cart3d.opts.get_RefLength()
+    Lref = cntl.opts.get_RefLength()
     # Check the distance.
     if L/Lref <= 0.01: return
     # Process the best data folder.
@@ -111,13 +116,13 @@ def CopyCaseMRP(cart3d, comp1, comp2):
 # Check if run as a script.
 if __name__ == "__main__":
     # Parse inputs.
-    a, kw = readkeys(pyCart.os.sys.argv)
+    a, kw = cape.argread.readkeys(sys.argv)
     
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
         import cape.text
         print(cape.text.markdown(__doc__))
-        pyCart.os.sys.exit()
+        sys.exit()
         
     # Check for adequate components.
     if len(a) != 2:
@@ -131,7 +136,7 @@ if __name__ == "__main__":
     fname = kw.get('f', 'pyCart.json')
     
     # Try to read it.
-    cart3d = pyCart.Cart3d(fname)
+    cntl = cape.pycart.Cntl(fname)
     
     # Get constraints and convert text to list.
     cons  = kw.get('cons',        '').split(',')
@@ -140,12 +145,12 @@ if __name__ == "__main__":
     kw['cons'] = cons
     # Check for index list
     if 'I' in kw:
-        kw['I'] = cart3d.x.ExpandIndices(kw['I'])
+        kw['I'] = cntl.x.ExpandIndices(kw['I'])
     
     # Apply the constraints.
-    I = cart3d.x.GetIndices(**kw)
+    I = cntl.x.GetIndices(**kw)
     # Get the case names.
-    fruns = cart3d.x.GetFullFolderNames(I)
+    fruns = cntl.x.GetFullFolderNames(I)
     
     # Loop through the runs.
     for frun in fruns:

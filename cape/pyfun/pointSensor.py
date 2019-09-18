@@ -17,7 +17,7 @@ FUN3D output that can be requested from ``fun3d.nml``.
 :See also:
     * :mod:`cape.pointSensor`
     * :mod:`pyFun.dataBook`
-    * :mod:`pyFun.fun3d`
+    * :mod:`cape.pyfun.cntl`
     * :mod:`pyFun.plt`
     * :mod:`cape.dataBook`
     * :mod:`cape.tri`

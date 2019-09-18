@@ -31,7 +31,7 @@ to a file called :file:`jobID.dat` or the value of *FOUT* (see below).
 """
 
 # Import the full module
-import pyCart.queue
+import cape.pycart.queue
 # Input parsing
 from pyCart.argread import readflagstar
     

@@ -19,7 +19,7 @@ solution file (``"TriqPoint"`` data book type).
 :See also:
     * :mod:`cape.pointSensor`
     * :mod:`pyCart.dataBook`
-    * :mod:`pyCart.cart3d`
+    * :mod:`cape.pycart.cntl`
     * :mod:`pyCart.inputCntl`
     * :mod:`cape.dataBook`
 """

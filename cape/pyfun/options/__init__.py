@@ -1,7 +1,7 @@
 """
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyFun`.  The class is based off of the built-in :class:`dict` class, so
+:mod:`cape.pyfun`.  The class is based off of the built-in :class:`dict` class, so
 its default behavior, such as ``opts['Namelist']`` or 
 ``opts.get('Namelist')`` are also present.  In addition, many convenience
 methods, such as ``opts.get_project_rootname()``, are also provided.

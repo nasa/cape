@@ -2,7 +2,7 @@
 Post-processing module: :mod:`pyCart.post`
 ==========================================
 
-This is the :mod:`pyCart` post-processing module.  Primarily it is focused on
+This is the :mod:`cape.pycart` post-processing module.  Primarily it is focused on
 reading :file:`loadsCC.dat` and :file:`loadsTRI.dat` files.
 """
 
@@ -20,8 +20,8 @@ class LoadsDat:
         >>> FM = pyCart.LoadsDat(cart3d=None, fname="loadsCC.dat")
     
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
-            Overall :mod:`pyCart` control instance
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            Overall :mod:`cape.pycart` control instance
         *fname*: :class:`str`
             Name of individual files to read
     
@@ -63,7 +63,7 @@ class LoadsDat:
             # Quit.
             return None
         # Get the folder names.
-        fnames = cart3d.RunMatrix.GetFullFolderNames()
+        fnames = cntl.RunMatrix.GetFullFolderNames()
         # Initialize the component list.
         self.Components = []
         # Initialize the force coefficients
@@ -73,7 +73,7 @@ class LoadsDat:
         self.C_l = {}; self.C_m = {}; self.C_n = {}
         self.C_M_x = {}; self.C_M_y = {}; self.C_M_z = {}
         # Number of cases.
-        nCase = cart3d.RunMatrix.nCase
+        nCase = cntl.RunMatrix.nCase
         # Loop through the files.
         for i in range(nCase):
             # Create the file name.

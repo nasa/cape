@@ -251,7 +251,7 @@ def _assertfile(fname):
     if not os.path.isfile(fname):
         raise IOError("No input file '%s' found." % fname)
         
-# Function to automate minor changes to docstrings to make them pyCart.Cart3d
+# Function to automate minor changes to docstrings to make them pyCart.Cntl
 def _upgradeDocString(doccmd):
     """Upgrade docstrings from the :mod:`pyCart.bin` class
     

@@ -11,9 +11,9 @@ of this customized data file.
 
 :See also:
     * :mod:`cape.fileCntl`
-    * :mod:`pyFun.fun3d`
-    * :func:`pyFun.fun3d.Fun3d.ReadRubberData`
-    * :func:`pyFun.fun3d.Fun3d.PrepareRubberData`
+    * :mod:`cape.pyfun.cntl`
+    * :func:`cape.pyfun.cntl.Cntl.ReadRubberData`
+    * :func:`cape.pyfun.cntl.Cntl.PrepareRubberData`
 """
 
 # Numerics

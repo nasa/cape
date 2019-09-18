@@ -195,10 +195,10 @@ which can be a useful skill to investigate trends, etc.
 
     .. code-block:: pycon
     
-        >>> import pyCart
-        >>> cart3d = pyCart.Cart3d()
-        >>> cart3d.ReadDataBook()
-        >>> cart3d.DataBook.Components
+        >>> import cape.pycart
+        >>> cntl = pyCart.Cntl()
+        >>> cntl.ReadDataBook()
+        >>> cntl.DataBook.Components
         [u'cap',
          u'body',
          u'fins',
@@ -209,8 +209,8 @@ which can be a useful skill to investigate trends, etc.
          u'fin2',
          u'fin3',
          u'fin4']
-        >>> DBfins = cart3d.DataBook['fins']
-        >>> I = cart3d.x.Filter(['alpha==2'])
+        >>> DBfins = cntl.DataBook['fins']
+        >>> I = cntl.x.Filter(['alpha==2'])
         >>> DBfins.PlotCoeff('CN', I)
         
 This quick example opens up a :mod:`matplotlib` figure which leads to the

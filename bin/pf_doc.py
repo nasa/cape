@@ -4,7 +4,7 @@ Python interface for FUN3D: **pyfun**
 =====================================
 
 This function provides a master interface for pyFun.  All of the functionality
-from this script is also accessible from the :mod:`pyFun` module using
+from this script is also accessible from the :mod:`cape.pyfun` module using
 relatively simple commands.
 
 :Usage:

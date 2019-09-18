@@ -3,7 +3,7 @@
 ===============================================================
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyFun`.  It is based off of the :mod:`cape.options.util` module and
+:mod:`cape.pyfun`.  It is based off of the :mod:`cape.options.util` module and
 provides a special class :class:`cape.options.odict` that is subclassed from
 the Python built-in :class:`dict`.  Behavior, such as ``opts['Namelist']`` or 
 ``opts.get('Namelist')`` are also present.  In addition, many convenience

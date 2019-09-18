@@ -2,7 +2,7 @@
 .. _test-pycart:
 
 ---------------------
-Testing :mod:`pyCart`
+Testing :mod:`cape.pycart`
 ---------------------
 
 Many of the API tests can be confined to the :mod:`cape` version.  In addition,

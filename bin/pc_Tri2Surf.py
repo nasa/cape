@@ -45,7 +45,7 @@ the extension to the input (deleting ``.tri`` if possible).
 """
 
 # Get the pyCart module.
-import pyCart
+import cape.pycart
 # Module to handle inputs and os interface
 import sys
 # Command-line input parser

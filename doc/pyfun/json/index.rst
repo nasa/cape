@@ -38,7 +38,7 @@ the Cape root directory.  Many of the settings are common to all solvers, and
 their description can be found in the :ref:`Cape JSON section <cape-json>`.
 
 The master settings file is loaded in one of two ways: a command-line call to
-the script `pyfun` or loading an instance of the :class:`pyFun.fun3d.Fun3d`
+the script `pyfun` or loading an instance of the :class:`cape.pyfun.cntl.Cntl`
 class.  In both cases, the default name of the file is :file:`pyFun.json`, but
 it is possible to use other file names.  The following two examples show the
 status of the run matrix; the first load the inputs from :file:`pyFun.json`,
@@ -56,9 +56,9 @@ Within a Python script, the settings can be loaded with the following code.
         import pyFun
         
         # Loads pyFun.json
-        c1 = pyFun.Fun3d()
+        c1 = pyFun.Cntl()
         # Loads run/poweron.json
-        c2 = pyFun.Fun3d('run/poweron.json')
+        c2 = pyFun.Cntl('run/poweron.json')
 
 The location from which either of these two methods is called (i.e., the current
 working directory) is remembered as the root directory for the run.  Locations

@@ -43,7 +43,7 @@ def cubes(cart3d=None, opts=None, j=0, **kwargs):
     cmdi = cmd.cubes(cart3d=cart3d, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cart3d:
-        v = cart3d.opts.get_Verbose(j)
+        v = cntl.opts.get_Verbose(j)
     elif opts:
         v = opts.get_Verbose(j)
     else:
@@ -61,7 +61,7 @@ def mgPrep(cart3d=None, opts=None, j=0, **kwargs):
     cmdi = cmd.mgPrep(cart3d=cart3d, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cart3d:
-        v = cart3d.opts.get_Verbose(j)
+        v = cntl.opts.get_Verbose(j)
     elif opts:
         v = opts.get_Verbose(j)
     else:
@@ -77,7 +77,7 @@ def autoInputs(cart3d=None, opts=None, j=0, **kwargs):
     cmdi = cmd.autoInputs(cart3d, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cart3d:
-        v = cart3d.opts.get_Verbose(j)
+        v = cntl.opts.get_Verbose(j)
     elif opts:
         v = opts.get_Verbose(j)
     else:
@@ -101,7 +101,7 @@ def flowCart(cart3d=None, i=0, **kwargs):
     # Check for cart3d input
     if cart3d is not None:
         # Get values from internal settings.
-        nProc   = cart3d.opts.get_OMP_NUM_THREADS(i)
+        nProc   = cntl.opts.get_OMP_NUM_THREADS(i)
     else:
         # Get values from keyword arguments
         nProc   = kwargs.get('nProc', 4)
@@ -112,7 +112,7 @@ def flowCart(cart3d=None, i=0, **kwargs):
     cmdi = cmd.flowCart(cart3d=cart3d, i=i, **kwargs)
     # Get verbose option
     if cart3d:
-        v = cart3d.opts.get_Verbose(j)
+        v = cntl.opts.get_Verbose(j)
     elif opts:
         v = opts.get_Verbose(j)
     else:

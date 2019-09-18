@@ -62,7 +62,7 @@ actual Cart3D run, the prepared surface triangulation file will be called
     *TriFile*: {``"Components.i.tri"``} | :class:`str` | :class:`list` (*str*)
         This can be either the name of a single triangulation file (specified
         relative to the pyCart root folder, which is the folder from which
-        either `pycart` is called or :func:`pyCart.cart3d.Cart3d` is called, or
+        either `pycart` is called or :func:`cape.pycart.cntl.Cntl` is called, or
         a list of such triangulation files.  If a list, the files will be read
         in the order listed, which affects node and face numbering.  If the
         component ID numbers of the multiple tri files do not overlap, they will

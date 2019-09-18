@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pyCart
+import cape.pycart
 import cape.test
 import os, shutil, glob
 
@@ -24,16 +24,16 @@ cape.test.callt('pycart -f fins.json -I 8', "Failed to run case 8.")
 cape.test.callt('pycart -f fins.json --aero', "Failed to collect aero data.")
 
 # API DataBook read
-print("\n> cart3d.ReadDataBook()")
+print("\n> cntl.ReadDataBook()")
 os.sys.stdout.flush()
 try:
     # Read the databook
-    cart3d = pyCart.Cart3d('fins.json')
-    cart3d.ReadDataBook()
+    cntl = pyCart.Cntl('fins.json')
+    cntl.ReadDataBook()
     # Sort
-    cart3d.DataBook.UpdateRunMatrix()
+    cntl.DataBook.UpdateRunMatrix()
     # Get component
-    DBc = cart3d.DataBook['fins']
+    DBc = cntl.DataBook['fins']
     # Get the value.
     i = DBc.FindMatch(8)
     CN = DBc['CN'][i]

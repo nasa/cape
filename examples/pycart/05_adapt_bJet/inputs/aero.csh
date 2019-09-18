@@ -687,12 +687,12 @@ else # not a restart
     if ( $cubes_b < 2 ) then
       set cubes_b = 2
     endif
-    cubes -v -verify -a $cubes_a -maxR $maxR -b $cubes_b $reorder $is2D $prespec -no_est $Internal >> cart3d.out
+    cubes -v -verify -a $cubes_a -maxR $maxR -b $cubes_b $reorder $is2D $prespec -no_est $Internal >> cntl.out
     if ($status != 0) then
       echo "==> CUBES failed"
       goto ERROR
     endif
-    set nCells = `grep "  hex cells  is:" cart3d.out | awk '{print $8}'`
+    set nCells = `grep "  hex cells  is:" cntl.out | awk '{print $8}'`
   else
     echo "Jumpstarting from a given initial mesh"
     if ( -e ../Mesh.c3d.Info ) then
@@ -745,8 +745,8 @@ while ( 1 )
     # prepare mg meshes: generate only the required number of levels
     if ( ! -e Mesh.mg.c3d ) then # restart check, skip if done
       while ( $mg_levs > 1 )
-        echo "$mgprep -n $mg_levs -verifyInput $pmg" >> cart3d.out
-        $mgprep -n $mg_levs -verifyInput $pmg >> cart3d.out
+        echo "$mgprep -n $mg_levs -verifyInput $pmg" >> cntl.out
+        $mgprep -n $mg_levs -verifyInput $pmg >> cntl.out
         if ( $status == 0 ) then
           break
         else
@@ -777,7 +777,7 @@ while ( 1 )
       \rm -f Mesh.R.c3d
     endif
     
-    ( $timer $flowCart $verb -his -N $it_fc -T $binaryIO -clic $mg_gs_fc $mg_levs -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise $fc_restart $fmg $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+    ( $timer $flowCart $verb -his -N $it_fc -T $binaryIO -clic $mg_gs_fc $mg_levs -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise $fc_restart $fmg $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
     set exit_status = $status
     if ( 0 != $exit_status ) then
       if ( 253 == $exit_status) then   
@@ -811,7 +811,7 @@ while ( 1 )
           mv input.cntl input.not_robust.cntl
           awk '{if ("RK"==$1){print $1,"  ",$2,"  ",1}else{print $0}}' \
               input.not_robust.cntl > input.cntl            
-          ( $timer $flowCart $verb -his -N $it_fc -T $binaryIO -clic $mg_gs_fc $mg_levs -limiter $limiter -tm 0 -cfl $cfl $y_is_spanwise $fc_restart $fmg $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+          ( $timer $flowCart $verb -his -N $it_fc -T $binaryIO -clic $mg_gs_fc $mg_levs -limiter $limiter -tm 0 -cfl $cfl $y_is_spanwise $fc_restart $fmg $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
           set exit_status = $status
         endif
         
@@ -819,16 +819,16 @@ while ( 1 )
           echo "==> $flowCart failed with status $exit_status ... trying cold start with CFL $cflmin"
           set gs_it = 2
           @ gs_it *= $it_ad
-          ( $timer $flowCart $verb -his -N $gs_it -T $binaryIO -clic $mg_gs_fc $mg_levs -limiter $limiter -tm 0 -cfl $cflmin $y_is_spanwise -no_fmg -buffLim $subcell >> cart3d.out ) >&! $timeInfo
+          ( $timer $flowCart $verb -his -N $gs_it -T $binaryIO -clic $mg_gs_fc $mg_levs -limiter $limiter -tm 0 -cfl $cflmin $y_is_spanwise -no_fmg -buffLim $subcell >> cntl.out ) >&! $timeInfo
           set exit_status = $status
         endif
       else # 2D case
         echo "==> $flowCart warm-start failed with status $exit_status ... trying cold start with CFL $cflmin"
-        ( $timer $flowCart $verb -his -N $it_ad -T $binaryIO -clic $mg_gs_fc $mg_levs -limiter $limiter -tm $tm -cfl $cflmin $y_is_spanwise $subcell >> cart3d.out ) >&! $timeInfo
+        ( $timer $flowCart $verb -his -N $it_ad -T $binaryIO -clic $mg_gs_fc $mg_levs -limiter $limiter -tm $tm -cfl $cflmin $y_is_spanwise $subcell >> cntl.out ) >&! $timeInfo
         set exit_status = $status
       endif
       if ($exit_status != 0) then
-        echo "==> $flowCart failed with status $exit_status ... giving up, check cart3d.out"
+        echo "==> $flowCart failed with status $exit_status ... giving up, check cntl.out"
         goto ERROR
       endif
     endif
@@ -975,7 +975,7 @@ while ( 1 )
       # go directly into TM=0 mode or first-order mode
       set exit_status = 1
     else
-      ( $timer $xsensit $verb -dQ -limiter $limiter -tm $tm $y_is_spanwise $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+      ( $timer $xsensit $verb -dQ -limiter $limiter -tm $tm $y_is_spanwise $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
       set exit_status = $status
       if ($exit_status != 0) then
         echo "==> $xsensit failed with status $exit_status"
@@ -986,7 +986,7 @@ while ( 1 )
         \rm -f $timeInfo
       endif
       
-      ( $timer $adjointCart $verb -his -N $it_ad $mg_gs_ad $mg_levs -T $binaryIO -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise $fmg $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+      ( $timer $adjointCart $verb -his -N $it_ad $mg_gs_ad $mg_levs -T $binaryIO -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise $fmg $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
       set exit_status = $status
       if ( -o $timeInfo ) then
         set adjointCartTime = `grep -e "user " $timeInfo | awk '{printf "%d", $2 }'`
@@ -1014,7 +1014,7 @@ while ( 1 )
           \rm -f checkADJ.* >& /dev/null
           set gs_it = 2 # double number of iters
           @ gs_it *= $it_ad 
-          ( $timer $adjointCart $verb -his -N $gs_it -gs $mg_levs -T $binaryIO -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise $fmg $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+          ( $timer $adjointCart $verb -his -N $gs_it -gs $mg_levs -T $binaryIO -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise $fmg $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
           set exit_status = $status
           if ( -o $timeInfo ) then
             @ adjointCartTime += `grep -e "user " $timeInfo | awk '{printf "%d", $2 }'`
@@ -1056,7 +1056,7 @@ while ( 1 )
       else
 	@ it_tm = $it_fc + $ws_it[$x] / 2
       endif
-      ( $timer $flowCart $verb -his -N $it_tm -T $binaryIO -clic $mg_gs_fc $mg_levs_saved -limiter $limiter -tm 0 -cfl $cfl $y_is_spanwise -restart $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+      ( $timer $flowCart $verb -his -N $it_tm -T $binaryIO -clic $mg_gs_fc $mg_levs_saved -limiter $limiter -tm 0 -cfl $cfl $y_is_spanwise -restart $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
       if ($status != 0) then
 	echo "==> $flowCart failed in tm=0 mode"
 	goto ERROR
@@ -1071,7 +1071,7 @@ while ( 1 )
       ln -sf `\ls -1tr check.* | tail -1` Flow.file
       ln -sf `\ls -1tr checkDT.* | tail -1` DT.file
 
-      ( $timer $xsensit $verb -dQ -limiter $limiter -tm 0 $y_is_spanwise $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+      ( $timer $xsensit $verb -dQ -limiter $limiter -tm 0 $y_is_spanwise $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
       if ($status != 0) then
 	echo "==> $xsensit failed"
 	goto ERROR
@@ -1081,7 +1081,7 @@ while ( 1 )
 	\rm -f $timeInfo
       endif
       
-      ( $timer $adjointCart $verb -his -N $it_ad $mg_gs_ad $mg_levs -T $binaryIO -limiter $limiter -tm 0 -cfl $cfl $y_is_spanwise $fmg $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+      ( $timer $adjointCart $verb -his -N $it_ad $mg_gs_ad $mg_levs -T $binaryIO -limiter $limiter -tm 0 -cfl $cfl $y_is_spanwise $fmg $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
       set exit_status = $status
       if ( -o $timeInfo ) then
 	@ adjointCartTime += `grep -e "user " $timeInfo | awk '{printf "%d", $2 }'`
@@ -1127,7 +1127,7 @@ while ( 1 )
         set mg_pmg_auto = 2
       endif
       
-      $mgprep -n $mg_pmg_auto -verifyInput -pmg > cart3d.out
+      $mgprep -n $mg_pmg_auto -verifyInput -pmg > cntl.out
       set exit_status = $status
       if ( $exit_status != 0 ) then
         echo "==> $mgprep failed trying to make pMG mesh ... extremely rare"
@@ -1141,7 +1141,7 @@ while ( 1 )
       else
         @ it_pmg = $it_fc + $ws_it[$x] / 2
       endif
-      ( $timer $flowCart $verb -his -N $it_pmg -T $binaryIO -clic -mg $mg_pmg_auto -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise -restart $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+      ( $timer $flowCart $verb -his -N $it_pmg -T $binaryIO -clic -mg $mg_pmg_auto -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise -restart $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
       if ($status != 0) then
         echo "==> $flowCart failed in pMG mode"
         goto ERROR
@@ -1156,7 +1156,7 @@ while ( 1 )
       ln -sf `\ls -1tr check.* | tail -1` Flow.file
       ln -sf `\ls -1tr checkDT.* | tail -1` DT.file
 
-      ( $timer $xsensit $verb -dQ -limiter $limiter -tm $tm $y_is_spanwise $blcc $buffLim $subcell >> cart3d.out ) >&! $timeInfo
+      ( $timer $xsensit $verb -dQ -limiter $limiter -tm $tm $y_is_spanwise $blcc $buffLim $subcell >> cntl.out ) >&! $timeInfo
       if ($status != 0) then
         echo "==> $xsensit failed"
         goto ERROR
@@ -1166,7 +1166,7 @@ while ( 1 )
         \rm -f $timeInfo
       endif
       
-      ( $timer $adjointCart $verb -his -N $it_ad -mg $mg_pmg_auto -T $binaryIO -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise $fmg $blcc $buffLim >> cart3d.out ) >&! $timeInfo
+      ( $timer $adjointCart $verb -his -N $it_ad -mg $mg_pmg_auto -T $binaryIO -limiter $limiter -tm $tm -cfl $cfl $y_is_spanwise $fmg $blcc $buffLim >> cntl.out ) >&! $timeInfo
       set exit_status = $status
       if ( -o $timeInfo ) then
         @ adjointCartTime += `grep -e "user " $timeInfo | awk '{printf "%d", $2 }'`
@@ -1201,7 +1201,7 @@ while ( 1 )
       ln -s ../Mesh.c3d.Info
 
       # cold start with adjoint number of iterations
-      ( $timer $flowCart $verb -his -N $it_ad -T $binaryIO $mg_gs_fc $mg_levs_saved -cfl $cfl $y_is_spanwise $fmg $subcell > cart3d.out ) >&! $timeInfo
+      ( $timer $flowCart $verb -his -N $it_ad -T $binaryIO $mg_gs_fc $mg_levs_saved -cfl $cfl $y_is_spanwise $fmg $subcell > cntl.out ) >&! $timeInfo
       if ($status != 0) then
 	echo "==> $flowCart failed in first-order mode"
 	goto ERROR
@@ -1216,7 +1216,7 @@ while ( 1 )
       echo "       done $it_o1 flowCart cycles in first-order mode" 
       ln -sf `\ls -1tr check.* | tail -1` Flow.file
       ln -sf `\ls -1tr checkDT.* | tail -1` DT.file
-      ( $timer $xsensit $verb -dQ $y_is_spanwise >> cart3d.out ) >&! $timeInfo
+      ( $timer $xsensit $verb -dQ $y_is_spanwise >> cntl.out ) >&! $timeInfo
       if ($status != 0) then
 	echo "==> $xsensit failed on O1 restart"
 	goto ERROR
@@ -1226,7 +1226,7 @@ while ( 1 )
 	\rm -f $timeInfo
       endif
 
-      ( $timer $adjointCart $verb -his -N $it_ad $mg_gs_ad $mg_levs -T $binaryIO -cfl $cfl $fmg $y_is_spanwise $fmg $subcell >> cart3d.out ) >&! $timeInfo
+      ( $timer $adjointCart $verb -his -N $it_ad $mg_gs_ad $mg_levs -T $binaryIO -cfl $cfl $fmg $y_is_spanwise $fmg $subcell >> cntl.out ) >&! $timeInfo
       set exit_status = $status
       if ( -o $timeInfo ) then
 	@ adjointCartTime += `grep -e "user " $timeInfo | awk '{printf "%d", $2 }'`
@@ -1240,7 +1240,7 @@ while ( 1 )
 
       if ($exit_status != 0 && ( "$mg_gs_ad" == '-mg' )) then
 	echo "==> STILL Adjoint convergence problems: trying without multigrid"
-	( $timer $adjointCart $verb -his -N $it_ad -gs $mg_levs -T $binaryIO -cfl $cfl $fmg $y_is_spanwise $fmg $subcell >> cart3d.out ) >&! $timeInfo
+	( $timer $adjointCart $verb -his -N $it_ad -gs $mg_levs -T $binaryIO -cfl $cfl $fmg $y_is_spanwise $fmg $subcell >> cntl.out ) >&! $timeInfo
 	set exit_status = $status
 	if ( -o $timeInfo ) then
 	  @ adjointCartTime +=`grep -e "user " $timeInfo | awk '{printf "%d", $2 }'`

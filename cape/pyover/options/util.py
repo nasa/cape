@@ -3,7 +3,7 @@
 ===============================================================
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyOver`. It is based off of the :mod:`cape.options.util` module and
+:mod:`cape.pyover`. It is based off of the :mod:`cape.options.util` module and
 provides a special class :class:`cape.options.odict` that is subclassed from
 the Python built-in :class:`dict`. Behavior, such as ``opts['OverNamelist']``
 or ``opts.get('OverNamelist')`` are also present. In addition, many convenience

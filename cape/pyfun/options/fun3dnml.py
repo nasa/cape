@@ -65,7 +65,7 @@ appropriate, even if the specified section does not exist.
 
 :See also:
     * :mod:`pyFun.namelist`
-    * :mod:`pyFun.fun3d`
+    * :mod:`cape.pyfun.cntl`
     * :mod:`cape.namelist`
 """
 

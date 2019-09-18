@@ -4,16 +4,16 @@
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.  Data books are usually created by
-using the :func:`pyOver.overflow.Overflow.ReadDataBook` function.
+using the :func:`cape.pyover.cntl.Cntl.ReadDataBook` function.
 
     .. code-block:: python
     
         # Read OVERFLOW control instance
-        ofl = pyOver.Overflow("pyOver.json")
+        cntl = pyOver.Cntl("pyOver.json")
         # Read the data book
-        ofl.ReadDataBook()
+        cntl.ReadDataBook()
         # Get a handle
-        DB = ofl.DataBook
+        DB = cntl.DataBook
         
         # Read a line load component
         DB.ReadLineLoad("CORE_LL")

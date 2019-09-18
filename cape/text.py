@@ -144,7 +144,7 @@ def markdown_try(doc):
     txt = '\n'.join(lines)
     # Replace section headers
     txt = re.sub(":([\w _-]+):\s*\n", replsec, txt)
-    # Replace modifiers, such as :mod:`pyCart`
+    # Replace modifiers, such as :mod:`cape.pycart`
     txt = re.sub(":([\w _-]+):`([^`\n]+)`", replfn, txt)
     # Simplify user names
     txt = re.sub("``(@\w+)``", repluid, txt)

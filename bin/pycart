@@ -2,9 +2,11 @@
 
 # System modules
 import sys
+
 # CAPE modules
-import pyCart
+import cape.pycart
 import cape.argread
+import cape.text
 
 # Import docstring (makes the docstring available to module import)
 import pc_doc
@@ -17,8 +19,6 @@ if __name__ == "__main__":
     
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
-        # Import string processing
-        import cape.text
         # Print marked-down docstring
         print(cape.text.markdown(__doc__))
         # Exit
@@ -28,8 +28,8 @@ if __name__ == "__main__":
     fname = kw.get('f', 'pyCart.json')
     
     # Try to read it.
-    cart3d = pyCart.Cart3d(fname)
+    cntl = cape.pycart.Cntl(fname)
     
     # Call the command-line interface
-    cart3d.cli(*a, **kw)
+    cntl.cli(*a, **kw)
     

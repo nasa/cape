@@ -93,12 +93,12 @@ class US3D(Cntl):
     Defaults are read from the file ``$CAPE/settings/pyUS.default.json``.
     
     :Call:
-        >>> cntl = pyFun.Fun3d(fname="pyFun.json")
+        >>> cntl = pyFun.Cntl(fname="pyFun.json")
     :Inputs:
         *fname*: :class:`str`
             Name of pyUS input file
     :Outputs:
-        *cntl*: :class:`pyFun.fun3d.Fun3d`
+        *cntl*: :class:`cape.pyfun.cntl.Cntl`
             Instance of the pyUS control class
     :Data members:
         *cntl.opts*: :class:`dict`
@@ -309,7 +309,7 @@ class US3D(Cntl):
                 Run control interface read from ``case.json`` file
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
-            * 2017-03-31 ``@ddalle``: Copied from :mod:`pyOver`
+            * 2017-03-31 ``@ddalle``: Copied from :mod:`cape.pyover`
         """
         # Safely go to root directory.
         fpwd = os.getcwd()

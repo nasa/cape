@@ -2,7 +2,7 @@
 .. _test-pyover:
 
 ----------------------
-Testing :mod:`pyOver`
+Testing :mod:`cape.pyover`
 ----------------------
 
 This section contains tests that are specific to OVERFLOW and its modules.  It

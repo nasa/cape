@@ -76,7 +76,7 @@ class Report(cape.report.Report):
     :Call:
         >>> R = pyOver.report.Report(oflow, rep)
     :Inputs:
-        *oflow*: :class:`pyOver.overflow.Overflow`
+        *oflow*: :class:`cape.pyover.cntl.Cntl`
             Master Cart3D settings interface
         *rep*: :class:`str`
             Name of report to update

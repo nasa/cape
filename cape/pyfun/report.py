@@ -76,7 +76,7 @@ class Report(cape.report.Report):
     :Call:
         >>> R = pyFun.report.Report(fun3d, rep)
     :Inputs:
-        *fun3d*: :class:`pyFun.fun3d.Fun3d`
+        *fun3d*: :class:`cape.pyfun.cntl.Cntl`
             Master Cart3D settings interface
         *rep*: :class:`str`
             Name of report to update

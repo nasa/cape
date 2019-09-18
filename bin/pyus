@@ -5,7 +5,7 @@
 import sys
 
 # CAPE modules
-import pyUS
+import cape.pyus
 import cape.text
 import cape.argread
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     fname = kw.get('f', 'pyUS.json')
     
     # Try to read it.
-    cntl = pyUS.US3D(fname)
+    cntl = cape.pyus.Cntl(fname)
     
     # Call the command-line interface
     cntl.cli(*a, **kw)

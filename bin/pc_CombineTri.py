@@ -30,11 +30,11 @@ If the name of the output file is not specified, it will just add '.tri' as the
 extension to the input (deleting '.uh3d' if possible).
 """
 
-# Get the pyCart module.
-import pyCart
-# Module to handle inputs and os interface
+# Standard library modules
 import sys
-# Command-line input parser
+
+# Local modules
+import cape.pycart
 import cape.argread as argr
 
 # Main function
@@ -72,11 +72,11 @@ def CombineTri(*a, **kw):
     qraw = kw.get("r", False) or kw.get("raw", False)
     
     # Read the first triangulation.
-    tri = pyCart.Tri(a[0])
+    tri = cape.pycart.Tri(a[0])
     # Loop through the remaining triangulations.
     for f in a[1:]:
         # Read the triangulation
-        t = pyCart.Tri(f)
+        t = cape.pycart.Tri(f)
         # Add each triangulation subsequently.
         if qraw:
             # Append without changing CompIDs at all.

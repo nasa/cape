@@ -29,7 +29,7 @@ if a restart is appropriate, etc.), sets that case up, and runs it.
 """
 
 # Import the module specifically for this task.
-import pyCart.case
+import cape.pycart.case
 # Argument parsing
 import sys, cape.argread
 

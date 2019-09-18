@@ -15,7 +15,7 @@ repeated sections, use the options in the ``"Grids"`` section using
 :See also:
     * :mod:`pyOver.options.gridSystem`
     * :mod:`pyOver.overNamelist`
-    * :mod:`pyOver.overflow`
+    * :mod:`cape.pyover.cntl`
     * :mod:`cape.namelist2`
 """
 

@@ -3,9 +3,11 @@
 
 # System modules
 import sys
+
 # CAPE modules
-import pyOver
+import cape.pyover
 import cape.argread
+import cape.text
 
 # Import docstring (makes the docstring available to module import)
 import po_doc
@@ -18,7 +20,6 @@ if __name__ == "__main__":
     
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
-        import cape.text
         print(cape.text.markdown(__doc__))
         sys.exit()
         
@@ -26,8 +27,8 @@ if __name__ == "__main__":
     fname = kw.get('f', 'pyOver.json')
     
     # Try to read it.
-    ofl = pyOver.Overflow(fname)
+    cntl = cape.pyover.Cntl(fname)
     
     # Call the command-line interface
-    ofl.cli(*a, **kw)
+    cntl.cli(*a, **kw)
     

@@ -38,7 +38,7 @@ the pyCart root directory.  Many of the settings are common to all solvers, and
 their description can be found in the :ref:`Cape JSON section <cape-json>`.
 
 The master settings file is loaded in one of two ways: a command-line call to
-the script `pycart` or loading an instance of the :class:`pyCart.cart3d.Cart3d`
+the script `pycart` or loading an instance of the :class:`cape.pycart.cntl.Cntl`
 class.  In both cases, the default name of the file is :file:`pyCart.json`, but
 it is possible to use other file names.  The following two examples show the
 status of the run matrix; the first load the inputs from :file:`pyCart.json`,
@@ -53,12 +53,12 @@ Within a Python script, the settings can be loaded with the following code.
 
     .. code-block:: python
     
-        import pyCart
+        import cape.pycart
         
         # Loads pyCart.json
-        c1 = pyCart.Cart3d()
+        c1 = pyCart.Cntl()
         # Loads run/poweron.json
-        c2 = pyCart.Cart3d('run/poweron.json')
+        c2 = pyCart.Cntl('run/poweron.json')
 
 The location from which either of these two methods is called (i.e., the current
 working directory) is remembered as the root directory for the run.  Locations

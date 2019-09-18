@@ -4,7 +4,7 @@
 
 This module provides tools and templates for tools to interact with various CFD
 codes and their input files. The base class is :class:`cape.cntl.Cntl`, and the
-derivative classes include :class:`pyCart.cart3d.Cart3d`. This module creates
+derivative classes include :class:`cape.pycart.cntl.Cntl`. This module creates
 folders for cases, copies files, and can be used as an interface to perform
 most of the tasks that Cape can accomplish except for running individual cases.
 
@@ -15,9 +15,9 @@ The derivative classes are used to read input files, set up cases, submit
 and/or run cases, and be an interface for the various Cape options as they are
 customized for the various CFD solvers. The individualized modules are below.
 
-    * :mod:`pyCart.cart3d`
-    * :mod:`pyFun.fun3d`
-    * :mod:`pyOver.overflow`
+    * :mod:`cape.pycart.cntl`
+    * :mod:`cape.pyfun.cntl`
+    * :mod:`cape.pyover.cntl`
     
 :See also:
     * :mod:`cape.case`
@@ -296,12 +296,12 @@ class Cntl(object):
         :See also:
             * :func:`cape.cntl.Cntl.InitFunction`
             * :func:`cape.cntl.Cntl.PrepareCase`
-            * :func:`pyCart.cart3d.Cart3d.PrepareCase`
-            * :func:`pyCart.cart3d.Cart3d.ApplyCase`
-            * :func:`pyFun.fun3d.Fun3d.PrepareCase`
-            * :func:`pyFun.fun3d.Fun3d.ApplyCase`
-            * :func:`pyOver.overflow.Overflow.PrepareCase`
-            * :func:`pyOver.overflow.Overflow.ApplyCase`
+            * :func:`cape.pycart.cntl.Cntl.PrepareCase`
+            * :func:`cape.pycart.cntl.Cntl.ApplyCase`
+            * :func:`cape.pyfun.cntl.Cntl.PrepareCase`
+            * :func:`cape.pyfun.cntl.Cntl.ApplyCase`
+            * :func:`cape.pyover.cntl.Cntl.PrepareCase`
+            * :func:`cape.pyover.cntl.Cntl.ApplyCase`
         """
         # Get input functions
         lfunc = self.opts.get("CaseFunction", [])
@@ -1310,9 +1310,9 @@ class Cntl(object):
         """Determine the current status of a case
         
         :Call:
-            >>> sts = cart3d.CheckCaseStatus(i, jobs=None, auto=False, u=None)
+            >>> sts = cntl.CheckCaseStatus(i, jobs=None, auto=False, u=None)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *cart3d*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)

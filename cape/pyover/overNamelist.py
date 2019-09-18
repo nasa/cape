@@ -44,9 +44,9 @@ similar.
 See also:
 
     * :mod:`cape.namelist2`
-    * :mod:`pyOver.overflow`
-    * :func:`pyOver.overflow.Overflow.PrepareNamelist`
-    * :func:`pyOver.overflow.Overflow.ReadNamelist`
+    * :mod:`cape.pyover.cntl`
+    * :func:`cape.pyover.cntl.Cntl.PrepareNamelist`
+    * :func:`cape.pyover.cntl.Cntl.ReadNamelist`
 
 """
 

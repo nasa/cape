@@ -15,7 +15,7 @@ output created by OVERFLOW, which is useful for creating simpler Tecplot
 layouts, for example.
 
 All of the functions from :mod:`cape.case` are imported here.  Thus they are
-available unless specifically overwritten by specific :mod:`pyOver` versions.
+available unless specifically overwritten by specific :mod:`cape.pyover` versions.
 
 """
 

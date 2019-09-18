@@ -40,7 +40,7 @@ For other namelist settings that do not refer to grids, see
 :See also:
     * :mod:`pyOver.options.overnml`
     * :mod:`pyOver.overNamelist`
-    * :mod:`pyOver.overflow`
+    * :mod:`cape.pyover.cntl`
     * :mod:`cape.namelist2`
 """
 

@@ -1,11 +1,11 @@
 .. Documentation for the main cart3d submodule
 
-.. automodule:: pyCart.cart3d
+.. automodule:: cape.pycart.cntl
      
     
-    Cart3D executive class: :class:`pyCart.cart3d.Cart3d`
+    Cart3D executive class: :class:`cape.pycart.cntl.Cntl`
     -----------------------------------------------------
 
-    .. autoclass:: pyCart.cart3d.Cart3d
+    .. autoclass:: cape.pycart.cntl.Cntl
         :members:
     

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`pyFun.fun3d`: FUN3D control module 
+:mod:`cape.pyfun.cntl`: FUN3D control module 
 =========================================
 
 This module provides tools to quickly setup basic or complex FUN3D run matrices
@@ -11,15 +11,15 @@ loaded using the following commands.
 
     .. code-block:: pycon
     
-        >>> import pyFun.fun3d
-        >>> fun3d = pyFun.fun3d.Fun3d("pyFun.json")
+        >>> import cape.pyfun.cntl
+        >>> cntl = cape.pyfun.cntl.Cntl("pyFun.json")
         >>> fun3d
-        <pyFun.Fun3d(nCase=892)>
-        >>> fun3d.x.GetFullFolderNames(0)
+        <pyFun.Cntl(nCase=892)>
+        >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
         
         
-An instance of this :class:`pyFun.fun3d.Fun3d` class has many methods, which
+An instance of this :class:`cape.pyfun.cntl.Cntl` class has many methods, which
 include the run matrix (``fun3d.x``), the options interface (``fun3d.opts``),
 and optionally the data book (``fun3d.DataBook``), the appropriate input files
 (such as ``fun3d.Namelist``), and possibly others.
@@ -34,7 +34,7 @@ and optionally the data book (``fun3d.DataBook``), the appropriate input files
     *fun3d.Namelist*       :class:`pyFun.namelist.Namelist`
     ====================   =============================================
 
-Finally, the :class:`pyFun.fun3d.Fun3d` class is subclassed from the
+Finally, the :class:`cape.pyfun.cntl.Cntl` class is subclassed from the
 :class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
 also available here.
 
@@ -99,12 +99,12 @@ class Fun3d(Cntl):
     Defaults are read from the file ``$CAPE/settings/pyFun.default.json``.
     
     :Call:
-        >>> fun3d = pyFun.Fun3d(fname="pyFun.json")
+        >>> cntl = pyFun.Cntl(fname="pyFun.json")
     :Inputs:
         *fname*: :class:`str`
             Name of pyFun input file
     :Outputs:
-        *fun3d*: :class:`pyFun.fun3d.Fun3d`
+        *fun3d*: :class:`cape.pyfun.cntl.Cntl`
             Instance of the pyFun control class
     :Data members:
         *fun3d.opts*: :class:`dict`
@@ -168,7 +168,7 @@ class Fun3d(Cntl):
     def __repr__(self):
         """Output representation for the class."""
         # Display basic information from all three areas.
-        return "<pyFun.Fun3d(nCase=%i)>" % (
+        return "<pyFun.Cntl(nCase=%i)>" % (
             self.x.nCase)
   # >
   
@@ -181,9 +181,9 @@ class Fun3d(Cntl):
         """Command-line interface
         
         :Call:
-            >>> fun3d.cli(*a, **kw)
+            >>> cntl.cli(*a, **kw)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
                 Unprocessed keyword arguments
@@ -247,9 +247,9 @@ class Fun3d(Cntl):
         """Read the current data book
         
         :Call:
-            >>> fun3d.ReadDataBook()
+            >>> cntl.ReadDataBook()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Versions:
             * 2016-09-15 ``@ddalle``: First version
@@ -278,9 +278,9 @@ class Fun3d(Cntl):
         """Read a report interface
         
         :Call:
-            >>> R = fun3d.ReadReport(rep)
+            >>> R = cntl.ReadReport(rep)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *rep*: :class:`str`
                 Name of report
@@ -305,9 +305,9 @@ class Fun3d(Cntl):
         """Read the :file:`fun3d.nml` file
         
         :Call:
-            >>> fun3d.ReadNamelist(j=0, q=True)
+            >>> cntl.ReadNamelist(j=0, q=True)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of the pyFun control class
             *j*: :class:`int`
                 Phase number
@@ -343,9 +343,9 @@ class Fun3d(Cntl):
         The JSON file overrides the value from the namelist file
         
         :Call:
-            >>> val = fun3d.GetNamelistVar(sec, key, j=0)
+            >>> val = cntl.GetNamelistVar(sec, key, j=0)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of global pyFun settings object
             *sec*: :class:`str`
                 Name of namelist section
@@ -385,9 +385,9 @@ class Fun3d(Cntl):
         The JSON file overrides the value from the namelist file if appropriate
         
         :Call:
-            >>> name = fun3d.GetProjectName(j=0)
+            >>> name = cntl.GetProjectName(j=0)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of global pyFun settings object
             *j*: :class:`int`
                 Phase number
@@ -437,9 +437,9 @@ class Fun3d(Cntl):
         The JSON file overrides the value from the namelist file
         
         :Call:
-            >>> fmt = fun3d.GetGridFormat(j=0)
+            >>> fmt = cntl.GetGridFormat(j=0)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of global pyFun settings object
             *j*: :class:`int`
                 Run sequence index
@@ -462,9 +462,9 @@ class Fun3d(Cntl):
         """Read the FUN3D boundary condition map
         
         :Call:
-            >>> fun3d.ReadMapBC(q=True)
+            >>> cntl.ReadMapBC(q=True)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of the pyFun control class
             *q*: {``True``} | ``False``
                 Whether or not to read to *MapBC*, else *MapBC0*
@@ -491,9 +491,9 @@ class Fun3d(Cntl):
         """Read the :file:`rubber.data` file
         
         :Call:
-            >>> fun3d.ReadRubberData(j=0, q=True)
+            >>> cntl.ReadRubberData(j=0, q=True)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of the pyFun control class
             *j*: :class:`int`
                 Phase number
@@ -533,9 +533,9 @@ class Fun3d(Cntl):
         """Read any FAUXGeom input file template
         
         :Call:
-            >>> fun3d.ReadFAUXGeom()
+            >>> cntl.ReadFAUXGeom()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
         :Versions:
             * 2017-02-23 ``@ddalle``: First version
@@ -569,9 +569,9 @@ class Fun3d(Cntl):
         """Read the :file:`moving_body.input` template
         
         :Call:
-            >>> fun3d.ReadMovingBodyInputFile(j=0, q=True)
+            >>> cntl.ReadMovingBodyInputFile(j=0, q=True)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of the pyFun control class
             *j*: :class:`int`
                 Phase number
@@ -613,9 +613,9 @@ class Fun3d(Cntl):
         list of surface indices.
         
         :Call:
-            >>> fun3d.WriteFreezeSurfs(fname)
+            >>> cntl.WriteFreezeSurfs(fname)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Control interface
             *fname*: :class:`str`
                 Name of file to write
@@ -646,9 +646,9 @@ class Fun3d(Cntl):
         """Read list of surfaces to freeze
         
         :Call:
-            >>> fun3d.ReadFreezeSurfs()
+            >>> cntl.ReadFreezeSurfs()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
         :Versions:
             * 2017-02-23 ``@ddalle``: First version
@@ -715,9 +715,9 @@ class Fun3d(Cntl):
         copied to the definition for each solver's control class
         
         :Call:
-            >>> n = fun3d.CaseGetCurrentIter()
+            >>> n = cntl.CaseGetCurrentIter()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -770,9 +770,9 @@ class Fun3d(Cntl):
         """Check if the current folder has the necessary files to run
         
         :Call:
-            >>> q = fun3d.CheckNone(v=False)
+            >>> q = cntl.CheckNone(v=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *v*: ``True`` | {``False``}
                 Verbosity option
@@ -821,9 +821,9 @@ class Fun3d(Cntl):
         """Check if a case has a failure
         
         :Call:
-            >>> q = fun3d.CheckError(i)
+            >>> q = cntl.CheckError(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D control interface
             *i*: :class:`int`
                 Run index
@@ -859,9 +859,9 @@ class Fun3d(Cntl):
         """Read a CAPE-style core-hour file from a case
         
         :Call:
-            >>> CPUt = fun3d.GetCPUTime(i, running=False)
+            >>> CPUt = cntl.GetCPUTime(i, running=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D control interface
             *i*: :class:`int`
                 Case index
@@ -891,9 +891,9 @@ class Fun3d(Cntl):
         """Return the list of mesh files from file
         
         :Call:
-            >>> fname = fun3d.GetInputMeshFileNames()
+            >>> fname = cntl.GetInputMeshFileNames()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Outputs:
             *fname*: :class:`list` (:class:`str`)
@@ -919,9 +919,9 @@ class Fun3d(Cntl):
         """Return the list of mesh files that are written
         
         :Call:
-            >>> fname = fun3d.GetProcessedMeshFileNames()
+            >>> fname = cntl.GetProcessedMeshFileNames()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Outputs:
             *fname*: :class:`list` (:class:`str`)
@@ -943,9 +943,9 @@ class Fun3d(Cntl):
         """Return a mesh file name using the project root name
         
         :Call:
-            >>> fout = fun3d.ProcessMeshFileName(fname)
+            >>> fout = cntl.ProcessMeshFileName(fname)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *fname*: :class:`str`
                 Raw file name to be converted to case-folder file name
@@ -975,9 +975,9 @@ class Fun3d(Cntl):
         """Check if the mesh for case *i* is prepared
         
         :Call:
-            >>> q = fun3d.CheckMesh(i)
+            >>> q = cntl.CheckMesh(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check
@@ -1033,9 +1033,9 @@ class Fun3d(Cntl):
         """Check for the mesh files in the present folder
         
         :Call:
-            >>> q = fun3d.CheckMeshFiles(v=False)
+            >>> q = cntl.CheckMeshFiles(v=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *v*: ``True`` | {``False``}
                 Verbose flag
@@ -1110,9 +1110,9 @@ class Fun3d(Cntl):
         """Prepare the mesh for case *i* if necessary
         
         :Call:
-            >>> fun3d.PrepareMesh(i)
+            >>> cntl.PrepareMesh(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
                 Case index
@@ -1280,9 +1280,9 @@ class Fun3d(Cntl):
         """Prepare a case for running if it is not already prepared
         
         :Call:
-            >>> fun3d.PrepareCase(i)
+            >>> cntl.PrepareCase(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of case to prepare/analyze
@@ -1346,7 +1346,7 @@ class Fun3d(Cntl):
             exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
         # Prepare the rubber.data file
         self.PrepareRubberData(i)
-        # Write the fun3d.nml file(s).
+        # Write the cntl.nml file(s).
         self.PrepareNamelist(i)
         # Write :file:`faux_input` if appropriate
         self.PrepareFAUXGeom(i)
@@ -1377,9 +1377,9 @@ class Fun3d(Cntl):
         and with the appropriate settings.
         
         :Call:
-            >>> fun3d.PrepareNamelist(i)
+            >>> cntl.PrepareNamelist(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
@@ -1523,9 +1523,9 @@ class Fun3d(Cntl):
         """Set namelist flight conditions
         
         :Call:
-            >>> fun3d.PrepareNamelistFligntConditions(i)
+            >>> cntl.PrepareNamelistFligntConditions(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
@@ -1620,8 +1620,8 @@ class Fun3d(Cntl):
             * 2017-06-07 ``@ddalle``: Copied from :func:`CaseFunction`
         :See also:
             * :func:`cape.cntl.Cntl.CaseFunction`
-            * :func:`pyFun.fun3d.Fun3d.PrepareCase`
-            * :func:`pyFun.fun3d.Fun3d.PrepareNamelist`
+            * :func:`cape.pyfun.cntl.Cntl.PrepareCase`
+            * :func:`cape.pyfun.cntl.Cntl.PrepareNamelist`
         """
         # Get input functions
         lfunc = self.opts.get("NamelistFunction", [])
@@ -1639,9 +1639,9 @@ class Fun3d(Cntl):
         """Write the lines for the force/moment output in a namelist file
         
         :Call:
-            >>> fun3d.PrepareNamelistConfig()
+            >>> cntl.PrepareNamelistConfig()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
@@ -1701,9 +1701,9 @@ class Fun3d(Cntl):
         """Prepare any boundary condition flags if needed
         
         :Call:
-            >>> fun3d.PrepareNamelistBoundaryConditions()
+            >>> cntl.PrepareNamelistBoundaryConditions()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D settings interface
         :Versions:
             * 2018-10-24 ``@ddalle``: First version
@@ -1748,9 +1748,9 @@ class Fun3d(Cntl):
         """Write the lines of the boundary point sensors in the namelist
         
         :Call:
-            >>> fun3d.PrepareNamelistBoundaryPoints()
+            >>> cntl.PrepareNamelistBoundaryPoints()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D settings interface
         :Versions:
             * 2017-09-01 ``@ddalle``: First version
@@ -1809,9 +1809,9 @@ class Fun3d(Cntl):
         """Prepare ``rubber.data`` file if appropriate
         
         :Call:
-            >>> fun3d.PrepareRubberData(i)
+            >>> cntl.PrepareRubberData(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
@@ -1863,9 +1863,9 @@ class Fun3d(Cntl):
         """Prepare/edit a FAUXGeom input file for a case
         
         :Call:
-            >>> fun3d.PrepareFAUXGeom(i)
+            >>> cntl.PrepareFAUXGeom(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
                 Case index
@@ -1901,9 +1901,9 @@ class Fun3d(Cntl):
         """Prepare adaption file for list of surfaces to freeze during adapts
         
         :Call:
-            >>> fun3d.PrepareFreezeSurfs(i)
+            >>> cntl.PrepareFreezeSurfs(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
                 Case index
@@ -1942,9 +1942,9 @@ class Fun3d(Cntl):
         """Prepare/edit a ``tdata`` input file for a case
         
         :Call:
-            >>> fun3d.PrepareTData(i)
+            >>> cntl.PrepareTData(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
                 Case index
@@ -1979,9 +1979,9 @@ class Fun3d(Cntl):
         """Prepare/edit a ``speciesthermodata`` input file for a case
         
         :Call:
-            >>> fun3d.PrepareSpeciesThermoData(i)
+            >>> cntl.PrepareSpeciesThermoData(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
                 Case index
@@ -2016,9 +2016,9 @@ class Fun3d(Cntl):
         """Prepare/edit a ``kineticdata`` input file for a case
         
         :Call:
-            >>> fun3d.PrepareKineticData(i)
+            >>> cntl.PrepareKineticData(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
                 Case index
@@ -2065,9 +2065,9 @@ class Fun3d(Cntl):
         to help with solution startup
         
         :Call:
-            >>> fun3d.SetSurfBC(key, i, CT=False)
+            >>> cntl.SetSurfBC(key, i, CT=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of global pyFun settings object
             *key*: :class:`str`
                 Name of SurfBC key to process
@@ -2156,9 +2156,9 @@ class Fun3d(Cntl):
         """Get stagnation pressure and temperature ratios
         
         :Call:
-            >>> p0, T0 = fun3d.GetSurfBCState(key, i, comp=None)
+            >>> p0, T0 = cntl.GetSurfBCState(key, i, comp=None)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of global pyFun settings object
             *key*: :class:`str`
                 Name of key to process
@@ -2204,9 +2204,9 @@ class Fun3d(Cntl):
         """Get stagnation pressure and temperature ratios for *SurfCT* key
         
         :Call:
-            >>> p0, T0 = fun3d.GetSurfCTState(key, i, comp=None)
+            >>> p0, T0 = cntl.GetSurfCTState(key, i, comp=None)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of global pyFun settings object
             *key*: :class:`str`
                 Name of key to process
@@ -2265,9 +2265,9 @@ class Fun3d(Cntl):
         """Get coordinates for flow initialization box
         
         :Call:
-            >>> x1, x2, r = fun3d.GetSurfBCVolume(key, compID)
+            >>> x1, x2, r = cntl.GetSurfBCVolume(key, compID)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of global pyFun settings object
             *key*: :class:`str`
                 Name of SurfBC key to process
@@ -2307,9 +2307,9 @@ class Fun3d(Cntl):
         """Get nondimensional state for flow initialization volumes
         
         :Call:
-            >>> rho, U, c = fun3d.GetSurfBCFlowInitState(key, i, CT=False)
+            >>> rho, U, c = cntl.GetSurfBCFlowInitState(key, i, CT=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of global pyFun settings object
             *key*: :class:`str`
                 Name of SurfBC key to process
@@ -2378,11 +2378,11 @@ class Fun3d(Cntl):
         This relies on an XML configuration file and a FUN3D ``mapbc`` file
         
         :Call:
-            >>> surfID = fun3d.CompID2SurfID(compID)
-            >>> surfID = fun3d.CompID2SurfID(face)
-            >>> surfID = fun3d.CompID2SurfID(comps)
+            >>> surfID = cntl.CompID2SurfID(compID)
+            >>> surfID = cntl.CompID2SurfID(face)
+            >>> surfID = cntl.CompID2SurfID(comps)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of FUN3D control class
             *compID*: :class:`int`
                 Surface boundary ID as used in surface mesh
@@ -2421,9 +2421,9 @@ class Fun3d(Cntl):
         up an index by name, the function attempts to return ``int(comp)``.
         
         :Call:
-            >>> surfID = fun3d.EvalSurfID(comp)
+            >>> surfID = cntl.EvalSurfID(comp)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
             *comp*: :class:`str` | :class:`int`
                 Component name or surface index (1-based)
@@ -2459,9 +2459,9 @@ class Fun3d(Cntl):
         from the ``"mapbc"`` and configuration files.
         
         :Call:
-            >>> fun3d.GetConfigInput(comp, warn=False)
+            >>> cntl.GetConfigInput(comp, warn=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *comp*: :class:`str`
                 Name of component to process
@@ -2520,9 +2520,9 @@ class Fun3d(Cntl):
         """Add *NSTEPS* iterations to case *i* using the last phase's namelist
         
         :Call:
-            >>> fun3d.ExtendCase(i, n=1, j=None, imax=None)
+            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of pyFun control class
             *i*: :class:`int`
                 Run index
@@ -2579,9 +2579,9 @@ class Fun3d(Cntl):
         the specified directories.  It can also be used to 
         
         :Call:
-            >>> fun3d.ApplyCase(i, nPhase=None)
+            >>> cntl.ApplyCase(i, nPhase=None)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D control interface
             *i*: :class:`int`
                 Case number
@@ -2662,9 +2662,9 @@ class Fun3d(Cntl):
         """Read ``case.json`` file from case *i* if possible
         
         :Call:
-            >>> rc = fun3d.ReadCaseJSON(i)
+            >>> rc = cntl.ReadCaseJSON(i)
         :Inputs:
-            *ofl*: :class:`pyFun.fun3d.Fun3d`
+            *ofl*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
@@ -2673,7 +2673,7 @@ class Fun3d(Cntl):
                 Run control interface read from ``case.json`` file
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
-            * 2017-03-31 ``@ddalle``: Copied from :mod:`pyOver`
+            * 2017-03-31 ``@ddalle``: Copied from :mod:`cape.pyover`
         """
         # Safely go to root directory.
         fpwd = os.getcwd()
@@ -2704,9 +2704,9 @@ class Fun3d(Cntl):
         """Read namelist from case *i*, phase *j* if possible
         
         :Call:
-            >>> nml = fun3d.ReadCaseNamelist(i, rc=None, j=None)
+            >>> nml = cntl.ReadCaseNamelist(i, rc=None, j=None)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
@@ -2752,9 +2752,9 @@ class Fun3d(Cntl):
         """Write the PBS script(s) for a given case
         
         :Call:
-            >>> fun3d.WritePBS(i)
+            >>> cntl.WritePBS(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index
@@ -2813,9 +2813,9 @@ class Fun3d(Cntl):
         the Cart3D solver only in that it calles the correct *case* module.
         
         :Call:
-            >>> pbs = fun3d.CaseStartCase()
+            >>> pbs = cntl.CaseStartCase()
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Outputs:
             *pbs*: :class:`int` or ``None``
@@ -2835,14 +2835,14 @@ class Fun3d(Cntl):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> fun3d.ArchivePWD(phantom=False)
+            >>> cntl.ArchivePWD(phantom=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
-            * 2017-03-10 ``@ddalle``: First :mod:`pyFun` version
+            * 2017-03-10 ``@ddalle``: First :mod:`cape.pyfun` version
             * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
@@ -2853,9 +2853,9 @@ class Fun3d(Cntl):
         """Delete most files in current folder, leaving only a skeleton
         
         :Call:
-            >>> fun3d.SkeletonPWD(phantom=False)
+            >>> cntl.SkeletonPWD(phantom=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
@@ -2870,9 +2870,9 @@ class Fun3d(Cntl):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> fun3d.CleanPWD(phantom=False)
+            >>> cntl.CleanPWD(phantom=False)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control interface
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``

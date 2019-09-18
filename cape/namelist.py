@@ -76,8 +76,8 @@ See also:
     * :mod:`pyFun.namelist`
     * :mod:`pyOver.overNamelist`
     * :func:`pyFun.case.GetNamelist`
-    * :func:`pyFun.fun3d.Fun3d.ReadNamelist`
-    * :func:`pyOver.overflow.Overflow.ReadNamelist`
+    * :func:`cape.pyfun.cntl.Cntl.ReadNamelist`
+    * :func:`cape.pyover.cntl.Cntl.ReadNamelist`
 
 """
 

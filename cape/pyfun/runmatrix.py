@@ -36,8 +36,8 @@ a JSON file, and *fun3d.x* is the run matrix.
     .. code-block:: pycon
     
         >>> import pyFun
-        >>> fun3d = pyFun.Fun3d("pyFun.json")
-        >>> fun3d.x.GetFullFolderNames()
+        >>> cntl = pyFun.Cntl("pyFun.json")
+        >>> cntl.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
         
 For this module, there are no methods that are particular to FUN3D.  All
@@ -45,7 +45,7 @@ functionality is inherited from :class:`cape.runmatrix.RunMatrix`.
 
 :See Also:
     * :mod:`cape.runmatrix`
-    * :mod:`pyFun.fun3d`
+    * :mod:`cape.pyfun.cntl`
 """
 
 # Import the cape module.

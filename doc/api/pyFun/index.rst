@@ -1,7 +1,7 @@
 .. Documentation for the overall pyCart module.
 
 ***************************
-The :mod:`pyFun` module
+The :mod:`cape.pyfun` module
 ***************************
 
 .. automodule:: pyFun

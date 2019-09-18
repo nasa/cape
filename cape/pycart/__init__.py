@@ -1,13 +1,13 @@
 """
 
-The :mod:`pyCart` module contains the top-level interface for Cart3D setup.  It
+The :mod:`cape.pycart` module contains the top-level interface for Cart3D setup.  It
 loads the most important methods from the various submodules so that they are
 easier to access.  Most tasks using the pyCart API can be accessed by loading
 this module.
 
     .. code-block:: python
     
-        import pyCart
+        import cape.pycart
         
 For example the following will read in a global settings instance assuming that
 the present working directory contains the correct files.  (If not, various
@@ -16,8 +16,8 @@ you intended.)
 
     .. code-block:: python
         
-        import pyCart
-        cart3d = pyCart.Cart3d()
+        import cape.pycart
+        cntl = pyCart.Cntl()
         
 A simpler example is to simply read a ``.tri`` file, rotate it about the 
 *x*-axis by 20 degrees, and write it to a new file.
@@ -25,7 +25,7 @@ A simpler example is to simply read a ``.tri`` file, rotate it about the
     .. code-block:: python
     
         # Import the module.
-        import pyCart
+        import cape.pycart
         # Read the .tri file.
         tri = pyCart.Tri('bJet.i.tri')
         # Rotate it.
@@ -35,7 +35,7 @@ A simpler example is to simply read a ``.tri`` file, rotate it about the
         
 Most of the pyCart submodules essentially contain a one or more class
 definitions, and some of these classes are accessible directly from
-:mod:`pyCart`.
+:mod:`cape.pycart`.
 
 The module also contains the :mod:`pyCart.bin` module, which contains functions
 that run the main Cart3D binaries: ``autoInputs``, ``cubes``, ``mgPrep``, and
@@ -45,7 +45,7 @@ The following classes are imported in this module, so that code like
 ``pyCart.Tri`` will work (although ``pyCart.tri.Tri``) will also work.
 
     * :class:`pyCart.tri.Tri`
-    * :class:`pyCart.cart3d.Cart3d`
+    * :class:`cape.pycart.cntl.Cntl`
     * :class:`pyCart.runmatrix.RunMatrix`
     * :class:`pyCart.inputCntl.InputCntl`
     * :class:`pyCart.aeroCsh.AeroCsh`
@@ -56,7 +56,7 @@ The following classes are imported in this module, so that code like
 Modules included within this one are outlined below.
 
     * Core modules:
-        - :mod:`pyCart.cart3d`
+        - :mod:`cape.pycart.cntl`
         - :mod:`pyCart.case`
         - :mod:`pyCart.manage`
         - :mod:`pyCart.dataBook`

@@ -1,6 +1,6 @@
 """
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyOver`.  The class is based off of the built-int :class:`dict` class.
+:mod:`cape.pyover`.  The class is based off of the built-int :class:`dict` class.
 
 In addition, this module controls default values of each pyOver
 parameter in a two-step process.  The precedence used to determine what the

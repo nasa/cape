@@ -36,8 +36,8 @@ a JSON file, and *ofl.x* is the run matrix.
     .. code-block:: pycon
     
         >>> import pyOver
-        >>> ofl = pyOver.Overflow("pyOver.json")
-        >>> ofl.x.GetFullFolderNames()
+        >>> cntl = pyOver.Cntl("pyOver.json")
+        >>> cntl.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_a']
         
 For this module, there are no methods that are particular to OVERFLOW.  All

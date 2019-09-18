@@ -14,7 +14,7 @@ refinement boxes and additional *XLev* surface refinements.
 
 :See Also:
     * :mod:`cape.fileCntl`
-    * :mod:`pyCart.cart3d`
+    * :mod:`cape.pycart.cntl`
     * :mod:`pyCart.options.Mesh`
 """
 

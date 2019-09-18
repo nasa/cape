@@ -222,7 +222,7 @@ class CaseLL(cape.lineLoad.CaseLL):
     :Call:
         >>> LL = CaseLL(cart3d, i, comp)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Master pyCart interface
         *i*: :class:`int`
             Case index

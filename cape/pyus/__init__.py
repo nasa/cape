@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 
-The :mod:`pyFun` module contains the top-level interface for FUN3D setup,
+The :mod:`cape.pyfun` module contains the top-level interface for FUN3D setup,
 execution, and post-processing. It loads some of the most important methods
 from the various submodules so that they are easier to access. Most tasks using
 the pyFun API can be accessed by loading this module and reading one instance
-of the :class:`pyFun.fun3d.Fun3d` class.
+of the :class:`cape.pyfun.cntl.Cntl` class.
 
     .. code-block:: python
     
@@ -20,7 +20,7 @@ you intended.)
     .. code-block:: python
         
         import pyFun
-        fun3d = pyFun.Fun3d()
+        cntl = pyFun.Cntl()
         
 Most of the pyFun submodules essentially contain a single class definition,
 which is derived from a similarly named :mod:`cape` module.  For example,
@@ -30,7 +30,7 @@ customization for FUN3D.  For example, reading iterative force & moment
 histories require a customized method for each solver.
 
 The following classes are imported in this module, so that code like
-``pyFun.Fun3d`` will work (although ``pyFun.fun3d.Fun3d`` will also work).
+``pyFun.Cntl`` will work (although ``cape.pyfun.cntl.Cntl`` will also work).
 
     * :class:`pyUS.us3d.US3D`
     * :class:`pyUS.runmatrix.RunMatrix`

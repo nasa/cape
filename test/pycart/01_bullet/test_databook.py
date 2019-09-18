@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # CAPE modules
-import pyCart
+import cape.pycart
 
 
 # Get control interface
-cntl = pyCart.Cart3d()
+cntl = pyCart.Cntl()
 
 # Read the databook
 cntl.ReadDataBook()

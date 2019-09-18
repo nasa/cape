@@ -4,16 +4,16 @@
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.  Data books are usually created by
-using the :func:`pyFun.fun3d.Fun3d.ReadDataBook` function.
+using the :func:`cape.pyfun.cntl.Cntl.ReadDataBook` function.
 
     .. code-block:: python
     
         # Read FUN3D control instance
-        fun3d = pyFun.Fun3d("pyFun.json")
+        cntl = pyFun.Cntl("pyFun.json")
         # Read the data book
-        fun3d.ReadDataBook()
+        cntl.ReadDataBook()
         # Get a handle
-        DB = fun3d.DataBook
+        DB = cntl.DataBook
         
         # Read a line load component
         DB.ReadLineLoad("CORE_LL")

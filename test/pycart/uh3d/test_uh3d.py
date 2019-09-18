@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pyCart
+import cape.pycart
 import cape.test
 import numpy as np
 import os, shutil

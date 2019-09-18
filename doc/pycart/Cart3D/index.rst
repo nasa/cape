@@ -7,7 +7,7 @@ Cart3D Documentation for pyCart
 *******************************
 
 Some independent documentation for Cart3D is provided here; it is written from
-the perspective of pyCart and Cape and closely follows the :mod:`pyCart` module.
+the perspective of pyCart and Cape and closely follows the :mod:`cape.pycart` module.
 
 Note the two following locations for stand-alone Cart3D documentation.  The
 second link requires entering some basic information but is free.  These were

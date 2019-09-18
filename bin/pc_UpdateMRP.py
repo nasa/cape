@@ -39,7 +39,7 @@ pyCart master JSON file.
 """
 
 # Import the full module
-import pyCart
+import cape.pycart
 # Input parsing
 from cape.argread import readkeys
 # File control
@@ -59,7 +59,7 @@ def UpdateCaseMRP(cart3d, comp):
     :Call:
         >>> UpdateCaseMRP(cart3d, comp, x)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Master Cart3D interface instance
         *comp*: :class:`str`
             Name of component that will be updated
@@ -88,11 +88,11 @@ def UpdateCaseMRP(cart3d, comp):
     # Get the MRP for that component that was actually used
     xi = IC.GetSingleMomentPoint(comp)
     # Get what the MRP should be.
-    x = cart3d.opts.get_RefPoint(comp)
+    x = cntl.opts.get_RefPoint(comp)
     # Get the distance between the two.
     L = sqrt((x[0]-xi[0])**2 + (x[1]-xi[1])**2 + (x[2]-xi[2])**2)
     # Reference length
-    Lref = cart3d.opts.get_RefLength()
+    Lref = cntl.opts.get_RefLength()
     # Check the distance.
     if L/Lref <= 0.01: return
     # Process the best data folder.
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     fname = kw.get('f', 'pyCart.json')
     
     # Try to read it.
-    cart3d = pyCart.Cart3d(fname)
+    cntl = pyCart.Cntl(fname)
     
     # Get constraints and convert text to list.
     cons  = kw.get('cons',        '').split(',')
@@ -139,12 +139,12 @@ if __name__ == "__main__":
     # Process index list.
     if ('I' in kw) and (kw['I'] != True):
         # Turn into a single list
-        kw['I'] = cart3d.x.ExpandIndices(kw['I'])
+        kw['I'] = cntl.x.ExpandIndices(kw['I'])
     
     # Apply the constraints.
-    I = cart3d.x.GetIndices(**kw)
+    I = cntl.x.GetIndices(**kw)
     # Get the case names.
-    fruns = cart3d.x.GetFullFolderNames(I)
+    fruns = cntl.x.GetFullFolderNames(I)
     
     # Loop through the runs.
     for frun in fruns:

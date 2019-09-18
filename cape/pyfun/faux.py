@@ -7,10 +7,10 @@ for adaptation.  Files defined in the FAUXGeom file ``faux_input`` can have
 their surface meshes refined while other surfaces must be frozen.
 
 :See also:
-    * :func:`pyFun.fun3d.Fun3d.ReadFAUXGeom`
-    * :func:`pyFun.fun3d.Fun3d.PrepareFAUXGeom`
-    * :func:`pyFun.fun3d.Fun3d.ReadFreezeSurfs`
-    * :func:`pyFun.fun3d.Fun3d.PrepareFreezeSurfs`
+    * :func:`cape.pyfun.cntl.Cntl.ReadFAUXGeom`
+    * :func:`cape.pyfun.cntl.Cntl.PrepareFAUXGeom`
+    * :func:`cape.pyfun.cntl.Cntl.ReadFreezeSurfs`
+    * :func:`cape.pyfun.cntl.Cntl.PrepareFreezeSurfs`
 """
 
 # System modules

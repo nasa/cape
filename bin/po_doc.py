@@ -4,7 +4,7 @@ Python interface for OVERFLOW: **pyover**
 =========================================
 
 This function provides a master interface for pyFun.  All of the functionality
-from this script is also accessible from the :mod:`pyOver` module using
+from this script is also accessible from the :mod:`cape.pyover` module using
 relatively simple commands.
 
 :Usage:

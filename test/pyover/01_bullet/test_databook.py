@@ -6,7 +6,7 @@ import pyOver
 
 
 # Get control interface
-cntl = pyOver.Overflow()
+cntl = pyOver.Cntl()
 
 # Read the databook
 cntl.ReadDataBook()

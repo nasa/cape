@@ -2,7 +2,7 @@
 .. _test-pyfun:
 
 ---------------------
-Testing :mod:`pyFun`
+Testing :mod:`cape.pyfun`
 ---------------------
 
 This section contains tests that are specific to FUN3D and its modules.  It

@@ -115,7 +115,7 @@ class Report(cape.report.Report):
     :Call:
         >>> R = pyCart.report.Report(cart3d, rep)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Master Cart3D settings interface
         *rep*: :class:`str`
             Name of report to update

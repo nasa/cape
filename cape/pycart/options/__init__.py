@@ -1,7 +1,7 @@
 """
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyCart`.  The class is based off of the Python built-in :class:`dict`
+:mod:`cape.pycart`.  The class is based off of the Python built-in :class:`dict`
 class, so its default behavior, such as ``opts['InputCntl']`` or 
 ``opts.get('InputCntl')`` are also present.  In addition, many convenience
 methods, such as ``opts.set_it_fc(n)``, which sets the number of
@@ -19,13 +19,13 @@ value of a given parameter should be is below.
     3. Hard-coded defaults from this module
     
 An instance of this options class is loaded as the attribute *opts* to any
-instance of :class:`pyCart.cart3d.Cart3d`.
+instance of :class:`cape.pycart.cntl.Cntl`.
 
     .. code-block:: pycon
     
-        >>> import pyCart
-        >>> cart3d = pyCart.Cart3d()
-        >>> cart3d.opts.get_InputCntl()
+        >>> import cape.pycart
+        >>> cntl = pyCart.Cntl()
+        >>> cntl.opts.get_InputCntl()
         u'input.cntl'
     
 This module and the classes it provides are based heavily on the generic

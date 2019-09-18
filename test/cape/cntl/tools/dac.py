@@ -24,7 +24,7 @@ def ApplyTag(cntl, i, **kw):
     :Call:
         >>> ApplyTag(cntl, i, **kw)
     :Inputs:
-        *cntl*: :class:`pyFun.fun3d.Fun3d`
+        *cntl*: :class:`cape.pyfun.cntl.Cntl`
             Overflow settings interface
         *i*: :class:`int`
             Case number

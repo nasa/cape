@@ -4,16 +4,16 @@
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.  Data books are usually created by
-using the :func:`pyCart.cart3d.Cart3d.ReadDataBook` function.
+using the :func:`cape.pycart.cntl.Cntl.ReadDataBook` function.
 
     .. code-block:: python
     
         # Read Cart3D control instance
-        cart3d = pyCart.Cart3d("pyCart.json")
+        cntl = pyCart.Cntl("pyCart.json")
         # Read the data book
-        cart3d.ReadDataBook()
+        cntl.ReadDataBook()
         # Get a handle
-        DB = cart3d.DataBook
+        DB = cntl.DataBook
         
         # Read a line load component
         DB.ReadLineLoad("CORE_LL")

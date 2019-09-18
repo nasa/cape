@@ -6,7 +6,7 @@ import pyFun
 
 
 # Get control interface
-cntl = pyFun.Fun3d()
+cntl = pyFun.Cntl()
 
 # Read the databook
 cntl.ReadDataBook()

@@ -8,7 +8,7 @@ This module imports the generic utilities using
     
         from cape.util import *
         
-It also stores the absolute path to the folder containing the :mod:`pyOver`
+It also stores the absolute path to the folder containing the :mod:`cape.pyover`
 module as the variable *pyOverFolder*.
 
 :See also:

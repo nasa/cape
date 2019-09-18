@@ -55,7 +55,7 @@ following syntax would work.
         # Load relevant module
         import pyFun
         # Read JSON file
-        fun3d = pyFun.Fun3d('poweroff.json')
+        cntl = pyFun.Cntl('poweroff.json')
         # Apply scripts
         execfile('poweroff.py')
         execfile('report.py')
@@ -71,7 +71,7 @@ data book components, the following example might work.
         # List of components to add
         comps = ["nozzle1', "nozzle2", "nozzle3", "attachment"]
         # Add them as default force and moment components
-        fun3d.opts["DataBook"]["Components"] += comps
+        cntl.opts["DataBook"]["Components"] += comps
         
         # Loop through four boosters
         for k in range(4):
@@ -82,9 +82,9 @@ data book components, the following example might work.
             # Clocking angle so that *CN* points away from core rocket
             clock = k*90.0
             # Add the component
-            fun3d.opts["DataBook"]["Components"].append(comp)
+            cntl.opts["DataBook"]["Components"].append(comp)
             # Add the definition
-            fun3d.opts["DataBook"][comp] = {
+            cntl.opts["DataBook"][comp] = {
                 "Type": "LineLoad",
                 "CompID": name,
                 "Transformations": [{"Type": "Euler321", "phi":clock}]
@@ -165,7 +165,7 @@ this allows each user to set the archive location to their own home folder even
 while using identical input files.
 
 The input to the *InitFunction* is the :class:`cape.cntl.Cntl`,
-:class:`pyCart.cart3d.Cart3d`, :class:`pyFun.fun3d.Fun3d`, etc. global object
+:class:`cape.pycart.cntl.Cntl`, :class:`cape.pyfun.cntl.Cntl`, etc. global object
 that contains all of the settings from the JSON file and an interface to act on
 them.  The JSON settings are stored within *cntl.opts*.
 
@@ -247,7 +247,7 @@ FUN3D is shown below.
             # Actually change the settings ...
             
 As can be seen from this example, the inputs to a *CaseFunction* are the
-overall control object (:class:`pyCart.cart3d.Cart3d`,
-:class:`pyOver.overflow.Overflow`, or :class:`pyfun.fun3d.Fun3d`) and the case
+overall control object (:class:`cape.pycart.cntl.Cntl`,
+:class:`cape.pyover.cntl.Cntl`, or :class:`pyfun.fun3d.Cntl`) and the case
 number *i*.
 

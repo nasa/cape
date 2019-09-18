@@ -5278,7 +5278,7 @@ class Report(object):
                 Individual case line load interface
         :Versions:
             * 2016-06-10 ``@ddalle``: First version
-            * 2017-04-05 ``@ddalle``: Moved from :mod:`pyCart` -> :mod:`cape`
+            * 2017-04-05 ``@ddalle``: Moved from :mod:`cape.pycart` -> :mod:`cape`
         """
         # Ensure configuration is present
         self.cntl.ReadConfig()
