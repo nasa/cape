@@ -1,9 +1,9 @@
 
 .. _test-pycart:
 
----------------------
+---------------------------
 Testing :mod:`cape.pycart`
----------------------
+---------------------------
 
 Many of the API tests can be confined to the :mod:`cape` version.  In addition,
 several of the central aspects of the command-line interface, such as index

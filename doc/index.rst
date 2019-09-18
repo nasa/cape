@@ -168,9 +168,9 @@ defined.  In general the required files are the following.
     
         api/index
         api/cape/index
-        api/pyCart/index
-        api/pyFun/index
-        api/pyOver/index
+        api/pycart/index
+        api/pyfun/index
+        api/pyover/index
     
     **Testing**
     
