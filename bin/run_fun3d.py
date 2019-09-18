@@ -37,7 +37,7 @@ def run_fun3d():
         * 2014-10-02 ``@ddalle``: First version
         * 2015-02-14 ``@ddalle``: Added `verify` and `intersect` checks
     """
-    pyFun.case.run_fun3d()
+    cape.pyfun.case.run_fun3d()
     
 # Check if run as a script.
 if __name__ == "__main__":

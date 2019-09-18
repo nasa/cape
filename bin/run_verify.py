@@ -22,7 +22,7 @@ def run_verify():
     :Versions:
         * 2015-02-13 ``@ddalle``: First version
     """
-    pyCart.bin.verify()
+    cape.pycart.bin.verify()
     
 # Check if run as a script.
 if __name__ == "__main__":

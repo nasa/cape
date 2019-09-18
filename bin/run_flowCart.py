@@ -48,7 +48,7 @@ def run_flowCart(verify=False, isect=False):
         * 2014-10-02 ``@ddalle``: First version
         * 2015-02-14 ``@ddalle``: Added `verify` and `intersect` checks
     """
-    pyCart.case.run_flowCart(verify, isect)
+    cape.pycart.case.run_flowCart(verify, isect)
     
 # Check if run as a script.
 if __name__ == "__main__":
