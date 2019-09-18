@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 11:39 PDT
+   on 2019-09-18 at 12:34 PDT
 
 Test ``10_databook``
 ======================
@@ -104,8 +104,8 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.456401 seconds
-    * Cumulative time: 0.456401 seconds
+    * Command took 0.578702 seconds
+    * Cumulative time: 0.578702 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -155,8 +155,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.819329 seconds
-    * Cumulative time: 1.27573 seconds
+    * Command took 0.879477 seconds
+    * Cumulative time: 1.45818 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 11:38 PDT
+   on 2019-09-18 at 12:34 PDT
 
 Test ``04_subset_api``
 ========================
@@ -54,8 +54,8 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.520983 seconds
-    * Cumulative time: 0.520983 seconds
+    * Command took 0.538415 seconds
+    * Cumulative time: 0.538415 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -85,8 +85,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.762221 seconds
-    * Cumulative time: 1.2832 seconds
+    * Command took 0.7974 seconds
+    * Cumulative time: 1.33581 seconds
 :STDOUT:
     * **PASS**
     * Target:

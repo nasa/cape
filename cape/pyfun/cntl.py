@@ -14,7 +14,7 @@ loaded using the following commands.
         >>> import cape.pyfun.cntl
         >>> cntl = cape.pyfun.cntl.Cntl("pyFun.json")
         >>> fun3d
-        <pyFun.Cntl(nCase=892)>
+        <cape.pyfun.Cntl(nCase=892)>
         >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
         
@@ -27,11 +27,11 @@ and optionally the data book (``fun3d.DataBook``), the appropriate input files
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *fun3d.x*              :class:`pyFun.runmatrix.RunMatrix`
-    *fun3d.opts*           :class:`pyFun.options.Options`
-    *fun3d.tri*            :class:`pyFun.tri.Tri`
-    *fun3d.DataBook*       :class:`pyFun.dataBook.DataBook`
-    *fun3d.Namelist*       :class:`pyFun.namelist.Namelist`
+    *fun3d.x*              :class:`cape.pyfun.runmatrix.RunMatrix`
+    *fun3d.opts*           :class:`cape.pyfun.options.Options`
+    *fun3d.tri*            :class:`cape.pyfun.tri.Tri`
+    *fun3d.DataBook*       :class:`cape.pyfun.dataBook.DataBook`
+    *fun3d.Namelist*       :class:`cape.pyfun.namelist.Namelist`
     ====================   =============================================
 
 Finally, the :class:`cape.pyfun.cntl.Cntl` class is subclassed from the
@@ -53,7 +53,7 @@ from datetime import datetime
 import numpy as np
 
 # Import template class
-from cape.cntl import Cntl
+import cape.cntl
 
 # Local classes
 from .namelist   import Namelist
@@ -82,7 +82,7 @@ _fname = os.path.abspath(__file__)
 PyFunFolder = os.path.split(_fname)[0]
     
 # Class to read input files
-class Fun3d(Cntl):
+class Cntl(cape.cntl.Cntl):
     """
     Class for handling global options and setup for FUN3D.
     

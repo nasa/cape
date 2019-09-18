@@ -37,43 +37,43 @@ Most of the pyCart submodules essentially contain a one or more class
 definitions, and some of these classes are accessible directly from
 :mod:`cape.pycart`.
 
-The module also contains the :mod:`pyCart.bin` module, which contains functions
-that run the main Cart3D binaries: ``autoInputs``, ``cubes``, ``mgPrep``, and
-``flowCart``.
+The module also contains the :mod:`cape.pycart.bin` module, which contains
+functions that run the main Cart3D binaries: ``autoInputs``, ``cubes``,
+``mgPrep``, and ``flowCart``.
 
 The following classes are imported in this module, so that code like
-``pyCart.Tri`` will work (although ``pyCart.tri.Tri``) will also work.
+``cape.pycart.Tri`` will work (although ``cape.pycart.tri.Tri``) will also work.
 
-    * :class:`pyCart.tri.Tri`
+    * :class:`cape.pycart.tri.Tri`
     * :class:`cape.pycart.cntl.Cntl`
-    * :class:`pyCart.runmatrix.RunMatrix`
-    * :class:`pyCart.inputCntl.InputCntl`
-    * :class:`pyCart.aeroCsh.AeroCsh`
-    * :class:`pyCart.preSpecCntl.PreSpecCntl`
-    * :class:`pyCart.dataBook.CaseResid`
-    * :class:`pyCart.dataBook.CaseFM`
+    * :class:`cape.pycart.runmatrix.RunMatrix`
+    * :class:`cape.pycart.inputCntl.InputCntl`
+    * :class:`cape.pycart.aeroCsh.AeroCsh`
+    * :class:`cape.pycart.preSpecCntl.PreSpecCntl`
+    * :class:`cape.pycart.dataBook.CaseResid`
+    * :class:`cape.pycart.dataBook.CaseFM`
     
 Modules included within this one are outlined below.
 
     * Core modules:
         - :mod:`cape.pycart.cntl`
-        - :mod:`pyCart.case`
-        - :mod:`pyCart.manage`
-        - :mod:`pyCart.dataBook`
-        - :mod:`pyCart.options`
+        - :mod:`cape.pycart.case`
+        - :mod:`cape.pycart.manage`
+        - :mod:`cape.pycart.dataBook`
+        - :mod:`cape.pycart.options`
         
     * Cart3D and Cape files
-        - :mod:`pyCart.inputCntl`
-        - :mod:`pyCart.aeroCsh`
-        - :mod:`pyCart.preSpecCntl`
-        - :mod:`pyCart.runmatrix`
-        - :mod:`pyCart.tri`
+        - :mod:`cape.pycart.inputCntl`
+        - :mod:`cape.pycart.aeroCsh`
+        - :mod:`cape.pycart.preSpecCntl`
+        - :mod:`cape.pycart.runmatrix`
+        - :mod:`cape.pycart.tri`
         
     * Supporting modules
-        - :mod:`pyCart.cmd`
-        - :mod:`pyCart.bin`
-        - :mod:`pyCart.report`
-        - :mod:`pyCart.util`
+        - :mod:`cape.pycart.cmd`
+        - :mod:`cape.pycart.bin`
+        - :mod:`cape.pycart.report`
+        - :mod:`cape.pycart.util`
 
 """
 
@@ -91,7 +91,7 @@ PyCartFolder = os.path.split(_fname)[0]
 
 # Import classes and methods from the submodules
 from .tri    import Tri, Triq
-from .cart3d import Cart3d, RunMatrix
+from .cntl   import Cntl, RunMatrix
 from .config import Config
 from .case   import ReadCaseJSON, run_flowCart
 

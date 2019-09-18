@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 11:39 PDT
+   on 2019-09-18 at 12:34 PDT
 
 Test ``06_atm``
 =================
@@ -103,8 +103,8 @@ Command 1: Standard Atmosphere: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.466575 seconds
-    * Cumulative time: 0.466575 seconds
+    * Command took 0.472825 seconds
+    * Cumulative time: 0.472825 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -136,8 +136,8 @@ Command 2: Standard Atmosphere: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.711824 seconds
-    * Cumulative time: 1.1784 seconds
+    * Command took 0.688236 seconds
+    * Cumulative time: 1.16106 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -169,8 +169,8 @@ Command 3: Sutherland's Law: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.441407 seconds
-    * Cumulative time: 1.61981 seconds
+    * Command took 0.484196 seconds
+    * Cumulative time: 1.64526 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -197,8 +197,8 @@ Command 4: Sutherland's Law: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.667386 seconds
-    * Cumulative time: 2.28719 seconds
+    * Command took 0.723987 seconds
+    * Cumulative time: 2.36924 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -225,8 +225,8 @@ Command 5: Temperature from Enthalpy: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.484352 seconds
-    * Cumulative time: 2.77154 seconds
+    * Command took 0.465245 seconds
+    * Cumulative time: 2.83449 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -253,8 +253,8 @@ Command 6: Temperature from Enthalpy: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.708922 seconds
-    * Cumulative time: 3.48047 seconds
+    * Command took 0.731077 seconds
+    * Cumulative time: 3.56557 seconds
 :STDOUT:
     * **PASS**
     * Target:

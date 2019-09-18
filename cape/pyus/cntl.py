@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`pyUS.us3d`: US3D control module 
+:mod:`cape.pyus.us3d`: US3D control module 
 =========================================
 
 This module provides tools to quickly setup basic or complex US3D run matrices
@@ -11,15 +11,15 @@ loaded using the following commands.
 
     .. code-block:: pycon
     
-        >>> import pyUS.us3d
-        >>> cntl = pyUS.us3d.US3D("pyUS.json")
+        >>> import cape.pyus.us3d
+        >>> cntl = cape.pyus.us3d.US3D("pyUS.json")
         >>> cntl
-        <pyUS.US3D(nCase=892)>
+        <cape.pyus.US3D(nCase=892)>
         >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
         
         
-An instance of this :class:`pyUS.us3d.US3D` class has many methods, which
+An instance of this :class:`cape.pyus.us3d.US3D` class has many methods, which
 include the run matrix (``cntl.x``), the options interface (``cntl.opts``),
 and optionally the data book (``cntl.DataBook``), the appropriate input files
 (such as ``cntl.InputInp``), and possibly others.
@@ -27,10 +27,10 @@ and optionally the data book (``cntl.DataBook``), the appropriate input files
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *cntl.x*               :class:`pyUS.runmatrix.RunMatrix`
-    *cntl.opts*            :class:`pyUS.options.Options`
-    *cntl.DataBook*        :class:`pyUS.dataBook.DataBook`
-    *cntl.InputInp*        :class:`pyUS.inputInp.InputInp`
+    *cntl.x*               :class:`cape.pyus.runmatrix.RunMatrix`
+    *cntl.opts*            :class:`cape.pyus.options.Options`
+    *cntl.DataBook*        :class:`cape.pyus.dataBook.DataBook`
+    *cntl.InputInp*        :class:`cape.pyus.inputInp.InputInp`
     ====================   =============================================
 
 Finally, the :class:`pyUs.us3d.US3D` class is subclassed from the
@@ -55,17 +55,14 @@ import numpy as np
 from cape import convert
 
 # CAPE classes and specific imports
-from cape.cntl import Cntl
+import cape.cntl
+
+# Partial CAPE imports
 from cape.util import RangeString
 
-# Full pyUS modules
+# Full cape.pyus modules
 from . import options
-#from . import manage
 from . import case
-#from . import mapbc
-#from . import faux
-#from . import dataBook
-#from . import report
 
 # Functions and classes from local modules
 from .inputInp   import InputInp
@@ -78,7 +75,7 @@ _fname = os.path.abspath(__file__)
 PyUSFolder = os.path.split(_fname)[0]
     
 # Class to read input files
-class US3D(Cntl):
+class Cntl(cape.cntl.Cntl):
     """
     Class for handling global options and setup for US3D.
     
@@ -93,17 +90,17 @@ class US3D(Cntl):
     Defaults are read from the file ``$CAPE/settings/pyUS.default.json``.
     
     :Call:
-        >>> cntl = pyFun.Cntl(fname="pyFun.json")
+        >>> cntl = cape.pyus.Cntl(fname="pyUS.json")
     :Inputs:
         *fname*: :class:`str`
-            Name of pyUS input file
+            Name of cape.pyus input file
     :Outputs:
         *cntl*: :class:`cape.pyfun.cntl.Cntl`
-            Instance of the pyUS control class
+            Instance of the cape.pyus control class
     :Data members:
         *cntl.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *cntl.x*: :class:`pyFun.runmatrix.RunMatrix`
+        *cntl.x*: :class:`cape.pyus.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
         *cntl.RootDir*: :class:`str`
             Absolute path to the root directory
@@ -121,7 +118,7 @@ class US3D(Cntl):
         if not os.path.isfile(fname):
             # Raise error but suppress traceback
             os.sys.tracebacklimit = 0
-            raise ValueError("No pyUS control file '%s' found" % fname)
+            raise ValueError("No cape.pyus control file '%s' found" % fname)
             
         # Get the real path
         fjson = os.path.realpath(fname)
@@ -159,7 +156,7 @@ class US3D(Cntl):
     def __repr__(self):
         """Output representation for the class."""
         # Display basic information from all three areas.
-        return '<pyUS.US3D("%s", nCase=%i)>' % (
+        return '<cape.pyus.US3D("%s", nCase=%i)>' % (
             os.path.split(self.fname)[1],
             self.x.nCase)
   # >
@@ -176,7 +173,7 @@ class US3D(Cntl):
         :Call:
             >>> cntl.InputInp(j=0, q=True)
         :Inputs:
-            *cntl*: :class:`pyUS.us3d.US3D`
+            *cntl*: :class:`cape.pyus.us3d.US3D`
                 US3D control interface
             *j*: :class:`int`
                 Phase number
@@ -215,7 +212,7 @@ class US3D(Cntl):
         :Call:
             >>> val = cntl.getInputVar(sec, key, j=0)
         :Inputs:
-            *cntl*: :class:`pyUS.us3d.US3D`
+            *cntl*: :class:`cape.pyus.us3d.US3D`
                 US3D control interface
             *sec*: :class:`str`
                 Name of namelist section
@@ -265,7 +262,7 @@ class US3D(Cntl):
         :Call:
             >>> CPUt = cntl.GetCPUTime(i, running=False)
         :Inputs:
-            *cntl*: :class:`pyUS.us3d.US3D`
+            *cntl*: :class:`cape.pyus.us3d.US3D`
                 US3D control interface
             *i*: :class:`int`
                 Case index
@@ -300,12 +297,12 @@ class US3D(Cntl):
         :Call:
             >>> rc = cntl.ReadCaseJSON(i)
         :Inputs:
-            *cntl*: :class:`pyUS.us3d.US3D`
+            *cntl*: :class:`cape.pyus.us3d.US3D`
                 US3D control interface
             *i*: :class:`int`
                 Run index
         :Outputs:
-            *rc*: ``None`` | :class:`pyOver.options.runControl.RunControl`
+            *rc*: ``None`` | :class:`cape.pyus.options.runControl.RunControl`
                 Run control interface read from ``case.json`` file
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
@@ -342,20 +339,20 @@ class US3D(Cntl):
         :Call:
             >>> inp = cntl.ReadCaseInputInp(i, rc=None, j=None)
         :Inputs:
-            *cntl*: :class:`pyUS.us3d.US3D`
+            *cntl*: :class:`cape.pyus.us3d.US3D`
                 US3D control interface
             *i*: :class:`int`
                 Case index
-            *rc*: ``None`` | :class:`pyUS.options.runControl.RunControl`
+            *rc*: ``None`` | :class:`cape.pyus.options.runControl.RunControl`
                 Run control interface read from ``case.json`` file
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:
-            *inp*: ``None`` | :class:`pyUS.inputInp.InputInp`
+            *inp*: ``None`` | :class:`cape.pyus.inputInp.InputInp`
                 US3D input interface if possible
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
-            * 2019-06-27 ``@ddalle``: From pyFun
+            * 2019-06-27 ``@ddalle``: From cape.pyus
         """
         # Read the *rc* if necessary
         if rc is None:
@@ -392,7 +389,7 @@ class US3D(Cntl):
         :Call:
             >>> cntl.WritePBS(i)
         :Inputs:
-            *cntl*: :class:`pyUS.us3d.US3D`
+            *cntl*: :class:`cape.pyus.us3d.US3D`
                 US3D control interface
             *i*: :class:`int`
                 Run index
@@ -448,13 +445,13 @@ class US3D(Cntl):
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
         
-        This function relies on :mod:`pyCart.case`, and so it is customized for
+        This function relies on :mod:`cape.pyus.case`, and so it is customized for
         the Cart3D solver only in that it calles the correct *case* module.
         
         :Call:
             >>> pbs = cntl.CaseStartCase()
         :Inputs:
-            *cntl*: :class:`pyUS.us3d.US3D`
+            *cntl*: :class:`cape.pyus.us3d.US3D`
                 US3D control interface
         :Outputs:
             *pbs*: :class:`int` or ``None``

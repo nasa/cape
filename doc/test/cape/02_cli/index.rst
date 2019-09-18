@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 11:38 PDT
+   on 2019-09-18 at 12:34 PDT
 
 Test ``02_cli``
 =================
@@ -39,8 +39,8 @@ Command 1: Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.528427 seconds
-    * Cumulative time: 0.528427 seconds
+    * Command took 0.530888 seconds
+    * Cumulative time: 0.530888 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -90,8 +90,8 @@ Command 2: Filter
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.537704 seconds
-    * Cumulative time: 1.06613 seconds
+    * Command took 0.544177 seconds
+    * Cumulative time: 1.07506 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -131,8 +131,8 @@ Command 3: Constraints
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.546113 seconds
-    * Cumulative time: 1.61224 seconds
+    * Command took 0.554111 seconds
+    * Cumulative time: 1.62918 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -168,8 +168,8 @@ Command 4: Glob
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.524846 seconds
-    * Cumulative time: 2.13709 seconds
+    * Command took 0.518918 seconds
+    * Cumulative time: 2.14809 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -207,8 +207,8 @@ Command 5: Regular Expression
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.537278 seconds
-    * Cumulative time: 2.67437 seconds
+    * Command took 0.53187 seconds
+    * Cumulative time: 2.67996 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -244,8 +244,8 @@ Command 6: Index List
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54067 seconds
-    * Cumulative time: 3.21504 seconds
+    * Command took 0.535938 seconds
+    * Cumulative time: 3.2159 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -281,8 +281,8 @@ Command 7: Compound Subsets
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.511317 seconds
-    * Cumulative time: 3.72635 seconds
+    * Command took 0.546682 seconds
+    * Cumulative time: 3.76258 seconds
 :STDOUT:
     * **PASS**
     * Target:

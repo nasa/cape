@@ -8,7 +8,7 @@ of the :class:`cape.pyfun.cntl.Cntl` class.
 
     .. code-block:: python
     
-        import pyFun
+        import cape.pyfun
         
 For example the following will read in a global settings instance assuming that
 the present working directory contains the correct files.  (If not, various
@@ -17,47 +17,47 @@ you intended.)
 
     .. code-block:: python
         
-        import pyFun
-        cntl = pyFun.Cntl()
+        import cape.pyfun
+        cntl = cape.pyfun.Cntl()
         
 Most of the pyFun submodules essentially contain a single class definition,
 which is derived from a similarly named :mod:`cape` module.  For example,
-:class:`pyFun.dataBook.DBComp` is subclassed to :class:`cape.dataBook.DBComp`,
+:class:`cape.pyfun.dataBook.DBComp` is subclassed to :class:`cape.dataBook.DBComp`,
 but several functions are edited because their functionality needs
 customization for FUN3D.  For example, reading iterative force & moment
 histories require a customized method for each solver.
 
 The following classes are imported in this module, so that code like
-``pyFun.Cntl`` will work (although ``cape.pyfun.cntl.Cntl`` will also work).
+``cape.pyfun.Cntl`` will work (although ``cape.pyfun.cntl.Cntl`` will also work).
 
     * :class:`cape.pyfun.cntl.Cntl`
-    * :class:`pyFun.runmatrix.RunMatrix`
+    * :class:`cape.pyfun.runmatrix.RunMatrix`
 
 Modules included within this one are outlined below.
 
     * Core modules:
         - :mod:`cape.pyfun.cntl`
-        - :mod:`pyFun.case`
-        - :mod:`pyFun.manage`
-        - :mod:`pyFun.dataBook`
-        - :mod:`pyFun.lineLoad`
-        - :mod:`pyFun.pointSensor`
-        - :mod:`pyFun.options`
+        - :mod:`cape.pyfun.case`
+        - :mod:`cape.pyfun.manage`
+        - :mod:`cape.pyfun.dataBook`
+        - :mod:`cape.pyfun.lineLoad`
+        - :mod:`cape.pyfun.pointSensor`
+        - :mod:`cape.pyfun.options`
         
     * FUN3D and Cape files
-        - :mod:`pyFun.faux`
-        - :mod:`pyFun.mapbc`
-        - :mod:`pyFun.namelist`
-        - :mod:`pyFun.plt`
-        - :mod:`pyFun.rubberData`
-        - :mod:`pyFun.runmatrix`
+        - :mod:`cape.pyfun.faux`
+        - :mod:`cape.pyfun.mapbc`
+        - :mod:`cape.pyfun.namelist`
+        - :mod:`cape.pyfun.plt`
+        - :mod:`cape.pyfun.rubberData`
+        - :mod:`cape.pyfun.runmatrix`
         
     * Supporting modules
-        - :mod:`pyFun.cmd`
-        - :mod:`pyFun.bin`
-        - :mod:`pyFun.report`
-        - :mod:`pyFun.queue`
-        - :mod:`pyFun.util`
+        - :mod:`cape.pyfun.cmd`
+        - :mod:`cape.pyfun.bin`
+        - :mod:`cape.pyfun.report`
+        - :mod:`cape.pyfun.queue`
+        - :mod:`cape.pyfun.util`
 
 """
 
@@ -74,5 +74,5 @@ _fname = os.path.abspath(__file__)
 PyFunFolder = os.path.split(_fname)[0]
 
 # Import Control module
-from .fun3d  import Fun3d, RunMatrix
+from .cntl  import Cntl, RunMatrix
 

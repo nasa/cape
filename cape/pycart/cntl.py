@@ -13,7 +13,7 @@ into a run matrix can be loaded using the following commands.
         >>> import cape.pycart.cart3d
         >>> cntl = cape.pycart.cntl.Cntl("pyCart.json")
         >>> cart3d
-        <pyCart.Cntl(nCase=4, tri='bullet.tri')>
+        <cape.pycart.Cntl(nCase=4, tri='bullet.tri')>
         >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
         
@@ -27,12 +27,12 @@ and optionally the data book (``cart3d.DataBook``), the triangulation
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *cart3d.x*             :class:`pyCart.runmatrix.RunMatrix`
-    *cart3d.opts*          :class:`pyCart.options.Options`
-    *cart3d.tri*           :class:`pyCart.tri.Tri`
-    *cart3d.DataBook*      :class:`pyCart.dataBook.DataBook`
-    *cart3d.InputCntl*     :class:`pyCart.inputCntl.InputCntl`
-    *cart3d.AeroCsh*       :class:`pyCart.aeroCsh.AeroCsh`
+    *cart3d.x*             :class:`cape.pycart.runmatrix.RunMatrix`
+    *cart3d.opts*          :class:`cape.pycart.options.Options`
+    *cart3d.tri*           :class:`cape.pycart.tri.Tri`
+    *cart3d.DataBook*      :class:`cape.pycart.dataBook.DataBook`
+    *cart3d.InputCntl*     :class:`cape.pycart.inputCntl.InputCntl`
+    *cart3d.AeroCsh*       :class:`cape.pycart.aeroCsh.AeroCsh`
     ====================   =============================================
 
 Finally, the :class:`cape.pycart.cntl.Cntl` class is subclassed from the
@@ -52,25 +52,18 @@ import os, shutil
 import subprocess as sp
 
 # Import template class
-from cape.cntl import Cntl
+import cape.cntl
 
-# pyCart settings class
+# Locale modules
 from . import options
-# pyCart queue itnerface
 from . import queue
-# Cart3D binary interfaces
 from . import bin
-# Run directory module
 from . import case
-# Run directory management
 from . import manage
-# Data book and plotting
 from . import dataBook
 
 # Functions and classes from other modules
-from .runmatrix import RunMatrix
-
-# Import specific file control classes
+from .runmatrix   import RunMatrix
 from .inputCntl   import InputCntl
 from .aeroCsh     import AeroCsh
 from .preSpecCntl import PreSpecCntl
@@ -88,7 +81,7 @@ PyCartFolder = os.path.split(_fname)[0]
 TemplateFodler = os.path.join(PyCartFolder, "templates")
 
 
-# Function to automate minor changes to docstrings to make them pyCart.Cntl
+# Function to automate minor changes to docstrings
 def _upgradeDocString(docstr, fromclass):
     """
     Upgrade docstrings from a certain subclass to make them look like
@@ -122,7 +115,7 @@ def _upgradeDocString(docstr, fromclass):
 
     
 # Class to read input files
-class Cart3d(Cntl):
+class Cntl(cape.cntl.Cntl):
     """
     Class for handling global options and setup for Cart3D.
     
@@ -139,7 +132,7 @@ class Cart3d(Cntl):
     Defaults are read from the file ``$PYCART/settings/pyCart.default.json``.
     
     :Call:
-        >>> cntl = pyCart.Cntl(fname="pyCart.json")
+        >>> cntl = cape.pycart.Cntl(fname="pyCart.json")
     :Inputs:
         *fname*: :class:`str`
             Name of pyCart input file
@@ -149,7 +142,7 @@ class Cart3d(Cntl):
     :Data members:
         *cart3d.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *cart3d.x*: :class:`pyCart.runmatrix.RunMatrix`
+        *cart3d.x*: :class:`cape.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
         *cart3d.RootDir*: :class:`str`
             Absolute path to the root directory
@@ -197,7 +190,7 @@ class Cart3d(Cntl):
     def __repr__(self):
         """Output representation for the class."""
         # Display basic information from all three areas.
-        return "<pyCart.Cntl(nCase=%i, tri='%s')>" % (
+        return "<cape.pycart.Cntl(nCase=%i, tri='%s')>" % (
             self.x.nCase,
             self.opts.get_TriFile())
         
@@ -358,7 +351,7 @@ class Cart3d(Cntl):
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
         
-        This function relies on :mod:`pyCart.case`, and so it is customized for
+        This function relies on :mod:`cape.pycart.case`, and so it is customized for
         the Cart3D solver only in that it calles the correct *case* module.
         
         :Call:
@@ -830,11 +823,11 @@ class Cart3d(Cntl):
             *cart3d*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
         :See Also:
-            * :func:`pyCart.options.Mesh.Mesh.get_BBox`
-            * :func:`pyCart.options.Mesh.Mesh.get_XLev`
+            * :func:`cape.pycart.options.Mesh.Mesh.get_BBox`
+            * :func:`cape.pycart.options.Mesh.Mesh.get_XLev`
             * :func:`cape.tri.TriBase.GetCompBBox`
-            * :func:`pyCart.preSpecCntl.PreSpecCntl.AddBBox`
-            * :func:`pyCart.preSpecCntl.PreSpecCntl.AddXLev`
+            * :func:`cape.pycart.preSpecCntl.PreSpecCntl.AddBBox`
+            * :func:`cape.pycart.preSpecCntl.PreSpecCntl.AddXLev`
         :Versions:
             * 2014-10-08 ``@ddalle``: First version
         """

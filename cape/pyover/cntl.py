@@ -9,10 +9,10 @@ loaded using the following commands.
 
     .. code-block:: pycon
     
-        >>> import pyOver.fun3d
+        >>> import cape.pyover.fun3d
         >>> cntl = cape.pyover.cntl.Cntl("pyOver.json")
         >>> ofl
-        <pyOver.Cntl(nCase=907)>
+        <cape.pyover.Cntl(nCase=907)>
         >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
         
@@ -25,10 +25,10 @@ and optionally the data book (``fun3d.DataBook``), the appropriate input files
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *ofl.x*                :class:`pyOver.runmatrix.RunMatrix`
-    *ofl.opts*             :class:`pyOver.options.Options`
-    *ofl.DataBook*         :class:`pyOver.dataBook.DataBook`
-    *ofl.Namelist*         :class:`pyOver.namelist.Namelist`
+    *ofl.x*                :class:`cape.pyover.runmatrix.RunMatrix`
+    *ofl.opts*             :class:`cape.pyover.options.Options`
+    *ofl.DataBook*         :class:`cape.pyover.dataBook.DataBook`
+    *ofl.Namelist*         :class:`cape.pyover.namelist.Namelist`
     ====================   =============================================
 
 Finally, the :class:`cape.pyover.cntl.Cntl` class is subclassed from the
@@ -37,23 +37,27 @@ also available here.
 
 """
 
-# Basic numerics
-import numpy as np
-# Configuration file processor
+# Standard library
+import os
 import json
-# Date processing
-from datetime import datetime
-# File system and operating system management
-import os, shutil
+import shutil
+
+# Standard: renamed
 import subprocess as sp
 
+# Standard: partial
+from datetime import datetime
+
+# Third-party
+import numpy as np
+
 # Import template class
-from cape.cntl import Cntl
+import cape.cntl
 
 # Local classes
 from .overNamelist import OverNamelist
 
-# Other pyFun modules
+# Other cape.pyover modules
 from . import options
 from . import case
 from . import dataBook
@@ -72,7 +76,7 @@ _fname = os.path.abspath(__file__)
 PyOverFolder = os.path.split(_fname)[0]
     
 # Class to read input files
-class Overflow(Cntl):
+class Cntl(cape.cntl.Cntl):
     """
     Class for handling global options and setup for OVERFLOW.
     
@@ -89,19 +93,19 @@ class Overflow(Cntl):
     Defaults are read from the file ``$CAPE/settings/pyOver.default.json``.
     
     :Call:
-        >>> cntl = pyOver.Cntl(fname="pyOver.json")
+        >>> cntl = cape.pyover.Cntl(fname="pyOver.json")
     :Inputs:
         *fname*: :class:`str`
-            Name of pyOver input file
+            Name of cape.pyover input file
     :Outputs:
         *ofl*: :class:`cape.pyfun.cntl.Cntl`
-            Instance of the pyFun control class
+            Instance of the cape.pyover control class
     :Data members:
         *ofl.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *ofl.x*: :class:`pyOver.runmatrix.RunMatrix`
+        *ofl.x*: :class:`cape.pyover.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
-        *ofl.Namelist*: :class:`pyOver.overNamelist.OverNamelist`
+        *ofl.Namelist*: :class:`cape.pyover.overNamelist.OverNamelist`
             Interface to ``over.namelist`` OVERFLOW input file
         *ofl.RootDir*: :class:`str`
             Absolute path to the root directory
@@ -120,7 +124,7 @@ class Overflow(Cntl):
         if not os.path.isfile(fname):
             # Raise error but suppress traceback
             os.sys.tracebacklimit = 0
-            raise ValueError("No pyOver control file '%s' found" % fname)
+            raise ValueError("No cape.pyover control file '%s' found" % fname)
         
         # Read settings
         self.opts = options.Options(fname=fname)
@@ -153,7 +157,7 @@ class Overflow(Cntl):
     def __repr__(self):
         """Output representation for the class."""
         # Display basic information from all three areas.
-        return "<pyOver.Cntl(nCase=%i)>" % (
+        return "<cape.pyover.Cntl(nCase=%i)>" % (
             self.x.nCase)
   # >
   
@@ -202,7 +206,7 @@ class Overflow(Cntl):
             >>> cntl.ReadDataBook(comp=None)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *comp*: {``None``} | :class:`str` | :class:`list`
                 List of components, or read all if ``None``
         :Versions:
@@ -234,7 +238,7 @@ class Overflow(Cntl):
             >>> cntl.ReadNamelist(j=0, q=True)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *j*: :class:`int`
                 Phase number
             *q*: :class:`bool`
@@ -277,7 +281,7 @@ class Overflow(Cntl):
             *rep*: :class:`str`
                 Name of report
         :Outputs:
-            *R*: :class:`pyOver.report.Report`
+            *R*: :class:`cape.pyover.report.Report`
                 Report interface
         :Versions:
             * 2018-10-19 ``@ddalle``: First version
@@ -297,7 +301,7 @@ class Overflow(Cntl):
             >>> val = cntl.GetNamelistVar(sec, key, j=0)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *sec*: :class:`str`
                 Name of namelist section/group
             *key*: :class:`str`
@@ -337,7 +341,7 @@ class Overflow(Cntl):
             >>> name = cntl.GetPrefix(j=0)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *j*: :class:`int`
                 Phase number
         :Outputs:
@@ -360,7 +364,7 @@ class Overflow(Cntl):
             >>> config = cntl.GetConfig(i)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *i*: :class:`int`
                 Case index
         :Outputs:
@@ -391,7 +395,7 @@ class Overflow(Cntl):
             >>> fcfg = cntl.GetConfigDir(i)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *i*: :class:`int`
                 Case index
         :Outputs:
@@ -644,7 +648,7 @@ class Overflow(Cntl):
             >>> cntl.PrepareMesh(i)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *i*: :class:`int`
                 Case index
         :Versions:
@@ -1074,7 +1078,7 @@ class Overflow(Cntl):
             >>> cntl.SetSurfBC(key, i, CT=False)
         :Inputs:
             *ofl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *key*: :class:`str`
                 Name of SurfBC key to process
             *i*: :class:`int`
@@ -1176,7 +1180,7 @@ class Overflow(Cntl):
             >>> p0, T0 = cntl.GetSurfBC(key, i, grid=None)
         :Inputs:
             *ofl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *key*: :class:`str`
                 Name of SurfBC key to process
             *i*: :class:`int`
@@ -1213,7 +1217,7 @@ class Overflow(Cntl):
             >>> p0, T0 = cntl.GetSurfCTState(key, i, grid=None)
         :Inputs:
             *ofl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *key*: :class:`str`
                 Name of SurfBC key to process
             *i*: :class:`int`
@@ -1267,10 +1271,10 @@ class Overflow(Cntl):
             >>> cntl.WriteCaseJSON(i, rc=None)
         :Inputs:
             *ofl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *i*: :class:`int`
                 Run index
-            *rc*: {``None``} | :class:`pyOver.options.runControl.RunControl`
+            *rc*: {``None``} | :class:`cape.pyover.options.runControl.RunControl`
                 If specified, write specified "RunControl" options
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
@@ -1311,11 +1315,11 @@ class Overflow(Cntl):
             >>> rc = cntl.ReadCaseJSON(i)
         :Inputs:
             *ofl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *i*: :class:`int`
                 Run index
         :Outputs:
-            *rc*: ``None`` | :class:`pyOver.options.runControl.RunControl`
+            *rc*: ``None`` | :class:`cape.pyover.options.runControl.RunControl`
                 Run control interface read from ``case.json`` file
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
@@ -1352,15 +1356,15 @@ class Overflow(Cntl):
             >>> nml = cntl.ReadCaseNamelist(i, rc=None, j=None)
         :Inputs:
             *ofl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *i*: :class:`int`
                 Run index
-            *rc*: ``None`` | :class:`pyOver.options.runControl.RunControl`
+            *rc*: ``None`` | :class:`cape.pyover.options.runControl.RunControl`
                 Run control interface read from ``case.json`` file
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:
-            *nml*: ``None`` | :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: ``None`` | :class:`cape.pyover.overNamelist.OverNamelist`
                 Namelist interface is possible
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
@@ -1400,7 +1404,7 @@ class Overflow(Cntl):
             >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
         :Inputs:
             *ofl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *i*: :class:`int`
                 Run index
             *n*: {``1``} | positive :class:`int`
@@ -1451,7 +1455,7 @@ class Overflow(Cntl):
             >>> cntl.WritePBS(i, nPhase=None)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
             *i*: :class:`int`
                 Run index
             *nPhase*: {``None``} | :class:`int`
@@ -1508,14 +1512,14 @@ class Overflow(Cntl):
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
         
-        This function relies on :mod:`pyCart.case`, and so it is customized for
+        This function relies on :mod:`cape.pyover.case`, and so it is customized for
         the Cart3D solver only in that it calles the correct *case* module.
         
         :Call:
             >>> pbs = cntl.CaseStartCase()
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control class
+                Instance of cape.pyover control class
         :Outputs:
             *pbs*: :class:`int` or ``None``
                 PBS job ID if submitted successfully
@@ -1569,7 +1573,7 @@ class Overflow(Cntl):
             >>> cntl.ArchivePWD(phantom=False)
         :Inputs:
             *cntl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control interface
+                Instance of cape.pyover control interface
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
@@ -1587,7 +1591,7 @@ class Overflow(Cntl):
             >>> cntl.SkeletonPWD(phantom=False)
         :Inputs:
             *cntl*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control interface
+                Instance of cape.pyover control interface
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
@@ -1604,7 +1608,7 @@ class Overflow(Cntl):
             >>> cntl.CleanPWD(phantom=False)
         :Inputs:
             *oflow*: :class:`cape.pyover.cntl.Cntl`
-                Instance of pyOver control interface
+                Instance of cape.pyover control interface
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:

@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 11:39 PDT
+   on 2019-09-18 at 12:34 PDT
 
 Test ``09_cmd``
 =================
@@ -85,8 +85,8 @@ Command 1: AFLR3 Commands Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.485571 seconds
-    * Cumulative time: 0.485571 seconds
+    * Command took 0.478822 seconds
+    * Cumulative time: 0.478822 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -114,8 +114,8 @@ Command 2: CART3D ``intersect`` Commands Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.399032 seconds
-    * Cumulative time: 0.884603 seconds
+    * Command took 0.396685 seconds
+    * Cumulative time: 0.875507 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -143,8 +143,8 @@ Command 3: AFLR3 Commands Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.660922 seconds
-    * Cumulative time: 1.54553 seconds
+    * Command took 0.677018 seconds
+    * Cumulative time: 1.55253 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -172,8 +172,8 @@ Command 4: CART3D ``intersect`` Commands Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.720171 seconds
-    * Cumulative time: 2.2657 seconds
+    * Command took 0.73574 seconds
+    * Cumulative time: 2.28827 seconds
 :STDOUT:
     * **PASS**
     * Target:

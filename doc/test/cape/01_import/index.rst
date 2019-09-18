@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 11:38 PDT
+   on 2019-09-18 at 12:34 PDT
 
 Test ``01_import``
 ====================
@@ -45,8 +45,8 @@ Command 1
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.489856 seconds
-    * Cumulative time: 0.489856 seconds
+    * Command took 0.479336 seconds
+    * Cumulative time: 0.479336 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -66,8 +66,8 @@ Command 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.72106 seconds
-    * Cumulative time: 1.21092 seconds
+    * Command took 0.725658 seconds
+    * Cumulative time: 1.20499 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
