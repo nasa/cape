@@ -75,7 +75,7 @@ variables.
     .. code-block:: javascript
     
         // Run matrix description
-        "Trajectory": {
+        "RunMatrix": {
             // File and variable list
             "File": "",
             "Keys": [
@@ -108,8 +108,8 @@ Here we have modified the *mach* definition so that pyFun explicitly includes
 exactly two digits after the decimal place in the folder name (otherwise we may
 have difficulty with the Mach 0.84 case).  There are many more capabilities of
 this *Definitions* section.  Some of them are discussed in other examples, and
-the complete guide can be found in :ref:`the "Trajectory" section of the JSON
-guide <cape-json-Trajectory>`.
+the complete guide can be found in :ref:`the "RunMatrix" section of the JSON
+guide <cape-json-RunMatrix>`.
 
 In this case, we have decided to specify the values of the variables within the
 JSON file.  We can specify a list with one value for each case, as in ``"mach":

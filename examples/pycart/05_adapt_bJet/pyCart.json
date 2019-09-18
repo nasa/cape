@@ -220,8 +220,8 @@
     },
     
     
-    // Trajectory description
-    "Trajectory": {
+    // RunMatrix description
+    "RunMatrix": {
         "File": "inputs/matrix.csv",
         "Keys": ["Mach", "alpha", "beta", "config", "Label"],
         // Configuration name [default]

@@ -67,10 +67,10 @@
         "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]}
     },
     
-    // Trajectory description
-    "Trajectory": {
+    // RunMatrix description
+    "RunMatrix": {
         // If a file is specified, and it exists, trajectory values will be
-        // read from it.  Trajectory values can also be specified locally.
+        // read from it.  RunMatrix values can also be specified locally.
         "File": "matrix.csv",
         "Keys": ["Mach", "alpha", "beta"],
         // Copy the mesh

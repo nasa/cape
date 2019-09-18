@@ -1,5 +1,5 @@
 """
-:mod:`pyOver.trajectory`: OVERFLOW run matrix module 
+:mod:`pyOver.runmatrix`: OVERFLOW run matrix module 
 =====================================================
 
 This module handles classes and methods that are specific to the list of run
@@ -41,19 +41,19 @@ a JSON file, and *ofl.x* is the run matrix.
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_a']
         
 For this module, there are no methods that are particular to OVERFLOW.  All
-functionality is inherited from :class:`cape.trajectory.Trajectory`.
+functionality is inherited from :class:`cape.runmatrix.Trajectory`.
 
 :See Also:
-    * :mod:`cape.trajectory`
+    * :mod:`cape.runmatrix`
     * :mod:`pyOver.cart3d`
 """
 
 # Import the cape module.
-import cape.trajectory
+import cape.runmatrix
 
 
 # Trajectory class
-class Trajectory(cape.trajectory.Trajectory):
+class Trajectory(cape.runmatrix.Trajectory):
     """
     Read a simple list of configuration variables
     
@@ -77,7 +77,7 @@ class Trajectory(cape.trajectory.Trajectory):
         *Definitions*: :class:`dict`
             Dictionary of definitions for each key
     :Outputs:
-        *x*: :class:`pyOver.trajectory.Trajectory`
+        *x*: :class:`pyOver.runmatrix.Trajectory`
             Instance of the trajectory class
     :Data members:
         *x.nCase*: :class:`int`

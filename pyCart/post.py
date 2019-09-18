@@ -63,7 +63,7 @@ class LoadsDat:
             # Quit.
             return None
         # Get the folder names.
-        fnames = cart3d.Trajectory.GetFullFolderNames()
+        fnames = cart3d.RunMatrix.GetFullFolderNames()
         # Initialize the component list.
         self.Components = []
         # Initialize the force coefficients
@@ -73,7 +73,7 @@ class LoadsDat:
         self.C_l = {}; self.C_m = {}; self.C_n = {}
         self.C_M_x = {}; self.C_M_y = {}; self.C_M_z = {}
         # Number of cases.
-        nCase = cart3d.Trajectory.nCase
+        nCase = cart3d.RunMatrix.nCase
         # Loop through the files.
         for i in range(nCase):
             # Create the file name.
@@ -191,8 +191,8 @@ class LoadsDat:
             >>> FM.Write(T, compID=None)
             
         :Inputs:
-            *T*: :class:`pyCart.trajectory.Trajectory`
-                Trajectory matching the conditions saved
+            *T*: :class:`pyCart.runmatrix.RunMatrix`
+                RunMatrix matching the conditions saved
             *compID*: :class:`list`
                 List of components to process, all are written by default
         """

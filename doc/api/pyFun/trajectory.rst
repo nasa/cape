@@ -1,10 +1,10 @@
 .. Documentation for the trajectory submodule
 
-.. automodule:: pyFun.trajectory
+.. automodule:: pyFun.runmatrix
     
-    FUN3D run matrix class: :class:`pyFun.trajectory.Trajectory` 
+    FUN3D run matrix class: :class:`pyFun.runmatrix.RunMatrix` 
     --------------------------------------------------------------
 
-    .. autoclass:: pyFun.trajectory.Trajectory
+    .. autoclass:: pyFun.runmatrix.RunMatrix
         :members:
     

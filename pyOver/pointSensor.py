@@ -28,8 +28,8 @@ class DBPointSensorGroup(dict):
     :Call:
         >>> DBPG = DBPointSensorGroup(x, opts, name)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *name*: :class:`str` | ``None``
@@ -113,11 +113,11 @@ class DBPointSensorGroup(dict):
             self[pt].Write()
     
     # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
+    def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
         
         :Call:
-            >>> DBPG.UpdateTrajectory()
+            >>> DBPG.UpdateRunMatrix()
         :Inputs:
             *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
                 A point sensor group data book
@@ -160,8 +160,8 @@ class DBPointSensor(cape.dataBook.DBBase):
     :Call:
         >>> DBP = DBPointSensor(x, opts, pt, name=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *pt*: :class:`str`

@@ -39,7 +39,7 @@ the angle of the velocity projected into the CFD *yz* plane.
         
 Cape also provides *alpha_t* and *phi* as variables for the user, and it
 automatically calculates *alpha* and *beta* accordingly.  These are listed in
-the :ref:`JSON settings description <cape-json-TrajectoryGroups>`, and more
+the :ref:`JSON settings description <cape-json-RunMatrixGroups>`, and more
 details are provided below.
 
     **alpha**: :class:`dict`
@@ -48,7 +48,7 @@ details are provided below.
             Whether or not to consider the angle of attack as a group key
             
         *Type*: ``"alpha"``
-            Trajectory key type, must be ``"alpha"`` for this type of key
+            RunMatrix key type, must be ``"alpha"`` for this type of key
             
         *Value*: ``"float"``
             Name of Python type for this key, must be :class:`float`
@@ -74,7 +74,7 @@ details are provided below.
             Whether or not to consider the angle of attack as a group key
             
         *Type*: ``"beta"``
-            Trajectory key type, must be ``"beta"`` for this type of key
+            RunMatrix key type, must be ``"beta"`` for this type of key
             
         *Value*: ``"float"``
             Name of Python type for this key, must be :class:`float`
@@ -125,7 +125,7 @@ The second way to define the flow angles is using *alpha_t* and *phi*.
             Whether or not to consider the angle of attack as a group key
             
         *Type*: ``"alpha_t"``
-            Trajectory key type, must be ``"alpha_t"`` for this type of key
+            RunMatrix key type, must be ``"alpha_t"`` for this type of key
             
         *Value*: ``"float"``
             Name of Python type for this key, must be :class:`float`
@@ -151,7 +151,7 @@ The second way to define the flow angles is using *alpha_t* and *phi*.
             Whether or not to consider the angle of attack as a group key
             
         *Type*: ``"phi"``
-            Trajectory key type, must be ``"phi"`` for this type of key
+            RunMatrix key type, must be ``"phi"`` for this type of key
             
         *Value*: ``"float"``
             Name of Python type for this key, must be :class:`float`
@@ -194,11 +194,11 @@ calculate *Re* using the temperature and either static pressure or dynamic
 pressure when setting up a case. Conversely, the user may define *Re* in the
 standard manner, and it will automatically calculate the freestream static and
 dynamic pressures as reference variables using
-:func:`cape.trajectory.Trajectory.GetPressure` and
-:func:`cape.trajectory.Trajectory.GetDynamicPressure`.  There are also methods
+:func:`cape.runmatrix.RunMatrix.GetPressure` and
+:func:`cape.runmatrix.RunMatrix.GetDynamicPressure`.  There are also methods
 to calculate freestream static temperature
-(:func:`cape.trajectory.Trajectory.GetTemperature`) and freestream stagnation
-temperature (:func:`cape.trajectory.Trajectory.GetStagnationTemperature`).
+(:func:`cape.runmatrix.RunMatrix.GetTemperature`) and freestream stagnation
+temperature (:func:`cape.runmatrix.RunMatrix.GetStagnationTemperature`).
 
 Finally, most codes also allow the user to specify non-default values of the
 freestream ratio of specific heats, which can be done using the *gamma* run
@@ -206,6 +206,6 @@ matrix variable type.
 
 Each of these trajectory key types are *mach*, *T*, *Re*, *gamma*, *p*, and
 *q*. Each of these variables and their aliases are listed in the :ref:`JSON
-settings description <cape-json-TrajectoryGroups>`, and they have the same
+settings description <cape-json-RunMatrixGroups>`, and they have the same
 suboptions as the *alpha* and *beta* keys described in the previous section.
 

@@ -1,10 +1,10 @@
 .. Documentation for the trajectory submodule
 
-.. automodule:: pyOver.trajectory
+.. automodule:: pyOver.runmatrix
     
-    OVERFLOW run matrix class: :class:`pyOver.trajectory.Trajectory` 
+    OVERFLOW run matrix class: :class:`pyOver.runmatrix.RunMatrix` 
     ----------------------------------------------------------------
 
-    .. autoclass:: pyOver.trajectory.Trajectory
+    .. autoclass:: pyOver.runmatrix.RunMatrix
         :members:
     

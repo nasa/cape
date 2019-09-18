@@ -1,8 +1,8 @@
 
-.. _pycart-json-Trajectory:
+.. _pycart-json-RunMatrix:
 
 ------------------------
-Trajectory or Run Matrix
+RunMatrix or Run Matrix
 ------------------------
 
 A required section of :file:`pyCart.json` describes the variables that define
@@ -10,10 +10,10 @@ the run conditions and the values of those variables.  In many cases, these will
 be familiar input variables like Mach number, angle of attack, and sideslip
 angle; but in other cases they will require additional description within the
 :file:`pyCart.json` file.  The generic run matrix description is found in the
-:ref:`Cape Trajectory section <cape-json-Trajectory>`.
+:ref:`Cape RunMatrix section <cape-json-RunMatrix>`.
 
 The following trajectory keys are in addition to :ref:`the Cape list
-<cape-json-TrajectoryKeys>` available to all solvers.
+<cape-json-RunMatrixKeys>` available to all solvers.
 
 [*translation*]:
 Translate one or more components in a specified direction

@@ -1220,7 +1220,7 @@ class Report(odict):
             return S[opt]
         # Default values.
         S = {
-            "TrajectoryOnly": False,
+            "RunMatrixOnly": False,
             "Figures": [],
             "EqCons": [],
             "TolCons": {},

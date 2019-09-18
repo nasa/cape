@@ -44,8 +44,8 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
     :Call:
         >>> DBL = DBLineLoad(x, opts. comp, conf=None, RootDir=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *comp*: :class:`str`

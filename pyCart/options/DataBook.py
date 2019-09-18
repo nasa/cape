@@ -195,7 +195,7 @@ class DataBook(cape.options.DataBook):
                 Name of line load group
         :Outputs:
             *o_mach*: :class:`str` | :class:`float`
-                Trajectory key to use as Mach number or fixed value
+                RunMatrix key to use as Mach number or fixed value
         :Versions:
             * 2015-09-15 ``@ddalle``: First version
         """
@@ -219,7 +219,7 @@ class DataBook(cape.options.DataBook):
                 Name of line load group
         :Outputs:
             *o_mach*: :class:`str` | :class:`float`
-                Trajectory key to use as Mach number or fixed value
+                RunMatrix key to use as Mach number or fixed value
         :Versions:
             * 2015-09-15 ``@ddalle``: First version
         """
@@ -243,7 +243,7 @@ class DataBook(cape.options.DataBook):
                 Name of line load group
         :Outputs:
             *o_mach*: :class:`str` | :class:`float`
-                Trajectory key to use as Reynolds number or fixed value
+                RunMatrix key to use as Reynolds number or fixed value
         :Versions:
             * 2015-09-15 ``@ddalle``: First version
         """

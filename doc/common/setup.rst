@@ -17,18 +17,18 @@ Two of the sections of the JSON file, particularly ``"DataBook"`` and
 ``"Report"`` can be filled in after getting the cases running.  The other
 sections of the JSON file are generally required to be configured correctly
 before starting a case.  The most important section for determining the basic
-structure of a run setup is the ``"Trajectory"`` :ref:`section
-<cape-json-Trajectory>`.
+structure of a run setup is the ``"RunMatrix"`` :ref:`section
+<cape-json-RunMatrix>`.
 
 Matrix Setup
 ------------
 The first step is to pick the list of run matrix variables, which is a list set
-in *Trajectory>Keys*. For example, this could be as simple as ``["mach",
+in *RunMatrix>Keys*. For example, this could be as simple as ``["mach",
 "alpha"]`` for a simple run matrix, or there could be may more variables such
 as fin deflection angles or thrust settings. Common variables such as
 ``"mach"``, ``"alpha"``, ``"beta"``, etc. do not need definitions, but special
 variables such as thrust settings need to have further explanation in the
-*Trajectory>Definitions* section.
+*RunMatrix>Definitions* section.
 
 In addition, there are three other pre-declared variable types that do not
 directly impact any CFD input settings.  These variables are ``"config"``, which

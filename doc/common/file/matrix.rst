@@ -12,14 +12,14 @@ column can be strings, floats, integers, or even hexadecimal integers.
 
 These files are prototypically given a ``.csv`` file extension, but this is
 mostly so that double clicking on the files in a file browser will launch a
-spreadsheet program.  Below shows a typical ``"Trajectory"`` section from a
+spreadsheet program.  Below shows a typical ``"RunMatrix"`` section from a
 JSON file for a simple configuration with three main keys: Mach number, angle
 of attack, and sideslip angle.  There are two additional keys, which are the
 ``"config"`` (a group folder name) and a ``"Label"``.
 
     .. code-block:: javascript
     
-        "Trajectory": {
+        "RunMatrix": {
             "Keys": ["mach", "alpha", "beta", "config", "Label"],
             "File": "matrix.csv"
         }

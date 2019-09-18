@@ -50,12 +50,12 @@ example.
 Inputs and Run Matrix Description
 ---------------------------------
 Setting up variables to change the thrust of an example is usually contained
-within the ``"Trajectory"`` section of the JSON file.  The following
+within the ``"RunMatrix"`` section of the JSON file.  The following
 definitions are used for this example:
 
     .. code-block:: javascript
     
-        "Trajectory": {
+        "RunMatrix": {
             "Keys": [
                 "mach", "alpha", "q", "T",
                 "tilt", "CT",
@@ -98,15 +98,15 @@ definitions are used for this example:
         }
         
 In addition to our usual *mach*, *alpha*, *config*, and *Label* parameters that
-are part of the standard pyCart setup, we have added a few *Trajectory>Keys*.
+are part of the standard pyCart setup, we have added a few *RunMatrix>Keys*.
 The first two are dynamic pressure (*q*) and freestream static temperature
 (*T*).  These are both recognized by pyCart as standard variables, and no
-descriptions are needed in the *Trajectory>Definitions* section.
+descriptions are needed in the *RunMatrix>Definitions* section.
 
 The next trajectory key is *tilt*, which is defined so that it pitches the
 engine block from :numref:`fig-pycart-ex08-engine` by an angle equal to the
 value of this variable.  The fact that this is a rotation is set in the *Type*
-option within *Trajectory>Definitions>tilt*.  The center of rotation is set as
+option within *RunMatrix>Definitions>tilt*.  The center of rotation is set as
 ``[8.0, 0.0, 0.0]``, which is the center of the back plane of the arrow.  The
 value of *Axis* makes this a pitch rotation.  *CompID* is a list of components
 that are rotated, which can be either strings or component numbers.  This is a

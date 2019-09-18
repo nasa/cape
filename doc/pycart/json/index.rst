@@ -121,9 +121,9 @@ the major parts of the file.
             "Report": JSONFile("Report.json"),
             
             // Mandatory definition of run matrix.
-            "Trajectory": {
+            "RunMatrix": {
                 // This method points to a file that contains run conditions.
-                "File": "Trajectory.csv",
+                "File": "RunMatrix.csv",
                 // It is mandatory to define what the input variables are.
                 "Keys": ["Mach", "alpha", "beta"],
                 "GroupPrefix": "poweroff",
@@ -153,5 +153,5 @@ of how the options are used.
     Functional
     DataBook
     Report
-    Trajectory
+    RunMatrix
 

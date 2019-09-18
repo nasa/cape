@@ -65,7 +65,7 @@ are mapped back into the original component ID numbering by comparing to
 :file:`Components.i.tri` with its seven component IDs.
 
 Otherwise, the solution proceeds in the same manner as a non-intersecting case. 
-Let's take a closer look at the ``"Mesh"`` and ``"Trajectory"`` sections of the
+Let's take a closer look at the ``"Mesh"`` and ``"RunMatrix"`` sections of the
 pyCart input file :file:`fins.json` to explain how this was set up.
 
     .. code-block:: javascript
@@ -95,8 +95,8 @@ little effect.
 
     .. code-block:: javascript
     
-        // Trajectory (i.e. run matrix) description
-        "Trajectory": {
+        // RunMatrix (i.e. run matrix) description
+        "RunMatrix": {
             // Global run matrix definitions
             "Keys": ["Mach", "alpha_t", "phi", "d2", "d4"],
             "File": "inputs/matrix.csv",
@@ -125,7 +125,7 @@ little effect.
             }
         }
         
-The ``"Trajectory"`` section, which defines the run matrix input variables, is
+The ``"RunMatrix"`` section, which defines the run matrix input variables, is
 more interesting, so let's go through the settings one-by-one. The *Keys* input
 sets the list of input variables. The first three are common variables for many
 configurations and as such are automatically recognized by pyCart. The *File*

@@ -32,7 +32,7 @@ The following classes are imported in this module, so that code like
 work).
 
     * :class:`pyOver.overflow.Overflow`
-    * :class:`pyOver.trajectory.Trajectory`
+    * :class:`pyOver.runmatrix.RunMatrix`
 
 Modules included within this one are outlined below.
 
@@ -74,5 +74,5 @@ _fname = os.path.abspath(__file__)
 PyOverFolder = os.path.split(_fname)[0]
 
 # Import Control module
-from .overflow  import Overflow, Trajectory
+from .overflow  import Overflow, RunMatrix
 

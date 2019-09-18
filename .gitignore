@@ -2,6 +2,9 @@
 *.py[co]
 __pychache__
 
+# Local settings
+.vscode
+
 # Autosaves and such
 *.asv
 *.swp

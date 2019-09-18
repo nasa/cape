@@ -27,7 +27,7 @@ and optionally the data book (``cntl.DataBook``), the appropriate input files
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *cntl.x*               :class:`pyUS.trajectory.Trajectory`
+    *cntl.x*               :class:`pyUS.runmatrix.RunMatrix`
     *cntl.opts*            :class:`pyUS.options.Options`
     *cntl.DataBook*        :class:`pyUS.dataBook.DataBook`
     *cntl.InputInp*        :class:`pyUS.inputInp.InputInp`
@@ -69,7 +69,7 @@ from . import case
 
 # Functions and classes from local modules
 from .inputInp   import InputInp
-from .trajectory import Trajectory
+from .runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -103,7 +103,7 @@ class US3D(Cntl):
     :Data members:
         *cntl.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *cntl.x*: :class:`pyFun.trajectory.Trajectory`
+        *cntl.x*: :class:`pyFun.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
         *cntl.RootDir*: :class:`str`
             Absolute path to the root directory
@@ -138,7 +138,7 @@ class US3D(Cntl):
         self.ImportModules()
         
         # Process the trajectory.
-        self.x = Trajectory(**self.opts['Trajectory'])
+        self.x = RunMatrix(**self.opts['RunMatrix'])
 
         # Job list
         self.jobs = {}

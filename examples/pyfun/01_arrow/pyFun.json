@@ -242,7 +242,7 @@
     },
     
     // Run matrix description
-    "Trajectory": {
+    "RunMatrix": {
         // File and variable list
         "File": "",
         "Keys": [

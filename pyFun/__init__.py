@@ -31,7 +31,7 @@ The following classes are imported in this module, so that code like
 ``pyFun.Fun3d`` will work (although ``pyFun.fun3d.Fun3d`` will also work).
 
     * :class:`pyFun.fun3d.Fun3d`
-    * :class:`pyFun.trajectory.Trajectory`
+    * :class:`pyFun.runmatrix.RunMatrix`
 
 Modules included within this one are outlined below.
 
@@ -50,7 +50,7 @@ Modules included within this one are outlined below.
         - :mod:`pyFun.namelist`
         - :mod:`pyFun.plt`
         - :mod:`pyFun.rubberData`
-        - :mod:`pyFun.trajectory`
+        - :mod:`pyFun.runmatrix`
         
     * Supporting modules
         - :mod:`pyFun.cmd`
@@ -74,5 +74,5 @@ _fname = os.path.abspath(__file__)
 PyFunFolder = os.path.split(_fname)[0]
 
 # Import Control module
-from .fun3d  import Fun3d, Trajectory
+from .fun3d  import Fun3d, RunMatrix
 

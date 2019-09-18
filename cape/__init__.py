@@ -39,7 +39,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.cntl`
        - :mod:`cape.options`
        - :mod:`cape.case`
-       - :mod:`cape.trajectory`
+       - :mod:`cape.runmatrix`
        - :mod:`cape.dataBook`
        - :mod:`cape.pointSensor`
        - :mod:`cape.lineLoad`

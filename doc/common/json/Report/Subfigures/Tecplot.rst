@@ -23,7 +23,7 @@ border at Mach 1.0, and the freestream Mach number to ``"white"``.
             
 Colors are interpreted by :mod:`cape.color`.  The value for ``$mach`` is
 determined from the case number and the current
-:class:`cape.trajectory.Trajectory` for the run configuration.  If *mach* is
+:class:`cape.runmatrix.RunMatrix` for the run configuration.  If *mach* is
 not a trajectory key of the current run matrix, this specification will fail.
 
 The full list of options is shown below.

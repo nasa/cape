@@ -6,7 +6,7 @@
 import numpy as np
 
 # Import cape module
-import cape.trajectory
+import cape.runmatrix
 
 # Settings for run matrix
 opts = {
@@ -22,7 +22,7 @@ opts = {
 # Test 01: display folder names
 def test01_folder_names():
     # Create run matrix
-    x = cape.trajectory.Trajectory(**opts)
+    x = cape.runmatrix.RunMatrix(**opts)
     # Status update
     print("01: Folder names")
     # Display folder names
@@ -33,7 +33,7 @@ def test01_folder_names():
 # Test 02: full folder names
 def test02_full_names():
     # Create run matrix
-    x = cape.trajectory.Trajectory(**opts)
+    x = cape.runmatrix.RunMatrix(**opts)
     # Status update
     print("02: Full folder names")
     # Display folder names
@@ -44,7 +44,7 @@ def test02_full_names():
 # Test 03: total angle of attack
 def test03_alpha_t():
     # Create run matrix
-    x = cape.trajectory.Trajectory(**opts)
+    x = cape.runmatrix.RunMatrix(**opts)
     # Status update
     print("03: Total angle of attack")
     # Display total angle of attack and roll angle
@@ -58,7 +58,7 @@ def test03_alpha_t():
 # Test 04: fixed format
 def test04_format():
     # Create run matrix with extra option
-    x = cape.trajectory.Trajectory(
+    x = cape.runmatrix.RunMatrix(
         Definitions={
             "mach": {"Format": "%.2f"},
             "alpha": {"Abbreviation": "_a"},
@@ -74,7 +74,7 @@ def test04_format():
 # Test 05: conditions file
 def test05_conditions_json():
     # Create run matrix
-    x = cape.trajectory.Trajectory(**opts)
+    x = cape.runmatrix.RunMatrix(**opts)
     # Status update
     print("05: Conditions JSON file")
     # Write conditions file for case 1

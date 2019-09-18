@@ -53,7 +53,7 @@ The commands executed by this test are
         print(DBc)
         
         # Match the trajectory to the actual data
-        DBc.UpdateTrajectory()
+        DBc.UpdateRunMatrix()
         # Filter cases at alpha=2
         I = DBc.x.Filter(["alpha==2"])
         # Show those cases

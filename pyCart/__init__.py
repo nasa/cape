@@ -46,7 +46,7 @@ The following classes are imported in this module, so that code like
 
     * :class:`pyCart.tri.Tri`
     * :class:`pyCart.cart3d.Cart3d`
-    * :class:`pyCart.trajectory.Trajectory`
+    * :class:`pyCart.runmatrix.RunMatrix`
     * :class:`pyCart.inputCntl.InputCntl`
     * :class:`pyCart.aeroCsh.AeroCsh`
     * :class:`pyCart.preSpecCntl.PreSpecCntl`
@@ -66,7 +66,7 @@ Modules included within this one are outlined below.
         - :mod:`pyCart.inputCntl`
         - :mod:`pyCart.aeroCsh`
         - :mod:`pyCart.preSpecCntl`
-        - :mod:`pyCart.trajectory`
+        - :mod:`pyCart.runmatrix`
         - :mod:`pyCart.tri`
         
     * Supporting modules
@@ -91,7 +91,7 @@ PyCartFolder = os.path.split(_fname)[0]
 
 # Import classes and methods from the submodules
 from .tri    import Tri, Triq
-from .cart3d import Cart3d, Trajectory
+from .cart3d import Cart3d, RunMatrix
 from .config import Config
 from .case   import ReadCaseJSON, run_flowCart
 

@@ -23,7 +23,7 @@ using the :func:`pyOver.overflow.Overflow.ReadDataBook` function.
         DBT = DB.Targets["t97"]
         
 Data books can be created without an overall control structure, but it requires
-creating a run matrix object using :class:`pyOver.trajectory.Trajectory`, so it
+creating a run matrix object using :class:`pyOver.runmatrix.RunMatrix`, so it
 is a more involved process.
 
 Data book modules are also invoked during update and reporting command-line
@@ -382,7 +382,7 @@ class DataBook(cape.dataBook.DataBook):
     :Call:
         >>> DB = pyFun.dataBook.DataBook(x, opts)
     :Inputs:
-        *x*: :class:`pyFun.trajectory.Trajectory`
+        *x*: :class:`pyFun.runmatrix.RunMatrix`
             The current pyFun trajectory (i.e. run matrix)
         *opts*: :class:`pyFun.options.Options`
             Global pyFun options instance
@@ -604,8 +604,8 @@ class DBComp(cape.dataBook.DBComp):
     :Inputs:
         *comp*: :class:`str`
             Name of the component
-        *x*: :class:`pyOver.trajectory.Trajectory`
-            Trajectory for processing variable types
+        *x*: :class:`pyOver.runmatrix.RunMatrix`
+            RunMatrix for processing variable types
         *opts*: :class:`pyOver.options.Options`
             Global pyCart options instance
         *targ*: {``None``} | :class:`str`
@@ -632,7 +632,7 @@ class DBTarget(cape.dataBook.DBTarget):
     :Inputs:
         *targ*: :class:`pyOver.options.DataBook.DBTarget`
             Instance of a target source options interface
-        *x*: :class:`pyOver.trajectory.Trajectory`
+        *x*: :class:`pyOver.runmatrix.RunMatrix`
             Run matrix interface
         *opts*: :class:`pyOver.options.Options`
             Global pyCart options instance to determine which fields are useful
@@ -654,8 +654,8 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *comp*: :class:`str`

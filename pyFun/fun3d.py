@@ -27,7 +27,7 @@ and optionally the data book (``fun3d.DataBook``), the appropriate input files
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *fun3d.x*              :class:`pyFun.trajectory.Trajectory`
+    *fun3d.x*              :class:`pyFun.runmatrix.RunMatrix`
     *fun3d.opts*           :class:`pyFun.options.Options`
     *fun3d.tri*            :class:`pyFun.tri.Tri`
     *fun3d.DataBook*       :class:`pyFun.dataBook.DataBook`
@@ -73,7 +73,7 @@ from cape import convert
 from cape.util import RangeString
 
 # Functions and classes from other modules
-from .trajectory import Trajectory
+from .runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -109,7 +109,7 @@ class Fun3d(Cntl):
     :Data members:
         *fun3d.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *fun3d.x*: :class:`pyFun.trajectory.Trajectory`
+        *fun3d.x*: :class:`pyFun.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
         *fun3d.RootDir*: :class:`str`
             Absolute path to the root directory
@@ -139,7 +139,7 @@ class Fun3d(Cntl):
         self.ImportModules()
         
         # Process the trajectory.
-        self.x = Trajectory(**self.opts['Trajectory'])
+        self.x = RunMatrix(**self.opts['RunMatrix'])
 
         # Job list
         self.jobs = {}

@@ -38,7 +38,7 @@ The full list of available options is below.
                 Name of trajectory key used to sort subset; if ``None``, sort by
                 data book index
                 
-            *TrajectoryOnly*: ``true`` | {``false``}
+            *RunMatrixOnly*: ``true`` | {``false``}
                 By default, the data book is the source for sweep plots; this
                 option can restrict the plots to points in the current run
                 matrix

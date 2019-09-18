@@ -2375,11 +2375,11 @@ class DBTarget(odict):
         return self.get('Comment', '#')
     
     # Get trajectory conversion
-    def get_Trajectory(self):
+    def get_RunMatrix(self):
         """Get the trajectory translations
         
         :Call:
-            >>> traj = opts.get_Trajectory()
+            >>> traj = opts.get_RunMatrix()
         :Inputs:
             *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
@@ -2389,6 +2389,6 @@ class DBTarget(odict):
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
         """
-        return self.get('Trajectory', {})    
+        return self.get('RunMatrix', {})    
 # class DBTarget
 

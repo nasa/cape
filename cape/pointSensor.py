@@ -109,8 +109,8 @@ class DBPointSensorGroup(dataBook.DBBase):
     :Call:
         >>> DBPG = DBPointSensorGroup(x, opts, name)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *name*: :class:`str` | ``None``
@@ -429,7 +429,7 @@ class DBPointSensorGroup(dataBook.DBBase):
             *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
                 Point sensor group data book
             *i*: :class:`int`
-                Trajectory index
+                RunMatrix index
             *pt*: :class:`str`
                 Name of point
         :Outputs:
@@ -644,11 +644,11 @@ class DBPointSensorGroup(dataBook.DBBase):
             self[pt].Sort()
             
     # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
+    def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
         
         :Call:
-            >>> DBPG.UpdateTrajectory()
+            >>> DBPG.UpdateRunMatrix()
         :Inputs:
             *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
                 A point sensor group data book
@@ -676,8 +676,8 @@ class DBTriqPointGroup(DBPointSensorGroup):
     :Call:
         >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, RootDir=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *name*: :class:`str` | ``None``
@@ -815,8 +815,8 @@ class DBPointSensor(dataBook.DBBase):
     :Call:
         >>> DBP = DBPointSensor(x, opts, pt, name=None, check=False, lock=False)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *pt*: :class:`str`
@@ -958,8 +958,8 @@ class DBTriqPoint(DBPointSensor):
     :Call:
         >>> DBP = DBTriqPoint(x, opts, pt, name=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *pt*: :class:`str`

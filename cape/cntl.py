@@ -22,7 +22,7 @@ customized for the various CFD solvers. The individualized modules are below.
 :See also:
     * :mod:`cape.case`
     * :mod:`cape.options`
-    * :mod:`cape.trajectory`
+    * :mod:`cape.runmatrix`
 
 """
 
@@ -49,7 +49,7 @@ from . import argread
 from . import manage
 
 # Functions and classes from other modules
-from .trajectory import Trajectory
+from .runmatrix import RunMatrix
 from .config     import Config, ConfigJSON
 
 # Import triangulation
@@ -115,7 +115,7 @@ class Cntl(object):
             Instance of Cape control interface
         *cntl.opts*: :class:`cape.options.Options`
             Options interface
-        *cntl.x*: :class:`cape.trajectory.Trajectory`
+        *cntl.x*: :class:`cape.runmatrix.RunMatrix`
             Run matrix interface
         *cntl.RootDir*: :class:`str`
             Working directory from which the class was generated
@@ -146,7 +146,7 @@ class Cntl(object):
         self.ImportModules()
         
         # Process the trajectory.
-        self.x = Trajectory(**self.opts['Trajectory'])
+        self.x = RunMatrix(**self.opts['RunMatrix'])
 
         # Job list
         self.jobs = {}
@@ -977,7 +977,7 @@ class Cntl(object):
             # Mark case
             self.x.MarkPASS(i, flag=flag)
         # Write the trajectory
-        self.x.WriteTrajectoryFile()
+        self.x.WriteRunMatrixFile()
         
     # Mark a case as PASS
     @run_rootdir
@@ -1011,7 +1011,7 @@ class Cntl(object):
             # Mark case
             self.x.MarkERROR(i, flag=flag)
         # Write the trajectory
-        self.x.WriteTrajectoryFile()
+        self.x.WriteRunMatrixFile()
         
     # Remove PASS and ERROR markers
     @run_rootdir
@@ -1037,7 +1037,7 @@ class Cntl(object):
             # Mark case
             self.x.UnmarkCase(i)
         # Write the trajectory
-        self.x.WriteTrajectoryFile()
+        self.x.WriteRunMatrixFile()
     
     # Execute script
     @run_rootdir
@@ -3588,7 +3588,7 @@ class Cntl(object):
         # Loop through the components
         for comp in comps:
             # Restrict the trajectory to cases in the databook
-            self.DataBook[comp].UpdateTrajectory()
+            self.DataBook[comp].UpdateRunMatrix()
         # Longest component name
         maxcomp = max(map(len, comps))
         # Format to include user and format to display iteration number
@@ -3727,7 +3727,7 @@ class Cntl(object):
             # Read the line load component
             self.DataBook.ReadLineLoad(comp)
             # Restrict the trajectory to cases in the databook
-            self.DataBook.LineLoads[comp].UpdateTrajectory()
+            self.DataBook.LineLoads[comp].UpdateRunMatrix()
         # Longest component name
         maxcomp = max(map(len, comps))
         # Format to include user and format to display iteration number
@@ -3863,7 +3863,7 @@ class Cntl(object):
             # Read the line load component
             self.DataBook.ReadTriqFM(comp)
             # Restrict the trajectory to cases in the databook
-            self.DataBook.TriqFM[comp][None].UpdateTrajectory()
+            self.DataBook.TriqFM[comp][None].UpdateRunMatrix()
         # Longest component name
         maxcomp = max(map(len, comps))
         # Format to include user and format to display iteration number
@@ -4005,7 +4005,7 @@ class Cntl(object):
             # Loop through points
             for pt in DBG.pts:
                 # Restrict the trajectory to cases in the databook
-                DBG[pt].UpdateTrajectory()
+                DBG[pt].UpdateRunMatrix()
                 # Add to the list
                 complist.append("%s/%s" % (comp, pt))
                 

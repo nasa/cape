@@ -1,13 +1,13 @@
 """
-:mod:`cape.trajectory`: Run matrix interface
+:mod:`cape.runmatrix`: Run matrix interface
 ==============================================
 
-This module provides a class :class:`cape.trajectory.Trajectory` for
+This module provides a class :class:`cape.runmatrix.Trajectory` for
 interacting with a list of cases. Usually this is the list of cases defined as
 the run matrix for a set of CFD solutions, and it is defined in the
 ``"Trajectory"`` :ref:`section of the JSON file <cape-json-trajectory>`.
 
-However, the contents of the :class:`cape.trajectory.Trajectory` may have a
+However, the contents of the :class:`cape.runmatrix.Trajectory` may have a
 list of cases that differs from the run matrix, for example containing instead
 the cases contained in a data book.
 
@@ -42,8 +42,8 @@ Each case has a particular folder name.  To get the name of the folder for case
 The trajectory class also contains several methods for filtering cases.  For
 example, the user may get the list of indices of cases with a Mach number
 greater than 1.0, or the user may restrict to cases containing the text "a1.0".
-These use the methods :func:`cape.trajectory.Trajectory.Filter` and
-:func:`cape.trajectory.Trajectory.FilterString`, respectively.  Filtering
+These use the methods :func:`cape.runmatrix.Trajectory.Filter` and
+:func:`cape.runmatrix.Trajectory.FilterString`, respectively.  Filtering
 examples are shown below.
 
     .. code-block:: python
@@ -58,15 +58,15 @@ examples are shown below.
         I = x.FilterRegex('m0\.[5-8]+a')
 
 These methods are all combined in the
-:func:`cape.trajectory.Trajectory.GetIndices` method.  The
-:func:`cape.trajectory.Trajectory.GetSweeps` method provides a capability to
+:func:`cape.runmatrix.Trajectory.GetIndices` method.  The
+:func:`cape.runmatrix.Trajectory.GetSweeps` method provides a capability to
 split a run matrix into groups in which the cases in each group satisfy
 user-specified constraints, for example having the same angle of attack.
 
-Also provided are methods such as :func:`cape.trajectory.Trajectory.GetAlpha`,
+Also provided are methods such as :func:`cape.runmatrix.Trajectory.GetAlpha`,
 which allows the user to easily access the angle of attack for case *i* even if
 the run matrix is defined using total angle of attack and roll angle.
-Similarly, :func:`cape.trajectory.Trajectory.GetReynoldsNumber` returns the
+Similarly, :func:`cape.runmatrix.Trajectory.GetReynoldsNumber` returns the
 Reynolds number per grid unit even if the run matrix uses static or dynamic
 pressure, which relieves the user from having to do the conversions before
 creating the run matrix conditions.
@@ -125,7 +125,7 @@ class Trajectory(object):
         *Definitions*: :class:`dict`
             Dictionary of definitions for each key
     :Outputs:
-        *x*: :class:`cape.trajectory.Trajectory`
+        *x*: :class:`cape.runmatrix.Trajectory`
             Instance of the trajectory class
     :Data members:
         *x.nCase*: :class:`int`
@@ -312,10 +312,10 @@ class Trajectory(object):
         :Call:
             >>> y = x.Copy()
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
         :Outputs:
-            *y*: :class:`cape.trajectory.Trajectory`
+            *y*: :class:`cape.runmatrix.Trajectory`
                 Separate trajectory with same data
         :Versions:
             * 2015-05-22 ``@ddalle``
@@ -365,7 +365,7 @@ class Trajectory(object):
         :Call:
             >>> x.ReadTrajectoryFile(fname)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
             *fname*: :class:`str`
                 Name of trajectory file
@@ -464,7 +464,7 @@ class Trajectory(object):
             >>> x.WriteTrajectoryFile()
             >>> x.WriteTrajectoryFile(fname)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
             *fname*: {*x.fname*} | :class:`str`
                 Name of trajectory file to write
@@ -493,7 +493,7 @@ class Trajectory(object):
         :Call:
             >>> x.WriteConditionsJSON(i, fname="conditions.json")
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
             *i*: :class:`int`
                 Index of the run case to print
@@ -551,7 +551,7 @@ class Trajectory(object):
         :Call:
             >>> x.SetValue(k, i, v, align="right")
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
             *k*: :class:`str`
                 Name of trajectory key to alter
@@ -595,7 +595,7 @@ class Trajectory(object):
         :Call:
             >>> x.MarkPASS(i, flag="p")
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
             *i*: :class:`int`
                 Index of the run case to print
@@ -653,7 +653,7 @@ class Trajectory(object):
         :Call:
             >>> x.MarkERROR(i, flag="E")
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
             *i*: :class:`int`
                 Index of the run case to print
@@ -706,7 +706,7 @@ class Trajectory(object):
         :Call:
             >>> x.UnmarkCase(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
             *i*: :class:`int`
                 Index of the run case to print
@@ -750,7 +750,7 @@ class Trajectory(object):
         :Call:
             >>> x._set_line_value(k, i, v, align="right")
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the trajectory class
             *k*: :class:`str`
                 Name of trajectory key to alter
@@ -877,7 +877,7 @@ class Trajectory(object):
         :Call:
             >>> x.ProcessKeyDefinitions(defns)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *defns*: :class:`dict`
                 Dictionary of keyword definitions or partial definitions
@@ -1163,7 +1163,7 @@ class Trajectory(object):
         :Call:
             >>> x.ProcessGroups()
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
         :Effects:
             Creates fields that save the properties of the groups.  These fields
@@ -1224,7 +1224,7 @@ class Trajectory(object):
             >>> keys = x.GetKeysByType(KeyType)
             >>> keys = x.GetKeysByType(KeyTypes)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of pyCart trajectory class
             *KeyType*: :class:`str`
                 Key type to search for
@@ -1263,7 +1263,7 @@ class Trajectory(object):
         :Call:
             >>> key = x.GetFirstKeyByType(KeyType)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of pyCart trajectory class
             *KeyType*: :class:`str`
                 Key type to search for
@@ -1290,7 +1290,7 @@ class Trajectory(object):
         :Call:
             >>> keys = x.GetKeysByValue(val)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of pyCart trajectory class
             *val*: :class:`str`
                 Key value class to search for
@@ -1312,7 +1312,7 @@ class Trajectory(object):
         :Call:
             k = x.GetGroupIndex(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int`
                 Index of case
@@ -1392,7 +1392,7 @@ class Trajectory(object):
             >>> V = x.GetValue(k, I)
             >>> v = x.GetValue(k, i)
         :Inputs:
-            *x*: :class:`attdb.trajectory.Trajectory`
+            *x*: :class:`attdb.runmatrix.Trajectory`
                 Run matrix conditions interface
             *k*: :class:`str`
                 Trajectory key name
@@ -1468,7 +1468,7 @@ class Trajectory(object):
             >>> V = x.GetValue(k, I)
             >>> v = x.GetValue(k, i)
         :Inputs:
-            *x*: :class:`attdb.trajectory.Trajectory`
+            *x*: :class:`attdb.runmatrix.Trajectory`
                 Run matrix conditions interface
             *k*: :class:`str`
                 Non-trajectory key name still described in *x.defns*
@@ -1535,7 +1535,7 @@ class Trajectory(object):
         :Call:
             >>> dname = x._AssembleName(keys, prefix, i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *keys*: :type:`list` (:class:`str`)
                 List of keys to use for this folder name
@@ -1645,7 +1645,7 @@ class Trajectory(object):
         :Call:
             >>> lbl = x.GetPBSName(i, pre=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int`
                 Run index
@@ -1719,7 +1719,7 @@ class Trajectory(object):
             >>> dname = x.GetFullFolderNames()
             >>> dname = x.GetFullFolderNames(i=None, prefix="F")
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of cases to process or list of cases.  If this is
@@ -1766,7 +1766,7 @@ class Trajectory(object):
             >>> dname = x.GetFolderNames()
             >>> dname = x.GetFolderNames(i=None, prefix="F")
         :Inputs:
-            *T*: :class:`cape.trajectory.Trajectory`
+            *T*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of cases to process or list of cases.  If this is
@@ -1811,7 +1811,7 @@ class Trajectory(object):
             >>> x.GetGroupFolderNames()
             >>> x.GetGroupFolderNames(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of cases to process or list of cases.  If this is
@@ -1855,7 +1855,7 @@ class Trajectory(object):
             >>> x.GetUniqueGroupFolderNames()
             >>> x.GetUniqueGroupFolderNames(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of group(s) to process
@@ -1904,7 +1904,7 @@ class Trajectory(object):
             >>> i = x.Filter(cons)
             >>> i = x.Fitler(cons, I)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *cons*: :class:`list` (:class:`str`)
                 List of constraints
@@ -1968,7 +1968,7 @@ class Trajectory(object):
             >>> i = x.FilterString(txt)
             >>> i = x.FilterString(txt, I)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *txt*: :class:`str`
                 Substring to use as filter
@@ -2013,7 +2013,7 @@ class Trajectory(object):
             >>> i = x.FilterWildcard(txt)
             >>> i = x.FilterWildcard(txt, I)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *txt*: :class:`str`
                 Wildcard to use as filter
@@ -2052,7 +2052,7 @@ class Trajectory(object):
             >>> i = x.FilterRegex(txt)
             >>> i = x.FilterRegex(txt, I)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *txt*: :class:`str`
                 Wildcard to use as filter
@@ -2091,7 +2091,7 @@ class Trajectory(object):
         :Call:
             >>> I = x.ExpandIndices(itxt)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *itxt*: :class:`str` or :class:`unicode`
                 Text of subscripts, separated by ';'
@@ -2169,7 +2169,7 @@ class Trajectory(object):
         :Call:
             >>> I = x.GetIndices(I=None, cons=[], **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *I*: :class:`list` | :class:`str`
                 Array of indices or text of indices
@@ -2229,9 +2229,9 @@ class Trajectory(object):
         :Call:
             >>> I = x.FindMatches(y, i, keys=None)
         :Inputs:
-            *x*: :class:`attdb.trajectory.Trajectory`
+            *x*: :class:`attdb.runmatrix.Trajectory`
                 Run matrix conditions interface
-            *y*: :class:`attdb.trajectory.Trajectory`
+            *y*: :class:`attdb.runmatrix.Trajectory`
                 Target run matrix conditions interface
             *i*: :class:`int`
                 Case number of case in *y*
@@ -2302,9 +2302,9 @@ class Trajectory(object):
         :Call:
             >>> j = x.FindMatch(y, i, keys=None)
         :Inputs:
-            *x*: :class:`attdb.trajectory.Trajectory`
+            *x*: :class:`attdb.runmatrix.Trajectory`
                 Run matrix conditions interface
-            *y*: :class:`attdb.trajectory.Trajectory`
+            *y*: :class:`attdb.runmatrix.Trajectory`
                 Target run matrix conditions interface
             *i*: :class:`int`
                 Case number of case in *y*
@@ -2350,7 +2350,7 @@ class Trajectory(object):
         :Call:
             >>> I = x.GetSweep(M, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
             *M*: :class:`numpy.ndarray` (:class:`bool`)
                 Mask of which trajectory points should be considered
@@ -2557,9 +2557,9 @@ class Trajectory(object):
         :Call:
             >>> I = x.GetSweep(x0, i0, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Instance of the pyCart trajectory class
-            *x0*: :class:`cape.trajectory.Trajectory`
+            *x0*: :class:`cape.runmatrix.Trajectory`
                 Another instance of the pyCart trajectory class
             *i0*: :class:`int`
                 Index of point in *x0* to use as reference for constraints
@@ -2806,7 +2806,7 @@ class Trajectory(object):
         :Call:
             >>> alpha = x.GetAlpha(i=None)
         :Inputs:
-            *x*: :class;`cape.trajectory.Trajectory`
+            *x*: :class;`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -2856,7 +2856,7 @@ class Trajectory(object):
         :Call:
             >>> am = x.GetAlphaManeuver(i)
         :Inputs:
-            *x*: :class;`cape.trajectory.Trajectory`
+            *x*: :class;`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -2920,7 +2920,7 @@ class Trajectory(object):
         :Call:
             >>> av = x.GetAlphaTotal(i)
         :Inputs:
-            *x*: :class;`cape.trajectory.Trajectory`
+            *x*: :class;`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -2984,7 +2984,7 @@ class Trajectory(object):
         :Call:
             >>> beta = x.GetBeta(i)
         :Inputs:
-            *x*: :class;`cape.trajectory.Trajectory`
+            *x*: :class;`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -3035,7 +3035,7 @@ class Trajectory(object):
         :Call:
             >>> phiv = x.GetPhi(i)
         :Inputs:
-            *x*: :class;`cape.trajectory.Trajectory`
+            *x*: :class;`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -3086,7 +3086,7 @@ class Trajectory(object):
         :Call:
             >>> phim = x.GetPhiManeuver(i)
         :Inputs:
-            *x*: :class;`cape.trajectory.Trajectory`
+            *x*: :class;`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -3155,7 +3155,7 @@ class Trajectory(object):
         :Call:
             >>> Re = x.GetReynoldsNumber(i=None, units=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int` | :class:`list`
                 Case number(s)
@@ -3309,7 +3309,7 @@ class Trajectory(object):
         :Call:
             >>> M = x.GetMach(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case number
@@ -3405,7 +3405,7 @@ class Trajectory(object):
         :Call:
             >>> v = x.GetKeyValue(k, i=None, units=None, udef="1")
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *k*: :class:`str`
                 Name of run matrix variable (trajectory key)
@@ -3453,7 +3453,7 @@ class Trajectory(object):
         :Call:
             >>> rho = x.GetDensity(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -3557,7 +3557,7 @@ class Trajectory(object):
         :Call:
             >>> U = x.GetVelocity(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -3648,7 +3648,7 @@ class Trajectory(object):
         :Call:
             >>> T = x.GetTemperature(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -3740,7 +3740,7 @@ class Trajectory(object):
         :Call:
             >>> T0 = x.GetTotalTemperature(i, units=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -3793,7 +3793,7 @@ class Trajectory(object):
         :Call:
             >>> p = x.GetPressure(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -3910,7 +3910,7 @@ class Trajectory(object):
         :Call:
             >>> q = x.GetDynamicPressure(i=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int` | :class:`list`
                 Case number(s)
@@ -4019,7 +4019,7 @@ class Trajectory(object):
         :Call:
             >>> mu = x.GetViscosity(i=None, units=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int` | :class:`list`
                 Case number(s)
@@ -4071,7 +4071,7 @@ class Trajectory(object):
         :Call:
             >>> p0 = x.GetTotalPressure(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -4133,7 +4133,7 @@ class Trajectory(object):
         :Call:
             >>> v = x.GetGasProperty(k, vdef=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *k*: :class:`str`
                 Name of parameter
@@ -4155,7 +4155,7 @@ class Trajectory(object):
         :Call:
             >>> gam = x.GetGamma(i)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -4186,7 +4186,7 @@ class Trajectory(object):
         :Call:
             >>> W = x.GetMolecularWeight(i=None, units=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -4237,7 +4237,7 @@ class Trajectory(object):
         :Call:
             >>> R = x.GetNormalizedGasConstant(i=None, units=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -4296,7 +4296,7 @@ class Trajectory(object):
         :Call:
             >>> mu0 = x.GetSutherland_mu0(i=None, units=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -4343,7 +4343,7 @@ class Trajectory(object):
         :Call:
             >>> T0 = x.GetSutherland_T0(i=None, units=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -4388,7 +4388,7 @@ class Trajectory(object):
         :Call:
             >>> C = x.GetSutherland_C(i=None, units=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: {``None``} | :class:`int`
                 Case number (return all if ``None``)
@@ -4440,7 +4440,7 @@ class Trajectory(object):
         :Call:
             >>> v, t = x.GetSurfBC_ParamType(key, k, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *k*: :class:`str`
                 Name of input parameter to find
@@ -4477,7 +4477,7 @@ class Trajectory(object):
         :Call:
             >>> V = x.GetSurfBC_Val(i, key, v, t, vdef=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *key*: :class:`str`
                 Name of trajectory key to use
@@ -4521,7 +4521,7 @@ class Trajectory(object):
         :Call:
             >>> v = x.GetSurfBC_Param(i, key, k, comp=None, vdef=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4560,7 +4560,7 @@ class Trajectory(object):
         :Call:
             >>> CT = x.GetSurfCT_Thrust(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4587,7 +4587,7 @@ class Trajectory(object):
         :Call:
             >>> qinf = x.GetSurfCT_RefDynamicPressure(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4619,7 +4619,7 @@ class Trajectory(object):
         :Call:
             >>> Tref = x.GetSurfCT_RefPressure(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4643,7 +4643,7 @@ class Trajectory(object):
         :Call:
             >>> fp = x.GetSurfCT_PressureCalibration(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4684,7 +4684,7 @@ class Trajectory(object):
         :Call:
             >>> bp = x.GetSurfCT_PressureOffset(i, key=None, comp=None)
         :Inputs:
-            *x*: :Class:`cape.trajectory.Trajectory`
+            *x*: :Class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4708,7 +4708,7 @@ class Trajectory(object):
         :Call:
             >>> p0 = x.GetSurfCT_TotalPressure(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4734,7 +4734,7 @@ class Trajectory(object):
         :Call:
             >>> T0 = x.GetSurfCT_TotalTemperature(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4759,7 +4759,7 @@ class Trajectory(object):
         :Call:
             >>> fT = x.GetSurfCT_Temperature(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4800,7 +4800,7 @@ class Trajectory(object):
         :Call:
             >>> bt = x.GetSurfCT_TemperatureOffset(i, key=None, comp=None)
         :Inputs:
-            *x*: :Class:`cape.trajectory.Trajectory`
+            *x*: :Class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4825,7 +4825,7 @@ class Trajectory(object):
         :Call:
             >>> Tref = x.GetSurfCT_RefTemperature(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4849,7 +4849,7 @@ class Trajectory(object):
         :Call:
             >>> M = x.GetSurfCT_TotalTemperature(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4873,7 +4873,7 @@ class Trajectory(object):
         :Call:
             >>> M2 = x.GetSurfCT_ExitMach(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4907,7 +4907,7 @@ class Trajectory(object):
         :Call:
             >>> AR = x.GetSurfCT_AreaRatio(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4941,7 +4941,7 @@ class Trajectory(object):
         :Call:
             >>> A2 = x.GetSurfCT_ExitArea(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -4977,7 +4977,7 @@ class Trajectory(object):
         :Call:
             >>> Aref = x.GetSurfCT_RefArea(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5011,7 +5011,7 @@ class Trajectory(object):
         :Call:
             >>> compID = x.GetSurfCT_CompID(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5035,7 +5035,7 @@ class Trajectory(object):
         :Call:
             >>> pID = x.GetSurfCT_PlenumID(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5061,7 +5061,7 @@ class Trajectory(object):
         :Call:
             >>> Y = x.GetSurfCT_Species(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5085,7 +5085,7 @@ class Trajectory(object):
         :Call:
             >>> compID = x.GetSurfCT_Grids(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5109,7 +5109,7 @@ class Trajectory(object):
         :Call:
             >>> gam = x.GetSurfCT_Gamma(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5133,7 +5133,7 @@ class Trajectory(object):
         :Call:
             >>> p0 = x.GetSurfBC_TotalPressure(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5165,7 +5165,7 @@ class Trajectory(object):
         :Call:
             >>> pinf = x.GetSurfBC_RefPressure(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5213,7 +5213,7 @@ class Trajectory(object):
         :Call:
             >>> fp = x.GetSurfBC_PressureCalibration(i,key=None,comp=None,**kw)
         :Inputs:
-            *x*: :Class:`cape.trajectory.Trajectory`
+            *x*: :Class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5261,7 +5261,7 @@ class Trajectory(object):
         :Call:
             >>> bp = x.GetSurfBC_PressureOffset(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :Class:`cape.trajectory.Trajectory`
+            *x*: :Class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5309,7 +5309,7 @@ class Trajectory(object):
         :Call:
             >>> T0 = x.GetSurfBC_TotalTemperature(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5347,7 +5347,7 @@ class Trajectory(object):
         :Call:
             >>> Tinf = x.GetSurfBC_RefTemperature(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5385,7 +5385,7 @@ class Trajectory(object):
         :Call:
            >>> fT=x.GetSurfBC_TemperatureCalibration(i,key=None,comp=None,**kw)
         :Inputs:
-            *x*: :Class:`cape.trajectory.Trajectory`
+            *x*: :Class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5433,7 +5433,7 @@ class Trajectory(object):
         :Call:
             >>> bt = x.GetSurfBC_TemperatureOffset(i,key=None, comp=None, **kw)
         :Inputs:
-            *x*: :Class:`cape.trajectory.Trajectory`
+            *x*: :Class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5473,7 +5473,7 @@ class Trajectory(object):
         :Call:
             >>> M = x.GetSurfBC_Mach(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5505,7 +5505,7 @@ class Trajectory(object):
         :Call:
             >>> gam = x.GetSurfBC_Gamma(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *key*: ``None`` | :class:`str`
                 Name of key to use; defaults to first ``SurfBC`` key
@@ -5554,7 +5554,7 @@ class Trajectory(object):
         :Call:
             >>> Y = x.GetSurfBC_Species(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5608,7 +5608,7 @@ class Trajectory(object):
         :Call:
             >>> nY = x.GetSurfBC_nSpecies(i, key=None, comp=None, **kw)
         :Inptus:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5641,7 +5641,7 @@ class Trajectory(object):
         :Call:
             >>> compID = x.GetSurfBC_CompID(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5674,7 +5674,7 @@ class Trajectory(object):
         :Call:
             >>> pID = x.GetSurfBC_PlenumID(i, key=None, comp=None, **kw)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5706,7 +5706,7 @@ class Trajectory(object):
         :Call:
             >>> inds = x.GetSurfBC_BCIndex(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index
@@ -5738,7 +5738,7 @@ class Trajectory(object):
         :Call:
             >>> grids = x.GetSurfBC_Grids(i, key=None, comp=None)
         :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.Trajectory`
                 Run matrix interface
             *i*: :class:`int`
                 Case index

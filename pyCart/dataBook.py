@@ -23,7 +23,7 @@ using the :func:`pyCart.cart3d.Cart3d.ReadDataBook` function.
         DBT = DB.Targets["t97"]
         
 Data books can be created without an overall control structure, but it requires
-creating a run matrix object using :class:`pyCart.trajectory.Trajectory`, so it
+creating a run matrix object using :class:`pyCart.runmatrix.RunMatrix`, so it
 is a more involved process.
 
 Data book modules are also invoked during update and reporting command-line
@@ -84,7 +84,7 @@ class DataBook(cape.dataBook.DataBook):
     :Call:
         >>> DB = pyCart.dataBook.DataBook(x, opts)
     :Inputs:
-        *x*: :class:`pyCart.trajectory.Trajectory`
+        *x*: :class:`pyCart.runmatrix.RunMatrix`
             The current pyCart trajectory (i.e. run matrix)
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance
@@ -128,7 +128,7 @@ class DataBook(cape.dataBook.DataBook):
                 self.Targets[targ] = DataBook(
                     self.x, self.opts, RootDir=self.RootDir, targ=targ)
                 # Update the trajectory
-                self.Targets[targ].UpdateTrajectory()
+                self.Targets[targ].UpdateRunMatrix()
             else:
                 # Read the file.
                 self.Targets[targ] = DBTarget(
@@ -579,8 +579,8 @@ class DBComp(cape.dataBook.DBComp):
     :Inputs:
         *comp*: :class:`str`
             Name of the component
-        *x*: :class:`pyCart.trajectory.Trajectory`
-            Trajectory for processing variable types
+        *x*: :class:`pyCart.runmatrix.RunMatrix`
+            RunMatrix for processing variable types
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance
         *targ*: {``None``} | :class:`str`
@@ -607,7 +607,7 @@ class DBTarget(cape.dataBook.DBTarget):
     :Inputs:
         *targ*: :class:`pyCart.options.DataBook.DBTarget`
             Instance of a target source options interface
-        *x*: :class:`pyCart.trajectory.Trajectory`
+        *x*: :class:`pyCart.runmatrix.RunMatrix`
             Run matrix interface
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance to determine which fields are useful
@@ -629,8 +629,8 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *comp*: :class:`str`

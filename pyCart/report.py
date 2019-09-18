@@ -268,7 +268,7 @@ class Report(cape.report.Report):
             DBT.ReadLineLoad(comp, conf=self.cntl.config)
             DBL = DBT.LineLoads[comp]
             # Update the trajectory
-            DBL.UpdateTrajectory()
+            DBL.UpdateRunMatrix()
             # Target options
             topts = self.cntl.opts.get_DataBookTargetByName(targ)
             # Find a match

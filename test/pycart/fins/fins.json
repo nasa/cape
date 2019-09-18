@@ -62,8 +62,8 @@
         "nStats": 40
     },
     
-    // Trajectory (i.e. run matrix) description
-    "Trajectory": {
+    // RunMatrix (i.e. run matrix) description
+    "RunMatrix": {
         // Global run matrix definitions
         "Keys": ["Mach", "alpha_t", "phi", "d2", "d4"],
         "File": "inputs/matrix.csv",

@@ -40,7 +40,7 @@ matrices into a small number of files.
             "Targets": {
                 "WT": {
                     "File": "data/wt.csv",
-                    "Trajectory": {"mach": "Mach"},
+                    "RunMatrix": {"mach": "Mach"},
                     "Tolerances": {
                         "mach": 0.02, "alpha": 0.25, "beta": 0.1
                     }

@@ -143,7 +143,7 @@ class DataBook(dict):
     :Call:
         >>> DB = cape.dataBook.DataBook(x, opts, RootDir=None, targ=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
+        *x*: :class:`cape.runmatrix.RunMatrix`
             The current Cape trajectory (i.e. run matrix)
         *opts*: :class:`cape.options.Options`
             Global Cape options instance
@@ -154,7 +154,7 @@ class DataBook(dict):
     :Outputs:
         *DB*: :class:`cape.dataBook.DataBook`
             Instance of the Cape data book class
-        *DB.x*: :class:`cape.trajectory.Trajectory`
+        *DB.x*: :class:`cape.runmatrix.RunMatrix`
             Run matrix of rows saved in the data book (differs from input *x*)
         *DB[comp]*: :class:`cape.dataBook.DBComp`
             Component data book for component *comp*
@@ -483,7 +483,7 @@ class DataBook(dict):
                 # Read a duplicate data book
                 self._DataBook(targ)
                 # Update the trajectory
-                self.Targets[targ].UpdateTrajectory()
+                self.Targets[targ].UpdateRunMatrix()
             else:
                 # Read the file.
                 self._DBTarget(targ)
@@ -790,7 +790,7 @@ class DataBook(dict):
             *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of the pyCart data book class
             *i*: :class:`int`
-                Trajectory index
+                RunMatrix index
             *comp*: :class:`str`
                 Name of component
         :Outputs:
@@ -1457,7 +1457,7 @@ class DataBook(dict):
   # >
     
   # ==========
-  # Trajectory
+  # RunMatrix
   # ==========
   # <
     # Find an entry by trajectory variables.
@@ -1496,7 +1496,7 @@ class DataBook(dict):
         .. code-block:: python
         
             {
-                "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
+                "RunMatrix": {"alpha": "ALPHA", "Mach": "MACH"}
                 "Tolerances": {
                     "alpha": 0.05,
                     "Mach": 0.01
@@ -1547,11 +1547,11 @@ class DataBook(dict):
     
         
     # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
+    def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
         
         :Call:
-            >>> DB.UpdateTrajectory()
+            >>> DB.UpdateRunMatrix()
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the Cape data book class
@@ -1570,11 +1570,11 @@ class DataBook(dict):
         self.x.nCase = DBc.n
         
     # Restrict the data book object to points in the trajectory.
-    def MatchTrajectory(self):
+    def MatchRunMatrix(self):
         """Restrict the data book object to points in the trajectory
         
         :Call:
-            >>> DB.MatchTrajectory()
+            >>> DB.MatchRunMatrix()
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the Cape data book class
@@ -1681,7 +1681,7 @@ class DataBook(dict):
         # Get the target.
         DBT = self.GetTargetByName(ftarg)
         # Get trajectory keys.
-        tkeys = DBT.topts.get_Trajectory()
+        tkeys = DBT.topts.get_RunMatrix()
         # Initialize constraints.
         cons = {}
         # Loop through trajectory keys
@@ -1747,7 +1747,7 @@ class DataBook(dict):
         # Get the target.
         DBT = self.GetTargetByName(ftarg)
         # Get trajectory keys.
-        tkeys = DBT.topts.get_Trajectory()
+        tkeys = DBT.topts.get_RunMatrix()
         # Initialize constraints.
         cons = {}
         # Loop through trajectory keys
@@ -1874,7 +1874,7 @@ class DataBook(dict):
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: [ {None} | :class:`str` ]
-                Trajectory key for *x* axis (or plot against index if ``None``)
+                RunMatrix key for *x* axis (or plot against index if ``None``)
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
             *Legend*: [ {True} | False ]
@@ -1935,9 +1935,9 @@ class DataBook(dict):
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: :class:`str`
-                Trajectory key for *x* axis
+                RunMatrix key for *x* axis
             *y*: :class:`str`
-                Trajectory key for *y* axis
+                RunMatrix key for *y* axis
             *ContourType*: {"tricontourf"} | "tricontour" | "tripcolor"
                 Contour plotting function to use
             *LineType*: {"plot"} | "triplot" | "none"
@@ -2092,8 +2092,8 @@ class DBBase(dict):
     :Inputs:
         *comp*: :class:`str`
             Name of the component or other item name
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *check*: ``True`` | {``False``}
@@ -2855,11 +2855,11 @@ class DBBase(dict):
   # ==============
   # <
     # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
+    def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
         
         :Call:
-            >>> DBi.UpdateTrajectory()
+            >>> DBi.UpdateRunMatrix()
         :Inputs:
             *DBi*: :class:`cape.dataBook.DBBase`
                 Component data book
@@ -3039,11 +3039,11 @@ class DBBase(dict):
             self[k] = self[k][I]
             
     # Find the index of the point in the trajectory.
-    def GetTrajectoryIndex(self, j):
+    def GetRunMatrixIndex(self, j):
         """Find an entry in the run matrix (trajectory)
         
         :Call:
-            >>> i = DBi.GetTrajectoryIndex(self, j)
+            >>> i = DBi.GetRunMatrixIndex(self, j)
         :Inputs:
             *DBi*: :class:`cape.dataBook.DBBase`
                 An individual item data book
@@ -3051,7 +3051,7 @@ class DBBase(dict):
                 Index of the case from the databook to try match
         :Outputs:
             *i*: :class:`int`
-                Trajectory index or ``None``
+                RunMatrix index or ``None``
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
         """
@@ -3138,7 +3138,7 @@ class DBBase(dict):
         .. code-block:: python
         
             {
-                "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
+                "RunMatrix": {"alpha": "ALPHA", "Mach": "MACH"}
                 "Tolerances": {
                     "alpha": 0.05,
                     "Mach": 0.01
@@ -3205,8 +3205,8 @@ class DBBase(dict):
             topts2 = topts
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
-        tkeys1 = topts1.get('Trajectory', {})
-        tkeys2 = topts2.get('Trajectory', {})
+        tkeys1 = topts1.get('RunMatrix', {})
+        tkeys2 = topts2.get('RunMatrix', {})
         # Tolerance options
         tolopts1 = topts1.get('Tolerances', {})
         tolopts2 = topts2.get('Tolerances', {})
@@ -3214,8 +3214,8 @@ class DBBase(dict):
         x1 = DB1.x
         x2 = DB2.x
         # Ensure target trajectory corresponds to its contents
-        DB1.UpdateTrajectory()
-        DB2.UpdateTrajectory()
+        DB1.UpdateRunMatrix()
+        DB2.UpdateRunMatrix()
         # Get list of keys to match
         if keylist.lower() == 'x':
             # Use all trajectory keys as default
@@ -3406,8 +3406,8 @@ class DBBase(dict):
         :Inputs:
             *DBc*: :class:`cape.dataBook.DBBase`
                 Data book component instance
-            *x*: :class:`cape.trajectory.Trajectory`
-                Trajectory (i.e. run matrix) to use for target value
+            *x*: :class:`cape.runmatrix.RunMatrix`
+                RunMatrix (i.e. run matrix) to use for target value
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
             *EqCons*: {``[]``} | :class:`list` (:class:`str`)
@@ -3415,7 +3415,7 @@ class DBBase(dict):
             *TolCons*: {``{}``} | :class:`dict` (:class:`float`)
                 List of variables that may match trajectory within a tolerance
             *GlobCons*: {``[]``} | :class:`list` (:class:`str`)
-                List of global constraints, see :func:`cape.Trajectory.Filter`
+                List of global constraints, see :func:`cape.RunMatrix.Filter`
             *xkeys*: {``{}``} | :class:`dict` (:class:`str`)
                 Dictionary of alternative names of variables
         :Outputs:
@@ -3445,9 +3445,9 @@ class DBBase(dict):
         txk = xkeys.__class__.__name__
         # Check types
         if not ti.startswith("int"):
-            raise TypeError("Trajectory index must be integer")
-        if tx != "Trajectory":
-            raise TypeError("Input must be of class 'Trajectory'")
+            raise TypeError("RunMatrix index must be integer")
+        if tx != "RunMatrix":
+            raise TypeError("Input must be of class 'RunMatrix'")
         if teq != "list":
             raise TypeError("Equality constraints must be list of strings")
         if ttc != "dict":
@@ -3502,28 +3502,28 @@ class DBBase(dict):
                 V = self[col]
             elif (k == "alpha") or (col == "alpha"):
                 # Ensure trajectory matches
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 # Get angle of attack
                 V = self.x.GetAlpha()
             elif (k == "beta") or (col == "beta"):
                 # Get angle of sideslip
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetBeta()
             elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
                 # Get maneuver angle of attack
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetAlphaTotal()
             elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
                 # Get maneuver roll angle
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetPhi()
             elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
                 # Get maneuver angle of attack
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetAlphaManeuver()
             elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
                 # Get maneuver roll angle
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetPhiManeuver()
             # Evaluate constraint
             qk = np.abs(v - V) <= 1e-10
@@ -3567,28 +3567,28 @@ class DBBase(dict):
                 V = self[col]
             elif (k == "alpha") or (col == "alpha"):
                 # Ensure trajectory matches
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 # Get angle of attack
                 V = self.x.GetAlpha()
             elif (k == "beta") or (col == "beta"):
                 # Get angle of sideslip
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetBeta()
             elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
                 # Get maneuver angle of attack
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetAlphaTotal()
             elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
                 # Get maneuver roll angle
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetPhi()
             elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
                 # Get maneuver angle of attack
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetAlphaManeuver()
             elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
                 # Get maneuver roll angle
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 V = self.x.GetPhiManeuver()
             # Get tolerance
             tol = TolCons[k]
@@ -3597,7 +3597,7 @@ class DBBase(dict):
             # Check for special modifications
             if k in ["phi", "phi_m", "phiv", "phim"]:
                 # Get total angle of attack
-                self.UpdateTrajectory()
+                self.UpdateRunMatrix()
                 aoav = self.x.GetAlphaTotal()
                 # Combine *phi* constraint with any *aoav==0* case
                 qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
@@ -3740,7 +3740,7 @@ class DBBase(dict):
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: {``None``} | :class:`str`
-                Trajectory key for *x* axis (or plot against index if ``None``)
+                RunMatrix key for *x* axis (or plot against index if ``None``)
             *Label*: {*comp*} | :class:`str`
                 Manually specified label
             *Legend*: {``True``} | ``False``
@@ -3843,32 +3843,32 @@ class DBBase(dict):
             xv = self[xk][I]
         elif xk == "alpha":
             # Update trajectory
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             # Get angles of attack
             xv = self.x.GetAlpha(I)
         elif xk == "beta":
             # Update trajectory
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             # Get sideslip angles
             xv = self.x.GetBeta(I)
         elif xk in ["alpha_t", "aoav"]:
             # Update trajectory
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             # Get maneuver angle of attack
             xv = self.x.GetAlphaTotal(I)
         elif xk in ["phi", "phiv"]:
             # Update trajectory
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             # Get maneuver roll angles
             xv = self.x.GetPhi(I)
         elif xk in ["alpha_m", "aoam"]:
             # Update trajectory
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             # Get maneuver angle of attack
             xv = self.x.GetAlphaManeuver(I)
         elif xk in ["phi_m", "phim"]:
             # Update trajectory
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             # Get maneuver roll angles
             xv = self.x.GetPhiManeuver(I)
         # Sorting order for *xv*
@@ -4244,9 +4244,9 @@ class DBBase(dict):
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: :class:`str`
-                Trajectory key for *x* axis
+                RunMatrix key for *x* axis
             *y*: :class:`str`
-                Trajectory key for *y* axis
+                RunMatrix key for *y* axis
             *ContourType*: {"tricontourf"} | "tricontour" | "tripcolor"
                 Contour plotting function to use
             *LineType*: {"plot"} | "triplot" | "none"
@@ -4290,15 +4290,15 @@ class DBBase(dict):
             xv = self[xk][I]
         elif xk.lower() == "alpha":
             # Angle of attack
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             xv = self.x.GetAlpha(I)
         elif xk.lower() == "beta":
             # Angle of sideslip
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             xv = self.x.GetBeta(I)
         elif xk.lower() in ["alpha_m", "aoam"]:
             # Maneuver angle of attack
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             xv = self.x.GetAlphaManeuver(I)
         # Extract the values for the y-axis
         if yk in self:
@@ -4306,15 +4306,15 @@ class DBBase(dict):
             yv = self[yk][I]
         elif yk.lower() == "alpha":
             # Angle of attack
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             yv = self.x.GetAlpha(I)
         elif yk.lower() == "beta":
             # Angle of sideslip
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             yv = self.x.GetBeta(I)
         elif yk.lower() in ["alpha_m", "aoam"]:
             # Maneuver angle of attack
-            self.UpdateTrajectory()
+            self.UpdateRunMatrix()
             yv = self.x.GetAlphaManeuver(I)
         # Extract the values to plot
         zv = self[coeff][I]
@@ -5463,8 +5463,8 @@ class DBComp(DBBase):
     :Inputs:
         *comp*: :class:`str`
             Name of the component
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory for processing variable types
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix for processing variable types
         *opts*: :class:`cape.options.Options`
             Global pyCart options instance
         *targ*: {``None``} | :class:`str`
@@ -5555,8 +5555,8 @@ class DBTriqFM(DataBook):
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *comp*: :class:`str`
@@ -6632,7 +6632,7 @@ class DBTriqFM(DataBook):
             * "Euler321": "psi", "theta", "phi"
             * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
             
-        Trajectory variables are used to specify values to use for the
+        RunMatrix variables are used to specify values to use for the
         transformation variables.  For example,
         
             .. code-block:: python
@@ -6659,7 +6659,7 @@ class DBTriqFM(DataBook):
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.RunMatrix`
                 The run matrix used for this analysis
             *i*: :class:`int`
                 The index of the case to transform in the current run matrix
@@ -6796,8 +6796,8 @@ class DBTriqFMComp(DBComp):
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *comp*: :class:`str`
@@ -6893,7 +6893,7 @@ class DBTarget(DBBase):
     :Inputs:
         *targ*: :class:`cape.options.DataBook.DBTarget`
             Instance of a target source options interface
-        *x*: :class:`pyCart.trajectory.Trajectory`
+        *x*: :class:`pyCart.runmatrix.RunMatrix`
             Run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
@@ -6938,7 +6938,7 @@ class DBTarget(DBBase):
         # Process the columns.
         self.ProcessColumns()
         # Make the trajectory data match the available list of points.
-        self.UpdateTrajectory()
+        self.UpdateRunMatrix()
         
     # Cannot use the dictionary disp on this; it's too huge
     def __repr__(self):
@@ -7090,7 +7090,7 @@ class DBTarget(DBBase):
         # Initialize data fields.
         self.cols = []
         # Names of columns corresponding to trajectory keys.
-        tkeys = self.topts.get_Trajectory()
+        tkeys = self.topts.get_RunMatrix()
         # Loop through trajectory fields.
         for k in self.x.keys:
             # Get field name.
@@ -7291,11 +7291,11 @@ class DBTarget(DBBase):
   # =============
   # <
     # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
+    def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
         
         :Call:
-            >>> DBT.UpdateTrajectory()
+            >>> DBT.UpdateRunMatrix()
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
                 Instance of the data book target class
@@ -7303,7 +7303,7 @@ class DBTarget(DBBase):
             * 2015-06-03 ``@ddalle``: First version
         """
         # Get trajectory key specifications.
-        tkeys = self.topts.get_Trajectory()
+        tkeys = self.topts.get_RunMatrix()
         # Loop through the trajectory keys.
         for k in self.x.keys:
             # Get the column name in the target.
@@ -7340,7 +7340,7 @@ class DBTarget(DBBase):
                 "Targets": {
                     "Experiment": {
                         "File": "WT.dat",
-                        "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
+                        "RunMatrix": {"alpha": "ALPHA", "Mach": "MACH"}
                         "Tolerances": {
                             "alpha": 0.05,
                             "Mach": 0.01
@@ -7359,7 +7359,7 @@ class DBTarget(DBBase):
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
                 Instance of the Cape data book target data carrier
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.RunMatrix`
                 The current pyCart trajectory (i.e. run matrix)
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
@@ -7399,7 +7399,7 @@ class DBTarget(DBBase):
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: [ {None} | :class:`str` ]
-                Trajectory key for *x* axis (or plot against index if ``None``)
+                RunMatrix key for *x* axis (or plot against index if ``None``)
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
             *Legend*: [ {True} | False ]
@@ -8843,7 +8843,7 @@ class CaseFM(CaseData):
             * "Euler321": "psi", "theta", "phi"
             * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
             
-        Trajectory variables are used to specify values to use for the
+        RunMatrix variables are used to specify values to use for the
         transformation variables.  For example,
         
             .. code-block:: python
@@ -8870,7 +8870,7 @@ class CaseFM(CaseData):
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
-            *x*: :class:`cape.trajectory.Trajectory`
+            *x*: :class:`cape.runmatrix.RunMatrix`
                 The run matrix used for this analysis
             *i*: :class:`int`
                 The index of the case to transform in the current run matrix

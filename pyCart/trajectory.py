@@ -1,5 +1,5 @@
 """
-:mod:`pyCart.trajectory`: Cart3D Run Matrix Module 
+:mod:`pyCart.runmatrix`: Cart3D Run Matrix Module 
 ==================================================
 
 This module handles classes and methods that are specific to the list of run
@@ -41,18 +41,18 @@ a JSON file, and *cart3d.x* is the run matrix.
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
         
 For this module, there are no methods that are particular to Cart3D.  All
-functionality is inherited from :class:`cape.trajectory.Trajectory`.
+functionality is inherited from :class:`cape.runmatrix.Trajectory`.
 
 :See Also:
-    * :mod:`cape.trajectory`
+    * :mod:`cape.runmatrix`
     * :mod:`pyCart.cart3d`
 """
 
 # Import the cape module.
-import cape.trajectory
+import cape.runmatrix
 
 # Trajectory class
-class Trajectory(cape.trajectory.Trajectory):
+class Trajectory(cape.runmatrix.Trajectory):
     """Read a run matrix
     
     :Call:
@@ -75,7 +75,7 @@ class Trajectory(cape.trajectory.Trajectory):
         *Definitions*: :class:`dict`
             Dictionary of definitions for each key
     :Outputs:
-        *x*: :class:`pyCart.trajectory.Trajectory`
+        *x*: :class:`pyCart.runmatrix.Trajectory`
             Instance of the trajectory class
     :Data members:
         *x.nCase*: :class:`int`

@@ -41,7 +41,7 @@ capabilities.
             "Targets": {
                 "WT": {
                     "File": "data/wt.csv",
-                    "Trajectory": {"mach": "Mach"},
+                    "RunMatrix": {"mach": "Mach"},
                     "Tolerances": {
                         "mach": 0.02, "alpha": 0.25, "beta": 0.1
                     }
@@ -82,7 +82,7 @@ data book.  These are applicable to any data book for any of the solvers.
         Location in which to store data book (relative to JSON root)
         
     *Sort*: :class:`str` | :class:`list` (:class:`str`)
-        Trajectory key(s) on which to sort data book (in reverse order if a
+        RunMatrix key(s) on which to sort data book (in reverse order if a
         :class:`list`); ignored if not the name of a trajectory variable
         
 Each component in *Components* can be either a force, moment, force & moment,
@@ -352,7 +352,7 @@ of *Targets* parameters is given below.
                 List of components to which this target file applies; default is
                 all components in the data book
             
-            *Trajectory*: :class:`dict` (:class:`str`)
+            *RunMatrix*: :class:`dict` (:class:`str`)
                 Dictionary of column names for trajectory variables to be used
                 for comparing trajectory cases to target data points.  Any case
                 that has matching values for all keys listed in this

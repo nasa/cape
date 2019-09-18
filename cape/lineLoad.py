@@ -92,8 +92,8 @@ class DBLineLoad(dataBook.DBBase):
     :Call:
         >>> DBL = DBLineLoad(x, opts, comp, conf=None, RootDir=None, targ=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *comp*: :class:`str`
@@ -526,11 +526,11 @@ class DBLineLoad(dataBook.DBBase):
   # ============
   # <
     # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
+    def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
         
         :Call:
-            >>> DBL.UpdateTrajectory()
+            >>> DBL.UpdateRunMatrix()
         :Inputs:
             *DBL*: :class:`cape.lineLoad.DBLineLoad`
                 Line load data book

@@ -79,8 +79,8 @@ content.
             
             ...
             
-            // Trajectory (i.e. run matrix) description
-            "Trajectory": {
+            // RunMatrix (i.e. run matrix) description
+            "RunMatrix": {
                 "Keys": ["Mach", "alpha_t", "phi"],
                 "File": "matrix.csv",
                 "GroupMesh": true,
@@ -220,7 +220,7 @@ areas for different components in the same run.
 
     .. code-block:: javascript
     
-        "Trajectory": {
+        "RunMatrix": {
             "Keys": ["Mach", "alpha_t", "phi"],
             "File": "matrix.csv",
             "GroupMesh": true,

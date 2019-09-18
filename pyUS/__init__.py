@@ -33,7 +33,7 @@ The following classes are imported in this module, so that code like
 ``pyFun.Fun3d`` will work (although ``pyFun.fun3d.Fun3d`` will also work).
 
     * :class:`pyUS.us3d.US3D`
-    * :class:`pyUS.trajectory.Trajectory`
+    * :class:`pyUS.runmatrix.RunMatrix`
 
 Modules included within this one are outlined below.
 
@@ -69,5 +69,5 @@ _fname = os.path.abspath(__file__)
 PyUSFolder = os.path.split(_fname)[0]
 
 # Import Control module
-from .us3d  import US3D, Trajectory
+from .us3d  import US3D, RunMatrix
 

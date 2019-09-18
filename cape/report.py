@@ -1303,7 +1303,7 @@ class Report(object):
             J = DBc.FindCoSweep(self.cntl.DataBook.x, I[0],
                 EqCons, TolCons, GlobCons)
             # Match up trajectory
-            DBc.UpdateTrajectory()
+            DBc.UpdateRunMatrix()
             # Get the list of cases for the subfigures
             fruns = DBc.x.GetFullFolderNames(J)
             # Get current iteration number
@@ -1533,7 +1533,7 @@ class Report(object):
         # Loop through the sweeps.
         for fswp in fswps:
             # Check if only restricting to point currently in the trajectory.
-            if self.cntl.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
+            if self.cntl.opts.get_SweepOpt(fswp, 'RunMatrixOnly'):
                 # Read the data book with the trajectory as the source.
                 self.ReadDataBook("trajectory")
             else:
@@ -3493,7 +3493,7 @@ class Report(object):
                             ("coeff '%s' not in target" % ccoeff))
                         continue
                 # Get any translation keys
-                xkeys = topts.get("Trajectory", {})
+                xkeys = topts.get("RunMatrix", {})
                 # Get matches
                 JTj = DBTc.FindCoSweep(x, J[j][0],
                     EqCons=EqCons, TolCons=TolCons,
@@ -5121,12 +5121,12 @@ class Report(object):
         # Check the requested source.
         if fsrc == "trajectory":
             # Match the data book to the trajectory
-            self.cntl.DataBook.MatchTrajectory()
+            self.cntl.DataBook.MatchRunMatrix()
             # Save the data book source.
             self.cntl.DataBook.source = "trajectory"
         else:
             # Match the trajectory to the data book.
-            self.cntl.DataBook.UpdateTrajectory()
+            self.cntl.DataBook.UpdateRunMatrix()
             # Save the data book source.
             self.cntl.DataBook.source = "data"
     
@@ -5193,12 +5193,12 @@ class Report(object):
         # Check the requested source.
         if fsrc == "trajectory":
             # Match the data book to the trajectory
-            DBF.MatchTrajectory()
+            DBF.MatchRunMatrix()
             # Save the data book source.
             DBF.source = "trajectory"
         else:
             # Match the trajectory to the data book.
-            #DBF.UpdateTrajectory()
+            #DBF.UpdateRunMatrix()
             # Save the data book source.
             DBF.source = "data"
         # Output if desired
@@ -5312,7 +5312,7 @@ class Report(object):
             # Extract it
             DBL = DBT.LineLoads[comp]
             # Update the trajectory
-            DBL.UpdateTrajectory()
+            DBL.UpdateRunMatrix()
             # Find a match
             J = DBL.FindTargetMatch(DB, i, topts, keylist='tol')
             # Check for a match
@@ -5447,7 +5447,7 @@ class Report(object):
         # Extract options
         opts = self.cntl.opts
         # Check if only restricting to point currently in the trajectory.
-        if opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
+        if opts.get_SweepOpt(fswp, 'RunMatrixOnly'):
             # Read the data book with the trajectory as the source
             fsrc = "trajectory"
             self.ReadDataBook(fsrc)

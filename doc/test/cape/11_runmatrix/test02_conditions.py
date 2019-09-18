@@ -6,13 +6,13 @@
 import numpy as np
 
 # Import cape module
-import cape.trajectory
+import cape.runmatrix
 
 
 # Test 01: convert *aoap*, *phip* to *a*, *b*
 def test01_ab():
     # Create run matrix
-    x = cape.trajectory.Trajectory(
+    x = cape.runmatrix.RunMatrix(
         Keys=["aoap", "phip"],
         aoap=np.array([0.0, 4.0, 4.0, 4.0, 4.0]),
         phip=np.array([0.0, 0.0, 45.0, 90.0, 235.0]))
@@ -33,7 +33,7 @@ def test01_ab():
 # Test 02: convert *a*, *b* to *aoap*, *phip*
 def test02_ab():
     # Create run matrix
-    x = cape.trajectory.Trajectory(
+    x = cape.runmatrix.RunMatrix(
         Keys=["alpha", "beta"],
         alpha=np.array([0.0, 4.0, 4.0, -4.0]),
         beta=np.array([0.0, 0.0, 4.0, -2.0]))
@@ -54,7 +54,7 @@ def test02_ab():
 # Test 03: convert *a*, *b* to *aoav*, *phiv*
 def test03_ab():
     # Create run matrix
-    x = cape.trajectory.Trajectory(
+    x = cape.runmatrix.RunMatrix(
         Keys=["alpha", "beta"],
         alpha=np.array([0.0, 4.0, 4.0, -4.0]),
         beta=np.array([0.0, 0.0, 4.0, -2.0]))
@@ -75,7 +75,7 @@ def test03_ab():
 # Test 04: convert *mach*, *q* to *p*
 def test04_mq():
     # Create run matrix
-    x = cape.trajectory.Trajectory(
+    x = cape.runmatrix.RunMatrix(
         Keys=["mach", "alpha", "beta", "q"],
         mach=2.0,
         alpha=0.0,
@@ -99,7 +99,7 @@ def test04_mq():
 # Test 05: convert *mach*, *q*, *T* to *Re*
 def test05_reynolds():
     # Create run matrix
-    x = cape.trajectory.Trajectory(
+    x = cape.runmatrix.RunMatrix(
         Keys=["mach", "alpha", "beta", "q", "T"],
         mach=2.0,
         alpha=0.0,

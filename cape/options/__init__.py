@@ -663,7 +663,7 @@ class Options(odict):
             * 2014-10-06 ``@ddalle``: First version
         """
         # Safely get the trajectory.
-        x = self.get('Trajectory', {})
+        x = self.get('RunMatrix', {})
         return x.get('GroupMesh', rc0('GroupMesh'))
         
     # Method to specify that meshes do or do not use the same mesh
@@ -680,7 +680,7 @@ class Options(odict):
         :Versions:
             * 2014-10-06 ``@ddalle``: First version
         """
-        self['Trajectory']['GroupMesh'] = qGM
+        self['RunMatrix']['GroupMesh'] = qGM
         
     # Get the umask
     def get_umask(self, sys=True):

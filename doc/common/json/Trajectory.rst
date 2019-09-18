@@ -1,8 +1,8 @@
 
-.. _cape-json-Trajectory:
+.. _cape-json-RunMatrix:
 
 ------------------------
-Trajectory or Run Matrix
+RunMatrix or Run Matrix
 ------------------------
 
 A required section of :file:`cape.json` describes the variables that define
@@ -15,19 +15,19 @@ matrix.
         
 Links to additional options for each specific solver are found below.
 
-    * :ref:`Cart3D <pycart-json-Trajectory>`
-    * :ref:`FUN3D <pyfun-json-Trajectory>`
-    * :ref:`OVERFLOW <pyover-json-Trajectory>`
+    * :ref:`Cart3D <pycart-json-RunMatrix>`
+    * :ref:`FUN3D <pyfun-json-RunMatrix>`
+    * :ref:`OVERFLOW <pyover-json-RunMatrix>`
 
-.. _cape-json-Trajectory-examples:
+.. _cape-json-RunMatrix-examples:
 
 Example Trajectories
 ====================
-The possible run matrix (i.e. "Trajectory") definitions range from a few
+The possible run matrix (i.e. "RunMatrix") definitions range from a few
 self-contained lines to hundreds of lines and pointers to external Python
 modules.  The following examples demonstrate a few of the possibilities.
 
-Simple Self-Contained Trajectory
+Simple Self-Contained RunMatrix
 --------------------------------
 The following example is essentially the simplest type of run matrix that can be
 defined.  Fortunately it is also quite common; there are three input variables,
@@ -36,7 +36,7 @@ few enough runs to just list the conditions directly in the JSON file.
 
     .. code-block:: javascript
     
-        "Trajectory": {
+        "RunMatrix": {
             "Keys": ["Mach", "alpha", "beta"],
             "Mach": [2.00, 2.00, 2.00, 2.00, 2.00, 2.50],
             "alpha": [-2.0, 0.0, 2.0, 0.0, 0.0, 0.0],
@@ -69,20 +69,20 @@ However, all of this behavior can be controlled using more advanced options in
 the trajectory ``"Definitions"`` section.
 
 
-Simple Trajectory with External File
+Simple RunMatrix with External File
 ------------------------------------
 A similar run matrix description to the one above simply moves the variable
 values to an external file.
 
     .. code-block:: javascript
     
-        "Trajectory": {
+        "RunMatrix": {
             "Keys": ["Mach", "alpha", "beta", "Re", "T"],
-            "File": "Trajectory.dat",
+            "File": "RunMatrix.dat",
             "GroupPrefix": "poweroff"
         }
         
-The external file :file:`Trajectory.dat` contains the following.
+The external file :file:`RunMatrix.dat` contains the following.
 
     .. code-block:: none
     
@@ -111,7 +111,7 @@ included in the folder name by default.
         poweroff/m2.50a0.0b0.0
 
         
-.. _cape-json-TrajectoryCustom:
+.. _cape-json-RunMatrixCustom:
 
 Standard Variables with Customizations
 --------------------------------------
@@ -123,9 +123,9 @@ them.
 
     .. code-block:: javascript
     
-        "Trajectory": {
+        "RunMatrix": {
             "Keys": ["n", "Mach", "alpha", "beta", "config", "Label"],
-            "File": "Trajectory.dat",
+            "File": "RunMatrix.dat",
             "Definitions": {
                 "n": {
                     "Group": false,
@@ -149,7 +149,7 @@ them.
             }
         }
         
-Then suppose the contents of :file:`Trajectory.dat` is
+Then suppose the contents of :file:`RunMatrix.dat` is
 
     .. code-block:: none
     
@@ -173,7 +173,7 @@ In this example, we have done three things:
     #. Added built-in variables called *config* and *Label* to help organize.
     
 The run directories for these cases, corresponding to the lines of
-:file:`Trajectory.dat` above, are the following.
+:file:`RunMatrix.dat` above, are the following.
 
     .. code-block:: none
     
@@ -199,7 +199,7 @@ when a particular case may need further analysis or another attempt to reach
 satisfactory convergence.
 
 
-.. _cape-json-TrajectoryAdvanced:
+.. _cape-json-RunMatrixAdvanced:
 
 Advanced Example
 ----------------
@@ -209,14 +209,14 @@ set a thrust level, translate a store that is being separated, rotate two
 non-intersecting components relative to each other, or many more.
 
 In Cape, these basically fall into a single category: advanced tasks that need
-to be defined by the user.  An example of a ``"Trajectory"`` section in such a
+to be defined by the user.  An example of a ``"RunMatrix"`` section in such a
 control file might look something like the following.
 
     .. code-block:: javascript
     
-        "Trajectory": {
+        "RunMatrix": {
             "Keys": ["alpha", "beta", "dx", "CT"],
-            "File": "Trajectory.dat",
+            "File": "RunMatrix.dat",
             "GroupPrefix": "poweron",
             "GroupMesh": true,
             "Definitions": {
@@ -256,7 +256,7 @@ the following form.
         "PythonPath": ["tools/"],
         "Modules": ["mymod"],
         
-        "Trajectory": {
+        "RunMatrix": {
             // Rest of trajectory description here
         }
         
@@ -295,16 +295,16 @@ practice. Furthermore, enabling this feature requires the *GroupMesh* key
 to be set to *true*, although that is the default.
 
 
-.. _cape-json-TrajectoryDict:
+.. _cape-json-RunMatrixDict:
         
-Trajectory Option Dictionary
+RunMatrix Option Dictionary
 ============================
-The following is the full list of options for the "Trajectory" section.
+The following is the full list of options for the "RunMatrix" section.
 
     *Keys*: {*required*} | ``["k1", "k2"]`` | :class:`list` (:class:`str`)
         List of input variables for the run matrix
         
-    *File*: {``""``} | ``"Trajectory.dat"`` | :class:`str`
+    *File*: {``""``} | ``"RunMatrix.dat"`` | :class:`str`
         Name of text file (comma-separated, space-separated, or mixed) to use to
         read input variable values
         
@@ -368,7 +368,7 @@ The following is the full list of options for the "Trajectory" section.
                 Class of the values of the variable
     
                 
-.. _cape-json-TrajectoryNames:
+.. _cape-json-RunMatrixNames:
 
 Case Name Options
 -----------------
@@ -398,7 +398,7 @@ The default or basic JSON definitions to go with this section are below.
 
     .. code-block:: javascript
     
-        "Trajectory": {
+        "RunMatrix": {
             "Keys": ["mach", "alpha", "beta", "k", "CT", "config"],
             "File": "inputs/matrix.csv",
             "Definitions": {
@@ -555,7 +555,7 @@ the PBS job name if a longer name would be generated by the user input
 parameters.
 
 
-.. _cape-json-TrajectoryGroups:
+.. _cape-json-RunMatrixGroups:
 
 Group Options
 -------------
@@ -596,7 +596,7 @@ and get the results that follow.
         poweron_a2.0/b0.0_k013/
 
 
-.. _cape-json-TrajectoryKeys:
+.. _cape-json-RunMatrixKeys:
         
 List of Built-In Variables
 ==========================

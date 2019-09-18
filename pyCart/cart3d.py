@@ -27,7 +27,7 @@ and optionally the data book (``cart3d.DataBook``), the triangulation
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *cart3d.x*             :class:`pyCart.trajectory.Trajectory`
+    *cart3d.x*             :class:`pyCart.runmatrix.RunMatrix`
     *cart3d.opts*          :class:`pyCart.options.Options`
     *cart3d.tri*           :class:`pyCart.tri.Tri`
     *cart3d.DataBook*      :class:`pyCart.dataBook.DataBook`
@@ -68,7 +68,7 @@ from . import manage
 from . import dataBook
 
 # Functions and classes from other modules
-from .trajectory import Trajectory
+from .runmatrix import RunMatrix
 
 # Import specific file control classes
 from .inputCntl   import InputCntl
@@ -108,14 +108,14 @@ def _upgradeDocString(docstr, fromclass):
         * 2014-07-28 ``@ddalle``: First version
     """
     # Check the input class.
-    if fromclass in ['Trajectory']:
+    if fromclass in ['RunMatrix']:
         # Replacements in the :Call: area
         docstr = docstr.replace(">>> x.", ">>> cart3d.")
         docstr = docstr.replace("= x.", "= cart3d.")
         # Replacements in variable names
         docstr = docstr.replace('*x*', '*cart3d*')
         # Class name
-        docstr = docstr.replace('trajectory.Trajectory', 'cart3d.Cart3d')
+        docstr = docstr.replace('trajectory.RunMatrix', 'cart3d.Cart3d')
         docstr = docstr.replace('trajectory class', 'control class')
     # Output
     return docstr
@@ -149,7 +149,7 @@ class Cart3d(Cntl):
     :Data members:
         *cart3d.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *cart3d.x*: :class:`pyCart.trajectory.Trajectory`
+        *cart3d.x*: :class:`pyCart.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
         *cart3d.RootDir*: :class:`str`
             Absolute path to the root directory
@@ -157,7 +157,7 @@ class Cart3d(Cntl):
         * 2014-05-28 ``@ddalle``  : First version
         * 2014-06-03 ``@ddalle``  : Renamed class `Cntl` --> `Cart3d`
         * 2014-06-30 ``@ddalle``  : Reduced number of data members
-        * 2014-07-27 ``@ddalle``  : `cart3d.Trajectory` --> `cart3d.x`
+        * 2014-07-27 ``@ddalle``  : `cart3d.RunMatrix` --> `cart3d.x`
     """
   # =============
   # Configuration
@@ -182,7 +182,7 @@ class Cart3d(Cntl):
         self.ImportModules()
         
         # Process the trajectory.
-        self.x = Trajectory(**self.opts['Trajectory'])
+        self.x = RunMatrix(**self.opts['RunMatrix'])
 
         # Job list
         self.jobs = {}

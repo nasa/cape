@@ -108,8 +108,8 @@ settings.  Here is a skeleton of the contents of that file.
             },
                     
             
-            // Trajectory description
-            "Trajectory": {
+            // RunMatrix description
+            "RunMatrix": {
                 "File": "inputs/matrix.csv",
                 "Keys": ["Mach", "alpha", "beta", "config", "Label"],
                 // Configuration name [default]

@@ -1,6 +1,6 @@
 
-.. automodule:: cape.trajectory
+.. automodule:: cape.runmatrix
     
-    .. autoclass:: cape.trajectory.Trajectory
+    .. autoclass:: cape.runmatrix.RunMatrix
         :members:
 

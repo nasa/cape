@@ -183,8 +183,8 @@ class DBPointSensorGroup(cape.pointSensor.DBPointSensorGroup):
     :Call:
         >>> DBPG = DBPointSensorGroup(x, opts, name)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *name*: :class:`str` | ``None``
@@ -289,8 +289,8 @@ class DBPointSensor(cape.pointSensor.DBPointSensor):
     :Call:
         >>> DBP = DBPointSensor(x, opts, pt, name=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *pt*: :class:`str`

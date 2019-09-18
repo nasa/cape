@@ -1,10 +1,10 @@
 .. Documentation for the trajectory submodule
 
-.. automodule:: pyCart.trajectory
+.. automodule:: pyCart.runmatrix
     
-    Cart3D run matrix class: :class:`pyCart.trajectory.Trajectory` 
+    Cart3D run matrix class: :class:`pyCart.runmatrix.RunMatrix` 
     --------------------------------------------------------------
 
-    .. autoclass:: pyCart.trajectory.Trajectory
+    .. autoclass:: pyCart.runmatrix.RunMatrix
         :members:
     

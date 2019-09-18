@@ -25,7 +25,7 @@ and optionally the data book (``fun3d.DataBook``), the appropriate input files
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *ofl.x*                :class:`pyOver.trajectory.Trajectory`
+    *ofl.x*                :class:`pyOver.runmatrix.RunMatrix`
     *ofl.opts*             :class:`pyOver.options.Options`
     *ofl.DataBook*         :class:`pyOver.dataBook.DataBook`
     *ofl.Namelist*         :class:`pyOver.namelist.Namelist`
@@ -63,7 +63,7 @@ from . import report
 from cape import convert
 
 # Functions and classes from other modules
-from .trajectory import Trajectory
+from .runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -99,7 +99,7 @@ class Overflow(Cntl):
     :Data members:
         *ofl.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *ofl.x*: :class:`pyOver.trajectory.Trajectory`
+        *ofl.x*: :class:`pyOver.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
         *ofl.Namelist*: :class:`pyOver.overNamelist.OverNamelist`
             Interface to ``over.namelist`` OVERFLOW input file
@@ -132,7 +132,7 @@ class Overflow(Cntl):
         self.ImportModules()
         
         # Process the trajectory.
-        self.x = Trajectory(**self.opts['Trajectory'])
+        self.x = RunMatrix(**self.opts['RunMatrix'])
 
         # Job list
         self.jobs = {}
@@ -1538,7 +1538,7 @@ class Overflow(Cntl):
             *I*: :class:`list` (:class:`int`)
                 List of case indices
         :See also:
-            * :func:`cape.trajectory.Trajectory.GetIndices`
+            * :func:`cape.runmatrix.RunMatrix.GetIndices`
         :Versions:
             * 2017-03-07 ``@ddalle``
         """

@@ -79,7 +79,7 @@ A basic template for such files is shown below.
             "Report": { },
             
             // Run matrix settings
-            "Trajectory": {
+            "RunMatrix": {
                 // List of trajectory keys
                 "Keys": ["mach", "alpha", "beta"],
                 // File containing conditions
@@ -114,5 +114,5 @@ follow.
     Config
     DataBook
     Report/index
-    Trajectory
+    RunMatrix
     

@@ -67,7 +67,7 @@
     },
     
     // Run matrix description
-    "Trajectory": {
+    "RunMatrix": {
         // File and variable list
         "File": "matrix.csv",
         "Keys": [

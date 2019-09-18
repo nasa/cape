@@ -31,7 +31,7 @@ try:
     cart3d = pyCart.Cart3d('fins.json')
     cart3d.ReadDataBook()
     # Sort
-    cart3d.DataBook.UpdateTrajectory()
+    cart3d.DataBook.UpdateRunMatrix()
     # Get component
     DBc = cart3d.DataBook['fins']
     # Get the value.

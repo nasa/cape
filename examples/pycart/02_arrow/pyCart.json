@@ -47,8 +47,8 @@
         "RefLength": 1.0
     },
     
-    // Trajectory (i.e. run matrix) description
-    "Trajectory": {
+    // RunMatrix (i.e. run matrix) description
+    "RunMatrix": {
         "Keys": ["Mach", "alpha_t", "phi"],
         "File": "matrix.csv",
         "GroupMesh": true,

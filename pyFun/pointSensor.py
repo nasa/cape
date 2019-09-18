@@ -72,8 +72,8 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
     :Call:
         >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, RootDir=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *name*: :class:`str` | ``None``
@@ -260,8 +260,8 @@ class DBTriqPoint(cape.pointSensor.DBTriqPoint):
     :Call:
         >>> DBP = DBTriqPoint(x, opts, pt, name=None)
     :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
         *pt*: :class:`str`

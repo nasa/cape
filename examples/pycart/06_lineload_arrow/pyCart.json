@@ -181,8 +181,8 @@
         }
     },
     
-    // Trajectory (i.e. run matrix) description
-    "Trajectory": {
+    // RunMatrix (i.e. run matrix) description
+    "RunMatrix": {
         "Keys": ["mach", "alpha", "beta", "config", "Label"],
         "File": "matrix.csv",
         "GroupMesh": true,

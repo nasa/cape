@@ -687,7 +687,7 @@ Multiple constraints can be separated with commas.
         RUN=1,
         
 The variables included in the constraint list must be run matrix variables
-listed in the ``"Keys"`` option of the ``"Trajectory"`` section of the JSON
+listed in the ``"Keys"`` option of the ``"RunMatrix"`` section of the JSON
 file.  The *key* must be the first thing in each constraint, so for example
 ``pycart --cons "2==alpha"`` will not work.
 

@@ -1388,7 +1388,7 @@ class RunMatrix(dict):
             >>> V = x.GetValue(k, I)
             >>> v = x.GetValue(k, i)
         :Inputs:
-            *x*: :class:`attdb.trajectory.RunMatrix`
+            *x*: :class:`attdb.runmatrix.RunMatrix`
                 Run matrix conditions interface
             *k*: :class:`str`
                 RunMatrix key name
@@ -1464,7 +1464,7 @@ class RunMatrix(dict):
             >>> V = x.GetValue(k, I)
             >>> v = x.GetValue(k, i)
         :Inputs:
-            *x*: :class:`attdb.trajectory.RunMatrix`
+            *x*: :class:`attdb.runmatrix.RunMatrix`
                 Run matrix conditions interface
             *k*: :class:`str`
                 Non-trajectory key name still described in *x.defns*
@@ -2226,9 +2226,9 @@ class RunMatrix(dict):
         :Call:
             >>> I = x.FindMatches(y, i, keys=None)
         :Inputs:
-            *x*: :class:`attdb.trajectory.RunMatrix`
+            *x*: :class:`attdb.runmatrix.RunMatrix`
                 Run matrix conditions interface
-            *y*: :class:`attdb.trajectory.RunMatrix`
+            *y*: :class:`attdb.runmatrix.RunMatrix`
                 Target run matrix conditions interface
             *i*: :class:`int`
                 Case number of case in *y*
@@ -2299,9 +2299,9 @@ class RunMatrix(dict):
         :Call:
             >>> j = x.FindMatch(y, i, keys=None)
         :Inputs:
-            *x*: :class:`attdb.trajectory.RunMatrix`
+            *x*: :class:`attdb.runmatrix.RunMatrix`
                 Run matrix conditions interface
-            *y*: :class:`attdb.trajectory.RunMatrix`
+            *y*: :class:`attdb.runmatrix.RunMatrix`
                 Target run matrix conditions interface
             *i*: :class:`int`
                 Case number of case in *y*
