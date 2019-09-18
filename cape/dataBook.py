@@ -1564,7 +1564,7 @@ class DataBook(dict):
         # Loop through the fields.
         for k in self.x.cols:
             # Copy the data.
-            setattr(self.x, k, DBc[k])
+            self.x[k] = DBc[k]
             # Set the text.
             self.x.text[k] = [str(xk) for xk in DBc[k]]
         # Set the number of cases.
@@ -2874,12 +2874,13 @@ class DBBase(dict):
             # Copy the data.
             if k in self:
                 # Copy the data
-                setattr(self.x, k, self[k])
+                self.x[k] = self[k]
                 # Set the text.
                 self.x.text[k] = [str(xk) for xk in self[k]]
             else:
                 # Set empty data
-                setattr(self.x, k, np.nan*np.ones(self.n))
+                self.x[k] = np.nan*np.ones(self.n)
+                # Empty text
                 self.x.text[k] = ["" for k in range(self.n)]
         # Set the number of cases.
         self.x.nCase = self.n
@@ -3251,9 +3252,9 @@ class DBBase(dict):
             if col1 in DB1:
                 # Take value from column
                 v = DB1[col1][i]
-            if k in x1.keys:
+            if k in x1.cols:
                 # Directly available
-                v = getattr(x1,k)[i]
+                v = x1[k][i]
             elif k == "alpha":
                 # Get angle of attack
                 v = x1.GetAlpha(i)
@@ -3279,7 +3280,7 @@ class DBBase(dict):
                 V = DB2[col2]
             elif k in x2.keys:
                 # Available in the trajectory
-                V = getattr(x2,k)
+                V = x2[k]
             elif (k == "alpha"):
                 # Get angle of attack
                 V = x2.GetAlpha()
@@ -3476,7 +3477,7 @@ class DBBase(dict):
             # Test if key is present
             if k in x.cols:
                 # Get target value
-                v = getattr(x,k)[i]
+                v = x[k][i]
             elif k == "alpha":
                 # Get angle of attack
                 v = x.GetAlpha(i)
@@ -3541,7 +3542,7 @@ class DBBase(dict):
             # Test if key is present
             if k in x.cols:
                 # Get target value
-                v = getattr(x,k)[i]
+                v = x[k][i]
             elif k == "alpha":
                 # Get angle of attack
                 v = x.GetAlpha(i)
