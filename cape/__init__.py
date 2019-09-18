@@ -80,13 +80,14 @@ A categorized list of modules available to the API are listed below.
 :Versions:
     * Version 0.6: 2016-03-30
     * Version 0.8: 2018-03-23
+    * Version 0.9.2: 2019-09-17
 """
 
 # File system and operating system management
 import os
 
 # Save version number
-version = "0.8"
+version = "0.9.2"
 __version__ = version
 
 
