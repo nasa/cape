@@ -2064,7 +2064,7 @@ class Report(object):
         # Get the variables to skip.
         skvs = self.cntl.opts.get_SubfigOpt(sfig, 'SkipVars')
         # Loop through the trajectory keys.
-        for k in x.keys:
+        for k in x.cols:
             # Check if it's a skip variable
             if k in skvs: continue
             # Write the variable name.
@@ -2275,7 +2275,7 @@ class Report(object):
         eqkeys  = self.cntl.opts.get_SweepOpt(fswp, 'EqCons')
         tolkeys = self.cntl.opts.get_SweepOpt(fswp, 'TolCons')
         # Loop through the trajectory keys.
-        for k in x.keys:
+        for k in x.cols:
             # Check if it's an equality value.
             if k in eqkeys:
                 # Equality constraint
@@ -4667,7 +4667,7 @@ class Report(object):
             # Return string
             return str(V)
         # Check for trajectory key
-        if v in self.cntl.x.keys:
+        if v in self.cntl.x.cols:
             # Get the value from the trajectory
             return str(getattr(self.cntl.x, v)[i])
         # Get all sigils
@@ -4677,7 +4677,7 @@ class Report(object):
             # Apparent name of key (remove sigil)
             ki = fi.lstrip('$')
             # Replace $mach --> x.mach[i] (for example)
-            if ki in self.cntl.x.keys:
+            if ki in self.cntl.x.cols:
                 # Find the value of the trajectory key
                 vi = str(getattr(self.cntl.x, ki)[i])
                 # Do the string replacement
@@ -5302,7 +5302,7 @@ class Report(object):
             DBT = DB.Targets[targ]
             # Get target options
             topts = self.cntl.opts.get_DataBookTargetByName(targ)
-            keys = topts.get("Keys", DB.x.keys)
+            keys = topts.get("Keys", DB.x.cols)
             # Read Line load
             DBT.ReadLineLoad(comp, targ=targ, conf=self.cntl.config)
             # Get title

@@ -127,7 +127,7 @@ class DBPointSensorGroup(dict):
         # Get the first component.
         DBc = self[self.pts[0]]
         # Loop through the fields.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Copy the data.
             setattr(self.x, k, DBc[k])
             # Set the text.

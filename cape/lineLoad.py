@@ -276,7 +276,7 @@ class DBLineLoad(dataBook.DBBase):
         if fname is None: fname = self.fname
         # Default list of keys
         if keys is None:
-            keys = self.x.keys
+            keys = self.x.cols
         # Save column names
         self.cols = keys + ['XMRP','YMRP','ZMRP','nIter','nStats']
         # Try to read the file.
@@ -321,7 +321,7 @@ class DBLineLoad(dataBook.DBBase):
                     self[k] = np.array([self[k]])
         except Exception as e:
             # Initialize empty trajectory arrays
-            for k in self.x.keys:
+            for k in self.x.cols:
                 # get the type.
                 t = self.x.defns[k].get('Value', 'float')
                 # convert type
@@ -382,7 +382,7 @@ class DBLineLoad(dataBook.DBBase):
         # Empty line and start of variable list
         f.write('#\n# ')
         # Write the name of each trajectory key.
-        for k in self.x.keys:
+        for k in self.x.cols:
             f.write(k + delim)
         # Write the extra column titles.
         f.write('XMRP%sYMRP%sZMRP%snIter%snStats\n' %
@@ -390,7 +390,7 @@ class DBLineLoad(dataBook.DBBase):
         # Loop through database entries.
         for i in np.arange(self.n):
             # Write the trajectory values.
-            for k in self.x.keys:
+            for k in self.x.cols:
                 f.write('%s%s' % (self[k][i], delim))
             # Write data values
             f.write('%s%s' % (self['XMRP'][i], delim))
@@ -539,7 +539,7 @@ class DBLineLoad(dataBook.DBBase):
             * 2016-08-12 ``@ddalle``: Copied from data book
         """
         # Loop through the fields.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Check if the key is present
             if k in self:
                 # Copy the data.
@@ -702,9 +702,9 @@ class DBLineLoad(dataBook.DBBase):
             # Add to the number of cases
             self.n += 1
             # Append trajectory values.
-            for k in self.x.keys:
+            for k in self.x.cols:
                 # Append to numpy array
-                self[k] = np.hstack((self[k], [getattr(self.x,k)[i]]))
+                self[k] = np.hstack((self[k], [self.x[k][i]]))
             # Append relevant values
             self['XMRP'] = np.hstack((self['XMRP'], [self.MRP[0]]))
             self['YMRP'] = np.hstack((self['YMRP'], [self.MRP[1]]))
@@ -956,30 +956,30 @@ class DBLineLoad(dataBook.DBBase):
                 phi = kph*deg
             elif kph.startswith('-'):
                 # Negative roll angle.
-                phi = -getattr(self.x,kph[1:])[i]*deg
+                phi = -self.x[kph[1:]][i]*deg
             else:
                 # Positive roll
-                phi = getattr(self.x,kph)[i]*deg
+                phi = self.x[kph][i]*deg
             # Extract pitch
             if type(kth).__name__ not in ['str', 'unicode']:
                 # Fixed value
                 theta = kth*deg
             elif kth.startswith('-'):
                 # Negative pitch
-                theta = -getattr(self.x,kth[1:])[i]*deg
+                theta = -self.x[kth[1:]][i]*deg
             else:
                 # Positive pitch
-                theta = getattr(self.x,kth)[i]*deg
+                theta = self.x[kth][i]*deg
             # Extract yaw
             if type(kps).__name__ not in ['str', 'unicode']:
                 # Fixed value
                 psi = kps*deg
             elif kps.startswith('-'):
                 # Negative yaw
-                psi = -getattr(self.x,kps[1:])[i]*deg
+                psi = -self.x[kps[1:]][i]*deg
             else:
                 # Positive pitch
-                psi = getattr(self.x,kps)[i]*deg
+                psi = self.x[kps][i]*deg
             # Sines and cosines
             cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
             sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
@@ -2508,7 +2508,8 @@ class CaseSeam(object):
         # Open the file.
         f = open(fname, 'w')
         # Write the header line.
-        f.write(' #Seam curves for %s=%s plane\n' % (self.ax, getattr(self,ax)))
+        f.write(' #Seam curves for %s=%s plane\n'
+            % (self.ax, getattr(self,ax)))
         # Loop through seems
         for i in range(self.n):
             # Header

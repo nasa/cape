@@ -133,7 +133,8 @@ def ImportPyPlot():
         import matplotlib.transforms as tform
         from matplotlib.text import Text
 # def ImportPyPlot
-        
+
+
 # Aerodynamic history class
 class DataBook(dict):
     """
@@ -900,9 +901,9 @@ class DataBook(dict):
             # Add to the number of cases.
             DBc.n += 1
             # Append trajectory values.
-            for k in self.x.keys:
+            for k in self.x.cols:
                 # Append
-                DBc[k] = np.append(DBc[k], getattr(self.x,k)[i])
+                DBc[k] = np.append(DBc[k], self.x[k][i])
             # Append values.
             for c in DBc.DataCols:
                 DBc[c] = np.append(DBc[c], s[c])
@@ -918,7 +919,7 @@ class DataBook(dict):
             # Save updated trajectory values
             for k in DBc.xCols:
                 # Append to that column
-                DBc[k][j] = getattr(self.x,k)[i]
+                DBc[k][j] = self.x[k][i]
             # Update data values.
             for c in DBc.DataCols:
                 DBc[c][j] = s[c]
@@ -1510,7 +1511,7 @@ class DataBook(dict):
         ``"beta"``, the search will also look for exact matches in ``"beta"``.
         
         If the *Keys* parameter is not set, the search will use either all the
-        keys in the trajectory, *x.keys*, or just the keys specified in the
+        keys in the trajectory, *x.cols*, or just the keys specified in the
         ``"Tolerances"`` section of *topts*.  Which of these two default lists
         to use is determined by the *keylist* input.
         
@@ -1561,7 +1562,7 @@ class DataBook(dict):
         # Get the first component.
         DBc = self.GetRefComponent()
         # Loop through the fields.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Copy the data.
             setattr(self.x, k, DBc[k])
             # Set the text.
@@ -1596,9 +1597,9 @@ class DataBook(dict):
             I.append(i)
             J.append(j)
         # Loop through the trajectory keys.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Restrict to trajectory points that were found.
-            setattr(self.x,k, getattr(self.x,k)[I])
+            setattr(self.x,k, self.x[k][I])
         # Loop through the databook components.
         for comp in self.Components:
             # Loop through fields.
@@ -1685,7 +1686,7 @@ class DataBook(dict):
         # Initialize constraints.
         cons = {}
         # Loop through trajectory keys
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Get the column name.
             col = tkeys.get(k, k)
             # Continue if column not present.
@@ -1751,7 +1752,7 @@ class DataBook(dict):
         # Initialize constraints.
         cons = {}
         # Loop through trajectory keys
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Get the column name.
             col = tkeys.get(k, k)
             # Continue if column not present.
@@ -2242,7 +2243,7 @@ class DBBase(dict):
         iCols = self.opts.get_DataBookIntCols(self.comp)
         
         # Save column names.
-        self.xCols = self.x.keys
+        self.xCols = self.x.cols
         self.fCols = cCols + fCols
         self.iCols = iCols
         self.cols = self.xCols + self.fCols + self.iCols
@@ -2869,7 +2870,7 @@ class DBBase(dict):
         # Copy trajectory
         self.x = self.x.Copy()
         # Loop through the fields.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Copy the data.
             if k in self:
                 # Copy the data
@@ -2948,7 +2949,7 @@ class DBBase(dict):
             * 2014-12-30 ``@ddalle``: First version
         """
         # Process the key.
-        if key is None: key = self.x.keys[0]
+        if key is None: key = self.x.cols[0]
         # Check for multiple keys.
         if type(key).__name__ in ['list', 'ndarray', 'tuple']:
             # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]
@@ -3010,7 +3011,7 @@ class DBBase(dict):
                     ("is not equal to data book size (%i)." % self.n))
         elif key is not None:
             # Default key if necessary
-            if key is None: key = self.x.keys[0]
+            if key is None: key = self.x.cols[0]
             # Use ArgSort to get indices that sort on that key.
             I = self.ArgSort(key)
         else:
@@ -3020,7 +3021,7 @@ class DBBase(dict):
                 xkeys = self.xCols[-1::-1]
             except AttributeError:
                 # Use all in the trajectory as a fallback...
-                xkeys = self.x.keys[-1::-1]
+                xkeys = self.x.cols[-1::-1]
             # Perform lexsort
             try:
                 # Create a tuple of lexicon variables
@@ -3058,15 +3059,15 @@ class DBBase(dict):
         # Initialize indices (assume all trajectory points match to start).
         i = np.arange(self.x.nCase)
         # Loop through keys requested for matches.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Get the target value from the data book.
             v = self[k][j]
             # Search for matches.
             try:
                 # Filter test criterion.
-                ik = np.where(getattr(self.x,k) == v)[0]
+                ik = np.where(self.x[k] == v)[0]
                 # Check if the last element should pass but doesn't.
-                if (v == getattr(self.x,k)[-1]):
+                if (v == self.x[k][-1]):
                     # Add the last element.
                     ik = np.union1d(ik, [self.x.nCase-1])
                 # Restrict to rows that match above.
@@ -3104,13 +3105,13 @@ class DBBase(dict):
         # Initialize indices (assume all are matches)
         j = np.arange(self.n) > -1
         # Loop through keys requested for matches.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Determine whether or not this variable affects folder name
             q = self.x.defns[k].get("Label", True)
             # If not, skip this test
             if not q: continue
             # Get the target value (from the trajectory)
-            v = getattr(self.x,k)[i]
+            v = self.x[k][i]
             # Search for matches.
             try:
                 # Combine criteria
@@ -3152,7 +3153,7 @@ class DBBase(dict):
         ``"beta"``, the search will also look for exact matches in ``"beta"``.
         
         If the *Keys* parameter is not set, the search will use either all the
-        keys in the trajectory, *x.keys*, or just the keys specified in the
+        keys in the trajectory, *x.cols*, or just the keys specified in the
         ``"Tolerances"`` section of *topts*.  Which of these two default lists
         to use is determined by the *keylist* input.
         
@@ -3168,7 +3169,7 @@ class DBBase(dict):
             *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
                 Criteria used to determine a match
             *keylist*: {``"x"``} | ``"tol"``
-                Default test key source: ``x.keys`` or ``topts.Tolerances``
+                Default test key source: ``x.cols`` or ``topts.Tolerances``
             *source*: ``"self"`` | {``"target"``}
                 Match *DBc.x* case *i* if ``"self"``, else *DBT.x* case *i*
         :Outputs:
@@ -3219,7 +3220,7 @@ class DBBase(dict):
         # Get list of keys to match
         if keylist.lower() == 'x':
             # Use all trajectory keys as default
-            keys = topts.get('Keys', DB1.x.keys)
+            keys = topts.get('Keys', DB1.x.cols)
         else:
             # Use the tolerance keys
             keys = topts.get('Keys', tolopts2.keys())
@@ -3334,7 +3335,7 @@ class DBBase(dict):
         # Initialize indices of potential matches
         J = np.arange(DBc.n)
         # Loop through keys
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Determine whether or not this variable affects folder name
             q = self.x.defns[k].get("Label", True)
             # If not, skip this test
@@ -3461,7 +3462,7 @@ class DBBase(dict):
         for con in GlobCons:
             try:
                 # Loop through trajectory keys
-                for k in x.keys:
+                for k in x.cols:
                     # Substitute if appropriate
                     if k in con:
                         con = con.replace(k, 'self["%s"]' % xkeys.get(k,k))
@@ -3473,7 +3474,7 @@ class DBBase(dict):
         # Loop through *EqCons*
         for k in EqCons:
             # Test if key is present
-            if k in x.keys:
+            if k in x.cols:
                 # Get target value
                 v = getattr(x,k)[i]
             elif k == "alpha":
@@ -3538,7 +3539,7 @@ class DBBase(dict):
         # Loop through *TolCons*
         for k in TolCons:
             # Test if key is present
-            if k in x.keys:
+            if k in x.cols:
                 # Get target value
                 v = getattr(x,k)[i]
             elif k == "alpha":
@@ -3632,7 +3633,7 @@ class DBBase(dict):
             *topts*: {``{}``} | :class:`dict`
                 Dictionary of tolerances for variables in question
             *keylist*: {``"x"``} | ``"tol"``
-                Default test key source: ``x.keys`` or ``topts.Tolerances`` 
+                Default test key source: ``x.cols`` or ``topts.Tolerances`` 
             *CombineTarget*: {``True``} | ``False``
                 For cases with multiple matches, compare to mean target value
         :Outputs:
@@ -5928,8 +5929,7 @@ class DBTriqFM(DataBook):
                 # Append trajectory values
                 for k in self[p].xCols:
                     # Append to that column
-                    self[p][k] = np.hstack((self[p][k],
-                        [getattr(self.x,k)[i]]))
+                    self[p][k] = np.hstack((self[p][k], [self.x[k][i]]))
                 # Append primary values
                 for c in self[p].fCols:
                     # Get value
@@ -5943,7 +5943,7 @@ class DBTriqFM(DataBook):
                 # Save updated trajectory values
                 for k in self[p].xCols:
                     # Append to that column
-                    self[p][k][j] = getattr(self.x,k)[i]
+                    self[p][k][j] = self.x[k][i]
                 # Update data values
                 for c in self[p].fCols:
                     # Save it.
@@ -6681,30 +6681,30 @@ class DBTriqFM(DataBook):
                 phi = kph*deg
             elif kph.startswith('-'):
                 # Negative roll angle.
-                phi = -getattr(self.x,kph[1:])[i]*deg
+                phi = -self.x[kph[1:]][i]*deg
             else:
                 # Positive roll
-                phi = getattr(self.x,kph)[i]*deg
+                phi = self.x[kph][i]*deg
             # Extract pitch
             if type(kth).__name__ not in ['str', 'unicode']:
                 # Fixed value
                 theta = kth*deg
             elif kth.startswith('-'):
                 # Negative pitch
-                theta = -getattr(self.x,kth[1:])[i]*deg
+                theta = -self.x[kth[1:]][i]*deg
             else:
                 # Positive pitch
-                theta = getattr(self.x,kth)[i]*deg
+                theta = self.x[kth][i]*deg
             # Extract yaw
             if type(kps).__name__ not in ['str', 'unicode']:
                 # Fixed value
                 psi = kps*deg
             elif kps.startswith('-'):
                 # Negative yaw
-                psi = -getattr(self.x,kps[1:])[i]*deg
+                psi = -self.x[kps[1:]][i]*deg
             else:
                 # Positive pitch
-                psi = getattr(self.x,kps)[i]*deg
+                psi = self.x[kps][i]*deg
             # Sines and cosines
             cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
             sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
@@ -7092,7 +7092,7 @@ class DBTarget(DBBase):
         # Names of columns corresponding to trajectory keys.
         tkeys = self.topts.get_RunMatrix()
         # Loop through trajectory fields.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Get field name.
             col = tkeys.get(k, k)
             # Check for manually turned-off trajectory.
@@ -7305,7 +7305,7 @@ class DBTarget(DBBase):
         # Get trajectory key specifications.
         tkeys = self.topts.get_RunMatrix()
         # Loop through the trajectory keys.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Get the column name in the target.
             tk = tkeys.get(k, k)
             # Set the value if it's a default.
@@ -8892,30 +8892,30 @@ class CaseFM(CaseData):
                 phi = kph*deg
             elif kph.startswith('-'):
                 # Negative roll angle.
-                phi = -getattr(x,kph[1:])[i]*deg
+                phi = -x[kph[1:]][i]*deg
             else:
                 # Positive roll
-                phi = getattr(x,kph)[i]*deg
+                phi = x[kph][i]*deg
             # Extract pitch
             if type(kth).__name__ not in ['str', 'unicode']:
                 # Fixed value
                 theta = kth*deg
             elif kth.startswith('-'):
                 # Negative pitch
-                theta = -getattr(x,kth[1:])[i]*deg
+                theta = -x[kth[1:]][i]*deg
             else:
                 # Positive pitch
-                theta = getattr(x,kth)[i]*deg
+                theta = x[kth][i]*deg
             # Extract yaw
             if type(kps).__name__ not in ['str', 'unicode']:
                 # Fixed value
                 psi = kps*deg
             elif kps.startswith('-'):
                 # Negative yaw
-                psi = -getattr(x,kps[1:])[i]*deg
+                psi = -x[kps[1:]][i]*deg
             else:
                 # Positive pitch
-                psi = getattr(x,kps)[i]*deg
+                psi = x[kps][i]*deg
             # Sines and cosines
             cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
             sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)

@@ -5,7 +5,7 @@
 This module provides a class :class:`cape.runmatrix.RunMatrix` for
 interacting with a list of cases. Usually this is the list of cases defined as
 the run matrix for a set of CFD solutions, and it is defined in the
-``"RunMatrix"`` :ref:`section of the JSON file <cape-json-trajectory>`.
+``"RunMatrix"`` :ref:`section of the JSON file <cape-json-runmatrix>`.
 
 However, the contents of the :class:`cape.runmatrix.RunMatrix` may have a
 list of cases that differs from the run matrix, for example containing instead
@@ -135,13 +135,11 @@ class RunMatrix(dict):
             Prefix to be used in folder names for each case in trajectory
         *x.GroupPrefix*: :class:`str`
             Prefix to be used for each grid folder name
-        *x.keys*: :class:`list`, *dtype=str*
+        *x.cols*: :class:`list`, *dtype=str*
             List of variable names used
         *x.text*: :class:`dict`, *dtype=list*
             Lists of variable values taken from trajectory file
-        *x.Mach*: :class:`numpy.ndarray`, *dtype=float*
-            Vector of Mach numbers in trajectory
-        ``x[key]``: :class:`numpy.ndarray`, *dtype=float*
+        *x[key]*: :class:`numpy.ndarray`, *dtype=float*
             Vector of values of each variable specified in *keys*
     :Versions:
         2014-05-28 ``@ddalle``: First version
@@ -155,7 +153,8 @@ class RunMatrix(dict):
     def __init__(self, **kwargs):
         """Initialization method"""
         # Check for an empty trajectory
-        if kwargs.get('Empty', False): return
+        if kwargs.get('Empty', False):
+            return
         # Process the inputs.
         fname = kwargs.get('File', None)
         keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
@@ -321,7 +320,7 @@ class RunMatrix(dict):
         # Copy the fields.
         y.defns  = {}
         y.abbrv  = dict(self.abbrv)
-        y.keys   = list(self.cols)
+        y.cols   = list(self.cols)
         y.text   = self.text.copy()
         y.prefix = self.prefix
         y.PASS   = self.PASS.copy()
@@ -1885,7 +1884,7 @@ class RunMatrix(dict):
         """Filter cases according to a set of constraints
 
         The constraints are specified as a list of strings that contain
-        inequalities of variables that are in *x.keys*.
+        inequalities of variables that are in *x.cols*.
 
         For example, if *m* is the name of a key (presumably meaning Mach
         number), and *a* is a variable presumably representing angle of attack,

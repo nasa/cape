@@ -879,7 +879,7 @@ class Overflow(Cntl):
         # Extract trajectory.
         x = self.x
         # Process the key types.
-        KeyTypes = [x.defns[k]['Type'] for k in x.keys]
+        KeyTypes = [x.defns[k]['Type'] for k in x.cols]
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)

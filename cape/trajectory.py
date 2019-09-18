@@ -134,7 +134,7 @@ class Trajectory(object):
             Prefix to be used in folder names for each case in trajectory
         *x.GroupPrefix*: :class:`str`
             Prefix to be used for each grid folder name
-        *x.keys*: :class:`list`, *dtype=str*
+        *x.cols*: :class:`list`, *dtype=str*
             List of variable names used
         *x.text*: :class:`dict`, *dtype=list*
             Lists of variable values taken from trajectory file
@@ -1888,7 +1888,7 @@ class Trajectory(object):
         """Filter cases according to a set of constraints
 
         The constraints are specified as a list of strings that contain
-        inequalities of variables that are in *x.keys*.
+        inequalities of variables that are in *x.cols*.
 
         For example, if *m* is the name of a key (presumably meaning Mach
         number), and *a* is a variable presumably representing angle of attack,

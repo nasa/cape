@@ -20,7 +20,7 @@ The :mod:`pyFun` module
     rubberData
     bin
     cmd
-    trajectory
+    runmatrix
     dataBook
     lineLoad
     pointSensor

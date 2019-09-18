@@ -353,7 +353,7 @@ class DataBook(cape.dataBook.DataBook):
             ttl = '%s\\%s' % (targ, comp)
             # Get the keys
             topts = self.opts.get_DataBookTargetByName(targ)
-            keys = topts.get("Keys", self.x.keys)
+            keys = topts.get("Keys", self.x.cols)
             # Read the file.
             self.LineLoads[ttl] = lineLoad.DBLineLoad(
                 self.x, self.opts, comp, keys=keys,

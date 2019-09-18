@@ -496,9 +496,9 @@ class DBPointSensorGroup(dataBook.DBBase):
             # Add to the number of cases.
             DBc.n += 1
             # Append trajectory values.
-            for k in self.x.keys:
+            for k in self.x.cols:
                 # Append to array
-                DBc[k] = np.append(DBc[k], getattr(self.x,k)[i])
+                DBc[k] = np.append(DBc[k], self.x[k][i])
             # Append values.
             for c in DBc.DataCols:
                 # Append
@@ -510,7 +510,7 @@ class DBPointSensorGroup(dataBook.DBBase):
             # Save updated trajectory values
             for k in DBc.xCols:
                 # Append to that column
-                DBc[k][j] = getattr(self.x,k)[i]
+                DBc[k][j] = self.x[k][i]
             # Update data values.
             for c in DBc.DataCols:
                 DBc[c][j] = P[c]
@@ -658,7 +658,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Get the first component.
         DBc = self[self.pts[0]]
         # Loop through the fields.
-        for k in self.x.keys:
+        for k in self.x.cols:
             # Copy the data.
             setattr(self.x, k, DBc[k])
             # Set the text.

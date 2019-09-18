@@ -18,7 +18,7 @@ The :mod:`pyOver` module
     bin
     cmd
     plot3d
-    trajectory
+    runmatrix
     dataBook
     lineLoad
     queue

@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-08-29 at 09:50 PDT
+   on 2019-09-18 at 11:17 PDT
 
 Test ``10_databook``
 ======================
@@ -99,13 +99,13 @@ Command 1: Python 2
         $ python2 test01_db.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.374968 seconds
-    * Cumulative time: 0.374968 seconds
+    * Command took 0.689309 seconds
+    * Cumulative time: 0.689309 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -139,56 +139,21 @@ Command 1: Python 2
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Python 3
---------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_db.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.77546 seconds
-    * Cumulative time: 1.15043 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        <DataBook nComp=10, nCase=30>
-        cap
-        body
-        fins
-        arrow_no_base
-        arrow_total
-        fuselage
-        fin1
-        fin2
-        fin3
-        fin4
-        <DBComp fin1, nCase=30>
-        b'poweroff'/m0.50a02.0_b''
-        b'poweroff'/m0.80a02.0_b''
-        b'poweroff'/m0.95a02.0_b''
-        b'poweroff'/m1.10a02.0_b''
-        b'poweroff'/m1.40a02.0_b''
-        b'poweroff'/m2.20a02.0_b''
-        <dataBook.CaseFM('fin', i=500)>
-        Mean value: 1.4149
-        Min value: 0.6555
-        Max value: 2.0462
-        Standard deviation: 0.3095
-        Sampling error: 0.0190
+        Traceback (most recent call last):
+          File "test01_db.py", line 34, in <module>
+            for frun in DBc.x.GetFullFolderNames(I):
+          File "/u/wk/ddalle/usr/pycart/cape/runmatrix.py", line 1731, in GetFullFolderNames
+            glist = self.GetGroupFolderNames(i)
+          File "/u/wk/ddalle/usr/pycart/cape/runmatrix.py", line 1839, in GetGroupFolderNames
+            dname = self._AssembleName(keys, prefix, j)
+          File "/u/wk/ddalle/usr/pycart/cape/runmatrix.py", line 1555, in _AssembleName
+            fpre = self[keys[j]][i]
+        IndexError: index 20 is out of bounds for axis 0 with size 20
         
 
-:STDERR:
-    * **PASS**
 

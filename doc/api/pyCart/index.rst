@@ -15,7 +15,7 @@ The :mod:`pyCart` module
     options/index
     case
     tri
-    trajectory
+    runmatrix
     bin
     cmd
     inputCntl

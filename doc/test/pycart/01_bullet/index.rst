@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-08-23 at 10:25 PDT
+   on 2019-09-18 at 11:16 PDT
 
 Test ``01_bullet``
 ====================
@@ -37,8 +37,8 @@ Command 1: Run Matrix Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.425499 seconds
-    * Cumulative time: 0.425499 seconds
+    * Command took 0.675159 seconds
+    * Cumulative time: 0.675159 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -72,8 +72,8 @@ Command 2: Run Case 0
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 8.37423 seconds
-    * Cumulative time: 8.79973 seconds
+    * Command took 8.49611 seconds
+    * Cumulative time: 9.17127 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -93,8 +93,8 @@ Command 3: Collect Aero Data
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.414707 seconds
-    * Cumulative time: 9.21444 seconds
+    * Command took 0.560779 seconds
+    * Cumulative time: 9.73205 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -124,8 +124,8 @@ Command 4: Test DataBook Value
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.341831 seconds
-    * Cumulative time: 9.55627 seconds
+    * Command took 0.530237 seconds
+    * Cumulative time: 10.2623 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -159,8 +159,8 @@ Command 5: Test DataBook Value
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.758044 seconds
-    * Cumulative time: 10.3143 seconds
+    * Command took 0.926884 seconds
+    * Cumulative time: 11.1892 seconds
 :STDOUT:
     * **PASS**
     * Actual:

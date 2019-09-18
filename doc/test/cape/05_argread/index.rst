@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-08-29 at 09:49 PDT
+   on 2019-09-18 at 11:17 PDT
 
 Test ``05_argread``
 =====================
@@ -107,8 +107,8 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.376468 seconds
-    * Cumulative time: 0.376468 seconds
+    * Command took 0.487199 seconds
+    * Cumulative time: 0.487199 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -146,8 +146,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.701712 seconds
-    * Cumulative time: 1.07818 seconds
+    * Command took 0.695833 seconds
+    * Cumulative time: 1.18303 seconds
 :STDOUT:
     * **PASS**
     * Target:

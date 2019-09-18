@@ -34,12 +34,12 @@ The :mod:`cape` module
     pointSensor
     queue
     report
+    runmatrix
     step
     tar
     tecplot
     tex
     text
-    trajectory
     tri
     util
     volcomp

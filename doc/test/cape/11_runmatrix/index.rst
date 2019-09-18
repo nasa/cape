@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-08-30 at 06:51 PDT
+   on 2019-09-18 at 11:17 PDT
 
 Test ``11_runmatrix``
 =======================
@@ -46,8 +46,8 @@ Command 1: Run Matrix w/o File: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.356717 seconds
-    * Cumulative time: 0.356717 seconds
+    * Command took 0.491832 seconds
+    * Cumulative time: 0.491832 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -97,8 +97,8 @@ Command 2: Run Matrix w/o File: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.571502 seconds
-    * Cumulative time: 0.928219 seconds
+    * Command took 0.61343 seconds
+    * Cumulative time: 1.10526 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -148,8 +148,8 @@ Command 3: Conversions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.342067 seconds
-    * Cumulative time: 1.27029 seconds
+    * Command took 0.35817 seconds
+    * Cumulative time: 1.46343 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -199,8 +199,8 @@ Command 4: Conversions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.672371 seconds
-    * Cumulative time: 1.94266 seconds
+    * Command took 0.675325 seconds
+    * Cumulative time: 2.13876 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -250,8 +250,8 @@ Command 5: Mark PASS
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.323065 seconds
-    * Cumulative time: 2.26572 seconds
+    * Command took 0.52571 seconds
+    * Cumulative time: 2.66447 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -271,8 +271,8 @@ Command 6: Check PASS Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.333935 seconds
-    * Cumulative time: 2.59966 seconds
+    * Command took 0.510153 seconds
+    * Cumulative time: 3.17462 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -303,8 +303,8 @@ Command 7: Mark ERROR
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.331353 seconds
-    * Cumulative time: 2.93101 seconds
+    * Command took 0.422822 seconds
+    * Cumulative time: 3.59744 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -324,8 +324,8 @@ Command 8: Check ERROR Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.32361 seconds
-    * Cumulative time: 3.25462 seconds
+    * Command took 0.483982 seconds
+    * Cumulative time: 4.08142 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -356,8 +356,8 @@ Command 9: Overwrite PASS/ERROR Marks
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.372849 seconds
-    * Cumulative time: 3.62747 seconds
+    * Command took 0.525206 seconds
+    * Cumulative time: 4.60663 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -377,8 +377,8 @@ Command 10: Check Final Marks
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.398889 seconds
-    * Cumulative time: 4.02636 seconds
+    * Command took 0.538187 seconds
+    * Cumulative time: 5.14482 seconds
 :STDOUT:
     * **PASS**
     * Target:
