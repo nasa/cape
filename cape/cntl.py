@@ -1123,7 +1123,7 @@ class Cntl(object):
         uid = kw.get('u', kw.get('user', os.environ['USER']))
         # Get the value of the user from the run matrix
         # Also, remove leading '@' character if present
-        ui = getattr(self.x,k)[i].lstrip('@').lower()
+        ui = self.x[k][i].lstrip('@').lower()
         # Check the actual constraint
         if ui == "":
             # No user constraint; pass
@@ -2763,7 +2763,7 @@ class Cntl(object):
         # Get the function for this *TriFunction*
         func = self.x.defns[key]['Function']
         # Apply it.
-        exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
     
     # Apply a special configuration function
     def PrepareConfigFunction(self, key, i):
@@ -2784,7 +2784,7 @@ class Cntl(object):
         # Get the function for this *TriFunction*
         func = self.x.defns[key]['Function']
         # Apply it.
-        exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
         
     # Apply a triangulation translation
     def PrepareTriTranslation(self, key, i):
@@ -2828,7 +2828,7 @@ class Cntl(object):
             # Named vector
             u = np.array(self.opts.get_Point(vec))
         # Form the translation vector
-        v = u * getattr(self.x,key)[i]
+        v = u * self.x[key][i]
         # Translate the triangulation
         self.tri.Translate(v, compID=compID)
         self.tri.Translate(-v, compID=compIDR)
