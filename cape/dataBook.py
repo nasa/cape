@@ -1599,7 +1599,7 @@ class DataBook(dict):
         # Loop through the trajectory keys.
         for k in self.x.cols:
             # Restrict to trajectory points that were found.
-            self.x[k =] self.x[k][I]
+            self.x[k] = self.x[k][I]
         # Loop through the databook components.
         for comp in self.Components:
             # Loop through fields.
