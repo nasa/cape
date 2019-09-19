@@ -2074,7 +2074,7 @@ class Report(object):
             line += (" & {\\small\\textsf{%s}} & " % 
                 abbrv.replace('_', '\_'))
             # Get values.
-            v = getattr(x,k)[I]
+            v = x[k][I]
             # Nominal, min, and max
             v0 = v[0]
             vmin = min(v)
@@ -2292,19 +2292,19 @@ class Report(object):
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
                 line += "{\\small\\textsf{%s}} \\\\\n" % (
-                    getattr(x,k)[i].replace('_', '\_'))
+                    x[k][i].replace('_', '\_'))
             elif x.defns[k]['Value'] in ['float', 'int']:
                 # Put the value as a number
-                line += "$%s$ &" % getattr(x,k)[i]
+                line += "$%s$ &" % x[k][i]
             elif x.defns[k]['Value'] in ['hex']:
                 # Put the value as a hex code.
-                line += "0x%x &" % getattr(x,k)[i]
+                line += "0x%x &" % x[k][i]
             elif x.defns[k]['Value'] in ['oct', 'octal']:
                 # Put the value as a hex code.
-                line += "0o%o &" % getattr(x,k)[i]
+                line += "0o%o &" % x[k][i]
             else:
                 # Just put a string
-                line += "%s &" % getattr(x,k)[i].replace('_','\_')
+                line += "%s &" % x[k][i].replace('_','\_')
             # Append the constraint
             line += " %s \\\\ \n" % scon
             # Append the line.
@@ -4581,7 +4581,7 @@ class Report(object):
             # Set the Mach number if appropriate
             if omach:
                 try:
-                    tec.SetMach(getattr(self.cntl.x,omach)[i])
+                    tec.SetMach(self.cntl.x[omach][i])
                 except Exception:
                     pass
             # Set the field map
@@ -4669,7 +4669,7 @@ class Report(object):
         # Check for trajectory key
         if v in self.cntl.x.cols:
             # Get the value from the trajectory
-            return str(getattr(self.cntl.x, v)[i])
+            return str(self.cntl.x[v][i])
         # Get all sigils
         flgs = re.findall('\$[\w]+', v)
         # Loop through matches
@@ -4679,7 +4679,7 @@ class Report(object):
             # Replace $mach --> x.mach[i] (for example)
             if ki in self.cntl.x.cols:
                 # Find the value of the trajectory key
-                vi = str(getattr(self.cntl.x, ki)[i])
+                vi = str(self.cntl.x[ki][i])
                 # Do the string replacement
                 v = v.replace(fi, vi)
         # Output

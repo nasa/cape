@@ -1599,7 +1599,7 @@ class DataBook(dict):
         # Loop through the trajectory keys.
         for k in self.x.cols:
             # Restrict to trajectory points that were found.
-            setattr(self.x,k, self.x[k][I])
+            self.x[k =] self.x[k][I]
         # Loop through the databook components.
         for comp in self.Components:
             # Loop through fields.
@@ -7314,12 +7314,12 @@ class DBTarget(DBBase):
             # Check for ``None``
             if (tk is None) or (tk not in self):
                 # Use NaN as the value.
-                setattr(self.x,k, np.nan*np.ones(self.n))
+                self.x[k] = np.nan*np.ones(self.n)
                 # Set the value.
                 tkeys[k] = None
                 continue
             # Update the trajectory values to match those of the trajectory.
-            setattr(self.x,k, self[tk])
+            self.x[k] = self[tk]
             # Set the text.
             self.x.text[k] = [str(xk) for xk in self[tk]]
         # Save the key translations.

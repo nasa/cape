@@ -1406,7 +1406,7 @@ class RunMatrix(dict):
         """
         if k in self.cols:
             # The key is present directly
-            V = self[key]
+            V = self[k]
             # Process indices
             if I is None:
                 # Return entire array

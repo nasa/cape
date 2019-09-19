@@ -543,12 +543,12 @@ class DBLineLoad(dataBook.DBBase):
             # Check if the key is present
             if k in self:
                 # Copy the data.
-                setattr(self.x, k, self[k])
+                self.x[k] = self[k]
                 # Set the text.
                 self.x.text[k] = [str(xk) for xk in self[k]]
             else:
                 # Set faulty data
-                setattr(self.x, k, np.nan*np.ones(self.n))
+                self.x[k] = np.nan*np.ones(self.n)
                 self.x.text[k] = ['' for xk in range(self.n)]
         # Set the number of cases.
         self.x.nCase = self.n
