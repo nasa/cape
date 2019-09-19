@@ -671,7 +671,7 @@ class Cntl(cape.cntl.Cntl):
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
             # Apply it.
-            exec("self.%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+            exec("self.%s(self,%s,i=%i)" % (func, self.x[key][i], i))
         # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
         self.PrepareAeroCsh(i)
@@ -784,7 +784,7 @@ class Cntl(cape.cntl.Cntl):
             # Get the function for this *MeshFunction*
             func = self.x.defns[key]['Function']
             # Apply it.
-            exec("%s(self.%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+            exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
         # RunControl options (for consistency)
         rc = self.opts['RunControl']
         # Run autoInputs if necessary.

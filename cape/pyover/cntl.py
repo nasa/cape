@@ -383,7 +383,7 @@ class Cntl(cape.cntl.Cntl):
         config = ""
         # Loop through config variables (weird if more than one...)
         for k in xcfg:
-            config += getattr(self.x,k)[i]
+            config += self.x[k][i]
         # Output
         return config
         
@@ -836,7 +836,7 @@ class Cntl(cape.cntl.Cntl):
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
             # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+            exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
         # Prepare the Config.xml translations and rotations
         self.PrepareConfig(i)
         # Write the over.namelist file(s).

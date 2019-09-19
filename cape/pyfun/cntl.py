@@ -1256,7 +1256,7 @@ class Cntl(cape.cntl.Cntl):
             # Get the function for this *MeshFunction*
             func = self.x.defns[key]['Function']
             # Apply it.
-            exec("%s(self.%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+            exec("%s(self.%s,i=%i)" % (func, self.x[key][i], i))
         # Check for jumpstart (creating mesh before starting job)
         if qmsh:
             # Do not create already-created mesh
@@ -1343,7 +1343,7 @@ class Cntl(cape.cntl.Cntl):
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
             # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+            exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
         # Prepare the rubber.data file
         self.PrepareRubberData(i)
         # Write the cntl.nml file(s).

@@ -2901,7 +2901,7 @@ class Cntl(object):
             # Named vector
             u = np.array(self.opts.get_Point(vec))
         # Form the translation vector
-        v = u * getattr(self.x,key)[i]
+        v = u * self.x[key][i]
         # Set the displacement for the positive translations
         for comp in comps:
             self.config.SetTranslation(comp, i=I.get(comp), Displacement=v)
@@ -2942,7 +2942,7 @@ class Cntl(object):
         # Get the options for this key.
         kopts = self.x.defns[key]
         # Rotation angle
-        theta = getattr(self.x,key)[i]
+        theta = self.x[key][i]
         # Get the components to translate.
         compID = self.tri.GetCompID(kopts.get('CompID'))
         # Components to translate in opposite direction
@@ -3083,7 +3083,7 @@ class Cntl(object):
         # Get the options for this key.
         kopts = self.x.defns[key]
         # Rotation angle
-        theta = getattr(self.x,key)[i]
+        theta = self.x[key][i]
         # Get the components to rotate.
         comps = kopts.get('CompID', [])
         # Components to rotate in opposite direction
@@ -3602,7 +3602,7 @@ class Cntl(object):
             # Skip if we have a blocked user
             if ku:
                 # Get the user
-                ui = getattr(self.x, ku)[i]
+                ui = self.x[ku][i]
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
@@ -3738,7 +3738,7 @@ class Cntl(object):
             # Skip if we have a blocked user
             if ku:
                 # Get the user
-                ui = getattr(self.x, ku)[i]
+                ui = self.x[ku][i]
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
@@ -3874,7 +3874,7 @@ class Cntl(object):
             # Skip if we have a blocked user
             if ku:
                 # Get the user
-                ui = getattr(self.x, ku)[i]
+                ui = self.x[ku][i]
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
@@ -4019,7 +4019,7 @@ class Cntl(object):
             # Skip if we have a blocked user
             if ku:
                 # Get the user
-                ui = getattr(self.x, ku)[i]
+                ui = self.x[ku][i]
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
