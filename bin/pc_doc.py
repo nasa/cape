@@ -88,6 +88,9 @@ from this script is also accessible from the :mod:`cape.pycart` module
     --clean
         Delete any files as described by *ProgressDeleteFiles* in "Archive"
         section of *FNAME*; can be run at any time
+
+    --exec, -e CMD
+        Execute command *CMD* in each folder
         
     --aero, --aero GLOB
         Loop through cases and extract force and moment coefficients and
