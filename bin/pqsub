@@ -30,20 +30,23 @@ to a file called :file:`jobID.dat` or the value of *FOUT* (see below).
     * 2014-10-06 ``@ddalle``: First version
 """
 
-# Import the full module
-import cape.pycart.queue
-# Input parsing
-from pyCart.argread import readflagstar
+# System modules
+import sys
+
+# Full CAPE modules
+import cape.queue
+# CAPE module partial imports
+from cape.argread import readflagstar
     
 # Check if run as a script.
 if __name__ == "__main__":
     # Parse inputs.
-    a, kw = readflagstar(pyCart.os.sys.argv)
+    a, kw = readflagstar(sys.argv)
     
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
         print(__doc__)
-        pyCart.os.sys.exit()
+        sys.exit()
         
     # Get PBS script name.
     if a:
@@ -57,7 +60,7 @@ if __name__ == "__main__":
     fout = kw.get('f', 'jobID.dat')
     
     # Submit the job.
-    jobID = pyCart.queue.pqsub(fname, fout)
+    jobID = cape.queue.pqsub(fname, fout)
     
     # Display status.
     if jobID:
