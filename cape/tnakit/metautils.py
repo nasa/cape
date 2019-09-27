@@ -242,6 +242,47 @@ class ModulePropDB(dict):
             moddb[k] = opts[k]
         # Output
         return moddb
+
+
+    # Get ordered settings
+    def get_ordered_settings(self):
+        """Get ordered version of metadata *settings* attribute
+        
+        :Call:
+            >>> settings = props.get_ordered_settings()
+        :Inputs:
+            *props*: :class:`ModulePropDB`
+                Module property database instance
+        :Outputs:
+            *settings*: :class:`OrderedDict`
+                Properly ordered settings
+        :Versions:
+            * 2019-09-27 ``@ddalle``: First version
+        """
+        # Initialize settings
+        settings = OrderedDict()
+        # List of keys
+        key_list = self.settings["Keys"]
+        # Save settings in order
+        settings["Keys"] = list(key_list)
+        # Loop through other keys
+        for k in sorted(self.settings.keys()):
+            # Skip "Keys" entry
+            if k == "Keys":
+                continue
+            # Get value from .settings
+            v = self.settings[k]
+            # Check type
+            if isinstance(v, dict):
+                # Order the dictionary by *key_list* order
+                settings[k] = OrderedDict((
+                    (kj, v[kj]) for kj in key_list if kj in v))
+            else:
+                # Save key as is
+                settings[k] = v
+        # Output
+        return settings
+
         
     # Return a property from one module, using defaults
     def get_property(self, mod, k, vdef=None):
@@ -324,7 +365,7 @@ class ModulePropDB(dict):
         # Create object for output
         opts = OrderedDict()
         # Save the settings
-        opts[".settings"] = self.settings
+        opts[".settings"] = self.get_ordered_settings()
         # Add the individual module DBs in the appropriate order
         for mod in self.list_modules():
             # Get the properties for this module, sorted appropriately
@@ -335,6 +376,7 @@ class ModulePropDB(dict):
         with open(fname, 'w') as f:
             # Write metadata
             json.dump(opts, f, indent=indent)
+        
 
     # Merge options
     def merge(self, opts):
