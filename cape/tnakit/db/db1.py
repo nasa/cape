@@ -4573,7 +4573,7 @@ class DBCoeff(dict):
         """
        # --- Inputs ---
         # Probability
-        cov = kw.get("Coverage", kw.get("cov", 0.995))
+        cov = kw.get("Coverage", kw.get("cov", 0.99865))
         cdf = kw.get("CoverageCDF", kw.get("cdf", cov))
         # Outlier cutoff
         osig_kw = kw.get('OutlierSigma', kw.get("osig"))
@@ -4717,7 +4717,7 @@ class DBCoeff(dict):
         :Keyword Arguments:
             *nmin*: {``30``} | :class:`int` > 0
                 Minimum number of points in window
-            *cov*, *Coverage*: {``0.995``} | 0 < :class:`float` < 1
+            *cov*, *Coverage*: {``0.99865``} | 0 < :class:`float` < 1
                 Fraction of data that must be covered by UQ term
             *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
                 Coverage fraction assuming perfect distribution
@@ -4787,7 +4787,7 @@ class DBCoeff(dict):
         :Keyword Arguments:
             *nmin*: {``30``} | :class:`int` > 0
                 Minimum number of points in window
-            *cov*, *Coverage*: {``0.995``} | 0 < :class:`float` < 1
+            *cov*, *Coverage*: {``0.99865``} | 0 < :class:`float` < 1
                 Fraction of data that must be covered by UQ term
             *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
                 Coverage fraction assuming perfect distribution
@@ -4872,7 +4872,7 @@ class DBCoeff(dict):
         :Keyword Arguments:
             *nmin*: {``30``} | :class:`int` > 0
                 Minimum number of points in window
-            *cov*, *Coverage*: {``0.995``} | 0 < :class:`float` < 1
+            *cov*, *Coverage*: {``0.99865``} | 0 < :class:`float` < 1
                 Fraction of data that must be covered by UQ term
             *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
                 Coverage fraction assuming perfect distribution
