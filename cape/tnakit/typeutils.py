@@ -13,6 +13,7 @@ address differences between Python 2 and 3.  For example, it defines the
 """
 
 # System modules
+import io
 import sys
 
 # Import common types for checking
@@ -23,8 +24,9 @@ module = sys.__class__
 
 # Version checks
 if int(sys.version[0]) > 2:
-    # Define unicode class
+    # Define classes that were deleted in Python 3
     unicode = str
+    file    = io.IOBase
 # endif
 
 

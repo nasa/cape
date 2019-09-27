@@ -17,13 +17,16 @@ output state variables.
     * :mod:`cape.plot3d`
 """
 
-# Numerics
-import numpy as np
-# System interface
+# Standard library modules
 import os
 import io
-# Basic Plot3D class
+
+# Third-party modules
+import numpy as np
+
+# CAPE modules
 import cape.plot3d
+import cape.tnakit.typeutils as typeutils
 
 
 # OVERFLOW Plot3D template
@@ -61,7 +64,7 @@ class P3D(cape.plot3d.X):
             * 2019-05-24 ``@ddalle``: First version
         """
         # Check if the file is open
-        if isinstance(self.f, io.IOBase) and (not self.f.closed):
+        if isinstance(self.f, typeutils.file) and (not self.f.closed):
             # Already open
             self.f.seek(0)
             return
