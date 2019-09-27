@@ -21,6 +21,7 @@ output state variables.
 import numpy as np
 # System interface
 import os
+import io
 # Basic Plot3D class
 import cape.plot3d
 
@@ -60,7 +61,7 @@ class P3D(cape.plot3d.X):
             * 2019-05-24 ``@ddalle``: First version
         """
         # Check if the file is open
-        if isinstance(self.f, file) and (not self.f.closed):
+        if isinstance(self.f, io.IOBase) and (not self.f.closed):
             # Already open
             self.f.seek(0)
             return

@@ -1139,7 +1139,7 @@ def read_record_lr4_i(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i4')
     # Get count
-    n = I[0] / 4
+    n = int(I[0] / 4)
     # Read that many ints
     x = np.fromfile(f, count=n, dtype="<i4")
     # Read the end-of-record
