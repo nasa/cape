@@ -121,7 +121,7 @@ def get_cov_interval(dx, cov, **kw):
     :Inputs:
         *dx*: :class:`np.ndarray` (:class:`float`)
             Array of signed deltas
-        *cov*: ``0.95`` | 0 < :class:`float` < 1
+        *cov*: 0 < :class:`float` < 1
             Coverage percentage
         *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
             CDF if no extra coverage needed

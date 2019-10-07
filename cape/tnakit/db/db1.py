@@ -1589,7 +1589,7 @@ class DBCoeff(dict):
             # Get the progress fraction at current inter-slice *skey* value
             fj = (x[j+1] - xmin) / (xmax-xmin)
             # Check for extrapolation
-            if not extrap and ((fj < -1e-6) or (fj - 1 > 1e-6)):
+            if not extrap and ((fj < -1e-3) or (fj - 1 > 1e-3)):
                 # Raise extrapolation error
                 raise ValueError(
                     ("Lookup value %.4e is outside " % x[j+1]) +
@@ -3365,7 +3365,7 @@ class DBCoeff(dict):
                 # Print a warning
                 sys.stderr.write("WARNING: skipping ")
                 sys.stderr.write("coefficient '%s' " % coeff)
-                sys.stderr.write("with mismatching length")
+                sys.stderr.write("with mismatching length\n")
                 sys.stderr.flush()
                 # Delete it
                 del coeffs[i]
@@ -3871,6 +3871,8 @@ class DBCoeff(dict):
                 func = RBF_FUNCS[int(V[0, j0+2])]
                 # Create RBF
                 rbf = scipy.interpolate.rbf.Rbf(*Z, function=func)
+                # Save not-too-important actual values
+                rbf.di = V[:, j0]
                 # Use all conditions
                 rbf.xi = V[:,:narg].T
                 # Get RBF weights
@@ -3902,6 +3904,8 @@ class DBCoeff(dict):
                     i1 = i0 + ni
                     # Use subset of conditions
                     rbf.xi = V[i0:i1, 1:narg].T
+                    # Save not-too-important original values
+                    rbf.di = V[i0:i1, j0]
                     # Get RBF weights
                     rbf.nodes = V[i0:i1, j0+1]
                     # Get function type
@@ -4856,7 +4860,7 @@ class DBCoeff(dict):
 
     # Single-point UQ estimate
     def EstimateUQ_DB(self, FM2, **kw):
-        """Quantify uncertainty for all available coefficient pairings in a DB
+        """Quantify uncertainty for all coefficient pairings in a DB
 
         :Call:
             >>> FM1.EstimateUQ_DB(FM2, **kw)
@@ -4865,10 +4869,6 @@ class DBCoeff(dict):
                 Original coefficient database
             *FM2*: :class:`DBCoeff`
                 Comparison coefficient database
-            *coeff*: :class:`str`
-                Name of coefficient whose uncertainty is being estimated
-            *ucoeff*: :class:`str`
-                Name of uncertainty coefficient
         :Keyword Arguments:
             *nmin*: {``30``} | :class:`int` > 0
                 Minimum number of points in window
