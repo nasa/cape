@@ -16,8 +16,8 @@ The class provides two classes, the first of which is the generic version
 typically used for layout files.  The second class has a few extra methods for
 handling Tecplot macros specifically.
 
-    * :class:`pyFun.tecplot.Tecsript`
-    * :class:`pyFun.tecplot.TecMacro`
+    * :class:`cape.pyfun.tecplot.Tecsript`
+    * :class:`cape.pyfun.tecplot.TecMacro`
 
 :See also:
     * :mod:`cape.fileCntl`
@@ -54,13 +54,13 @@ class Tecscript(cape.tecplot.Tecscript):
     File control class for Tecplot script files
     
     :Call:
-        >>> tec = pyFun.tecplot.Tecscript()
-        >>> tec = pyFun.tecplot.Tecscript(fname="layout.lay")
+        >>> tec = pyfun.tecplot.Tecscript()
+        >>> tec = pyfun.tecplot.Tecscript(fname="layout.lay")
     :Inputs:
         *fname*: :class:`str`
             Name of Tecplot script to read
     :Outputs:
-        *tec*: :class:`pyFun.tecplot.Tecscript` or derivative
+        *tec*: :class:`pyfun.tecplot.Tecscript` or derivative
             Instance of Tecplot script base class
     :Versions:
         * 2015-02-26 ``@ddalle``: Started
@@ -77,13 +77,13 @@ class TecMacro(cape.tecplot.TecMacro):
     File control class for Tecplot macr files
     
     :Call:
-        >>> tec = pyFun.tecplot.TecMacro()
-        >>> tec = pyFun.tecplot.TecMacro(fname="export.mcr")
+        >>> tec = TecMacro()
+        >>> tec = TecMacro(fname="export.mcr")
     :Inputs:
         *fname*: :class:`str`
             Name of Tecplot script to read
     :Outputs:
-        *tec*: :class:`pyFun.tecplot.TecMacro`
+        *tec*: :class:`pyfun.tecplot.TecMacro`
             Instance of Tecplot macro interface
     :Versions:
         * 2015-03-10 ``@ddalle``: First version

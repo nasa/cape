@@ -22,23 +22,29 @@ Finally, reading seam curves from individual cases utilizes the class
     * :mod:`cape.pyfun.dataBook`
 """
 
-# File interface
-import os, glob, shutil
-# Basic numerics
-import numpy as np
-# Date processing
+# Standard library modules
+import os
+import glob
+import shutil
+
+# Standard library direct imports
 from datetime import datetime
 
-# Utilities or advanced statistics
+# Third-party modules
+import numpy as np
+
+# CAPE modules
+import cape.lineLoad
+import cape.pyfun.plt
+
+# Local modules
 from . import util
 from . import case
 from . import plt
 from . import mapbc
+
+# Parent imports
 from cape import tar
-# Line load template
-import cape.lineLoad
-# Import plt
-import cape.pyfun.plt
 
 
 # Data book of line loads
@@ -127,7 +133,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
+            *DBL*: :class:`pyfun.lineLoad.DBLineLoad`
                 Instance of line load data book
         :Outputs:
             *qtriq*: {``False``}
@@ -178,7 +184,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         :Call:
             >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
+            *DBL*: :class:`pyfun.lineLoad.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -210,7 +216,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Get from trajectory
             mach = self.x.GetMach(i)
         # Convert the plt file
-        pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+        cape.pyfun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
         
 # class DBLineLoad
     

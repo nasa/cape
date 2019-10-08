@@ -2,7 +2,7 @@
 :mod:`cape.pyfun.plt`: Interface to FUN3D Tecplot PLT files
 ============================================================
 
-This module provides the class :class:`pyFun.plt.Plt`, which intends to read
+This module provides the class :class:`cape.pyfun.plt.Plt`, which intends to read
 and write Tecplot binary or ASCII PLT files for surface grid solutions from
 FUN3D. It is based on the generic PLT interface, :class:`cape.bin.plt.Plt`,
 which does not use the TecIO library to avoid causing unnecessary dependencies
@@ -29,15 +29,19 @@ post-processing based on the :mod:`cape.tri` module.
 
 """
 
-# System interface
-import glob, os
-# Basic numerics
+# Standard library modules
+import os
+import glob
+
+# Third-party modules
 import numpy as np
-# Useful tool for more complex binary I/O methods
+
+# CAPE modules
 import cape.io
 import cape.plt
 import cape.tri
-# Local tool for MapBC file interface
+
+# PYFUN modules
 import cape.pyfun.mapbc
 
 # Convert a PLT to TRIQ
@@ -79,7 +83,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         # Make a crude attempt at sorting
         fglob.sort()
         # Import the alphabetically last one (should be the same anyway)
-        kw["mapbc"] = pyFun.mapbc.MapBC(fglob[0])
+        kw["mapbc"] = cape.pyfun.mapbc.MapBC(fglob[0])
     # Attempt to get *cp_tavg* state
     if "mach" in kw:
         plt.GetCpTAvg(float(kw["mach"]))
@@ -95,12 +99,12 @@ class Plt(cape.plt.Plt):
     """Interface for Tecplot PLT files
     
     :Call:
-        >>> plt = pyFun.plt.Plt(fname)
+        >>> plt = plt.Plt(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *plt*: :class:`pyFun.plt.Plt`
+        *plt*: :class:`cape.pyfun.plt.Plt`
             Tecplot PLT interface
         *plt.nVar*: :class:`int`
             Number of variables
@@ -127,7 +131,7 @@ class Plt(cape.plt.Plt):
         :Call:
             >>> plt.GetCpTAvg(mach, gam=1.4)
         :Inputs:
-            *plt*: :class:`pyFun.plt.Plt`
+            *plt*: :class:`cape.pyfun.plt.Plt`
                 Tecplot PLT interface
             *mach*: :class:`float`
                 Freestream Mach number
