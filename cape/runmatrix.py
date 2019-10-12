@@ -4502,7 +4502,7 @@ class RunMatrix(dict):
             # Check for specially-named keys
             if v in kw:
                 # Use another function
-                return self[kw[v]](i)
+                return getattr(self, kw[v])(i)
             else:
                 # Use the value of a different key.
                 return self[v][i]
