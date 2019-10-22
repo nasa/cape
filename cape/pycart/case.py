@@ -15,8 +15,9 @@ It also contains Cart3D-specific versions of some of the generic methods from
 
 """
 
-# Reused classes
-from cape.case import *
+# Template class
+import cape.cfdx.case as cc
+
 # Import options class
 from .options.runControl import RunControl
 # Interface for writing commands
@@ -55,8 +56,8 @@ def run_flowCart(verify=False, isect=False):
     # Get the settings.
     rc = ReadCaseJSON()
     # Run intersect and verify
-    CaseIntersect(rc)
-    CaseVerify(rc)
+    cc.CaseIntersect(rc)
+    cc.CaseVerify(rc)
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Write start time
@@ -64,7 +65,7 @@ def run_flowCart(verify=False, isect=False):
     # Prepare all files
     PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
-    PrepareEnvironment(rc, i)
+    cc.PrepareEnvironment(rc, i)
     # Run the appropriate commands
     RunPhase(rc, i)
     # Clean up the folder
@@ -101,7 +102,7 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
         * 2015-12-09 ``@ddalle``: First version
     """
     # Call the function from :mode:`cape.case`
-    WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
+    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
     
 # Write start time
 def WriteStartTime(tic, rc, i, fname="pycart_start.dat"):
@@ -122,7 +123,7 @@ def WriteStartTime(tic, rc, i, fname="pycart_start.dat"):
         * 2016-08-31 ``@ddalle``: First version
     """
     # Call the function from :mod:`cape.case`
-    WriteStartTimeProg(tic, rc, i, fname, 'run_flowCart.py')
+    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_flowCart.py')
 
 # Run cubes if necessary
 def CaseCubes(rc, j=0):
@@ -167,12 +168,14 @@ def CaseAutoInputs(rc, j=0):
         * 2016-04-06 ``@ddalle``: First version
     """
     # Check for previous iterations
-    if GetRestartIter() > 0: return
+    if GetRestartIter() > 0:
+        return
     # Check for output files
     if os.path.isfile('input.c3d') and os.path.isfile('preSpec.c3d.cntl'):
         return
     # Check for cubes option
-    if not rc.get_autoInputs(): return
+    if not rc.get_autoInputs():
+        return
     # Run autoInputs
     bin.autoInputs(opts=rc, j=j)
     

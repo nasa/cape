@@ -22,6 +22,8 @@ import os
 import sys
 # Numerics
 import numpy as np
+# Plotting
+import matplotlib.pyplot as plt
 # More powerful interpolation
 import scipy.interpolate
 # Mat interface

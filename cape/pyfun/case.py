@@ -1,6 +1,6 @@
 """
-:mod:`cape.pyfun.case`: Case control module
-===========================================
+:mod:`cape.pyfun.case`: FUN3D case control module
+==================================================
 
 This module contains the important function :func:`case.run_fun3d`, which
 actually runs ``nodet`` or ``nodet_mpi``, along with the utilities that
@@ -26,11 +26,9 @@ import shutil
 import resource
 import re
 
-# Import cape stuff
-from cape.case import *
-
 # CAPE modules
-import cape.manage as manage
+import cape.cfdx.case as cc
+import cape.manage    as manage
 
 # Local imports
 from . import bin
@@ -76,7 +74,7 @@ def run_fun3d():
     # Prepare files
     PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
-    PrepareEnvironment(rc, i)
+    cc.PrepareEnvironment(rc, i)
     # Run the appropriate commands
     RunPhase(rc, i)
     # Clean up files
@@ -160,10 +158,10 @@ def RunPhase(rc, i):
     # Mesh generation and verification actions
     if i == 0 and n is None:
         # Run intersect and verify
-        CaseIntersect(rc, fproj, n)
-        CaseVerify(rc, fproj, n)
+        cc.CaseIntersect(rc, fproj, n)
+        cc.CaseVerify(rc, fproj, n)
         # Create volume mesh if necessary
-        CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
+        cc.CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
         # Check for mesh-only phase
         if np is None or ni is None or ni <= 0 or np < 0:
             # Name of next phase
@@ -439,7 +437,7 @@ def WriteStartTime(tic, rc, i, fname="pyfun_start.dat"):
         * 2016-08-31 ``@ddalle``: First version
     """
     # Call the function from :mod:`cape.case`
-    WriteStartTimeProg(tic, rc, i, fname, 'run_fun3d.py')
+    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_fun3d.py')
     
 # Write time used
 def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
@@ -463,7 +461,7 @@ def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
         * 2015-12-09 ``@ddalle``: First version
     """
     # Call the function from :mod:`cape.case`
-    WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
+    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
 
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):

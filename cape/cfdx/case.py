@@ -38,12 +38,12 @@ import numpy as np
 from numpy import nan, isnan, argmax
 
 # Interface for writing commands
-from . import queue
-from . import bin
+from .. import queue
+from .. import bin
 
 # Partial local imports
-from .tri import Tri, Triq
-from .options.runControl import RunControl
+from ..tri import Tri, Triq
+from ..options.runControl import RunControl
 
 
 

@@ -42,7 +42,7 @@ import time
 # Local modules
 from . import options
 from . import queue
-from . import case
+from cfdx import case
 from . import convert
 from . import console
 from . import argread

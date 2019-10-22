@@ -25,7 +25,7 @@ import resource
 from datetime import datetime
 
 # CAPE modules
-import cape.case
+import cape.cfdx.case as cc
 import cape.manage
 
 # Local imports
@@ -65,7 +65,7 @@ def run_us3d():
     # Prepare files
     #PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
-    cape.case.PrepareEnvironment(rc, i)
+    cc.PrepareEnvironment(rc, i)
     # Run the appropriate commands
     #RunPhase(rc, i)
     # Clean up files
@@ -166,7 +166,7 @@ def WriteStartTime(tic, rc, i, fname="pyus_start.dat"):
         * 2019-06-27 ``@ddalle``: US3D version
     """
     # Call the function from :mod:`cape.case`
-    cape.case.WriteStartTimeProg(tic, rc, i, fname, 'run_us3d.py')
+    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_us3d.py')
 
     
 # Write time used
@@ -192,5 +192,5 @@ def WriteUserTime(tic, rc, i, fname="pyus_time.dat"):
         * 2019-06-27 ``@ddalle``: US3D version
     """
     # Call the function from :mod:`cape.case`
-    cape.case.WriteUserTimeProg(tic, rc, i, fname, 'run_us3d.py')
+    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_us3d.py')
 

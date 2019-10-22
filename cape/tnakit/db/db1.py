@@ -64,7 +64,7 @@ RBF_METHODS = [
 # RBF function types
 RBF_FUNCS = [
     "multiquadric",
-    "inverse",
+    "inverse_multiquadric",
     "gaussian",
     "linear",
     "cubic",
@@ -1797,7 +1797,7 @@ class DBCoeff(dict):
             # No RBF for this coefficient
             raise KeyError("No break points for key '%s'" % str(k))
         # Get length
-        n = V.size
+        n = len(V)
         # Size check
         if n == 0:
             raise ValueError("Found zero break points for key '%s'" % k)
@@ -2390,6 +2390,7 @@ class DBCoeff(dict):
             self.rbf[coeff] = f
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
+        sys.stdout.flush()
 
     # Regularization
     def CreateSliceRBFs(self, coeffs, args, I=None, **kw):
@@ -2473,6 +2474,9 @@ class DBCoeff(dict):
                     function=func, smooth=smooth)
                 # Save it
                 self.rbf[coeff].append(f)
+        # Clean up the prompt
+        sys.stdout.write("%72s\r" % "")
+        sys.stdout.flush()
   # >
 
   # ============
@@ -3210,7 +3214,7 @@ class DBCoeff(dict):
         """Read comma-separated value file
 
         :Call:
-            >>> DBc.ReadCSV(fcsv, prefix=None, delimiter=",", **kw)
+            >>> DBc.ReadCSV(fcsv, prefix=None, delim=",", **kw)
         :Inputs:
             *DBc*: :class:`tnakit.db.db1.DBCoeff`
                 Coefficient database interface
