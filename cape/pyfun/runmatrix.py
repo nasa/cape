@@ -36,7 +36,7 @@ a JSON file, and *fun3d.x* is the run matrix.
     .. code-block:: pycon
     
         >>> import cape.pyfun
-        >>> cntl = pyFun.Cntl("pyFun.json")
+        >>> cntl = cape.pyfun.Cntl("pyFun.json")
         >>> cntl.x.GetFullFolderNames()
         ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
         
@@ -58,8 +58,8 @@ class RunMatrix(cape.runmatrix.RunMatrix):
     Read a simple list of configuration variables
     
     :Call:
-        >>> x = pyFun.RunMatrix(**traj)
-        >>> x = pyFun.RunMatrix(File=fname, Keys=keys)
+        >>> x = RunMatrix(**traj)
+        >>> x = RunMatrix(File=fname, Keys=keys)
     :Inputs:
         *traj*: :class:`dict`
             Dictionary of options from ``fun3d.Options["RunMatrix"]``
@@ -77,7 +77,7 @@ class RunMatrix(cape.runmatrix.RunMatrix):
         *Definitions*: :class:`dict`
             Dictionary of definitions for each key
     :Outputs:
-        *x*: :class:`pyFun.runmatrix.RunMatrix`
+        *x*: :class:`pyfun.runmatrix.RunMatrix`
             Instance of the trajectory class
     :Data members:
         *x.nCase*: :class:`int`
@@ -102,10 +102,10 @@ class RunMatrix(cape.runmatrix.RunMatrix):
         """
         Return the string representation of a trajectory.
         
-        This looks like ``<pyFun.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
+        This looks like ``<pyfun.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
         """
         # Return a string.
-        return '<pyFun.RunMatrix(nCase=%i, keys=%s)>' % (self.nCase,
+        return '<pyfun.RunMatrix(nCase=%i, keys=%s)>' % (self.nCase,
             self.keys)
         
     

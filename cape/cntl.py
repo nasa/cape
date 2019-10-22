@@ -26,18 +26,21 @@ customized for the various CFD solvers. The individualized modules are below.
 
 """
 
-# Numerics
-import numpy as np
-# System modules
+# Standard library modules
 import os
 import shutil
 import glob
 import json
 import re
 import functools
-# Timing
-from datetime import datetime
+import traceback
 import time
+
+# Standard library partial imports
+from datetime import datetime
+
+# Third-party modules
+import numpy as np
 
 # Local modules
 from . import options
@@ -86,6 +89,7 @@ def run_rootdir(func):
             # Go back to original folder
             os.chdir(fpwd)
             # Raise the error
+            traceback.print_exc()
             raise e
         except KeyboardInterrupt as e:
             # Go back to original folder
