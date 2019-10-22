@@ -87,7 +87,7 @@ A categorized list of modules available to the API are listed below.
 import os
 
 # Save version number
-version = "0.9.2"
+version = "1.0pre0"
 __version__ = version
 
 
@@ -102,7 +102,7 @@ TemplateFolder = os.path.join(CapeFolder, "templates")
 # Import classes and methods from the submodules
 from .tri    import Tri, Triq
 from .cntl   import Cntl
-from .case   import ReadCaseJSON
+from .cfdx.case   import ReadCaseJSON
 
 # Get the conversion tools directly.
 from .convert import *

@@ -26,6 +26,9 @@ import shutil
 import resource
 import re
 
+# Standard library direct imports
+from datetime import datetime
+
 # CAPE modules
 import cape.cfdx.case as cc
 import cape.manage    as manage

@@ -90,7 +90,7 @@ from datetime import datetime
 # Finer control of dicts
 from .options import odict
 # Utilities or advanced statistics
-from . import case
+from .cfdx import case
 from . import util
 # Line loads and other types
 #import cape.lineLoad

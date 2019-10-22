@@ -1,3 +1,3 @@
 
-.. automodule:: cape.case
+.. automodule:: cape.cfdx.case
     :members: 

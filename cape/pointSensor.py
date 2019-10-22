@@ -68,7 +68,7 @@ import numpy as np
 from .options   import odict
 # Utilities and advanced statistics
 from . import util
-from . import case
+from .cfdx import case
 from . import dataBook
 
 # Basis module

@@ -40,7 +40,7 @@ from datetime import datetime
 
 # Utilities or advanced statistics
 from . import util
-from . import case
+from .cfdx import case
 from . import dataBook
 from . import queue
 from . import tar

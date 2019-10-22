@@ -4,7 +4,7 @@
      
     
     Cart3D executive class: :class:`cape.pycart.cntl.Cntl`
-    -----------------------------------------------------
+    -------------------------------------------------------
 
     .. autoclass:: cape.pycart.cntl.Cntl
         :members:
