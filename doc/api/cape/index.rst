@@ -36,5 +36,4 @@ The :mod:`cape` module
     text
     tri
     util
-    volcomp
     _cape

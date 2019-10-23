@@ -73,7 +73,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.geom`
        - :mod:`cape.tar`
        - :mod:`cape.text`
-       - :mod:`cape.volcomp`
+       - :mod:`cape.cfdx.volcomp`
     
 
 :Versions:

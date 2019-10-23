@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-:mod:`cape.volcomp`: Cell volume computation tools
-====================================================
+:mod:`cape.cfdx.volcomp`: Cell volume computation tools
+========================================================
 
 This module is effectively the Chimera Grid Tools code ``volcomp.F`` converted
 to Python.  It is used by :class:`pyOver.dataBook.DBTriqFMComp` to calculate
@@ -10,9 +10,6 @@ calculates the volume of several types of polyhedra, it could be used for other
 applications.
 
 """
-
-# Numerics
-import numpy as np
 
     
 # Volume of a pyramid
@@ -59,7 +56,8 @@ def VOLPYM(XP,YP,ZP, XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
         (ZP - 0.25*(ZA+ZB+ZC+ZD))*(XAC*YBD - YAC*XBD))
     # Output
     return VOL
-    
+
+
 # Volume of tetrahedron
 def VOLTET(XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
     """Compute the volume of a tetrahedron
@@ -97,7 +95,8 @@ def VOLTET(XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
         (ZA-ZD)*(XBD*YCD - YBD*XCD))
     # Output
     return VOL
-    
+
+
 # Volume of triangular prism
 def VOLPRIS(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     """Compute the volume of a triangular prism
@@ -156,7 +155,8 @@ def VOLPRIS(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     V = V1 + V2 + V3 + V4 + V5
     # Output
     return V1, V2, V3, V4, V5, V
-    
+
+
 # Volume of triangular prism
 def VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     """Compute the volume of a triangular prism
@@ -202,8 +202,4 @@ def VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     V5 = VOLTET(X7,Y7,Z7, X6,Y6,Z6, X5,Y5,Z5, X4,Y4,Z4)
     # Output total volume
     return V1 + V2 + V3 + V4 + V5
-            
-    
-    
-    
-    
+

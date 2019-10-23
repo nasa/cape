@@ -40,7 +40,7 @@ import cape.cgns
 # Input/output and geometry modules
 from . import io
 from . import geom
-from . import volcomp
+from .cfdx import volcomp
 
 # Utilities
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
