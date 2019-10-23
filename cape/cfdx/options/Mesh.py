@@ -1,6 +1,6 @@
 """
-:mod:`cape.options.Options`: Basic meshing options
-===================================================
+:mod:`cape.cfdx.options.mesh`: Basic meshing options
+======================================================
 
 This module contains the skeleton of settings for meshes.  Since most meshing
 options are specific to codes, very few options are contained in this overall

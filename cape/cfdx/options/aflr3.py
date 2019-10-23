@@ -1,5 +1,5 @@
 """
-:mod:`cape.options.aflr3`: AFLR3 volume mesh generation options
+:mod:`cape.cfdx.options.aflr3`: AFLR3 mesh generation options
 ================================================================
 
 This module provides a class to access command-line options to the AFLR3

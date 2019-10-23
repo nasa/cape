@@ -23,7 +23,7 @@ value of a given parameter should be is below.
 from .util import *
 
 # Import template module
-import cape.options
+import cape.cfdx.options
 
 # Import modules for controlling specific parts of Cart3D
 from .pbs         import PBS
@@ -36,7 +36,7 @@ from .Config      import Config
 from .Functional  import Functional
 
 # Class definition
-class Options(cape.options.Options):
+class Options(cape.cfdx.options.Options):
     """
     Options structure, subclass of :class:`dict`
     

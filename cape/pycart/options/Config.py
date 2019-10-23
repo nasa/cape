@@ -52,7 +52,7 @@ addition, the sensors can be used to extract not only the conditions at the
 final iteration but also the history of relevant conditions at each iteration.
 
 :See Also:
-    * :mod:`cape.options.Config`
+    * :mod:`cape.cfdx.options.Config`
     * :mod:`cape.config`
     * :mod:`cape.pycart.inputCntl`
 """
@@ -62,10 +62,10 @@ final iteration but also the history of relevant conditions at each iteration.
 from .util import rc0
 
 # Import base class
-import cape.options.Config
+import cape.cfdx.options.Config
 
 # Class for PBS settings
-class Config(cape.options.Config):
+class Config(cape.cfdx.options.Config):
     """Component configuration options for Cart3D"""
     
     # Get the list of forces to report

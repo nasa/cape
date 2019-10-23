@@ -1,6 +1,6 @@
 """
-:mod:`cape.options.slurm`: SLURM script options
-================================================
+:mod:`cape.cfdx.options.slurm`: SLURM script options
+=====================================================
 
 This portion of the options is universal, and so it is only encoded in the
 :mod:`cape` module. The :mod:`cape.pycart` module, for example, does not have a

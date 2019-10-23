@@ -29,7 +29,7 @@ A typical example JSON section is showed below.
         }
 
 :See Also:
-    * :mod:`cape.options.Mesh`
+    * :mod:`cape.cfdx.options.Mesh`
     * :mod:`cape.pyfun.options.runControl`
     * :mod:`cape.pyfun.options.overnml`
 """

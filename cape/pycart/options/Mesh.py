@@ -23,7 +23,7 @@ These ``BBox`` and ``XLev`` instructions edit the file
 ``cubes`` and affects the resolution of the volume created.
 
 :See Also:
-    * :mod:`cape.options.Mesh`
+    * :mod:`cape.cfdx.options.Mesh`
     * :mod:`cape.pycart.preSpecCntl.PreSpecCntl`
 """
 
@@ -31,10 +31,10 @@ These ``BBox`` and ``XLev`` instructions edit the file
 # Import options-specific utilities
 from .util import rc0, odict
 # Import Cape template
-import cape.options.Mesh
+import cape.cfdx.options.Mesh
 
 # Class for Cart3D mesh settings
-class Mesh(cape.options.Mesh):
+class Mesh(cape.cfdx.options.Mesh):
     """Dictionary-based interface for options for Cart3D meshing"""
         
         

@@ -4,7 +4,7 @@
 
 This module provides database options specific to pyCart/Cart3D.  The vast
 majority of database options are common to all solvers and are thus inherited
-from :class:`cape.options.DataBook.DataBook`.
+from :class:`cape.cfdx.options.DataBook.DataBook`.
 
 For force and/or moment components (``"Type": "FM"`` or ``"Type": "Force"``),
 each component requested in the databook must also be listed appropriately as a
@@ -39,7 +39,7 @@ The full description of the JSON options can be found in a
 :ref:`pyCart section <pycart-json-DataBook>`. 
 
 :See Also:
-    * :mod:`cape.options.DataBook`
+    * :mod:`cape.cfdx.options.DataBook`
     * :mod:`cape.pycart.options.config.Config`
 """
 
@@ -48,10 +48,10 @@ from .util import rc0, getel, odict
 
 
 # Import base class
-import cape.options
+import cape.cfdx.options
 
 # Class for DataBook options
-class DataBook(cape.options.DataBook):
+class DataBook(cape.cfdx.options.DataBook):
     """Dictionary-based interface for DataBook specifications
     
     :Call:
@@ -90,7 +90,7 @@ class DataBook(cape.options.DataBook):
         """Get additional numeric columns for component (other than coeffs)
         
         This function differs from the standard
-        :func:`cape.options.DataBook.DataBook.get_DataBookFloatCols` only in
+        :func:`cape.cfdx.options.DataBook.DataBook.get_DataBookFloatCols` only in
         that it provides an extra column (*RefLev*) for point and line sensors.
         
         :Call:
@@ -255,7 +255,7 @@ class DataBook(cape.options.DataBook):
         
         
 # Class for target data
-class DBTarget(cape.options.DBTarget):
+class DBTarget(cape.cfdx.options.DBTarget):
     """Dictionary-based interface for databook targets"""
     
     pass

@@ -1,6 +1,6 @@
 """
-:mod:`cape.options.ulimit`: System resource options
-====================================================
+:mod:`cape.cfdx.options.ulimit`: System resource options
+=========================================================
 
 This module provides a class to access options relating to system resources.
 Specifically, this pertains to options usually set by ``ulimit`` from the

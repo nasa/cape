@@ -1,6 +1,6 @@
 """
-:mod:`cape.options.Config`: CFD geometry and naming configuration 
-===================================================================
+:mod:`cape.cfdx.options.Config`: CFD surface heirarchy configuration 
+=====================================================================
 
 This module interfaces options for geometric configurations.  It defines
 quantities such as reference area, moment reference points, and other points to

@@ -36,7 +36,7 @@ A categorized list of modules available to the API are listed below.
 
     * Core modules
        - :mod:`cape.cntl`
-       - :mod:`cape.options`
+       - :mod:`cape.cfdx.options`
        - :mod:`cape.cfdx.case`
        - :mod:`cape.runmatrix`
        - :mod:`cape.dataBook`

@@ -50,7 +50,7 @@ all of the requested force, moment, point sensor, etc. quantities that have
 been saved in the data book. Informing :mod:`cape` which quantities to track,
 and how to statistically process them, is done using the ``"DataBook"`` section
 of the JSON file, and the various data book options are handled within the API
-using the :mod:`cape.options.DataBook` module.
+using the :mod:`cape.cfdx.options.DataBook` module.
 
 The master data book class :class:`cape.dataBook.DataBook` is based on the
 built-in :class:`dict` class with keys pointing to force and moment data books
@@ -78,26 +78,28 @@ module for reading iterative force/moment histories and the
 
 """
 
-# File interface
-import os, fnmatch, time
-# Basic numerics
-import numpy as np
-# Advanced text (regular expressions)
+# Standard library modules
+import os
 import re
-# Date processing
+import time
+import fnmatch
+
+# Standard library: direct imports
 from datetime import datetime
 
-# Finer control of dicts
-from .options import odict
-# Utilities or advanced statistics
-from .cfdx import case
-from . import util
-# Line loads and other types
-#import cape.lineLoad
+# Third-party modules
+import numpy as np
 
-# Other local modules
+# CAPE modules
 import cape.tri
 import cape.plt
+
+# Local modules
+from . import util
+
+# CAPE modules: direct imports
+from .cfdx.options import odict
+from .cfdx import case
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -146,7 +148,7 @@ class DataBook(dict):
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             The current Cape trajectory (i.e. run matrix)
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Global Cape options instance
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
@@ -1524,7 +1526,7 @@ class DataBook(dict):
                 Target component databook
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
-            *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
+            *topts*: :class:`dict` | :class:`cape.cfdx.options.DataBook.DBTarget`
                 Criteria used to determine a match
             *keylist*: ``"x"`` | {``"tol"``}
                 Source for default list of keys
@@ -2095,7 +2097,7 @@ class DBBase(dict):
             Name of the component or other item name
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *check*: ``True`` | {``False``}
             Whether or not to check LOCK status
@@ -3167,7 +3169,7 @@ class DBBase(dict):
                 Target databook of any type
             *i*: :class:`int`
                 Index of the case either from *DBc.x* for *DBT.x* to match
-            *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
+            *topts*: :class:`dict` | :class:`cape.cfdx.options.DataBook.DBTarget`
                 Criteria used to determine a match
             *keylist*: {``"x"``} | ``"tol"``
                 Default test key source: ``x.cols`` or ``topts.Tolerances``
@@ -5467,7 +5469,7 @@ class DBComp(DBBase):
             Name of the component
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix for processing variable types
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Global pyCart options instance
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
@@ -5559,7 +5561,7 @@ class DBTriqFM(DataBook):
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *comp*: :class:`str`
             Name of TriqFM component
@@ -6799,7 +6801,7 @@ class DBTriqFMComp(DBComp):
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *comp*: :class:`str`
             Name of TriqFM component
@@ -6892,11 +6894,11 @@ class DBTarget(DBBase):
     :Call:
         >>> DBT = DBTarget(targ, x, opts, RootDir=None)
     :Inputs:
-        *targ*: :class:`cape.options.DataBook.DBTarget`
+        *targ*: :class:`cape.cfdx.options.DataBook.DBTarget`
             Instance of a target source options interface
         *x*: :class:`pyCart.runmatrix.RunMatrix`
             Run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``

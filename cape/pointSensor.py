@@ -8,7 +8,7 @@ the :mod:`cape.dataBook` module in order to give finer import control when used
 in other modules.
 
 Point sensors are often defined in two regions of the main Cape JSON file read
-by :class:`cape.options.Options` or :class:`cape.cntl.Cntl`.  Usually the
+by :class:`cape.cfdx.options.Options` or :class:`cape.cntl.Cntl`.  Usually the
 coordinates of the points are defined in the ``"Config"`` section while the
 groups and other databook attributes are defined in the ``"DataBook"`` section.
 
@@ -47,7 +47,7 @@ If a data book is read in as *DB*, the point sensor group *DBP* for group
         p1 = DBP["p1"]
         
 The same snippet could also be interpreted as a Python :class:`dict` and used
-as raw inputs without using :class:`cape.options.Options`.  Note that each
+as raw inputs without using :class:`cape.cfdx.options.Options`.  Note that each
 point sensor group can be one of two point sensor types:
 
     * ``"Point"``: Point sensor data explicitly provided by CFD solver
@@ -60,19 +60,21 @@ output), but it is the only way to extract point iterative histories.
 
 """
 
-# File interface
-import os, glob
-# Basic numerics
+# Standard library
+import os
+import glob
+
+# Third-party modules
 import numpy as np
-# Date processing
-from .options   import odict
-# Utilities and advanced statistics
+
+# CAEP modules
 from . import util
 from .cfdx import case
 from . import dataBook
 
-# Basis module
-from . import dataBook
+# CAPE modules: direct import
+from .cfdx.options   import odict
+
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -111,7 +113,7 @@ class DBPointSensorGroup(dataBook.DBBase):
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *name*: :class:`str` | ``None``
             Name of data book item (defaults to *pt*)
@@ -678,7 +680,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *name*: :class:`str` | ``None``
             Name of data book group
@@ -817,7 +819,7 @@ class DBPointSensor(dataBook.DBBase):
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *pt*: :class:`str`
             Name of point
@@ -960,7 +962,7 @@ class DBTriqPoint(DBPointSensor):
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *pt*: :class:`str`
             Name of point

@@ -1,6 +1,6 @@
 """
-:mod:`cape.options.Report`: Automated report options 
-=====================================================
+:mod:`cape.cfdx.options.Report`: Automated report options 
+==========================================================
 
 This module interfaces options for generating reports. Since many of the report
 options are common to different solvers, much of the report generation content

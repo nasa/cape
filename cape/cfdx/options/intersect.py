@@ -1,6 +1,6 @@
 """
-:mod:`cape.options.intersect`: Triangulation ``intersect`` options
-===================================================================
+:mod:`cape.cfdx.options.intersect`: Triangulation ``intersect`` options
+=======================================================================
 
 This module interfaces options for two Cart3D triangulation tools called
 ``intersect`` and ``verify``. This allows the user to intersect overlapping

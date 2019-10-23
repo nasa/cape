@@ -2,16 +2,17 @@
 :mod:`cape.pyfun.options.util`: Utilities for pyFun options module
 ===================================================================
 
-This module provides tools to read, access, modify, and write settings for
-:mod:`cape.pyfun`.  It is based off of the :mod:`cape.options.util` module and
-provides a special class :class:`cape.options.odict` that is subclassed from
-the Python built-in :class:`dict`.  Behavior, such as ``opts['Namelist']`` or 
-``opts.get('Namelist')`` are also present.  In addition, many convenience
-methods such as ``opts.get_FUN3DNamelist()`` are provided.
+This module provides tools to read, access, modify, and write settings
+for :mod:`cape.pyfun`.  It is based off of the
+:mod:`cape.cfdx.options.util` module and provides a special class
+:class:`cape.cfdx.options.odict` that is subclassed from the Python
+built-in :class:`dict`.  Behavior, such as ``opts['Namelist']`` or 
+``opts.get('Namelist')`` are also present.  In addition, many
+convenience methods such as ``opts.get_FUN3DNamelist()`` are provided.
 
-In addition, this module controls default values of each pyFun parameter in a
-three-step process.  The precedence used to determine what the value of a given
-parameter should be is below.
+In addition, this module controls default values of each pyFun
+parameter in a three-step process.  The precedence used to determine
+what the value of a given parameter should be is below.
 
     #. Values directly specified in the input file, :file:`pyFun.json`
     
@@ -21,12 +22,12 @@ parameter should be is below.
     #. Hard-coded defaults from this module
     
 :See Also:
-    * :mod:`cape.options.util`
+    * :mod:`cape.cfdx.options.util`
     * :mod:`cape.pyfun.options`
 """
 
 # Import CAPE options utilities
-from cape.options.util import *
+from cape.cfdx.options.util import *
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

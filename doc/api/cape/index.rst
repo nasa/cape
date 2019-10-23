@@ -40,5 +40,4 @@ The :mod:`cape` module
     tri
     util
     volcomp
-    options/index
     _cape

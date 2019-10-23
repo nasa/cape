@@ -44,7 +44,7 @@ following classes:
 """
 
 # Import getel feature
-from cape.options.util import getel
+from cape.cfdx.options.util import getel
 
 # Functions to get system command names
 from ..util import GetTecplotCommand

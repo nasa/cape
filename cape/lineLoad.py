@@ -31,23 +31,25 @@ Those steps are performed by the solver-specific :mod:`lineLoad` modules.
 
 """
 
-# File interface
-import os, glob
-# Basic numerics
-import numpy as np
-# Date processing
+# Standard library
+import os
+import glob
+
+# Standard library: direct imports
 from datetime import datetime
 
-# Utilities or advanced statistics
-from . import util
-from .cfdx import case
-from . import dataBook
-from .cfdx import queue
-from . import tar
+# Third-party modules
+import numpy as np
 
-# Finer control of dicts
-from .options import odict
-# Other tools
+# Local modules
+from . import util
+from . import dataBook
+from . import tar
+from .cfdx import case
+from .cfdx import queue
+
+# CAPE module: direct imports
+from .cfdx.options import odict
 from cape.util import RangeString
 
 # Placeholder variables for plotting functions.
@@ -94,7 +96,7 @@ class DBLineLoad(dataBook.DBBase):
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *comp*: :class:`str`
             Name of line load component

@@ -3,11 +3,11 @@
 =====================================================
 
 This module provides options for PBS jobs in pyFun.  It is based on the
-:mod:`cape.options.pbs` module with no modifications.
+:mod:`cape.cfdx.options.pbs` module with no modifications.
 
 :See Also:
-    * :mod:`cape.options.pbs`
-    * :mod:`cape.options`
+    * :mod:`cape.cfdx.options.pbs`
+    * :mod:`cape.cfdx.options`
     * :mod:`cape.pyfun.options`
 """
 
@@ -16,10 +16,10 @@ This module provides options for PBS jobs in pyFun.  It is based on the
 from .util import rc0
 
 # Get PBS settings template
-import cape.options.pbs
+import cape.cfdx.options.pbs
 
 # Class for PBS settings
-class PBS(cape.options.pbs.PBS):
+class PBS(cape.cfdx.options.pbs.PBS):
     """Dictionary-based interface for PBS job control
     
     :Call:

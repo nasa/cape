@@ -6,10 +6,10 @@ This module contains the interface for data book options for pyUS and US3D.
 The classes in this module are subclassed as
     
     * :class:`pyUS.options.DataBook.DataBook` ->
-      :class:`cape.options.DataBook.DataBook`
+      :class:`cape.cfdx.options.DataBook.DataBook`
       
     * :class:`pyUS.options.DataBook.DBTarget` ->
-      :class:`cape.options.DataBook.DBTarget`
+      :class:`cape.cfdx.options.DataBook.DBTarget`
 
 The US3D-specific options for these classes are almost null, but a few methods
 are modified in order to change default data book component types and the
@@ -23,10 +23,10 @@ from .util import rc0, getel, odict
 
 
 # Import base class
-import cape.options
+import cape.cfdx.options
 
 # Class for DataBook options
-class DataBook(cape.options.DataBook):
+class DataBook(cape.cfdx.options.DataBook):
     """Dictionary-based interface for DataBook specifications
     
     :Call:
@@ -103,7 +103,7 @@ class DataBook(cape.options.DataBook):
 
         
 # Class for target data
-class DBTarget(cape.options.DBTarget):
+class DBTarget(cape.cfdx.options.DBTarget):
     """Dictionary-based interface for databook targets"""
     
     pass

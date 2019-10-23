@@ -25,6 +25,7 @@ import subprocess as sp
 # Import local command-generating module for complex commands
 from . import cmd
 
+
 # Imitate sp.check_output() for older versions
 def check_output(cmdi):
     """Imitate the behavior of :func:`sp.check_output` using :func:`sp.Popen`

@@ -1,5 +1,5 @@
 """
-The :mod:`cape.options` provides tools to read, access, modify, and write
+The :mod:`cape.cfdx.options` provides tools to read, access, modify, and write
 settings for :mod:`cape`. The class is based off of the built-int :class:`dict`
 class, so its default behavior, such as ``opts['RunControl']`` or
 ``opts.get('RunControl')`` are also present. In addition, many convenience

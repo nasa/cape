@@ -49,7 +49,7 @@ example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 :func:`cape.report.Report.SubfigPlotL2` for ``"PlotL2"``.
 
 :See also:
-    * :mod:`cape.options.Report`
+    * :mod:`cape.cfdx.options.Report`
     * :class:`cape.dataBook.DBComp`
     * :class:`cape.dataBook.CaseFM`
     * :class:`cape.lineLoad.DBLineLoad`
@@ -95,7 +95,7 @@ class Report(object):
             Overall solver control interface
         *R.rep*: :class:`str`
             Name of report, same as *rep*
-        *R.opts*: :class:`cape.options.Report.Report` or derivative
+        *R.opts*: :class:`cape.cfdx.options.Report.Report` or derivative
             Options specific to report *rep*
         *R.cases*: :class:`dict` (:class:`cape.tex.Tex`)
             Dictionary of LaTeX handles for each single-case page

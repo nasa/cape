@@ -45,7 +45,7 @@ from . import bin
 
 # Partial local imports
 from ..tri import Tri, Triq
-from ..options.runControl import RunControl
+from .options.runControl import RunControl
 
 
 # Function to intersect geometry if appropriate

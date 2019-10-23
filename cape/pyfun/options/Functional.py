@@ -4,11 +4,11 @@
 # Import options-specific utilities
 from .util import getel
 # Import base class
-import cape.options.Functional
+import cape.cfdx.options.Functional
 
 
 # Class for output functional settings
-class Functional(cape.options.Functional.Functional):
+class Functional(cape.cfdx.options.Functional.Functional):
     """Dictionary-based interface for output/objective functions"""
     
     # Get adaptive function coefficients
@@ -55,7 +55,7 @@ class Functional(cape.options.Functional.Functional):
         :Call:
             >>> typ = opts.get_FuncCoeffType(coeff, j=None)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *coeff*: :class:`str`
                 Coefficient name

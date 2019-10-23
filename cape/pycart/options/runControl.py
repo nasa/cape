@@ -15,7 +15,7 @@ one or more cases have been completed.
 
 This module primarily provides a class :class:`pyCart.options.RunControl`.
 Many of the options that are common to all solvers are inherited from 
-:class:`cape.options.RunControl`.  This class also has an interface for
+:class:`cape.cfdx.options.RunControl`.  This class also has an interface for
 environment variables and ``ulimit`` parameters.
 
 For pyCart, the relevant pyCart binaries, which become sections of the
@@ -35,11 +35,11 @@ also available to :class:`pyCart.options.runControl.RunControl`.
     * :class:`pyCart.options.runControl.autoInputs`
     * :class:`pyCart.options.runControl.cubes`
     * :class:`pyCart.options.Archive.Archive`
-    * :class:`cape.options.runControl.Environ`
-    * :class:`cape.options.ulimit.ulimit`
+    * :class:`cape.cfdx.options.runControl.Environ`
+    * :class:`cape.cfdx.options.ulimit.ulimit`
 :See Also:
-    * :mod:`cape.options.runControl`
-    * :mod:`cape.options.ulimit`
+    * :mod:`cape.cfdx.options.runControl`
+    * :mod:`cape.cfdx.options.ulimit`
     * :mod:`cape.pycart.options.Archive`
 """
 
@@ -47,8 +47,8 @@ also available to :class:`pyCart.options.runControl.RunControl`.
 # Import options-specific utilities
 from .util import rc0, odict, isArray, getel
 # Run control class
-import cape.options.runControl
-import cape.options.ulimit
+import cape.cfdx.options.runControl
+import cape.cfdx.options.ulimit
 # Submodules
 from .Archive import Archive
 
@@ -1940,18 +1940,18 @@ class cubes(odict):
 # class cubes
 
 # Class for environment variables
-class Environ(cape.options.runControl.Environ):
+class Environ(cape.cfdx.options.runControl.Environ):
     pass
 # class Environ
 
 # Class for resource limits
-class ulimit(cape.options.ulimit.ulimit):
+class ulimit(cape.cfdx.options.ulimit.ulimit):
     pass
 # class ulimit
 
 
 # Class for flowCart settings
-class RunControl(cape.options.runControl.RunControl):
+class RunControl(cape.cfdx.options.runControl.RunControl):
     """Dictionary-based interface for options for running Cart3D"""
     
     # Initialization method

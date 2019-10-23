@@ -3,8 +3,8 @@
 =====================================================================
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`cape.pyover`. It is based off of the :mod:`cape.options.util` module and
-provides a special class :class:`cape.options.odict` that is subclassed from
+:mod:`cape.pyover`. It is based off of the :mod:`cape.cfdx.options.util` module and
+provides a special class :class:`cape.cfdx.options.odict` that is subclassed from
 the Python built-in :class:`dict`. Behavior, such as ``opts['OverNamelist']``
 or ``opts.get('OverNamelist')`` are also present. In addition, many convenience
 methods such as ``opts.get_OverNamelist()`` are provided.
@@ -21,12 +21,12 @@ parameter should be is below.
     #. Hard-coded defaults from this module
     
 :See Also:
-    * :mod:`cape.options.util`
+    * :mod:`cape.cfdx.options.util`
     * :mod:`cape.pyover.options`
 """
 
 # Import CAPE options utilities
-from cape.options.util import *
+from cape.cfdx.options.util import *
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

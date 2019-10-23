@@ -1,6 +1,6 @@
 """
-:mod:`cape.options.util`: Utilities for options modules
-===========================================================
+:mod:`cape.cfdx.options.util`: Utilities for options modules
+=============================================================
 
 This module provides utilities for the Cape options module.  It includes the
 :class:`cape.options.util.odict` class upon which all Cape options classes are

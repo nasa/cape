@@ -68,7 +68,7 @@ class InputInpOpts(odict):
             *j*: {``None``} | :class:`int`
                 Phase number
         :Outputs:
-            *d*: :class:`cape.options.odict`
+            *d*: :class:`cape.cfdx.options.odict`
                 Settings for that section
         :Versions:
             * 2019-06-27 ``@ddalle``: First version
@@ -95,7 +95,7 @@ class InputInpOpts(odict):
             *j*: {``0``} | :class:`int`
                 Phase number
         :Outputs:
-            *d*: :class:`cape.options.odict`
+            *d*: :class:`cape.cfdx.options.odict`
                 Project settings for phase *j*
         :Versions:
             * 2019-06-27 ``@ddalle``: First version
@@ -197,7 +197,7 @@ class InputInpOpts(odict):
             *j*: {``None``} | :class:`int`
                 Phase number
         :Outputs:
-            *d*: :class:`cape.options.odict`
+            *d*: :class:`cape.cfdx.options.odict`
                 Settings for that section
         :Versions:
             * 2019-06-27 ``@ddalle``: First version

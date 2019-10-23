@@ -15,8 +15,8 @@ may be optional depending of the configuration
       AFLR3 and/or providing a surface for thrust BC definitions
 
 :See Also:
-    * :mod:`cape.options.Mesh`
-    * :mod:`cape.options.aflr3`
+    * :mod:`cape.cfdx.options.Mesh`
+    * :mod:`cape.cfdx.options.aflr3`
     * :mod:`cape.pyus.options.runControl`
     * :mod:`cape.pyus.options.Config`
 """
@@ -24,11 +24,11 @@ may be optional depending of the configuration
 # Import options-specific utilities
 from .util import rc0, odict
 # Import Cape template
-import cape.options.Mesh
+import cape.cfdx.options.Mesh
 
 
 # Class for FUN3D mesh settings
-class Mesh(cape.options.Mesh):
+class Mesh(cape.cfdx.options.Mesh):
     """Dictionary-based interface for FUN3D meshing options"""
         
     pass

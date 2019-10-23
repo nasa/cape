@@ -1,6 +1,6 @@
 """
-:mod:`cape.options.DataBook`: Data book options 
-================================================
+:mod:`cape.cfdx.options.DataBook`: Data book options 
+=====================================================
 
 This module contains the basic interface for data book options generic to all
 solvers.  Some options are not generic, and so the derivative options classes

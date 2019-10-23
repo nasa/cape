@@ -11,7 +11,7 @@ See the :ref:`JSON Report <cape-json-Report>` section . for the list of
 available figures and subfigures (along with other options).
 
 :See Also:
-    * :mod:`cape.options.Report`
+    * :mod:`cape.cfdx.options.Report`
     * :mod:`cape.report`
     * :mod:`cape.pyover.report`
 """
@@ -21,10 +21,10 @@ available figures and subfigures (along with other options).
 from .util import rc0, getel
 
 # Import template module
-import cape.options.Report
+import cape.cfdx.options.Report
 
 # Class for Report settings
-class Report(cape.options.Report):
+class Report(cape.cfdx.options.Report):
     """Dictionary-based interface for automated reports
     
     :Call:
@@ -39,10 +39,10 @@ class Report(cape.options.Report):
         :Call:
             >>> opts = Report(**kw)
         :Inputs:
-            *kw*: :class:`dict` | :class:`cape.options.util.odict`
+            *kw*: :class:`dict` | :class:`cape.cfdx.options.util.odict`
                 Dictionary that is converted to this class
         :Outputs:
-            *opts*: :class:`cape.options.Report.Report`
+            *opts*: :class:`cape.cfdx.options.Report.Report`
                 Options interface
         :Versions:
             * 2016-02-04 ``@ddalle``: First version (not using :class:`dict`)
@@ -61,7 +61,7 @@ class Report(cape.options.Report):
         :Call:
             >>> opts.SetSubfigDefaults()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
         :Effects:
             *opts.defns*: :class:`dict`

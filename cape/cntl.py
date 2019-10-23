@@ -2,18 +2,21 @@
 :mod:`cape.cntl`: Base module for CFD operations and processing 
 =================================================================
 
-This module provides tools and templates for tools to interact with various CFD
-codes and their input files. The base class is :class:`cape.cntl.Cntl`, and the
-derivative classes include :class:`cape.pycart.cntl.Cntl`. This module creates
-folders for cases, copies files, and can be used as an interface to perform
-most of the tasks that Cape can accomplish except for running individual cases.
+This module provides tools and templates for tools to interact with
+various CFD codes and their input files. The base class is
+:class:`cape.cntl.Cntl`, and the derivative classes include
+:class:`cape.pycart.cntl.Cntl`. This module creates folders for cases,
+copies files, and can be used as an interface to perform most of the
+tasks that Cape can accomplish except for running individual cases.
 
-The control module is set up as a Python interface for the master JSON file,
-which contains the settings to be used for a given CFD project.
+The control module is set up as a Python interface for the master
+JSON file, which contains the settings to be used for a given CFD
+project.
 
-The derivative classes are used to read input files, set up cases, submit
-and/or run cases, and be an interface for the various Cape options as they are
-customized for the various CFD solvers. The individualized modules are below.
+The derivative classes are used to read input files, set up cases,
+submit and/or run cases, and be an interface for the various Cape
+options as they are customized for the various CFD solvers. The
+individualized modules are below.
 
     * :mod:`cape.pycart.cntl`
     * :mod:`cape.pyfun.cntl`
@@ -21,7 +24,7 @@ customized for the various CFD solvers. The individualized modules are below.
     
 :See also:
     * :mod:`cape.cfdx.case`
-    * :mod:`cape.options`
+    * :mod:`cape.cfdx.options`
     * :mod:`cape.runmatrix`
 
 """
@@ -43,7 +46,7 @@ from datetime import datetime
 import numpy as np
 
 # Local modules
-from . import options
+from .cfdx import options
 from .cfdx import queue
 from .cfdx import case
 from . import convert
@@ -53,11 +56,12 @@ from . import manage
 
 # Functions and classes from other modules
 from .runmatrix import RunMatrix
-from .config     import Config, ConfigJSON
+from .config    import Config, ConfigJSON
 
 # Import triangulation
 from .tri  import Tri, ReadTriFile
 from .geom import RotatePoints
+
 
 # Decorator for moving directories
 def run_rootdir(func):
@@ -117,7 +121,7 @@ class Cntl(object):
     :Outputs:
         *cntl*: :class:`cape.cntl.Cntl`
             Instance of Cape control interface
-        *cntl.opts*: :class:`cape.options.Options`
+        *cntl.opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *cntl.x*: :class:`cape.runmatrix.RunMatrix`
             Run matrix interface
