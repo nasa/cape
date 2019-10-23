@@ -45,8 +45,10 @@ following classes:
 
 # Import getel feature
 from cape.options.util import getel
+
 # Functions to get system command names
-from .util import GetTecplotCommand
+from ..util import GetTecplotCommand
+
 
 # Function to run tecplot
 def tecmcr(mcr="export-lay.mcr", **kw):
@@ -70,6 +72,7 @@ def tecmcr(mcr="export-lay.mcr", **kw):
     cmd = [t360, '-b', '-p', mcr]
     # Output
     return cmd
+
 
 # Function get aflr3 commands
 def aflr3(opts=None, j=0, **kw):
@@ -184,7 +187,8 @@ def aflr3(opts=None, j=0, **kw):
         cmdi += ['%s=%s' % (k, v)]
     # Output
     return cmdi
-    
+
+
 # Function to call verify
 def intersect(opts=None, j=0, **kw):
     """Interface to Cart3D binary ``intersect``
@@ -244,7 +248,8 @@ def intersect(opts=None, j=0, **kw):
     if iout:   cmdi.append('-intersections')
     # Output
     return cmdi
-    
+
+
 # Function to call verify
 def verify(opts=None, **kw):
     """Generate command for Cart3D executable ``verify``
@@ -291,5 +296,4 @@ def verify(opts=None, **kw):
         cmdi.append('-ascii')
     # Output
     return cmdi
-# def verify
 

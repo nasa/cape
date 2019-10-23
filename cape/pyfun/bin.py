@@ -14,20 +14,18 @@ are also imported.  These are imported directly,
 
     .. code-block:: python
     
-        from cape.bin import *
+        from cape.cfdx.bin import *
         
 so no extra syntax is needed in order to access them from :mod:`cape.pyfun.bin`
 
 :See also:
-    * :mod:`cape.bin`
-    * :mod:`cape.cmd`
+    * :mod:`cape.cfdx.bin`
+    * :mod:`cape.cfdx.cmd`
     * :mod:`cape.pyfun.cmd`
 
 """
 
 # Import relevant tools
-from cape.bin import *
-from cape.bin import _assertfile, _upgradeDocString
-
+from cape.cfdx.bin import *
 
 

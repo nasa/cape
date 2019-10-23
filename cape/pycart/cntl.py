@@ -41,15 +41,17 @@ also available here.
 
 """
 
-# Basic numerics
-import numpy as np
-# Configuration file processor
+# Standard library modules
+import os
+import shutil
 import json
-# Date processing
-from datetime import datetime
-# File system and operating system management
-import os, shutil
 import subprocess as sp
+
+# Standard library modules: direct imports
+from datetime import datetime
+
+# Third-party modules
+import numpy as np
 
 # Import template class
 import cape.cntl

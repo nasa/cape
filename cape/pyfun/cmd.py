@@ -23,8 +23,8 @@ by :func:`nodet` could be
         ["nodet", "--plt_tecplot_output"]
 
 :See also:
-    * :mod:`cape.cmd`
-    * :mod:`cape.bin`
+    * :mod:`cape.cfdx.cmd`
+    * :mod:`cape.cfdx.bin`
     * :mod:`cape.pyfun.bin`
     * :mod:`cape.pyfun.options.runControl`
 

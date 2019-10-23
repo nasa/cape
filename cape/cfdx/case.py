@@ -35,16 +35,17 @@ from datetime import datetime
 
 # Third-party modules
 import numpy as np
+
+# Direct imports for shorthand
 from numpy import nan, isnan, argmax
 
 # Interface for writing commands
-from .. import queue
-from .. import bin
+from . import queue
+from . import bin
 
 # Partial local imports
 from ..tri import Tri, Triq
 from ..options.runControl import RunControl
-
 
 
 # Function to intersect geometry if appropriate
@@ -223,7 +224,8 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     rc.set_verify_i('%s.i.tri' % proj)
     # Run it.
     bin.verify(opts=rc)
-    
+
+
 # Mesh generation
 def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     """Create volume mesh using ``aflr3``
@@ -308,7 +310,8 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
         # Error message
         raise RuntimeError("Failure during AFLR3 run:\n" +
             ("File '%s' exists." % ffail))
-   
+
+
 # Function for the most recent available restart iteration
 def GetRestartIter():
     """Get the restart iteration
@@ -324,6 +327,7 @@ def GetRestartIter():
         * 2016-04-14 ``@ddalle``: First version
     """
     raise IOError("Called cape.GetRestartIter()")
+
 
 # Function to call script or submit.
 def StartCase():
@@ -360,7 +364,8 @@ def StartCase():
     else:
         # Simply run the case. Don't reset modules either.
         pass
-        
+
+
 # Function to delete job and remove running file.
 def StopCase():
     """Stop a case by deleting its PBS job and removing :file:`RUNNING` file
@@ -385,7 +390,7 @@ def StopCase():
     if os.path.isfile('RUNNING'):
         # Delete it.
         os.remove('RUNNING')
-    
+
 
 # Function to read the local settings file.
 def ReadCaseJSON(fjson='case.json'):
@@ -412,7 +417,8 @@ def ReadCaseJSON(fjson='case.json'):
     fc = RunControl(**opts)
     # Output
     return fc
-    
+
+
 # Read variable from conditions file
 def ReadConditions(k=None):
     """Read run matrix variable value in the current folder
@@ -448,7 +454,8 @@ def ReadConditions(k=None):
     else:
         # Return the trajectory value
         return conds.get(k)
-    
+
+
 # Function to set the environment
 def PrepareEnvironment(rc, i=0):
     """Set environment variables and alter any resource limits (``ulimit``)
@@ -496,8 +503,8 @@ def PrepareEnvironment(rc, i=0):
     SetResourceLimit(resource.RLIMIT_NOFILE,  ulim, 'n', i, 1)
     SetResourceLimit(resource.RLIMIT_CPU,     ulim, 't', i, 1)
     SetResourceLimit(resource.RLIMIT_NPROC,   ulim, 'u', i, 1)
-    
-    
+
+
 # Set resource limit
 def SetResourceLimit(r, ulim, u, i=0, unit=1024):
     """Set resource limit for one variable
@@ -521,13 +528,12 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
         * 2016-03-13 ``@ddalle``: First version
     """
     # Check if the limit has been set
-    if u not in ulim: return
+    if u not in ulim:
+        return
     # Get the value of the limit
     l = ulim.get_ulimit(u, i)
-    # Get the type of the input
-    t = type(l).__name__
     # Check the type
-    if t in ['int', 'float'] and l > 0:
+    if isinstance(l, (int, float)) and (l > 0):
         # Set the value numerically
         try:
             resource.setrlimit(r, (unit*l, unit*l))
@@ -536,6 +542,7 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
     else:
         # Set unlimited
         resource.setrlimit(r, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+
 
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc, n=None, fpre='run'):
@@ -572,7 +579,8 @@ def GetPhaseNumber(rc, n=None, fpre='run'):
             return j
     # Case completed; just return the last value.
     return j
-    
+
+
 # Function to get most recent L1 residual
 def GetCurrentIter():
     """
@@ -588,7 +596,8 @@ def GetCurrentIter():
         * 2015-09-27 ``@ddalle``: First version
     """
     return 0
-    
+
+
 # Write time used
 def WriteUserTimeProg(tic, rc, i, fname, prog):
     """Write time usage since time *tic* to file
@@ -645,7 +654,8 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
         toc.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
     # Cleanup
     f.close()
-    
+
+
 # Write current time use
 def WriteStartTimeProg(tic, rc, i, fname, prog):
     """Write the time to file at which a program or job started
@@ -692,7 +702,8 @@ def WriteStartTimeProg(tic, rc, i, fname, prog):
         tic.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
     # Cleanup
     f.close()
-    
+
+
 # Read most recent start time from file
 def ReadStartTimeProg(fname):
     """Read the most recent start time to file
@@ -733,7 +744,7 @@ def ReadStartTimeProg(fname):
     except Exception:
         # Fail softly
         return None, None
-# WriteStartTimeProg
+
 
 # Function to determine newest triangulation file
 def GetTriqFile(proj='Components'):
@@ -773,5 +784,4 @@ def GetTriqFile(proj='Components'):
     else:
         # No TRIQ files
         return None, None, None, None
-# GetTriqFile
 

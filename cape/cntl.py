@@ -20,7 +20,7 @@ customized for the various CFD solvers. The individualized modules are below.
     * :mod:`cape.pyover.cntl`
     
 :See also:
-    * :mod:`cape.case`
+    * :mod:`cape.cfdx.case`
     * :mod:`cape.options`
     * :mod:`cape.runmatrix`
 
@@ -44,7 +44,7 @@ import numpy as np
 
 # Local modules
 from . import options
-from . import queue
+from .cfdx import queue
 from .cfdx import case
 from . import convert
 from . import console
@@ -102,7 +102,7 @@ def run_rootdir(func):
         return v
     # Apply the wrapper
     return wrapper_func
-# def rundir
+
 
 # Class to read input files
 class Cntl(object):
@@ -160,8 +160,8 @@ class Cntl(object):
         
         # Run any initialization functions
         self.InitFunction()
-        
-        
+
+
     # Output representation
     def __repr__(self):
         """Output representation method for Cntl class
@@ -171,7 +171,8 @@ class Cntl(object):
         """
         # Display basic information
         return "<cape.Cntl(nCase=%i)>" % self.x.nCase
-        
+
+
     # Function to import user-specified modules
     def ImportModules(self):
         """Import user-defined modules, if any specified in the options
@@ -229,7 +230,8 @@ class Cntl(object):
                 print("Importing module '%s'" % imod)
             # Load the module by its name
             exec('self.%s = __import__("%s")' % (fmod, nmod))
-            
+
+
     # Function to apply initialization function
     def InitFunction(self):
         """Run one or more "initialization functions"
@@ -265,7 +267,8 @@ class Cntl(object):
             print("  InitFunction: %s()" % func)
             # Run the function
             exec("self.%s(self)" % func)
-            
+
+
     # Call function to apply settings for case *i*
     def CaseFunction(self, i):
         """Apply a function at the beginning of :func:`PrepareCase(i)`
@@ -317,8 +320,8 @@ class Cntl(object):
             print("  Case Function: cntl.%s(%s)" % (func, i))
             # Run the function
             exec("self.%s(self, %s)" % (func, i))
-        
-        
+
+
     # Make a directory
     def mkdir(self, fdir):
         """Make a directory with the correct permissions
@@ -340,7 +343,7 @@ class Cntl(object):
         # Make the directory.
         os.mkdir(fdir, dmask)
    # >
-    
+
    # =============
    # Input Readers
    # =============
@@ -1145,15 +1148,15 @@ class Cntl(object):
     def StartCase(self, i):
         """Start a case by either submitting it 
         
-        This function checks whether or not a case is submittable.  If so, the
-        case is submitted via :func:`cape.queue.pqsub`, and otherwise the
-        case is started using a system call.
+        This function checks whether or not a case is submittable.  If
+        so, the case is submitted via :func:`cape.cfdx.queue.pqsub`,
+        and otherwise the case is started using a system call.
         
         Before starting case, this function checks the folder using
-        :func:`cape.cntl.CheckCase`; if this function returns ``None``, the
-        case is not started.  Actual starting of the case is done using
-        :func:`CaseStartCase`, which has a specific version for each CFD
-        solver.
+        :func:`cape.cntl.CheckCase`; if this function returns ``None``,
+        the case is not started.  Actual starting of the case is done
+        using :func:`CaseStartCase`, which has a specific version for
+        each CFD solver.
         
         :Call:
             >>> pbs = cntl.StartCase(i)
@@ -1198,8 +1201,9 @@ class Cntl(object):
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
         
-        This function relies on :mod:`cape.case`, and so it is customized for
-        the correct solver only in that it calls the correct *case* module.
+        This function relies on :mod:`cape.cfdx.case`, and so it is
+        customized for the correct solver only in that it calls the
+        correct *case* module.
         
         :Call:
             >>> pbs = cntl.CaseStartCase()
@@ -1405,9 +1409,10 @@ class Cntl(object):
     def CheckCase(self, i, v=False):
         """Check current status of run *i*
         
-        Because the file structure is different for each solver, some of this
-        method may need customization.  This customization, however, can be kept
-        to the functions :func:`cape.case.GetCurrentIter` and
+        Because the file structure is different for each solver, some
+        of this method may need customization.  This customization,
+        however, can be kept to the functions
+        :func:`cape.cfdx.case.GetCurrentIter` and
         :func:`cape.cntl.Cntl.CheckNone`.
         
         :Call:
@@ -1429,7 +1434,7 @@ class Cntl(object):
             * 2017-02-22 ``@ddalle``: Added verbose flag
         """
         # Check input.
-        if type(i).__name__ not in ["int", "int64", "int32"]:
+        if not isinstance(i, int):
             raise TypeError(
                 "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
         # Get the group name.
@@ -1452,16 +1457,19 @@ class Cntl(object):
                 # At least one file missing that is required
                 n = None
         # If zero, check if the required files are set up.
-        if (n == 0) and self.CheckNone(v): n = None
+        if (n == 0) and self.CheckNone(v):
+            n = None
         # Output.
         return n
-        
+
+
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
         """Get the current iteration number from the appropriate module
         
-        This function utilizes the :mod:`cape.case` module, and so it must be
-        copied to the definition for each solver's control class
+        This function utilizes the :mod:`cape.cfdx.case` module, and so
+        it must be copied to the definition for each solver's control
+        class.
         
         :Call:
             >>> n = cntl.CaseGetCurrentIter()
@@ -1588,8 +1596,9 @@ class Cntl(object):
     def CaseGetCurrentPhase(self):
         """Get the current phase number from the appropriate module
         
-        This function utilizes the :mod:`cape.case` module, and so it must be
-        copied to the definition for each solver's control class
+        This function utilizes the :mod:`cape.cfdx.case` module, and so
+        it must be copied to the definition for each solver's control
+        class.
         
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()

@@ -35,14 +35,17 @@ for example ``.i.tri``.
     * 2016-05-17 ``@ddalle``: First version
 """
 
-# Get the pyCart module.
-from cape.tri import ReadTriFile, Tri
-# CAPE binaries
-import cape.bin
-# Module to handle inputs and os interface
+# Standard library modules
 import sys
-# Command-line input parser
-import cape.argread as argr
+
+# CAPE modules
+import cape.text
+import cape.cfdx.bin
+import cape.argread
+
+# CAPE modules: direct import
+from cape.tri import ReadTriFile, Tri
+
 
 # Main function
 def Intersect(*a, **kw):
@@ -102,7 +105,7 @@ def Intersect(*a, **kw):
     tri.Write('%s.c.tri' % proj)
     
     # Run intersect.
-    cape.bin.intersect(i='%s.tri' % proj, o='%s.o.tri' % proj)
+    cape.cfdx.bin.intersect(i='%s.tri' % proj, o='%s.o.tri' % proj)
     
     # Remap the components
     print("    Remapping component ID numbers")
@@ -116,17 +119,16 @@ def Intersect(*a, **kw):
     trii.MapCompID(tric, tri0)
     # Write the triangulation.
     trii.Write('%s.i.tri' % proj)
-    
+
 
 # Only process inputs if called as a script!
 if __name__ == "__main__":
     # Process the command-line interface inputs.
-    (a, kw) = argr.readkeys(sys.argv)
+    (a, kw) = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        import cape.text
         print(cape.text.markdown(__doc__))
         sys.exit()
     # Run the main function.
     Intersect(*a, **kw)
-    
+

@@ -14,5 +14,5 @@ This module contains a FUN3D-specific interface to PBS commands such as
 """
 
 # Import CAPE utilities
-from cape.queue import *
+from cape.cfdx.queue import *
 

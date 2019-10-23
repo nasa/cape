@@ -45,6 +45,7 @@ def check_output(cmdi):
     # Output
     return out[0]
 
+
 # Function to call commands with a different STDOUT
 def calli(cmdi, f=None, e=None, shell=None, v=True):
     """Call a command with alternate STDOUT by filename
@@ -104,7 +105,8 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
         ierr = sp.call(cmdi, shell=shell)
     # Output
     return ierr
-        
+
+
 # Function to call commands with a different STDOUT
 def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
     """Call a command with alternate STDOUT by filename
@@ -138,7 +140,8 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
             os.remove('RUNNING')
         # Exit with error notifier.
         raise SystemError("Command failed with status %i." % ierr)
-        
+
+
 # Call command with output (since sp.check_output is Python 2.7+)
 def callo(cmdi, shell=False):
     """Call a command and get the output text
@@ -163,6 +166,7 @@ def callo(cmdi, shell=False):
     txt = sp.Popen(cmdi, stdout=sp.PIPE, shell=shell).communicate()[0]
     # Convert to unicode text
     return txt.decode("utf-8")
+
 
 # Grep lines from a file
 def grep(regex, fname):
@@ -189,7 +193,8 @@ def grep(regex, fname):
         return txt.split('\n')
     except Exception:
         return []
-        
+
+
 # Function to get the first line of a file.
 def head(fname, n=1):
     """Extract the first *n* lines of a file 
@@ -211,7 +216,8 @@ def head(fname, n=1):
     cmdi = ['head', '-%i'%n, fname]
     # Use Popen because check_output is 2.7+
     return callo(cmdi)
-        
+
+
 # Function to get the last line of a file.
 def tail(fname, n=1):
     """Tail the last *n* lines of a file 
@@ -234,6 +240,7 @@ def tail(fname, n=1):
     # Use Popen because check_output is 2.7+
     return callo(cmdi)
 
+
 # Simple function to make sure a file is present
 def _assertfile(fname):
     """
@@ -250,7 +257,8 @@ def _assertfile(fname):
     # Check for the file.
     if not os.path.isfile(fname):
         raise IOError("No input file '%s' found." % fname)
-        
+
+
 # Function to automate minor changes to docstrings to make them pyCart.Cntl
 def _upgradeDocString(doccmd):
     """Upgrade docstrings from the :mod:`cape.pycart.bin` class
@@ -285,6 +293,7 @@ def _upgradeDocString(doccmd):
     # Output
     return docbin
 
+
 # Function to call Tecplot on a macro
 def tecmcr(mcr="export-lay.mcr", **kwargs):
     # Get command.
@@ -295,7 +304,8 @@ def tecmcr(mcr="export-lay.mcr", **kwargs):
     os.remove("tecmcr.out")
 # Docstring
 tecmcr.__doc__ = _upgradeDocString(cmd.tecmcr.__doc__)
-    
+
+
 # Stand-alone function to run a Paraview script
 def pvpython(lay, *args, **kw):
     """Stand-alone function to execute a Paraview Python script
@@ -319,7 +329,8 @@ def pvpython(lay, *args, **kw):
     cmdi = [fbin, lay] + [str(a) for a in args]
     # Call the script
     callf(cmdi, f='pvpython.out')
-    
+
+
 # Stand-alone aflr3 binary
 def aflr3(opts=None, j=0, **kw):
     """Run AFLR3 with the appropriate options
@@ -342,6 +353,7 @@ def aflr3(opts=None, j=0, **kw):
     cmdi = cmd.aflr3(opts=opts, j=j, **kw)
     # Call the script
     callf(cmdi, f='aflr3.out')
+
 
 # Function to call verify
 def verify(opts=None, **kw):
@@ -378,6 +390,7 @@ def verify(opts=None, **kw):
         # Exit.
         raise SystemError('Triangulation contains errors!')
 
+
 # Function to call intersect
 def intersect(opts=None, **kw):
     """Run Cart3D binary ``intersect`` to combine overlapping triangulations
@@ -409,5 +422,4 @@ def intersect(opts=None, **kw):
         f.close()
         # Exit.
         raise SystemError('Intersection failed!')
-# def intersect
 
