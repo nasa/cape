@@ -18,18 +18,15 @@ The :mod:`cape` module
     cntl
     config
     convert
-    dataBook
     fileCntl
     geom
     io
-    lineLoad
     manage
     msh
     namelist
     namelist2
     plot3d
     plt
-    pointSensor
     report
     runmatrix
     step

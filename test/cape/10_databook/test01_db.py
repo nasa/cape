@@ -6,14 +6,14 @@ import numpy as np
 
 # Import cape modules
 import cape
-import cape.dataBook
+import cape.cfdx.dataBook
 
 # Test DataBook CLass
 # Read settings
 cntl = cape.Cntl()
 
 # Read data book
-DB = cape.dataBook.DataBook(cntl.x, cntl.opts)
+DB = cape.cfdx.dataBook.DataBook(cntl.x, cntl.opts)
 
 # Display the data book
 print(DB)
@@ -36,7 +36,7 @@ for frun in DBc.x.GetFullFolderNames(I):
 
 # Test CaseFM Class
 # Create a force & moment history
-FM = cape.dataBook.CaseFM("fin")
+FM = cape.cfdx.dataBook.CaseFM("fin")
 # Some iterations
 n = 500
 # Create some iterations

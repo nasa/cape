@@ -1,43 +1,43 @@
 
-.. automodule:: cape.dataBook
+.. automodule:: cape.cfdx.dataBook
     :members: ImportPyPlot, get_xlim, get_ylim
 
     Global data book container class
     --------------------------------
     
-        .. autoclass:: cape.dataBook.DataBook
+        .. autoclass:: cape.cfdx.dataBook.DataBook
             :members: 
     
     Individual data books
     ---------------------
                 
-        .. autoclass:: cape.dataBook.DBBase
+        .. autoclass:: cape.cfdx.dataBook.DBBase
             :members: 
                 
-        .. autoclass:: cape.dataBook.DBComp
+        .. autoclass:: cape.cfdx.dataBook.DBComp
             :members: 
             
-        .. autoclass:: cape.dataBook.DBTarget
+        .. autoclass:: cape.cfdx.dataBook.DBTarget
             :members: 
             
-        .. autoclass:: cape.dataBook.DBTriqFM
+        .. autoclass:: cape.cfdx.dataBook.DBTriqFM
             :members:
             
-        .. autoclass:: cape.dataBook.DBTriqFMComp
+        .. autoclass:: cape.cfdx.dataBook.DBTriqFMComp
             :members:
                 
     Data book classes for individual cases
     --------------------------------------
     
-        .. autoclass:: cape.dataBook.CaseData
+        .. autoclass:: cape.cfdx.dataBook.CaseData
             :members: 
             
-        .. autoclass:: cape.dataBook.CaseFM
+        .. autoclass:: cape.cfdx.dataBook.CaseFM
             :members: 
                 
-        .. autoclass:: cape.dataBook.CaseResid
+        .. autoclass:: cape.cfdx.dataBook.CaseResid
             :members: 
             
             
-    Other :mod:`cape.dataBook` methods
-    ----------------------------------
+    Other :mod:`cape.cfdx.dataBook` methods
+    ----------------------------------------

@@ -114,29 +114,29 @@ module.
 Finally, in addition to the :class:`cape.cntl.Cntl` class, there are several
 key classes that form the basis for the key pyCart functionality.
 
-    +---------------------------------+-------------------------------------+
-    | Class                           | Description and Discussion          |
-    +=================================+=====================================+
-    | :class:`cape.tri.Tri`           | Interface to Cart3D-style surface   |
-    |                                 | triangulations, can read several    |
-    |                                 | formats, and ``triq`` files also    |
-    |                                 | can be read                         |
-    +---------------------------------+-------------------------------------+
-    | :class:`cape.dataBook.DataBook` | pyCart-style database class         |
-    +---------------------------------+-------------------------------------+
-    | :class:`cape.dataBook.DBBase`   | Template class for reading and      |
-    |                                 | interacting with databooks for a    |
-    |                                 | single databook product             |
-    +---------------------------------+-------------------------------------+
-    | :class:`cape.dataBook.CaseData` | Template class for reading and      |
-    |                                 | interacting with data from a single |
-    |                                 | case                                |
-    +---------------------------------+-------------------------------------+
-    | :class:`cape.report.Report`     | Interface to automated reports      |
-    +---------------------------------+-------------------------------------+
-    | :class:`cape.fileCntl.FileCntl` | Template for interacting with all   |
-    |                                 | settings files                      |
-    +---------------------------------+-------------------------------------+
-    | :class:`cape.namelist.Namelist` | Class for reading Fortran namelists |
-    +---------------------------------+-------------------------------------+
+    +------------------------------------+------------------------------------+
+    | Class                              | Description and Discussion         |
+    +====================================+====================================+
+    |:class:`cape.tri.Tri`               | Interface to Cart3D-style surface  |
+    |                                    | triangulations, can read several   |
+    |                                    | formats, and ``triq`` files also   |
+    |                                    | can be read                        |
+    +------------------------------------+------------------------------------+
+    |:class:`cape.cfdx.dataBook.DataBook`| CFD database class                 |
+    +------------------------------------+------------------------------------+
+    |:class:`cape.cfdx.dataBook.DBBase`  | Template class for reading and     |
+    |                                    | interacting with databooks for a   |
+    |                                    | single databook product            |
+    +------------------------------------+------------------------------------+
+    |:class:`cape.cfdx.dataBook.CaseData`| Template class for reading and     |
+    |                                    | interacting with data from a       |
+    |                                    | single case                        |
+    +------------------------------------+------------------------------------+
+    |:class:`cape.report.Report`         | Interface to automated reports     |
+    +------------------------------------+------------------------------------+
+    |:class:`cape.fileCntl.FileCntl`     | Template for interacting with all  |
+    |                                    | settings files                     |
+    +------------------------------------+------------------------------------+
+    |:class:`cape.namelist.Namelist`     | Class for reading Fortran namelists|
+    +------------------------------------+------------------------------------+
     

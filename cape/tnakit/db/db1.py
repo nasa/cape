@@ -5396,7 +5396,7 @@ class DBCoeff(dict):
 
         This is the base method upon which data book sweep plotting is built.
         Other methods may call this one with modifications to the default
-        settings.  For example :func:`cape.dataBook.DBTarget.PlotCoeff` changes
+        settings.  For example :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes
         the default *LineOptions* to show a red line instead of the standard
         black line.  All settings can still be overruled by explicit inputs to
         either this function or any of its children.
@@ -5592,7 +5592,7 @@ class DBCoeff(dict):
 
         This is the base method upon which data book sweep plotting is built.
         Other methods may call this one with modifications to the default
-        settings.  For example :func:`cape.dataBook.DBTarget.PlotCoeff` changes
+        settings.  For example :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes
         the default *LineOptions* to show a red line instead of the standard
         black line.  All settings can still be overruled by explicit inputs to
         either this function or any of its children.

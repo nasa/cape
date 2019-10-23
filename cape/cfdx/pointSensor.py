@@ -1,22 +1,23 @@
 """
-:mod:`cape.pointSensor`: Point sensor databook
-================================================
+:mod:`cape.cfdx.pointSensor`: Point sensor databook
+=====================================================
 
 This module contains a class for reading and averaging point sensors or
-extracting point sensor data from a CFD solution file. It is not included in
-the :mod:`cape.dataBook` module in order to give finer import control when used
-in other modules.
+extracting point sensor data from a CFD solution file. It is not
+included in the :mod:`cape.cfdx.dataBook` module in order to give finer
+import control when used in other modules.
 
-Point sensors are often defined in two regions of the main Cape JSON file read
-by :class:`cape.cfdx.options.Options` or :class:`cape.cntl.Cntl`.  Usually the
-coordinates of the points are defined in the ``"Config"`` section while the
-groups and other databook attributes are defined in the ``"DataBook"`` section.
+Point sensors are often defined in two regions of the main Cape JSON
+file read by :class:`cape.cfdx.options.Options` or
+:class:`cape.cntl.Cntl`.  Usually the coordinates of the points are
+defined in the ``"Config"`` section while the groups and other databook
+attributes are defined in the ``"DataBook"`` section.
 
-The database components are split into groups, so the ``"DataBook"`` section of
-the JSON file may have a point sensor group called ``"P1"`` that includes
-points ``"p1"``, ``"p2"``, and ``"p3"``.  To explain this example further, the
-following JSON snippets could be used to define these three points in one
-group.
+The database components are split into groups, so the ``"DataBook"``
+section of the JSON file may have a point sensor group called ``"P1"``
+that includes points ``"p1"``, ``"p2"``, and ``"p3"``.  To explain this
+example further, the following JSON snippets could be used to define
+these three points in one group.
 
     .. code-block:: javascript
     
@@ -68,12 +69,12 @@ import glob
 import numpy as np
 
 # CAEP modules
-from . import util
-from .cfdx import case
+from .. import util
+from . import case
 from . import dataBook
 
 # CAPE modules: direct import
-from .cfdx.options   import odict
+from .options   import odict
 
 
 # Placeholder variables for plotting functions.
@@ -84,7 +85,7 @@ def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
     
     :Call:
-        >>> cape.dataBook.ImportPyPlot()
+        >>> cape.cfdx.dataBook.ImportPyPlot()
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
@@ -122,7 +123,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+        *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
             A point sensor group data book
     :Versions:
         * 2015-12-04 ``@ddalle``: First version
@@ -180,7 +181,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.ReadPointSensor(pt)
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 A point sensor group data book
             *pt*: :class:`str`
                 Name of the point to read
@@ -202,7 +203,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.Write()
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 A point sensor group data book
             *merge*: ``True`` | {``False``}
                 Whether or not to attempt a merger before writing
@@ -230,7 +231,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> P = DBPG.ReadCasePoint(pt, i)
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointGroup`
                 Point sensor group data book
             *pt*: :class:`str`
                 Name of point to read
@@ -257,7 +258,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.Sort()
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 A point sensor group data book
         :Versions:
             * 2017-10-11 ``@ddalle``: First version
@@ -292,7 +293,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.ProcessComps(pt=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Point sensor group data book
             *pt*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
                 Point name or list of point names
@@ -327,7 +328,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.Update(I=None, pt=None)
         :Inputs:
-            *DBPG*: :class:`cape.dataBook.DBPointGroup`
+            *DBPG*: :class:`cape.cfdx.dataBook.DBPointGroup`
                 Point sensor group data book
             *I*: :class:`list` (:class:`int`) | ``None``
                 List of trajectory indices or update all cases in trajectory
@@ -383,7 +384,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> n = DBPG.UpdateCase(i, pt=None)
         :Inputs:
-            *DBPG*: :class:`cape.dataBook.DBPointGroup`
+            *DBPG*: :class:`cape.cfdx.dataBook.DBPointGroup`
                 Point sensor group data book
             *i*: :class:`int`
                 Case index
@@ -428,7 +429,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> n = DBPG.UpdateCaseComp(i, pt)
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 Point sensor group data book
             *i*: :class:`int`
                 RunMatrix index
@@ -441,7 +442,7 @@ class DBPointSensorGroup(dataBook.DBBase):
             * 2014-12-22 ``@ddalle``: First version
             * 2017-04-12 ``@ddalle``: Modified to work one component
             * 2017-04-23 ``@ddalle``: Added output
-            * 2017-10-10 ``@ddalle``: From :class:`cape.dataBook.DataBook`
+            * 2017-10-10 ``@ddalle``: From :class:`cape.cfdx.dataBook.DataBook`
         """
         # Check if it's present
         if pt not in self:
@@ -536,7 +537,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.Delete(I)
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 Point sensor group data book
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices
@@ -570,7 +571,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> n = DBPG.Delete(I, pt)
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 Point sensor group data book
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
@@ -582,7 +583,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Versions:
             * 2015-03-13 ``@ddalle``: First version
             * 2017-04-13 ``@ddalle``: Split by component
-            * 2017-10-10 ``@ddalle``: From :class:`cape.dataBook.DataBook`
+            * 2017-10-10 ``@ddalle``: From :class:`cape.cfdx.dataBook.DataBook`
         """
         # Check if it's present
         if pt not in self:
@@ -636,7 +637,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.Sort()
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 A point sensor group data book
         :Versions:
             * 2016-03-08 ``@ddalle``: First version
@@ -652,7 +653,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.UpdateRunMatrix()
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 A point sensor group data book
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
@@ -689,7 +690,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
         *RootDir*: {``None``} | :class:`str`
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+        *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
             A point sensor group data book
     :Versions:
         * 2017-10-10 ``@ddalle``: First version
@@ -747,7 +748,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
         :Call:
             >>> DBPG.ReadPointSensor(pt)
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
                 A point sensor group data book
             *pt*: :class:`str`
                 Name of the point to read
@@ -769,7 +770,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
         :Call:
             >>> P = DBPG.ReadCasePoint(pt)
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
                 Point sensor group data book
             *pt*: :class:`str`
                 Name of point to read
@@ -790,7 +791,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
         :Call:
             >>> triq, VarList = DBPG.ReadCaseTriq()
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
                 Point sensor group data book
         :Outputs:
             *triq*: :class:`cape.tri.Triq`
@@ -810,8 +811,8 @@ class DBTriqPointGroup(DBPointSensorGroup):
 class DBPointSensor(dataBook.DBBase):
     """Point sensor data book
     
-    Plotting methods are inherited from :class:`cape.dataBook.DBBase`,
-    including :func:`cape.dataBook.DBBase.PlotHist` for plotting historgrams of
+    Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,
+    including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams of
     point sensor results in particular.
     
     :Call:
@@ -906,18 +907,18 @@ class DBPointSensor(dataBook.DBBase):
         :Call:
             >>> DBP1 = DBP.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBP*: :class:`cape.pointSensor.DBPointSensor`
+            *DBP*: :class:`cape.cfdx.pointSensor.DBPointSensor`
                 Data book base object
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBP1*: :class:`cape.pointSensor.DBPointSensor`
+            *DBP1*: :class:`cape.cfdx.pointSensor.DBPointSensor`
                 Copy of data book object
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
-            * 2017-10-11 ``@ddalle``: From :class:`cape.dataBook.DBBase`
+            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.dataBook.DBBase`
         """
         # Call the object
         DBP = DBPointSensor(self.x, self.opts, self.pt, self.comp)
@@ -936,7 +937,7 @@ class DBPointSensor(dataBook.DBBase):
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
-            *DBP*: :class:`cape.pointSensor.DBPointSensor`
+            *DBP*: :class:`cape.cfdx.pointSensor.DBPointSensor`
                 An individual point sensor data book
             *i*: :class:`int`
                 Case index
@@ -953,8 +954,8 @@ class DBPointSensor(dataBook.DBBase):
 class DBTriqPoint(DBPointSensor):
     """TriQ point sensor data book
     
-    Plotting methods are inherited from :class:`cape.dataBook.DBBase`,
-    including :func:`cape.dataBook.DBBase.PlotHist` for plotting historgrams of
+    Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,
+    including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams of
     point sensor results in particular.
     
     :Call:
@@ -971,7 +972,7 @@ class DBTriqPoint(DBPointSensor):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBP*: :class:`cape.pointSensor.DBPointSensor`
+        *DBP*: :class:`cape.cfdx.pointSensor.DBPointSensor`
             An individual point sensor data book
     :Versions:
         * 2015-12-04 ``@ddalle``: Started
@@ -1002,18 +1003,18 @@ class DBTriqPoint(DBPointSensor):
         :Call:
             >>> DBP1 = DBP.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBP*: :class:`cape.pointSensor.DBTriqPoint`
+            *DBP*: :class:`cape.cfdx.pointSensor.DBTriqPoint`
                 Data book base object
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBP1*: :class:`cape.pointSensor.DBTriqPoint`
+            *DBP1*: :class:`cape.cfdx.pointSensor.DBTriqPoint`
                 Copy of data book object
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
-            * 2017-10-11 ``@ddalle``: From :class:`cape.dataBook.DBBase`
+            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.dataBook.DBBase`
         """
         # Call the object
         DBP = DBTriqPoint(self.x, self.opts, self.pt, self.comp,
@@ -1033,7 +1034,7 @@ class DBTriqPoint(DBPointSensor):
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
-            *DBP*: :class:`cape.pointSensor.DBTriqPoint`
+            *DBP*: :class:`cape.cfdx.pointSensor.DBTriqPoint`
                 An individual point sensor data book
             *i*: :class:`int`
                 Case index

@@ -5,7 +5,7 @@
 This module contains several classes for extracting point sensor data from
 FUN3D solutions. The database classes, :class:`DBTriqPointGroup` and
 :class:`DBTriqPoint`, are based on versions from the generic point sensor
-module :mod:`cape.pointSensor`. These classes extract surface solution data
+module :mod:`cape.cfdx.pointSensor`. These classes extract surface solution data
 from a FUN3D boundary output file (usually with a name of
 ``pyfun_tec_boundary_timestep1000.plt`` or similar) using :class:`pyFun.plt`
 and :class:`cape.tri` by interpolating the surface solution to the point on the
@@ -15,11 +15,11 @@ At present, there is no support for reading point sensor values directly from
 FUN3D output that can be requested from ``fun3d.nml``.
 
 :See also:
-    * :mod:`cape.pointSensor`
+    * :mod:`cape.cfdx.pointSensor`
     * :mod:`cape.pyfun.dataBook`
     * :mod:`cape.pyfun.cntl`
     * :mod:`cape.pyfun.plt`
-    * :mod:`cape.dataBook`
+    * :mod:`cape.cfdx.dataBook`
     * :mod:`cape.tri`
 """
 
@@ -36,8 +36,8 @@ from . import mapbc
 import cape.pyfun.plt
 
 # Basis module
-import cape.dataBook
-import cape.pointSensor
+import cape.cfdx.dataBook
+import cape.cfdx.pointSensor
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -66,7 +66,7 @@ def ImportPyPlot():
 # def ImportPyPlot
 
 # Data book for triq point sensors
-class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
+class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
     """Post-processed point sensor group data book
     
     :Call:
@@ -144,7 +144,7 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
         :Call:
             >>> P = DBPG.ReadCasePoint(pt, i)
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
                 Point sensor group data book
             *pt*: :class:`str`
                 Name of point to read
@@ -211,7 +211,7 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
         :Call:
             >>> triq, VarList = DBPG.ReadCaseTriq()
         :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
                 Point sensor group data book
         :Outputs:
             *triq*: :class:`cape.tri.Triq`
@@ -250,11 +250,11 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
 # class DBTriqPointGroup
 
 # Data book of point sensor data
-class DBTriqPoint(cape.pointSensor.DBTriqPoint):
+class DBTriqPoint(cape.cfdx.pointSensor.DBTriqPoint):
     """TriQ point sensor data book
     
-    Plotting methods are inherited from :class:`cape.dataBook.DBBase`,
-    including :func:`cape.dataBook.DBBase.PlotHist` for plotting historgrams of
+    Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,
+    including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams of
     point sensor results in particular.
     
     :Call:

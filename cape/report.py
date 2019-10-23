@@ -8,7 +8,7 @@ the ``tex`` file and creates folders containing individual figures for each
 case. The :class:`cape.report.Report` class is a sort of dual-purpose object
 that contains a file interface using :class:`cape.tex.Tex` combined with a
 capability to create figures for each case or sweep of cases mostly based on
-:mod:`cape.dataBook`.
+:mod:`cape.cfdx.dataBook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX. Usually, each
 CFD case has one or more pages dedicated to results for that case. The user
@@ -50,9 +50,9 @@ example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 
 :See also:
     * :mod:`cape.cfdx.options.Report`
-    * :class:`cape.dataBook.DBComp`
-    * :class:`cape.dataBook.CaseFM`
-    * :class:`cape.lineLoad.DBLineLoad`
+    * :class:`cape.cfdx.dataBook.DBComp`
+    * :class:`cape.cfdx.dataBook.CaseFM`
+    * :class:`cape.cfdx.lineLoad.DBLineLoad`
     
 """
 
@@ -1336,7 +1336,7 @@ class Report(object):
             *sfig*: :class:`str`
                 Name of subfigure
         :Outputs:
-            *DBc*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Component data book
         :Versions:
             * 2017-04-23 ``@ddalle``: First version
@@ -4960,7 +4960,7 @@ class Report(object):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` or :class:`cape.dataBook.CaseFM` derivative
+            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM` derivative
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
@@ -4979,7 +4979,7 @@ class Report(object):
             *R*: :class:`cape.report.Report`
                 Automated report interface
         :Outputs:
-            *hist*: ``None`` or :class:`cape.dataBook.CaseResid` derivative
+            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid` derivative
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
@@ -5000,7 +5000,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target, if any
         :Outputs:
-            *DBc*: ``None`` | :class:`cape.dataBook.DBBase`
+            *DBc*: ``None`` | :class:`cape.cfdx.dataBook.DBBase`
                 Individual component data book or ``None`` if not found
         :Versions:
             * 2017-04-20 ``@ddalle``: First version
@@ -5146,7 +5146,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.pointSensor.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.pointSensor.DBTriqFM`
                 Patch loads data book
         :Versions:
             * 2017-04-05 ``@ddalle``: First version
@@ -5220,7 +5220,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.pointSensor.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.pointSensor.DBTriqFM`
                 Point sensor group data book
         :Versions:
             * 2018-02-09 ``@ddalle``: First version
@@ -5274,7 +5274,7 @@ class Report(object):
             *update*: ``True`` | {``False``}
                 Whether or not to attempt an update if case not in data book
         :Outputs:
-            *LL*: :class:`cape.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
                 Individual case line load interface
         :Versions:
             * 2016-06-10 ``@ddalle``: First version

@@ -17,7 +17,7 @@ from .options   import odict
 from . import util
 
 # Basis module
-import cape.dataBook
+import cape.cfdx.dataBook
 
 
 # Data book for group of point sensors
@@ -153,7 +153,7 @@ class DBPointSensorGroup(dict):
 # class DBPointSensorGroup
 
 # Data book of point sensors
-class DBPointSensor(cape.dataBook.DBBase):
+class DBPointSensor(cape.cfdx.dataBook.DBBase):
     """
     Point sensor data book
     
@@ -254,7 +254,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         :Call:
             >>> h = DBi.PlotHist(coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DBBase`
+            *DB*: :class:`cape.cfdx.dataBook.DBBase`
                 Instance of the data book component class
             *coeff*: :class:`str`
                 Coefficient being plotted

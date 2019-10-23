@@ -37,14 +37,14 @@ calls.
         $ pyfun --report
 
 The available components mirror those described on the template data book
-modules, :mod:`cape.dataBook`, :mod:`cape.lineLoad`, and
-:mod:`cape.pointSensor`.  However, some data book types may not be implemented
+modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineLoad`, and
+:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be implemented
 for all CFD solvers.
 
 :See Also:
-    * :mod:`cape.dataBook`
-    * :mod:`cape.lineLoad`
-    * :mod:`cape.pointSensor`
+    * :mod:`cape.cfdx.dataBook`
+    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.pointSensor`
     * :mod:`cape.pyover.lineLoad`
     * :mod:`cape.options.DataBook`
     * :mod:`cape.pyover.options.DataBook`
@@ -68,7 +68,7 @@ from . import pointSensor
 from . import lineLoad
 
 # Template module
-import cape.dataBook
+import cape.cfdx.dataBook
 import cape.tri
 
 # Placeholder variables for plotting functions.
@@ -374,7 +374,7 @@ def ReadResidNIter(fname):
 # def ReadResid
 
 # Aerodynamic history class
-class DataBook(cape.dataBook.DataBook):
+class DataBook(cape.cfdx.dataBook.DataBook):
     """
     This class provides an interface to the data book for a given CFD run
     matrix.
@@ -515,7 +515,7 @@ class DataBook(cape.dataBook.DataBook):
             # Read the point sensor.
             self.PointSensors[name] = pointSensor.DBPointSensorGroup(
                 self.x, self.opts, name, RootDir=self.RootDir)
-            # Return to starting locaiton
+            # Return to starting location
             os.chdir(fpwd)
   
   # ========
@@ -549,7 +549,7 @@ class DataBook(cape.dataBook.DataBook):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
         :Outputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
@@ -572,7 +572,7 @@ class DataBook(cape.dataBook.DataBook):
         :Call:
             >>> FM = DB.ReadCaseFM(comp)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
@@ -594,10 +594,10 @@ class DataBook(cape.dataBook.DataBook):
 # class DataBook
 
 # Component data book
-class DBComp(cape.dataBook.DBComp):
+class DBComp(cape.cfdx.dataBook.DBComp):
     """Individual component data book
     
-    This class is derived from :class:`cape.dataBook.DBBase`. 
+    This class is derived from :class:`cape.cfdx.dataBook.DBBase`. 
     
     :Call:
         >>> DBc = DBComp(comp, x, opts)
@@ -621,7 +621,7 @@ class DBComp(cape.dataBook.DBComp):
 
 
 # Data book target instance
-class DBTarget(cape.dataBook.DBTarget):
+class DBTarget(cape.cfdx.dataBook.DBTarget):
     """
     Class to handle data from data book target files.  There are more
     constraints on target files than the files that data book creates, and raw
@@ -648,7 +648,7 @@ class DBTarget(cape.dataBook.DBTarget):
 
 
 # TriqFM data book
-class DBTriqFM(cape.dataBook.DBTriqFM):
+class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
     """Force and moment component extracted from surface triangulation
     
     :Call:
@@ -800,7 +800,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
 # class DBTriqFM
 
 # Force/moment history
-class CaseFM(cape.dataBook.CaseFM):
+class CaseFM(cape.cfdx.dataBook.CaseFM):
     """
     This class contains methods for reading data about an the history of an
     individual component for a single case.  It reads the Tecplot file
@@ -1101,7 +1101,7 @@ class CaseFM(cape.dataBook.CaseFM):
 
 
 # Residual class
-class CaseResid(cape.dataBook.CaseResid):
+class CaseResid(cape.cfdx.dataBook.CaseResid):
     """OVERFLOW iterative residual history class
     
     This class provides an interface to residuals for a given case by reading
@@ -1760,7 +1760,7 @@ class CaseResid(cape.dataBook.CaseResid):
         :Call:
             >>> h = hist.PlotL2(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations

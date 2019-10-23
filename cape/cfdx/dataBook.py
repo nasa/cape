@@ -1,14 +1,14 @@
 """
-:mod:`cape.dataBook`: Data book nodule 
-=======================================
+:mod:`cape.cfdx.dataBook`: CFD Data book nodule 
+=================================================
 
 This module contains functions for reading and processing forces, moments, and
 other entities from cases in a trajectory.  This module forms the core for all
 database post-processing in Cape, but several other database modules exist for
 more specific applications:
 
-    * :mod:`cape.lineLoad`
-    * :mod:`cape.pointSensor`
+    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.pointSensor`
     
 This module provides three basic classes upon which more specific data classes
 are developed:
@@ -23,21 +23,21 @@ coefficient.  An outline of derived classes for these three templates is shown
 below.
 
     * :class:`DataBook`
-        - :class:`cape.dataBook.DBTriqFM`: post-processed forces & moments
+        - :class:`cape.cfdx.dataBook.DBTriqFM`: post-processed forces & moments
         
     * :class:`DBBase`
-        - :class:`cape.dataBook.DBComp`: force & moment data for one component
-        - :class:`cape.dataBook.DBTarget`: target data
-        - :class:`cape.dataBook.DBTriqFMComp`: post-processed FM for one comp
-        - :class:`cape.lineLoad.DBLineLoad`: sectional load databook
-        - :class:`cape.pointSensor.DBPointSensorGroup`: group of points
-        - :class:`cape.pointSensor.DBTriqPointGroup`: group of surface points
-        - :class:`cape.pointSensor.DBPointSensor`: one point sensor
-        - :class:`cape.pointSensor.DBTriqPoint`: one surface point sensor
+        - :class:`cape.cfdx.dataBook.DBComp`: force & moment data, one comp
+        - :class:`cape.cfdx.dataBook.DBTarget`: target data
+        - :class:`cape.cfdx.dataBook.DBTriqFMComp`: surface CP FM for one comp
+        - :class:`cape.cfdx.lineLoad.DBLineLoad`: sectional load databook
+        - :class:`cape.cfdx.pointSensor.DBPointSensorGroup`: group of points
+        - :class:`cape.cfdx.pointSensor.DBTriqPointGroup`: group of surface points
+        - :class:`cape.cfdx.pointSensor.DBPointSensor`: one point sensor
+        - :class:`cape.cfdx.pointSensor.DBTriqPoint`: one surface point sensor
         
     * :class:`CaseData`
-        - :class:`cape.dataBook.CaseFM`: iterative force & moment history
-        - :class:`cape.dataBook.CaseResid`: iterative residual history
+        - :class:`cape.cfdx.dataBook.CaseFM`: iterative force & moment history
+        - :class:`cape.cfdx.dataBook.CaseResid`: iterative residual history
     
 In addition, each solver has its own version of this module:
 
@@ -45,36 +45,36 @@ In addition, each solver has its own version of this module:
     * :mod:`cape.pyfun.dataBook`
     * :mod:`cape.pyover.dataBook`
 
-The parent class :class:`cape.dataBook.DataBook` provides a common interface to
+The parent class :class:`cape.cfdx.dataBook.DataBook` provides a common interface to
 all of the requested force, moment, point sensor, etc. quantities that have
 been saved in the data book. Informing :mod:`cape` which quantities to track,
 and how to statistically process them, is done using the ``"DataBook"`` section
 of the JSON file, and the various data book options are handled within the API
 using the :mod:`cape.cfdx.options.DataBook` module.
 
-The master data book class :class:`cape.dataBook.DataBook` is based on the
+The master data book class :class:`cape.cfdx.dataBook.DataBook` is based on the
 built-in :class:`dict` class with keys pointing to force and moment data books
 for individual components. For example, if the JSON file tells Cape to track
 the forces and/or moments on a component called ``"body"``, and the data book
 is the variable *DB*, then the forces and moment data book is ``DB["body"]``.
 This force and moment data book contains statistically averaged forces and
 moments and other statistical quantities for every case in the run matrix. The
-class of the force and moment data book is :class:`cape.dataBook.DBComp`.
+class of the force and moment data book is :class:`cape.cfdx.dataBook.DBComp`.
 
 The data book also has the capability to store "target" data books so that the
 user can compare results of the current CFD solutions to previous results or
 experimental data. These are stored in ``DB["Targets"]`` and use the
-:class:`cape.dataBook.DBTarget` class. Other types of data books can also be
-created, such as the :class:`cape.pointSensor.DBPointSensor` class for tracking
+:class:`cape.cfdx.dataBook.DBTarget` class. Other types of data books can also be
+created, such as the :class:`cape.cfdx.pointSensor.DBPointSensor` class for tracking
 statistical properties at individual points in the solution field. Data books
 for tracking results of groups of cases are built off of the
-:class:`cape.dataBook.DBBase` class, which contains many common tools such as
+:class:`cape.cfdx.dataBook.DBBase` class, which contains many common tools such as
 plotting.
 
-The :mod:`cape.dataBook` module also contains modules for processing results
-within individual case folders. This includes the :class:`cape.dataBook.CaseFM`
+The :mod:`cape.cfdx.dataBook` module also contains modules for processing results
+within individual case folders. This includes the :class:`cape.cfdx.dataBook.CaseFM`
 module for reading iterative force/moment histories and the
-:class:`cape.dataBook.CaseResid` for iterative histories of residuals.
+:class:`cape.cfdx.dataBook.CaseResid` for iterative histories of residuals.
 
 """
 
@@ -95,11 +95,11 @@ import cape.tri
 import cape.plt
 
 # Local modules
-from . import util
+from .. import util
 
 # CAPE modules: direct imports
-from .cfdx.options import odict
-from .cfdx import case
+from .options import odict
+from . import case
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -144,7 +144,7 @@ class DataBook(dict):
     matrix.
     
     :Call:
-        >>> DB = cape.dataBook.DataBook(x, opts, RootDir=None, targ=None)
+        >>> DB = cape.cfdx.dataBook.DataBook(x, opts, RootDir=None, targ=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             The current Cape trajectory (i.e. run matrix)
@@ -155,16 +155,16 @@ class DataBook(dict):
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
     :Outputs:
-        *DB*: :class:`cape.dataBook.DataBook`
+        *DB*: :class:`cape.cfdx.dataBook.DataBook`
             Instance of the Cape data book class
         *DB.x*: :class:`cape.runmatrix.RunMatrix`
             Run matrix of rows saved in the data book (differs from input *x*)
-        *DB[comp]*: :class:`cape.dataBook.DBComp`
+        *DB[comp]*: :class:`cape.cfdx.dataBook.DBComp`
             Component data book for component *comp*
         *DB.Components*: :class:`list` (:class:`str`)
             List of force/moment components
         *DB.Targets*: :class:`dict`
-            Dictionary of :class:`cape.dataBook.DBTarget` target data books
+            Dictionary of :class:`cape.cfdx.dataBook.DBTarget` target data books
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: First version
@@ -273,7 +273,7 @@ class DataBook(dict):
         :Call:
             >>> DB.mkdir(fdir)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
             *fdir*: :class:`str`
                 Directory to create
@@ -295,7 +295,7 @@ class DataBook(dict):
         :Call:
             >>> DB.Write(unlock=True)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
@@ -399,7 +399,7 @@ class DataBook(dict):
         :Call:
             >>> DB.ReadTriqFM(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Data book instance
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -439,10 +439,10 @@ class DataBook(dict):
         :Call:
             >>> DBc = DB.GetRefComponent()
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Data book instance
         :Outputs:
-            *DBc*: :class:`cape.dataBook.DBComp`
+            *DBc*: :class:`cape.cfdx.dataBook.DBComp`
                 Data book for one component
         :Versions:
             * 2016-08-18 ``@ddalle``: First version
@@ -463,7 +463,7 @@ class DataBook(dict):
         :Call:
             >>> DB.ReadTarget(targ)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
             *targ*: :class:`str`
                 Target name
@@ -512,7 +512,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.GetCurrentIter()
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
         :Outputs:
             *n*: :class:`int` | ``None``
@@ -532,10 +532,10 @@ class DataBook(dict):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
         :Outputs:
-            *H*: :class:`cape.dataBook.CaseResid`
+            *H*: :class:`cape.cfdx.dataBook.CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -551,12 +551,12 @@ class DataBook(dict):
         :Call:
             >>> FM = DB.ReadCaseFM(comp)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -590,7 +590,7 @@ class DataBook(dict):
         :Call:
             >>> DB.ProcessComps(comp=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
                 Component or list of components
@@ -625,7 +625,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateDataBook(I=None, comp=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *I*: :class:`list` (:class:`int`) | ``None``
                 List of trajectory indices or update all cases in trajectory
@@ -686,7 +686,7 @@ class DataBook(dict):
         :Call:
             >>> DB.Delete(I)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices
@@ -723,7 +723,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.Delete(I)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
@@ -949,7 +949,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.UpdateLineLoad(I, comp=None, conf=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
@@ -985,7 +985,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.UpdateLineLoadComp(comp, conf=None, I=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of line load DataBook component
@@ -1021,7 +1021,7 @@ class DataBook(dict):
         :Call:
             >>> DB.DeleteLineLoad(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
@@ -1050,7 +1050,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.DeleteLineLoadComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
@@ -1116,7 +1116,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateTriqFM(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *comp*: {``None``} | :class:`str`
                 Name of TriqFM data book component or all if ``None``
@@ -1150,7 +1150,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateTriqFMComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of TriqFM data book component
@@ -1185,7 +1185,7 @@ class DataBook(dict):
         :Call:
             >>> DB.DeleteTriqFM(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
@@ -1217,7 +1217,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.DeleteTriqFMComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
@@ -1288,7 +1288,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateTriqPoint(I, comp=None)
         :Inputs:
-           *DB*: :class:`cape.dataBook.DataBook`
+           *DB*: :class:`cape.cfdx.dataBook.DataBook`
                Instance of data book class
            *I*: :class:`list` (:class:`int`)
                List of trajectory indices
@@ -1320,7 +1320,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.UpdateTriqPointComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *comp*: {``None``} | :class:`str`
                 Name of TriqPoint group or all if ``None``
@@ -1362,7 +1362,7 @@ class DataBook(dict):
         :Call:
             >>> DB.DeleteTriqPoint(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
@@ -1392,7 +1392,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.DeleteTriqPointComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
@@ -1472,7 +1472,7 @@ class DataBook(dict):
         :Call:
             >>> j = DB.FindMatch(i)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
@@ -1520,9 +1520,9 @@ class DataBook(dict):
         :Call:
             >>> j = DB.FindTargetMatch(DBT, i, topts, keylist='tol', **kw)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
-            *DBT*: :class:`cape.dataBook.DBBase` | :class:`DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBBase` | :class:`DBTarget`
                 Target component databook
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
@@ -1536,8 +1536,8 @@ class DataBook(dict):
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.dataBook.DBTarget.FindMatch`
-            * :func:`cape.dataBook.DBBase.FindMatch`
+            * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
+            * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
             * 2016-02-27 ``@ddalle``: Added as a pointer to first component
             * 2018-02-12 ``@ddalle``: First input *x* -> *DBT*
@@ -1556,7 +1556,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateRunMatrix()
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
@@ -1579,7 +1579,7 @@ class DataBook(dict):
         :Call:
             >>> DB.MatchRunMatrix()
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
@@ -1616,7 +1616,7 @@ class DataBook(dict):
         :Call:
             >>> I, J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *ftarg*: :class:`str`
                 Name of the target and column
@@ -1659,7 +1659,7 @@ class DataBook(dict):
         :Call:
             >>> j = DB.GetTargetMatch(i, ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *i*: :class:`int`
                 Data book index
@@ -1725,7 +1725,7 @@ class DataBook(dict):
         :Call:
             >>> i = DB.GetDBMatch(j, ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of a data book class
             *j*: :class:`int` or ``np.nan``
                 Data book target index
@@ -1796,12 +1796,12 @@ class DataBook(dict):
         :Call:
             >>> DBT = DB.GetTargetByName(targ)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pyCart data book class
             *targ*: :class:`str`
                 Name of target to find
         :Outputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the pyCart data book target class
         :Versions:
             * 2015-06-04 ``@ddalle``: First version
@@ -1829,7 +1829,7 @@ class DataBook(dict):
             >>> DB.Sort(key)
             >>> DB.Sort(I=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
             *key*: :class:`str` | :class:`list` (:class:`str`)
                 Name of trajectory key or list of keys on which to sort
@@ -1867,7 +1867,7 @@ class DataBook(dict):
         :Call:
             >>> h = DB.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -1910,7 +1910,7 @@ class DataBook(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :See also:
-            * :func:`cape.dataBook.DBBase.PlotCoeff`
+            * :func:`cape.cfdx.dataBook.DBBase.PlotCoeff`
         :Versions:
             * 2015-05-30 ``@ddalle``: First version
             * 2015-12-14 ``@ddalle``: Added error bars
@@ -1928,7 +1928,7 @@ class DataBook(dict):
         :Call:
             >>> h = DB.PlotContour(comp, coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -1961,7 +1961,7 @@ class DataBook(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :See also:
-            * :func:`cape.dataBook.DBBase.PlotCoeff`
+            * :func:`cape.cfdx.dataBook.DBBase.PlotCoeff`
         :Versions:
             * 2015-05-30 ``@ddalle``: First version
             * 2015-12-14 ``@ddalle``: Added error bars
@@ -2104,7 +2104,7 @@ class DBBase(dict):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBi*: :class:`cape.dataBook.DBBase`
+        *DBi*: :class:`cape.cfdx.dataBook.DBBase`
             An individual item data book
     :Versions:
         * 2014-12-22 ``@ddalle``: First version
@@ -2172,7 +2172,7 @@ class DBBase(dict):
         :Call:
             >>> DB.mkdir(fdir)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
             *fdir*: :class:`str`
                 Directory to create
@@ -2198,7 +2198,7 @@ class DBBase(dict):
         :Call:
             >>> DBi.ProcessColumns()
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 Data book base object
         :Effects:
             *DBi.xCols*: :class:`list` (:class:`str`)
@@ -2264,7 +2264,7 @@ class DBBase(dict):
             >>> DBc.Read()
             >>> DBc.Read(fname, check=False, lock=False)
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Data book base object
             *fname*: :class:`str`
                 Name of data file to read
@@ -2421,14 +2421,14 @@ class DBBase(dict):
         :Call:
             >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Data book base object
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBc1*: :class:`cape.dataBook.DBBase`
+            *DBc1*: :class:`cape.cfdx.dataBook.DBBase`
                 Copy of data book base object
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
@@ -2454,7 +2454,7 @@ class DBBase(dict):
         :Call:
             >>> n, pos = DBP.EstimateLineCount(fname)
         :Inputs:
-            *DBP*: :class:`cape.dataBook.DBBase`
+            *DBP*: :class:`cape.cfdx.dataBook.DBBase`
                 Data book base object
             *fname*: :class:`str`
                 Name of data file to read
@@ -2503,7 +2503,7 @@ class DBBase(dict):
         :Call:
             >>> DBP.ProcessConverters()
         :Inputs:
-            *DBP*: :class:`cape.dataBook.DataBookBase`
+            *DBP*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Effects:
             *DBP.rconv*: :class:`list` (:class:`function`)
@@ -2574,7 +2574,7 @@ class DBBase(dict):
         :Call:
             >>> flock = DBc.GetLockFile()
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Outputs:
             *flock*: :class:`str`
@@ -2600,7 +2600,7 @@ class DBBase(dict):
         :Call:
             >>> q = DBc.CheckLock()
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Outputs:
             *q*: :class:`bool`
@@ -2636,7 +2636,7 @@ class DBBase(dict):
         :Call:
             >>> DBc.Lock()
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
             * 2017-06-12 ``@ddalle``: First version
@@ -2664,7 +2664,7 @@ class DBBase(dict):
         :Call:
             >>> DBc.TouchLock()
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
             * 2017-06-14 ``@ddalle``: First version
@@ -2681,7 +2681,7 @@ class DBBase(dict):
         :Call:
             >>> DBc.Unlock()
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
             * 2017-06-12 ``@ddalle``: First version
@@ -2708,7 +2708,7 @@ class DBBase(dict):
             >>> DBi.Write()
             >>> DBi.Write(fname, merge=False, unlock=True)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *fname*: :class:`str`
                 Name of data file to read
@@ -2787,7 +2787,7 @@ class DBBase(dict):
             >>> v = DBT.GetCoeff(comp, coeff, i)
             >>> V = DBT.GetCoeff(comp, coeff, I)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -2864,7 +2864,7 @@ class DBBase(dict):
         :Call:
             >>> DBi.UpdateRunMatrix()
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 Component data book
         :Versions:
             * 2017-04-18 ``@ddalle``: First version
@@ -2894,9 +2894,9 @@ class DBBase(dict):
         :Call:
             >>> DBi.Merge(DBc)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 Component data book
-            *DBc*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Copy of component data book, perhaps read at a different time
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
@@ -2941,7 +2941,7 @@ class DBBase(dict):
         :Call:
             >>> I = DBi.ArgSort(key=None)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *key*: :class:`str`
                 Name of trajectory key to use for sorting; default is first key
@@ -2992,7 +2992,7 @@ class DBBase(dict):
             >>> DBi.Sort(key)
             >>> DBi.Sort(I=None)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *key*: :class:`str`
                 Name of trajectory key to use for sorting; default is first key
@@ -3049,7 +3049,7 @@ class DBBase(dict):
         :Call:
             >>> i = DBi.GetRunMatrixIndex(self, j)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *j*: :class:`int`
                 Index of the case from the databook to try match
@@ -3095,7 +3095,7 @@ class DBBase(dict):
         :Call:
             >>> j = DBi.FindMatch(i)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
@@ -3163,7 +3163,7 @@ class DBBase(dict):
         :Call:
             >>> j = DBc.FindTargetMatch(DBT, i, topts, keylist='x', **kw)
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DBBase` | :class:`DBTarget`
+            *DBc*: :class:`cape.cfdx.dataBook.DBBase` | :class:`DBTarget`
                 Instance of original databook
             *DBT*: :class:`DBBase` | :class:`DBTarget`
                 Target databook of any type
@@ -3179,8 +3179,8 @@ class DBBase(dict):
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.dataBook.DBTarget.FindMatch`
-            * :func:`cape.dataBook.DBBase.FindMatch`
+            * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
+            * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
@@ -3323,9 +3323,9 @@ class DBBase(dict):
         :Call:
             >>> j = DBi.FindDBMatch(DBc, i)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 Data book base object
-            *DBc*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Another data book base object
             *i*: :class:`int`
                 Data book index for *DBi*
@@ -3408,7 +3408,7 @@ class DBBase(dict):
         :Call:
             >>> J = DBc.FindCoSweep(x, i, EqCons={}, TolCons={}, **kw)
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Data book component instance
             *x*: :class:`cape.runmatrix.RunMatrix`
                 RunMatrix (i.e. run matrix) to use for target value
@@ -3426,8 +3426,8 @@ class DBBase(dict):
             *J*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.dataBook.DBTarget.FindMatch`
-            * :func:`cape.dataBook.DBBase.FindMatch`
+            * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
+            * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
@@ -3627,7 +3627,7 @@ class DBBase(dict):
         :Call:
             >>> S = DBc.GetDeltaStats(DBT, coeff, I, topts=None, **kw)
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Component databook
             *coeff*: :class:`str`
                 Name of coefficient on which to compute statistics
@@ -3728,7 +3728,7 @@ class DBBase(dict):
         
         This is the base method upon which data book sweep plotting is built.
         Other methods may call this one with modifications to the default
-        settings.  For example :func:`cape.dataBook.DBTarget.PlotCoeff` changes
+        settings.  For example :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes
         the default *LineOptions* to show a red line instead of the standard
         black line.  All settings can still be overruled by explicit inputs to
         either this function or any of its children.
@@ -3736,7 +3736,7 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotCoeffBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -4215,14 +4215,14 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotCoeff(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.dataBook.DBBase.PlotCoeffBase`
+            * See :func:`cape.cfdx.dataBook.DBBase.PlotCoeffBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -4240,7 +4240,7 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotContourBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -4447,14 +4447,14 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotContour(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.dataBook.DBBase.PlotCoeffBase`
+            * See :func:`cape.cfdx.dataBook.DBBase.PlotCoeffBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -4471,7 +4471,7 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotHistBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -4946,14 +4946,14 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotValueHist(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.dataBook.DBBase.PlotHistBase`
+            * See :func:`cape.cfdx.dataBook.DBBase.PlotHistBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -4969,7 +4969,7 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotRangeHistBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -5435,14 +5435,14 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotRangeHist(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.dataBook.DBBase.PlotHistBase`
+            * See :func:`cape.cfdx.dataBook.DBBase.PlotHistBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -5460,7 +5460,7 @@ class DBBase(dict):
 class DBComp(DBBase):
     """Individual component data book
     
-    This class is derived from :class:`cape.dataBook.DBBase`. 
+    This class is derived from :class:`cape.cfdx.dataBook.DBBase`. 
     
     :Call:
         >>> DBi = DBComp(comp, x, opts, targ=None, check=None, lock=None)
@@ -5572,7 +5572,7 @@ class DBTriqFM(DataBook):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBF*: :class:`cape.dataBook.DBTriqFM`
+        *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: First version
@@ -5649,14 +5649,14 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF1 = DBF.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBF1*: :class:`cape.dataBook.DBTriqFM`
+            *DBF1*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Another instance of related TriqFM data book
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
@@ -5681,9 +5681,9 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Merge(DBF1)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
-            *DBF1*: :class:`cape.dataBook.DBTriqFM`
+            *DBF1*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Another instance of related TriqFM data book
         :Versions:
             * 2016-06-26 ``@ddalle``: First version
@@ -5702,7 +5702,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Sort()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2016-03-08 ``@ddalle``: First version
@@ -5718,7 +5718,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Write(merge=False, unlock=True)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *merge*: ``True`` | {``False``}
                 Whether or not to reread data book and merge before writing
@@ -5758,7 +5758,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Lock()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-12 ``@ddalle``: First version
@@ -5775,7 +5775,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.TouchLock()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-14 ``@ddalle``: First version
@@ -5792,7 +5792,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Unlock()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-12 ``@ddalle``: First version
@@ -5809,10 +5809,10 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBc = DBF.GetRefComponent()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
-            *DBc*: :class:`cape.dataBook.DBComp`
+            *DBc*: :class:`cape.cfdx.dataBook.DBComp`
                 Data book for one component
         :Versions:
             * 2016-08-18 ``@ddalle``: First version
@@ -5833,7 +5833,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> n = DBF.UpdateCase(i)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -5975,7 +5975,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -6003,7 +6003,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> ftriq = DBF.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -6022,7 +6022,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.ReadTriq(ftriq)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of ``triq`` file
@@ -6050,7 +6050,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.WriteTriq(i, **kw)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -6124,7 +6124,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> CompIDs = DBF.GetPatchCompIDs()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *CompIDs*: :class:`list` (:class:`int`) | ``None``
@@ -6180,7 +6180,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> triq = DBF.SelectTriq()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *triq*: :class:`cape.tri.Triq`
@@ -6202,7 +6202,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> plt = DBF.Triq2Plt(triq, **kw)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *triq*: :class:`cape.tri.Triq`
                 Interface to annotated surface triangulation
@@ -6243,7 +6243,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> compID = DBF.GetCompID(patch)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -6279,7 +6279,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.ReadTriMap()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
@@ -6310,7 +6310,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.MapTriCompID()
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Attributes:
             *DBF.compmap*: :class:`dict`
@@ -6351,7 +6351,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> xi = DBF.GetConditions(i)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -6392,7 +6392,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> FM = DBF.GetTriqForces(patch, i, **kw)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -6452,7 +6452,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> FM = DBF.GetDimensionalForces(patch, i, FM)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -6503,7 +6503,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> FM = DBF.GetStateVars(patch, FM)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -6546,7 +6546,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> FM = DBF.GetTriqForces(i)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -6599,7 +6599,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> FM = DBF.ApplyTransformations(i, FM)
         :Inputs:
-            *DBF*: :class:`cape.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -6658,7 +6658,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> FM.TransformFM(topts, x, i)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -6812,7 +6812,7 @@ class DBTriqFMComp(DBComp):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBF*: :class:`cape.dataBook.DBTriqFM`
+        *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: First version
@@ -6903,7 +6903,7 @@ class DBTarget(DBBase):
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
     :Outputs:
-        *DBT*: :class:`cape.dataBook.DBTarget`
+        *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
             Instance of the Cape data book target class
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
@@ -6965,7 +6965,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.ReadData()
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
@@ -7024,7 +7024,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.ReadAllData(fname, delimiter=",", skiprows=0)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
@@ -7048,7 +7048,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.ReadDataByColumn(fname, delimiter=",", skiprows=0)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
@@ -7084,7 +7084,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.ProcessColumns()
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
@@ -7163,7 +7163,7 @@ class DBTarget(DBBase):
         :Call:
             >>> fi = DBT.CheckColumn(ctargs, pt, c)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the data book target class
             *ctargs*: :class:`dict`
                 Dictionary of target column names for each coefficient
@@ -7240,7 +7240,7 @@ class DBTarget(DBBase):
             >>> v = DBT.GetCoeff(comp, coeff, i)
             >>> V = DBT.GetCoeff(comp, coeff, I)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -7300,7 +7300,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.UpdateRunMatrix()
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: First version
@@ -7360,7 +7360,7 @@ class DBTarget(DBBase):
         :Call:
             >>> j = DBT.FindMatch(x, i)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the Cape data book target data carrier
             *x*: :class:`cape.runmatrix.RunMatrix`
                 The current pyCart trajectory (i.e. run matrix)
@@ -7370,8 +7370,8 @@ class DBTarget(DBBase):
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.dataBook.DBBase.FindTargetMatch`
-            * :func:`cape.dataBook.DBBase.FindMatch`
+            * :func:`cape.cfdx.dataBook.DBBase.FindTargetMatch`
+            * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
@@ -7392,7 +7392,7 @@ class DBTarget(DBBase):
         :Call:
             >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -7511,7 +7511,7 @@ class CaseData(object):
     :Call:
         >>> FM = CaseData()
     :Outputs:
-        *FM*: :class:`cape.dataBook.CaseData`
+        *FM*: :class:`cape.cfdx.dataBook.CaseData`
             Base iterative history class
     :Versions:
         * 2015-12-07 ``@ddalle``: First version
@@ -7545,7 +7545,7 @@ class CaseData(object):
         :Call:
             >>> j = FM.GetIterationIndex(i)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseData`
+            *FM*: :class:`cape.cfdx.dataBook.CaseData`
                 Case component history class
             *i*: :class:`int`
                 Iteration number
@@ -7578,7 +7578,7 @@ class CaseData(object):
             >>> C = FM.Extractvalue(c)
             >>> C = FM.ExtractValue(c, col=None)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseData`
+            *FM*: :class:`cape.cfdx.dataBook.CaseData`
                 Case component history class
             *c*: :class:`str` 
                 Name of state
@@ -7629,7 +7629,7 @@ class CaseData(object):
         :Call:
             >>> h = FM.PlotValue(c, n=None, **kw)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseData`
+            *FM*: :class:`cape.cfdx.dataBook.CaseData`
                 Case component history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
@@ -8113,7 +8113,7 @@ class CaseData(object):
         :Call:
             >>> h = FM.PlotValueHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseData`
+            *FM*: :class:`cape.cfdx.dataBook.CaseData`
                 Instance of the component force history class
             *comp*: :class:`str`
                 Name of component to plot
@@ -8523,7 +8523,7 @@ class CaseFM(CaseData):
     comes from a :file:`loadsCC.dat` file if one exists.
     
     :Call:
-        >>> FM = cape.dataBook.CaseFM(C, MRP=None, A=None)
+        >>> FM = cape.cfdx.dataBook.CaseFM(C, MRP=None, A=None)
     :Inputs:
         *C*: :class:`list` (:class:`str`)
             List of coefficients to initialize
@@ -8597,10 +8597,10 @@ class CaseFM(CaseData):
         :Call:
             >>> FM2 = FM1.Copy()
         :Inputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Force and moment history
         :Outputs:
-            *FM2*: :class:`cape.dataBook.CaseFM`
+            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Copy of *FM1*
         :Versions:
             * 2017-03-20 ``@ddalle``: First version
@@ -8621,7 +8621,7 @@ class CaseFM(CaseData):
         :Call:
             >>> FM.AddData(A)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
                 Matrix of forces and/or moments at *N* iterations
@@ -8674,12 +8674,12 @@ class CaseFM(CaseData):
             >>> FM3 = FM1.__add__(FM2)
             >>> FM3 = FM1 + FM2
         :Inputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.dataBook.CaseFM`
+            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: First version
@@ -8717,12 +8717,12 @@ class CaseFM(CaseData):
             >>> FM1 = FM1.__iadd__(FM2)
             >>> FM1 += FM2
         :Inputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.dataBook.CaseFM`
+            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: First version
@@ -8757,12 +8757,12 @@ class CaseFM(CaseData):
             >>> FM3 = FM1.__sub__(FM2)
             >>> FM3 = FM1 - FM2
         :Inputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.dataBook.CaseFM`
+            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: First version
@@ -8800,12 +8800,12 @@ class CaseFM(CaseData):
             >>> FM1 = FM1.__isub__(FM2)
             >>> FM1 -= FM2
         :Inputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.dataBook.CaseFM`
+            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: First version
@@ -8869,7 +8869,7 @@ class CaseFM(CaseData):
         :Call:
             >>> FM.TransformFM(topts, x, i)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -9001,7 +9001,7 @@ class CaseFM(CaseData):
         :Call:
             >>> FM.ShiftMRP(Lref, x, xi=None)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *Lref*: :class:`float`
                 Reference length
@@ -9047,7 +9047,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = FM.GetStatsN(nStats, nFirst=None, nLast=None)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Number of iterations in window to use for statistics
@@ -9121,7 +9121,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = FM.GetStatsOld(nStats, nMax=None, nLast=None)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Minimum number of iterations in window to use for statistics
@@ -9179,7 +9179,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = FM.GetStatsCoeff(coeff, nStats=100, nMax=None, **kw)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
@@ -9231,7 +9231,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = FM.GetStats(nStats, nMax=None, nLast=None)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
@@ -9286,7 +9286,7 @@ class CaseFM(CaseData):
         :Call:
             >>> h = FM.PlotCoeff(c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the component force history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
@@ -9324,7 +9324,7 @@ class CaseFM(CaseData):
         :Call:
             >>> h = FM.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
+            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the component force history class
             *comp*: :class:`str`
                 Name of component to plot
@@ -9341,7 +9341,7 @@ class CaseFM(CaseData):
             *FigHeight*: :class:`float`
                 Figure height
         :Keyword arguments:
-            * See :func:`cape.dataBook.CaseData.PlotValueHist`
+            * See :func:`cape.cfdx.dataBook.CaseData.PlotValueHist`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -9364,9 +9364,9 @@ class CaseResid(object):
     for a given run directory
     
     :Call:
-        >>> hist = cape.dataBook.CaseResid()
+        >>> hist = cape.cfdx.dataBook.CaseResid()
     :Outputs:
-        *hist*: :class:`cape.dataBook.CaseResid`
+        *hist*: :class:`cape.cfdx.dataBook.CaseResid`
             Instance of the run history class
     :Versions:
         * 2014-11-12 ``@ddalle``: Starter version
@@ -9433,7 +9433,7 @@ class CaseResid(object):
         :Call:
             >>> h = hist.PlotResid(c='L1Resid', n=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *c*: :class:`str`
                 Name of coefficient to plot
@@ -9558,7 +9558,7 @@ class CaseResid(object):
         :Call:
             >>> h = hist.PlotL1(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -9593,7 +9593,7 @@ class CaseResid(object):
         :Call:
             >>> h = hist.PlotL2(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -9628,7 +9628,7 @@ class CaseResid(object):
         :Call:
             >>> h = hist.PlotLInf(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -9663,7 +9663,7 @@ class CaseResid(object):
         :Call:
             >>> j = hist.GetIterationIndex(i)
         :Inputs:
-            *hist*: :class:`cape.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the residual history class
             *i*: :class:`int`
                 Iteration number
