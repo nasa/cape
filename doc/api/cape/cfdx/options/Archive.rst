@@ -1,7 +1,7 @@
 
-.. automodule:: cape.options.Archive
+.. automodule:: cape.cfdx.options.Archive
     :members: auto_Archive
 
-    .. autoclass:: cape.options.Archive.Archive
+    .. autoclass:: cape.cfdx.options.Archive.Archive
         :members:
 

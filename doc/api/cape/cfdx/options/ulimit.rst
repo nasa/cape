@@ -1,6 +1,6 @@
 
-.. automodule:: cape.options.ulimit
+.. automodule:: cape.cfdx.options.ulimit
 
-    .. autoclass:: cape.options.ulimit.ulimit
+    .. autoclass:: cape.cfdx.options.ulimit.ulimit
         :members:
 

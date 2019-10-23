@@ -1,7 +1,7 @@
 
-.. automodule:: cape.options.util
+.. automodule:: cape.cfdx.options.util
     :members:
 
-    .. autoclass:: cape.options.util.odict
+    .. autoclass:: cape.cfdx.options.util.odict
         :members:
 

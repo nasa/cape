@@ -25,8 +25,8 @@ so no extra syntax is needed in order to access them from :mod:`cape.pyfun.bin`
 """
 
 # Import relevant tools
-from cape.bin import *
-from cape.bin import _assertfile, _upgradeDocString
+from cape.cfdx.bin import *
+from cape.cfdx.bin import _assertfile, _upgradeDocString
 
 
 

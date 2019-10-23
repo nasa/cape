@@ -1,6 +1,6 @@
 
-.. automodule:: cape.options.Report
+.. automodule:: cape.cfdx.options.Report
 
-    .. autoclass:: cape.options.Report.Report
+    .. autoclass:: cape.cfdx.options.Report.Report
         :members:
 

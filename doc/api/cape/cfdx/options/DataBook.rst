@@ -1,9 +1,9 @@
 
-.. automodule:: cape.options.DataBook
+.. automodule:: cape.cfdx.options.DataBook
 
-    .. autoclass:: cape.options.DataBook.DataBook
+    .. autoclass:: cape.cfdx.options.DataBook.DataBook
         :members:
 
-    .. autoclass:: cape.options.DataBook.DBTarget
+    .. autoclass:: cape.cfdx.options.DataBook.DBTarget
         :members:
 

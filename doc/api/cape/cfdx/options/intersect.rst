@@ -1,9 +1,9 @@
 
-.. automodule:: cape.options.intersect
+.. automodule:: cape.cfdx.options.intersect
 
-    .. autoclass:: cape.options.intersect.intersect
+    .. autoclass:: cape.cfdx.options.intersect.intersect
         :members:
 
-    .. autoclass:: cape.options.intersect.verify
+    .. autoclass:: cape.cfdx.options.intersect.verify
         :members:
 

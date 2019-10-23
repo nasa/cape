@@ -1,6 +1,6 @@
 
-.. automodule:: cape.options.pbs
+.. automodule:: cape.cfdx.options.pbs
 
-    .. autoclass:: cape.options.pbs.PBS
+    .. autoclass:: cape.cfdx.options.pbs.PBS
         :members:
 

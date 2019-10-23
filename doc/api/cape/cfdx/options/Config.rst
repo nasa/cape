@@ -1,6 +1,6 @@
 
-.. automodule:: cape.options.Config
+.. automodule:: cape.cfdx.options.Config
 
-    .. autoclass:: cape.options.Config.Config
+    .. autoclass:: cape.cfdx.options.Config.Config
         :members:
 

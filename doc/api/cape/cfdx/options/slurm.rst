@@ -1,6 +1,6 @@
 
-.. automodule:: cape.options.slurm
+.. automodule:: cape.cfdx.options.slurm
 
-    .. autoclass:: cape.options.slurm.Slurm
+    .. autoclass:: cape.cfdx.options.slurm.Slurm
         :members:
 
