@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 12:34 PDT
+   on 2019-10-23 at 12:30 PDT
 
 Test ``07_case``
 ==================
@@ -54,17 +54,17 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import cape module
-        import cape.case
+        import cape.cfdx.case
         
         # Read conditions
-        x = cape.case.ReadConditions()
+        x = cape.cfdx.case.ReadConditions()
         
         # Show conditions
         print(x["mach"])
         print(x["alpha"])
         
         # Read conditions directly
-        beta = cape.case.ReadConditions('beta')
+        beta = cape.cfdx.case.ReadConditions('beta')
         # Display
         print(beta)
 
@@ -76,10 +76,10 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import cape module
-        import cape.case
+        import cape.cfdx.case
         
         # Read conditions
-        rc = cape.case.ReadCaseJSON()
+        rc = cape.cfdx.case.ReadCaseJSON()
         
         # Show settings
         print(rc.get_PhaseSequence())
@@ -99,7 +99,7 @@ The commands executed by this test are
         import datetime
         
         # Import cape module
-        import cape.case
+        import cape.cfdx.case as case
         
         # Example file names
         fstrt = "cape_start.dat"
@@ -109,13 +109,13 @@ The commands executed by this test are
         tic = datetime.datetime.now()
         
         # Read settings
-        rc = cape.case.ReadCaseJSON()
+        rc = case.ReadCaseJSON()
         
         # Write a flag for starting a program
-        cape.case.WriteStartTimeProg(tic, rc, 0, fstrt, "prog")
+        case.WriteStartTimeProg(tic, rc, 0, fstrt, "prog")
         
         # Read it
-        nProc, t0 = cape.case.ReadStartTimeProg(fstrt)
+        nProc, t0 = case.ReadStartTimeProg(fstrt)
         
         # Calculate delta time
         dt = tic - t0
@@ -124,7 +124,7 @@ The commands executed by this test are
         print("%i cores, %.4f seconds" % (nProc, dt.seconds))
         
         # Write output file
-        cape.case.WriteUserTimeProg(tic, rc, 0, ftime, "cape")
+        case.WriteUserTimeProg(tic, rc, 0, ftime, "cape")
         
 
 Command 1: Conditions: Python 2
@@ -141,8 +141,8 @@ Command 1: Conditions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.485867 seconds
-    * Cumulative time: 0.485867 seconds
+    * Command took 0.484017 seconds
+    * Cumulative time: 0.484017 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -171,8 +171,8 @@ Command 2: Conditions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.65128 seconds
-    * Cumulative time: 1.13715 seconds
+    * Command took 0.709867 seconds
+    * Cumulative time: 1.19388 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -201,8 +201,8 @@ Command 3: ``case.json``: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.361541 seconds
-    * Cumulative time: 1.49869 seconds
+    * Command took 0.474852 seconds
+    * Cumulative time: 1.66874 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -233,8 +233,8 @@ Command 4: ``case.json``: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.574662 seconds
-    * Cumulative time: 2.07335 seconds
+    * Command took 0.703164 seconds
+    * Cumulative time: 2.3719 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -265,8 +265,8 @@ Command 5: Timing: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.379587 seconds
-    * Cumulative time: 2.45294 seconds
+    * Command took 0.494553 seconds
+    * Cumulative time: 2.86645 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -293,8 +293,8 @@ Command 6: Timing: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.624004 seconds
-    * Cumulative time: 3.07694 seconds
+    * Command took 0.752053 seconds
+    * Cumulative time: 3.61851 seconds
 :STDOUT:
     * **PASS**
     * Target:

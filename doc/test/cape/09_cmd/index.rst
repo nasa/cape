@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 12:34 PDT
+   on 2019-10-23 at 12:30 PDT
 
 Test ``09_cmd``
 =================
@@ -31,14 +31,16 @@ The commands executed by this test are
         
         # Import cape module
         import cape
+        import cape.cfdx.cmd
+        import cape.cfdx.case
         
         # Read settings
-        rc = cape.case.ReadCaseJSON()
+        rc = cape.cfdx.case.ReadCaseJSON()
         
         # Form command
-        cmd1 = cape.cmd.aflr3(rc)
+        cmd1 = cape.cfdx.cmd.aflr3(rc)
         # Alternate form
-        cmd2 = cape.cmd.aflr3(
+        cmd2 = cape.cfdx.cmd.aflr3(
             i="pyfun.surf",
             o="pyfun.lb8.ugrid",
             blr=10,
@@ -58,14 +60,16 @@ The commands executed by this test are
         
         # Import cape module
         import cape
+        import cape.cfdx.case
+        import cape.cfdx.cmd
         
         # Read settings
-        rc = cape.case.ReadCaseJSON()
+        rc = cape.cfdx.case.ReadCaseJSON()
         
         # Form command
-        cmd1 = cape.cmd.intersect(rc)
+        cmd1 = cape.cfdx.cmd.intersect(rc)
         # Alternate form
-        cmd2 = cape.cmd.intersect(T=True)
+        cmd2 = cape.cfdx.cmd.intersect(T=True)
         
         # Output
         print(' '.join(cmd1))
@@ -85,8 +89,8 @@ Command 1: AFLR3 Commands Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.478822 seconds
-    * Cumulative time: 0.478822 seconds
+    * Command took 0.429067 seconds
+    * Cumulative time: 0.429067 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -114,8 +118,8 @@ Command 2: CART3D ``intersect`` Commands Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.396685 seconds
-    * Cumulative time: 0.875507 seconds
+    * Command took 0.474094 seconds
+    * Cumulative time: 0.903161 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -143,8 +147,8 @@ Command 3: AFLR3 Commands Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.677018 seconds
-    * Cumulative time: 1.55253 seconds
+    * Command took 0.706883 seconds
+    * Cumulative time: 1.61004 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -172,8 +176,8 @@ Command 4: CART3D ``intersect`` Commands Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.73574 seconds
-    * Cumulative time: 2.28827 seconds
+    * Command took 0.72831 seconds
+    * Cumulative time: 2.33835 seconds
 :STDOUT:
     * **PASS**
     * Target:

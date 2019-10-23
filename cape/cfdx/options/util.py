@@ -23,7 +23,10 @@ import numpy as np
 _fname = os.path.abspath(__file__)
 
 # Saved folder names
-CapeFolder = os.path.split(os.path.split(_fname)[0])[0]
+_OptsFolder = os.path.split(_fname)[0]
+_CFDXFolder = os.path.split(_OptsFolder)[0]
+# Actual module home
+CapeFolder = os.path.split(_CFDXFolder)[0]
 # Parent folder
 BaseFolder = os.path.split(CapeFolder)[0]
 

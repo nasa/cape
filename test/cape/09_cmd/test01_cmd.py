@@ -3,14 +3,16 @@
 
 # Import cape module
 import cape
+import cape.cfdx.cmd
+import cape.cfdx.case
 
 # Read settings
-rc = cape.case.ReadCaseJSON()
+rc = cape.cfdx.case.ReadCaseJSON()
 
 # Form command
-cmd1 = cape.cmd.aflr3(rc)
+cmd1 = cape.cfdx.cmd.aflr3(rc)
 # Alternate form
-cmd2 = cape.cmd.aflr3(
+cmd2 = cape.cfdx.cmd.aflr3(
     i="pyfun.surf",
     o="pyfun.lb8.ugrid",
     blr=10,

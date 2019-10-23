@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Import cape module
-import cape.case
+import cape.cfdx.case
 
 # Read conditions
-rc = cape.case.ReadCaseJSON()
+rc = cape.cfdx.case.ReadCaseJSON()
 
 # Show settings
 print(rc.get_PhaseSequence())

@@ -5,7 +5,7 @@
 import datetime
 
 # Import cape module
-import cape.case
+import cape.cfdx.case as case
 
 # Example file names
 fstrt = "cape_start.dat"
@@ -15,13 +15,13 @@ ftime = "cape_time.dat"
 tic = datetime.datetime.now()
 
 # Read settings
-rc = cape.case.ReadCaseJSON()
+rc = case.ReadCaseJSON()
 
 # Write a flag for starting a program
-cape.case.WriteStartTimeProg(tic, rc, 0, fstrt, "prog")
+case.WriteStartTimeProg(tic, rc, 0, fstrt, "prog")
 
 # Read it
-nProc, t0 = cape.case.ReadStartTimeProg(fstrt)
+nProc, t0 = case.ReadStartTimeProg(fstrt)
 
 # Calculate delta time
 dt = tic - t0
@@ -30,5 +30,5 @@ dt = tic - t0
 print("%i cores, %.4f seconds" % (nProc, dt.seconds))
 
 # Write output file
-cape.case.WriteUserTimeProg(tic, rc, 0, ftime, "cape")
+case.WriteUserTimeProg(tic, rc, 0, ftime, "cape")
 

@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 # Import cape module
-import cape.case
+import cape.cfdx.case
 
 # Read conditions
-x = cape.case.ReadConditions()
+x = cape.cfdx.case.ReadConditions()
 
 # Show conditions
 print(x["mach"])
 print(x["alpha"])
 
 # Read conditions directly
-beta = cape.case.ReadConditions('beta')
+beta = cape.cfdx.case.ReadConditions('beta')
 # Display
 print(beta)
