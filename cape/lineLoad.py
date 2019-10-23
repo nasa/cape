@@ -42,7 +42,7 @@ from datetime import datetime
 from . import util
 from .cfdx import case
 from . import dataBook
-from . import queue
+from .cfdx import queue
 from . import tar
 
 # Finer control of dicts

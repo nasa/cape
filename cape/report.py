@@ -74,7 +74,7 @@ from . import tex
 from . import tar
 
 # Paraview/Tecplot interfaces
-from .bin     import pvpython
+from .cfdx.bin     import pvpython
 from .tecplot import ExportLayout, Tecscript
 
 # Class to interface with report generation and updating.

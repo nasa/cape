@@ -1,3 +1,0 @@
-
-.. automodule:: cape.queue
-    :members:

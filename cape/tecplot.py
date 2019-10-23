@@ -22,20 +22,23 @@ handling Tecplot macros specifically.
     * :mod:`cape.report`
 """
 
-# Numerics
-import numpy as np
-# System interface
+# Standard library
+import os
+import re
 import shutil
 
-# Import the base file control class.
-from cape.fileCntl import FileCntl, os, re
+# Third-party
+import numpy as np
+
+# CAPE modules
+from cape.fileCntl import FileCntl
 # Import color conversion tools
 from cape.color import ToRGB, Hex2RGB
 
-# Import command to actually run Tecplot
-from .bin import tecmcr
-# Import Tecplot folder
-from .util import TecFolder
+# CAPE modules: direct import
+from .cfdx.bin import tecmcr
+from .util     import TecFolder
+
 
 # Stand-alone function to run a Tecplot layout file
 def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):

@@ -123,8 +123,8 @@ from datetime import datetime
 import numpy as np
 
 # Local modules, partial imports
-from .options import Archive
-from .bin import check_output, tail
+from .options  import Archive
+from .cfdx.bin import check_output, tail
 
 # Write date to archive
 def write_log_date(fname='archive.log'):

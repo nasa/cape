@@ -11,12 +11,10 @@ The :mod:`cape` module
 .. toctree::
     :maxdepth: 2
     
+    cfdx/index
     argread
     atm
-    bin
-    case
     cgns
-    cmd
     cntl
     config
     convert
@@ -32,7 +30,6 @@ The :mod:`cape` module
     plot3d
     plt
     pointSensor
-    queue
     report
     runmatrix
     step
