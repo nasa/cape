@@ -4,7 +4,7 @@
 
 The pyOver module for generating automated results reports using PDFLaTeX
 provides a single class :class:`pyOver.report.Report`, which is based off the
-CAPE version :class:`cape.report.Report`. The :class:`cape.report.Report` class
+CAPE version :class:`cape.cfdx.report.Report`. The :class:`cape.cfdx.report.Report` class
 is a sort of dual-purpose object that contains a file interface using
 :class:`cape.tex.Tex` combined with a capability to create figures for each
 case or sweep of cases mostly based on :mod:`cape.cfdx.dataBook`.
@@ -36,14 +36,14 @@ Reports are usually created using system commands of the following format.
 
 The class has an immense number of methods, which can be somewhat grouped into
 bookkeeping methods and plotting methods.  The main user-facing methods are
-:func:`cape.report.Report.UpdateCases` and
-:func:`cape.report.Report.UpdateSweep`.  Each 
+:func:`cape.cfdx.report.Report.UpdateCases` and
+:func:`cape.cfdx.report.Report.UpdateSweep`.  Each 
 :ref:`type of subfigure <cape-json-ReportSubfigure>` has its own method, for
-example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
-:func:`cape.report.Report.SubfigPlotL2` for ``"PlotL2"``.
+example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
+:func:`cape.cfdx.report.Report.SubfigPlotL2` for ``"PlotL2"``.
 
 :See also:
-    * :mod:`cape.report`
+    * :mod:`cape.cfdx.report`
     * :mod:`cape.pyover.options.Report`
     * :mod:`cape.options.Report`
     * :class:`cape.cfdx.dataBook.DBComp`
@@ -58,7 +58,7 @@ import os, json, shutil, glob
 import numpy as np
 
 # Import basis module
-import cape.report
+import cape.cfdx.report
 
 # Local modules needed
 from cape import tex, tar
@@ -70,7 +70,7 @@ from .tecplot  import ExportLayout, Tecscript
 
 
 # Class to interface with report generation and updating.
-class Report(cape.report.Report):
+class Report(cape.cfdx.report.Report):
     """Interface for automated report generation
     
     :Call:

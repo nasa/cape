@@ -4,7 +4,7 @@
 
 This is a module for tarring and untarring folders automatically in combination
 with changing directory into and out of the folder.  This function works in
-combination primarily with the :class:`cape.report.Report` class when the
+combination primarily with the :class:`cape.cfdx.report.Report` class when the
 ``"Report"`` > ``"Archive"`` option is set to ``True``.
 
 The primary functions and their actions are:

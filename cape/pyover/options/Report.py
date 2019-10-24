@@ -12,7 +12,7 @@ available figures and subfigures (along with other options).
 
 :See Also:
     * :mod:`cape.cfdx.options.Report`
-    * :mod:`cape.report`
+    * :mod:`cape.cfdx.report`
     * :mod:`cape.pyover.report`
 """
 

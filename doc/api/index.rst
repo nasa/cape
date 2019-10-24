@@ -59,10 +59,10 @@ module that starts something like the following.
     .. code-block:: python
     
         # Import CAPE version
-        import cape.report
+        import cape.cfdx.report
         
-        # Definition for pyCart.report.Report based on cape.report.Report
-        class Report(cape.report.Report):
+        # Definition for pyCart.report.Report based on cape.cfdx.report.Report
+        class Report(cape.cfdx.report.Report):
             
             ...
             
@@ -132,7 +132,7 @@ key classes that form the basis for the key pyCart functionality.
     |                                    | interacting with data from a       |
     |                                    | single case                        |
     +------------------------------------+------------------------------------+
-    |:class:`cape.report.Report`         | Interface to automated reports     |
+    |:class:`cape.cfdx.report.Report`    | Interface to automated reports     |
     +------------------------------------+------------------------------------+
     |:class:`cape.fileCntl.FileCntl`     | Template for interacting with all  |
     |                                    | settings files                     |

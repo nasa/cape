@@ -42,7 +42,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.cfdx.dataBook`
        - :mod:`cape.cfdx.pointSensor`
        - :mod:`cape.cfdx.lineLoad`
-       - :mod:`cape.report`
+       - :mod:`cape.cfdx.report`
     
     * Primary supporting modules
        - :mod:`cape.cfdx.bin`

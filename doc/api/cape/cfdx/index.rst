@@ -18,5 +18,6 @@ The :mod:`cape` module
     lineLoad
     pointSensor
     queue
+    report
     volcomp
     options/index

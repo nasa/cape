@@ -27,7 +27,6 @@ The :mod:`cape` module
     namelist2
     plot3d
     plt
-    report
     runmatrix
     step
     tar

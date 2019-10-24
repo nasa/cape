@@ -21,7 +21,7 @@ handling Tecplot macros specifically.
 
 :See also:
     * :mod:`cape.fileCntl`
-    * :mod:`cape.report`
+    * :mod:`cape.cfdx.report`
 """
 
 # Import the base file control class.

@@ -1,11 +1,11 @@
 """
-:mod:`cape.report`: Automated report interface
-===============================================
+:mod:`cape.cfdx.report`: Automated CFD report interface
+==========================================================
 
 The Cape module for generating automated results reports using PDFLaTeX
-provides a single class :class:`cape.report.Report`, which creates a handle for
+provides a single class :class:`cape.cfdx.report.Report`, which creates a handle for
 the ``tex`` file and creates folders containing individual figures for each
-case. The :class:`cape.report.Report` class is a sort of dual-purpose object
+case. The :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
 that contains a file interface using :class:`cape.tex.Tex` combined with a
 capability to create figures for each case or sweep of cases mostly based on
 :mod:`cape.cfdx.dataBook`.
@@ -37,16 +37,16 @@ Reports are usually created using system commands of the following format.
         
 The basis report class contains almost all of the capabilities needed for
 generating the reports, and so the derivative classes such as
-:class:`pyCart.report.Report`, :class:`pyFun.report.Report`, and
-:class:`pyOver.report.Report` contain very little additional conent.
+:class:`cape.pycart.report.Report`, :class:`caep.pyfun.report.Report`, and
+:class:`cape.pyover.report.Report` contain very little additional content.
 
 The class has an immense number of methods, which can be somewhat grouped into
 bookkeeping methods and plotting methods.  The main user-facing methods are
-:func:`cape.report.Report.UpdateCases` and
-:func:`cape.report.Report.UpdateSweep`.  Each 
+:func:`cape.cfdx.report.Report.UpdateCases` and
+:func:`cape.cfdx.report.Report.UpdateSweep`.  Each 
 :ref:`type of subfigure <cape-json-ReportSubfigure>` has its own method, for
-example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
-:func:`cape.report.Report.SubfigPlotL2` for ``"PlotL2"``.
+example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
+:func:`cape.cfdx.report.Report.SubfigPlotL2` for ``"PlotL2"``.
 
 :See also:
     * :mod:`cape.cfdx.options.Report`
@@ -70,26 +70,26 @@ import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
-from . import tex
-from . import tar
+from .. import tex
+from .. import tar
 
 # Paraview/Tecplot interfaces
-from .cfdx.bin     import pvpython
-from .tecplot import ExportLayout, Tecscript
+from .bin      import pvpython
+from ..tecplot import ExportLayout, Tecscript
 
 # Class to interface with report generation and updating.
 class Report(object):
     """Interface for automated report generation
     
     :Call:
-        >>> R = cape.report.Report(cntl, rep)
+        >>> R = cape.cfdx.report.Report(cntl, rep)
     :Inputs:
         *cntl*: :class:`cape.cntl.Cntl`
             Master Cape settings interface
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
-        *R*: :class:`cape.report.Report` or derivative
+        *R*: :class:`cape.cfdx.report.Report` or derivative
             Automated report interface
         *R.cntl*: :class:`cape.cntl.Cntl` or derivative
             Overall solver control interface
@@ -148,7 +148,7 @@ class Report(object):
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
-        return '<cape.Report("%s")>' % self.rep
+        return '<cape.cfdx.report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
   # >
@@ -166,7 +166,7 @@ class Report(object):
         :Call:
             >>> R.mkdir(fdir)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fdir*: :class:`str`
                 Name of folder to make
@@ -185,7 +185,7 @@ class Report(object):
         :Call:
             >>> R.cd(fdir)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fdir*: :class:`str`
                 Name of directory to change to
@@ -224,7 +224,7 @@ class Report(object):
         :Call:
             >>> R.OpenMain()
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
@@ -252,7 +252,7 @@ class Report(object):
         :Call:
             >>> R.WriteSkeleton()
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
@@ -401,7 +401,7 @@ class Report(object):
         :Call:
             >>> R.WriteCaseSkeleton(i, frun)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *i*: :class:`int`
                 Case index
@@ -449,7 +449,7 @@ class Report(object):
         :Call:
             >>> R.WriteSweepSkeleton(fswp, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *i*: :class:`int`
                 Case index
@@ -489,7 +489,7 @@ class Report(object):
         :Call:
             >>> R.SetHeaderStatus(i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *i*: :class:`int`
                 Case index
@@ -549,7 +549,7 @@ class Report(object):
             >>> R.UpdateReport(I)
             >>> R.UpdateReport(cons=[])
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *I*: :class:`list` (:class:`int`)
                 List of case indices
@@ -596,7 +596,7 @@ class Report(object):
         :Call:
             >>> q = R.HasCaseFigures()
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Outputs:
             *q*: :class:`bool`
@@ -618,7 +618,7 @@ class Report(object):
         :Call:
             >>> R.UpdateSweeps(I=None, cons=[], **kw)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *I*: :class:`list` (:class:`int`)
                 List of case indices
@@ -652,7 +652,7 @@ class Report(object):
         :Call:
             >>> R.UpdateCases(I=None, **kw)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *I*: :class:`list` (:class:`int`)
                 List of case indices
@@ -689,7 +689,7 @@ class Report(object):
         :Call:
             >>> R.UpdateSweep(fswp, I)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
@@ -737,7 +737,7 @@ class Report(object):
         :Call:
             >>> R.UpdateSweepPage(fswp, I, IT=[])
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
@@ -858,7 +858,7 @@ class Report(object):
         :Call:
             >>> R.UpdateCase(i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *i*: :class:`int`
                 Case index
@@ -962,7 +962,7 @@ class Report(object):
             >>> R.SaveSubfigs(i)
             >>> R.SaveSubfigs(I, fswp)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *i*: :class:`int`
                 Case index
@@ -1019,7 +1019,7 @@ class Report(object):
             >>> R.UpdateFigure(fig, i)
             >>> R.UpdateFigure(fig, I, fswp)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fig*: :class:`str`
                 Name of figure to update
@@ -1118,7 +1118,7 @@ class Report(object):
         :Call:
             >>> lines = R.UpdateCaseSubfigs(fig, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fig*: :class:`str`
                 Name of figure to update
@@ -1159,7 +1159,7 @@ class Report(object):
         :Call:
             >>> q = R.CheckSubfigStatus(sfig, rc, n)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to check
@@ -1208,7 +1208,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigSwitch(sfig, i, lines, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to update
@@ -1270,7 +1270,7 @@ class Report(object):
         :Call:
             >>> lines = R.UpdateSweepSubfigs(fig, fswp, I)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fig*: :class:`str`
                 Name of figure to update
@@ -1331,7 +1331,7 @@ class Report(object):
         :Call:
             >>> DBc = R.GetSubfigRefComponent(sfig)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1363,7 +1363,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigSwitch(sfig, fswp, I, lines)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to update
@@ -1419,7 +1419,7 @@ class Report(object):
         :Call:
             >>> q = R.CheckSweepSubfigStatus(sfig, I, rc, fruns, nIter)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *I*: :class:`list` (:class:`int`)
                 List of case indices
@@ -1484,7 +1484,7 @@ class Report(object):
         :Call:
             >>> R.CleanUpCases(I=None, cons=[])
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *I*: :class:`list` (:class:`int`)
                 List of case indices
@@ -1515,7 +1515,7 @@ class Report(object):
         :Call:
             >>> R.CleanUpSweeps(I=None, cons=[])
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *I*: :class:`list` (:class:`int`)
                 List of case indices
@@ -1578,7 +1578,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigInit(sfig)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to initialize                            
@@ -1619,7 +1619,7 @@ class Report(object):
             >>> R.SubfigFunction(sfig, i)
             >>> R.SubfigFunction(sfig, I)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to initialize
@@ -1662,7 +1662,7 @@ class Report(object):
         :Call:
             >>> targs = R.SubfigTargets(sfig)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -1703,7 +1703,7 @@ class Report(object):
         :Call:
             >>> fcpt = R.SubfigCaption(sfig, cdef=None)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -1780,7 +1780,7 @@ class Report(object):
         :Call:
             >>> R.SubfigFormatAxes(sfig, ax)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to update
@@ -2010,7 +2010,7 @@ class Report(object):
             >>> lines = R.SubfigConditions(sfig, i, q=True)
             >>> lines = R.SubfigConditions(sfig, I, q=True)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`                                      
                 Name of sfigure to update
@@ -2225,7 +2225,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigSweepConditions(sfig, fswp, I, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -2336,7 +2336,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigSweepCases(sfig, fswp, I)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -2404,7 +2404,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigSummary(sfig, i, q=True)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -2612,7 +2612,7 @@ class Report(object):
         :Call:
             >>> word = R.WriteScientific(v, decimals=8)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *v*: :class:`str` | :class:`float` | :class:`int`
                 Value to be translated, preferably a string
@@ -2660,7 +2660,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigPlotCoeff(sfig, i, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to update
@@ -2849,7 +2849,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigPlotLineLoad(sfig, i, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to update
@@ -3067,7 +3067,7 @@ class Report(object):
         :Call:
             >>> R.SubfigPlotLineLoadGroup(sfig, fswp, I, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -3256,7 +3256,7 @@ class Report(object):
         :Call:
             >>> R.SubfigSweepCoeff(sfig, fswp, I, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -3579,7 +3579,7 @@ class Report(object):
         :Call:
             >>> lbl = R.SubfigPlotLabel(sfig, k)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -3644,7 +3644,7 @@ class Report(object):
         :Call:
             >>> lbl = R.SubfigPlotLabel(sfig, k, targ)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -3710,7 +3710,7 @@ class Report(object):
         :Call:
             >>> R.SubfigSweepCoeffHist(sfig, fswp, I)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -3932,7 +3932,7 @@ class Report(object):
         :Call:
             >>> R.SubfigSweepCoeff(sfig, fswp, I, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -4091,7 +4091,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigPlotL1(sfig, i, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -4112,7 +4112,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigPlotL2(sfig, i, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -4132,7 +4132,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigPlotL2(sfig, i, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -4152,7 +4152,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigPlotTurbResid(sfig, i, q)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -4172,7 +4172,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigPlotResid(sfig, i, c=None)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -4500,7 +4500,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigTecplotLayout(sfig, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -4640,7 +4640,7 @@ class Report(object):
         :Call:
             >>> v = R.EvalVar(txt, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *txt*: :class:`str`
                 String, with ``$`` as sigil for variables to expand
@@ -4692,7 +4692,7 @@ class Report(object):
         :Call:
             >>> R.PrepTecplotLayoutVars(tec, sfig, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *tec*: :class:`cape.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
@@ -4719,7 +4719,7 @@ class Report(object):
         :Call:
             >>> R.PrepTecplotLayoutKeys(tec, sfig, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *tec*: :class:`cape.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
@@ -4774,7 +4774,7 @@ class Report(object):
         :Call:
             >>> R.PrepTecplotSlicePosition(tec, sfig, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *tec*: :class:`cape.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
@@ -4809,7 +4809,7 @@ class Report(object):
         :Call:
             >>> R.PrepTecplotContourLevels(tec, sfig, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *tec*: :class:`cape.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
@@ -4878,7 +4878,7 @@ class Report(object):
         :Call:
             >>> R.PrepTecplotColorMaps(tec, sfig, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *tec*: :class:`cape.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
@@ -4955,7 +4955,7 @@ class Report(object):
         :Call:
             >>> FM = R.ReadCaseFM(comp)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *comp*: :class:`str`
                 Name of component to read
@@ -4976,7 +4976,7 @@ class Report(object):
         :Call:
             >>> hist = R.ReadCaseResid()
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Outputs:
             *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid` derivative
@@ -4993,7 +4993,7 @@ class Report(object):
         :Call:
             >>> DBc = R.ReadDBComp(comp, targ=None)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *comp*: :class:`str`
                 Name of data book component
@@ -5084,7 +5084,7 @@ class Report(object):
         :Call:
             >>> R.ReadDataBook(fsrc="data")
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fsrc*: {``"data"``} | ``"trajectory"`` | :class:`str`
                 Data book trajectory source
@@ -5137,7 +5137,7 @@ class Report(object):
         :Call:
             >>> DBF = R.ReadTriqFM(comp, fsrc="data", targ=None)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -5211,7 +5211,7 @@ class Report(object):
         :Call:
             >>> DBP = R.ReadTriqPoint(grp, pt, targ=None)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *grp*: :class:`str`
                 Name of TriqPoint group
@@ -5263,7 +5263,7 @@ class Report(object):
         :Call:
             >>> LL = R.ReadLineLoad(comp, i, targ=None, update=False)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *comp*: :class:`str`
                 Name of line load component
@@ -5362,7 +5362,7 @@ class Report(object):
         :Call:
             >>> rc = R.ReadCaseJSON()
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Outputs:
             *rc*: :class:`dict`
@@ -5401,7 +5401,7 @@ class Report(object):
         :Call:
             >>> R.WriteCaseJSON(rc)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *rc*: :class:`dict`
                 Dictionary of subfigure definitions and status
@@ -5427,7 +5427,7 @@ class Report(object):
         :Call:
             >>> J = R.GetSweepIndices(fswp, I=None, cons=[], comp=None)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
@@ -5500,7 +5500,7 @@ class Report(object):
         :Call:
             >>> I = R.GetTargetSweepIndices(fswp, i0, targ)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
@@ -5553,7 +5553,7 @@ class Report(object):
         :Call:
             >>> I = R.GetTargetSweepIndices(fswp, i0, comp, cons=[], targ=None)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
@@ -5616,7 +5616,7 @@ class Report(object):
         :Call:
             >>> R.LinkVizFiles(sfig, i)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure

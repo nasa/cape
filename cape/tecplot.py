@@ -19,7 +19,7 @@ handling Tecplot macros specifically.
 
 :See also:
     * :mod:`cape.fileCntl`
-    * :mod:`cape.report`
+    * :mod:`cape.cfdx.report`
 """
 
 # Standard library
