@@ -1597,6 +1597,9 @@ class DBCoeffFM(DBCoeff):
             "UCLM": shift_DCLM,
             "UCLN": shift_DCLN,
         }
+        # Remove previously unused kwargs
+        kw.pop("v", None)
+        kw.pop("txt", None)
         # Form a trajectory
         self.GetTrajectory(**kw)
    

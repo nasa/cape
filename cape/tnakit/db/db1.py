@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 :mod:`tnakit.db.db1`: Aero Task Team force & moment database modules
-==================================================================
+======================================================================
 
 This module provides several classes to interface with various *point* or *0D*
 databases.  That is, each piece of data is a scalar in all of the columns.  A
@@ -965,12 +965,13 @@ class DBCoeff(dict):
         # Check for sufficient non-keyword inputs
         if na > i:
             # Directly specified
-            xi = a[i]
+            xi = kw.get(k, a[i])
         else:
             # Get from keywords
             xi = kw.get(k)
         # In most cases, this is sufficient
-        if xi is not None: return xi
+        if xi is not None:
+            return xi
         # Check for a converter
         fk = arg_converters.get(k)
         # Apply converter
