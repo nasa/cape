@@ -30,7 +30,7 @@ import subprocess as sp
 from shutil import copy
 from collections import OrderedDict
 
-# Third-party modules 
+# Third-party modules
 import numpy as np
 
 # Absolute imports from this package
@@ -269,7 +269,7 @@ class TriBase(object):
             self.nQuad = nQuad
             self.Quads = Quad
             self.CompID = CompID
-        
+
         # Check for UH3D component list
         if uh3dc is not None:
             # Read a component list like from UH3D
@@ -2127,11 +2127,11 @@ class TriBase(object):
         self.ReadUH3DCompIDList(fid)
         # Close the file.
         fid.close()
-        
+
     # Read component names from UH3D-like list
     def ReadUH3DCompIDList(self, fname):
         """Read a UH3D-like component list to *tri.Conf*
-        
+
         :Call:
             >>> tri.ReadUH3DCompIDList(fname)
             >>> tri.ReadUH3DCompIDList(fid)
@@ -2154,7 +2154,7 @@ class TriBase(object):
         else:
             # Open the file
             fid = open(fname, 'r')
-            
+
         # Initialize components.
         Conf = {}
         # Initialize check for end of file
@@ -2189,11 +2189,11 @@ class TriBase(object):
                 break
         # Save the named components.
         self.Conf = Conf
-        
+
         # Close the file if appropriate
         if not qfile:
             fid.close()
-            
+
 
     # Read surface file
     def ReadSurf(self, fname):
@@ -2337,11 +2337,11 @@ class TriBase(object):
             self.CompID[KTri[1::4]-nEdge-1] = iComp
         # Close the file.
         f.close()
-        
+
     # Read CGNS file
     def ReadCGNS(self, fname):
         """Read a surface triangulated (with optional quads) CGNS file
-        
+
         :Call:
             >>> tri.ReadCGNS(fname)
         :Inputs:
@@ -2491,8 +2491,8 @@ class TriBase(object):
         self.CompIDQuad = CompIDQuad
         # Save the simple configuration
         self.Conf = Conf
-        
-        
+
+
   # >
 
   # =============
@@ -2943,12 +2943,12 @@ class TriBase(object):
         # Loop through the triangles.
         for k in np.arange(self.nTri):
             # Write the line (with 1-based triangle index and CompID).
-            fid.write('%i %i %i %i 0 %i\n' % (self.Tris[k,0],
+            fid.write('%i %i %i %i 7 %i\n' % (self.Tris[k,0],
                 self.Tris[k,1], self.Tris[k,2], self.CompID[k], self.BCs[k]))
         # Loop through the quads.
         for k in np.arange(self.nQuad):
             # Write the line (with 1-based quad indx and CompID)
-            fid.write('%i %i %i %i %i 0 %i\n' % (self.Quads[k,0],
+            fid.write('%i %i %i %i %i 7 %i\n' % (self.Quads[k,0],
                 self.Quads[k,1], self.Quads[k,2], self.Quads[k,3],
                 self.CompIDQuad[k], self.BCsQuad[k]))
         # Close the file.
@@ -4114,11 +4114,11 @@ class TriBase(object):
                 K = np.logical_or(K, self.CompID==comp)
         # Turn boolean vector into vector of indices]
         return np.where(K)[0]
-        
+
     # Get tri indices from node indices
     def GetTrisFromNodes(self, I, skip=1):
         """Find indices of triangles from node indices
-        
+
         :Call:
             >>> K = tri.GetTrisFromNodes(I, skip=1)
         :Inputs:
@@ -4152,11 +4152,11 @@ class TriBase(object):
         sys.stdout.flush()
         # Get indices
         return np.where(Q)[0]
-        
+
     # Get components from compIDs
     def GetFacesFromTris(self, K, nmin=10):
         """Find components from triangles
-        
+
         :Call:
             >>> faces = tri.GetFacesFromTris(K, nmin=10)
         :Inputs:
@@ -4167,7 +4167,7 @@ class TriBase(object):
             *nmin*: {``10``} | :class:`int` > 0
                 Only return faces with at least *nmin* triangles
         :Outputs:
-            *faces*: :class:`list`\ [:class:`str`]  
+            *faces*: :class:`list`\ [:class:`str`]
                 List of face names (if available) or numbers
         :Versions:
             * 2019-05-14 ``@ddalle``: First version
@@ -4196,11 +4196,11 @@ class TriBase(object):
                 faces.append(comp)
         # Output
         return faces
-        
+
     # Get components from compIDs
     def GetFacesFromQuads(self, K, nmin=10):
         """Find components from triangles
-        
+
         :Call:
             >>> faces = tri.GetFacesFromQuads(K, nmin=10)
         :Inputs:
@@ -4211,7 +4211,7 @@ class TriBase(object):
             *nmin*: {``10``} | :class:`int` > 0
                 Only return faces with at least *nmin* triangles
         :Outputs:
-            *faces*: :class:`list`\ [:class:`str`]  
+            *faces*: :class:`list`\ [:class:`str`]
                 List of face names (if available) or numbers
         :Versions:
             * 2019-05-14 ``@ddalle``: First version
@@ -4371,8 +4371,8 @@ class TriBase(object):
             self.q = self.q[N-1,:]
         except AttributeError:
             pass
-            
-        
+
+
     # Eliminate small triangles
     def RemoveSmallTris(self, smalltri=1e-5, v=False, recurse=True):
         """Remove any triangles that are below a certain size
@@ -5497,7 +5497,7 @@ class TriBase(object):
         I = np.lexsort((E[:,1], E[:,0]))
         # Save sorted edges
         self.Edges = E[I,:]
-        
+
     # Get edges
     def GetEdgeTable(self):
         """Get the list of edges and triangle of origin
@@ -5544,7 +5544,7 @@ class TriBase(object):
         I = np.lexsort((E[:,1], E[:,0]))
         # Save sorted edges
         self.EdgeTable = E[I,:]
-        
+
     # Find neighbor
     def FindTriFromEdge(self, i0, i1):
         """Find the triangle index from a specified edge
@@ -5580,8 +5580,8 @@ class TriBase(object):
         j = j0[j1[0]]
         # Get triangle index from table
         return ET[j, 2]
-        
-        
+
+
     # Find neighbors of a triangle
     def FindNeighbors(self, k):
         """Find the triangles neighboring one triangle
@@ -6525,7 +6525,7 @@ class Tri(TriBase):
             # Save the quad definitions
             self.nQuad = nQuad
             self.Quads = Quads
-            
+
         # Read UH3D-like component list
         if 'uh3dc' in kw:
             # Read a UH3D component list
@@ -6790,7 +6790,7 @@ class Triq(TriBase):
         # Use sub-triangles to compute weights
         # If the projected point xp is outside of the triangle,
         # then the sum of a0,a1,a2 will be greater than the total
-        # area of the triangle, but this method scales the weights 
+        # area of the triangle, but this method scales the weights
         # to account for this
         #
         # Projected point
