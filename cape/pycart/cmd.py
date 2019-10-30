@@ -24,12 +24,14 @@ creation of this command by determining those inputs from a
 
 """
 
-# File checking.
+# Standard library modules
 import os.path
-# Get command to run tecplot
+
+# CAPE modules
+from cape.cfdx.cmd import *
+
+# Local modules
 from .util import GetTecplotCommand
-# Import the Cape binaries
-from cape.cmd import *
 
 # Function to call cubes.
 def cubes(cart3d=None, opts=None, j=0, **kw):

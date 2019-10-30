@@ -1,6 +1,6 @@
 """
-:mod:`cape.pycart.bin`: Cart3D binary interface module
-======================================================
+:mod:`cape.pycart.bin`: Cart3D executable interface module
+===========================================================
 
 This module provides an interface to the various executables of the Cart3D
 package.  The functions in this module have names that match the command-line
@@ -22,15 +22,15 @@ are also imported.  These are imported directly
 so no extra syntax is needed in order to access them from :mod:`cape.pycart.bin`
 
 :See also:
-    * :mod:`cape.bin`
-    * :mod:`cape.cmd`
+    * :mod:`cape.cfdx.bin`
+    * :mod:`cape.cfdx.cmd`
     * :mod:`cape.pycart.cmd`
 
 """
 
 # Import relevant tools
-from cape.bin import *
-from cape.bin import _assertfile, _upgradeDocString
+from cape.cfdx.bin import *
+from cape.cfdx.bin import _assertfile, _upgradeDocString
 
 # Command option processing
 from . import cmd

@@ -81,16 +81,16 @@ Calculate the integrated forces and moments on a triangulated surface
     * 2017-02-17 ``@ddalle``: First version
 """
 
-# Module to handle inputs and os interface
+# Standard library
 import sys
-# Settings interface
 import json
-# Get the modules for tri files and surface grids
+
+# CAPE modules
 import cape.tri
-# Command-line input parser
 import cape.argread
-# Read JSON file with comments
-from cape.options.util import loadJSONFile
+
+# CAPE modules: direct import
+from cape.cfdx.options.util import loadJSONFile
 
 # Main function
 def TriqFM(*a, **kw):

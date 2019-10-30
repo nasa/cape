@@ -35,14 +35,14 @@ are all available to this command.
         
 
 :See Also:
-    * :mod:`cape.options.Archive`
+    * :mod:`cape.cfdx.options.Archive`
     * :mod:`cape.pycart.options.runControl`
 """
 
 # Import options-specific utilities
 from .util import rc0
 # Base module
-import cape.options.Archive
+import cape.cfdx.options.Archive
 
 # Globs and tarballs to tar most of the time
 VizGlob = [
@@ -123,7 +123,7 @@ def auto_Archive(opts):
 # def auto_Archive
 
 # Class for case management
-class Archive(cape.options.Archive.Archive):
+class Archive(cape.cfdx.options.Archive.Archive):
     """
     Dictionary-based interfaced for options specific to folder management
     

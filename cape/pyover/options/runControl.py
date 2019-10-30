@@ -6,7 +6,7 @@ Options interface for aspects of running a case of OVERFLOW.  The settings are
 read from the ``"RunControl"`` of a JSON file, and the contents of this section
 are written to :file:`case.json` within each run folder.
 
-The methods of :class:`cape.options.runControl.RunControl` are also present.
+The methods of :class:`cape.cfdx.options.runControl.RunControl` are also present.
 These control options such as whether to submit as a PBS job, whether or not to
 use MPI, etc.
 
@@ -19,7 +19,7 @@ one or more cases have been completed.
 
 This module primarily provides a class :class:`pyOver.options.RunControl`. Many
 of the options that are common to all solvers are inherited from
-:class:`cape.options.runControl.RunControl`. This class also has an interface
+:class:`cape.cfdx.options.runControl.RunControl`. This class also has an interface
 for environment variables and ``ulimit`` parameters.
 
 In particular, all of the commands available to the classes listed below are
@@ -29,11 +29,11 @@ also available to :class:`pyOver.options.runControl.RunControl`.
     * :class:`pyOver.options.runControl.RunControl`
     * :class:`pyOver.options.runControl.overrun`
     * :class:`pyOver.options.Archive.Archive`
-    * :class:`cape.options.runControl.Environ`
-    * :class:`cape.options.ulimit.ulimit`
+    * :class:`cape.cfdx.options.runControl.Environ`
+    * :class:`cape.cfdx.options.ulimit.ulimit`
 :See Also:
-    * :mod:`cape.options.runControl`
-    * :mod:`cape.options.ulimit`
+    * :mod:`cape.cfdx.options.runControl`
+    * :mod:`cape.cfdx.options.ulimit`
     * :mod:`cape.pyover.options.Archive`
 """
 
@@ -41,7 +41,7 @@ also available to :class:`pyOver.options.runControl.RunControl`.
 from .util import rc0, getel, odict
 
 # Import template module
-import cape.options.runControl
+import cape.cfdx.options.runControl
 # Submodules
 from .Archive import Archive
 
@@ -156,7 +156,7 @@ class overrun(odict):
 # class overrun
 
 # Class for Report settings
-class RunControl(cape.options.runControl.RunControl):
+class RunControl(cape.cfdx.options.runControl.RunControl):
     """Dictionary-based interface for automated reports
     
     :Call:

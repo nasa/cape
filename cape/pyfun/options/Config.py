@@ -32,7 +32,7 @@ reported on directly by FUN3D and/or define named points for other sections of
 the JSON file.
 
 :See Also:
-    * :mod:`cape.options.Config`
+    * :mod:`cape.cfdx.options.Config`
     * :mod:`cape.config`
     * :mod:`cape.pyfun.namelist`
 """
@@ -42,10 +42,10 @@ the JSON file.
 from .util import rc0
 
 # Import base class
-import cape.options.Config
+import cape.cfdx.options.Config
 
 # Class for PBS settings
-class Config(cape.options.Config):
+class Config(cape.cfdx.options.Config):
     """
     Configuration options for Fun3D
     

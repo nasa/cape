@@ -11,8 +11,8 @@ See the :ref:`JSON Report <cape-json-Report>` section for the list of available
 figures and subfigures (along with other options).
 
 :See Also:
-    * :mod:`cape.options.Report`
-    * :mod:`cape.report`
+    * :mod:`cape.cfdx.options.Report`
+    * :mod:`cape.cfdx.report`
     * :mod:`cape.pyus.report`
 """
 
@@ -21,10 +21,10 @@ figures and subfigures (along with other options).
 from .util import rc0, getel
 
 # Import template module
-import cape.options.Report
+import cape.cfdx.options.Report
 
 # Class for Report settings
-class Report(cape.options.Report):
+class Report(cape.cfdx.options.Report):
     """Dictionary-based interface for automated reports
     
     :Call:

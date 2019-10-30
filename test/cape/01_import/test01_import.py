@@ -3,4 +3,4 @@
 
 # Import cape module(s)
 import cape
-import cape.options
+import cape.cfdx.options

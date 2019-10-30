@@ -112,16 +112,19 @@ triangulations.  These input streams are often saved as a file, by convention
 ``mixsur < mixsur.i``.
 """
 
-# File checker.
+# Standard library
 import os
-# Import xml parser
+
+# Standard library: direct imports
 import xml.etree.ElementTree as ET
-# Process unique lists.
+
+# Third-party modules
 import numpy as np
 
-# Utility functions and classes from CAPE
-from .util    import RangeString, SplitLineGeneral
-from .options import util
+# CAPE modules
+from .util import RangeString, SplitLineGeneral
+from .cfdx.options import util
+
 
 # Configuration class
 class Config(object):
@@ -177,7 +180,8 @@ class Config(object):
             elif c.get('Type') == 'struc':
                 # Structured grid list
                 self.ProcessStruc(c)
-    
+
+
     # Function to display things
     def __repr__(self):
         """

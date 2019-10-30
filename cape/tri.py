@@ -34,27 +34,27 @@ from collections import OrderedDict
 import numpy as np
 
 # Absolute imports from this package
-import cape.options
+import cape.cfdx.options
 import cape.cgns
 
 # Input/output and geometry modules
 from . import io
 from . import geom
-from . import volcomp
+from .cfdx import volcomp
 
 # Utilities
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
 from .config import Config, ConfigJSON, ConfigMIXSUR
 
 # Default tolerances for mapping triangulations
-atoldef  = cape.options.rc.get("atoldef", 1e-2)
-rtoldef  = cape.options.rc.get("rtoldef", 1e-4)
-ctoldef  = cape.options.rc.get("ctoldef", 1e-4)
-ztoldef  = cape.options.rc.get("ztoldef", 5e-2)
-antoldef = cape.options.rc.get("antoldef", 2e-2)
-rntoldef = cape.options.rc.get("rntoldef", 1e-4)
-cntoldef = cape.options.rc.get("cntoldef", 1e-4)
-rztoldef = cape.options.rc.get("rztoldef", 1e-5)
+atoldef  = cape.cfdx.options.rc.get("atoldef", 1e-2)
+rtoldef  = cape.cfdx.options.rc.get("rtoldef", 1e-4)
+ctoldef  = cape.cfdx.options.rc.get("ctoldef", 1e-4)
+ztoldef  = cape.cfdx.options.rc.get("ztoldef", 5e-2)
+antoldef = cape.cfdx.options.rc.get("antoldef", 2e-2)
+rntoldef = cape.cfdx.options.rc.get("rntoldef", 1e-4)
+cntoldef = cape.cfdx.options.rc.get("cntoldef", 1e-4)
+rztoldef = cape.cfdx.options.rc.get("rztoldef", 1e-5)
 
 # Attempt to load the compiled helper module.
 try:

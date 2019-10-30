@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 12:34 PDT
+   on 2019-10-24 at 07:15 PDT
 
 Test ``10_databook``
 ======================
@@ -32,14 +32,14 @@ The commands executed by this test are
         
         # Import cape modules
         import cape
-        import cape.dataBook
+        import cape.cfdx.dataBook
         
         # Test DataBook CLass
         # Read settings
         cntl = cape.Cntl()
         
         # Read data book
-        DB = cape.dataBook.DataBook(cntl.x, cntl.opts)
+        DB = cape.cfdx.dataBook.DataBook(cntl.x, cntl.opts)
         
         # Display the data book
         print(DB)
@@ -62,7 +62,7 @@ The commands executed by this test are
         
         # Test CaseFM Class
         # Create a force & moment history
-        FM = cape.dataBook.CaseFM("fin")
+        FM = cape.cfdx.dataBook.CaseFM("fin")
         # Some iterations
         n = 500
         # Create some iterations
@@ -104,8 +104,8 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.578702 seconds
-    * Cumulative time: 0.578702 seconds
+    * Command took 0.521328 seconds
+    * Cumulative time: 0.521328 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -155,8 +155,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.879477 seconds
-    * Cumulative time: 1.45818 seconds
+    * Command took 0.778266 seconds
+    * Cumulative time: 1.29959 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -97,16 +97,17 @@ that does not have that panel labeled as a separate face.
     * 2017-02-10 ``@ddalle``: First version
 """
 
-# Module to handle inputs and os interface
+# Standard libraries
 import sys
-# Get the modules for tri files and surface grids
+
+# CAPE modules
 import cape.tri
 import cape.plot3d
-# Command-line input parser
 import cape.argread
 import cape.text
-# Read JSON file with comments
-from cape.options.util import loadJSONFile
+
+# CAPE modules: direct import
+from cape.cfdx.options.util import loadJSONFile
 
 # Edit docstring with actual default tolerances
 __doc__ = cape.text.setdocvals(__doc__, {

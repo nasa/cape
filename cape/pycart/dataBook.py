@@ -36,14 +36,14 @@ calls.
         $ pycart --report
 
 The available components mirror those described on the template data book
-modules, :mod:`cape.dataBook`, :mod:`cape.lineLoad`, and
-:mod:`cape.pointSensor`.  However, some data book types may not be implemented
+modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineLoad`, and
+:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be implemented
 for all CFD solvers.
 
 :See Also:
-    * :mod:`cape.dataBook`
-    * :mod:`cape.lineLoad`
-    * :mod:`cape.pointSensor`
+    * :mod:`cape.cfdx.dataBook`
+    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.pointSensor`
     * :mod:`cape.pycart.lineLoad`
     * :mod:`cape.options.DataBook`
     * :mod:`cape.pycart.options.DataBook`
@@ -66,7 +66,7 @@ from . import lineLoad
 from . import pointSensor
 
 # Template module
-import cape.dataBook
+import cape.cfdx.dataBook
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -76,7 +76,7 @@ deg = np.pi / 180.0
 
 
 # Aerodynamic history class
-class DataBook(cape.dataBook.DataBook):
+class DataBook(cape.cfdx.dataBook.DataBook):
     """
     This class provides an interface to the data book for a given CFD run
     matrix.
@@ -94,7 +94,7 @@ class DataBook(cape.dataBook.DataBook):
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-03 ``@ddalle``: First version
-        * 2015-10-16 ``@ddalle``: Subclassed to :mod:`cape.dataBook.DataBook`
+        * 2015-10-16 ``@ddalle``: Subclassed to :mod:`cape.cfdx.dataBook.DataBook`
     """
         
     # Function to read targets if necessary
@@ -570,7 +570,7 @@ def get_xlim(ha, pad=0.05):
 
 
 # Individual component data book
-class DBComp(cape.dataBook.DBComp):
+class DBComp(cape.cfdx.dataBook.DBComp):
     """
     Individual component data book
     
@@ -596,7 +596,7 @@ class DBComp(cape.dataBook.DBComp):
         
         
 # Data book target instance
-class DBTarget(cape.dataBook.DBTarget):
+class DBTarget(cape.cfdx.dataBook.DBTarget):
     """
     Class to handle data from data book target files.  There are more
     constraints on target files than the files that data book creates, and raw
@@ -623,7 +623,7 @@ class DBTarget(cape.dataBook.DBTarget):
 
 
 # TriqFM data book
-class DBTriqFM(cape.dataBook.DBTriqFM):
+class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
     """Force and moment component extracted from surface triangulation
     
     :Call:
@@ -675,7 +675,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
 
         
 # Individual component force and moment
-class CaseFM(cape.dataBook.CaseFM):
+class CaseFM(cape.cfdx.dataBook.CaseFM):
     """
     This class contains methods for reading data about an the history of an
     individual component for a single case.  It reads the file :file:`$comp.dat`
@@ -915,7 +915,7 @@ class CaseFM(cape.dataBook.CaseFM):
     
 
 # Aerodynamic history class
-class CaseResid(cape.dataBook.CaseResid):
+class CaseResid(cape.cfdx.dataBook.CaseResid):
     """
     Iterative history class
     

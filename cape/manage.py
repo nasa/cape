@@ -123,8 +123,8 @@ from datetime import datetime
 import numpy as np
 
 # Local modules, partial imports
-from .options import Archive
-from .bin import check_output, tail
+from .cfdx.options import Archive
+from .cfdx.bin     import check_output, tail
 
 # Write date to archive
 def write_log_date(fname='archive.log'):
@@ -958,7 +958,7 @@ def ManageFilesProgress(opts=None, fsub=None, phantom=False):
     :Call:
         >>> cape.manage.ManageFilesProgress(opts=None,fsub=None,phantom=False)
     :Inputs:
-        *opts*: :class:`cape.options.Options` | :class:`dict`
+        *opts*: :class:`cape.cfdx.options.Options` | :class:`dict`
             Options interface for archiving
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
@@ -985,7 +985,7 @@ def ManageFilesPre(opts=None, fsub=None, phantom=False):
     :Call:
         >>> cape.manage.ManageFilesPre(opts=None, fsub=None)
     :Inputs:
-        *opts*: :class:`cape.options.Options` | :class:`dict`
+        *opts*: :class:`cape.cfdx.options.Options` | :class:`dict`
             Options interface for archiving
         *fsub*: :class:`list` (:class:`str`)
             Number of files to keep
@@ -1012,7 +1012,7 @@ def ManageFilesPost(opts=None, fsub=None, phantom=False):
     :Call:
         >>> cape.manage.ManageFilesPost(opts=None, fsub=None, phantom=False)
     :Inputs:
-        *opts*: :class:`cape.options.Options` | :class:`dict`
+        *opts*: :class:`cape.cfdx.options.Options` | :class:`dict`
             Options interface for archiving
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
@@ -1043,7 +1043,7 @@ def CleanFolder(opts, fsub=[], phantom=False):
     :Call:
         >>> cape.manage.CleanFolder(opts, fsub=[], phantom=False)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface including management/archive interface
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
@@ -1066,7 +1066,7 @@ def ArchiveFolder(opts, fsub=[], phantom=False):
     :Call:
         >>> cape.manage.ArchiveFolder(opts, fsub=[], phantom=False)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface including management/archive interface
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
@@ -1140,7 +1140,7 @@ def UnarchiveFolder(opts):
     :Call:
         >>> cape.manage.UnarchiveFolder(opts)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
         * 2017-03-13 ``@ddalle``: First version
@@ -1261,7 +1261,7 @@ def SkeletonFolder(opts, fsub=[], phantom=False):
     :Call:
         >>> cape.manage.SkeletonFolder(opts, fsub=[], phantom=False)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface including management/archive itnerface
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
@@ -1293,7 +1293,7 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
     :Call:
         >>> manage.ArchiveFiles(opts, fname, fsub=None, n=1, archive=False)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
         *fname*: :class:`str`
             File name or glob of files to delete
@@ -1379,7 +1379,7 @@ def ArchiveCaseWhole(opts):
     :Call:
         >>> ArchiveCaseWhole(opts)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
@@ -1458,7 +1458,7 @@ def UnarchiveCaseWhole(opts):
     :Call:
         >>> UnarchiveCaseWhole(opts)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
         * 2017-03-13 ``@ddalle``: First version
@@ -2437,7 +2437,7 @@ def CreateArchiveFolder(opts):
     :Call:
         >>> CreateArchiveFolder(opts)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
@@ -2471,7 +2471,7 @@ def CreateArchiveCaseFolder(opts):
     :Call:
         >>> CreateArchiveCaseFolder(opts)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
@@ -2530,7 +2530,7 @@ def CreateArchiveGroupFolder(opts):
     :Call:
         >>> CreateArchiveGroupFolder(opts)
     :Inputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
         * 2016-03-14 ``@ddalle``: First version

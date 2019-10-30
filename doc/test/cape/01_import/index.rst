@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 12:34 PDT
+   on 2019-10-24 at 07:15 PDT
 
 Test ``01_import``
 ====================
@@ -29,7 +29,7 @@ The commands executed by this test are
         
         # Import cape module(s)
         import cape
-        import cape.options
+        import cape.cfdx.options
 
 Command 1
 ----------
@@ -45,8 +45,8 @@ Command 1
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.479336 seconds
-    * Cumulative time: 0.479336 seconds
+    * Command took 0.39236 seconds
+    * Cumulative time: 0.39236 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -66,8 +66,8 @@ Command 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.725658 seconds
-    * Cumulative time: 1.20499 seconds
+    * Command took 0.722591 seconds
+    * Cumulative time: 1.11495 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

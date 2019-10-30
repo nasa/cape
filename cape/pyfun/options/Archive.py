@@ -3,7 +3,7 @@
 ===========================================================
 
 This module provides FUN3D-specific modifications to the base archiving options
-module in :mod:`cape.options.Archive`.  Default options for which files to
+module in :mod:`cape.cfdx.options.Archive`.  Default options for which files to
 delete or tar are specific to each solver, and thus a few modifications are
 necessary for each solver in order to define good default values for archiving.
 
@@ -87,7 +87,7 @@ using the following code.  This is the *SkeletonFiles* setting.  Note that
 # Import options-specific utilities
 from .util import rc0
 # Base module
-import cape.options.Archive
+import cape.cfdx.options.Archive
 
 # Tecplot files
 PltDict = [
@@ -182,7 +182,7 @@ def auto_Archive(opts):
 # def auto_Archive
 
 # Class for case management
-class Archive(cape.options.Archive.Archive):
+class Archive(cape.cfdx.options.Archive.Archive):
     """
     Dictionary-based interfaced for options specific to folder management
     

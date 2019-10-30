@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 12:34 PDT
+   on 2019-10-24 at 07:15 PDT
 
 Test ``12_units``
 ===================
@@ -166,8 +166,8 @@ Command 1: Unit Conversions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.488611 seconds
-    * Cumulative time: 0.488611 seconds
+    * Command took 0.466161 seconds
+    * Cumulative time: 0.466161 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -213,8 +213,8 @@ Command 2: Unit Conversions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.688865 seconds
-    * Cumulative time: 1.17748 seconds
+    * Command took 0.69397 seconds
+    * Cumulative time: 1.16013 seconds
 :STDOUT:
     * **PASS**
     * Target:

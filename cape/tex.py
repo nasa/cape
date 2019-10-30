@@ -8,7 +8,7 @@ methods for reading, writing, and organizing lines of text, it contains a
 :func:`Compile` method for compiling the PDF and sparing the user from
 constructing the system command to do so.
 
-See the :mod:`cape.report` module or the
+See the :mod:`cape.cfdx.report` module or the
 :ref:`JSON report page <cape-json-Report>` page for more information.
 
 """

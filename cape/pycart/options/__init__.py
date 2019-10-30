@@ -29,13 +29,13 @@ instance of :class:`cape.pycart.cntl.Cntl`.
         u'input.cntl'
     
 This module and the classes it provides are based heavily on the generic
-version, :mod:`cape.options`.  In addition, the :class:`pyCart.options.Options`
+version, :mod:`cape.cfdx.options`.  In addition, the :class:`pyCart.options.Options`
 class inherits methods from the classes in its submodules, such as
 :mod:`cape.pycart.options.PBS` and :mod:`cape.pycart.options.RunControl`.
 
 :See Also:
-    * :mod:`cape.options`
-    * :mod:`cape.options.util`
+    * :mod:`cape.cfdx.options`
+    * :mod:`cape.cfdx.options.util`
     * :mod:`cape.pycart.options.runControl`
     * :mod:`cape.pycart.options.Mesh`
     * :mod:`cape.pycart.options.pbs`
@@ -49,7 +49,7 @@ class inherits methods from the classes in its submodules, such as
 from .util import *
 
 # Import template module
-import cape.options
+import cape.cfdx.options
 
 # Import modules for controlling specific parts of Cart3D
 from .runControl  import RunControl
@@ -62,7 +62,7 @@ from .Report      import Report
 
 
 # Class definition
-class Options(cape.options.Options):
+class Options(cape.cfdx.options.Options):
     """Options class for pyCart, subclass of :class:`dict`
     
     :Call:

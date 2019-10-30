@@ -3,7 +3,7 @@
 ===============================================================
 
 This module provides OVERFLOW-specific modifications to the base archiving
-options module in :mod:`cape.options.Archive`. Default options for which files
+options module in :mod:`cape.cfdx.options.Archive`. Default options for which files
 to delete or tar are specific to each solver, and thus a few modifications are
 necessary for each solver in order to define good default values for archiving.
 
@@ -94,7 +94,7 @@ The *TailFiles* settings causes pyOver to run the command
 # Import options-specific utilities
 from .util import rc0
 # Base module
-import cape.options.Archive
+import cape.cfdx.options.Archive
 
 # Files to archive
 CopyFiles = [
@@ -188,7 +188,7 @@ def auto_Archive(opts):
 # def auto_Archive
 
 # Class for case management
-class Archive(cape.options.Archive.Archive):
+class Archive(cape.cfdx.options.Archive.Archive):
     """
     Dictionary-based interfaced for options specific to folder management
     

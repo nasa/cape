@@ -39,12 +39,14 @@ the same name as the input file.
     * 2015-10-27 ``@ddalle``: First version
 """
 
-# Command-line interface
+# Standard library modules
+import sys
+import shutil
+
+# CAPE modules
+import cape.text
 import cape.argread
-# JSON expander is in this module
-import cape.options.util
-# System interface
-import sys, shutil
+import cape.cfdx.options.util
 
 
 # Interpreter function
@@ -99,7 +101,7 @@ def ExpandJSON(*a, **kw):
         # Read the file
         lines = open(fi).readlines()
         # Strip the comments and expand subfiles
-        lines = cape.options.util.expandJSONFile(lines)
+        lines = cape.cfdx.options.util.expandJSONFile(lines)
         # Write to the output file
         f = open(fo, 'w')
         f.write(lines)
@@ -112,7 +114,6 @@ if __name__ == "__main__":
     # Check for help flag.
     if 'h' in kw or 'help' in kw:
         # Print help message and exit.
-        import cape.text
         print(cape.text.markdown(__doc__))
         sys.exit()
     # Apply to inputs

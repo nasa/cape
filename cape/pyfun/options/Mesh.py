@@ -20,8 +20,8 @@ The FUN3D version also provides options for *Faux* and *Freeze* (or point to an
 external one) in combination with mesh adaptation.
 
 :See Also:
-    * :mod:`cape.options.Mesh`
-    * :mod:`cape.options.aflr3`
+    * :mod:`cape.cfdx.options.Mesh`
+    * :mod:`cape.cfdx.options.aflr3`
     * :mod:`cape.pyfun.options.runControl`
     * :mod:`cape.pyfun.options.Config`
 """
@@ -29,11 +29,11 @@ external one) in combination with mesh adaptation.
 # Import options-specific utilities
 from .util import rc0, odict
 # Import Cape template
-import cape.options.Mesh
+import cape.cfdx.options.Mesh
 
 
 # Class for FUN3D mesh settings
-class Mesh(cape.options.Mesh):
+class Mesh(cape.cfdx.options.Mesh):
     """Dictionary-based interface for FUN3D meshing options"""
         
     # Get the surface BC map

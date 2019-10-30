@@ -3,14 +3,16 @@
 
 # Import cape module
 import cape
+import cape.cfdx.case
+import cape.cfdx.cmd
 
 # Read settings
-rc = cape.case.ReadCaseJSON()
+rc = cape.cfdx.case.ReadCaseJSON()
 
 # Form command
-cmd1 = cape.cmd.intersect(rc)
+cmd1 = cape.cfdx.cmd.intersect(rc)
 # Alternate form
-cmd2 = cape.cmd.intersect(T=True)
+cmd2 = cape.cfdx.cmd.intersect(T=True)
 
 # Output
 print(' '.join(cmd1))

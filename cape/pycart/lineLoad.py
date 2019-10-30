@@ -3,11 +3,11 @@
 ====================================================
 
 This module contains functions for reading and processing sectional loads. It
-is a version of :mod:`cape.lineLoad` that is closely tied to
+is a version of :mod:`cape.cfdx.lineLoad` that is closely tied to
 :mod:`cape.pycart.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.dataBook.DBBase`.  This class is an interface to
+is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
 all line load data for a specific surface component.
 
 For reading the sectional load for a single solution on one component (which
@@ -17,8 +17,8 @@ Finally, reading seam curves from individual cases utilizes the class
 :class:`CaseSeam`.
 
 :See also:
-    * :mod:`cape.lineLoad`
-    * :mod:`cape.dataBook`
+    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.dataBook`
     * :mod:`cape.pycart.dataBook`
 """
 
@@ -34,11 +34,11 @@ from . import util
 from . import case
 from cape import tar
 # Line load template
-import cape.lineLoad
+import cape.cfdx.lineLoad
 
 
 # Data book of line loads
-class DBLineLoad(cape.lineLoad.DBLineLoad):
+class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
     """Line load (sectional load) data book for one group
     
     :Call:
@@ -102,7 +102,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
     
 
 # Line loads
-class CaseLL(cape.lineLoad.CaseLL):
+class CaseLL(cape.cfdx.lineLoad.CaseLL):
     """Individual class line load class
     
     :Call:
@@ -139,7 +139,7 @@ class CaseLL(cape.lineLoad.CaseLL):
 # class CaseLL
 
 # Class for seam curves
-class CaseSeam(cape.lineLoad.CaseSeam):
+class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
     """Seam curve interface
     
     :Call:
@@ -150,7 +150,7 @@ class CaseSeam(cape.lineLoad.CaseSeam):
         *comp*: :class:`str`
             Name of the component
     :Outputs:
-        *S* :class:`cape.lineLoad.CaseSeam`
+        *S* :class:`cape.cfdx.lineLoad.CaseSeam`
             Seam curve interface
         *S.ax*: ``"x"`` | ``"y"`` | ``"z"``
             Name of coordinate being held constant

@@ -5,9 +5,9 @@
 This module contains several classes for reading and averaging point sensors.
 The database classes, :class:`DBPointSensorGroup` and :class:`DBPointSensor`,
 are based on versions from the generic point sensor module
-:mod:`cape.pointSensor`, while the iterative history class
+:mod:`cape.cfdx.pointSensor`, while the iterative history class
 :class:`CasePointSensor` is based off of the generic
-:class:`cape.dataBook.CaseData` module.
+:class:`cape.cfdx.dataBook.CaseData` module.
 
 Tracking the iterative history of a point sensor requires declaring a point
 sensor in the Cart3D ``input.cntl`` file and requesting information about it at
@@ -17,11 +17,11 @@ At present, there is no support for extracting point sensors from a surface
 solution file (``"TriqPoint"`` data book type).
 
 :See also:
-    * :mod:`cape.pointSensor`
+    * :mod:`cape.cfdx.pointSensor`
     * :mod:`cape.pycart.dataBook`
     * :mod:`cape.pycart.cntl`
     * :mod:`cape.pycart.inputCntl`
-    * :mod:`cape.dataBook`
+    * :mod:`cape.cfdx.dataBook`
 """
 
 # File interface
@@ -39,8 +39,8 @@ from .options   import odict
 from . import util
 
 # Basis module
-import cape.dataBook
-import cape.pointSensor
+import cape.cfdx.dataBook
+import cape.cfdx.pointSensor
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -176,7 +176,7 @@ def get_nStatsPS():
 # end functions
 
 # Data book for group of point sensors
-class DBPointSensorGroup(cape.pointSensor.DBPointSensorGroup):
+class DBPointSensorGroup(cape.cfdx.pointSensor.DBPointSensorGroup):
     """
     Point sensor group data book
     
@@ -282,7 +282,7 @@ class DBPointSensorGroup(cape.pointSensor.DBPointSensorGroup):
 
 
 # Data book of point sensors
-class DBPointSensor(cape.pointSensor.DBPointSensor):
+class DBPointSensor(cape.cfdx.pointSensor.DBPointSensor):
     """
     Point sensor data book
     
@@ -500,7 +500,7 @@ class DBPointSensor(cape.pointSensor.DBPointSensor):
 
 
 # Individual point sensor
-class CasePointSensor(cape.dataBook.CaseData):
+class CasePointSensor(cape.cfdx.dataBook.CaseData):
     """Individual case point sensor history
     
     :Call:

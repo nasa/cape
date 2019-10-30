@@ -26,7 +26,6 @@ The list of classes loaded directly in :mod:`cape`.
     * :class:`cape.cntl.Cntl`
     * :class:`cape.tri.Tri`
     * :class:`cape.tri.Triq`
-    * :func:`cape.case.ReadCaseJSON`
     
 Because Cape is a template module that has no specific solver, few modules are
 loaded directly to :mod:`cape`.  The list of modules loaded are shown below.
@@ -37,19 +36,19 @@ A categorized list of modules available to the API are listed below.
 
     * Core modules
        - :mod:`cape.cntl`
-       - :mod:`cape.options`
-       - :mod:`cape.case`
+       - :mod:`cape.cfdx.options`
+       - :mod:`cape.cfdx.case`
        - :mod:`cape.runmatrix`
-       - :mod:`cape.dataBook`
-       - :mod:`cape.pointSensor`
-       - :mod:`cape.lineLoad`
-       - :mod:`cape.report`
+       - :mod:`cape.cfdx.dataBook`
+       - :mod:`cape.cfdx.pointSensor`
+       - :mod:`cape.cfdx.lineLoad`
+       - :mod:`cape.cfdx.report`
     
     * Primary supporting modules
-       - :mod:`cape.bin`
-       - :mod:`cape.cmd`
+       - :mod:`cape.cfdx.bin`
+       - :mod:`cape.cfdx.cmd`
        - :mod:`cape.argread`
-       - :mod:`cape.queue`
+       - :mod:`cape.cfdx.queue`
        - :mod:`cape.io`
        - :mod:`cape.manage`
         
@@ -74,7 +73,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.geom`
        - :mod:`cape.tar`
        - :mod:`cape.text`
-       - :mod:`cape.volcomp`
+       - :mod:`cape.cfdx.volcomp`
     
 
 :Versions:
@@ -83,13 +82,20 @@ A categorized list of modules available to the API are listed below.
     * Version 0.9.2: 2019-09-17
 """
 
-# File system and operating system management
+# Standard library modules
 import os
 
-# Save version number
-version = "0.9.2"
-__version__ = version
+# Import classes and methods from the submodules
+from .tri    import Tri, Triq
+from .cntl   import Cntl
 
+# Submodules
+from . import manage
+
+
+# Save version number
+version = "1.0pre0"
+__version__ = version
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -97,16 +103,4 @@ _fname = os.path.abspath(__file__)
 # Saved folder names
 CapeFolder = os.path.split(_fname)[0]
 TemplateFolder = os.path.join(CapeFolder, "templates")
-
-
-# Import classes and methods from the submodules
-from .tri    import Tri, Triq
-from .cntl   import Cntl
-from .case   import ReadCaseJSON
-
-# Get the conversion tools directly.
-from .convert import *
-
-# Submodules
-from . import manage
 

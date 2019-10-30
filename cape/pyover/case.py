@@ -1,6 +1,6 @@
 """
-:mod:`cape.pyover.case`: Case control module
-=============================================
+:mod:`cape.pyover.case`: OVERFLOWase control module
+=====================================================
 
 This module contains the important function :func:`case.run_overflow`, which
 actually runs ``overrunmpi`` or whichever executable is specified by the user,
@@ -19,11 +19,23 @@ available unless specifically overwritten by specific :mod:`cape.pyover` version
 
 """
 
+# Standard library modules
+import os
+import glob
+import json
+import shutil
+import resource
+import re
+
+# Standard library direct imports
+from datetime import datetime
+
 # Numerics
 import numpy as np
 
-# Import cape stuff
-from cape.case import *
+# Template CAPE module
+import cape.cfdx.case as cc
+
 # Import options class
 from .options.runControl import RunControl
 # Import the namelist
@@ -69,7 +81,7 @@ def run_overflow():
     if os.path.isfile('over.namelist') or os.path.islink('over.namelist'):
         os.remove('over.namelist')
     # Prepare environment variables (other than OMP_NUM_THREADS)
-    PrepareEnvironment(rc, i)
+    cc.PrepareEnvironment(rc, i)
     # Create the correct namelist.
     shutil.copy('%s.%02i.inp' % (fproj,i+1), 'over.namelist')
     # Get the `nodet` or `nodet_mpi` command
@@ -302,7 +314,7 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
     """
     global twall, dtwall
     # Call the function from :mod:`cape.case`
-    WriteUserTimeProg(tic, rc, i, fname, 'run_overflow.py')
+    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_overflow.py')
     # Modify the total time used
     try:
         # Get the result
@@ -351,7 +363,7 @@ def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
         * 2016-08-31 ``@ddalle``: First version
     """
     # Call the function from :mod:`cape.case`
-    WriteStartTimeProg(tic, rc, i, fname, 'run_overflow.py')
+    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_overflow.py')
     
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):
