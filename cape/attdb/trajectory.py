@@ -122,15 +122,16 @@ class Trajectory(dict):
         # Initialize count (for null cases)
         self.n = 0
         # Loop through list of keys
-        for k in kw:
-            # Get value
-            v = np.asarray(kw[k])
+        for k, v in kw.items():
+            # Check for array
+            if not isinstance(v, (list, np.ndarray)):
+                continue
             # Size
             self.n = len(v)
             # Set value per usual syntax
-            self[k] = v
+            self[k] = np.asarray(v)
             # Set value as attribute
-            setattr(self,k, v)
+            setattr(self,k, self[k])
             
     # Display method
     def __repr__(self):
