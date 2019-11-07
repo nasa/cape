@@ -60,7 +60,7 @@ class Tecscript(cape.tecplot.Tecscript):
         *fname*: :class:`str`
             Name of Tecplot script to read
     :Outputs:
-        *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+        *tec*: :class:`pyCart.tecplot.Tecscript`
             Instance of Tecplot script base class
     :Versions:
         * 2015-02-26 ``@ddalle``: Started

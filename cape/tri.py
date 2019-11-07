@@ -798,7 +798,7 @@ class TriBase(object):
         :Call:
             >>> tri.ReadNodes(f, nNode)
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *f*: :class:`file`
                 Open file handle
@@ -830,7 +830,7 @@ class TriBase(object):
         :Call:
             >>> tri.ReadNodesSurf(f, nNode)
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *f*: :class:`file`
                 Open file handle
@@ -873,7 +873,7 @@ class TriBase(object):
         :Call:
             >>> tri.ReadTris(f, nTri)
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *f*: :class:`file`
                 Open file handle
@@ -898,7 +898,7 @@ class TriBase(object):
         :Call:
             >>> tri.ReadTrisSurf(f, nTri)
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *f*: :class:`file`
                 Open file handle
@@ -948,7 +948,7 @@ class TriBase(object):
         :Call:
             >>> tri.ReadQuadsSurf(f, nQuad)
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *f*: :class:`file`
                 Open file handle
@@ -997,7 +997,7 @@ class TriBase(object):
         :Call:
             >>> tri.ReadCompID(f)
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *f*: :class:`str`
                 Open file handle
@@ -1027,7 +1027,7 @@ class TriBase(object):
         :Call:
             >>> triq.ReadQ(f, nNode, nq)
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *f*: :class:`file`
                 Open file handle
@@ -3231,7 +3231,7 @@ class TriBase(object):
         :Call:
             >>> tri.WriteVolTri(fname='Components.c.tri')
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of .tri file for use as input to `intersect`
@@ -3281,7 +3281,7 @@ class TriBase(object):
         :Call:
             >>> tri.WriteCompIDTri(fname='Components.c.tri')
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of .tri file to use for mapping intersected tris
@@ -3324,7 +3324,7 @@ class TriBase(object):
         :Call:
             >>> tri.WriteFarfieldTri(fname='Components.f.tri')
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of .tri file to use for mapping intersected tris
@@ -3365,9 +3365,9 @@ class TriBase(object):
         :Call:
             >>> tri.MapSubCompID(tric, compID, iA=0, iB=-1)
         :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
-            *tric*: :class:`cape.tri.TriBase` or derivative
+            *tric*: :class:`cape.tri.TriBase`
                 Triangulation with more desirable CompIDs to be copied
             *compID*: :class:`int`
                 Component ID to map from *tric*

@@ -90,7 +90,8 @@ def chdir_up():
     # Update or create the archive.
     ierr = tar(ftar, fpwd)
     # Check for failure.
-    if ierr: return
+    if ierr:
+        return
     # Delete the folder.
     shutil.rmtree(fpwd)
 

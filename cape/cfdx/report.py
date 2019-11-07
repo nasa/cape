@@ -89,13 +89,13 @@ class Report(object):
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
-        *R*: :class:`cape.cfdx.report.Report` or derivative
+        *R*: :class:`cape.cfdx.report.Report`
             Automated report interface
-        *R.cntl*: :class:`cape.cntl.Cntl` or derivative
+        *R.cntl*: :class:`cape.cntl.Cntl`
             Overall solver control interface
         *R.rep*: :class:`str`
             Name of report, same as *rep*
-        *R.opts*: :class:`cape.cfdx.options.Report.Report` or derivative
+        *R.opts*: :class:`cape.cfdx.options.Report.Report`
             Options specific to report *rep*
         *R.cases*: :class:`dict` (:class:`cape.tex.Tex`)
             Dictionary of LaTeX handles for each single-case page

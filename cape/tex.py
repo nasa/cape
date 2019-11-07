@@ -35,7 +35,7 @@ class Tex(FileCntl):
         *fname*: :class:`str`
             Name of LaTex report file to read/write
     :Outputs:
-        *TX*: :class:`cape.tex.Tex` or derivative
+        *TX*: :class:`cape.tex.Tex`
             Instance of LaTeX report interface
     :Versions:
         * 2015-03-07 ``@ddalle``: Started
@@ -79,7 +79,7 @@ class Tex(FileCntl):
         :Call:
             >>> TX.Compile(check=True)
         :Inputs:
-            *TX*: :class:`cape.tex.Tex` or derivative
+            *TX*: :class:`cape.tex.Tex`
                 Instance of LaTeX report interface
             *check*: {``True``} | ``False``
                 Whether or not to fail if there is a nonzero compile status

@@ -89,7 +89,7 @@ class Tecscript(FileCntl):
         *fname*: :class:`str`
             Name of Tecplot script to read
     :Outputs:
-        *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+        *tec*: :class:`pyCart.tecplot.Tecscript`
             Instance of Tecplot script base class
     :Versions:
         * 2015-02-26 ``@ddalle``: Started
@@ -116,7 +116,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.UpdateCommands()
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
         :Effects:
             *tec.icmd*: :class:`list` (:class:`int`)
@@ -140,7 +140,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.InsertLines(i, lines)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Index at which to insert the first line
@@ -172,7 +172,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> v = tec.ConvertToval(val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script interface
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
@@ -209,7 +209,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> lines = tec.KeyToText(key, val, m=0)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script/layout interface
             *key*: :class:`str`
                 Name of the key
@@ -272,7 +272,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetVar(key, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *key*: :class:`str`
                 Name of variable
@@ -297,7 +297,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetMach(mach)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *mach*: :class:`float`
                 Freestream Mach number
@@ -326,7 +326,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> ibeg, iend = tec.GetCommand(cmd, n=0)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -374,7 +374,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> ibeg, iend = tec.GetCommandByPar(cmd, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -409,7 +409,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> ibeg, iend = tec.GetCommandByKey(cmd, key, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -459,7 +459,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.InsertCommand(k, cmd, txt="", lines=[])
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+            *tec*: :class:`pyCart.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *k*: :class:`int`
                 Default command index at which to insert command
@@ -501,7 +501,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.ReplaceCommand(cmd,txt="",lines=[],k=1,reg=None,regs=None)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to replace
@@ -538,7 +538,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> kcmd = tec.DeleteCommand(cmd, txt=None, lines=None)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to delete
@@ -608,7 +608,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> kcmd = tec.DeleteCommandN(cmd, n=0)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to delete
@@ -651,7 +651,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetPar(cmd, val, n)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecsript` or derivative
+            *tec*: :class:`cape.tecplot.Tecsript`
                 Instance of Tecplot script
             *cmd*: :class:`str`
                 Name of command
@@ -682,7 +682,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> val = tec.GetPar(cmd, n=0)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecsript` or derivative
+            *tec*: :class:`cape.tecplot.Tecsript`
                 Instance of Tecplot script
             *cmd*: :class:`str`
                 Name of command
@@ -720,7 +720,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> key, val, m = tec.ReadKey(i)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Line number on which to start
@@ -817,7 +817,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.WriteKey(i, key, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Line number on which to start
@@ -852,7 +852,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.InsertKey(i, key, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Line number on which to start
@@ -880,7 +880,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> val = tec.GetKey(cmd, key, n=0, par=None, k=None, v=None)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -933,7 +933,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetKey(cmd, key, val, n=0, par=None, k=None, v=None)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -995,7 +995,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetContourLevels(n, V)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *n*: :class:`int`
                 Contour map number (as labeled in layout file)
@@ -1019,7 +1019,7 @@ class Tecscript(FileCntl):
             >>> tec.EditColorMap(name, cmap, vmin=None, vmax=None, **kw)
             >>> tec.EditColorMap(name, {f0:c0, f1:c1, f2:c2, ...}, ... )
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script
             *cmap*: :class:`dict` (:class:`list`)
                 Dictionary of color map fractions and colors

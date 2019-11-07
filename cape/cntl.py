@@ -2337,7 +2337,7 @@ class Cntl(object):
         :Call:
             >>> lbl = cntl.GetPBSName(i, pre=None)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl` or derivative
+            *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index

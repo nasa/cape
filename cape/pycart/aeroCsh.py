@@ -60,7 +60,7 @@ class AeroCsh(FileCntl):
             >>> FC.Write()
             >>> FC.Write(fname)
         :Inputs:
-            *FC*: :class:`pyCart.fileCnftl.FileCntl` or derivative
+            *FC*: :class:`pyCart.fileCnftl.FileCntl`
                 File control instance, defaults to *FC.fname*
             *fname*: :class:`str`
                 Name of file to write to
