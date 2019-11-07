@@ -21,8 +21,9 @@ The primary functions and their actions are:
 
 """
 
-# System interface
-import os, shutil
+# Standard library
+import os
+import shutil
 import subprocess as sp
 
 # Simple function to untar a folder
@@ -44,7 +45,8 @@ def untar(ftar):
     ierr = sp.call(['tar', '-xf', ftar])
     # Output
     return ierr
-    
+
+
 # Function to tar a folder
 def tar(ftar, *a):
     """Untar an archive
@@ -69,6 +71,7 @@ def tar(ftar, *a):
     # Output
     return ierr
 
+
 # Function to leave a folder and archive it.
 def chdir_up():
     """Leave a folder, archive it, and delete the folder
@@ -90,7 +93,8 @@ def chdir_up():
     if ierr: return
     # Delete the folder.
     shutil.rmtree(fpwd)
-    
+
+
 # Function to go into a folder that might be archived.
 def chdir_in(fdir):
     """Go into a folder that may be archived
@@ -118,4 +122,4 @@ def chdir_in(fdir):
             untar(ftar)
     # Go into the folder.
     os.chdir(fdir)
-    
+
