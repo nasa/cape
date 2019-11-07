@@ -74,8 +74,8 @@ from cape.filecntl import tex
 from .. import tar
 
 # Paraview/Tecplot interfaces
-from .bin      import pvpython
-from ..tecplot import ExportLayout, Tecscript
+from .bin import pvpython
+from cape.filecntl.tecplot import ExportLayout, Tecscript
 
 # Class to interface with report generation and updating.
 class Report(object):
@@ -4694,7 +4694,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -4721,7 +4721,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -4776,7 +4776,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -4811,7 +4811,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -4880,7 +4880,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options

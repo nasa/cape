@@ -1,6 +1,6 @@
 """
-:mod:`cape.tecplot`: Interface to Tecplot scripts 
-======================================================
+:mod:`cape.filecntl.tecplot`: Interface to Tecplot scripts 
+===========================================================
 
 This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating Tecplot layout files and macros.
@@ -14,8 +14,8 @@ The class provides two classes, the first of which is the generic version
 typically used for layout files.  The second class has a few extra methods for
 handling Tecplot macros specifically.
 
-    * :class:`cape.tecplot.Tecsript`
-    * :class:`cape.tecplot.TecMacro`
+    * :class:`cape.filecntl.tecplot.Tecsript`
+    * :class:`cape.filecntl.tecplot.TecMacro`
 
 :See also:
     * :mod:`cape.filecntl`
@@ -31,13 +31,12 @@ import shutil
 import numpy as np
 
 # CAPE modules
-from cape.filecntl import FileCntl
-# Import color conversion tools
-from cape.color import ToRGB, Hex2RGB
+from cape.cfdx.bin import tecmcr
+from cape.color    import ToRGB, Hex2RGB
+from cape.util     import TecFolder
 
-# CAPE modules: direct import
-from .cfdx.bin import tecmcr
-from .util     import TecFolder
+# Local modules
+from .filecntl import FileCntl
 
 
 # Stand-alone function to run a Tecplot layout file
@@ -83,8 +82,8 @@ class Tecscript(FileCntl):
     File control class for Tecplot script files
     
     :Call:
-        >>> tec = cape.tecplot.Tecscript()
-        >>> tec = cape.tecplot.Tecscript(fname="layout.lay")
+        >>> tec = cape.filecntl.tecplot.Tecscript()
+        >>> tec = cape.filecntl.tecplot.Tecscript(fname="layout.lay")
     :Inputs:
         *fname*: :class:`str`
             Name of Tecplot script to read
@@ -116,7 +115,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.UpdateCommands()
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
         :Effects:
             *tec.icmd*: :class:`list` (:class:`int`)
@@ -140,7 +139,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.InsertLines(i, lines)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Index at which to insert the first line
@@ -172,7 +171,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> v = tec.ConvertToval(val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script interface
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
@@ -209,7 +208,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> lines = tec.KeyToText(key, val, m=0)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script/layout interface
             *key*: :class:`str`
                 Name of the key
@@ -272,7 +271,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetVar(key, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *key*: :class:`str`
                 Name of variable
@@ -297,7 +296,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetMach(mach)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *mach*: :class:`float`
                 Freestream Mach number
@@ -326,7 +325,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> ibeg, iend = tec.GetCommand(cmd, n=0)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -374,7 +373,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> ibeg, iend = tec.GetCommandByPar(cmd, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -409,7 +408,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> ibeg, iend = tec.GetCommandByKey(cmd, key, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -501,7 +500,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.ReplaceCommand(cmd,txt="",lines=[],k=1,reg=None,regs=None)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to replace
@@ -538,7 +537,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> kcmd = tec.DeleteCommand(cmd, txt=None, lines=None)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to delete
@@ -608,7 +607,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> kcmd = tec.DeleteCommandN(cmd, n=0)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to delete
@@ -651,7 +650,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetPar(cmd, val, n)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecsript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecsript`
                 Instance of Tecplot script
             *cmd*: :class:`str`
                 Name of command
@@ -682,7 +681,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> val = tec.GetPar(cmd, n=0)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecsript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecsript`
                 Instance of Tecplot script
             *cmd*: :class:`str`
                 Name of command
@@ -720,7 +719,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> key, val, m = tec.ReadKey(i)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Line number on which to start
@@ -817,7 +816,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.WriteKey(i, key, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Line number on which to start
@@ -852,7 +851,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.InsertKey(i, key, val)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Line number on which to start
@@ -880,7 +879,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> val = tec.GetKey(cmd, key, n=0, par=None, k=None, v=None)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -933,7 +932,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetKey(cmd, key, val, n=0, par=None, k=None, v=None)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to find
@@ -995,7 +994,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetContourLevels(n, V)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
             *n*: :class:`int`
                 Contour map number (as labeled in layout file)
@@ -1019,7 +1018,7 @@ class Tecscript(FileCntl):
             >>> tec.EditColorMap(name, cmap, vmin=None, vmax=None, **kw)
             >>> tec.EditColorMap(name, {f0:c0, f1:c1, f2:c2, ...}, ... )
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script
             *cmap*: :class:`dict` (:class:`list`)
                 Dictionary of color map fractions and colors
@@ -1146,7 +1145,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetFieldMap(grps)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script interface
             *grps*: :class:`list` (:class:`int`)
                 List of last zone number in each ``FIELDMAP`` section
@@ -1185,7 +1184,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetSlice(n=1, **kw)
         :Inputs:
-            *tec*: :class:`cape.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script interface
             *n*: {``1``} | positive :class:`int`
                 Slice number to edit
@@ -1234,7 +1233,7 @@ class TecMacro(Tecscript):
         *fname*: :class:`str`
             Name of Tecplot script to read
     :Outputs:
-        *tec*: :class:`cape.tecplot.TecMacro`
+        *tec*: :class:`cape.filecntl.tecplot.TecMacro`
             Instance of Tecplot macro interface
     :Versions:
         * 2015-03-10 ``@ddalle``: First version
@@ -1257,7 +1256,7 @@ class TecMacro(Tecscript):
         :Call:
             >>> tec.SetExportFormat(fmt="PNG")
         :Inputs:
-            *tec*: :class:`cape.tecplot.TecMacro`
+            *tec*: :class:`cape.filecntl.tecplot.TecMacro`
                 Instance of Tecplot macro interface
             *fmt*: :class:`str`
                 Export format
@@ -1276,7 +1275,7 @@ class TecMacro(Tecscript):
         :Call:
             >>> tec.SetLayout(lay="layout.lay")
         :Inputs:
-            *tec*: :class:`cape.tecplot.TecMacro`
+            *tec*: :class:`cape.filecntl.tecplot.TecMacro`
                 Instance of Tecplot macro interface
             *lay*: :class:`str`
                 Tecplot layout file name
@@ -1295,7 +1294,7 @@ class TecMacro(Tecscript):
         :Call:
             >>> tec.SetExportFileName(fname="export.png")
         :Inputs:
-            *tec*: :class:`cape.tecplot.TecMacro`
+            *tec*: :class:`cape.filecntl.tecplot.TecMacro`
                 Instance of Tecplot macro interface
             *fname*: :class:`str`
                 Export image file name
@@ -1314,7 +1313,7 @@ class TecMacro(Tecscript):
         :Call:
             >>> tec.SetImageWidth(w=1024)
         :Inputs:
-            *tec*: :class:`cape.tecplot.TecMacro`
+            *tec*: :class:`cape.filecntl.tecplot.TecMacro`
                 Instance of Tecplot macro interface
             *w*: :class:`int`
                 Image width in pixels

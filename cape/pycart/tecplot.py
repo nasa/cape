@@ -4,7 +4,7 @@
 
 This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating Tecplot layout files and macros.  The Cart3D version of this
-module is based off of the generic version :mod:`cape.tecplot` with minimal
+module is based off of the generic version :mod:`cape.filecntl.tecplot` with minimal
 modifications.
 
 The module allows users to edit quantities of any layout command in addition to
@@ -25,7 +25,7 @@ handling Tecplot macros specifically.
 """
 
 # Import the base file control class.
-import cape.tecplot
+import cape.filecntl.tecplot
 
 
 # Stand-alone function to run a Tecplot layout file
@@ -46,10 +46,10 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):
     :Versions:
         * 2015-03-10 ``@ddalle``: First version
     """
-    cape.tecplot.ExportLayout(lay=lay, fname=fname, fmt=fmt, w=w)
+    cape.filecntl.tecplot.ExportLayout(lay=lay, fname=fname, fmt=fmt, w=w)
     
 # Aerodynamic history class
-class Tecscript(cape.tecplot.Tecscript):
+class Tecscript(cape.filecntl.tecplot.Tecscript):
     """
     File control class for Tecplot script files
     
@@ -72,7 +72,7 @@ class Tecscript(cape.tecplot.Tecscript):
 
 
 # Tecplot macro
-class TecMacro(cape.tecplot.TecMacro):
+class TecMacro(cape.filecntl.tecplot.TecMacro):
     """
     File control class for Tecplot macr files
     

@@ -28,7 +28,6 @@ The :mod:`cape` module
     runmatrix
     step
     tar
-    tecplot
     text
     tri
     util
