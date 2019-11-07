@@ -61,16 +61,15 @@ import glob
 # Numerics
 import numpy as np
 
-# Import basis module
+# CAPE modules
 import cape.cfdx.report
+from cape.filecntl import tex
+from cape          import tar
 
-# Local modules needed
-from cape import tex, tar
-# Data book and plotting
+# Local modules
 from .dataBook import CaseFM, CaseResid
-# Folder and Tecplot management
-from .case    import LinkPLT
-from .tecplot import ExportLayout, Tecscript
+from .case     import LinkPLT
+from .tecplot  import ExportLayout, Tecscript
 
 
 # Class to interface with report generation and updating.

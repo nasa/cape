@@ -66,7 +66,7 @@ appropriate, even if the specified section does not exist.
 :See also:
     * :mod:`cape.pyfun.namelist`
     * :mod:`cape.pyfun.cntl`
-    * :mod:`cape.namelist`
+    * :mod:`cape.filecntl.namelist`
 """
 
 # Ipmort options-specific utilities

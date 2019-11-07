@@ -2,7 +2,7 @@
 :mod:`cape.pyover.tecplot`: Interface to OVERFLOW Tecplot scripts 
 ==================================================================
 
-This is a module built off of the :mod:`cape.fileCntl` module customized for
+This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating Tecplot layout files and macros.  The OVERFLOW version of this
 module is based off of the generic version :mod:`cape.tecplot` with minimal
 modifications.
@@ -20,7 +20,7 @@ handling Tecplot macros specifically.
     * :class:`pyOver.tecplot.TecMacro`
 
 :See also:
-    * :mod:`cape.fileCntl`
+    * :mod:`cape.filecntl`
     * :mod:`cape.cfdx.report`
 """
 

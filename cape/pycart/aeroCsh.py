@@ -2,7 +2,7 @@
 :mod:`cape.pycart.aeroCsh`: Cart3D ``aero.csh`` interface
 =========================================================
 
-This is a module built off of the :mod:`cape.fileCntl` module customized for
+This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating :file:`aero.csh` files.  Such files are actually C shell scripts
 copied into each run directory that operate adaptive runs of Cart3D.  The
 primary action of the :class:`pyCart.aeroCsh.AeroCsh` is to set the values of
@@ -17,14 +17,12 @@ addition to the overall mesh adaptation parameters set in
 :mod:`cape.pycart.options.runControl.Adaptation`.
     
 :See Also:
-    * :mod:`cape.fileCntl`
+    * :mod:`cape.filecntl`
     * :mod:`cape.pycart.cntl`
 """
 
 # Import the base file control class.
-from cape.fileCntl import FileCntl, _num, _float
-
-# Make sure the thing
+from cape.filecntl.filecntl import FileCntl, _num, _float
 
 # Base this class off of the main file control class.
 class AeroCsh(FileCntl):

@@ -2,7 +2,7 @@
 :mod:`cape.pycart.inputCntl`: Cart3D ``input.cntl`` interface
 ==============================================================
 
-This is a module built off of the :mod:`cape.fileCntl` module customized for
+This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating :file:`input.cntl` files.  Such files are split into section by
 lines of the format
 
@@ -22,12 +22,12 @@ that can be divided into several categories:
     * Tools inherited from the file control class
     
 :See Also:
-    * :mod:`cape.fileCntl`
+    * :mod:`cape.filecntl`
     * :mod:`cape.pycart.cntl`
 """
 
 # Import the base file control class.
-from cape.fileCntl import FileCntl, _num, _float
+from cape.filecntl.filecntl import FileCntl, _num, _float
 
 # Base this class off of the main file control class.
 class InputCntl(FileCntl):

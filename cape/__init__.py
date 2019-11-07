@@ -53,12 +53,12 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.manage`
         
     * File interfaces
-       - :mod:`cape.fileCntl`
+       - :mod:`cape.filecntl`
        - :mod:`cape.tri`
        - :mod:`cape.cgns`
        - :mod:`cape.msh`
-       - :mod:`cape.namelist`
-       - :mod:`cape.namelist2`
+       - :mod:`cape.filecntl.namelist`
+       - :mod:`cape.filecntl.namelist2`
        - :mod:`cape.plot3d`
        - :mod:`cape.plt`
        - :mod:`cape.step`

@@ -1,11 +1,11 @@
 .. Documentation for the overall cape module.
 
-**********************
-The :mod:`cape` module
-**********************
+*************************************************
+:mod:`cape.cfdx`: Templates for CFD control tools
+*************************************************
 
 
-.. automodule:: cape
+.. automodule:: cape.cfdx
     
 
 .. toctree::

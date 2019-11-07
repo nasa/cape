@@ -134,7 +134,7 @@ key classes that form the basis for the key pyCart functionality.
     +------------------------------------+------------------------------------+
     |:class:`cape.cfdx.report.Report`    | Interface to automated reports     |
     +------------------------------------+------------------------------------+
-    |:class:`cape.fileCntl.FileCntl`     | Template for interacting with all  |
+    |:class:`cape.filecntl.FileCntl`     | Template for interacting with all  |
     |                                    | settings files                     |
     +------------------------------------+------------------------------------+
     |:class:`cape.namelist.Namelist`     | Class for reading Fortran namelists|

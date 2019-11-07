@@ -52,19 +52,24 @@ example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
     
 """
 
-# File system interface
-import os, json, shutil, glob
-# Numerics
+# Standard library
+import os
+import glob
+import json
+import shutil
+
+# Third-party modules
 import numpy as np
 
-# Import basis module
+# CAPE modules
 import cape.cfdx.report
+# CAPE submodules
+from cape.filecntl import tex
+from cape          import tar
 
-# Local modules needed
-from cape import tex, tar
-# Folder/run management
+# Local modules
 from . import case
-# DataBook and Tecplot management
+# Local submodules
 from .dataBook import CaseFM, CaseResid
 from .tecplot  import ExportLayout, Tecscript
 

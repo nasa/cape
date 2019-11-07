@@ -52,24 +52,28 @@ example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
     
 """
 
-# File system interface
-import os, json, shutil, glob
-# Numerics
+# Standard library
+import os
+import json
+import glob
+import shutil
+
+# Third-party modules
 import numpy as np
 
-# Import basis module
+# CAPE modules
 import cape.cfdx.report
 
-# Local modules needed
-from cape import tex, tar
-# Data book and plotting
+# Direct CAPE imports
+from cape.filecntl import tex
+from cape          import tar
+
+# Local modules
 from .dataBook import CaseFM, CaseResid
-# Folder and Tecplot management
-from .case    import LinkPLT
-from .tecplot import ExportLayout, Tecscript
-# Configuration and surface tri
-from .tri    import Tri
-from .config import Config
+from .case     import LinkPLT
+from .tecplot  import ExportLayout, Tecscript
+from .tri      import Tri
+from .config   import Config
 
 # Dedicated function to load pointSensor only when needed.
 def ImportPointSensor():

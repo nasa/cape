@@ -70,7 +70,7 @@ import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
-from .. import tex
+from cape.filecntl import tex
 from .. import tar
 
 # Paraview/Tecplot interfaces

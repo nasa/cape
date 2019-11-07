@@ -12,26 +12,23 @@ The :mod:`cape` module
     :maxdepth: 2
     
     cfdx/index
+    filecntl/index
     argread
     atm
     cgns
     cntl
     config
     convert
-    fileCntl
     geom
     io
     manage
     msh
-    namelist
-    namelist2
     plot3d
     plt
     runmatrix
     step
     tar
     tecplot
-    tex
     text
     tri
     util

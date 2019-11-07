@@ -65,10 +65,12 @@ FUN3D boundary condition indices.
 
 """
 
-# System interface
+# Standard library
 import os
-# Numerics
+
+# Third-party modules
 import numpy as np
+
 
 # MapBC class
 class MapBC(object):

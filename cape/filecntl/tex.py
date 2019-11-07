@@ -1,27 +1,27 @@
 """
-:mod:`cape.tex`: Interface to LaTeX files
-=============================================
+:mod:`cape.filecntl.tex`: Interface to LaTeX files
+=====================================================
 
-This is a module built off of the :class:`cape.fileCntl.FileCntl` class
-customized for manipulating Cape's automated reports.  In addition to containing
-methods for reading, writing, and organizing lines of text, it contains a
-:func:`Compile` method for compiling the PDF and sparing the user from
-constructing the system command to do so.
+This is a module built off of the :class:`cape.filecntl.FileCntl` class
+customized for manipulating Cape's automated reports.  In addition to
+containing methods for reading, writing, and organizing lines of text,
+it contains a :func:`Compile` method for compiling the PDF and sparing
+the user from constructing the system command to do so.
 
 See the :mod:`cape.cfdx.report` module or the
 :ref:`JSON report page <cape-json-Report>` page for more information.
 
 """
 
-# Import the base file control class.
-from .fileCntl import FileCntl, _num, _float
-
-# File interface
+# Standard library
 import os
 import subprocess as sp
 
-# Numerics
+# Third-party modules
 import numpy as np
+
+# Local modules
+from .filecntl import FileCntl, _num, _float
 
 # Base this class off of the main file control class.
 class Tex(FileCntl):

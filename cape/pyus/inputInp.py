@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 :mod:`cape.pyus.inputInp`: US3D primary input file interface
-========================================================
+===============================================================
 
-This is a module built off of the :mod:`cape.fileCntl.FileCntl` module
+This is a module built off of the :mod:`cape.filecntl.FileCntl` module
 customized for manipulating US3D input files.  Such files are split into
 "blocks" with a syntax such as the following:
 
@@ -46,16 +46,15 @@ import re
 import numpy as np
 
 # Base file control class
-import cape.fileCntl
-import cape.namelist
+import cape.filecntl.namelist
 import cape.convert
 
 # Base this class off of the main file control class
-class InputInp(cape.namelist.Namelist):
+class InputInp(cape.filecntl.namelist.Namelist):
     """
     Input file class for US3D primary input files
     
-    This class is derived from the :class:`cape.fileCntl.FileCntl` class, so
+    This class is derived from the :class:`cape.filecntl.FileCntl` class, so
     all methods applicable to that class can also be used for instances of this
     class.
     
@@ -439,7 +438,7 @@ class InputInp(cape.namelist.Namelist):
             *val*: {*vdef*} | :class:`any`
                 Converted value if found; else *vdef*
         :See also:
-            * :func:`cape.namelist.Namelist.ConvertToVal`
+            * :func:`cape.filecntl.namelist.Namelist.ConvertToVal`
             * :func:`pyUS.inputInp.InputInp.SetSectionTableValue`
         :Versions:
             * 2019-06-06 ``@ddalle``: First version
@@ -495,7 +494,7 @@ class InputInp(cape.namelist.Namelist):
             *table*: :class:`list`
                 List of values in each row
         :See also:
-            * :func:`cape.namelist.Namelist.ConvertToVal`
+            * :func:`cape.filecntl.namelist.Namelist.ConvertToVal`
             * :func:`pyUS.inputInp.InputInp.GetSectionTableValue`
         :Versions:
             * 2019-06-19 ``@ddalle``: First version
@@ -548,7 +547,7 @@ class InputInp(cape.namelist.Namelist):
             *I*: :class:`list`\ [:class:`int`]
                 List of values in each row
         :See also:
-            * :func:`cape.namelist.Namelist.ConvertToVal`
+            * :func:`cape.filecntl.namelist.Namelist.ConvertToVal`
             * :func:`pyUS.inputInp.InputInp.GetSectionTableValue`
         :Versions:
             * 2019-06-19 ``@ddalle``: First version

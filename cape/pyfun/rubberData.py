@@ -10,16 +10,20 @@ mesh adaptation.  It provides a single class
 of this customized data file.
 
 :See also:
-    * :mod:`cape.fileCntl`
+    * :mod:`cape.filecntl`
     * :mod:`cape.pyfun.cntl`
     * :func:`cape.pyfun.cntl.Cntl.ReadRubberData`
     * :func:`cape.pyfun.cntl.Cntl.PrepareRubberData`
 """
 
-# Numerics
+# Standard library
+import re
+
+# Third-party modules
 import numpy as np
-# File control interface
-from cape.fileCntl import FileCntl, re
+
+# CAPE modules
+from cape.filecntl.filecntl import FileCntl
 
 # ``rubber.data`` class
 class RubberData(FileCntl):

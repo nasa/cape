@@ -2,7 +2,7 @@
 :mod:`cape.pyover.overNamelist`: OVERFLOW namelist module 
 ==============================================================
 
-This is a module built off of the :mod:`cape.fileCntl.FileCntl` module
+This is a module built off of the :mod:`cape.filecntl.FileCntl` module
 customized for manipulating Fortran namelists and customized for the OVERFLOW
 input file ``overflow.inp``. Such files are split into sections which are
 called "name lists." Each name list has syntax similar to the following.
@@ -18,7 +18,7 @@ called "name lists." Each name list has syntax similar to the following.
 The main feature of this module is methods to set specific properties of a
 namelist file, for example the Mach number or CFL number.
 
-The difference between this module and :class:`cape.namelist.Namelist` is that
+The difference between this module and :class:`cape.filecntl.namelist.Namelist` is that
 this module can support multiple namelists with the same title.  This is
 particularly important for Overflow, which has ``GRDNAM``, ``BCINP``, and other
 sections defined for each structured grid.  These modules should be combined as
@@ -33,7 +33,7 @@ can both read and set values in the namelist. The key functions are
     * :func:`OverNamelist.SetKeyInGroupIndex`
     
 For rules on converting Fortran namelist text to and from Python syntax, see
-:mod:`cape.namelist`.
+:mod:`cape.filecntl.namelist`.
 
 In most cases, the :class:`OverNamelist` will try to interpret invalid values
 for any namelist entry as a string with missing quotes. The reason for this is
@@ -43,7 +43,7 @@ similar.
 
 See also:
 
-    * :mod:`cape.namelist2`
+    * :mod:`cape.filecntl.namelist2`
     * :mod:`cape.pyover.cntl`
     * :func:`cape.pyover.cntl.Cntl.PrepareNamelist`
     * :func:`cape.pyover.cntl.Cntl.ReadNamelist`
@@ -54,7 +54,7 @@ See also:
 import numpy as np
 
 # Import the base file control class.
-import cape.namelist2
+import cape.filecntl.namelist2
 
 # Function to compare boundary indices
 def gti(a, b):
@@ -241,7 +241,7 @@ def mini(a, b):
 
 
 # Base this class off of the main file control class.
-class OverNamelist(cape.namelist2.Namelist2):
+class OverNamelist(cape.filecntl.namelist2.Namelist2):
     """
     File control class for :file:`over.namelist`
             

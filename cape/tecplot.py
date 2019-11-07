@@ -2,7 +2,7 @@
 :mod:`cape.tecplot`: Interface to Tecplot scripts 
 ======================================================
 
-This is a module built off of the :mod:`cape.fileCntl` module customized for
+This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating Tecplot layout files and macros.
 
 It allows users to edit quantities of any layout command in addition to
@@ -18,7 +18,7 @@ handling Tecplot macros specifically.
     * :class:`cape.tecplot.TecMacro`
 
 :See also:
-    * :mod:`cape.fileCntl`
+    * :mod:`cape.filecntl`
     * :mod:`cape.cfdx.report`
 """
 
@@ -31,7 +31,7 @@ import shutil
 import numpy as np
 
 # CAPE modules
-from cape.fileCntl import FileCntl
+from cape.filecntl import FileCntl
 # Import color conversion tools
 from cape.color import ToRGB, Hex2RGB
 

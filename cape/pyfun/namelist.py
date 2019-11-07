@@ -2,7 +2,7 @@
 :mod:`cape.namelist`: FUN3D namelist module 
 ==============================================
 
-This is a module built off of the :mod:`cape.namelist` module
+This is a module built off of the :mod:`cape.filecntl.namelist` module
 customized for manipulating FUN3D's namelist files.  Such files are split into
 sections which are called "name lists."  Each name list has syntax similar to
 the following.
@@ -23,7 +23,7 @@ of a FUN3D case.  The namelist files prepared using this module are written to
 ``fun3d.00.nml``, ``fun3d.01.nml``, etc.  These must be linked to a hard-coded
 file name ``fun3d.nml`` as appropriate for the currently running phase.
 
-This function provides a class :class:`cape.namelist.Namelist` that can both
+This function provides a class :class:`cape.filecntl.namelist.Namelist` that can both
 read and set values in the namelist.  The key functions are
 
     * :func:`Namelist.SetVar`
@@ -77,7 +77,7 @@ to apply multiple settings using a :class:`dict` as input.
 
 See also:
 
-    * :mod:`cape.namelist`
+    * :mod:`cape.filecntl.namelist`
     * :func:`pyFun.case.GetNamelist`
     * :func:`cape.pyfun.cntl.Cntl.ReadNamelist`
     * :func:`cape.pyfun.cntl.Cntl.PrepareNamelist`
@@ -88,10 +88,10 @@ See also:
 import sys
 
 # Import the base file control class.
-import cape.namelist
+import cape.filecntl.namelist
 
 # Base this class off of the main file control class.
-class Namelist(cape.namelist.Namelist):
+class Namelist(cape.filecntl.namelist.Namelist):
     """
     File control class for :file:`fun3d.nml`
             

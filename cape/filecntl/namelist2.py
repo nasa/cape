@@ -1,8 +1,8 @@
 """
-:mod:`cape.namelist2`: Fortran namelists with repeat sections 
-=================================================================
+:mod:`cape.filecntl.namelist2`: Fortran namelists with repeat sections 
+=======================================================================
 
-This is a module built off of the :mod:`cape.fileCntl.FileCntl` module
+This is a module built off of the :mod:`cape.filecntl.FileCntl` module
 customized for manipulating Fortran namelists.  Such files are split into
 sections which are called "name lists."  Each name list has syntax similar to
 the following.
@@ -19,13 +19,13 @@ and this module is designed to recognize such sections.  The main feature of
 this module is methods to set specific properties of a namelist file, for
 example the Mach number or CFL number.
 
-The difference between this module and :class:`cape.namelist.Namelist` is that
+The difference between this module and :class:`cape.filecntl.namelist.Namelist` is that
 this module can support multiple namelists with the same title.  This is
 particularly important for Overflow, which has ``GRDNAM``, ``BCINP``, and other
 sections defined for each structured grid.  These modules should be combined as
 the differing namelist syntaxes are actually part of one file convention.
 
-This function provides a class :class:`cape.namelist2.Namelist2` that can both
+This function provides a class :class:`cape.filecntl.namelist2.Namelist2` that can both
 read and set values in the namelist.  The key functions are
 
     * :func:`Namelist2.GetKeyFromGroupName`
@@ -77,7 +77,7 @@ similar.
 
 See also:
 
-    * :mod:`cape.namelist`
+    * :mod:`cape.filecntl.namelist`
     * :mod:`cape.pyfun.namelist`
     * :mod:`cape.pyover.overNamelist`
     * :func:`pyFun.case.GetNamelist`
@@ -86,10 +86,15 @@ See also:
 
 """
 
-# Import the base file control class.
-from cape.fileCntl import FileCntl, re
-# Use vector testing
+# Standard library modules
+import re
+
+# Third-party modules
 import numpy as np
+
+# Local modules
+from .filecntl import FileCntl
+
 
 # Subclass off of the file control class
 class Namelist2(FileCntl):
@@ -103,7 +108,7 @@ class Namelist2(FileCntl):
         *fname*: :class:`str`
             Name of namelist file to read, defaults to ``'overflow.inp'``
     :Outputs:
-        *nml*: :class:`cape.namelist2.Namelist2`
+        *nml*: :class:`cape.filecntl.namelist2.Namelist2`
             Namelist file control instance
         *nml.ibeg*: :class:`np.ndarray` (:class:`int`)
             Indices of lines starting each namelist/section
@@ -135,7 +140,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> nml.UpdateNamelist()
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
@@ -166,7 +171,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> nml.ApplyDict(opts)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Old-style namelist inerface
             *opts*: :class:`dict`
                 Dictionary of namelist options
@@ -205,7 +210,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> nml.InsertGroup(igrp, grp)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
             *igrp*: :class:`int`
                 Index of location at which to insert group
@@ -293,7 +298,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> d = nml.ReadGroupIndex(igrp)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
             *igrp*: :class:`int`
                 Group index to read
@@ -344,7 +349,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> v = nml.GetKeyFromGroupIndex(igrp, key, i=i)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
             *key*: :class:`str`
                 Name of the key to search for
@@ -384,7 +389,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> v = nml.GetKeyFromGroupName(grp, key, igrp=0, i=None)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Old-style Fortran namelist interface
             *grp*: :class:`str`
                 Group name to search for
@@ -413,7 +418,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> d = nml.ReadKeysFromLine(line)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
             *line*: :class:`str`
                 One line from a namelist file
@@ -451,7 +456,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> q, val = nml.GetKeyFromLine(line, key, i=None)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
             *line*: :class:`str`
                 A line of text that may or may not contain the value of *key*
@@ -501,7 +506,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> nml.SetKeyInGroupName(grp, key, val, igrp=0, i=None)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Old-style Fortran namelist interface
             *grp*: :class:`str`
                 Group name to search for
@@ -533,7 +538,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> nml.SetKeyInGroupIndex(igrp, key, val, i=None)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 File control instance for old-style Fortran namelist
             *igrp*: :class:`int`
                 Index of namelist to edit
@@ -586,7 +591,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> q, line = nml.SetKeyInLine(line, key, val, i=None)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
             *line*: :class:`str`
                 A line of text that may or may not contain the value of *key*
@@ -664,7 +669,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> txt, key, val, i = nml.PopLine(line)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
             *line*: :class:`str`
                 One line of namelist text
@@ -775,7 +780,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> v = nml.ConvertToVal(val)
         :Inputs:
-            *nml*: :class:`cape.namelist.Namelist`
+            *nml*: :class:`cape.filecntl.namelist.Namelist`
                 File control instance for :file:`fun3d.nml`
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
@@ -824,7 +829,7 @@ class Namelist2(FileCntl):
         :Call:
             >>> val = nml.ConvertToText(v)
         :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
+            *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 File control instance for old-style Fortran namelist
             *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
                 Evaluated value of the text

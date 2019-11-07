@@ -41,7 +41,7 @@ For other namelist settings that do not refer to grids, see
     * :mod:`cape.pyover.options.overnml`
     * :mod:`cape.pyover.overNamelist`
     * :mod:`cape.pyover.cntl`
-    * :mod:`cape.namelist2`
+    * :mod:`cape.filecntl.namelist2`
 """
 
 # Ipmort options-specific utilities
