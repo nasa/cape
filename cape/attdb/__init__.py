@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-************************************************************
-:mod:`cape.attdb`: Output-Based "Response" Database Package
-************************************************************
-
 The :mod:`attdb` module is named for its original intention of handling
 "databases" for the Aero Task Team of the Space Launch System program.
 The databases created for technical disciplines tend to differ

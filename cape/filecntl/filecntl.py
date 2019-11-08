@@ -1,6 +1,6 @@
 """
-:mod:`cape.filecntl`: File control base module
-===============================================
+:mod:`cape.filecntl.filecntl`: File control base module
+========================================================
 
 This provides common methods to control objects for various specific
 files.  This includes various methods for reading files, splitting it

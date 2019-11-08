@@ -1,6 +1,6 @@
 """
-:mod:`cape.bin`: Cape binary interface module
-=============================================
+:mod:`cape.cfdx.bin`: CAPE executable operation
+==================================================
 
 This template module provides an interface for simple command-line tools.  The
 general approach for Cape is to create a function for each command-line binary

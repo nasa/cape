@@ -73,7 +73,7 @@ from .dataBook import CaseFM, CaseResid
 from .case     import LinkPLT
 from .tecplot  import ExportLayout, Tecscript
 from .tri      import Tri
-from .config   import Config
+from .config   import ConfigXML
 
 # Dedicated function to load pointSensor only when needed.
 def ImportPointSensor():

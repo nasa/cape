@@ -1,6 +1,6 @@
 """
-:mod:`cape.queue`: PBS queue interface module 
-===============================================
+:mod:`cape.cfdx.queue`: PBS queue interface module 
+==================================================
 
 This module contains direct interface for functions like `qsub` and `qstat`.
 These methods provide an easy interface to command-line PBS utilities and also

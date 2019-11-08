@@ -69,7 +69,7 @@ from .runmatrix   import RunMatrix
 from .inputCntl   import InputCntl
 from .aeroCsh     import AeroCsh
 from .preSpecCntl import PreSpecCntl
-from .config      import Config
+from .config      import ConfigXML
 
 # Import triangulation
 from .tri      import Tri

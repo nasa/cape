@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-:mod:`cape.cmd`: Creation of system commands 
+:mod:`cape.cfdx.cmd`: Creating system commands 
 =================================================
 
 This module creates system commands as lists of strings for binaries or scripts
