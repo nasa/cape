@@ -1,7 +1,7 @@
 
 .. automodule:: cape.config
     
-    .. autoclass:: cape.config.Config
+    .. autoclass:: cape.config.ConfigXML
         :members:
     
     .. autoclass:: cape.config.ConfigJSON
