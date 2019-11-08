@@ -44,7 +44,7 @@ from .cfdx import volcomp
 
 # Utilities
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
-from .config import Config, ConfigJSON, ConfigMIXSUR
+from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
 
 # Default tolerances for mapping triangulations
 atoldef  = cape.cfdx.options.rc.get("atoldef", 1e-2)
@@ -95,7 +95,7 @@ def _readline(f, comment='#'):
         lstrp = line.strip()
     # Return the line.
     return line
-# end _readline
+
 
 # Function to read a single triangulation file
 def ReadTriFile(fname, fmt=None):
@@ -3558,7 +3558,7 @@ class TriBase(object):
             * 2015-11-19 ``@ddalle``: First version
         """
         # Read the configuration and save it.
-        self.config = Config(c)
+        self.config = ConfigXML(c)
         # Restrict to a subset
         if restrict:
             self.RestrictConfigCompID()
@@ -3637,7 +3637,7 @@ class TriBase(object):
         # Check for string input
         if type(cfg).__name__ in ['str', 'unicode']:
             # Read the config
-            cfg = Config(cfg)
+            cfg = ConfigXML(cfg)
         # Make a copy of the component IDs
         compID = self.CompID.copy()
         # Try to make a copy of the quad component IDs

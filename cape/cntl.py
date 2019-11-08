@@ -56,7 +56,7 @@ from . import manage
 
 # Functions and classes from other modules
 from .runmatrix import RunMatrix
-from .config    import Config, ConfigJSON
+from .config    import ConfigXML, ConfigJSON
 
 # Import triangulation
 from .tri  import Tri, ReadTriFile
@@ -383,7 +383,7 @@ class Cntl(object):
             cfg = None
         else:
             # Read config file
-            cfg = Config(fxml)
+            cfg = ConfigXML(fxml)
         # Ensure list
         if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
         # Read first file
@@ -470,7 +470,7 @@ class Cntl(object):
             self.config = None
         elif fext == "xml":
             # Read XML config file
-            self.config = Config(fxml)
+            self.config = ConfigXML(fxml)
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)

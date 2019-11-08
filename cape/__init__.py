@@ -47,23 +47,23 @@ A categorized list of modules available to the API are listed below.
     * Primary supporting modules
        - :mod:`cape.cfdx.bin`
        - :mod:`cape.cfdx.cmd`
-       - :mod:`cape.argread`
        - :mod:`cape.cfdx.queue`
+       - :mod:`cape.argread`
        - :mod:`cape.io`
        - :mod:`cape.manage`
         
     * File interfaces
        - :mod:`cape.filecntl`
+       - :mod:`cape.filecntl.namelist`
+       - :mod:`cape.filecntl.namelist2`
+       - :mod:`cape.filecntl.tecplot`
+       - :mod:`cape.filecntl.tex`
        - :mod:`cape.tri`
        - :mod:`cape.cgns`
        - :mod:`cape.msh`
-       - :mod:`cape.filecntl.namelist`
-       - :mod:`cape.filecntl.namelist2`
        - :mod:`cape.plot3d`
        - :mod:`cape.plt`
        - :mod:`cape.step`
-       - :mod:`cape.filecntl.tecplot`
-       - :mod:`cape.tex`
     
     * Utilities
        - :mod:`cape.util`
@@ -80,14 +80,15 @@ A categorized list of modules available to the API are listed below.
     * Version 0.6: 2016-03-30
     * Version 0.8: 2018-03-23
     * Version 0.9.2: 2019-09-17
+    * Version 1.0: 2020-01-21
 """
 
 # Standard library modules
 import os
 
 # Import classes and methods from the submodules
-from .tri    import Tri, Triq
-from .cntl   import Cntl
+from .tri  import Tri, Triq
+from .cntl import Cntl
 
 # Submodules
 from . import manage

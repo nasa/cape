@@ -127,11 +127,11 @@ from .cfdx.options import util
 
 
 # Configuration class
-class Config(object):
+class ConfigXML(object):
     """Configuration class for interfacing :file:`Config.xml` files
     
     :Call:
-        >>> cfg = cape.Config(fname='Config.xml')
+        >>> cfg = cape.ConfigXML(fname='Config.xml')
     :Inputs:
         *fname*: :class:`str`
             Name of configuration file to read
@@ -187,10 +187,10 @@ class Config(object):
         """
         Return the string representation of a :file:`Config.xml` file.
         
-        This looks like ``<cape.Config(nComp=N, faces=['Core', ...])>``
+        This looks like ``<cape.ConfigXML(nComp=N, faces=['Core', ...])>``
         """
         # Return a string.
-        return '<cape.Config(nComp=%i, faces=%s)>' % (
+        return '<cape.ConfigXML(nComp=%i, faces=%s)>' % (
             len(self.faces), self.faces.keys())
         
     # Process a tri component
@@ -1023,7 +1023,7 @@ class Config(object):
             * 2014-11-24 ``@ddalle``: First version
         """
         # Initialize object.
-        cfg = Config()
+        cfg = ConfigXML()
         # Copy the dictionaries.
         cfg.faces = self.faces.copy()
         cfg.transform = self.transform.copy()
@@ -1482,7 +1482,7 @@ class ConfigJSON(object):
         """
         Return the string representation of a :file:`Config.xml` file.
         
-        This looks like ``<cape.Config(nComp=N, faces=['Core', ...])>``
+        This looks like ``<cape.ConfigJSON(nComp=N, faces=['Core', ...])>``
         """
         # Return a string.
         return '<cape.ConfigJSON(nComp=%i, faces=%s)>' % (

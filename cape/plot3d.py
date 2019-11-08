@@ -22,7 +22,7 @@ import numpy as np
 # Local modules
 from . import io
 from . import util
-from . import namelist2
+from .filecntl import namelist2
 
 # Default tolerances for mapping triangulations
 atoldef = 3e-2
