@@ -94,17 +94,5 @@ class RunMatrix(cape.runmatrix.RunMatrix):
         2014-05-28 ``@ddalle``: First version
         2014-06-05 ``@ddalle``: Generalized for user-defined keys
     """
-        
-    # Function to display things
-    def __repr__(self):
-        """
-        Return the string representation of a trajectory.
-        
-        This looks like ``<pyCart.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
-        """
-        # Return a string.
-        return '<pyCart.RunMatrix(nCase=%i, keys=%s)>' % (self.nCase,
-            self.keys)
-    
-# class RunMatrix
+    pass
     

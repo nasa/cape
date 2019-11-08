@@ -285,9 +285,12 @@ class RunMatrix(dict):
 
         This looks like ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
         """
+        # Get principal module name and class name
+        modname = self.__class__.__module__.split(".")[-2]
+        clsname = self.__class__.__name__
         # Return a string.
-        return '<cape.RunMatrix(nCase=%i, keys=%s)>' % (self.nCase,
-            self.cols)
+        return '<%s.%s(nCase=%i, keys=%s)>' % (
+            modname, clsname, self.nCase, self.cols)
 
     # Function to display things
     def __str__(self):
@@ -296,9 +299,12 @@ class RunMatrix(dict):
 
         This looks like ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
         """
+        # Get principal module name and class name
+        modname = self.__class__.__module__.split(".")[-2]
+        clsname = self.__class__.__name__
         # Return a string.
-        return '<cape.RunMatrix(nCase=%i, keys=%s)>' % (self.nCase,
-            self.cols)
+        return '<%s.%s(nCase=%i, cols=%s)>' % (
+            modname, clsname, self.nCase, self.cols)
 
     # Copy the trajectory
     def Copy(self):

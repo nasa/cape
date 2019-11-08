@@ -95,16 +95,5 @@ class RunMatrix(cape.runmatrix.RunMatrix):
     :Versions:
         2015-12-29 ``@ddalle``: First version based on :mod:`cape.RunMatrix`
     """
-        
-    # Function to display things
-    def __repr__(self):
-        """
-        Return the string representation of a trajectory.
-        
-        This looks like ``<pyOver.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
-        """
-        # Return a string.
-        return '<pyOver.RunMatrix(nCase=%i, keys=%s)>' % (self.nCase,
-            self.keys)
-        
-    
+    pass
+
