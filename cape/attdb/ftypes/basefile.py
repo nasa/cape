@@ -147,3 +147,30 @@ class BaseFile(dict):
         return kw
   # >
 
+  # ===============
+  # Attributes
+  # ===============
+  # <
+    # Save a value as an attribute (risky)
+    def register_attribute(self, col):
+        """Register a data field as an attribute
+        
+        For example, if *col* is ``"mach"``, this will create
+        *db.mach*, which will be a reference to ``db["mach"]``.
+        
+        :Call:
+            >>> db.register_attribute(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of existing column
+        :Versions:
+            * 2019-11-10 ``@ddalle``: First version
+        """
+        # Check if column is present
+        if col not in self.cols:
+            raise KeyError("Column '%s' not in database" % col)
+        # Create pointer
+        setattr(self, col, self[col])
+  # >
