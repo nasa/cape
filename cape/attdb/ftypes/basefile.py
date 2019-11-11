@@ -130,7 +130,7 @@ class BaseFile(dict):
             * 2019-11-12 ``@ddalle``: Copied from :class:`RunMatrix`
         """
         # Get overall dictionary
-        defns = kw.pop("Types", {})
+        defns = kw.pop("Types", kw.pop("defns", {}))
         # Process current list of columns
         cols = getattr(self, "cols", [])
         # Check for default definition
@@ -141,8 +141,16 @@ class BaseFile(dict):
         # Set defaults
         odefn.setdefault("Class",  odefcls)
         odefn.setdefault("Format", odeffmt)
-        
-        
+        # Loop through columns
+        for col in cols:
+            # Get definition
+            defn = defns.get(col, odefn)
+            # Loop through default keys
+            for key, opt in odefn.items():
+                # Apply default but don't override
+                defn.setdefault(key, opt)
+            # Set definition
+            self.defns[col] = defn
         # Return unused options
         return kw
   # >
