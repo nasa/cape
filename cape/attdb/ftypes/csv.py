@@ -6,7 +6,7 @@
 
 This module contains a basic interface in the spirit of
 :mod:`cape.attdb.ftypes` for standard comma-separated value files.  It
-creates a class, :class:`CSV` that does not rely on the popular
+creates a class, :class:`CSVFile` that does not rely on the popular
 :func:`numpy.loadtxt` function.
 
 If possible, the column names (which become keys in the
@@ -20,3 +20,7 @@ import numpy as np
 
 # Local modules
 from .basefile import BaseFile
+
+# Class for handling data from CSV files
+class CSVFile(BaseFile):
+    pass
