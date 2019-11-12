@@ -34,7 +34,7 @@ class BaseFile(dict):
     fname = ""
     lines = []
     linenos = []
-    defns = {}
+    opts = {}
     n = 0
 
   # ==========
@@ -113,7 +113,7 @@ class BaseFile(dict):
                 Data file interface
             *cols*: {*db.cols*} | :class:`list`\ [:lass:`str`]
                 List of columns to process
-            *Types*: {``{}``} | :class:`dict`
+            *Types*, *Definitions*, *defns*: {``{}``} | :class:`dict`
                 Dictionary of specific types for each *col*
             *DefaultClass*: {``"float"``} | :class:`str`
                 Name of default class
@@ -129,8 +129,12 @@ class BaseFile(dict):
             * 2014-06-17 ``@ddalle``: Read from *defns* :class:`dict`
             * 2019-11-12 ``@ddalle``: Copied from :class:`RunMatrix`
         """
-        # Get overall dictionary
-        defns = kw.pop("Types", kw.pop("defns", {}))
+        # Get options for key definitions
+        defns1 = kw.pop("Types", {})
+        defns2 = kw.pop("Definitions", {})
+        defns3 = kw.pop("defns", {})
+        # Combine definitions
+        defns = dict(dict(defns3, **defns2), **defns3)
         # Process current list of columns
         cols = getattr(self, "cols", [])
         # Check for default definition
@@ -141,6 +145,10 @@ class BaseFile(dict):
         # Set defaults
         odefn.setdefault("Class",  odefcls)
         odefn.setdefault("Format", odeffmt)
+        # Ensure definitions exist
+        opts = self.opts.setdefault("Types", {})
+        # Save defaults
+        self.opts["Types"]["_"] = odefn
         # Loop through columns
         for col in cols:
             # Get definition
@@ -150,7 +158,7 @@ class BaseFile(dict):
                 # Apply default but don't override
                 defn.setdefault(key, opt)
             # Set definition
-            self.defns[col] = defn
+            opts[col] = defn
         # Return unused options
         return kw
   # >

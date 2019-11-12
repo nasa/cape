@@ -18,11 +18,55 @@ final comment before the beginning of data.
 # Third-party modules
 import numpy as np
 
+# CAPE modules
+import cape.tnakit.typeutils as typeutils
+
 # Local modules
 from .basefile import BaseFile
 
 # Class for handling data from CSV files
 class CSVFile(BaseFile):
+    r"""Class for reading CSV files
+    
+    :Call:
+        >>> db = CSVFile(fname, **kw)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            CSV file interface
+        *db.cols*: :class:`list`\ [:class:`str`]
+            List of columns read
+    :See also:
+        * :class:`cape.attdb.ftypes.basefile.BaseFile`
+    :Versions:
+        * 2019-11-12 ``@ddalle``: First version
+    """
+  # ======
+  # Config
+  # ======
+  # <
+    # Initialization method
+    def __init__(self, fname=None, **kw):
+        """Initialization method
+        
+        :Versions:
+            * 2019-11-12 ``@ddalle``: First version
+        """
+        # Save file name
+        self.fname = fname
+        # Process definitions
+        kw = self.process_col_types(**kw)
+        
+        # Read file if appropriate
+        if fname and typeutiles.isstr(fname):
+            # Read valid file
+            self.read_csv(fname)
+        
+        
+        
+  # >
     
     
     # Reader
