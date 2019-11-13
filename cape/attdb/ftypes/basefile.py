@@ -99,9 +99,10 @@ class BaseFile(dict):
   # >
   
   # =================
-  # Key Definitions
+  # Options
   # =================
   # <
+   # --- Key Definitions ---
     # Process key definitions
     def process_col_types(self, **kw):
         r"""Process *Definitions* of column types
@@ -123,7 +124,7 @@ class BaseFile(dict):
                 :class:`dict` of default *Class*, *Format*
         :Outputs:
             *kwo*: :class:`dict`
-                Options not used method
+                Options not used in this method
         :Versions:
             * 2014-06-05 ``@ddalle``: First version
             * 2014-06-17 ``@ddalle``: Read from *defns* :class:`dict`
@@ -161,6 +162,77 @@ class BaseFile(dict):
             opts[col] = defn
         # Return unused options
         return kw
+
+   # --- Values ---
+    # Query keyword arguments for manual values
+    def process_values(self, **kw):
+        r"""Process *Values* argument for manual column values
+        
+        :Call:
+            >>> kw = db.process_values(**kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *Values*, *vals*: :class:`dict`
+                Dictionary of values for some columns
+        :Outputs:
+            *kwo*: :class:`dict`
+                Options not used in this method
+        :Versions:
+            * 2019-11-12 ``@ddalle``: First version
+        """
+        # Get values
+        vals1 = kw.pop("Values", {})
+        vals2 = kw.pop("vals", {})
+        # Check types
+        if not isinstance(vals1, dict):
+            raise TypeError(
+                "'Values' keyword must be dict, found %s" % vals1.__class__)
+        elif not isinstance(vals2, dict):
+            raise TypeError(
+                "'vals' keyword must be dict, found %s" % vals2.__class__)
+        # Combine inputs
+        vals = dict(vals2, **vals1)
+        # Process values
+        for col, v in kw.items():
+            # Save values
+            self.save_column(col, v)
+            
+    # Save a column
+    def save_column(self, col, v):
+        r"""Save a column value, updating other metadata as needed
+        
+        :Call:
+            >>> db.save_column(col, v)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column
+            *v*: :class:`np.ndarray` | :class:`list` | :class:`scalar`
+                Value(s) to save for specified column
+        :Versions:
+            * 2019-11-12 ``@ddalle``: Started
+        """
+        # Check if column is present
+        if col not in self.cols:
+            self.cols.append(col)
+        # Check type
+        if isinstance(v, np.ndarray):
+            # Save as is
+            self[k] = v
+        elif isinstance(v, list):
+            # Check first element
+            if len(v) == 0:
+                # Nothing to convert
+                self[k] = v
+            elif isinstance(v[0], (int, float, complex)):
+                # Convert to array
+                self[k] = np.asarray(v)
+        else:
+            # Nonstandard value; don't convert
+            self[k] = v
+            
   # >
 
   # ===============
