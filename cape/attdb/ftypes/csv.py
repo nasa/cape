@@ -15,6 +15,9 @@ begins with multiple comment lines, the column names are read from the
 final comment before the beginning of data.
 """
 
+# Standard library
+import re
+
 # Third-party modules
 import numpy as np
 
@@ -23,6 +26,11 @@ import cape.tnakit.typeutils as typeutils
 
 # Local modules
 from .basefile import BaseFile
+
+
+# Regular expressions
+regex_numeric = re.compile("\d")
+regex_alpha   = re.compile("[A-z_]")
 
 # Class for handling data from CSV files
 class CSVFile(BaseFile):
@@ -81,54 +89,84 @@ class CSVFile(BaseFile):
         f.close()
     
     # Read initial comments
-    def read_header(self, f, comment='#', delimiter=","):
+    def read_csv_header(self, f):
         r"""Read column names from beginning of open file
         
         :Class:
-            >>> db.read_header(f, comment='#', delimiter=",")
+            >>> db.read_header(f)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
-            *comment*: {``'#'``} | :class:`str`
-                Character or string to begin a comment line
         :Effects:
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
             * 2019-11-12 ``@ddalle``: First version
         """
-        # Go to beginning of file
-        f.seek(0)
+        # Set header flags
+        self._csv_header_once = False
+        self._csv_header_complete = False
+        # Read until header_complete flag set
+        while not self._csv_header_complete:
+            self.read_csv_headerline(f)
+        # Remove flags
+        del self._csv_header_once
+        del self._csv_header_complete
+        
+        
+    # Read a line as if it were a header
+    def read_csv_headerline(self, f):
+        # Check if header has already been processed
+        if self._csv_header_complete:
+            return
         # Save current position
         pos = f.tell()
-        # Read lines until one is not a comment
+        # Read line
         line = f.readline()
-        # Check for empty comment char
-        if not comment:
-            # Use line as is
-            coltxts = line.strip(comment).split(delimiter)
-            # Strip spaces
-            self.cols = [col.strip() for col in coltxts]
-        # Check for valid header
-        if not line.startswith(comment):
-            self.cols = []
-        # Loop until line is not a comment
-        while line.startswith(comment):
+        # Check if it starts with a comment
+        if line == "":
+            # End of file
+            self._csv_header_complete = True
+            return
+        elif line.startswith("#"):
+            # Remove comment
+            line = line.lstrip("#")
+            # Check for empty comment
+            if line.strip() == "":
+                # Don't process and don't set any flags
+                return
+            # Strip comment char and split line into columns
+            cols = [col.strip() for col in line.split(",")]
+            # Marker that header has been read
+            self._csv_header_once = True
+        elif not self._csv_header_once:
             # Check for empty line
-            if len(line.lstrip(comment).strip()) > 0:
-                # Save current line as candidate header
-                header = line
-            # Remember position
-            pos = f.tell()
-            # Read next line
-            line = f.readline()
-        # Go back to last position before comment
-        f.seek(pos)
-        # Create columns
-        coltxts = header.lstrip(comment).split(delimiter)
-        # Strip any whitespace
-        self.cols = [col.strip() for col in coltxts]
-        
-        
+            if line.strip() == "":
+                # Return without setting any flags
+                return
+            # Split line into columns without strip
+            cols = [col.strip() for col in line.split(",")]
+            # Marker that header has been read
+            self._csv_header_once = True
+            # Check valid names of each column
+            for col in cols:
+                # If it begins with a number, it's probably a data row
+                if not regex_alpha.match(col):
+                    # Marker for no header
+                    self._csv_header_complete = True
+                    # Return file to previous position
+                    f.seek(pos)
+                    # Exit
+                    return
+        else:
+            # Non-comment row following comment: data
+            f.seek(pos)
+            # Mark completion of header
+            self._csv_header_complete = True
+        # Save column names if reaching this point
+        self.cols = cols
+        # Output column names for kicks
+        return cols
+            
