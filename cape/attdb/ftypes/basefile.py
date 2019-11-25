@@ -27,6 +27,9 @@ collection.
 # Standard library modules
 import os
 
+# Third-party modules
+import numpy as np
+
 
 # Fixed parameter for size of new chunks
 NUM_ARRAY_CHUNK = 5000
@@ -151,6 +154,8 @@ class BaseFile(dict):
         # Set defaults
         odefn.setdefault("Type",  odefcls)
         odefn.setdefault("Format", odeffmt)
+        # Translate name
+        odefn["Type"] = self.translate_dtype(odefn["Type"])
         # Ensure definitions exist
         opts = self.opts.setdefault("Definitions", {})
         # Save defaults
@@ -163,8 +168,11 @@ class BaseFile(dict):
             for key, opt in odefn.items():
                 # Apply default but don't override
                 defn.setdefault(key, opt)
+            # Manually translate *Type*
+            defn["Type"] = self.translate_dtype(defn["Type"])
             # Set definition
             opts[col] = defn
+            
         # Return unused options
         return kw
 
@@ -251,18 +259,18 @@ class BaseFile(dict):
         :Versions:
             * 2019-11-24 ``@ddalle``: First version
         """
-        retrun self.get_col_prop(col, "Type")
+        return self.get_col_prop(col, "Type")
         
     # Get array type
-    def get_col_dtype(self, col):
-        """Get data type for arrays for specific column
+    def translate_dtype(self, clsname):
+        """Translate free-form type name into type code
         
         :Call:
-            >>> dtype = db.get_col_dtype(col, prop)
+            >>> dtype = db.translate_dtype(clsname)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
-            *col*: :class:`str`
+            *clsname*: :class:`str`
                 Name of column
         :Outputs:
             *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
@@ -270,20 +278,57 @@ class BaseFile(dict):
         :Versions:
             * 2019-11-24 ``@ddalle``: First version
         """
-        # Get input type
-        clsname = self.get_col_dtype(col)
+        # Force lower case
+        clsname = clsname.lower()
+        # Make some substitutions
+        clsname = clsname.replace("float", "f")
+        clsname = clsname.replace("int",  "i")
+        clsname = clsname.replace("complex", "c")
         # Filter it
-        if col in ["f", "f64", "float", "float64", "double"]:
+        if clsname in ["f", "f64", "double"]:
             # 64-bit float (default
-            return "f64"
-        elif col in ["i", "i32"]:
+            return "float64"
+        elif clsname in ["i", "i32", "long"]:
             # 32-bit int
-  # >
+            return "int32"
+        elif clsname in ["i16", "short"]:
+            # 16-bit int
+            return "int16"
+        elif clsname in ["f32", "single"]:
+            # 32-bit float
+            return "float32"
+        elif clsname in ["i64", "long long"]:
+            # Double long integer
+            return "int64"
+        elif clsname in ["f128"]:
+            # Double long float
+            return "float128"
+        elif clsname in ["f16"]:
+            # Short float
+            return "float16"
+        elif clsname in ["i8"]:
+            # Extra short integer
+            return "int8"
+        elif clsname in ["i1", "bool"]:
+            # Boolean
+            return "bool"
+        elif clsname in ["c", "c128"]:
+            # Complex (double)
+            return "complex128"
+        elif clsname in ["c", "c64"]:
+            # Complex (double)
+            return "complex64"
+        elif clsname in ["c256"]:
+            # Complex (single)
+            return "complex256"
+        elif clsname in ["str"]:
+            # String
+            return "str"
+        else:
+            # Unrecognized
+            return TypeError("Unrecognized class/type '%s'" % clsname)
 
-  # ==========
-  # Values
-  # ==========
-  # <
+   # --- Keyword Values ---
     # Query keyword arguments for manual values
     def process_values(self, **kw):
         r"""Process *Values* argument for manual column values
@@ -318,6 +363,78 @@ class BaseFile(dict):
             # Save values
             self.save_column(col, v)
             
+  # >
+  
+  
+  # ===============
+  # Data
+  # ===============
+  # <
+   # --- Init ---
+    # Initialize single column
+    def init_col(self, col):
+        r"""Initialize column
+        
+        :Call:
+            >>> db.init_col(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column to initialize
+        :Effects:
+            *db[col]*: :class:`np.ndarray` | :class:`list`
+                Initialized array with appropriate type
+        :Versions:
+            * 2019-11-23 ``@ddalle``: First version
+        """
+        # Check validity
+        if col not in self.cols:
+            raise KeyError("Unrecognized column '%s'" % col)
+        # Get type
+        clsname = self.get_col_type(col)
+        # Make sure _nmax (array length) attribute is present
+        if not hasattr(self, "_nmax"):
+            self._nmax = {}
+        # Make sure _n (current length) attribute is present
+        if not hasattr(self, "_n"):
+            self._n = {}
+        # Check for string
+        if clsname == "str":
+            # Initialize strings in empty list
+            self[col] = []
+            # No max length
+            self._n[col] = 0
+            self._nmax[col] = None
+        else:
+            # Use existing dtype code
+            self[col] = np.zeros(NUM_ARRAY_CHUNK, dtype=clsname)
+            # Set max length
+            self._n[col] = 0
+            self._nmax[col] = NUM_ARRAY_CHUNK
+        
+    # Initialize list of columns
+    def init_cols(self, cols):
+        r"""Initialize list of columns
+        
+        :Call:
+            >>> db.init_cols(cols)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column to initialize
+        :See Also:
+            * :func:`init_col`
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Loop through columns
+        for col in cols:
+            # Initialize column
+            self.init_col(col)
+
+   # --- Save Data ---
     # Save a column
     def save_column(self, col, v):
         r"""Save a column value, updating other metadata as needed
@@ -352,33 +469,87 @@ class BaseFile(dict):
         else:
             # Nonstandard value; don't convert
             self[k] = v
-            
-  # >
-  
-  
-  # ===============
-  # Data
-  # ===============
-  # <
-   # --- Init ---
-    def initcol(self, col):
-        """Initialize column
+
+    # Save next value to column's array
+    def append_colval(self, col, v):
+        """Save the next value to a column's array or list
+        
+        This will update counts and allocate a new chunk if necessary.
         
         :Call:
-            >>> db.initcol(col)
+            >>> db.init_col(col)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
             *col*: :class:`str`
-                Name of column to initialize
+                Name of column to which to save value
+            *v*: ``db.get_col_type(col)``
+                Value to save to array/list
         :Effects:
             *db[col]*: :class:`np.ndarray` | :class:`list`
-                Initialized array with appropriate type
+                Column's array with extra new entry
+            *db._n[col]*: :class:`int`
+                Updated length of array/list
         :Versions:
-            * 2019-11-23 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: First version
         """
-        # Get type
-        clsname = self.get_col_type(col)
+        # Check NMAX attribute to check process
+        nmax = self._nmax.get(col)
+        # Get current count
+        n = self._n[col]
+        # Process options
+        if nmax is None:
+            # It's a list; just append
+            self[col].append(v)
+        elif n >= nmax:
+            # Get dtype
+            clsname = self.get_col_type(col)
+            # Allocate new chunk
+            self[col] = np.hstack(
+                (self[col], np.zeros(NUM_ARRAY_CHUNK, dtype=clsname)))
+            # Update maximum
+            self._nmax[col] += NUM_ARRAY_CHUNK
+            # Save new value
+            self[col][n] = v
+        else:
+            # Save new value without new allocation
+            self[col][n] = v
+        # Update count
+        self._n[col] = n + 1
+
+    # Trim columns
+    def trim_colarray(self, col):
+        r"""Trim extra entries from data rows
+        
+        :Call:
+            >>> db.trim_colarray(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column to which to save value
+        :Effects:
+            *db[col]*: :class:`np.ndarray` | :class:`list`
+                Trimmed to length *db._n[col]* if an array
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Check NMAX attribute to check process
+        nmax = self._nmax.get(col)
+        # Get current count
+        n = self._n.get(col)
+        # Check for invalid length
+        if not isinstance(n, int):
+            raise TypeError("No valid length to trim column '%s'" % col)
+        # Process options
+        if nmax is None:
+            # No trimming needed
+            return
+        else:
+            # Trim the array
+            self[col] = self[col][:n]
+            # Trim *nmax*
+            self._nmax[col] = n
         
             
   # >
