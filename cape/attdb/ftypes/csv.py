@@ -62,9 +62,12 @@ class CSVFile(BaseFile):
         :Versions:
             * 2019-11-12 ``@ddalle``: First version
         """
+        # Initialize options
+        self.opts = {}
+        
         # Save file name
         self.fname = fname
-        
+
         # Read file if appropriate
         if fname and typeutils.isstr(fname):
             # Read valid file
@@ -105,7 +108,7 @@ class CSVFile(BaseFile):
         # Open file
         with open(fname, 'r') as f:
             # Process column names
-            self.read_csv_header(f)
+            self.read_csv_header(f, **kw)
             # Process column types
             kw = self.process_col_types(**kw)
             # Initialize columns
@@ -117,7 +120,7 @@ class CSVFile(BaseFile):
    
    # --- Header ---
     # Read initial comments
-    def read_csv_header(self, f):
+    def read_csv_header(self, f, **kw):
         r"""Read column names from beginning of open file
         
         :Call:
@@ -142,6 +145,8 @@ class CSVFile(BaseFile):
         # Remove flags
         del self._csv_header_once
         del self._csv_header_complete
+        # Get guesses as to types
+        self.read_csv_headertypes(f, **kw)
 
     # Read a line as if it were a header
     def read_csv_headerline(self, f):
@@ -217,6 +222,88 @@ class CSVFile(BaseFile):
         self.cols = cols
         # Output column names for kicks
         return cols
+        
+    # Read header types from first data row
+    def read_csv_headertypes(self, f, **kw):
+        r"""Get initial guess at data types from first data row
+        
+        If (and only if) the *DefaultType* input is an integer type,
+        guessed types can be integers.  Otherwise
+        
+        :Call:
+            >>> db.read_csv_headertypes(f, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+            *DefaultType*: {``"float"``} | :class:`str`
+                Name of default class
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Get integer option
+        odefcls = kw.get("DefaultType", "float64")
+        # Translate abbreviated codes
+        odefcls = self.translate_dtype(odefcls)
+        # Save position
+        pos = f.tell()
+        # Read line
+        line = f.readline()
+        # Check for empty data
+        if line == "":
+            return
+        # Return to original location so first data row can be read
+        f.seek(pos)
+        # Otherwise, split into data
+        coltxts = [txt.strip() for txt in line.split(",")]
+        # Initialize types
+        defns = self.opts.setdefault("Definitions", {})
+        # Attempt to convert columns to ints, then floats
+        for (j, col) in enumerate(self.cols):
+            # Create definitions if necessary
+            defn = defns.setdefault(col, {})
+            # Get text from *j*th column
+            txtj = coltxts[j]
+            # Cascade through possible conversions
+            if odefcls.startswith("int"):
+                try:
+                    # Try an integer first
+                    int(txtj)
+                    # If it works; save it
+                    defn.setdefault("Type", odefcls)
+                    continue
+                except ValueError:
+                    pass
+            # Try a float next
+            try:
+                # Substitutions for "2.4D+00"
+                txtj = txtj.replace("D", "e")
+                txtj = txtj.replace("d", "e")
+                # Try conversion
+                float(txtj)
+                # If it works; save type
+                if odefcls.startswith("float"):
+                    # Use specific version
+                    defn.setdefault("Type", odefcls)
+                else:
+                    # Use global default
+                    defn.setdefault("Type", "float64")
+                continue
+            except Exception:
+                pass
+            # Try a complex number first
+            try:
+                # Substitutions for "1+2i"
+                txtj = txtj.replace("I", "j")
+                txtj = txtj.replace("i", "j")
+                # Try conversion
+                complex(txtj)
+                # If it works; save type
+                defn.setdefault("Type", "complex128")
+            except Exception:
+                # Only option left is a string
+                defn.setdefault("Type", "str")
 
    # --- Data ---
     # Rad data

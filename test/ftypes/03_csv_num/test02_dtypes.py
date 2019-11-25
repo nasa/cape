@@ -5,12 +5,7 @@
 import cape.attdb.ftypes.csv as csv
 
 # Read CSV file
-db = csv.CSVFile("wt-sample.csv",
-    DefaultType="float32",
-    Definitions={
-        "run": {"Type": "int"},
-        "pt": {"Type": "int"},
-    })
+db = csv.CSVFile("wt-sample.csv", DefaultType="int32")
 
 # Print data types
 for col in db.cols:

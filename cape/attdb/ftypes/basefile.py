@@ -122,8 +122,10 @@ class BaseFile(dict):
                 Data file interface
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to process
-            *Types*, *Definitions*, *defns*: {``{}``} | :class:`dict`
-                Dictionary of specific types for each *col*
+            *Types*: {``{}``} | :class:`dict`
+                Dictionary of just tye *Type* for one or more cols
+            *Definitions*, *defns*: {``{}``} | :class:`dict`
+                Dictionary of specific definitions for each *col*
             *DefaultType*: {``"float"``} | :class:`str`
                 Name of default class
             *DefaultFormat*: {``None``} | :class:`str`
@@ -143,7 +145,7 @@ class BaseFile(dict):
         defns2 = kw.pop("Definitions", {})
         defns3 = kw.pop("defns", {})
         # Combine definitions
-        defns = dict(dict(defns3, **defns2), **defns3)
+        defns = dict(defns3, **defns2)
         # Process current list of columns
         cols = getattr(self, "cols", [])
         # Check for default definition
@@ -160,18 +162,34 @@ class BaseFile(dict):
         opts = self.opts.setdefault("Definitions", {})
         # Save defaults
         self.opts["Definitions"]["_"] = odefn
-        # Loop through columns
-        for col in cols:
+        
+        # Loop through columns mentioned in input
+        for (col, kwdefn) in defns.items():
+            # Get existing definition
+            defn = opts.setdefault(col, {})
+            # Apply keyword definitions
+            for (key, opt) in kwdefn.items():
+                # Kwargs override anything created automatically
+                defn[key] = opt
+            # Manually translate *Type*
+            defn["Type"] = self.translate_dtype(defn["Type"])
+        # Loop through specifically types
+        for (col, cls) in defns1.items():
+            # Get existing definition
+            defn = opts.setdefault(col, {})
+            # Apply the type
+            defn["Type"] = self.translate_dtype(cls)
+        
+        # Loop through known columns
+        for col in self.cols:
             # Get definition
-            defn = defns.get(col, odefn)
+            defn = opts.setdefault(col, {})
             # Loop through default keys
             for key, opt in odefn.items():
                 # Apply default but don't override
                 defn.setdefault(key, opt)
             # Manually translate *Type*
             defn["Type"] = self.translate_dtype(defn["Type"])
-            # Set definition
-            opts[col] = defn
             
         # Return unused options
         return kw

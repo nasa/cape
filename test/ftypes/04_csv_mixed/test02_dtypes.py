@@ -7,10 +7,9 @@ import cape.attdb.ftypes.csv as csv
 # Read CSV file
 db = csv.CSVFile("runmatrix.csv",
     DefaultType="float32",
-    Definitions={
-        "config": {"Type": "str"},
-        "Label": {"Type": "str"},
-        "user": {"Type": "str"}
+    Types={
+        "config": "str",
+        "mach": "float16"
     })
 
 # Print data types

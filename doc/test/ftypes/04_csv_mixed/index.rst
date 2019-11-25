@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:10 PST
+   on 2019-11-25 at 14:31 PST
 
 Test ``04_csv_mixed``
 =======================
@@ -33,12 +33,7 @@ The commands executed by this test are
         import cape.attdb.ftypes.csv as csv
         
         # Read CSV file
-        db = csv.CSVFile("runmatrix.csv",
-            Definitions={
-                "config": {"Type": "str"},
-                "Label": {"Type": "str"},
-                "user": {"Type": "str"}
-            })
+        db = csv.CSVFile("runmatrix.csv")
         
         # Case number
         i = 6
@@ -61,10 +56,9 @@ The commands executed by this test are
         # Read CSV file
         db = csv.CSVFile("runmatrix.csv",
             DefaultType="float32",
-            Definitions={
-                "config": {"Type": "str"},
-                "Label": {"Type": "str"},
-                "user": {"Type": "str"}
+            Types={
+                "config": "str",
+                "mach": "float16"
             })
         
         # Print data types
@@ -93,8 +87,8 @@ Command 1: Minimal Definitions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.349339 seconds
-    * Cumulative time: 0.349339 seconds
+    * Command took 0.45889 seconds
+    * Cumulative time: 0.45889 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -126,8 +120,8 @@ Command 2: Minimal Definitions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.662517 seconds
-    * Cumulative time: 1.01186 seconds
+    * Command took 0.695057 seconds
+    * Cumulative time: 1.15395 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -159,15 +153,15 @@ Command 3: Specified dtypes: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.475504 seconds
-    * Cumulative time: 1.48736 seconds
+    * Command took 0.464703 seconds
+    * Cumulative time: 1.61865 seconds
 :STDOUT:
     * **PASS**
     * Target:
 
       .. code-block:: none
 
-            mach: float32 (ndarray)
+            mach: float16 (ndarray)
            alpha: float32 (ndarray)
             beta: float32 (ndarray)
           config: str (list)
@@ -192,15 +186,15 @@ Command 4: Specified dtypes: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.71609 seconds
-    * Cumulative time: 2.20345 seconds
+    * Command took 0.696798 seconds
+    * Cumulative time: 2.31545 seconds
 :STDOUT:
     * **PASS**
     * Target:
 
       .. code-block:: none
 
-            mach: float32 (ndarray)
+            mach: float16 (ndarray)
            alpha: float32 (ndarray)
             beta: float32 (ndarray)
           config: str (list)

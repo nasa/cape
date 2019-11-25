@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:10 PST
+   on 2019-11-25 at 14:31 PST
 
 Test ``03_csv_num``
 =====================
@@ -60,12 +60,7 @@ The commands executed by this test are
         import cape.attdb.ftypes.csv as csv
         
         # Read CSV file
-        db = csv.CSVFile("wt-sample.csv",
-            DefaultType="float32",
-            Definitions={
-                "run": {"Type": "int"},
-                "pt": {"Type": "int"},
-            })
+        db = csv.CSVFile("wt-sample.csv", DefaultType="int32")
         
         # Print data types
         for col in db.cols:
@@ -86,8 +81,8 @@ Command 1: Clean CSV read: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.447931 seconds
-    * Cumulative time: 0.447931 seconds
+    * Command took 0.471569 seconds
+    * Cumulative time: 0.471569 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -114,8 +109,8 @@ Command 2: Clean CSV read: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.604475 seconds
-    * Cumulative time: 1.05241 seconds
+    * Command took 0.672722 seconds
+    * Cumulative time: 1.14429 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -142,8 +137,8 @@ Command 3: Specified :class:`float` types: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.455106 seconds
-    * Cumulative time: 1.50751 seconds
+    * Command took 0.459656 seconds
+    * Cumulative time: 1.60395 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -152,9 +147,9 @@ Command 3: Specified :class:`float` types: Python 2
 
         run  : int32
         pt   : int32
-        mach : float32
-        alpha: float32
-        beta : float32
+        mach : float64
+        alpha: float64
+        beta : float64
         
 
 :STDERR:
@@ -174,8 +169,8 @@ Command 4: Specified :class:`float` types: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.613115 seconds
-    * Cumulative time: 2.12063 seconds
+    * Command took 0.693176 seconds
+    * Cumulative time: 2.29712 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -184,9 +179,9 @@ Command 4: Specified :class:`float` types: Python 3
 
         run  : int32
         pt   : int32
-        mach : float32
-        alpha: float32
-        beta : float32
+        mach : float64
+        alpha: float64
+        beta : float64
         
 
 :STDERR:

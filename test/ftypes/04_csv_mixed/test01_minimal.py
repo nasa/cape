@@ -5,12 +5,7 @@
 import cape.attdb.ftypes.csv as csv
 
 # Read CSV file
-db = csv.CSVFile("runmatrix.csv",
-    Definitions={
-        "config": {"Type": "str"},
-        "Label": {"Type": "str"},
-        "user": {"Type": "str"}
-    })
+db = csv.CSVFile("runmatrix.csv")
 
 # Case number
 i = 6
