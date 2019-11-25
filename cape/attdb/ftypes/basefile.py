@@ -120,7 +120,7 @@ class BaseFile(dict):
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
-            *cols*: {*db.cols*} | :class:`list`\ [:lass:`str`]
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to process
             *Types*, *Definitions*, *defns*: {``{}``} | :class:`dict`
                 Dictionary of specific types for each *col*

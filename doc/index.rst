@@ -181,4 +181,5 @@ defined.  In general the required files are the following.
         test/pycart/index
         test/pyfun/index
         test/pyover/index
+        test/ftypes/index
         

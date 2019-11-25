@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2019-11-25 at 13:10 PST
 
 Test ``01_import``
 ====================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/01_import/``
+    ``/u/wk/ddalle/usr/pycart/test/ftypes/01_import/``
 
 and the working folder for the test is
 
@@ -27,12 +27,13 @@ The commands executed by this test are
         #!/usr/bin/env python
         # -*- coding: utf-8 -*-
         
-        # Import cape module(s)
-        import cape
-        import cape.cfdx.options
+        # Import ftypes module(s)
+        import cape.attdb.ftypes
+        import cape.attdb.ftypes.csv
+        
 
-Command 1
-----------
+Command 1: Import :mod:`cape.attdb.ftypes`: Python2
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -45,15 +46,15 @@ Command 1
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.362759 seconds
-    * Cumulative time: 0.362759 seconds
+    * Command took 0.486636 seconds
+    * Cumulative time: 0.486636 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 2
-----------
+Command 2: Import :mod:`cape.attdb.ftypes`: Python3
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -66,8 +67,8 @@ Command 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.536451 seconds
-    * Cumulative time: 0.89921 seconds
+    * Command took 0.694765 seconds
+    * Cumulative time: 1.1814 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

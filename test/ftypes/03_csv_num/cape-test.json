@@ -1,0 +1,33 @@
+{
+    "CopyFiles": [
+        "wt-sample.csv",
+        "test01_clean.py",
+        "test02_dtypes.py"
+    ],
+    "Commands": [
+        "python2 test01_clean.py",
+        "python3 test01_clean.py",
+        "python2 test02_dtypes.py",
+        "python3 test02_dtypes.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out",
+        "test.03.out",
+        "test.03.out"
+    ],
+    "CommandTitles": [
+        "Clean CSV read: Python 2",
+        "Clean CSV read: Python 3",
+        "Specified :class:`float` types: Python 2",
+        "Specified :class:`float` types: Python 3"
+    ],
+    "DocFilesShow": [
+        "test01_clean.py",
+        "test02_dtypes.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/ftypes",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

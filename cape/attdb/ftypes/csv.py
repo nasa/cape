@@ -64,13 +64,17 @@ class CSVFile(BaseFile):
         """
         # Save file name
         self.fname = fname
-        # Process definitions
-        kw = self.process_col_types(**kw)
         
         # Read file if appropriate
         if fname and typeutils.isstr(fname):
             # Read valid file
-            self.read_csv(fname)
+            kw = self.read_csv(fname, **kw)
+        else:
+            # Process inputs
+            kw = self.process_col_types(**kw)
+            
+        # Check for overrides of values
+        kw = self.process_values(**kw)
         
         
         
@@ -82,7 +86,7 @@ class CSVFile(BaseFile):
   # <
    # --- Control ---
     # Reader
-    def read_csv(self, fname):
+    def read_csv(self, fname, **kw):
         r"""Read an entire CSV file, including header
         
         :Call:
@@ -102,10 +106,14 @@ class CSVFile(BaseFile):
         with open(fname, 'r') as f:
             # Process column names
             self.read_csv_header(f)
+            # Process column types
+            kw = self.process_col_types(**kw)
             # Initialize columns
             self.init_cols(self.cols)
             # Loop through lines
             self.read_csv_data(f)
+        # Output remaining options
+        return kw
    
    # --- Header ---
     # Read initial comments

@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-10-24 at 07:15 PDT
+   on 2019-11-25 at 13:11 PST
 
 Test ``08_cntl``
 ==================
@@ -50,8 +50,8 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.514388 seconds
-    * Cumulative time: 0.514388 seconds
+    * Command took 0.488697 seconds
+    * Cumulative time: 0.488697 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -80,8 +80,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.709323 seconds
-    * Cumulative time: 1.22371 seconds
+    * Command took 0.713669 seconds
+    * Cumulative time: 1.20237 seconds
 :STDOUT:
     * **PASS**
     * Target:
