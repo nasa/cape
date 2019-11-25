@@ -27,6 +27,11 @@ collection.
 # Standard library modules
 import os
 
+
+# Fixed parameter for size of new chunks
+NUM_ARRAY_CHUNK = 5000
+
+
 # Declare basic class
 class BaseFile(dict):
     # Common properties
@@ -116,12 +121,12 @@ class BaseFile(dict):
                 List of columns to process
             *Types*, *Definitions*, *defns*: {``{}``} | :class:`dict`
                 Dictionary of specific types for each *col*
-            *DefaultClass*: {``"float"``} | :class:`str`
+            *DefaultType*: {``"float"``} | :class:`str`
                 Name of default class
             *DefaultFormat*: {``None``} | :class:`str`
                 Optional default format string
-            *DefaultType*: :class:`dict`
-                :class:`dict` of default *Class*, *Format*
+            *DefaultDefinition*: :class:`dict`
+                :class:`dict` of default *Type*, *Format*
         :Outputs:
             *kwo*: :class:`dict`
                 Options not used in this method
@@ -139,17 +144,17 @@ class BaseFile(dict):
         # Process current list of columns
         cols = getattr(self, "cols", [])
         # Check for default definition
-        odefn = kw.pop("DefaultType", {})
+        odefn = kw.pop("DefaultDefinition", {})
         # Process various defaults
-        odefcls = kw.pop("DefaultClass", "float")
+        odefcls = kw.pop("DefaultType", "float")
         odeffmt = kw.pop("DefaultFormat", None)
         # Set defaults
-        odefn.setdefault("Class",  odefcls)
+        odefn.setdefault("Type",  odefcls)
         odefn.setdefault("Format", odeffmt)
         # Ensure definitions exist
-        opts = self.opts.setdefault("Types", {})
+        opts = self.opts.setdefault("Definitions", {})
         # Save defaults
-        self.opts["Types"]["_"] = odefn
+        self.opts["Definitions"]["_"] = odefn
         # Loop through columns
         for col in cols:
             # Get definition
@@ -163,7 +168,122 @@ class BaseFile(dict):
         # Return unused options
         return kw
 
-   # --- Values ---
+   # --- Type/Class Translators ---
+    # Convert class names
+    def translate_classname(self, clsname):
+        """Convert class name into abbreviation code
+        
+        This function serves a similar purpose to the NumPy function
+        :func:`np.dtype`.  The base types are ``int``, ``uint``, 
+        ``float``, and ``str``.
+        
+        :Call:
+            >>> typname = db.translate_classname(clsname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *clsname*: :class:`str`
+                Name of class, for example ``"float"``, ``"f64"``,
+                ``"uint16"``, etc.
+        :Outputs:
+            *typname*: :class:`str`
+                Full descriptive name, ``"int32"``, ``"float64"``, etc
+        :Versions:
+            * 2019-11-24 ``@ddalle``: First version
+        """
+        pass
+    
+   # --- Column Properties ---
+    # Get generic property from column
+    def get_col_prop(self, col, prop):
+        """Get property for specific column
+        
+        :Call:
+            >>> val = db.get_col_prop(col, prop)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column
+            *prop*: :class:`str`
+                Name of property
+        :Outputs:
+            *val*: :class:`any`
+                Value of ``db.opts["Definitions"][col][prop]`` if
+                possible; defaulting to
+                ``db.opts["Definitions"]["_"][prop]`` or ``None``
+        :Versions:
+            * 2019-11-24 ``@ddalle``: First version
+        """
+        # Check if column is present
+        if col not in self.cols:
+            # Allow default
+            if col != "_":
+                raise KeyError("No column '%s'" % col)
+        # Get definitions
+        defns = self.opts.get("Definitions", {})
+        # Get specific definition
+        defn = defns.get(col, {})
+        # Check if option available
+        if prop in defn:
+            # Return it
+            return defn[prop]
+        else:
+            # Use default
+            defn = defns.get("_", {})
+            # Get property from default definition
+            return defn.get(prop)
+
+    # Get type
+    def get_col_type(self, col):
+        """Get data type for specific column
+        
+        :Call:
+            >>> cls = db.get_col_type(col, prop)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column
+        :Outputs:
+            *cls*: ``"int"`` | ``"float"`` | ``"str"`` | :class:`str`
+                Name of data type
+        :Versions:
+            * 2019-11-24 ``@ddalle``: First version
+        """
+        retrun self.get_col_prop(col, "Type")
+        
+    # Get array type
+    def get_col_dtype(self, col):
+        """Get data type for arrays for specific column
+        
+        :Call:
+            >>> dtype = db.get_col_dtype(col, prop)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column
+        :Outputs:
+            *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
+                Name of data type
+        :Versions:
+            * 2019-11-24 ``@ddalle``: First version
+        """
+        # Get input type
+        clsname = self.get_col_dtype(col)
+        # Filter it
+        if col in ["f", "f64", "float", "float64", "double"]:
+            # 64-bit float (default
+            return "f64"
+        elif col in ["i", "i32"]:
+            # 32-bit int
+  # >
+
+  # ==========
+  # Values
+  # ==========
+  # <
     # Query keyword arguments for manual values
     def process_values(self, **kw):
         r"""Process *Values* argument for manual column values
@@ -232,6 +352,34 @@ class BaseFile(dict):
         else:
             # Nonstandard value; don't convert
             self[k] = v
+            
+  # >
+  
+  
+  # ===============
+  # Data
+  # ===============
+  # <
+   # --- Init ---
+    def initcol(self, col):
+        """Initialize column
+        
+        :Call:
+            >>> db.initcol(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column to initialize
+        :Effects:
+            *db[col]*: :class:`np.ndarray` | :class:`list`
+                Initialized array with appropriate type
+        :Versions:
+            * 2019-11-23 ``@ddalle``: First version
+        """
+        # Get type
+        clsname = self.get_col_type(col)
+        
             
   # >
 

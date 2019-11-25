@@ -82,7 +82,7 @@ class CSVFile(BaseFile):
         # Open file
         f = open(fname, 'r')
         # Process column names
-        self.read_header()
+        self.read_csv_header()
         # Loop through lines
         
         # Close file
@@ -92,8 +92,8 @@ class CSVFile(BaseFile):
     def read_csv_header(self, f):
         r"""Read column names from beginning of open file
         
-        :Class:
-            >>> db.read_header(f)
+        :Call:
+            >>> db.read_csv_header(f)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
@@ -114,10 +114,28 @@ class CSVFile(BaseFile):
         # Remove flags
         del self._csv_header_once
         del self._csv_header_complete
-        
-        
+
     # Read a line as if it were a header
     def read_csv_headerline(self, f):
+        r"""Read line and process column names if possible
+        
+        :Call:
+            >>> db.read_csv_headerline(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: ``None`` | :class:`list`\ [:class:`str`]
+                List of column names if read
+            *db._csv_header_once*: ``True`` | ``False``
+                Set to ``True`` if column names are read at all
+            *db._csv_header_complete*: ``True`` | ``False``
+                Set to ``True`` if next line is expected to be data
+        :Versions:
+            * 2019-11-22 ``@ddalle``: First version
+        """
         # Check if header has already been processed
         if self._csv_header_complete:
             return
@@ -169,4 +187,60 @@ class CSVFile(BaseFile):
         self.cols = cols
         # Output column names for kicks
         return cols
+
+    # Rad data
+    def read_csv_data(self, f):
+        """Read data portion of CSV file
+        
+        :Call:
+            >>> db.read_csv_data(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                List of column names
+        :Versions:
+            * 2019-11-12 ``@ddalle``: First version
+        """
+        # Initialize types
+        self._types = {}
+        # Definitions
+        defns = self.opts.get("Definitions", {})
+        # Default type
+        odefn = defns.get("_", {})
+        otype = odefn.get("Type", "float")
+        # Set count
+        self.n = 0
+        # Loop through columns
+        for col in self.cols:
+            # Definitions for that key
+            defn = defns.get(col, {})
+            # Get declared type
+            self._types[col] = defn.get("Type", otype)
+            # Initialize data field
+            
+        # Read data lines
+        
+    # Read data line
+    def read_csv_dataline(self, f):
+        # Read line
+        line = f.readline()
+        # Check for comment
+        if line.startswith("#"):
+            return
+        # Check for empty line
+        if line.strip() == "":
+            continue
+        # Split line
+        coltxts = [txt.strip() for txt in line.split(",")]
+        
+
+    # Read data key
+    def read_csv_datanext(self, f, k):
+        # Get data type
+        clsname = self._types[k]
+        # Check type
             
