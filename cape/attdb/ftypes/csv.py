@@ -212,6 +212,9 @@ class CSVFile(BaseFile):
                     # Exit
                     return
         else:
+            # If row is empty; allow this
+            if line.strip() == "":
+                continue
             # Non-comment row following comment: data
             f.seek(pos)
             # Mark completion of header
@@ -481,7 +484,7 @@ class CSVFile(BaseFile):
             raise ValueError(e.message)
     
     # Convert text to complex
-    def translate_complex(self, clsname=None):
+    def translate_complex(self, txt, clsname=None):
         r"""Convert a string to complex float
         
         This conversion allows for the format ``"2.40D+00 + 1.2I"``
@@ -512,19 +515,19 @@ class CSVFile(BaseFile):
         if clsname is None:
             # Standard Python type
             cls = complex
-            clsf = float
+            clsf = "float64"
         elif clsname == "complex128":
             # Standard NumPy float
             cls = np.complex128
-            clsf = np.float64
+            clsf = "float64"
         elif clsname == "complex64":
             # Single-precision
             cls = np.complex64
-            clsf = np.float32
+            clsf = "float32"
         elif clsname == "complex256":
             # Extra long
             cls = np.complex256
-            clsf = np.float128
+            clsf = "float128"
         else:
             # Invalid
             raise ValueError("Invalid complex number subtype '%s'" % clsname)
