@@ -633,3 +633,239 @@ class BaseFile(dict):
         # Create pointer
         setattr(self, col, self[col])
   # >
+# class BaseFile
+
+
+# Text interpretation classes
+class TextFile(dict):
+    # Convert to text to appropriate class
+    def translate_text(self, txt, clsname):
+        r"""Convert a string to appropriate type
+        
+        :Call:
+            >>> v = db.translate_text(txt, clsname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *txt*: :class:`str`
+                Text to be converted to :class:`float`
+            *clsname*: {``"float64"``} | ``"int32"`` | :class:`str`
+                Valid data type name
+        :Outputs:
+            *v*: :class:`clsname`
+                Text translated to requested type
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Filter class name
+        if clsname.startswith("float"):
+            # Convert float
+            return self.translate_float(txt, clsname)
+        elif clsname.startswith("str"):
+            # No conversion
+            return txt
+        elif clsname.startswith("int"):
+            # Convert integer
+            return self.translate_int(txt, clsname)
+        elif clsname.startswith("uint"):
+            # Convert unsigned integer
+            return self.translate_int(txt, clsname)
+        elif clsname.startswith("complex"):
+            # Convert complex number
+            return self.translate_complex(txt, clsname)
+        else:
+            # Invalid type
+            raise TypeError("Invalid class name '%s'" % clsname)
+
+    # Convert text to float
+    def translate_float(self, txt, clsname=None):
+        r"""Convert a string to float
+        
+        This conversion allows for the format ``"2.40D+00"`` if the
+        built-in :func:`float` converter fails.  Python expects the
+        exponent character to be ``E`` or ``e``, but ``D`` and ``d``
+        are allowed here.  Other exceptions are not handled.
+        
+        Special processing of specific :class:`float` subtypes is
+        handled if the *clsname* keyword is specified.  Specific types
+        are handled by valid NumPy classes.
+        
+        :Call:
+            >>> v = db.translate_float(txt)
+            >>> v = db.translate_float(txt, clsname="float64")
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *txt*: :class:`str`
+                Text to be converted to :class:`float`
+            *clsname*: {``"float64"``} | ``"float32"`` | ``"float128"``
+                Specific data type
+        :Outputs:
+            *v*: :class:`float`
+                Converted value
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Filter name
+        if clsname is None:
+            # Standard Python type
+            cls = float
+        elif clsname == "float64":
+            # Standard NumPy float
+            cls = np.float64
+        elif clsname == "float16":
+            # Extra short NumPy float
+            cls = np.float16
+        elif clsname == "float32":
+            # Single-precision
+            cls = np.float32
+        elif clsname == "float128":
+            # Extra long
+            cls = np.float128
+        else:
+            # Invalid
+            raise ValueError("Invalid float subtype '%s'" % clsname)
+        # Attempt conversion
+        try:
+            # Basic conversion
+            return cls(txt)
+        except ValueError as e:
+            # Substitute "E" for "D" and "e" for "d"
+            txt = txt.replace("D", "E")
+            txt = txt.replace("d", "e")
+        # Second attempt
+        try:
+            # Basic conversion after substitution
+            return cls(txt)
+        except Exception:
+            # Use original message to avoid confusion
+            raise ValueError(e.message)
+    
+    # Convert text to complex
+    def translate_complex(self, txt, clsname=None):
+        r"""Convert a string to complex float
+        
+        This conversion allows for the format ``"2.40D+00 + 1.2I"``
+        where ``I``, ``i``, and ``J`` are converted to ``j``; and
+        ``D`` and ``d`` are converted to ``E`` if necessary.
+        
+        Special processing of specific :class:`complex` subtypes is
+        handled if the *clsname* keyword is specified.  Specific types
+        are handled by valid NumPy classes.
+        
+        :Call:
+            >>> v = db.translate_complex(txt)
+            >>> v = db.translate_complex(txt, clsname="complex128")
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *txt*: :class:`str`
+                Text to be converted to :class:`float`
+            *clsname*: {``"complex128"``} | ``"complex64"``
+                Specific data type
+        :Outputs:
+            *v*: :class:`float`
+                Converted value
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Filter name
+        if clsname is None:
+            # Standard Python type
+            cls = complex
+            clsf = "float64"
+        elif clsname == "complex128":
+            # Standard NumPy float
+            cls = np.complex128
+            clsf = "float64"
+        elif clsname == "complex64":
+            # Single-precision
+            cls = np.complex64
+            clsf = "float32"
+        elif clsname == "complex256":
+            # Extra long
+            cls = np.complex256
+            clsf = "float128"
+        else:
+            # Invalid
+            raise ValueError("Invalid complex number subtype '%s'" % clsname)
+        # Initialize value
+        v = cls(0.0)
+        # Substitute "i" for "j"
+        txt = txt.replace("i", "j")
+        txt = txt.replace("I", "j")
+        txt = txt.replace("J", "j")
+        # Split text into real and imaginary parts
+        txts = txt.split("+")
+        # Loop through parts
+        for txti in txts:
+            # Check if it's complex
+            if "j" in txti:
+                # Get rid of it
+                txti = txti.replace("j", "")
+                # Convert imaginary part to float
+                v += self.translate_float(txti, clsf) * 1j
+            else:
+                # Convert real part to float
+                v += self.translate_float(txti, clsf)
+        # Output
+        return v
+
+    # Convert text to int
+    def translate_int(self, txt, clsname=None):
+        r"""Convert a string to integer
+        
+        Special processing of specific :class:`int` and :class:`uint`
+        subtypes is handled if the *clsname* keyword is specified.
+        Specific types are handled by valid NumPy classes.
+        
+        :Call:
+            >>> v = db.translate_float(txt)
+            >>> v = db.translate_float(txt, clsname="int32")
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *txt*: :class:`str`
+                Text to be converted to :class:`float`
+            *clsname*: {``"int32"``} | ``"int64"`` | ``"uint64"``
+                Specific data type
+        :Outputs:
+            *v*: :class:`float`
+                Converted value
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Filter name
+        if clsname is None:
+            # Standard Python type
+            cls = int
+        elif clsname == "int32":
+            # Standard NumPy float
+            cls = np.int32
+        elif clsname == "int64":
+            # Extra short NumPy float
+            cls = np.float64
+        elif clsname == "int16":
+            # Single-precision
+            cls = np.int16
+        elif clsname == "int8":
+            # Extra long
+            cls = np.int8
+        elif clsname == "uint":
+            # Long unsigned
+            cls = np.uint32
+        elif clsname == "uint32":
+            # Long unsigned
+            cls = np.uint32
+        elif clsname == "uint64":
+            # Extra long unsigned
+            cls = np.uint64
+        elif clsname == "uint8":
+            # Extra short unsigned
+            cls = np.uint8
+        else:
+            # Invalid
+            raise ValueError("Invalid integer subtype '%s'" % clsname)
+        # Attempt conversion
+        return cls(txt)
+    
