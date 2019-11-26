@@ -26,6 +26,7 @@ collection.
 
 # Standard library modules
 import os
+import warnings
 
 # Third-party modules
 import numpy as np
@@ -112,11 +113,11 @@ class BaseFile(dict):
   # <
    # --- Key Definitions ---
     # Process key definitions
-    def process_col_types(self, **kw):
+    def process_col_defns(self, **kw):
         r"""Process *Definitions* of column types
         
         :Call:
-            >>> kwo = db.process_col_types(**kw)
+            >>> kwo = db.process_col_defns(**kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -411,10 +412,29 @@ class BaseFile(dict):
         # Combine inputs
         vals = dict(vals2, **vals1)
         # Process values
-        for col, v in kw.items():
+        for col, v in vals.items():
             # Save values
             self.save_column(col, v)
-            
+        # Output unused options
+        return kw
+
+    # Left-over keywords
+    def warn_kwargs(self, kw):
+        r"""Display and warn about unused keyword arguments
+        
+        :Call:
+            >>> db.warn_kwargs(kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *kw*: :class:`dict`
+                Dictionary of previously unused keyword arguments
+        :Versions:
+            * 2019-11-26 ``@ddalle``: First version
+        """
+        # Loop through keywords
+        for k in kw:
+            warnings.warn("Unused keyword '%s'" % k, UserWarning)
   # >
   
   
@@ -638,6 +658,19 @@ class BaseFile(dict):
 
 # Text interpretation classes
 class TextFile(dict):
+    r"""Class to contain methods for interpreting text
+    
+    The class is kept separate from :class:`BaseFile` because not all
+    file-type interfaces need sophisticated rules for converting text
+    to numeric or other values.
+    
+    This class provides several methods for inheritance, but the intent
+    is that instances of this class are not useful and should not be
+    used.
+    
+    :Versions:
+        * 2019-11-26 ``@ddalle``: First version
+    """
     # Convert to text to appropriate class
     def translate_text(self, txt, clsname):
         r"""Convert a string to appropriate type
@@ -868,4 +901,4 @@ class TextFile(dict):
             raise ValueError("Invalid integer subtype '%s'" % clsname)
         # Attempt conversion
         return cls(txt)
-    
+# class TextFile

@@ -46,10 +46,18 @@ class CSVFile(BaseFile, TextFile):
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
+        *db.opts*: :class:`dict`
+            Options for this instance
+        *db.opts["Definitions"]*: :class:`dict`
+            Definitions for each column
+        *db[col]*: :class:`np.ndarray` | :class:`list`
+            Numeric array or list of strings for each column
     :See also:
         * :class:`cape.attdb.ftypes.basefile.BaseFile`
+        * :class:`cape.attdb.ftypes.basefile.TextFile`
     :Versions:
         * 2019-11-12 ``@ddalle``: First version
+        * 2019-11-26 ``@ddalle``: Generic version
     """
   # ======
   # Config
@@ -74,13 +82,12 @@ class CSVFile(BaseFile, TextFile):
             kw = self.read_csv(fname, **kw)
         else:
             # Process inputs
-            kw = self.process_col_types(**kw)
+            kw = self.process_col_defns(**kw)
             
         # Check for overrides of values
         kw = self.process_values(**kw)
-        
-        
-        
+        # Warn about any unused inputs
+        self.warn_kwargs(kw)
   # >
     
   # =============
@@ -110,7 +117,7 @@ class CSVFile(BaseFile, TextFile):
             # Process column names
             self.read_csv_header(f, **kw)
             # Process column types
-            kw = self.process_col_types(**kw)
+            kw = self.process_col_defns(**kw)
             # Initialize columns
             self.init_cols(self.cols)
             # Loop through lines
@@ -146,7 +153,7 @@ class CSVFile(BaseFile, TextFile):
         del self._csv_header_once
         del self._csv_header_complete
         # Get guesses as to types
-        self.read_csv_headertypes(f, **kw)
+        self.read_csv_firstrowtypes(f, **kw)
 
     # Read a line as if it were a header
     def read_csv_headerline(self, f):
@@ -227,14 +234,16 @@ class CSVFile(BaseFile, TextFile):
         return cols
         
     # Read header types from first data row
-    def read_csv_headertypes(self, f, **kw):
+    def read_csv_firstrowtypes(self, f, **kw):
         r"""Get initial guess at data types from first data row
         
         If (and only if) the *DefaultType* input is an integer type,
-        guessed types can be integers.  Otherwise
+        guessed types can be integers.  Otherwise the sequence of
+        possibilities is :class:`float`, :class:`complex`,
+        :class:`str`.
         
         :Call:
-            >>> db.read_csv_headertypes(f, **kw)
+            >>> db.read_csv_firstrowtypes(f, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
@@ -340,7 +349,7 @@ class CSVFile(BaseFile, TextFile):
         # Trim each column
         for col in self.cols:
             self.trim_colarray(col)
-        
+
     # Read data line
     def read_csv_dataline(self, f):
         r"""Read one data line of a CSV file
@@ -378,7 +387,70 @@ class CSVFile(BaseFile, TextFile):
             v = self.translate_text(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
+  # >
+# class CSVFile
 
-   # --- Translators ---
+
+# Simple CSV file
+class CSVSimple(BaseFile):
+    r"""Class to read CSV file with only :class:`float` data
+    
+    This class differs from :class:`CSVFile` in that it is less
+    flexible, does not permit multirow or empty headers, has fixed
+    delimiter and comment characters, and assumes all data is a
+    :class:`float` with the system default length.
+    
+    :Call:
+        >>> db = CSVSimple(fname, **kw)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            CSV file interface
+        *db.cols*: :class:`list`\ [:class:`str`]
+            List of columns read
+        *db.opts*: :class:`dict`
+            Options for this instance
+        *db.opts["Definitions"]*: :class:`dict`
+            Definitions for each column
+        *db[col]*: :class:`np.ndarray` | :class:`list`
+            Numeric array or list of strings for each column
+    :See also:
+        * :class:`cape.attdb.ftypes.basefile.BaseFile`
+    :Versions:
+        * 2019-11-26 ``@ddalle``: Started
+    """
+  # ======
+  # Config
+  # ======
+  # <
+    # Initialization method
+    def __init__(self, fname=None, **kw):
+        """Initialization method
+        
+        :Versions:
+            * 2019-11-12 ``@ddalle``: First version
+        """
+        # Initialize options
+        self.opts = {}
+        
+        # Save file name
+        self.fname = fname
+
+        # Read file if appropriate
+        if fname and typeutils.isstr(fname):
+            # Read valid file
+            kw = self.read_csv(fname, **kw)
+        else:
+            # Process inputs
+            kw = self.process_col_defns(**kw)
+            
+        # Check for overrides of values
+        kw = self.process_values(**kw)
+        # Warn about any unused inputs
+        self.warn_kwargs(kw)
   # >
 
+
+# class CSVSimple
