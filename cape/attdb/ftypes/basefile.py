@@ -509,18 +509,18 @@ class BaseFile(dict):
         # Check type
         if isinstance(v, np.ndarray):
             # Save as is
-            self[k] = v
+            self[col] = v
         elif isinstance(v, list):
             # Check first element
             if len(v) == 0:
                 # Nothing to convert
-                self[k] = v
+                self[col] = v
             elif isinstance(v[0], (int, float, complex)):
                 # Convert to array
-                self[k] = np.asarray(v)
+                self[col] = np.asarray(v)
         else:
             # Nonstandard value; don't convert
-            self[k] = v
+            self[col] = v
 
     # Save next value to column's array
     def append_colval(self, col, v):
