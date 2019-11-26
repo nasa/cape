@@ -156,8 +156,8 @@ class BaseFile(dict):
         # Set defaults
         odefn.setdefault("Type",  odefcls)
         odefn.setdefault("Format", odeffmt)
-        # Translate name
-        odefn["Type"] = self.translate_dtype(odefn["Type"])
+        # Validate default definition
+        self.validate_defn(odefn)
         # Ensure definitions exist
         opts = self.opts.setdefault("Definitions", {})
         # Save defaults
@@ -171,15 +171,16 @@ class BaseFile(dict):
             for (key, opt) in kwdefn.items():
                 # Kwargs override anything created automatically
                 defn[key] = opt
-            # Manually translate *Type*
-            defn["Type"] = self.translate_dtype(defn["Type"])
+            # Validate values
+            self.validate_defn(defn)
+
         # Loop through specifically types
         for (col, cls) in defns1.items():
             # Get existing definition
             defn = opts.setdefault(col, {})
             # Apply the type
-            defn["Type"] = self.translate_dtype(cls)
-        
+            defn["Type"] = self.validate_dtype(cls)
+
         # Loop through known columns
         for col in self.cols:
             # Get definition
@@ -188,36 +189,133 @@ class BaseFile(dict):
             for key, opt in odefn.items():
                 # Apply default but don't override
                 defn.setdefault(key, opt)
-            # Manually translate *Type*
-            defn["Type"] = self.translate_dtype(defn["Type"])
+            # Validate the definition
+            self.validate_defn(defn)
             
         # Return unused options
         return kw
 
-   # --- Type/Class Translators ---
-    # Convert class names
-    def translate_classname(self, clsname):
-        """Convert class name into abbreviation code
-        
-        This function serves a similar purpose to the NumPy function
-        :func:`np.dtype`.  The base types are ``int``, ``uint``, 
-        ``float``, and ``str``.
+   # --- Keyword Checkers ---
+    # Validate a dictionary of options
+    def validate_defn(self, defn):
+        r"""Validate each key in a dictionary column definition
         
         :Call:
-            >>> typname = db.translate_classname(clsname)
+            >>> db.validate_defn(defn)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *defn*: :class:`dict`
+                Name of column definition option to validate
+        :Effects:
+            *defn*: :class:`dict`
+                Each item in *defn* is validated
+        :See Also:
+            * :func:`validate_defnopt`
+        :Versions:
+            * 2019-11-26 ``@ddalle``: First version
+        """
+        # Ensure input type
+        if not isinstance(defn, dict):
+            raise TypeError("Definition for validation must be 'dict'" +
+                ("; got '%s'" % defn.__class__.__name__))
+        # Loop through keys
+        for (k, v) in defn.items():
+            # Validate individual key
+            defn[k] = self.validate_defnopt(k, v)
+        
+    # Validate any keyword argument
+    def validate_defnopt(self, prop, val):
+        r"""Translate any key definition into validated output
+        
+        :Call:
+            >>> v = db.validate_defnopt(prop, val)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *prop*: :class:`str`
+                Name of column definition option to validate
+            *val*: :class:`any`
+                Initial value for option (raw input)
+        :Outputs:
+            *v*: :class:`any`
+                Validated version of *val*
+        :Versions:
+            * 2019-11-26 ``@ddalle``: First version
+        """
+        # Check property
+        if prop == "Type":
+            return self.validate_dtype(val)
+        else:
+            # Default is to accept any input
+            return val
+
+    # Convert *Type* to validated *Type*
+    def validate_dtype(self, clsname):
+        r"""Translate free-form type name into type code
+        
+        :Call:
+            >>> dtype = db.validate_dtype(clsname)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
             *clsname*: :class:`str`
-                Name of class, for example ``"float"``, ``"f64"``,
-                ``"uint16"``, etc.
+                Name of column
         :Outputs:
-            *typname*: :class:`str`
-                Full descriptive name, ``"int32"``, ``"float64"``, etc
+            *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
+                Name of data type
         :Versions:
             * 2019-11-24 ``@ddalle``: First version
         """
-        pass
+        # Force lower case
+        clsname = clsname.lower()
+        # Make some substitutions
+        clsname = clsname.replace("float", "f")
+        clsname = clsname.replace("int",  "i")
+        clsname = clsname.replace("complex", "c")
+        # Filter it
+        if clsname in ["f", "f64", "double"]:
+            # 64-bit float (default
+            return "float64"
+        elif clsname in ["i", "i32", "long"]:
+            # 32-bit int
+            return "int32"
+        elif clsname in ["i16", "short"]:
+            # 16-bit int
+            return "int16"
+        elif clsname in ["f32", "single"]:
+            # 32-bit float
+            return "float32"
+        elif clsname in ["i64", "long long"]:
+            # Double long integer
+            return "int64"
+        elif clsname in ["f128"]:
+            # Double long float
+            return "float128"
+        elif clsname in ["f16"]:
+            # Short float
+            return "float16"
+        elif clsname in ["i8"]:
+            # Extra short integer
+            return "int8"
+        elif clsname in ["i1", "bool"]:
+            # Boolean
+            return "bool"
+        elif clsname in ["c", "c128"]:
+            # Complex (double)
+            return "complex128"
+        elif clsname in ["c", "c64"]:
+            # Complex (double)
+            return "complex64"
+        elif clsname in ["c256"]:
+            # Complex (single)
+            return "complex256"
+        elif clsname in ["str"]:
+            # String
+            return "str"
+        else:
+            # Unrecognized
+            return TypeError("Unrecognized class/type '%s'" % clsname)
     
    # --- Column Properties ---
     # Get generic property from column
@@ -280,71 +378,7 @@ class BaseFile(dict):
         return self.get_col_prop(col, "Type")
         
     # Get array type
-    def translate_dtype(self, clsname):
-        """Translate free-form type name into type code
-        
-        :Call:
-            >>> dtype = db.translate_dtype(clsname)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *clsname*: :class:`str`
-                Name of column
-        :Outputs:
-            *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
-                Name of data type
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-        """
-        # Force lower case
-        clsname = clsname.lower()
-        # Make some substitutions
-        clsname = clsname.replace("float", "f")
-        clsname = clsname.replace("int",  "i")
-        clsname = clsname.replace("complex", "c")
-        # Filter it
-        if clsname in ["f", "f64", "double"]:
-            # 64-bit float (default
-            return "float64"
-        elif clsname in ["i", "i32", "long"]:
-            # 32-bit int
-            return "int32"
-        elif clsname in ["i16", "short"]:
-            # 16-bit int
-            return "int16"
-        elif clsname in ["f32", "single"]:
-            # 32-bit float
-            return "float32"
-        elif clsname in ["i64", "long long"]:
-            # Double long integer
-            return "int64"
-        elif clsname in ["f128"]:
-            # Double long float
-            return "float128"
-        elif clsname in ["f16"]:
-            # Short float
-            return "float16"
-        elif clsname in ["i8"]:
-            # Extra short integer
-            return "int8"
-        elif clsname in ["i1", "bool"]:
-            # Boolean
-            return "bool"
-        elif clsname in ["c", "c128"]:
-            # Complex (double)
-            return "complex128"
-        elif clsname in ["c", "c64"]:
-            # Complex (double)
-            return "complex64"
-        elif clsname in ["c256"]:
-            # Complex (single)
-            return "complex256"
-        elif clsname in ["str"]:
-            # String
-            return "str"
-        else:
-            # Unrecognized
-            return TypeError("Unrecognized class/type '%s'" % clsname)
+    
 
    # --- Keyword Values ---
     # Query keyword arguments for manual values

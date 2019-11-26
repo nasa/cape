@@ -607,4 +607,5 @@ class CSVFile(BaseFile):
             raise ValueError("Invalid integer subtype '%s'" % clsname)
         # Attempt conversion
         return cls(txt)
+  # >
 
