@@ -245,7 +245,7 @@ class CSVFile(BaseFile):
         # Get integer option
         odefcls = kw.get("DefaultType", "float64")
         # Translate abbreviated codes
-        odefcls = self.translate_dtype(odefcls)
+        odefcls = self.validate_dtype(odefcls)
         # Save position
         pos = f.tell()
         # Read line
