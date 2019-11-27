@@ -72,10 +72,10 @@ class CSVFile(BaseFile, TextFile):
         """
         # Initialize options
         self.opts = {}
-        
+
         # Save file name
         self.fname = fname
-        
+
         # Process generic options
         kw = self.process_opts_generic(**kw)
 
@@ -86,7 +86,7 @@ class CSVFile(BaseFile, TextFile):
         else:
             # Process inputs
             kw = self.process_col_defns(**kw)
-            
+
         # Check for overrides of values
         kw = self.process_values(**kw)
         # Warn about any unused inputs

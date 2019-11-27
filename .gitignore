@@ -2,6 +2,9 @@
 *.py[co]
 __pychache__
 
+# Compile folders
+build
+
 # Local settings
 .vscode
 
