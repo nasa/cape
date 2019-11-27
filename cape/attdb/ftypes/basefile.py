@@ -112,6 +112,46 @@ class BaseFile(dict):
   # =================
   # <
    # --- Key Definitions ---
+    # Process generic options
+    def process_opts_generic(self, **kw):
+        r"""Process generic options from keyword arguments
+        
+        :Call:
+            >>> kwo = db.process_opts_generic(**kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *cols*, *ColNames*, *Keys*: :class:`list`\ [:class:`str`]
+                User-specified column names
+            *[Tt]ranslators*: :class:`dict`\ [:class:`str`]
+                Dictionary of alternate names to store column names as;
+                for example if the header has a column called
+                ``"CAF"``, and ``translators["CAF"]`` is ``"CA"``, that
+                column will be stored as ``db["CA"]`` instead of
+                ``db["CAF"]``
+        :Outputs:
+            *kwo*: :class:`dict`
+                Options not used in this method
+        :Versions:
+            * 2019-11-27 ``@ddalle``: First version
+        """
+        # Get columns
+        cols = kw.pop("cols", None)
+        cols = kw.pop("Keys", cols)
+        cols = kw.pop("ColumnNames", cols)
+        # Check it
+        if isinstance(cols, list):
+            self.cols = cols
+        # Save translators
+        trans1 = kw.pop("translators", {})
+        trans2 = kw.pop("Translators", {})
+        # Combine
+        trans = dict(trans1, **trans2)
+        # Save
+        self.opts["Translators"] = trans
+        # Return unused options
+        return kw
+    
     # Process key definitions
     def process_col_defns(self, **kw):
         r"""Process *Definitions* of column types
@@ -121,8 +161,6 @@ class BaseFile(dict):
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
-            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
-                List of columns to process
             *Types*: {``{}``} | :class:`dict`
                 Dictionary of just tye *Type* for one or more cols
             *Definitions*, *defns*: {``{}``} | :class:`dict`

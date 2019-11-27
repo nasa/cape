@@ -2,12 +2,12 @@
 .. This documentation written by TestDriver()
    on 2019-11-27 at 11:12 PST
 
-Test ``04_csv_mixed``
-=======================
+Test ``05_csv_noheader``
+==========================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/ftypes/04_csv_mixed/``
+    ``/u/wk/ddalle/usr/pycart/test/ftypes/05_csv_noheader/``
 
 and the working folder for the test is
 
@@ -55,6 +55,7 @@ The commands executed by this test are
         
         # Read CSV file
         db = csv.CSVFile("runmatrix.csv",
+            cols=["mach", "alpha", "beta", "config", "Label", "user"],
             DefaultType="float32",
             Types={
                 "config": "str",
@@ -87,20 +88,20 @@ Command 1: Minimal Definitions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.478658 seconds
-    * Cumulative time: 0.478658 seconds
+    * Command took 0.35155 seconds
+    * Cumulative time: 0.35155 seconds
 :STDOUT:
     * **PASS**
     * Target:
 
       .. code-block:: none
 
-            mach: 2.1
-           alpha: 4.0
-            beta: 1.5
-          config: poweroff
-           Label: 
-            user: @user3
+            col1: 2.1
+            col2: 4.0
+            col3: 1.5
+            col4: poweroff
+            col5: 
+            col6: @user3
         
 
 :STDERR:
@@ -120,27 +121,27 @@ Command 2: Minimal Definitions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.708321 seconds
-    * Cumulative time: 1.18698 seconds
+    * Command took 0.613744 seconds
+    * Cumulative time: 0.965294 seconds
 :STDOUT:
     * **PASS**
     * Target:
 
       .. code-block:: none
 
-            mach: 2.1
-           alpha: 4.0
-            beta: 1.5
-          config: poweroff
-           Label: 
-            user: @user3
+            col1: 2.1
+            col2: 4.0
+            col3: 1.5
+            col4: poweroff
+            col5: 
+            col6: @user3
         
 
 :STDERR:
     * **PASS**
 
-Command 3: Specified dtypes: Python 2
---------------------------------------
+Command 3: Specified Column Titles: Python 2
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -153,8 +154,8 @@ Command 3: Specified dtypes: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.480921 seconds
-    * Cumulative time: 1.6679 seconds
+    * Command took 0.376258 seconds
+    * Cumulative time: 1.34155 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -172,8 +173,8 @@ Command 3: Specified dtypes: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Specified dtypes: Python 3
---------------------------------------
+Command 4: Specified Column Titles: Python 3
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -186,22 +187,10 @@ Command 4: Specified dtypes: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.602739 seconds
-    * Cumulative time: 2.27064 seconds
+    * Command took 0.567684 seconds
+    * Cumulative time: 1.90924 seconds
 :STDOUT:
     * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float16 (ndarray)
-           alpha: float32 (ndarray)
-            beta: float32 (ndarray)
-          config: str (list)
-           Label: str (list)
-            user: str (list)
-        
-
 :STDERR:
     * **PASS**
 

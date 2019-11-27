@@ -75,6 +75,9 @@ class CSVFile(BaseFile, TextFile):
         
         # Save file name
         self.fname = fname
+        
+        # Process generic options
+        kw = self.process_opts_generic(**kw)
 
         # Read file if appropriate
         if fname and typeutils.isstr(fname):
@@ -152,6 +155,8 @@ class CSVFile(BaseFile, TextFile):
         # Remove flags
         del self._csv_header_once
         del self._csv_header_complete
+        # Get default column names if necessary
+        self.read_csv_headerdefaultcols(f)
         # Get guesses as to types
         self.read_csv_firstrowtypes(f, **kw)
 
@@ -316,6 +321,44 @@ class CSVFile(BaseFile, TextFile):
             except Exception:
                 # Only option left is a string
                 defn.setdefault("Type", "str")
+        
+    # Read first data line to count columns if necessary
+    def read_csv_headerdefaultcols(self, f):
+        r"""Create column names "col1", "col2", etc. if needed
+        
+        :Call:
+            >>> db.read_csv_headerdefaultcols(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                If not previously determined, this becomes
+                ``["col1", "col2", ...]`` based on number of columns
+                in the first data row
+        :Versions:
+            * 2019-11-27 ``@ddalle``: First version
+        """
+        # Check if columns already determined
+        if self.cols:
+            return
+        # Save position
+        pos = f.tell()
+        # Read line
+        line = f.readline()
+        # Check for empty data
+        if line == "":
+            return
+        # Return to original location so first data row can be read
+        f.seek(pos)
+        # Otherwise, split into data
+        coltxts = [txt.strip() for txt in line.split(",")]
+        # Count the number of columns
+        ncol = len(coltxts)
+        # Create default column names
+        self.cols = ["col%i" % (i+1) for i in range(ncol)]
 
    # --- Data ---
     # Rad data
@@ -442,9 +485,6 @@ class CSVSimple(BaseFile):
         if fname and typeutils.isstr(fname):
             # Read valid file
             kw = self.read_csvsimple(fname, **kw)
-        else:
-            # Process inputs
-            kw = self.process_col_defns(**kw)
             
         # Check for overrides of values
         kw = self.process_values(**kw)
