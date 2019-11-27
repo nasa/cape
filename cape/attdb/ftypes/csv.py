@@ -89,7 +89,7 @@ class CSVFile(BaseFile, TextFile):
         # Warn about any unused inputs
         self.warn_kwargs(kw)
   # >
-    
+
   # =============
   # Read
   # =============
@@ -406,7 +406,7 @@ class CSVSimple(BaseFile):
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+        *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -441,7 +441,7 @@ class CSVSimple(BaseFile):
         # Read file if appropriate
         if fname and typeutils.isstr(fname):
             # Read valid file
-            kw = self.read_csv(fname, **kw)
+            kw = self.read_csvsimple(fname, **kw)
         else:
             # Process inputs
             kw = self.process_col_defns(**kw)
@@ -451,6 +451,179 @@ class CSVSimple(BaseFile):
         # Warn about any unused inputs
         self.warn_kwargs(kw)
   # >
+    
+  # =============
+  # Read
+  # =============
+  # <
+   # --- Control ---
+    # Reader
+    def read_csvsimple(self, fname, **kw):
+        r"""Read an entire CSV file, including header
+        
+        The CSV file requires exactly one header row, which is the
+        first non-empty line, whether or not it begins with a comment
+        character (which must be ``"#"``).  All entries, both in the
+        header and in the data, must be separated by a ``,``.
+        
+        :Call:
+            >>> db.read_csvsimple(fname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                CSV file interface
+            *fname*: :class:`str`
+                Name of file to read
+        :See Also:
+            * :func:`read_csvsimple_header`
+            * :func:`read_csvsimple_data`
+        :Versions:
+            * 2019-11-27 ``@ddalle``: First version
+        """
+        # Open file
+        with open(fname, 'r') as f:
+            # Process column names
+            self.read_csvsimple_header(f, **kw)
+            # Initialize columns
+            self.init_cols(self.cols)
+            # Loop through lines
+            self.read_csvsimple_data(f)
+        # Output remaining options
+        return kw
+   
+   # --- Header ---
+    # Read initial comments
+    def read_csvsimple_header(self, f, **kw):
+        r"""Read column names from beginning of open file
+        
+        :Call:
+            >>> db.read_csv_header(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                List of column names
+        :Versions:
+            * 2019-11-12 ``@ddalle``: First version
+        """
+        # Loop until a nonempty line is read
+        while True:
+            # Read the next line
+            line = f.readline()
+            # Check contents of line
+            if line == "":
+                raise ValueError("File '%s' has no header" % self.fname)
+            # Strip comment and white space
+            line = line.lstrip("#").strip()
+            # Check for empty line
+            if line == "":
+                continue
+            # Process header line, strip white space from each col
+            self.cols = [col.strip() for col in line.split(",")]
+            # Once this is done, task completed
+            return
 
+   # --- Data ---
+    # Rad data
+    def read_csvsimple_data(self, f):
+        r"""Read data portion of simple CSV file
+        
+        :Call:
+            >>> db.read_csvsimple_data(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                List of column names
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Read data lines
+        while True:
+            # Process next line
+            eof = self.read_csvsimple_dataline(f)
+            # Check for end of file
+            if eof == -1:
+                break
+        # Trim each column
+        for col in self.cols:
+            self.trim_colarray(col)
 
+    # Read data line
+    def read_csvsimple_dataline(self, f):
+        r"""Read one data line of a simple CSV file
+        
+        :Call:
+            >>> db.read_csvsimple_dataline(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Versions:
+            * 2019-11-27 ``@ddalle``: First version
+        """
+        # Read line
+        line = f.readline()
+        # Check for end of file
+        if line == "":
+            return -1
+        # Check for comment
+        if line.startswith("#"):
+            return
+        # Check for empty line
+        if line.strip() == "":
+            return
+        # Split line
+        coltxts = [txt.strip() for txt in line.split(",")]
+        # Loop through columns
+        for (j, col) in enumerate(self.cols):
+            # Convert text
+            v = self.translate_simplefloat(coltxts[j])
+            # Save data
+            self.append_colval(col, v)
+
+    # Convert text to float
+    def translate_simplefloat(self, txt):
+        r"""Convert a string to default float
+        
+        This conversion allows for the format ``"2.40D+00"`` if the
+        built-in :func:`float` converter fails.  Python expects the
+        exponent character to be ``E`` or ``e``, but ``D`` and ``d``
+        are allowed here.  Other exceptions are not handled.
+        
+        :Call:
+            >>> v = db.translate_simplefloat(txt)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *txt*: :class:`str`
+                Text to be converted to :class:`float`
+        :Outputs:
+            *v*: :class:`float`
+                Converted value, if possible
+        :Versions:
+            * 2019-11-27 ``@ddalle``: First version
+        """
+        # Attempt conversion
+        try:
+            # Basic conversion
+            return float(txt)
+        except ValueError as e:
+            # Substitute "E" for "D" and "e" for "d"
+            txt = txt.replace("D", "E")
+            txt = txt.replace("d", "e")
+        # Second attempt
+        try:
+            # Basic conversion after substitution
+            return float(txt)
+        except Exception:
+            # Use original message to avoid confusion
+            raise ValueError(e.message)
+  # >
 # class CSVSimple

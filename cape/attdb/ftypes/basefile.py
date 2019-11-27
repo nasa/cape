@@ -320,11 +320,11 @@ class BaseFile(dict):
     
    # --- Column Properties ---
     # Get generic property from column
-    def get_col_prop(self, col, prop):
+    def get_col_prop(self, col, prop, vdef=None):
         """Get property for specific column
         
         :Call:
-            >>> val = db.get_col_prop(col, prop)
+            >>> v = db.get_col_prop(col, prop, vdef=None)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -332,11 +332,13 @@ class BaseFile(dict):
                 Name of column
             *prop*: :class:`str`
                 Name of property
+            *vdef*: {``None``} | :class:`any`
+                Default value if not specified in *db.opts*
         :Outputs:
-            *val*: :class:`any`
+            *v*: :class:`any`
                 Value of ``db.opts["Definitions"][col][prop]`` if
                 possible; defaulting to
-                ``db.opts["Definitions"]["_"][prop]`` or ``None``
+                ``db.opts["Definitions"]["_"][prop]`` or *vdef*
         :Versions:
             * 2019-11-24 ``@ddalle``: First version
         """
@@ -357,7 +359,7 @@ class BaseFile(dict):
             # Use default
             defn = defns.get("_", {})
             # Get property from default definition
-            return defn.get(prop)
+            return defn.get(prop, vdef)
 
     # Get type
     def get_col_type(self, col):
@@ -376,7 +378,7 @@ class BaseFile(dict):
         :Versions:
             * 2019-11-24 ``@ddalle``: First version
         """
-        return self.get_col_prop(col, "Type")
+        return self.get_col_prop(col, "Type", vdef="float64")
         
     # Get array type
     
