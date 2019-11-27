@@ -32,6 +32,7 @@ _ftypes = distutils.core.Extension(
     extra_link_args = ldflags,
     sources = [
         "_ftypesmodule.c",
+        "src/capec_BaseFile.c",
         "src/cape_CSVFile.c"
     ])
 

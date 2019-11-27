@@ -3,10 +3,10 @@
 #include <math.h>
 
 // Local includes
-//#include "cape_CSVFile.h"
+#include "capec_BaseFile.h"
 
 
-// ODE solver for 3DOF orbital EOMs
+// Read through file to count data lines
 PyObject *
 cape_CSVFileCountLines(PyObject *self, PyObject *args)
 {
@@ -19,7 +19,10 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
     // File handle
     PyObject *f;
     FILE *fp;
+    // File position
     long pos;
+    // Strings
+    char c;
  
    // --- Inputs ---
     // Parse inputs
@@ -44,6 +47,28 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
     // Remember current location
     pos = ftell(fp);
     
+    // Read lines
+    while (!feof(fp)) {
+        // Read spaces
+        capcec_FileAdvanceWhiteSpace(fp);
+        // Get next character
+        c = getc(fp);
+        // Check it
+        if (c == '\n') {
+            // Empty line
+            continue;
+        } else if (feof(fp)) {
+            // Last line
+            break;
+        }
+        // Read to end of line (comment or not)
+        capec_FileAdvanceEOL(fp);
+        // Check if it was a comment
+        if (c != '#') {
+            // Increase line count
+            nline += 1;
+        }
+    }
     
     
     // Return to original location
@@ -57,3 +82,4 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
     // Output
     return n;
 }
+    
