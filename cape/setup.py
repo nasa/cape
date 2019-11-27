@@ -24,7 +24,7 @@ ldflags = config.get("compiler", "extra_ldflags").split()
 # Extra include directories
 include_dirs = config.get("compiler", "extra_include_dirs").split()
 
-# Assemble the information for the module.
+# Assemble the information for the ftypes extension module
 _ftypes = distutils.core.Extension(
     "_ftypes",
     include_dirs = include_dirs,
@@ -36,6 +36,17 @@ _ftypes = distutils.core.Extension(
         "src/cape_CSVFile.c"
     ])
 
+# Assemble the information for the CAPE extension module
+_cape = distutils.core.Extension("_cape",
+    include_dirs = include_dirs,
+    extra_compile_args = cflags,
+    extra_link_args = ldflags,
+    sources = [
+        "src/_capemodule.c",
+        "src/pc_io.c",
+        "src/pc_Tri.c"
+    ])
+
 
 # Compile and link
 distutils.core.setup(
@@ -44,4 +55,4 @@ distutils.core.setup(
     package_dir={"cape": "."},
     version="1.0",
     description="CAPE computational aerosciences package",
-    ext_modules=[_ftypes])
+    ext_modules=[_ftypes, _cape])
