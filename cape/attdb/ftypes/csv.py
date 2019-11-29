@@ -127,10 +127,64 @@ class CSVFile(BaseFile, TextFile):
             self.read_csv_header(f, **kw)
             # Process column types
             kw = self.process_col_defns(**kw)
-            # Initialize columns
-            self.init_cols(self.cols)
             # Loop through lines
             self.read_csv_data(f)
+        # Output remaining options
+        return kw
+
+    # Reader: C only
+    def c_read_csv(self, fname, **kw):
+        r"""Read an entire CSV file, including header using C
+        
+        :Call:
+            >>> db.read_csv(fname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *fname*: :class:`str`
+                Name of file to read
+        :See Also:
+            * :func:`read_csv_header`
+            * :func:`read_csv_data`
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Open file
+        with open(fname, 'r') as f:
+            # Process column names
+            self.read_csv_header(f, **kw)
+            # Process column types
+            kw = self.process_col_defns(**kw)
+            # Loop through lines
+            self.c_read_csv_data(f)
+        # Output remaining options
+        return kw
+
+    # Reader: Python only
+    def py_read_csv(self, fname, **kw):
+        r"""Read an entire CSV file with pure Python
+        
+        :Call:
+            >>> db.py_read_csv(fname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *fname*: :class:`str`
+                Name of file to read
+        :See Also:
+            * :func:`read_csv_header`
+            * :func:`read_csv_data`
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Open file
+        with open(fname, 'r') as f:
+            # Process column names
+            self.read_csv_header(f, **kw)
+            # Process column types
+            kw = self.process_col_defns(**kw)
+            # Loop through lines
+            self.py_read_csv_data(f)
         # Output remaining options
         return kw
    
@@ -367,7 +421,7 @@ class CSVFile(BaseFile, TextFile):
         self.cols = ["col%i" % (i+1) for i in range(ncol)]
 
    # --- Data ---
-    # Read data
+   # Read data
     def read_csv_data(self, f):
         r"""Read data portion of CSV file
         
@@ -383,7 +437,56 @@ class CSVFile(BaseFile, TextFile):
                 List of column names
         :Versions:
             * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-29 ``@ddalle``: Tries C versionfirst
         """
+        try:
+            self.c_read_csv_data(f)
+        except Exception:
+            self.py_read_csv_data(f)
+
+    # Read data: C implementation
+    def c_read_csv_data(self, f):
+        r"""Read data portion of CSV file using C extension
+        
+        :Call:
+            >>> db.c_read_csv_data(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                List of column names
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Get data types
+        self.get_c_dtypes()
+        # Call C function
+        _ftypes.CSVFileReadData(self, f)
+        # Delete _c_dtypes
+        del self._c_dtypes
+
+    # Read data: Python implementation
+    def py_read_csv_data(self, f):
+        r"""Read data portion of CSV file using Python
+        
+        :Call:
+            >>> db.py_read_csv_data(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                List of column names
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Initialize columns
+        self.init_cols(self.cols)
         # Initialize types
         self._types = [self.get_col_type(col) for col in self.cols]
         # Read data lines

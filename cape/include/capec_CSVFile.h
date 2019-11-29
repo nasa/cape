@@ -17,9 +17,19 @@
 //! \brief Count data lines remaining in CSV file
 //!
 //! \return Number of data lines
-int
+size_t
 capec_CSVFileCountLines(
     FILE *fp //!< File handle
+    );
+
+//! \brief Read next entry of file
+//!
+//! \return Error indicator
+int capeCSV_ReadNext(
+    FILE *fp,           //!< File handle
+    void *coldata,      //!< Pointer to data (list or C array)
+    int dtype,          //!< Column data type index
+    size_t irow         //!< Row index to read data to
     );
 
 #endif

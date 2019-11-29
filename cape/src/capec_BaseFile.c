@@ -3,6 +3,7 @@
 #include <string.h>
 
 // Local includes
+#include "capec_NumPy.h"
 #include "capec_BaseFile.h"
 
 // Read to end of line
@@ -133,5 +134,76 @@ int capec_AddDTypes(PyObject *m)
     Py_INCREF(dtypes);
     // Add the list of names
     return PyModule_AddObject(m, "capeDTYPE_NAMES", dtypes);
-}       
+}
+
+// New list or NumPy array by type
+PyObject *
+capeFILE_NewCol1D(int dtype, size_t n)
+{
+    // Handle for array
+    PyObject *V;
+    // Dimensions handle
+    npy_intp dims[1] = {(npy_intp) n};
+    
+    
+    // Filter dtype
+    if (dtype < 0) {
+        PyErr_SetString(PyExc_ValueError, "Negative DTYPE value");
+        return NULL;
+    } else if (dtype == capeDTYPE_float64) {
+        // Create vector of doubles
+        V = PyArray_SimpleNew(1, dims, NPY_FLOAT64);
+    } else if (dtype == capeDTYPE_int32) {
+        // Create vector of ints (longs)
+        V = PyArray_SimpleNew(1, dims, NPY_INT32);
+    } else if (dtype == capeDTYPE_str) {
+        // Create a list
+        V = PyList_New((Py_ssize_t) n);
+    } else if (dtype == capeDTYPE_float16) {
+        // Create vector of half floats
+        V = PyArray_SimpleNew(1, dims, NPY_FLOAT16);
+    } else if (dtype == capeDTYPE_float32) {
+        // Create vector of singles
+        V = PyArray_SimpleNew(1, dims, NPY_FLOAT32);
+    } else if (dtype == capeDTYPE_float128) {
+        // Create vector of long doubles
+        V = PyArray_SimpleNew(1, dims, NPY_FLOAT128);
+    } else if (dtype == capeDTYPE_int8) {
+        // Create vector of shorts
+        V = PyArray_SimpleNew(1, dims, NPY_INT8);
+    } else if (dtype == capeDTYPE_int16) {
+        // Create vector of ints (regular)
+        V = PyArray_SimpleNew(1, dims, NPY_INT16);
+    } else if (dtype == capeDTYPE_int64) {
+        // Create vector of long doubles
+        V = PyArray_SimpleNew(1, dims, NPY_INT64);
+    } else if (dtype == capeDTYPE_uint8) {
+        // Create vector of shorts
+        V = PyArray_SimpleNew(1, dims, NPY_UINT8);
+    } else if (dtype == capeDTYPE_uint16) {
+        // Create vector of shorts
+        V = PyArray_SimpleNew(1, dims, NPY_UINT16);
+    } else if (dtype == capeDTYPE_uint32) {
+        // Create vector of longs
+        V = PyArray_SimpleNew(1, dims, NPY_UINT32);
+    } else if (dtype == capeDTYPE_uint64) {
+        // Create vector of long longs
+        V = PyArray_SimpleNew(1, dims, NPY_UINT64);
+    } else {
+        PyErr_Format(PyExc_ValueError, "Invalid DTYPE value '%i'", dtype);
+        return NULL;
+    }
+    
+    // Check for errors
+    if (V == NULL) {
+        PyErr_Format(PyExc_SystemError,
+            "Failed to allocate object for DTYPE %i, length %li",
+            dtype, (long) n);
+        return NULL;
+    }
+    
+    // Output
+    return V;
+}
+
     

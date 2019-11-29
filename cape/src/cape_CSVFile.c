@@ -4,6 +4,7 @@
 
 // Local includes
 #include "capec_Memory.h"
+#include "capec_NumPy.h"
 #include "capec_BaseFile.h"
 #include "capec_CSVFile.h"
 
@@ -15,14 +16,10 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
    // --- Declarations ---
     // Line counts
     PyObject *n;
-    long nline = 0;
+    size_t nline;
     // File handle
     PyObject *f;
     FILE *fp;
-    // File position
-    long pos;
-    // Strings
-    char c;
  
    // --- Inputs ---
     // Parse inputs
@@ -52,7 +49,7 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
     PyFile_DecUseCount((PyFileObject *) f);
     
     // Convert to integer
-    n = PyInt_FromLong(nline);
+    n = PyInt_FromLong((long) nline);
     
     // Output
     return n;
@@ -66,6 +63,10 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
    // --- Declarations ---
     // Error flag
     int ierr;
+    // Number of rows
+    size_t irow;
+    size_t jcol;
+    size_t nrow;
     // Iterators
     Py_ssize_t i;
     // Data file interface
@@ -74,13 +75,19 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     PyObject *col;
     PyObject *j;
     PyObject *dtypes;
+    PyObject *V;
     // Column attributes
     Py_ssize_t ncol;
     int *DTYPES;
     long DTYPE;
+    // Local pointer to all data
+    void **coldata;
     // File handle
     PyObject *f;
     FILE *fp;
+    // Strings
+    char buff[80];
+    char c;
     
    // --- Inputs ---
     // Parse inputs
@@ -98,6 +105,14 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
         return NULL;
     }
     
+    // Check type of file handle
+    if (!PyFile_Check(f)) {
+        // Not a file
+        PyErr_SetString(PyExc_TypeError, "Input is not a file handle");
+        return NULL;
+    }
+    
+   // --- Setup ---
     // Get columns
     cols = PyObject_GetAttrString(db, "cols");
     // Check *db.cols* for appropriate types 
@@ -170,6 +185,133 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
         DTYPES[i] = (int) DTYPE;
     }
     
+   // --- File Length ---
+    // Convert to native C
+    fp = PyFile_AsFile(f);
+    // Increment use count
+    PyFile_IncUseCount((PyFileObject *) f);
+    
+    // Get line count
+    nrow = capec_CSVFileCountLines(fp);
+
+   // --- Initialization ---
+    // Allocate column data
+    coldata = (void *) malloc(((size_t) ncol) * sizeof(char *));
+    // Initialize each key
+    for (i=0; i<ncol; ++i) {
+        // Get column name
+        col = PyList_GET_ITEM(cols, i);
+        // Check if it's already present
+        if (PyDict_Contains(db, col)) {
+            // Delete it; with error check
+            ierr = PyDict_DelItem(db, col);
+            // Error check
+            if (ierr) {
+                PyErr_Format(PyExc_KeyError, 
+                    "Failed to delete column '%s'", PyString_AsString(col));
+                return NULL;
+            }
+        }
+        // Initialize the column
+        V = capeFILE_NewCol1D(DTYPES[i], nrow);
+        // Check for errors
+        if (V == NULL)
+            return NULL;
+        // Otherwise, set it
+        ierr = PyDict_SetItem(db, col, V);
+        // Check for errors
+        if (ierr) {
+            PyErr_Format(PyExc_KeyError, "Failed to set column '%s'",
+                PyString_AsString(col));
+            return NULL;
+        }
+        // Assign data to quick-access list
+        if (PyList_Check(V)) {
+            // Save pointer directly to Python list
+            coldata[i] = V;
+        } else {
+            // Save pointer to array's data
+            coldata[i] = PyArray_DATA((PyArrayObject *) V);
+        }
+    }
+
+   // -- Read ---
+    // Initialize number of rows actually read
+    irow = 0;
+    // Loop through file
+    while (!feof(fp)) {
+        // Read any current white space
+        capcec_FileAdvanceWhiteSpace(fp);
+        // Read next character
+        c = getc(fp);
+        // Filter character
+        if (c == '\n') {
+            // We just read an empty line
+            continue;
+        } else if (feof(fp)) {
+            // Completed read already
+            break;
+        } else if (c == '#') {
+            // Comment line
+            capec_FileAdvanceEOL(fp);
+            continue;
+        } else {
+            // Go back one character
+            fseek(fp, -1, SEEK_CUR);
+        }
+        
+        // Loop through columns
+        for (jcol=0; jcol<ncol; jcol++)
+        {
+            // Read next entry
+            ierr = capeCSV_ReadNext(fp, coldata[jcol], DTYPES[jcol], irow);
+            if (ierr) {
+                PyFile_DecUseCount((PyFileObject *) f);
+                return NULL;
+            }
+            // Read next white space
+            capcec_FileAdvanceWhiteSpace(fp);
+            // Read next character
+            c = getc(fp);
+            // Check if we're in the last column
+            if (jcol + 1 == ncol) {
+                // Character should be newline
+                if (c == '#') {
+                    // Acceptable; comment after data
+                    capec_FileAdvanceEOL(fp);
+                } else if (c != '\n') {
+                    // Line should be over
+                    PyErr_Format(PyExc_ValueError,
+                        "Data row %li extends past %i columns",
+                        (long) irow, (int) jcol);
+                    PyFile_DecUseCount((PyFileObject *) f);
+                    return NULL;
+                }
+            } else {
+                // Filter character
+                if (c != ',') {
+                    // Early EOL
+                    PyErr_Format(PyExc_ValueError,
+                        "After col %i on data row %li: expected ',', not '%c'",
+                        (int) (jcol + 1), (long) irow, c);
+                    PyFile_DecUseCount((PyFileObject *) f);
+                    return NULL;
+                }
+                // Advance white space again
+                capcec_FileAdvanceWhiteSpace(fp);
+            }
+        }
+        
+        // Increase row counter
+        irow += 1;
+    }
+    
+   // --- Cleanup ---
+    // Decrease use count
+    PyFile_DecUseCount((PyFileObject *) f);
+    
+    // Deallocate list of points
+    free(coldata);
     
     // Output
     Py_RETURN_NONE;

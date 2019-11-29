@@ -72,4 +72,13 @@ int capec_AddDTypes(
     PyObject *m      //!< Handle to module to which DTYPEs are added
     );
 
+//! \brief Allocate a column's 1D array according to size and data type
+//!
+//! \return Python array or list
+PyObject *
+capeFILE_NewCol1D(
+    int dtype,             //!< Data type index
+    size_t n               //!< Length of array/list
+    );
+
 #endif

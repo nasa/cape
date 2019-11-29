@@ -2,10 +2,10 @@
 
 // This is required to start the NumPy C-API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#define PY_ARRAY_UNIQUE_SYMBOL _ftypes_ARRAY_API
-
+#define PY_ARRAY_UNIQUE_SYMBOL _cape_ARRAY_API
 #include <numpy/arrayobject.h>
 
+#include "capec_NumPy.h"
 #include "capec_BaseFile.h"
 #include "cape_CSVFile.h"
 
@@ -17,6 +17,12 @@ static PyMethodDef Methods[] = {
         cape_CSVFileCountLines,
         METH_VARARGS,
         doc_CSVFileCountLines
+    },
+    {
+        "CSVFileReadData",
+        cape_CSVFileReadData,
+        METH_VARARGS,
+        doc_CSVFileReadData
     },
     // Sentinel
     {NULL, NULL, 0, NULL}
