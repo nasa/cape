@@ -27,6 +27,12 @@ import cape.tnakit.typeutils as typeutils
 # Local modules
 from .basefile import BaseFile, TextFile
 
+# Local extension
+try:
+    from . import _ftypes
+except ImportError:
+    _ftypes = None
+
 
 # Regular expressions
 regex_numeric = re.compile("\d")
@@ -361,7 +367,7 @@ class CSVFile(BaseFile, TextFile):
         self.cols = ["col%i" % (i+1) for i in range(ncol)]
 
    # --- Data ---
-    # Rad data
+    # Read data
     def read_csv_data(self, f):
         r"""Read data portion of CSV file
         
@@ -430,6 +436,42 @@ class CSVFile(BaseFile, TextFile):
             v = self.translate_text(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
+    
+   # --- C Interface ---
+    # Get data types for C input
+    def get_c_dtypes(self):
+        r"""Initialize *db._c_dtypes* for C text input
+        
+        :Call:
+            >>>db.get_c_dtypes()
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+        :Effects:
+            *db._c_dtypes*: :class:`list`\ [:class:`int`]
+                List of integer codes for each data type
+        :Versions:
+            * 2019-11-29 ``@ddalle``: First version
+        """
+        # Check if module is present
+        if _ftypes is None:
+            return
+        # Create list
+        dtypes = []
+        # Handle to list of supported names
+        DTYPE_NAMES = _ftypes.capeDTYPE_NAMES
+        # Loop through columns
+        for col in self.cols:
+            # Get name of data type
+            dtype = self.get_col_type(col)
+            # Check if it's ported to C
+            if dtype not in DTYPE_NAMES:
+                raise NotImplementedError(
+                    "Data type '%s' not ported to C" % dtype)
+            # Convert to integer
+            dtypes.append(DTYPE_NAMES.index(dtype))
+        # Save the data types
+        self._c_dtypes = dtypes
   # >
 # class CSVFile
 

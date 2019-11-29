@@ -10,6 +10,9 @@
 
 
 
+//! Default type for CSV column
+#define capeCSV_DEFAULT_TYPE "float64"
+
 
 //! \brief Count data lines remaining in CSV file
 //!

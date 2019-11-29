@@ -337,6 +337,18 @@ class BaseFile(dict):
         elif clsname in ["i8"]:
             # Extra short integer
             return "int8"
+        elif clsname in ["ui8"]:
+            # Extra short unsigned
+            return "uint8"
+        elif clsname in ["ui16"]:
+            # Short unsigned
+            return "uint16"
+        elif clsname in ["ui32"]:
+            # Long unsigned
+            return "uint32"
+        elif clsname in ["ui64"]:
+            # Long long unsigned
+            return "uint64"
         elif clsname in ["i1", "bool"]:
             # Boolean
             return "bool"

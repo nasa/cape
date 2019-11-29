@@ -3,6 +3,7 @@
 #include <math.h>
 
 // Local includes
+#include "capec_Memory.h"
 #include "capec_BaseFile.h"
 #include "capec_CSVFile.h"
 
@@ -71,8 +72,12 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     PyObject *db;
     PyObject *cols;
     PyObject *col;
+    PyObject *j;
+    PyObject *dtypes;
     // Column attributes
     Py_ssize_t ncol;
+    int *DTYPES;
+    long DTYPE;
     // File handle
     PyObject *f;
     FILE *fp;
@@ -102,7 +107,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
             "CSV file object has no 'cols' attribute");
         return NULL;
     } else if (!PyList_Check(cols)) {
-        // not a list
+        // *db.cols* is not a list
         PyErr_SetString(PyExc_TypeError,
             "CSV file 'cols' attribute is not a list");
         return NULL;
@@ -114,10 +119,56 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     for (i=0; i<ncol; ++i) {
         // Get column name
         col = PyList_GET_ITEM(cols, i);
+        // Check type
+        if (!PyString_Check(col)) {
+            // *db.cols[i]* is not a string
+            // ... watch out for unicode situation
+            PyErr_Format(PyExc_TypeError,
+                "Column %i is not a string", (int) i);
+            return NULL;
+        }
     }
     
+    // Data types
+    dtypes = PyObject_GetAttrString(db, "_c_dtypes");
+    // Check *db._c_dtypes*
+    if (dtypes == NULL) {
+        // No special attribute required to reduce C code
+        PyErr_SetString(PyExc_AttributeError,
+            "CSV file object has no '_c_dtypes' attribute; "
+            "call 'db.get_c_dtypes()' first.");
+        return NULL;
+    } else if (PyList_GET_SIZE(dtypes) != ncol) {
+        // Mismatching length
+        PyErr_Format(PyExc_ValueError,
+            "_c_dtypes has length %i, but found %i cols",
+            (int) PyList_GET_SIZE(dtypes), (int) ncol);
+        return NULL;
+    }
     
-    
+    // Allocate data types integer
+    ierr = capec_New1D((void **) &DTYPES, (size_t) ncol, sizeof(int));
+    // Check for errors
+    if (ierr) {
+        PyErr_SetString(PyExc_ValueError,
+            "Failed to allocate C DTYPES array");
+        return NULL;
+    }
+    // Loop through entries
+    for (i=0; i<ncol; ++i) {
+        // Get type
+        j = PyList_GET_ITEM(dtypes, i);
+        // Check that it's an integer
+        if (!PyInt_Check(j)) {
+            PyErr_Format(PyExc_TypeError,
+                "_c_dtypes[%i] is not an int", (int) i);
+            return NULL;
+        }
+        // Convert to integer
+        DTYPE = PyInt_AS_LONG(j);
+        // Save it
+        DTYPES[i] = (int) DTYPE;
+    }
     
     
     // Output

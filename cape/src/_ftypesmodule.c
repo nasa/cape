@@ -6,6 +6,7 @@
 
 #include <numpy/arrayobject.h>
 
+#include "capec_BaseFile.h"
 #include "cape_CSVFile.h"
 
 
@@ -35,4 +36,7 @@ init_ftypes(void)
     // Check for errors
     if (m == NULL)
         return;
+    
+    // Add data types to module
+    capec_AddDTypes(m);
 }

@@ -11,6 +11,7 @@
         "destination": "attdb/ftypes",
         "sources": [
             "src/_ftypesmodule.c",
+            "src/capec_Memory.c",
             "src/capec_BaseFile.c",
             "src/capec_CSVFile.c",
             "src/cape_CSVFile.c"
