@@ -1,0 +1,19 @@
+{
+    "_cape": {
+        "destination": ".",
+        "sources": [
+            "src/_capemodule.c",
+            "src/pc_io.c",
+            "src/pc_Tri.c"
+        ]
+    },
+    "_ftypes": {
+        "destination": "attdb/ftypes",
+        "sources": [
+            "src/_ftypesmodule.c",
+            "src/capec_BaseFile.c",
+            "src/capec_CSVFile.c",
+            "src/cape_CSVFile.c"
+        ]
+    }
+}           

@@ -1,6 +1,9 @@
 #ifndef _CAPE_CSVFILE_H
 #define _CAPE_CSVFILE_H
 
+//! \brief Read number of data lines from current position to end of file
+//!
+//! \return Number of lines in file
 PyObject *
 cape_CSVFileCountLines(PyObject *self, PyObject *args);
 char doc_CSVFileCountLines[] = 

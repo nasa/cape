@@ -4,6 +4,7 @@
 
 // Local includes
 #include "capec_BaseFile.h"
+#include "capec_CSVFile.h"
 
 
 // Read through file to count data lines
@@ -11,8 +12,6 @@ PyObject *
 cape_CSVFileCountLines(PyObject *self, PyObject *args)
 {
    // --- Declarations ---
-    // Error flag
-    int ierr;
     // Line counts
     PyObject *n;
     long nline = 0;
@@ -44,35 +43,10 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
     PyFile_IncUseCount((PyFileObject *) f);
     
    // --- Read ---
-    // Remember current location
-    pos = ftell(fp);
+    // Get line count
+    nline = capec_CSVFileCountLines(fp);
     
-    // Read lines
-    while (!feof(fp)) {
-        // Read spaces
-        capcec_FileAdvanceWhiteSpace(fp);
-        // Get next character
-        c = getc(fp);
-        // Check it
-        if (c == '\n') {
-            // Empty line
-            continue;
-        } else if (feof(fp)) {
-            // Last line
-            break;
-        }
-        // Read to end of line (comment or not)
-        capec_FileAdvanceEOL(fp);
-        // Check if it was a comment
-        if (c != '#') {
-            // Increase line count
-            nline += 1;
-        }
-    }
-    
-    
-    // Return to original location
-    fseek(fp, pos, SEEK_SET);
+   // -- Cleanup ---
     // Decrease use count
     PyFile_DecUseCount((PyFileObject *) f);
     
@@ -82,4 +56,70 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
     // Output
     return n;
 }
+
+
+// Read CSV file
+PyObject *
+cape_CSVFileReadData(PyObject *self, PyObject *args)
+{
+   // --- Declarations ---
+    // Error flag
+    int ierr;
+    // Iterators
+    Py_ssize_t i;
+    // Data file interface
+    PyObject *db;
+    PyObject *cols;
+    PyObject *col;
+    // Column attributes
+    Py_ssize_t ncol;
+    // File handle
+    PyObject *f;
+    FILE *fp;
     
+   // --- Inputs ---
+    // Parse inputs
+    if (!PyArg_ParseTuple(args, "OO", &db, &f)) {
+        // Failed to parse
+        PyErr_SetString(PyExc_ValueError, "Failed to parse inputs");
+        return NULL;
+    }
+    
+    // Check type of *db*: must be dict
+    if (!PyDict_Check(db)) {
+        // Not a dictionary
+        PyErr_SetString(PyExc_TypeError,
+            "CSV file object is not an instance of 'dict' class");
+        return NULL;
+    }
+    
+    // Get columns
+    cols = PyObject_GetAttrString(db, "cols");
+    // Check *db.cols* for appropriate types 
+    if (cols == NULL) {
+        // No columns attribute at all
+        PyErr_SetString(PyExc_AttributeError,
+            "CSV file object has no 'cols' attribute");
+        return NULL;
+    } else if (!PyList_Check(cols)) {
+        // not a list
+        PyErr_SetString(PyExc_TypeError,
+            "CSV file 'cols' attribute is not a list");
+        return NULL;
+    }
+    
+    // Get number of columns
+    ncol = PyList_GET_SIZE(cols);
+    // Check each column
+    for (i=0; i<ncol; ++i) {
+        // Get column name
+        col = PyList_GET_ITEM(cols, i);
+    }
+    
+    
+    
+    
+    
+    // Output
+    Py_RETURN_NONE;
+}

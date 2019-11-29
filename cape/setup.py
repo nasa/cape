@@ -3,6 +3,7 @@
 
 # Standard library
 import os
+import json
 import ConfigParser
 import distutils.core
 
@@ -24,29 +25,26 @@ ldflags = config.get("compiler", "extra_ldflags").split()
 # Extra include directories
 include_dirs = config.get("compiler", "extra_include_dirs").split()
 
-# Assemble the information for the ftypes extension module
-_ftypes = distutils.core.Extension(
-    "_ftypes",
-    include_dirs = include_dirs,
-    extra_compile_args = cflags,
-    extra_link_args = ldflags,
-    sources = [
-        "src/_ftypesmodule.c",
-        "src/capec_BaseFile.c",
-        "src/cape_CSVFile.c"
-    ])
+# Extensions JSON file
+extjson = os.path.join(fpwd, "extensions.json")
+# Read extension settings
+extopts = json.load(open(extjson))
 
-# Assemble the information for the CAPE extension module
-_cape = distutils.core.Extension("_cape",
-    include_dirs = include_dirs,
-    extra_compile_args = cflags,
-    extra_link_args = ldflags,
-    sources = [
-        "src/_capemodule.c",
-        "src/pc_io.c",
-        "src/pc_Tri.c"
-    ])
-
+# Initialize extensions
+exts = []
+# Loop through specified extensions
+for (ext, opts) in extopts.items():
+    # Get sources
+    extsources = [str(src) for src in opts["sources"]]
+    # Create extension
+    _ext = distutils.core.Extension(
+        str(ext),
+        include_dirs = include_dirs,
+        extra_compile_args = cflags,
+        extra_link_args = ldflags,
+        sources = extsources)
+    # Add to list
+    exts.append(_ext)
 
 # Compile and link
 distutils.core.setup(
@@ -55,4 +53,4 @@ distutils.core.setup(
     package_dir={"cape": "."},
     version="1.0",
     description="CAPE computational aerosciences package",
-    ext_modules=[_ftypes, _cape])
+    ext_modules=exts)

@@ -2,6 +2,8 @@
 
 # Standard library modules
 import os
+import sys
+import json
 import glob
 import shutil
 import ConfigParser
@@ -10,6 +12,11 @@ import subprocess as sp
 
 # Path to this file
 fpwd = os.path.dirname(os.path.realpath(__file__))
+
+# Extensions JSON file
+extjson = os.path.join(fpwd, "extensions.json")
+# Read extension settings
+extopts = json.load(open(extjson))
 
 # Get a get/set type object
 config = ConfigParser.SafeConfigParser()
@@ -33,22 +40,32 @@ sp.call([pythonexec, "setup.py", "build"])
 print("Moving the module into place...")
 
 # Find all build folders
-dirs = glob.glob("build/lib*")
+dirs = glob.glob("build/lib*2.7")
 # There can be only one
 if len(dirs) > 1:
     raise ValueError("More than one build directory found.")
-    
-# Check for an existing _pycart.so object.
-if os.path.isfile("_ftypes.so") or os.path.islink("_ftypes.so"):
-    # Delete it!
-    os.remove("_ftypes.so")
-    
-# Form the path to the relevant library file.
-libdir = dirs[0]
-lib = os.path.join(libdir, "_ftypes.so")
+# Compilation folder
+flib = dirs[0]
 
-# Move it into the main folder
-shutil.move(lib, ".")
+# Loop through extensions
+for (ext, opts) in extopts.items():
+    # Destination folder
+    fdest = opts["destination"].replace("/", os.sep)
+    # File name for compiled module
+    fname = "%s.so" % ext
+    # Final location for module
+    fmod = os.path.join(fpwd, fdest, fname)
+    # Expected build location
+    fbld = os.path.join(fpwd, flib, fname)
+    # Exit if no build
+    if not os.path.isfile(fbld):
+        print("Build of extension '%s' failed" % ext)
+        sys.exit(1)
+    # Check for existing object
+    if os.path.isfile(fname):
+        os.remove(fname)
+    # Move the result to the destination folder
+    shutil.move(fbld, fmod)
 
 #print("Removing the build directory...")
 #shutil.rmtree("build")
