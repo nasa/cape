@@ -161,7 +161,9 @@ capeFILE_NewCol1D(int dtype, size_t n)
         V = PyList_New((Py_ssize_t) n);
     } else if (dtype == capeDTYPE_float16) {
         // Create vector of half floats
-        V = PyArray_SimpleNew(1, dims, NPY_FLOAT16);
+        PyErr_Format(PyExc_NotImplementedError,
+            "Reading DTYPE '%s' not implemented", capeDTYPE_NAMES[dtype]);
+        return NULL;
     } else if (dtype == capeDTYPE_float32) {
         // Create vector of singles
         V = PyArray_SimpleNew(1, dims, NPY_FLOAT32);

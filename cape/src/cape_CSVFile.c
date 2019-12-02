@@ -85,6 +85,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     // File handle
     PyObject *f;
     FILE *fp;
+    long pos;
     // Strings
     char buff[80];
     char c;
@@ -188,6 +189,8 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
    // --- File Length ---
     // Convert to native C
     fp = PyFile_AsFile(f);
+    // Remember current location
+    pos = ftell(fp);
     // Increment use count
     PyFile_IncUseCount((PyFileObject *) f);
     
@@ -215,8 +218,11 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
         // Initialize the column
         V = capeFILE_NewCol1D(DTYPES[i], nrow);
         // Check for errors
-        if (V == NULL)
+        if (V == NULL) {
+            PyFile_DecUseCount((PyFileObject *) f);
+            fseek(fp, pos, SEEK_SET);
             return NULL;
+        }
         // Otherwise, set it
         ierr = PyDict_SetItem(db, col, V);
         // Check for errors
@@ -267,6 +273,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
             ierr = capeCSV_ReadNext(fp, coldata[jcol], DTYPES[jcol], irow);
             if (ierr) {
                 PyFile_DecUseCount((PyFileObject *) f);
+                fseek(fp, pos, SEEK_SET);
                 return NULL;
             }
             // Read next white space
@@ -285,6 +292,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
                         "Data row %li extends past %i columns",
                         (long) irow, (int) jcol);
                     PyFile_DecUseCount((PyFileObject *) f);
+                    fseek(fp, pos, SEEK_SET);
                     return NULL;
                 }
             } else {
@@ -295,6 +303,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
                         "After col %i on data row %li: expected ',', not '%c'",
                         (int) (jcol + 1), (long) irow, c);
                     PyFile_DecUseCount((PyFileObject *) f);
+                    fseek(fp, pos, SEEK_SET);
                     return NULL;
                 }
                 // Advance white space again

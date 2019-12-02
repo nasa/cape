@@ -461,6 +461,9 @@ class CSVFile(BaseFile, TextFile):
         :Versions:
             * 2019-11-25 ``@ddalle``: First version
         """
+        # Test module
+        if _ftypes is None:
+            raise ImportError("No _ftypes extension module")
         # Get data types
         self.get_c_dtypes()
         # Call C function

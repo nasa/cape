@@ -3,7 +3,9 @@
         "aeroenv.csv",
         "test01_clean.py",
         "test02_dtypes.py",
-        "test03_simple.py"
+        "test03_simple.py",
+        "test04_c.py",
+        "test05_py.py"
     ],
     "Commands": [
         "python2 test01_clean.py",
@@ -11,13 +13,17 @@
         "python2 test02_dtypes.py",
         "python3 test02_dtypes.py",
         "python2 test03_simple.py",
-        "python3 test03_simple.py"
+        "python3 test03_simple.py",
+        "python2 test04_c.py",
+        "python2 test05_py.py"
     ],
     "TargetSTDOUT": [
         "test.01.out",
         "test.01.out",
         "test.03.out",
         "test.03.out",
+        "test.01.out",
+        "test.01.out",
         "test.01.out",
         "test.01.out"
     ],
@@ -27,12 +33,16 @@
         "Specified :class:`float` types: Python 2",
         "Specified :class:`float` types: Python 3",
         "Simple CSV read: Python 2",
-        "Simple CSV read: Python 3"
+        "Simple CSV read: Python 3",
+        "Clean C read: Python 2",
+        "Clean Python read: Python 2"
     ],
     "DocFilesShow": [
         "test01_clean.py",
         "test02_dtypes.py",
-        "test03_simple.py"
+        "test03_simple.py",
+        "test04_c.py",
+        "test05_py.py"
     ],
     "DocFilesLexer": "python",
     "DocFolder": "doc/test/ftypes",
