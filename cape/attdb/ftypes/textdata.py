@@ -109,6 +109,7 @@ class TextDataFile(BaseFile, TextInterpreter):
   # Options
   # ===========
   # <
+   # --- Main ---
     # Process more options
     def process_opts(self, **kw):
         r"""Process all options for data text file instances
@@ -155,6 +156,70 @@ class TextDataFile(BaseFile, TextInterpreter):
         self.opts["Comment"] = comment
         # Return remaining options
         return kw
+
+    # Process first-column flag
+    def process_firstcol_flag(self):
+        pass
+
+   # --- Keyword Checkers ---
+        
+    # Validate any keyword argument
+    def validate_defnopt(self, prop, val):
+        r"""Translate any key definition into validated output
+        
+        :Call:
+            >>> v = db.validate_defnopt(prop, val)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *prop*: :class:`str`
+                Name of column definition option to validate
+            *val*: :class:`any`
+                Initial value for option (raw input)
+        :Outputs:
+            *v*: :class:`any`
+                Validated version of *val*
+        :Versions:
+            * 2019-11-26 ``@ddalle``: First version
+        """
+        # Check property
+        if prop == "Type":
+            return self.validate_type(val)
+        else:
+            # Default is to accept any input
+            return val
+
+    # Validate dtype
+    def validate_type(self, clsname):
+        r"""Translate free-form type name into type code
+        
+        :Call:
+            >>> dtype = db.validate_dtype(clsname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *clsname*: :class:`str`
+                Name of column
+        :Outputs:
+            *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
+                Name of data type
+        :Versions:
+            * 2019-11-24 ``@ddalle``: First version
+            * 2019-12-02 ``@ddalle``: Forked from :class:`BaseFile`
+        """
+        # Force lower case
+        clsname = clsname.lower()
+        # Filter
+        if clsname in ["boolflag"]:
+            # Valid
+            return "boolflag"
+        else:
+            # Fallback
+            return self.validate_dtype(clsname)
+            
+    # Validate boolean flag columns
+    def validate_flag(self, flags):
+        pass
   # >
   
   # ============
@@ -185,7 +250,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         self.lines = []
         self.linenos = []
         # Process line splitting regular expression
-        self.get_regex_linesplitter()
+        self.set_regex_linesplitter()
         # Open file
         with open(fname, 'r') as f:
             # Process column names
@@ -447,7 +512,8 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Create default column names
         self.cols = ["col%i" % (i+1) for i in range(ncol)]
    
-   # --- Data ---# Read data: Python implementation
+   # --- Data ---
+    # Read data: Python implementation
     def read_textdata_data(self, f):
         r"""Read data portion of text data file
         
@@ -522,9 +588,104 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Get type
             clsname = _types[j]
             # Convert text
-            v = self.fromtext_val(coltxts[j], clsname)
+            v = self.fromtext_val(coltxts[j], clsname, col)
             # Save data
             self.append_colval(col, v)
+        
+   # --- Text Interpretation ---
+    # Convert to text to appropriate class
+    def fromtext_val(self, txt, clsname, col=None):
+        r"""Convert a string to appropriate type
+        
+        :Call:
+            >>> v = db.fromtext_val(txt, clsname, col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+                Text data file interface
+            *txt*: :class:`str`
+                Text to be converted to :class:`float`
+            *clsname*: {``"float64"``} | ``"int32"`` | :class:`str`
+                Valid data type name
+            *col*: :class:`str`
+                Name of flag column, for ``"boolflag"`` keys
+        :Outputs:
+            *v*: :class:`clsname`
+                Text translated to requested type
+        :Versions:
+            * 2019-12-02 ``@ddalle``: First version
+        """
+        # Check type
+        if clsname == "boolflag":
+            # Convert flag to value
+            return self.fromtext_boolflag(txt, col)
+        else:
+            # Fall back to main categories
+            return self.fromtext_base(txt, clsname)
+
+    # Convert a flag
+    def fromtext_boolflag(self, txt, col):
+        r"""Convert boolean flag text to dictionary
+        
+        :Call:
+            >>> v = db.fromtext_boolflag(txt, col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+                Text data file interface
+            *txt*: :class:`str`
+                Text to be converted to :class:`float`
+            *clsname*: {``"float64"``} | ``"int32"`` | :class:`str`
+                Valid data type name
+            *col*: :class:`str`
+                Name of flag column, for ``"boolflag"`` keys
+        :Outputs:
+            *v*: :class:`dict`\ [``True`` | ``False``]
+                Flags for each flag in *col* definition
+        :Versions:
+            * 2019-12-02 ``@ddalle``: First version
+        """
+        # Get definition for column
+        flags = self.get_col_prop(col, "Flags", {})
+        # Check the text
+        for (colname, vals) in flags.items():
+            # Check text vs flags values
+            if txt in vals:
+                self.append_colval(colname, True)
+            else:
+                self.append_colval(colname, False)
+
+   # --- Line Splitter ---
+    # Get the regular expression for splitting a line into parts
+    def set_regex_linesplitter(self):
+        r"""Generate regular expression used to split a line
+        
+        :Call:
+            >>> db.set_regex_linesplitter()
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+                Text data file interface
+        :Effects:
+            *db.regex_linesplit*: :class:`re.SRE_Pattern`
+                Compiled regular expression object
+        :Versions:
+            * 2019-12-02 ``@ddalle``: First version
+        """
+        # Get the delimiter
+        delim = self.opts.get("Delimiter", ", ")
+        # Save it
+        self._delim = delim
+        # Check if white space is allowed
+        if " " in delim:
+            # Remove the space
+            delim = delim.replace(" ", "")
+            # Two-part regular expression
+            regex = r"\s*[^\s%(delim)s]*\s*[%(delim)s]|\s*[^\s%(delim)s]+"
+        else:
+            # If not using white space, require a delimiter
+            regex = r"\s*[^\s%(delim)s]*\s*[%(delim)s]"
+        # Make substitutions
+        regex = regex % {"delim": delim}
+        # Compile
+        self.regex_linesplit = re.compile(regex)
 
     # Split a data line into values
     def split_textdata_line(self, line):
@@ -552,43 +713,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         parts = [txt.strip(self._delim) for txt in coltxts]
         # Output
         return parts
-
-   # --- Line Splitter ---
-    # Get the regular expression for splitting a line into parts
-    def get_regex_linesplitter(self):
-        r"""Generate regular expression used to split a line
-        
-        :Call:
-            >>> db.get_regex_linesplitter()
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
-                Text data file interface
-        :Effects:
-            *db.regex_linesplit*: :class:`re.SRE_Pattern`
-                Compiled regular expression object
-        :Versions:
-            * 2019-12-02 ``@ddalle``: First version
-        """
-        # Get the delimiter
-        delim = self.opts.get("Delimiter", ", ")
-        # Save it
-        self._delim = delim
-        # Check if white space is allowed
-        if " " in delim:
-            # Remove the space
-            delim = delim.replace(" ", "")
-            # Two-part regular expression
-            regex = r"\s*[^\s%(delim)s]*\s*[%(delim)s]|\s*[^\s%(delim)s]+"
-        else:
-            # If not using white space, require a delimiter
-            regex = r"\s*[^\s%(delim)s]*\s*[%(delim)s]"
-        # Make substitutions
-        regex = regex % {"delim": delim}
-        # Compile
-        self.regex_linesplit = re.compile(regex)
-        
-        
         
   # >
-    
-        
+# class TextDataFile
+

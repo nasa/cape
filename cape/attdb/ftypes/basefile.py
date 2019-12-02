@@ -177,7 +177,7 @@ class BaseFile(dict):
         :Versions:
             * 2014-06-05 ``@ddalle``: First version
             * 2014-06-17 ``@ddalle``: Read from *defns* :class:`dict`
-            * 2019-11-12 ``@ddalle``: Copied from :class:`RunMatrix`
+            * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
         """
         # Get options for key definitions
         defns1 = kw.pop("Types", {})
@@ -201,7 +201,7 @@ class BaseFile(dict):
         opts = self.opts.setdefault("Definitions", {})
         # Save defaults
         self.opts["Definitions"]["_"] = odefn
-        
+
         # Loop through columns mentioned in input
         for (col, kwdefn) in defns.items():
             # Get existing definition
@@ -230,7 +230,7 @@ class BaseFile(dict):
                 defn.setdefault(key, opt)
             # Validate the definition
             self.validate_defn(defn)
-            
+
         # Return unused options
         return kw
 
@@ -671,8 +671,6 @@ class BaseFile(dict):
             self[col] = self[col][:n]
             # Trim *nmax*
             self._nmax[col] = n
-        
-            
   # >
 
   # ===============
@@ -728,8 +726,8 @@ class TextInterpreter(dict):
         :Call:
             >>> v = db.fromtext_val(txt, clsname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
-                CSV file interface
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
             *clsname*: {``"float64"``} | ``"int32"`` | :class:`str`
@@ -740,17 +738,17 @@ class TextInterpreter(dict):
         :Versions:
             * 2019-11-25 ``@ddalle``: First version
         """
-        return self.fromtext_num(txt, clsname)
+        return self.fromtext_base(txt, clsname)
         
     # Convert to text to appropriate class
-    def fromtext_num(self, txt, clsname):
-        r"""Convert a string to appropriate numeric type
+    def fromtext_base(self, txt, clsname):
+        r"""Convert a string to appropriate numeric/string type
         
         :Call:
             >>> v = db.fromtext_num(txt, clsname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
-                CSV file interface
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
             *clsname*: {``"float64"``} | ``"int32"`` | :class:`str`
@@ -798,8 +796,8 @@ class TextInterpreter(dict):
             >>> v = db.fromtext_float(txt)
             >>> v = db.fromtext_float(txt, clsname="float64")
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
-                CSV file interface
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
             *clsname*: {``"float64"``} | ``"float32"`` | ``"float128"``
@@ -861,8 +859,8 @@ class TextInterpreter(dict):
             >>> v = db.fromtext_complex(txt)
             >>> v = db.fromtext_complex(txt, clsname="complex128")
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
-                CSV file interface
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
             *clsname*: {``"complex128"``} | ``"complex64"``
@@ -927,8 +925,8 @@ class TextInterpreter(dict):
             >>> v = db.fromtext_float(txt)
             >>> v = db.fromtext_float(txt, clsname="int32")
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
-                CSV file interface
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
             *clsname*: {``"int32"``} | ``"int64"`` | ``"uint64"``
