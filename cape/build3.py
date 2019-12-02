@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Standard library modules
 import os
@@ -6,7 +6,7 @@ import sys
 import json
 import glob
 import shutil
-import ConfigParser
+import configparser
 import subprocess as sp
 
 
@@ -19,9 +19,9 @@ extjson = os.path.join(fpwd, "extensions.json")
 extopts = json.load(open(extjson))
 
 # Get a get/set type object
-config = ConfigParser.SafeConfigParser()
+config = configparser.SafeConfigParser()
 # Read the configuration options
-config.read(os.path.join(fpwd, "config.cfg"))
+config.read(os.path.join(fpwd, "config3.cfg"))
 
 # Python command, in cases of potential ambiguity.
 pythonexec = config.get("python", "exec")
@@ -35,12 +35,12 @@ if os.path.isdir("build"):
 
 # Compile
 print("Executing setup...")
-sp.call([pythonexec, "setup.py", "build"])
+sp.call([pythonexec, "setup3.py", "build"])
 # Status update
 print("Moving the module into place...")
 
 # Find all build folders
-dirs = glob.glob("build/lib*2.7")
+dirs = glob.glob("build/lib*3.6*")
 # There can be only one
 if len(dirs) > 1:
     raise ValueError("More than one build directory found.")
@@ -53,8 +53,9 @@ for (ext, opts) in extopts.items():
     fdest = opts["destination"].replace("/", os.sep)
     # File name for compiled module
     fname = "%s.so" % ext
+    fout  = "%s3.so" % ext
     # Final location for module
-    fmod = os.path.join(fpwd, fdest, fname)
+    fmod = os.path.join(fpwd, fdest, fout)
     # Expected build location
     fbld = os.path.join(fpwd, flib, fname)
     # Exit if no build

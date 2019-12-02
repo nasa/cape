@@ -9,8 +9,8 @@
 #include "capec_BaseFile.h"
 #include "cape_CSVFile.h"
 
-
-static PyMethodDef Methods[] = {
+// Declare each module function
+static PyMethodDef FTypesMethods[] = {
     // CSV file utilities
     {
         "CSVFileCountLines",
@@ -28,6 +28,18 @@ static PyMethodDef Methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
+// Create module's struct if compiling for Python 3
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef ftypesmodule = {
+    PyModuleDef_HEAD_INIT,
+    "_ftypes",                        // Name of module
+    "Extensions for CAPE data file types module\n",   // Module documentation
+    -1,                               // -1 if module keeps state in globals
+    FTypesMethods
+};
+#endif
+
+// Actually declare the module
 PyMODINIT_FUNC
 init_ftypes(void)
 {
@@ -38,10 +50,19 @@ init_ftypes(void)
     import_array();
     
     // Initialize module
-    m = Py_InitModule("_ftypes", Methods);
+#if PY_MAJOR_VERSION >= 3
+    // Python 3 syntax
+    m = PyModule_Create(&ftypesmodule);
+    // Check for errors
+    if (m == NULL)
+        return m;
+#else
+    // Python 2 syntax
+    m = Py_InitModule("_ftypes", FTypesMethods);
     // Check for errors
     if (m == NULL)
         return;
+#endif
     
     // Add data types to module
     capec_AddDTypes(m);

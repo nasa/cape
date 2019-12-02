@@ -10,7 +10,7 @@
 #include "pc_io.h"
 #include "pc_Tri.h"
 
-static PyMethodDef Methods[] = {
+static PyMethodDef CapeMethods[] = {
     // pc_Tri methods
     {"WriteTri",     pc_WriteTri,     METH_VARARGS, doc_WriteTri},
     {"WriteCompID",  pc_WriteCompID,  METH_VARARGS, doc_WriteCompID},
@@ -24,11 +24,25 @@ static PyMethodDef Methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef capemodule = {
+    PyModuleDef_HEAD_INIT,
+    "_cape",                          // Name of module
+    "Extensions for cape module\n",   // Module documentation
+    -1,                               // -1 if module keeps state in globals
+    CapeMethods
+};
+#endif
+
 PyMODINIT_FUNC
 init_cape(void)
 {
     // This must be called before using the NumPy API.
     import_array();
-    // Initialization command.
-    (void) Py_InitModule("_cape", Methods);
+    // Initialization command
+#if PY_MAJOR_VERSION >= 3
+    return PyModule_Create(&capemodule);
+#else
+    (void) Py_InitModule("_cape", CapeMethods);
+#endif
 }
