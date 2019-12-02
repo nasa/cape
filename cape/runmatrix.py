@@ -94,7 +94,7 @@ from .units import mks
 # The comma and no-comma cases are handled by completely separate
 # expressions to avoid the confusing way groups are handled under
 # :func:`re.findall`.
-regex_line_parts = re.compile("\s*[^\s,]*\s*,|\s*[^\s,]+")
+regex_line_parts = re.compile(r"\s*[^\s,]*\s*,|\s*[^\s,]+")
 
 # Regular expression for determining float formats
 regex_float = re.compile(

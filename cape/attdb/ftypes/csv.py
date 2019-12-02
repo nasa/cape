@@ -25,7 +25,7 @@ import numpy as np
 import cape.tnakit.typeutils as typeutils
 
 # Local modules
-from .basefile import BaseFile, TextFile
+from .basefile import BaseFile, TextInterpreter
 
 # Local extension
 try:
@@ -39,7 +39,7 @@ regex_numeric = re.compile("\d")
 regex_alpha   = re.compile("[A-z_]")
 
 # Class for handling data from CSV files
-class CSVFile(BaseFile, TextFile):
+class CSVFile(BaseFile, TextInterpreter):
     r"""Class for reading CSV files
     
     :Call:
@@ -60,7 +60,7 @@ class CSVFile(BaseFile, TextFile):
             Numeric array or list of strings for each column
     :See also:
         * :class:`cape.attdb.ftypes.basefile.BaseFile`
-        * :class:`cape.attdb.ftypes.basefile.TextFile`
+        * :class:`cape.attdb.ftypes.basefile.TextInterpreter`
     :Versions:
         * 2019-11-12 ``@ddalle``: First version
         * 2019-11-26 ``@ddalle``: Generic version
@@ -421,7 +421,7 @@ class CSVFile(BaseFile, TextFile):
         self.cols = ["col%i" % (i+1) for i in range(ncol)]
 
    # --- Data ---
-   # Read data
+    # Read data
     def read_csv_data(self, f):
         r"""Read data portion of CSV file
         
@@ -539,7 +539,7 @@ class CSVFile(BaseFile, TextFile):
             # Get type
             clsname = _types[j]
             # Convert text
-            v = self.translate_text(coltxts[j], clsname)
+            v = self.fromtext_val(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
     

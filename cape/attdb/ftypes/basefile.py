@@ -430,9 +430,6 @@ class BaseFile(dict):
         """
         return self.get_col_prop(col, "Type", vdef="float64")
         
-    # Get array type
-    
-
    # --- Keyword Values ---
     # Query keyword arguments for manual values
     def process_values(self, **kw):
@@ -709,7 +706,7 @@ class BaseFile(dict):
 
 
 # Text interpretation classes
-class TextFile(dict):
+class TextInterpreter(dict):
     r"""Class to contain methods for interpreting text
     
     The class is kept separate from :class:`BaseFile` because not all
@@ -722,13 +719,35 @@ class TextFile(dict):
     
     :Versions:
         * 2019-11-26 ``@ddalle``: First version
+        * 2019-12-02 ``@ddalle``: Changed from :class:`TextFile`
     """
     # Convert to text to appropriate class
-    def translate_text(self, txt, clsname):
+    def fromtext_val(self, txt, clsname):
         r"""Convert a string to appropriate type
         
         :Call:
-            >>> v = db.translate_text(txt, clsname)
+            >>> v = db.fromtext_val(txt, clsname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *txt*: :class:`str`
+                Text to be converted to :class:`float`
+            *clsname*: {``"float64"``} | ``"int32"`` | :class:`str`
+                Valid data type name
+        :Outputs:
+            *v*: :class:`clsname`
+                Text translated to requested type
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        return self.fromtext_num(txt, clsname)
+        
+    # Convert to text to appropriate class
+    def fromtext_num(self, txt, clsname):
+        r"""Convert a string to appropriate numeric type
+        
+        :Call:
+            >>> v = db.fromtext_num(txt, clsname)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
@@ -745,25 +764,25 @@ class TextFile(dict):
         # Filter class name
         if clsname.startswith("float"):
             # Convert float
-            return self.translate_float(txt, clsname)
+            return self.fromtext_float(txt, clsname)
         elif clsname.startswith("str"):
             # No conversion
             return txt
         elif clsname.startswith("int"):
             # Convert integer
-            return self.translate_int(txt, clsname)
+            return self.fromtext_int(txt, clsname)
         elif clsname.startswith("uint"):
             # Convert unsigned integer
-            return self.translate_int(txt, clsname)
+            return self.fromtext_int(txt, clsname)
         elif clsname.startswith("complex"):
             # Convert complex number
-            return self.translate_complex(txt, clsname)
+            return self.fromtext_complex(txt, clsname)
         else:
             # Invalid type
             raise TypeError("Invalid class name '%s'" % clsname)
 
     # Convert text to float
-    def translate_float(self, txt, clsname=None):
+    def fromtext_float(self, txt, clsname=None):
         r"""Convert a string to float
         
         This conversion allows for the format ``"2.40D+00"`` if the
@@ -776,8 +795,8 @@ class TextFile(dict):
         are handled by valid NumPy classes.
         
         :Call:
-            >>> v = db.translate_float(txt)
-            >>> v = db.translate_float(txt, clsname="float64")
+            >>> v = db.fromtext_float(txt)
+            >>> v = db.fromtext_float(txt, clsname="float64")
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
@@ -827,7 +846,7 @@ class TextFile(dict):
             raise ValueError(e.message)
     
     # Convert text to complex
-    def translate_complex(self, txt, clsname=None):
+    def fromtext_complex(self, txt, clsname=None):
         r"""Convert a string to complex float
         
         This conversion allows for the format ``"2.40D+00 + 1.2I"``
@@ -839,8 +858,8 @@ class TextFile(dict):
         are handled by valid NumPy classes.
         
         :Call:
-            >>> v = db.translate_complex(txt)
-            >>> v = db.translate_complex(txt, clsname="complex128")
+            >>> v = db.fromtext_complex(txt)
+            >>> v = db.fromtext_complex(txt, clsname="complex128")
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
@@ -889,15 +908,15 @@ class TextFile(dict):
                 # Get rid of it
                 txti = txti.replace("j", "")
                 # Convert imaginary part to float
-                v += self.translate_float(txti, clsf) * 1j
+                v += self.fromtext_float(txti, clsf) * 1j
             else:
                 # Convert real part to float
-                v += self.translate_float(txti, clsf)
+                v += self.fromtext_float(txti, clsf)
         # Output
         return v
 
     # Convert text to int
-    def translate_int(self, txt, clsname=None):
+    def fromtext_int(self, txt, clsname=None):
         r"""Convert a string to integer
         
         Special processing of specific :class:`int` and :class:`uint`
@@ -905,8 +924,8 @@ class TextFile(dict):
         Specific types are handled by valid NumPy classes.
         
         :Call:
-            >>> v = db.translate_float(txt)
-            >>> v = db.translate_float(txt, clsname="int32")
+            >>> v = db.fromtext_float(txt)
+            >>> v = db.fromtext_float(txt, clsname="int32")
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
