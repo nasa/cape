@@ -68,6 +68,9 @@ class TextDataFile(BaseFile, TextInterpreter):
     :Versions:
         * 2019-12-02 ``@ddalle``: First version
     """
+    # Class attributes
+    _classtypes = ["boolmap"]
+
   # ======
   # Config
   # ======
@@ -81,6 +84,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         """
         # Initialize options
         self.opts = {}
+        self.cols = []
 
         # Save file name
         self.fname = fname
@@ -100,7 +104,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             kw = self.process_col_defns(**kw)
 
         # Check for overrides of values
-        kw = self.process_values(**kw)
+        kw = self.process_kw_values(**kw)
         # Warn about any unused inputs
         self.warn_kwargs(kw)
   # >
@@ -156,17 +160,124 @@ class TextDataFile(BaseFile, TextInterpreter):
         self.opts["Comment"] = comment
         # Return remaining options
         return kw
+    
+    # Process key definitions
+    def process_col_defns(self, **kw):
+        r"""Process *Definitions* of column types
+        
+        :Call:
+            >>> kwo = db.process_col_defns(**kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+                Data file interface
+            *FirstColBoolMap*: {``False``} | :class:`dict`
+                Optional map for abbreviations that set boolean columns
+            *FirstColName*: {``"_col1"``} | :class:`str`
+                Name for special added first column
+            *Types*: {``{}``} | :class:`dict`
+                Dictionary of just tye *Type* for one or more cols
+            *Definitions*, *defns*: {``{}``} | :class:`dict`
+                Dictionary of specific definitions for each *col*
+            *DefaultType*: {``"float"``} | :class:`str`
+                Name of default class
+            *DefaultFormat*: {``None``} | :class:`str`
+                Optional default format string
+            *DefaultDefinition*: :class:`dict`
+                :class:`dict` of default *Type*, *Format*
+        :Outputs:
+            *kwo*: :class:`dict`
+                Options not used in this method
+        :Versions:
+            * 2014-06-05 ``@ddalle``: First version
+            * 2014-06-17 ``@ddalle``: Read from *defns* :class:`dict`
+            * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
+        """
+        # No special first column by default
+        self.opts["OptionalFirstCol"] = False
 
-    # Process first-column flag
-    def process_firstcol_flag(self):
-        pass
+        # Check for first-column boolean map
+        col1bmap = kw.pop("FirstColBoolMap", False)
+        # Validate it if not False-like
+        if col1bmap:
+            # Name
+            col0 = kw.pop("FirstColName", "_col1")
+            # Add to column lists
+            if self.cols[0] != col0:
+                # List of coefficients in data set
+                self.cols.insert(0, col0)
+                # List of columns printed to document
+                self.textcols.insert(0, col0)
+            # Process option
+            self.process_defns_boolmap(col0, col1bmap)
+            # Save option for special first column
+            self.opts["OptionalFirstCol"] = True
+
+        # Call parent method
+        kw = BaseFile.process_col_defns(self, **kw)
+        # Output
+        return kw
+
+    # Process boolean map definitions
+    def process_defns_boolmap(self, col, bmap):
+        r"""Process definitions for columns of type *BoolMap*
+
+        :Call:
+            >>> db.process_defns_boolmap(col, bmap)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column with type ``"BollMap"``
+            *bmap*: :class:`dict`
+                Map for abbreviations that set boolean columns
+        :See Also:
+            * :func:`validate_boolmap`
+        :Versions:
+            * 2019-12-03 ``@ddalle``: First version
+        """
+        # Validate
+        boolmap = self.validate_boolmap(bmap)
+        # Get definitions
+        defns = self.opts.setdefault("Definitions", {})
+        # Save definition for this key
+        defn = defns.setdefault(col, {})
+        # Set properties
+        defn["Map"] = boolmap
+        defn["Type"] = "boolmap"
+        # Possible values
+        keys = []
+        vals = []
+        # Get list of boolean columns
+        for (k, abbrevs) in boolmap.items():
+            # Create a definition
+            defnc = defns.setdefault(k, {})
+            # Set type
+            defnc["Type"] = "bool"
+            # Save to list of children
+            keys.append(k)
+            # Save column
+            self.cols.append(k)
+            # Append possible values
+            for v in abbrevs:
+                # Check if already present
+                if v in vals:
+                    raise ValueError(
+                        ("Abbreviation '%s' used in previous key" % v) +
+                        ("of BoolMap column '%s'" % col))
+                # Save
+                vals.append(v)
+        # Append empty string to abbreviations
+        if '' not in vals:
+            vals.insert(0, '')
+        # Save keys and values
+        defn["Keys"] = keys
+        defn["Abbreviations"] = vals
 
    # --- Keyword Checkers ---
-        
     # Validate any keyword argument
     def validate_defnopt(self, prop, val):
         r"""Translate any key definition into validated output
-        
+
         :Call:
             >>> v = db.validate_defnopt(prop, val)
         :Inputs:
@@ -184,14 +295,18 @@ class TextDataFile(BaseFile, TextInterpreter):
         """
         # Check property
         if prop == "Type":
+            # Local type validator
             return self.validate_type(val)
+        elif prop == "BoolMap":
+            # Validate dictionary of boolean maps
+            return self.validate_boolmap(val)
         else:
             # Default is to accept any input
             return val
 
     # Validate dtype
     def validate_type(self, clsname):
-        r"""Translate free-form type name into type code
+        r"""Translate free-form *Type* option into validated code
         
         :Call:
             >>> dtype = db.validate_dtype(clsname)
@@ -199,7 +314,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
             *clsname*: :class:`str`
-                Name of column
+                Free-form *Type* option for a column
         :Outputs:
             *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
                 Name of data type
@@ -207,19 +322,100 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2019-11-24 ``@ddalle``: First version
             * 2019-12-02 ``@ddalle``: Forked from :class:`BaseFile`
         """
+        # Check type
+        if not typeutils.isstr(clsname):
+            raise TypeError("'Type' parameter must be a string")
         # Force lower case
         clsname = clsname.lower()
         # Filter
-        if clsname in ["boolflag"]:
+        if clsname in ["boolmap"]:
             # Valid
-            return "boolflag"
+            return "boolmap"
         else:
             # Fallback
             return self.validate_dtype(clsname)
             
     # Validate boolean flag columns
-    def validate_flag(self, flags):
-        pass
+    def validate_boolmap(self, boolmap):
+        r"""Translate free-form *Type* option into validated code
+        
+        :Call:
+            >>> bmap = db.validate_boolmap(boolmap)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *boolmap*: :class:`str`\ [:class:`str` | :class:`list`]
+                Initial boolean flag map; the keys are names of the
+                boolean coefficients that are set, and the item values
+                are the one or more abbreviations for each key
+        :Outputs:
+            *bmap*: :class:`str`\ [:class:`list`\ [:class:`str`]]
+                Validated map
+        :Versions:
+            * 2019-12-03 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(boolmap, dict):
+            raise TypeError("'BoolMap' parameter must be a dict")
+        # Create new list to ensure list types
+        for (k, v) in boolmap.items():
+            # Check if it's scalar
+            if isinstance(v, list):
+                # Already a list
+                V = v
+            elif isinstance(v, (tuple, set)):
+                # Convert other array to list
+                V = list(v)
+            else:
+                # Convert scalar to singleton
+                V = [v]
+            # Check entry types
+            for vi in V:
+                if not typeutils.isstr(vi):
+                    raise TypeError(
+                        "All map entries for '%s' must be strings" % k)
+            # Save
+            boolmap[k] = V
+        # Output
+        return boolmap
+  # >
+  
+  # ============
+  # Data
+  # ============
+  # <
+    # Class-specific class initializer
+    def init_col_class(self, col, clsname):
+        r"""Initialize a class-specific column
+        
+        This is used for special classes and should be overwritten in
+        specific classes if that class has its own ``"Type"``
+        definitions that are not generic.
+        
+        :Call:
+            >>> db.init_col_class(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column to initialize
+            *clsname*: :class:`str`
+                Value of *Type* from *col* definition
+        :Versions:
+            * 2019-12-03 ``@ddalle``: First version
+        """
+        # Check class
+        if clsname == "boolmap":
+            # Initialize list of strings to remember text actually used
+            self[col] = []
+            # No max length
+            self._n[col] = 0
+            self._nmax[col] = None
+        else:
+            # Unreachable
+            raise ValueError(
+                "%s class has no special column types"
+                % self.__class__.__name__)
   # >
   
   # ============
@@ -300,6 +496,8 @@ class TextDataFile(BaseFile, TextInterpreter):
         self.read_textdata_headerdefaultcols(f)
         # Get guesses as to types
         self.read_textdata_firstrowtypes(f, **kw)
+        # Save text columns
+        self.textcols = list(self.cols)
 
     # Read a line as if it were a header
     def read_textdata_headerline(self, f):
@@ -584,7 +782,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         # List of types
         _types = self._types
         # Loop through columns
-        for (j, col) in enumerate(self.cols):
+        for (j, col) in enumerate(self.textcols):
             # Get type
             clsname = _types[j]
             # Convert text
@@ -607,7 +805,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *clsname*: {``"float64"``} | ``"int32"`` | :class:`str`
                 Valid data type name
             *col*: :class:`str`
-                Name of flag column, for ``"boolflag"`` keys
+                Name of flag column, for ``"boolmap"`` keys
         :Outputs:
             *v*: :class:`clsname`
                 Text translated to requested type
@@ -615,19 +813,19 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2019-12-02 ``@ddalle``: First version
         """
         # Check type
-        if clsname == "boolflag":
+        if clsname == "boolmap":
             # Convert flag to value
-            return self.fromtext_boolflag(txt, col)
+            return self.fromtext_boolmap(txt, col)
         else:
             # Fall back to main categories
             return self.fromtext_base(txt, clsname)
 
     # Convert a flag
-    def fromtext_boolflag(self, txt, col):
+    def fromtext_boolmap(self, txt, col):
         r"""Convert boolean flag text to dictionary
         
         :Call:
-            >>> v = db.fromtext_boolflag(txt, col)
+            >>> v = db.fromtext_boolmap(txt, col)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
                 Text data file interface
@@ -636,7 +834,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *clsname*: {``"float64"``} | ``"int32"`` | :class:`str`
                 Valid data type name
             *col*: :class:`str`
-                Name of flag column, for ``"boolflag"`` keys
+                Name of flag column, for ``"boolmap"`` keys
         :Outputs:
             *v*: :class:`dict`\ [``True`` | ``False``]
                 Flags for each flag in *col* definition
@@ -644,9 +842,9 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2019-12-02 ``@ddalle``: First version
         """
         # Get definition for column
-        flags = self.get_col_prop(col, "Flags", {})
+        boolmap = self.get_col_prop(col, "Map", {})
         # Check the text
-        for (colname, vals) in flags.items():
+        for (colname, vals) in boolmap.items():
             # Check text vs flags values
             if txt in vals:
                 self.append_colval(colname, True)
@@ -711,6 +909,23 @@ class TextDataFile(BaseFile, TextInterpreter):
         coltxts = self.regex_linesplit.findall(line)
         # Strip white space and delimiters
         parts = [txt.strip(self._delim) for txt in coltxts]
+        # Get types
+        _types = getattr(self, "_types", None)
+        # Check for declared types
+        if _types is None:
+            return parts
+        # Loop through columns
+        for (j, col) in enumerate(self.cols):
+            # Check for columns with optional values
+            if _types[j] == "boolmap":
+                # Get text
+                txtj = parts[j]
+                # Get abbreviations
+                abbrevs = self.get_col_prop(col, "Abbreviations", [""])
+                # Check for a value
+                if txtj not in abbrevs:
+                    # Insert empty space to list
+                    parts.insert(j, "")
         # Output
         return parts
         

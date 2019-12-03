@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-02 at 11:28 PST
+   on 2019-12-03 at 14:52 PST
 
 Test ``05_csv_noheader``
 ==========================
@@ -88,8 +88,8 @@ Command 1: Minimal Definitions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.47102 seconds
-    * Cumulative time: 0.47102 seconds
+    * Command took 0.474991 seconds
+    * Cumulative time: 0.474991 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -121,8 +121,8 @@ Command 2: Minimal Definitions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.616334 seconds
-    * Cumulative time: 1.08735 seconds
+    * Command took 0.595251 seconds
+    * Cumulative time: 1.07024 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -154,8 +154,8 @@ Command 3: Specified Column Titles: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.353933 seconds
-    * Cumulative time: 1.44129 seconds
+    * Command took 0.34853 seconds
+    * Cumulative time: 1.41877 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -187,8 +187,8 @@ Command 4: Specified Column Titles: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.68403 seconds
-    * Cumulative time: 2.12532 seconds
+    * Command took 0.660915 seconds
+    * Cumulative time: 2.07969 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

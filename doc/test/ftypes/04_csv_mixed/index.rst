@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-02 at 11:28 PST
+   on 2019-12-03 at 14:52 PST
 
 Test ``04_csv_mixed``
 =======================
@@ -87,8 +87,8 @@ Command 1: Minimal Definitions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.480204 seconds
-    * Cumulative time: 0.480204 seconds
+    * Command took 0.480803 seconds
+    * Cumulative time: 0.480803 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -120,8 +120,8 @@ Command 2: Minimal Definitions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.711985 seconds
-    * Cumulative time: 1.19219 seconds
+    * Command took 0.727979 seconds
+    * Cumulative time: 1.20878 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -153,8 +153,8 @@ Command 3: Specified dtypes: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.479928 seconds
-    * Cumulative time: 1.67212 seconds
+    * Command took 0.479469 seconds
+    * Cumulative time: 1.68825 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -186,8 +186,8 @@ Command 4: Specified dtypes: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.579355 seconds
-    * Cumulative time: 2.25147 seconds
+    * Command took 0.708185 seconds
+    * Cumulative time: 2.39644 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -78,6 +78,7 @@ class CSVFile(BaseFile, TextInterpreter):
         """
         # Initialize options
         self.opts = {}
+        self.cols = []
 
         # Save file name
         self.fname = fname
@@ -94,7 +95,7 @@ class CSVFile(BaseFile, TextInterpreter):
             kw = self.process_col_defns(**kw)
 
         # Check for overrides of values
-        kw = self.process_values(**kw)
+        kw = self.process_kw_values(**kw)
         # Warn about any unused inputs
         self.warn_kwargs(kw)
   # >
@@ -625,6 +626,7 @@ class CSVSimple(BaseFile):
         """
         # Initialize options
         self.opts = {}
+        self.cols = []
         
         # Save file name
         self.fname = fname
@@ -635,7 +637,7 @@ class CSVSimple(BaseFile):
             kw = self.read_csvsimple(fname, **kw)
             
         # Check for overrides of values
-        kw = self.process_values(**kw)
+        kw = self.process_kw_values(**kw)
         # Warn about any unused inputs
         self.warn_kwargs(kw)
   # >

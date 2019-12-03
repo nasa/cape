@@ -1,0 +1,25 @@
+{
+    "CopyFiles": [
+        "runmatrix.csv",
+        "test01_minimal.py"
+    ],
+    "Commands": [
+        "python2 test01_minimal.py",
+        "python3 test01_minimal.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out"
+    ],
+    "CommandTitles": [
+        "First-column BoolMap: Python 2",
+        "First-column BoolMap: Python 3"
+    ],
+    "DocFilesShow": [
+        "test01_minimal.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/ftypes",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

@@ -38,13 +38,35 @@ NUM_ARRAY_CHUNK = 5000
 
 # Declare basic class
 class BaseFile(dict):
-    # Common properties
-    cols = []
-    fname = ""
-    lines = []
-    linenos = []
-    opts = {}
-    n = 0
+    r"""Generic class for storing data from a data-style file
+    
+    This class has no initialization method, and as such it is unlikely
+    that there will be instances of this class in use.  It provides
+    methods and structure to other classes.
+    
+    This class inherits from :class:`dict` and can be used in that
+    matter in the unlikely event that it's useful.
+    
+    :Outputs:
+        *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            CSV file interface
+        *db.cols*: :class:`list`\ [:class:`str`]
+            List of columns read
+        *db.opts*: :class:`dict`
+            Options for this instance
+        *db.opts["Definitions"]*: :class:`dict`
+            Definitions for each column/coefficient
+        *db[col]*: :class:`np.ndarray` | :class:`list`
+            Numeric array or list of strings for each column
+    :See also:
+        * :class:`cape.attdb.ftypes.csv.CSVFile`
+        * :class:`cape.attdb.ftypes.csv.CSVSimple`
+        * :class:`cape.attdb.ftypes.textdata.TextDataFile`
+    :Versions:
+        * 2019-11-26 ``@ddalle``: First version
+    """
+    # Class attributes
+    _classtypes = []
 
   # ==========
   # Config
@@ -145,6 +167,11 @@ class BaseFile(dict):
         # Save translators
         trans1 = kw.pop("translators", {})
         trans2 = kw.pop("Translators", {})
+        # Check types
+        if not isinstance(trans1, dict):
+            raise TypeError("Option 'translators' must be dict type")
+        if not isinstance(trans2, dict):
+            raise TypeError("Option 'Translators' must be a dict type")
         # Combine
         trans = dict(trans1, **trans2)
         # Save
@@ -185,8 +212,6 @@ class BaseFile(dict):
         defns3 = kw.pop("defns", {})
         # Combine definitions
         defns = dict(defns3, **defns2)
-        # Process current list of columns
-        cols = getattr(self, "cols", [])
         # Check for default definition
         odefn = kw.pop("DefaultDefinition", {})
         # Process various defaults
@@ -218,7 +243,7 @@ class BaseFile(dict):
             # Get existing definition
             defn = opts.setdefault(col, {})
             # Apply the type
-            defn["Type"] = self.validate_dtype(cls)
+            defn["Type"] = self.validate_type(cls)
 
         # Loop through known columns
         for col in self.cols:
@@ -290,6 +315,25 @@ class BaseFile(dict):
             return val
 
     # Convert *Type* to validated *Type*
+    def validate_type(self, clsname):
+        r"""Translate free-form type name into type code
+        
+        :Call:
+            >>> dtype = db.validate_type(clsname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *clsname*: :class:`str`
+                Free-form *Type* option for a column
+        :Outputs:
+            *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
+                Name of data type
+        :Versions:
+            * 2019-12-03 ``@ddalle``: First version
+        """
+        return self.validate_dtype(clsname)
+
+    # Convert *Type* to validated *Type*
     def validate_dtype(self, clsname):
         r"""Translate free-form type name into type code
         
@@ -299,7 +343,7 @@ class BaseFile(dict):
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
             *clsname*: :class:`str`
-                Name of column
+                Free-form *Type* option for a column
         :Outputs:
             *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
                 Name of data type
@@ -432,11 +476,11 @@ class BaseFile(dict):
         
    # --- Keyword Values ---
     # Query keyword arguments for manual values
-    def process_values(self, **kw):
+    def process_kw_values(self, **kw):
         r"""Process *Values* argument for manual column values
         
         :Call:
-            >>> kw = db.process_values(**kw)
+            >>> kw = db.process_kw_values(**kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -506,8 +550,13 @@ class BaseFile(dict):
         :Effects:
             *db[col]*: :class:`np.ndarray` | :class:`list`
                 Initialized array with appropriate type
+            *db._n[col]*: ``0``
+                Number of entries saved to *db[col]*
+            *db._nmax[col]*: ``None`` | :class:`int`
+                Number of entries allocated, if appropriate
         :Versions:
             * 2019-11-23 ``@ddalle``: First version
+            * 2019-12-03 ``@ddalle``: Added :func:`init_col_class`
         """
         # Check validity
         if col not in self.cols:
@@ -527,12 +576,36 @@ class BaseFile(dict):
             # No max length
             self._n[col] = 0
             self._nmax[col] = None
+        elif clsname in self._classtypes:
+            # Special initializer
+            self.init_col_class(col, clsname)
         else:
             # Use existing dtype code
             self[col] = np.zeros(NUM_ARRAY_CHUNK, dtype=clsname)
             # Set max length
             self._n[col] = 0
             self._nmax[col] = NUM_ARRAY_CHUNK
+
+    # Class-specific class initializer
+    def init_col_class(self, col):
+        r"""Initialize a class-specific column
+        
+        This is used for special classes and should be overwritten in
+        specific classes if that class has its own ``"Type"``
+        definitions that are not generic.
+        
+        :Call:
+            >>> db.init_col_class(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column to initialize
+        :Versions:
+            * 2019-12-03 ``@ddalle``: First version
+        """
+        raise ValueError(
+            "%s class has no special column types" % self.__class__.__name__)
         
     # Initialize list of columns
     def init_cols(self, cols):
