@@ -171,6 +171,7 @@ defined.  In general the required files are the following.
         api/pycart/index
         api/pyfun/index
         api/pyover/index
+        api/attdb/index
     
     **Testing**
     

@@ -550,7 +550,7 @@ class CSVFile(BaseFile, TextInterpreter):
         r"""Initialize *db._c_dtypes* for C text input
         
         :Call:
-            >>>db.get_c_dtypes()
+            >>> db.get_c_dtypes()
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface

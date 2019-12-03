@@ -6,3 +6,5 @@
     :maxdepth: 2
     
     basefile
+    csv
+    textdata

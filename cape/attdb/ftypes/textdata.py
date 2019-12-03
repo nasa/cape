@@ -59,7 +59,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             Lines of text from the file that was read
         *db.opts*: :class:`dict`
             Options for this instance
-        *db.opts["Delimiter"]: {``" ,"``} | :class:`str`
+        *db.opts["Delimiter"]*: {``" ,"``} | :class:`str`
             Delimiter(s) to allow
         *db.opts["Definitions"]*: :class:`dict`
             Definitions for each column

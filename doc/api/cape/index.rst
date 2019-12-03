@@ -11,7 +11,6 @@ The :mod:`cape` module
 .. toctree::
     :maxdepth: 2
     
-    attdb/index
     cfdx/index
     filecntl/index
     argread
