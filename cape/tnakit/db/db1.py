@@ -4252,7 +4252,7 @@ class DBCoeff(dict):
         """Process a key name, using an ordered list of defaults
 
         :Call:
-            >>> ka = DBc.get_key(k3=None)
+            >>> ka = DBc.get_key(k=None)
         :Inputs:
             *DBc*: :class:`tnakit.db.db1.DBFM`
                 Coefficient lookup database

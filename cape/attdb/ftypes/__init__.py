@@ -50,6 +50,11 @@ class DataFile(CSVFile, CSVSimple, TextDataFile):
         :Versions:
             * 2019-12-04 ``@ddalle``: First version
         """
+        # Initialize options
+        self.opts = {}
+        self.cols = []
+        self.n = 0
+        
         # Initialize file names for each potential type
         fcsv  = None
         fcsvs = None
