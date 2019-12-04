@@ -583,7 +583,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Exit
             return
         # Save column names if reaching this point
-        self.cols = cols
+        self.cols = self.translate_colnames(cols)
         # Output column names for kicks
         return cols
         
@@ -709,7 +709,9 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Count the number of columns
         ncol = len(coltxts)
         # Create default column names
-        self.cols = ["col%i" % (i+1) for i in range(ncol)]
+        cols = ["col%i" % (i+1) for i in range(ncol)]
+        # Translate column names
+        self.cols = self.translate_colnames(cols)
    
    # --- Data ---
     # Read data: Python implementation

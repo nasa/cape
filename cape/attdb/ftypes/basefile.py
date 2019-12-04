@@ -140,7 +140,7 @@ class BaseFile(dict):
     # Process generic options
     def process_opts_generic(self, **kw):
         r"""Process generic options from keyword arguments
-        
+
         :Call:
             >>> kwo = db.process_opts_generic(**kw)
         :Inputs:
@@ -154,6 +154,10 @@ class BaseFile(dict):
                 ``"CAF"``, and ``translators["CAF"]`` is ``"CA"``, that
                 column will be stored as ``db["CA"]`` instead of
                 ``db["CAF"]``
+            *[Pp]refix*: ``""`` | :class:`str` | :class:`dict`
+                Universal column name prefix or dictionary thereof
+            *[Ss]uffix*: ``""`` | :class:`str` | :class:`dict`
+                Universal column name suffix or dictionary thereof
         :Outputs:
             *kwo*: :class:`dict`
                 Options not used in this method
@@ -179,9 +183,27 @@ class BaseFile(dict):
         trans = dict(trans1, **trans2)
         # Save
         self.opts["Translators"] = trans
+        # Prefix/suffix options
+        prefix = kw.pop("prefix", kw.pop("Prefix", ""))
+        suffix = kw.pop("suffix", kw.pop("Suffix", ""))
+        # De-none
+        if prefix is None:
+            prefix = ""
+        if suffix is None:
+            suffix = ""
+        # Check types
+        if not (typeutils.isstr(prefix) or isinstance(prefix, dict)):
+            raise TypeError("Option 'Prefix' must be string or dict")
+        if not (typeutils.isstr(suffix) or isinstance(suffix, dict)):
+            raise TypeError("Option 'Suffix' must be string or dict")
+        # Save prefix and suffix
+        self.opts["Prefix"] = prefix
+        self.opts["Suffix"] = suffix
+            
         # Return unused options
         return kw
-    
+
+   # --- Columns ---
     # Process key definitions
     def process_col_defns(self, **kw):
         r"""Process *Definitions* of column types
@@ -261,6 +283,63 @@ class BaseFile(dict):
 
         # Return unused options
         return kw
+
+    # Translate column names
+    def translate_colnames(self, cols):
+        r"""Translate column names
+
+        This method utilizes the options *Translators*, *Prefix*, and
+        *Suffix* from the *db.opts* dictionary. The *Translators* are
+        applied before *Prefix* and *Suffix*.
+
+        :Call:
+            >>> dbcols = db.translate_colnames(cols)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *cols*: :class:`list`\ [:class:`str`]
+                List of raw column names
+        :Outputs:
+            *dbcols*: :class:`list`\ [:class:`str`]
+                Prepended and appended column names with substitutions
+                if appropriate
+        :Versions:
+            * 2019-12-04 ``@ddalle``: First version
+        """
+        # Get options
+        trans  = self.opts.get("Translators", {})
+        prefix = self.opts.get("Prefix", "")
+        suffix = self.opts.get("Suffix", "")
+        # Initialize output
+        dbcols = []
+        # Output
+        for col in cols:
+            # Get substitution (default is no substitution)
+            col = trans.get(col, col)
+            # Get prefix
+            if isinstance(prefix, dict):
+                # Get specific prefix
+                pre = prefix.get(col, prefix.get("_", ""))
+            elif prefix:
+                # Universal prefix
+                pre = prefix
+            else:
+                # No prefix (type-safe)
+                pre = ""
+            # Get suffix
+            if isinstance(suffix, dict):
+                # Get specific suffix
+                suf = suffix.get(col, suffix.get("_", ""))
+            elif suffix:
+                # Universal suffix
+                suf = suffix
+            else:
+                # No suffix (type-safe)
+                suf = ""
+            # Combine appendages
+            dbcols.append(pre + col + suf)
+        # Output
+        return dbcols
 
    # --- Keyword Checkers ---
     # Validate a dictionary of options
@@ -1049,3 +1128,4 @@ class TextInterpreter(dict):
         # Attempt conversion
         return cls(txt)
 # class TextFile
+

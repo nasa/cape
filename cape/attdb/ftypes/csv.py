@@ -296,7 +296,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Exit
             return
         # Save column names if reaching this point
-        self.cols = cols
+        self.cols = self.translate_colnames(cols)
         # Output column names for kicks
         return cols
         
@@ -420,7 +420,9 @@ class CSVFile(BaseFile, TextInterpreter):
         # Count the number of columns
         ncol = len(coltxts)
         # Create default column names
-        self.cols = ["col%i" % (i+1) for i in range(ncol)]
+        cols = ["col%i" % (i+1) for i in range(ncol)]
+        # Apply translations
+        self.cols = self.translate_colnames(cols)
 
    # --- Data ---
     # Read data
@@ -721,7 +723,9 @@ class CSVSimple(BaseFile):
             if line == "":
                 continue
             # Process header line, strip white space from each col
-            self.cols = [col.strip() for col in line.split(",")]
+            cols = [col.strip() for col in line.split(",")]
+            # Apply translations
+            self.cols = self.translate_colname(cols)
             # Once this is done, task completed
             return
 
