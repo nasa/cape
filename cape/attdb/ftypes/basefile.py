@@ -31,6 +31,9 @@ import warnings
 # Third-party modules
 import numpy as np
 
+# CAPE modules
+import cape.tnakit.typeutils as typeutils
+
 
 # Fixed parameter for size of new chunks
 NUM_ARRAY_CHUNK = 5000
@@ -122,7 +125,7 @@ class BaseFile(dict):
         if self.n:
             lbl += "n=%i, " % self.n
         # Append columns
-        if len(self.cols) <= 6:
+        if len(self.cols) <= 5:
             # Show all columns
             lbl += "cols=%s)" % str(self.cols)
         else:
