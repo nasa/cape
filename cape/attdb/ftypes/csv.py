@@ -79,6 +79,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Initialize options
         self.opts = {}
         self.cols = []
+        self.n = 0
 
         # Save file name
         self.fname = fname
@@ -469,6 +470,10 @@ class CSVFile(BaseFile, TextInterpreter):
         self.get_c_dtypes()
         # Call C function
         _ftypes.CSVFileReadData(self, f)
+        # Get lengths
+        self._n = {k: len(self[k]) for k in self.cols}
+        # Save overall length
+        self.n = self._n[self.cols[0]]
         # Delete _c_dtypes
         del self._c_dtypes
 
@@ -493,6 +498,8 @@ class CSVFile(BaseFile, TextInterpreter):
         self.init_cols(self.cols)
         # Initialize types
         self._types = [self.get_col_type(col) for col in self.cols]
+        # Set count
+        self.n = 0
         # Read data lines
         while True:
             # Process next line
@@ -500,6 +507,8 @@ class CSVFile(BaseFile, TextInterpreter):
             # Check for end of file
             if eof == -1:
                 break
+            # Increase count
+            self.n += 1
         # Delete types
         del self._types
         # Trim each column
@@ -627,6 +636,7 @@ class CSVSimple(BaseFile):
         # Initialize options
         self.opts = {}
         self.cols = []
+        self.n = 0
         
         # Save file name
         self.fname = fname
@@ -733,6 +743,8 @@ class CSVSimple(BaseFile):
         :Versions:
             * 2019-11-25 ``@ddalle``: First version
         """
+        # Set data count
+        self.n = 0
         # Read data lines
         while True:
             # Process next line
@@ -740,6 +752,8 @@ class CSVSimple(BaseFile):
             # Check for end of file
             if eof == -1:
                 break
+            # Increase count
+            self.n += 1
         # Trim each column
         for col in self.cols:
             self.trim_colarray(col)

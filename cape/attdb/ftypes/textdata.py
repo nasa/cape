@@ -85,6 +85,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Initialize options
         self.opts = {}
         self.cols = []
+        self.n = 0
 
         # Save file name
         self.fname = fname
@@ -732,6 +733,8 @@ class TextDataFile(BaseFile, TextInterpreter):
         self.init_cols(self.cols)
         # Initialize types
         self._types = [self.get_col_type(col) for col in self.cols]
+        # Set data count
+        self.n = 0
         # Read data lines
         while True:
             # Process next line
@@ -739,6 +742,8 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Check for end of file
             if eof == -1:
                 break
+            # Increment count
+            self.n += 1
         # Delete types
         del self._types
         # Trim each column
@@ -929,6 +934,42 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Output
         return parts
         
+  # >
+
+  # =============
+  # Write 
+  # =============
+  # <
+   # --- Writers ---
+    # Write lines
+    def write_textdata(self, fname=None):
+        r"""Write text data file based on existing *db.lines*
+        
+        Checks are not performed that values in e.g. *db[col]* have
+        been synchronized with the text in *db.lines*.  It is
+        therefore possible to write a file that does not match the
+        values in the database.  To avoid this, use :func:`set_colval`.
+        
+        :Call:
+            >>> db.write_textdata()
+            >>> db.write_textdata(fname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+                Text data file interface
+            *fname*: {*db.fname*} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2019-12-04 ``@ddalle``: First version
+        """
+        # Default file name
+        if fname is None:
+            fname = self.fname
+        # Open the filw for writing
+        with open(fname, 'w') as f:
+            # Loop through lines
+            for line in self.lines:
+                # Write it
+                f.write(line)
   # >
 # class TextDataFile
 

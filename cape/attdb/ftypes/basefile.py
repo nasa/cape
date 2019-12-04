@@ -66,6 +66,8 @@ class BaseFile(dict):
         * 2019-11-26 ``@ddalle``: First version
     """
     # Class attributes
+    n = 0
+    fname = None
     _classtypes = []
 
   # ==========
@@ -106,9 +108,10 @@ class BaseFile(dict):
 
         :Versions:
             * 2019-11-08 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Only last part of module name
         """
         # Module name
-        modname = self.__class__.__module__
+        modname = self.__class__.__module__.split(".")[-1]
         clsname = self.__class__.__name__
         # Start output
         lbl = "<%s.%s(" % (modname, clsname)
@@ -508,6 +511,8 @@ class BaseFile(dict):
         for col, v in vals.items():
             # Save values
             self.save_column(col, v)
+            # Update count
+            self.n = max(self.n, len(v))
         # Output unused options
         return kw
 
