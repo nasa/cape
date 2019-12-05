@@ -72,6 +72,16 @@ class BaseFile(dict):
     n = 0
     fname = None
     _classtypes = []
+    # Recognized types and other defaults
+    _DefaultDefn = {
+        "Type": "float64",
+        "Label": True,
+        "LabelFormat": "%s",
+        "WriteFormat": "%s",
+    }
+    _DefaultRoleDefns = {}
+    _DTypeMap = {}
+    _RoleMap = {}
 
   # ==========
   # Config
@@ -235,19 +245,22 @@ class BaseFile(dict):
             * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
         """
         # Get options for key definitions
-        defns1 = kw.pop("Types", {})
+        defns1 = kw.pop("defns", {})
         defns2 = kw.pop("Definitions", {})
-        defns3 = kw.pop("defns", {})
         # Combine definitions
-        defns = dict(defns3, **defns2)
+        defns = dict(defns1, **defns2)
+        # Get default definition from class definition
+        clsdefn = self.__class__._DefaultDefn
         # Check for default definition
         odefn = kw.pop("DefaultDefinition", {})
-        # Process various defaults
-        odefcls = kw.pop("DefaultType", "float")
-        odeffmt = kw.pop("DefaultFormat", None)
-        # Set defaults
-        odefn.setdefault("Type",  odefcls)
-        odefn.setdefault("Format", odeffmt)
+        # Process each option from class definition
+        for (k, opt) in clsdefn.items():
+            # Prepend "Default" to the name
+            key = "Default" + k
+            # Check for option
+            odefk = kw.pop(key, opt)
+            # Save it if appropriate
+            odefn.setdefault(k, odefk)
         # Validate default definition
         self.validate_defn(odefn)
         # Ensure definitions exist
@@ -266,19 +279,33 @@ class BaseFile(dict):
             # Validate values
             self.validate_defn(defn)
 
-        # Loop through specifically types
-        for (col, cls) in defns1.items():
-            # Get existing definition
-            defn = opts.setdefault(col, {})
-            # Apply the type
-            defn["Type"] = self.validate_type(cls)
+        # Loop through options specific to individual keys
+        for k in clsdefn.keys():
+            # Keyword argument name appends an "s"
+            defnk = k + "s"
+            # Check if present
+            if defnk not in kw:
+                continue
+            # Check the type
+            if not isinstance(kw[defnk], dict):
+                continue
+            # Get the option
+            defnkw = kw.pop(defnk)
+            # Loop through cols affected by this dictionary
+            for (col, opt) in defnkw.items():
+                # Get existing definition
+                defn = opts.setdefault(col, {})
+                # Apply the type
+                defn[defnk] = self.validate_type(opt)
 
         # Loop through known columns
         for col in self.cols:
             # Get definition
             defn = opts.setdefault(col, {})
+            # Get default definition based on column name
+            odefncol = self.get_col_defaultdefn(col)
             # Loop through default keys
-            for key, opt in odefn.items():
+            for key, opt in odefncol.items():
                 # Apply default but don't override
                 defn.setdefault(key, opt)
             # Validate the definition
@@ -286,6 +313,46 @@ class BaseFile(dict):
 
         # Return unused options
         return kw
+
+    # Get default definition based on column name
+    def get_col_defaultdefn(self, col):
+        r"""Get the default definition based on a column name
+        
+        :Call:
+            >>> odefn = db.get_col_defaultdefn(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column to process
+        :Outputs:
+            *odefn*: :class:`dict`
+                Dictionary of default parameters that might be specific
+                to the column name
+        :Versions:
+            * 2019-12-05 ``@ddalle``: First version
+        """
+        # Get class's default definitions for each family
+        defndict = self.__class__._DefaultRoleDefns
+        # Get map from name to family
+        rolemap = self.__class__._RoleMap
+        # Get global default
+        odefn = self.__class__._DefaultDefn
+        # Loop through roles
+        for role, names in rolemap.items():
+            # Check type
+            if not isinstance(names, list):
+                # Create list
+                names = [names]
+            # Check for a match
+            if col in names:
+                # Get definition for that role
+                coldefn = defndict.get(role, odefn)
+                # Set role
+                return dict(coldefn, Role=role)
+        # If reaching this point, return global default
+        return odefn
+        
 
     # Translate column names
     def translate_colnames(self, cols):

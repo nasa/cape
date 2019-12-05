@@ -70,6 +70,8 @@ class TextDataFile(BaseFile, TextInterpreter):
     """
     # Class attributes
     _classtypes = ["boolmap"]
+    # Recognized types and other defaults
+    _DTypeMap = dict(BaseFile._DTypeMap, boolmap="str")
 
   # ======
   # Config
