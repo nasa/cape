@@ -78,6 +78,7 @@ class BaseFile(dict):
         "Label": True,
         "LabelFormat": "%s",
         "WriteFormat": "%s",
+        "OutputDimension": 0,
     }
     _DefaultRoleDefns = {}
     _DTypeMap = {}
@@ -1056,17 +1057,12 @@ class TextInterpreter(dict):
         try:
             # Basic conversion
             return cls(txt)
-        except ValueError as e:
+        except ValueError as err:
             # Substitute "E" for "D" and "e" for "d"
             txt = txt.replace("D", "E")
             txt = txt.replace("d", "e")
         # Second attempt
-        try:
-            # Basic conversion after substitution
-            return cls(txt)
-        except Exception:
-            # Use original message to avoid confusion
-            raise ValueError(e.message)
+        return cls(txt)
     
     # Convert text to complex
     def fromtext_complex(self, txt, clsname=None):

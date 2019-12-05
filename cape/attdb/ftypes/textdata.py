@@ -163,7 +163,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         self.opts["Comment"] = comment
         # Return remaining options
         return kw
-    
+
     # Process key definitions
     def process_col_defns(self, **kw):
         r"""Process *Definitions* of column types

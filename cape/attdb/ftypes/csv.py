@@ -93,7 +93,7 @@ class CSVFile(BaseFile, TextInterpreter):
             kw = self.read_csv(fname, **kw)
         else:
             # Process inputs
-            kw = self.process_col_defns(**kw)
+            kw = CSVFile.process_col_defns(self, **kw)
 
         # Check for overrides of values
         kw = self.process_kw_values(**kw)
@@ -128,7 +128,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Process column names
             self.read_csv_header(f, **kw)
             # Process column types
-            kw = self.process_col_defns(**kw)
+            kw = CSVFile.process_col_defns(self, **kw)
             # Loop through lines
             self.read_csv_data(f)
         # Output remaining options
@@ -653,7 +653,7 @@ class CSVSimple(BaseFile):
         # Warn about any unused inputs
         self.warn_kwargs(kw)
   # >
-    
+
   # =============
   # Read
   # =============
