@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-03 at 14:52 PST
+   on 2019-12-05 at 12:25 PST
 
 Test ``03_csv_num``
 =====================
@@ -81,8 +81,8 @@ Command 1: Clean CSV read: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.346776 seconds
-    * Cumulative time: 0.346776 seconds
+    * Command took 0.417447 seconds
+    * Cumulative time: 0.417447 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -109,8 +109,8 @@ Command 2: Clean CSV read: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.651776 seconds
-    * Cumulative time: 0.998552 seconds
+    * Command took 0.587551 seconds
+    * Cumulative time: 1.005 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -137,8 +137,8 @@ Command 3: Specified :class:`float` types: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.366045 seconds
-    * Cumulative time: 1.3646 seconds
+    * Command took 0.356079 seconds
+    * Cumulative time: 1.36108 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -169,8 +169,8 @@ Command 4: Specified :class:`float` types: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.683614 seconds
-    * Cumulative time: 2.04821 seconds
+    * Command took 0.710776 seconds
+    * Cumulative time: 2.07185 seconds
 :STDOUT:
     * **PASS**
     * Target:

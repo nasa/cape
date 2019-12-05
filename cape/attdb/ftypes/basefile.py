@@ -716,7 +716,8 @@ class BaseFile(dict):
         if col not in self.cols:
             raise KeyError("Unrecognized column '%s'" % col)
         # Get type
-        clsname = self.get_col_type(col)
+        coltyp = self.get_col_type(col)
+        colcls = self._DTypeMap.get(coltyp, coltyp)
         # Make sure _nmax (array length) attribute is present
         if not hasattr(self, "_nmax"):
             self._nmax = {}
@@ -724,18 +725,15 @@ class BaseFile(dict):
         if not hasattr(self, "_n"):
             self._n = {}
         # Check for string
-        if clsname == "str":
+        if colcls == "str":
             # Initialize strings in empty list
             self[col] = []
             # No max length
             self._n[col] = 0
             self._nmax[col] = None
-        elif clsname in self._classtypes:
-            # Special initializer
-            self.init_col_class(col, clsname)
         else:
             # Use existing dtype code
-            self[col] = np.zeros(NUM_ARRAY_CHUNK, dtype=clsname)
+            self[col] = np.zeros(NUM_ARRAY_CHUNK, dtype=colcls)
             # Set max length
             self._n[col] = 0
             self._nmax[col] = NUM_ARRAY_CHUNK

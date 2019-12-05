@@ -725,7 +725,7 @@ class CSVSimple(BaseFile):
             # Process header line, strip white space from each col
             cols = [col.strip() for col in line.split(",")]
             # Apply translations
-            self.cols = self.translate_colname(cols)
+            self.cols = self.translate_colnames(cols)
             # Once this is done, task completed
             return
 

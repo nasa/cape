@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-03 at 14:52 PST
+   on 2019-12-05 at 12:25 PST
 
 Test ``01_import``
 ====================
@@ -46,8 +46,8 @@ Command 1: Import :mod:`cape.attdb.ftypes`: Python2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.482356 seconds
-    * Cumulative time: 0.482356 seconds
+    * Command took 0.386196 seconds
+    * Cumulative time: 0.386196 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -67,8 +67,8 @@ Command 2: Import :mod:`cape.attdb.ftypes`: Python3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.609552 seconds
-    * Cumulative time: 1.09191 seconds
+    * Command took 0.730138 seconds
+    * Cumulative time: 1.11633 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

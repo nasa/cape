@@ -195,9 +195,6 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2014-06-17 ``@ddalle``: Read from *defns* :class:`dict`
             * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
         """
-        # No special first column by default
-        self.opts["OptionalFirstCol"] = False
-
         # Check for first-column boolean map
         col1bmap = kw.pop("FirstColBoolMap", False)
         # Validate it if not False-like
@@ -212,8 +209,6 @@ class TextDataFile(BaseFile, TextInterpreter):
                 self.textcols.insert(0, col0)
             # Process option
             self.process_defns_boolmap(col0, col1bmap)
-            # Save option for special first column
-            self.opts["OptionalFirstCol"] = True
 
         # Call parent method
         kw = BaseFile.process_col_defns(self, **kw)
@@ -387,38 +382,6 @@ class TextDataFile(BaseFile, TextInterpreter):
   # Data
   # ============
   # <
-    # Class-specific class initializer
-    def init_col_class(self, col, clsname):
-        r"""Initialize a class-specific column
-        
-        This is used for special classes and should be overwritten in
-        specific classes if that class has its own ``"Type"``
-        definitions that are not generic.
-        
-        :Call:
-            >>> db.init_col_class(col)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column to initialize
-            *clsname*: :class:`str`
-                Value of *Type* from *col* definition
-        :Versions:
-            * 2019-12-03 ``@ddalle``: First version
-        """
-        # Check class
-        if clsname == "boolmap":
-            # Initialize list of strings to remember text actually used
-            self[col] = []
-            # No max length
-            self._n[col] = 0
-            self._nmax[col] = None
-        else:
-            # Unreachable
-            raise ValueError(
-                "%s class has no special column types"
-                % self.__class__.__name__)
   # >
   
   # ============
@@ -797,7 +760,15 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Convert text
             v = self.fromtext_val(coltxts[j], clsname, col)
             # Save data
-            self.append_colval(col, v)
+            if isinstance(v, tuple):
+                # Got text and a map
+                self.append_colval(col, v[0])
+                # Loop through map
+                for (vk, vv) in v[1].items():
+                    self.append_colval(vk, vv)
+            else:
+                # Save value directly
+                self.append_colval(col, v)
         
    # --- Text Interpretation ---
     # Convert to text to appropriate class
@@ -834,7 +805,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         r"""Convert boolean flag text to dictionary
         
         :Call:
-            >>> v = db.fromtext_boolmap(txt, col)
+            >>> v, vmap = db.fromtext_boolmap(txt, col)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
                 Text data file interface
@@ -845,20 +816,26 @@ class TextDataFile(BaseFile, TextInterpreter):
             *col*: :class:`str`
                 Name of flag column, for ``"boolmap"`` keys
         :Outputs:
-            *v*: :class:`dict`\ [``True`` | ``False``]
+            *txt*: :class:`str`
+                Text returned
+            *vmap*: :class:`dict`\ [``True`` | ``False``]
                 Flags for each flag in *col* definition
         :Versions:
             * 2019-12-02 ``@ddalle``: First version
         """
         # Get definition for column
         boolmap = self.get_col_prop(col, "Map", {})
+        # Initialize map values
+        vmap = {}
         # Check the text
         for (colname, vals) in boolmap.items():
             # Check text vs flags values
             if txt in vals:
-                self.append_colval(colname, True)
+                vmap[colname] = True
             else:
-                self.append_colval(colname, False)
+                vmap[colname] = False
+        # Output the text and the map
+        return txt, vmap
 
    # --- Line Splitter ---
     # Get the regular expression for splitting a line into parts
