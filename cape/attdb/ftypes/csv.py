@@ -93,7 +93,7 @@ class CSVFile(BaseFile, TextInterpreter):
             kw = self.read_csv(fname, **kw)
         else:
             # Process inputs
-            kw = CSVFile.process_col_defns(self, **kw)
+            kw = self.process_col_defns(**kw)
 
         # Check for overrides of values
         kw = self.process_kw_values(**kw)
@@ -130,20 +130,22 @@ class CSVFile(BaseFile, TextInterpreter):
         """
         # Check type
         if typeutils.isfile(fname):
+            # Safe file name
+            self.fname = fname.name
             # Already a file
-            return self._csv_read_csv(fname, **kw)
+            return self._read_csv(fname, **kw)
         else:
             # Open file
             with open(fname, 'r') as f:
                 # Process file handle
-                return self._csv_read_csv(f, **kw)
+                return self._read_csv(f, **kw)
 
     # Read CSV file from file handle
-    def _csv_read_csv(self, f, **kw):
+    def _read_csv(self, f, **kw):
         r"""Read a CSV file from current position
         
         :Call:
-            >>> db._csv_read_csv(f)
+            >>> db._read_csv(f)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
@@ -158,7 +160,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Process column names
         self.read_csv_header(f, **kw)
         # Process column types
-        kw = CSVFile.process_col_defns(self, **kw)
+        kw = self.process_col_defns(**kw)
         # Loop through lines
         self.read_csv_data(f)
         # Output remaining options
