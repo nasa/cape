@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`cape.attdb.ftypes.basefile`: Common ATTDB file type attributes
+:mod:`cape.attdb.rdb.rdbnull`: Template ATTDB database
 =====================================================================
 
 This module provides the class :class:`DBResponseNull` as a subclass of
@@ -63,6 +63,11 @@ class DBResponseNull(dict):
     :Versions:
         * 2019-12-04 ``@ddalle``: First version
     """
+  # =============
+  # Config
+  # =============
+  # <
+   # --- Primary Methods ---
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Initialization method
@@ -111,6 +116,7 @@ class DBResponseNull(dict):
             # Read generic textual data file
             self.read_textdata(ftdat, **kw)
 
+   # --- Constructors ---
     # Read data from a CSV instance
     @classmethod
     def from_csv(cls, fname, **kw):
@@ -127,7 +133,7 @@ class DBResponseNull(dict):
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
-            *SaveCSV*: ``True`` | {``False``}
+            *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :Outputs:
             *db*: :class:`cape.attdb.rdb.rdbnull.DBResponseNull`
@@ -144,8 +150,71 @@ class DBResponseNull(dict):
         # Output
         return self
 
+    # Read data from a simple CSV instance
+    @classmethod
+    def from_csvsimple(cls, fname, **kw):
+        r"""Read a database from a CSV file
+
+        :Call:
+            >>> db = DBResponseNull.from_simplecsv(fname, **kw)
+            >>> db = DBResponseNull.from_simplecsv(dbcsv, **kw)
+            >>> db = DBResponseNull.from_simplecsv(f, **kw)
+        :Inputs:
+            *fname*: :class:`str`
+                Name of CSV file to read
+            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                Existing CSV file
+            *f*: :class:`file`
+                Open CSV file interface
+            *save*, *SaveCSV*: ``True`` | {``False``}
+                Option to save the CSV interface to *db._csv*
+        :Outputs:
+            *db*: :class:`cape.attdb.rdb.rdbnull.DBResponseNull`
+                Generic database
+        :See Also:
+            * :class:`cape.attdb.ftypes.csv.CSVFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # Create a new instance
+        self = cls()
+        # Call reader method
+        self.read_csvsimple(fname, **kw)
+        # Output
+        return self
 
     # Read data from an arbitrary-text data instance
+    @classmethod
+    def from_textdata(cls, fname, **kw):
+        r"""Read a database from a generic text data file
+
+        :Call:
+            >>> db = DBResponseNull.from_textdata(fname, **kw)
+            >>> db = DBResponseNull.from_textdata(dbf, **kw)
+            >>> db = DBResponseNull.from_textdata(f, **kw)
+        :Inputs:
+            *fname*: :class:`str`
+                Name of CSV file to read
+            *dbf*: :class:`cape.attdb.ftypes.TextDataFile`
+                Existing text data file interface
+            *f*: :class:`file`
+                Open CSV file interface
+            *save*: {``True``} | ``False``
+                Option to save the CSV interface to *db._csv*
+        :Outputs:
+            *db*: :class:`cape.attdb.rdb.rdbnull.DBResponseNull`
+                Generic database
+        :See Also:
+            * :class:`cape.attdb.ftypes.textdata.TextDataFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # New instance
+        self = cls()
+        # Call reader method
+        self.read_textdata(fname, **kw)
+        # Output
+        return self
 
   # ==================
   # Readers
@@ -168,7 +237,7 @@ class DBResponseNull(dict):
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
-            *SaveCSV*: ``True`` | {``False``}
+            *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
             * :class:`cape.attdb.ftypes.csv.CSVFile`
@@ -176,7 +245,7 @@ class DBResponseNull(dict):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        savecsv = kw.pop("SaveCSV", False)
+        savecsv = kw.pop("save", kw.pop("SaveCSV", False))
         # Check input type
         if isinstance(fname, ftypes.CSVFile):
             # Already a CSV database
@@ -192,10 +261,73 @@ class DBResponseNull(dict):
         if savecsv:
             self._csv = dbf
 
+    # Read simple CSV file
+    def read_csvsimple(self, fname, **kw):
+        r"""Read data from a simple CSV file
+        
+        :Call:
+            >>> db.read_csvsimple(fname, **kw)
+            >>> db.read_csvsimple(dbcsv, **kw)
+            >>> db.read_csvsimple(f, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.rdbnull.DBResponseNull`
+                Generic database
+            *fname*: :class:`str`
+                Name of CSV file to read
+            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                Existing CSV file
+            *f*: :class:`file`
+                Open CSV file interface
+            *save*, *SaveCSV*: ``True`` | {``False``}
+                Option to save the CSV interface to *db._csv*
+        :See Also:
+            * :class:`cape.attdb.ftypes.csv.CSVFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # Get option to save database
+        savecsv = kw.pop("save", kw.pop("SaveCSV", False))
+        # Check input type
+        if isinstance(fname, ftypes.CSVSimple):
+            # Already a CSV database
+            dbf = fname
+        else:
+            # Create an instance
+            dbf = ftypes.CSVSimple(fname, **kw)
+        # Link the data
+        self.link_data(dbf)
+        # Copy the options
+        self.copy_options(dbf.opts)
+        # Save the file interface if needed
+        if savecsv:
+            self._csvsimple = dbf
+
     # Read text data fiel
     def read_textdata(self, fname, **kw):
+        r"""Read data from a simple CSV file
+        
+        :Call:
+            >>> db.read_textdata(fname, **kw)
+            >>> db.read_textdata(dbcsv, **kw)
+            >>> db.read_textdata(f, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.rdbnull.DBResponseNull`
+                Generic database
+            *fname*: :class:`str`
+                Name of CSV file to read
+            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                Existing CSV file
+            *f*: :class:`file`
+                Open CSV file interface
+            *save*: {``True``} | ``False``
+                Option to save the CSV interface to *db._csv*
+        :See Also:
+            * :class:`cape.attdb.ftypes.csv.CSVFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
         # Get option to save database
-        savedat = kw.pop("SaveFileIO", False)
+        savedat = kw.pop("save", True)
         # Check input type
         if isinstance(fname, ftypes.TextDataFile):
             # Already a file itnerface
@@ -209,7 +341,7 @@ class DBResponseNull(dict):
         self.copy_options(dbf.opts)
         # Save the file interface if needed
         if savedat:
-            self._textdata
+            self._textdata = dbf
   # >
         
   # ==================
