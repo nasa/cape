@@ -36,7 +36,7 @@ import cape.attdb.ftypes as ftypes
 
 
 # Declare base class
-class DBResponseNull(ftypes.DataFile):
+class DBResponseNull(dict):
     r"""Basic database template without responses
     
     :Call:
@@ -59,6 +59,7 @@ class DBResponseNull(ftypes.DataFile):
   # ============
   # Config
   # ============
+  # <
    # --- Copy ---
     # Copy
     def copy(self):
@@ -217,3 +218,6 @@ class DBResponseNull(ftypes.DataFile):
         else:
             # Shallow copy
             return copy.copy(v)
+  # >
+
+  # ====

@@ -108,13 +108,18 @@ class CSVFile(BaseFile, TextInterpreter):
    # --- Control ---
     # Reader
     def read_csv(self, fname, **kw):
-        r"""Read an entire CSV file, including header
+        r"""Read a CSV file, including header
+
+        Reads either entire file or from current location
         
         :Call:
+            >>> db.read_csv(f)
             >>> db.read_csv(fname)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
                 CSV file interface
+            *f*: :class:`file`
+                File open for reading
             *fname*: :class:`str`
                 Name of file to read
         :See Also:
@@ -123,14 +128,39 @@ class CSVFile(BaseFile, TextInterpreter):
         :Versions:
             * 2019-11-25 ``@ddalle``: First version
         """
-        # Open file
-        with open(fname, 'r') as f:
-            # Process column names
-            self.read_csv_header(f, **kw)
-            # Process column types
-            kw = CSVFile.process_col_defns(self, **kw)
-            # Loop through lines
-            self.read_csv_data(f)
+        # Check type
+        if typeutils.isfile(fname):
+            # Already a file
+            return self._csv_read_csv(fname, **kw)
+        else:
+            # Open file
+            with open(fname, 'r') as f:
+                # Process file handle
+                return self._csv_read_csv(f, **kw)
+
+    # Read CSV file from file handle
+    def _csv_read_csv(self, f, **kw):
+        r"""Read a CSV file from current position
+        
+        :Call:
+            >>> db._csv_read_csv(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                File open for reading
+        :See Also:
+            * :func:`read_csv_header`
+            * :func:`read_csv_data`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # Process column names
+        self.read_csv_header(f, **kw)
+        # Process column types
+        kw = CSVFile.process_col_defns(self, **kw)
+        # Loop through lines
+        self.read_csv_data(f)
         # Output remaining options
         return kw
 
@@ -590,6 +620,94 @@ class CSVFile(BaseFile, TextInterpreter):
             dtypes.append(DTYPE_NAMES.index(dtype))
         # Save the data types
         self._c_dtypes = dtypes
+  # >
+  
+  # =============
+  # Write
+  # =============
+  # <
+   # --- Write Drivers ---
+    # Write raw
+    def write_csv_dense(self, fname=None, cols=None):
+        r"""Write dense CSV file using *WriteFlag* for each column
+        
+        :Call:
+            >>> db.write_csv_dense(f, cols=None)
+            >>> db.write_csv_dense(fname=None, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                File open for writing
+            *fname*: {*db.fname*} | :class:`str`
+                Name of file to write
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of columns to write
+        :Versions:
+            * 2019-12-05 ``@ddalle``: First version
+        """
+        # Get file handle
+        if fname is None:
+            # Use *db.fname*
+            with open(self.fname, "w") as f:
+                self._write_csv_dense(f, cols=cols)
+        elif typeutils.isstr(fname):
+            # Open file based in specified name
+            with open(fname, "w") as f:
+                self._write_csv_dense(f, cols=cols)
+        else:
+            # Already a file (maybe)
+            self._write_csv_dense(fname, cols=cols)
+
+    # Write raw CSV file given file handle
+    def _write_csv_dense(self, f, cols=None):
+        r"""Write dense CSV file using *WriteFlag* for each column
+        
+        :Call:
+            >>> db._write_csv_dense(f, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                File open for writing
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of columns to write
+        :Versions:
+            * 2019-12-05 ``@ddalle``: First version
+        """
+        # Default column list
+        if cols is None:
+            cols = self.cols
+        # Number of columns
+        ncol = len(cols)
+        # Format flags
+        wflags = [self.get_col_prop(col, "WriteFormat", "%s") for col in cols]
+        # Get characters
+        comnt = self.opts.get("Comment", "#")
+        delim = self.opts.get("Delimiter", ",")
+        # Strip delimiter if not whitespace
+        if delim.strip():
+            delim = delim.strip()
+        # Write variable list
+        f.write(comnt)
+        f.write(" ")
+        f.write(delim.join(cols))
+        f.write("\n")
+        # Loop through database rows
+        for i in range(self.n):
+            # Loop through columns
+            for (j, col) in enumerate(cols):
+                # Get value
+                v = self[col][i]
+                # Write according to appropriate flag
+                f.write(wflags[j] % v)
+                # Check for last column
+                if (j + 1 == ncol):
+                    # End of line
+                    f.write("\n")
+                else:
+                    # Delimiter
+                    f.write(delim)
   # >
 # class CSVFile
 

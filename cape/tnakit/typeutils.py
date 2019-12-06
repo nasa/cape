@@ -22,17 +22,29 @@ from numpy import ndarray
 # Get a variable to hold the "type" of "module"
 module = sys.__class__
 
+# Save major version
+try:
+    # Get the integer
+    PY_MAJOR_VERSION = sys.version_info.major
+    PY_MINOR_VERSION = sys.version_info.minor
+except Exception:
+    # Convert text
+    PY_MAJOR_VERSION = int(sys.version[0])
+    PY_MINOR_VERSION = int(sys.version.split('.')[1].split(' ')[0])
+
+# Combined version
+PY_VERSION = float(PY_MAJOR_VERSION) + 0.1*float(PY_MINOR_VERSION)
+
 # Version checks
-if int(sys.version[0]) > 2:
+if PY_MAJOR_VERSION > 2:
     # Define classes that were deleted in Python 3
     unicode = str
     file    = io.IOBase
-# endif
 
 
 # Check for a string
 def isstr(x):
-    """Check if a variable is a string (or derivative)
+    r"""Check if a variable is a string (or derivative)
     
     :Call:
         >>> q = isstr(x)
@@ -47,12 +59,18 @@ def isstr(x):
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
     """
-    return isinstance(x, (str, unicode))
+    # Check version
+    if PY_MAJOR_VERSION > 2:
+        # Check just str
+        return isinstance(x, str)
+    else:
+        # Check unicode as well
+        return isinstance(x, (str, unicode))
 
 
 # Check for a "list"
 def isarray(x):
-    """Check if a variable is a list or similar
+    r"""Check if a variable is a list or similar
     
     Accepted types are :class:`list`, :class:`numpy.ndarray`, :class:`tuple`,
     or any subclass thereof.
@@ -79,4 +97,34 @@ def isarray(x):
     else:
         # Check for more than 0 dimensions if NumPy array
         return x.ndim > 0
+
+
+# Test if an object is a file
+def isfile(f):
+    r"""Check if an object is an instance of a file-like class
+
+    This is complicated by the removal of the :class:`file` type from
+    Python 3.  The basic class is :class:`io.IOBase`, but this is not a
+    subclass of :class:`file` (or vice versa) in Python 2.
+
+    :Call:
+        >>> q = isfile(f)
+    :Inputs:
+        *f*: :class:`any`
+            Any variable
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *f* is an instance of :class:`file`,
+            :class:`io.IOBase`, or any subclass
+    :Versions:
+        * 2019-12-06 ``@ddalle``: First version
+    """
+    # Check version
+    if PY_MAJOR_VERSION > 2:
+        # Check just IOBase
+        return isinstance(f, io.IOBase)
+    else:
+        # Check file as well
+        return isinstance(f, (io.IOBase, file))
+        
 

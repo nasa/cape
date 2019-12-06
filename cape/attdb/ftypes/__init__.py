@@ -97,7 +97,9 @@ class DataFile(CSVFile, CSVSimple, TextDataFile):
             # Read generic text data file
             TextDataFile.__init__(self, ftdat, **kw)
             return
-            
+
+        # Generic options
+        kw = self.process_opts_generic(**kw)
         # If reaching this point, process other inputs
         kw = self.process_col_defns(**kw)
         # Check for value overrides

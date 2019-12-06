@@ -73,6 +73,12 @@ class BaseFile(dict):
     fname = None
     _classtypes = []
     # Recognized types and other defaults
+    _DefaultOpts = {
+        "Definitions": {},
+        "Translators": {},
+        "Prefix": "",
+        "Suffix": "",
+    }
     _DefaultDefn = {
         "Type": "float64",
         "Label": True,
@@ -152,6 +158,7 @@ class BaseFile(dict):
   # <
    # --- Key Definitions ---
     # Process generic options
+    #def _bfile_process_opts(self, **kw)
     def process_opts_generic(self, **kw):
         r"""Process generic options from keyword arguments
 
@@ -162,6 +169,9 @@ class BaseFile(dict):
                 Data file interface
             *cols*, *ColNames*, *Keys*: :class:`list`\ [:class:`str`]
                 User-specified column names
+            *ExpandScalars*: {``True``} | ``False``
+                Option to expand any scalar inputs into arrays that
+                match other columns (with *size* equal to *db.n*)
             *[Tt]ranslators*: :class:`dict`\ [:class:`str`]
                 Dictionary of alternate names to store column names as;
                 for example if the header has a column called
@@ -213,6 +223,13 @@ class BaseFile(dict):
         # Save prefix and suffix
         self.opts["Prefix"] = prefix
         self.opts["Suffix"] = suffix
+        # Values option
+        if kw.pop("ExpandScalars", True):
+            # Something true-like
+            self.opts["ExpandScalars"] = True
+        else:
+            # Turned off
+            self.opts["ExpandScalars"] = False
             
         # Return unused options
         return kw
@@ -648,6 +665,10 @@ class BaseFile(dict):
         # Get values
         vals1 = kw.pop("Values", {})
         vals2 = kw.pop("vals", {})
+        # Get expansion option
+        expand = self.opts.get("ExpandScalars", True)
+        # Get number for expansion
+        n = max(1, getattr(self, "n", 1))
         # Check types
         if not isinstance(vals1, dict):
             raise TypeError(
@@ -658,11 +679,32 @@ class BaseFile(dict):
         # Combine inputs
         vals = dict(vals2, **vals1)
         # Process values
-        for col, v in vals.items():
+        for (col, v) in vals.items():
+            # Check for scalar
+            if isinstance(v, (list, np.ndarray)):
+                # Use array
+                V = v
+                # Update *n*
+                n = max(n, len(V))
+            elif expand:
+                # Get type
+                coltyp = self.get_col_type(col)
+                # Convert if necessary
+                colcls = self.__class__._DTypeMap.get(coltyp, coltyp)
+                # Check for list-like
+                if colcls == "str":
+                    # Create expanded list
+                    V = [v] * n
+                else:
+                    # Create array
+                    V = v * np.ones(n, dtype=colcls)
+            else:
+                # Use as is
+                V = v
             # Save values
-            self.save_column(col, v)
-            # Update count
-            self.n = max(self.n, len(v))
+            self.save_col(col, V)
+            # Save length
+            self.n = n
         # Output unused options
         return kw
 
@@ -684,8 +726,8 @@ class BaseFile(dict):
         for k in kw:
             warnings.warn("Unused keyword '%s'" % k, UserWarning)
   # >
-  
-  
+
+
   # ===============
   # Data
   # ===============
@@ -718,6 +760,7 @@ class BaseFile(dict):
             raise KeyError("Unrecognized column '%s'" % col)
         # Get type
         coltyp = self.get_col_type(col)
+        # Convert special type to actual Python type, if necessary
         colcls = self._DTypeMap.get(coltyp, coltyp)
         # Make sure _nmax (array length) attribute is present
         if not hasattr(self, "_nmax"):
@@ -783,11 +826,11 @@ class BaseFile(dict):
 
    # --- Save Data ---
     # Save a column
-    def save_column(self, col, v):
+    def save_col(self, col, v):
         r"""Save a column value, updating other metadata as needed
         
         :Call:
-            >>> db.save_column(col, v)
+            >>> db.save_col(col, v)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
