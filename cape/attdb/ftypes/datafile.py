@@ -39,7 +39,28 @@ class DataConainter(dict):
     
     # Read data from a CSV instance
     @classmethod
-    def from_csv(cls, fname, **kw):
+    def from_csv(cls, fname, SaveCSV=False, **kw):
+        r"""Read a database from a CSV file
+
+        :Call:
+            >>> db = DataContainer.from_csv(fname, **kw)
+            >>> db = DataContainer.from_csv(dbcsv, **kw)
+            >>> db = DataContainer.from_csv(f, **kw)
+        :Inputs:
+            *fname*: :class:`str`
+                Name of CSV file to read
+            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                Existing CSV file
+            *f*: :class:`file`
+                Open CSV file interface
+            *SaveCSV*: ``True`` | {``False``}
+                Option to save the CSV interface to *db._csv*
+        :Outputs:
+            *db*: :class:`cape.attdb.rdb.rdbnull.DBResponseNull`
+                Generic database
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
         # Create a new instance
         self = cls()
         # Check input type
@@ -53,6 +74,9 @@ class DataConainter(dict):
         self.link_data(dbf)
         # Copy the options
         self.copy_options(dbf.opts)
+        # Save the file interface if needed
+        if SaveCSV:
+            self._csv = dbcsv
         # Output
         return self
 
@@ -179,6 +203,8 @@ class DataConainter(dict):
             kw[k] = opts.get(k, vdef)
         # Set values
         kw["Values"] = {col: self[col] for col in cols}
+        # Turn off expansion
+        kw["ExpandScalars"] = False
         # Explicit column list
         kw["cols"] = cols
         # Create instance
@@ -190,7 +216,10 @@ class DataConainter(dict):
         r""""Write dense CSV file
         
         """
-        pass
+        # Get a CSV file interface
+        dbcsv = self.get_CSVFile(cols=cols)
+        # Write it
+        dbcsv.write_csv_dense(fname)
     
   # >
 

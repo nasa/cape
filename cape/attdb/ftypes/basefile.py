@@ -856,6 +856,9 @@ class BaseFile(dict):
             elif isinstance(v[0], (int, float, complex)):
                 # Convert to array
                 self[col] = np.asarray(v)
+            else:
+                # No conversion
+                self[col] = v
         else:
             # Nonstandard value; don't convert
             self[col] = v
