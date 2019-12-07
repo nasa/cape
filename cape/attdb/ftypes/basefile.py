@@ -85,6 +85,7 @@ class BaseFile(dict):
         "LabelFormat": "%s",
         "WriteFormat": "%s",
         "OutputDimension": 0,
+        "ExpandScalars": True,
     }
     _DefaultRoleDefns = {}
     _DTypeMap = {}

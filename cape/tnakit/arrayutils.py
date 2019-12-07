@@ -12,6 +12,8 @@ tools to display the vectors/arrays.
 # Third-party modules
 import numpy as np
 
+# Local modules
+from . import typeutils
 
 # Determine print flag from a vector or list
 def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
@@ -37,8 +39,17 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
     :Versions:
         * 2019-07-12 ``@ddalle``: First version
     """
-    # Convert to array
-    U = np.asarray(V)
+    # Check for list
+    if isinstance(V, list):
+        # Convert to array
+        U = np.asarray(V)
+    elif isinstance(V, np.ndarray):
+        # No reason to copy
+        U = V
+    else:
+        # Invalid type
+        raise TypeError(
+            "Expected list or np.ndarray, got '%s'" % V.__class__.__name__)
     # Get data type
     dt = U.dtype
     # Get min and max values
@@ -84,3 +95,4 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
         else:
             # Float, positive, greater than 1.0
             return "%%%i.%if" % (prec + max(1, uexp) + 1, prec)
+

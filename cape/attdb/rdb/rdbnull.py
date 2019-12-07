@@ -75,6 +75,11 @@ class DBResponseNull(dict):
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
+        # Required attributes
+        self.cols = []
+        self.opts = {}
+        self.n = 0
+
         # Check for null inputs
         if (fname is None) and (not kw):
             return
@@ -83,6 +88,9 @@ class DBResponseNull(dict):
         if typeutils.isstr(fname):
             # Get extension
             ext = fname.split(".")[-1]
+        elif fname is not None:
+            # Too confusing
+            raise TypeError("Non-keyword input must be ``None`` or a string")
         else:
             # No file extension
             ext = None
@@ -102,7 +110,7 @@ class DBResponseNull(dict):
 
         # Last-check file names
         fcsv  = kw.pop("csv", fcsv)
-        fcsvs = kw.pop("csvsimple", fcsvs)
+        fcsvs = kw.pop("simplecsv", fcsvs)
         ftdat = kw.pop("textdata",  ftdat)
 
         # Read
@@ -111,10 +119,66 @@ class DBResponseNull(dict):
             self.read_csv(fcsv, **kw)
         elif fcsvs is not None:
             # Read simple CSV file
-            pass
+            self.read_csvsimple(fcsvs, **kw)
         elif ftdat is not None:
             # Read generic textual data file
             self.read_textdata(ftdat, **kw)
+        else:
+            # If reaching this point, process values
+            kw = ftypes.BaseFile.process_kw_values(**kw)
+            # Warn extra keywords
+            ftypes.BaseFile.warn_kwargs(kw)
+
+    # Representation method
+    def __repr__(self):
+        """Generic representation method
+
+        :Versions:
+            * 2019-11-08 ``@ddalle``: First version
+        """
+        # Module name
+        modname = self.__class__.__module__
+        clsname = self.__class__.__name__
+        # Start output
+        lbl = "<%s.%s(" % (modname, clsname)
+        # Append count
+        if self.__dict__.get("n"):
+            lbl += "n=%i, " % self.n
+        # Append columns
+        if len(self.cols) <= 6:
+            # Show all columns
+            lbl += "cols=%s)" % str(self.cols)
+        else:
+            # Just show number of columns
+            lbl += "ncol=%i)" % len(self.cols)
+        # Output
+        return lbl
+
+    # String method
+    def __str__(self):
+        """Generic representation method
+
+        :Versions:
+            * 2019-11-08 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Only last part of module name
+        """
+        # Module name
+        modname = self.__class__.__module__.split(".")[-1]
+        clsname = self.__class__.__name__
+        # Start output
+        lbl = "<%s.%s(" % (modname, clsname)
+        # Append count
+        if self.__dict__.get("n"):
+            lbl += "n=%i, " % self.n
+        # Append columns
+        if len(self.cols) <= 5:
+            # Show all columns
+            lbl += "cols=%s)" % str(self.cols)
+        else:
+            # Just show number of columns
+            lbl += "ncol=%i)" % len(self.cols)
+        # Output
+        return lbl
 
    # --- Constructors ---
     # Read data from a CSV instance
@@ -294,6 +358,8 @@ class DBResponseNull(dict):
         else:
             # Create an instance
             dbf = ftypes.CSVSimple(fname, **kw)
+            import pdb
+            pdb.set_trace()
         # Link the data
         self.link_data(dbf)
         # Copy the options

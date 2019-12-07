@@ -22,7 +22,8 @@ import re
 import numpy as np
 
 # CAPE modules
-import cape.tnakit.typeutils as typeutils
+import cape.tnakit.typeutils  as typeutils
+import cape.tnakit.arrayutils as arrayutils
 
 # Local modules
 from .basefile import BaseFile, TextInterpreter
@@ -710,6 +711,34 @@ class CSVFile(BaseFile, TextInterpreter):
                 else:
                     # Delimiter
                     f.write(delim)
+
+   # --- Component Writers ---
+    # Get write flag
+    def get_autoformat(self, col, **kw):
+        # Get type
+        dtype = self.get_col_type(col)
+        # Get current write flag
+        fmt = self.get_col_prop(col, "CSVFormat")
+        # Return it if explicit
+        if fmt:
+            return fmt
+        # Check type
+        if dtype.startswith("int") or dtype.startswith("float"):
+            # Get the values
+            V = self[col]
+            # Process from inputs
+            return arrayutils.get_printf_fmt(V, **kw)
+        elif dtype == "str":
+            # Get the values
+            V = self[col]
+            # Get maximum length
+            nmax = max([len(v) for v in V])
+            # Pad write string
+            return "%%-%is" % nmax
+        else:
+            # Assume string
+            return "%s"
+        
   # >
 # class CSVFile
 
@@ -947,11 +976,6 @@ class CSVSimple(BaseFile):
             txt = txt.replace("D", "E")
             txt = txt.replace("d", "e")
         # Second attempt
-        try:
-            # Basic conversion after substitution
-            return float(txt)
-        except Exception:
-            # Use original message to avoid confusion
-            raise ValueError(e.message)
+        return float(txt)
   # >
 # class CSVSimple
