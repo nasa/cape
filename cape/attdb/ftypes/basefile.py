@@ -315,7 +315,7 @@ class BaseFile(dict):
                 # Get existing definition
                 defn = opts.setdefault(col, {})
                 # Apply the type
-                defn[defnk] = self.validate_type(opt)
+                defn[k] = self.validate_type(opt)
 
         # Loop through known columns
         for col in self.cols:

@@ -1,0 +1,11 @@
+    mach: 0.80
+   alpha: 1.00
+  config: poweroff
+   Label: 
+      CA: 0.34
+      CY: -0.00
+      CN: 0.15
+     CLM: -0.11
+ nOrders: 4.49
+   nIter: 200.00
+  nStats: 100.00

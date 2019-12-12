@@ -276,11 +276,13 @@ class XLSFile(BaseFile):
             # Find first nonempty entry
             for skipcols in range(len(header)):
                 # Check for entry
-                if header[skipcols]:
+                if header[skipcols] != "":
                     # Found something other than ""
                     break
         elif not isinstance(skipcols, int):
             raise TypeError("'skipcols' arg must be None or int")
+        # Skip columns as requested
+        header = header[skipcols:]
         # Save *skipcols* option
         self.opts["SkipCols"] = skipcols
         # Check header and guess types
@@ -363,7 +365,7 @@ class XLSFile(BaseFile):
                 # Row count
                 irow = skiprows + subrows + 1
                 # Get the row
-                row1 = ws.row_values(irow, skipcols, end_rowx=maxrows)
+                row1 = ws.row_values(irow, skipcols, end_colx=maxrows)
                 # Check count
                 if any(row1):
                     break
@@ -460,6 +462,8 @@ class XLSFile(BaseFile):
             if dtj == "str":
                 # Read the whole column and allow empty strings
                 pass
+                # Save count
+                _n[col] = len(V)
             elif dtj.startswith("float") or dtj.startswith("int"):
                 # Check for empty strings
                 if "" in V:
@@ -473,6 +477,8 @@ class XLSFile(BaseFile):
                     V = V[:iend]
                 # Convert to array
                 V = np.array(V, dtype=dtj)
+                # Save size
+                _n[col] = V.size
             # Save
             self.save_col(col, V)
 
@@ -516,7 +522,7 @@ class XLSFile(BaseFile):
         kwread = dict(
             maxcols=self.process_xls_opt(["MaxCols", "maxcols"],  kw, None),
             maxrows=self.process_xls_opt(["MaxRows", "maxrows"],  kw, None),
-            subrows=self.process_xls_opt(["SubRows", "subrows"],  kw, 0),
+            subrows=self.process_xls_opt(["SubRows", "subrows"],  kw, None),
             skipcols=self.process_xls_opt(["SkipCols", "skipcols"], kw, None),
             skiprows=self.process_xls_opt(["SkipRows", "skiprows"], kw, None))
         # Output

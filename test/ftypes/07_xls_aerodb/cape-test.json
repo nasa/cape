@@ -1,0 +1,42 @@
+{
+    "CopyFiles": [
+        "aero_arrow_now_base.xlsx",
+        "aero_arrow_now_base.xls",
+        "test01_xlsx.py",
+        "test02_xls.py",
+        "test03_dtypes.py"
+    ],
+    "Commands": [
+        "python2 test01_xlsx.py",
+        "python3 test01_xlsx.py",
+        "python2 test02_xls.py",
+        "python3 test02_xls.py",
+        "python2 test03_dtypes.py",
+        "python3 test03_dtypes.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out",
+        "test.03.out",
+        "test.03.out",
+        "test.05.out",
+        "test.06.out"
+    ],
+    "CommandTitles": [
+        "XLSX File: Python 2",
+        "XLSX File: Python 3",
+        "XLS File: Python 2",
+        "XLS File: Python 3",
+        "Specified dtypes: Python 2",
+        "Specified dtypes: Python 3"
+    ],
+    "DocFilesShow": [
+        "test01_xlsx.py",
+        "test02_xls.py",
+        "test03_dtypes.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/ftypes",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
