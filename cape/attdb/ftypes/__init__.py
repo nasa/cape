@@ -16,5 +16,6 @@ directly to this module.
 # Import basic file type
 from .basefile import BaseFile
 from .csv      import CSVFile, CSVSimple
+from .xls      import XLSFile
 from .textdata import TextDataFile
 

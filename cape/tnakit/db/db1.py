@@ -3202,7 +3202,8 @@ class DBCoeff(dict):
                 raise ValueError(
                     "Coefficient '%s' is already present." % coeff)
             # Read the column
-            V = ws.col_values(skipcols+i, skiprows+1+subrows,
+            V = ws.col_values(
+                skipcols+i, skiprows+1+subrows,
                 end_rowx=maxrows)
             # Ensure proper interpretation
             self[coeff] = np.array([v for v in V if v != ""])
@@ -3929,7 +3930,6 @@ class DBCoeff(dict):
                 self.GetBreakPoints(args[0:1])
                 # Get break points at each slice
                 self.ScheduleBreakPoints(args[1:], args[0])
-
 
    # --- Matlab Files ---
     # Read a Matlab file
