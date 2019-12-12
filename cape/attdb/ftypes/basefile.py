@@ -430,6 +430,94 @@ class BaseFile(dict):
         # Output
         return dbcols
 
+    # Reverse translation of column names
+    def translate_colnames_reverse(self, cols):
+        r"""Reverse translation of column names
+
+        This method utilizes the options *Translators*, *Prefix*, and
+        *Suffix* from the *db.opts* dictionary.*Prefix* and *Suffix* 
+        removed before reverse translation.
+
+        :Call:
+            >>> dbcols = db.translate_colnames_reverse(cols)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *cols*: :class:`list`\ [:class:`str`]
+                List of raw column names
+        :Outputs:
+            *dbcols*: :class:`list`\ [:class:`str`]
+                Prepended and appended column names with substitutions
+                if appropriate
+        :Versions:
+            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-11 ``@jmeeroff``: Modified from translate_colnames
+        """
+        # Get options
+        trans  = self.opts.get("Translators", {})
+        prefix = self.opts.get("Prefix", "")
+        suffix = self.opts.get("Suffix", "")
+        # Initialize output
+        dbcols = []
+        # Reverse Translation dictionary
+        trans_rev = {}
+        for key, val in trans.iteritems():
+            trans_rev[val] = trans_rev.get(val, []) + [key]
+        # Prepare output
+        for col in cols:
+            # First strip prefix
+            # Get prefix
+            if isinstance(prefix, dict):
+                # Get specific prefix
+                pre = prefix.get(col, prefix.get("_", ""))
+            elif prefix:
+                # Universal prefix
+                pre = prefix
+            else:
+                # No prefix (type-safe)
+                pre = ""
+            # Check if col starts with specified prefix
+            if col.startswith(pre):
+                # Get length of prefix
+                lval = len(pre)
+                # Get length of column entry
+                rval = len(col)
+                # Strip of prefix
+                col = col[lval:rval]
+            else:
+                raise TypeError(
+                    "%s does not start with %s."
+                    % (col, pre))
+            # Now strip suffix
+            # Get suffix
+            if isinstance(suffix, dict):
+                # Get specific suffix
+                suf = suffix.get(col, suffix.get("_", ""))
+            elif suffix:
+                # Universal suffix
+                suf = suffix
+            else:
+                # No suffix (type-safe)
+                suf = ""
+            if col.endsiwth(suf):
+                # Get length of suf
+                lval = len(suf)
+                # Get length of column entry
+                rval = len(col)
+                # Strip of prefix
+                col = col[0:rval-lval]
+            else:
+                raise TypeError(
+                    "%s does not end with %s."
+                    % (col, suf))
+            # Perform the translation
+            # If no match found, default is no reverse transaltion
+            dbcol = trans.get(col, col)
+            # Append to output
+            dbcols.append(dbcol)
+        # Return the output    
+        return dbcols
+
    # --- Keyword Checkers ---
     # Validate a dictionary of options
     def validate_defn(self, defn):
