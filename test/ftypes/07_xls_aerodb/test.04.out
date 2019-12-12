@@ -1,0 +1,6 @@
+    mach: float16 (ndarray)
+   alpha: float32 (ndarray)
+    beta: float32 (ndarray)
+  config: str (list)
+   Label: str (list)
+    user: str (list)
