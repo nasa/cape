@@ -115,6 +115,7 @@ class BaseFile(dict):
         "prefix": "Prefix",
         "suffix": "Suffix",
         "defns": "Definitions",
+        "vals": "Values",
     }
     _kw_depends = {}
     _kw_types = {
@@ -550,7 +551,7 @@ class BaseFile(dict):
         """
         # Ensure input type
         if not isinstance(defn, dict):
-            raise TypeError("Definition for validation must be 'dict'" +
+            raise TypeError("Valid col definition must be 'dict'" +
                 ("; got '%s'" % defn.__class__.__name__))
         # Loop through keys
         for (k, v) in defn.items():
@@ -827,6 +828,28 @@ class BaseFile(dict):
 
    # --- Keyword Checker ---
     # Check valid keyword names, with dependencies
+    def _map_kw(self, kwmap, **kw):
+        r"""Map alternate keyword names with no checks
+
+        :Call:
+            >>> kwo = db.map_kw(**kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *kw*: :class:`dict`
+                Any keyword arguments
+        :Outputs:
+            *kwo*: :class:`dict`
+                Translated keywords and their values from *kw*
+        :Versions:
+            * 2019-12-13 ``@ddalle``: First version
+        """
+        # Get class
+        cls = self.__class__
+        # Call generic function
+        return self._map_kw(cls._kw_map, **kw)
+
+    # Check valid keyword names, with dependencies
     def check_kw(self, mode, **kw):
         r"""Check and map valid keyword names
 
@@ -882,7 +905,37 @@ class BaseFile(dict):
             cls._kw_types,
             cls._kw_depends,
             mode, **kw)
-        
+
+    # Check valid keyword names, with dependencies
+    def _map_kw(self, kwmap, **kw):
+        r"""Map alternate keyword names with no checks
+
+        :Call:
+            >>> kwo = db._map_kw(kwmap, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *kwmap*: {*db._kw_map*}: :class:`dict`\ [:class:`str`]
+                Map of *alternate*: *primary* abbreviations
+            *kw*: :class:`dict`
+                Any keyword arguments
+        :Outputs:
+            *kwo*: :class:`dict`
+                Translated keywords and their values from *kw*
+        :Versions:
+            * 2019-12-13 ``@ddalle``: First version
+        """
+        # Initialize output
+        kwo = {}
+        # Loop through keys
+        for (k0, v) in kw.items():
+            # Map names if appropriate
+            k = kwmap.get(k0, k0)
+            # Save it
+            kwo[k] = v
+        # Output
+        return kwo
+
     # Check valid keyword names, with dependencies
     def _check_kw(self, kwlist, kwmap, kwdep, mode, **kw):
         r"""Check and map valid keyword names

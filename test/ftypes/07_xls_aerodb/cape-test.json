@@ -1,7 +1,7 @@
 {
     "CopyFiles": [
-        "aero_arrow_now_base.xlsx",
-        "aero_arrow_now_base.xls",
+        "aero_arrow_no_base.xlsx",
+        "aero_arrow_no_base.xls",
         "test01_xlsx.py",
         "test02_xls.py",
         "test03_dtypes.py"

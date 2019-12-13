@@ -76,6 +76,24 @@ class TextDataFile(BaseFile, TextInterpreter):
     _DefaultOpts = dict(BaseFile._DefaultOpts,
         Delimiter=", ",
         Comment="#")
+    # Keyword parameters
+    _kw = BaseFile._kw + [
+        "Delimiter",
+        "Comment",
+        "FirstColBoolMap",
+        "FirstColName",
+    ]
+    # Abbreviations
+    _kw_map = dict(BaseFile._kw_map,
+        delim="Delimiter",
+        comment="Comment")
+    # types
+    _kw_types = dict(BaseFile._kw_types,
+        Delimiter=typeutils.strlike,
+        Comment=typeutils.strlike,
+        FirstColBoolMap=(dict, bool),
+        FirstColName=typeutils.strlike)
+        
 
   # ======
   # Config
@@ -112,8 +130,6 @@ class TextDataFile(BaseFile, TextInterpreter):
 
         # Check for overrides of values
         kw = self.process_kw_values(**kw)
-        # Warn about any unused inputs
-        self.warn_kwargs(kw)
   # >
   
   # ===========
@@ -153,14 +169,9 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Generic options
         kw = self.process_opts_generic(**kw)
         # Check for local options
-        delim = kw.pop("delim", kw.pop("Delimiter", ", "))
+        delim = kw.get("Delimiter", ", ")
         # Comment character
-        comment = kw.pop("comment", kw.pop("Comment", "#"))
-        # Check type
-        if not typeutils.isstr(delim):
-            raise TypeError("Delimiter must be a string")
-        if not typeutils.isstr(comment):
-            raise TypeError("Comment character(s) must be a string")
+        comment = kw.get("Comment", "#")
         # Save the delimiter
         self.opts["Delimiter"] = delim
         # Save the comment character
@@ -200,11 +211,11 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
         """
         # Check for first-column boolean map
-        col1bmap = kw.pop("FirstColBoolMap", False)
+        col1bmap = kw.get("FirstColBoolMap", False)
         # Validate it if not False-like
         if col1bmap:
             # Name
-            col0 = kw.pop("FirstColName", "_col1")
+            col0 = kw.get("FirstColName", "_col1")
             # Add to column lists
             if self.cols[0] != col0:
                 # List of coefficients in data set

@@ -39,6 +39,7 @@ except ImportError:
 regex_numeric = re.compile("\d")
 regex_alpha   = re.compile("[A-z_]")
 
+
 # Class for handling data from CSV files
 class CSVFile(BaseFile, TextInterpreter):
     r"""Class for reading CSV files
@@ -98,8 +99,6 @@ class CSVFile(BaseFile, TextInterpreter):
 
         # Check for overrides of values
         kw = self.process_kw_values(**kw)
-        # Warn about any unused inputs
-        self.warn_kwargs(kw)
   # >
 
   # =============
