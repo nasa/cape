@@ -27,6 +27,7 @@ collection.
 # Standard library modules
 import os
 import warnings
+import difflib
 
 # Third-party modules
 import numpy as np
@@ -78,6 +79,7 @@ class BaseFile(dict):
         "Translators": {},
         "Prefix": "",
         "Suffix": "",
+        "ExpandScalars": True,
     }
     _DefaultDefn = {
         "Type": "float64",
@@ -85,11 +87,47 @@ class BaseFile(dict):
         "LabelFormat": "%s",
         "WriteFormat": "%s",
         "OutputDimension": 0,
-        "ExpandScalars": True,
     }
     _DefaultRoleDefns = {}
     _DTypeMap = {}
     _RoleMap = {}
+    # Permitted keyword names
+    _kw = [
+        "cols",
+        "Keys",
+        "ColumnNames",
+        "translators",
+        "Translators",
+        "prefix",
+        "Prefix",
+        "suffix",
+        "Suffix",
+        "ExpandScalars",
+        "defns",
+        "Definitions",
+        "DefaultDefinition",
+        "Values",
+    ]
+    _kw_map = {
+        "ColumnNames": "cols",
+        "Keys": "cols",
+        "translators": "Translators",
+        "prefix": "Prefix",
+        "suffix": "Suffix",
+        "defns": "Definitions",
+    }
+    _kw_depends = {}
+    _kw_types = {
+        "cols": list,
+        "Translators": (dict, typeutils.strlike),
+        "Definitions": dict,
+        "Values": dict,
+        "ExpandScalars": (bool, int),
+        "Prefix": (dict, typeutils.strlike),
+        "Suffix": (dict, typeutils.strlike),
+        "DefaultDefinition": dict,
+        "DefaultType": typeutils.strlike
+    }
 
   # ==========
   # Config
@@ -189,43 +227,30 @@ class BaseFile(dict):
         :Versions:
             * 2019-11-27 ``@ddalle``: First version
         """
+        # Process options
+        kwo = self.check_kw_types(1, **kw)
         # Get columns
-        cols = kw.pop("cols", None)
-        cols = kw.pop("Keys", cols)
-        cols = kw.pop("ColumnNames", cols)
-        # Check it
+        cols = kwo.get("cols", None)
+        # Save column list if appropriate
         if isinstance(cols, list):
             self.cols = cols
         # Save translators
-        trans1 = kw.pop("translators", {})
-        trans2 = kw.pop("Translators", {})
-        # Check types
-        if not isinstance(trans1, dict):
-            raise TypeError("Option 'translators' must be dict type")
-        if not isinstance(trans2, dict):
-            raise TypeError("Option 'Translators' must be a dict type")
-        # Combine
-        trans = dict(trans1, **trans2)
+        trans = kwo.get("Translators", {})
         # Save
         self.opts["Translators"] = trans
         # Prefix/suffix options
-        prefix = kw.pop("prefix", kw.pop("Prefix", ""))
-        suffix = kw.pop("suffix", kw.pop("Suffix", ""))
+        prefix = kwo.get("Prefix", "")
+        suffix = kwo.get("Suffix", "")
         # De-none
         if prefix is None:
             prefix = ""
         if suffix is None:
             suffix = ""
-        # Check types
-        if not (typeutils.isstr(prefix) or isinstance(prefix, dict)):
-            raise TypeError("Option 'Prefix' must be string or dict")
-        if not (typeutils.isstr(suffix) or isinstance(suffix, dict)):
-            raise TypeError("Option 'Suffix' must be string or dict")
         # Save prefix and suffix
         self.opts["Prefix"] = prefix
         self.opts["Suffix"] = suffix
         # Values option
-        if kw.pop("ExpandScalars", True):
+        if kwo.get("ExpandScalars", True):
             # Something true-like
             self.opts["ExpandScalars"] = True
         else:
@@ -233,7 +258,7 @@ class BaseFile(dict):
             self.opts["ExpandScalars"] = False
             
         # Return unused options
-        return kw
+        return kwo
 
    # --- Columns ---
     # Process key definitions
@@ -799,6 +824,242 @@ class BaseFile(dict):
         # Loop through keywords
         for k in kw:
             warnings.warn("Unused keyword '%s'" % k, UserWarning)
+
+   # --- Keyword Checker ---
+    # Check valid keyword names, with dependencies
+    def check_kw(self, mode, **kw):
+        r"""Check and map valid keyword names
+
+        :Call:
+            >>> kwo = db.check_kw(mode, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *mode*: ``0`` | {``1``} | ``2``
+                Flag for quiet (``0``), warn (``1``), or strict (``2``)
+            *kw*: :class:`dict`
+                Any keyword arguments
+        :Outputs:
+            *kwo*: :class:`dict`
+                Valid keywords
+        :Versions:
+            * 2019-12-13 ``@ddalle``: First version
+        """
+        # Get class
+        cls = self.__class__
+        # Call generic function with specific attributes
+        return self._check_kw(
+            cls._kw,
+            cls._kw_map,
+            cls._kw_depends,
+            mode, **kw)
+
+    # Check valid keyword names, with dependencies
+    def check_kw_types(self, mode, **kw):
+        r"""Check and map valid keyword names and types
+
+        :Call:
+            >>> kwo = db.check_kw_types(mode, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *mode*: ``0`` | {``1``} | ``2``
+                Flag for quiet (``0``), warn (``1``), or strict (``2``)
+            *kw*: :class:`dict`
+                Any keyword arguments
+        :Outputs:
+            *kwo*: :class:`dict`
+                Valid keywords
+        :Versions:
+            * 2019-12-13 ``@ddalle``: First version
+        """
+        # Get class
+        cls = self.__class__
+        # Call generic function with specific attributes
+        return self._check_kw_types(
+            cls._kw,
+            cls._kw_map,
+            cls._kw_types,
+            cls._kw_depends,
+            mode, **kw)
+        
+    # Check valid keyword names, with dependencies
+    def _check_kw(self, kwlist, kwmap, kwdep, mode, **kw):
+        r"""Check and map valid keyword names
+
+        :Call:
+            >>> kwo = db._check_kw(kwlist, kwmap, kwdep, mode, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *kwlist*: {*db._kw*} | :class:`list`\ [:class:`str`]
+                List of acceptable parameters
+            *kwmap*: {*db._kw_map*}: :class:`dict`\ [:class:`str`]
+                Map of *alternate*: *primary* abbreviations
+            *kwdep*: {*db._kw_depends*} | :class:`dict`\ [:class:`list`]
+                Dictionary of required parameters for some parameters
+            *mode*: ``0`` | {``1``} | ``2``
+                Flag for quiet (``0``), warn (``1``), or strict (``2``)
+            *kw*: :class:`dict`
+                Any keyword arguments
+        :Outputs:
+            *kwo*: :class:`dict`
+                Valid keywords and their values from *kw*
+        :Versions:
+            * 2019-12-13 ``@ddalle``: First version
+        """
+        # Check mode
+        if mode not in [0, 1, 2]:
+            raise ValueError("Verbose mode must be 0, 1, or 2")
+        # Initialize output
+        kwo = {}
+        # Loop through keys
+        for (k0, v) in kw.items():
+            # Map names if appropriate
+            k = kwmap.get(k0, k0)
+            # Check if present
+            if k not in kwlist:
+                # Get closet match (n=3 max)
+                mtchs = difflib.get_close_matches(k, kwlist)
+                # Issue warning
+                if len(mtchs) == 0:
+                    # No suggestions
+                    msg = "Unrecognized keyword '%s'" % k
+                else:
+                    # Show up to three suggestions
+                    msg = (
+                        ("Unrecognized keyword '%s'" % k) +
+                        ("; suggested: %s" % " ".join(mtchs)))
+                # Choose warning
+                if mode == 2:
+                    # Exception
+                    raise KeyError(msg)
+                elif mode == 1:
+                    # Warning
+                    warnings.warn(msg, UserWarning)
+                # Go to next keyword
+                continue
+            else:
+                # Copy to output
+                kwo[k] = v
+            # Check dependences
+            if k in kwdep:
+                # Get item
+                kdep = kwdep[k]
+                # Check if any dependency is present
+                if all([ki not in kw for ki in kdep]):
+                    # Create warning message
+                    msg = (
+                        ("Keyword '%s' depends on one of " % k) +
+                        ("the following: %s" % " ".join(kdep)))
+                    # Choose what to do about it
+                    if mode == 2:
+                        # Exception
+                        raise KeyError(msg)
+                    elif mode == 1:
+                        # Warning
+                        warnings.warn(msg, UserWarning)
+        # Output
+        return kwo
+        
+    # Check valid keyword names, with dependencies
+    def _check_kw_types(self, kwlist, kwmap, kwtypes, kwdep, mode, **kw):
+        r"""Check and map valid keyword names
+
+        :Call:
+            >>> kwo = db._check_kw_types(
+                    kwlist, kwmap, kwtypes, kwdep, mode, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *kwlist*: {*db._kw*} | :class:`list`\ [:class:`str`]
+                List of acceptable parameters
+            *kwtypes*: {*db._kw_types*} | :class:`dict`
+                Dictionary of :class:`type` or
+                :class:`tuple`\ [:class:`type`] for some or all
+                keywords, used with :func:`isinstance`
+            *kwmap*: {*db._kw_map*}: :class:`dict`\ [:class:`str`]
+                Map of *alternate*: *primary* abbreviations
+            *kwdep*: {*db._kw_depends*} | :class:`dict`\ [:class:`list`]
+                Dictionary of required parameters for some parameters
+            *mode*: ``0`` | {``1``} | ``2``
+                Flag for quiet (``0``), warn (``1``), or strict (``2``)
+            *kw*: :class:`dict`
+                Any keyword arguments
+        :Outputs:
+            *kwo*: :class:`dict`
+                Valid keywords and their values from *kw*
+        :Versions:
+            * 2019-12-13 ``@ddalle``: First version
+        """
+        # Check mode
+        if mode not in [0, 1, 2]:
+            raise ValueError("Verbose mode must be 0, 1, or 2")
+        # Initialize output
+        kwo = {}
+        # Loop through keys
+        for (k0, v) in kw.items():
+            # Map names if appropriate
+            k = kwmap.get(k0, k0)
+            # Check if present
+            if k not in kwlist:
+                # Get closet match (n=3 max)
+                mtchs = difflib.get_close_matches(k, kwlist)
+                # Issue warning
+                if len(mtchs) == 0:
+                    # No suggestions
+                    msg = "Unrecognized keyword '%s'" % k
+                else:
+                    # Show up to three suggestions
+                    msg = (
+                        ("Unrecognized keyword '%s'" % k) +
+                        ("; suggested: %s" % " ".join(mtchs)))
+                # Choose warning
+                if mode == 2:
+                    # Exception
+                    raise KeyError(msg)
+                elif mode == 1:
+                    # Warning
+                    warnings.warn(msg, UserWarning)
+                # Go to next keyword
+                continue
+            # Check for a type
+            ktype = kwtypes.get(k, object)
+            # Check the type
+            if isinstance(v, ktype):
+                # Save the value and move on
+                kwo[k] = v
+            else:
+                # Create warning message
+                msg = (
+                    ("Invalid type for keyword '%s'" % k) +
+                    ("; options are %s" % ktype))
+                # Check mode
+                if mode == 2:
+                    # Exception
+                    raise TypeError(msg)
+                elif mode == 1:
+                    # Warning
+                    warnings.warn(msg, UserWarning)
+            # Check dependences
+            if k in kwdep:
+                # Get item
+                kdep = kwdep[k]
+                # Check if any dependency is present
+                if all([ki not in kw for ki in kdep]):
+                    # Create warning message
+                    msg = (
+                        ("Keyword '%s' depends on one of " % k) +
+                        ("the following: %s" % " ".join(kdep)))
+                    # Choose what to do about it
+                    if mode == 2:
+                        # Exception
+                        raise KeyError(msg)
+                    elif mode == 1:
+                        # Warning
+                        warnings.warn(msg, UserWarning)
+        # Output
+        return kwo
   # >
 
 
@@ -1313,3 +1574,30 @@ class TextInterpreter(dict):
         return cls(txt)
 # class TextFile
 
+
+# Append keywords for *DefaultDefinition* thing
+def _append_kw_DefaultDefn(cls, attr="_kw"):
+    # Get list of parameters
+    _kw = getattr(cls, attr)
+    # Loop through keys in *cls._DefaultDefn*
+    for k in cls._DefaultDefn:
+        # Derivative key name
+        k1 = "Default" + k
+        # Check if key is present
+        if k1 not in _kw:
+            # Append the parameter
+            _kw.append(k1)
+    # Loop through keys in *cls._DefaultDefn*
+    for k in cls._DefaultDefn:
+        # Derivative key name
+        k1 = k + "s"
+        # Check if key is present
+        if k1 not in _kw:
+            # Append the parameter
+            _kw.append(k1)
+        # Save the type as a dict
+        cls._kw_types[k1] = dict
+
+
+# Add parameters
+_append_kw_DefaultDefn(BaseFile)

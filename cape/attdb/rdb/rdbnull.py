@@ -41,7 +41,6 @@ import cape.tnakit.typeutils as typeutils
 import cape.attdb.ftypes as ftypes
 
 
-
 # Declare base class
 class DBResponseNull(dict):
     r"""Basic database template without responses
@@ -554,7 +553,10 @@ class DBResponseNull(dict):
             *V*: :class:`any`
                 Value to save for "column"
         :Effects:
-            *db.cols*: 
+            *db.cols*: :class:`list`\ [:class:`str`]
+                Appends *col* if not present already
+            *db[col]*: *V*
+                Value saved
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
@@ -575,7 +577,8 @@ class DBResponseNull(dict):
         # Check input types
         if not isinstance(cols, list):
             # Column list must be a list
-            raise TypeError("Column list must be a list, got '%s'"
+            raise TypeError(
+                "Column list must be a list, got '%s'"
                 % cols.__class__.__name__)
         elif not isinstance(dbsrc, dict):
             # Source must be a dictionary
@@ -621,7 +624,7 @@ class DBResponseNull(dict):
         opts = self.__dict__.get("opts", {})
         # Get relevant options
         kw = {}
-        for (k, vdef) in CSVFile._DefaultOpts.items():
+        for (k, vdef) in ftypes.CSVFile._DefaultOpts.items():
             # Set property
             kw[k] = opts.get(k, vdef)
         # Set values
@@ -631,8 +634,7 @@ class DBResponseNull(dict):
         # Explicit column list
         kw["cols"] = cols
         # Create instance
-        return CSVFile(**kw)
-        
+        return ftypes.CSVFile(**kw)
 
     # Write dense CSV file
     def write_csv_dense(self, fname, cols=None):
@@ -718,9 +720,7 @@ class DBResponseNull(dict):
             dbcopy[col] = copy.copy(self[col])
         # Copy all attributes
         self.copy__dict__(dbcopy, skip=[])
-            
-            
-            
+
     # Copy any remaining items
     def copy__dict__(self, dbtarg, skip=[]):
         r"""Copy all attributes except for specified list

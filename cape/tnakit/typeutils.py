@@ -41,6 +41,19 @@ if PY_MAJOR_VERSION > 2:
     unicode = str
     file    = io.IOBase
 
+# Create tuples of types
+if PY_MAJOR_VERSION > 2:
+    # Categories of types for Python 3
+    strlike = str
+    intlike = int
+    filelike = io.IOBase
+else:
+    # Categories of types for Python 2
+    strlike = (str, unicode)
+    intlike = (int, long)
+    filelike = (file, io.IOBase)
+    
+
 
 # Check for a string
 def isstr(x):
