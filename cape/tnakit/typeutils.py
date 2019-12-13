@@ -22,6 +22,10 @@ from numpy import ndarray
 # Get a variable to hold the "type" of "module"
 module = sys.__class__
 
+# Other abbreviations
+moduletype = sys.__class__
+nonetype = type(None)
+
 # Save major version
 try:
     # Get the integer
@@ -52,7 +56,7 @@ else:
     strlike = (str, unicode)
     intlike = (int, long)
     filelike = (file, io.IOBase)
-    
+
 
 
 # Check for a string

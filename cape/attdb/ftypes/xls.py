@@ -77,6 +77,39 @@ class XLSFile(BaseFile):
     :Versions:
         * 2019-12-12 ``@ddalle``: First version
     """
+    # Special class list
+    _classtypes = ["boolmap"]
+    # Recognized types and other defaults
+    _DTypeMap = dict(BaseFile._DTypeMap, boolmap="str")
+    # Keyword parameters
+    _kw = BaseFile._kw + [
+        "sheet",
+        "SkipRows",
+        "SkipCols",
+        "SubRows",
+        "MaxCols",
+        "MaxRows",
+        "skiprows",
+        "skipcols",
+        "subrows",
+        "maxrows",
+        "maxcols"
+    ]
+    # Abbreviations
+    _kw_map = dict(BaseFile._kw_map,
+        skipcols="SkipCols",
+        skiprows="SkipRows",
+        subrows="SubRows",
+        maxcols="MaxCols",
+        maxrows="MaxRows")
+    # Types
+    _kw_types = dict(BaseFile._kw_types,
+        MaxCols=(typeutils.nonetype, int),
+        MaxRows=(typeutils.nonetype, int),
+        SubRows=(typeutils.nonetype, int),
+        SkipCols=(typeutils.nonetype, int),
+        SkipRows=(typeutils.nonetype, int))
+
   # =============
   # Config
   # =============
