@@ -87,7 +87,6 @@ class BaseFile(dict):
         "Label": True,
         "LabelFormat": "%s",
         "WriteFormat": "%s",
-        "OutputDimension": 0,
     }
     _DefaultRoleDefns = {}
     _DTypeMap = {}
@@ -399,7 +398,6 @@ class BaseFile(dict):
         # If reaching this point, return global default
         return odefn
         
-
     # Translate column names
     def translate_colnames(self, cols):
         r"""Translate column names
@@ -744,6 +742,28 @@ class BaseFile(dict):
             * 2019-11-24 ``@ddalle``: First version
         """
         return self.get_col_prop(col, "Type", vdef="float64")
+
+    # Get data type
+    def get_col_dtype(self, col):
+        """Get data type for specific column
+        
+        :Call:
+            >>> cls = db.get_col_type(col, prop)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column
+        :Outputs:
+            *cls*: ``"int"`` | ``"float"`` | ``"str"`` | :class:`str`
+                Name of data type
+        :Versions:
+            * 2019-11-24 ``@ddalle``: First version
+        """
+        # Get type
+        coltype = self.get_col_type(col)
+        # Apply mapping if needed
+        return self.__class__._DTypeMap.get(coltype, coltype)
         
    # --- Keyword Values ---
     # Query keyword arguments for manual values
