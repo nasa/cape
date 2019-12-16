@@ -30,13 +30,13 @@ static PyMethodDef FTypesMethods[] = {
 
 // Create module's struct if compiling for Python 3
 #if PY_MAJOR_VERSION >= 3
-static struct PyModuleDef ftypesmodule = {
-    PyModuleDef_HEAD_INIT,
-    "_ftypes",                        // Name of module
-    "Extensions for CAPE data file types module\n",   // Module documentation
-    -1,                               // -1 if module keeps state in globals
-    FTypesMethods
-};
+    static struct PyModuleDef ftypesmodule = {
+        PyModuleDef_HEAD_INIT,
+        "_ftypes",                   // Name of module
+        "CAPE data file types module\n",   // Documentation
+        -1,                          // -1 if module keeps state in globals
+        FTypesMethods
+    };
 #endif
 
 // Actually declare the module
@@ -50,19 +50,19 @@ init_ftypes(void)
     import_array();
     
     // Initialize module
-#if PY_MAJOR_VERSION >= 3
-    // Python 3 syntax
-    m = PyModule_Create(&ftypesmodule);
-    // Check for errors
-    if (m == NULL)
-        return m;
-#else
-    // Python 2 syntax
-    m = Py_InitModule("_ftypes", FTypesMethods);
-    // Check for errors
-    if (m == NULL)
-        return;
-#endif
+    #if PY_MAJOR_VERSION >= 3
+        // Python 3 syntax
+        m = PyModule_Create(&ftypesmodule);
+        // Check for errors
+        if (m == NULL)
+            return m;
+    #else
+        // Python 2 syntax
+        m = Py_InitModule("_ftypes", FTypesMethods);
+        // Check for errors
+        if (m == NULL)
+            return;
+    #endif
     
     // Add data types to module
     capec_AddDTypes(m);

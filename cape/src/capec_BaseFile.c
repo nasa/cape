@@ -4,6 +4,7 @@
 
 // Local includes
 #include "capec_NumPy.h"
+#include "capec_PyTypes.h"
 #include "capec_BaseFile.h"
 
 // Read to end of line
@@ -64,13 +65,13 @@ int capeDTYPE_FromPyString(PyObject *o)
     char *dtype;
     
     // Check string
-    if (!PyString_Check(o)) {
+    if (!capePyString_Check(o)) {
         PyErr_SetString(PyExc_TypeError, "DType object is not a string");
         return -1;
     }
     
     // Otherwise get string from *o*
-    dtype = PyString_AsString(o);
+    dtype = capePyString_AsString(o);
     // Check it
     if (dtype == NULL) {
         // Error already set
@@ -108,7 +109,7 @@ int capec_AddDTypes(PyObject *m)
         // Get current name
         name = capeDTYPE_NAMES[i];
         // Convert the name to a Python object
-        dtype = PyString_FromString((const char*) name);
+        dtype = capePyString_FromString((const char*) name);
         // Check for failure
         if (dtype == NULL) {
             return -1;
