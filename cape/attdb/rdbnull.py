@@ -624,9 +624,10 @@ class DBResponseNull(dict):
   # >
 
   # ==================
-  # Readers
+  # I/O
   # ==================
   # <
+   # --- CSV ---
     # Read CSV file
     def read_csv(self, fname, **kw):
         r"""Read data from a CSV file
@@ -668,150 +669,6 @@ class DBResponseNull(dict):
         if savecsv:
             self._csv = dbf
 
-    # Read simple CSV file
-    def read_csvsimple(self, fname, **kw):
-        r"""Read data from a simple CSV file
-        
-        :Call:
-            >>> db.read_csvsimple(fname, **kw)
-            >>> db.read_csvsimple(dbcsv, **kw)
-            >>> db.read_csvsimple(f, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Generic database
-            *fname*: :class:`str`
-                Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
-                Existing CSV file
-            *f*: :class:`file`
-                Open CSV file interface
-            *save*, *SaveCSV*: ``True`` | {``False``}
-                Option to save the CSV interface to *db._csv*
-        :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # Get option to save database
-        savecsv = kw.pop("save", kw.pop("SaveCSV", False))
-        # Check input type
-        if isinstance(fname, ftypes.CSVSimple):
-            # Already a CSV database
-            dbf = fname
-        else:
-            # Create an instance
-            dbf = ftypes.CSVSimple(fname, **kw)
-            import pdb
-            pdb.set_trace()
-        # Link the data
-        self.link_data(dbf)
-        # Copy the options
-        self.copy_options(dbf.opts)
-        # Save the file interface if needed
-        if savecsv:
-            self._csvsimple = dbf
-
-    # Read text data fiel
-    def read_textdata(self, fname, **kw):
-        r"""Read data from a simple CSV file
-        
-        :Call:
-            >>> db.read_textdata(fname, **kw)
-            >>> db.read_textdata(dbcsv, **kw)
-            >>> db.read_textdata(f, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Generic database
-            *fname*: :class:`str`
-                Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
-                Existing CSV file
-            *f*: :class:`file`
-                Open CSV file interface
-            *save*: {``True``} | ``False``
-                Option to save the CSV interface to *db._csv*
-        :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # Get option to save database
-        savedat = kw.pop("save", True)
-        # Check input type
-        if isinstance(fname, ftypes.TextDataFile):
-            # Already a file itnerface
-            dbf = fname
-        else:
-            # Create an insteance
-            dbf = ftypes.TextDataFile(fname, **kw)
-        # Linke the data
-        self.link_data(dbf)
-        # Copy the otpions
-        self.copy_options(dbf.opts)
-        # Save the file interface if needed
-        if savedat:
-            self._textdata = dbf
-
-    # Read XLS file
-    def read_xls(self, fname, **kw):
-        r"""Read data from an ``.xls`` or ``.xlsx`` file
-        
-        :Call:
-            >>> db.read_xls(fname, **kw)
-            >>> db.read_xls(dbcsv, **kw)
-            >>> db.read_xls(wb, **kw)
-            >>> db.read_xls(ws, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Generic database
-            *fname*: :class:`str`
-                Name of ``.xls`` or ``.xlsx`` file to read
-            *sheet*: {``0``} | :class:`int` | :class:`str`
-                Worksheet name or number
-            *wb*: :class:`xlrd.book.Book`
-                Open workbook (spreadsheet file)
-            *ws*: :class:`xlrd.sheet.Sheet`
-                Direct access to a worksheet
-            *skiprows*: {``None``} | :class:`int` >= 0
-                Number of rows to skip before reading data
-            *subrows*: {``0``} | :class:`int` > 0
-                Number of rows below header row to skip
-            *skipcols*: {``None``} | :class:`int` >= 0
-                Number of columns to skip before first data column
-            *maxrows*: {``None``} | :class:`int` > *skiprows*
-                Maximum row number of data
-            *maxcols*: {``None``} | :class:`int` > *skipcols*
-                Maximum column number of data
-            *save*, *SaveXLS*: ``True`` | {``False``}
-                Option to save the XLS interface to *db._xls*
-        :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # Get option to save database
-        save = kw.pop("save", kw.pop("SaveXLS", False))
-        # Check input type
-        if isinstance(fname, ftypes.XLSFile):
-            # Already a CSV database
-            dbf = fname
-        else:
-            # Create an instance
-            dbf = ftypes.XLSFile(fname, **kw)
-        # Link the data
-        self.link_data(dbf)
-        # Copy the options
-        self.copy_options(dbf.opts)
-        # Save the file interface if needed
-        if save:
-            self._xls = dbf
-  # >
-
-  # =================
-  # Writers
-  # =================
-  # <
-   # --- CSV ---
     # Create a CSV file
     def get_CSVFile(self, cols=None):
         r"""Turn data container into CSV file interface
@@ -881,7 +738,147 @@ class DBResponseNull(dict):
             dbcsv = self.get_CSVFile(cols=cols)
         # Write it
         dbcsv.write_csv_dense(fname, cols=cols)
-    
+
+   # --- Simple CSV ---
+    # Read simple CSV file
+    def read_csvsimple(self, fname, **kw):
+        r"""Read data from a simple CSV file
+        
+        :Call:
+            >>> db.read_csvsimple(fname, **kw)
+            >>> db.read_csvsimple(dbcsv, **kw)
+            >>> db.read_csvsimple(f, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Generic database
+            *fname*: :class:`str`
+                Name of CSV file to read
+            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                Existing CSV file
+            *f*: :class:`file`
+                Open CSV file interface
+            *save*, *SaveCSV*: ``True`` | {``False``}
+                Option to save the CSV interface to *db._csv*
+        :See Also:
+            * :class:`cape.attdb.ftypes.csv.CSVFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # Get option to save database
+        savecsv = kw.pop("save", kw.pop("SaveCSV", False))
+        # Check input type
+        if isinstance(fname, ftypes.CSVSimple):
+            # Already a CSV database
+            dbf = fname
+        else:
+            # Create an instance
+            dbf = ftypes.CSVSimple(fname, **kw)
+            import pdb
+            pdb.set_trace()
+        # Link the data
+        self.link_data(dbf)
+        # Copy the options
+        self.copy_options(dbf.opts)
+        # Save the file interface if needed
+        if savecsv:
+            self._csvsimple = dbf
+
+   # --- Text Data ---
+    # Read text data fiel
+    def read_textdata(self, fname, **kw):
+        r"""Read data from a simple CSV file
+        
+        :Call:
+            >>> db.read_textdata(fname, **kw)
+            >>> db.read_textdata(dbcsv, **kw)
+            >>> db.read_textdata(f, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Generic database
+            *fname*: :class:`str`
+                Name of CSV file to read
+            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+                Existing CSV file
+            *f*: :class:`file`
+                Open CSV file interface
+            *save*: {``True``} | ``False``
+                Option to save the CSV interface to *db._csv*
+        :See Also:
+            * :class:`cape.attdb.ftypes.csv.CSVFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # Get option to save database
+        savedat = kw.pop("save", True)
+        # Check input type
+        if isinstance(fname, ftypes.TextDataFile):
+            # Already a file itnerface
+            dbf = fname
+        else:
+            # Create an insteance
+            dbf = ftypes.TextDataFile(fname, **kw)
+        # Linke the data
+        self.link_data(dbf)
+        # Copy the otpions
+        self.copy_options(dbf.opts)
+        # Save the file interface if needed
+        if savedat:
+            self._textdata = dbf
+
+   # --- XLS ---
+    # Read XLS file
+    def read_xls(self, fname, **kw):
+        r"""Read data from an ``.xls`` or ``.xlsx`` file
+        
+        :Call:
+            >>> db.read_xls(fname, **kw)
+            >>> db.read_xls(dbcsv, **kw)
+            >>> db.read_xls(wb, **kw)
+            >>> db.read_xls(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Generic database
+            *fname*: :class:`str`
+                Name of ``.xls`` or ``.xlsx`` file to read
+            *sheet*: {``0``} | :class:`int` | :class:`str`
+                Worksheet name or number
+            *wb*: :class:`xlrd.book.Book`
+                Open workbook (spreadsheet file)
+            *ws*: :class:`xlrd.sheet.Sheet`
+                Direct access to a worksheet
+            *skiprows*: {``None``} | :class:`int` >= 0
+                Number of rows to skip before reading data
+            *subrows*: {``0``} | :class:`int` > 0
+                Number of rows below header row to skip
+            *skipcols*: {``None``} | :class:`int` >= 0
+                Number of columns to skip before first data column
+            *maxrows*: {``None``} | :class:`int` > *skiprows*
+                Maximum row number of data
+            *maxcols*: {``None``} | :class:`int` > *skipcols*
+                Maximum column number of data
+            *save*, *SaveXLS*: ``True`` | {``False``}
+                Option to save the XLS interface to *db._xls*
+        :See Also:
+            * :class:`cape.attdb.ftypes.csv.CSVFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # Get option to save database
+        save = kw.pop("save", kw.pop("SaveXLS", False))
+        # Check input type
+        if isinstance(fname, ftypes.XLSFile):
+            # Already a CSV database
+            dbf = fname
+        else:
+            # Create an instance
+            dbf = ftypes.XLSFile(fname, **kw)
+        # Link the data
+        self.link_data(dbf)
+        # Copy the options
+        self.copy_options(dbf.opts)
+        # Save the file interface if needed
+        if save:
+            self._xls = dbf
   # >
 
   # ==================
