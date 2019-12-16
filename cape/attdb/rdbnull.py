@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 :mod:`cape.attdb.rdbnull`: Template ATTDB database
-=====================================================================
+========================================================
 
 This module provides the class :class:`DBResponseNull` as a subclass of
 :class:`dict` that contains methods common to each of the other (mostly)
@@ -949,7 +949,7 @@ class DBResponseNull(dict):
   # Break Points
   # ===================
   # <
-   # --- Creation ---
+   # --- Breakpoint Creation ---
     # Get automatic break points
     def GetBreakPoints(self, cols, nmin=5, tol=1e-12):
         r"""Create automatic list of break points for interpolation
@@ -1227,5 +1227,252 @@ class DBResponseNull(dict):
                 X.append(B[:n])
             # Save break points
             bkpts[col] = X
+
+   # --- Breakpoint Lookup ---
+    # Find index of break point value
+    def get_bkpt_index(self, col, v, tol=1e-8):
+        r"""Get interpolation weights for 1D linear interpolation
+
+        :Call:
+            >>> i0, i1, f = DBc.get_bkpt_index(k, v)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
+            *col*: :class:`str`
+                Individual lookup variable from *db.bkpts*
+            *v*: :class:`float`
+                Value at which to lookup
+            *tol*: {``1e-8``} | :class:`float` >= 0
+                Tolerance for left and right bounds
+        :Outputs:
+            *i0*: ``None`` | :class:`int`
+                Lower bound index, if ``None``, extrapolation below
+            *i1*: ``None`` | :class:`int`
+                Upper bound index, if ``None``, extrapolation above
+            *f*: 0 <= :class:`float` <= 1
+                Lookup fraction, ``1.0`` if *v* is equal to upper bound
+        :Versions:
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
+        """
+        # Extract values
+        try:
+            # Naive extractions
+            V =self.bkpts[col]
+        except AttributeError:
+            # No break points
+            raise AttributeError("No break point dict present")
+        except KeyError:
+            # Missing key
+            raise KeyError(
+                "Col '%s' is not present in break point dict" % col)
+        # Check type
+        if not isinstance(V, np.ndarray):
+            # Bad break point array type
+            raise TypeError(
+                "Break point list for '%s' is not np.ndarray" % col)
+        elif V.ndim != 1:
+            # Multidmensional array
+            raise ValueError(
+                ("Cannot perform lookup on %iD array " % V.ndim) +
+                ("for column '%s'" % col))
+        elif V.size == 0:
+            # No break points
+            raise ValueError("Break point array for col '%s' is empty" % col)
+        elif V.size == 1:
+            # Only one
+            raise ValueError(
+                "Break point array for col '%s' has only one entry" % col)
+        # Output
+        return self._bkpt_index(V, v, tol=tol)
+
+    # Function to get interpolation weights for uq
+    def get_bkpt_index_schedule(self, k, v, j):
+        """Get weights 1D interpolation of *k* at a slice of master key
+
+        :Call:
+            >>> i0, i1, f = DBc.get_bkpt_index_schedule(k, v, j)
+        :Inputs:
+            *DBc*: :class:`tnakit.db.db1.DBCoeff`
+                Coefficient database interface
+            *k*: :class:`str`
+                Name of trajectory key in *FM.bkpts* for lookup
+            *v*: :class:`float`
+                Value at which to lookup
+            *j*: :class:`int`
+                Index of master "slice" key, if *k* has scheduled
+                break points
+        :Outputs:
+            *i0*: ``None`` | :class:`int`
+                Lower bound index, if ``None``, extrapolation below
+            *i1*: ``None`` | :class:`int`
+                Upper bound index, if ``None``, extrapolation above
+            *f*: 0 <= :class:`float` <= 1
+                Lookup fraction, ``1.0`` if *v* is equal to upper bound
+        :Versions:
+            * 2018-04-19 ``@ddalle``: First version
+        """
+        # Get potential values
+        V = self._scheduled_bkpts(k, j)
+        # Lookup within this vector
+        return self._bkpt(V, v)
+
+    # Get break point from vector
+    def _bkpt_index(self, V, v, tol=1e-8, col=None):
+        r"""Get interpolation weights for 1D interpolation
+
+        This function tries to find *i0* and *i1* such that *v* is
+        between *V[i0]* and *V[i1]*.  It assumes the values of *V* are
+        unique and ascending (not checked).
+
+        :Call:
+            >>> i0, i1, f = db._bkpt_index(V, v, tol=1e-8)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
+            *V*: :class:`np.ndarray`\ [:class:`float`]
+                1D array of data values
+            *v*: :class:`float`
+                Value at which to lookup
+            *tol*: {``1e-8``} | :class:`float` >= 0
+                Tolerance for left and right bounds
+        :Outputs:
+            *i0*: ``None`` | :class:`int`
+                Lower bound index, if ``None``, extrapolation below
+            *i1*: ``None`` | :class:`int`
+                Upper bound index, if ``None``, extrapolation above
+            *f*: 0 <= :class:`float` <= 1
+                Lookup fraction, ``1.0`` if *v* is equal to upper bound;
+                can be outside 0-1 bound for extrapolation
+        :Versions:
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
+        """
+        # Get length
+        n = V.size
+        # Get min/max
+        vmin = np.min(V)
+        vmax = np.max(V)
+        # Check for extrapolation cases
+        if v < vmin - tol*(vmax-vmin):
+            # Extrapolation left
+            return None, 0, (v-V[0])/(V[1]-V[0])
+        elif v > vmax + tol*(vmax-vmin):
+            # Extrapolation right
+            return n-1, None, (v-V[-1])/(V[-1]-V[-2])
+        # Otherwise, count up values below
+        i0 = np.sum(V[:-1] <= v) - 1
+        i1 = i0 + 1
+        # Progress fraction
+        f = (v - V[i0]) / (V[i1] - V[i0])
+        # Output
+        return i0, i1, f
+
+    # Get a break point, with error checking
+    def get_bkpt(self, col, *I):
+        r"""Extract a breakpoint by index, with error checking
+
+        :Call:
+            >>> v = db.get_bkpt(col, *I)
+            >>> v = db.get_bkpt(col)
+            >>> v = db.get_bkpt(col, i)
+            >>> v = db.get_bkpt(col, i, j)
+            >>> v = db.get_bkpt(col, i, j, ...)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
+            *col*: :class:`str`
+                Individual lookup variable from *db.bkpts*
+            *I*: :class:`tuple`
+                Tuple of lookup indices
+            *i*: :class:`int`
+                (Optional) first break point list index
+            *j*: :class:`int`
+                (Optional) second break point list index
+        :Outputs:
+            *v*: :class:`float` | :class:`np.ndarray`
+                Break point or array of break points
+        :Versions:
+            * 2018-12-31 ``@ddalle``: First version
+            * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
+        """
+        # Get the break points
+        try:
+            v = self.bkpts[col]
+        except AttributeError:
+            # No radial basis functions at all
+            raise AttributeError("No break points found")
+        except KeyError:
+            # No RBF for this coefficient
+            raise KeyError("No break points for col '%s'" % col)
+        # Number of indices given
+        nd = len(I)
+        # Loop through indices
+        for n, i in enumerate(I):
+            # Try to extract
+            try:
+                # Get the *ith* list entry
+                v = v[i]
+            except (IndexError, TypeError):
+                # Reached scalar too soon
+                raise TypeError(
+                    ("Breakpoints for '%s':\n" % k) +
+                    ("Expecting %i-dimensional " % nd) +
+                    ("array but found %i-dim" % n))
+        # Output
+        return v
+
+    # Get all break points
+    def _scheduled_bkpts(self, col, j):
+        """Get list of break points for key *col* at schedule *j*
+
+        :Call:
+            >>> i0, i1, f = db._scheduled_bkpts(col, j)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
+            *col*: :class:`str`
+                Individual lookup variable from *db.bkpts*
+            *j*: :class:`int`
+                Index of master "slice" key, if *col* has scheduled
+                break points
+        :Outputs:
+            *i0*: ``None`` | :class:`int`
+                Lower bound index, if ``None``, extrapolation below
+            *i1*: ``None`` | :class:`int`
+                Upper bound index, if ``None``, extrapolation above
+            *f*: 0 <= :class:`float` <= 1
+                Lookup fraction, ``1.0`` if *v* is equal to upper bound
+        :Versions:
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
+        """
+        # Get the break points
+        try:
+            V = self.bkpts[col]
+        except AttributeError:
+            # No radial basis functions at all
+            raise AttributeError("No break points found")
+        except KeyError:
+            # No RBF for this coefficient
+            raise KeyError("No break points for col '%s'" % col)
+        # Get length
+        n = len(V)
+        # Size check
+        if n == 0:
+            raise ValueError("Empty break point array for col '%s'" % col)
+        # Check first key for array
+        if isinstance(V[0], (np.ndarray, list)):
+            # Get break points for this slice
+            V = V[j]
+            # Reset size
+            n = V.size
+            # Recheck size
+            if n == 0:
+                raise ValueError(
+                    ("Empty break point array for col '%s' " % col) +
+                    ("at slice %i" % j))
+        # Output
+        return V
   # >
 
