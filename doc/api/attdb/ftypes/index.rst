@@ -7,4 +7,6 @@
     
     basefile
     csv
+    mat
     textdata
+    xls

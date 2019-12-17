@@ -128,6 +128,7 @@ class DBResponseNull(dict):
         fcsvs = None
         ftdat = None
         fxls  = None
+        fmat  = None
         # Filter *ext*
         if ext == "csv":
             # Guess it's a mid-level CSV file
@@ -138,6 +139,9 @@ class DBResponseNull(dict):
         elif ext == "xlsx":
             # Guess it's a spreadsheet
             fxls = fname
+        elif ext == "mat":
+            # Guess it's a MATLAB file
+            fmat = fname
         elif ext is not None:
             # Unable to guess
             raise ValueError(
@@ -146,6 +150,7 @@ class DBResponseNull(dict):
         # Last-check file names
         fcsv  = kw.pop("csv", fcsv)
         fxls  = kw.pop("xls", fxls)
+        fmat  = kw.pop("mat", fmat)
         fcsvs = kw.pop("simplecsv", fcsvs)
         ftdat = kw.pop("textdata",  ftdat)
 
@@ -162,6 +167,9 @@ class DBResponseNull(dict):
         elif ftdat is not None:
             # Read generic textual data file
             self.read_textdata(ftdat, **kw)
+        elif fmat is not None:
+            # Read MATLAB file
+            self.read_mat(fmat, **kw)
         else:
             # If reaching this point, process values
             kw = ftypes.BaseFile.process_kw_values(**kw)
@@ -348,6 +356,38 @@ class DBResponseNull(dict):
         self = cls()
         # Call reader method
         self.read_xls(fname, **kw)
+        # Output
+        return self
+
+    # Read data from an MATLAB file
+    @classmethod
+    def from_mat(cls, fname, **kw):
+        r"""Read a database from a MATLAB ``.mat`` file
+
+        :Call:
+            >>> db = DBResponseNull.from_mat(fname, **kw)
+            >>> db = DBResponseNull.from_mat(dbf, **kw)
+        :Inputs:
+            *fname*: :class:`str`
+                Name of MAT file to read
+            *dbf*: :class:`cape.attdb.ftypes.MATFile`
+                Existing MAT file interface
+            *f*: :class:`file`
+                Open CSV file interface
+            *save*: {``True``} | ``False``
+                Option to save the CSV interface to *db._csv*
+        :Outputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Generic database
+        :See Also:
+            * :class:`cape.attdb.ftypes.textdata.TextDataFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # New instance
+        self = cls()
+        # Call reader method
+        self.read_mat(fname, **kw)
         # Output
         return self
 
@@ -718,9 +758,7 @@ class DBResponseNull(dict):
         :Inputs:
             *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
                 Data container
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
-                CSV file interface
-            *fname*: {*db.fname*} | :class:`str`
+            *fname*: :class:`str`
                 Name of file to write
             *f*: :class:`file`
                 File open for writing
@@ -797,7 +835,7 @@ class DBResponseNull(dict):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+            *dbcsv*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
@@ -832,12 +870,14 @@ class DBResponseNull(dict):
         
         :Call:
             >>> db.read_xls(fname, **kw)
-            >>> db.read_xls(dbcsv, **kw)
+            >>> db.read_xls(dbxls, **kw)
             >>> db.read_xls(wb, **kw)
             >>> db.read_xls(ws, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
                 Generic database
+            *dbxls*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                Existing XLS file interface
             *fname*: :class:`str`
                 Name of ``.xls`` or ``.xlsx`` file to read
             *sheet*: {``0``} | :class:`int` | :class:`str`
@@ -859,7 +899,7 @@ class DBResponseNull(dict):
             *save*, *SaveXLS*: ``True`` | {``False``}
                 Option to save the XLS interface to *db._xls*
         :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
+            * :class:`cape.attdb.ftypes.xls.XLSFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
@@ -879,6 +919,113 @@ class DBResponseNull(dict):
         # Save the file interface if needed
         if save:
             self._xls = dbf
+
+
+   # --- MAT ---
+    # Read MAT file
+    def read_mat(self, fname, **kw):
+        r"""Read data from a version 5 ``.mat`` file
+        
+        :Call:
+            >>> db.read_mat(fname, **kw)
+            >>> db.read_mat(dbmat, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Generic database
+            *fname*: :class:`str`
+                Name of ``.mat`` file to read
+            *dbmat*: :class:`cape.attdb.ftypes.mat.MATFile`
+                Existing MAT file interface
+            *save*, *SaveXLS*: ``True`` | {``False``}
+                Option to save the MAT interface to *db._mat*
+        :See Also:
+            * :class:`cape.attdb.ftypes.mat.MATFile`
+        :Versions:
+            * 2019-12-17 ``@ddalle``: First version
+        """
+        # Get option to save database
+        save = kw.pop("save", kw.pop("SaveMAT", False))
+        # Check input type
+        if isinstance(fname, ftypes.MATFile):
+            # Already a MAT database
+            dbf = fname
+        else:
+            # Create an instance
+            dbf = ftypes.MATFile(fname, **kw)
+        # Link the data
+        self.link_data(dbf)
+        # Copy the options
+        self.copy_options(dbf.opts)
+        # Save the file interface if needed
+        if save:
+            self._mat = dbf
+
+    # Write MAT file
+    def write_mat(self, fname, cols=None):
+        r""""Write a MAT file
+
+        If *db._mat* exists, the database will be written from that
+        interface.  Otherwise, :func:`get_MATFile` will be called.
+
+        :Call:
+            >>> db.write_mat(fname, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
+            *fname*: :class:`str`
+                Name of file to write
+            *f*: :class:`file`
+                File open for writing
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of columns to write
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
+        # Check for CSV handle
+        if "_csv" in self.__dict__:
+            # Already ready
+            dbmat = self._mat
+        else:
+            # Get a CSV file interface
+            dbmat = self.get_MATFile(cols=cols)
+        # Write it
+        dbmat.write_mat(fname, cols=cols)
+
+    # Create a CSV file
+    def get_MATFile(self, cols=None):
+        r"""Turn data container into MAT file interface
+
+        :Call:
+            >>> dbmat = db.get_MATFile(cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of columns to include (default *db.cols*)
+        :Outputs:
+            *dbmat*: :class:`cape.attdb.ftypes.MATFile`
+                MAT file interface
+        :Versions:
+            * 2019-12-17 ``@ddalle``: First version
+        """
+        # Default column list
+        if cols is None:
+            cols = self.cols
+        # Get options interface
+        opts = self.__dict__.get("opts", {})
+        # Get relevant options
+        kw = {}
+        for (k, vdef) in ftypes.MATFile._DefaultOpts.items():
+            # Set property
+            kw[k] = opts.get(k, vdef)
+        # Set values
+        kw["Values"] = {col: self[col] for col in cols}
+        # Turn off expansion
+        kw["ExpandScalars"] = False
+        # Explicit column list
+        kw["cols"] = cols
+        # Create instance
+        return ftypes.MATFile(**kw)
   # >
 
   # ==================

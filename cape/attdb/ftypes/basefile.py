@@ -27,13 +27,12 @@ collection.
 # Standard library modules
 import os
 import warnings
-import difflib
 
 # Third-party modules
 import numpy as np
 
 # CAPE modules
-import cape.tnakit.kwutils   as kwutils
+import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
 
 
@@ -198,7 +197,6 @@ class BaseFile(dict):
   # <
    # --- Key Definitions ---
     # Process generic options
-    #def _bfile_process_opts(self, **kw)
     def process_opts_generic(self, **kw):
         r"""Process generic options from keyword arguments
 
@@ -460,7 +458,7 @@ class BaseFile(dict):
         r"""Reverse translation of column names
 
         This method utilizes the options *Translators*, *Prefix*, and
-        *Suffix* from the *db.opts* dictionary.*Prefix* and *Suffix* 
+        *Suffix* from the *db.opts* dictionary.*Prefix* and *Suffix*
         removed before reverse translation.
 
         :Call:
@@ -491,7 +489,7 @@ class BaseFile(dict):
             # Get prefix
             if isinstance(prefix, dict):
                 # Get specific prefix
-                pre = prefix.get(col, prefix.get("_", ""))
+                pre = prefix.get(dbcol, prefix.get("_", ""))
             elif prefix:
                 # Universal prefix
                 pre = prefix
@@ -525,7 +523,7 @@ class BaseFile(dict):
             col = transr.get(dbcol, dbcol)
             # Append to output
             cols.append(col)
-        # Return the output    
+        # Output
         return cols
 
    # --- Keyword Checkers ---
@@ -550,8 +548,9 @@ class BaseFile(dict):
         """
         # Ensure input type
         if not isinstance(defn, dict):
-            raise TypeError("Valid col definition must be 'dict'" +
-                ("; got '%s'" % defn.__class__.__name__))
+            raise TypeError(
+                ("Valid col definition must be 'dict'") +
+                ("; got '%s'" % defn.__class__))
         # Loop through keys
         for (k, v) in defn.items():
             # Validate individual key
@@ -578,7 +577,7 @@ class BaseFile(dict):
         """
         # Check property
         if prop == "Type":
-            return self.validate_dtype(val)
+            return self.validate_type_base(val)
         else:
             # Default is to accept any input
             return val
@@ -600,14 +599,14 @@ class BaseFile(dict):
         :Versions:
             * 2019-12-03 ``@ddalle``: First version
         """
-        return self.validate_dtype(clsname)
+        return self.validate_type_base(clsname)
 
     # Convert *Type* to validated *Type*
-    def validate_dtype(self, clsname):
+    def validate_type_base(self, clsname):
         r"""Translate free-form type name into type code
         
         :Call:
-            >>> dtype = db.validate_dtype(clsname)
+            >>> dtype = db.validate_type_base(clsname)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -957,7 +956,6 @@ class BaseFile(dict):
             cls._kw_depends,
             mode, **kw)
   # >
-
 
   # ===============
   # Data
@@ -1334,7 +1332,7 @@ class TextInterpreter(dict):
         try:
             # Basic conversion
             return cls(txt)
-        except ValueError as err:
+        except ValueError:
             # Substitute "E" for "D" and "e" for "d"
             txt = txt.replace("D", "E")
             txt = txt.replace("d", "e")

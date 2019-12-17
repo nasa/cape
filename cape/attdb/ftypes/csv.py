@@ -19,7 +19,7 @@ final comment before the beginning of data.
 import re
 
 # CAPE modules
-import cape.tnakit.typeutils  as typeutils
+import cape.tnakit.typeutils as typeutils
 import cape.tnakit.arrayutils as arrayutils
 
 # Local modules
