@@ -19,7 +19,7 @@ collection.
 
     .. code-block:: python
 
-        isinstance(db, cape.attdb.rdb.DBResponseNull)
+        isinstance(db, cape.attdb.rdbnull.DBResponseNull)
 
 This class is the basic data container for ATTDB databases and has
 interfaces to several different file types.
@@ -56,6 +56,10 @@ class DBResponseNull(dict):
             Explicit file name for :class:`TextDataFile`
         *simplecsv*: {``None``} | :class:`str`
             Explicit file name for :class:`CSVSimple`
+        *xls*: {``None``} | :class:`str`
+            File name for :class:`XLSFile`
+        *mat*: {``None``} | :class:`str`
+            File name for :class:`MATFile`
     :Outputs:
         *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
             Generic database
@@ -956,6 +960,13 @@ class DBResponseNull(dict):
         self.link_data(dbf)
         # Copy the options
         self.copy_options(dbf.opts)
+        # Link other attributes
+        for (k, v) in dbf.__dict__.items():
+            # Check if present and nonempty
+            if self.__dict__.get(k):
+                continue
+            # Otherwise link
+            self.__dict__[k] = v
         # Save the file interface if needed
         if save:
             self._mat = dbf
@@ -1065,6 +1076,23 @@ class DBResponseNull(dict):
    # --- Copy/Link ---
     # Link data
     def link_data(self, dbsrc, cols=None):
+        r"""Save a column to database
+        
+        :Call:
+            >>> db.link_data(dbsrc, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of columns to link (or *dbsrc.cols*)
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                Appends each *col* in *cols* where not present
+            *db[col]*: *dbsrc[col]*
+                Reference to *dbsrc* data for each *col*
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+        """
         # Default columns
         if cols is None:
             cols = dbsrc.cols
@@ -1087,6 +1115,62 @@ class DBResponseNull(dict):
                 raise KeyError("No column '%s'" % col)
             # Save the data
             self.save_col(col, dbsrc[col])
+
+   # --- Access ---
+    # Look up a generic key
+    def get_col(self, k=None, defnames=[], **kw):
+        """Process a key name, using an ordered list of defaults
+
+        :Call:
+            >>> col = db.get_key(k=None, defnames=[], **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
+            *k*: {``None``} | :class:`str`
+                User-specified col name; if ``None``, automatic value
+            *defnamess*: :class:`list`
+                List of applicable default names for the col
+            *title*: {``"lookup"``} | :class:`str`
+                Key title to use in any error messages
+            *error*: {``True``} | ``False``
+                Raise an exception if no col is found
+        :Outputs:
+            *col*: *k* | *defnamess[0]* | *defnamess[1]* | ... 
+                Name of lookup key in *db.cols*
+        :Versions:
+            * 2018-06-22 ``@ddalle``: First version
+        """
+        # Get default
+        if (k is not None):
+            # Check if it's present
+            if k not in self.cols:
+                # Error option
+                if kw.get("error", True):
+                    # Get title for error message, e.g. "angle of attack"
+                    ttl = kw.get("title", "lookup")
+                    # Error message
+                    raise KeyError("No %s key found" % ttl)
+                else:
+                    # If no error, return ``None``
+                    return defnames[0]
+            # Otherwise, done
+            return k
+        # Check list
+        if not isinstance(defnames, list):
+            raise TypeError("Default col names must be list") 
+        # Loop through defaults
+        for col in defnames:
+            # Check if it's present
+            if col in self.cols:
+                return col
+        # If this point is reached, no default found
+        if not kw.get("error", True):
+            # No error, as specified by user
+            return defnames[0]
+        # Get title for error message, e.g. "angle of attack"
+        ttl = kw.get("title", "lookup")
+        # Error message
+        raise KeyError("No %s key found" % ttl)
   # >
 
   # ===================
