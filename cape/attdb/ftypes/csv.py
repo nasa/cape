@@ -18,9 +18,6 @@ final comment before the beginning of data.
 # Standard library
 import re
 
-# Third-party modules
-import numpy as np
-
 # CAPE modules
 import cape.tnakit.typeutils  as typeutils
 import cape.tnakit.arrayutils as arrayutils
@@ -36,7 +33,7 @@ except ImportError:
 
 
 # Regular expressions
-regex_numeric = re.compile("\d")
+regex_numeric = re.compile(r"\d")
 regex_alpha   = re.compile("[A-z_]")
 
 
@@ -46,9 +43,12 @@ class CSVFile(BaseFile, TextInterpreter):
     
     :Call:
         >>> db = CSVFile(fname, **kw)
+        >>> db = CSVFile(f, **kw)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
+        *f*: :class:`file`
+            Open file handle
     :Outputs:
         *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
             CSV file interface
@@ -82,15 +82,13 @@ class CSVFile(BaseFile, TextInterpreter):
         self.opts = {}
         self.cols = []
         self.n = 0
-
-        # Save file name
-        self.fname = fname
+        self.fname = None
 
         # Process generic options
         kw = self.process_opts_generic(**kw)
 
         # Read file if appropriate
-        if fname and typeutils.isstr(fname):
+        if fname:
             # Read valid file
             kw = self.read_csv(fname, **kw)
         else:
@@ -135,6 +133,8 @@ class CSVFile(BaseFile, TextInterpreter):
             # Already a file
             return self._read_csv(fname, **kw)
         else:
+            # Save file name
+            self.fname = fname
             # Open file
             with open(fname, 'r') as f:
                 # Process file handle
@@ -970,7 +970,7 @@ class CSVSimple(BaseFile):
         try:
             # Basic conversion
             return float(txt)
-        except ValueError as e:
+        except ValueError:
             # Substitute "E" for "D" and "e" for "d"
             txt = txt.replace("D", "E")
             txt = txt.replace("d", "e")
