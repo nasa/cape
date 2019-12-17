@@ -1,0 +1,18 @@
+{
+    "CopyFiles": [
+        "test01_import.py"
+    ],
+    "Commands": [
+        "python2 test01_import.py",
+        "python3 test01_import.py"
+    ],
+    "CommandTitles": [
+        "Import :mod:`cape.attdb.rdbnull`: Python2",
+        "Import :mod:`cape.attdb.rdbnull`: Python3"
+    ],
+    "DocFilesShow": "test01_import.py",
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/attdb",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

@@ -79,7 +79,7 @@ class MATFile(BaseFile):
   # =============
   # <
     # Initialization method
-    def __init__(self, fname, **kw):
+    def __init__(self, fname=None, **kw):
         """Initialization method
 
         :Versions:
@@ -225,7 +225,7 @@ class MATFile(BaseFile):
         # Create database
         dbmat = self.create_mat(**kw)
         # Write it
-        sio.savemat(fmat, dbmat, oned_as="column")
+        sio.savemat(fname, dbmat, oned_as="column")
 
     # Create MAT file
     def create_mat(self, **kw):

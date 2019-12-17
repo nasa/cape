@@ -23,9 +23,6 @@ final comment before the beginning of data.
 # Standard library
 import re
 
-# Third-party modules
-import numpy as np
-
 # CAPE modules
 import cape.tnakit.typeutils as typeutils
 
@@ -37,6 +34,11 @@ try:
     from . import _ftypes
 except ImportError:
     _ftypes = None
+
+
+# Regular expressions
+regex_numeric = re.compile(r"\d")
+regex_alpha   = re.compile("[A-z_]")
 
 
 # Class for generic text data
@@ -73,7 +75,8 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Recognized types and other defaults
     _DTypeMap = dict(BaseFile._DTypeMap, boolmap="str")
     # Default options
-    _DefaultOpts = dict(BaseFile._DefaultOpts,
+    _DefaultOpts = dict(
+        BaseFile._DefaultOpts,
         Delimiter=", ",
         Comment="#")
     # Keyword parameters
@@ -84,16 +87,17 @@ class TextDataFile(BaseFile, TextInterpreter):
         "FirstColName",
     ]
     # Abbreviations
-    _kw_map = dict(BaseFile._kw_map,
+    _kw_map = dict(
+        BaseFile._kw_map,
         delim="Delimiter",
         comment="Comment")
     # types
-    _kw_types = dict(BaseFile._kw_types,
+    _kw_types = dict(
+        BaseFile._kw_types,
         Delimiter=typeutils.strlike,
         Comment=typeutils.strlike,
         FirstColBoolMap=(dict, bool),
         FirstColName=typeutils.strlike)
-        
 
   # ======
   # Config
@@ -322,7 +326,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         r"""Translate free-form *Type* option into validated code
         
         :Call:
-            >>> dtype = db.validate_dtype(clsname)
+            >>> dtype = db.validate_type(clsname)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -346,7 +350,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             return "boolmap"
         else:
             # Fallback
-            return self.validate_dtype(clsname)
+            return self.validate_type_base(clsname)
             
     # Validate boolean flag columns
     def validate_boolmap(self, boolmap):
@@ -391,12 +395,6 @@ class TextDataFile(BaseFile, TextInterpreter):
             boolmap[k] = V
         # Output
         return boolmap
-  # >
-  
-  # ============
-  # Data
-  # ============
-  # <
   # >
   
   # ============
@@ -507,7 +505,6 @@ class TextDataFile(BaseFile, TextInterpreter):
             return
         # Save comment character and delimiter
         _comment = self._comment
-        _delim   = self._delim
         # Save current position
         pos = f.tell()
         # Read line
@@ -592,7 +589,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Get integer option
         odefcls = kw.get("DefaultType", "float64")
         # Translate abbreviated codes
-        odefcls = self.validate_dtype(odefcls)
+        odefcls = self.validate_type_base(odefcls)
         # Save position
         pos = f.tell()
         # Read line
@@ -933,7 +930,7 @@ class TextDataFile(BaseFile, TextInterpreter):
   # >
 
   # =============
-  # Write 
+  # Write
   # =============
   # <
    # --- Writers ---

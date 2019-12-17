@@ -183,4 +183,4 @@ defined.  In general the required files are the following.
         test/pyfun/index
         test/pyover/index
         test/ftypes/index
-        
+        test/attdb/index 
