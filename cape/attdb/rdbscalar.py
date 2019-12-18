@@ -38,6 +38,12 @@ import os
 # Third-party modules
 import numpy as np
 
+# Semi-optional third-party modules
+try:
+    import scipy.interpolate.rbf as scirbf
+except ImportError:
+    scirbf = None
+
 # CAPE modules
 import cape.tnakit.typeutils as typeutils
 import cape.tnakit.kwutils as kwutils
@@ -70,7 +76,7 @@ class DBResponseScalar(DBResponseNull):
             File name for :class:`MATFile`
     :Outputs:
         *db*: :class:`cape.attdb.rdbscalar.DBResponseScalar`
-            Generic database
+            Database with scalar output functions
     :Versions:
         * 2019-12-17 ``@ddalle``: First version
     """
@@ -93,7 +99,7 @@ class DBResponseScalar(DBResponseNull):
             >>> v = db.getattrdefault(attr, vdef)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *attr*: :class:`str`
                 Name of attribute
             *vdef*: any
@@ -117,7 +123,7 @@ class DBResponseScalar(DBResponseNull):
             >>> v = db.getattrdefault(attr, vdef)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *attr*: :class:`str`
                 Name of attribute
             *vdef*: any
@@ -151,7 +157,7 @@ class DBResponseScalar(DBResponseNull):
             >>> V = db(col, k0=x0, k1=X1, ...)
         :Inputs:
             *DBc*: :class:`DBCoeff`
-                Coefficient database interface
+                Database with scalar output functions
             *coeff*: :class:`str` | :class:`unicode`
                 Name of coefficient to evaluate
             *x0*: :class:`float` | :class:`int`
@@ -302,7 +308,7 @@ class DBResponseScalar(DBResponseNull):
             >>> db.SetEvalMethod(cols, method=None, args=None, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns for which to declare evaluation rules
             *col*: :class:`str`
@@ -354,7 +360,7 @@ class DBResponseScalar(DBResponseNull):
             >>> db._set_method1(col=None, method=None, args=None, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column for which to declare evaluation rules
             *method*: ``"nearest"`` | ``"linear"`` | :class:`str`
@@ -465,7 +471,7 @@ class DBResponseScalar(DBResponseNull):
         # Argument list is the same for all methods
         eval_args[col] = args
 
-   # --- Attributes ---
+   # --- Options: Get ---
     # Get argument list
     def get_eval_arg_list(self, col):
         r"""Get list of evaluation arguments
@@ -474,7 +480,7 @@ class DBResponseScalar(DBResponseNull):
             >>> args = db.get_eval_arg_list(col)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
         :Outputs:
@@ -510,7 +516,7 @@ class DBResponseScalar(DBResponseNull):
             >>> meth = db.get_eval_method(col)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
         :Outputs:
@@ -533,7 +539,7 @@ class DBResponseScalar(DBResponseNull):
             >>> f = db.get_eval_arg_converter(k)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *k*: :class:`str` | :class:`unicode`
                 Name of argument
         :Outputs:
@@ -565,7 +571,7 @@ class DBResponseScalar(DBResponseNull):
             >>> ucoeffs = db.get_uq_coeff(coeff)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *coeff*: :class:`str`
                 Name of coefficient to evaluate
         :Outputs:
@@ -591,7 +597,7 @@ class DBResponseScalar(DBResponseNull):
             >>> db.set_arg_default(k, v)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
             *v*: :class:`float`
@@ -613,7 +619,7 @@ class DBResponseScalar(DBResponseNull):
             >>> db.set_arg_converter(k, fn)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
             *fn*: :class:`function`
@@ -641,7 +647,7 @@ class DBResponseScalar(DBResponseNull):
             >>> V = db.get_all_values(k)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
         :Outputs:
@@ -688,7 +694,7 @@ class DBResponseScalar(DBResponseNull):
             >>> v = db.get_arg_value(i, k, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *i*: :class:`int`
                 Argument index within *db.eval_args*
             *k*: :class:`str`
@@ -761,7 +767,7 @@ class DBResponseScalar(DBResponseNull):
             >>> X = db.get_arg_value_dict(coeff, x1, x2, ..., k3=x3)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *coeff*: :class:`str`
                 Name of coefficient
             *x1*: :class:`float` | :class:`np.ndarray`
@@ -817,7 +823,7 @@ class DBResponseScalar(DBResponseNull):
             >>> col, a, kw = db._get_colname(*a, col=c, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of evaluation col
             *a*: :class:`tuple`
@@ -865,7 +871,7 @@ class DBResponseScalar(DBResponseNull):
             >>> X, dims = db.normalize_args(x, asarray=False)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *x*: :class:`list`\ [:class:`float` | :class:`np.ndarray`]
                 Values for arguments, either float or array
             *asarray*: ``True`` | {``False``}
@@ -926,6 +932,205 @@ class DBResponseScalar(DBResponseNull):
         # Output
         return X, dims
 
+   # --- Breakpoint Schedule ---
+    # Return break points for schedule
+    def get_schedule(self, args, x, extrap=True):
+        r"""Get lookup points for interpolation scheduled by master key
+
+        This is a utility that is used for situations where the break
+        points of some keys may vary as a schedule of another one.
+        For example if the maximum angle of attack in the database is
+        different at each Mach number.  This utility provides the
+        appropriate point at which to interpolate the remaining keys
+        at the value of the first key both above and below the input
+        value.  The first argument, ``args[0]``, is the master key
+        that controls the schedule.
+
+        :Call:
+            >>> i0, i1, f, x0, x1 = db.get_schedule(args, x, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *args*: :class:`list`\ [:class:`str`]
+                List of input argument names (*args[0]* is master key)
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+            *extrap*: {``True``} | ``False``
+                If ``False``, raise error when lookup value is outside
+                break point range for any key at any slice
+        :Outputs:
+            *i0*: ``None`` | :class:`int`
+                Lower bound index, if ``None``, extrapolation below
+            *i1*: ``None`` | :class:`int`
+                Upper bound index, if ``None``, extrapolation above
+            *f*: 0 <= :class:`float` <= 1
+                Lookup fraction, ``1.0`` if *v* is at upper bound
+            *x0*: :class:`np.ndarray` (:class:`float`)
+                Evaluation values for ``args[1:]`` at *i0*
+            *x1*: :class:`np.ndarray` (:class:`float`)
+                Evaluation values for ``args[1:]`` at *i1*
+        :Versions:
+            * 2019-04-19 ``@ddalle``: First version
+            * 2019-07-26 ``@ddalle``: Vectorized
+            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Number of args
+        narg = len(args)
+        # Error check
+        if narg < 2:
+            raise ValueError("At least two args required for scheduled lookup")
+        # Flag for array or scalar
+        qvec = False
+        # Number of points in arrays (if any)
+        n = None
+        # Loop through args
+        for i, k in enumerate(args):
+            # Get value
+            V = x[i]
+            # Check type
+            if typeutils.isarray(V):
+                # Turn on array flag
+                qvec = True
+                # Get size
+                nk = len(V)
+                # Check consistency
+                if n is None:
+                    # New size
+                    n = nk
+                elif nk != n:
+                    # Inconsistent size
+                    raise ValueError(
+                        "Eval arg '%s' has size %i, expected %i" % (k, nk, n))
+            elif not isinstance(V, (float, int, np.ndarray)):
+                # Improper type
+                raise TypeError(
+                    "Eval arg '%s' has type '%s'" % (k, type(V))
+        # Check for arrays
+        if not qvec:
+            # Call scalar version
+            return self._get_schedule(args, x, extrap=extrap)
+        # Initialize tuple of fixed-size lookup points
+        X = tuple()
+        # Loop through args again
+        for i, k in enumerate(args):
+            # Get value
+            V = x[i]
+            # Check type
+            if isinstance(V, (float, int)):
+                # Create constant-value array
+                X += (V * np.ones(n),)
+            else:
+                # Copy array
+                X += (V,)
+        # Otherwise initialize arrays
+        I0 = np.zeros(n, dtype="int")
+        I1 = np.zeros(n, dtype="int")
+        F  = np.zeros(n)
+        # Initialize tuples of modified lookup points
+        X0 = tuple([np.zeros(n) for i in range(narg-1)])
+        X1 = tuple([np.zeros(n) for i in range(narg-1)])
+        # Loop through points
+        for j in range(n):
+            # Get lookup points
+            xj = tuple([X[i][j] for i in range(narg)])
+            # Evaluations
+            i0, i1, f, x0, x1 = self._get_schedule(
+                list(args), xj, extrap=extrap)
+            # Save indices
+            I0[j] = i0
+            I1[j] = i1
+            # Save lookup fraction
+            F[j] = f
+            # Save modified lookup points
+            for i in range(narg-1):
+                X0[i][j] = x0[i]
+                X1[i][j] = x1[i]
+        # Output
+        return I0, I1, F, X0, X1
+
+    # Return break points for schedule
+    def _get_schedule(self, args, x, extrap=True):
+        r"""Get lookup points for interpolation scheduled by master key
+
+        This is a utility that is used for situations where the break
+        points of some keys may vary as a schedule of another one.
+        For example if the maximum angle of attack in the database is
+        different at each Mach number.  This utility provides the
+        appropriate point at which to interpolate the remaining keys
+        at the value of the first key both above and below the input
+        value.  The first argument, ``args[0]``, is the master key
+        that controls the schedule.
+
+        :Call:
+            >>> i0, i1, f, x0, x1 = db.get_schedule(args, x, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *args*: :class:`list`\ [:class:`str`]
+                List of input argument names (*args[0]* is master key)
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+            *extrap*: {``True``} | ``False``
+                If ``False``, raise error when lookup value is outside
+                break point range for any key at any slice
+        :Outputs:
+            *i0*: ``None`` | :class:`int`
+                Lower bound index, if ``None``, extrapolation below
+            *i1*: ``None`` | :class:`int`
+                Upper bound index, if ``None``, extrapolation above
+            *f*: 0 <= :class:`float` <= 1
+                Lookup fraction, ``1.0`` if *v* is at upper bound
+            *x0*: :class:`np.ndarray` (:class:`float`)
+                Evaluation values for ``args[1:]`` at *i0*
+            *x1*: :class:`np.ndarray` (:class:`float`)
+                Evaluation values for ``args[1:]`` at *i1*
+        :Versions:
+            * 2019-04-19 ``@ddalle``: First version
+        """
+        # Error check
+        if len(args) < 2:
+            raise ValueError("At least two args required for scheduled lookup")
+        # Slice/scheduling key
+        skey = args.pop(0)
+        # Lookup value for first variable
+        i0, i1, f = self.get_bkpt_index(skey, x[0])
+        # Number of additional args
+        narg = len(args)
+        # Initialize lookup points at slice *i0* and slice *i1*
+        x0 = np.zeros(narg)
+        x1 = np.zeros(narg)
+        # Loop through arguments
+        for j, k in enumerate(args):
+            # Get min and max values
+            try:
+                # Try the case of varying break points indexed to *skey*
+                xmin0 = self.get_bkpt(k, i0, 0)
+                xmin1 = self.get_bkpt(k, i1, 0)
+                xmax0 = self.get_bkpt(k, i0, -1)
+                xmax1 = self.get_bkpt(k, i1, -1)
+            except TypeError:
+                # Fixed break points (apparently)
+                xmin0 = self.get_bkpt(k, 0)
+                xmin1 = self.get_bkpt(k, 0)
+                xmax0 = self.get_bkpt(k, -1)
+                xmax1 = self.get_bkpt(k, -1)
+            # Interpolate to current *skey* value
+            xmin = (1-f)*xmin0 + f*xmin1
+            xmax = (1-f)*xmax0 + f*xmax1
+            # Get the progress fraction at current inter-slice *skey* value
+            fj = (x[j+1] - xmin) / (xmax-xmin)
+            # Check for extrapolation
+            if not extrap and ((fj < -1e-3) or (fj - 1 > 1e-3)):
+                # Raise extrapolation error
+                raise ValueError(
+                    ("Lookup value %.4e is outside " % x[j+1]) +
+                    ("scheduled bounds [%.4e, %.4e]" % (xmin, xmax)))
+            # Get lookup points at slices *i0* and *i1* using this prog frac
+            x0[j] = (1-fj)*xmin0 + fj*xmax0
+            x1[j] = (1-fj)*xmin1 + fj*xmax1
+        # Output
+        return i0, i1, f, x0, x1
+
    # --- Nearest/Exact ---
     # Find exact match
     def eval_exact(self, col, args, x, **kw):
@@ -936,7 +1141,7 @@ class DBResponseScalar(DBResponseNull):
             >>> Y = db.eval_exact(col, args, x, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
@@ -997,7 +1202,7 @@ class DBResponseScalar(DBResponseNull):
             >>> y = db.eval_nearest(col, args, x, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of (numeric) column to evaluate
             *args*: :class:`list` | :class:`tuple`
@@ -1051,7 +1256,7 @@ class DBResponseScalar(DBResponseNull):
             >>> y = db.eval_multilinear(col, args, x)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
@@ -1082,7 +1287,7 @@ class DBResponseScalar(DBResponseNull):
             >>> y = db._eval_multilinear(col, args, x, I=None, j=None)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
@@ -1220,7 +1425,7 @@ class DBResponseScalar(DBResponseNull):
             >>> y = db.eval_multilinear(col, args, x)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
@@ -1263,7 +1468,7 @@ class DBResponseScalar(DBResponseNull):
             >>> y = DBc.eval_rbf(col, args, x)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
@@ -1271,8 +1476,8 @@ class DBResponseScalar(DBResponseNull):
             *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
                 Vector of values for each argument in *args*
         :Outputs:
-            *y*: ``None`` | :class:`float` | ``db[col].__class__``
-                Interpolated value from ``db[col]``
+            *y*: :class:`float` | :class:`np.ndarray`
+                Interpolated value from *db[col]*
         :Versions:
             * 2018-12-31 ``@ddalle``: First version
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
@@ -1294,7 +1499,7 @@ class DBResponseScalar(DBResponseNull):
             >>> f = db.get_rbf(col, i, j, ...)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
             *I*: :class:`tuple`
@@ -1339,16 +1544,89 @@ class DBResponseScalar(DBResponseNull):
         # Output
         return fn
 
+   # --- RBF-linear ---
+    # Multiple RBF lookup
+    def eval_rbf_linear(self, col, args, x, **kw):
+        r"""Evaluate two RBFs at slices of first *arg* and interpolate
+
+        :Call:
+            >>> y = db.eval_rbf_linear(col, args, x)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of lookup key names
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+        :Outputs:
+            *y*: :class:`float` | :class:`np.ndarray`
+                Interpolated value from *db[col]*
+        :Versions:
+            * 2018-12-31 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Lookup value for first variable
+        i0, i1, f = self.get_bkpt_index(args[0], x[0])
+        # Get lookup functions for *i0* and *i1*
+        f0 = self.get_rbf(col, i0)
+        f1 = self.get_rbf(col, i1)
+        # Evaluate both functions
+        y0 = f0(*x[1:])
+        y1 = f1(*x[1:])
+        # Interpolate
+        y = (1-f)*y0 + f*y1
+        # Output
+        return y
+
+   # --- RBF-schedule ---
+    # Multiple RBF lookup, curvilinear
+    def eval_rbf_schedule(self, col, args, x, **kw):
+        r"""Evaluate two RBFs at slices of first *arg* and interpolate
+
+        :Call:
+            >>> y = db.eval_rbf_schedule(col, args, x)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of lookup key names
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+        :Outputs:
+            *y*: :class:`float` | :class:`np.ndarray`
+                Interpolated value from *db[col]*
+        :Versions:
+            * 2018-12-31 ``@ddalle``: First version
+        """
+        # Extrapolation option
+        extrap = kw.get("extrap", False)
+        # Get lookup points at both sides of scheduling key
+        i0, i1, f, x0, x1 = self.get_schedule(list(args), x, extrap=extrap)
+        # Get lookup functions for *i0* and *i1*
+        f0 = self.get_rbf(col, i0)
+        f1 = self.get_rbf(col, i1)
+        # Evaluate the RBFs at both slices
+        y0 = f0(*x0)
+        y1 = f1(*x1)
+        # Interpolate between the slices
+        y = (1-f)*y0 + f*y1
+        # Output
+        return y
+
    # --- Generic Function ---
     # Generic function
     def eval_function(self, col, args, x, **kw):
-        """Evaluate a single user-saved function
+        r"""Evaluate a single user-saved function
 
         :Call:
-            >>> y = DBc.eval_function(col, args, x)
+            >>> y = db.eval_function(col, args, x)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
-                Coefficient database interface
+                Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
@@ -1380,4 +1658,158 @@ class DBResponseScalar(DBResponseNull):
         else:
             # Stand-alone function
             return f(*x, **kw)
+  # >
+
+  # ====================
+  # RBF Tools
+  # ====================
+  # <
+   # --- RBF construction ---
+    # Regularization
+    def create_global_rbfs(self, cols, args, I=None, **kw):
+        r"""Create global radial basis functions for one or more columns
+
+        :Call:
+            >>> db.create_global_rbfs(cols, args, I=None)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *cols*: :class:`list`\ [:class:`str`]
+                List of columns to create RBFs for
+            *args*: :class:`list`\ [:class:`str`]
+                List of (ordered) input keys, default is from *db.bkpts*
+            *I*: {``None``} | :class:`np.ndarray`
+                Indices of cases to include in RBF (default is all)
+            *function*: {``"cubic"``} | :class:`str`
+                Radial basis function type
+            *smooth*: {``0.0``} | :class:`float` >= 0
+                Smoothing factor, ``0.0`` for exact interpolation
+        :Effects:
+            *db.rbf[col]*: :class:`scipy.interpolate.rbf.Rbf`
+                Radial basis function for each *col* in *cols*
+        :Versions:
+            * 2019-01-01 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Check for module
+        if scirbf is None:
+            raise ImportError("No scipy.interpolate.rbf module")
+        # Create *rbf* attribute if needed
+        rbf = self.__dict__.setdefault("rbf", {})
+        # RBF options
+        func   = kw.get("function", "cubic")
+        smooth = kw.get("smooth", 0.0)
+        # Default indices
+        if I is None:
+            # Size of database
+            n = len(self[args[0]])
+            # All the indices
+            I = np.arange(n)
+        # Create tuple of input points
+        V = tuple(self[k][I] for k in args)
+        # Loop through coefficients
+        for col in cols:
+            # Eval arguments for status update
+            txt = str(tuple(args)).replace(" ", "")
+            # Trim if too long
+            if len(txt) > 50:
+                txt = txt[:45] + "...)"
+            # Status update line
+            txt = "Creating RBF for %s%s" % (col, txt)
+            sys.stdout.write("%-72s\r" % txt)
+            sys.stdout.flush()
+            # Append reference values to input tuple
+            Z = V + (self[col][I],)
+            # Create a single RBF
+            f = scirbf.Rbf(*Z, function=func, smooth=smooth)
+            # Save it
+            rbf[col] = f
+        # Clean up the prompt
+        sys.stdout.write("%72s\r" % "")
+        sys.stdout.flush()
+
+    # Regularization
+    def CreateSliceRBFs(self, cols, args, I=None, **kw):
+        r"""Create radial basis functions for each slice of *args[0]*
+
+        The first entry in *args* is interpreted as a "slice" key; RBFs
+        will be constructed at constant values of *args[0]*.
+
+        :Call:
+            >>> db.CreateSliceRBFs(coeffs, args, I=None)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *cols*: :class:`list`\ [:class:`str`]
+                List of columns to create RBFs for
+            *args*: :class:`list`\ [:class:`str`]
+                List of (ordered) input keys, default is from *db.bkpts*
+            *I*: {``None``} | :class:`np.ndarray`
+                Indices of cases to include in RBF (default is all)
+            *function*: {``"cubic"``} | :class:`str`
+                Radial basis function type
+            *smooth*: {``0.0``} | :class:`float` >= 0
+                Smoothing factor, ``0.0`` for exact interpolation
+        :Effects:
+            *db.rbf[col]*: :class:`list`\ [:class:`scirbf.Rbf`]
+                List of RBFs at each slice for each *col* in *cols*
+        :Versions:
+            * 2019-01-01 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Check for module
+        if scirbf is None:
+            raise ImportError("No scipy.interpolate.rbf module")
+        # Create *rbf* attribute if needed
+        self.__dict__.setdefault("rbf", {})
+        # RBF options
+        func  = kw.get("function", "cubic")
+        smooth = kw.get("smooth", 0.0)
+        # Name of slice key
+        skey = args[0]
+        # Tolerances
+        tols = kw.get("tols", {})
+        # Tolerance for slice key
+        tol = kw.get("tol", tols.get(skey, 1e-6))
+        # Default indices
+        if I is None:
+            # Size of database
+            n = len(self[skey])
+            # All the indices
+            I = np.arange(n)
+        # Get break points for slice key
+        B = self.bkpts[skey]
+        # Number of slices
+        nslice = len(B)
+        # Initialize the RBFs
+        for col in cols:
+            self.rbf[col] = []
+        # Loop through slices
+        for b in B:
+            # Get slice constraints
+            qj = np.abs(self[skey][I] - b) <= tol
+            # Select slice and add to list
+            J = I[qj]
+            # Create tuple of input points
+            V = tuple(self[k][J] for k in args[1:])
+            # Create a string for slice coordinate and remaining args
+            arg_string_list = ["%s=%g" % (skey,b)]
+            arg_string_list += [str(k) for k in args[1:]]
+            # Joint list with commas
+            arg_string = "(" + (",".join(arg_string_list)) + ")"
+            # Loop through coefficients
+            for coeff in coeffs:
+                # Status update
+                txt = "Creating RBF for %s%s" % (col, arg_string)
+                sys.stdout.write("%-72s\r" % txt[:72])
+                sys.stdout.flush()
+                # Append reference values to input tuple
+                Z = V + (self[coeff][J],)
+                # Create a single RBF
+                f = scirbf.Rbf(*Z, function=func, smooth=smooth)
+                # Save it
+                self.rbf[col].append(f)
+        # Clean up the prompt
+        sys.stdout.write("%72s\r" % "")
+        sys.stdout.flush()
   # >
