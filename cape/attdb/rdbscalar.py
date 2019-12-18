@@ -1253,4 +1253,131 @@ class DBResponseScalar(DBResponseNull):
         y1 = self._eval_multilinear(col, args, x1, I=I1, j=i1)
         # Linear interpolation in the schedule key
         return (1-f)*y0 + f*y1
+
+   # --- Radial Basis Functions ---
+    # RBF lookup
+    def eval_rbf(self, col, args, x, **kw):
+        """Evaluate a single radial basis function
+
+        :Call:
+            >>> y = DBc.eval_rbf(col, args, x)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Coefficient database interface
+            *col*: :class:`str`
+                Name of column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of lookup key names
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+        :Outputs:
+            *y*: ``None`` | :class:`float` | ``db[col].__class__``
+                Interpolated value from ``db[col]``
+        :Versions:
+            * 2018-12-31 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Get the radial basis function
+        f = self.get_rbf(col)
+        # Evaluate
+        return f(*x)
+
+    # Get an RBF
+    def get_rbf(self, col, *I):
+        r"""Extract a radial basis function, with error checking
+
+        :Call:
+            >>> f = db.get_rbf(col, *I)
+            >>> f = db.get_rbf(col)
+            >>> f = db.get_rbf(col, i)
+            >>> f = db.get_rbf(col, i, j)
+            >>> f = db.get_rbf(col, i, j, ...)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Coefficient database interface
+            *col*: :class:`str`
+                Name of column to evaluate
+            *I*: :class:`tuple`
+                Tuple of lookup indices
+            *i*: :class:`int`
+                (Optional) first RBF list index
+            *j*: :class:`int`
+                (Optional) second RBF list index
+        :Outputs:
+            *f*: :class:`scipy.interpolate.rbf.Rbf`
+                Callable radial basis function
+        :Versions:
+            * 2018-12-31 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Get the radial basis function
+        try:
+            fn = self.rbf[col]
+        except AttributeError:
+            # No radial basis functions at all
+            raise AttributeError("No radial basis functions found")
+        except KeyError:
+            # No RBF for this coefficient
+            raise KeyError("No radial basis function for col '%s'" % col)
+        # Number of indices given
+        nd = len(I)
+        # Loop through indices
+        for n, i in enumerate(I):
+            # Try to extract
+            try:
+                # Get the *ith* list entry
+                fn = fn[i]
+            except TypeError:
+                # Reached RBF too soon
+                raise TypeError(
+                    ("RBF for '%s':\n" % col) +
+                    ("Expecting %i-dimensional " % nd) +
+                    ("array but found %i-dim" % n))
+        # Test type
+        if not callable(fn):
+            raise TypeError("RBF '%s' index %i is not callable" % (col, I))
+        # Output
+        return fn
+
+   # --- Generic Function ---
+    # Generic function
+    def eval_function(self, col, args, x, **kw):
+        """Evaluate a single user-saved function
+
+        :Call:
+            >>> y = DBc.eval_function(col, args, x)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Coefficient database interface
+            *col*: :class:`str`
+                Name of column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of lookup key names
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+        :Outputs:
+            *y*: ``None`` | :class:`float` | ``DBc[coeff].__class__``
+                Interpolated value from ``DBc[coeff]``
+        :Versions:
+            * 2018-12-31 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Get the function
+        try:
+            f = self.eval_func[col]
+        except AttributeError:
+            # No evaluation functions set
+            raise AttributeError(
+                "No evaluation functions present in database")
+        except KeyError:
+            # No keys
+            raise KeyError(
+                "No evaluation function for col '%s'" % col)
+        # Evaluate
+        if self.eval_func_self.get(col):
+            # Use reference to *self*
+            return f(self, *x, **kw)
+        else:
+            # Stand-alone function
+            return f(*x, **kw)
   # >
