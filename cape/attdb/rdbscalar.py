@@ -1201,4 +1201,56 @@ class DBResponseScalar(DBResponseNull):
             F *= Fi
         # Perform interpolation
         return np.sum(F*V[J])
+
+   # --- Multilinear-schedule ---
+    # Multilinear lookup at each value of arg
+    def eval_multilinear_schedule(self, col, args, x, **kw):
+        r"""Perform "scheduled" linear interpolation in *n* dimensions
+
+        This assumes the database is ordered with the first entry of
+        *args* varying the most slowly and that the data is perfectly
+        regular.  However, each slice at a constant value of *args[0]*
+        may have separate break points for all the other args.  For
+        example, the matrix of angle of attack and angle of sideslip
+        may be different at each Mach number.  In this case, *db.bkpts*
+        will be a list of 1D arrays for *alpha* and *beta* and just a
+        single 1D array for *mach*.
+
+        :Call:
+            >>> y = db.eval_multilinear(col, args, x)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Coefficient database interface
+            *col*: :class:`str`
+                Name of column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of lookup key names
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+            *tol*: {``1e-6``} | :class:`float` >= 0
+                Tolerance for matching slice key
+        :Outputs:
+            *y*: ``None`` | :class:`float` | ``db[col].__class__``
+                Interpolated value from ``db[col]``
+        :Versions:
+            * 2019-04-19 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Slice tolerance
+        tol = kw.get("tol", 1e-6)
+        # Name of master (slice) key
+        skey = args[0]
+        # Get lookup points at both sides of scheduling key
+        i0, i1, f, x0, x1 = self.get_schedule(args, x, extrap=False)
+        # Get the values for the slice key
+        x00 = self.get_bkpt(skey, i0)
+        x01 = self.get_bkpt(skey, i1)
+        # Find indices of the two slices
+        I0 = np.where(np.abs(self[skey] - x00) <= tol)[0]
+        I1 = np.where(np.abs(self[skey] - x01) <= tol)[0]
+        # Perform interpolations
+        y0 = self._eval_multilinear(col, args, x0, I=I0, j=i0)
+        y1 = self._eval_multilinear(col, args, x1, I=I1, j=i1)
+        # Linear interpolation in the schedule key
+        return (1-f)*y0 + f*y1
   # >
