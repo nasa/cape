@@ -1462,7 +1462,7 @@ class DBResponseNull(dict):
         r"""Get interpolation weights for 1D linear interpolation
 
         :Call:
-            >>> i0, i1, f = DBc.get_bkpt_index(k, v)
+            >>> i0, i1, f = db.get_bkpt_index(k, v, tol=1e-8)
         :Inputs:
             *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
                 Data container
@@ -1519,10 +1519,10 @@ class DBResponseNull(dict):
         """Get weights 1D interpolation of *k* at a slice of master key
 
         :Call:
-            >>> i0, i1, f = DBc.get_bkpt_index_schedule(k, v, j)
+            >>> i0, i1, f = db.get_bkpt_index_schedule(k, v, j)
         :Inputs:
-            *DBc*: :class:`tnakit.db.db1.DBCoeff`
-                Coefficient database interface
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Data container
             *k*: :class:`str`
                 Name of trajectory key in *FM.bkpts* for lookup
             *v*: :class:`float`

@@ -270,8 +270,8 @@ class DBResponseScalar(DBResponseNull):
             f = self.eval_function
         else:
             # Unknown method
-            raise ValueError("Could not interpret evaluation method '%s'"
-                % method_coeff)
+            raise ValueError(
+                "Could not interpret evaluation method '%s'" % method_col)
         # Calls
         if nd == 0:
             # Scalar call
@@ -991,7 +991,7 @@ class DBResponseScalar(DBResponseNull):
 
     # Lookup nearest value
     def eval_nearest(self, col, args, x, **kw):
-        """Evaluate a coefficient by looking up nearest match
+        r"""Evaluate a coefficient by looking up nearest match
 
         :Call:
             >>> y = db.eval_nearest(col, args, x, **kw)
@@ -1037,4 +1037,168 @@ class DBResponseScalar(DBResponseNull):
         j = np.argmin(d)
         # Use that value
         return V[j]
+
+   # --- Linear ---
+    # Multilinear lookup
+    def eval_multilinear(self, col, args, x, **kw):
+        r"""Perform linear interpolation in *n* dimensions
+
+        This assumes the database is ordered with the first entry of
+        *args* varying the most slowly and that the data is perfectly
+        regular.
+
+        :Call:
+            >>> y = db.eval_multilinear(col, args, x)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Coefficient database interface
+            *col*: :class:`str`
+                Name of column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of lookup key names
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+            *bkpt*: ``True`` | {``False``}
+                Flag to interpolate break points instead of data
+        :Outputs:
+            *y*: ``None`` | :class:`float` | ``db[col].__class__``
+                Interpolated value from ``db[col]``
+        :Versions:
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Call root method without two of the options
+        return self._eval_multilinear(col, args, x, **kw)
+
+    # Evaluate multilinear interpolation with caveats
+    def _eval_multilinear(self, col, args, x, I=None, j=None, **kw):
+        r"""Perform linear interpolation in *n* dimensions
+
+        This assumes the database is ordered with the first entry of
+        *args* varying the most slowly and that the data is perfectly
+        regular.
+
+        :Call:
+            >>> y = db._eval_multilinear(col, args, x, I=None, j=None)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Coefficient database interface
+            *col*: :class:`str`
+                Name of column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of lookup key names
+            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
+                Vector of values for each argument in *args*
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Optional subset of database on which to perform
+                interpolation
+            *j*: {``None``} | :class:`int`
+                Slice index, used by :func:`eval_multilinear_schedule`
+            *bkpt*: ``True`` | {``False``}
+                Flag to interpolate break points instead of data
+        :Outputs:
+            *y*: ``None`` | :class:`float` | ``DBc[coeff].__class__``
+                Interpolated value from ``DBc[coeff]``
+        :Versions:
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-04-19 ``@ddalle``: Moved from :func:`eval_multilnear`
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Check for break-point evaluation flag
+        bkpt = kw.get("bkpt", kw.get("breakpoint", False))
+        # Possible values
+        try:
+            # Extract coefficient
+            if bkpt:
+                # Lookup from breakpoints
+                V = self.bkpts[col]
+            else:
+                # Lookup from main data
+                V = self[col]
+        except KeyError:
+            # Missing key
+            raise KeyError("Coefficient '%s' is not present" % coeff)
+        # Subset if appropriate
+        if I is not None:
+            # Attempt to subset
+            try:
+                # Select some indices
+                V = V[I]
+            except Exception:
+                # Informative error
+                raise ValueError(
+                    "Failed to subset col '%s' using class '%s'"
+                    % (coeff, I.__class__))
+        # Number of keys
+        nk = len(args)
+        # Count
+        n = len(V)
+        # Get break points for this schedule
+        bkpts = {}
+        for k in args:
+            bkpts[k] = self._scheduled_bkpts(k, j)
+        # Lengths for each variable
+        N = [len(bkpts[k]) for k in args]
+        # Check consistency
+        if np.prod(N) != n:
+            raise ValueError(
+                ("Column '%s' has size %i, " % (col, n)),
+                ("but total size of args %s is %i." % (args, np.prod(N))))
+        # Initialize list of indices for each key
+        I0 = []
+        I1 = []
+        F1 = []
+        # Get lookup indices for each argument
+        for (i, k) in enumerate(args):
+            # Lookup value
+            xi = x[i]
+            # Values
+            Vk = bkpts[k]
+            # Get indices
+            i0, i1, f = self._bkpt_index(Vk, xi)
+            # Check for problems
+            if i0 is None:
+                # Below
+                raise ValueError(
+                    ("Value %s=%.4e " % (k, xi)) +
+                    ("below lower bound (%.4e)" % Vk[0]))
+            elif i1 is None:
+                raise ValueError(
+                    ("Value %s=%.4e " % (k, xi)) +
+                    ("above upper bound (%.4e)" % Vk[-1]))
+            # Save values
+            I0.append(i0)
+            I1.append(i1)
+            F1.append(f)
+        # Index of the lowest corner
+        j0 = 0
+        # Loop through the keys
+        for i in range(nk):
+            # Get value
+            i0 = I0[i]
+            # Overall ; multiply index by size of remaining block
+            j0 += i0 * int(np.prod(N[i+1:]))
+        # Initialize overall indices and weights
+        J = j0 * np.ones(2**nk, dtype="int")
+        F = np.ones(2**nk)
+        # Counter from 0 to 2^nk-1
+        E = np.arange(2**nk)
+        # Loop through keys again
+        for i in range(nk):
+            # Exponent of two to use for this key
+            e = nk - i
+            # Up or down for each of the 2^nk individual lookup points
+            jupdown = E % 2**e // 2**(e-1)
+            # Size of remaining block
+            subblock = int(np.prod(N[i+1:]))
+            # Increment overall indices
+            J += jupdown*subblock
+            # Progress fraction for this variable
+            fi = F1[i]
+            # Convert up/down to either fi or 1-fi
+            Fi = (1-fi)*(1-jupdown) + jupdown*fi
+            # Apply weights
+            F *= Fi
+        # Perform interpolation
+        return np.sum(F*V[J])
   # >
