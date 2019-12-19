@@ -1,22 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`tnakit.text.rst`: Tools for writing ReST files
+:mod:`tnakit.rstutils`: Tools for writing ReST files
 =========================================================
 
-This module contains tools to write text formatted for reStructuredText (reST).
-This includes various markup options and tools for creating the directives to
-include images.  Of particular interest are the functions
-:func:`rst_image_table_lines` and :func:`rst_image_table`, which simplifies the
-important task of creating a table that includes several images.
+This module contains tools to write text formatted for reStructuredText
+(reST). This includes various markup options and tools for creating the
+directives to include images.  Of particular interest are the functions
+:func:`rst_image_table_lines` and :func:`rst_image_table`, which
+simplifies the important task of creating a table that includes several
+images.
 """
 
 # Regular expressions
 import re
 
 # Local modules
-from . import wrap
-from .. import typeutils
+from . import typeutils
+from .textutils import wrap
 
 
 # Function to create input or output reST dict for docstring
@@ -63,6 +64,8 @@ def rst_param_list(keys, types, descrs, alts={}, **kw):
         raise TypeError("Indent must be an int")
     elif not isinstance(tab, int):
         raise TypeError("Additional tab width must be an int")
+    # Convert indent and tab to strs
+    tab1 = " " * indent
     # Number of keys
     nkey = len(keys)
     # Initialize text; ensuring unicode in Python 2 and 3
@@ -94,7 +97,7 @@ def rst_param_list(keys, types, descrs, alts={}, **kw):
         txt_desc = "\n".join(lines_desc) + "\n"
         # First indent: skip if first line
         if i > 0:
-            txt += indent
+            txt += tab1
         # Append text for primary variable name
         txt += "*%s*" % k
         # Add alternate names

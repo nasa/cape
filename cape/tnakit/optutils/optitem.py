@@ -234,7 +234,7 @@ def getringel_list(x, i=None):
             # List of lists; use regular method
             return getringel(x, i)
         else:
-            # Just a list; for this function one level of list is a scalar
+            # Just a list; for this function we want the whole list
             return x
     else:
         # Scalar (should this be an error?)
