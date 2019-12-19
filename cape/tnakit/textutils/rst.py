@@ -19,6 +19,102 @@ from . import wrap
 from .. import typeutils
 
 
+# Function to create input or output reST dict for docstring
+def rst_param_list(keys, types, descrs, alts={}, **kw):
+    r"""Write a docstring for a list of parameters
+
+    :Call:
+        >>> txt = rst_param_list(keys, types, descrs, alts={}, **kw)
+    :Inputs:
+        *keys*: :class:`list`\ [:class:`str`]
+            List of parameters to describe
+        *types*: :class:`dict`\ [:class:`str`]
+            Docstring of types for each *key* in *keys*
+        *descrs*: :class:`dict`\ [:class:`str`]
+            Docstring of descriptions for each *key* in *keys*
+        *alts*: {``{}``} | :class:`dict`\ [:class:`str`]
+            Dictionary of optional names for certain keys
+        *indent*: {``4``} | :class:`int` > 0
+            Indent spaces for each line
+        *tab*: {``4``} | :class:`int` > 0
+            Additional spaces for further indentation
+        *width*: {``72``} | :class:`int`
+            Maximum width for line of text (including spaces)
+    :Outputs:
+        *txt*: :class:`str`
+            Text in CAPE docstring format describing *keys*
+    :Versions:
+        * 2019-12-19 ``@ddalle``: First version
+    """
+    # Get other options
+    indent = kw.get("indent", 4)
+    tab = kw.get("tab", 4)
+    width = kw.get("width", 72)
+    # Check types
+    if not isinstance(keys, list):
+        raise TypeError("Parameter list must be a list")
+    elif not isinstance(types, dict):
+        raise TypeError("Parameter types must be a dict")
+    elif not isinstance(descrs, dict):
+        raise TypeError("Parameter descriptions must be a dict")
+    elif not isinstance(alts, dict):
+        raise TypeError("Alternate parameter names must be a dict")
+    elif not isinstance(indent, int):
+        raise TypeError("Indent must be an int")
+    elif not isinstance(tab, int):
+        raise TypeError("Additional tab width must be an int")
+    # Number of keys
+    nkey = len(keys)
+    # Initialize text; ensuring unicode in Python 2 and 3
+    txt = u""
+    # Loop through keys
+    for (i, k) in enumerate(keys):
+        # Check type
+        if not typeutils.isstr(k):
+            raise TypeError("Parameter %i is not a string" % i)
+        # Get type and text
+        rst_type = types.get(k)
+        rst_desc = descrs.get(k)
+        # Check types
+        if rst_type is None:
+            raise KeyError("No type for parameter '%s'" % k)
+        elif rst_desc is None:
+            raise KeyError("No description for parameter '%s'" % k)
+        elif not typeutils.isstr(rst_type):
+            raise TypeError(
+                "Type description for parameter '%s' is not a string" % k)
+        elif not typeutils.isstr(rst_desc):
+            raise TypeError(
+                "Description for parameter '%s' is not a string" % k)
+        # Find alternate names
+        key_alt = [k1 for (k1, k2) in alts.items() if (k2 == k)]
+        # Wrap the text
+        lines_desc = wrap.wrap_text(rst_desc, width, indent+tab)
+        # Form into single string
+        txt_desc = "\n".join(lines_desc) + "\n"
+        # First indent: skip if first line
+        if i > 0:
+            txt += indent
+        # Append text for primary variable name
+        txt += "*%s*" % k
+        # Add alternate names
+        for ka in key_alt:
+            # Delimiter and alternate name
+            txt += ", *%s*" % ka
+        # Delimiter and type description
+        txt += ": "
+        txt += rst_type
+        txt += "\n"
+        # Description (strip final \n)
+        if i + 1 == nkey:
+            txt += txt_desc[:-1]
+        else:
+            txt += txt_desc
+    # Output
+    return txt
+    
+
+
 # Write a title
 def rst_title(title, char="-", margin=2, before=False):
     """Create an ReST title from string

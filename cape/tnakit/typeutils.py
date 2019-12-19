@@ -57,6 +57,8 @@ else:
     intlike = (int, long)
     filelike = (file, io.IOBase)
 
+# Universal type tuples
+arraylike = (list, ndarray)
 
 
 # Check for a string

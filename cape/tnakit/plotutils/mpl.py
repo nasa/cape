@@ -73,7 +73,6 @@ def import_matplotlib():
     if (os.name != "nt") and (os.environ.get("DISPLAY") is None):
         # Not on Windows and no display: no window to create fig
         mpl.use("Agg")
-# def import_matplotlib
 
 
 # Import :mod:`matplotlib`
@@ -104,7 +103,6 @@ def import_pyplot():
         import matplotlib.pyplot as plt
     except ImportError:
         return
-# def import_matplotlib
 
 
 # Primary plotter

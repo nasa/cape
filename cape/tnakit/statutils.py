@@ -2,12 +2,20 @@
 # -*- coding: utf-8 -*-
 """
 -------------------------------------------------------
-:mod:`attdb.stats`: Statistics for ATT Database Tools
+:mod:`cape.tnakit.statutils`: Statistics tools
 -------------------------------------------------------
 
-This module includes team-specific statistics tools for aero databases in the
-context of the SLS Aero Task Team.  This includes analysis of ranges with
-outlier checks and Gaussian-based coverage analysis.
+This module includes several shorthand calls to statistical functions
+from :mod:`scipy.stats`.  The primary tool provided by this module is to
+calculate 99% (or any other fraction) coverage ranges for two data sets.
+
+This module depends on :mod:`scipy.stats` from the SciPy package.  To
+ensure that this package is installed, even without root privileges on
+your system, run
+
+    .. code-block:: console
+
+        pip install --user --upgrade scipy
 
 """
 
@@ -20,7 +28,6 @@ try:
     from scipy.stats import t as student
 except ImportError:
     pass
-# stats
 
 
 # Calculate range
