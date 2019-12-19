@@ -1731,7 +1731,7 @@ class MPLOpts(dict):
   # ====================
   # <
     # Lists of options
-    _kw = [
+    _optlist = [
         "ymin",
         "ymax",
         "yerr",
@@ -1754,7 +1754,7 @@ class MPLOpts(dict):
     ]
     
     # Alternate names
-    _kw_map = {
+    _optmap = {
         "PlotUQ": "PlotUncertainty",
         "lbl": "Label",
         "label": "Label",
@@ -1777,7 +1777,7 @@ class MPLOpts(dict):
     ]
     
     # Types
-    _kw_types = {
+    _opttypes = {
         "ymin": typeutils.arraylike,
         "ymax": typeutils.arraylike,
         "xerr": typeutils.arraylike,
@@ -2013,9 +2013,9 @@ class MPLOpts(dict):
 
         # Check keywords
         opts = kwutils.check_kw_types(
-            cls._kw,
-            cls._kw_map,
-            cls._kw_types,
+            cls._optlist,
+            cls._optmap,
+            cls._opttypes,
             {}, 1, **optsdict)
 
         # Copy entries
@@ -2099,11 +2099,17 @@ class MPLOpts(dict):
   # Docstring Manipulation
   # =========================
   # <
-    font_options.__doc__ = font_options.__doc__ %  dict(
-        keys=rstutils.rst_param_list(
-            MPLOpts._optlist_font,
-            MPLOpts._rst_types,
-            MPLOpts._rst_descriptions,
-            MPLOpts._kw_map,
-            indent=12))
+    # Loop through functions to rename
+    for (fn, optlist) in [
+        (font_options, _optlist_font)
+    ]:
+        # Create string to replace "%(keys)s" with
+        _doc_rst = rstutils.rst_param_list(
+            optlist,
+            _rst_types,
+            _rst_descriptions,
+            _optmap,
+            indent=12)
+        # Apply text to the docstring
+        fn.__doc__ = fn.__doc__ % {"keys": _doc_rst}
   # >
