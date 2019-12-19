@@ -2010,13 +2010,15 @@ class MPLOpts(dict):
         cls = self.__class__
         # Initialize an unfiltered dict
         optsdict = dict(*a, **kw)
+        # Remove anything that's ``None``
+        opts = cls.denone(optsdict)
 
         # Check keywords
         opts = kwutils.check_kw_types(
             cls._optlist,
             cls._optmap,
             cls._opttypes,
-            {}, 1, **optsdict)
+            {}, 1, **opts)
 
         # Copy entries
         for (k, v) in opts.items():
