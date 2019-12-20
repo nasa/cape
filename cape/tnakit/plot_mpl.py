@@ -505,6 +505,7 @@ def figure(**kw):
     """
     # Import PyPlot
     import_pyplot()
+    import_matplotlib()
     # Get figure handle and other options
     fig = kw.get("fig", None)
     figopts = kw.get("FigOptions", {})
@@ -541,12 +542,12 @@ def axes(**kw):
     """Create new axes or edit one if necessary
 
     :Call:
-        >>> fig = axes_part(**kw)
+        >>> fig = axes(**kw)
     :Inputs:
-        *kw*: :class:`dict`
-            Dictionary of figure-like options
         *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
             Optional axes handle
+        *AxesOptions*: {``None``} | :class:`dict`
+            Options to apply to figure handle using :func:`ax.set`
     :Outputs:
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
@@ -555,15 +556,33 @@ def axes(**kw):
     """
     # Import PyPlot
     import_pyplot()
-    # Get figure handle
-    ax = kw.pop("ax", None)
+    # Get figure handle and other options
+    ax = kw.get("ax", None)
+    axopts = kw.get("AxesOptions", {})
+    # Check for a subplot description
+    axnum = axopts.pop("subplot", None)
     # Create figure if needed
-    if ax is None:
-        # Use most recent figure (can be new one)
-        ax = plt.gca()
-    # Loop through any remaining options
-    for k in kw:
-        print("  Warning: unused axes option '%s'" % k)
+    if not isinstance(fig, mplfig.Figure):
+        # Check for specified figure
+        if axnum is None:
+            # Use most recent figure (can be new one)
+            ax = plt.gca()
+        else:
+            # Get specified figure
+            ax = plt.subplot(axnum)
+    # Loop through options
+    for (k, v) in axopts.items():
+        # Check for None
+        if not v:
+            continue
+        # Get setter function
+        fn = getattr(ax, "set_" + k, None)
+        # Check property
+        if fn is None:
+            sys.stderr.write("No axes property '%s'\n" % k)
+            sys.stderr.flush()
+        # Apply setter
+        fn(v)
     # Output
     return ax
 
@@ -1790,8 +1809,21 @@ class MPLOpts(dict):
         "wfig": "FigWidth",
         "nfig": "FigNumber",
         "numfig": "FigNumber",
+        "Axes": "ax",
     }
     # Options for specific purposes
+    _optlist_ax = [
+        "ax",
+        "AxesOptions"
+    ]
+    _optlist_fig = [
+        "fig",
+        "FigOptions",
+        "FigNumber",
+        "FigWidth",
+        "FigHeight",
+        "FigDPI"
+    ]
     _optlist_font = [
         "FontOptions",
         "FontName",
@@ -1800,13 +1832,6 @@ class MPLOpts(dict):
         "FontStyle",
         "FontVariant",
         "FontWeight"
-    ]
-    _optlist_fig = [
-        "FigOptions",
-        "FigNumber",
-        "FigWidth",
-        "FigHeight",
-        "FigDPI"
     ]
     
     # Types
@@ -1835,6 +1860,8 @@ class MPLOpts(dict):
         "FigWidth": float,
         "FigNumber": int,
         "FigDPI": (float, int),
+        "ax": object,
+        "AxesOptions": dict,
     }
     # Type strings
     _rst_types = {
@@ -1852,6 +1879,8 @@ class MPLOpts(dict):
         "FigWidth": _rst_floatpos,
         "FigHeight": _rst_floatpos,
         "FigDPI": _rst_numpos,
+        "ax": """{``None``} | :class:`matplotlib.axes.Axes`""",
+        "AxesOptions": _rst_dict,
     }
     # Option descriptions
     _rst_descriptions = {
@@ -1868,14 +1897,23 @@ class MPLOpts(dict):
         "fig": """Handle to existing figure""",
         "FigOptions": """Options to :class:`matplotlib.figure.Figure`""",
         "FigNumber": "Figure number",
-        "FigHeight": "Figure height [inches] (overrides *FigOptions*)",
-        "FigWidth": "Figure width [inches] (overrides *FigOptions*)",
+        "FigHeight": "Figure height [inches]",
+        "FigWidth": "Figure width [inches]",
         "FigDPI": "Figure resolution in dots per inch",
+        "ax": """Handle to existing axes""",
+        "AxesOptions": """Options to :class:`AxesSubplot`""",
     }
         
     
     # Global options mapped to subcategory options
     _kw_submap = {
+        "AxesOptions": {},
+        "FigOptions": {
+            "FigNumber": "num",
+            "FigDPI": "dpi",
+            "FigHeight": "figheight",
+            "FigWidth": "figwidth",
+        },
         "FontOptions": {
             "FontName":    "family",
             "FontSize":    "size",
@@ -1883,12 +1921,6 @@ class MPLOpts(dict):
             "FontStyle":   "style",
             "FontVariant": "variant",
             "FontWeight":  "weight",
-        },
-        "FigOptions": {
-            "FigNumber": "num",
-            "FigDPI": "dpi",
-            "FigHeight": "figheight",
-            "FigWidth": "figwidth",
         },
     }
     
@@ -2163,10 +2195,60 @@ class MPLOpts(dict):
         # Output
         return cls.denone(kw)
 
+    # Axes options
+    def axes_options(self):
+        r"""Process options for axes handle
+
+        :Call:
+            >>> kw = opts.axes_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plt.axes`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap
+        kw_map = cls._kw_submap["AxesOptions"]
+        # Get top-level options
+        kw_ax = self.get("AxesOptions", {})
+        # Apply defaults
+        kw_ax = dict(cls._rc_axopts, **kw_ax)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw_ax[kp] = self[k]
+        # Save figure options
+        kw = dict(cls._rc_axes, AxesOptions=cls.denone(kw_ax))
+        # Loop through other options
+        for k in cls._optlist_axes:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            elif k in kw_map:
+                # Already mapped to fig() opts
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Output
+        return cls.denone(kw)
+        
+
     # Global font options
     def font_options(self):
         r"""Process global font options
-    
+
         :Call:
             >>> kw = opts.font_options()
         :Inputs:
@@ -2198,7 +2280,6 @@ class MPLOpts(dict):
             kw[kp] = self[k]
         # Remove "None"
         return cls.denone(kw)
-        
   # >
 
   # =========================
@@ -2207,8 +2288,9 @@ class MPLOpts(dict):
   # <
     # Loop through functions to rename
     for (fn, optlist) in [
-        (font_options, _optlist_font),
+        (axes_options, _optlist_axes),
         (figure_options, _optlist_fig),
+        (font_options, _optlist_font),
     ]:
         # Create string to replace "%(keys)s" with
         _doc_rst = rstutils.rst_param_list(
