@@ -29,7 +29,7 @@ from . import cmd
 # Imitate sp.check_output() for older versions
 def check_output(cmdi):
     """Imitate the behavior of :func:`sp.check_output` using :func:`sp.Popen`
-    
+
     :Call:
         >>> txt = check_output(cmdi)
     :Inputs:
@@ -50,7 +50,7 @@ def check_output(cmdi):
 # Function to call commands with a different STDOUT
 def calli(cmdi, f=None, e=None, shell=None, v=True):
     """Call a command with alternate STDOUT by filename
-    
+
     :Call:
         >>> ierr = calli(cmdi, f=None, e=None, shell=None, v=True)
     :Inputs:
@@ -111,7 +111,7 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
 # Function to call commands with a different STDOUT
 def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
     """Call a command with alternate STDOUT by filename
-    
+
     :Call:
         >>> callf(cmdi, f=None, e=None, shell=None, v=True, check=True)
     :Inputs:
@@ -146,10 +146,10 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
 # Call command with output (since sp.check_output is Python 2.7+)
 def callo(cmdi, shell=False):
     """Call a command and get the output text
-    
+
     This function is basically a substitute for :func:`subprocess.check_output`,
     which is not available in Python 2.6.
-    
+
     :Call:
         >>> txt = callo(cmdi, shell=False)
     :Inputs:
@@ -198,8 +198,8 @@ def grep(regex, fname):
 
 # Function to get the first line of a file.
 def head(fname, n=1):
-    """Extract the first *n* lines of a file 
-    
+    """Extract the first *n* lines of a file
+
     :Call:
         >>> txt = head(fname, n=1)
     :Inputs:
@@ -221,8 +221,8 @@ def head(fname, n=1):
 
 # Function to get the last line of a file.
 def tail(fname, n=1):
-    """Tail the last *n* lines of a file 
-    
+    """Tail the last *n* lines of a file
+
     :Call:
         >>> txt = tail(fname, n=1)
     :Inputs:
@@ -246,7 +246,7 @@ def tail(fname, n=1):
 def _assertfile(fname):
     """
     Assert that a given file exists and raise an exception otherwise
-    
+
     :Call:
         >>> _assertfile(fname)
     :Inputs:
@@ -263,7 +263,7 @@ def _assertfile(fname):
 # Function to automate minor changes to docstrings to make them pyCart.Cntl
 def _upgradeDocString(doccmd):
     """Upgrade docstrings from the :mod:`cape.pycart.bin` class
-    
+
     :Call:
         >>> docbin = _upgradDocString(doccmd)
     :Inputs:
@@ -310,7 +310,7 @@ tecmcr.__doc__ = _upgradeDocString(cmd.tecmcr.__doc__)
 # Stand-alone function to run a Paraview script
 def pvpython(lay, *args, **kw):
     """Stand-alone function to execute a Paraview Python script
-    
+
     :Call:
         >>> pvpython(lay, *args, cmd="pvpython")
         >>> pvpython(lay, a1, a2, ...)
@@ -327,7 +327,7 @@ def pvpython(lay, *args, **kw):
     # Get name of executable
     fbin = kw.get('cmd', 'pvpython')
     # Command to run
-    cmdi = [fbin, lay] + [str(a) for a in args]
+    cmdi = [fbin] + [str(a) for a in args] + [lay]
     # Call the script
     callf(cmdi, f='pvpython.out')
 
@@ -335,7 +335,7 @@ def pvpython(lay, *args, **kw):
 # Stand-alone aflr3 binary
 def aflr3(opts=None, j=0, **kw):
     """Run AFLR3 with the appropriate options
-    
+
     :Call:
         >>> aflr3(opts=None, j=0, **kw)
     :Inputs:
@@ -359,7 +359,7 @@ def aflr3(opts=None, j=0, **kw):
 # Function to call verify
 def verify(opts=None, **kw):
     """Run Cart3D binary ``verify`` to test a triangulation
-    
+
     :Call:
         >>> verify(opts=None, **kw)
     :Inputs:
@@ -395,7 +395,7 @@ def verify(opts=None, **kw):
 # Function to call intersect
 def intersect(opts=None, **kw):
     """Run Cart3D binary ``intersect`` to combine overlapping triangulations
-    
+
     :Call:
         >>> intersect(opts=None, **kw)
     :Inputs:
