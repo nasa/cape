@@ -32,8 +32,9 @@ from cape.tnakit.optutils import optitem
 mod = os.__class__
 
 # Initialize handle for modules
-mpl = object()
 plt = object()
+mpl = object()
+mplax = object()
 mplfig = object()
 
 
@@ -54,6 +55,7 @@ def import_matplotlib():
     """
     # Make global variables
     global mpl
+    global mplax
     global mplfig
     # Exit if already imported
     if isinstance(mpl, mod):
@@ -61,6 +63,7 @@ def import_matplotlib():
     # Import module
     try:
         import matplotlib as mpl
+        import matplotlib.axes as mplax
         import matplotlib.figure as mplfig
     except ImportError:
         return
@@ -112,29 +115,32 @@ def plot(xv, yv, *a, **kw):
         *yv*: :class:`np.ndarray` (:class:`float`)
             Array of values for *y*-axis
     :Outputs:
-        *h*: :class:`dict`
+        *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2019-03-01 ``@ddalle``: First (independent) version
+        * 2019-12-23 ``@ddalle``: Object-oriented options and output
     """
    # --- Prep ---
     # Ensure plot() is loaded
     import_pyplot()
+    # Process options
+    opts = MPLOpts(**kw)
     # Initialize output
-    h = {}
+    h = MPLHandle()
     # Number of args and args used
     na = len(a)
     ia = 0
    # --- Default Control ---
     # Min/Max
-    if ("ymin" in kw) and ("ymax" in kw):
+    if ("ymin" in opts) and ("ymax" in opts):
         # If min/max values are specified, turn on *PlotMinMax*
         qmmx = True
     else:
         # Otherwise false
         qmmx = False
     # UQ
-    if ("yerr" in kw) or ("xerr" in kw):
+    if ("yerr" in opts) or ("xerr" in opts):
         # If min/max values are specified, turn on *PlotUncertainty*
         quq = True
     else:
@@ -142,41 +148,37 @@ def plot(xv, yv, *a, **kw):
         quq = False
    # --- Control Options ---
     # Options to plot min/max
-    qline = kw.pop("PlotLine", True)
-    qmmx = kw.pop("PlotMinMax", qmmx)
-    qerr = kw.pop("PlotError", False)
-    quq = kw.pop("PlotUncertainty", kw.pop("PlotUQ", quq and (not qerr)))
+    qline = opts.get("PlotLine", True)
+    qmmx = opts.get("PlotMinMax", qmmx)
+    qerr = opts.get("PlotError", False)
+    quq = opts.get("PlotUncertainty", quq and (not qerr))
    # --- Universal Options ---
     # Label for legend
-    lbl = kw.pop("Label", "")
+    lbl = opts.get("Label", "")
     # Index
-    i = kw.pop("i", kw.pop("Index", 0))
+    i = opts.get("Index", 0)
     # Rotation
-    r = kw.pop("Rotate", False)
+    r = opts.get("Rotate", False)
     # Universal options
     kw_u = {
         "i": i,
         "Rotate": r,
     }
     # Font options
-    kw_font = mplopts.font_options(kw)
+    kw_font = opts.font_options()
    # --- Figure Setup ---
     # Process figure options
-    kw_f = mplopts.figure_options(kw)
+    kw_fig = opts.figure_options()
     # Get/create figure
-    h["fig"] = figure(**kw_f)
+    h.fig = figure(**kw_fig)
    # --- Axis Setup ---
     # Process axis options
-    kw_a = mplopts.axes_options(kw)
+    kw_ax = opts.axes_options()
     # Get/create axis
-    ax = axes(**kw_a)
-    # Save it
-    h["ax"] = ax
+    h.ax = axes(**kw_ax)
    # --- Primary Plot ---
     # Process plot options
-    kw_p = mplopts.plot_options(kw, kw_u)
-    # Add label
-    kw_p.setdefault("label", lbl)
+    kw_plot = opts.plot_options()
     # Call plot method
     if qline:
         # Check *a[0]*
@@ -189,7 +191,8 @@ def plot(xv, yv, *a, **kw):
             # No format option
             fmt = tuple()
         # Plot call
-        h['line'] = plot_line(xv, yv, *fmt, **kw_p)
+        h.lines += plot_line(xv, yv, *fmt, **kw_plot)
+    return h
    # --- Min/Max ---
     # Process min/max options
     t_mmax, kw_mmax = mplopts.minmax_options(kw, kw_p, kw_u)
@@ -204,8 +207,8 @@ def plot(xv, yv, *a, **kw):
             ia += 2
         else:
             # Pop values
-            ymin = kw.pop("ymin", None)
-            ymax = kw.pop("ymax", None)
+            ymin = opts.get("ymin", None)
+            ymax = opts.get("ymax", None)
         # Plot call
         if t_mmax == "FillBetween":
             # Do a :func:`fill_between` plot
@@ -562,7 +565,7 @@ def axes(**kw):
     # Check for a subplot description
     axnum = axopts.pop("subplot", None)
     # Create figure if needed
-    if not isinstance(fig, mplfig.Figure):
+    if not isinstance(ax, mplax._subplots.Axes):
         # Check for specified figure
         if axnum is None:
             # Use most recent figure (can be new one)
@@ -603,8 +606,8 @@ def plot_line(xv, yv, fmt=None, **kw):
             Optional format option
         *i*, *Index*: {``0``} | :class:`int`
             Phase number to cycle through plot options
-        *Rotate*: ``True`` | {``False``}
-            Option to plot independent variable on vertical axis
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.plot`
     :Outputs:
@@ -616,14 +619,14 @@ def plot_line(xv, yv, fmt=None, **kw):
     # Ensure plot() is available
     import_pyplot()
     # Get index
-    i = kw.pop("i", kw.pop("Index", 0))
+    i = kw.pop("Index", kw.pop("i", 0))
     # Get rotation option
-    r = kw.pop("Rotate", False)
+    r = kw.pop("Rotate", kw.pop("rotate", False))
     # Flip inputs
     if r:
         yv, xv = xv, yv
     # Initialize plot options
-    kw_p = mplopts.select_plotopts(kw, i)
+    kw_p = MPLOpts.select_plotphase(kw, i)
     # Call plot
     if typeutils.isstr(fmt):
         # Call with extra format argument
@@ -1714,7 +1717,7 @@ def get_xlim(ax, pad=0.05):
     xmax = -np.inf
     # Loop through all children of the input axes.
     for h in ax.get_children()[:-1]:
-        # Get the type.
+        # Get the type's name string
         t = type(h).__name__
         # Check the class.
         if t == 'Line2D':
@@ -1750,7 +1753,40 @@ def get_xlim(ax, pad=0.05):
     return xminv, xmaxv
 
 
+# Output class
+class MPLHandle(object):
+    r"""Container for handles from :mod:`matplotlib.pyplot`
+
+    :Versions:
+        * 2019-12-20 ``@ddalle``: First version
+    """
+    # Initialization method
+    def __init__(self, **kw):
+        r"""Initialization method
+
+        :Call:
+            >>> h = MPLHandle(**kw)
+        :Attributes:
+            *h.fig*: {``None``} | :class:`matplotlib.figure.Figure`
+                Figure handle
+            *h.ax*: {``None``} | :class:`matplotlib.axes.Axes`
+                Axes handle
+            *h.lines*: {``[]``} | :class:`list`\ [:class:`Line2D`]
+                List of line handles
+        :Versions:
+            * 2019-12-20 ``@ddalle``: First version
+        """
+        # Initialize simple handles
+        self.fig = kw.get("fig")
+        self.ax = kw.get("ax")
+
+        # Initialize handles
+        self.lines = kw.get("lines", [])
+
+
 # Standard type strings
+_rst_boolt = """{``True``} | ``False``"""
+_rst_boolf = """```True`` | {``False``}"""
 _rst_dict = """{``None``} | :class:`dict`"""
 _rst_float = """{``None``} | :class:`float`"""
 _rst_floatpos = """{``None``} | :class:`float` > 0.0"""
@@ -1773,7 +1809,7 @@ class MPLOpts(dict):
         "ymin",
         "ymax",
         "yerr",
-        "xerr"
+        "xerr",
         "PlotLine",
         "PlotMinMax",
         "PlotError",
@@ -1793,6 +1829,17 @@ class MPLOpts(dict):
         "FigHeight",
         "FigNumber",
         "FigDPI",
+        "PlotOptions",
+        "PlotColor",
+        "PlotLineStyle",
+        "PlotLineWidth",
+        "MinMaxOptions",
+        "PlotTypeMinMax",
+    ]
+
+    # Options for which a singleton is a list
+    _optlist_list = [
+        "dashes"
     ]
     
     # Alternate names
@@ -1812,7 +1859,7 @@ class MPLOpts(dict):
         "Axes": "ax",
     }
     # Options for specific purposes
-    _optlist_ax = [
+    _optlist_axes = [
         "ax",
         "AxesOptions"
     ]
@@ -1833,7 +1880,15 @@ class MPLOpts(dict):
         "FontVariant",
         "FontWeight"
     ]
-    
+    _optlist_plot = [
+        "Index",
+        "Rotate",
+        "PlotOptions",
+        "PlotColor",
+        "PlotLineStyle",
+        "PlotLineWidth",
+    ]
+
     # Types
     _opttypes = {
         "ymin": typeutils.arraylike,
@@ -1862,48 +1917,13 @@ class MPLOpts(dict):
         "FigDPI": (float, int),
         "ax": object,
         "AxesOptions": dict,
+        "PlotOptions": dict,
+        "PlotColor": (tuple, typeutils.strlike),
+        "PlotLineStyle": typeutils.strlike,
+        "PlotLineWidth": (float, int),
+        "PlotTypeMinMax": typeutils.strlike,
+        "MinMaxOptions": dict,
     }
-    # Type strings
-    _rst_types = {
-        "FontOptions": _rst_dict,
-        "FontName": _rst_str,
-        "FontSize": _rst_strnum,
-        "FontStretch": _rst_strnum,
-        "FontStyle": ("""{``None``} | ``"normal"`` | """ +
-            """``"italic"`` | ``"oblique"``"""),
-        "FontVariant": """{``None``} | ``"normal"`` | ``"small-caps"``""",
-        "FontWeight": _rst_strnum,
-        "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
-        "FigOptions": _rst_dict,
-        "FigNumber": _rst_intpos,
-        "FigWidth": _rst_floatpos,
-        "FigHeight": _rst_floatpos,
-        "FigDPI": _rst_numpos,
-        "ax": """{``None``} | :class:`matplotlib.axes.Axes`""",
-        "AxesOptions": _rst_dict,
-    }
-    # Option descriptions
-    _rst_descriptions = {
-        "FontOptions": """Options to :class:`FontProperties`""",
-        "FontName": """Font name (categories like ``sans-serif`` allowed)""",
-        "FontSize": """Font size (options like ``"small"`` allowed)""",
-        "FontStretch": ("""Stretch, numeric in range 0-1000 or """ +
-            """string such as ``"condensed"``, ``"extra-condensed"``, """ +
-            """``"semi-expanded"``"""),
-        "FontStyle": """Font style/slant""",
-        "FontVariant": """Font capitalization variant""",
-        "FontWeight": ("""Numeric font weight 0-1000 or ``"normal"``, """ +
-            """``"bold"``, etc."""),
-        "fig": """Handle to existing figure""",
-        "FigOptions": """Options to :class:`matplotlib.figure.Figure`""",
-        "FigNumber": "Figure number",
-        "FigHeight": "Figure height [inches]",
-        "FigWidth": "Figure width [inches]",
-        "FigDPI": "Figure resolution in dots per inch",
-        "ax": """Handle to existing axes""",
-        "AxesOptions": """Options to :class:`AxesSubplot`""",
-    }
-        
     
     # Global options mapped to subcategory options
     _kw_submap = {
@@ -1922,6 +1942,82 @@ class MPLOpts(dict):
             "FontVariant": "variant",
             "FontWeight":  "weight",
         },
+        "PlotOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "Label": "label",
+            "PlotColor": "color",
+            "PlotLineWidth": "lw",
+            "PlotLineStyle": "ls"
+        },
+        "MinMaxOptions": {},
+    }
+    # Aliases to merge for subcategory options
+    _kw_subalias = {
+        "PlotOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+        }
+    }
+
+    # Type strings
+    _rst_types = {
+        "Index": """{``0``} | :class:`int` >=0""",
+        "Rotate": _rst_boolt,
+        "Label": _rst_str,
+        "FontOptions": _rst_dict,
+        "FontName": _rst_str,
+        "FontSize": _rst_strnum,
+        "FontStretch": _rst_strnum,
+        "FontStyle": ("""{``None``} | ``"normal"`` | """ +
+            """``"italic"`` | ``"oblique"``"""),
+        "FontVariant": """{``None``} | ``"normal"`` | ``"small-caps"``""",
+        "FontWeight": _rst_strnum,
+        "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
+        "FigOptions": _rst_dict,
+        "FigNumber": _rst_intpos,
+        "FigWidth": _rst_floatpos,
+        "FigHeight": _rst_floatpos,
+        "FigDPI": _rst_numpos,
+        "ax": """{``None``} | :class:`matplotlib.axes._subplots.Axes`""",
+        "AxesOptions": _rst_dict,
+        "PlotOptions": _rst_dict,
+        "PlotColor": """{``None``} | :class:`str` | :class:`tuple`""",
+        "PlotLineStyle": ('``":"`` | ``"-"`` | ``"none"`` | ' +
+            '``"-."`` | ``"--"``'), 
+        "PlotLineWidth": _rst_numpos,
+        "PlotTypeMinMax": """{``"FillBetween"``} | ``"ErrorBar"``""",
+        "MinMaxOptions": _rst_dict,
+    }
+    # Option descriptions
+    _rst_descriptions = {
+        "Index": """Index to select specific option from lists""",
+        "Rotate": """Option to flip *x* and *y* axes""",
+        "Label": """Label passed to :func:`plt.legend`""",
+        "FontOptions": """Options to :class:`FontProperties`""",
+        "FontName": """Font name (categories like ``sans-serif`` allowed)""",
+        "FontSize": """Font size (options like ``"small"`` allowed)""",
+        "FontStretch": ("""Stretch, numeric in range 0-1000 or """ +
+            """string such as ``"condensed"``, ``"extra-condensed"``, """ +
+            """``"semi-expanded"``"""),
+        "FontStyle": """Font style/slant""",
+        "FontVariant": """Font capitalization variant""",
+        "FontWeight": ("""Numeric font weight 0-1000 or ``"normal"``, """ +
+            """``"bold"``, etc."""),
+        "fig": """Handle to existing figure""",
+        "FigOptions": """Options to :class:`matplotlib.figure.Figure`""",
+        "FigNumber": "Figure number",
+        "FigHeight": "Figure height [inches]",
+        "FigWidth": "Figure width [inches]",
+        "FigDPI": "Figure resolution in dots per inch",
+        "ax": """Handle to existing axes""",
+        "AxesOptions": """Options to :class:`AxesSubplot`""",
+        "PlotOptions": """Options to :func:`plt.plot` for primary curve""",
+        "PlotColor": """Color option to :func:`plt.plot` for primary curve""",
+        "PlotLineWidth": """Line width for primary :func:`plt.plot`""",
+        "PlotLineStyle": """Line style for primary :func:`plt.plot`""",
+        "PlotTypeMinMax": """Plot type for min/max plot""",
+        "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
     }
     
    # --- RC ---
@@ -1931,6 +2027,7 @@ class MPLOpts(dict):
         "PlotError": False,
         "Index": 0,
         "Rotate": False,
+        "PlotTypeMinMax": "FillBetween",
     }
 
     # Default figure options
@@ -1941,14 +2038,18 @@ class MPLOpts(dict):
     _rc_figure = {}
     
     # Default axes options
-    rc_axes = {}
+    _rc_axopts = {}
+    _rc_axes = {}
+    
     
     # Default options for plot
-    rc_plot = {
+    _rc_plot = {
         "color": ["b", "k", "darkorange", "g"],
         "ls": "-",
         "zorder": 8,
     }
+    # Default options for min/max plot
+    _rc_minmax = {}
     # Default options for histogram
     rc_hist = {
         "facecolor": 'c',
@@ -1986,18 +2087,6 @@ class MPLOpts(dict):
     # Font properties for legend
     rc_legend_font = dict(
         _rc_font, size=None)
-    
-    # Mapping of font property names
-    rc_font_keys = {
-        "Font":        "family",
-        "FontName":    "family",
-        "FontFamily":  "family",
-        "FontSize":    "size",
-        "FontStretch": "stretch",
-        "FontStyle":   "style",
-        "FontVariant": "variant",
-        "FontWeight":  "weight",
-    }
     
     # Default options for axis formatting
     rc_axfmt = {
@@ -2143,6 +2232,46 @@ class MPLOpts(dict):
                 opts.pop(k)
         # Output
         return opts
+
+    # Select options for phase *i*
+    @classmethod
+    def select_plotphase(cls, kw, i=0):
+        r"""Select option *i* for each option in *kw*
+    
+        This cycles through lists of options for named options such as *color* and
+        repeats if *i* is longer than the list of options.  Special options like
+        *dashes* that accept a list as a value are handled automatically.  If the
+        value of the option is a single value, it is returned regardless of the
+        value of *i*
+    
+        :Call:
+            >>> kw_p = select_plotphase(kw, i=0)
+        :Inputs:
+            *kw*: :class:`dict`
+                Dictionary of options for one or more graphics features
+            *i*: {``0``} | :class:`int`
+                Index
+        :Outputs:
+            *kw_p*: :class:`dict`
+                Dictionary of options with lists replaced by scalar values
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+        """
+        # Initialize plot options
+        kw_p = {}
+        # Loop through options
+        for (k, V) in kw.items():
+            # Check if this is a "list" option
+            if k in cls._optlist_list:
+                # Get value as a list
+                v = optitem.getringel_list(V, i)
+            else:
+                # Get value as a scalar
+                v = optitem.getringel(V, i)
+            # Set option
+            kw_p[k] = v
+        # Output
+        return kw_p
   # >
   
   # ================
@@ -2243,7 +2372,6 @@ class MPLOpts(dict):
             kw[k] = self[k]
         # Output
         return cls.denone(kw)
-        
 
     # Global font options
     def font_options(self):
@@ -2280,6 +2408,114 @@ class MPLOpts(dict):
             kw[kp] = self[k]
         # Remove "None"
         return cls.denone(kw)
+
+    # Primary options
+    def plot_options(self):
+        r"""Process options to primary plot curve
+
+        :Call:
+            >>> kw = opts.plot_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap
+        kw_map = cls._kw_submap["PlotOptions"]
+        # Aliases
+        kw_alias = cls._kw_subalias["PlotOptions"]
+        # Get top-level options
+        kw_plt = self.get("PlotOptions", {})
+        # Apply aliases
+        kw_plot = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_plt.items()
+        }
+        # Apply defaults
+        kw = dict(cls._rc_plot, **kw_plot)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Remove "None"
+        return cls.denone(kw)
+
+    # Process options for min/max plot
+    def minmax_options(self):
+        r"""Process options for min/max plots
+
+        :Call:
+            >>> minmax_type, kw = opts.minmax_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *minmax_type*: {``"FillBetween"``} | ``"ErrorBar"``
+                Plot type for min/max plot
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Get min/max plot options
+        opts = kw.pop("MinMaxOptions", {})
+        # Class
+        cls = self.__class__
+        # Default type
+        tmmx = cls._rc.get("PlotTypeMinMax", "FillBetween")
+        # Specified type
+        tmmx = self.get("PlotTypeMinMax", tmmx)
+        # Simplify case for comparison
+        t = tmmx.lower().replace("_", "")
+        # Submap
+        kw_map = cls._kw_submap["MinMaxOptions"]
+        # Get top-level options
+        kw_mmx = self.get("MinMaxOptions", {})
+        # Apply defaults
+        kw = dict(cls._rc_minmax, **kw_mmx)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Fitler type
+        if t == "fillbetween":
+            # Region plot
+            minmax_type = "FillBetween"
+            # Get options for :func:`fill_between`
+            kw_plt = self.filbetween_options()
+        elif t == "errorbar":
+            # Error bars
+            minmax_type = "ErrorBar"
+            # Get options for :func:`errorbar`
+            kw_plt = self.errorbar_options()
+        else:
+            raise ValueError("Unrecognized min/max plot type '%s'" % tmmx)
+        # MinMaxOptions overrides
+        kw = dict(kw_plt, **kw)
+        # Output
+        return minmax_type, cls.denone(kw)
+            
+            
+        # Remove "None"
+        return tmmx, cls.denone(kw)
   # >
 
   # =========================
@@ -2291,6 +2527,7 @@ class MPLOpts(dict):
         (axes_options, _optlist_axes),
         (figure_options, _optlist_fig),
         (font_options, _optlist_font),
+        (plot_options, _optlist_plot)
     ]:
         # Create string to replace "%(keys)s" with
         _doc_rst = rstutils.rst_param_list(

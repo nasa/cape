@@ -15,8 +15,8 @@ by checking them against
 """
 
 # Standard library
+import sys
 import difflib
-import warnings
 
 
 # Map keywords
@@ -121,7 +121,8 @@ def check_kw(self, kwlist, kwmap, kwdep, mode, **kw):
                     raise KeyError(msg)
                 elif mode == 1:
                     # Warning
-                    warnings.warn(msg, UserWarning)
+                    sys.stderr.write(msg + "\n")
+                    sys.stderr.flush()
     # Output
     return kwo
 
@@ -184,7 +185,8 @@ def check_kw_types(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
                 raise KeyError(msg)
             elif mode == 1:
                 # Warning
-                warnings.warn(msg, UserWarning)
+                sys.stderr.write(msg + "\n")
+                sys.stderr.flush()
             # Go to next keyword
             continue
         # Check for a type
@@ -221,6 +223,7 @@ def check_kw_types(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
                     raise KeyError(msg)
                 elif mode == 1:
                     # Warning
-                    warnings.warn(msg, UserWarning)
+                    sys.stderr.write(msg + "\n")
+                    sys.stderr.flush()
     # Output
     return kwo
