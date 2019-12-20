@@ -1835,6 +1835,8 @@ class MPLOpts(dict):
         "PlotLineWidth",
         "MinMaxOptions",
         "PlotTypeMinMax",
+        "FillBetweenOptions",
+        "ErrorBarOptions",
     ]
 
     # Options for which a singleton is a list
@@ -1857,6 +1859,9 @@ class MPLOpts(dict):
         "nfig": "FigNumber",
         "numfig": "FigNumber",
         "Axes": "ax",
+        "PlotOpts": "PlotOptions",
+        "ErrorBarOpts": "ErrorBarOptions",
+        "FillBetweenOpts": "FillBetweenOptions",
     }
     # Options for specific purposes
     _optlist_axes = [
@@ -1923,6 +1928,8 @@ class MPLOpts(dict):
         "PlotLineWidth": (float, int),
         "PlotTypeMinMax": typeutils.strlike,
         "MinMaxOptions": dict,
+        "FillBetweenOptions": dict,
+        "ErrorBarOptions": dict,
     }
     
     # Global options mapped to subcategory options
@@ -1951,7 +1958,16 @@ class MPLOpts(dict):
             "PlotLineStyle": "ls"
         },
         "MinMaxOptions": {},
+        "FillBetweenOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+        },
+        "ErrorBarOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+        },
     }
+
     # Aliases to merge for subcategory options
     _kw_subalias = {
         "PlotOptions": {
@@ -1988,6 +2004,8 @@ class MPLOpts(dict):
         "PlotLineWidth": _rst_numpos,
         "PlotTypeMinMax": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "MinMaxOptions": _rst_dict,
+        "FillBetweenOptions": _rst_dict,
+        "ErrorBarOptions": _rst_dict,
     }
     # Option descriptions
     _rst_descriptions = {
@@ -2018,6 +2036,8 @@ class MPLOpts(dict):
         "PlotLineStyle": """Line style for primary :func:`plt.plot`""",
         "PlotTypeMinMax": """Plot type for min/max plot""",
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
+        "ErrorBarOptions": """Options for :func:`errorbar` plots""",
+        "FillBetweenOptions": """Options for :func:`fill_between` plots""",
     }
     
    # --- RC ---
@@ -2050,6 +2070,20 @@ class MPLOpts(dict):
     }
     # Default options for min/max plot
     _rc_minmax = {}
+    # Options for fill_between
+    _rc_fillbetween = {
+        "alpha": 0.2,
+        "lw": 0,
+        "zorder": 4,
+    }
+
+    # Options for errobar()
+    _rc_errorbar = {
+        "capsize": 1.5,
+        "elinewidth": 0.8,
+        "zorder": 6,
+    }
+
     # Default options for histogram
     rc_hist = {
         "facecolor": 'c',
@@ -2057,19 +2091,6 @@ class MPLOpts(dict):
         "bins": 20,
         "density": True,
         "edgecolor": 'k',
-    }
-    # Options for fill_between
-    rc_fillbetween = {
-        "alpha": 0.2,
-        "lw": 0,
-        "zorder": 4,
-    }
-
-    # Options for errobar()
-    rc_errorbar = {
-        "capsize": 1.5,
-        "elinewidth": 0.8,
-        "zorder": 6,
     }
     
     # Default legend options
