@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 --------------------------------------------------------------------
-:mod:`cape.tnakit.plotutils.mpl`: Matplotlib/Pyplot Interfaces
+:mod:`cape.tnakit.plot_mpl`: Matplotlib/Pyplot Interfaces
 --------------------------------------------------------------------
 
 This module contains handles to various :mod:`matplotlib` plotting
@@ -16,25 +16,17 @@ It also includes syntax to import modules without raising ``ImportError``.
 # Standard library modules
 import os
 
-# Standard third-party modules
+# Required third-party modules
 import numpy as np
 
-# Statistics
-try:
-    from scipy.stats import t as student
-except ImportError:
-    pass
-
-# Local modules
-from . import genopts
-from . import mplopts
-
 # TNA toolkit modules
-from .. import typeutils
-from .. import statutils as stats
+import cape.tnakit.kwutils as kwutils
+import cape.tnakit.rstutils as rstutils
+import cape.tnakit.statutils as statutils
+import cape.tnakit.typeutils as typeutils
 
-# TNA toolkit submodules
-from ..optutils import optitem
+# TNA toolkit direct imports
+from cape.tnakit.optutils import optitem
 
 # Get a variable to hold the "type" of "module"
 mod = os.__class__
@@ -1727,3 +1719,399 @@ def get_xlim(ax, pad=0.05):
     # Output
     return xminv, xmaxv
 
+
+# Standard type strings
+_rst_strnum = """{``None``} | :class:`str` | :class:`int` | :class:`float`""" 
+
+
+# Options interface
+class MPLOpts(dict):
+  # ====================
+  # Class Attributes
+  # ====================
+  # <
+    # Lists of options
+    _optlist = [
+        "ymin",
+        "ymax",
+        "yerr",
+        "xerr"
+        "PlotLine",
+        "PlotMinMax",
+        "PlotError",
+        "PlotUncertainty",
+        "Label",
+        "Index",
+        "FontOptions",
+        "FontName",
+        "FontSize",
+        "FontStretch",
+        "FontStyle",
+        "FontVariant",
+        "FontWeight",
+        "FigWidth",
+        "FigHeight",
+    ]
+    
+    # Alternate names
+    _optmap = {
+        "PlotUQ": "PlotUncertainty",
+        "lbl": "Label",
+        "label": "Label",
+        "i": "Index",
+        "rotate": "Rotate",
+        "Font": "FontName",
+        "FontFamily": "FontName",
+        "hfig": "FigHeight",
+        "wfig": "FigWidth",
+    }
+    # Options for specific purposes
+    _optlist_font = [
+        "FontOptions",
+        "FontName",
+        "FontSize",
+        "FontStretch",
+        "FontStyle",
+        "FontVariant",
+        "FontWeight"
+    ]
+    
+    # Types
+    _opttypes = {
+        "ymin": typeutils.arraylike,
+        "ymax": typeutils.arraylike,
+        "xerr": typeutils.arraylike,
+        "yerr": typeutils.arraylike,
+        "PlotLine": bool,
+        "PlotMinMax":bool,
+        "PlotError": bool,
+        "PlotUncertainty": bool,
+        "Label": typeutils.strlike,
+        "Index": int,
+        "Rotate": bool,
+        "FontOptions": dict,
+        "FontName": typeutils.strlike,
+        "FontSize": (int, float, typeutils.strlike),
+        "FontStretch": (int, float, typeutils.strlike),
+        "FontStyle": typeutils.strlike,
+        "FontVariant": typeutils.strlike,
+        "FontWeight": (float, int, typeutils.strlike),
+        "FigHeight": float,
+        "FigWidth": float,
+    }
+    # Type strings
+    _rst_types = {
+        "FontOptions": """{``{}``} | :class:`dict`""",
+        "FontName": """{``None``} | :class:`str`""",
+        "FontSize": _rst_strnum,
+        "FontStretch": _rst_strnum,
+        "FontStyle": ("""{``None``} | ``"normal"`` | """ +
+            """``"italic"`` | ``"oblique"``"""),
+        "FontVariant": """{``None``} | ``"normal"`` | ``"small-caps"``""",
+        "FontWeight": _rst_strnum
+    }
+    # Option descriptions
+    _rst_descriptions = {
+        "FontOptions": """Options to :class:`FontProperties`""",
+        "FontName": """Font name (categories like ``sans-serif`` allowed)""",
+        "FontSize": """Font size (options like ``"small"`` allowed)""",
+        "FontStretch": ("""Stretch, numeric in range 0-1000 or """ +
+            """string such as ``"condensed"``, ``"extra-condensed"``, """ +
+            """``"semi-expanded"``"""),
+        "FontStyle": """Font style/slant""",
+        "FontVariant": """Font capitalization variant""",
+        "FontWeight": ("""Numeric font weight 0-1000 or ``"normal"``, """ +
+            """``"bold"``, etc."""),
+    }
+        
+    
+    # Global options mapped to subcategory options
+    _kw_submap = {
+        "FontOptions": {
+            "FontName":    "family",
+            "FontSize":    "size",
+            "FontStretch": "stretch",
+            "FontStyle":   "style",
+            "FontVariant": "variant",
+            "FontWeight":  "weight",
+        }
+    }
+    
+    # Default values
+    _rc = {
+        "PlotLine": True,
+        "PlotError": False,
+        "Index": 0,
+        "Rotate": False,
+    }
+
+
+    # Default figure options
+    rc_figure = {
+        "wfig": 5.5,
+        "hfig": 4.4,
+    }
+    
+    # Default axes options
+    rc_axes = {}
+    
+    # Default options for plot
+    rc_plot = {
+        "color": ["b", "k", "darkorange", "g"],
+        "ls": "-",
+        "zorder": 8,
+    }
+    # Default options for histogram
+    rc_hist = {
+        "facecolor": 'c',
+        "zorder": 2,
+        "bins": 20,
+        "density": True,
+        "edgecolor": 'k',
+    }
+    # Options for fill_between
+    rc_fillbetween = {
+        "alpha": 0.2,
+        "lw": 0,
+        "zorder": 4,
+    }
+
+    # Options for errobar()
+    rc_errorbar = {
+        "capsize": 1.5,
+        "elinewidth": 0.8,
+        "zorder": 6,
+    }
+    
+    # Default legend options
+    rc_legend = {
+        "loc": "upper center",
+        "labelspacing": 0.5,
+        "framealpha": 1.0,
+    }
+    
+    # Default font properties
+    _rc_font = {
+        "family": "DejaVu Sans",
+    }
+    
+    # Font properties for legend
+    rc_legend_font = dict(
+        _rc_font, size=None)
+    
+    # Mapping of font property names
+    rc_font_keys = {
+        "Font":        "family",
+        "FontName":    "family",
+        "FontFamily":  "family",
+        "FontSize":    "size",
+        "FontStretch": "stretch",
+        "FontStyle":   "style",
+        "FontVariant": "variant",
+        "FontWeight":  "weight",
+    }
+    
+    # Default options for axis formatting
+    rc_axfmt = {
+        "XLabel": None,
+        "YLabel": None,
+        "Pad": 0.05,
+    }
+    
+    # Default options for grid lines
+    rc_grid = {
+        "MajorGrid": True,
+    }
+    
+    # Formatting for grid lines
+    rc_majorgrid = {
+        "ls": ":",
+        "color": "#a0a0a0",
+    }
+    rc_minorgrid = {}
+    
+    # Default options for spines
+    rc_spine = {
+        "Spines": True,
+        "Ticks": True,
+        "TickDirection": "out",
+    }
+    
+    # Default options for mean plot
+    rc_mu = {
+        "color": 'k',
+        "lw": 2,
+        "zorder": 6,
+        "label": "Mean value",
+    }
+    
+    # Default options for gaussian plot
+    rc_gauss = {
+        "color": "navy",
+        "lw": 1.5,
+        "zorder": 7,
+        "label": "Normal Distribution",
+    }
+    
+    # Default options for interval plot
+    rc_interval = {
+        "color": "b",
+        "lw": 0,
+        "zorder": 1,
+        "alpha": 0.2,
+        "imin": 0.,
+        "imax": 5.,
+    }
+    
+    # Default options for standard deviation plot
+    rc_std = {
+        'color': 'navy',
+        'lw': 2,
+        'zorder': 5,
+        "dashes": [4, 2],
+        'StDev': 3,
+    }
+    # Default options for delta plot on histograms
+    rc_delta = {
+        'color': "r",
+        'ls': "--",
+        'lw': 1.0,
+        'zorder': 3,
+    }
+    
+    # Default histogram label options
+    rc_histlbl = {
+        'color': 'k',
+        'horizontalalignment': 'right',
+        'verticalalignment': 'top',
+    }
+    kw_figure = [
+        "FigHeight",
+        "FigWidth"
+    ]
+    map_fig = {
+        "hfig": "FigHeight",
+        "wfig": "FigWidth",
+    }
+  # >
+  
+  # ============
+  # Config
+  # ============
+  # <
+    # Initialization method
+    def __init__(self, *a, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2019-12-19 ``@ddalle``: First version
+        """
+        # Get class
+        cls = self.__class__
+        # Initialize an unfiltered dict
+        optsdict = dict(*a, **kw)
+        # Remove anything that's ``None``
+        opts = cls.denone(optsdict)
+
+        # Check keywords
+        opts = kwutils.check_kw_types(
+            cls._optlist,
+            cls._optmap,
+            cls._opttypes,
+            {}, 1, **opts)
+
+        # Copy entries
+        for (k, v) in opts.items():
+            self[k] = v
+        
+  # >
+
+  # ============
+  # Utilities
+  # ============
+  # <
+    # Remove ``None`` keys
+    @staticmethod
+    def denone(opts):
+        """Remove any keys whose value is ``None``
+    
+        :Call:
+            >>> opts = denone(opts)
+        :Inputs:
+            *opts*: :class:`dict`
+                Any dictionary
+        :Outputs:
+            *opts*: :class:`dict`
+                Input with any keys whose value is ``None`` removed;
+                returned for convenience but input is also affected
+        :Versions:
+            * 2019-03-01 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`mplopts`
+        """
+        # Loop through keys
+        for (k, v) in dict(opts).items():
+            # Check if ``None``
+            if v is None:
+                opts.pop(k)
+        # Output
+        return opts
+  # >
+  
+  # ================
+  # Categories
+  # ================
+  # <
+    # Global font options
+    def font_options(self):
+        """Process global font options
+    
+        :Call:
+            >>> kw = opts.font_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of font property options
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Get top-level options
+        kw_font = self.get("FontOptions", {})
+        # Apply defaults
+        kw = dict(cls._rc_font, **kw_font)
+        # Individual options
+        for (k, kp) in cls._kw_submap["FontOptions"].items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Remove "None"
+        return cls.denone(kw)
+        
+  # >
+
+  # =========================
+  # Docstring Manipulation
+  # =========================
+  # <
+    # Loop through functions to rename
+    for (fn, optlist) in [
+        (font_options, _optlist_font)
+    ]:
+        # Create string to replace "%(keys)s" with
+        _doc_rst = rstutils.rst_param_list(
+            optlist,
+            _rst_types,
+            _rst_descriptions,
+            _optmap,
+            indent=12)
+        # Apply text to the docstring
+        fn.__doc__ = fn.__doc__ % {"keys": _doc_rst}
+  # >

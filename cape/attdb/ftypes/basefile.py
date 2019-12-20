@@ -35,7 +35,6 @@ import numpy as np
 import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
 
-
 # Fixed parameter for size of new chunks
 NUM_ARRAY_CHUNK = 5000
 

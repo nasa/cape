@@ -1219,7 +1219,7 @@ class DBCoeff(dict):
    # --- Declaration ---
     # Set evaluation methods
     def SetEvalMethod(self, coeffs=None, method=None, args=None, *a, **kw):
-        """Set evaluation method for a one or more coefficients
+        r"""Set evaluation method for a one or more coefficients
 
         :Call:
             >>> DBc.SetEvalMethod(coeff, method=None, args=None, **kw)

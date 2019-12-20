@@ -5,7 +5,7 @@
 ===============================================================
 
 This module contains methods to process keyword argument dictionaries
-by checking them against 
+by checking them against
 
     * a list of acceptable names
     * a dictionary of alternate names
