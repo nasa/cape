@@ -34,6 +34,7 @@ mod = os.__class__
 # Initialize handle for modules
 mpl = object()
 plt = object()
+mplfig = object()
 
 
 # Import :mod:`matplotlib`
@@ -53,12 +54,14 @@ def import_matplotlib():
     """
     # Make global variables
     global mpl
+    global mplfig
     # Exit if already imported
     if isinstance(mpl, mod):
         return
     # Import module
     try:
         import matplotlib as mpl
+        import matplotlib.figure as mplfig
     except ImportError:
         return
     # Check for no-display
@@ -485,19 +488,15 @@ def hist(v, **kw):
 
 # Figure part
 def figure(**kw):
-    """Create new figure or edit one if necessary
+    r"""Get or create figure handle and format it
 
     :Call:
-        >>> fig = figure_part(**kw)
+        >>> fig = figure(**kw)
     :Inputs:
-        *kw*: :class:`dict`
-            Dictionary of figure-like options
-        *fig*: ``None`` | :class:`matplotlib.figure.Figure`
+        *fig*: {``None``} | :class:`matplotlib.figure.Figure`
             Optional figure handle
-        *FigHeight*, *hfig*: ``None`` | :class:`float`
-            Figure height in inches
-        *FigWidth*, *wfig*: ``None`` | :class:`float`
-            Figure width in inches
+        *FigOptions*: {``None``} | :class:`dict`
+            Options to apply to figure handle using :func:`fig.set`
     :Outputs:
         *fig*: :class:`matplotlib.figure.Figure`
             Figure handle
@@ -506,21 +505,33 @@ def figure(**kw):
     """
     # Import PyPlot
     import_pyplot()
-    # Get figure handle
-    fig = kw.pop("fig", None)
-    # Figure size
-    hfig = kw.pop("FigHeight", kw.pop("hfig", None))
-    wfig = kw.pop("FigWidth",  kw.pop("wfig", None))
+    # Get figure handle and other options
+    fig = kw.get("fig", None)
+    figopts = kw.get("FigOptions", {})
+    # Check for a figure number
+    fignum = figopts.pop("num", None)
     # Create figure if needed
-    if fig is None:
-        # Use most recent figure (can be new one)
-        fig = plt.gcf()
-    # Apply sizes
-    if hfig: fig.set_figheight(hfig)
-    if wfig: fig.set_figwidth(wfig)
-    # Loop through any remaining options
-    for k in kw:
-        print("  Warning: unused figure option '%s'" % k)
+    if not isinstance(fig, mplfig.Figure):
+        # Check for specified figure
+        if fignum is None:
+            # Use most recent figure (can be new one)
+            fig = plt.gcf()
+        else:
+            # Get specified figure
+            fig = plt.figure(fignum)
+    # Loop through options
+    for (k, v) in figopts.items():
+        # Check for None
+        if not v:
+            continue
+        # Get setter function
+        fn = getattr(fig, "set_" + k, None)
+        # Check property
+        if fn is None:
+            sys.stderr.write("No figure property '%s'\n" % k)
+            sys.stderr.flush()
+        # Apply setter
+        fn(v)
     # Output
     return fig
 
@@ -1721,7 +1732,15 @@ def get_xlim(ax, pad=0.05):
 
 
 # Standard type strings
-_rst_strnum = """{``None``} | :class:`str` | :class:`int` | :class:`float`""" 
+_rst_dict = """{``None``} | :class:`dict`"""
+_rst_float = """{``None``} | :class:`float`"""
+_rst_floatpos = """{``None``} | :class:`float` > 0.0"""
+_rst_int = """{``None``} | :class:`int`"""
+_rst_intpos = """{``None``} | :class:`int` > 0"""
+_rst_num = """{``None``} | :class:`int` | :class:`float`"""
+_rst_numpos = """{``None``} | :class:`int` > 0 | :class:`float` > 0.0"""
+_rst_str = """{``None``} | :class:`str`"""
+_rst_strnum = """{``None``} | :class:`str` | :class:`int` | :class:`float`"""
 
 
 # Options interface
@@ -1749,8 +1768,12 @@ class MPLOpts(dict):
         "FontStyle",
         "FontVariant",
         "FontWeight",
+        "fig",
+        "FigOptions",
         "FigWidth",
         "FigHeight",
+        "FigNumber",
+        "FigDPI",
     ]
     
     # Alternate names
@@ -1762,8 +1785,11 @@ class MPLOpts(dict):
         "rotate": "Rotate",
         "Font": "FontName",
         "FontFamily": "FontName",
+        "Figure": "fig",
         "hfig": "FigHeight",
         "wfig": "FigWidth",
+        "nfig": "FigNumber",
+        "numfig": "FigNumber",
     }
     # Options for specific purposes
     _optlist_font = [
@@ -1774,6 +1800,13 @@ class MPLOpts(dict):
         "FontStyle",
         "FontVariant",
         "FontWeight"
+    ]
+    _optlist_fig = [
+        "FigOptions",
+        "FigNumber",
+        "FigWidth",
+        "FigHeight",
+        "FigDPI"
     ]
     
     # Types
@@ -1796,19 +1829,29 @@ class MPLOpts(dict):
         "FontStyle": typeutils.strlike,
         "FontVariant": typeutils.strlike,
         "FontWeight": (float, int, typeutils.strlike),
+        "fig": object,
+        "FigOptions": dict,
         "FigHeight": float,
         "FigWidth": float,
+        "FigNumber": int,
+        "FigDPI": (float, int),
     }
     # Type strings
     _rst_types = {
-        "FontOptions": """{``{}``} | :class:`dict`""",
-        "FontName": """{``None``} | :class:`str`""",
+        "FontOptions": _rst_dict,
+        "FontName": _rst_str,
         "FontSize": _rst_strnum,
         "FontStretch": _rst_strnum,
         "FontStyle": ("""{``None``} | ``"normal"`` | """ +
             """``"italic"`` | ``"oblique"``"""),
         "FontVariant": """{``None``} | ``"normal"`` | ``"small-caps"``""",
-        "FontWeight": _rst_strnum
+        "FontWeight": _rst_strnum,
+        "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
+        "FigOptions": _rst_dict,
+        "FigNumber": _rst_intpos,
+        "FigWidth": _rst_floatpos,
+        "FigHeight": _rst_floatpos,
+        "FigDPI": _rst_numpos,
     }
     # Option descriptions
     _rst_descriptions = {
@@ -1822,6 +1865,12 @@ class MPLOpts(dict):
         "FontVariant": """Font capitalization variant""",
         "FontWeight": ("""Numeric font weight 0-1000 or ``"normal"``, """ +
             """``"bold"``, etc."""),
+        "fig": """Handle to existing figure""",
+        "FigOptions": """Options to :class:`matplotlib.figure.Figure`""",
+        "FigNumber": "Figure number",
+        "FigHeight": "Figure height [inches] (overrides *FigOptions*)",
+        "FigWidth": "Figure width [inches] (overrides *FigOptions*)",
+        "FigDPI": "Figure resolution in dots per inch",
     }
         
     
@@ -1834,9 +1883,16 @@ class MPLOpts(dict):
             "FontStyle":   "style",
             "FontVariant": "variant",
             "FontWeight":  "weight",
-        }
+        },
+        "FigOptions": {
+            "FigNumber": "num",
+            "FigDPI": "dpi",
+            "FigHeight": "figheight",
+            "FigWidth": "figwidth",
+        },
     }
     
+   # --- RC ---
     # Default values
     _rc = {
         "PlotLine": True,
@@ -1845,12 +1901,12 @@ class MPLOpts(dict):
         "Rotate": False,
     }
 
-
     # Default figure options
-    rc_figure = {
-        "wfig": 5.5,
-        "hfig": 4.4,
+    _rc_figopts = {
+        "figwidth": 5.5,
+        "figheight": 4.4,
     }
+    _rc_figure = {}
     
     # Default axes options
     rc_axes = {}
@@ -2061,9 +2117,55 @@ class MPLOpts(dict):
   # Categories
   # ================
   # <
+    # Figure options
+    def figure_options(self):
+        r"""Process options specific to Matplotlib figure
+
+        :Call:
+            >>> kw = figure_options()
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plt.figure`
+        :Versions:
+            * 2019-03-06 ``@ddalle``: First version
+            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap
+        kw_map = cls._kw_submap["FigOptions"]
+        # Get top-level options
+        kw_fig = self.get("FigOptions", {})
+        # Apply defaults
+        kw_fig = dict(cls._rc_figopts, **kw_fig)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw_fig[kp] = self[k]
+        # Save figure options
+        kw = dict(cls._rc_figure, FigOptions=cls.denone(kw_fig))
+        # Loop through other options
+        for k in cls._optlist_fig:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            elif k in kw_map:
+                # Already mapped to fig() opts
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Output
+        return cls.denone(kw)
+
     # Global font options
     def font_options(self):
-        """Process global font options
+        r"""Process global font options
     
         :Call:
             >>> kw = opts.font_options()
@@ -2081,12 +2183,14 @@ class MPLOpts(dict):
         """
         # Class
         cls = self.__class__
+        # Submap
+        kw_map = cls._kw_submap["FontOptions"]
         # Get top-level options
         kw_font = self.get("FontOptions", {})
         # Apply defaults
         kw = dict(cls._rc_font, **kw_font)
         # Individual options
-        for (k, kp) in cls._kw_submap["FontOptions"].items():
+        for (k, kp) in kw_map.items():
             # Check if present
             if k not in self:
                 continue
@@ -2103,7 +2207,8 @@ class MPLOpts(dict):
   # <
     # Loop through functions to rename
     for (fn, optlist) in [
-        (font_options, _optlist_font)
+        (font_options, _optlist_font),
+        (figure_options, _optlist_fig),
     ]:
         # Create string to replace "%(keys)s" with
         _doc_rst = rstutils.rst_param_list(
@@ -2115,3 +2220,8 @@ class MPLOpts(dict):
         # Apply text to the docstring
         fn.__doc__ = fn.__doc__ % {"keys": _doc_rst}
   # >
+
+# Delete local variables during documentation process
+delattr(MPLOpts, "fn")
+delattr(MPLOpts, "optlist")
+delattr(MPLOpts, "_doc_rst")
