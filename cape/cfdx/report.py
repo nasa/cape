@@ -22,7 +22,7 @@ constraints the user may specify). Types of subfigures include
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
-    
+
 In addition, the user may also define "sweeps," which analyze groups of cases
 defined by user-specified constraints. For example, a sweep may be used to plot
 results as a function of Mach number for sets of cases having matching angle of
@@ -32,9 +32,9 @@ pages for each sweep (rather than one or more pages for each case).
 Reports are usually created using system commands of the following format.
 
     .. code-block: console
-    
+
         $ cape --report
-        
+
 The basis report class contains almost all of the capabilities needed for
 generating the reports, and so the derivative classes such as
 :class:`cape.pycart.report.Report`, :class:`caep.pyfun.report.Report`, and
@@ -43,7 +43,7 @@ generating the reports, and so the derivative classes such as
 The class has an immense number of methods, which can be somewhat grouped into
 bookkeeping methods and plotting methods.  The main user-facing methods are
 :func:`cape.cfdx.report.Report.UpdateCases` and
-:func:`cape.cfdx.report.Report.UpdateSweep`.  Each 
+:func:`cape.cfdx.report.Report.UpdateSweep`.  Each
 :ref:`type of subfigure <cape-json-ReportSubfigure>` has its own method, for
 example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 :func:`cape.cfdx.report.Report.SubfigPlotL2` for ``"PlotL2"``.
@@ -53,7 +53,7 @@ example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
     * :class:`cape.cfdx.dataBook.DBComp`
     * :class:`cape.cfdx.dataBook.CaseFM`
     * :class:`cape.cfdx.lineLoad.DBLineLoad`
-    
+
 """
 
 # Standard library modules
@@ -80,7 +80,7 @@ from cape.filecntl.tecplot import ExportLayout, Tecscript
 # Class to interface with report generation and updating.
 class Report(object):
     """Interface for automated report generation
-    
+
     :Call:
         >>> R = cape.cfdx.report.Report(cntl, rep)
     :Inputs:
@@ -140,11 +140,11 @@ class Report(object):
         self.OpenMain()
         # Return
         os.chdir(fpwd)
-    
+
     # String conversion
     def __repr__(self):
         """String/representation method
-        
+
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
@@ -152,7 +152,7 @@ class Report(object):
     # Copy the function
     __str__ = __repr__
   # >
-    
+
   # ================
   # Folder Functions
   # ================
@@ -160,9 +160,9 @@ class Report(object):
     # Make a folder
     def mkdir(self, fdir):
         """Create a folder with the correct umask
-        
+
         Relies on ``R.umask``
-        
+
         :Call:
             >>> R.mkdir(fdir)
         :Inputs:
@@ -175,13 +175,13 @@ class Report(object):
         """
         # Make the directory.
         self.cntl.mkdir(fdir)
-        
+
     # Function to go into a folder, respecting archive option
     def cd(self, fdir):
         """Interface to :func:`os.chdir`, respecting "Archive" option
-        
+
         This function can only change one directory at a time.
-        
+
         :Call:
             >>> R.cd(fdir)
         :Inputs:
@@ -207,12 +207,12 @@ class Report(object):
             # Untar if necessary
             tar.chdir_in(fdir)
   # >
-    
+
   # ===========
   # LaTeX Files
   # ===========
   # <
-    
+
    # --------------
    # Main .tex File
    # --------------
@@ -220,7 +220,7 @@ class Report(object):
     # Function to open the master latex file for this report.
     def OpenMain(self):
         """Open the primary LaTeX file or write skeleton if necessary
-        
+
         :Call:
             >>> R.OpenMain()
         :Inputs:
@@ -244,11 +244,11 @@ class Report(object):
             raise IOError("Bad LaTeX file '%s'" % self.fname)
         # Return
         os.chdir(fpwd)
-        
+
     # Function to create the skeleton for a master LaTeX file
     def WriteSkeleton(self):
         """Create and write preamble for master LaTeX file for report
-        
+
         :Call:
             >>> R.WriteSkeleton()
         :Inputs:
@@ -284,7 +284,7 @@ class Report(object):
         f.write('\\usepackage[usenames]{xcolor}\n')
         f.write('\\usepackage[T1]{fontenc}\n')
         f.write('\\usepackage[scaled]{beramono}\n\n')
-        
+
         # Get the title and author and etc.
         fttl  = self.cntl.opts.get_ReportTitle(self.rep)
         fsttl = self.cntl.opts.get_ReportSubtitle(self.rep)
@@ -296,7 +296,7 @@ class Report(object):
         # Set the title and author.
         f.write('\\title{%s}\n'  % fttl)
         f.write('\\author{%s}\n' % fauth)
-        
+
         # Format the header and footer
         f.write('\n\\fancypagestyle{pycart}{%\n')
         f.write(' \\renewcommand{\\headrulewidth}{0.4pt}%\n')
@@ -316,22 +316,22 @@ class Report(object):
         f.write(' \\renewcommand{\\footrulewidth}{0pt}%\n')
         f.write(' \\fancyhf{}%\n')
         f.write('}\n\n')
-        
+
         # Small captions if needed
         f.write('\\captionsetup[subfigure]{textfont=sf}\n')
         f.write('\\captionsetup[subfigure]{skip=0pt}\n\n')
-        
+
         # Macros for setting cases.
         f.write('\\newcommand{\\thecase}{}\n')
         f.write('\\newcommand{\\thesweep}{}\n')
         f.write('\\newcommand{\\setcase}[1]{\\renewcommand{\\thecase}{#1}}\n')
         f.write(
             '\\newcommand{\\setsweep}[1]{\\renewcommand{\\thesweep}{#1}}\n')
-        
+
         # Actual document
         f.write('\n%$__Begin\n')
         f.write('\\begin{document}\n')
-        
+
         # Title page
         f.write('\\pagestyle{plain}\n')
         f.write('\\begin{titlepage}\n')
@@ -372,24 +372,24 @@ class Report(object):
         # Close the tile page
         f.write('\\end{titlepage}\n')
         f.write('\\pagestyle{pycart}\n\n')
-        
+
         # Skeleton for the sweep
         f.write('%$__Sweeps\n\n')
-        
+
         # Skeleton for the main part of the report.
         f.write('%$__Cases\n')
-        
+
         # Termination of the report
         f.write('\n%$__End\n')
         f.write('\end{document}\n')
-        
+
         # Close the file.
         f.close()
-        
+
         # Return
         os.chdir(fpwd)
    # ]
-    
+
    # -----------------
    # Folder .tex Files
    # -----------------
@@ -397,7 +397,7 @@ class Report(object):
     # Function to write skeleton for a case.
     def WriteCaseSkeleton(self, i):
         """Initialize LaTeX file for case *i*
-        
+
         :Call:
             >>> R.WriteCaseSkeleton(i, frun)
         :Inputs:
@@ -413,13 +413,13 @@ class Report(object):
         frun = self.cntl.x.GetFullFolderNames(i)
         # Check for the ShowCase option
         qnum = self.cntl.opts.get_ReportShowCaseNumber(self.rep)
-        
+
         # Create the file (delete if necessary)
         f = open(self.fname, 'w')
 
         # Make sure no spilling of figures onto other pages
         f.write('\n\\FloatBarrier\n')
-        
+
         # Write the header.
         f.write('\\clearpage\n')
         f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
@@ -434,18 +434,18 @@ class Report(object):
         else:
             # Write case name without case number
             f.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
-        
+
         # Empty section for the figures
         f.write('%$__Figures\n')
         f.write('\n')
-        
+
         # Close the file.
         f.close()
-        
+
     # Function to write skeleton for a sweep
     def WriteSweepSkeleton(self, fswp, i):
         """Initialize LaTeX file for sweep *fswp* beginning with case *i*
-        
+
         :Call:
             >>> R.WriteSweepSkeleton(fswp, i)
         :Inputs:
@@ -459,10 +459,10 @@ class Report(object):
         """
         # Get the name of the case.
         frun = self.cntl.DataBook.x.GetFullFolderNames(i)
-        
+
         # Create the file (delete if necessary)
         f = open(self.fname, 'w')
-        
+
         # Write the header.
         f.write('\n\\clearpage\n')
         f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
@@ -474,18 +474,18 @@ class Report(object):
         # Set the table of contents entry.
         f.write('\\addcontentsline{toc}{section}' +
             '{\\texttt{\\thesweep/\\thecase}}\n')
-        
+
         # Empty section for the figures
         f.write('%$__Figures\n')
         f.write('\n')
-        
+
         # Close the file.
         f.close()
-        
+
     # Function to set the upper-right header
     def SetHeaderStatus(self, i):
         """Set header to state iteration progress and summary status
-        
+
         :Call:
             >>> R.SetHeaderStatus(i)
         :Inputs:
@@ -531,12 +531,12 @@ class Report(object):
         self.cases[i].UpdateLines()
    # ]
   # >
-    
+
   # ================
   # Update Functions
   # ================
   # <
-    
+
    # ---------------
    # General Updates
    # ---------------
@@ -544,7 +544,7 @@ class Report(object):
     # Function to update report
     def UpdateReport(self, **kw):
         """Update a report based on the list of figures
-        
+
         :Call:
             >>> R.UpdateReport(I)
             >>> R.UpdateReport(cons=[])
@@ -588,11 +588,11 @@ class Report(object):
             if f[-3:] in ['tex', 'pdf']: continue
             # Else remove it.
             os.remove(f)
-            
+
     # Check for any case figures
     def HasCaseFigures(self):
         """Check if there are any case figures for this report
-        
+
         :Call:
             >>> q = R.HasCaseFigures()
         :Inputs:
@@ -610,11 +610,11 @@ class Report(object):
         zfigs = self.cntl.opts.get_ReportZeroFigList(self.rep)
         # Check if any of them have nozero length.
         return (len(cfigs)>0) or (len(efigs)>0) or (len(zfigs)>0)
-    
+
     # Function to update sweeps
     def UpdateSweeps(self, I=None, cons=[], **kw):
         """Update pages of the report related to data book sweeps
-        
+
         :Call:
             >>> R.UpdateSweeps(I=None, cons=[], **kw)
         :Inputs:
@@ -644,11 +644,11 @@ class Report(object):
         # Master file location
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
-        
+
     # Function to update report for several cases
     def UpdateCases(self, I=None, **kw):
         """Update several cases and add the lines to the master LaTeX file
-        
+
         :Call:
             >>> R.UpdateCases(I=None, **kw)
         :Inputs:
@@ -677,7 +677,7 @@ class Report(object):
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
    # ]
-    
+
    # -------------------
    # Case/Sweep Updaters
    # -------------------
@@ -685,7 +685,7 @@ class Report(object):
     # Function to update a sweep
     def UpdateSweep(self, fswp, I=None, cons=[]):
         """Update the pages of a sweep
-        
+
         :Call:
             >>> R.UpdateSweep(fswp, I)
         :Inputs:
@@ -729,11 +729,11 @@ class Report(object):
             self.UpdateSweepPage(fswp, J[i])
         # Return to original directory
         os.chdir(fpwd)
-        
+
     # Update a page for a single sweep
     def UpdateSweepPage(self, fswp, I, IT=[]):
         """Update one page of a sweep for an automatic report
-        
+
         :Call:
             >>> R.UpdateSweepPage(fswp, I, IT=[])
         :Inputs:
@@ -798,11 +798,11 @@ class Report(object):
         self.sweeps[fswp][I[0]].Write()
         # Go home.
         os.chdir(fpwd)
-    
+
     # Get appropriate list of figures
     def GetFigureList(self, i, fswp=None):
         """Get list of figures for a report or sweep page
-        
+
         :Call:
             >>> figs = R.GetFigureList(i)
             >>> figs = R.GetFigureList(I, fswp)
@@ -850,11 +850,11 @@ class Report(object):
             figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
         # Output
         return figs
-    
+
     # Function to create the file for a case
     def UpdateCase(self, i):
         """Open, create if necessary, and update LaTeX file for a case
-        
+
         :Call:
             >>> R.UpdateCase(i)
         :Inputs:
@@ -949,7 +949,7 @@ class Report(object):
         # Go home.
         os.chdir(fpwd)
    # ]
-    
+
    # -------------------------
    # Figure/Subfigure Updaters
    # -------------------------
@@ -957,7 +957,7 @@ class Report(object):
     # Function to save the subfigures
     def SaveSubfigs(self, i, fswp=None):
         """Save the current text of subfigures
-        
+
         :Call:
             >>> R.SaveSubfigs(i)
             >>> R.SaveSubfigs(I, fswp)
@@ -1010,11 +1010,11 @@ class Report(object):
                 self.subfigs[sfig] = tx.lines[sfiga[nsfig]:sfigb[nsfig]+1]
                 # Increase count
                 nsfig += 1
-            
+
     # Function to write a figure.
     def UpdateFigure(self, fig, i, fswp=None):
         """Write the figure and update the contents as necessary for *fig*
-        
+
         :Call:
             >>> R.UpdateFigure(fig, i)
             >>> R.UpdateFigure(fig, I, fswp)
@@ -1110,11 +1110,11 @@ class Report(object):
         tx._updated_sections = True
         # Synchronize the document
         tx.UpdateLines()
-        
+
     # Update subfig for case
     def UpdateCaseSubfigs(self, fig, i):
         """Update subfigures for a case figure *fig*
-        
+
         :Call:
             >>> lines = R.UpdateCaseSubfigs(fig, i)
         :Inputs:
@@ -1151,11 +1151,11 @@ class Report(object):
         self.WriteCaseJSON(rc)
         # Output
         return lines
-        
+
     # Check status of a subfigure and give status update
     def CheckSubfigStatus(self, sfig, rc, n):
         """Check whether or not to update a subfigure and print status
-        
+
         :Call:
             >>> q = R.CheckSubfigStatus(sfig, rc, n)
         :Inputs:
@@ -1198,13 +1198,13 @@ class Report(object):
             return True
         # If reached this point, no update
         return False
-        
+
     # Point to the correct subfigure updater
     def SubfigSwitch(self, sfig, i, lines, q):
         """Switch function to find the correct subfigure function
-        
+
         This function may need to be defined for each CFD solver
-        
+
         :Call:
             >>> lines = R.SubfigSwitch(sfig, i, lines, q)
         :Inputs:
@@ -1261,12 +1261,12 @@ class Report(object):
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
-    
-        
+
+
     # Update subfig for a sweep
     def UpdateSweepSubfigs(self, fig, fswp, I):
         """Update subfigures for a sweep figure *fig*
-        
+
         :Call:
             >>> lines = R.UpdateSweepSubfigs(fig, fswp, I)
         :Inputs:
@@ -1323,11 +1323,11 @@ class Report(object):
         self.WriteCaseJSON(rc)
         # Output
         return lines
-        
+
     # Get handle for component
     def GetSubfigRefComponent(self, sfig):
         """Get handle for data book component for a sweep subfigure
-        
+
         :Call:
             >>> DBc = R.GetSubfigRefComponent(sfig)
         :Inputs:
@@ -1353,13 +1353,13 @@ class Report(object):
         else:
             # Use single component
             return self.ReadDBComp(comp)
-    
+
     # Point to the correct subfigure updater
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
         """Switch function to find the correct subfigure function
-        
+
         This function may need to be defined for each CFD solver
-        
+
         :Call:
             >>> lines = R.SubfigSwitch(sfig, fswp, I, lines)
         :Inputs:
@@ -1410,12 +1410,12 @@ class Report(object):
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
-        
-        
+
+
     # Check status of a subfigure and give status update
     def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter):
         """Check whether or not to update a subfigure and print status
-        
+
         :Call:
             >>> q = R.CheckSweepSubfigStatus(sfig, I, rc, fruns, nIter)
         :Inputs:
@@ -1472,7 +1472,7 @@ class Report(object):
         return False
    # ]
   # >
-    
+
   # =======
   # Cleanup
   # =======
@@ -1480,7 +1480,7 @@ class Report(object):
     # Clean up cases
     def CleanUpCases(self, I=None, cons=[]):
         """Clean up case folders
-        
+
         :Call:
             >>> R.CleanUpCases(I=None, cons=[])
         :Inputs:
@@ -1507,11 +1507,11 @@ class Report(object):
                 self.cd('..')
                 # Go back to root directory.
                 os.chdir('..')
-        
+
     # Clean up sweeps
     def CleanUpSweeps(self, I=None, cons=[]):
         """Clean up the folders for all sweeps
-        
+
         :Call:
             >>> R.CleanUpSweeps(I=None, cons=[])
         :Inputs:
@@ -1560,13 +1560,13 @@ class Report(object):
             # Go back up to report folder.
             os.chdir('..')
   # >
-    
-    
+
+
   # ==========
   # Subfigures
   # ==========
   # <
-   
+
    # ------
    # Config
    # ------
@@ -1574,14 +1574,14 @@ class Report(object):
     # Function to initialize a subfigure
     def SubfigInit(self, sfig):
         """Create the initial lines of a subfigure
-        
+
         :Call:
             >>> lines = R.SubfigInit(sfig)
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
-                Name of subfigure to initialize                            
+                Name of subfigure to initialize
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 Formatting lines to initialize a subfigure common to all types
@@ -1610,11 +1610,11 @@ class Report(object):
             lines.append('\\vskip-6pt\n')
         # Output
         return lines
-        
+
     # Apply a generic Python function for a subfigure
     def SubfigFunction(self, sfig, I):
         """Apply a generic Python function to a subfigure definition
-        
+
         :Call:
             >>> R.SubfigFunction(sfig, i)
             >>> R.SubfigFunction(sfig, I)
@@ -1653,12 +1653,12 @@ class Report(object):
             print('    Subfig function: %s("%s", %s)' % (func, sfig, i))
             # Run the function
             exec("cntl.%s(cntl, sfig, I)" % (func))
-        
-      
+
+
     # Function to get the list of targets for a subfigure
     def SubfigTargets(self, sfig):
         """Return list of targets (by name) for a subfigure
-        
+
         :Call:
             >>> targs = R.SubfigTargets(sfig)
         :Inputs:
@@ -1689,17 +1689,17 @@ class Report(object):
             targs = []
         # Output
         return targs
-        
+
     # Process caption
     def SubfigCaption(self, sfig, cdef=None):
         """Get a caption for a subfigure
-        
+
         This relies on the options *Caption* and *CaptionComponent*.  A
         *Caption* specification creates a full caption, while the
         *CaptionComponent* creates a prefix.  The default caption has the
         format *Component*/*Coefficient* if applicable, and otherwise uses
         *sfig*.
-        
+
         :Call:
             >>> fcpt = R.SubfigCaption(sfig, cdef=None)
         :Inputs:
@@ -1714,7 +1714,7 @@ class Report(object):
                 Caption
         :Versions:
             * 2017-03-31 ``@ddalle``: First version
-        """ 
+        """
         # Get caption.
         fcpt = self.cntl.opts.get_SubfigOpt(sfig, "Caption")
         # Check for non-default
@@ -1731,7 +1731,7 @@ class Report(object):
         coeff = self.cntl.opts.get_SubfigOpt(sfig, "Coefficient")
         # Types
         tcomp = type(comp).__name__
-        tcoef = type(coeff).__name__ 
+        tcoef = type(coeff).__name__
         # Check for a list.
         if (fcptb is not None):
             # Use the user-specified base to start the caption
@@ -1768,7 +1768,7 @@ class Report(object):
         # Output
         return fcpt
    # ]
-   
+
    # ----------
    # Formatting
    # ----------
@@ -1776,7 +1776,7 @@ class Report(object):
     # Function to turn on grid, turn off ticks, etc.
     def SubfigFormatAxes(self, sfig, ax):
         """Apply formatting options to an :class:`AxesSubplot` instance
-        
+
         :Call:
             >>> R.SubfigFormatAxes(sfig, ax)
         :Inputs:
@@ -1922,7 +1922,7 @@ class Report(object):
         ax.set_ylabel(hy.get_text(), **ylblopts)
        # ------------
        # Restriction
-       # ------------                            
+       # ------------
         # Get restriction option
         fres = opts.get_SubfigOpt(sfig, "Restriction")
         # Get position
@@ -1997,7 +1997,7 @@ class Report(object):
         if fres:
             plt.text(xres, yres, fres, **kw_res)
    # ]
-   
+
    # ---------
    # Tables
    # ---------
@@ -2005,14 +2005,14 @@ class Report(object):
     # Function to write conditions table
     def SubfigConditions(self, sfig, I, q=True):
         """Create lines for a "Conditions" subfigure
-        
+
         :Call:
             >>> lines = R.SubfigConditions(sfig, i, q=True)
             >>> lines = R.SubfigConditions(sfig, I, q=True)
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *sfig*: :class:`str`                                      
+            *sfig*: :class:`str`
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
@@ -2060,7 +2060,7 @@ class Report(object):
         lines.append('\\textbf{\\textsf{Abbr.}} &\n')
         lines.append('\\textbf{\\textsf{Value}} \\\\\n')
         lines.append('\\hline\n')
-        
+
         # Get the variables to skip.
         skvs = self.cntl.opts.get_SubfigOpt(sfig, 'SkipVars')
         # Loop through the trajectory keys.
@@ -2071,7 +2071,7 @@ class Report(object):
             line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
             # Append the abbreviation.
             abbrv = x.defns[k].get('Abbreviation', k)
-            line += (" & {\\small\\textsf{%s}} & " % 
+            line += (" & {\\small\\textsf{%s}} & " %
                 abbrv.replace('_', '\_'))
             # Get values.
             v = x[k][I]
@@ -2089,7 +2089,7 @@ class Report(object):
                     # Perform substitutions
                     w0 = self.WriteScientific('%.5g' % v0)
                     wmin = self.WriteScientific('%.5g' % vmin)
-                    wmax = self.WriteScientific('%.5g' % vmax) 
+                    wmax = self.WriteScientific('%.5g' % vmax)
                     # Print both values.
                     line += "$%s$, [$%s$, $%s$] \\\\\n" % (w0,wmin,wmax)
                 else:
@@ -2197,7 +2197,7 @@ class Report(object):
                     # Perform substitutions
                     w0 = self.WriteScientific('%.5g' % v0)
                     wmin = self.WriteScientific('%.5g' % vmin)
-                    wmax = self.WriteScientific('%.5g' % vmax) 
+                    wmax = self.WriteScientific('%.5g' % vmax)
                     # Print both values.
                     line += "$%s$, [$%s$, $%s$] \\\\\n" % (w0,wmin,wmax)
                 else:
@@ -2209,19 +2209,19 @@ class Report(object):
                 line += "\\\\\n"
             # Add the line to the table.
             lines.append(line)
-            
-        
+
+
         # Finish the subfigure
         lines.append('\\hline \\hline\n')
         lines.append('\\end{tabular}\n')
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-    
+
     # Function to write sweep conditions table
     def SubfigSweepConditions(self, sfig, fswp, i, q=True):
         """Create lines for a "SweepConditions" subfigure
-        
+
         :Call:
             >>> lines = R.SubfigSweepConditions(sfig, fswp, I, q)
         :Inputs:
@@ -2270,7 +2270,7 @@ class Report(object):
         lines.append('\\textbf{\\textsf{Value}} &\n')
         lines.append('\\textbf{\\textsf{Constraint}} \\\\ \n')
         lines.append('\\hline\n')
-        
+
         # Get equality and tolerance constraints.
         eqkeys  = self.cntl.opts.get_SweepOpt(fswp, 'EqCons')
         tolkeys = self.cntl.opts.get_SweepOpt(fswp, 'TolCons')
@@ -2321,18 +2321,18 @@ class Report(object):
         # Write the line
         lines.append("{\\small\\textit{i}} & $%i$ & $[%i,%i]$ \\\\ \n"
             % (i, i, imax))
-        
+
         # Finish the subfigure
         lines.append('\\hline \\hline\n')
         lines.append('\\end{tabular}\n')
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Function to write sweep conditions table
     def SubfigSweepCases(self, sfig, fswp, I, q=True):
         """Create lines for a "SweepConditions" subfigure
-        
+
         :Call:
             >>> lines = R.SubfigSweepCases(sfig, fswp, I)
         :Inputs:
@@ -2379,7 +2379,7 @@ class Report(object):
         lines.append('\\textbf{\\textsf{Index}} &\n')
         lines.append('\\textbf{\\textsf{Case}} \\\\ \n')
         lines.append('\\hline\n')
-        
+
         # Get the cases.
         fruns = x.GetFullFolderNames(I)
         # Loop through the cases.
@@ -2389,18 +2389,18 @@ class Report(object):
             frun = fruns[j].replace('_', '\_')
             # Add the index and folder name.
             lines.append('\\texttt{%i} & \\texttt{%s} \\\\ \n' % (i, frun))
-        
+
         # Finish the subfigure
         lines.append('\\hline \\hline\n')
         lines.append('\\end{tabular}\n')
         lines.append('\\end{subfigure}\n')
         # Output
-        return lines  
-    
+        return lines
+
     # Function to write summary table
     def SubfigSummary(self, sfig, i, q=True):
         """Create lines for a "Summary" subfigure
-        
+
         :Call:
             >>> lines = R.SubfigSummary(sfig, i, q=True)
         :Inputs:
@@ -2534,7 +2534,7 @@ class Report(object):
                     ff = self.cntl.opts.get_SubfigOpt(sfig, 'SigmaFormat')
                 elif fs == 'err':
                     # Uncertainty
-                    lines.append('\\textit{%s} iterative uncertainty, ' % c 
+                    lines.append('\\textit{%s} iterative uncertainty, ' % c
                         + '$\\varepsilon(%s)$\n' % fc)
                     # Format
                     ff = self.cntl.opts.get_SubfigOpt(sfig, 'EpsFormat')
@@ -2602,13 +2602,13 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Function to redo scientific notation
     def WriteScientific(self, v, decimals=8):
         """Convert value or string to scientific notation
-        
+
         The typical behavior is ``1.4e-5`` --> ``1.4\times10^{-5}``
-        
+
         :Call:
             >>> word = R.WriteScientific(v, decimals=8)
         :Inputs:
@@ -2648,7 +2648,7 @@ class Report(object):
         # Output
         return word
    # ]
-   
+
    # ---------
    # PlotCoeff
    # ---------
@@ -2656,7 +2656,7 @@ class Report(object):
     # Function to create coefficient plot and write figure
     def SubfigPlotCoeff(self, sfig, i, q):
         """Create plot for a coefficient and input lines int LaTeX file
-        
+
         :Call:
             >>> lines = R.SubfigPlotCoeff(sfig, i, q)
         :Inputs:
@@ -2837,7 +2837,7 @@ class Report(object):
         # Output
         return lines
    # ]
-   
+
    # ---------------------
    # Other DataBook Types
    # ---------------------
@@ -2845,7 +2845,7 @@ class Report(object):
     # Function to create coefficient plot and write figure
     def SubfigPlotLineLoad(self, sfig, i, q):
         """Create plot for a sectional loads profile
-        
+
         :Call:
             >>> lines = R.SubfigPlotLineLoad(sfig, i, q)
         :Inputs:
@@ -2888,7 +2888,7 @@ class Report(object):
                 targ_types[targ] = 'cape'
             except Exception:
                 # Read failed
-                print("    WARNING: " + 
+                print("    WARNING: " +
                     ("failed to read target line load '%s'" % targ))
                 raise IOError
                 targ_types[targ] = 'generic'
@@ -2907,7 +2907,7 @@ class Report(object):
         nIter  = self.cntl.CheckCase(i)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Process default caption. 
+        # Process default caption.
         if fcpt is None:
             # Check for a list.
             if type(comp).__name__ in ['list']:
@@ -2988,7 +2988,7 @@ class Report(object):
             if ym is not None: kw_pad['ym'] = ym
             if yp is not None: kw_pad['yp'] = yp
             # Draw the plot.
-            h = LL.Plot(coeff, 
+            h = LL.Plot(coeff,
                 Seams=sm_ax, SeamLocation=sm_loc,
                 LineOptions=kw_p, SeamOptions=kw_s,
                 Label=lbl,
@@ -3059,11 +3059,11 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Function to plot mean coefficient for a sweep
     def SubfigPlotLineLoadGroup(self, sfig, fswp, I, q):
         """Plot a line load for a group of cases
-        
+
         :Call:
             >>> R.SubfigPlotLineLoadGroup(sfig, fswp, I, q)
         :Inputs:
@@ -3095,7 +3095,7 @@ class Report(object):
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Process default caption. 
+        # Process default caption.
         if fcpt is None:
             # Defaut: Wing/CY
             fcpt = ("%s/%s" % (comp, coeff))
@@ -3185,7 +3185,7 @@ class Report(object):
             # Draw the plot.
             if k == 0:
                 # First plot: ok to add seams
-                h.append(LL.Plot(coeff, 
+                h.append(LL.Plot(coeff,
                     Seams=sm_ax, SeamLocation=sm_loc,
                     LineOptions=kw_p, SeamOptions=kw_s,
                     Label=lbl,
@@ -3242,9 +3242,9 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-    
+
    # ]
-   
+
    # -----------
    # SweepCoeff
    # -----------
@@ -3252,7 +3252,7 @@ class Report(object):
     # Function to plot mean coefficient for a sweep
     def SubfigSweepCoeff(self, sfig, fswp, I, q):
         """Plot a sweep of a coefficient over several cases
-        
+
         :Call:
             >>> R.SubfigSweepCoeff(sfig, fswp, I, q)
         :Inputs:
@@ -3330,7 +3330,7 @@ class Report(object):
         nSweep = len(J)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Process default caption. 
+        # Process default caption.
         if fcpt is None:
             # Check for a list.
             if type(comp).__name__ in ['list']:
@@ -3509,7 +3509,7 @@ class Report(object):
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
-                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", 
+                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions",
                     k*nTarg + targs.index(targ))
                 # Target options index
                 j_t += 1
@@ -3571,11 +3571,11 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Get subfig label for plot *k*
     def SubfigPlotLabel(self, sfig, k):
         """Get line label for subfigure plot
-        
+
         :Call:
             >>> lbl = R.SubfigPlotLabel(sfig, k)
         :Inputs:
@@ -3636,11 +3636,11 @@ class Report(object):
         else:
             # Just use the component
             return comp
-        
+
     # Get subfig label for target plot *k*
     def SubfigTargetPlotLabel(self, sfig, k, targ):
         """Get line label for subfigure plot
-        
+
         :Call:
             >>> lbl = R.SubfigPlotLabel(sfig, k, targ)
         :Inputs:
@@ -3698,7 +3698,7 @@ class Report(object):
             # Just use target
             return tlbl
    # ]
-   
+
    # --------------
    # SweepCoeffHist
    # --------------
@@ -3706,7 +3706,7 @@ class Report(object):
     # Function to plot coefficient histogram for a sweep
     def SubfigSweepCoeffHist(self, sfig, fswp, I, q):
         """Plot a histogram of a coefficient over several cases
-        
+
         :Call:
             >>> R.SubfigSweepCoeffHist(sfig, fswp, I)
         :Inputs:
@@ -3920,7 +3920,7 @@ class Report(object):
         # Output
         return lines
    # ]
-   
+
    # ------------
    # ContourCoeff
    # ------------
@@ -3928,7 +3928,7 @@ class Report(object):
     # Function to plot mean coefficient for a sweep
     def SubfigContourCoeff(self, sfig, fswp, I, q):
         """Create a contour plot of results from several cases
-        
+
         :Call:
             >>> R.SubfigSweepCoeff(sfig, fswp, I, q)
         :Inputs:
@@ -3979,7 +3979,7 @@ class Report(object):
                 ("received '%s'" % comp))
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Process default caption. 
+        # Process default caption.
         if fcpt is None:
             # Default format: RSRB/CLM
             fcpt = "%s/%s" % (comp, coeff)
@@ -4013,7 +4013,7 @@ class Report(object):
         TolCons = opts.get_SweepOpt(fswp, 'TolCons')
         GlobCons = opts.get_SweepOpt(fswp, 'GlobalCons')
         # Tolerate target? ...
-        
+
         # Get co-sweep
         J = DBc.FindCoSweep(x, I[0], EqCons, TolCons, GlobCons)
         # Don't generate void plot
@@ -4079,7 +4079,7 @@ class Report(object):
         # Output
         return lines
    # ]
-   
+
    # ----------
    # Residuals
    # ----------
@@ -4087,7 +4087,7 @@ class Report(object):
     # Function to create coefficient plot and write figure
     def SubfigPlotL1(self, sfig, i, q):
         """Create plot for L1 residual
-        
+
         :Call:
             >>> lines = R.SubfigPlotL1(sfig, i, q)
         :Inputs:
@@ -4104,11 +4104,11 @@ class Report(object):
             * 2015-11-25 ``@ddalle``: Moved contents to :func:`SubfigPlotResid`
         """
         return self.SubfigPlotResid(sfig, i, q, c='L1')
-        
+
     # Function to create L2 plot and write figure
     def SubfigPlotL2(self, sfig, i, q):
         """Create plot for L2 residual
-        
+
         :Call:
             >>> lines = R.SubfigPlotL2(sfig, i, q)
         :Inputs:
@@ -4124,11 +4124,11 @@ class Report(object):
             * 2015-11-25 ``@ddalle``: First version
         """
         return self.SubfigPlotResid(sfig, i, q, c='L2')
-        
+
     # Function to create L-infinity plot and write figure
     def SubfigPlotLInf(self, sfig, i, q):
         """Create plot for L2 residual
-        
+
         :Call:
             >>> lines = R.SubfigPlotL2(sfig, i, q)
         :Inputs:
@@ -4144,11 +4144,11 @@ class Report(object):
             * 2015-11-25 ``@ddalle``: First version
         """
         return self.SubfigPlotResid(sfig, i, q, c='LInf')
-        
+
     # Function to create L2 plot and write figure
     def SubfigPlotTurbResid(self, sfig, i, q):
         """Create plot for turbulence residual
-        
+
         :Call:
             >>> lines = R.SubfigPlotTurbResid(sfig, i, q)
         :Inputs:
@@ -4164,11 +4164,11 @@ class Report(object):
             * 2015-11-25 ``@ddalle``: First version
         """
         return self.SubfigPlotResid(sfig, i, q, c='TurbResid')
-    
+
     # Function to create coefficient plot and write figure
     def SubfigPlotResid(self, sfig, i, q, c=None):
         """Create plot for named residual
-        
+
         :Call:
             >>> lines = R.SubfigPlotResid(sfig, i, c=None)
         :Inputs:
@@ -4297,7 +4297,7 @@ class Report(object):
         # Output
         return lines
    # ]
-   
+
    # -------
    # Picture
    # -------
@@ -4305,7 +4305,7 @@ class Report(object):
     # Function to create coefficient plot and write figure
     def SubfigImage(self, sfig, i, q):
         """Create image based on a file that is present in the case folder
-        
+
         :Call:
             >>> lines = R.SubfigImage(sfig, i, q)
         :Inputs:
@@ -4380,7 +4380,7 @@ class Report(object):
         # Output
         return lines
    # ]
-   
+
    # ---------
    # Paraview
    # ---------
@@ -4388,7 +4388,7 @@ class Report(object):
     # Function to create coefficient plot and write figure
     def SubfigParaviewLayout(self, sfig, i, q):
         """Create image based on a Paraview Python script
-        
+
         :Call:
             >>> lines = R.SubfigParaviewLayout(sfig, i, q)
         :Inputs:
@@ -4464,8 +4464,8 @@ class Report(object):
                 try:
                     # Copy the file into the current folder.
                     shutil.copy(fsrc, flay)
-                    # Run the layout.
-                    pvpython(flay, cmd=fcmd)
+                    # Run the layouti, force offscreen rendering.
+                    pvpython(flay, cmd=fcmd, "--force-offscreen-rendering")
                     # Move the file to the location this subfig was built in
                     os.rename(fout, os.path.join(fpwd,fname))
                 except Exception:
@@ -4488,7 +4488,7 @@ class Report(object):
         # Output
         return lines
    # ]
-   
+
    # --------
    # Tecplot
    # --------
@@ -4496,7 +4496,7 @@ class Report(object):
     # Function to create coefficient plot and write figure
     def SubfigTecplotLayout(self, sfig, i, q):
         """Create image based on a Tecplot layout file
-        
+
         :Call:
             >>> lines = R.SubfigTecplotLayout(sfig, i)
         :Inputs:
@@ -4632,11 +4632,11 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Evaluate a variable, expanding trajectory values
     def EvalVar(self, v, i):
         """Evaluate a variable, expanding ``$mach`` to ``x.mach[i]``, etc.
-        
+
         :Call:
             >>> v = R.EvalVar(txt, i)
         :Inputs:
@@ -4684,11 +4684,11 @@ class Report(object):
                 v = v.replace(fi, vi)
         # Output
         return v
-        
+
     # Function to prepare variables in Tecplot layout
     def PrepTecplotLayoutVars(self, tec, sfig, i):
         """Set any variables for Tecplot layout
-        
+
         :Call:
             >>> R.PrepTecplotLayoutVars(tec, sfig, i)
         :Inputs:
@@ -4711,11 +4711,11 @@ class Report(object):
             v = self.EvalVar(setv[k], i)
             # Set the variable value
             tec.SetVar(k, v)
-            
+
     # Function to prepare other keys
     def PrepTecplotLayoutKeys(self, tec, sfig, i):
         """Set any parameters for Tecplot layout
-        
+
         :Call:
             >>> R.PrepTecplotLayoutKeys(tec, sfig, i)
         :Inputs:
@@ -4765,12 +4765,12 @@ class Report(object):
                 if p is not None: p = eval(self.EvalVar(p, i))
                 # Set the variable value
                 tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
-        
-            
+
+
     # Function to prepare slice locations
     def PrepTecplotSlicePosition(self, tec, sfig, i):
         """Set slice position for Tecplot layout
-        
+
         :Call:
             >>> R.PrepTecplotSlicePosition(tec, sfig, i)
         :Inputs:
@@ -4801,11 +4801,11 @@ class Report(object):
         pos.setdefault("n", 1)
         # Set the variable value
         tec.SetSliceLocation(**pos)
-            
+
     # Function to prepare color maps and contours in Tecplot layout
     def PrepTecplotContourLevels(self, tec, sfig, i):
         """Customize contour levels for a Tecplot layout
-        
+
         :Call:
             >>> R.PrepTecplotContourLevels(tec, sfig, i)
         :Inputs:
@@ -4870,11 +4870,11 @@ class Report(object):
             V = np.linspace(vmin, vmax, nv)
             # Apply the change
             tec.SetContourLevels(ncontour, V)
-            
+
     # Function to prepare color maps and contours in Tecplot layout
     def PrepTecplotColorMaps(self, tec, sfig, i):
         """Customize color maps for a Tecplot layout
-        
+
         :Call:
             >>> R.PrepTecplotColorMaps(tec, sfig, i)
         :Inputs:
@@ -4941,7 +4941,7 @@ class Report(object):
             # Edit the color map
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
   # >
-    
+
   # ============
   # Data Loaders
   # ============
@@ -4949,9 +4949,9 @@ class Report(object):
     # Read iterative history
     def ReadCaseFM(self, comp):
         """Read iterative history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> FM = R.ReadCaseFM(comp)
         :Inputs:
@@ -4966,13 +4966,13 @@ class Report(object):
             * 2015-10-16 ``@ddalle``: First version
         """
         return None
-        
+
     # Read residual history
     def ReadCaseResid(self, sfig=None):
         """Read iterative residual history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> hist = R.ReadCaseResid()
         :Inputs:
@@ -4985,11 +4985,11 @@ class Report(object):
             * 2015-10-16 ``@ddalle``: First version
         """
         return None
-        
+
     # Function to read generic data book component
     def ReadDBComp(self, comp, targ=None):
         """Read a data book component and return it
-        
+
         :Call:
             >>> DBc = R.ReadDBComp(comp, targ=None)
         :Inputs:
@@ -5027,7 +5027,7 @@ class Report(object):
             # Get the target type
             ttype = self.cntl.opts.get_DataBookTargetType(targ)
             # Check if this is a duplicate type
-            qdup = (ttype in ['cape','duplicate']) or ttype.startswith("py") 
+            qdup = (ttype in ['cape','duplicate']) or ttype.startswith("py")
             # Check for duplicate
             if not qdup:
                 # Just get the target
@@ -5076,11 +5076,11 @@ class Report(object):
             else:
                 # Empty data book
                 return None
-    
+
     # Function to read the data book and reread it if necessary
     def ReadDataBook(self, fsrc="data"):
         """Read the data book if necessary for a specific sweep
-        
+
         :Call:
             >>> R.ReadDataBook(fsrc="data")
         :Inputs:
@@ -5096,7 +5096,7 @@ class Report(object):
             # Reference the data book
             self.cntl.DataBook
             # Set source to "data"
-            try: 
+            try:
                 # Check data book source
                 self.cntl.DataBook.source
             except Exception:
@@ -5129,11 +5129,11 @@ class Report(object):
             self.cntl.DataBook.UpdateRunMatrix()
             # Save the data book source.
             self.cntl.DataBook.source = "data"
-    
+
     # Read a TriqFM data book
     def ReadTriqFM(self, comp, fsrc="data", targ=None):
         """Read a TriqFM data book if necessary for a specific sweep
-        
+
         :Call:
             >>> DBF = R.ReadTriqFM(comp, fsrc="data", targ=None)
         :Inputs:
@@ -5203,11 +5203,11 @@ class Report(object):
             DBF.source = "data"
         # Output if desired
         return DBF
-        
+
     # Read a point sensor group
     def ReadTriqPoint(self, grp, pt,  targ=None):
         """Read a point sensor
-        
+
         :Call:
             >>> DBP = R.ReadTriqPoint(grp, pt, targ=None)
         :Inputs:
@@ -5243,7 +5243,7 @@ class Report(object):
             # Get the target type
             ttype = self.cntl.opts.get_DataBookTargetType(targ)
             # Check if this is a duplicate type
-            qdup = (ttype in ['cape','duplicate']) or ttype.startswith("py") 
+            qdup = (ttype in ['cape','duplicate']) or ttype.startswith("py")
             # Check for duplicate
             if not qdup:
                 # Just get the target
@@ -5254,12 +5254,12 @@ class Report(object):
             DBP = DB.TriqPoint[grp][pt]
         # Output if desired
         return DBP
-        
-        
+
+
     # Read line loads
     def ReadLineLoad(self, comp, i, targ=None, update=False):
         """Read line load for a case
-        
+
         :Call:
             >>> LL = R.ReadLineLoad(comp, i, targ=None, update=False)
         :Inputs:
@@ -5333,11 +5333,11 @@ class Report(object):
         DBL.ReadCase(j)
         # Output the case line load
         return DBL.get(j)
-    
+
     # Read a Tecplot script
     def ReadTecscript(self, fsrc):
         """Read a Tecplot script interface
-        
+
         :Call:
             >>> R.ReadTecscript(fsrc)
         :Inputs:
@@ -5350,7 +5350,7 @@ class Report(object):
         """
         return Tecscript(fsrc)
   # >
-    
+
   # ============
   # Status Tools
   # ============
@@ -5358,7 +5358,7 @@ class Report(object):
     # Read the ``report.json`` file
     def ReadCaseJSON(self):
         """Read the JSON file which contains the current statuses
-        
+
         :Call:
             >>> rc = R.ReadCaseJSON()
         :Inputs:
@@ -5393,11 +5393,11 @@ class Report(object):
         rc.setdefault("Subfigures", {})
         # Return the settings
         return rc
-        
+
     # Write all settings
     def WriteCaseJSON(self, rc):
         """Write the current status to ``report.json``
-        
+
         :Call:
             >>> R.WriteCaseJSON(rc)
         :Inputs:
@@ -5415,7 +5415,7 @@ class Report(object):
         # Close the file.
         f.close()
   # >
-    
+
   # =============
   # Sweep Indices
   # =============
@@ -5423,7 +5423,7 @@ class Report(object):
     # Function to get update sweeps
     def GetSweepIndices(self, fswp, I=None, cons=[], comp=None):
         """Divide cases into individual sweeps
-        
+
         :Call:
             >>> J = R.GetSweepIndices(fswp, I=None, cons=[], comp=None)
         :Inputs:
@@ -5490,13 +5490,13 @@ class Report(object):
             EqCons=EqCons, TolCons=TolCons, IndexTol=IndexTol)
         # Output
         return J
-        
+
     # Function to get subset of target catches matching a sweep
     def GetTargetSweepIndices(self, fswp, i0, targ, cons=[]):
         """
         Return indices of a target data set that correspond to sweep constraints
         from a data book point
-        
+
         :Call:
             >>> I = R.GetTargetSweepIndices(fswp, i0, targ)
         :Inputs:
@@ -5543,13 +5543,13 @@ class Report(object):
             SortVar=xk, EqCons=EqCons, TolCons=TolCons, I=I)
         # Output
         return I
-        
+
     # Function to get subset of target catches matching a sweep
     def GetCoSweepIndices(self, fswp, i0, comp, cons=[], targ=None):
         """
         Return indices of a target data set that correspond to sweep constraints
         from a data book point
-        
+
         :Call:
             >>> I = R.GetTargetSweepIndices(fswp, i0, comp, cons=[], targ=None)
         :Inputs:
@@ -5604,7 +5604,7 @@ class Report(object):
         # Output
         return I
   # >
-    
+
   # ================
   # Run Folder Tools
   # ================
@@ -5612,7 +5612,7 @@ class Report(object):
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         """Create links to appropriate visualization files
-        
+
         :Call:
             >>> R.LinkVizFiles(sfig, i)
         :Inputs:
