@@ -2512,10 +2512,6 @@ class MPLOpts(dict):
         kw = dict(kw_plt, **kw)
         # Output
         return minmax_type, cls.denone(kw)
-            
-            
-        # Remove "None"
-        return tmmx, cls.denone(kw)
   # >
 
   # =========================
