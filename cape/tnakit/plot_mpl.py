@@ -1837,6 +1837,7 @@ class MPLOpts(dict):
         "PlotTypeMinMax",
         "FillBetweenOptions",
         "ErrorBarOptions",
+        "ErrorBarMarker",
     ]
 
     # Options for which a singleton is a list
@@ -1893,6 +1894,12 @@ class MPLOpts(dict):
         "PlotLineStyle",
         "PlotLineWidth",
     ]
+    _optlist_errobar = [
+        "Index",
+        "Rotate",
+        "ErrorBarOptions",
+        "ErrorBarMarker"
+    ]
 
     # Types
     _opttypes = {
@@ -1930,6 +1937,7 @@ class MPLOpts(dict):
         "MinMaxOptions": dict,
         "FillBetweenOptions": dict,
         "ErrorBarOptions": dict,
+        "ErrorBarMarker": typeutils.strlike,
     }
     
     # Global options mapped to subcategory options
@@ -1965,6 +1973,17 @@ class MPLOpts(dict):
         "ErrorBarOptions": {
             "Index": "Index",
             "Rotate": "Rotate",
+            "ErrorBarMarker": "marker",
+        },
+    }
+    
+    # Options to inherit from elsewhere
+    _kw_cascade = {
+        "ErrorBarOptions": {
+            "plot.color": "color",
+        },
+        "FillBetweenOptions": {
+            "plot.color": "color",
         },
     }
 
@@ -1973,7 +1992,22 @@ class MPLOpts(dict):
         "PlotOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
-        }
+            "c": "color",
+        },
+        "ErrorBarOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+            "mec": "markeredgecolor",
+            "mew": "mergeredgewidth",
+            "mfc": "markerfacecolor",
+            "ms": "markersize",
+        },
+        "FillBetweenOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
     }
 
     # Type strings
@@ -2006,6 +2040,7 @@ class MPLOpts(dict):
         "MinMaxOptions": _rst_dict,
         "FillBetweenOptions": _rst_dict,
         "ErrorBarOptions": _rst_dict,
+        "ErrorBarMarker": _rst_str,
     }
     # Option descriptions
     _rst_descriptions = {
@@ -2038,6 +2073,7 @@ class MPLOpts(dict):
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
         "ErrorBarOptions": """Options for :func:`errorbar` plots""",
         "FillBetweenOptions": """Options for :func:`fill_between` plots""",
+        "ErrorBarMarker": """Marker for :func:`errorbar` plots""",
     }
     
    # --- RC ---
@@ -2080,6 +2116,7 @@ class MPLOpts(dict):
     # Options for errobar()
     _rc_errorbar = {
         "capsize": 1.5,
+        "lw": 0.5,
         "elinewidth": 0.8,
         "zorder": 6,
     }
@@ -2533,6 +2570,128 @@ class MPLOpts(dict):
         kw = dict(kw_plt, **kw)
         # Output
         return minmax_type, cls.denone(kw)
+
+    # Options for errorbar() plots
+    def errobar_options(self):
+        r"""Process options for :func:`errorbar` calls
+
+        :Call:
+            >>> kw = opts.errorbar_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`errorbar`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap (global options mapped to errorbar() opts)
+        kw_map = cls._kw_submap["ErrorBarOptions"]
+        # Aliases for errorbar() opts to avoid conflict
+        kw_alias = cls._kw_subalias["ErrorBarOptions"]
+        # Options to cascade css-style from PlotOptions
+        kw_css = cls._kw_cascade["ErrorBarOptions"]
+        # Get directly specified
+        kw_eb = self.get("ErrorBarOptions", {})
+        # Apply aliases
+        kw = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_eb.items()
+        }
+        # Get :func:`plot` options
+        kw_plt = self.plot_options()
+        # loop through cascading options
+        for (k2, k1) in kw_css.items():
+            # Split "from" name into part and option
+            ka, kb = k2.split(".", 1)
+            # Confirm it comes from "plot"
+            if ka == "plot":
+                v = kw_plt.get(kb)
+            else:
+                raise ValuError(
+                    "ErrorBarOptions cannot inherit from '%s'" % ka)
+            # Check for valid value
+            if v is not None:
+                # Don't override specified value
+                kw.setdefault(k1, v)
+        # Apply defaults
+        kw = dict(cls._rc_errorbar, **kw)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Remove "None"
+        return cls.denone(kw)
+
+    # Options for fill_between() plots
+    def fillbetween_options(self):
+        r"""Process options for :func:`fill_between` calls
+
+        :Call:
+            >>> kw = opts.fillbetween_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`fill_between`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap (global options mapped to errorbar() opts)
+        kw_map = cls._kw_submap["FillBetweenOptions"]
+        # Aliases for errorbar() opts to avoid conflict
+        kw_alias = cls._kw_subalias["FillBetweenOptions"]
+        # Options to cascade css-style from PlotOptions
+        kw_css = cls._kw_cascade["FillBetweenOptions"]
+        # Get directly specified
+        kw_eb = self.get("FillBetweenOptions", {})
+        # Apply aliases
+        kw = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_eb.items()
+        }
+        # Get :func:`plot` options
+        kw_plt = self.plot_options()
+        # loop through cascading options
+        for (k2, k1) in kw_css.items():
+            # Split "from" name into part and option
+            ka, kb = k2.split(".", 1)
+            # Confirm it comes from "plot"
+            if ka == "plot":
+                v = kw_plt.get(kb)
+            else:
+                raise ValuError(
+                    "FillBetweenOptions cannot inherit from '%s'" % ka)
+            # Check for valid value
+            if v is not None:
+                # Don't override specified value
+                kw.setdefault(k1, v)
+        # Apply defaults
+        kw = dict(cls._rc_fillbetween, **kw)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Remove "None"
+        return cls.denone(kw)
   # >
 
   # =========================
