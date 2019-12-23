@@ -153,17 +153,6 @@ def plot(xv, yv, *a, **kw):
     qerr = opts.get("ShowError", False)
     quq = opts.get("ShowUncertainty", quq and (not qerr))
    # --- Universal Options ---
-    # Label for legend
-    lbl = opts.get("Label", "")
-    # Index
-    i = opts.get("Index", 0)
-    # Rotation
-    r = opts.get("Rotate", False)
-    # Universal options
-    kw_u = {
-        "i": i,
-        "Rotate": r,
-    }
     # Font options
     kw_font = opts.font_options()
    # --- Figure Setup ---
@@ -219,7 +208,7 @@ def plot(xv, yv, *a, **kw):
             h.minmax = errorbar(xv, yv, yerr, **kw_mmax)
    # --- Error ---
     # Process min/max options
-    #t_err, kw_err = mplopts.error_options(kw, kw_p, kw_u)
+    error_type, kw_err = opts.error_options()
     # Plot it
     if qerr:
         # Min/max values
@@ -230,21 +219,21 @@ def plot(xv, yv, *a, **kw):
             ia += 1
         else:
             # Pop values
-            yerr = kw.pop("yerr", None)
+            yerr = kw.get("yerr", None)
         # Check for horizontal error bars
-        xerr = kw.pop("xerr", None)
+        xerr = kw.get("xerr", None)
         # Plot call
-        if t_err == "FillBetween":
+        if error_type == "FillBetween":
             # Convert to min/max values
             ymin, ymax = errorbar_to_minmax(yv, yerr)
             # Do a :func:`fill_between` plot
-            h['error'] = fill_between(xv, ymin, ymax, **kw_err)
+            h.error = fill_between(xv, ymin, ymax, **kw_err)
         elif t_err == "ErrorBar":
             # Do a :func:`errorbar` plot
-            h['error'] = errorbar(xv, yv, yerr, **kw_err)
+            h.error = errorbar(xv, yv, yerr, **kw_err)
    # --- UQ ---
     # Process min/max options
-    #t_uq, kw_uq = mplopts.uq_options(kw, kw_p, kw_u)
+    uq_type, kw_uq = opts.uq_options()
     # Plot it
     if quq:
         # Min/max values
@@ -255,37 +244,39 @@ def plot(xv, yv, *a, **kw):
             ia += 1
         else:
             # Pop values
-            yerr = kw.pop("yerr", kw.pop("uy", None))
+            yerr = kw.get("uy", kw.get("yerr", None))
         # Check for horizontal error bars
-        xerr = kw.pop("xerr", kw.pop("ux", None))
+        xerr = kw.get("ux", kw.get("ux", None))
         # Plot call
-        if t_uq == "FillBetween":
+        if uq_type == "FillBetween":
             # Convert to min/max values
             ymin, ymax = errorbar_to_minmax(yv, yerr)
             # Do a :func:`fill_between` plot
-            h['uq'] = fill_between(xv, ymin, ymax, **kw_uq)
-        elif t_uq == "ErrorBar":
+            h.uq = fill_between(xv, ymin, ymax, **kw_uq)
+        elif uq_type == "ErrorBar":
             # Do a :func:`errorbar` plot
-            h['uq'] = errobar(xv, yv, yerr, **kw_uq)
+            h.uq = errobar(xv, yv, yerr, **kw_uq)
    # --- Axis formatting ---
     ## Process grid lines options
-    #kw_gl = mplopts.grid_options(kw, kw_p, kw_u)
-    ## Apply grid lines
-    #grid(ax, **kw_gl)
-    ## Process spine options
-    #kw_sp = mplopts.spine_options(kw, kw_p, kw_u)
-    ## Apply options relating to spines
-    #h["spines"] = format_spines(ax, **kw_sp)
+    kw_grid = opts.grid_options()
+    # Apply grid lines
+    grid(h.ax, **kw_grid)
+    # Process spine options
+    kw_spines = opts.spine_options()
+    # Apply options relating to spines
+    h.spines = format_spines(h.ax, **kw_spines)
     # Process axes format options
     kw_axfmt = opts.axformat_options()
     # Apply formatting
     h.xlabel, h.ylabel = format_axes(h.ax, **kw_axfmt)
    # --- Legend ---
     ## Process options for legend
-    #kw_leg = mplopts.legend_options(kw, kw_font)
+    #kw_legend = mplopts.legend_options(kw, kw_font)
     ## Create legend
-    #h['legend'] = legend(ax, **kw_leg)
+    #h.legend = legend(ax, **kw_legend)
    # --- Cleanup ---
+    # Save options
+    h.opts = opts
     # Output
     return h
 
@@ -1286,7 +1277,7 @@ def format_axes(ax, **kw):
 
 # Creation and formatting of grid lines
 def grid(ax, **kw):
-    """Add grid lines to an axis and format them
+    r"""Add grid lines to an axis and format them
 
     :Call:
         >>> grid(ax, **kw)
@@ -1298,51 +1289,49 @@ def grid(ax, **kw):
             Grid lines added to axes
     :Versions:
         * 2019-03-07 ``@jmeeroff``: First version
+        * 2019-12-23 ``@ddalle``: Updated from :mod:`plotutils`
     """
     # Make sure pyplot loaded
     import_pyplot()
-    # Get grid option
-    ogrid = kw.pop("MajorGrid", kw.pop("Grid", None))
+    # Get major grid option
+    major_grid = kw.get("Grid", None)
     # Check value
-    if ogrid is None:
+    if major_grid is None:
         # Leave it as it currently is
         pass
-    elif ogrid:
+    elif major_grid:
         # Get grid style
-        kw_g = kw.pop("GridOptions", {})
-        kw_m = kw.pop("MajorGridOptions", {})
-        # Combine
-        kw_g = dict(kw_g, **kw_m)
+        kw_major = kw.get("GridOptions", {})
         # Ensure that the axis is below
         ax.set_axisbelow(True)
         # Add the grid
-        ax.grid(True, **kw_g)
+        ax.grid(True, **kw_major)
     else:
         # Turn the grid off, even if previously turned on
         ax.grid(False)
     # Get minor grid option
-    ogrid = kw.pop("MinorGrid", None)
+    minor_grid = kw.get("MinorGrid", None)
     # Check value
-    if ogrid is None:
+    if minor_grid is None:
         # Leave it as it currently is
         pass
-    elif ogrid:
+    elif minor_grid:
         # Get grid style
-        kw_g = kw.pop("MinorGridOptions", {})
+        kw_minor = kw.get("MinorGridOptions", {})
         # Ensure that the axis is below
         ax.set_axisbelow(True)
         # Minor ticks are required
         ax.minorticks_on()
         # Add the grid
-        ax.grid(which="minor", **kw_g)
+        ax.grid(which="minor", **kw_minor)
     else:
         # Turn the grid off, even if previously turned on
-        ax.grid(False)
+        ax.grid(False, which="minor")
 
 
 # Single spine: extents
 def format_spine1(spine, opt, vmin, vmax):
-    """Apply formatting to a single spine
+    r"""Apply visibility options to a single spine
 
     :Call:
         >>> format_spine1(spine, opt, vmin, vmax)
@@ -1352,9 +1341,9 @@ def format_spine1(spine, opt, vmin, vmax):
         *opt*: ``None`` | ``True`` | ``False`` | ``"clipped"``
             Option for this spine
         *vmin*: :class:`float`
-            If using clipped spines, minimum value for spine (data space)
+            If using clipped spines, minimum value for spine
         *vmax*: :class:`float`
-            If using clipped spines, maximum value for spine (data space)
+            If using clipped spines, maximum value for spine
     :Versions:
         * 2019-03-08 ``@ddalle``: First version
     """
@@ -1388,7 +1377,7 @@ def format_spine1(spine, opt, vmin, vmax):
 
 # Spine formatting
 def format_spines(ax, **kw):
-    """Manipulate spines (ticks, extents, etc.)
+    r"""Format Matplotlib axes spines and ticks
 
     :Call:
         >>> h = format_spines(ax, **kw)
@@ -1400,6 +1389,7 @@ def format_spines(ax, **kw):
             Grid lines added to axes
     :Versions:
         * 2019-03-07 ``@jmeeroff``: First version
+        * 2019-12-23 ``@ddalle``: From :mod:`tnakit.plotutils`
     """
    # --- Setup ---
     # Make sure pyplot loaded
@@ -1428,32 +1418,32 @@ def format_spines(ax, **kw):
     xmin, xmax = get_xlim(ax, pad=0.0)
     ymin, ymax = get_ylim(ax, pad=0.0)
     # Process manual limits for min and max spines
-    xa = kw.pop("XSpineMin", xmin)
-    xb = kw.pop("XSpineMax", xmax)
-    ya = kw.pop("YSpineMin", ymin)
-    yb = kw.pop("YSpineMax", ymax)
+    xa = kw.get("XSpineMin", xmin)
+    xb = kw.get("XSpineMax", xmax)
+    ya = kw.get("YSpineMin", ymin)
+    yb = kw.get("YSpineMax", ymax)
     # Process manual limits for individual spines
-    yaL = kw.pop("LeftSpineMin", ya)
-    ybL = kw.pop("LeftSpineMax", yb)
-    yaR = kw.pop("RightSpineMin", ya)
-    ybR = kw.pop("RightSpineMax", yb)
-    xaB = kw.pop("BottomSpineMin", xa)
-    xbB = kw.pop("BottomSpineMax", xb)
-    xaT = kw.pop("TopSpineMin", xa)
-    xbT = kw.pop("TopSpineMax", xb)
+    yaL = kw.get("LeftSpineMin", ya)
+    ybL = kw.get("LeftSpineMax", yb)
+    yaR = kw.get("RightSpineMin", ya)
+    ybR = kw.get("RightSpineMax", yb)
+    xaB = kw.get("BottomSpineMin", xa)
+    xbB = kw.get("BottomSpineMax", xb)
+    xaT = kw.get("TopSpineMin", xa)
+    xbT = kw.get("TopSpineMax", xb)
    # --- Overall Spine Options ---
     # Option to turn off all spines
-    qs = kw.pop("Spines", None)
+    qs = kw.get("Spines", None)
     # Only valid options are ``None`` and ``False``
     if qs is not False: qs = None
     # Spine pairs options
-    qX = kw.pop("XSpine", qs)
-    qY = kw.pop("YSpine", qs)
+    qX = kw.get("XSpine", qs)
+    qY = kw.get("YSpine", qs)
     # Left spine options
-    qL = kw.pop("LeftSpine",   qY)
-    qR = kw.pop("RightSpine",  qY)
-    qT = kw.pop("TopSpine",    qX)
-    qB = kw.pop("BottomSpine", qX)
+    qL = kw.get("LeftSpine",   qY)
+    qR = kw.get("RightSpine",  qY)
+    qT = kw.get("TopSpine",    qX)
+    qB = kw.get("BottomSpine", qX)
    # --- Spine On/Off Extents ---
     # Process these options
     format_spine1(spineL, qL, yaL, ybL)
@@ -1462,14 +1452,14 @@ def format_spines(ax, **kw):
     format_spine1(spineB, qB, xaB, xbB)
    # --- Spine Formatting ---
     # Paired options
-    spopts = kw.pop("SpineOptions", {})
-    xsopts = kw.pop("XSpineOptions", {})
-    ysopts = kw.pop("YSpineOptions", {})
+    spopts = kw.get("SpineOptions", {})
+    xsopts = kw.get("XSpineOptions", {})
+    ysopts = kw.get("YSpineOptions", {})
     # Individual spines
-    lsopts = kw.pop("LeftSpineOptions", {})
-    rsopts = kw.pop("RightSpineOptions", {})
-    bsopts = kw.pop("BottomSpineOptions", {})
-    tsopts = kw.pop("TopSpineOptions", {})
+    lsopts = kw.get("LeftSpineOptions", {})
+    rsopts = kw.get("RightSpineOptions", {})
+    bsopts = kw.get("BottomSpineOptions", {})
+    tsopts = kw.get("TopSpineOptions", {})
     # Combine settings
     xsopts = dict(spopts, **xsopts)
     ysopts = dict(spopts, **ysopts)
@@ -1484,19 +1474,23 @@ def format_spines(ax, **kw):
     spineT.set(**tsopts)
    # --- Tick Settings ---
     # Option to turn off all ticks
-    qt = kw.pop("Ticks", None)
+    qt = kw.get("Ticks", None)
     # Only valid options are ``None`` and ``False``
     if qt is not False: qt = None
     # Options for ticks on each axis
-    qtL = kw.pop("LeftSpineTicks",   qt and qL)
-    qtR = kw.pop("RightSpineTicks",  qt and qR)
-    qtB = kw.pop("BottomSpineTicks", qt and qB)
-    qtT = kw.pop("TopSpineTicks",    qt and qT)
+    qtL = kw.get("LeftSpineTicks",   qt and qL)
+    qtR = kw.get("RightSpineTicks",  qt and qR)
+    qtB = kw.get("BottomSpineTicks", qt and qB)
+    qtT = kw.get("TopSpineTicks",    qt and qT)
     # Turn on/off
-    if qtL is not None: ax.tick_params(left=qtL)
-    if qtR is not None: ax.tick_params(right=qtR)
-    if qtB is not None: ax.tick_params(bottom=qtB)
-    if qtT is not None: ax.tick_params(top=qtT)
+    if qtL is not None:
+        ax.tick_params(left=qtL)
+    if qtR is not None:
+        ax.tick_params(right=qtR)
+    if qtB is not None:
+        ax.tick_params(bottom=qtB)
+    if qtT is not None:
+        ax.tick_params(top=qtT)
    # --- Tick label settings ---
     # Option to turn off all tick labels
     qtl = kw.pop("TickLabels", None)
@@ -1508,10 +1502,14 @@ def format_spines(ax, **kw):
     qtlB = kw.pop("BottomTickLabels", qtl)
     qtlT = kw.pop("TopTickLabels",    qtl)
     # Turn on/off labels
-    if qtlL is not None: ax.tick_params(labelleft=qtlL)
-    if qtlR is not None: ax.tick_params(labelright=qtlR)
-    if qtlB is not None: ax.tick_params(labelbottom=qtlB)
-    if qtlT is not None: ax.tick_params(labeltop=qtlT)
+    if qtlL is not None:
+        ax.tick_params(labelleft=qtlL)
+    if qtlR is not None:
+        ax.tick_params(labelright=qtlR)
+    if qtlB is not None:
+        ax.tick_params(labelbottom=qtlB)
+    if qtlT is not None:
+        ax.tick_params(labeltop=qtlT)
    # --- Tick Formatting ---
     # Directions
     tkdir = kw.pop("TickDirection", "out")
@@ -1534,12 +1532,7 @@ def format_spines(ax, **kw):
     ax.tick_params(axis="y",    **ytopts)
    # --- Output ---
     # Return all spine handles
-    return {
-        "left":   spineL,
-        "right":  spineR,
-        "top":    spineT,
-        "bottom": spineB,
-    }
+    return ax.spines
 
 
 # Convert min/max to error bar widths
@@ -1572,7 +1565,7 @@ def minmax_to_errorbar(yv, ymin, ymax):
 
 # Convert min/max to error bar widths
 def errorbar_to_minmax(yv, yerr):
-    """Convert min/max values to error bar below/above widths
+    r"""Convert min/max values to error bar below/above widths
 
     :Call:
         >>> ymin, ymax = minmax_to_errorbar(yv, yerr)
@@ -1787,8 +1780,9 @@ class MPLHandle(object):
 
 
 # Standard type strings
-_rst_boolt = """{``True``} | ``False``"""
 _rst_boolf = """```True`` | {``False``}"""
+_rst_booln = """{``None``} | ``True`` | ``False``"""
+_rst_boolt = """{``True``} | ``False``"""
 _rst_dict = """{``None``} | :class:`dict`"""
 _rst_float = """{``None``} | :class:`float`"""
 _rst_floatpos = """{``None``} | :class:`float` > 0.0"""
@@ -1812,9 +1806,17 @@ class MPLOpts(dict):
         "AdjustLeft",
         "AdjustRight",
         "AdjustTop",
+        "BottomSpine",
+        "BottomSpineMax",
+        "BottomSpineMin",
+        "BottomSpineOptions",
+        "BottomSpineTicks",
+        "BottomTickLabels",
         "Density",
         "ErrorBarOptions",
         "ErrorBarMarker",
+        "ErrorOptions",
+        "ErrorPlotType",
         "FigDPI",
         "FigHeight",
         "FigNumber",
@@ -1828,8 +1830,17 @@ class MPLOpts(dict):
         "FontStyle",
         "FontVariant",
         "FontWeight",
+        "Grid",
+        "GridOptions",
+        "GridStyle",
         "Index",
         "Label",
+        "LeftSpine",
+        "LeftSpineMax",
+        "LeftSpineMin",
+        "LeftSpineOptions",
+        "LeftSpineTicks",
+        "LeftTickLabels",
         "MinMaxOptions",
         "MinMaxPlotType",
         "Pad",
@@ -1837,11 +1848,32 @@ class MPLOpts(dict):
         "PlotLineStyle",
         "PlotLineWidth",
         "PlotOptions",
+        "RightSpine",
+        "RightSpineMax",
+        "RightSpineMin",
+        "RightSpineOptions",
+        "RightSpineTicks",
+        "RightTickLabels",
         "Rotate",
         "ShowError",
         "ShowLine",
         "ShowMinMax",
         "ShowUncertainty",
+        "SpineOptions",
+        "Spines",
+        "TickDirection",
+        "TickFontSize",
+        "TickLabels",
+        "TickOptions",
+        "TickRotation",
+        "TickSize",
+        "Ticks",
+        "TopSpine",
+        "TopSpineMax",
+        "TopSpineMin",
+        "TopSpineOptions",
+        "TopSpineTicks",
+        "TopTickLabels",
         "XLabel",
         "XLim",
         "XPad",
@@ -1858,20 +1890,35 @@ class MPLOpts(dict):
 
     # Options for which a singleton is a list
     _optlist_list = [
-        "dashes"
+        "dashes",
+        "XLim",
+        "YLim",
     ]
     
     # Alternate names
     _optmap = {
         "Axes": "ax",
+        "BottomTicks": "BottomSpineTicks",
         "ErrorBarOpts": "ErrorBarOptions",
         "Figure": "fig",
         "FillBetweenOpts": "FillBetweenOptions",
         "Font": "FontName",
         "FontFamily": "FontName",
+        "GridOpts": "GridOptions",
+        "LeftTicks": "LeftSpineTicks",
+        "MajorGridOpts": "GridOptions",
+        "MajorGridOptions": "GridOptions",
+        "MinMaxOpts": "MinMaxOptions",
         "PlotOpts": "PlotOptions",
+        "RightTicks": "RightSpineTicks",
         "ShowUQ": "ShowUncertainty",
+        "TopTicks": "TopSpineTicks",
+        "UQOptions": "UncertaintyOptions",
+        "UQOpts": "UncertaintyOptions",
+        "UncertaintyOpts": "UncertaintyOptions",
+        "UQPlotType": "UncertaintyPlotType",
         "density": "Density",
+        "grid": "Grid",
         "hfig": "FigHeight",
         "i": "Index",
         "label": "Label",
@@ -1927,6 +1974,13 @@ class MPLOpts(dict):
         "FontVariant",
         "FontWeight"
     ]
+    _optlist_grid = [
+        "Grid",
+        "GridOptions",
+        "MajorGrid",
+        "MinorGrid",
+        "MinorGridOptions",
+    ]
     _optlist_plot = [
         "Index",
         "Rotate",
@@ -1950,9 +2004,63 @@ class MPLOpts(dict):
         "Index",
         "Rotate",
         "MinMaxOptions",
+        "MinMaxPlotType",
         "ErrorBarOptions",
         "ErrorBarMarker",
         "FillBetweenOptions"
+    ]
+    _optlist_error = [
+        "Index",
+        "Rotate",
+        "ErrorOptions",
+        "ErrorPlotType",
+        "ErrorBarOptions",
+        "ErrorBarMarker",
+        "FillBetweenOptions"
+    ]
+    _optlist_spines = [
+        "Spines",
+        "SpineOptions",
+        "Ticks",
+        "TickDirection",
+        "TickFontSize",
+        "TickLabels",
+        "TickOptions",
+        "TickRotation",
+        "TickSize",
+        "BottomSpine",
+        "BottomSpineMax",
+        "BottomSpineMin",
+        "BottomSpineOptions",
+        "BottomSpineTicks",
+        "BottomTickLabels",
+        "LeftSpine",
+        "LeftSpineMax",
+        "LeftSpineMin",
+        "LeftSpineOptions",
+        "LeftSpineTicks",
+        "LeftTickLabels",
+        "RightSpine",
+        "RightSpineMax",
+        "RightSpineMin",
+        "RightSpineOptions",
+        "RightSpineTicks",
+        "RightTickLabels",
+        "TopSpine",
+        "TopSpineMax",
+        "TopSpineMin",
+        "TopSpineOptions",
+        "TopSpineTicks",
+        "TopTickLabels",
+    ]
+    _optlist_uq = [
+        "Index",
+        "Rotate",
+        "ErrorBarMarker",
+        "ErrorBarOptions",
+        "FillBetweenOptions",
+        "UncertaintyPlotType",
+        "UncertaintyOptions"
     ]
 
     # Types
@@ -1965,6 +2073,8 @@ class MPLOpts(dict):
         "Density": bool,
         "ErrorBarMarker": typeutils.strlike,
         "ErrorBarOptions": dict,
+        "ErrorOptions": dict,
+        "ErrorPlotType": typeutils.strlike,
         "FigDPI": (float, int),
         "FigHeight": float,
         "FigNumber": int,
@@ -1978,8 +2088,13 @@ class MPLOpts(dict):
         "FontStyle": typeutils.strlike,
         "FontVariant": typeutils.strlike,
         "FontWeight": (float, int, typeutils.strlike),
+        "Grid": int,
+        "GridOptions": dict,
         "Index": int,
         "Label": typeutils.strlike,
+        "MajorGrid": bool,
+        "MinorGrid": bool,
+        "MinorGridOptions": dict,
         "MinMaxOptions": dict,
         "MinMaxPlotType": typeutils.strlike,
         "Pad": float,
@@ -1992,6 +2107,15 @@ class MPLOpts(dict):
         "ShowLine": bool,
         "ShowMinMax":bool,
         "ShowUncertainty": bool,
+        "SpineOptions": dict,
+        "Spines": bool,
+        "TickFontSize": (int, float, typeutils.strlike),
+        "TickOptions": dict,
+        "TickRotation": (int, float),
+        "TickSize": (int, float, typeutils.strlike),
+        "Ticks": bool,
+        "UncertaintyOptions": dict,
+        "UncertaintyPlotType": typeutils.strlike,
         "XLabel": typeutils.strlike,
         "XLim": (tuple, list),
         "XLimMax": float,
@@ -2013,6 +2137,7 @@ class MPLOpts(dict):
     # Global options mapped to subcategory options
     _kw_submap = {
         "AxesOptions": {},
+        "ErrorOptions": {},
         "FigOptions": {
             "FigNumber": "num",
             "FigDPI": "dpi",
@@ -2044,6 +2169,21 @@ class MPLOpts(dict):
             "Index": "Index",
             "Rotate": "Rotate",
             "ErrorBarMarker": "marker",
+        },
+        "GridOptions": {
+            "GridColor": "color",
+        },
+        "UncertaintyOptions": {},
+        "SpineOptions": {
+            "TickFontSize": "labelsize",
+            "TickRotation": "rotation",
+            "TickSize": "size",
+            "XTickFontSize": "labelsize",
+            "XTickRotation": "rotation",
+            "XTickSize": "size",
+            "YTickFontSize": "labelsize",
+            "YTickRotation": "rotation",
+            "YTickSize": "size",
         },
     }
     
@@ -2078,6 +2218,11 @@ class MPLOpts(dict):
             "linestyle": "ls",
             "c": "color",
         },
+        "GridOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
     }
 
     # Type strings
@@ -2090,6 +2235,8 @@ class MPLOpts(dict):
         "Density": _rst_boolt,
         "ErrorBarMarker": _rst_str,
         "ErrorBarOptions": _rst_dict,
+        "ErrorOptions": _rst_dict,
+        "ErrorPlotType": """``"FillBetween"`` | {``"ErrorBar"``}""",
         "FigDPI": _rst_numpos,
         "FigHeight": _rst_floatpos,
         "FigNumber": _rst_intpos,
@@ -2104,10 +2251,15 @@ class MPLOpts(dict):
             """``"italic"`` | ``"oblique"``"""),
         "FontVariant": """{``None``} | ``"normal"`` | ``"small-caps"``""",
         "FontWeight": _rst_strnum,
+        "Grid": _rst_boolt,
+        "GridOptions": _rst_dict,
         "Index": """{``0``} | :class:`int` >=0""",
         "Label": _rst_str,
+        "MajorGrid": _rst_boolt,
         "MinMaxPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "MinMaxOptions": _rst_dict,
+        "MinorGrid": _rst_boolf,
+        "MinorGridOptions": _rst_dict,
         "Pad": _rst_float,
         "PlotColor": """{``None``} | :class:`str` | :class:`tuple`""",
         "PlotLineStyle": ('``":"`` | ``"-"`` | ``"none"`` | ' +
@@ -2115,6 +2267,11 @@ class MPLOpts(dict):
         "PlotLineWidth": _rst_numpos,
         "PlotOptions": _rst_dict,
         "Rotate": _rst_boolt,
+        "ShowError": _rst_booln,
+        "ShowMinMax": _rst_booln,
+        "ShowUncertainty": _rst_booln,
+        "UncertaintyOptions": _rst_dict,
+        "UncertaintyPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "XLabel": _rst_str,
         "XLim": r"""{``None``} | (:class:`float`, :class:`float`)""",
         "XLimMax": _rst_float,
@@ -2138,6 +2295,8 @@ class MPLOpts(dict):
         "Density": """Option to scale histogram plots""",
         "ErrorBarMarker": """Marker for :func:`errorbar` plots""",
         "ErrorBarOptions": """Options for :func:`errorbar` plots""",
+        "ErrorOptions": """Options for error plots""",
+        "ErrorPlotType": """Plot type for "error" plots""",
         "FigDPI": "Figure resolution in dots per inch",
         "FigHeight": "Figure height [inches]",
         "FigNumber": "Figure number",
@@ -2154,16 +2313,26 @@ class MPLOpts(dict):
         "FontVariant": """Font capitalization variant""",
         "FontWeight": ("""Numeric font weight 0-1000 or ``"normal"``, """ +
             """``"bold"``, etc."""),
+        "Grid": """Option to turn on/off axes grid""",
+        "GridOptions": """Plot options for major grid""",
         "Index": """Index to select specific option from lists""",
         "Label": """Label passed to :func:`plt.legend`""",
+        "MajorGrid": """Option to turn on/off grid at main ticks""",
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
         "MinMaxPlotType": """Plot type for min/max plot""",
+        "MinorGrid": """Turn on/off grid at minor ticks""",
+        "MinorGridOptions": """Plot options for minor grid""",
         "Pad": "Padding to add to both axes, *ax.set_xlim* and *ax.set_ylim*",
         "PlotColor": """Color option to :func:`plt.plot` for primary curve""",
         "PlotOptions": """Options to :func:`plt.plot` for primary curve""",
         "PlotLineStyle": """Line style for primary :func:`plt.plot`""",
         "PlotLineWidth": """Line width for primary :func:`plt.plot`""",
         "Rotate": """Option to flip *x* and *y* axes""",
+        "ShowError": """Show "error" plot using *xerr*""",
+        "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
+        "ShowUncertainty": """Plot uncertainty bounds""",
+        "UncertaintyOptions": """Options for UQ plots""",
+        "UncertaintyPlotType": """Plot type for UQ plots""",
         "XLabel": """Label to put on *x* axis""",
         "XLim": """Limits for min and max value of *x*-axis""",
         "XLimMax": """Min value for *x*-axis in plot""",
@@ -2194,30 +2363,30 @@ class MPLOpts(dict):
         "figheight": 4.4,
     }
     _rc_figure = {}
-    
+
     # Default axes options
     _rc_axopts = {}
     _rc_axes = {}
     _rc_axformat = {
         "Pad": 0.05,
     }
-    
-    
+
     # Default options for plot
     _rc_plot = {
         "color": ["b", "k", "darkorange", "g"],
         "ls": "-",
         "zorder": 8,
     }
-    # Default options for min/max plot
+    # Default options for errobar()/fill_between() plots
+    _rc_error = {}
     _rc_minmax = {}
+    _rc_uq = {}
     # Options for fill_between
     _rc_fillbetween = {
         "alpha": 0.2,
         "lw": 0,
         "zorder": 4,
     }
-
     # Options for errobar()
     _rc_errorbar = {
         "capsize": 1.5,
@@ -2225,6 +2394,19 @@ class MPLOpts(dict):
         "elinewidth": 0.8,
         "zorder": 6,
     }
+
+    # Options for grid()
+    _rc_grid = {
+        "Grid": True,
+        "MajorGrid": True,
+    }
+    # Formatting for grid lines
+    _rc_majorgrid = {
+        "ls": ":",
+        "lw": 0.5,
+        "color": "#a0a0a0",
+    }
+    _rc_minorgrid = {}
 
     # Default options for histogram
     rc_hist = {
@@ -2250,24 +2432,16 @@ class MPLOpts(dict):
     # Font properties for legend
     rc_legend_font = dict(
         _rc_font, size=None)
-    
-    # Default options for grid lines
-    rc_grid = {
-        "MajorGrid": True,
-    }
-    
-    # Formatting for grid lines
-    rc_majorgrid = {
-        "ls": ":",
-        "color": "#a0a0a0",
-    }
-    rc_minorgrid = {}
-    
+
     # Default options for spines
-    rc_spine = {
+    _rc_spines = {
         "Spines": True,
         "Ticks": True,
         "TickDirection": "out",
+        "RightSpineTicks": False,
+        "TopSpineTicks": False,
+        "RightSpine": False,
+        "TopSpine": False,
     }
     
     # Default options for mean plot
@@ -2322,10 +2496,6 @@ class MPLOpts(dict):
         "FigHeight",
         "FigWidth"
     ]
-    map_fig = {
-        "hfig": "FigHeight",
-        "wfig": "FigWidth",
-    }
   # >
   
   # ============
@@ -2668,6 +2838,128 @@ class MPLOpts(dict):
         # Output
         return minmax_type, cls.denone(kw)
 
+    # Process options for "error" plot
+    def error_options(self):
+        r"""Process options for error plots
+
+        :Call:
+            >>> error_type, kw = opts.error_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *error_type*: ``"FillBetween"`` | {``"ErrorBar"``}
+                Plot type for error plot
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Get min/max plot options
+        opts = self.get("ErrorOptions", {})
+        # Class
+        cls = self.__class__
+        # Default type
+        terr = cls._rc.get("ErrorPlotType", "ErrorBar")
+        # Specified type
+        terr = self.get("ErrorPlotType", terr)
+        # Simplify case for comparison
+        t = terr.lower().replace("_", "")
+        # Submap
+        kw_map = cls._kw_submap["ErrorOptions"]
+        # Get top-level options
+        kw_err = self.get("ErrorOptions", {})
+        # Apply defaults
+        kw = dict(cls._rc_error, **kw_err)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Fitler type
+        if t == "fillbetween":
+            # Region plot
+            error_type = "FillBetween"
+            # Get options for :func:`fill_between`
+            kw_plt = self.fillbetween_options()
+        elif t == "errorbar":
+            # Error bars
+            error_type = "ErrorBar"
+            # Get options for :func:`errorbar`
+            kw_plt = self.errorbar_options()
+        else:
+            raise ValueError("Unrecognized min/max plot type '%s'" % terr)
+        # MinMaxOptions overrides
+        kw = dict(kw_plt, **kw)
+        # Output
+        return error_type, cls.denone(kw)
+
+    # Process options for UQ plot
+    def uq_options(self):
+        r"""Process options for uncertainty quantification plots
+
+        :Call:
+            >>> uq_type, kw = opts.uq_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *uq_type*: {``"FillBetween"``} | ``"ErrorBar"``
+                Plot type for UQ plot
+            *kw*: :class:`dict`
+                Dictionary of options to plot function
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Get min/max plot options
+        opts = self.get("UncertaintyOptions", {})
+        # Class
+        cls = self.__class__
+        # Default type
+        tuq = cls._rc.get("UncertaintyPlotType", "FillBetween")
+        # Specified type
+        tuq = self.get("UncertaintyPlotType", tuq)
+        # Simplify case for comparison
+        t = tuq.lower().replace("_", "")
+        # Submap
+        kw_map = cls._kw_submap["UncertaintyOptions"]
+        # Get top-level options
+        kw_uq = self.get("UncertaintyOptions", {})
+        # Apply defaults
+        kw = dict(cls._rc_uq, **kw_uq)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Fitler type
+        if t == "fillbetween":
+            # Region plot
+            uq_type = "FillBetween"
+            # Get options for :func:`fill_between`
+            kw_plt = self.fillbetween_options()
+        elif t == "errorbar":
+            # Error bars
+            uq_type = "ErrorBar"
+            # Get options for :func:`errorbar`
+            kw_plt = self.errorbar_options()
+        else:
+            raise ValueError("Unrecognized min/max plot type '%s'" % tuq)
+        # MinMaxOptions overrides
+        kw = dict(kw_plt, **kw)
+        # Output
+        return uq_type, cls.denone(kw)
+
     # Options for errorbar() plots
     def errorbar_options(self):
         r"""Process options for :func:`errorbar` calls
@@ -2845,6 +3137,139 @@ class MPLOpts(dict):
         kw = dict(cls._rc_axformat, **kw)
         # Return
         return cls.denone(kw)
+
+    # Grid options
+    def grid_options(self):
+        r"""Process options to axes :func:`grid` command
+
+        :Call:
+            >>> kw = opts.grid_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`grid`
+            *kw["MajorGrid"]*: ``True`` | ``False``
+                Plot major grid
+            *kw["MajorGridOptions"]*: :class:`dict`
+                Options to :func:`plt.grid` for major grid
+            *kw["MinorGrid"]*: ``True`` | ``False``
+                Plot minor grid
+            *kw["MinorGridOptions"]*: :class:`dict`
+                Options to :func:`plt.grid` for minor grid
+        :Versions:
+            * 2019-03-07 ``@jmeeroff``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap
+        kw_map = cls._kw_submap["GridOptions"]
+        # Aliases
+        kw_alias = cls._kw_subalias["GridOptions"]
+        # Get top-level options
+        kw_maj = self.get("GridOptions", {})
+        kw_min = self.get("MinorGridOptions", {})
+        # Apply aliases
+        kw_major = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_maj.items()
+        }
+        kw_minor = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_min.items()
+        }
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw_major[kp] = self[k]
+        # Initialize output
+        kw = {}
+        # Loop through primary options
+        for k in cls._optlist_grid:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            elif k in kw_map:
+                # Already mapped to fig() opts
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw_minor = dict(cls._rc_minorgrid, **kw_minor)
+        kw_major = dict(cls._rc_majorgrid, **kw_major)
+        # Apply overall defaults
+        kw = dict(cls._rc_grid, **kw)
+        # Ensure major and minor oprionts
+        kw["MajorGridOptions"] = cls.denone(kw_major)
+        kw["MinorGridOptions"] = cls.denone(kw_minor)
+        # Remove "None"
+        return cls.denone(kw)
+
+    # Spine options
+    def spine_options(self):
+        r"""Process options for axes "spines"
+
+        :Call:
+            >>> kw = opts.spine_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to each of four spines
+        :Versions:
+            * 2019-03-07 ``@jmeeroff``: First version
+            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap (global options -> AxesOptions)
+        kw_map = cls._kw_submap["SpineOptions"]
+        # Initialize
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_spines:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            elif k in kw_map:
+                # Already mapped to fig() opts
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_spines, **kw)
+        # Loop through map options
+        for (k1, k2) in kw_map.items():
+            # Check if the option is specified by the user
+            if k1 not in self:
+                continue
+            # Check prefix
+            if k.startswith("XTick"):
+                optgroup = "XTickOptions"
+            elif k.startswith("YTick"):
+                optgroup = "YTickOptions"
+            elif k.startswith("Tick"):
+                optgroup = "TickOptions"
+            else:
+                continue
+            # Get appropriate subgroup (creating if necessary)
+            opts = kw.setdefault(optgroup, {})
+            # Apply the option
+            opts[k2] = self[k1]
+        # Output
+        return cls.denone(kw)
   # >
 
   # =========================
@@ -2854,10 +3279,12 @@ class MPLOpts(dict):
     # Loop through functions to rename
     for (fn, optlist) in [
         (axes_options, _optlist_axes),
+        (error_options, _optlist_error),
         (errorbar_options, _optlist_errobar),
         (figure_options, _optlist_fig),
         (fillbetween_options, _optlist_fillbetween),
         (font_options, _optlist_font),
+        (grid_options, _optlist_grid),
         (plot_options, _optlist_plot)
     ]:
         # Create string to replace "%(keys)s" with
