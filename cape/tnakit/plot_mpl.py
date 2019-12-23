@@ -271,9 +271,9 @@ def plot(xv, yv, *a, **kw):
     h.xlabel, h.ylabel = format_axes(h.ax, **kw_axfmt)
    # --- Legend ---
     ## Process options for legend
-    #kw_legend = mplopts.legend_options(kw, kw_font)
-    ## Create legend
-    #h.legend = legend(ax, **kw_legend)
+    kw_legend = opts.legend_options()
+    # Create legend
+    h.legend = legend(h.ax, **kw_legend)
    # --- Cleanup ---
     # Save options
     h.opts = opts
@@ -1100,10 +1100,16 @@ def legend(ax=None, **kw):
         * 2019-08-22 ``@ddalle``: From :func:`Part.legend_part`
     """
    # --- Setup ---
+    # Check basic option
     # Import modules if needed
     import_pyplot()
-    # Get font properties
-    opts_prop = kw.pop("prop", {})
+    # Get overall "Legend" option
+    show_legend = kw.pop("ShowLegend", None)
+    # Exit immediately if explicit
+    if show_legend is False:
+        return
+    # Get font properties (copy)
+    opts_prop = dict(kw.pop("prop", {}))
     # Default axis: most recent
     if ax is None:
         ax = plt.gca()
@@ -1117,13 +1123,13 @@ def legend(ax=None, **kw):
     except Exception:
         # Remove font
         opts_prop.pop("family", None)
-        # Do it again
+        # Repeat plot
         leg = ax.legend(prop=opts_prop, **kw)
    # --- Font ---
     # Number of entries in the legend
     ntext = len(leg.get_texts())
     # If no legends, remove it
-    if ntext < 1:
+    if (ntext < 1) or not show_legend:
         # Delete legend
         leg.remove()
         # Exit function
@@ -1877,9 +1883,31 @@ class MPLOpts(dict):
         "XLabel",
         "XLim",
         "XPad",
+        "XSpine",
+        "XSpineMax",
+        "XSpineMin",
+        "XSpineOptions",
+        "XTickDirection",
+        "XTickFontSize",
+        "XTickLabels",
+        "XTickOptions",
+        "XTickRotation",
+        "XTickSize",
+        "XTicks",
         "YLabel",
         "YLim",
         "YPad",
+        "YSpine",
+        "YSpineMax",
+        "YSpineMin",
+        "YSpineOptions",
+        "YTickDirection",
+        "YTickFontSize",
+        "YTickLabels",
+        "YTickOptions",
+        "YTickRotation",
+        "YTickSize",
+        "YTicks",
         "ax",
         "fig",
         "xerr",
@@ -1893,6 +1921,10 @@ class MPLOpts(dict):
         "dashes",
         "XLim",
         "YLim",
+        "XTickLabels",
+        "XTicks",
+        "YTickLabels",
+        "YTicks"
     ]
     
     # Alternate names
@@ -2052,6 +2084,28 @@ class MPLOpts(dict):
         "TopSpineOptions",
         "TopSpineTicks",
         "TopTickLabels",
+        "XSpine",
+        "XSpineMax",
+        "XSpineMin",
+        "XSpineOptions",
+        "XTicks",
+        "XTickDirection",
+        "XTickFontSize",
+        "XTickLabels",
+        "XTickOptions",
+        "XTickRotation",
+        "XTickSize",
+        "YSpine",
+        "YSpineMax",
+        "YSpineMin",
+        "YSpineOptions",
+        "YTicks",
+        "YTickDirection",
+        "YTickFontSize",
+        "YTickLabels",
+        "YTickOptions",
+        "YTickRotation",
+        "YTickSize",
     ]
     _optlist_uq = [
         "Index",
@@ -2070,6 +2124,12 @@ class MPLOpts(dict):
         "AdjustRight": float,
         "AdjustTop": float,
         "AxesOptions": dict,
+        "BottomSpine": (bool, typeutils.strlike),
+        "BottomSpineMax": float,
+        "BottomSpineMin": float,
+        "BottomSpineOptions": dict,
+        "BottomSpineTicks": bool,
+        "BottomTickLabels": bool,
         "Density": bool,
         "ErrorBarMarker": typeutils.strlike,
         "ErrorBarOptions": dict,
@@ -2092,6 +2152,12 @@ class MPLOpts(dict):
         "GridOptions": dict,
         "Index": int,
         "Label": typeutils.strlike,
+        "LeftSpine": (bool, typeutils.strlike),
+        "LeftSpineMax": float,
+        "LeftSpineMin": float,
+        "LeftSpineOptions": dict,
+        "LeftSpineTicks": bool,
+        "LeftTickLabels": bool,
         "MajorGrid": bool,
         "MinorGrid": bool,
         "MinorGridOptions": dict,
@@ -2109,11 +2175,25 @@ class MPLOpts(dict):
         "ShowUncertainty": bool,
         "SpineOptions": dict,
         "Spines": bool,
+        "RightSpine": (bool, typeutils.strlike),
+        "RightSpineMax": float,
+        "RightSpineMin": float,
+        "RightSpineOptions": dict,
+        "RightSpineTicks": bool,
+        "RightTickLabels": bool,
+        "TickDirection": typeutils.strlike,
         "TickFontSize": (int, float, typeutils.strlike),
+        "TickLabels": bool,
         "TickOptions": dict,
         "TickRotation": (int, float),
         "TickSize": (int, float, typeutils.strlike),
         "Ticks": bool,
+        "TopSpine": (bool, typeutils.strlike),
+        "TopSpineMax": float,
+        "TopSpineMin": float,
+        "TopSpineOptions": dict,
+        "TopSpineTicks": bool,
+        "TopTickLabels": bool,
         "UncertaintyOptions": dict,
         "UncertaintyPlotType": typeutils.strlike,
         "XLabel": typeutils.strlike,
@@ -2121,11 +2201,25 @@ class MPLOpts(dict):
         "XLimMax": float,
         "XLimMin": float,
         "XPad": float,
+        "XTickDirection": typeutils.strlike,
+        "XTickFontSize": (int, float, typeutils.strlike),
+        "XTickLabels": (bool, list),
+        "XTickOptions": dict,
+        "XTickRotation": (int, float),
+        "XTickSize": (int, float, typeutils.strlike),
+        "XTicks": (bool, list),
         "YLabel": typeutils.strlike,
         "YLim": (tuple, list),
         "YLimMax": float,
         "YLimMin": float,
         "YPad": float,
+        "YTickDirection": typeutils.strlike,
+        "YTickFontSize": (int, float, typeutils.strlike),
+        "YTickLabels": (bool, list),
+        "YTickOptions": dict,
+        "YTickRotation": (int, float),
+        "YTickSize": (int, float, typeutils.strlike),
+        "YTicks": (bool, list),
         "ax": object,
         "fig": object,
         "xerr": typeutils.arraylike,
@@ -2159,6 +2253,10 @@ class MPLOpts(dict):
             "PlotColor": "color",
             "PlotLineWidth": "lw",
             "PlotLineStyle": "ls"
+        },
+        "LegendOptions": {
+            "LegendAnchor": "bbox_to_anchor",
+            "LegendLocation": "loc",
         },
         "MinMaxOptions": {},
         "FillBetweenOptions": {
@@ -2232,6 +2330,12 @@ class MPLOpts(dict):
         "AdjustRight": _rst_float,
         "AdjustTop": _rst_float,
         "AxesOptions": _rst_dict,
+        "BottomSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
+        "BottomSpineMax": _rst_float,
+        "BottomSpineMin": _rst_float,
+        "BottomSpineOptions": _rst_dict,
+        "BottomSpineTicks": _rst_booln,
+        "BottomTickLabels": _rst_booln,
         "Density": _rst_boolt,
         "ErrorBarMarker": _rst_str,
         "ErrorBarOptions": _rst_dict,
@@ -2255,6 +2359,12 @@ class MPLOpts(dict):
         "GridOptions": _rst_dict,
         "Index": """{``0``} | :class:`int` >=0""",
         "Label": _rst_str,
+        "LeftSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
+        "LeftSpineMax": _rst_float,
+        "LeftSpineMin": _rst_float,
+        "LeftSpineOptions": _rst_dict,
+        "LeftSpineTicks": _rst_booln,
+        "LeftTickLabels": _rst_booln,
         "MajorGrid": _rst_boolt,
         "MinMaxPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "MinMaxOptions": _rst_dict,
@@ -2266,10 +2376,22 @@ class MPLOpts(dict):
             '``"-."`` | ``"--"``'),
         "PlotLineWidth": _rst_numpos,
         "PlotOptions": _rst_dict,
+        "RightSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
+        "RightSpineMax": _rst_float,
+        "RightSpineMin": _rst_float,
+        "RightSpineOptions": _rst_dict,
+        "RightSpineTicks": _rst_booln,
+        "RightTickLabels": _rst_booln,
         "Rotate": _rst_boolt,
         "ShowError": _rst_booln,
         "ShowMinMax": _rst_booln,
         "ShowUncertainty": _rst_booln,
+        "TopSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
+        "TopSpineMax": _rst_float,
+        "TopSpineMin": _rst_float,
+        "TopSpineOptions": _rst_dict,
+        "TopSpineTicks": _rst_booln,
+        "TopTickLabels": _rst_booln,
         "UncertaintyOptions": _rst_dict,
         "UncertaintyPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "XLabel": _rst_str,
@@ -2292,6 +2414,12 @@ class MPLOpts(dict):
         "AdjustRight": """Figure-scale coordinates of right side of axes""",
         "AdjustTop": """Figure-scale coordinates of top of axes""",
         "AxesOptions": """Options to :class:`AxesSubplot`""",
+        "BottomSpine": "Turn on/off bottom plot spine",
+        "BottomSpineMax": "Maximum *x* coord for bottom plot spine",
+        "BottomSpineMin": "Minimum *x* coord for bottom plot spine",
+        "BottomSpineTicks": "Turn on/off labels on bottom spine",
+        "BottomSpineOptions": "Additional options for bottom spine",
+        "BottomTickLabels": "Turn on/off tick labels on bottom spine",
         "Density": """Option to scale histogram plots""",
         "ErrorBarMarker": """Marker for :func:`errorbar` plots""",
         "ErrorBarOptions": """Options for :func:`errorbar` plots""",
@@ -2317,6 +2445,12 @@ class MPLOpts(dict):
         "GridOptions": """Plot options for major grid""",
         "Index": """Index to select specific option from lists""",
         "Label": """Label passed to :func:`plt.legend`""",
+        "LeftSpine": "Turn on/off left plot spine",
+        "LeftSpineMax": "Maximum *y* coord for left plot spine",
+        "LeftSpineMin": "Minimum *y* coord for left plot spine",
+        "LeftSpineTicks": "Turn on/off labels on left spine",
+        "LeftSpineOptions": "Additional options for left spine",
+        "LeftTickLabels": "Turn on/off tick labels on left spine",
         "MajorGrid": """Option to turn on/off grid at main ticks""",
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
         "MinMaxPlotType": """Plot type for min/max plot""",
@@ -2327,10 +2461,22 @@ class MPLOpts(dict):
         "PlotOptions": """Options to :func:`plt.plot` for primary curve""",
         "PlotLineStyle": """Line style for primary :func:`plt.plot`""",
         "PlotLineWidth": """Line width for primary :func:`plt.plot`""",
+        "RightSpine": "Turn on/off right plot spine",
+        "RightSpineMax": "Maximum *y* coord for right plot spine",
+        "RightSpineMin": "Minimum *y* coord for right plot spine",
+        "RightSpineTicks": "Turn on/off labels on right spine",
+        "RightSpineOptions": "Additional options for right spine",
+        "RightTickLabels": "Turn on/off tick labels on right spine",
         "Rotate": """Option to flip *x* and *y* axes""",
         "ShowError": """Show "error" plot using *xerr*""",
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
         "ShowUncertainty": """Plot uncertainty bounds""",
+        "TopSpine": "Turn on/off top plot spine",
+        "TopSpineMax": "Maximum *x* coord for top plot spine",
+        "TopSpineMin": "Minimum *x* coord for top plot spine",
+        "TopSpineTicks": "Turn on/off labels on top spine",
+        "TopSpineOptions": "Additional options for top spine",
+        "TopTickLabels": "Turn on/off tick labels on top spine",
         "UncertaintyOptions": """Options for UQ plots""",
         "UncertaintyPlotType": """Plot type for UQ plots""",
         "XLabel": """Label to put on *x* axis""",
@@ -2418,7 +2564,7 @@ class MPLOpts(dict):
     }
     
     # Default legend options
-    rc_legend = {
+    _rc_legend = {
         "loc": "upper center",
         "labelspacing": 0.5,
         "framealpha": 1.0,
@@ -2430,7 +2576,7 @@ class MPLOpts(dict):
     }
     
     # Font properties for legend
-    rc_legend_font = dict(
+    _rc_legend_font = dict(
         _rc_font, size=None)
 
     # Default options for spines
@@ -3270,6 +3416,74 @@ class MPLOpts(dict):
             opts[k2] = self[k1]
         # Output
         return cls.denone(kw)
+
+    # Legend options
+    def legend_options(self):
+        r"""Process options for :func:`legend`
+    
+        :Call:
+            >>> kw = opts.legend_options(kw, kwp={})
+        :Inputs:
+            *kw*: :class:`dict`
+                Dictionary of options to parent function
+            *kwp*: {``{}``}  | :class:`dict`
+                Dictionary of options from which to inherit
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Options to :func:`legend`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap (global options -> LegendOptions)
+        kw_map = cls._kw_submap["LegendOptions"]
+        # Font submapt (global FontOptions -> LegendOptions["prop"])
+        kw_fontmap = cls._kw_submap["FontOptions"]
+        # Get overall options
+        kw_font = self.font_options()
+        # Initialize the font properties
+        prop = self.get("LegendFontOptions", {})
+        # Apply defaults
+        prop = dict(cls._rc_legend_font, **prop)
+        # Loop through font options
+        for (k1, k2) in kw_fontmap.items():
+            # Prepend "Legend" to name
+            ka = "Legend" + k1
+            # Check if present
+            if ka not in self:
+                continue
+            # Otherwise assign it
+            prop[k2] = self[ka]
+        # Get *LegendOptions*
+        kw = self.get("LegendOptions", {})
+        # Apply defaults
+        kw = dict(cls._rc_legend, **kw)
+        # Set font properties
+        kw["prop"] = cls.denone(prop)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Global on/off option
+        kw["ShowLegend"] = self.get("ShowLegend")
+        # Specific location options
+        loc = kw.get("loc")
+        # Check it
+        if loc in ["upper center", 9]:
+            # Bounding box location on top spine
+            kw.setdefault("bbox_to_anchor", (0.5, 1.05))
+        elif loc in ["lower center", 8]:
+            # Bounding box location on bottom spine
+            kw.setdefault("bbox_to_anchor", (0.5, -0.05))
+        # Output
+        return cls.denone(kw)
   # >
 
   # =========================
@@ -3285,7 +3499,9 @@ class MPLOpts(dict):
         (fillbetween_options, _optlist_fillbetween),
         (font_options, _optlist_font),
         (grid_options, _optlist_grid),
-        (plot_options, _optlist_plot)
+        #(legend_options, _optlist_legend),
+        (plot_options, _optlist_plot),
+        (uq_options, _optlist_uq)
     ]:
         # Create string to replace "%(keys)s" with
         _doc_rst = rstutils.rst_param_list(
