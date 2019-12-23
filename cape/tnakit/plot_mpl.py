@@ -191,7 +191,7 @@ def plot(xv, yv, *a, **kw):
             # No format option
             fmt = tuple()
         # Plot call
-        h.lines += plot_line(xv, yv, *fmt, **kw_plot)
+        h.lines += _plot(xv, yv, *fmt, **kw_plot)
    # --- Min/Max ---
     # Process min/max options
     minmax_type, kw_mmax = opts.minmax_options()
@@ -408,7 +408,7 @@ def hist(v, **kw):
     kw_s = mplopts.std_options(kw, kw_p, kw_u)
     # Plot the sigma
     if qsig:
-        h['sigma'] = plot_lines_std(ax, vmu, vstd, **kw_s)
+        h['sigma'] = _plots_std(ax, vmu, vstd, **kw_s)
    # --- Delta Plot ----
     qdel = kw.pop("PlotDelta", False)
     # Process delta options
@@ -588,12 +588,12 @@ def axes(**kw):
 
 
 # Plot part
-def plot_line(xv, yv, fmt=None, **kw):
+def _plot(xv, yv, fmt=None, **kw):
     r"""Call the :func:`plot` function with cycling options
 
     :Call:
-        >>> h = plot_line(xv, yv, **kw)
-        >>> h = plot_line(xv, yv, fmt, **kw)
+        >>> h = _plot(xv, yv, **kw)
+        >>> h = _plot(xv, yv, fmt, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of *x*-coordinates
@@ -937,11 +937,11 @@ def plot_gaussian(ax, vmu, vstd, **kw):
 
 
 # Interval using two lines
-def plot_lines_std(ax, vmu, vstd, **kw):
+def _plots_std(ax, vmu, vstd, **kw):
     """Use two lines to show standard deviation window
 
     :Call:
-        >>> h = plot_lines_std(ax, vmu, vstd, **kw))
+        >>> h = _plots_std(ax, vmu, vstd, **kw))
     :Inputs:
         *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
@@ -1249,10 +1249,13 @@ def format_axes(ax, **kw):
     xmin, xmax = get_xlim(ax, pad=xpad)
     ymin, ymax = get_ylim(ax, pad=ypad)
     # Check for specified limits
-    xmin = kw.get("XMin", xmin)
-    xmax = kw.get("XMax", xmax)
-    ymin = kw.get("YMin", ymin)
-    ymax = kw.get("YMax", ymax)
+    xmin = kw.get("XLimMin", xmin)
+    xmax = kw.get("XLimMax", xmax)
+    ymin = kw.get("YLimMin", ymin)
+    ymax = kw.get("YLimMax", ymax)
+    # Check for typles
+    xmin, xmax = kw.get("XLim", (xmin, xmax))
+    ymin, ymax = kw.get("YLim", (ymin, ymax))
     # Make sure data is included.
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
@@ -1840,19 +1843,17 @@ class MPLOpts(dict):
         "ShowMinMax",
         "ShowUncertainty",
         "XLabel",
-        "XMax",
-        "XMin",
+        "XLim",
         "XPad",
         "YLabel",
-        "YMax",
-        "YMin",
+        "YLim",
         "YPad",
         "ax",
         "fig",
+        "xerr",
+        "yerr",
         "ymin",
         "ymax",
-        "yerr",
-        "xerr",
     ]
 
     # Options for which a singleton is a list
@@ -1880,11 +1881,9 @@ class MPLOpts(dict):
         "rotate": "Rotate",
         "wfig": "FigWidth",
         "xlabel": "XLabel",
-        "xmax": "XMax",
-        "xmin": "XMin",
+        "xlim": "XLim",
         "ylabel": "YLabel",
-        "ymax": "YMax",
-        "ymin": "YMin",
+        "ylim": "YLim",
     }
     # Options for specific purposes
     _optlist_axes = [
@@ -1901,12 +1900,14 @@ class MPLOpts(dict):
         "Pad",
         "Rotate",
         "XLabel",
-        "XMax",
-        "XMin",
+        "XLim",
+        "XLimMax",
+        "XLimMin",
         "XPad",
         "YLabel",
-        "YMax",
-        "YMin",
+        "YLim",
+        "YLimMax",
+        "YLimMin",
         "YPad"
     ]
     _optlist_fig = [
@@ -1992,12 +1993,14 @@ class MPLOpts(dict):
         "ShowMinMax":bool,
         "ShowUncertainty": bool,
         "XLabel": typeutils.strlike,
-        "XMax": float,
-        "XMin": float,
+        "XLim": (tuple, list),
+        "XLimMax": float,
+        "XLimMin": float,
         "XPad": float,
         "YLabel": typeutils.strlike,
-        "YMax": float,
-        "YMin": float,
+        "YLim": (tuple, list),
+        "YLimMax": float,
+        "YLimMin": float,
         "YPad": float,
         "ax": object,
         "fig": object,
@@ -2113,12 +2116,14 @@ class MPLOpts(dict):
         "PlotOptions": _rst_dict,
         "Rotate": _rst_boolt,
         "XLabel": _rst_str,
-        "XMax": _rst_float,
-        "XMin": _rst_float,
+        "XLim": r"""{``None``} | (:class:`float`, :class:`float`)""",
+        "XLimMax": _rst_float,
+        "XLimMin": _rst_float,
         "XPad": """{*Pad*} | :class:`float`""",
         "YLabel": _rst_str,
-        "YMax": _rst_float,
-        "YMin": _rst_float,
+        "YLim": r"""{``None``} | (:class:`float`, :class:`float`)""",
+        "YLimMax": _rst_float,
+        "YLimMin": _rst_float,
         "YPad": """{*Pad*} | :class:`float`""",
         "ax": """{``None``} | :class:`matplotlib.axes._subplots.Axes`""",
         "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
@@ -2160,12 +2165,14 @@ class MPLOpts(dict):
         "PlotLineWidth": """Line width for primary :func:`plt.plot`""",
         "Rotate": """Option to flip *x* and *y* axes""",
         "XLabel": """Label to put on *x* axis""",
-        "XMax": """Maximum value of *x* axis to show""",
-        "XMin": """Minimum value of *x* axis to show""",
+        "XLim": """Limits for min and max value of *x*-axis""",
+        "XLimMax": """Min value for *x*-axis in plot""",
+        "XLimMin": """Max value for *x*-axis in plot""",
         "XPad": """Extra padding to add to *x* axis limits""",
         "YLabel": """Label to put on *y* axis""",
-        "YMax": """Maximum value of *y* axis to show""",
-        "YMin": """Minimum value of *y* axis to show""",
+        "YLim": """Limits for min and max value of *y*-axis""",
+        "YLimMax": """Min value for *y*-axis in plot""",
+        "YLimMin": """Max value for *y*-axis in plot""",
         "YPad": """Extra padding to add to *y* axis limits""",
         "ax": """Handle to existing axes""",
         "fig": """Handle to existing figure""",
