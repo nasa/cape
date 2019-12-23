@@ -1900,6 +1900,19 @@ class MPLOpts(dict):
         "ErrorBarOptions",
         "ErrorBarMarker"
     ]
+    _optlist_fillbetween = [
+        "Index",
+        "Rotate",
+        "FillBetweenOptions"
+    ]
+    _optlist_minmax = [
+        "Index",
+        "Rotate",
+        "MinMaxOptions",
+        "ErrorBarOptions",
+        "ErrorBarMarker",
+        "FillBetweenOptions"
+    ]
 
     # Types
     _opttypes = {
@@ -2692,6 +2705,80 @@ class MPLOpts(dict):
             kw[kp] = self[k]
         # Remove "None"
         return cls.denone(kw)
+
+    # Process axes formatting options
+    def axformat_options(self):
+        r"""Process options for axes format
+
+        :Call:
+            >>> kw = opts.axformat_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`fill_between`
+        :Versions:
+            * 2019-03-07 ``@jmeeroff``: First version
+        """
+        # Initialize output
+        opts = {}
+        # Get rotation option
+        if kwu is None:
+            # Not rotated
+            r = False
+        else:
+            # Process rotation option
+            r = kwu.get("Rotate", False)
+        # Get density option
+        o_density = kwp.get("density")
+        # Different defaults for histograms
+        if o_density is None:
+            # No default label
+            ylbl = None
+        elif o_density:
+            # Default label for PDF
+            ylbl = "Probability Density"
+        else:
+            # Raw histogram option
+            ylbl = "Count"
+        # Process which axis this default applies to
+        if r:
+            # Default
+            xlbl = None
+        else:
+            # Data on horizontal axis
+            xlbl = ylbl
+            ylbl = None
+        # Process label axes
+        opts["XLabel"] = kw.pop("XLabel", xlbl)
+        opts["YLabel"] = kw.pop("YLabel", ylbl)
+        # Data limits
+        opts["XMin"] = kw.pop("XMin", None)
+        opts["XMax"] = kw.pop("XMax", None)
+        opts["YMin"] = kw.pop("YMin", None)
+        opts["YMax"] = kw.pop("YMax", None)
+        # Padding
+        opts["Pad"]  = kw.pop("Pad", None)
+        opts["XPad"] = kw.pop("XPad", None)
+        opts["YPad"] = kw.pop("YPad", None)
+        # User-set limits
+        opts["AdjustLeft"]   = kw.pop("AdjustLeft", None)
+        opts["AdjustRight"]  = kw.pop("AdjustRight", None)
+        opts["AdjustTop"]    = kw.pop("AdjustTop", None)
+        opts["AdjustBottom"] = kw.pop("AdjustBottom", None)
+        # Check for universal
+        if isinstance(kwu, dict):
+            # Apply "universal" options
+            opts = dict(kwu, **opts)
+        # Remove ``None``
+        opts = genopts.denone(opts)
+        # Defaults for this plot function
+        kwfmt = process_options(rc_axfmt, **opts)
+        # Return
+        return kwfmt
   # >
 
   # =========================
@@ -2701,7 +2788,9 @@ class MPLOpts(dict):
     # Loop through functions to rename
     for (fn, optlist) in [
         (axes_options, _optlist_axes),
+        (errorbar_options, _optlist_errobar),
         (figure_options, _optlist_fig),
+        (fillbetween_options, _optlist_fillbetween),
         (font_options, _optlist_font),
         (plot_options, _optlist_plot)
     ]:
