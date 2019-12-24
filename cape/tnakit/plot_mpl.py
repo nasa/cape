@@ -1806,6 +1806,7 @@ class MPLOpts(dict):
   # Class Attributes
   # ====================
   # <
+   # --- Global Options ---
     # Lists of options
     _optlist = [
         "AdjustBottom",
@@ -1847,6 +1848,14 @@ class MPLOpts(dict):
         "LeftSpineOptions",
         "LeftSpineTicks",
         "LeftTickLabels",
+        "Legend",
+        "LegendFontName",
+        "LegendFontSize",
+        "LegendFontStretch",
+        "LegendFontStyle",
+        "LegendFontVariant",
+        "LegendFontWeight",
+        "LegendOptions",
         "MinMaxOptions",
         "MinMaxPlotType",
         "Pad",
@@ -1926,7 +1935,7 @@ class MPLOpts(dict):
         "YTickLabels",
         "YTicks"
     ]
-    
+
     # Alternate names
     _optmap = {
         "Axes": "ax",
@@ -1964,7 +1973,8 @@ class MPLOpts(dict):
         "ylabel": "YLabel",
         "ylim": "YLim",
     }
-    # Options for specific purposes
+
+   # --- Option Sublists ---
     _optlist_axes = [
         "ax",
         "AxesOptions"
@@ -2050,6 +2060,15 @@ class MPLOpts(dict):
         "ErrorBarMarker",
         "FillBetweenOptions"
     ]
+    _optlist_uq = [
+        "Index",
+        "Rotate",
+        "ErrorBarMarker",
+        "ErrorBarOptions",
+        "FillBetweenOptions",
+        "UncertaintyPlotType",
+        "UncertaintyOptions"
+    ]
     _optlist_spines = [
         "Spines",
         "SpineOptions",
@@ -2107,16 +2126,20 @@ class MPLOpts(dict):
         "YTickRotation",
         "YTickSize",
     ]
-    _optlist_uq = [
-        "Index",
-        "Rotate",
-        "ErrorBarMarker",
-        "ErrorBarOptions",
-        "FillBetweenOptions",
-        "UncertaintyPlotType",
-        "UncertaintyOptions"
+    _optlist_legend = [
+        "Legend",
+        "LegendAnchor",
+        "LegendFontName",
+        "LegendFontSize",
+        "LegendFontStretch",
+        "LegendFontStyle",
+        "LegendFontVariant",
+        "LegendFontWeight",
+        "LegendLocation",
+        "LegendOptions"
     ]
 
+   # --- Types ---
     # Types
     _opttypes = {
         "AdjustBottom": float,
@@ -2158,6 +2181,17 @@ class MPLOpts(dict):
         "LeftSpineOptions": dict,
         "LeftSpineTicks": bool,
         "LeftTickLabels": bool,
+        "Legend": bool,
+        "LegendAnchor": (tuple, list),
+        "LegendFontName": typeutils.strlike,
+        "LegendFontOptions": dict,
+        "LegendFontSize": (int, float, typeutils.strlike),
+        "LegendFontStretch": (int, float, typeutils.strlike),
+        "LegendFontStyle": typeutils.strlike,
+        "LegendFontVariant": typeutils.strlike,
+        "LegendFontWeight": (float, int, typeutils.strlike),
+        "LegendLocation": (int, typeutils.strlike),
+        "LegendOptions": dict,
         "MajorGrid": bool,
         "MinorGrid": bool,
         "MinorGridOptions": dict,
@@ -2227,7 +2261,8 @@ class MPLOpts(dict):
         "ymax": typeutils.arraylike,
         "ymin": typeutils.arraylike,
     }
-    
+
+   # --- Cascading Options
     # Global options mapped to subcategory options
     _kw_submap = {
         "AxesOptions": {},
@@ -2284,7 +2319,7 @@ class MPLOpts(dict):
             "YTickSize": "size",
         },
     }
-    
+
     # Options to inherit from elsewhere
     _kw_cascade = {
         "ErrorBarOptions": {
@@ -2295,6 +2330,7 @@ class MPLOpts(dict):
         },
     }
 
+   # --- Conflicting Options ---
     # Aliases to merge for subcategory options
     _kw_subalias = {
         "PlotOptions": {
@@ -2323,6 +2359,7 @@ class MPLOpts(dict):
         },
     }
 
+   # --- Documentation Data ---
     # Type strings
     _rst_types = {
         "AdjustBottom": _rst_float,
@@ -2365,6 +2402,18 @@ class MPLOpts(dict):
         "LeftSpineOptions": _rst_dict,
         "LeftSpineTicks": _rst_booln,
         "LeftTickLabels": _rst_booln,
+        "Legend": _rst_booln,
+        "LegendAnchor": r"""{``None``} | :class:`tuple`\ (*x*, *y*)""",
+        "LegendFontName": _rst_str,
+        "LegendFontOptions": _rst_dict,
+        "LegendFontSize": _rst_strnum,
+        "LegendFontStretch": _rst_strnum,
+        "LegendFontStyle": ("""{``None``} | ``"normal"`` | """ +
+            """``"italic"`` | ``"oblique"``"""),
+        "LegendFontVariant": '{``None``} | ``"normal"`` | ``"small-caps"``',
+        "LegendFontWeight": _rst_strnum,
+        "LegendLocation": """{``None``} | :class:`str` | :class:`int`""",
+        "LegendOptions": _rst_dict,
         "MajorGrid": _rst_boolt,
         "MinMaxPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "MinMaxOptions": _rst_dict,
@@ -2451,6 +2500,20 @@ class MPLOpts(dict):
         "LeftSpineTicks": "Turn on/off labels on left spine",
         "LeftSpineOptions": "Additional options for left spine",
         "LeftTickLabels": "Turn on/off tick labels on left spine",
+        "Legend": "Turn on/off (auto) legend",
+        "LegendAnchor": "Location passed to *bbox_to_anchor*",
+        "LegendFontName": "Font name (categories like ``sans-serif`` allowed)",
+        "LegendFontOptions": "Options to :class:`FontProperties`",
+        "LegendFontSize": 'Font size (options like ``"small"`` allowed)',
+        "LegendFontStretch": ("""Stretch, numeric in range 0-1000 or """ +
+            """string such as ``"condensed"``, ``"extra-condensed"``, """ +
+            """``"semi-expanded"``"""),
+        "LegendFontStyle": """Font style/slant""",
+        "LegendFontVariant": """Font capitalization variant""",
+        "LegendFontWeight": ("""Numeric font weight 0-1000 or """ +
+            """``"normal"``, ``"bold"``, etc."""),
+        "LegendLocation": """Numeric location or abbreviation""",
+        "LegendOptions": """Options to :func:`plt.legend`""",
         "MajorGrid": """Option to turn on/off grid at main ticks""",
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
         "MinMaxPlotType": """Plot type for min/max plot""",
@@ -3499,7 +3562,7 @@ class MPLOpts(dict):
         (fillbetween_options, _optlist_fillbetween),
         (font_options, _optlist_font),
         (grid_options, _optlist_grid),
-        #(legend_options, _optlist_legend),
+        (legend_options, _optlist_legend),
         (plot_options, _optlist_plot),
         (uq_options, _optlist_uq)
     ]:
