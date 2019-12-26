@@ -95,7 +95,7 @@ class DBResponseScalar(DBResponseNull):
         *db*: :class:`cape.attdb.rdbscalar.DBResponseScalar`
             Database with scalar output functions
     :Versions:
-        * 2019-12-17 ``@ddalle``: First version
+        * 2019-12-26 ``@ddalle``: First version
     """
   # =====================
   # Class Attributes
