@@ -17,7 +17,6 @@ following syntaxes.
     .. code-block:: pycon
 
         >>> DCN = db("CN", mach=1.2, alpha=0.2)
-        >>> DCNx = db("CN", mach=1.2, alpha=0.2, x=1.5)
 
 Here *DCN* is a 1D array with the *DCN* sectional load at each *x*. In
 addition, *x* can be looked up as a function of *mach* and *alpha*,
@@ -86,6 +85,7 @@ class DBResponseLinear(DBResponseScalar):
     :Versions:
         * 2019-12-31 ``@ddalle``: First version
     """
+    pass
   # =====================
   # Class Attributes
   # =====================

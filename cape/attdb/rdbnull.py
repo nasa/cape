@@ -77,7 +77,6 @@ class DBResponseNull(dict):
         "Type": "float64",
         "Label": True,
         "LabelFormat": "%s",
-        "WriteFormat": "%s",
         "OutputDim": 0,
     }
     # Default evaluation parameters
@@ -108,8 +107,8 @@ class DBResponseNull(dict):
         """
         # Required attributes
         self.cols = []
-        self.opts = {}
         self.n = 0
+        self.defns = {}
         self.bkpts = {}
 
         # Check for null inputs
@@ -565,22 +564,28 @@ class DBResponseNull(dict):
         :Call:
             >>> db.copy_options(dbsrc)
         :Inputs:
-            *db*:: :class:`
+            *db*: :class:`cape.attdb.rdb.DBResponseNull`
+                Data container
             *opts*: :class:`dict`
                 Options dictionary
         :Effects:
             *db.opts*: :class:`dict`
                 Options merged with or copied from *opts*
+            *db.defns*: :class:`dict`
+                Merged with ``opts["Definitions"]``
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: Added *db.defns* effect
         """
         # Check input
         if not isinstance(opts, dict):
             raise TypeError("Options input must be dict-type")
         # Get options
         dbopts = self.__dict__.get("opts", {})
+        dbdefs = self.__dict__.get("defns", {})
         # Merge
         self.opts = dict(dbopts, **opts)
+        self.defns = dict(dbdefs, **opts.get("Definitions", {}))
 
    # --- Column Properties ---
     # Get generic property from column
@@ -697,7 +702,7 @@ class DBResponseNull(dict):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        savecsv = kw.pop("save", kw.pop("SaveCSV", False))
+        savecsv = kw.pop("save", kw.pop("SaveCSV", True))
         # Check input type
         if isinstance(fname, ftypes.CSVFile):
             # Already a CSV database
@@ -807,7 +812,7 @@ class DBResponseNull(dict):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        savecsv = kw.pop("save", kw.pop("SaveCSV", False))
+        savecsv = kw.pop("save", kw.pop("SaveCSV", True))
         # Check input type
         if isinstance(fname, ftypes.CSVSimple):
             # Already a CSV database
@@ -908,7 +913,7 @@ class DBResponseNull(dict):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        save = kw.pop("save", kw.pop("SaveXLS", False))
+        save = kw.pop("save", kw.pop("SaveXLS", True))
         # Check input type
         if isinstance(fname, ftypes.XLSFile):
             # Already a CSV database
@@ -948,7 +953,7 @@ class DBResponseNull(dict):
             * 2019-12-17 ``@ddalle``: First version
         """
         # Get option to save database
-        save = kw.pop("save", kw.pop("SaveMAT", False))
+        save = kw.pop("save", kw.pop("SaveMAT", True))
         # Check input type
         if isinstance(fname, ftypes.MATFile):
             # Already a MAT database

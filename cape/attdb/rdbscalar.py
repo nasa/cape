@@ -213,7 +213,7 @@ class DBResponseScalar(DBResponseNull):
         method_col = self.eval_method.get(col, method_def)
         # Check for ``None``, which forbids lookup
         if method_col is None:
-            raise ValueError("Col '%s' is not an evaluation coeff" % col)
+            raise ValueError("Col '%s' is not an evaluation column" % col)
        # --- Get argument list ---
         # Specific lookup arguments (and copy it)
         args_col = list(self.get_eval_arg_list(col))

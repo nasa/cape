@@ -128,6 +128,7 @@ class XLSFile(BaseFile):
 
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: Follow TNA/S-24
         """
         # Initialize options
         self.opts = {}
@@ -186,6 +187,7 @@ class XLSFile(BaseFile):
                 Maximum column number of data
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: Support "array" worksheets
         """
         # Check module
         if xlrd is None:
@@ -248,6 +250,7 @@ class XLSFile(BaseFile):
                 Maximum column number of data
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: Support "array" worksheets
         """
         # Check worksheet type
         ndim = kw.get("NDim", kw.get("ndim", 0))
