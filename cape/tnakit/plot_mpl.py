@@ -1929,7 +1929,7 @@ class MPLOpts(dict):
         "TopSpineTicks",
         "TopTickLabels",
         "UncertaintyPlotType",
-        "UncertaintyOptions"
+        "UncertaintyOptions",
         "XLabel",
         "XLim",
         "XPad",
@@ -2333,7 +2333,7 @@ class MPLOpts(dict):
         "LegendOptions": {
             "LegendAnchor": "bbox_to_anchor",
             "LegendLocation": "loc",
-            "LegendNCol", "ncol",
+            "LegendNCol": "ncol",
             "ShowLegend": "ShowLegend",
         },
         "MinMaxOptions": {},
@@ -2755,16 +2755,30 @@ class MPLOpts(dict):
   # ============
   # <
     # Initialization method
-    def __init__(self, *a, **kw):
+    def __init__(self, optsdict=None, warnmode=1, **kw):
         r"""Initialization method
 
+        :Call:
+            >>> opts.__init__(optsdict=None, warnmode=1, **kw)
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+            *optsdict*: {``None``} | :class:`dict`
+                Dictionary of previous options (overwritten by *kw*)
+            *warnmode*: ``0`` | {``1``} | ``2``
+                Warning mode from :mod:`kwutils`
         :Versions:
             * 2019-12-19 ``@ddalle``: First version
         """
         # Get class
         cls = self.__class__
         # Initialize an unfiltered dict
-        optsdict = dict(*a, **kw)
+        if isinstance(optsdict, dict):
+            # Initialize with dictionary
+            optsdict = dict(optsdict, **kw)
+        else:
+            # Initialize from just keywords
+            optsdict = kw
         # Remove anything that's ``None``
         opts = cls.denone(optsdict)
 
@@ -2773,7 +2787,7 @@ class MPLOpts(dict):
             cls._optlist,
             cls._optmap,
             cls._opttypes,
-            {}, 1, **opts)
+            {}, warnmode, **opts)
 
         # Copy entries
         for (k, v) in opts.items():

@@ -47,7 +47,7 @@ except ImportError:
 # CAPE modules
 import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
-import cape.tnakit.plot_mpl as plt
+import cape.tnakit.plot_mpl as pmpl
 
 # Data types
 import cape.attdb.ftypes as ftypes
@@ -2512,7 +2512,7 @@ class DBResponseScalar(DBResponseNull):
         qinterp = kw.setdefault("PlotInterp", qinterp and (not qexact))
         qmark   = kw.setdefault("MarkExact",  qmark and (not qexact))
         # Default UQ coefficient
-        uk_def = self.get_uq_col(coeff)
+        uk_def = self.get_uq_col(col)
         # Check situation
         if typeutils.isarray(uk_def):
             # Get first entry
@@ -2539,7 +2539,7 @@ class DBResponseScalar(DBResponseNull):
             dlbl = self.__dict__.get("comp")
         if dlbl is None:
             dlbl = self.__dict__.get("Name")
-        if dlbl is nOne:
+        if dlbl is None:
             dlbl = col
         # Set default label
         kw.setdefault("Label", dlbl)
@@ -2586,7 +2586,7 @@ class DBResponseScalar(DBResponseNull):
                 Mark interpolated curves with markers where actual data points
                 are present
         :Plot Options:
-            *Legend*: {``True``} | ``False``
+            *ShowLegend*: {``None``} | ``True`` | ``False``
                 Whether or not to use a legend
             *LegendFontSize*: {``9``} | :class:`int` > 0 | :class:`float`
                 Font size for use in legends
@@ -2610,7 +2610,7 @@ class DBResponseScalar(DBResponseNull):
         # Process coefficient name and remaining coeffs
         col, I, J, a, kw = self._process_plot_args1(*a, **kw)
         # Get list of arguments
-        arg_list = self.get_eval_arg_list(coeff)
+        arg_list = self.get_eval_arg_list(col)
         # Get key for *x* axis
         xk = kw.pop("xcol", kw.pop("xk", arg_list[0]))
        # --- Options: What to plot ---
@@ -2618,10 +2618,8 @@ class DBResponseScalar(DBResponseNull):
         qexact  = kw.pop("PlotExact",  False)
         qinterp = kw.pop("PlotInterp", True)
         qmark   = kw.pop("MarkExact",  True)
-        # Uncertainty plot
-        quq = kw.pop("ShowUncertainty", kw.pop("ShowUQ", False))
         # Default UQ coefficient
-        uk_def = self.get_uq_col(coeff)
+        uk_def = self.get_uq_col(col)
         # Ensure string
         if typeutils.isarray(uk_def):
             uk_def = uk_def[0]
@@ -2630,6 +2628,12 @@ class DBResponseScalar(DBResponseNull):
         ukM = kw.pop("ucol_minus", kw.pop("ukM", uk))
         ukP = kw.pop("ucol_plus",  kw.pop("ukP", uk))
        # --- Plot Values ---
+        # Initialize output
+        h = pmpl.MPLHandle()
+        # Initialize plot options in order to reduce aliases, etc.
+        opts = pmpl.MPLOpts(warnmode=0, **kw)
+        # Uncertainty plot flag
+        quq = opts.get("ShowUncertainty", False)
         # Y-axis values: exact
         if qexact:
             # Get corresponding *x* values
@@ -2656,7 +2660,7 @@ class DBResponseScalar(DBResponseNull):
         # Y-axis values: evaluated/interpolated
         if qmark or qinterp:
             # Get values for *x*-axis
-            xv = self.get_xvals_eval(xk, coeff, *a, **kw)
+            xv = self.get_xvals_eval(xk, col, *a, **kw)
             # Evaluate function
             yv = self.__call__(col, *a, **kw)
             # Evaluate UQ-minus
@@ -2723,7 +2727,7 @@ class DBResponseScalar(DBResponseNull):
             # Apply markers
             if qmark:
                 # Get line handle
-                hl = hi["line"][0]
+                hl = hi.lines[0]
                 # Apply which indices to mark
                 hl.set_markevery(marke)
             # Combine
