@@ -2257,6 +2257,8 @@ class MPLOpts(dict):
         "LegendOptions": {
             "LegendAnchor": "bbox_to_anchor",
             "LegendLocation": "loc",
+            "LegendNCol", "ncol",
+            "ShowLegend": "ShowLegend",
         },
         "MinMaxOptions": {},
         "FillBetweenOptions": {
