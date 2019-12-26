@@ -45,14 +45,31 @@ except ImportError:
     scirbf = None
 
 # CAPE modules
-import cape.tnakit.typeutils as typeutils
 import cape.tnakit.kwutils as kwutils
+import cape.tnakit.typeutils as typeutils
+import cape.tnakit.plot_mpl as plt
 
 # Data types
 import cape.attdb.ftypes as ftypes
 
 # Local modules, direct
 from .rdbnull import DBResponseNull
+
+
+# Accepted list for eval_method
+RBF_METHODS = [
+    "rbf", "rbf-map", "rbf-linear"
+]
+# RBF function types
+RBF_FUNCS = [
+    "multiquadric",
+    "inverse_multiquadric",
+    "gaussian",
+    "linear",
+    "cubic",
+    "quintic",
+    "thin_plate"
+]
 
 
 # Declare base class
@@ -1812,4 +1829,129 @@ class DBResponseScalar(DBResponseNull):
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
+  # >
+
+  # ===================
+  # Plot
+  # ===================
+  # <
+   # --- Preprocessors ---
+    # Process arguments to PlotCoeff()
+    def _process_plot_args1(self, *a, **kw):
+        r"""Process arguments to :func:`plot` and other plot methods
+
+        :Call:
+            >>> col, I, J, a, kw = db._process_plot_args1(*a, **kw)
+            >>> col, I, J, a, kw = db._process_plot_args1(I, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
+                Array of values for arguments to :func:`db.__call__`
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of exact entries to plot
+            *kw*: :class:`dict`
+                Keyword arguments to plot function and evaluation
+        :Outputs:
+            *col*: :class:`str`
+                Data field to evaluate
+            *I*: :class:`np.ndarray` (:class:`int`)
+                Indices of exact entries to plot
+            *J*: :class:`np.ndarray` (:class:`int`)
+                Indices of matches within *a*
+            *a*: :class:`tuple` (:class:`float` | :class:`np.ndarray`)
+                Values for arguments for *coeff* evaluator
+            *kw*: :class:`dict`
+                Processed keyword arguments with defaults applied
+        :Versions:
+            * 2019-03-14 ``@ddalle``: First version
+        """
+       # --- Argument Types ---
+        # Process coefficient name and remaining coeffs
+        col, a, kw = self._get_colname(*a, **kw)
+        # Get list of arguments
+        arg_list = self.get_eval_arg_list(col)
+        # Get key for *x* axis
+        xk = kw.setdefault("xk", arg_list[0])
+        # Check for indices
+        if len(a) == 0:
+            raise ValueError("At least 2 inputs required; received 1")
+        # Process first second arg as indices
+        I = np.asarray(a[0])
+        # Check for integer
+        if (I.ndim > 0) and isinstance(I[0], int):
+            # Request for exact values
+            qexact  = True
+            qinterp = False
+            qmark   = False
+            qindex  = True
+            # Get values of arg list from *DBc* and *I*
+            A = []
+            # Loop through *eval_args*
+            for k in arg_list:
+                # Get values
+                A.append(self.GetXValues(k, I, **kw))
+            # Convert to tuple
+            a = tuple(A)
+            # Plot all points
+            J = np.arange(I.size)
+        else:
+            # No request for exat values
+            qexact  = False
+            qinterp = True
+            qmark   = True
+            qindex  = False
+            # Find matches from *a to database points
+            I, J = self.FindMatches(arg_list, *a, **kw)
+       # --- Options: What to plot ---
+        # Plot exact values, interpolated (eval), and markers of actual data
+        qexact  = kw.setdefault("PlotExact",  qexact)
+        qinterp = kw.setdefault("PlotInterp", qinterp and (not qexact))
+        qmark   = kw.setdefault("MarkExact",  qmark and (not qexact))
+        # Default UQ coefficient
+        uk_def = self.get_uq_coeff(coeff)
+        # Check situation
+        if typeutils.isarray(uk_def):
+            # Get first entry
+            uk_def = uk_def[0]
+        # Get UQ coefficient
+        uk  = kw.get("uk",  kw.get("ucoeff"))
+        ukM = kw.get("ukM", kw.get("ucoeff_minus", uk))
+        ukP = kw.get("ukP", kw.get("ucoeff_plus",  uk))
+        # Turn on *PlotUQ* if UQ key specified
+        if ukM or ukP:
+            kw.setdefault("PlotUQ", True)
+        # UQ flag
+        quq = kw.get("PlotUncertainty", kw.get("PlotUQ", False))
+        # Set default UQ keys if needed
+        if quq:
+            uk  = kw.setdefault("uk",  uk_def)
+            ukM = kw.setdefault("ukM", uk)
+            ukP = kw.setdefault("ukP", uk)
+       # --- Default Labels ---
+        # Default label starter
+        try:
+            # Name of component
+            try:
+                # In some cases *name* is more specific than
+                dlbl = self.name
+            except AttributeError:
+                # Component is usually there
+                dlbl = self.comp
+        except AttributeError:
+            # Backup default
+            try:
+                # Name of object
+                dlbl = self.Name
+            except AttributeError:
+                # No default
+                dlbl = coeff
+        # Set default label
+        kw.setdefault("Label", dlbl)
+        # Default x-axis label is *xk*
+        kw.setdefault("XLabel", xk)
+        kw.setdefault("YLabel", col)
+       # --- Cleanup ---
+        # Output
+        return col, I, J, a, kw
   # >
