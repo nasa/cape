@@ -173,10 +173,10 @@ class DBResponseScalar(DBResponseNull):
             >>> v = db(col, k0=x0, k1=x1, ...)
             >>> V = db(col, k0=x0, k1=X1, ...)
         :Inputs:
-            *DBc*: :class:`DBCoeff`
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions
-            *coeff*: :class:`str` | :class:`unicode`
-                Name of coefficient to evaluate
+            *col*: :class:`str`
+                Name of column to evaluate
             *x0*: :class:`float` | :class:`int`
                 Numeric value for first argument to *coeff* evaluator
             *x1*: :class:`float` | :class:`int`
@@ -197,7 +197,7 @@ class DBResponseScalar(DBResponseNull):
         """
        # --- Get coefficient name ---
         # Process coefficient
-        col, a, kw = self._get_colname(*a, **kw)
+        col, a, kw = self._prep_args_colname(*a, **kw)
        # --- Get method ---
         # Attempt to get default evaluation method
         try:
@@ -314,6 +314,326 @@ class DBResponseScalar(DBResponseNull):
             V = V.reshape(dims)
             # Output
             return V
+
+   # --- Alternative Evaluation ---
+    # Evaluate only exact matches
+    def eval_exact(self, *a, **kw):
+        r"""Evaluate a column but only at points with exact matches
+
+        :Call:
+            >>> V, I, J, X = db.eval_exact(*a, **kw)
+            >>> V, I, J, X = db.eval_exact(col, x0, X1, ...)
+            >>> V, I, J, X = db.eval_exact(col, k0=x0, k1=X1, ...)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *x0*: :class:`float` | :class:`int`
+                Value[s] for first argument to *col* evaluator
+            *x1*: :class:`float` | :class:`int`
+                Value[s] for second argument to *col* evaluator
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
+                Array of *x1* values
+            *k0*: :class:`str`
+                Name of first argument to *col* evaluator
+            *k1*: :class:`str`
+                Name of second argument to *col* evaluator
+        :Outputs:
+            *V*: :class:`np.ndarray`\ [:class:`float`]
+                Array of function outputs
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases matching inputs (see :func:`find`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of matches within input arrays
+            *X*: :class:`tuple`\ [:class:`np.ndarray`]
+                Values of arguments at exact matches
+        :Versions:
+            * 2019-03-11 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
+        """
+       # --- Get coefficient name ---
+        # Process coefficient name and remaining coeffs
+        col, a, kw = self._prep_args_colname(*a, **kw)
+       # --- Matching values
+        # Get list of arguments for this coefficient
+        args = self.get_eval_arg_list(coeff)
+        # Possibility of fallback values
+        arg_defaults = getattr(self, "eval_arg_defaults", {})
+        # Find exact matches
+        I, J = self.find(args, *a, **kw)
+        # Initialize values
+        x = []
+        # Loop through coefficients
+        for (i, k) in enumerate(args):
+            # Get values
+            V = self.get_all_values(k)
+            # Check for mismatch
+            if V is None:
+                # Attempt to get value from inputs
+                xi = self.get_arg_value(i, k, *a, **kw)
+                # Check for scalar
+                if xi is None:
+                    raise ValueError(
+                        ("Could not generate array of possible values ") +
+                        ("for argument '%s'" % k))
+                elif typeutils.isarray(xi):
+                    raise ValueError(
+                        ("Could not generate fixed scalar for test values ") +
+                        ("of argument '%s'" % k))
+                # Save the scalar value
+                x.append(xi)
+            else:
+                # Save array of varying test values
+                x.append(V[I])
+        # Normalize
+        X, dims = self.normalize_args(x)
+       # --- Evaluation ---
+        # Evaluate coefficient at matching points
+        if col in self:
+            # Use direct indexing
+            V = self[col][I]
+        else:
+            # Use evaluator (necessary for coeffs like *CLMX*)
+            V = self.__call__(col, *X, **kw)
+        # Output
+        return V, I, J, X
+
+    # Evaluate UQ from coefficient
+    def eval_uq(self, *a, **kw):
+        r"""Evaluate specified UQ cols for a specified col
+
+        This function will evaluate the UQ cols specified for a given
+        nominal column by referencing the appropriate subset of
+        *db.eval_args* for any UQ cols.  It evaluates the UQ col named
+        in *db.uq_cols*.  For example if *CN* is a function of
+        ``"mach"``, ``"alpha"``, and ``"beta"``; ``db.uq_cols["CN"]``
+        is *UCN*; and *UCN* is a function of ``"mach"`` only, this
+        function passes only the Mach numbers to *UCN* for evaluation.
+
+        :Call:
+            >>> U = db.eval_uq(*a, **kw)
+            >>> U = db.eval_uq(col, x0, X1, ...)
+            >>> U = db.eval_uq(col, k0=x0, k1=x1, ...)
+            >>> U = db.eval_uq(col, k0=x0, k1=X1, ...)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of **nominal** column to evaluate
+            *db.uq_cols*: :class:`dict`\ [:class:`str`]
+                Dictionary of UQ col names for each col
+            *x0*: :class:`float` | :class:`int`
+                Numeric value for first argument to *col* evaluator
+            *x1*: :class:`float` | :class:`int`
+                Numeric value for second argument to *col* evaluator
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
+                Array of *x1* values
+            *k0*: :class:`str`
+                Name of first argument to *col* evaluator
+            *k1*: :class:`str`
+                Name of second argument to *col* evaluator
+        :Outputs:
+            *U*: :class:`dict`\ [:class:`float` | :class:`np.ndarray`]
+                Values of relevant UQ col(s) by name
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
+        """
+       # --- Get coefficient name ---
+        # Process coefficient name and remaining coeffs
+        col, a, kw = self._prep_args_colname(*a, **kw)
+       # --- Argument processing ---
+        # Specific lookup arguments
+        args_col = self.get_eval_arg_list(col)
+        # Initialize lookup point
+        x = []
+        # Loop through arguments
+        for i, k in enumerate(args_col):
+            # Get value
+            xi = self.get_arg_value(i, k, *a, **kw)
+            # Save it
+            x.append(np.asarray(xi))
+        # Normalize arguments
+        X, dims = self.normalize_args(x)
+        # Maximum dimension
+        nd = len(dims)
+       # --- UQ coeff ---
+        # Dictionary of UQ coefficients
+        uq_cols = getattr(self, "uq_cols", {})
+        # Coefficients for this coefficient
+        uq_col = uq_cols.get(col, [])
+        # Check for list
+        if isinstance(uq_col, (tuple, list)):
+            # Save a flag for list of coeffs
+            qscalar = False
+            # Pass coefficient to list (copy it)
+            uq_col_list = list(uq_col)
+        else:
+            # Save a flag for scalar output
+            qscalar = True
+            # Make a list
+            uq_col_list = [uq_col]
+       # --- Evaluation ---
+        # Initialize output
+        U = {}
+        # Loop through UQ coeffs
+        for uk in uq_col_list:
+            # Get evaluation args
+            args_k = self.get_eval_arg_list(uk)
+            # Initialize inputs to *uk*
+            UX = []
+            # Loop through eval args
+            for ai in args_k:
+                # Check for membership
+                if ai not in args_col:
+                    raise ValueError(
+                        ("UQ col '%s' is a function of " % uk) +
+                        ("'%s', but parent col '%s' is not" % (ai, col)))
+                # Append value
+                UX.append(X[args_col.index(ai)])
+            # Evaluate
+            U[uk] = self.__call__(uk, *UX, **kw)
+
+       # --- Output ---
+        # Check for scalar output
+        if qscalar:
+            # Return first value
+            return U[uk]
+        else:
+            # Return list
+            return U
+
+    # Evaluate coefficient from arbitrary list of arguments
+    def eval_from_arglist(self, col, args, *a, **kw):
+        r"""Evaluate column from arbitrary argument list
+
+        This function is used to evaluate a col when given the
+        arguments to some other column.
+
+        :Call:
+            >>> V = db.eval_from_arglist(col, args, *a, **kw)
+            >>> V = db.eval_from_arglist(col, args, x0, X1, ...)
+            >>> V = db.eval_from_arglist(col, args, k0=x0, k1=x1, ...)
+            >>> V = db.eval_from_arglist(col, args, k0=x0, k1=X1, ...)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *args*: :class:`list`\ [:class:`str`]
+                List of arguments provided
+            *x0*: :class:`float` | :class:`int`
+                Numeric value for first argument to *col* evaluator
+            *x1*: :class:`float` | :class:`int`
+                Numeric value for second argument to *col* evaluator
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
+                Array of *x1* values
+            *k0*: :class:`str`
+                Name of first argument to *col* evaluator
+            *k1*: :class:`str`
+                Name of second argument to *col* evaluator
+        :Outputs:
+            *V*: :class:`float` | :class:`np.ndarray`
+                Values of *col* as appropriate
+        :Versions:
+            * 2019-03-13 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
+        """
+       # --- Argument processing ---
+        # Specific lookup arguments for *coeff*
+        args_col = self.get_eval_arg_list(col)
+        # Initialize lookup point
+        x = []
+        # Loop through arguments asgiven
+        for i, k in enumerate(args):
+            # Get value
+            xi = self.get_arg_value(i, k, *a, **kw)
+            # Save it
+            x.append(np.asarray(xi))
+        # Normalize arguments
+        X, dims = self.normalize_args(x)
+        # Maximum dimension
+        nd = len(dims)
+       # --- Evaluation ---
+        # Initialize inputs to *coeff*
+        A = []
+        # Get aliases for this coeffiient
+        aliases = getattr(self, "eval_arg_aliases", {})
+        aliases = aliases.get(col, {})
+        # Loop through eval args
+        for ai in args_col:
+            # Check for membership
+            if ai in args:
+                # Append value
+                A.append(X[args.index(ai)])
+                continue
+            # Check aliases
+            for k, v in aliases.items():
+                # Check if we found the argument sought for
+                if v != ai:
+                    continue
+                # Check if this alias is in the provided list
+                if k in args:
+                    # Replacement argument name
+                    ai = k
+            # Check for membership (second try)
+            if ai in args:
+                # Append value
+                A.append(X[args.index(ai)])
+                continue
+            raise ValueError(
+                ("Col '%s' is a function of " % col) +
+                ("'%s', not provided in argument list" % ai))
+        # Evaluate
+        return self.__call__(col, *A, **kw)
+
+    # Evaluate coefficient from arbitrary list of arguments
+    def eval_from_index(self, col, I, **kw):
+        r"""Evaluate data column from indices
+
+        This function has the same output as accessing ``db[col][I]`` if
+        *col* is directly present in the database.  However, it's
+        possible that *col* can be evaluated by some other technique, in
+        which case direct access would fail but this function may still
+        succeed.
+
+        This function looks up the appropriate input variables and uses
+        them to generate inputs to the database evaluation method.
+
+        :Call:
+            >>> V = db.eval_from_index(col, I, **kw)
+            >>> v = db.eval_from_index(col, i, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices at which to evaluate function
+            *i*: :class:`int`
+                Single index at which to evaluate
+        :Outputs:
+            *V*: :class:`np.ndarray`
+                Values of *col* as appropriate
+            *v*: :class:`float`
+                Scalar evaluation of *col*
+        :Versions:
+            * 2019-03-13 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
+        """
+       # --- Argument processing ---
+        # Specific lookup arguments for *col*
+        args_col = self.get_eval_arg_list(col)
+       # --- Evaluation ---
+        # Initialize inputs to *coeff*
+        A = []
+        # Loop through eval args
+        for ai in args_col:
+            # Append value
+            A.append(self.get_xvals(ai, I, **kw))
+        # Evaluate
+        return self.__call__(col, *A, **kw)
 
    # --- Declaration ---
     # Set evaluation methods
@@ -580,30 +900,31 @@ class DBResponseScalar(DBResponseNull):
         return f
 
     # Get UQ coefficient
-    def get_uq_coeff(self, coeff):
+    def get_uq_col(self, col):
         r"""Get name of UQ coefficient(s) for *coeff*
 
         :Call:
-            >>> ucoeff = db.get_uq_coeff(coeff)
-            >>> ucoeffs = db.get_uq_coeff(coeff)
+            >>> ucol = db.get_uq_col(col)
+            >>> ucols = db.get_uq_col(col)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions
-            *coeff*: :class:`str`
-                Name of coefficient to evaluate
+            *col*: :class:`str`
+                Name of data column to evaluate
         :Outputs:
-            *ucoeff*: ``None`` | :class:`str`
-                Name of UQ coefficient for *coeff*
-            *ucoeffs*: :class:`list`\ [:class:`str`]
-                List of UQ coefficients for *coeff*
+            *ucol*: ``None`` | :class:`str`
+                Name of UQ columns for *col*
+            *ucols*: :class:`list`\ [:class:`str`]
+                List of UQ columns for *col*
         :Versions:
             * 2019-03-13 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
         """
         # Get dictionary of UQ coeffs
-        uq_coeffs = self.__dict__.setdefault("uq_coeffs", {})
+        uq_cols = self.__dict__.setdefault("uq_cols", {})
         # Get entry for this coefficient
-        return uq_coeffs.get(coeff)
+        return uq_cols.get(col)
 
    # --- Options: Set ---
     # Set a default value for an argument
@@ -806,7 +1127,7 @@ class DBResponseScalar(DBResponseNull):
         """
        # --- Get coefficient name ---
         # Coeff name should be either a[0] or kw["coeff"]
-        coeff, a, kw = self._get_colname(*a, **kw)
+        coeff, a, kw = self._prep_args_colname(*a, **kw)
        # --- Argument processing ---
         # Specific lookup arguments
         args_coeff = self.get_eval_arg_list(coeff)
@@ -831,13 +1152,13 @@ class DBResponseScalar(DBResponseNull):
         return X
 
     # Process coefficient name
-    def _get_colname(self, *a, **kw):
+    def _prep_args_colname(self, *a, **kw):
         r"""Process coefficient name from arbitrary inputs
 
         :Call:
-            >>> col, a, kw = db._get_colname(*a, **kw)
-            >>> col, a, kw = db._get_colname(col, *a, **kw)
-            >>> col, a, kw = db._get_colname(*a, col=c, **kw)
+            >>> col, a, kw = db._prep_args_colname(*a, **kw)
+            >>> col, a, kw = db._prep_args_colname(col, *a, **kw)
+            >>> col, a, kw = db._prep_args_colname(*a, col=c, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions
@@ -1021,7 +1342,7 @@ class DBResponseScalar(DBResponseNull):
             elif not isinstance(V, (float, int, np.ndarray)):
                 # Improper type
                 raise TypeError(
-                    "Eval arg '%s' has type '%s'" % (k, type(V))
+                    "Eval arg '%s' has type '%s'" % (k, type(V)))
         # Check for arrays
         if not qvec:
             # Call scalar version
@@ -1832,6 +2153,287 @@ class DBResponseScalar(DBResponseNull):
   # >
 
   # ===================
+  # Data
+  # ===================
+  # <
+   # --- Independent Key Values ---
+    # Get the value of an independent variable if possible
+    def get_xvals(self, col, I=None, **kw):
+        r"""Get values of specified column, which may need conversion
+
+        This function can be used to calculate independent variables
+        (*xvars*) that are derived from extant data columns.  For
+        example if columns *alpha* and *beta* (for angle of attack and
+        angle of sideslip, respectively) are present and the user wants
+        to get the total angle of attack *aoap*, this function will
+        attempt to use ``db.eval_arg_converters["aoap"]`` to convert
+        available *alpha* and *beta* data.
+
+        :Call:
+            >>> V = db.get_xvals(col, I=None, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to access
+            *I*: ``None`` | :class:`np.ndarray` | :class:`int`
+                Subset indices or single index
+            *kw*: :class:`dict`
+                Dictionary of values in place of *db* (e.g. *kw[col]*
+                instead of *db[col]*)
+            *IndexKW*: ``True`` | {``False``}
+                Option to use *kw[col][I]* instead of just *kw[col]*
+        :Outputs:
+            *V*: :class:`np.ndarray` | :class:`float`
+                Array of values or scalar for column *col*
+        :Versions:
+            * 2019-03-12 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
+        """
+        # Option for processing keywrods
+        qkw = kw.pop("IndexKW", False)
+        # Check for direct membership
+        if col in kw:
+            # Get values from inputs
+            V = kw[col]
+            # Checking for quick output
+            if not qkw:
+                return V
+        elif col in self:
+            # Get all values from column
+            V = self[col]
+        else:
+            # Get converter
+            f = self.get_eval_arg_converter(col)
+            # Check for converter
+            if f is None:
+                raise ValueError("No converter for col '%s'" % col)
+            elif not callable(f):
+                raise TypeError("Converter for col '%s' not callable" % col)
+            # Create a dictionary of values
+            X = dict(self, **kw)
+            # Attempt to convert
+            try:
+                # Use entire dictionary as inputs
+                V = f(**X)
+            except Exception:
+                raise ValueError("Conversion function for '%s' failed" % col)
+        # Check for indexing
+        if I is None:
+            # No subset
+            return V
+        elif typeutils.isarray(V):
+            # Apply subset
+            return V[I]
+        else:
+            # Not subsettable
+            return V
+
+    # Get independent variable from eval inputs
+    def get_xvals_eval(self, k, *a, **kw):
+        r"""Return values of a column from inputs to :func:`__call__`
+
+        For example, this can be used to derive the total angle of
+        attack from inputs to an evaluation call to *CN* when it is a
+        function of *mach*, *alpha*, and *beta*.  This method attempts
+        to use :func:`db.eval_arg_converters`.
+
+        :Call:
+            >>> V = db.get_xvals_eval(k, *a, **kw)
+            >>> V = db.get_xvals_eval(k, coeff, x1, x2, ..., k3=x3)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *k*: :class:`str`
+                Name of key to calculate
+            *col*: :class:`str`
+                Name of output data column
+            *x1*: :class:`float` | :class:`np.ndarray`
+                Value(s) of first argument
+            *x2*: :class:`float` | :class:`np.ndarray`
+                Value(s) of second argument, if applicable
+            *k3*: :class:`str`
+                Name of third argument or optional variant
+            *x3*: :class:`float` | :class:`np.ndarray`
+                Value(s) of argument *k3*, if applicable
+        :Outputs:
+            *V*: :class:`np.ndarray`
+                Values of key *k* from conditions in *a* and *kw*
+        :Versions:
+            * 2019-03-12 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
+        """
+        # Process coefficient
+        X = self.get_arg_value_dict(*a, **kw)
+        # Check if key is present
+        if k in X:
+            # Return values
+            return X[k]
+        else:
+            # Get dictionary of converters
+            converters = getattr(self, "eval_arg_converters", {})
+            # Check for membership
+            if k not in converters:
+                raise ValueError(
+                    "Could not interpret xvar '%s'" % k)
+            # Get converter
+            f = converters[k]
+            # Check class
+            if not callable(f):
+                raise TypeError("Converter for '%s' is not callable" % k)
+            # Attempt to convert
+            try:
+                # Use entire dictionary as inputs
+                V = f(**X)
+            except Exception:
+                raise ValueError("Conversion function for '%s' failed" % k)
+            # Output
+            return V
+
+   # --- Dependent Key Values ---
+    # Get exact values
+    def get_yvals_exact(self, col, I=None, **kw):
+        r"""Get exact values of a data column
+
+        :Call:
+            >>> V = db.get_yvals_exact(col, I=None, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to access
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Database indices
+        :Versions:
+            * 2019-03-13 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
+        """
+        # Check for direct membership
+        if col in self:
+            # Get all values from column
+            V = self[col]
+            # Check for indexing
+            if I is None:
+                # No subset
+                return V
+            else:
+                # Apply subset
+                return V[I]
+        else:
+            # Get evaluation type
+            meth = self.get_eval_method(col)
+            # Only allow "function" type
+            if meth != "function":
+                raise ValueError(
+                    ("Cannot evaluate exact values for '%s', " % col) +
+                    ("which has method '%s'" % meth))
+            # Get args
+            args = self.get_eval_arg_list(col)
+            # Create inputs
+            a = tuple([self.get_xvals(k, I, **kw) for k in args])
+            # Evaluate
+            V = self.__call__(col, *a)
+            # Output
+            return V
+
+   # --- Search ---
+    # Find matches
+    def find(self, args, *a, **kw):
+        r"""Find cases that match a condition [within a tolerance]
+
+        :Call:
+            >>> I, J = db.find(args, *a, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *args*: :class:`list`\ [:class:`str`]
+                List of argument names to match
+            *a*: :class:`tuple`\ [:class:`float`]
+                Values of the arguments
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+            *kw*: :class:`dict`
+                Additional values to use during evaluation
+        :Outputs:
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *db* that match conditions
+            *J*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of (*a*, *kw*) that have a match in *db*
+        :Versions:
+            * 2019-03-11 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :func:`DBCoeff.FindMatches`
+        """
+       # --- Input Checks ---
+        # Find a valid argument
+        for arg in args:
+            # Check if it's present
+            if arg in self:
+                # Found at least one valid argument
+                break
+        else:
+            # Loop completed; nothing found
+            raise ValueError(
+                "Cannot find matches for argument list %s" % args)
+        # Overall tolerance default
+        tol = kw.pop("tol", 1e-4)
+        # Specific tolerances
+        tols = kw.pop("tols", {})
+        # Number of values
+        n = len(self[arg])
+       # --- Argument values ---
+        # Initialize lookup point
+        x = []
+        # Loop through arguments
+        for i, k in enumerate(args):
+            # Get value
+            xi = self.get_arg_value(i, k, *a, **kw)
+            # Save it
+            x.append(np.asarray(xi))
+        # Normalize arguments
+        X, dims = self.normalize_args(x, True)
+        # Number of test points
+        nx = np.prod(dims)
+       # --- Checks ---
+        # Initialize tests for database indices (set to ``False``)
+        MI = np.arange(n) < 0
+        # Initialize tests for input data indices (set to ``False``)
+        MJ = np.arange(nx) < 0
+        # Loop through entries
+        for i in range(nx):
+            # Initialize tests for this point (set to ``True``)
+            Mi = np.arange(n) > -1
+            # Loop through arguments
+            for j, k in enumerate(args):
+                # Get total set of values
+                Xk = self.get_all_values(k)
+                # Check if present
+                if (k is None) or (Xk is None):
+                    continue
+                # Check size
+                if (i == 0) and (len(Xk) != n):
+                    raise ValueError(
+                        ("Parameter '%s' has size %i, " % (k, len(Xk))) +
+                        ("expecting %i" % n))
+                # Get argument value
+                xi = X[j][i]
+                # Get tolerance for this key
+                xtol = tols.get(k, tol)
+                # Check tolerance
+                Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
+            # Combine point constraints
+            MI = np.logical_or(MI, Mi)
+            # Check for any matches of this data point
+            MJ[i] = np.any(Mi)
+        # Convert masks to indices
+        I = np.where(MI)[0]
+        J = np.where(MJ)[0]
+        # Return combined set of matches
+        return I, J
+  # >
+
+  # ===================
   # Plot
   # ===================
   # <
@@ -1855,20 +2457,21 @@ class DBResponseScalar(DBResponseNull):
         :Outputs:
             *col*: :class:`str`
                 Data field to evaluate
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of matches within *a*
-            *a*: :class:`tuple` (:class:`float` | :class:`np.ndarray`)
+            *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
                 Values for arguments for *coeff* evaluator
             *kw*: :class:`dict`
                 Processed keyword arguments with defaults applied
         :Versions:
             * 2019-03-14 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
         """
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
-        col, a, kw = self._get_colname(*a, **kw)
+        col, a, kw = self._prep_args_colname(*a, **kw)
         # Get list of arguments
         arg_list = self.get_eval_arg_list(col)
         # Get key for *x* axis
@@ -1888,9 +2491,9 @@ class DBResponseScalar(DBResponseNull):
             # Get values of arg list from *DBc* and *I*
             A = []
             # Loop through *eval_args*
-            for k in arg_list:
+            for col in arg_list:
                 # Get values
-                A.append(self.GetXValues(k, I, **kw))
+                A.append(self.get_xvals(col, I, **kw))
             # Convert to tuple
             a = tuple(A)
             # Plot all points
@@ -1902,50 +2505,42 @@ class DBResponseScalar(DBResponseNull):
             qmark   = True
             qindex  = False
             # Find matches from *a to database points
-            I, J = self.FindMatches(arg_list, *a, **kw)
+            I, J = self.find(arg_list, *a, **kw)
        # --- Options: What to plot ---
         # Plot exact values, interpolated (eval), and markers of actual data
         qexact  = kw.setdefault("PlotExact",  qexact)
         qinterp = kw.setdefault("PlotInterp", qinterp and (not qexact))
         qmark   = kw.setdefault("MarkExact",  qmark and (not qexact))
         # Default UQ coefficient
-        uk_def = self.get_uq_coeff(coeff)
+        uk_def = self.get_uq_col(coeff)
         # Check situation
         if typeutils.isarray(uk_def):
             # Get first entry
             uk_def = uk_def[0]
         # Get UQ coefficient
-        uk  = kw.get("uk",  kw.get("ucoeff"))
-        ukM = kw.get("ukM", kw.get("ucoeff_minus", uk))
-        ukP = kw.get("ukP", kw.get("ucoeff_plus",  uk))
+        uk  = kw.get("uk",  kw.get("ucol"))
+        ukM = kw.get("ukM", kw.get("ucol_minus", uk))
+        ukP = kw.get("ukP", kw.get("ucol_plus",  uk))
         # Turn on *PlotUQ* if UQ key specified
         if ukM or ukP:
-            kw.setdefault("PlotUQ", True)
+            kw.setdefault("ShowUncertainty", True)
         # UQ flag
-        quq = kw.get("PlotUncertainty", kw.get("PlotUQ", False))
+        quq = kw.get("ShowUncertainty", kw.get("ShowUQ", False))
         # Set default UQ keys if needed
         if quq:
             uk  = kw.setdefault("uk",  uk_def)
             ukM = kw.setdefault("ukM", uk)
             ukP = kw.setdefault("ukP", uk)
        # --- Default Labels ---
-        # Default label starter
-        try:
-            # Name of component
-            try:
-                # In some cases *name* is more specific than
-                dlbl = self.name
-            except AttributeError:
-                # Component is usually there
-                dlbl = self.comp
-        except AttributeError:
-            # Backup default
-            try:
-                # Name of object
-                dlbl = self.Name
-            except AttributeError:
-                # No default
-                dlbl = coeff
+        # Default label starter: db.name
+        dlbl = self.__dict__.get("name")
+        # Some fallbacks
+        if dlbl is None:
+            dlbl = self.__dict__.get("comp")
+        if dlbl is None:
+            dlbl = self.__dict__.get("Name")
+        if dlbl is nOne:
+            dlbl = col
         # Set default label
         kw.setdefault("Label", dlbl)
         # Default x-axis label is *xk*
@@ -1954,4 +2549,207 @@ class DBResponseScalar(DBResponseNull):
        # --- Cleanup ---
         # Output
         return col, I, J, a, kw
+
+   # --- Base Plot Commands ---
+    # Plot a sweep of one or more coefficients
+    def plot_scalar(self, *a, **kw):
+        r"""Plot a sweep of one data column over several cases
+
+        This is the base method upon which scalar data book sweep plotting is built.
+        Other methods may call this one with modifications to the default
+        settings.  For example :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes
+        the default *LineOptions* to show a red line instead of the standard
+        black line.  All settings can still be overruled by explicit inputs to
+        either this function or any of its children.
+
+        :Call:
+            >>> h = db.plot_scalar(col, *a, **kw)
+            >>> h = db.plot_scalar(col, I, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column (or derived column) to evaluate
+            *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
+                Array of values for arguments to evaluator for *col*
+            *I*: :class:`np.ndarray` (:class:`int`)
+                Indices of exact entries to plot
+        :Keyword Arguments:
+            *xcol*, *xk*: {``None``} | :class:`str`
+                Key/column name for *x* axis
+            *PlotExact*: ``True`` | ``False``
+                Plot exact values directly from database without interpolation
+                Default is ``True`` if *I* is used
+            *PlotInterp*: ``True`` | ``False``
+                Plot values by using :func:`DBc.__call__`
+            *MarkExact*: ``True`` | ``False``
+                Mark interpolated curves with markers where actual data points
+                are present
+        :Plot Options:
+            *Legend*: {``True``} | ``False``
+                Whether or not to use a legend
+            *LegendFontSize*: {``9``} | :class:`int` > 0 | :class:`float`
+                Font size for use in legends
+            *Grid*: {``None``} | ``True`` | ``False``
+                Turn on/off major grid lines, or leave as is if ``None``
+            *GridStyle*: {``{}``} | :class:`dict`
+                Dictionary of major grid line line style options
+            *MinorGrid*: {``None``} | ``True`` | ``False``
+                Turn on/off minor grid lines, or leave as is if ``None``
+            *MinorGridStyle*: {``{}``} | :class:`dict`
+                Dictionary of minor grid line line style options
+        :Outputs:
+            *h*: :class:`plot_mpl.MPLHandle`
+                Object of :mod:`matplotlib` handles
+        :Versions:
+            * 2015-05-30 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Added error bars
+            * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
+        """
+       # --- Process Args ---
+        # Process coefficient name and remaining coeffs
+        col, I, J, a, kw = self._process_plot_args1(*a, **kw)
+        # Get list of arguments
+        arg_list = self.get_eval_arg_list(coeff)
+        # Get key for *x* axis
+        xk = kw.pop("xcol", kw.pop("xk", arg_list[0]))
+       # --- Options: What to plot ---
+        # Plot exact values, interpolated (eval), and markers of actual data
+        qexact  = kw.pop("PlotExact",  False)
+        qinterp = kw.pop("PlotInterp", True)
+        qmark   = kw.pop("MarkExact",  True)
+        # Uncertainty plot
+        quq = kw.pop("ShowUncertainty", kw.pop("ShowUQ", False))
+        # Default UQ coefficient
+        uk_def = self.get_uq_col(coeff)
+        # Ensure string
+        if typeutils.isarray(uk_def):
+            uk_def = uk_def[0]
+        # Get UQ coefficient
+        uk  = kw.pop("ucol",       kw.pop("uk", uk_def))
+        ukM = kw.pop("ucol_minus", kw.pop("ukM", uk))
+        ukP = kw.pop("ucol_plus",  kw.pop("ukP", uk))
+       # --- Plot Values ---
+        # Y-axis values: exact
+        if qexact:
+            # Get corresponding *x* values
+            xe = self.get_xvals(xk, I, **kw)
+            # Try to get values directly from database
+            ye = self.get_yvals_exact(col, I, **kw)
+            # Evaluate UQ-minus
+            if quq and ukM:
+                # Get UQ value below
+                uyeM = self.eval_from_index(ukM, I, **kw)
+            elif quq:
+                # Use zeros for negative error term
+                uyeM = np.zeros_like(ye)
+            # Evaluate UQ-pluts
+            if quq and ukP and ukP==ukM:
+                # Copy negative terms to positive
+                uyeP = uyeM
+            elif quq and ukP:
+                # Evaluate separate UQ above
+                uyeP = self.eval_from_index(ukP, I, **kw)
+            elif quq:
+                # Use zeros
+                uyeP = np.zeros_like(ye)
+        # Y-axis values: evaluated/interpolated
+        if qmark or qinterp:
+            # Get values for *x*-axis
+            xv = self.get_xvals_eval(xk, coeff, *a, **kw)
+            # Evaluate function
+            yv = self.__call__(col, *a, **kw)
+            # Evaluate UQ-minus
+            if quq and ukM:
+                # Get UQ value below
+                uyM = self.eval_from_arglist(ukM, arg_list, *a, **kw)
+            elif quq:
+                # Use zeros for negative error term
+                uyM = np.zeros_like(yv)
+            # Evaluate UQ-pluts
+            if quq and ukP and ukP==ukM:
+                # Copy negative terms to positive
+                uyP = uyM
+            elif quq and ukP:
+                # Evaluate separate UQ above
+                uyP = self.eval_from_arglist(ukP, arg_list, *a, **kw)
+            elif quq:
+                # Use zeros
+                uyP = np.zeros_like(yv)
+       # --- Data Cleanup ---
+        # Create input to *markevery*
+        if qmark:
+            # Check length
+            if J.size == xv.size:
+                # Mark all cases
+                marke = None
+            else:
+                # Convert to list
+                marke = list(J)
+        # Remove extra keywords if possible
+        for k in arg_list:
+            kw.pop(k, None)
+       # --- Primary Plot ---
+        # Initialize output
+        h = pmpl.MPLHandle()
+        # Initialize plot options in order to reduce aliases, etc.
+        opts = pmpl.MPLOpts(**kw)
+        # Initialize plot options and get them locally
+        kw_p = opts.setdefault("PlotOptions", {})
+        # Create a copy
+        kw_p0 = dict(kw_p)
+        # Existing uncertainty plot type
+        t_uq = opts.get("UncertaintyPlotType")
+        # Marked and interpolated data
+        if qinterp or qmark:
+            # Default marker setting
+            if qmark:
+                kw_p.setdefault("marker", "^")
+            else:
+                kw_p.setdefault("marker", "")
+            # Default line style
+            if not qinterp:
+                # Turn off lines
+                kw_p.setdefault("ls", "")
+                # Default UQ style is error bars
+                if t_uq is None:
+                    opts["UncertaintyPlotType"] = "errorbar"
+            # Check for uncertainty
+            if quq:
+                # Set values
+                opts["yerr"] = np.array([uyM, uyP])
+            # Call the main function
+            hi = pmpl.plot(xv, yv, **opts)
+            # Apply markers
+            if qmark:
+                # Get line handle
+                hl = hi["line"][0]
+                # Apply which indices to mark
+                hl.set_markevery(marke)
+            # Combine
+            h.add(hi)
+       # --- Exact Plot ---
+        # Plot exact values
+        if qexact:
+            # Turn on marker
+            if "marker" not in kw_p0:
+                kw_p["marker"] = "^"
+            # Turn *lw* off
+            if "ls" not in kw_p0:
+                kw_p["ls"] = ""
+            # Set UQ style to "errorbar"
+            if t_uq is None:
+                opts["UncertaintyPlotType"] = "errorbar"
+            # Check for uncertainty
+            if quq:
+                # Set values
+                opts["yerr"] = np.array([uyeM, uyeP])
+            # Plot exact data
+            he = pmpl.plot(xe, ye, **opts)
+            # Combine
+            h.add(he)
+       # --- Cleanup ---
+        # Output
+        return h
+       # ---
   # >

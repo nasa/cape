@@ -1784,6 +1784,45 @@ class MPLHandle(object):
         # Initialize handles
         self.lines = kw.get("lines", [])
 
+    # Combine two handles
+    def add(self, h1):
+        r"""Combine two plot handle objects
+
+        Attributes of *h1* will override those of *h* except where the
+        attribute is a list.  For example, *h1.lines* will be added to
+        *h.lines* to get handles to lines from both instances.
+
+        :Call:
+            >>> h.add(h1)
+        :Inputs:
+            *h*: :class:`MPLHandle`
+                Parent handle
+            *h1*: :class:`MPLHandle`
+                Second handle for collecting all objects
+        :Versions:
+            * 2019-12-26 ``@ddalle``: First version
+        """
+        # Check inputs
+        if not isinstance(h1, MPLHandle):
+            raise TypeError("Second handle must be MPLHandle object")
+        # Loop through data attributes
+        for (k, v) in h1.__dict__.items():
+            # Check for list (combine)
+            if isinstance(v, list):
+                # Get attribute from parent
+                v0 = self.__dict__.get(k)
+                # Check if both are lists
+                if isinstance(v0, list):
+                    # Combine two lists
+                    self.__dict__[k] = v0 + v
+                else:
+                    # Replace non-list value
+                    self.__dict__[k] = v
+            elif v.__class__.__module__.startswith("matplotlib"):
+                # Some other plot handle; replace
+                self.__dict__[k] = v
+        
+
 
 # Standard type strings
 _rst_boolf = """```True`` | {``False``}"""
@@ -1889,6 +1928,8 @@ class MPLOpts(dict):
         "TopSpineOptions",
         "TopSpineTicks",
         "TopTickLabels",
+        "UncertaintyPlotType",
+        "UncertaintyOptions"
         "XLabel",
         "XLim",
         "XPad",
