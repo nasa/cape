@@ -1,12 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-%(hline_after-)s
 %(mod)s: Module Documentation Utilities
 %(hline=)s
 
+This module provides utilities for documenting other modules, with some
+simple examples demonstrated within the docstring of this file.  Its
+primary purpose is to provide more information in the docstring of a
+module with some automated macros.
 
-    %(submodules)s
+Because this functionality is most useful *within* a module, so that
+the docstring can be modified during import, the usual use case requires
+the special parameters *__file__*, *__name__*, and of course *__doc__*.
+
+    .. code-block:: python
+
+        import %(pymod)s as modutils
+        
+        __doc__ = modutils.rst_docstring(__name__, __file__, __doc__)
+
+See :func:`rst_docstring` for more details on how this works and all of
+the options and expansions that it can perform.  The table below shows
+some examples as they expand for this module.
+
+    =================  =================================
+    Pattern            Result
+    =================  =================================
+    ``file``           %(file)s
+    ``mod``            %(mod)s
+    ``pymod``          %(pymod)s
+    ``relative_file``  %(relative_file)s
+    =================  =================================
 
 """
 
@@ -34,11 +58,62 @@ regex_repl = re.compile(_re_indent + _re_keyval)
 def rst_docstring(modname, modfile, doc, meta=None, **kw):
     r"""Modify a docstring with automatic expansions
 
+    Replacements are made to *doc* such that ``%(file)s`` is replaced
+    with the file name (without path) of the module file as inferred
+    from *modfile*.  The full table of replacement patterns recognized
+    by default is below.  Note that the *hline* and *hline_after*
+    parameters can specify the character to use for the horizontal line
+    as long as it is a valid reST separator character.
+
+    +---------------+-------------------------------------------------+
+    | absfile       | Absolute path to *modfile*                      |
+    +---------------+-------------------------------------------------+
+    | file          | File name (without path) of module              |
+    +---------------+-------------------------------------------------+
+    | hline-        | Create title line with length of the preceding  |
+    |               | line using ``-`` as character                   |
+    +---------------+-------------------------------------------------+
+    | hline=        | Create title line with length of the preceding  |
+    |               | line using ``+`` as character                   |
+    +---------------+-------------------------------------------------+
+    | hline_after-  | Create title line with length of the following  |
+    |               | line using ``-`` as character                   |
+    +---------------+-------------------------------------------------+
+    | meta          | Convert *meta* :class:`dict` to reST string     |
+    +---------------+-------------------------------------------------+
+    | mod           | Full name of module with reST decorations       |
+    +---------------+-------------------------------------------------+
+    | pymod         | Full name of module without markup              |
+    +---------------+-------------------------------------------------+
+    | relative_file | Relative file name inferred from *modname*      |
+    +---------------+-------------------------------------------------+
+    | submodules    | Search folder and find all submodules up to     |
+    |               | *maxdepth* levels; only if *file* is            |
+    |               | ``__init__.py``                                 |
+    +---------------+-------------------------------------------------+
+
+    Additional replacement patterns can be specified in *kw*; if the
+    value is not a string, it will be converted to reST text using
+    :func:`cape.tnakit.rstutils.py2rst`.
+
     :Call:
-        >>> txt = rst_docstring(doc, meta=None, **kw)
+        >>> txt = rst_docstring(modname, modfile, doc, meta=None, **kw)
     :Inputs:
+        *modname*: :class:`str`
+            Name of module, usually from *mod.__name__*
+        *modfile*: :class:`str`
+            Module file name, usually from *mod.__file__*
         *doc*: :class:`str`
-            Raw docstring with macros to expande
+            Raw docstring with to expand, from *mod.__doc__*
+        *meta*: {``None``} | :class:`dict` | :class:`str`
+            Expansion information for ``@(meta)s`` pattern
+        *maxdepth*: {``2``} | :class:`int` | ``None``
+            Maximum depth for *submodules* macro
+        *kw*: :class:`dict`
+            Expansions for additional macros
+    :See Also:
+        * :mod:`cape.tnakit.modutils`
+        * :func:`cape.tnakit.rstutils.py2rst`
     :Versions:
         * 2019-12-27 ``@ddalle``: First version
     """
@@ -148,7 +223,6 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
                 # Broken line
                 broken_line = True
                 break
-                    
         # Check for substitutions
         if n_match == 0:
             # Just strip
@@ -344,3 +418,7 @@ def list_modules(fname, maxdepth=2, depth=0):
 
     # Output
     return modlist
+
+
+# Update the documentation
+__doc__ = rst_docstring(__name__, __file__, __doc__)
