@@ -694,7 +694,7 @@ def fill_between(xv, ymin, ymax, **kw):
 
 # Error bar plot
 def errorbar(xv, yv, yerr=None, xerr=None, **kw):
-    r"""Call the :func:`errobar`function
+    r"""Call the :func:`errobar` function
 
     :Call:
         >>> h = errorbar(xv, yv, yerr=None, xerr=None, **kw
