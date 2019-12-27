@@ -172,6 +172,7 @@ defined.  In general the required files are the following.
         api/pyfun/index
         api/pyover/index
         api/attdb/index
+        api/tnakit/index
     
     **Testing**
     

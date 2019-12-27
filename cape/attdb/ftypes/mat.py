@@ -103,7 +103,7 @@ class MATFile(BaseFile):
             self.process_col_defns(**kw)
 
         # Check for overrides of values
-        kw = self.process_kw_values(**kw)
+        self.process_kw_values(**kw)
   # >
 
   # ===============

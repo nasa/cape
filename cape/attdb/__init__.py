@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-The :mod:`attdb` module is named for its original intention of handling
-"databases" for the Aero Task Team of the Space Launch System program.
-The databases created for technical disciplines tend to differ
+The :mod:`cape.attdb` module is named for its original intention of
+handling "databases" for the Aero Task Team of the Space Launch System
+program. The databases created for technical disciplines tend to differ
 significantly and fundamentally from the typical databases in the
 software world, which are little more than a series of spreadsheets in
 a different data format.
