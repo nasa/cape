@@ -175,7 +175,7 @@ class DBResponseNull(dict):
             self.read_mat(fmat, **kw)
         else:
             # If reaching this point, process values
-            kw = ftypes.BaseFile.process_kw_values(**kw)
+            kw = ftypes.BaseFile.process_kw_values(self, **kw)
 
     # Representation method
     def __repr__(self):

@@ -97,13 +97,10 @@ class MATFile(BaseFile):
         # Read file if appropriate
         if fname:
             # Read valid file
-            kw = self.read_mat(fname, **kw)
+            self.read_mat(fname, **kw)
         else:
             # Process inputs
-            kw = self.process_col_defns(**kw)
-
-        # Check for overrides of values
-        kw = self.process_kw_values(**kw)
+            self.process_col_defns(**kw)
   # >
 
   # ===============
@@ -112,6 +109,133 @@ class MATFile(BaseFile):
   # <
     # Read MAT file
     def read_mat(self, fname, **kw):
+        r"""Read a MATLAB ``.mat`` file
+
+        The primary data is assumed to be in a variable called *DB*.
+
+        :Call:
+            >>> db.read_mat(f)
+            >>> db.read_mat(fname)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+                MAT file interface
+            *f*: :class:`file`
+                File open for reading (at position ``0``)
+            *fname*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Check modules
+        _check_sio()
+        # Check type
+        if typeutils.isfile(fname):
+            # Safe file name
+            self.fname = fname.name
+        else:
+            # Save file name
+            self.fname = fname
+
+        # Read MAT file
+        db = sio.loadmat(fname, struct_as_record=False, squeeze_me=True)
+
+        # Loop through database
+        for (col, V) in db.items():
+            # Skip invalid MATLAB names (reserved for other purposes)
+            if col.startswith("_"):
+                continue
+            # Check type
+            if isinstance(V, siom.mat_struct):
+                # Recurse
+                self.from_mat_struct(V, prefix=col)
+                continue
+            # Otherwise save column
+            self.from_mat_array(col, V)
+
+        # Process column definitions
+        return self.process_col_defns(**kw)
+
+    # Read an array from MAT file
+    def from_mat_array(self, col, V):
+        r"""Process an array and save it as a column
+
+        :Call:
+            >>> db.from_mat_array(col, V)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+                MAT file interface
+            *V*: :class:`list` | :class:`np.ndarray`
+                Numeric or string data to save
+            *col*: :class:`str`
+                Name of column
+        :Versions:
+            * 2019-12-27 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(V, (list, np.ndarray)):
+            raise TypeError(
+                "Database field '%s' must be list or array" % col)
+        # Get options
+        opts = self.__dict__.setdefault("opts", {})
+        # Get definitions
+        defns = opts.setdefault("Definitions", {})
+        # Definition for this column
+        defn = defns.setdefault(col, {})
+        # Process type
+        if isinstance(V, list):
+            # Assume string
+            dtype = "str"
+            # Save length
+            defn["Shape"] = (len(V), )
+        else:
+            # Array; get data type from instance
+            dtype = str(V.dtype)
+            # Dimensions
+            defn["Dimension"] = V.ndim
+            defn["Shape"] = V.shape
+        # Set type
+        defn["Type"] = dtype
+        # Save column
+        self.save_col(col, V)
+
+    # Read a MAT struct
+    def from_mat_struct(self, V, prefix=""):
+        r"""Read fields of a struct
+
+        :Call:
+            >>> db.from_mat_struct(V, prefix="")
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+                MAT file interface
+            *V*: :class:`siom.mat_struct`
+                Struct read from ``.mat`` file
+            *prefix*: {``""``} | :class:`str`
+                Prefix to append to *col* names from *V._fieldnames*
+        :Versions:
+            * 2019-12-27 ``@ddalle``: First version
+        """
+        # Loop through fields
+        for fld in V._fieldnames:
+            # Get value
+            v = V.__dict__[fld]
+            # Form column name
+            if prefix:
+                # Append prefix
+                col = "%s.%s" % (prefix, fld)
+            else:
+                # No prefix
+                col = fld
+            # Check type
+            if isinstance(v, siom.mat_struct):
+                # Recurse
+                self.from_mat_struct(v, prefix=col)
+                continue
+            # Otherwise save column
+            self.from_mat_array(col, v)
+            
+
+    # Read MAT file
+    def read_mat_legacy(self, fname, **kw):
         r"""Read a MATLAB ``.mat`` file
 
         The primary data is assumed to be in a variable called *DB*.
@@ -162,6 +286,8 @@ class MATFile(BaseFile):
         for col in DB._fieldnames:
             # Get value
             V = DB.__dict__[col]
+            import pdb
+            pdb.set_trace()
             # Definition for this column
             defn = defns.setdefault(col, {})
             # Check type

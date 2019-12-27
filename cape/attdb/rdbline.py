@@ -111,4 +111,26 @@ class DBResponseLinear(DBResponseScalar):
         :Call:
             >>> ndim = db.get_output_ndim(col)
         :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *ndim*: {``0``} | :class:`int`
+                Dimension of *col* at a single condition
+        :Versions:
+            * 2019-12-27 ``@ddalle``: First version
+        """
+        # Get definition
+        defn = self.defns.get(col, {})
+        # Get dimensionality
+        ndim =  defn.get("OutputDimension")
+        # Check valid result
+        if ndim is not None:
+            return ndim
+        # Get default parameter definition
+        defn = self.defns.get("_", {})
+        # Get dimensionality
+        return defn.get("OutputDimension", 0)
+            
   # >
