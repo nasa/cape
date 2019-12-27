@@ -36,7 +36,6 @@ import numpy as np
 
 # Typical SBU title
 sbu_ttl = "SENSITIVE BUT UNCLASSIFIED (SBU) - ITAR"
-import numpy as np
 
 # Text for SBU definition
 sbu_text = (
@@ -117,30 +116,27 @@ def tabulate_modules(fname, txt="", prefix="", maxdepth=2, tab=4, depth=0):
     if (fpth == fdir) and (fmod not in ["__init__.py", "__init__.pyc"]):
         # Wrong type of module or not a module at all
         return txt
-        
+
     # Name of the current module
     fmod = os.path.split(fdir)[-1]
     # Add to the prefix
     prefix = "%s%s." % (prefix, fmod)
     # Delimiter character for this depth
-    if depth%2:
+    if depth % 2:
         # Odd depth: -
         bullet = '-'
     else:
         # Even depth: *
         bullet = '*'
-    
+
     # Get folder
     fglob = os.listdir(fdir)
     # Sort them (ASCII order)
     fglob.sort()
-    #import pdb
-    #pdb.set_trace()
     # Check for folder without "__init__.py"
     if (fpth != fdir) and ("__init__.py" not in fglob):
         return txt
-    
-    
+
     # Loop through ".py" folders
     for fn in fglob:
         # Check if it is a "*.py"
@@ -152,7 +148,7 @@ def tabulate_modules(fname, txt="", prefix="", maxdepth=2, tab=4, depth=0):
         # Add a new line
         txt += " "*((depth+1)*tab)
         txt += "%s :mod:`%s%s`\n" % (bullet, prefix, fm)
-        
+
     # Loop through subfolders
     for fn in fglob:
         # Full name

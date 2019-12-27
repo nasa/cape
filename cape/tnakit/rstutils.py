@@ -220,9 +220,133 @@ def rst_directive_option(k, v):
         return ":%s: %s" % (k, v)
 
 
+# Generic conversion
+def py2rst(v, **kw):
+    r"""Convert a generic Python object to reST text
+
+    :Call:
+        >>> txt = py2rst(v, **kw)
+    :Inputs:
+        *v*: :class:`object`
+            Generic Python value
+        *repr_types*: {``None``} | :class:`type` | :class:`tuple`
+            Type or tuple of types for which to use :func:`repr`
+        *str_types*: {``None``} | :class:`type` | :class:`tuple`
+            Type or tuple of types for which to use :func:`str`
+        *strict*: {``True``} | ``False``
+            Whether or not to raise exception for other types
+    :Outputs:
+        *txt*: :class:`str`
+            Marked up reST text
+    :Versions:
+        * 2019-04-25 ``@ddalle``: First version
+    """
+    # Check for special types to use :func:`repr` for
+    repr_types = kw.get("repr_types")
+    str_types  = kw.get("str_types")
+    # Get universal options dictionaries
+    formats = kw.pop("fmts", kw.pop("formats", {}))
+    markups = kw.pop("markups", {})
+    # Filter input type
+    if (repr_types is not None) and isinstance(v, repr_types):
+        # Use class's __repr__ method
+        # Get options
+        markup = markups.get("__repr__", kw.get("markup", False))
+        # Conversion
+        return py2rst_any_repr(v, markup=markup)
+    elif (str_types is not None) and isinstance(v, str_types):
+        # Use class's __str__ method
+        # Get options
+        markup = markups.get("__str__", kw.get("markup", False))
+        # Conversion
+        return py2rst_any_str(v, markup=markup)
+    elif v is None:
+        # Convert ``None``
+        # Get options
+        markup = markups.get("None", kw.get("markup", True))
+        # Conversion
+        return py2rst_none(markup=markup)
+    elif isinstance(v, bool):
+        # Convert boolean
+        markup = markups.get("bool", kw.get("markup", True))
+        # Conversion
+        return py2rst_bool(v, markup=markup)
+    elif isinstance(v, int):
+        # Convert integer
+        # Get options
+        markup = markups.get("int", kw.get("markup", False))
+        fmt    = formats.get("int", kw.get("fmt", "%s"))
+        # Conversion
+        return py2rst_int(v, markup=markup, fmt=fmt)
+    elif isinstance(v, float):
+        # Convert float
+        # Get options
+        markup = markups.get("float", kw.get("markup", False))
+        fmt    = formats.get("float", kw.get("fmt", "%s"))
+        # Conversion
+        return py2rst_float(v, markup=markup, fmt=fmt)
+    elif typeutils.isstr(v):
+        # Convert string
+        # Copy options
+        kw_str = dict(kw)
+        # Transfer any class-specific options
+        if "str" in markups:
+            kw_str["markup"] = markups["str"]
+        # Convert string
+        return py2rst_str(v, **kw_str)
+    elif isinstance(v, (list, tuple)):
+        # Convert list
+        return py2rst_list(v, **kw)
+    elif isinstance(v, dict):
+        # Dictionary
+        return py2rst_dict(v, **kw)
+    elif isinstance(v, typeutils.moduletype):
+        # Module
+        return py2rst_mod(v, **kw)
+    elif kw.get("strict", True):
+        # Unrecognized type
+        raise TypeError("Unrecognized type '%s'" % type(v))
+    else:
+        # Use class's __repr__ method
+        # Get options
+        markup = markups.get("__repr__", kw.get("markup", False))
+        # Conversion
+        return py2rst_any_repr(v, markup=markup)
+
+
+# Convert Python `mod` to reST
+def py2rst_mod(mod, markup=True):
+    r"""Convert a Python module to reST text
+
+    :Call:
+        >>> txt = py2rst_mod(mod, markup=True)
+    :Inputs:
+        *mod*: :class:`module`
+            A Python module
+        *markup*: {``True``} | ``False``
+            Option to use reST ``:mod:`` role
+    :Outputs:
+        *txt*: :class:`str`
+            Text representation for reST
+    :Versions:
+        * 2019-12-27 ``@ddalle``: First version
+    """
+    # Check input types
+    if not isinstance(mod, typeutils.moduletype):
+        raise TypeError(
+            "Cannot convert type '%s' to module" % mod.__class__.__name__)
+    # Convert text
+    if markup:
+        # Use role
+        return ":mod:`%s`" % mod.__name__
+    else:
+        # No decoration
+        return mod.__name__
+
+
 # Convert Python `int` to reST
 def py2rst_int(i, markup=False, fmt="%s"):
-    """Convert a Python :class:`int` to reST text
+    r"""Convert a Python :class:`int` to reST text
 
     :Call:
         >>> txt = py2rst_int(i, markup=False, fmt="%s")
@@ -243,7 +367,7 @@ def py2rst_int(i, markup=False, fmt="%s"):
     if i is True:
         raise TypeError("Disallowed conversion of 'True' to int")
     elif i is False:
-        raise TypeError("Disallowed conversion of 'Falsee' to int")
+        raise TypeError("Disallowed conversion of 'False' to int")
     if not isinstance(i, int):
         raise TypeError(
             "Cannot convert type '%s' to int" % i.__class__.__name__)
@@ -266,7 +390,7 @@ def py2rst_int(i, markup=False, fmt="%s"):
 
 # Convert Python `float` to reST
 def py2rst_float(x, markup=False, fmt="%s"):
-    """Convert a Python :class:`float` to reST text
+    r"""Convert a Python :class:`float` to reST text
 
     :Call:
         >>> txt = py2rst_float(x, markup=False, fmt="%s")
@@ -306,7 +430,7 @@ def py2rst_float(x, markup=False, fmt="%s"):
 
 # Convert boolean
 def py2rst_bool(q, markup=True):
-    """Convert a Python :class:`bool` to reST text
+    r"""Convert a Python :class:`bool` to reST text
 
     :Call:
         >>> txt = py2rst_bool(q, markup=True)
@@ -337,7 +461,7 @@ def py2rst_bool(q, markup=True):
 
 # Convert null/None
 def py2rst_none(markup=True):
-    """Convert Python ``None`` to reST text
+    r"""Convert Python ``None`` to reST text
 
     :Call:
         >>> txt = py2rst_none(markup=True)
@@ -361,7 +485,7 @@ def py2rst_none(markup=True):
 
 # Convert a string
 def py2rst_str(s, **kw):
-    """Convert a Python :class:`str` to reST text
+    r"""Convert a Python :class:`str` to reST text
 
     :Call:
         >>> txt = py2rst_str(s, **kw)
@@ -689,97 +813,6 @@ def py2rst_any_repr(v, markup=True):
         txt = "``%s``" % txt
     # Output
     return txt
-
-
-# Generic conversion
-def py2rst(v, **kw):
-    """Convert a generic Python object to reST text
-
-    :Call:
-        >>> txt = py2rst(v, **kw)
-    :Inputs:
-        *v*: :class:`object`
-            Generic Python value
-        *repr_types*: {``None``} | :class:`type` | :class:`tuple`
-            Type or tuple of types for which to use :func:`repr`
-        *str_types*: {``None``} | :class:`type` | :class:`tuple`
-            Type or tuple of types for which to use :func:`str`
-        *strict*: {``True``} | ``False``
-            Whether or not to raise exception for other types
-    :Outputs:
-        *txt*: :class:`str`
-            Marked up reST text
-    :Versions:
-        * 2019-04-25 ``@ddalle``: First version
-    """
-    # Check for special types to use :func:`repr` for
-    repr_types = kw.get("repr_types")
-    str_types  = kw.get("str_types")
-    # Get universal options dictionaries
-    formats = kw.pop("fmts", kw.pop("formats", {}))
-    markups = kw.pop("markups", {})
-    # Filter input type
-    if (repr_types is not None) and isinstance(v, repr_types):
-        # Use class's __repr__ method
-        # Get options
-        markup = markups.get("__repr__", kw.get("markup", False))
-        # Conversion
-        return py2rst_any_repr(v, markup=markup)
-    elif (str_types is not None) and isinstance(v, str_types):
-        # Use class's __str__ method
-        # Get options
-        markup = markups.get("__str__", kw.get("markup", False))
-        # Conversion
-        return py2rst_any_str(v, markup=markup)
-    elif v is None:
-        # Convert ``None``
-        # Get options
-        markup = markups.get("None", kw.get("markup", True))
-        # Conversion
-        return py2rst_none(markup=markup)
-    elif isinstance(v, bool):
-        # Convert boolean
-        markup = markups.get("bool", kw.get("markup", True))
-        # Conversion
-        return py2rst_bool(v, markup=markup)
-    elif isinstance(v, int):
-        # Convert integer
-        # Get options
-        markup = markups.get("int", kw.get("markup", False))
-        fmt    = formats.get("int", kw.get("fmt", "%s"))
-        # Conversion
-        return py2rst_int(v, markup=markup, fmt=fmt)
-    elif isinstance(v, float):
-        # Convert float
-        # Get options
-        markup = markups.get("float", kw.get("markup", False))
-        fmt    = formats.get("float", kw.get("fmt", "%s"))
-        # Conversion
-        return py2rst_float(v, markup=markup, fmt=fmt)
-    elif typeutils.isstr(v):
-        # Convert string
-        # Copy options
-        kw_str = dict(kw)
-        # Transfer any class-specific options
-        if "str" in markups:
-            kw_str["markup"] = markups["str"]
-        # Convert string
-        return py2rst_str(v, **kw_str)
-    elif isinstance(v, (list, tuple)):
-        # Convert list
-        return py2rst_list(v, **kw)
-    elif isinstance(v, dict):
-        # Dictionary
-        return py2rst_dict(v, **kw)
-    elif kw.get("strict", True):
-        # Unrecognized type
-        raise TypeError("Unrecognized type '%s'" % type(v))
-    else:
-        # Use class's __repr__ method
-        # Get options
-        markup = markups.get("__repr__", kw.get("markup", False))
-        # Conversion
-        return py2rst_any_repr(v, markup=markup)
 
 
 # List of common options for all directives
