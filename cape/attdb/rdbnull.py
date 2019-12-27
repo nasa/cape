@@ -961,6 +961,20 @@ class DBResponseNull(dict):
         else:
             # Create an instance
             dbf = ftypes.MATFile(fname, **kw)
+        # List of column indices to keep
+        J = []
+        # Make replacements for column names
+        for (j, col) in enumerate(dbf.cols):
+            # Check name
+            if col.startswith("DB."):
+                # Strip prefix from name
+                col1 = col[3:]
+                # Replace list
+                dbf.cols[j] = col1
+                # Replace key
+                dbf[col1] = dbf.pop(col)
+                # Save this column
+                J.append(j)
         # Link the data
         self.link_data(dbf)
         # Copy the options

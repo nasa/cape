@@ -101,6 +101,9 @@ class MATFile(BaseFile):
         else:
             # Process inputs
             self.process_col_defns(**kw)
+
+        # Check for overrides of values
+        kw = self.process_kw_values(**kw)
   # >
 
   # ===============
@@ -150,21 +153,21 @@ class MATFile(BaseFile):
                 self.from_mat_struct(V, prefix=col)
                 continue
             # Otherwise save column
-            self.from_mat_array(col, V)
+            self.from_mat_field(col, V)
 
         # Process column definitions
         return self.process_col_defns(**kw)
 
     # Read an array from MAT file
-    def from_mat_array(self, col, V):
+    def from_mat_field(self, col, V):
         r"""Process an array and save it as a column
 
         :Call:
-            >>> db.from_mat_array(col, V)
+            >>> db.from_mat_field(col, V)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.mat.MATFile`
                 MAT file interface
-            *V*: :class:`list` | :class:`np.ndarray`
+            *V*: :class:`list` | :class:`np.ndarray` | :class:`float`
                 Numeric or string data to save
             *col*: :class:`str`
                 Name of column
@@ -172,7 +175,7 @@ class MATFile(BaseFile):
             * 2019-12-27 ``@ddalle``: First version
         """
         # Check type
-        if not isinstance(V, (list, np.ndarray)):
+        if not isinstance(V, (list, np.ndarray, float, int)):
             raise TypeError(
                 "Database field '%s' must be list or array" % col)
         # Get options
@@ -182,7 +185,11 @@ class MATFile(BaseFile):
         # Definition for this column
         defn = defns.setdefault(col, {})
         # Process type
-        if isinstance(V, list):
+        if isinstance(V, (int, float)):
+            # Save as a scalar
+            self.__dict__[col] = V
+            return
+        elif isinstance(V, list):
             # Assume string
             dtype = "str"
             # Save length
@@ -231,7 +238,7 @@ class MATFile(BaseFile):
                 self.from_mat_struct(v, prefix=col)
                 continue
             # Otherwise save column
-            self.from_mat_array(col, v)
+            self.from_mat_field(col, v)
             
 
     # Read MAT file
@@ -401,28 +408,50 @@ class MATFile(BaseFile):
         if attrs and not isinstance(attrs, (tuple, list)):
             # Should really be a list of strings
             raise TypeError("Extra attribute list 'attrs' must be a list")
-        # Get data interface
-        if "DB" in dbmat:
-            # Get interface
-            DB = dbmat["DB"]
-            # Check type
-            if not isintance(DB, siom.mat_struct):
-                raise TypeError("Existing 'DB' field must be a mat_struct")
-        else:
-            # Create new instance
-            DB = dbmat.setdefault("DB", siom.mat_struct())
-            # Initialize fields
-            DB._fieldnames = []
         # Loop through columns
         for col in cols:
             # Check column
             if col not in self.cols:
                 raise KeyError("No data column '%s'" % col)
-            # Save data to database
-            DB.__dict__[col] = to_matlab(self[col])
+            # Split column name into parts to see if we need structs
+            colparts = col.split(".")
+            # Check for simple case
+            if len(colparts) == 1:
+                # Save directly to dictionary and get out of here
+                dbmat[col] = to_matlab(self[col])
+                continue
+            # Reset handle to container of 0 depth
+            dbpart = dbmat
+            # Loop through extra depth levels
+            for (depth, part) in enumerate(colparts[:-1]):
+                # Access the "part" from the next depth
+                if depth == 0:
+                    # Direct "get"
+                    dbnext = dbpart.get(part)
+                else:
+                    # Attribute "get"
+                    dbnext = dbpart.__dict__.get(part)
+                    # Update field list
+                    if part not in dbpart._fieldnames:
+                        dbpart._fieldnames.append(part)
+                # Create it if needed
+                if isinstance(dbnext, siom.mat_struct):
+                    # Pass along handle
+                    dbpart = dbnext
+                else:
+                    # Create empty struct
+                    dbnext = siom.mat_struct()
+                    dbnext._fieldnames = []
+                    # Save it
+                    dbpart[part] = dbnext
+                    dbpart = dbnext
+            # Name of last depth level
+            fld = colparts[-1]
+            # Save as attribute
+            dbpart.__dict__[fld] = to_matlab(self[col])
             # Append to field list
-            if col not in DB._fieldnames:
-                DB._fieldnames.append(col)
+            if fld not in dbpart._fieldnames:
+                dbpart._fieldnames.append(fld)
         # Check for any extra attributes
         if attrs:
             # Loop through attributes
@@ -432,8 +461,10 @@ class MATFile(BaseFile):
                     raise TypeError("Extra attr '%s' must be a string" % attr)
                 elif attr not in self.__dict__:
                     raise AttributeError("No attribute '%s' to copy" % attr)
-                #Save the value
-                dbmat[attr] = to_matlab(self.__dict__[attr])
+                # Add a suffix
+                key = attr + "_"
+                # Save the value
+                dbmat[key] = to_matlab(self.__dict__[attr])
         # Output
         return dbmat
   # >

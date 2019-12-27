@@ -153,10 +153,10 @@ class BaseFile(dict):
         # Append columns
         if len(self.cols) <= 6:
             # Show all columns
-            lbl += "cols=%s)" % str(self.cols)
+            lbl += "cols=%s)>" % str(self.cols)
         else:
             # Just show number of columns
-            lbl += "ncol=%i)" % len(self.cols)
+            lbl += "ncol=%i)>" % len(self.cols)
         # Output
         return lbl
 
@@ -182,10 +182,10 @@ class BaseFile(dict):
         # Append columns
         if len(self.cols) <= 5:
             # Show all columns
-            lbl += "cols=%s)" % str(self.cols)
+            lbl += "cols=%s)>" % str(self.cols)
         else:
             # Just show number of columns
-            lbl += "ncol=%i)" % len(self.cols)
+            lbl += "ncol=%i)>" % len(self.cols)
         # Output
         return lbl
   # >
