@@ -372,8 +372,6 @@ def py2rst_str(s, **kw):
             Number of spaces of indentation
         *hang*: {*indent*} | :class:`int` ≥ 0
             Number of spaces of indent for continuation lines
-        *tab*: {``4``} | :class:`int` ≥ 0
-            Number of spaces to add to deeper indentation levels
         *maxcols*: {``79``} | :class:`int` > 0
             Maximum number of columns in a line
         *markuplength*: {``50``} | :class:`int` ≥ 0
@@ -402,6 +400,10 @@ def py2rst_str(s, **kw):
     markup = kw.get("markup", markup)
     indent = kw.get("indent", 0)
     hang = kw.get("hang", indent)
+    # Turn of indentation while marked up
+    if markup:
+        indent = 0
+        hang = 0
     # Reduced line widths
     cwidth1 = maxcols - indent
     cwidth  = maxcols - hang
@@ -410,7 +412,7 @@ def py2rst_str(s, **kw):
         cwidth1 -= 4
         cwidth  -= 4
     # Wrap the string
-    lines = wrap.wrap_text(s, cwidth1=cwidth1, cwidth=cwidth)
+    lines = wrap.wrap_text(s, cwidth1=cwidth1, cwidth=cwidth, indent=0)
     # Check for markup
     if markup:
         # Initialize lines
