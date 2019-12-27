@@ -85,7 +85,6 @@ class DBResponseLinear(DBResponseScalar):
     :Versions:
         * 2019-12-31 ``@ddalle``: First version
     """
-    pass
   # =====================
   # Class Attributes
   # =====================
@@ -103,4 +102,13 @@ class DBResponseLinear(DBResponseScalar):
   # ===============
   # <
    # --- Evaluation ---
+
+   # --- Options ---
+    # Get output dimension
+    def get_output_ndim(self, col):
+        r"""Get output dimension for column *col*
+
+        :Call:
+            >>> ndim = db.get_output_ndim(col)
+        :Inputs:
   # >

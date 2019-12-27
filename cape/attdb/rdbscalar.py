@@ -1674,8 +1674,14 @@ class DBResponseScalar(DBResponseNull):
                     % (coeff, I.__class__))
         # Number of keys
         nk = len(args)
+        # Dimension
+        ndim = V.ndim
+        # Check it
+        if ndim not in [1, 2]:
+            raise ValueError(
+                "Col '%s' must have dimension 1 or 2; got %i" % (col, ndim))
         # Count
-        n = len(V)
+        n = V.shape[-1]
         # Get break points for this schedule
         bkpts = {}
         for k in args:
@@ -1743,7 +1749,12 @@ class DBResponseScalar(DBResponseNull):
             # Apply weights
             F *= Fi
         # Perform interpolation
-        return np.sum(F*V[J])
+        if ndim == 1:
+            # Regular weighted sum of scalars
+            return np.sum(F*V[J])
+        elif ndim == 2:
+            # Weighted dot product (of columns)
+            return np.dot(V[:,J], F)
 
    # --- Multilinear-schedule ---
     # Multilinear lookup at each value of arg
