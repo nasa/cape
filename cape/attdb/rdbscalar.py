@@ -133,14 +133,16 @@ class DBResponseScalar(DBResponseNull):
 
     # Method functions
     _method_funcs = {
-        "exact": "eval_exact",
-        "function": "eval_function",
-        "multilinear": "eval_multilinear",
-        "multilinear-schedule": "eval_multilinear_schedule",
-        "nearest": "eval_nearest",
-        "rbf": "eval_rbf",
-        "rbf-linear": "eval_rbf_linear",
-        "rbf-map": "eval_rbf_schedule",
+        0: {
+            "exact": "eval_exact",
+            "function": "eval_function",
+            "multilinear": "eval_multilinear",
+            "multilinear-schedule": "eval_multilinear_schedule",
+            "nearest": "eval_nearest",
+            "rbf": "eval_rbf",
+            "rbf-linear": "eval_rbf_linear",
+            "rbf-map": "eval_rbf_schedule",
+        }
     }
   # >
 
@@ -148,6 +150,64 @@ class DBResponseScalar(DBResponseNull):
   # Options
   # ===================
   # <
+   # --- Definitions: Get ---
+    # Get output dimension
+    def get_output_ndim(self, col):
+        r"""Get output dimension for column *col*
+
+        :Call:
+            >>> ndim = db.get_output_ndim(col)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *ndim*: {``0``} | :class:`int`
+                Dimension of *col* at a single condition
+        :Versions:
+            * 2019-12-27 ``@ddalle``: First version
+        """
+        # Get column definition
+        defn = self.get_col_defn(col)
+        # Get dimensionality
+        ndim = defn.get("OutputDimension")
+        # Check valid result
+        if ndim is not None:
+            return ndim
+        # Get default parameter definition
+        defn = self.defns.get("_", {})
+        # Get dimensionality
+        return defn.get("OutputDimension", 0)
+
+   # --- Definitions: Set ---
+    # Set dimensionality
+    def set_output_ndim(self, col, ndim):
+        r"""Set output dimension for column *col*
+
+        :Call:
+            >>> db.set_output_ndim(col, ndim)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *ndim*: {``0``} | :class:`int`
+                Dimension of *col* at a single condition
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get column definition
+        defn = self.get_col_defn(col)
+        # Check type
+        if not isinstance(ndim, int):
+            raise TypeError(
+                "Output dimension for '%s' must be int (got %s)" %
+                (col, type(ndim)))
+        # Set it
+        defn["OutputDimension"] = ndim
+
    # --- Attributes ---
     # Get attribute with defaults
     def getattrdefault(self, attr, vdef):
@@ -280,16 +340,21 @@ class DBResponseScalar(DBResponseNull):
         method_col = method_col.lower().replace("_", "-")
         # Get proper method name (default to same)
         method_col = cls._method_map.get(method_col, method_col)
+        # Output dimensionality
+        ndim_col = self.get_output_ndim(col)
+        # Get maps from function name to function callable
+        method_funcs = cls._method_funcs[ndim_col]
         # Check if present
-        if method_col not in cls._method_names:
+        if method_col not in method_funcs:
             # Get close matches
-            mtchs = difflib.get_close_matches(method_col, cls._method_names)
+            mtchs = difflib.get_close_matches(
+                method_col, list(method_funcs.keys())
             # Error message
             raise ValueError(
-                ("No evaluation method '%s'; " % method_col) +
+                ("No %i-D eval method '%s'; " % (ndim_col, method_col)) +
                 ("closest matches: %s" % mtches))
         # Get the function handle
-        f = getattr(self, cls._method_funcs[method_col])
+        f = getattr(self, method_funcs.get(method_col))
         # Combine args (should there be an attribute for this?)
         kw_fn = dict(kw_fn, **kw)
         # Calls

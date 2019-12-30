@@ -89,6 +89,22 @@ class DBResponseLinear(DBResponseScalar):
   # Class Attributes
   # =====================
   # <
+   # --- Method Names ---
+    # Primary names
+    _method_names = DBResponseScalar._method_names
+
+    # Alternates
+    _method_map = dict(DBResponseScalar._method_map)
+
+    # Method functions
+    _method_funcs = dict(DBResponseScalar._method_funcs)
+    _method_funcs[1] = {
+        "exact": "eval_exact",
+        "function": "eval_function",
+        "multilinear": "eval_multilinear",
+        "multilinear-schedule": "eval_multilinear_schedule",
+        "nearest": "eval_nearest",
+    }
   # >
 
   # ===================
@@ -104,35 +120,6 @@ class DBResponseLinear(DBResponseScalar):
    # --- Evaluation ---
 
    # --- Options: Get ---
-    # Get output dimension
-    def get_output_ndim(self, col):
-        r"""Get output dimension for column *col*
-
-        :Call:
-            >>> ndim = db.get_output_ndim(col)
-        :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
-                Database with multidimensional output functions
-            *col*: :class:`str`
-                Name of column to evaluate
-        :Outputs:
-            *ndim*: {``0``} | :class:`int`
-                Dimension of *col* at a single condition
-        :Versions:
-            * 2019-12-27 ``@ddalle``: First version
-        """
-        # Get column definition
-        defn = self.get_col_defn(col)
-        # Get dimensionality
-        ndim = defn.get("OutputDimension")
-        # Check valid result
-        if ndim is not None:
-            return ndim
-        # Get default parameter definition
-        defn = self.defns.get("_", {})
-        # Get dimensionality
-        return defn.get("OutputDimension", 0)
-
     # Get xvars for output
     def get_output_xvars(self, col):
         r"""Get list of args to output for column *col*
@@ -166,34 +153,6 @@ class DBResponseLinear(DBResponseScalar):
         return list(xargs)
 
    # --- Options: Set ---
-    # Set dimensionality
-    def set_output_ndim(self, col, ndim):
-       r"""Set output dimension for column *col*
-
-        :Call:
-            >>> db.set_output_ndim(col, ndim)
-        :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
-                Database with multidimensional output functions
-            *col*: :class:`str`
-                Name of column to evaluate
-        :Outputs:
-            *ndim*: {``0``} | :class:`int`
-                Dimension of *col* at a single condition
-        :Versions:
-            * 2019-12-30 ``@ddalle``: First version
-        """
-        
-        # Get column definition
-        defn = self.get_col_defn(col)
-        # Check type
-        if not isinstance(ndim, int):
-            raise TypeError(
-                "Output dimension for '%s' must be int (got %s)" %
-                (col, type(ndim)))
-        # Set it
-        defn["OutputDimension"] = ndim
-
     # Set xvars for output
     def set_output_xvars(self, col, xargs):
         r"""Set list of args to output for column *col*
