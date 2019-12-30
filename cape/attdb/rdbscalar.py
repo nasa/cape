@@ -58,7 +58,9 @@ from .rdbnull import DBResponseNull
 
 # Accepted list for eval_method
 RBF_METHODS = [
-    "rbf", "rbf-map", "rbf-linear"
+    "rbf",
+    "rbf-map",
+    "rbf-linear"
 ]
 # RBF function types
 RBF_FUNCS = [
@@ -198,55 +200,21 @@ class DBResponseScalar(DBResponseNull):
        # --- Get coefficient name ---
         # Process coefficient
         col, a, kw = self._prep_args_colname(*a, **kw)
-       # --- Get method ---
-        # Attempt to get default evaluation method
-        try:
-            # Check for evaluation methods and "_" key is default
-            method_def = self.eval_method["_"]
-        except AttributeError:
-            # No evaluation method at all
-            raise AttributeError("Database has no evaluation methods")
-        except KeyError:
-            # No default
-            method_def = "nearest"
+       # --- Get method and other parameters ---
         # Specific method
-        method_col = self.eval_method.get(col, method_def)
-        # Check for ``None``, which forbids lookup
-        if method_col is None:
-            raise ValueError("Col '%s' is not an evaluation column" % col)
-       # --- Get argument list ---
+        method_col = self.get_eval_method.get(col)
         # Specific lookup arguments (and copy it)
-        args_col = list(self.get_eval_args(col))
-       # --- Evaluation kwargs ---
+        args_col = self.get_eval_args(col)
+        # Get extra args passed along to evaluator
+        kw_fn = self.get_eval_kwargs(col)
         # Attempt to get default aliases
-        try:
-            # Check for attribute and "_" default
-            kw_def = self.eval_kwargs["_"]
-            # Use default as fallback
-            kw_fn = self.eval_kwargs.get(col, kw_def)
-        except AttributeError:
-            # No kwargs to eval functions
-            kw_fn = {}
-        except KeyError:
-            # No default
-            kw_fn = self.eval_kwargs.get(col, {})
+        arg_aliases = self.get_eval_arg_aliases(col)
        # --- Aliases ---
-        # Attempt to get default aliases
-        try:
-            # Check for attribute and "_" default
-            alias_def = self.eval_arg_aliases["_"]
-            # Use default as fallback
-            arg_aliases = self.eval_arg_aliases.get(col, alias_def)
-        except AttributeError:
-            # No aliases
-            arg_aliases = {}
-        except KeyError:
-            # No default
-            arg_aliases = self.eval_arg_aliases.get(col, {})
         # Process aliases in *kw*
         for k in dict(kw):
             # Check if there's an alias for *k*
-            if k not in arg_aliases: continue
+            if k not in arg_aliases:
+                continue
             # Get alias for keyword *k*
             alias_k = arg_aliases[k]
             # Save the value under the alias as well
@@ -721,11 +689,6 @@ class DBResponseScalar(DBResponseNull):
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
-       # --- Metadata checks ---
-        # Argument aliases (i.e. alternative names)
-        eval_arg_aliases = self.getattrdict("eval_arg_aliases")
-        # Evaluation keyword arguments
-        eval_kwargs = self.getattrdict("eval_kwargs")
        # --- Input checks ---
         # Check inputs
         if col is None:
@@ -739,46 +702,37 @@ class DBResponseScalar(DBResponseNull):
             raise ValueError("Eval method (keyword 'method') is required")
         # Get alias option
         arg_aliases = kw.get("aliases", {})
-        # Check for ``None``
-        if (not arg_aliases):
-            # Empty option is empty dictionary
-            arg_aliases = {}
-        # Save aliases
-        eval_arg_aliases[col] = arg_aliases
         # Get alias option
-        eval_kwargs_kw = kw.get("eval_kwargs", {})
-        # Check for ``None``
-        if (not eval_kwargs_kw):
-            # Empty option is empty dictionary
-            eval_kwargs_kw = {}
-        # Save keywords (new copy)
-        eval_kwargs[col] = dict(eval_kwargs_kw)
+        eval_kwargs = kw.get("eval_kwargs", {})
+        # Save aliases
+        self.set_eval_arg_aliases(col, arg_aliases)
+        self.set_eval_kwargs(col, eval_kwargs)
        # --- Method switch ---
         # Check for identifiable method
         if method in ["nearest"]:
             # Nearest-neighbor lookup
-            self.set_eval_method(col, "nearest")
+            self.set_eval_method_(col, "nearest")
         elif method in ["linear", "multilinear"]:
             # Linear/multilinear interpolation
-            self.set_eval_method(col, "multilinear")
+            self.set_eval_method_(col, "multilinear")
         elif method in ["linear-schedule", "multilinear-schedule"]:
             # (N-1)D linear interp in last keys, 1D in first key
-            self.set_eval_method(col, "multilinear-schedule")
+            self.set_eval_method_(col, "multilinear-schedule")
         elif method in ["rbf", "rbg-global", "rbf0"]:
             # Create global RBF
             self.CreateGlobalRBFs([col], args, **kw)
             # Metadata
-            self.set_eval_method(col, "rbf")
+            self.set_eval_method_(col, "rbf")
         elif method in ["lin-rbf", "rbf-linear", "linear-rbf"]:
             # Create RBFs on slices
             self.CreateSliceRBFs([col], args, **kw)
             # Metadata
-            self.set_eval_method(col, "rbf-linear")
+            self.set_eval_method_(col, "rbf-linear")
         elif method in ["map-rbf", "rbf-schedule", "rbf-map", "rbf1"]:
             # Create RBFs on slices but scheduled
             self.CreateSliceRBFs([col], args, **kw)
             # Metadata
-            self.set_eval_method(col, "rbf-map")
+            self.set_eval_method_(col, "rbf-map")
         elif method in ["function", "fn", "func"]:
             # Create eval_func dictionary
             eval_func = self.getattrdict("eval_func")
@@ -797,7 +751,7 @@ class DBResponseScalar(DBResponseNull):
             eval_func_self[col] = kw.get("self", True)
 
             # Dedicated function
-            self.set_eval_method(col, "function")
+            self.set_eval_method_(col, "function")
         else:
             raise ValueError(
                 "Did not recognize evaluation type '%s'" % method)
@@ -849,23 +803,30 @@ class DBResponseScalar(DBResponseNull):
         r"""Get evaluation method (if any) for a column
 
         :Call:
-            >>> meth = db.get_eval_method(col)
+            >>> method = db.get_eval_method(col)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
         :Outputs:
-            *meth*: ``None`` | :class:`str`
-                Name of evaluation method, if any
+            *method*: ``None`` | :class:`str`
+                Name of evaluation method for *col* or ``"_"``
         :Versions:
             * 2019-03-13 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2019-12-30 ``@ddalle``: Added default
         """
         # Get attribute
         eval_methods = self.__dict__.setdefault("eval_method", {})
         # Get method
-        return eval_methods.get(col)
+        method = eval_methods.get(col)
+        # Check for ``None``
+        if method is None:
+            # Get default
+            method = eval_methods.get("_")
+        # Output
+        return method
 
     # Get evaluation argument converter
     def get_eval_arg_converter(self, k):
@@ -960,6 +921,85 @@ class DBResponseScalar(DBResponseNull):
             raise TypeError("eval_func for col '%s' is not callable" % col)
         # Output
         return fn
+
+    # Get aliases for evaluation args
+    def get_eval_arg_aliases(self, col):
+        r"""Get alias names for evaluation args for a data column
+
+        :Call:
+            >>> aliases = db.get_eval_arg_aliases(col)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+        :Outputs:
+            *aliases*: {``{}``} | :class:`dict`
+                Alternate names for args while evaluationg *col*
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get attribute
+        arg_aliases = self.__dict__.get("eval_arg_aliases", {})
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be string (got %s)" % type(col))
+        elif not isinstance(arg_aliases, dict):
+            raise TypeError("eval_arg_aliases attribute is not a dict")
+        # Get entry
+        aliases = arg_aliases.get(col)
+        # Check for empty response
+        if aliases is None:
+            # Use defaults
+            aliases = arg_aliases.get("_", {})
+        # Check types
+        if not isinstance(aliases, dict):
+            raise TypeError(
+                "Aliases for col '%s' must be dict (got %s)" %
+                (col, type(aliases)))
+        # (Not checking key-value types)
+        # Output
+        return aliases
+
+    # Get eval arg keywords
+    def get_eval_kwargs(self, col):
+        r"""Get any keyword arguments passed to *col* evaluator
+
+        :Call:
+            >>> kwargs = db.get_eval_kwargs(col)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+        :Outputs:
+            *kwargs*: {``{}``} | :class:`dict`
+                Keyword arguments to add while evaluating *col*
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get attribute
+        eval_kwargs = self.__dict__.get("eval_eval_kwargs", {})
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be string (got %s)" % type(col))
+        elif not isinstance(eval_kwargs, dict):
+            raise TypeError("eval_kwargs attribute is not a dict")
+        # Get entry
+        kwargs = eval_kwargs.get(col)
+        # Check for empty response
+        if kwargs is None:
+            # Use defaults
+            kwargs = eval_kwargs.get("_", {})
+        # Check types
+        if not isinstance(kwargs, dict):
+            raise TypeError(
+                "eval_kwargs for col '%s' must be dict (got %s)" %
+                (col, type(kwargs)))
+        # Output
+        return kwargs
 
    # --- Options: Set ---
     # Set evaluation args
@@ -1122,6 +1162,87 @@ class DBResponseScalar(DBResponseNull):
         arg_converters = self.__dict__.setdefault("eval_arg_converters", {})
         # Save function
         arg_converters[k] = fn
+
+    # Set eval argument aliases
+    def set_eval_arg_aliases(self, col, aliases):
+        r"""Set alias names for evaluation args for a data column
+
+        :Call:
+            >>> db.set_eval_arg_aliases(col, aliases)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+            *aliases*: {``{}``} | :class:`dict`
+                Alternate names for args while evaluationg *col*
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Transform any False-like thing to {}
+        if not aliases:
+            aliases = {}
+        # Get attribute
+        arg_aliases = self.__dict__.setdefault("eval_arg_aliases", {})
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be string (got %s)" % type(col))
+        elif not isinstance(arg_aliases, dict):
+            raise TypeError("eval_arg_aliases attribute is not a dict")
+        elif not isinstance(aliases, dict):
+            raise TypeError(
+                "aliases arg must be dict (got %s)" % type(aliases))
+        # Check key-value types
+        for (k, v) in aliases.items():
+            # Check key
+            if not typeutils.isstr(k):
+                raise TypeError(
+                    "Found alias key for '%s' that is not a string" % col)
+            if not typeutils.isstr(v):
+                raise TypeError(
+                    "Alias for '%s' in col '%s' is not a string" % (k, col))
+        # Save it
+        arg_aliases[col] = aliases
+
+    # Set eval argument keyword arguments
+    def set_eval_kwargs(self, col, kwargs):
+        r"""Set evaluation keyword arguments for *col* evaluator
+
+        :Call:
+            >>> db.set_eval_kwargs(col, kwargs)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+            *kwargs*: {``{}``} | :class:`dict`
+                Keyword arguments to add while evaluating *col*
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Transform any False-like thing to {}
+        if not kwargs:
+            kwargs = {}
+        # Get attribute
+        eval_kwargs = self.__dict__.setdefault("eval_kwargs", {})
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be string (got %s)" % type(col))
+        elif not isinstance(eval_kwargs, dict):
+            raise TypeError("eval_kwargs attribute is not a dict")
+        elif not isinstance(kwargs, dict):
+            raise TypeError(
+                "kwargs must be dict (got %s)" % type(kwargs))
+        # Check key-value types
+        for (k, v) in kwargs.items():
+            # Check key
+            if not typeutils.isstr(k):
+                raise TypeError(
+                    "Found keyword for '%s' that is not a string" % col)
+        # Save it
+        eval_kwargs[col] = kwargs
 
    # --- Arguments ---
     # Attempt to get all values of an argument

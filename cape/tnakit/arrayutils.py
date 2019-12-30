@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`tnakit.arrayutils`: Tools for NumPy arrays
-==================================================
+:mod:`cape.tnakit.arrayutils`: Tools for NumPy arrays
+======================================================
 
 This includes tools for modifying or analyzing vectors, including
 tools to display the vectors/arrays.
@@ -17,7 +17,7 @@ from . import typeutils
 
 # Determine print flag from a vector or list
 def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
-    """Determine an appropriate print format for a column vector
+    r"""Determine an appropriate print format for a column vector
     
     :Call:
         >>> fmt = get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e")
@@ -95,4 +95,3 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
         else:
             # Float, positive, greater than 1.0
             return "%%%i.%if" % (prec + max(1, uexp) + 1, prec)
-
