@@ -74,7 +74,7 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
     |               | line using ``-`` as character                   |
     +---------------+-------------------------------------------------+
     | hline=        | Create title line with length of the preceding  |
-    |               | line using ``+`` as character                   |
+    |               | line using ``=`` as character                   |
     +---------------+-------------------------------------------------+
     | hline_after-  | Create title line with length of the following  |
     |               | line using ``-`` as character                   |
@@ -106,7 +106,7 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
         *doc*: :class:`str`
             Raw docstring with to expand, from *mod.__doc__*
         *meta*: {``None``} | :class:`dict` | :class:`str`
-            Expansion information for ``@(meta)s`` pattern
+            Expansion information for ``%(meta)s`` pattern
         *maxdepth*: {``2``} | :class:`int` | ``None``
             Maximum depth for *submodules* macro
         *kw*: :class:`dict`

@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
--------------------------------------------------------
 :mod:`cape.tnakit.statutils`: Statistics tools
--------------------------------------------------------
+=================================================
 
 This module includes several shorthand calls to statistical functions
 from :mod:`scipy.stats`.  The primary tool provided by this module is to
@@ -16,6 +15,12 @@ your system, run
     .. code-block:: console
 
         pip install --user --upgrade scipy
+
+This module does not provide a general-purpose statistical toolkit that
+wraps a complete package like :mod:`scipy.stats`.  Instead, it provides
+a small set of tools that are common in handling data relevant to
+aerosciences databases but not commonly found in common statistics
+libraries.
 
 """
 

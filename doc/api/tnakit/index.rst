@@ -11,7 +11,9 @@
 
     argread
     kwutils
+    metautils
     modutils
     plot_mpl
     rstutils
+    statutils
     typeutils
