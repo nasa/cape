@@ -144,6 +144,14 @@ class DBResponseScalar(DBResponseNull):
             "rbf-map": "eval_rbf_schedule",
         }
     }
+
+    # Method constructors
+    _method_constructors = {
+        "function": "_construct_function",
+        "rbf": "_construct_rbf",
+        "rbf-linear": "_construct_rbf_linear",
+        "rbf-map": "_construct_rbf_map",
+    }
   # >
 
   # ===================
@@ -294,7 +302,8 @@ class DBResponseScalar(DBResponseNull):
             *V*: :class:`np.ndarray` (:class:`float`)
                 Array of function outputs
         :Versions:
-            * 2019-01-07 ``@ddalle``: First version
+            * 2019-01-07 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: Version 2.0: map of methods
         """
        # --- Get coefficient name ---
         # Process coefficient
@@ -784,6 +793,7 @@ class DBResponseScalar(DBResponseNull):
         :Versions:
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2019-12-30 ``@ddalle``: Version 2.0; map of methods
         """
        # --- Input checks ---
         # Check inputs
@@ -822,33 +832,149 @@ class DBResponseScalar(DBResponseNull):
             raise ValueError(
                 ("No %i-D eval method '%s'; " % (ndim, method)) +
                 ("closest matches: %s" % mtches))
-        # Check for required prep method
-        if method == "rbf-linear":
-            # Create RBFs on slices
-            self.CreateSliceRBFs([col], args, **kw)
-        elif method == "rbf-schedule":
-            # Create RBFs on slices but scheduled
-            self.CreateSliceRBFs([col], args, **kw)
-        elif method == "function":
-            # Create eval_func dictionary
-            eval_func = self.getattrdict("eval_func")
-            # Create eval_func dictionary
-            eval_func_self = self.getattrdict("eval_func_self")
-            # Get the function
-            if len(a) > 0:
-                # Function given as arg
-                fn = a[0]
-            else:
-                # Function better be a keyword because there are no args
-                fn = None
-
-            # Save the function
-            eval_func[col] = kw.get("function", kw.get("func", fn))
-            eval_func_self[col] = kw.get("self", True)
+        # Check for required constructor method
+        constructor_col = cls._method_constructors.get(method)
+        # Apply it if appropriate
+        if constructor_col is None:
+            # Do nothing
+            pass
+        elif not callable(constructor_col):
+            raise TypeError(
+                "Constructor for method '%s' is not callable" % method)
+        else:
+            # Call the constructor
+            constructor_col(*a, args=args, **kw)
         # Save method name
         self.set_eval_method_(col, method)
         # Argument list is the same for all methods
         self.set_eval_args(col, args)
+
+   # --- Constructors ---
+    # Explicit function
+    def _construct_function(self, col, *a, **kw):
+        r"""Constructor for ``"function"`` methods
+
+        :Call:
+            >>> db._construct_function(col, *a, **kw)
+            >>> db._construct_function(col, fn, *a[1:], **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *fn*, *a[0]*: *callable*
+                Function to save
+            *a*: :class:`tuple`
+                Extra positional arguments ignored
+        :Keywords:
+            *function*, *func*: *callable*
+                Callable function to save, overrides *a[0]*
+            *self*: {``True``} | ``False``
+                Flag to include database in callback
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Create eval_func dictionary
+        eval_func = self.__dict__.setdefault("eval_func", {})
+        # Create eval_func dictionary
+        eval_func_self = self.__dict__.setdefault("eval_func_self", {})
+        # Get the function
+        if len(a) > 0:
+            # Function given as arg
+            fn = a[0]
+        else:
+            # Function better be a keyword because there are no args
+            fn = None
+        # Save the function
+        eval_func[col] = kw.get("function", kw.get("func", fn))
+        eval_func_self[col] = kw.get("self", True)
+
+    # Global RBFs
+    def _construct_rbf(self, col, *a, **kw):
+        r"""Constructor for ``"rbf"`` methods
+
+        :Call:
+            >>> db._construct_rbf(col, *a, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *a*: :class:`tuple`
+                Extra positional arguments ignored
+        :Keywords:
+            *args*: :class:`list`\ [:class:`str`]
+                List of evaluation arguments
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get arguments arg
+        args = kw.pop("args", None)
+        # Check types
+        if args is None:
+            raise ValueError("'args' keyword argument is required")
+        elif not isinstance(args, list):
+            raise TypeError("'args' list must be list (got %s)" % type(args))
+        # Call function
+        self.create_global_rbfs([col], args, **kw)
+
+    # Linear-RBFs
+    def _construct_rbf_linear(self, col, *a, **kw):
+        r"""Constructor for ``"rbf-linear"`` methods
+
+        :Call:
+            >>> db._construct_rbf_linear(col, *a, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *a*: :class:`tuple`
+                Extra positional arguments ignored
+        :Keywords:
+            *args*: :class:`list`\ [:class:`str`]
+                List of evaluation arguments
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get arguments arg
+        args = kw.pop("args", None)
+        # Check types
+        if args is None:
+            raise ValueError("'args' keyword argument is required")
+        elif not isinstance(args, list):
+            raise TypeError("'args' list must be list (got %s)" % type(args))
+        # Call function
+        self.CreateSliceRBFs([col], args, **kw)
+
+    # Schedule-RBFs
+    def _construct_rbf_map(self, col, *a, **kw):
+        r"""Constructor for ``"rbf-map"`` methods
+
+        :Call:
+            >>> db._construct_rbf_map(col, *a, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *a*: :class:`tuple`
+                Extra positional arguments ignored
+        :Keywords:
+            *args*: :class:`list`\ [:class:`str`]
+                List of evaluation arguments
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get arguments arg
+        args = kw.pop("args", None)
+        # Check types
+        if args is None:
+            raise ValueError("'args' keyword argument is required")
+        elif not isinstance(args, list):
+            raise TypeError("'args' list must be list (got %s)" % type(args))
+        # Call function
+        self.CreateSliceRBFs([col], args, **kw)
 
    # --- Options: Get ---
     # Get argument list

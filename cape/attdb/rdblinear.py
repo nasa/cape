@@ -90,12 +90,6 @@ class DBResponseLinear(DBResponseScalar):
   # =====================
   # <
    # --- Method Names ---
-    # Primary names
-    _method_names = DBResponseScalar._method_names
-
-    # Alternates
-    _method_map = dict(DBResponseScalar._method_map)
-
     # Method functions
     _method_funcs = dict(DBResponseScalar._method_funcs)
     _method_funcs[1] = {
