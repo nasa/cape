@@ -216,7 +216,7 @@ class DBResponseScalar(DBResponseNull):
             raise ValueError("Col '%s' is not an evaluation column" % col)
        # --- Get argument list ---
         # Specific lookup arguments (and copy it)
-        args_col = list(self.get_eval_arg_list(col))
+        args_col = list(self.get_eval_args(col))
        # --- Evaluation kwargs ---
         # Attempt to get default aliases
         try:
@@ -357,7 +357,7 @@ class DBResponseScalar(DBResponseNull):
         col, a, kw = self._prep_args_colname(*a, **kw)
        # --- Matching values
         # Get list of arguments for this coefficient
-        args = self.get_eval_arg_list(coeff)
+        args = self.get_eval_args(coeff)
         # Possibility of fallback values
         arg_defaults = getattr(self, "eval_arg_defaults", {})
         # Find exact matches
@@ -445,7 +445,7 @@ class DBResponseScalar(DBResponseNull):
         col, a, kw = self._prep_args_colname(*a, **kw)
        # --- Argument processing ---
         # Specific lookup arguments
-        args_col = self.get_eval_arg_list(col)
+        args_col = self.get_eval_args(col)
         # Initialize lookup point
         x = []
         # Loop through arguments
@@ -480,7 +480,7 @@ class DBResponseScalar(DBResponseNull):
         # Loop through UQ coeffs
         for uk in uq_col_list:
             # Get evaluation args
-            args_k = self.get_eval_arg_list(uk)
+            args_k = self.get_eval_args(uk)
             # Initialize inputs to *uk*
             UX = []
             # Loop through eval args
@@ -542,7 +542,7 @@ class DBResponseScalar(DBResponseNull):
         """
        # --- Argument processing ---
         # Specific lookup arguments for *coeff*
-        args_col = self.get_eval_arg_list(col)
+        args_col = self.get_eval_args(col)
         # Initialize lookup point
         x = []
         # Loop through arguments asgiven
@@ -624,7 +624,7 @@ class DBResponseScalar(DBResponseNull):
         """
        # --- Argument processing ---
         # Specific lookup arguments for *col*
-        args_col = self.get_eval_arg_list(col)
+        args_col = self.get_eval_args(col)
        # --- Evaluation ---
         # Initialize inputs to *coeff*
         A = []
@@ -722,10 +722,6 @@ class DBResponseScalar(DBResponseNull):
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
        # --- Metadata checks ---
-        # Dictionary of methods
-        eval_method = self.getattrdict("eval_method")
-        # Argument lists
-        eval_args = self.getattrdict("eval_args")
         # Argument aliases (i.e. alternative names)
         eval_arg_aliases = self.getattrdict("eval_arg_aliases")
         # Evaluation keyword arguments
@@ -761,28 +757,28 @@ class DBResponseScalar(DBResponseNull):
         # Check for identifiable method
         if method in ["nearest"]:
             # Nearest-neighbor lookup
-            eval_method[col] = "nearest"
+            self.set_eval_method(col, "nearest")
         elif method in ["linear", "multilinear"]:
             # Linear/multilinear interpolation
-            eval_method[col] = "multilinear"
+            self.set_eval_method(col, "multilinear")
         elif method in ["linear-schedule", "multilinear-schedule"]:
             # (N-1)D linear interp in last keys, 1D in first key
-            eval_method[col] = "multilinear-schedule"
+            self.set_eval_method(col, "multilinear-schedule")
         elif method in ["rbf", "rbg-global", "rbf0"]:
             # Create global RBF
             self.CreateGlobalRBFs([col], args, **kw)
             # Metadata
-            eval_method[col] = "rbf"
+            self.set_eval_method(col, "rbf")
         elif method in ["lin-rbf", "rbf-linear", "linear-rbf"]:
             # Create RBFs on slices
             self.CreateSliceRBFs([col], args, **kw)
             # Metadata
-            eval_method[col] = "rbf-linear"
+            self.set_eval_method(col, "rbf-linear")
         elif method in ["map-rbf", "rbf-schedule", "rbf-map", "rbf1"]:
             # Create RBFs on slices but scheduled
             self.CreateSliceRBFs([col], args, **kw)
             # Metadata
-            eval_method[col] = "rbf-map"
+            self.set_eval_method(col, "rbf-map")
         elif method in ["function", "fn", "func"]:
             # Create eval_func dictionary
             eval_func = self.getattrdict("eval_func")
@@ -801,20 +797,20 @@ class DBResponseScalar(DBResponseNull):
             eval_func_self[col] = kw.get("self", True)
 
             # Dedicated function
-            eval_method[col] = "function"
+            self.set_eval_method(col, "function")
         else:
             raise ValueError(
                 "Did not recognize evaluation type '%s'" % method)
         # Argument list is the same for all methods
-        eval_args[col] = args
+        self.set_eval_args(col, args)
 
    # --- Options: Get ---
     # Get argument list
-    def get_eval_arg_list(self, col):
+    def get_eval_args(self, col):
         r"""Get list of evaluation arguments
 
         :Call:
-            >>> args = db.get_eval_arg_list(col)
+            >>> args = db.get_eval_args(col)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions
@@ -827,23 +823,26 @@ class DBResponseScalar(DBResponseNull):
             * 2019-03-11 ``@ddalle``: Forked from :func:`__call__`
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
-        # Attempt to get default
-        try:
-            # Check for attribute and "_" default
-            args_def = self.eval_args["_"]
-        except AttributeError:
-            # No argument lists at all
-            raise AttributeError("Database has no evaluation argument lists")
-        except KeyError:
-            # No default
-            args_def = None
-        # Specific lookup arguments
-        args_col = self.eval_args.get(col, args_def)
-        # Check for ``None``, which forbids lookup
+        # Get overall handle
+        eval_args = self.__dict__.get("eval_args", {})
+        # Get option
+        args_col = eval_args.get(col)
+        # Check for default
         if args_col is None:
-            raise ValueError("Column '%s' is not an evaluation cooeff" % col)
-        # Output a copy
-        return list(args_col)
+            # Attempt to get a default
+            args_col = eval_args.get("_")
+        # Create a copy if a list
+        if args_col is None:
+            # Don't have to copy ``None``
+            return args_col
+        elif isinstance(args_col, list):
+            # Create a copy to prevent muting the definitions
+            return list(args_col)
+        else:
+            # What?
+            raise TypeError(
+                "eval_args for '%s' must be list (got %s)"
+                % (col, type(args_col)))
 
     # Get evaluation method
     def get_eval_method(self, col):
@@ -926,7 +925,157 @@ class DBResponseScalar(DBResponseNull):
         # Get entry for this coefficient
         return uq_cols.get(col)
 
+    # Get user-set callable function
+    def get_eval_func(self, col):
+        r"""Get callable function predefined for a column
+
+        :Call:
+            >>> fn = db.get_eval_func(col)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+        :Outputs:
+            *fn*: ``None`` | *callable*
+                Specified function for *col*
+        :Versions:
+            * 2019-12-28 ``@ddalle``: First version
+        """
+        # Get dictionary
+        eval_func = self.__dict__.get("eval_func", {})
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be string (got %s)" % type(col))
+        elif not isinstance(eval_func, dict):
+            raise TypeError("eval_func attribute is not a dict")
+        # Get entry
+        fn = eval_func.get(col)
+        # If none, acceptable
+        if fn is None:
+            return
+        # Check type if nonempty
+        if not callable(fn):
+            raise TypeError("eval_func for col '%s' is not callable" % col)
+        # Output
+        return fn
+
    # --- Options: Set ---
+    # Set evaluation args
+    def set_eval_args(self, col, args):
+        r"""Set list of evaluation arguments for a column
+
+        :Call:
+            >>> db.set_eval_args(col, args)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column
+            *args*: :class:`list`\ [:class:`str`]
+                List of arguments for evaluating *col*
+        :Effects:
+            *db.eval_args*: :class:`dict`
+                Entry for *col* set to copy of *args* w/ type checks
+        :Versions:
+            * 2019-12-28 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be str (got %s)" % type(col))
+        if not isinstance(args, list):
+            raise TypeError(
+                "eval_args for '%s' must be list (got %s)"
+                % (col, type(args)))
+        # Check args
+        for (j, k) in enumerate(args):
+            if not typeutils.isstr(k):
+                raise TypeError(
+                    "Arg %i for col '%s' is not a string" % (j, col))
+        # Get handle to attribute
+        eval_args = self.__dict__.setdefault("eval_args", {})
+        # Check type
+        if not isinstance(eval_args, dict):
+            raise TypeError("eval_args attribute is not a dict")
+        # Set parameter (to a copy)
+        eval_args[col] = list(args)
+
+    # Set evaluation method
+    def set_eval_method_(self, col, method):
+        r"""Set name (only) of evaluation method
+
+        :Call:
+            >>> db.set_eval_method_(col, method)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column
+            *method*: :class:`str`
+                Name of evaluation method (only checked for type)
+        :Effects:
+            *db.eval_meth*: :class:`dict`
+                Entry for *col* set to *method*
+        :Versions:
+            * 2019-12-28 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be str (got %s)" % type(col))
+        if not typeutils.isstr(method):
+            raise TypeError(
+                "eval_method for '%s' must be list (got %s)"
+                % (col, type(method)))
+        # Get handle to attribute
+        eval_method = self.__dict__.setdefault("eval_method", {})
+        # Check type
+        if not isinstance(eval_method, dict):
+            raise TypeError("eval_method attribute is not a dict")
+        # Set parameter (to a copy)
+        eval_method[col] = method
+
+    # Set evaluation function
+    def set_eval_func(self, col, fn):
+        r"""Set specific callable for a column
+
+        :Call:
+            >>> db.set_eval_func(col, fn)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseScalar`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column
+            *fn*: *callable* | ``None``
+                Function or other callable entity
+        :Effects:
+            *db.eval_meth*: :class:`dict`
+                Entry for *col* set to *method*
+        :Versions:
+            * 2019-12-28 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be str (got %s)" % type(col))
+        if (fn is not None) and not callable(fn)
+            raise TypeError(
+                "eval_func for '%s' must be callable" % col)
+        # Get handle to attribute
+        eval_func = self.__dict__.setdefault("eval_func", {})
+        # Check type
+        if not isinstance(eval_func, dict):
+            raise TypeError("eval_func attribute is not a dict")
+        # Set parameter
+        if fn is None:
+            # Remove it
+            eval_func.pop(col, None)
+        else:
+            # Set it
+            eval_func[col] = fn
+            
     # Set a default value for an argument
     def set_arg_default(self, k, v):
         r"""Set a default value for an evaluation argument
@@ -1130,7 +1279,7 @@ class DBResponseScalar(DBResponseNull):
         coeff, a, kw = self._prep_args_colname(*a, **kw)
        # --- Argument processing ---
         # Specific lookup arguments
-        args_coeff = self.get_eval_arg_list(coeff)
+        args_coeff = self.get_eval_args(coeff)
         # Initialize lookup point
         x = []
         # Loop through arguments
@@ -2339,7 +2488,7 @@ class DBResponseScalar(DBResponseNull):
                     ("Cannot evaluate exact values for '%s', " % col) +
                     ("which has method '%s'" % meth))
             # Get args
-            args = self.get_eval_arg_list(col)
+            args = self.get_eval_args(col)
             # Create inputs
             a = tuple([self.get_xvals(k, I, **kw) for k in args])
             # Evaluate
@@ -2484,7 +2633,7 @@ class DBResponseScalar(DBResponseNull):
         # Process coefficient name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
         # Get list of arguments
-        arg_list = self.get_eval_arg_list(col)
+        arg_list = self.get_eval_args(col)
         # Get key for *x* axis
         xk = kw.setdefault("xk", arg_list[0])
         # Check for indices
@@ -2621,7 +2770,7 @@ class DBResponseScalar(DBResponseNull):
         # Process coefficient name and remaining coeffs
         col, I, J, a, kw = self._process_plot_args1(*a, **kw)
         # Get list of arguments
-        arg_list = self.get_eval_arg_list(col)
+        arg_list = self.get_eval_args(col)
         # Get key for *x* axis
         xk = kw.pop("xcol", kw.pop("xk", arg_list[0]))
        # --- Options: What to plot ---
