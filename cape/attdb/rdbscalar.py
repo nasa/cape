@@ -807,7 +807,7 @@ class DBResponseScalar(DBResponseNull):
         # Get class
         cls = self.__class__
         # Get dimension
-        ndim = kw.get("ndim", 0)
+        ndim = kw.get("ndim", self.get_output_ndim(col))
         # Set dimensionality (handles checks first)
         self.set_output_ndim(col, ndim)
         # Use lower case with hyphens instead of underscores
