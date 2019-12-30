@@ -103,7 +103,7 @@ class DBResponseLinear(DBResponseScalar):
   # <
    # --- Evaluation ---
 
-   # --- Options ---
+   # --- Options: Get ---
     # Get output dimension
     def get_output_ndim(self, col):
         r"""Get output dimension for column *col*
@@ -121,10 +121,10 @@ class DBResponseLinear(DBResponseScalar):
         :Versions:
             * 2019-12-27 ``@ddalle``: First version
         """
-        # Get definition
-        defn = self.defns.get(col, {})
+        # Get column definition
+        defn = self.get_col_defn(col)
         # Get dimensionality
-        ndim =  defn.get("OutputDimension")
+        ndim = defn.get("OutputDimension")
         # Check valid result
         if ndim is not None:
             return ndim
@@ -132,5 +132,99 @@ class DBResponseLinear(DBResponseScalar):
         defn = self.defns.get("_", {})
         # Get dimensionality
         return defn.get("OutputDimension", 0)
-            
+
+    # Get xvars for output
+    def get_output_xvars(self, col):
+        r"""Get list of args to output for column *col*
+
+        :Call:
+            >>> xargs = db.get_output_xvars(col)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *xargs*: {``[]``} | :class:`list`\ [:class:`str`]
+                List of input args to one condition of *col*
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get column definition
+        defn = self.get_col_defn(col)
+        # Get dimensionality
+        xargs = defn.get("OutputXVars")
+        # De-None
+        if xargs is None:
+            xargs = []
+        # Check type
+        if not isinstance(xargs, list):
+            raise TypeError(
+                "OutputXVars for col '%s' must be list (got %s)"
+                % (col, type(xargs)))
+        # Output (copy)
+        return list(xargs)
+
+   # --- Options: Set ---
+    # Set dimensionality
+    def set_output_ndim(self, col, ndim):
+       r"""Set output dimension for column *col*
+
+        :Call:
+            >>> db.set_output_ndim(col, ndim)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *ndim*: {``0``} | :class:`int`
+                Dimension of *col* at a single condition
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        
+        # Get column definition
+        defn = self.get_col_defn(col)
+        # Check type
+        if not isinstance(ndim, int):
+            raise TypeError(
+                "Output dimension for '%s' must be int (got %s)" %
+                (col, type(ndim)))
+        # Set it
+        defn["OutputDimension"] = ndim
+
+    # Set xvars for output
+    def set_output_xvars(self, col, xargs):
+        r"""Set list of args to output for column *col*
+
+        :Call:
+            >>> db.set_output_xvars(col, xargs)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+                List of input args to one condition of *col*
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get column definition
+        defn = self.get_col_defn(col)
+        # De-None
+        if xargs is None:
+            xargs = []
+        # Check type
+        if not isinstance(xargs, list):
+            raise TypeError(
+                "OutputXVars for col '%s' must be list (got %s)"
+                % (col, type(xargs)))
+        # Check contents
+        for (j, k) in enumerate(xargs):
+            if not typeutils.isstr(k):
+                raise TypeError(
+                    "Output arg %i for col '%s' must be str (got %s)"
+                    % (j, col, type(k)))
+        # Set (copy)
+        defn["OutputXVars"] = list(xargs)
   # >

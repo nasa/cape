@@ -103,10 +103,49 @@ class DBResponseScalar(DBResponseNull):
   # Class Attributes
   # =====================
   # <
+   # --- Method Names ---
+    # Primary names
+    _method_names = [
+        "exact",
+        "function",
+        "multilinear",
+        "multilinear-schedule",
+        "nearest",
+        "rbf",
+        "rbf-linear",
+        "rbf-map"
+    ]
+
+    # Alternates
+    _method_map = {
+        "fn": "function",
+        "func": "function",
+        "lin-rbf": "rbf-linear",
+        "linear": "multilinear",
+        "linear-rbf": "rbf-linear",
+        "linear-schedule": "multilinear-schedule",
+        "map-rbf": "rbf-map",
+        "rbf-global": "rbf",
+        "rbf-schedule": "rbf-map",
+        "rbf0": "rbf",
+        "rbf1": "rbf-map",
+    }
+
+    # Method functions
+    _method_funcs = {
+        "exact": "eval_exact",
+        "function": "eval_function",
+        "multilinear": "eval_multilinear",
+        "multilinear-schedule": "eval_multilinear_schedule",
+        "nearest": "eval_nearest",
+        "rbf": "eval_rbf",
+        "rbf-linear": "eval_rbf_linear",
+        "rbf-map": "eval_rbf_schedule",
+    }
   # >
 
   # ===================
-  # Config
+  # Options
   # ===================
   # <
    # --- Attributes ---
@@ -202,7 +241,7 @@ class DBResponseScalar(DBResponseNull):
         col, a, kw = self._prep_args_colname(*a, **kw)
        # --- Get method and other parameters ---
         # Specific method
-        method_col = self.get_eval_method.get(col)
+        method_col = self.get_eval_method(col)
         # Specific lookup arguments (and copy it)
         args_col = self.get_eval_args(col)
         # Get extra args passed along to evaluator
@@ -235,34 +274,24 @@ class DBResponseScalar(DBResponseNull):
         # Data size
         nx = np.prod(dims)
        # --- Evaluation ---
-        # Process the appropriate lookup function
-        if method_col in ["nearest"]:
-            # Evaluate nearest-neighbor lookup
-            f = self.eval_nearest
-        elif method_col in ["linear", "multilinear"]:
-            # Evaluate using multilinear interpolation
-            f = self.eval_multilinear
-        elif method_col in ["linear-schedule", "multilinear-schedule"]:
-            # Evaluate using scheduled (in 1D) multilinear interpolation
-            f = self.eval_multilinear_schedule
-        elif method_col in ["rbf"]:
-            # Evaluate global radial basis function
-            f = self.eval_rbf
-        elif method_col in ["rbf-slice", "rbf-linear"]:
-            # Evaluate linear interpolation of two RBFs
-            f = self.eval_rbf_linear
-        elif method_col in ["rbf-map", "rbf-schedule"]:
-            # Evaluate curvilinear interpolation of slice RBFs
-            f = self.eval_rbf_schedule
-        elif method_col in ["function", "func", "fn"]:
-            # Combine args
-            kw_fn = dict(kw_fn, **kw)
-            # Evaluate specific function
-            f = self.eval_function
-        else:
-            # Unknown method
+        # Get class handle
+        cls = self.__class__
+        # Use lower case with hyphens instead of underscores
+        method_col = method_col.lower().replace("_", "-")
+        # Get proper method name (default to same)
+        method_col = cls._method_map.get(method_col, method_col)
+        # Check if present
+        if method_col not in cls._method_names:
+            # Get close matches
+            mtchs = difflib.get_close_matches(method_col, cls._method_names)
+            # Error message
             raise ValueError(
-                "Could not interpret evaluation method '%s'" % method_col)
+                ("No evaluation method '%s'; " % method_col) +
+                ("closest matches: %s" % mtches))
+        # Get the function handle
+        f = getattr(self, cls._method_funcs[method_col])
+        # Combine args (should there be an attribute for this?)
+        kw_fn = dict(kw_fn, **kw)
         # Calls
         if nd == 0:
             # Scalar call
@@ -718,7 +747,7 @@ class DBResponseScalar(DBResponseNull):
         elif method in ["linear-schedule", "multilinear-schedule"]:
             # (N-1)D linear interp in last keys, 1D in first key
             self.set_eval_method_(col, "multilinear-schedule")
-        elif method in ["rbf", "rbg-global", "rbf0"]:
+        elif method in ["rbf", "rbf-global", "rbf0"]:
             # Create global RBF
             self.CreateGlobalRBFs([col], args, **kw)
             # Metadata
@@ -1100,7 +1129,7 @@ class DBResponseScalar(DBResponseNull):
         if not typeutils.isstr(col):
             raise TypeError(
                 "Data column name must be str (got %s)" % type(col))
-        if (fn is not None) and not callable(fn)
+        if (fn is not None) and not callable(fn):
             raise TypeError(
                 "eval_func for '%s' must be callable" % col)
         # Get handle to attribute
@@ -2260,16 +2289,7 @@ class DBResponseScalar(DBResponseNull):
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get the function
-        try:
-            f = self.eval_func[col]
-        except AttributeError:
-            # No evaluation functions set
-            raise AttributeError(
-                "No evaluation functions present in database")
-        except KeyError:
-            # No keys
-            raise KeyError(
-                "No evaluation function for col '%s'" % col)
+        f = self.get_eval_func(col)
         # Evaluate
         if self.eval_func_self.get(col):
             # Use reference to *self*

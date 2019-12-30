@@ -556,18 +556,59 @@ class DBResponseNull(dict):
   # Options
   # ==================
   # <
+   # --- Column Definitions ---
+    # Get definition for one column
+    def get_col_defn(self, col):
+        r"""Get definition for data column *col*
+
+        :Call:
+            >>> defn = db.get_col_defn(col)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *defn*: {``{}``} | :class:`dict`
+                Definitions for data column *col*
+        :Effects:
+            *db.defns*: :class:`dict`
+                Created if not existing
+            *db.defns[col]*: :class:`dict`
+                Created if not existing
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get all definitions
+        defns = self.__dict__.setdefault("defns", {})
+        # Check type
+        if not isinstance(defns, dict):
+            raise TypeError("defns attribute is not a dict")
+        # Get column definition
+        defn = defns.setdefault(col, {})
+        # Check types
+        if not isinstance(defn, dict):
+            raise TypeError("Definition for col '%s' is not a dict" % col)
+        elif not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be str (got %s)" % type(col))
+        # Output
+        return defn
+
    # --- Copy/Link ---
     # Link options
-    def copy_options(self, opts):
+    def copy_options(self, opts, prefix=""):
         r"""Copy a database's options
 
         :Call:
-            >>> db.copy_options(dbsrc)
+            >>> db.copy_options(opts, prefix="")
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DBResponseNull`
                 Data container
             *opts*: :class:`dict`
                 Options dictionary
+            *prefix*: {``""``} | :class:`str`
+                Prefix to append to key names in *db.opts*
         :Effects:
             *db.opts*: :class:`dict`
                 Options merged with or copied from *opts*
@@ -580,12 +621,43 @@ class DBResponseNull(dict):
         # Check input
         if not isinstance(opts, dict):
             raise TypeError("Options input must be dict-type")
+        # Get definitions
+        defns = opts.get("Definitions", {})
         # Get options
-        dbopts = self.__dict__.get("opts", {})
-        dbdefs = self.__dict__.get("defns", {})
-        # Merge
-        self.opts = dict(dbopts, **opts)
-        self.defns = dict(dbdefs, **opts.get("Definitions", {}))
+        dbopts = self.__dict__.setdefault("opts", {})
+        dbdefs = self.__dict__.setdefault("defns", {})
+        # Merge options
+        for (k, v) in opts.items():
+            # Apply prefix
+            if prefix:
+                # Add strings; no delimiter
+                k1 = prefix + k
+            else:
+                # No prefix
+                k1 = k
+            # Check for "Definitions"; handled separately
+            if k1 == "Definitions":
+                continue
+            # Get existing value
+            v0 = dbopts.get(k1)
+            # Check types
+            if isinstance(v, dict) and isinstance(v0, dict):
+                # Update dictionary
+                v0.update(v)
+            else:
+                # Overwrite or add
+                dbopts[k] = v
+        # Merge definitions
+        for (k, v) in opts.items():
+            # Get existing value
+            v0 = dbdefs.get(k)
+            # Check types
+            if isinstance(v, dict) and isinstance(v0, dict):
+                # Update dictionary
+                v0.update(v)
+            else:
+                # Overwrite or add
+                dbdefs[k] = v
 
    # --- Column Properties ---
     # Get generic property from column
@@ -961,20 +1033,30 @@ class DBResponseNull(dict):
         else:
             # Create an instance
             dbf = ftypes.MATFile(fname, **kw)
-        # List of column indices to keep
-        J = []
+        # Columns to keep
+        cols = []
         # Make replacements for column names
         for (j, col) in enumerate(dbf.cols):
             # Check name
             if col.startswith("DB."):
                 # Strip prefix from name
                 col1 = col[3:]
-                # Replace list
-                dbf.cols[j] = col1
                 # Replace key
                 dbf[col1] = dbf.pop(col)
                 # Save this column
-                J.append(j)
+                cols.append(col1)
+            elif col.startswith("bkpts."):
+                # Strip "bkpts" from name
+                col1 = col[6:]
+                # Create break points
+                bkpts = self.__dict__.setdefault("bkpts", {})
+                # Save them
+                bkpts[col1] = dbf.pop(col)
+            else:
+                # No change; save this column
+                cols.append(col)
+        # Subset column list
+        dbf.cols = cols
         # Link the data
         self.link_data(dbf)
         # Copy the options
