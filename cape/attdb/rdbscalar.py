@@ -348,7 +348,7 @@ class DBResponseScalar(DBResponseNull):
         if method_col not in method_funcs:
             # Get close matches
             mtchs = difflib.get_close_matches(
-                method_col, list(method_funcs.keys())
+                method_col, list(method_funcs.keys()))
             # Error message
             raise ValueError(
                 ("No %i-D eval method '%s'; " % (ndim_col, method_col)) +
@@ -766,6 +766,8 @@ class DBResponseScalar(DBResponseNull):
                 Response (lookup/interpolation/evaluation) method name 
             *args*: :class:`list`\ [:class:`str`]
                 List of input arguments
+            *ndim*: {``0``} | :class:`int` >= 0
+                Output dimensionality
             *aliases*: {``{}``} | :class:`dict`\ [:class:`str`]
                 Dictionary of alternate variable names during
                 evaluation; if *aliases[k1]* is *k2*, that means *k1*
@@ -802,32 +804,32 @@ class DBResponseScalar(DBResponseNull):
         self.set_eval_arg_aliases(col, arg_aliases)
         self.set_eval_kwargs(col, eval_kwargs)
        # --- Method switch ---
-        # Check for identifiable method
-        if method in ["nearest"]:
-            # Nearest-neighbor lookup
-            self.set_eval_method_(col, "nearest")
-        elif method in ["linear", "multilinear"]:
-            # Linear/multilinear interpolation
-            self.set_eval_method_(col, "multilinear")
-        elif method in ["linear-schedule", "multilinear-schedule"]:
-            # (N-1)D linear interp in last keys, 1D in first key
-            self.set_eval_method_(col, "multilinear-schedule")
-        elif method in ["rbf", "rbf-global", "rbf0"]:
-            # Create global RBF
-            self.CreateGlobalRBFs([col], args, **kw)
-            # Metadata
-            self.set_eval_method_(col, "rbf")
-        elif method in ["lin-rbf", "rbf-linear", "linear-rbf"]:
+        # Get class
+        cls = self.__class__
+        # Get dimension
+        ndim = kw.get("ndim", 0)
+        # Set dimensionality (handles checks first)
+        self.set_output_ndim(col, ndim)
+        # Use lower case with hyphens instead of underscores
+        method = method.lower().replace("_", "-")
+        # Get proper method name (default to same)
+        method = cls._method_map.get(method, method)
+        # Check if present
+        if method not in cls._method_names:
+             # Get close matches
+            mtchs = difflib.get_close_matches(method_col, cls._method_names)
+            # Error message
+            raise ValueError(
+                ("No %i-D eval method '%s'; " % (ndim, method)) +
+                ("closest matches: %s" % mtches))
+        # Check for required prep method
+        if method == "rbf-linear":
             # Create RBFs on slices
             self.CreateSliceRBFs([col], args, **kw)
-            # Metadata
-            self.set_eval_method_(col, "rbf-linear")
-        elif method in ["map-rbf", "rbf-schedule", "rbf-map", "rbf1"]:
+        elif method == "rbf-schedule":
             # Create RBFs on slices but scheduled
             self.CreateSliceRBFs([col], args, **kw)
-            # Metadata
-            self.set_eval_method_(col, "rbf-map")
-        elif method in ["function", "fn", "func"]:
+        elif method == "function":
             # Create eval_func dictionary
             eval_func = self.getattrdict("eval_func")
             # Create eval_func dictionary
@@ -843,12 +845,8 @@ class DBResponseScalar(DBResponseNull):
             # Save the function
             eval_func[col] = kw.get("function", kw.get("func", fn))
             eval_func_self[col] = kw.get("self", True)
-
-            # Dedicated function
-            self.set_eval_method_(col, "function")
-        else:
-            raise ValueError(
-                "Did not recognize evaluation type '%s'" % method)
+        # Save method name
+        self.set_eval_method_(col, method)
         # Argument list is the same for all methods
         self.set_eval_args(col, args)
 
