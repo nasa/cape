@@ -85,18 +85,18 @@ class CSVFile(BaseFile, TextInterpreter):
         self.fname = None
 
         # Process generic options
-        kw = self.process_opts_generic(**kw)
+        self.process_opts_generic(**kw)
 
         # Read file if appropriate
         if fname:
             # Read valid file
-            kw = self.read_csv(fname, **kw)
+            self.read_csv(fname, **kw)
         else:
             # Process inputs
-            kw = self.process_col_defns(**kw)
+            self.process_col_defns(**kw)
 
         # Check for overrides of values
-        kw = self.process_kw_values(**kw)
+        self.process_kw_values(**kw)
   # >
 
   # =============
@@ -131,14 +131,14 @@ class CSVFile(BaseFile, TextInterpreter):
             # Safe file name
             self.fname = fname.name
             # Already a file
-            return self._read_csv(fname, **kw)
+            self._read_csv(fname, **kw)
         else:
             # Save file name
             self.fname = fname
             # Open file
             with open(fname, 'r') as f:
                 # Process file handle
-                return self._read_csv(f, **kw)
+                self._read_csv(f, **kw)
 
     # Read CSV file from file handle
     def _read_csv(self, f, **kw):
@@ -160,11 +160,9 @@ class CSVFile(BaseFile, TextInterpreter):
         # Process column names
         self.read_csv_header(f, **kw)
         # Process column types
-        kw = self.process_col_defns(**kw)
+        self.process_col_defns(**kw)
         # Loop through lines
         self.read_csv_data(f)
-        # Output remaining options
-        return kw
 
     # Reader: C only
     def c_read_csv(self, fname, **kw):
@@ -191,8 +189,6 @@ class CSVFile(BaseFile, TextInterpreter):
             kw = self.process_col_defns(**kw)
             # Loop through lines
             self.c_read_csv_data(f)
-        # Output remaining options
-        return kw
 
     # Reader: Python only
     def py_read_csv(self, fname, **kw):
@@ -219,8 +215,6 @@ class CSVFile(BaseFile, TextInterpreter):
             kw = self.process_col_defns(**kw)
             # Loop through lines
             self.py_read_csv_data(f)
-        # Output remaining options
-        return kw
    
    # --- Header ---
     # Read initial comments
@@ -794,12 +788,10 @@ class CSVSimple(BaseFile):
         # Read file if appropriate
         if fname and typeutils.isstr(fname):
             # Read valid file
-            kw = self.read_csvsimple(fname, **kw)
+            self.read_csvsimple(fname, **kw)
             
         # Check for overrides of values
-        kw = self.process_kw_values(**kw)
-        # Warn about any unused inputs
-        self.warn_kwargs(kw)
+        self.process_kw_values(**kw)
   # >
 
   # =============
@@ -837,8 +829,6 @@ class CSVSimple(BaseFile):
             self.init_cols(self.cols)
             # Loop through lines
             self.read_csvsimple_data(f)
-        # Output remaining options
-        return kw
    
    # --- Header ---
     # Read initial comments

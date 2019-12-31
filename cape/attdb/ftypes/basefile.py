@@ -35,12 +35,15 @@ import numpy as np
 import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
 
+# Local modules
+from .basedata import BaseData, _append_kw_DefaultDefn
+
 # Fixed parameter for size of new chunks
 NUM_ARRAY_CHUNK = 5000
 
 
 # Declare basic class
-class BaseFile(dict):
+class BaseFile(BaseData):
     r"""Generic class for storing data from a data-style file
     
     This class has no initialization method, and as such it is unlikely
@@ -69,8 +72,6 @@ class BaseFile(dict):
         * 2019-11-26 ``@ddalle``: First version
     """
     # Class attributes
-    n = 0
-    fname = None
     _classtypes = []
     # Recognized types and other defaults
     _DefaultOpts = {
@@ -92,16 +93,10 @@ class BaseFile(dict):
     # Permitted keyword names
     _kw = [
         "cols",
-        "Keys",
-        "ColumnNames",
-        "translators",
         "Translators",
-        "prefix",
         "Prefix",
-        "suffix",
         "Suffix",
         "ExpandScalars",
-        "defns",
         "Definitions",
         "DefaultDefinition",
         "Values",
@@ -132,62 +127,6 @@ class BaseFile(dict):
   # Config
   # ==========
   # <
-    # Representation method
-    def __repr__(self):
-        """Generic representation method
-
-        :Versions:
-            * 2019-11-08 ``@ddalle``: First version
-        """
-        # Module name
-        modname = self.__class__.__module__
-        clsname = self.__class__.__name__
-        # Start output
-        lbl = "<%s.%s(" % (modname, clsname)
-        # Append file name if appropriate
-        if self.fname:
-            lbl += "'%s', " % os.path.basename(self.fname)
-        # Append count
-        if self.n:
-            lbl += "n=%i, " % self.n
-        # Append columns
-        if len(self.cols) <= 6:
-            # Show all columns
-            lbl += "cols=%s)>" % str(self.cols)
-        else:
-            # Just show number of columns
-            lbl += "ncol=%i)>" % len(self.cols)
-        # Output
-        return lbl
-
-    # String method
-    def __str__(self):
-        """Generic representation method
-
-        :Versions:
-            * 2019-11-08 ``@ddalle``: First version
-            * 2019-12-04 ``@ddalle``: Only last part of module name
-        """
-        # Module name
-        modname = self.__class__.__module__.split(".")[-1]
-        clsname = self.__class__.__name__
-        # Start output
-        lbl = "<%s.%s(" % (modname, clsname)
-        # Append file name if appropriate
-        if self.fname:
-            lbl += "'%s', " % os.path.basename(self.fname)
-        # Append count
-        if self.n:
-            lbl += "n=%i, " % self.n
-        # Append columns
-        if len(self.cols) <= 5:
-            # Show all columns
-            lbl += "cols=%s)>" % str(self.cols)
-        else:
-            # Just show number of columns
-            lbl += "ncol=%i)>" % len(self.cols)
-        # Output
-        return lbl
   # >
   
   # =================
@@ -678,282 +617,6 @@ class BaseFile(dict):
         else:
             # Unrecognized
             return TypeError("Unrecognized class/type '%s'" % clsname)
-    
-   # --- Column Properties ---
-    # Get generic property from column
-    def get_col_prop(self, col, prop, vdef=None):
-        """Get property for specific column
-        
-        :Call:
-            >>> v = db.get_col_prop(col, prop, vdef=None)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column
-            *prop*: :class:`str`
-                Name of property
-            *vdef*: {``None``} | :class:`any`
-                Default value if not specified in *db.opts*
-        :Outputs:
-            *v*: :class:`any`
-                Value of ``db.opts["Definitions"][col][prop]`` if
-                possible; defaulting to
-                ``db.opts["Definitions"]["_"][prop]`` or *vdef*
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-        """
-        # Check if column is present
-        if col not in self.cols:
-            # Allow default
-            if col != "_":
-                raise KeyError("No column '%s'" % col)
-        # Get definitions
-        defns = self.opts.get("Definitions", {})
-        # Get specific definition
-        defn = defns.get(col, {})
-        # Check if option available
-        if prop in defn:
-            # Return it
-            return defn[prop]
-        else:
-            # Use default
-            defn = defns.get("_", {})
-            # Get property from default definition
-            return defn.get(prop, vdef)
-
-    # Get type
-    def get_col_type(self, col):
-        """Get data type for specific column
-        
-        :Call:
-            >>> cls = db.get_col_type(col, prop)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column
-        :Outputs:
-            *cls*: ``"int"`` | ``"float"`` | ``"str"`` | :class:`str`
-                Name of data type
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-        """
-        return self.get_col_prop(col, "Type", vdef="float64")
-
-    # Get data type
-    def get_col_dtype(self, col):
-        """Get data type for specific column
-        
-        :Call:
-            >>> cls = db.get_col_type(col, prop)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column
-        :Outputs:
-            *cls*: ``"int"`` | ``"float"`` | ``"str"`` | :class:`str`
-                Name of data type
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-        """
-        # Get type
-        coltype = self.get_col_type(col)
-        # Apply mapping if needed
-        return self.__class__._DTypeMap.get(coltype, coltype)
-        
-   # --- Keyword Values ---
-    # Query keyword arguments for manual values
-    def process_kw_values(self, **kw):
-        r"""Process *Values* argument for manual column values
-        
-        :Call:
-            >>> kw = db.process_kw_values(**kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *Values*, *vals*: :class:`dict`
-                Dictionary of values for some columns
-        :Outputs:
-            *kwo*: :class:`dict`
-                Options not used in this method
-        :Versions:
-            * 2019-11-12 ``@ddalle``: First version
-        """
-        # Get values
-        vals1 = kw.pop("Values", {})
-        vals2 = kw.pop("vals", {})
-        # Get expansion option
-        expand = self.opts.get("ExpandScalars", True)
-        # Get number for expansion
-        n = max(1, getattr(self, "n", 1))
-        # Check types
-        if not isinstance(vals1, dict):
-            raise TypeError(
-                "'Values' keyword must be dict, found %s" % vals1.__class__)
-        elif not isinstance(vals2, dict):
-            raise TypeError(
-                "'vals' keyword must be dict, found %s" % vals2.__class__)
-        # Combine inputs
-        vals = dict(vals2, **vals1)
-        # Process values
-        for (col, v) in vals.items():
-            # Check for scalar
-            if isinstance(v, (list, np.ndarray)):
-                # Use array
-                V = v
-                # Update *n*
-                n = max(n, len(V))
-            elif expand:
-                # Get type
-                coltyp = self.get_col_type(col)
-                # Convert if necessary
-                colcls = self.__class__._DTypeMap.get(coltyp, coltyp)
-                # Check for list-like
-                if colcls == "str":
-                    # Create expanded list
-                    V = [v] * n
-                else:
-                    # Create array
-                    V = v * np.ones(n, dtype=colcls)
-            else:
-                # Use as is
-                V = v
-            # Save values
-            self.save_col(col, V)
-            # Save length
-            self.n = n
-        # Output unused options
-        return kw
-
-    # Left-over keywords
-    def warn_kwargs(self, kw):
-        r"""Display and warn about unused keyword arguments
-        
-        :Call:
-            >>> db.warn_kwargs(kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *kw*: :class:`dict`
-                Dictionary of previously unused keyword arguments
-        :Versions:
-            * 2019-11-26 ``@ddalle``: First version
-        """
-        # Loop through keywords
-        for k in kw:
-            warnings.warn("Unused keyword '%s'" % k, UserWarning)
-
-   # --- Keyword Checker ---
-    # Check valid keyword names, with dependencies
-    def map_kw(self, kwmap, **kw):
-        r"""Map alternate keyword names with no checks
-
-        :Call:
-            >>> kwo = db.map_kw(**kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *kw*: :class:`dict`
-                Any keyword arguments
-        :Outputs:
-            *kwo*: :class:`dict`
-                Translated keywords and their values from *kw*
-        :Versions:
-            * 2019-12-13 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Call generic function
-        return kwutils.map_kw(cls._kw_map, **kw)
-
-    # Check valid keyword names, with dependencies
-    def check_kw(self, mode, **kw):
-        r"""Check and map valid keyword names
-
-        :Call:
-            >>> kwo = db.check_kw(mode, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *mode*: ``0`` | {``1``} | ``2``
-                Flag for quiet (``0``), warn (``1``), or strict (``2``)
-            *kw*: :class:`dict`
-                Any keyword arguments
-        :Outputs:
-            *kwo*: :class:`dict`
-                Valid keywords
-        :Versions:
-            * 2019-12-13 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Call generic function with specific attributes
-        return kwutils.check_kw(
-            cls._kw,
-            cls._kw_map,
-            cls._kw_depends,
-            mode, **kw)
-
-    # Check valid keyword names against specified list
-    def check_kw_list(self, kwlist, mode, **kw):
-        r"""Check and map valid keyword names
-
-        :Call:
-            >>> kwo = db.check_kw_list(kwlist, mode, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *kwlist*: :class:`list`\ [:class:`str`]
-                List of acceptable keyword names
-            *mode*: ``0`` | {``1``} | ``2``
-                Flag for quiet (``0``), warn (``1``), or strict (``2``)
-            *kw*: :class:`dict`
-                Any keyword arguments
-        :Outputs:
-            *kwo*: :class:`dict`
-                Valid keywords
-        :Versions:
-            * 2019-12-13 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Call generic function with specific attributes
-        return kwutils.check_kw(
-            kwlist,
-            cls._kw_map,
-            cls._kw_depends,
-            mode, **kw)
-
-    # Check valid keyword names, with dependencies
-    def check_kw_types(self, mode, **kw):
-        r"""Check and map valid keyword names and types
-
-        :Call:
-            >>> kwo = db.check_kw_types(mode, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *mode*: ``0`` | {``1``} | ``2``
-                Flag for quiet (``0``), warn (``1``), or strict (``2``)
-            *kw*: :class:`dict`
-                Any keyword arguments
-        :Outputs:
-            *kwo*: :class:`dict`
-                Valid keywords
-        :Versions:
-            * 2019-12-13 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Call generic function with specific attributes
-        return kwutils.check_kw_types(
-            cls._kw,
-            cls._kw_map,
-            cls._kw_types,
-            cls._kw_depends,
-            mode, **kw)
   # >
 
   # ===============
@@ -1053,44 +716,6 @@ class BaseFile(dict):
             self.init_col(col)
 
    # --- Save Data ---
-    # Save a column
-    def save_col(self, col, v):
-        r"""Save a column value, updating other metadata as needed
-        
-        :Call:
-            >>> db.save_col(col, v)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column
-            *v*: :class:`np.ndarray` | :class:`list` | :class:`scalar`
-                Value(s) to save for specified column
-        :Versions:
-            * 2019-11-12 ``@ddalle``: Started
-        """
-        # Check if column is present
-        if col not in self.cols:
-            self.cols.append(col)
-        # Check type
-        if isinstance(v, np.ndarray):
-            # Save as is
-            self[col] = v
-        elif isinstance(v, list):
-            # Check first element
-            if len(v) == 0:
-                # Nothing to convert
-                self[col] = v
-            elif isinstance(v[0], (int, float, complex)):
-                # Convert to array
-                self[col] = np.asarray(v)
-            else:
-                # No conversion
-                self[col] = v
-        else:
-            # Nonstandard value; don't convert
-            self[col] = v
-
     # Save next value to column's array
     def append_colval(self, col, v):
         """Save the next value to a column's array or list
@@ -1468,29 +1093,5 @@ class TextInterpreter(object):
 # class TextFile
 
 
-# Append keywords for *DefaultDefinition* thing
-def _append_kw_DefaultDefn(cls, attr="_kw"):
-    # Get list of parameters
-    _kw = getattr(cls, attr)
-    # Loop through keys in *cls._DefaultDefn*
-    for k in cls._DefaultDefn:
-        # Derivative key name
-        k1 = "Default" + k
-        # Check if key is present
-        if k1 not in _kw:
-            # Append the parameter
-            _kw.append(k1)
-    # Loop through keys in *cls._DefaultDefn*
-    for k in cls._DefaultDefn:
-        # Derivative key name
-        k1 = k + "s"
-        # Check if key is present
-        if k1 not in _kw:
-            # Append the parameter
-            _kw.append(k1)
-        # Save the type as a dict
-        cls._kw_types[k1] = dict
-
-
-# Add parameters
+# Add keyword parameters for "DefaultType", etc.
 _append_kw_DefaultDefn(BaseFile)
