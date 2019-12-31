@@ -1,4 +1,4 @@
 
-.. autodoc:: cape.tnakit.metautils
+.. automodule:: cape.tnakit.metautils
     :members:
 

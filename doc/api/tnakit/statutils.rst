@@ -1,4 +1,4 @@
 
-.. autodoc:: cape.tnakit.statutils
+.. automodule:: cape.tnakit.statutils
     :members:
 
