@@ -156,7 +156,7 @@ class MATFile(BaseFile):
             self.from_mat_field(col, V)
 
         # Process column definitions
-        return self.process_col_defns(**kw)
+        self.process_col_defns(**kw)
 
     # Read an array from MAT file
     def from_mat_field(self, col, V):
@@ -239,7 +239,6 @@ class MATFile(BaseFile):
                 continue
             # Otherwise save column
             self.from_mat_field(col, v)
-            
 
     # Read MAT file
     def read_mat_legacy(self, fname, **kw):
@@ -331,7 +330,7 @@ class MATFile(BaseFile):
             self.__dict__[k] = from_matlab(v)
 
         # Process column definitions
-        return self.process_col_defns(**kw)
+        self.process_col_defns(**kw)
   # >
 
 

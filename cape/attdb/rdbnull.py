@@ -42,7 +42,7 @@ import cape.attdb.ftypes as ftypes
 
 
 # Declare base class
-class DBResponseNull(dict):
+class DBResponseNull(ftypes.BaseData):
     r"""Basic database template without responses
     
     :Call:
@@ -176,57 +176,6 @@ class DBResponseNull(dict):
         else:
             # If reaching this point, process values
             kw = ftypes.BaseFile.process_kw_values(self, **kw)
-
-    # Representation method
-    def __repr__(self):
-        """Generic representation method
-
-        :Versions:
-            * 2019-11-08 ``@ddalle``: First version
-        """
-        # Module name
-        modname = self.__class__.__module__
-        clsname = self.__class__.__name__
-        # Start output
-        lbl = "<%s.%s(" % (modname, clsname)
-        # Append count
-        if self.__dict__.get("n"):
-            lbl += "n=%i, " % self.n
-        # Append columns
-        if len(self.cols) <= 6:
-            # Show all columns
-            lbl += "cols=%s)" % str(self.cols)
-        else:
-            # Just show number of columns
-            lbl += "ncol=%i)" % len(self.cols)
-        # Output
-        return lbl
-
-    # String method
-    def __str__(self):
-        """Generic representation method
-
-        :Versions:
-            * 2019-11-08 ``@ddalle``: First version
-            * 2019-12-04 ``@ddalle``: Only last part of module name
-        """
-        # Module name
-        modname = self.__class__.__module__.split(".")[-1]
-        clsname = self.__class__.__name__
-        # Start output
-        lbl = "<%s.%s(" % (modname, clsname)
-        # Append count
-        if self.__dict__.get("n"):
-            lbl += "n=%i, " % self.n
-        # Append columns
-        if len(self.cols) <= 5:
-            # Show all columns
-            lbl += "cols=%s)" % str(self.cols)
-        else:
-            # Just show number of columns
-            lbl += "ncol=%i)" % len(self.cols)
-        # Output
-        return lbl
 
    # --- Class Constructors ---
     # Read data from a CSV instance
@@ -557,6 +506,24 @@ class DBResponseNull(dict):
   # ==================
   # <
    # --- Column Definitions ---
+    # Get all definitions
+    def get_defns(self):
+        r"""Get dictionary of column definitions
+
+        :Call:
+            >>> defns = db.get_defns()
+        :Inputs:
+            *db*: :class:`attdb.rdbnull.DBResponseNull`
+                Data container
+        :Outputs:
+            *defns*: :class:`dict`\ [:class:`dict`]
+                Definitions for each column
+        :Versions:
+            * 2019-12-31 ``@ddalle``: First version
+        """
+        # Get definitions
+        return self.__dict__.setdefault("defns", {})
+
     # Get definition for one column
     def get_col_defn(self, col):
         r"""Get definition for data column *col*
@@ -580,7 +547,7 @@ class DBResponseNull(dict):
             * 2019-12-30 ``@ddalle``: First version
         """
         # Get all definitions
-        defns = self.__dict__.setdefault("defns", {})
+        defns = self.get_defns()
         # Check type
         if not isinstance(defns, dict):
             raise TypeError("defns attribute is not a dict")
@@ -660,88 +627,6 @@ class DBResponseNull(dict):
                 dbdefs[k] = v
 
    # --- Column Properties ---
-    # Get generic property from column
-    def get_col_prop(self, col, prop, vdef=None):
-        """Get property for specific column
-        
-        :Call:
-            >>> v = db.get_col_prop(col, prop, vdef=None)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DBResponseNull`
-                Data container
-            *col*: :class:`str`
-                Name of column
-            *prop*: :class:`str`
-                Name of property
-            *vdef*: {``None``} | :class:`any`
-                Default value if not specified in *db.opts*
-        :Outputs:
-            *v*: :class:`any`
-                Value of ``db.opts["Definitions"][col][prop]`` if
-                possible; defaulting to
-                ``db.opts["Definitions"]["_"][prop]`` or *vdef*
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-        """
-        # Check if column is present
-        if col not in self.cols:
-            # Allow default
-            if col != "_":
-                raise KeyError("No column '%s'" % col)
-        # Get definitions
-        defns = self.opts.get("Definitions", {})
-        # Get specific definition
-        defn = defns.get(col, {})
-        # Check if option available
-        if prop in defn:
-            # Return it
-            return defn[prop]
-        else:
-            # Use default
-            defn = defns.get("_", {})
-            # Get property from default definition
-            return defn.get(prop, vdef)
-
-    # Get type
-    def get_col_type(self, col):
-        """Get data type for specific column
-        
-        :Call:
-            >>> cls = db.get_col_type(col, prop)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column
-        :Outputs:
-            *cls*: ``"int"`` | ``"float"`` | ``"str"`` | :class:`str`
-                Name of data type
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-        """
-        return self.get_col_prop(col, "Type", vdef="float64")
-
-    # Get data type
-    def get_col_dtype(self, col):
-        """Get data type for specific column
-        
-        :Call:
-            >>> cls = db.get_col_type(col, prop)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column
-        :Outputs:
-            *cls*: ``"int"`` | ``"float"`` | ``"str"`` | :class:`str`
-                Name of data type
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-        """
-        # Get type
-        coltype = self.get_col_type(col)
-        # Apply mapping if needed
-        return self.__class__._DTypeMap.get(coltype, coltype)
   # >
 
   # ==================
@@ -1145,35 +1030,6 @@ class DBResponseNull(dict):
   # ==================
   # <
    # --- Save/Add ---
-    # Save a column
-    def save_col(self, col, V):
-        r"""Save a column to database
-        
-        :Call:
-            >>> db.save_col(col, V)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Data container
-            *col*: :class:`str`
-                Name of column to save
-            *V*: :class:`any`
-                Value to save for "column"
-        :Effects:
-            *db.cols*: :class:`list`\ [:class:`str`]
-                Appends *col* if not present already
-            *db[col]*: *V*
-                Value saved
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # Safely get columns list
-        cols = self.__dict__.setdefault("cols", [])
-        # Check if present
-        if col not in cols:
-            cols.append(col)
-        # Save the data (don't copy it)
-        self[col] = V
-
    # --- Copy/Link ---
     # Link data
     def link_data(self, dbsrc, cols=None):

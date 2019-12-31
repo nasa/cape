@@ -203,7 +203,7 @@ class BaseFile(BaseData):
         r"""Process *Definitions* of column types
         
         :Call:
-            >>> kwo = db.process_col_defns(**kw)
+            >>> db.process_col_defns(**kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -226,28 +226,28 @@ class BaseFile(BaseData):
             * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
         """
         # Get options for key definitions
-        defns1 = kw.pop("defns", {})
-        defns2 = kw.pop("Definitions", {})
+        defns1 = kw.get("defns", {})
+        defns2 = kw.get("Definitions", {})
         # Combine definitions
         defns = dict(defns1, **defns2)
         # Get default definition from class definition
         clsdefn = self.__class__._DefaultDefn
         # Check for default definition
-        odefn = kw.pop("DefaultDefinition", {})
+        odefn = kw.get("DefaultDefinition", {})
         # Process each option from class definition
         for (k, opt) in clsdefn.items():
             # Prepend "Default" to the name
             key = "Default" + k
             # Check for option
-            odefk = kw.pop(key, opt)
+            odefk = kw.get(key, opt)
             # Save it if appropriate
             odefn.setdefault(k, odefk)
         # Validate default definition
         self.validate_defn(odefn)
         # Ensure definitions exist
-        opts = self.opts.setdefault("Definitions", {})
+        opts = self.get_defns()
         # Save defaults
-        self.opts["Definitions"]["_"] = odefn
+        opts["_"] = odefn
 
         # Loop through columns mentioned in input
         for (col, kwdefn) in defns.items():
@@ -271,7 +271,7 @@ class BaseFile(BaseData):
             if not isinstance(kw[defnk], dict):
                 continue
             # Get the option
-            defnkw = kw.pop(defnk)
+            defnkw = kw.get(defnk)
             # Loop through cols affected by this dictionary
             for (col, opt) in defnkw.items():
                 # Get existing definition
@@ -282,7 +282,7 @@ class BaseFile(BaseData):
         # Loop through known columns
         for col in self.cols:
             # Get definition
-            defn = opts.setdefault(col, {})
+            defn = defns.setdefault(col, {})
             # Get default definition based on column name
             odefncol = self.get_col_defaultdefn(col)
             # Loop through default keys
@@ -291,9 +291,6 @@ class BaseFile(BaseData):
                 defn.setdefault(key, opt)
             # Validate the definition
             self.validate_defn(defn)
-
-        # Return unused options
-        return kw
 
     # Get default definition based on column name
     def get_col_defaultdefn(self, col):
@@ -313,12 +310,14 @@ class BaseFile(BaseData):
         :Versions:
             * 2019-12-05 ``@ddalle``: First version
         """
+        # Get class
+        cls = self.__class__
         # Get class's default definitions for each family
-        defndict = self.__class__._DefaultRoleDefns
+        defndict = cls._DefaultRoleDefns
         # Get map from name to family
-        rolemap = self.__class__._RoleMap
+        rolemap = cls._RoleMap
         # Get global default
-        odefn = self.__class__._DefaultDefn
+        odefn = cls._DefaultDefn
         # Loop through roles
         for role, names in rolemap.items():
             # Check type

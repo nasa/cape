@@ -220,10 +220,7 @@ class XLSFile(BaseFile):
                     "Sheet (worksheet) must be index (int) or name (str)")
 
         # Read worksheet
-        kw = self.read_xls_worksheet(ws, **kw)
-
-        # Output remaining options
-        return kw
+        self.read_xls_worksheet(ws, **kw)
 
     # Read a worksheet
     def read_xls_worksheet(self, ws, **kw):
@@ -257,12 +254,10 @@ class XLSFile(BaseFile):
         # Filter output
         if ndim == 0:
             # Columns of scalars
-            kw = self.read_xls_ws_scalar(ws, **kw)
+            self.read_xls_ws_scalar(ws, **kw)
         elif ndim == 1:
             # Each row is data point of one col
-            kw = self.read_xls_ws_array(ws, **kw)
-        # Output remaining options
-        return kw
+            self.read_xls_ws_array(ws, **kw)
 
    # --- Scalars ---
     # Read a worksheet
@@ -296,11 +291,9 @@ class XLSFile(BaseFile):
         # Read header
         cols = self.read_xls_header(ws, **kwread)
         # Process definitions
-        kw = self.process_col_defns(**kw)
+        self.process_col_defns(**kw)
         # Read data
         self.read_xls_coldata(ws, cols)
-        # Output remaining options
-        return kw
 
    # --- Array ---
     # Read a table for one column

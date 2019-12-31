@@ -26,7 +26,6 @@ collection.
 
 # Standard library modules
 import os
-import warnings
 
 # Third-party modules
 import numpy as np
@@ -34,9 +33,6 @@ import numpy as np
 # CAPE modules
 import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
-
-# Fixed parameter for size of new chunks
-NUM_ARRAY_CHUNK = 5000
 
 
 # Declare basic class
@@ -246,7 +242,7 @@ class BaseData(dict):
         # Get options
         opts = self.get_opts()
         # Get definitions
-        return opts.get("Definitions", {})
+        return opts.setdefault("Definitions", {})
 
    # --- Column Properties ---
     # Get generic property from column

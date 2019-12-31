@@ -85,7 +85,7 @@ class CSVFile(BaseFile, TextInterpreter):
         self.fname = None
 
         # Process generic options
-        self.process_opts_generic(**kw)
+        kw = self.process_opts_generic(**kw)
 
         # Read file if appropriate
         if fname:
@@ -784,6 +784,9 @@ class CSVSimple(BaseFile):
         
         # Save file name
         self.fname = fname
+
+        # Check inputs
+        kw = self.process_opts_generic(**kw)
 
         # Read file if appropriate
         if fname and typeutils.isstr(fname):

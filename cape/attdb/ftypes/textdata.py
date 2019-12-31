@@ -127,13 +127,13 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Read file if appropriate
         if fname and typeutils.isstr(fname):
             # Read valid file
-            kw = self.read_textdata(fname, **kw)
+            self.read_textdata(fname, **kw)
         else:
             # Process inputs
-            kw = self.process_col_defns(**kw)
+            self.process_col_defns(**kw)
 
         # Check for overrides of values
-        kw = self.process_kw_values(**kw)
+        self.process_kw_values(**kw)
   # >
   
   # ===========
@@ -188,7 +188,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         r"""Process *Definitions* of column types
         
         :Call:
-            >>> kwo = db.process_col_defns(**kw)
+            >>> db.process_col_defns(**kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
                 Data file interface
@@ -230,9 +230,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             self.process_defns_boolmap(col0, col1bmap)
 
         # Call parent method
-        kw = BaseFile.process_col_defns(self, **kw)
-        # Output
-        return kw
+        BaseFile.process_col_defns(self, **kw)
 
     # Process boolean map definitions
     def process_defns_boolmap(self, col, bmap):
@@ -438,8 +436,6 @@ class TextDataFile(BaseFile, TextInterpreter):
         del self._nline
         del self._delim
         del self._comment
-        # Output remaining options
-        return kw
    
    # --- Header ---
     # Read initial comments
@@ -965,4 +961,3 @@ class TextDataFile(BaseFile, TextInterpreter):
                 f.write(line)
   # >
 # class TextDataFile
-
