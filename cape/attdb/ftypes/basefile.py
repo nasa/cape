@@ -1204,7 +1204,7 @@ class BaseFile(dict):
 
 
 # Text interpretation classes
-class TextInterpreter(dict):
+class TextInterpreter(object):
     r"""Class to contain methods for interpreting text
     
     The class is kept separate from :class:`BaseFile` because not all

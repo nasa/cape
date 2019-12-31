@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-13 at 13:25 PST
+   on 2019-12-31 at 08:44 PST
 
 Test ``06_text_runmatrix``
 ============================
@@ -56,8 +56,8 @@ Command 1: First-column BoolMap: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.484268 seconds
-    * Cumulative time: 0.484268 seconds
+    * Command took 0.479544 seconds
+    * Cumulative time: 0.479544 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -92,8 +92,8 @@ Command 2: First-column BoolMap: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.760662 seconds
-    * Cumulative time: 1.24493 seconds
+    * Command took 0.77246 seconds
+    * Cumulative time: 1.252 seconds
 :STDOUT:
     * **PASS**
     * Target:
