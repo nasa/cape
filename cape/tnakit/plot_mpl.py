@@ -281,6 +281,142 @@ def plot(xv, yv, *a, **kw):
     return h
 
 
+# Manage subplots
+def subplot(fig=None, **kw):
+    r"""Manage subplot handles and margins of current axes
+
+    :Call:
+        >>> ax = subplot(fig=None, **kw)
+    :Inputs:
+        *fig*: {``None``} | :class:`Figure` | :class:`int`
+            Figure handle or number (default from :func:`plt.gcf`)
+        *ax*: {``None``} | :class:`AxesSubplot`
+            Axes handle, if specified, *Subplot* is ignored
+        *Subplot*: {``None``} | :class:`int` > 0
+            Subplot index; if ``None``, use :func:`plt.gca`; adds a
+            new subplot if *Subplot* is greater than the number of
+            existing subplots in *fig* (1-based index)
+        *SubplotRows*: {*Subplot*} | :class:`int` > 0
+            Number of subplot rows if creating new subplot
+        *SubplotCols*: {*Subplot*} | :class:`int` > 0
+            Number of subplot columns if creating new subplot
+    :Outputs:
+        *ax*: :class:`AxesSubplot`
+            Handle to subplot directed to use from these options
+    :Versions:
+        * 2020-01-03 ``@ddalle``: First version
+    """
+    # Make sure pyplot is present
+    import_pyplot()
+    # Default figure
+    if fig is None:
+        # Get most recent figure or create
+        fig = plt.gcf()
+    elif isinstance(fig, int):
+        # Get figure handle from number
+        fig = plt.figure(fig)
+    elif not isinstance(fig, mplfig.Figure):
+        # Not a figure or number
+        raise TypeError(
+            "'fig' arg expected 'int' or 'Figure' (got %s)" % type(fig))
+    # Process options
+    opts = MPLOpts(**kw)
+    # Get axes from figure
+    ax_list = fig.get_axes()
+    # Minimum number of axes
+    nmin_ax = min(1, len(ax_list))
+    # Get "axes" option
+    ax = opts.get("ax")
+    # Get subplot number options
+    subplot_i = opts.get("Subplot")
+    subplot_m = opts.get("SubplotRows", nmin_ax)
+    subplot_n = opts.get("SubplotCols", nmin_ax // subplot_m)
+    # Check for axes
+    if ax is None:
+        # Check for index
+        if subplot_i is None:
+            # Get most recent axes
+            ax = plt.gca()
+            # Reset axes list
+            ax_list = fig.get_axes()
+            # Get index
+            subplot_i = ax_list.index(ax) + 1
+        elif not isinstance(subplot_i, int):
+            # Must be an integer
+            raise TypeError(
+                "'Subplot' keyword must be 'int' (got %s)" % type(subplot_i))
+        elif subplot_i <= 0:
+            # Must be *positive*
+            raise ValueError(
+                "'Subplot' index must be positive (1-based) (got %i)" %
+                subplot_i)
+        elif subplot_i > len(ax_list):
+            # Create new subplot
+            ax = fig.add_subplot(subplot_m, subplot_n, subplot_i)
+        else:
+            # Get existing subplot (1-based indexing for consistency)
+            ax = ax_list[subplot_i - 1]
+    elif ax not in ax_list:
+        # Axes from different figure!
+        raise ValueError("Axes handle 'ax' is not in current figure")
+    else:
+        # Get subplot index (1-based index)
+        subplot_i = ax_list.index(ax) + 1
+    # Figure out subplot column and row index from counts (0-based)
+    subplot_j = (subplot_i - 1) // subplot_n
+    subplot_k = (subplot_i - 1) % subplot_n
+    # Default absolute margins
+    # TODO: automate based on ticklabels and labels
+    margin_l = 0.1
+    margin_b = 0.1
+    margin_r = 0.95
+    margin_t = 0.95
+    # Process width and height
+    ax_w = margin_r - margin_l
+    ax_h = margin_t - margin_b
+    # Process row and column space available
+    ax_rowh = ax_h / float(subplot_m)
+    ax_colw = ax_w / float(subplot_n)
+    # Default margins (no tight_layout yet)
+    adj_l = margin_l + subplot_k * ax_colw
+    adj_b = margin_b + subplot_j * ax_rowh
+    adj_r = adj_l + ax_colw
+    adj_t = adj_b + ax_rowh
+    # Get user options
+    adj_b = opts.get("AdjustBottom", adj_b)
+    adj_l = opts.get("AdjustLeft", adj_l)
+    adj_r = opts.get("AdjustRight", adj_r)
+    adj_t = opts.get("AdjustTop", adj_t)
+    # Update bottom margin
+    if adj_b is not None:
+        # Current
+        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
+        # Update bottom and top
+        ax.set_position([xmin, adj_b, xmax, ymax-adj_b])
+    # Update left margin
+    if adj_l is not None:
+        # Current
+        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
+        # Update left and right
+        ax.set_position([adj_l, ymin, xmax-adj_l, ymax])
+    # Update right margin
+    if adj_r is not None:
+        # Current
+        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
+        # Update left and right
+        ax.set_position([xmin, ymin, adj_r-xmin, ymax])
+    # Update top margin
+    if adj_t is not None:
+        # Current
+        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
+        # Update top
+        ax.set_position([xmin, ymin, xmax, adj_t-ymin])
+    # Output
+    return ax
+        
+    
+
+
 # Primary Histogram plotter
 def hist(v, **kw):
     """Plot histograms with many options
@@ -1915,6 +2051,9 @@ class MPLOpts(dict):
         "ShowUncertainty",
         "SpineOptions",
         "Spines",
+        "Subplot",
+        "SubplotCols",
+        "SubplotRows",
         "TickDirection",
         "TickFontSize",
         "TickLabels",
@@ -2008,6 +2147,7 @@ class MPLOpts(dict):
         "nfig": "FigNumber",
         "numfig": "FigNumber",
         "rotate": "Rotate",
+        "subplot": "Subplot",
         "wfig": "FigWidth",
         "xlabel": "XLabel",
         "xlim": "XLim",
@@ -2178,6 +2318,15 @@ class MPLOpts(dict):
         "LegendFontWeight",
         "LegendLocation",
         "LegendOptions"
+    ]
+    _optlist_subplot = [
+        "AdjustBottom",
+        "AdjustLeft",
+        "AdjustRight",
+        "AdjustTop",
+        "Subplot",
+        "SubplotCols",
+        "SubplotRows"
     ]
 
    # --- Types ---
