@@ -366,11 +366,89 @@ def subplot(fig=None, **kw):
     subplot_j = (subplot_i - 1) // subplot_n
     subplot_k = (subplot_i - 1) % subplot_n
     # Default absolute margins
-    # TODO: automate based on ticklabels and labels
-    margin_l = 0.1
-    margin_b = 0.1
-    margin_r = 0.95
-    margin_t = 0.95
+    # Get axes limits (for checking relevance of tick labels)
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    # Get pixel count for axes extents
+    ia_ax, ja_ax, iw_ax, jw_ax = ax.get_window_extent().bounds
+    ib_ax = ia_ax + iw_ax
+    jb_ax = ja_ax + jw_ax
+    # Get axis label extents
+    ia_x, ja_x, iw_x, jw_x = ax.xaxis.label.get_window_extent().bounds
+    ia_y, ja_y, iw_y, jw_y = ax.yaxis.label.get_window_extent().bounds
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Initialize bounds of labels and axes, if the extent is nonzero
+    if iw_x*jw_x > 0:
+        # Get axes bounds
+        ib_x = ia_x + iw_x
+        jb_x = ja_x + jw_x
+        # Note: could be logical here and just use xlabel to set bottom
+        # bounds, but why not be conservative?
+        ia = min(ia_ax, ia_x)
+        ib = max(ib_ax, ib_x)
+        ja = min(ja_ax, ja_x)
+        jb = max(jb_ax, jb_x)
+    else:
+        # Don't count null label toward margins
+        ia, ib, ja, jb = ia_ax, ib_ax, ja_ax, jb_ax
+    # Process ylabel
+    if iw_y*jw_y > 0:
+        # Get axes bounds
+        ib_y = ia_y + iw_y
+        jb_y = ja_y + jw_y
+        # Note: could be logical here and just use xlabel to set bottom
+        # bounds, but why not be conservative?
+        ia = min(ia, ia_y)
+        ib = max(ib, ib_y)
+        ja = min(ja, ja_y)
+        jb = max(jb, jb_y)
+    # Loop through xtick labels
+    # Does this get ticks above?
+    for tick in ax.get_xticklabels():
+        # Get position in data coordinates
+        xtick, _ = tick.get_position()
+        # Check if it's clipped
+        if (xtick < xmin) or (xtick > xmax):
+            continue
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
+    # Loop through ytick labels
+    for tick in ax.get_yticklabels():
+        # Get position in data coordinates
+        _, ytick = tick.get_position()
+        # Check if it's clipped
+        if (ytick < ymin) or (ytick > ymax):
+            continue
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
+    # Automated based on ticklabels and axis labels
+    margin_l = (ia_ax - ia) / ifig
+    margin_b = (ja_ax - ja) / jfig
+    margin_r = 1.0 - (ib - ib_ax) / ifig
+    margin_t = 1.0 - (jb - jb_ax) / ifig
     # Process width and height
     ax_w = margin_r - margin_l
     ax_h = margin_t - margin_b
@@ -391,26 +469,32 @@ def subplot(fig=None, **kw):
     if adj_b is not None:
         # Current
         (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
+        xmax = min(1.0, xmax)
+        ymax = min(1.0, ymax)
         # Update bottom and top
-        ax.set_position([xmin, adj_b, xmax, ymax-adj_b])
+        ax.set_position([xmin, adj_b, xmax-xmin, ymax-adj_b])
     # Update left margin
     if adj_l is not None:
         # Current
         (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
+        xmax = min(1.0, xmax)
+        ymax = min(1.0, ymax)
         # Update left and right
-        ax.set_position([adj_l, ymin, xmax-adj_l, ymax])
+        ax.set_position([adj_l, ymin, xmax-adj_l, ymax-ymin])
     # Update right margin
     if adj_r is not None:
         # Current
         (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
+        ymax = min(1.0, ymax)
         # Update left and right
-        ax.set_position([xmin, ymin, adj_r-xmin, ymax])
+        ax.set_position([xmin, ymin, adj_r-xmin, ymax-ymin])
     # Update top margin
     if adj_t is not None:
         # Current
         (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
+        xmax = min(1.0, xmax)
         # Update top
-        ax.set_position([xmin, ymin, xmax, adj_t-ymin])
+        ax.set_position([xmin, ymin, xmax-xmin, adj_t-ymin])
     # Output
     return ax
         
