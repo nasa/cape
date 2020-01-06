@@ -282,11 +282,11 @@ def plot(xv, yv, *a, **kw):
 
 
 # Manage subplots
-def subplot(fig=None, **kw):
-    r"""Manage subplot handles and margins of current axes
+def adjust_axes(fig=None, **kw):
+    r"""Manage margins of current axes
 
     :Call:
-        >>> ax = subplot(fig=None, **kw)
+        >>> ax = adjust_axes(fig=None, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
             Figure handle or number (default from :func:`plt.gcf`)
@@ -497,8 +497,6 @@ def subplot(fig=None, **kw):
         ax.set_position([xmin, ymin, xmax-xmin, adj_t-ymin])
     # Output
     return ax
-        
-    
 
 
 # Primary Histogram plotter
