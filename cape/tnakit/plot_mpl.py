@@ -281,12 +281,22 @@ def plot(xv, yv, *a, **kw):
     return h
 
 
-# Manage subplots
-def adjust_axes(fig=None, **kw):
-    r"""Manage margins of current axes
+# Manage single subplot extents
+def axes_adjust(fig=None, **kw):
+    r"""Manage margins of one axes handle
+
+    This function provides two methods for adjusting the margins of an
+    axes handle.  The first is to automatically detect all the space
+    taken up outside of the plot region by both tick labels and axes
+    labels and then expand the plot to fill the figure up to amounts
+    specified by the *Margin* parameters.  The second is to directly
+    specify the figure coordinates of the figure edges using the
+    *Adjust* parameters, which override any *Margin* specifications. It
+    is possible, however, to use *Adjust* for the top and *Margin* for
+    the bottom, for example.
 
     :Call:
-        >>> ax = adjust_axes(fig=None, **kw)
+        >>> ax = axes_adjust(fig=None, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
             Figure handle or number (default from :func:`plt.gcf`)
@@ -300,6 +310,22 @@ def adjust_axes(fig=None, **kw):
             Number of subplot rows if creating new subplot
         *SubplotCols*: {*Subplot*} | :class:`int` > 0
             Number of subplot columns if creating new subplot
+        *MarginBottom*: {``0.02``} | :class:`float`
+            Figure fraction from bottom edge to bottom label
+        *MarginLeft*: {``0.02``} | :class:`float`
+            Figure fraction from left edge to left-most label
+        *MarginRight*: {``0.015``} | :class:`float`
+            Figure fraction from right edge to right-most label
+        *MarginTop*: {``0.015``} | :class:`float`
+            Figure fraction from top edge to top-most label
+        *AdjustBottom*: ``None`` | :class:`float`
+            Figure coordinate for bottom edge of axes
+        *AdjustLeft*: ``None`` | :class:`float`
+            Figure coordinate for left edge of axes
+        *AdjustRight*: ``None`` | :class:`float`
+            Figure coordinate for right edge of axes
+        *AdjustTop*: ``None`` | :class:`float`
+            Figure coordinate for top edge of axes
     :Outputs:
         *ax*: :class:`AxesSubplot`
             Handle to subplot directed to use from these options
@@ -444,22 +470,47 @@ def adjust_axes(fig=None, **kw):
         ib = max(ib, ib_t)
         ja = min(ja, ja_t)
         jb = max(jb, jb_t)
+    # Deal with silly scaling factors for both axes
+    for tick in [ax.xaxis.offsetText, ax.yaxis.offsetText]:
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
     # Automated based on ticklabels and axis labels
-    margin_l = (ia_ax - ia) / ifig
-    margin_b = (ja_ax - ja) / jfig
-    margin_r = 1.0 - (ib - ib_ax) / ifig
-    margin_t = 1.0 - (jb - jb_ax) / ifig
+    labelw_l = (ia_ax - ia) / ifig
+    labelh_b = (ja_ax - ja) / jfig
+    labelw_r = 1.0 - (ib - ib_ax) / ifig
+    labelh_t = 1.0 - (jb - jb_ax) / ifig
     # Process width and height
-    ax_w = margin_r - margin_l
-    ax_h = margin_t - margin_b
+    ax_w = labelw_r - labelw_l
+    ax_h = labelh_t - labelh_b
     # Process row and column space available
     ax_rowh = ax_h / float(subplot_m)
     ax_colw = ax_w / float(subplot_n)
     # Default margins (no tight_layout yet)
-    adj_l = margin_l + subplot_k * ax_colw
-    adj_b = margin_b + subplot_j * ax_rowh
+    adj_b = labelh_b + subplot_j * ax_rowh
+    adj_l = labelw_l + subplot_k * ax_colw
     adj_r = adj_l + ax_colw
     adj_t = adj_b + ax_rowh
+    # Get extra margins
+    margin_b = opts.get("MarginBottom", 0.02)
+    margin_l = opts.get("MarginLeft", 0.02)
+    margin_r = opts.get("MarginRight", 0.015)
+    margin_t = opts.get("MarginTop", 0.015)
+    # Apply to minimum margins
+    adj_b += margin_b
+    adj_l += margin_l
+    adj_r -= margin_r
+    adj_t -= margin_t
     # Get user options
     adj_b = opts.get("AdjustBottom", adj_b)
     adj_l = opts.get("AdjustLeft", adj_l)
@@ -2113,8 +2164,15 @@ class MPLOpts(dict):
         "LegendFontVariant",
         "LegendFontWeight",
         "LegendOptions",
+        "MajorGrid",
+        "MarginBottom",
+        "MarginLeft",
+        "MarginRight",
+        "MarginTop",
         "MinMaxOptions",
         "MinMaxPlotType",
+        "MinorGrid",
+        "MinorGridOptions",
         "Pad",
         "PlotColor",
         "PlotLineStyle",
@@ -2465,6 +2523,10 @@ class MPLOpts(dict):
         "LegendLocation": (int, typeutils.strlike),
         "LegendOptions": dict,
         "MajorGrid": bool,
+        "MarginBottom": float,
+        "MarginLeft": float,
+        "MarginRight": float,
+        "MarginTop": float,
         "MinorGrid": bool,
         "MinorGridOptions": dict,
         "MinMaxOptions": dict,
@@ -2689,6 +2751,10 @@ class MPLOpts(dict):
         "LegendLocation": """{``None``} | :class:`str` | :class:`int`""",
         "LegendOptions": _rst_dict,
         "MajorGrid": _rst_boolt,
+        "MarginBottom": _rst_float,
+        "MarginLeft": _rst_float,
+        "MarginRight": _rst_float,
+        "MarginTop": _rst_float,
         "MinMaxPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "MinMaxOptions": _rst_dict,
         "MinorGrid": _rst_boolf,
@@ -2789,6 +2855,10 @@ class MPLOpts(dict):
         "LegendLocation": """Numeric location or abbreviation""",
         "LegendOptions": """Options to :func:`plt.legend`""",
         "MajorGrid": """Option to turn on/off grid at main ticks""",
+        "MarginBottom": "Figure fraction from bottom edge to bottom label",
+        "MarginLeft": "Figure fraction from left edge to left-most label",
+        "MarginRight": "Figure fraction from right edge to right-most label",
+        "MarginTop": "Figure fraction from top edge to top-most label",
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
         "MinMaxPlotType": """Plot type for min/max plot""",
         "MinorGrid": """Turn on/off grid at minor ticks""",
