@@ -268,7 +268,12 @@ def plot(xv, yv, *a, **kw):
     # Process axes format options
     kw_axfmt = opts.axformat_options()
     # Apply formatting
-    h.xlabel, h.ylabel = format_axes(h.ax, **kw_axfmt)
+    h.xlabel, h.ylabel = axes_format(h.ax, **kw_axfmt)
+   # --- Margin adjustment ---
+    # Process axes margin/adjust options
+    kw_axadj = opts.axadjust_options()
+    # Adjust extents
+    axes_adjust(h.fig, ax=h.ax, **kw_axadj)
    # --- Legend ---
     ## Process options for legend
     kw_legend = opts.legend_options()
@@ -395,6 +400,8 @@ def axes_adjust(fig=None, **kw):
     # Get axes limits (for checking relevance of tick labels)
     xmin, xmax = ax.get_xlim()
     ymin, ymax = ax.get_ylim()
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
     # Get pixel count for axes extents
     ia_ax, ja_ax, iw_ax, jw_ax = ax.get_window_extent().bounds
     ib_ax = ia_ax + iw_ax
@@ -646,7 +653,7 @@ def hist(v, **kw):
     else:
         kw_axfmt['XMin'] = 0
     # Apply formatting
-    h['xlabel'], h['ylabel'] = format_axes(h['ax'], **kw_axfmt)
+    h['xlabel'], h['ylabel'] = axes_format(h['ax'], **kw_axfmt)
    # --- Plot an Interval ---
     # Get flag for manual interval plot
     qint = kw.pop("PlotInterval", False)
@@ -1457,11 +1464,11 @@ def legend(ax=None, **kw):
 
 
 # Axes format
-def format_axes(ax, **kw):
-    """Format and label axes
+def axes_format(ax, **kw):
+    r"""Format and label axes
 
     :Call:
-        >>> xl, yl = format_axes(ax, **kw)
+        >>> xl, yl = axes_format(ax, **kw)
     :Inputs:
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
@@ -1472,6 +1479,8 @@ def format_axes(ax, **kw):
             Y label
     :Versions:
         * 2019-03-06 ``@jmeeroff``: First version
+        * 2020-01-08 ``@ddalle``: 2.0, removed margin adjustment
+        * 2020-01-08 ``@ddalle``: 2.1, from :func:`axes_format`
     """
    # --- Prep ---
     # Make sure pyplot loaded
@@ -1525,26 +1534,6 @@ def format_axes(ax, **kw):
     # Make sure data is included.
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
-   # --- Canvas ---
-    # Attempt to apply tight axes
-    try:
-        plt.tight_layout()
-    except Exception:
-        pass
-    # User-specified margins
-    adj_l = kw.get("AdjustLeft",   None)
-    adj_r = kw.get("AdjustRight",  None)
-    adj_t = kw.get("AdjustTop",    None)
-    adj_b = kw.get("AdjustBottom", None)
-    # Set margins
-    if adj_l is not None:
-        plt.subplots_adjust(left=adj_l)
-    if adj_r is not None:
-        plt.subplots_adjust(right=adj_r)
-    if adj_t is not None:
-        plt.subplots_adjust(top=adj_t)
-    if adj_b is not None:
-        plt.subplots_adjust(bottom=adj_b)
    # --- Cleanup ---
     # Output
     return xl, yl
@@ -2186,6 +2175,7 @@ class MPLOpts(dict):
         "RightTickLabels",
         "Rotate",
         "ShowError",
+        "ShowLegend",
         "ShowLine",
         "ShowMinMax",
         "ShowUncertainty",
@@ -2300,11 +2290,20 @@ class MPLOpts(dict):
         "ax",
         "AxesOptions"
     ]
-    _optlist_axformat = [
+    _optlist_axadjust = [
         "AdjustBottom",
         "AdjustLeft",
         "AdjustRight",
         "AdjustTop",
+        "MarginBottom",
+        "MarginLeft",
+        "MarginRight",
+        "MarginTop",
+        "Subplot",
+        "SubplotCols",
+        "SubplotRows"
+    ]
+    _optlist_axformat = [
         "Density",
         "Index",
         "Pad",
@@ -2543,6 +2542,8 @@ class MPLOpts(dict):
         "ShowUncertainty": bool,
         "SpineOptions": dict,
         "Spines": bool,
+        "SubplotCols": int,
+        "SubplotRows": int,
         "RightSpine": (bool, typeutils.strlike),
         "RightSpineMax": float,
         "RightSpineMin": float,
@@ -2775,6 +2776,9 @@ class MPLOpts(dict):
         "ShowError": _rst_booln,
         "ShowMinMax": _rst_booln,
         "ShowUncertainty": _rst_booln,
+        "Subplot": """{``None``} | :class:`Axes` | :class:`int`""",
+        "SubplotCols": _rst_intpos,
+        "SubplotRows": _rst_intpos,
         "TopSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
         "TopSpineMax": _rst_float,
         "TopSpineMin": _rst_float,
@@ -2878,6 +2882,9 @@ class MPLOpts(dict):
         "ShowError": """Show "error" plot using *xerr*""",
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
         "ShowUncertainty": """Plot uncertainty bounds""",
+        "Subplot": "Subplot index (1-based)",
+        "SubplotCols": "Expected number of subplot columns",
+        "SubplotRows": "Expected number of subplot rows",
         "TopSpine": "Turn on/off top plot spine",
         "TopSpineMax": "Maximum *x* coord for top plot spine",
         "TopSpineMin": "Minimum *x* coord for top plot spine",
@@ -2923,6 +2930,7 @@ class MPLOpts(dict):
     _rc_axformat = {
         "Pad": 0.05,
     }
+    _rc_axadjust = {}
 
     # Default options for plot
     _rc_plot = {
@@ -3662,7 +3670,7 @@ class MPLOpts(dict):
             %(keys)s
         :Outputs:
             *kw*: :class:`dict`
-                Dictionary of options to :func:`format_axes`
+                Dictionary of options to :func:`axes_format`
         :Versions:
             * 2019-03-07 ``@jmeeroff``: First version
         """
@@ -3702,6 +3710,40 @@ class MPLOpts(dict):
             ylbl = None
         # Apply defaults
         kw = dict(cls._rc_axformat, **kw)
+        # Return
+        return cls.denone(kw)
+
+    # Process axes formatting options
+    def axadjust_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust`
+        :Versions:
+            * 2020-01-08 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_axadjust:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_axadjust, **kw)
         # Return
         return cls.denone(kw)
 
