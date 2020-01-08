@@ -234,7 +234,7 @@ class XLSFile(BaseFile):
         r"""Read ``.xls`` or ``.xlsx`` workbook with multiple worksheets
 
         :Call:
-            >>> db.read_xls_workbook(ws, **kw)
+            >>> db.read_xls_workbook(wb, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
                 XLS file interface
@@ -265,27 +265,26 @@ class XLSFile(BaseFile):
         else:
             for i, wsname in enumerate(wsnames):
                 # Try to read worsheet do nothing if fails
-                print i
                 try:
                     db = XLSFile(wb, sheet=i, **kw)
+                    # Append local worksheet data to wb items
+                    # Append ws name to column names
+                    self.cols.extend([wsname+'.'+n for n in db.cols])
+                    # Now assign values
+                    for k in db.cols:
+                        keyname = wsname + '.' + k
+                        self[keyname] = db[k]
+                    # Now do the options
+                    for k in db.opts.keys():
+                        keyname = wsname + '.' + k
+                        self.opts[keyname] = db.opts[k]
+                    # Now do column lengths
+                    for k in db._n.keys():
+                        keyname = wsname + '.' + k
+                        self._n[keyname] = db._n[k]
                 except Exception:
                     pass
 
-                # Append local worksheet data to wb items
-                # Append ws name to column names
-                self.cols.extend([wsname+'.'+n for n in db.cols])
-                # Now assign values
-                for k in db.cols:
-                    keyname = wsname + '.' + k
-                    self[keyname] = db[k]
-                # Now do the options
-                for k in db.opts.keys():
-                    keyname = wsname + '.' + k
-                    self.opts[keyname] = db.opts[k]
-                # Now do column lengths
-                for k in db._n.keys():
-                    keyname = wsname + '.' + k
-                    self._n[keyname] = db._n[k]
 
     # Read a worksheet
     def read_xls_worksheet(self, ws, **kw):
