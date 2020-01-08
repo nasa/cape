@@ -123,7 +123,7 @@ class XLSFile(BaseFile):
   # =============
   # <
     # Initialization method
-    def __init__(self, fname, sheet=0, **kw):
+    def __init__(self, fname, sheet=None, **kw):
         """Initialization method
 
         :Versions:
@@ -134,6 +134,7 @@ class XLSFile(BaseFile):
         self.opts = {}
         self.cols = []
         self.n = 0
+        self._n = {}
         self.fname = None
 
         # Process options
@@ -157,12 +158,13 @@ class XLSFile(BaseFile):
   # <
    # --- Control ---
     # Reader
-    def read_xls(self, fname, sheet=0, **kw):
+    def read_xls(self, fname, sheet=None, **kw):
         r"""Read an ``.xls`` or ``.xlsx`` file
 
         :Call:
-            >>> db.read_xls(fname, sheet=0, **kw)
-            >>> db.read_xls(wb, sheet=0, **kw)
+            >>> db.read_xls(fname, sheet, **kw)
+            >>> db.read_xls(wb, sheet, **kw)
+            >>> db.read_xls(wb, **kw)
             >>> db.read_xls(ws, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
@@ -192,7 +194,9 @@ class XLSFile(BaseFile):
         # Check module
         if xlrd is None:
             raise ImportError("No module 'xlrd'")
-            
+        # Initialize ws
+        ws = None
+
         # Check type
         if isinstance(fname, xlrd.sheet.Sheet):
             # Already a worksheet
@@ -214,13 +218,74 @@ class XLSFile(BaseFile):
             elif typeutils.isstr(sheet):
                 # Get sheet by its name
                 ws = wb.sheet_by_name(sheet)
-            else:
-                # Unknown type
-                raise TypeError(
-                    "Sheet (worksheet) must be index (int) or name (str)")
+            # else:
+            #    # Unknown type
+            #    raise TypeError(
+            #        "Sheet (worksheet) must be index (int) or name (str)")
 
-        # Read worksheet
-        self.read_xls_worksheet(ws, **kw)
+        # Read worksheet if possible, else read workbook
+        if ws:
+            self.read_xls_worksheet(ws, **kw)
+        else:
+            self.read_xls_workbook(wb, **kw)
+
+    # Read a worksheet
+    def read_xls_workbook(self, wb, **kw):
+        r"""Read ``.xls`` or ``.xlsx`` workbook with multiple worksheets
+
+        :Call:
+            >>> db.read_xls_workbook(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                XLS file interface
+            *wb*: :class:`xlrd.Book`
+                Direct access to a workbook
+            *ndim*: {``0``} | ``1``
+                Dimensionality of one row of data column(s) to read
+            *skiprows*: {``None``} | :class:`int` >= 0
+                Number of rows to skip before reading data
+            *subrows*: {``None``} | :class:`int` >= 0
+                Number of rows below header row to skip
+            *skipcols*: {``None``} | :class:`int` >= 0
+                Number of columns to skip before first data column
+            *maxrows*: {``None``} | :class:`int` > *skiprows*
+                Maximum row number of data
+            *maxcols*: {``None``} | :class:`int` > *skipcols*
+                Maximum column number of data
+        :Versions:
+            * 2020-01-08 ``@jmeeroff`` : First version
+        """
+        # Get list of all worksheet names
+        wsnames = wb.sheet_names()
+        # If only one worksheet, just load it
+        # Else, loop through worksheets
+        if len(wsnames) == 1:
+            ws = wb.sheet_by_index(0)
+            self.read_xls_worksheet(ws, **kw)
+        else:
+            for i, wsname in enumerate(wsnames):
+                # Try to read worsheet do nothing if fails
+                print i
+                try:
+                    db = XLSFile(wb, sheet=i, **kw)
+                except Exception:
+                    pass
+
+                # Append local worksheet data to wb items
+                # Append ws name to column names
+                self.cols.extend([wsname+'.'+n for n in db.cols])
+                # Now assign values
+                for k in db.cols:
+                    keyname = wsname + '.' + k
+                    self[keyname] = db[k]
+                # Now do the options
+                for k in db.opts.keys():
+                    keyname = wsname + '.' + k
+                    self.opts[keyname] = db.opts[k]
+                # Now do column lengths
+                for k in db._n.keys():
+                    keyname = wsname + '.' + k
+                    self._n[keyname] = db._n[k]
 
     # Read a worksheet
     def read_xls_worksheet(self, ws, **kw):
