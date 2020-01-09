@@ -1283,6 +1283,25 @@ def _plot(xv, yv, fmt=None, **kw):
     return h
 
 
+# Move axes all the way to one side
+def move_axes(ax, axdir, margin=0.0)
+    r"""Move an axes object's plot region to one side
+
+    :Call:
+        >>> move_axes(ax, axdir, margin=0.0)
+    :Versions:
+        * 2020-01-09 ``@ddalle``: First version
+    """
+    # Import plot modules
+    import_pyplot()
+    # Get axes
+    if ax is None:
+        ax = plt.gca()
+    # Get current position
+    pos = ax.get_position().bounds
+    # Get extents occupied by labels
+
+
 # Region plot
 def fill_between(xv, ymin, ymax, **kw):
     r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
