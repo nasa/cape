@@ -263,28 +263,14 @@ class XLSFile(BaseFile):
             ws = wb.sheet_by_index(0)
             self.read_xls_worksheet(ws, **kw)
         else:
-            for i, wsname in enumerate(wsnames):
+            for wsname in wsnames:
                 # Try to read worsheet do nothing if fails
                 try:
-                    db = XLSFile(wb, sheet=i, **kw)
-                    # Append local worksheet data to wb items
-                    # Append ws name to column names
-                    self.cols.extend([wsname+'.'+n for n in db.cols])
-                    # Now assign values
-                    for k in db.cols:
-                        keyname = wsname + '.' + k
-                        self[keyname] = db[k]
-                    # Now do the options
-                    for k in db.opts.keys():
-                        keyname = wsname + '.' + k
-                        self.opts[keyname] = db.opts[k]
-                    # Now do column lengths
-                    for k in db._n.keys():
-                        keyname = wsname + '.' + k
-                        self._n[keyname] = db._n[k]
+                    self.opts['Prefix'] = wsname + '.'
+                    ws = wb.sheet_by_name(wsname)
+                    self.read_xls_worksheet(ws, **kw)
                 except Exception:
                     pass
-
 
     # Read a worksheet
     def read_xls_worksheet(self, ws, **kw):
@@ -316,6 +302,7 @@ class XLSFile(BaseFile):
         # Check worksheet type
         ndim = kw.get("NDim", kw.get("ndim", 0))
         # Filter output
+        # Add try-catch for scalar or array
         if ndim == 0:
             # Columns of scalars
             self.read_xls_ws_scalar(ws, **kw)
