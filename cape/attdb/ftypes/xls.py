@@ -218,11 +218,7 @@ class XLSFile(BaseFile):
             elif typeutils.isstr(sheet):
                 # Get sheet by its name
                 ws = wb.sheet_by_name(sheet)
-            # else:
-            #    # Unknown type
-            #    raise TypeError(
-            #        "Sheet (worksheet) must be index (int) or name (str)")
-
+            
         # Read worksheet if possible, else read workbook
         if ws:
             self.read_xls_worksheet(ws, **kw)
@@ -300,15 +296,28 @@ class XLSFile(BaseFile):
             * 2019-12-26 ``@ddalle``: Support "array" worksheets
         """
         # Check worksheet type
-        ndim = kw.get("NDim", kw.get("ndim", 0))
+        ndim = kw.get("NDim", kw.get("ndim", None))
         # Filter output
-        # Add try-catch for scalar or array
         if ndim == 0:
             # Columns of scalars
             self.read_xls_ws_scalar(ws, **kw)
         elif ndim == 1:
             # Each row is data point of one col
             self.read_xls_ws_array(ws, **kw)
+        else:
+            # No ndim is given, so well try some things first
+            try:
+                # Try reading as Columns of Scalars
+                self.read_xls_ws_scalar(ws, **kw)
+            except Exception:
+                # Data is probably a 2D array, but need to deterine if
+                # Rows/Columns need to be skipped
+                try:
+                    # Try reading as scalar array outright
+                    self.read_xls_ws_array(ws, **kw)
+                except ValueError:
+                    # Skip one column because skipcols probably not defined
+                    self.read_xls_ws_array(ws, **dict(kw, skipcols=1))
 
    # --- Scalars ---
     # Read a worksheet
