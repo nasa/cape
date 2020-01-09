@@ -396,110 +396,11 @@ def axes_adjust(fig=None, **kw):
     # Figure out subplot column and row index from counts (0-based)
     subplot_j = (subplot_i - 1) // subplot_n
     subplot_k = (subplot_i - 1) % subplot_n
-    # Default absolute margins
-    # Get axes limits (for checking relevance of tick labels)
-    xmin, xmax = ax.get_xlim()
-    ymin, ymax = ax.get_ylim()
-    # Draw the figure once to ensure the extents can be calculated
-    ax.draw(fig.canvas.get_renderer())
-    # Get pixel count for axes extents
-    ia_ax, ja_ax, iw_ax, jw_ax = ax.get_window_extent().bounds
-    ib_ax = ia_ax + iw_ax
-    jb_ax = ja_ax + jw_ax
-    # Get axis label extents
-    ia_x, ja_x, iw_x, jw_x = ax.xaxis.label.get_window_extent().bounds
-    ia_y, ja_y, iw_y, jw_y = ax.yaxis.label.get_window_extent().bounds
-    # Size of figure in pixels
-    _, _, ifig, jfig = fig.get_window_extent().bounds
-    # Initialize bounds of labels and axes, if the extent is nonzero
-    if iw_x*jw_x > 0:
-        # Get axes bounds
-        ib_x = ia_x + iw_x
-        jb_x = ja_x + jw_x
-        # Note: could be logical here and just use xlabel to set bottom
-        # bounds, but why not be conservative?
-        ia = min(ia_ax, ia_x)
-        ib = max(ib_ax, ib_x)
-        ja = min(ja_ax, ja_x)
-        jb = max(jb_ax, jb_x)
-    else:
-        # Don't count null label toward margins
-        ia, ib, ja, jb = ia_ax, ib_ax, ja_ax, jb_ax
-    # Process ylabel
-    if iw_y*jw_y > 0:
-        # Get axes bounds
-        ib_y = ia_y + iw_y
-        jb_y = ja_y + jw_y
-        # Note: could be logical here and just use xlabel to set bottom
-        # bounds, but why not be conservative?
-        ia = min(ia, ia_y)
-        ib = max(ib, ib_y)
-        ja = min(ja, ja_y)
-        jb = max(jb, jb_y)
-    # Loop through xtick labels
-    # Does this get ticks above?
-    for tick in ax.get_xticklabels():
-        # Get position in data coordinates
-        xtick, _ = tick.get_position()
-        # Check if it's clipped
-        if (xtick < xmin) or (xtick > xmax):
-            continue
-        # Get window extents
-        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
-        # Check for null tick
-        if iw_t*jw_t == 0.0:
-            continue
-        # Translate to actual bounds
-        ib_t = ia_t + iw_t
-        jb_t = ja_t + jw_t
-        # Update bounds
-        ia = min(ia, ia_t)
-        ib = max(ib, ib_t)
-        ja = min(ja, ja_t)
-        jb = max(jb, jb_t)
-    # Loop through ytick labels
-    for tick in ax.get_yticklabels():
-        # Get position in data coordinates
-        _, ytick = tick.get_position()
-        # Check if it's clipped
-        if (ytick < ymin) or (ytick > ymax):
-            continue
-        # Get window extents
-        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
-        # Check for null tick
-        if iw_t*jw_t == 0.0:
-            continue
-        # Translate to actual bounds
-        ib_t = ia_t + iw_t
-        jb_t = ja_t + jw_t
-        # Update bounds
-        ia = min(ia, ia_t)
-        ib = max(ib, ib_t)
-        ja = min(ja, ja_t)
-        jb = max(jb, jb_t)
-    # Deal with silly scaling factors for both axes
-    for tick in [ax.xaxis.offsetText, ax.yaxis.offsetText]:
-        # Get window extents
-        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
-        # Check for null tick
-        if iw_t*jw_t == 0.0:
-            continue
-        # Translate to actual bounds
-        ib_t = ia_t + iw_t
-        jb_t = ja_t + jw_t
-        # Update bounds
-        ia = min(ia, ia_t)
-        ib = max(ib, ib_t)
-        ja = min(ja, ja_t)
-        jb = max(jb, jb_t)
-    # Automated based on ticklabels and axis labels
-    labelw_l = (ia_ax - ia) / ifig
-    labelh_b = (ja_ax - ja) / jfig
-    labelw_r = 1.0 - (ib - ib_ax) / ifig
-    labelh_t = 1.0 - (jb - jb_ax) / ifig
+    # Get sizes of all tick and axes labels
+    labelw_l, labelh_b, labelw_r, labelh_t = get_axes_label_margins(ax)
     # Process width and height
-    ax_w = labelw_r - labelw_l
-    ax_h = labelh_t - labelh_b
+    ax_w = 1.0 - labelw_r - labelw_l
+    ax_h = 1.0 - labelh_t - labelh_b
     # Process row and column space available
     ax_rowh = ax_h / float(subplot_m)
     ax_colw = ax_w / float(subplot_n)
@@ -555,6 +456,309 @@ def axes_adjust(fig=None, **kw):
         ax.set_position([xmin, ymin, xmax-xmin, adj_t-ymin])
     # Output
     return ax
+
+
+# Get extents of axes in figure fraction coordinates
+def get_axes_plot_extents(ax=None):
+    r"""Get extents of axes plot in figure fraction coordinates
+
+    :Call:
+        >>> xmin, ymin, xmax, ymax = get_axes_plot_extents(ax)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Axes handle (defaults to ``plt.gca()``)
+    :Outputs:
+        *xmin*: :class:`float`
+            Horizontal coord of plot region left edge, 0 is figure left
+        *ymin*: :class:`float`
+            Vertical coord of plot region bottom edge, 0 is fig bottom
+        *xmax*: :class:`float`
+            Horizontal coord of plot region right edge, 1 is fig right
+        *ymax*: :class:`float`
+            Vertical coord of plot region top edge, 1 is figure's top
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Import modules
+    import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Get pixel count for axes extents
+    ia, ja, ib, jb = _get_axes_extents(ax)
+    # Convert to fractions
+    xmin = ia / ifig
+    ymin = ja / jfig
+    xmax = ib / ifig
+    ymax = jb / jfig
+    # Output
+    return xmin, ymin, xmax, ymax
+
+
+# Get extents of axes with labels
+def get_axes_full_extents(ax=None):
+    r"""Get extents of axes including labels in figure fraction coords
+
+    :Call:
+        >>> xmin, ymin, xmax, ymax = get_axes_full_extents(ax)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Axes handle (defaults to ``plt.gca()``)
+    :Outputs:
+        *xmin*: :class:`float`
+            Horizontal coord of plot region left edge, 0 is figure left
+        *ymin*: :class:`float`
+            Vertical coord of plot region bottom edge, 0 is fig bottom
+        *xmax*: :class:`float`
+            Horizontal coord of plot region right edge, 1 is fig right
+        *ymax*: :class:`float`
+            Vertical coord of plot region top edge, 1 is figure's top
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Import modules
+    import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Get pixel count for axes extents
+    ia, ja, ib, jb = _get_axes_full_extents(ax)
+    # Convert to fractions
+    xmin = ia / ifig
+    ymin = ja / jfig
+    xmax = ib / ifig
+    ymax = jb / jfig
+    # Output
+    return xmin, ymin, xmax, ymax
+
+
+# Get extents of axes with labels
+def get_axes_label_margins(ax=None):
+    r"""Get margins occupied by axis and tick labels on axes' four sides
+
+    :Call:
+        >>> wl, hb, wr, ht = get_axes_label_margins(ax)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Axes handle (defaults to ``plt.gca()``)
+    :Outputs:
+        *wl*: :class:`float`
+            Figure fraction beyond plot of labels on left
+        *hb*: :class:`float`
+            Figure fraction beyond plot of labels below
+        *wr*: :class:`float`
+            Figure fraction beyond plot of labels on right
+        *ht*: :class:`float`
+            Figure fraction beyond plot of labels above
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Import modules
+    import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Get pixel count for axes extents
+    wa, ha, wb, hb = _get_axes_label_margins(ax)
+    # Convert to fractions
+    margin_l = wa / ifig
+    margin_b = ha / jfig
+    margin_r = wb / ifig
+    margin_t = hb / jfig
+    # Output
+    return margin_l, margin_b, margin_r, margin_t
+
+
+# Get extents of axes in pixels
+def _get_axes_plot_extents(ax):
+    r"""Get extents of axes plot in figure fraction coordinates
+
+    :Call:
+        >>> ia, ja, ib, jb = _get_axes_plot_extents(ax)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+    :Outputs:
+        *ia*: :class:`float`
+            Pixel count of plot region left edge, 0 is figure left
+        *ja*: :class:`float`
+            Pixel count of plot region bottom edge, 0 is fig bottom
+        *ib*: :class:`float`
+            Pixel count of plot region right edge
+        *jb*: :class:`float`
+            Pixel count of plot region top edge
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Get pixel count for axes extents
+    ia, ja, iw, jh = ax.get_window_extent().bounds
+    # Add width and height
+    ib = ia + iw
+    jb = ja + jh
+    # Output
+    return ia, ja, ib, jb
+
+
+# Get extents of axes with labels
+def _get_axes_full_extents(ax):
+    r"""Get extents of axes including labels in pixels
+
+    :Call:
+        >>> ia, ja, ib, jb = _get_axes_full_extents(ax)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+    :Outputs:
+        *ia*: :class:`float`
+            Pixel count of plot plus labels left edge
+        *ja*: :class:`float`
+            Pixel count of plot plus labels bottom edge
+        *ib*: :class:`float`
+            Pixel count of plot plus labels right edge
+        *jb*: :class:`float`
+            Pixel count of plot plus labels top edge
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Get pixel count for axes extents
+    ia, ja, ib, jb = _get_axes_plot_extents(ax)
+    # Get plot window bounds to check for valid tick labels
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    # Get axis label extents
+    ia_x, ja_x, iw_x, jw_x = ax.xaxis.label.get_window_extent().bounds
+    ia_y, ja_y, iw_y, jw_y = ax.yaxis.label.get_window_extent().bounds
+    # Initialize bounds of labels and axes, if the extent is nonzero
+    if iw_x*jw_x > 0:
+        # Get axes bounds
+        ib_x = ia_x + iw_x
+        jb_x = ja_x + jw_x
+        # Note: could be logical here and just use xlabel to set bottom
+        # bounds, but why not be conservative?
+        ia = min(ia, ia_x)
+        ib = max(ib, ib_x)
+        ja = min(ja, ja_x)
+        jb = max(jb, jb_x)
+    # Process ylabel
+    if iw_y*jw_y > 0:
+        # Get axes bounds
+        ib_y = ia_y + iw_y
+        jb_y = ja_y + jw_y
+        # Note: could be logical here and just use xlabel to set bottom
+        # bounds, but why not be conservative?
+        ia = min(ia, ia_y)
+        ib = max(ib, ib_y)
+        ja = min(ja, ja_y)
+        jb = max(jb, jb_y)
+    # Loop through xtick labels
+    for tick in ax.get_xticklabels():
+        # Get position in data coordinates
+        xtick, _ = tick.get_position()
+        # Check if it's clipped
+        if (xtick < xmin) or (xtick > xmax):
+            continue
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
+    # Loop through ytick labels
+    for tick in ax.get_yticklabels():
+        # Get position in data coordinates
+        _, ytick = tick.get_position()
+        # Check if it's clipped
+        if (ytick < ymin) or (ytick > ymax):
+            continue
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
+    # Deal with silly scaling factors for both axes
+    for tick in [ax.xaxis.offsetText, ax.yaxis.offsetText]:
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
+    # Output
+    return ia, ja, ib, jb
+
+
+# Get extents of axes with labels
+def _get_axes_label_margins(ax):
+    r"""Get pixel counts of tick and axes labels on all four sides
+
+    :Call:
+        >>> wa, ha, wb, hb = _get_axes_label_margins(ax)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+    :Outputs:
+        *wa*: :class:`float`
+            Pixel count beyond plot of labels on left
+        *ha*: :class:`float`
+            Pixel count beyond plot of labels below
+        *wb*: :class:`float`
+            Pixel count beyond plot of labels on right
+        *hb*: :class:`float`
+            Pixel count beyond plot of labels above
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Get pixel count for plot extents
+    ia_ax, ja_ax, ib_ax, jb_ax = _get_axes_plot_extents(ax)
+    # Get pixel count for plot extents
+    ia, ja, ib, jb = _get_axes_full_extents(ax)
+    # Margins
+    wa = ia_ax - ia
+    ha = ja_ax - ja
+    wb = ib - ib_ax
+    hb = jb - jb_ax
+    # Output
+    return wa, ha, wb, hb
 
 
 # Primary Histogram plotter
