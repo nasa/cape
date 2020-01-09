@@ -396,110 +396,11 @@ def axes_adjust(fig=None, **kw):
     # Figure out subplot column and row index from counts (0-based)
     subplot_j = (subplot_i - 1) // subplot_n
     subplot_k = (subplot_i - 1) % subplot_n
-    # Default absolute margins
-    # Get axes limits (for checking relevance of tick labels)
-    xmin, xmax = ax.get_xlim()
-    ymin, ymax = ax.get_ylim()
-    # Draw the figure once to ensure the extents can be calculated
-    ax.draw(fig.canvas.get_renderer())
-    # Get pixel count for axes extents
-    ia_ax, ja_ax, iw_ax, jw_ax = ax.get_window_extent().bounds
-    ib_ax = ia_ax + iw_ax
-    jb_ax = ja_ax + jw_ax
-    # Get axis label extents
-    ia_x, ja_x, iw_x, jw_x = ax.xaxis.label.get_window_extent().bounds
-    ia_y, ja_y, iw_y, jw_y = ax.yaxis.label.get_window_extent().bounds
-    # Size of figure in pixels
-    _, _, ifig, jfig = fig.get_window_extent().bounds
-    # Initialize bounds of labels and axes, if the extent is nonzero
-    if iw_x*jw_x > 0:
-        # Get axes bounds
-        ib_x = ia_x + iw_x
-        jb_x = ja_x + jw_x
-        # Note: could be logical here and just use xlabel to set bottom
-        # bounds, but why not be conservative?
-        ia = min(ia_ax, ia_x)
-        ib = max(ib_ax, ib_x)
-        ja = min(ja_ax, ja_x)
-        jb = max(jb_ax, jb_x)
-    else:
-        # Don't count null label toward margins
-        ia, ib, ja, jb = ia_ax, ib_ax, ja_ax, jb_ax
-    # Process ylabel
-    if iw_y*jw_y > 0:
-        # Get axes bounds
-        ib_y = ia_y + iw_y
-        jb_y = ja_y + jw_y
-        # Note: could be logical here and just use xlabel to set bottom
-        # bounds, but why not be conservative?
-        ia = min(ia, ia_y)
-        ib = max(ib, ib_y)
-        ja = min(ja, ja_y)
-        jb = max(jb, jb_y)
-    # Loop through xtick labels
-    # Does this get ticks above?
-    for tick in ax.get_xticklabels():
-        # Get position in data coordinates
-        xtick, _ = tick.get_position()
-        # Check if it's clipped
-        if (xtick < xmin) or (xtick > xmax):
-            continue
-        # Get window extents
-        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
-        # Check for null tick
-        if iw_t*jw_t == 0.0:
-            continue
-        # Translate to actual bounds
-        ib_t = ia_t + iw_t
-        jb_t = ja_t + jw_t
-        # Update bounds
-        ia = min(ia, ia_t)
-        ib = max(ib, ib_t)
-        ja = min(ja, ja_t)
-        jb = max(jb, jb_t)
-    # Loop through ytick labels
-    for tick in ax.get_yticklabels():
-        # Get position in data coordinates
-        _, ytick = tick.get_position()
-        # Check if it's clipped
-        if (ytick < ymin) or (ytick > ymax):
-            continue
-        # Get window extents
-        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
-        # Check for null tick
-        if iw_t*jw_t == 0.0:
-            continue
-        # Translate to actual bounds
-        ib_t = ia_t + iw_t
-        jb_t = ja_t + jw_t
-        # Update bounds
-        ia = min(ia, ia_t)
-        ib = max(ib, ib_t)
-        ja = min(ja, ja_t)
-        jb = max(jb, jb_t)
-    # Deal with silly scaling factors for both axes
-    for tick in [ax.xaxis.offsetText, ax.yaxis.offsetText]:
-        # Get window extents
-        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
-        # Check for null tick
-        if iw_t*jw_t == 0.0:
-            continue
-        # Translate to actual bounds
-        ib_t = ia_t + iw_t
-        jb_t = ja_t + jw_t
-        # Update bounds
-        ia = min(ia, ia_t)
-        ib = max(ib, ib_t)
-        ja = min(ja, ja_t)
-        jb = max(jb, jb_t)
-    # Automated based on ticklabels and axis labels
-    labelw_l = (ia_ax - ia) / ifig
-    labelh_b = (ja_ax - ja) / jfig
-    labelw_r = 1.0 - (ib - ib_ax) / ifig
-    labelh_t = 1.0 - (jb - jb_ax) / ifig
+    # Get sizes of all tick and axes labels
+    labelw_l, labelh_b, labelw_r, labelh_t = get_axes_label_margins(ax)
     # Process width and height
-    ax_w = labelw_r - labelw_l
-    ax_h = labelh_t - labelh_b
+    ax_w = 1.0 - labelw_r - labelw_l
+    ax_h = 1.0 - labelh_t - labelh_b
     # Process row and column space available
     ax_rowh = ax_h / float(subplot_m)
     ax_colw = ax_w / float(subplot_n)
@@ -555,6 +456,486 @@ def axes_adjust(fig=None, **kw):
         ax.set_position([xmin, ymin, xmax-xmin, adj_t-ymin])
     # Output
     return ax
+
+
+# Get extents of axes in figure fraction coordinates
+def get_axes_plot_extents(ax=None):
+    r"""Get extents of axes plot in figure fraction coordinates
+
+    :Call:
+        >>> xmin, ymin, xmax, ymax = get_axes_plot_extents(ax)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Axes handle (defaults to ``plt.gca()``)
+    :Outputs:
+        *xmin*: :class:`float`
+            Horizontal coord of plot region left edge, 0 is figure left
+        *ymin*: :class:`float`
+            Vertical coord of plot region bottom edge, 0 is fig bottom
+        *xmax*: :class:`float`
+            Horizontal coord of plot region right edge, 1 is fig right
+        *ymax*: :class:`float`
+            Vertical coord of plot region top edge, 1 is figure's top
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Import modules
+    import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Get pixel count for axes extents
+    ia, ja, ib, jb = _get_axes_extents(ax)
+    # Convert to fractions
+    xmin = ia / ifig
+    ymin = ja / jfig
+    xmax = ib / ifig
+    ymax = jb / jfig
+    # Output
+    return xmin, ymin, xmax, ymax
+
+
+# Get extents of axes with labels
+def get_axes_full_extents(ax=None):
+    r"""Get extents of axes including labels in figure fraction coords
+
+    :Call:
+        >>> xmin, ymin, xmax, ymax = get_axes_full_extents(ax)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Axes handle (defaults to ``plt.gca()``)
+    :Outputs:
+        *xmin*: :class:`float`
+            Horizontal coord of plot region left edge, 0 is figure left
+        *ymin*: :class:`float`
+            Vertical coord of plot region bottom edge, 0 is fig bottom
+        *xmax*: :class:`float`
+            Horizontal coord of plot region right edge, 1 is fig right
+        *ymax*: :class:`float`
+            Vertical coord of plot region top edge, 1 is figure's top
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Import modules
+    import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Get pixel count for axes extents
+    ia, ja, ib, jb = _get_axes_full_extents(ax)
+    # Convert to fractions
+    xmin = ia / ifig
+    ymin = ja / jfig
+    xmax = ib / ifig
+    ymax = jb / jfig
+    # Output
+    return xmin, ymin, xmax, ymax
+
+
+# Get extents of axes with labels
+def get_axes_label_margins(ax=None):
+    r"""Get margins occupied by axis and tick labels on axes' four sides
+
+    :Call:
+        >>> wl, hb, wr, ht = get_axes_label_margins(ax)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Axes handle (defaults to ``plt.gca()``)
+    :Outputs:
+        *wl*: :class:`float`
+            Figure fraction beyond plot of labels on left
+        *hb*: :class:`float`
+            Figure fraction beyond plot of labels below
+        *wr*: :class:`float`
+            Figure fraction beyond plot of labels on right
+        *ht*: :class:`float`
+            Figure fraction beyond plot of labels above
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Import modules
+    import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Get pixel count for axes extents
+    wa, ha, wb, hb = _get_axes_label_margins(ax)
+    # Convert to fractions
+    margin_l = wa / ifig
+    margin_b = ha / jfig
+    margin_r = wb / ifig
+    margin_t = hb / jfig
+    # Output
+    return margin_l, margin_b, margin_r, margin_t
+
+
+# Get extents of axes in pixels
+def _get_axes_plot_extents(ax):
+    r"""Get extents of axes plot in figure fraction coordinates
+
+    :Call:
+        >>> ia, ja, ib, jb = _get_axes_plot_extents(ax)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+    :Outputs:
+        *ia*: :class:`float`
+            Pixel count of plot region left edge, 0 is figure left
+        *ja*: :class:`float`
+            Pixel count of plot region bottom edge, 0 is fig bottom
+        *ib*: :class:`float`
+            Pixel count of plot region right edge
+        *jb*: :class:`float`
+            Pixel count of plot region top edge
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Get pixel count for axes extents
+    ia, ja, iw, jh = ax.get_window_extent().bounds
+    # Add width and height
+    ib = ia + iw
+    jb = ja + jh
+    # Output
+    return ia, ja, ib, jb
+
+
+# Get extents of axes with labels
+def _get_axes_full_extents(ax):
+    r"""Get extents of axes including labels in pixels
+
+    :Call:
+        >>> ia, ja, ib, jb = _get_axes_full_extents(ax)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+    :Outputs:
+        *ia*: :class:`float`
+            Pixel count of plot plus labels left edge
+        *ja*: :class:`float`
+            Pixel count of plot plus labels bottom edge
+        *ib*: :class:`float`
+            Pixel count of plot plus labels right edge
+        *jb*: :class:`float`
+            Pixel count of plot plus labels top edge
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Get pixel count for axes extents
+    ia, ja, ib, jb = _get_axes_plot_extents(ax)
+    # Get plot window bounds to check for valid tick labels
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    # Get axis label extents
+    ia_x, ja_x, iw_x, jw_x = ax.xaxis.label.get_window_extent().bounds
+    ia_y, ja_y, iw_y, jw_y = ax.yaxis.label.get_window_extent().bounds
+    # Initialize bounds of labels and axes, if the extent is nonzero
+    if iw_x*jw_x > 0:
+        # Get axes bounds
+        ib_x = ia_x + iw_x
+        jb_x = ja_x + jw_x
+        # Note: could be logical here and just use xlabel to set bottom
+        # bounds, but why not be conservative?
+        ia = min(ia, ia_x)
+        ib = max(ib, ib_x)
+        ja = min(ja, ja_x)
+        jb = max(jb, jb_x)
+    # Process ylabel
+    if iw_y*jw_y > 0:
+        # Get axes bounds
+        ib_y = ia_y + iw_y
+        jb_y = ja_y + jw_y
+        # Note: could be logical here and just use xlabel to set bottom
+        # bounds, but why not be conservative?
+        ia = min(ia, ia_y)
+        ib = max(ib, ib_y)
+        ja = min(ja, ja_y)
+        jb = max(jb, jb_y)
+    # Loop through xtick labels
+    for tick in ax.get_xticklabels():
+        # Get position in data coordinates
+        xtick, _ = tick.get_position()
+        # Check if it's clipped
+        if (xtick < xmin) or (xtick > xmax):
+            continue
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
+    # Loop through ytick labels
+    for tick in ax.get_yticklabels():
+        # Get position in data coordinates
+        _, ytick = tick.get_position()
+        # Check if it's clipped
+        if (ytick < ymin) or (ytick > ymax):
+            continue
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
+    # Deal with silly scaling factors for both axes
+    for tick in [ax.xaxis.offsetText, ax.yaxis.offsetText]:
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = tick.get_window_extent().bounds
+        # Check for null tick
+        if iw_t*jw_t == 0.0:
+            continue
+        # Translate to actual bounds
+        ib_t = ia_t + iw_t
+        jb_t = ja_t + jw_t
+        # Update bounds
+        ia = min(ia, ia_t)
+        ib = max(ib, ib_t)
+        ja = min(ja, ja_t)
+        jb = max(jb, jb_t)
+    # Output
+    return ia, ja, ib, jb
+
+
+# Get extents of axes with labels
+def _get_axes_label_margins(ax):
+    r"""Get pixel counts of tick and axes labels on all four sides
+
+    :Call:
+        >>> wa, ha, wb, hb = _get_axes_label_margins(ax)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+    :Outputs:
+        *wa*: :class:`float`
+            Pixel count beyond plot of labels on left
+        *ha*: :class:`float`
+            Pixel count beyond plot of labels below
+        *wb*: :class:`float`
+            Pixel count beyond plot of labels on right
+        *hb*: :class:`float`
+            Pixel count beyond plot of labels above
+    :Versions:
+        * 2020-01-08 ``@ddalle``: First version
+    """
+    # Get pixel count for plot extents
+    ia_ax, ja_ax, ib_ax, jb_ax = _get_axes_plot_extents(ax)
+    # Get pixel count for plot extents
+    ia, ja, ib, jb = _get_axes_full_extents(ax)
+    # Margins
+    wa = ia_ax - ia
+    ha = ja_ax - ja
+    wb = ib - ib_ax
+    hb = jb - jb_ax
+    # Output
+    return wa, ha, wb, hb
+
+
+# Show an image
+def imshow(png, **kw):
+    r"""Display an image
+
+    :Call:
+        >>> img = imshow(fpng, **kw)
+        >>> img = imshow(png, **kw)
+    :Inputs:
+        *fpng*: :class:`str`
+            Name of PNG file
+        *png*: :class:`np.ndarray`
+            Image array from :func:`plt.imread`
+        *ImageXMin*: {``0.0``} | :class:`float`
+            Coordinate for left edge of image
+        *ImageXMax*: {``None``} | :class:`float`
+            Coordinate for right edge of image
+        *ImageXCenter*: {``None``} | :class:`float`
+            Horizontal center coord if *x* edges not specified
+        *ImageYMin*: {``None``} | :class:`float`
+            Coordinate for bottom edge of image
+        *ImageYMax*: {``None``} | :class:`float`
+            Coordinate for top edge of image
+        *ImageYCenter*: {``0.0``} | :class:`float`
+            Vertical center coord if *y* edges not specified
+        *ImageExtent*: {``None``} | :class:`tuple` | :class:`list`
+            Spec for *ImageXMin*, *ImageXMax*, *ImageYMin*, *ImageYMax*
+    :Outputs:
+        *img*: :class:`matplotlib.image.AxesImage`
+            Image handle
+    :Versions:
+        * 2020-01-09 ``@ddalle``: First version
+    """
+    # Make sure modules are loaded
+    import_pyplot()
+    # Process opts
+    opts = MPLOpts(**kw)
+    # Get opts for imshow
+    kw_imshow = opts.imshow_options()
+    # Use basic function
+    return _imshow(png, **kw_imshow)
+
+
+# Show an image
+def _imshow(png, **kw):
+    r"""Display an image
+
+    :Call:
+        >>> img = _imshow(fpng, **kw)
+        >>> img = _imshow(png, **kw)
+    :Inputs:
+        *fpng*: :class:`str`
+            Name of PNG file
+        *png*: :class:`np.ndarray`
+            Image array from :func:`plt.imread`
+        *ImageXMin*: {``0.0``} | :class:`float`
+            Coordinate for left edge of image
+        *ImageXMax*: {``None``} | :class:`float`
+            Coordinate for right edge of image
+        *ImageXCenter*: {``None``} | :class:`float`
+            Horizontal center coord if *x* edges not specified
+        *ImageYMin*: {``None``} | :class:`float`
+            Coordinate for bottom edge of image
+        *ImageYMax*: {``None``} | :class:`float`
+            Coordinate for top edge of image
+        *ImageYCenter*: {``0.0``} | :class:`float`
+            Vertical center coord if *y* edges not specified
+        *ImageExtent*: {``None``} | :class:`tuple` | :class:`list`
+            Spec for *ImageXMin*, *ImageXMax*, *ImageYMin*, *ImageYMax*
+    :Outputs:
+        *img*: :class:`matplotlib.image.AxesImage`
+            Image handle
+    :Versions:
+        * 2020-01-09 ``@ddalle``: First version
+    """
+    # Process input
+    if typeutils.isstr(png):
+        # Check if file exists
+        if not os.path.isfile(png):
+            raise SystemError("No PNG file '%s'" % png)
+        # Read it
+        png = plt.imread(png)
+    elif not isinstance(png, np.ndarray):
+        # Bad type
+        raise TypeError("Image array must be NumPy array")
+    elif png.nd not in [2, 3]:
+        # Bad dimension
+        raise ValueError("Image array must be 2D or 3D (got %i dims)" % png.nd)
+    # Process image size
+    png_rows = png.shape[0]
+    png_cols = png.shape[1]
+    # Aspect ratio
+    png_ar = float(png_rows) / float(png_cols)
+    # Process input coordinates
+    xmin = kw.get("ImageXMin")
+    xmax = kw.get("ImageXMax")
+    ymin = kw.get("ImageYMin")
+    ymax = kw.get("ImageYMax")
+    # Middle coordinates if filling in
+    xmid = kw.get("ImageXCenter")
+    ymid = kw.get("ImageYCenter")
+    # Check both axes if either side is specified
+    x_nospec = (xmin is None) and (xmax is None)
+    y_nospec = (ymin is None) and (ymax is None)
+    # Fill in defaults
+    if x_nospec and y_nospec:
+        # All defaults
+        extent = (0, png_cols, png_rows, 0)
+    elif y_nospec:
+        # Check which side(s) specified
+        if xmin is None:
+            # Read *xmin* from right edge
+            xmin = xmax - png_cols
+        elif xmax is None:
+            # Read *xmax* from left edge
+            xmax = xmin + png_cols
+        # Specify default *y* values
+        yhalf = 0.5 * (xmax - xmin) * png_ar
+        # Create *y* window
+        if ymid is None:
+            # Use ``0``
+            ymin = -yhalf
+            ymax = yhalf
+        else:
+            # Use center
+            ymin = ymid - yhalf
+            ymax = ymid + yhalf
+        # Extents
+        extent = (xmin, xmax, ymin, ymax)
+    elif x_nospec:
+        # Check which side(s) specified
+        if ymin is None:
+            # Read *xmin* from right edge
+            ymin = ymax - png_rows
+        elif xmax is None:
+            # Read *xmax* from left edge
+            ymax = ymin + png_rows
+        # Scale *x* width
+        xwidth = (ymax - ymin) / png_ar
+        # Check for a center
+        if xmid is None:
+            # Use ``0`` for left edge
+            xmin = 0.0
+            xmax = xwidth
+        else:
+            # Use specified center
+            xmin = xmid - 0.5*xwidth
+            xmax = xmid + 0.5*xwidth
+        # Extents
+        extent = (xmin, xmax, ymin, ymax)
+    else:
+        # Check which side(s) of *x* is(are) specified
+        if xmin is None:
+            # Read *xmin* from right edge
+            xmin = xmax - png_cols
+        elif xmax is None:
+            # Read *xmax* from left edge
+            xmax = xmin + png_cols
+        # Check which side(s) of *y* is(are) specified
+        if ymin is None:
+            # Read *xmin* from right edge
+            ymin = ymax - png_rows
+        elif xmax is None:
+            # Read *xmax* from left edge
+            ymax = ymin + png_rows
+        # Extents
+        extent = (xmin, xmax, ymin, ymax)
+    # Check for directly specified width
+    kw_extent = kw.get("ImageExtent")
+    # Override ``None``
+    if kw_extent is not None:
+        extent = kw_extent
+    # Show the image
+    img = plt.imshow(png, extent=extent)
+    # Output
+    return img
 
 
 # Primary Histogram plotter
@@ -900,6 +1281,25 @@ def _plot(xv, yv, fmt=None, **kw):
         h = plt.plot(xv, yv, **kw_p)
     # Output
     return h
+
+
+# Move axes all the way to one side
+def move_axes(ax, axdir, margin=0.0)
+    r"""Move an axes object's plot region to one side
+
+    :Call:
+        >>> move_axes(ax, axdir, margin=0.0)
+    :Versions:
+        * 2020-01-09 ``@ddalle``: First version
+    """
+    # Import plot modules
+    import_pyplot()
+    # Get axes
+    if ax is None:
+        ax = plt.gca()
+    # Get current position
+    pos = ax.get_position().bounds
+    # Get extents occupied by labels
 
 
 # Region plot
@@ -1886,7 +2286,7 @@ def errorbar_to_minmax(yv, yerr):
 
 # Function to automatically get inclusive data limits.
 def get_ylim(ax, pad=0.05):
-    """Calculate appropriate *y*-limits to include all lines in a plot
+    r"""Calculate appropriate *y*-limits to include all lines in a plot
 
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
     :class:`matplotlib.collections.PolyCollection` are checked.
@@ -1907,7 +2307,7 @@ def get_ylim(ax, pad=0.05):
         * 2015-07-06 ``@ddalle``: First version
         * 2019-03-07 ``@ddalle``: Added ``"LineCollection"``
     """
-    # Initialize limits.
+    # Initialize limits
     ymin = np.inf
     ymax = -np.inf
     # Loop through all children of the input axes.
@@ -1930,18 +2330,25 @@ def get_ylim(ax, pad=0.05):
                 ymax = max(ymax, max(P.vertices[:, 1]))
         elif t in ["Rectangle"]:
             # Skip if invisible
-            if h.axes is None: continue
+            if h.axes is None:
+                continue
             # Get bounding box
             bbox = h.get_bbox().extents
             # Combine limits
             ymin = min(ymin, bbox[1])
             ymax = max(ymax, bbox[3])
+        elif t in ["AxesImage"]:
+            # Get bounds
+            bbox = h.get_extent()
+            # Update limits
+            xmin = min(xmin, min(bbox[2], bbox[3]))
+            xmax = max(xmax, max(bbox[2], bbox[3]))
     # Check for identical values
     if ymax - ymin <= 0.1*pad:
         # Expand by manual amount
         ymax += pad*abs(ymax)
         ymin -= pad*abs(ymin)
-    # Add padding.
+    # Add padding
     yminv = (1+pad)*ymin - pad*ymax
     ymaxv = (1+pad)*ymax - pad*ymin
     # Output
@@ -1950,7 +2357,7 @@ def get_ylim(ax, pad=0.05):
 
 # Function to automatically get inclusive data limits.
 def get_xlim(ax, pad=0.05):
-    """Calculate appropriate *x*-limits to include all lines in a plot
+    r"""Calculate appropriate *x*-limits to include all lines in a plot
 
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
     checked.
@@ -1971,7 +2378,7 @@ def get_xlim(ax, pad=0.05):
         * 2015-07-06 ``@ddalle``: First version
         * 2019-03-07 ``@ddalle``: Added ``"LineCollection"``
     """
-    # Initialize limits.
+    # Initialize limits
     xmin = np.inf
     xmax = -np.inf
     # Loop through all children of the input axes.
@@ -2000,12 +2407,18 @@ def get_xlim(ax, pad=0.05):
             # Combine limits
             xmin = min(xmin, bbox[0])
             xmax = max(xmax, bbox[2])
+        elif t in ["AxesImage"]:
+            # Get bounds
+            bbox = h.get_extent()
+            # Update limits
+            xmin = min(xmin, min(bbox[0], bbox[1]))
+            xmax = max(xmax, max(bbox[0], bbox[1]))
     # Check for identical values
     if xmax - xmin <= 0.1*pad:
         # Expand by manual amount
         xmax += pad*abs(xmax)
         xmin -= pad*abs(xmin)
-    # Add padding.
+    # Add padding
     xminv = (1+pad)*xmin - pad*xmax
     xmaxv = (1+pad)*xmax - pad*xmin
     # Output
@@ -2137,6 +2550,13 @@ class MPLOpts(dict):
         "Grid",
         "GridOptions",
         "GridStyle",
+        "ImageExtent",
+        "ImageXCenter",
+        "ImageXMax",
+        "ImageXMin",
+        "ImageYCenter",
+        "ImageYMax",
+        "ImageYMin",
         "Index",
         "Label",
         "LeftSpine",
@@ -2351,6 +2771,15 @@ class MPLOpts(dict):
         "PlotLineStyle",
         "PlotLineWidth",
     ]
+    _optlist_imshow = [
+        "ImageXMin",
+        "ImageXMax",
+        "ImageXCenter",
+        "ImageYMin",
+        "ImageYMax",
+        "ImageYCenter",
+        "ImageExtent"
+    ]
     _optlist_errobar = [
         "Index",
         "Rotate",
@@ -2502,6 +2931,13 @@ class MPLOpts(dict):
         "FontWeight": (float, int, typeutils.strlike),
         "Grid": int,
         "GridOptions": dict,
+        "ImageExtent": (tuple, dict),
+        "ImageXCenter": float,
+        "ImageXMax": float,
+        "ImageXMin": float,
+        "ImageYCenter": float,
+        "ImageYMax": float,
+        "ImageYMin": float,
         "Index": int,
         "Label": typeutils.strlike,
         "LeftSpine": (bool, typeutils.strlike),
@@ -2731,6 +3167,13 @@ class MPLOpts(dict):
         "FontWeight": _rst_strnum,
         "Grid": _rst_boolt,
         "GridOptions": _rst_dict,
+        "ImageExtent": """{``None``} | :class:`tuple` | :class:`list`""",
+        "ImageXCenter": _rst_float,
+        "ImageXMax": _rst_float,
+        "ImageXMin": """{``0.0``} | :class:`float`""",
+        "ImageYCenter": """{``0.0``} | :class:`float`""",
+        "ImageYMax": _rst_float,
+        "ImageYMin": _rst_float,
         "Index": """{``0``} | :class:`int` >=0""",
         "Label": _rst_str,
         "LeftSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
@@ -2836,6 +3279,14 @@ class MPLOpts(dict):
             """``"bold"``, etc."""),
         "Grid": """Option to turn on/off axes grid""",
         "GridOptions": """Plot options for major grid""",
+        "ImageXMin": "Coordinate for left edge of image",
+        "ImageXMax": "Coordinate for right edge of image",
+        "ImageXCenter": "Horizontal center coord if *x* edges not specified",
+        "ImageYMin": "Coordinate for bottom edge of image",
+        "ImageYMax": "Coordinate for top edge of image",
+        "ImageYCenter": "Vertical center coord if *y* edges not specified",
+        "ImageExtent": ("Spec for *ImageXMin*, *ImageXMax*, " +
+            "*ImageYMin*, *ImageYMax*"),
         "Index": """Index to select specific option from lists""",
         "Label": """Label passed to :func:`plt.legend`""",
         "LeftSpine": "Turn on/off left plot spine",
@@ -2955,6 +3406,8 @@ class MPLOpts(dict):
         "elinewidth": 0.8,
         "zorder": 6,
     }
+    # Image
+    _rc_imshow = {}
 
     # Options for grid()
     _rc_grid = {
@@ -3747,6 +4200,40 @@ class MPLOpts(dict):
         # Return
         return cls.denone(kw)
 
+    # Process imshow() options
+    def imshow_options(self):
+        r"""Process options for image display calls
+
+        :Call:
+            >>> kw = opts.imshow_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`imshow`
+        :Versions:
+            * 2020-01-09 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_imshow:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_imshow, **kw)
+        # Return
+        return cls.denone(kw)
+
     # Grid options
     def grid_options(self):
         r"""Process options to axes :func:`grid` command
@@ -3956,12 +4443,15 @@ class MPLOpts(dict):
     # Loop through functions to rename
     for (fn, optlist) in [
         (axes_options, _optlist_axes),
+        (axformat_options, _optlist_axformat),
+        (axadjust_options, _optlist_axadjust),
         (error_options, _optlist_error),
         (errorbar_options, _optlist_errobar),
         (figure_options, _optlist_fig),
         (fillbetween_options, _optlist_fillbetween),
         (font_options, _optlist_font),
         (grid_options, _optlist_grid),
+        (imshow_options, _optlist_imshow),
         (legend_options, _optlist_legend),
         (plot_options, _optlist_plot),
         (uq_options, _optlist_uq)
