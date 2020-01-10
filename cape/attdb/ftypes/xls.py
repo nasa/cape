@@ -309,15 +309,17 @@ class XLSFile(BaseFile):
             try:
                 # Try reading as Columns of Scalars
                 self.read_xls_ws_scalar(ws, **kw)
+                return
             except Exception:
-                # Data is probably a 2D array, but need to deterine if
-                # Rows/Columns need to be skipped
-                try:
-                    # Try reading as scalar array outright
-                    self.read_xls_ws_array(ws, **kw)
-                except ValueError:
-                    # Skip one column because skipcols probably not defined
-                    self.read_xls_ws_array(ws, **dict(kw, skipcols=1))
+                pass
+            # Data is probably a 2D array, but need to deterine if
+            # Rows/Columns need to be skipped
+            try:
+                # Try reading as scalar array outright
+                self.read_xls_ws_array(ws, **kw)
+            except ValueError:
+                # Skip one column because skipcols probably not defined
+                self.read_xls_ws_array(ws, **dict(kw, skipcols=1))
 
    # --- Scalars ---
     # Read a worksheet
