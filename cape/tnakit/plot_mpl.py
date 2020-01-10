@@ -331,11 +331,15 @@ def axes_adjust(fig=None, **kw):
             Figure coordinate for right edge of axes
         *AdjustTop*: ``None`` | :class:`float`
             Figure coordinate for top edge of axes
+        *KeepAspect*: {``None``} | ``True`` | ``False``
+            Keep aspect ratio; default is ``True`` unless
+            ``ax.get_aspect()`` is ``"auto"``
     :Outputs:
         *ax*: :class:`AxesSubplot`
             Handle to subplot directed to use from these options
     :Versions:
         * 2020-01-03 ``@ddalle``: First version
+        * 2010-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
     """
     # Make sure pyplot is present
     import_pyplot()
@@ -424,36 +428,57 @@ def axes_adjust(fig=None, **kw):
     adj_l = opts.get("AdjustLeft", adj_l)
     adj_r = opts.get("AdjustRight", adj_r)
     adj_t = opts.get("AdjustTop", adj_t)
-    # Update bottom margin
-    if adj_b is not None:
-        # Current
-        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
-        xmax = min(1.0, xmax)
-        ymax = min(1.0, ymax)
-        # Update bottom and top
-        ax.set_position([xmin, adj_b, xmax-xmin, ymax-adj_b])
-    # Update left margin
-    if adj_l is not None:
-        # Current
-        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
-        xmax = min(1.0, xmax)
-        ymax = min(1.0, ymax)
-        # Update left and right
-        ax.set_position([adj_l, ymin, xmax-adj_l, ymax-ymin])
-    # Update right margin
-    if adj_r is not None:
-        # Current
-        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
-        ymax = min(1.0, ymax)
-        # Update left and right
-        ax.set_position([xmin, ymin, adj_r-xmin, ymax-ymin])
-    # Update top margin
-    if adj_t is not None:
-        # Current
-        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
-        xmax = min(1.0, xmax)
-        # Update top
-        ax.set_position([xmin, ymin, xmax-xmin, adj_t-ymin])
+    # Get current position of axes
+    x0, y0, w0, h0 = ax.get_position().bounds
+    # Keep same bottom edge if not specified
+    if adj_b is None:
+        adj_b = y0
+    # Keep same left edge if not specified
+    if adj_l is None:
+        adj_l = x0
+    # Keep same right edge if not specified
+    if adj_r is None:
+        adj_r = x0 + w0
+    # Keep same top edge if not specified
+    if adj_t is None:
+        adj_t = y0 + h0
+    # Aspect ratio option
+    keep_ar = opts.get("KeepAspect")
+    # Default aspect ratio option
+    if keep_ar is None:
+        # True unless current aspect is "equal" (which is usual case)
+        keep_ar = ax.get_aspect() != "auto"
+    # Turn off axis("equal") option if necessary
+    if (not keep_ar) and (ax.get_aspect() != "auto"):
+        # Can only adjust aspect ratio if this is off
+        ax.set_aspect("auto")
+    # Process aspect ratio
+    if keep_ar:
+        # Get the width and height of adjusted figure w/ cur margins
+        w1 = adj_r - adj_l
+        h1 = adj_t - adj_b
+        # Currently expected expansion ratios
+        rw = w1 / w0
+        rh = h1 / h0
+        # We can only use the smaller expansion
+        if rw > rh:
+            # Get current horizontal center
+            xc = 0.5 * (adj_l + adj_r)
+            # Reduce the horizontal expansion
+            w1 = w0 * rh
+            # New edge locations
+            adj_l = xc - 0.5*w1
+            adj_r = xc + 0.5*w1
+        elif rh > rw:
+            # Get current vertical center
+            yc = 0.5 * (adj_b + adj_t)
+            # Reduce vertical expansion
+            h1 = h0 * rw
+            # New edge locations
+            adj_b = yc - 0.5*h1
+            adj_t = yc + 0.5*h1
+    # Set new position
+    ax.set_position([adj_l, adj_b, adj_r-adj_l, adj_t-adj_b])
     # Output
     return ax
 
@@ -1284,22 +1309,104 @@ def _plot(xv, yv, fmt=None, **kw):
 
 
 # Move axes all the way to one side
-def move_axes(ax, axdir, margin=0.0)
+def move_axes(ax, loc, margin=0.0):
     r"""Move an axes object's plot region to one side
 
     :Call:
-        >>> move_axes(ax, axdir, margin=0.0)
+        >>> move_axes(ax, loc, margin=0.0)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+        *loc*: :class:`str` | :class:`int`
+            Direction to move axes
+
+                ===========================  ============
+                String                       Code
+                ===========================  ============
+                ``"top"`` | ``"up"``         ``1``
+                ``"right"``                  ``2``
+                ``"bottom"`` | ``"down"``    ``3``
+                ``"left"``                   ``4``
+                ===========================  ============
+
+        *margin*: {``0.0``} | :class:`float`
+            Margin to leave outside of axes and tick labels
     :Versions:
-        * 2020-01-09 ``@ddalle``: First version
+        * 2020-01-10 ``@ddalle``: First version
     """
     # Import plot modules
     import_pyplot()
+    # Check inputs
+    if not isinstance(loc, (int, typeutils.strlike)):
+        raise TypeError("Location must be int or str (got %s)" % type(loc))
+    elif isinstance(loc, int) and (loc < 1 or loc > 10):
+        raise TypeError("Location int must be in [1 .. 4] (got %i)" % loc)
+    elif not isinstance(margin, float):
+        raise TypeError("Margin must be float (got %s)" % type(margin))
     # Get axes
     if ax is None:
         ax = plt.gca()
     # Get current position
-    pos = ax.get_position().bounds
+    xmin, ymin, w, h = ax.get_position().bounds
+    # Max positions
+    xmax = xmin + w
+    ymax = ymin + h
     # Get extents occupied by labels
+    wa, ha, wb, hb = get_axes_label_margins(ax)
+    # Filter location
+    if loc in [1, "top", "up"]:
+        # Get shift directions to top edge
+        dx = 0.0
+        dy = 1.0 - hb - margin - ymax
+    elif loc in [2, "right"]:
+        # Get shift direction to right edge
+        dx = 1.0 - wb - margin - xmax
+        dy = 0.0
+    elif loc in [3, "bottom", "down"]:
+        # Get shift direction to bottom
+        dx = 0.0
+        dy = margin + ha - ymin
+    elif loc in [4, "left"]:
+        # Get shift direction to bottom and right
+        dx = margin + wa - xmin
+        dy = 0.0 
+    else:
+        # Unknown string
+        raise ValueError("Unknown location string '%s'" % loc)
+    # Set new position
+    ax.set_position([xmin + dx, ymin + dy, w, h])
+
+
+# Nudge axes without resizing
+def nudge_axes(ax, dx=0.0, dy=0.0):
+    r"""Move an axes object's plot region to one side
+
+    :Call:
+        >>> nudge_axes(ax, dx=0.0, dy=0.0)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+        *dx*: {``0.0``} | :class:`float`
+            Figure fraction to move axes to the right
+        *dy*: {``0.0``} | :class:`float`
+            Figure fraction to move axes upward
+    :Versions:
+        * 2020-01-10 ``@ddalle``: First version
+    """
+    # Import plot modules
+    import_pyplot()
+    # Check inputs
+    if not isinstance(dx, float):
+        raise TypeError("dx must be float (got %s)" % type(dx))
+    if not isinstance(dy, float):
+        raise TypeError("dy must be float (got %s)" % type(dy))
+    # Get axes
+    if ax is None:
+        ax = plt.gca()
+    # Get current position
+    xmin, ymin, w, h = ax.get_position().bounds
+    # Set new position
+    ax.set_position([xmin + dx, ymin + dy, w, h])
 
 
 # Region plot
@@ -2558,6 +2665,7 @@ class MPLOpts(dict):
         "ImageYMax",
         "ImageYMin",
         "Index",
+        "KeepAspect",
         "Label",
         "LeftSpine",
         "LeftSpineMax",
@@ -2711,14 +2819,15 @@ class MPLOpts(dict):
         "AxesOptions"
     ]
     _optlist_axadjust = [
-        "AdjustBottom",
-        "AdjustLeft",
-        "AdjustRight",
-        "AdjustTop",
         "MarginBottom",
         "MarginLeft",
         "MarginRight",
         "MarginTop",
+        "AdjustBottom",
+        "AdjustLeft",
+        "AdjustRight",
+        "AdjustTop",
+        "KeepAdjust",
         "Subplot",
         "SubplotCols",
         "SubplotRows"
@@ -2939,6 +3048,7 @@ class MPLOpts(dict):
         "ImageYMax": float,
         "ImageYMin": float,
         "Index": int,
+        "KeepAdjust": bool,
         "Label": typeutils.strlike,
         "LeftSpine": (bool, typeutils.strlike),
         "LeftSpineMax": float,
@@ -3288,6 +3398,8 @@ class MPLOpts(dict):
         "ImageExtent": ("Spec for *ImageXMin*, *ImageXMax*, " +
             "*ImageYMin*, *ImageYMax*"),
         "Index": """Index to select specific option from lists""",
+        "KeepAspect": ("""Keep aspect ratio; default is ``True`` unless""" +
+            """``ax.get_aspect()`` is ``"auto"``""")
         "Label": """Label passed to :func:`plt.legend`""",
         "LeftSpine": "Turn on/off left plot spine",
         "LeftSpineMax": "Maximum *y* coord for left plot spine",
