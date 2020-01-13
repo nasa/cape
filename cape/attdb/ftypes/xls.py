@@ -479,6 +479,24 @@ class XLSFile(BaseFile):
         # Read the header row
         header = ws.row_values(
             skiprows, start_colx=skipcols, end_colx=maxcols)
+        # Number of cols read
+        nheader = len(header)
+        # Initialize list of columns
+        cols = []
+        # Number of spreadsheet columns in each field
+        dim2 = []
+        # Flag for previous array
+        array_last = False
+        # Start with first column
+        j = 0
+        # Loop through raw header fields
+        while (j < nheader):
+            # Get value
+            col = header[j]
+            # Check type
+            
+            # Increment column
+            j += 1
         # Check header and guess types
         for (j, col) in enumerate(header):
             # Check type
