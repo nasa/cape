@@ -476,6 +476,13 @@ class XLSFile(BaseFile):
             raise TypeError("'skiprows' arg must be None or int")
         # Save *skiprows* options
         self.opts["SkipRows"] = skiprows
+        # Update column count
+        if maxcols is None:
+            # Use count from worksheet
+            maxcols = ws.ncols
+        else:
+            # Use minimum
+            maxcols = min(ws.ncols, maxcols)
         # Read the header row
         header = ws.row_values(
             skiprows, start_colx=skipcols, end_colx=maxcols)
@@ -493,22 +500,44 @@ class XLSFile(BaseFile):
         while (j < nheader):
             # Get value
             col = header[j]
+            # True column number
+            jcol = j + 1 + skipcols
             # Check type
-            
-            # Increment column
-            j += 1
-        # Check header and guess types
-        for (j, col) in enumerate(header):
-            # Check type
-            if col == "":
-                # Rename column "col1", "col2", etc.
-                header[j] = "col%i" % (j + 1)
-            elif not typeutils.isstr(col):
+            if (j > 0) and isinstance(col, float):
+                # Check if it's an int (xls files have no ints)
+                if col % 1.0 > 1e-8:
+                    # Can't have 4.1 array length, etc.
+                    raise TypeError(
+                        "Column %i header is not a string or int" % jcol)
+                # Convert to int
+                col_nrow = int(col)
+                # Check length (off by 1 since describing previous col)
+                if skipcols + j + col_nrow > maxcols + 1:
+                    raise ValueError(
+                        "Array len in col %i exceeds worksheet width" % jcol)
+                # Update the previous entry's width
+                dim2[-1] = col_nrow
+                # Increment column
+                j += col_nrow - 1
+            elif typeutils.isstr(col):
+                # Check for empty string
+                if col.strip() == "":
+                    # Use column number
+                    col = "col%i" % (j+1)
+                # Check if this column was previously used
+                while col in cols:
+                    col = col + "_"
+                # Save column name
+                cols.append(col)
+                # Save it as a scalar for now
+                dim2.append(1)
+                # Increment column
+                j += 1
+            else:
                 # Column name invalid
-                raise TypeError(
-                    "Column %i header is not a string" % (j + 1 + skipcols))
+                raise TypeError("Column %i header is not a string" % jcol)
         # Translate column names
-        cols = self.translate_colnames(header)
+        cols = self.translate_colnames(cols)
         # Process types from first row of data
         self.read_xls_firstrowtypes(ws, cols)
         # Save column names
