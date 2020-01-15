@@ -455,12 +455,16 @@ class XLSFile(BaseFile):
         """
         # Process skip options
         skips = self.get_autoskip(ws, **kw)
+        # Get options
+        opts = self.opts
+        # Initialize types
+        defns = opts.setdefault("Definitions", {})
         # Unpack skip options
-        skipcols = self.opts["SkipCols"]
-        skiprows = self.opts["SkipRows"]
-        subrows = self.opts["SubRows"]
-        maxcols = self.opts["MaxCols"]
-        maxrows = self.opts["MaxRows"]
+        skipcols = opts["SkipCols"]
+        skiprows = opts["SkipRows"]
+        subrows = opts["SubRows"]
+        maxcols = opts["MaxCols"]
+        maxrows = opts["MaxRows"]
         # Read the header row
         header = ws.row_values(
             skiprows, start_colx=skipcols, end_colx=maxcols)
@@ -473,6 +477,8 @@ class XLSFile(BaseFile):
         cols = []
         # Number of spreadsheet columns in each field
         dim2 = []
+        # List of data types
+        dtypes = []
         # Flag for previous array
         array_last = False
         # Start with first column
@@ -481,6 +487,9 @@ class XLSFile(BaseFile):
         while (j < nheader):
             # Get value
             col = header[j]
+            # Get value for this column
+            v = row1[j]
+
             # True column number
             jcol = j + 1 + skipcols
             # Check type
@@ -500,27 +509,52 @@ class XLSFile(BaseFile):
                 dim2[-1] = col_nrow
                 # Increment column
                 j += col_nrow - 1
+                # Go to next column (allows one dedent below)
+                continue
             elif typeutils.isstr(col):
                 # Check for empty string
                 if col.strip() == "":
-                    # Use column number
+                    # Get type
+                    if isinstance(v, float):
+                        # All numbers are floats in Excel
+                        dtype = "float64"
+                    else:
+                        # Everything else is a string
+                        dtype = "str"
+                    # Check for same type as previous column
+                    if (j > 0) and (dtype == dtypes[-1]):
+                        # Continuation of previous column
+                        dim2[-1] += 1
+                        # Go to next column
+                        j += 1
+                        continue
+                    # Not a continuation: use column number
                     col = "col%i" % (j+1)
                 # Check if this column was previously used
                 while col in cols:
                     col = col + "_"
-                # Save column name
-                cols.append(col)
-                # Save it as a scalar for now
-                dim2.append(1)
-                # Increment column
-                j += 1
             else:
                 # Column name invalid
                 raise TypeError("Column %i header is not a string" % jcol)
-        # Translate column names
-        cols = self.translate_colnames(cols)
-        # Process types from first row of data
-        self.read_xls_firstrowtypes(ws, cols)
+            # Translate name
+            col, = self.translate_colnames([col])
+            # Save column name
+            cols.append(col)
+            # Save it as a scalar for now
+            dim2.append(1)
+            # Get definition for new column
+            defn = defns.setdefault(col, {})
+            # Filter its type
+            if isinstance(v, float):
+                # Convert float type
+                dtype = defn.setdefault("Type", "float64")
+            else:
+                # Only float or string
+                dtype = defn.setdefault("Type", "str")
+            # Save data type
+            dtypes.append(dtype)
+            # Increment column
+            j += 1
         # Save column names
         for col in cols:
             # Check if present
@@ -930,65 +964,6 @@ class XLSFile(BaseFile):
         else:
             raise TypeError("'subcols' arg must be None or int")
 
-    # Guess data types from first row of data
-    def read_xls_firstrowtypes(self, ws, cols, **kw):
-        r"""Guess data types from first row of data
-
-        :Call:
-            >>> db.read_xls_firstrowtypes(ws, cols, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
-                XLS file interface
-            *ws*: :class:`xlrd.sheet.Sheet`
-                Direct access to a worksheet
-            *cols*: :class:`list`\ [:class:`str`]
-                List of column names to process
-            *skiprows*: {``None``} | :class:`int` >= 0
-                Number of rows to skip before reading data
-            *subrows*: {``None``} | :class:`int` >= 0
-                Number of rows below header row to skip
-            *skipcols*: {``None``} | :class:`int` >= 0
-                Number of columns to skip before first data column
-            *maxcols*: {``None``} | :class:`int` > *skipcols*
-                Maximum column number of data
-        :Effects:
-            *db.opts[col]*: :class:`dict`
-                *Type* is set for each *col* in *cols*
-        :Versions:
-            * 2019-12-12 ``@ddalle``: First version
-        """
-        # Get skip options
-        skiprows = self._get_skiprows(ws, **kw)
-        skipcols = self._get_skipcols(ws, **kw)
-        # Maximum option
-        maxcols = self._get_maxcols(ws, **kw)
-        maxrows = self._get_maxrows(ws, **kw)
-        # Sub-header row count
-        subrows = self._get_subrows(ws, **kw)
-        # Initialize types
-        defns = self.opts.setdefault("Definitions", {})
-        # Overall row number
-        irow = skiprows + subrows + 1
-        # Read specified row
-        row1 = ws.row_values(irow, skipcols, end_colx=maxcols)
-        # Check consistency
-        if len(row1) != len(cols):
-            raise ValueError(
-                ("First data row and list of columns have different lengths") +
-                ("(%i and %i)" % (len(row1), len(cols))))
-        # Check types
-        for (j, col) in enumerate(cols):
-            # Create definitions if necessary
-            defn = defns.setdefault(col, {})
-            # Get value for this column
-            v = row1[j]
-            # Filter its type
-            if isinstance(v, float):
-                # Convert float type
-                defn.setdefault("Type", "float64")
-            else:
-                # Only float or string
-                defn.setdefault("Type", "str")
 
    # --- Data ---
     # Read data
