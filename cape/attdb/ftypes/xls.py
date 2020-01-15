@@ -454,43 +454,71 @@ class XLSFile(BaseFile):
             * 2019-12-12 ``@ddalle``: First version
         """
         # Process skip options
-        self.get_autoskip(ws, **kw)
-        # Get relevant options
-        skiprows = self.opts.get("SkipRows")
-        skipcols = self.opts.get("SkipCols")
-        maxcols = self.opts.get("MaxCols")
-        subrows = self.opts.get("SubRows")
-        # Find header row if needed
-        if skiprows is None:
-            # Loop until we have an empty row
-            for skiprows in range(ws.nrows):
-                # Read the row
-                header = ws.row_values(skiprows, end_colx=maxcols)
-                # Check if there's anything in it
-                if any(header):
-                    break
-        elif isinstance(skiprows, int):
-            # Read the specified header row
-            header = ws.row_values(skiprows, end_colx=maxcols)
-        else:
-            raise TypeError("'skiprows' arg must be None or int")
-        # Save *skiprows* options
-        self.opts["SkipRows"] = skiprows
+        skips = self.get_autoskip(ws, **kw)
+        # Unpack skip options
+        skipcols = self.opts["SkipCols"]
+        skiprows = self.opts["SkipRows"]
+        subrows = self.opts["SubRows"]
+        maxcols = self.opts["MaxCols"]
+        maxrows = self.opts["MaxRows"]
         # Read the header row
         header = ws.row_values(
             skiprows, start_colx=skipcols, end_colx=maxcols)
-        # Check header and guess types
-        for (j, col) in enumerate(header):
+        # Read the first data row
+        row1 = ws.row_values(
+            skiprows + subrows + 1, start_colx=skipcols, end_colx=maxcols)
+        # Number of cols read
+        nheader = len(header)
+        # Initialize list of columns
+        cols = []
+        # Number of spreadsheet columns in each field
+        dim2 = []
+        # Flag for previous array
+        array_last = False
+        # Start with first column
+        j = 0
+        # Loop through raw header fields
+        while (j < nheader):
+            # Get value
+            col = header[j]
+            # True column number
+            jcol = j + 1 + skipcols
             # Check type
-            if col == "":
-                # Rename column "col1", "col2", etc.
-                header[j] = "col%i" % (j + 1)
-            elif not typeutils.isstr(col):
+            if (j > 0) and isinstance(col, float):
+                # Check if it's an int (xls files have no ints)
+                if col % 1.0 > 1e-8:
+                    # Can't have 4.1 array length, etc.
+                    raise TypeError(
+                        "Column %i header is not a string or int" % jcol)
+                # Convert to int
+                col_nrow = int(col)
+                # Check length (off by 1 since describing previous col)
+                if skipcols + j + col_nrow > maxcols + 1:
+                    raise ValueError(
+                        "Array len in col %i exceeds worksheet width" % jcol)
+                # Update the previous entry's width
+                dim2[-1] = col_nrow
+                # Increment column
+                j += col_nrow - 1
+            elif typeutils.isstr(col):
+                # Check for empty string
+                if col.strip() == "":
+                    # Use column number
+                    col = "col%i" % (j+1)
+                # Check if this column was previously used
+                while col in cols:
+                    col = col + "_"
+                # Save column name
+                cols.append(col)
+                # Save it as a scalar for now
+                dim2.append(1)
+                # Increment column
+                j += 1
+            else:
                 # Column name invalid
-                raise TypeError(
-                    "Column %i header is not a string" % (j + 1 + skipcols))
+                raise TypeError("Column %i header is not a string" % jcol)
         # Translate column names
-        cols = self.translate_colnames(header)
+        cols = self.translate_colnames(cols)
         # Process types from first row of data
         self.read_xls_firstrowtypes(ws, cols)
         # Save column names
@@ -528,52 +556,22 @@ class XLSFile(BaseFile):
                 Saves *SkipCols*, *SkipRows*, etc. as scalar keys
         :Versions:
             * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
+            * 2020-01-14 ``@ddalle``: Moved everything to smaller funcs
         """
-        # Get skip options
-        skipcols = kw.get("SkipCols", kw.get("skipcols"))
-        skiprows = kw.get("SkipRows", kw.get("skiprows"))
-        # Get maximum option
-        maxcols = kw.get("MaxCols", kw.get("maxcols"))
-        maxrows = kw.get("MaxRows", kw.get("maxrows"))
-        # Get subrow types
-        subcols = kw.get("SubCols", kw.get("subcols", 0))
-        subrows = kw.get("SubRows", kw.get("subrows", 0))
-        # Remove any "None"s that might have been created
-        if subcols is None:
-            subcols = 0
-        if subrows is None:
-            subrows = 0
-        # Check types
-        if not ((maxcols is None) or isinstance(maxcols, int)):
-            raise TypeError("'maxcols' arg must be None or int")
-        # Find header row if needed
-        if skiprows is None:
-            # Loop until we have an empty row
-            for skiprows in range(ws.nrows):
-                # Read the row
-                header = ws.row_values(skiprows, end_colx=maxcols)
-                # Check if there's anything in it
-                if any(header):
-                    break
-            else:
-                raise ValueError("No nonempty rows found")
-        elif isinstance(skiprows, int):
-            # Read the specified header row
-            header = ws.row_values(skiprows, end_colx=maxcols)
-        else:
-            raise TypeError("'skiprows' arg must be None or int")
-        # Find header column if needed
-        if skipcols is None:
-            # Find first nonempty entry
-            for skipcols in range(len(header)):
-                # Check for entry
-                if header[skipcols] != "":
-                    # Found something other than ""
-                    break
-            else:
-                raise ValueError("No nonempty columns found")
-        elif not isinstance(skipcols, int):
-            raise TypeError("'skipcols' arg must be None or int")
+        # Get maximum extents
+        maxcols = self._get_maxcols(ws, **kw)
+        maxrows = self._get_maxrows(ws, **kw)
+        # Save results to save minuscule amounts of time
+        kw["MaxCols"] = maxcols
+        kw["MaxRows"] = maxrows
+        # Get pre-header row count
+        skiprows = self._get_skiprows(ws, **kw)
+        kw["SkipRows"] = skiprows
+        # Get pre-data col count
+        skipcols = self._get_skipcols(ws, **kw)
+        # Get empty rows/cols between header and data
+        subrows = self._get_subrows(ws, **kw)
+        subcols = self._get_subcols(ws, **kw)
         # Save *skipcols* option, etc.
         self.opts["SkipRows"] = skiprows
         self.opts["SkipCols"] = skipcols
@@ -581,6 +579,356 @@ class XLSFile(BaseFile):
         self.opts["MaxRows"] = maxrows
         self.opts["SubCols"] = subcols
         self.opts["SubRows"] = subrows
+
+    # Get all skip and max options
+    def _get_skip(self, ws, **kw):
+        r"""Determine number of rows and columns to skip
+
+        This method saves a marginal amount of time by search for the
+        various skip and max parameters in the optimal order.
+
+        :Call:
+            >>> skips = db._get_skip(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                XLS file interface
+            *ws*: :class:`xlrd.sheet.Sheet`
+                Direct access to a worksheet
+            *skiprows*: {``None``} | :class:`int` >= 0
+                Number of rows to skip before reading data
+            *subcols*: {``0``} | :class:`int` >= 0
+                Number of cols to skip right of first col (for arrays)
+            *subrows*: {``0``} | :class:`int` >= 0
+                Number of rows below header row to skip
+            *skipcols*: {``None``} | :class:`int` >= 0
+                Number of columns to skip before first data column
+            *maxcols*: {``None``} | :class:`int` > *skipcols*
+                Maximum column number of data
+            *maxrows*: {``None``} | :class:`int` > *skiprows*
+                Maximum row number of data
+        :Outputs:
+            *skips*: :class:`dict`\ [:class:`int`]
+                Dict of the following outputs
+            *skiprows*: {``0``} | :class:`int` >= 0
+                Number of rows to skip before reading data
+            *subrows*: {``0``} | :class:`int` >= 0
+                Number of rows below header row to skip
+            *maxrows*: {*ws.nrows*} | :class:`int` > *skiprows*
+                Maximum row number of data
+            *skipcols*: {``0``} | :class:`int` >= 0
+                Number of columns to skip before first data column
+            *subcols*: {``0``} | :class:`int` >= 0
+                Number of cols to skip right of first col (for arrays)
+            *maxcols*: {*ws.ncols*} | :class:`int` > *skipcols*
+                Maximum column number of data
+        :Versions:
+            * 2020-01-14 ``@ddalle``: First version
+        """
+        # Get maximum extents
+        maxcols = self._get_maxcols(ws, **kw)
+        maxrows = self._get_maxrows(ws, **kw)
+        # Save results to save minuscule amounts of time
+        kw["MaxCols"] = maxcols
+        kw["MaxRows"] = maxrows
+        # Get pre-header row count
+        skiprows = self._get_skiprows(ws, **kw)
+        kw["SkipRows"] = skiprows
+        # Get pre-data col count
+        skipcols = self._get_skipcols(ws, **kw)
+        # Get empty rows/cols between header and data
+        subrows = self._get_subrows(ws, **kw)
+        subcols = self._get_subcols(ws, **kw)
+        # Output
+        return {
+            "skiprows": skiprows,
+            "subrows": subrows,
+            "maxrows": maxrows,
+            "skipcols": skipcols,
+            "subcols": subcols,
+            "maxcols": maxcols
+        }
+
+    # Process *maxrows*
+    def _get_maxrows(self, ws, **kw):
+        r"""Automatically determine maximum number of cols
+
+        :Call:
+            >>> maxrows = db._get_maxrows(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                XLS file interface
+            *ws*: :class:`xlrd.sheet.Sheet`
+                Direct access to a worksheet
+            *maxrows*, *MaxRows*: {``None``} | :class:`int` > 0
+                Maximum number of rows to allow
+        :Outputs:
+            *maxrows*: {*ws.nrows*} | :class:`int` >= 0
+                Maximum number of rows to allow
+        :Versions:
+            * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
+            * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
+        """
+        # Check for explicit option
+        maxrows = kw.get("MaxRows", kw.get("maxrows"))
+        # Find header row if needed
+        if maxrows is None:
+            # Use worksheet size
+            return ws.nrows
+        elif isinstance(maxrows, int):
+            # Check value
+            if maxrows < 1:
+                # Negative skip?
+                raise ValueError("Cannot have %i rows" % maxrows)
+            # Output
+            return maxrows
+        else:
+            raise TypeError("'maxrows' arg must be None or int")
+
+    # Process *maxcols*
+    def _get_maxcols(self, ws, **kw):
+        r"""Automatically determine maximum number of cols
+
+        :Call:
+            >>> maxcols = db._get_maxcols(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                XLS file interface
+            *ws*: :class:`xlrd.sheet.Sheet`
+                Direct access to a worksheet
+            *maxcols*, *MaxCols*: {``None``} | :class:`int` > 0
+                Maximum number of columns to allow
+        :Outputs:
+            *maxcols*: {*ws.ncols*} | :class:`int` >= 0
+                Maximum number of columns to allow
+        :Versions:
+            * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
+            * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
+        """
+        # Check for explicit option
+        maxcols = kw.get("MaxCols", kw.get("maxcols"))
+        # Find header row if needed
+        if maxcols is None:
+            # Use worksheet size
+            return ws.ncols
+        elif isinstance(maxcols, int):
+            # Check value
+            if maxcols < 1:
+                # Negative skip?
+                raise ValueError("Cannot have %i columns" % maxcols)
+            # Output
+            return maxcols
+        else:
+            raise TypeError("'maxcols' arg must be None or int")
+
+    # Process *skiprows*
+    def _get_skiprows(self, ws, **kw):
+        r"""Automatically determine number of rows to skip
+
+        :Call:
+            >>> skiprows = db._get_skiprows(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                XLS file interface
+            *ws*: :class:`xlrd.sheet.Sheet`
+                Direct access to a worksheet
+            *skiprows*, *SkipRows*: {``None``} | :class:`int` >= 0
+                Number of rows to skip before reading data
+            *maxcols*, *MaxCols*: {``None``} | :class:`int` > 0
+                Maximum number of columns to allow
+        :Outputs:
+            *skiprows*: :class:`int` >= 0
+                Number of rows to skip before reading data
+        :Versions:
+            * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
+            * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
+        """
+        # Check for explicit option
+        skiprows = kw.get("SkipRows", kw.get("skiprows"))
+        # Find header row if needed
+        if skiprows is None:
+            # Process maximum column count
+            # (can be relevant in worksheets with two or more tables)
+            maxcols = self._get_maxcols(ws, **kw)
+            # Check for *skipcols* option, but don't recurse!
+            skipcols = kw.get("SkipCols", kw.get("skipcols", 0))
+            # Loop until we have an empty row
+            for skiprows in range(ws.nrows):
+                # Read the row
+                header = ws.row_values(
+                    skiprows, start_colx=skipcols, end_colx=maxcols)
+                # Check if there's anything in it
+                if any(header):
+                    return skiprows
+            else:
+                # This means an empty worksheet or only has "" and 0.0
+                raise ValueError("No nonempty rows found")
+        elif isinstance(skiprows, int):
+            # Check value
+            if skiprows < 0:
+                # Negative skip?
+                raise ValueError("Cannot skip %i rows" % skiprows)
+            elif skiprows >= ws.nrows:
+                # Skip the whole worksheet
+                raise ValueError(
+                    "Cannot skip %i rows in worksheet with %i rows"
+                    % (skiprows, ws.nrows))
+            # Output
+            return skiprows
+        else:
+            raise TypeError("'skiprows' arg must be None or int")
+
+    # Process *skipcols*
+    def _get_skipcols(self, ws, **kw):
+        r"""Automatically determine number of cols to skip
+
+        :Call:
+            >>> skipcols = db._get_skipcols(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                XLS file interface
+            *ws*: :class:`xlrd.sheet.Sheet`
+                Direct access to a worksheet
+            *skiprows*: {``None``} | :class:`int` >= 0
+                Number of rows to skip before reading data
+            *skipcols*: {``None``} | :class:`int` >= 0
+                Number of cols to skip before reading data
+        :Outputs:
+            *skipcols*: :class:`int` >= 0
+                Number of cols to skip before reading data
+        :Versions:
+            * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
+            * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
+        """
+        # Get keyword option
+        skipcols = kw.get("SkipCols", kw.get("skipcols"))
+        # Find header column if needed
+        if skipcols is None:
+            # Get number of rows to skip
+            skiprows = self._get_skiprows(ws, **kw)
+            # Get last column
+            maxcols = self._get_maxcols(ws, **kw)
+            # Read header row
+            header = ws.row_values(skiprows, end_colx=maxcols)
+            # Find first nonempty entry
+            for skipcols in range(len(header)):
+                # Check for entry
+                if header[skipcols] != "":
+                    # Found something other than ""
+                    return skipcols
+            else:
+                # Empty header plausible if *skiprows* is bad
+                raise ValueError("No nonempty columns in row %i" % skiprows)
+        elif isinstance(skipcols, int):
+            # Check value
+            if skipcols < 0:
+                # Negative skip?
+                raise ValueError("Cannot skip %i cols" % skipcols)
+            elif skipcols >= ws.ncols:
+                # Skip the whole worksheet
+                raise ValueError(
+                    "Cannot skip %i cols in worksheet with %i cols"
+                    % (skipcols, ws.ncols))
+            # Output
+            return skipcols
+        else:
+            raise TypeError("'skipcols' arg must be None or int")
+
+    # Process *subrows*
+    def _get_subrows(self, ws, **kw):
+        r"""Determine number of rows to skip *below* header row
+
+        :Call:
+            >>> subrows = db._get_subrows(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                XLS file interface
+            *ws*: :class:`xlrd.sheet.Sheet`
+                Direct access to a worksheet
+            *subrows*, *SubRows*: {``None``} | :class:`int` >= 0
+                Number of rows between header row and first data row
+            *skiprows*, *SkipRows*: {``None``} | :class:`int` >= 0
+                Number of rows to skip before reading data
+            *maxcols*, *MaxCols*: {``None``} | :class:`int` > 0
+                Maximum number of columns to allow
+        :Outputs:
+            *subrows*, *SubRows*: {``0``} | :class:`int` >= 0
+                Number of rows between header row and first data row
+        :Versions:
+            * 2020-01-14 ``@ddalle``: First version
+        """
+        # Check for explicit option
+        subrows = kw.get("SubRows", kw.get("subrows"))
+        # Find rows between header and data if needed
+        if subrows is None:
+            # Get header skip rows
+            skiprows = self._get_skiprows(ws, **kw)
+            # Process maximum column count
+            # (can be relevant in worksheets with two or more tables)
+            maxcols = self._get_maxcols(ws, **kw)
+            # Loop until we have an empty row
+            for subrows in range(ws.nrows - skiprows):
+                # Read the row
+                row1 = ws.row_values(skiprows + subrows + 1, end_colx=maxcols)
+                # Check if there's anything in it
+                if any(row1):
+                    return subrows
+            else:
+                # This means the worksheet only has a header row
+                return 0
+        elif isinstance(subrows, int):
+            # Check value
+            if subrows < 0:
+                # Negative skip?
+                raise ValueError("Cannot skip %i rows" % subrows)
+            elif subrows >= ws.nrows:
+                # Skip the whole worksheet
+                raise ValueError(
+                    "Cannot skip %i rows in worksheet with %i rows"
+                    % (subrows, ws.nrows))
+            # Output
+            return subrows
+        else:
+            raise TypeError("'subrows' arg must be None or int")
+
+    # Process *subcols*
+    def _get_subcols(self, ws, **kw):
+        r"""Determine number of cols to skip *after* first column
+
+        :Call:
+            >>> subcols = db._get_subcols(ws, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+                XLS file interface
+            *ws*: :class:`xlrd.sheet.Sheet`
+                Direct access to a worksheet
+            *subcols*, *SubCols*: {``None``} | :class:`int` >= 0
+                Number of cols between header col and first data col
+        :Outputs:
+            *subcols*, *SubCols*: {``None``} | :class:`int` >= 0
+                Number of cols between header col and first data col
+        :Versions:
+            * 2020-01-14 ``@ddalle``: First version
+        """
+        # Check for explicit option
+        subcols = kw.get("SubCols", kw.get("subcols"))
+        # Find rows between header and data if needed
+        if subcols is None:
+            # Default
+            return 0
+        elif isinstance(subcols, int):
+            # Check value
+            if subcols < 0:
+                # Negative skip?
+                raise ValueError("Cannot skip %i cols" % subcols)
+            elif subcols >= ws.ncols:
+                # Skip the whole worksheet
+                raise ValueError(
+                    "Cannot skip %i cols in worksheet with %i rows"
+                    % (subcols, ws.ncols))
+            # Output
+            return subcols
+        else:
+            raise TypeError("'subcols' arg must be None or int")
 
     # Guess data types from first row of data
     def read_xls_firstrowtypes(self, ws, cols, **kw):
@@ -610,46 +958,19 @@ class XLSFile(BaseFile):
             * 2019-12-12 ``@ddalle``: First version
         """
         # Get skip options
-        skiprows = kw.get("skiprows", self.opts.get("SkipRows", 0))
-        skipcols = kw.get("skipcols", self.opts.get("SkipCols", 0))
+        skiprows = self._get_skiprows(ws, **kw)
+        skipcols = self._get_skipcols(ws, **kw)
         # Maximum option
-        maxcols = kw.get("maxcols", self.opts.get("MaxCols"))
-        maxrows = kw.get("maxrows", self.opts.get("MaxRows"))
+        maxcols = self._get_maxcols(ws, **kw)
+        maxrows = self._get_maxrows(ws, **kw)
         # Sub-header row count
-        subrows = kw.get("subrows", self.opts.get("SubRows"))
-        # Check types
-        if not ((maxcols is None) or isinstance(maxcols, int)):
-            raise TypeError("'maxcols' arg must be None or int")
-        if not ((maxrows is None) or isinstance(maxrows, int)):
-            raise TypeError("'maxrows' arg must be None or int")
-        if not ((subrows is None) or isinstance(subrows, int)):
-            raise TypeError("'subrows' arg must be None or int")
+        subrows = self._get_subrows(ws, **kw)
         # Initialize types
         defns = self.opts.setdefault("Definitions", {})
-        # Find first row if needed
-        if subrows is None:
-            # Maximum row count of worksheet
-            nrow = ws.nrows - skiprows - 1
-            # Check for lower row limit
-            if maxrows is not None:
-                # Use lower limit
-                nrow = min(nrow, maxrows - skiprows - 1)
-            # Loop until we have an entry with the right size
-            for subrows in range(nrow):
-                # Row count
-                irow = skiprows + subrows + 1
-                # Get the row
-                row1 = ws.row_values(irow, skipcols, end_colx=maxrows)
-                # Check count
-                if any(row1):
-                    break
-        else:
-            # Overall row number
-            irow = skiprows + subrows + 1
-            # Read specified row
-            row1 = ws.row_values(irow, skipcols, end_colx=maxcols)
-        # Save sub-row count
-        self.opts["SubRows"] = subrows
+        # Overall row number
+        irow = skiprows + subrows + 1
+        # Read specified row
+        row1 = ws.row_values(irow, skipcols, end_colx=maxcols)
         # Check consistency
         if len(row1) != len(cols):
             raise ValueError(

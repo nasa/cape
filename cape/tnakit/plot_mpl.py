@@ -331,11 +331,15 @@ def axes_adjust(fig=None, **kw):
             Figure coordinate for right edge of axes
         *AdjustTop*: ``None`` | :class:`float`
             Figure coordinate for top edge of axes
+        *KeepAspect*: {``None``} | ``True`` | ``False``
+            Keep aspect ratio; default is ``True`` unless
+            ``ax.get_aspect()`` is ``"auto"``
     :Outputs:
         *ax*: :class:`AxesSubplot`
             Handle to subplot directed to use from these options
     :Versions:
         * 2020-01-03 ``@ddalle``: First version
+        * 2010-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
     """
     # Make sure pyplot is present
     import_pyplot()
@@ -424,38 +428,349 @@ def axes_adjust(fig=None, **kw):
     adj_l = opts.get("AdjustLeft", adj_l)
     adj_r = opts.get("AdjustRight", adj_r)
     adj_t = opts.get("AdjustTop", adj_t)
-    # Update bottom margin
-    if adj_b is not None:
-        # Current
-        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
-        xmax = min(1.0, xmax)
-        ymax = min(1.0, ymax)
-        # Update bottom and top
-        ax.set_position([xmin, adj_b, xmax-xmin, ymax-adj_b])
-    # Update left margin
-    if adj_l is not None:
-        # Current
-        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
-        xmax = min(1.0, xmax)
-        ymax = min(1.0, ymax)
-        # Update left and right
-        ax.set_position([adj_l, ymin, xmax-adj_l, ymax-ymin])
-    # Update right margin
-    if adj_r is not None:
-        # Current
-        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
-        ymax = min(1.0, ymax)
-        # Update left and right
-        ax.set_position([xmin, ymin, adj_r-xmin, ymax-ymin])
-    # Update top margin
-    if adj_t is not None:
-        # Current
-        (xmin, ymin), (xmax, ymax) = ax.get_position().get_points()
-        xmax = min(1.0, xmax)
-        # Update top
-        ax.set_position([xmin, ymin, xmax-xmin, adj_t-ymin])
+    # Get current position of axes
+    x0, y0, w0, h0 = ax.get_position().bounds
+    # Keep same bottom edge if not specified
+    if adj_b is None:
+        adj_b = y0
+    # Keep same left edge if not specified
+    if adj_l is None:
+        adj_l = x0
+    # Keep same right edge if not specified
+    if adj_r is None:
+        adj_r = x0 + w0
+    # Keep same top edge if not specified
+    if adj_t is None:
+        adj_t = y0 + h0
+    # Aspect ratio option
+    keep_ar = opts.get("KeepAspect")
+    # Default aspect ratio option
+    if keep_ar is None:
+        # True unless current aspect is "equal" (which is usual case)
+        keep_ar = ax.get_aspect() != "auto"
+    # Turn off axis("equal") option if necessary
+    if (not keep_ar) and (ax.get_aspect() != "auto"):
+        # Can only adjust aspect ratio if this is off
+        ax.set_aspect("auto")
+    # Process aspect ratio
+    if keep_ar:
+        # Get the width and height of adjusted figure w/ cur margins
+        w1 = adj_r - adj_l
+        h1 = adj_t - adj_b
+        # Currently expected expansion ratios
+        rw = w1 / w0
+        rh = h1 / h0
+        # We can only use the smaller expansion
+        if rw > rh:
+            # Get current horizontal center
+            xc = 0.5 * (adj_l + adj_r)
+            # Reduce the horizontal expansion
+            w1 = w0 * rh
+            # New edge locations
+            adj_l = xc - 0.5*w1
+            adj_r = xc + 0.5*w1
+        elif rh > rw:
+            # Get current vertical center
+            yc = 0.5 * (adj_b + adj_t)
+            # Reduce vertical expansion
+            h1 = h0 * rw
+            # New edge locations
+            adj_b = yc - 0.5*h1
+            adj_t = yc + 0.5*h1
+    # Set new position
+    ax.set_position([adj_l, adj_b, adj_r-adj_l, adj_t-adj_b])
     # Output
     return ax
+
+
+# Co-align a column of axes
+def axes_adjust_col(fig, **kw):
+    r"""Adjust a column of axes with shared horizontal extents
+
+    :Call:
+        >>> axes_adjust_col(fig, **kw)
+    :Inputs:
+        *fig*: {``None``} | :class:`Figure` | :class:`int`
+            Figure handle or number (default from :func:`plt.gcf`)
+        *SubplotList*: {``None``} | :class:`list`\ [:class:`int`]
+            List of subplots nums in column (default is all)
+        *SubplotRubber*: {``-1``} | :class:`int`
+            Index of subplot to adjust to expand vertical
+        *MarginBottom*: {``0.02``} | :class:`float`
+            Figure fraction from bottom edge to bottom label
+        *MarginLeft*: {``0.02``} | :class:`float`
+            Figure fraction from left edge to left-most label
+        *MarginRight*: {``0.015``} | :class:`float`
+            Figure fraction from right edge to right-most label
+        *MarginTop*: {``0.015``} | :class:`float`
+            Figure fraction from top edge to top-most label
+        *MarginVSpace*, *vspace*: {``0.02``} | :class:`float`
+            Figure fraction for vertical space between axes
+        *AdjustBottom*: ``None`` | :class:`float`
+            Figure coordinate for bottom edge of axes
+        *AdjustLeft*: ``None`` | :class:`float`
+            Figure coordinate for left edge of axes
+        *AdjustRight*: ``None`` | :class:`float`
+            Figure coordinate for right edge of axes
+        *AdjustTop*: ``None`` | :class:`float`
+            Figure coordinate for top edge of axes
+        *KeepAspect*: {``None``} | ``True`` | ``False``
+            Keep aspect ratio; default is ``True`` unless
+            ``ax.get_aspect()`` is ``"auto"``
+    :Versions:
+        * 2020-01-10 ``@ddalle``: First version
+    """
+    # Make sure pyplot is present
+    import_pyplot()
+    # Default figure
+    if fig is None:
+        # Get most recent figure or create
+        fig = plt.gcf()
+    elif isinstance(fig, int):
+        # Get figure handle from number
+        fig = plt.figure(fig)
+    elif not isinstance(fig, mplfig.Figure):
+        # Not a figure or number
+        raise TypeError(
+            "'fig' arg expected 'int' or 'Figure' (got %s)" % type(fig))
+    # Process options
+    opts = MPLOpts(**kw)
+    # Get axes from figure
+    ax_list = fig.get_axes()
+    # Number of axes
+    nax = len(ax_list)
+    # Get list of figures
+    subplot_list = kw.get("SubplotList", range(1, nax+1))
+    # Get index of ax to use for vertical rubber
+    subplot_rubber = kw.get("SubplotRubber", -1)
+    # Adjust for 1-based index
+    if subplot_rubber > 0:
+        subplot_rubber -= 1
+    # Get handle
+    ax_rubber = ax_list[subplot_rubber]
+    # Number of axes in col
+    nrows = len(subplot_list)
+    # Get the margins occupied by tick and axes labels
+    margins = [get_axes_label_margins(ax_list[i-1]) for i in subplot_list]
+    # Extract the sides
+    margins_l = [margin[0] for margin in margins]
+    margins_b = [margin[1] for margin in margins]
+    margins_r = [margin[2] for margin in margins]
+    margins_t = [margin[3] for margin in margins]
+    # Use the maximum margin for left and right
+    wa = max(margins_l)
+    wb = max(margins_r)
+    # Get extra margins
+    margin_b = opts.get("MarginBottom", 0.02)
+    margin_l = opts.get("MarginLeft", 0.02)
+    margin_r = opts.get("MarginRight", 0.015)
+    margin_t = opts.get("MarginTop", 0.015)
+    margin_v = opts.get("MarginVSpace", 0.02)
+    # Default extents
+    adj_b = margin_b + margins_b[0]
+    adj_l = margin_l + wa
+    adj_r = 1.0 - margin_r - wb
+    adj_t = 1.0 - margin_t - margins_t[-1]
+    # Get user options
+    adj_b = opts.get("AdjustBottom", adj_b)
+    adj_l = opts.get("AdjustLeft", adj_l)
+    adj_r = opts.get("AdjustRight", adj_r)
+    adj_t = opts.get("AdjustTop", adj_t)
+    # Shared axes width
+    w_all = adj_r - adj_l
+    # Get current extents
+    extents = [ax_list[i-1].get_position().bounds for i in subplot_list]
+    # Deal with any axis("equal") subplots
+    for (j, i) in enumerate(subplot_list):
+        # Get axes
+        ax = ax_list[i-1]
+        # Check for aspect ratio
+        if ax.get_aspect() == "auto":
+            # No adjustments necessary
+            continue
+        # Otherwise, get current position spec
+        xminj, yminj, wj, hj = extents[j]
+        # Expand (or shrink) current height
+        hj = hj * (w_all / wj)
+        # Recreate extents (can't change existing tuple)
+        extents[j] = (xminj, yminj, wj, hj)
+    # Measure all the current figure heights
+    h_list = [pos[3] for pos in extents]
+    # Total vertical space occupied by fixed plots
+    h_fixed = sum(h_list) - h_list[subplot_rubber]
+    # Add in required vertical text space
+    if nrows > 1:
+        h_fixed += sum(margins_b[1:]) + sum(margins_t[:-1])
+    # Add in vertical margins between subplots
+    h_fixed += margin_v * (nrows-1)
+    # Calculate vertical extent for the rubber plot
+    h_rubber = adj_t - adj_b - h_fixed
+    # Initialize cumulative vertical coordinate
+    ymin = adj_b - margins_b[0]
+    # Loop through axes
+    for (j, i) in enumerate(subplot_list):
+        # Get axes
+        ax = ax_list[i-1]
+        # Check if it's the rubber plot
+        if ax is ax_rubber:
+            # Use the previously calculated height
+            hj = h_rubber
+        else:
+            # Use the current extent
+            hj = extents[j][3]
+        # Add bottom text margin
+        ymin += margins_b[j]
+        # Set position
+        ax.set_position([adj_l, ymin, w_all, hj])
+        # Add top text margin and vspace
+        ymin += margins_t[j] + margin_v
+        # Add plot extent
+        ymin += hj
+
+
+# Co-align a row of axes
+def axes_adjust_row(fig, **kw):
+    r"""Adjust a row of axes with shared vertical extents
+
+    :Call:
+        >>> axes_adjust_row(fig, **kw)
+    :Inputs:
+        *fig*: {``None``} | :class:`Figure` | :class:`int`
+            Figure handle or number (default from :func:`plt.gcf`)
+        *SubplotList*: {``None``} | :class:`list`\ [:class:`int`]
+            List of subplots nums in column (default is all)
+        *SubplotRubber*: {``-1``} | :class:`int`
+            Index of subplot to adjust to expand horizontally
+        *MarginBottom*: {``0.02``} | :class:`float`
+            Figure fraction from bottom edge to bottom label
+        *MarginLeft*: {``0.02``} | :class:`float`
+            Figure fraction from left edge to left-most label
+        *MarginRight*: {``0.015``} | :class:`float`
+            Figure fraction from right edge to right-most label
+        *MarginTop*: {``0.015``} | :class:`float`
+            Figure fraction from top edge to top-most label
+        *MarginHSpace*, *vspace*: {``0.02``} | :class:`float`
+            Figure fraction for horizontal space between axes
+        *AdjustBottom*: ``None`` | :class:`float`
+            Figure coordinate for bottom edge of axes
+        *AdjustLeft*: ``None`` | :class:`float`
+            Figure coordinate for left edge of axes
+        *AdjustRight*: ``None`` | :class:`float`
+            Figure coordinate for right edge of axes
+        *AdjustTop*: ``None`` | :class:`float`
+            Figure coordinate for top edge of axes
+        *KeepAspect*: {``None``} | ``True`` | ``False``
+            Keep aspect ratio; default is ``True`` unless
+            ``ax.get_aspect()`` is ``"auto"``
+    :Versions:
+        * 2020-01-10 ``@ddalle``: First version
+    """
+    # Make sure pyplot is present
+    import_pyplot()
+    # Default figure
+    if fig is None:
+        # Get most recent figure or create
+        fig = plt.gcf()
+    elif isinstance(fig, int):
+        # Get figure handle from number
+        fig = plt.figure(fig)
+    elif not isinstance(fig, mplfig.Figure):
+        # Not a figure or number
+        raise TypeError(
+            "'fig' arg expected 'int' or 'Figure' (got %s)" % type(fig))
+    # Process options
+    opts = MPLOpts(**kw)
+    # Get axes from figure
+    ax_list = fig.get_axes()
+    # Number of axes
+    nax = len(ax_list)
+    # Get list of figures
+    subplot_list = kw.get("SubplotList", range(1, nax+1))
+    # Get index of ax to use for vertical rubber
+    subplot_rubber = kw.get("SubplotRubber", -1)
+    # Adjust for 1-based index
+    if subplot_rubber > 0:
+        subplot_rubber -= 1
+    # Get handle
+    ax_rubber = ax_list[subplot_rubber]
+    # Number of axes in row
+    ncols = len(subplot_list)
+    # Get the margins occupied by tick and axes labels
+    margins = [get_axes_label_margins(ax_list[i-1]) for i in subplot_list]
+    # Extract the sides
+    margins_l = [margin[0] for margin in margins]
+    margins_b = [margin[1] for margin in margins]
+    margins_r = [margin[2] for margin in margins]
+    margins_t = [margin[3] for margin in margins]
+    # Use the maximum margin for left and right
+    ha = max(margins_b)
+    hb = max(margins_t)
+    # Get extra margins
+    margin_b = opts.get("MarginBottom", 0.02)
+    margin_l = opts.get("MarginLeft", 0.02)
+    margin_r = opts.get("MarginRight", 0.015)
+    margin_t = opts.get("MarginTop", 0.015)
+    margin_h = opts.get("MarginHSpace", 0.02)
+    # Default extents
+    adj_b = margin_b + ha
+    adj_l = margin_l + margins_l[0]
+    adj_r = 1.0 - margin_r - margins_r[-1]
+    adj_t = 1.0 - margin_t - hb
+    # Get user options
+    adj_b = opts.get("AdjustBottom", adj_b)
+    adj_l = opts.get("AdjustLeft", adj_l)
+    adj_r = opts.get("AdjustRight", adj_r)
+    adj_t = opts.get("AdjustTop", adj_t)
+    # Shared axes height
+    h_all = adj_r - adj_l
+    # Get current extents
+    extents = [ax_list[i-1].get_position().bounds for i in subplot_list]
+    # Deal with any axis("equal") subplots
+    for (j, i) in enumerate(subplot_list):
+        # Get axes
+        ax = ax_list[i-1]
+        # Check for aspect ratio
+        if ax.get_aspect() == "auto":
+            # No adjustments necessary
+            continue
+        # Otherwise, get current position spec
+        xminj, yminj, wj, hj = extents[j]
+        # Expand (or shrink) current height
+        wj = wj * (h_all / hj)
+        # Recreate extents (can't change existing tuple)
+        extents[j] = (xminj, yminj, wj, hj)
+    # Measure all the current figure widths
+    w_list = [pos[2] for pos in extents]
+    # Total vertical space occupied by fixed plots
+    w_fixed = sum(w_list) - w_list[subplot_rubber]
+    # Add in required vertical text space
+    if ncols > 1:
+        w_fixed += sum(margins_l[1:]) + sum(margins_r[:-1])
+    # Add in vertical margins between subplots
+    w_fixed += margin_h * (ncols-1)
+    # Calculate vertical extent for the rubber plot
+    w_rubber = adj_r - adj_l - w_fixed
+    # Initialize cumulative vertical coordinate
+    xmin = adj_l - margins_l[0]
+    # Loop through axes
+    for (j, i) in enumerate(subplot_list):
+        # Get axes
+        ax = ax_list[i-1]
+        # Check if it's the rubber plot
+        if ax is ax_rubber:
+            # Use the previously calculated height
+            wj = w_rubber
+        else:
+            # Use the current extent
+            wj = extents[j][2]
+        # Add bottom text margin
+        xmin += margins_l[j]
+        # Set position
+        ax.set_position([xmin, adj_b, wj, h_all])
+        # Add top text margin and vspace
+        xmin += margins_r[j] + margin_h
+        # Add plot extent
+        xmin += wj
 
 
 # Get extents of axes in figure fraction coordinates
@@ -1284,22 +1599,104 @@ def _plot(xv, yv, fmt=None, **kw):
 
 
 # Move axes all the way to one side
-def move_axes(ax, axdir, margin=0.0)
+def move_axes(ax, loc, margin=0.0):
     r"""Move an axes object's plot region to one side
 
     :Call:
-        >>> move_axes(ax, axdir, margin=0.0)
+        >>> move_axes(ax, loc, margin=0.0)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+        *loc*: :class:`str` | :class:`int`
+            Direction to move axes
+
+                ===========================  ============
+                String                       Code
+                ===========================  ============
+                ``"top"`` | ``"up"``         ``1``
+                ``"right"``                  ``2``
+                ``"bottom"`` | ``"down"``    ``3``
+                ``"left"``                   ``4``
+                ===========================  ============
+
+        *margin*: {``0.0``} | :class:`float`
+            Margin to leave outside of axes and tick labels
     :Versions:
-        * 2020-01-09 ``@ddalle``: First version
+        * 2020-01-10 ``@ddalle``: First version
     """
     # Import plot modules
     import_pyplot()
+    # Check inputs
+    if not isinstance(loc, (int, typeutils.strlike)):
+        raise TypeError("Location must be int or str (got %s)" % type(loc))
+    elif isinstance(loc, int) and (loc < 1 or loc > 10):
+        raise TypeError("Location int must be in [1 .. 4] (got %i)" % loc)
+    elif not isinstance(margin, float):
+        raise TypeError("Margin must be float (got %s)" % type(margin))
     # Get axes
     if ax is None:
         ax = plt.gca()
     # Get current position
-    pos = ax.get_position().bounds
+    xmin, ymin, w, h = ax.get_position().bounds
+    # Max positions
+    xmax = xmin + w
+    ymax = ymin + h
     # Get extents occupied by labels
+    wa, ha, wb, hb = get_axes_label_margins(ax)
+    # Filter location
+    if loc in [1, "top", "up"]:
+        # Get shift directions to top edge
+        dx = 0.0
+        dy = 1.0 - hb - margin - ymax
+    elif loc in [2, "right"]:
+        # Get shift direction to right edge
+        dx = 1.0 - wb - margin - xmax
+        dy = 0.0
+    elif loc in [3, "bottom", "down"]:
+        # Get shift direction to bottom
+        dx = 0.0
+        dy = margin + ha - ymin
+    elif loc in [4, "left"]:
+        # Get shift direction to bottom and right
+        dx = margin + wa - xmin
+        dy = 0.0 
+    else:
+        # Unknown string
+        raise ValueError("Unknown location string '%s'" % loc)
+    # Set new position
+    ax.set_position([xmin + dx, ymin + dy, w, h])
+
+
+# Nudge axes without resizing
+def nudge_axes(ax, dx=0.0, dy=0.0):
+    r"""Move an axes object's plot region to one side
+
+    :Call:
+        >>> nudge_axes(ax, dx=0.0, dy=0.0)
+    :Inputs:
+        *ax*: :class:`Axes`
+            Axes handle
+        *dx*: {``0.0``} | :class:`float`
+            Figure fraction to move axes to the right
+        *dy*: {``0.0``} | :class:`float`
+            Figure fraction to move axes upward
+    :Versions:
+        * 2020-01-10 ``@ddalle``: First version
+    """
+    # Import plot modules
+    import_pyplot()
+    # Check inputs
+    if not isinstance(dx, float):
+        raise TypeError("dx must be float (got %s)" % type(dx))
+    if not isinstance(dy, float):
+        raise TypeError("dy must be float (got %s)" % type(dy))
+    # Get axes
+    if ax is None:
+        ax = plt.gca()
+    # Get current position
+    xmin, ymin, w, h = ax.get_position().bounds
+    # Set new position
+    ax.set_position([xmin + dx, ymin + dy, w, h])
 
 
 # Region plot
@@ -2558,6 +2955,7 @@ class MPLOpts(dict):
         "ImageYMax",
         "ImageYMin",
         "Index",
+        "KeepAspect",
         "Label",
         "LeftSpine",
         "LeftSpineMax",
@@ -2575,9 +2973,11 @@ class MPLOpts(dict):
         "LegendOptions",
         "MajorGrid",
         "MarginBottom",
+        "MarginHSpace",
         "MarginLeft",
         "MarginRight",
         "MarginTop",
+        "MarginVSpace",
         "MinMaxOptions",
         "MinMaxPlotType",
         "MinorGrid",
@@ -2603,7 +3003,9 @@ class MPLOpts(dict):
         "Spines",
         "Subplot",
         "SubplotCols",
+        "SubplotList",
         "SubplotRows",
+        "SubplotRubber",
         "TickDirection",
         "TickFontSize",
         "TickLabels",
@@ -2691,6 +3093,7 @@ class MPLOpts(dict):
         "density": "Density",
         "grid": "Grid",
         "hfig": "FigHeight",
+        "hspace": "MarginHSpace",
         "i": "Index",
         "label": "Label",
         "lbl": "Label",
@@ -2698,6 +3101,7 @@ class MPLOpts(dict):
         "numfig": "FigNumber",
         "rotate": "Rotate",
         "subplot": "Subplot",
+        "vspace": "MarginVSpace",
         "wfig": "FigWidth",
         "xlabel": "XLabel",
         "xlim": "XLim",
@@ -2711,17 +3115,44 @@ class MPLOpts(dict):
         "AxesOptions"
     ]
     _optlist_axadjust = [
-        "AdjustBottom",
-        "AdjustLeft",
-        "AdjustRight",
-        "AdjustTop",
         "MarginBottom",
         "MarginLeft",
         "MarginRight",
         "MarginTop",
+        "AdjustBottom",
+        "AdjustLeft",
+        "AdjustRight",
+        "AdjustTop",
+        "KeepAspect",
         "Subplot",
         "SubplotCols",
         "SubplotRows"
+    ]
+    _optlist_axadjust_col = [
+        "MarginBottom",
+        "MarginLeft",
+        "MarginRight",
+        "MarginTop",
+        "MarginVSpace",
+        "AdjustBottom",
+        "AdjustLeft",
+        "AdjustRight",
+        "AdjustTop",
+        "SubplotList",
+        "SubplotRubber"
+    ]
+    _optlist_axadjust_row = [
+        "MarginBottom",
+        "MarginLeft",
+        "MarginRight",
+        "MarginTop",
+        "MarginHSpace",
+        "AdjustBottom",
+        "AdjustLeft",
+        "AdjustRight",
+        "AdjustTop",
+        "SubplotList",
+        "SubplotRubber"
     ]
     _optlist_axformat = [
         "Density",
@@ -2939,6 +3370,7 @@ class MPLOpts(dict):
         "ImageYMax": float,
         "ImageYMin": float,
         "Index": int,
+        "KeepAspect": bool,
         "Label": typeutils.strlike,
         "LeftSpine": (bool, typeutils.strlike),
         "LeftSpineMax": float,
@@ -2959,9 +3391,11 @@ class MPLOpts(dict):
         "LegendOptions": dict,
         "MajorGrid": bool,
         "MarginBottom": float,
+        "MarginHSpace": float,
         "MarginLeft": float,
         "MarginRight": float,
         "MarginTop": float,
+        "MarginVSpace": float,
         "MinorGrid": bool,
         "MinorGridOptions": dict,
         "MinMaxOptions": dict,
@@ -2979,7 +3413,9 @@ class MPLOpts(dict):
         "SpineOptions": dict,
         "Spines": bool,
         "SubplotCols": int,
+        "SubplotList": list,
         "SubplotRows": int,
+        "SubplotRubber": int,
         "RightSpine": (bool, typeutils.strlike),
         "RightSpineMax": float,
         "RightSpineMin": float,
@@ -3175,6 +3611,7 @@ class MPLOpts(dict):
         "ImageYMax": _rst_float,
         "ImageYMin": _rst_float,
         "Index": """{``0``} | :class:`int` >=0""",
+        "KeepAspect": _rst_booln,
         "Label": _rst_str,
         "LeftSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
         "LeftSpineMax": _rst_float,
@@ -3196,9 +3633,11 @@ class MPLOpts(dict):
         "LegendOptions": _rst_dict,
         "MajorGrid": _rst_boolt,
         "MarginBottom": _rst_float,
+        "MarginHSpace": _rst_float,
         "MarginLeft": _rst_float,
         "MarginRight": _rst_float,
         "MarginTop": _rst_float,
+        "MarginVSpace": _rst_float,
         "MinMaxPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "MinMaxOptions": _rst_dict,
         "MinorGrid": _rst_boolf,
@@ -3221,7 +3660,9 @@ class MPLOpts(dict):
         "ShowUncertainty": _rst_booln,
         "Subplot": """{``None``} | :class:`Axes` | :class:`int`""",
         "SubplotCols": _rst_intpos,
+        "SubplotList": r"""{``None``} | :class:`list`\ [:class:`int`]""",
         "SubplotRows": _rst_intpos,
+        "SubplotRubber": _rst_int,
         "TopSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
         "TopSpineMax": _rst_float,
         "TopSpineMin": _rst_float,
@@ -3288,6 +3729,8 @@ class MPLOpts(dict):
         "ImageExtent": ("Spec for *ImageXMin*, *ImageXMax*, " +
             "*ImageYMin*, *ImageYMax*"),
         "Index": """Index to select specific option from lists""",
+        "KeepAspect": ("""Keep aspect ratio; default is ``True`` unless""" +
+            """``ax.get_aspect()`` is ``"auto"``"""),
         "Label": """Label passed to :func:`plt.legend`""",
         "LeftSpine": "Turn on/off left plot spine",
         "LeftSpineMax": "Maximum *y* coord for left plot spine",
@@ -3311,9 +3754,11 @@ class MPLOpts(dict):
         "LegendOptions": """Options to :func:`plt.legend`""",
         "MajorGrid": """Option to turn on/off grid at main ticks""",
         "MarginBottom": "Figure fraction from bottom edge to bottom label",
+        "MarginHSpace": "Figure fraction for horizontal space between axes",
         "MarginLeft": "Figure fraction from left edge to left-most label",
         "MarginRight": "Figure fraction from right edge to right-most label",
         "MarginTop": "Figure fraction from top edge to top-most label",
+        "MarginVSpace": "Figure fraction for vertical space between axes",
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
         "MinMaxPlotType": """Plot type for min/max plot""",
         "MinorGrid": """Turn on/off grid at minor ticks""",
@@ -3335,7 +3780,9 @@ class MPLOpts(dict):
         "ShowUncertainty": """Plot uncertainty bounds""",
         "Subplot": "Subplot index (1-based)",
         "SubplotCols": "Expected number of subplot columns",
+        "SubplotList": "List of subplots to put in row/column",
         "SubplotRows": "Expected number of subplot rows",
+        "SubplotRubber": "Index of subplot to expand",
         "TopSpine": "Turn on/off top plot spine",
         "TopSpineMax": "Maximum *x* coord for top plot spine",
         "TopSpineMin": "Minimum *x* coord for top plot spine",
@@ -4200,6 +4647,74 @@ class MPLOpts(dict):
         # Return
         return cls.denone(kw)
 
+    # Process axes formatting options
+    def axadjust_col_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_col_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust_col`
+        :Versions:
+            * 2020-01-10 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_axadjust_col:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_axadjust, **kw)
+        # Return
+        return cls.denone(kw)
+
+    # Process axes formatting options
+    def axadjust_row_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_row_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust_row`
+        :Versions:
+            * 2020-01-10 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_axadjust_row:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_axadjust, **kw)
+        # Return
+        return cls.denone(kw)
+
     # Process imshow() options
     def imshow_options(self):
         r"""Process options for image display calls
@@ -4444,6 +4959,8 @@ class MPLOpts(dict):
     for (fn, optlist) in [
         (axes_options, _optlist_axes),
         (axformat_options, _optlist_axformat),
+        (axadjust_col_options, _optlist_axadjust_col),
+        (axadjust_row_options, _optlist_axadjust_row),
         (axadjust_options, _optlist_axadjust),
         (error_options, _optlist_error),
         (errorbar_options, _optlist_errobar),
