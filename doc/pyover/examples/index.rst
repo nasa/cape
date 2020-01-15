@@ -14,4 +14,5 @@ OVERFLOW.
 .. toctree::
 
     bullet/index
+    powered_nacelle/index
 

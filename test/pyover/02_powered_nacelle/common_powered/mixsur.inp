@@ -1,0 +1,141 @@
+0, 500, 500, -1, 0, 0            FSMACH,ALPHA,BETA,REY,GAMINF,TINF
+2                                NREF                   
+108.0, 105.60, 295.422, 0.0, 0.0     REFL,REFA,XMC,YMC,ZMC
+13.67, 3.2615, 365.167, 0.0, 0.0     REFL,REFA,XMC,YMC,ZMC
+                
+6                                NSURF
+
+2, 1                         NSUB (nacelle inlet), IREF
+1, 2, 85, -25,  1,  1,  1,-1   NG,IBDIR,JS,JE,KS,KE,LS,LE
+2, 2,  5,  -3,  1,  1,  1,-1   NG,IBDIR,JS,JE,KS,KE,LS,LE
+0                            NPRI
+
+2, 1                         NSUB (nacelle exit), IREF
+1, 2, 25,  63,  1,  1,  1,-1   NG,IBDIR,JS,JE,KS,KE,LS,LE
+3, 2,  3,  -5,  1,  1,  1,-1   NG,IBDIR,JS,JE,KS,KE,LS,LE
+0                            NPRI
+
+1, 1                         NSUB (inlet), IREF
+2, 1,  5,   5,  1, -1,  1,-1   NG,IBDIR,JS,JE,KS,KE,LS,LE
+0                            NPRI
+
+1, 1                         NSUB (exit), IREF
+3,-1, -5,  -5,  1, -1,  1,-1   NG,IBDIR,JS,JE,KS,KE,LS,LE
+0                            NPRI
+
+1, 1                         NSUB (inlet bc), IREF
+2, 1,  1,   1,  1, -1,  1,-1   NG,IBDIR,JS,JE,KS,KE,LS,LE
+0                            NPRI
+
+1, 1                         NSUB (exit bc), IREF
+3,-1, -1,  -1,  1, -1,  1,-1   NG,IBDIR,JS,JE,KS,KE,LS,LE
+0                            NPRI
+
+7                            NCOMP
+
+TOTAL FORCE
+4, 1                         NIS, IREF
+1, 2, 3, 4                   (surface numbers)
+
+MASS BALANCE
+2, 2                         NIS, IREF
+3, 4                         (surface numbers)
+
+INLET
+1, 2                         NIS, IREF
+3                            (surface numbers)
+
+EXIT
+1, 2                         NIS, IREF
+4                            (surface numbers)
+
+INLET BC
+1, 2                         NIS, IREF
+5                            (surface numbers)
+
+EXIT BC
+1, 2                         NIS, IREF
+6                            (surface numbers)
+
+INLET BC_TARGET
+1, 2                         NIS, IREF
+6                            (surface numbers)
+
+
+Notes on reference conditions:
+ set 1 (reference for forces):
+   REFL = MAC of airplane
+   REFA = REFA/180 of (half) airplane, representing axisymmetric
+          (+/- 1 deg) integration
+   XMC  = XMC of airplane
+   YMC  = 0
+   ZMC  = 0
+ set 2 (reference for mass flow):
+   REFL = inlet (LE) diameter
+   REFA = inlet (LE) area, representing axisymmetric
+          (+/- 1 deg) integration
+   XMC  = nacelle LE
+   YMC  = 0
+   ZMC  = 0
+
+
+
+ FSMACH >  0                  Free stream Mach number
+        <= 0                  Read free stream Mach number from q.save
+ ALPHA in range [-360,360]    Angle of attack
+       outside of [-360,360]  Read angle of attack from q.save
+ BETA  in range [-360,360]    Yaw angle
+       outside of [-360,360]  Read yaw angle from q.save
+ REY     > 0                  Reynolds number for viscous flow
+         = 0                  Inviscid flow assumed
+         < 0                  Read Reynolds number from q.save
+ GAMINF  =                    Free stream ratio of specific heats
+ TINF    =                    Free stream temperature (Rankine)
+
+ NREF    =      Number of reference conditions
+
+ Repeat the following for each reference condition
+{
+ REFL   >  0    Reference length for fomo coefficients
+        <= 0    Use 1.0 as default reference length
+ REFA   >  0    Reference area for fomo coefficients
+        <= 0    Use total integrated surface area from defined
+                subsets as default reference area
+ XMC,YMC,ZMC =  X,Y,Z coordinates of moment axes center
+}
+
+ NSURF   =      Number of surfaces to compute coefficients
+
+ Repeat the following for each integration surface
+{
+ NSUB    =      Number of subsets that belong to the surface
+ IREF    =      Reference conditions set for the surface
+
+ Repeat the following for each subset
+[
+ NG      =      Grid number
+ IBDIR   =      Direction of surface normal
+                (1 = +J, -1 = -J, 2 = +K, -2 = -K, 3 = +L, -3 = -L)
+ JS,JE   =      Start and end indices in J
+ KS,KE   =      Start and end indices in K
+ LS,LE   =      Start and end indices in L
+]
+
+ NPRI    =      Number of subset pairs to specify priority
+
+ For each subset pair, enter
+[
+ NU1, NU2 =     Subset numbers within surface where subset NU1 will
+                be kept if it overlaps subset NU2
+]
+}
+
+ NCOMP   =      Number of components
+
+ Repeat the following for each component
+[
+ <component name>
+ NIS     =      Number of integration surfaces for the component
+ IREF    =      Reference conditions set for the component
+ <List of surface numbers for surfaces>
+]
