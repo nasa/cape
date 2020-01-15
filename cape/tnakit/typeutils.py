@@ -61,6 +61,30 @@ else:
 arraylike = (list, ndarray)
 
 
+# Special version of :func:`isinstance` that allows None
+def isinstancen(x, types):
+    r"""Special version of :func:`isinstance` that allows ``None``
+
+    :Call:
+        >>> q = isinstance(x, types)
+    :Inputs:
+        *x*: :class:`any`
+            Any value
+        *types*: :class:`type` | :class:`tuple`\ [:class:`type`]
+            Type specification as for :func:`isinstance`
+    :Outputs:
+        *q*: ``True`` | ``False``
+            ``True`` if *x* is ``None`` or ``isinstance(x, types)``
+    :Versions:
+        * 2020-01-13 ``@ddalle``: First version
+    """
+    # Check for ``None``
+    if x is None:
+        return True
+    # Otherwise call built-in
+    return isinstance(x, types)
+
+
 # Check for a string
 def isstr(x):
     r"""Check if a variable is a string (or derivative)
