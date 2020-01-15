@@ -556,11 +556,15 @@ class XLSFile(BaseFile):
             # Increment column
             j += 1
         # Save column names
-        for col in cols:
+        for (j, col) in enumerate(cols):
             # Check if present
             if col not in self.cols:
                 # Append if not
                 self.cols.append(col)
+            # Get the definition
+            defn = defns[col]
+            # Set the definition
+            defn["ColWdith"] = dim2[j]
         # Output
         return cols
 
