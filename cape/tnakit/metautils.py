@@ -376,7 +376,7 @@ class ModulePropDB(dict):
         # Open the file for writing
         with open(fname, 'w') as f:
             # Write metadata
-            json.dump(opts, f, indent=indent)
+            json.dump(opts, f, indent=indent, separators=(",", ": "))
         
 
     # Merge options
