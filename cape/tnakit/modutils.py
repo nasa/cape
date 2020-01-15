@@ -419,6 +419,59 @@ def list_modules(fname, maxdepth=2, depth=0):
     # Output
     return modlist
 
+# Find modules as a list of names
+def list_modnames(fname, basename="", maxdepth=2, depth=0):
+    r"""Create a list of lists of submodules from *fname*
+
+    :Call:
+        >>> modnamelist = list_modnames(fname, basename="", **kw)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of (Python module) file from which list is started
+        *basename*: {``""``} | :class:`str`
+            Module name to serve as prefix
+        *maxdepth*: {``2``} | ``None`` | :class:`int` >= 0
+            Maximum number of sublevels
+        *depth*: {``0``} | :class:`int` >= 0
+            Current depth
+    :Outputs:
+        *modnamelist*: :class:`list`\ [:class:`str`]
+            List of module names, with ``"."``
+    :Versions:
+        * 2020-01-14 ``@ddalle``: First version
+    """
+    # Function to recursively git mod name
+    def getmodnames(modnamelist, curmod, modlist):
+        # Process prefix
+        if curmod:
+            # Add the '.'
+            prefix = curmod + "."
+        else:
+            # No prefix
+            prefix = ""
+        # Loop through modules
+        for modspec in modlist:
+            # Check if it's a list
+            if isinstance(modspec, list):
+                # Check for empty list
+                if modspec == []:
+                    continue
+                # Recurse
+                getmodnames(modnamelist, prefix + last, modspec)
+            else:
+                # Append to list
+                modnamelist.append(prefix + modspec)
+                # Save prefious prefix for recursion
+                last = modspec
+    # Get list of modules (depth indicated by list depth)
+    modlist = list_modules(fname)
+    # Initialize list
+    modnamelist = []
+    # Convert nested module list to names
+    getmodnames(modnamelist, basename, modlist)
+    # OUtput
+    return modnamelist
+
 
 # Update the documentation
 __doc__ = rst_docstring(__name__, __file__, __doc__)
