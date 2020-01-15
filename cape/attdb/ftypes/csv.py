@@ -17,6 +17,7 @@ final comment before the beginning of data.
 
 # Standard library
 import re
+import sys
 
 # CAPE modules
 import cape.tnakit.typeutils as typeutils
@@ -623,6 +624,115 @@ class CSVFile(BaseFile, TextInterpreter):
   # =============
   # <
    # --- Write Drivers ---
+    # Write a CSV file
+    def write_csv(self, fname, cols=None, fmt=None, **kw):
+        """Write a comma-separated file of some of the coefficients
+
+        :Call:
+            >>> db.write_csv(fcsv, coeffs=None, fmt=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+                CSV file interface
+            *fname*: :class:`str`
+                Name of ASCII data file to write
+            *cols*: {``None``} | :class:`list` (:class:`str`)
+                List of coefficients to write, or write all coefficients
+            *fmt*: {``None``} | :class:`str`
+                Format string to be used for each row (optional)
+            *fmts*: :class:`dict` | :class:`str`
+                Dictionary of formats to use for each *coeff*
+            *comments*: {``"#"``} | :class:`str`
+                Comment character, used as first character of file
+            *delim*: {``", "``} | :class:`str`
+                Delimiter
+            *translators*: {``{}``} | :class:`dict`
+                Dictionary of coefficient translations, e.g. *CAF* -> *CA*
+        :Versions:
+            * 2018-06-11 ``@ddalle``: First versions
+            * 2020-01-15 ``@jmeeroff``: Copied From cape.attdb.db.db1
+        """
+        # Process coefficient list
+        if cols is None:
+            cols = list(self.cols)
+        # Check for presence
+        for col in cols:
+            if col not in self:
+                raise KeyError("No output coefficient '%s'" % col)
+        # Get the count of the first key
+        n = len(self[cols[0]])
+        # Loop through the keys
+        for i in range(len(cols)-1, 0, -1):
+            # Coefficient
+            col = cols[i]
+            # Check length
+            if len(self[col]) != n:
+                # Print a warning
+                sys.stderr.write("WARNING: skipping ")
+                sys.stderr.write("coefficient '%s' " % col)
+                sys.stderr.write("with mismatching length\n")
+                sys.stderr.flush()
+                # Delete it
+                del cols[i]
+
+        # Dictionary of translators
+        translators = kw.get("translators", {})
+        # Get comment character and delimiter
+        cchar = kw.get("comments", "#")
+        delim = kw.get("delim", ", ")
+
+        # Default line format
+        if fmt is None:
+            # Set up printing format
+            fmts = kw.get("fmts", {})
+            # Options for default print flag
+            prec = kw.get("prec", kw.get("precision", 6))
+            emax = kw.get("emax", 4)
+            emin = kw.get("emin", -2)
+            echr = kw.get("echar", "e")
+            # Specific
+            precs = kw.get("precs", kw.get("precisions", {}))
+            emaxs = kw.get("emaxs", {})
+            emins = kw.get("emins", {})
+            # Initialize final format
+            fmt_list = []
+            # Loop through keys to create default format
+            for col in cols:
+                # Options
+                kwf = {
+                    "prec": precs.get(col, prec),
+                    "emax": emaxs.get(col, emax),
+                    "emin": emins.get(col, emin),
+                    "echar": echr,
+                }
+                # Make a default *fmt* for this coefficient
+                fmti = arrayutils.get_printf_fmt(self[col], **kwf)
+                # Get format, using above default
+                fmti = fmts.get(col, fmti)
+                # Save to list
+                fmt_list.append(fmti)
+            # Just use the delimiter
+            fmt = delim.join(fmt_list)
+        # Apply translators to the headers
+        cols = [translators.get(col, col) for col in cols]
+
+        # Create the file
+        f = open(fname, 'w')
+        # Write header
+        f.write("%s " % cchar)
+        f.write(delim.join(cols))
+        f.write("\n")
+        # Loop through entries
+        for i in range(n):
+            # Get values of coefficients
+            V = tuple(self[col][i] for col in cols)
+            # Use the format string
+            f.write(fmt % V)
+            # Newline
+            f.write("\n")
+
+        # Close the file
+        f.close()
+
     # Write raw
     def write_csv_dense(self, fname=None, cols=None):
         r"""Write dense CSV file using *WriteFlag* for each column
