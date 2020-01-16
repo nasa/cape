@@ -1023,22 +1023,24 @@ class XLSFile(BaseFile):
         # First data col number
         icol = skipcols
         # Loop through columns
-        for (j, col) in enumerate(cols):
+        for col in cols:
             # Get type
             defn = defns.get(col, {})
             # Get data type
-            clsj = defn.get("Type", "float64")
+            clsname = defn.get("Type", "float64")
+            # Get array length
+            colwidth = defn.get("ColWidth", 1)
             # Translate if necessary
-            dtj = self._DTypeMap.get(clsj, clsj)
+            dtype = self._DTypeMap.get(clsname, clsname)
             # Read the whole column
-            V = ws.col_values(icol + j, irow, end_rowx=maxrows)
+            V = ws.col_values(icol, irow, end_rowx=maxrows)
             # Read data based on type
-            if dtj == "str":
+            if dtype == "str":
                 # Read the whole column and allow empty strings
                 pass
                 # Save count
                 _n[col] = len(V)
-            elif dtj.startswith("float") or dtj.startswith("int"):
+            elif dtype.startswith("float") or dtype.startswith("int"):
                 # Check for empty strings
                 if "" in V:
                     # Find index of first such one
@@ -1046,11 +1048,11 @@ class XLSFile(BaseFile):
                     # Check for empty column
                     if iend == 0:
                         raise ValueError(
-                            "Found no valid floats in col %i" % (icol + j))
+                            "Found no valid floats in col %i" % icol)
                     # Strip trailing entries
                     V = V[:iend]
                 # Convert to array
-                V = np.array(V, dtype=dtj)
+                V = np.array(V, dtype=dtype)
                 # Save size
                 _n[col] = V.size
             # Save
