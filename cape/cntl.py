@@ -165,7 +165,6 @@ class Cntl(object):
         # Run any initialization functions
         self.InitFunction()
 
-
     # Output representation
     def __repr__(self):
         """Output representation method for Cntl class
@@ -175,7 +174,6 @@ class Cntl(object):
         """
         # Display basic information
         return "<cape.Cntl(nCase=%i)>" % self.x.nCase
-
 
     # Function to import user-specified modules
     def ImportModules(self):
@@ -234,7 +232,6 @@ class Cntl(object):
                 print("Importing module '%s'" % imod)
             # Load the module by its name
             exec('self.%s = __import__("%s")' % (fmod, nmod))
-
 
     # Function to apply initialization function
     def InitFunction(self):
