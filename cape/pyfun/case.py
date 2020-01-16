@@ -896,32 +896,50 @@ def GetRunningIter():
 
 # Function to get total iteration number
 def GetRestartIter():
-    """Get total iteration number of most recent flow file
+    r"""Get total iteration number of most recent flow file
 
-    This function works by checking FUN3D output files for particular lines of
-    text.  If the ``fun3d.out`` file exists, only that file is checked.
-    Otherwise, all files matching ``run.[0-9]*.[0-9]*`` are checked.
+    This function works by checking FUN3D output files for particular
+    lines of text.  If the ``fun3d.out`` file exists, only that file is
+    checked. Otherwise, all files matching ``run.[0-9]*.[0-9]*`` are
+    checked.
 
-    The lines in the FUN3D output file that report each new restart file have
-    the following format.
+    The lines in the FUN3D output file that report each new restart file
+    have the following format.
 
-        .. code-block:: none
+    .. code-block:: none
 
-            inserting previous and current history iterations 3300 + 800 = 4100
+        inserting previous and current history iterations 300 + 80 = 380
     
     :Call:
-        >>> n = pyFun.case.GetRestartIter()
+        >>> n = GetRestartIter()
     :Outputs:
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
         * 2016-04-19 ``@ddalle``: Checks STDIO file for iteration number
+        * 2020-01-15 ``@ddalle``: Proper glob sorting order
     """
     # List of saved run files
-    frun = glob.glob('run.[0-9]*.[0-9]*')
-    # Sort descending
-    frun.sort()
+    frun_glob = glob.glob('run.[0-9]*.[0-9]*')
+    # More exact pattern check
+    frun_pattern = []
+    # Loop through glob finds
+    for fi in frun_glob:
+        # Above doesn't guarantee exact pattern
+        try:
+            # Split into parts
+            _, s_phase, s_iter = fi.split(".")
+            # Compute phase and iteration
+            int(s_phase)
+            int(s_iter)
+        except Exception:
+            continue
+        # Append to filterted list
+        frun_pattern.append(fi)
+    # Sort by iteration number
+    frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
+        
     # List the output files
     if os.path.isfile('fun3d.out'):
         # Only use the current file
