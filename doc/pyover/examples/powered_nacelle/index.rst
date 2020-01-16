@@ -16,10 +16,12 @@ covers some post-processing.  This example is located in
 This example shows how to use pyOver for a test case with two related
 configurations, a flow-through axisymmetric nacelle, and a powered axisymmetric
 nacelle.  The example comes with the grids and input files ready to run
-OVERFLOW. However, if one desires to generate these files locally, here are
-the commands used to create the grid and input files in the OVERFLOW source.
-This assumes that the OVERFLOW source bundle has been installed in a directory
-whose absolute path is given by the environment variable ``$OVERHOME``.
+OVERFLOW. However, if one desires to generate these files locally, here are the
+commands that were used to create the grid and input files in the OVERFLOW
+source.  This assumes that the OVERFLOW source bundle has been installed in a
+directory whose absolute path is given by the environment variable
+``$OVERHOME``.  The following generates double-precision, little-endian
+unformatted versions of the grid files.
 
   .. code-block:: bash
 
@@ -29,7 +31,7 @@ whose absolute path is given by the environment variable ``$OVERHOME``.
     cd $OVERHOME/test/powered_nacelle/grids_ft
     ./makegrids
     cd ../run_ft
-    rsync -av xrays.in grid.in \
+    rsync -av Config.xml xrays.in grid.in \
        $CAPE/test/pyover/02_powered_nacelle/common_flowthrough/.
     rsync -av mixsur.{inp,fmp} grid.{ibi,ib,map,i.tri,nsf} \
        $CAPE/test/pyover/02_powered_nacelle/common_flowthrough/fomo/.
@@ -38,12 +40,27 @@ whose absolute path is given by the environment variable ``$OVERHOME``.
     cd ../grids
     ./makegrids
     cd ../run
-    rsync -av xrays.in grid.in \
+    rsync -av Config.xml xrays.in grid.in \
        $CAPE/test/pyover/02_powered_nacelle/common_powered/.
     rsync -av pr136.1.inp \
        $CAPE/test/pyover/02_powered_nacelle/common_powered/overflow.inp
     rsync -av mixsur.{inp,fmp} grid.{ibi,ib,map,i.tri,nsf} \
        $CAPE/test/pyover/02_powered_nacelle/common_powered
+
+
+Input Run Matrix
+----------------
+
+pyOver Configuration File
+-------------------------
+
+
+Execution
+---------
+
+
+Report Generation
+-----------------
 
 
 
