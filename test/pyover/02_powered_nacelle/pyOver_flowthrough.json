@@ -1,0 +1,314 @@
+{
+    // PBS settings
+    "PBS": {
+        "j": "oe",
+        "r": "n",
+        "S": "/bin/bash",
+        "select": 1,
+        "ncpus": 24,
+        "mpiprocs": 24,
+        "model": "has",
+        "W": "group_list=e0847",
+        "q": "devel",
+        "walltime": "2:00:00"
+    },
+    // Altered PBS settings for batch (usually post-processing) jobs
+    "BatchPBS": {
+        "select": 1
+    },
+
+    // These commands are placed at the top of the PBS script
+    "ShellCmds": [
+        ". $MODULESHOME/init/bash",
+        "module use -a /u/serogers/share/modulefiles",
+        "module use -a /u/ddalle/share/modulefiles",
+        "module load comp-intel/2016.2.181",
+        "module load mpi-sgi/mpt",
+        "module load cgt",
+        "module load overflow/2.2n_dp",
+        "module load python",
+        "module load cape/devel"
+    ],
+    "BatchShellCmds": [
+        "module load tecplot/360EX_2017r1",
+        "module load texlive/2008",
+        "module load cgt/2.1s++_dp",
+        "ulimit -S -s 4194304"
+    ],
+    
+    // Namelist template
+    "OverNamelist": "common_flowthrough/overflow.inp",
+        
+    // Options for overall run control and command-line inputs
+    "RunControl": {
+        // Run sequence
+        "PhaseSequence": [0,   1],
+        "PhaseIters":    [600, 1400],
+        // Operation modes
+        "Prefix": "run",
+        "MPI": true,
+        "qsub": false,
+        "Resubmit": [false, true],
+        "Continue": true,
+        "mpicmd": null,
+        "nProc": 24,
+        // Dictionary of environment variables
+        "Environ": {
+            "F_UFMTENDIAN": "little",
+            "FORT_BUFFERED": 0,
+            "OMP_STACKSIZE": 800000000,
+            "KMP_STACKSIZE": 100000000,
+            "MPI_BUFS_PER_PROC": 2048,
+            "MPI_BUFS_PER_HOST": 2048,
+            "MPI_DISPLAY_SETTINGS": 1,
+            "MPI_DSM_DISTRIBUTE": 0,
+            "MPI_DSM_VERBOSE": 1,
+            "MPI_IB_RECV_MSGS": 16384,
+            "MPI_IB_RECV_BUFS": 16384,
+            "MPI_IB_MAX_RDMAS": 1,
+            "MPI_IB_TIMEOUT": 20,
+            "MPI_IB_VERBOSE": 1,
+            "MPI_IB_XRC": "false",
+            "MPI_VERBOSE": 1,
+            "MPI_ARRAYD_CONNECTTO": 15,
+            "MPI_ARRAYD_TIMEOUT": 180,
+            "PAGECACHE_MAX_BYTES": 8589934592
+        },
+
+        // OVERFLOW command-line interface
+        "overrun": {
+            "cmd": "overrunmpi",
+            "aux": null
+        }
+    },
+
+    // Namelist inputs
+    "Overflow": {
+        "GLOBAL": {
+            "NQT": 102,
+            "NSTEPS": [0,     800],
+            "NSAVE":  [0,  2000],
+            "FMG": [true, false],
+            "FMGCYC": [[300,300]],
+            "NGLVL": 2,
+            "ISTART_QAVG": 15000,
+            "WALLDIST": [2],
+            "DTPHYS": [0.0, 0.0, 0.0, 0.0, 1.0],
+            "NITNWT": [0,   0,   0,     0,   5]
+        },
+        "OMIGLB": {
+            "IRUN": 0
+        }
+    },
+
+    // Namelist parameters for each grid
+    "Grids": {
+        // Settings applied to all grids
+        "ALL": {
+            // Solver parameters
+            "METPRM": {
+                "IRHS": 0,
+                "ILHS": 2
+            },
+            "TIMACU": {
+                "ITIME": 1,
+                "DT": 0.10,
+                "CFLMIN": 5.0,
+                "CFLMAX": 0.0
+            },
+            "SMOACU": {
+                "DIS2": 2.0,
+                "DIS4": 0.04,
+                "DELTA": 1.0
+            }
+        }
+    },
+    
+    // Mesh
+    "Mesh": {
+        // Folder containing definition files
+        "ConfigDir": "common_flowthrough",
+        // Grid type, dcf or peg5
+        "Type": "dcf",
+        // List or dictionary of files to link
+        "LinkFiles": [
+            "grid.in",
+            "xrays.in",
+            "fomo/grid.ib",
+            "fomo/grid.ibi",
+            "fomo/grid.nsf",
+            "fomo/grid.map"
+        ],
+        // List of files to copy instead of linking
+        "CopyFiles": [
+            "Config.xml",
+            "fomo/mixsur.fmp"
+        ]
+    },
+    // Additional surface/mesh configuration
+    "Config": {
+        // Reference values
+        "RefArea": 3.14159,
+        "RefLength": 2.0,
+        # Special coordinates
+        "Points": {
+            "CORE_MRP": [2.5, 0.0, 0.0]
+        },
+        "RefPoint": "CORE_MRP"
+    },
+    
+    // Define data book components to track
+    "DataBook": {
+        // List of components to track
+        "Components": [
+            "bullet_no_base",
+            "bullet_cap",
+            "bullet_body",
+            "bullet_base"
+        ],
+        // Define what iterations to include
+        "nFirst": 2100,
+        "nStats": 200,
+        // Where to store the aero data
+        "Folder": "data",
+        // Key(s) by which to sort data book
+        "Sort": ["mach", "alpha", "beta"],
+        // Input files for splitmx/mixsur if doing line loads or similar
+        "fomo": "common/fomo"
+    },
+    
+    // Define a simple report
+    "Report": {
+        "bullet": {
+            "Title": "OVERFLOW Bullet Example for pyOver",
+            "Subtitle": "Example \\texttt{01\\_bullet}",
+            "Restriction": "pyOver Example - Distribution Unlimited",
+            "Figures": ["CaseTables", "CasePlots", "FlowViz"]
+        },
+        // Define the figures
+        "Figures": {
+            "CaseTables": {
+                "Alignment": "left",
+                "Subfigures": ["CaseConds", "FMTable"]
+            },
+            "CasePlots": {
+                "Header": "Iterative analysis and sectional loads",
+                "Alignment": "center",
+                "Subfigures": [
+                    "force_CA",  "force_CY",  "force_CN",
+                    "force_CLL", "force_CLN", "force_CLM",
+                    "cap_CA",    "L2",        "cap_CN"
+                ]
+            },
+            "FlowViz": {
+                "Header": "Flow visualization",
+                "Alignment": "center",
+                "Subfigures": [
+                    "MachSlice", "MachSlice-orange"
+                ]
+            }
+        },
+        // Definitions for subfigures
+        "Subfigures": {
+            // Tecplot figures
+            "MachSlice": {
+                "Type": "Tecplot",
+                "Layout": "inputs/bullet-mach.lay",
+                "FigWidth": 1024,
+                "Width": 0.48,
+                "Caption": "Surface $C_p$ and $y=0$ Mach slice",
+                "FieldMap": [3, 1000]
+            },
+            "MachSlice-orange": {
+                "Type": "MachSlice",
+                "ContourLevels": [
+                    {
+                        "NContour": 2,
+                        "MinLevel": 0,
+                        "MaxLevel": "max(1.4, 1.4*$mach)",
+                        "Delta": 0.05
+                    }
+                ],
+                "ColorMaps": [
+                    {
+                        "Name": "Diverging - Purple/Green modified",
+                        "NContour": 2,
+                        "ColorMap": {
+                            "0.0": "purple",
+                            "$mach": "white",
+                            "1.0": ["green", "orange"],
+                            "max(1.4,1.4*$mach)": "red"
+                        }
+                    }
+                ],
+                "Keys": {
+                    "GLOBALCONTOUR": {
+                        "LABELS": {
+                            "Value": {
+                                "AUTOLEVELSKIP": 2,
+                                "NUMFORMAT": {
+                                    "FORMATTING": "'FIXEDFLOAT'",
+                                    "PRECISION": 1,
+                                    "TIMEDATEFORMAT": "''"
+                                }
+                            },
+                            "Parameter": 2
+                        }
+                    }
+                }
+            },
+            // Table of trajectory variables
+            "CaseConds": {
+                "Type": "Conditions",
+                "Width": 0.28,
+                "Header": "Conditions"
+            },
+            // Table of force and moment averages
+            "FMTable": {
+                "Type": "Summary",
+                "Components": ["TOTAL FORCE"],
+                "Width": 0.71,
+                "Header": "Force \\& Moment Summary",
+                "MuFormat": "%.3e",
+                "SigmaFormat": "%.3e"
+            },
+            // Iterative history
+            "force": {
+                "Type": "PlotCoeff",
+                "Component": "TOTAL FORCE",
+                "nPlotFirst": 0,
+                "FigWidth": 4.5,
+                "FigHeight": 3.4,
+                "Width": 0.33,
+                "StandardDeviation": 1.0
+            },
+            "force_CA": {"Type": "force", "Coefficient": "CA"},
+            "force_CY": {"Type": "force", "Coefficient": "CY"},
+            "force_CN": {"Type": "force", "Coefficient": "CN"},
+            "force_CLL": {"Type": "force", "Coefficient": "CLL"},
+            "force_CLM": {"Type": "force", "Coefficient": "CLM"},
+            "force_CLN": {"Type": "force", "Coefficient": "CLN"},
+            // Residual history
+            "L2": {
+                "Type": "PlotL2",
+                "FigWidth": 5.5,
+                "FigHeight": 6,
+                "Width": 0.33,
+                "nPlotFirst": 1,
+                "Caption": "$L_2$ Density Residual"
+            }
+        }
+    },
+    
+    // RunMatrix description
+    "RunMatrix": {
+        // If a file is specified, and it exists, trajectory values will be
+        // read from it.  RunMatrix values can also be specified locally.
+        "File": "inputs/matrix/flowthrough.csv",
+        "Keys": ["mach"],
+        // Copy the mesh
+        "GroupMesh": true,
+        // Configuration name [default]
+        "GroupPrefix": "flowthrough"
+    }
+}
