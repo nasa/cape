@@ -83,34 +83,34 @@ class XLSFile(BaseFile):
     _DTypeMap = dict(BaseFile._DTypeMap, boolmap="str")
     # Keyword parameters
     _kw = BaseFile._kw + [
+        "colspec",
         "sheet",
+        "ColSpec",
         "SkipRows",
         "SkipCols",
         "SubCols",
         "SubRows",
         "MaxCols",
         "MaxRows",
-        "NDim",
         "skiprows",
         "skipcols",
         "subcols",
         "subrows",
         "maxrows",
-        "maxcols",
-        "ndim"
+        "maxcols"
     ]
     # Abbreviations
     _kw_map = dict(BaseFile._kw_map,
+        colspec="ColSpec",
         skipcols="SkipCols",
         skiprows="SkipRows",
         subcols="SubCols",
         subrows="SubRows",
         maxcols="MaxCols",
-        maxrows="MaxRows",
-        ndim="NDim")
+        maxrows="MaxRows")
     # Types
     _kw_types = dict(BaseFile._kw_types,
-        NDim=(typeutils.nonetype, int),
+        ColSpec=(typeutils.nonetype, list, tuple),
         MaxCols=(typeutils.nonetype, int),
         MaxRows=(typeutils.nonetype, int),
         SubCols=(typeutils.nonetype, int),
@@ -221,8 +221,10 @@ class XLSFile(BaseFile):
             
         # Read worksheet if possible, else read workbook
         if ws:
+            # Read directly-specified worksheet
             self.read_xls_worksheet(ws, **kw)
         else:
+            # Read all worksheets
             self.read_xls_workbook(wb, **kw)
 
     # Read a worksheet
@@ -251,19 +253,22 @@ class XLSFile(BaseFile):
         :Versions:
             * 2020-01-08 ``@jmeeroff`` : First version
         """
-        # Get list of all worksheet names
-        wsnames = wb.sheet_names()
-        # If only one worksheet, just load it
-        # Else, loop through worksheets
-        if len(wsnames) == 1:
+        # Check number of sheets
+        if wb.nsheets == 1:
+            # Get the first (only) worksheet
             ws = wb.sheet_by_index(0)
+            # Read it without prefixing column names
             self.read_xls_worksheet(ws, **kw)
         else:
-            for wsname in wsnames:
-                # Try to read worsheet do nothing if fails
+            # Loop through worksheets
+            for wsname in wb.sheet_names():
+                # Try to read worsheet; do nothing if fails
                 try:
+                    # Use worksheet name as prefix to avoid name clash
                     self.opts['Prefix'] = wsname + '.'
+                    # Get the worksheet handle
                     ws = wb.sheet_by_name(wsname)
+                    # Read it
                     self.read_xls_worksheet(ws, **kw)
                 except Exception:
                     pass
@@ -294,138 +299,15 @@ class XLSFile(BaseFile):
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Support "array" worksheets
+            * 2020-01-10 ``@jmeeroff``: Array read as fallback
+            * 2020-01-16 ``@ddalle``: Unified two worksheet methods
         """
-        # Check worksheet type
-        ndim = kw.get("NDim", kw.get("ndim", None))
-        # Filter output
-        if ndim == 0:
-            # Columns of scalars
-            self.read_xls_ws_scalar(ws, **kw)
-        elif ndim == 1:
-            # Each row is data point of one col
-            self.read_xls_ws_array(ws, **kw)
-        else:
-            # No ndim is given, so well try some things first
-            try:
-                # Try reading as Columns of Scalars
-                self.read_xls_ws_scalar(ws, **kw)
-                return
-            except Exception:
-                pass
-            # Data is probably a 2D array, but need to deterine if
-            # Rows/Columns need to be skipped
-            try:
-                # Try reading as scalar array outright
-                self.read_xls_ws_array(ws, **kw)
-            except ValueError:
-                # Skip one column because skipcols probably not defined
-                self.read_xls_ws_array(ws, **dict(kw, skipcols=1))
-
-   # --- Scalars ---
-    # Read a worksheet
-    def read_xls_ws_scalar(self, ws, **kw):
-        r"""Read one worksheet of an ``.xls`` or ``.xlsx`` file
-
-        This assumes that the worksheet is columns of scalar values.
-
-        :Call:
-            >>> db.read_xls_ws_scalar(ws, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
-                XLS file interface
-            *ws*: :class:`xlrd.sheet.Sheet`
-                Direct access to a worksheet
-            *skiprows*: {``None``} | :class:`int` >= 0
-                Number of rows to skip before reading data
-            *subrows*: {``None``} | :class:`int` >= 0
-                Number of rows below header row to skip
-            *skipcols*: {``None``} | :class:`int` >= 0
-                Number of columns to skip before first data column
-            *maxrows*: {``None``} | :class:`int` > *skiprows*
-                Maximum row number of data
-            *maxcols*: {``None``} | :class:`int` > *skipcols*
-                Maximum column number of data
-        :Versions:
-            * 2019-12-12 ``@ddalle``: First version
-        """
-        # Process options
-        kwread = self.process_kw_xlsread(kw)
         # Read header
-        cols = self.read_xls_header(ws, **kwread)
+        cols = self.read_xls_header(ws, **kw)
         # Process definitions
         self.process_col_defns(**kw)
         # Read data
         self.read_xls_coldata(ws, cols)
-
-   # --- Array ---
-    # Read a table for one column
-    def read_xls_ws_array(self, ws, **kw):
-        r"""Read one 2D column from an ``.xls`` file
-
-        :Call:
-            >>> db.read_xls_ws_array(ws, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
-                XLS file interface
-            *ws*: :class:`xlrd.sheet.Sheet`
-                Direct access to a worksheet
-            *col*: {*ws.name*} | :class:`str`
-                Name of data "column" (really field) to save
-            *skiprows*: {``None``} | :class:`int` >= 0
-                Number of rows to skip before reading data
-            *subrows*: {``None``} | :class:`int` >= 0
-                Number of rows below header row to skip
-            *skipcols*: {``None``} | :class:`int` >= 0
-                Number of columns to skip before first data column
-            *maxrows*: {``None``} | :class:`int` > *skiprows*
-                Maximum row number of data
-            *maxcols*: {``None``} | :class:`int` > *skipcols*
-                Maximum column number of data
-        :Versions:
-            * 2019-12-26 ``@ddalle``: First version
-        """
-        # Get column name from worksheet
-        col = kw.get("col", ws.name)
-        # Process skip options
-        self.get_autoskip(ws, **kw)
-        # Get relevant options
-        skipcols = self.opts.get("SkipCols", 0)
-        skiprows = self.opts.get("SkipRows", 0)
-        maxcols = self.opts.get("MaxCols")
-        maxrows = self.opts.get("MaxRows")
-        subcols = self.opts.get("SubCols", 0)
-        subrows = self.opts.get("SubRows", 0)
-        # Combine skips
-        i0 = skiprows + subrows
-        j0 = skipcols + subcols
-        # Estimate number of columns
-        if maxrows is None:
-            nrows = ws.nrows - i0
-        else:
-            nrows = maxrows - i0
-        if maxcols is None:
-            ncols = ws.ncols - j0
-        else:
-            ncols = maxcols - j0
-        # Save column name
-        cols = self.__dict__.setdefault("cols", [])
-        # Add column if needed
-        if col not in cols:
-            cols.append(col)
-        # Process column definitions
-        self.process_col_defns(**kw)
-        # Get data type
-        dtype = self.get_col_dtype(col)
-        # Initialize data (note transpose)
-        V = np.zeros((ncols, nrows), dtype=dtype)
-        # Loop through rows
-        for i in range(nrows):
-            # Read the row
-            v = ws.row_values(i+i0, j0, end_colx=maxcols)
-            # Save as a *column*
-            V[:,i] = np.asarray(v, dtype=dtype)
-        # Save column
-        self[col] = V
 
    # --- Header ---
     # Read worksheet header
@@ -439,6 +321,10 @@ class XLSFile(BaseFile):
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
+            *colspec*: {``None``} | :class:`list`
+                List of column names *col* or ``(col, colwidth)``;
+                using this option preempts reading column names
+                from header row
             *skiprows*: {``None``} | :class:`int` >= 0
                 Number of rows to skip before reading data
             *subrows*: {``None``} | :class:`int` >= 0
@@ -448,17 +334,20 @@ class XLSFile(BaseFile):
             *maxcols*: {``None``} | :class:`int` > *skipcols*
                 Maximum column number of data
         :Outputs:
-            *db.cols*: :class:`list`\ [:class:`str`]
+            *cols*: :class:`list`\ [:class:`str`]
                 List of column names if read
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
+            * 2020-01-16 ``@ddalle``: Full scalar/array support
         """
         # Process skip options
-        skips = self.get_autoskip(ws, **kw)
+        self.get_autoskip(ws, **kw)
         # Get options
         opts = self.opts
         # Initialize types
         defns = opts.setdefault("Definitions", {})
+        # Check for directly specified columns
+        colspec = kw.get("ColSpec", kw.get("colspec"))
         # Unpack skip options
         skipcols = opts["SkipCols"]
         skiprows = opts["SkipRows"]
@@ -473,6 +362,56 @@ class XLSFile(BaseFile):
             skiprows + subrows + 1, start_colx=skipcols, end_colx=maxcols)
         # Number of cols read
         nheader = len(header)
+        import pdb
+        pdb.set_trace()
+        # Process column specification
+        if isinstance(colspec, (list, tuple)):
+            # Initialize columns and widths
+            cols = []
+            dim2 = []
+            # Column
+            j = 0
+            # Loop through columns specified by user
+            for spec in colspec:
+                # Check type
+                if typeutils.isstr(spec):
+                    # Save a scalar
+                    col = spec
+                    colwidth = 1
+                elif isinstance(spec, (list, tuple)):
+                    # Check length
+                    if len(spec) != 2:
+                        raise ValueError(
+                            "Col specification must have length 2 (got %i)"
+                            % len(spec))
+                    # Unpack
+                    col, colwidth = spec
+                # Check length of row
+                if j + colwidth > nheader:
+                    raise ValueError(
+                        ("Column specification for '%s' exceeds " % col) +
+                        ("number of data columns in worksheet"))
+                # Translate name
+                col, = self.translate_colnames([col])
+                # Get definition
+                defn = defns.setdefault(col, {})
+                # Save
+                cols.append(col)
+                # Get value
+                v = row1[j]
+                # Check type
+                if isinstance(v, float):
+                    # Numeric types are all floats in Excel
+                    defn.setdefault("Type", "float64")
+                else:
+                    # Otherwise string
+                    defn.setdefault("Type", "str")
+                # Save dimension
+                defn["ColWidth"] = colwidth
+                # Move to next data column
+                j += colwidth
+            # Terminate early
+            return cols
         # Initialize list of columns
         cols = []
         # Number of spreadsheet columns in each field
@@ -489,7 +428,6 @@ class XLSFile(BaseFile):
             col = header[j]
             # Get value for this column
             v = row1[j]
-
             # True column number
             jcol = j + 1 + skipcols
             # Check type
@@ -564,7 +502,7 @@ class XLSFile(BaseFile):
             # Get the definition
             defn = defns[col]
             # Set the definition
-            defn["ColWdith"] = dim2[j]
+            defn["ColWidth"] = dim2[j]
         # Output
         return cols
 
@@ -1033,28 +971,45 @@ class XLSFile(BaseFile):
             # Translate if necessary
             dtype = self._DTypeMap.get(clsname, clsname)
             # Read the whole column
-            V = ws.col_values(icol, irow, end_rowx=maxrows)
+            V0 = ws.col_values(icol, irow, end_rowx=maxrows)
             # Read data based on type
             if dtype == "str":
                 # Read the whole column and allow empty strings
-                pass
-                # Save count
+                V = V0
+                # Save the full length
                 _n[col] = len(V)
             elif dtype.startswith("float") or dtype.startswith("int"):
                 # Check for empty strings
-                if "" in V:
+                if "" in V0:
                     # Find index of first such one
-                    iend = V.index("")
+                    iend = V0.index("")
                     # Check for empty column
                     if iend == 0:
                         raise ValueError(
                             "Found no valid floats in col %i" % icol)
                     # Strip trailing entries
-                    V = V[:iend]
-                # Convert to array
-                V = np.array(V, dtype=dtype)
-                # Save size
-                _n[col] = V.size
+                    V0 = V0[:iend]
+                # Current size
+                m = len(V0)
+                # Create array
+                if colwidth == 1:
+                    # Convert to array
+                    V = np.array(V0, dtype=dtype)
+                    # Save size
+                    _n[col] = V.size
+                else:
+                    # Initialize array
+                    V = np.zeros((m, colwidth), dtype=dtype)
+                    # Save first column
+                    V[:,0] = V0
+                    # Loop through other columns
+                    for jcol in range(1, colwidth):
+                        # Read the values
+                        Vj = ws.col_values(icol+jcol, irow, end_rowx=irow+m)
+                        # Save column
+                        V[:,jcol] = Vj
+            # Go to next column
+            icol += colwidth
             # Save
             self.save_col(col, V)
 
