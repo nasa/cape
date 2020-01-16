@@ -7,7 +7,7 @@
 This module contains methods to process keyword argument dictionaries
 by checking them against
 
-    * a list of acceptable names
+    * a list (ideally a set) of acceptable names
     * a dictionary of alternate names
     * a dictionary of acceptable types
     * a dictionary of other keys required for any key with dependencies
@@ -17,6 +17,9 @@ by checking them against
 # Standard library
 import sys
 import difflib
+
+# Local modules
+from . import optitem
 
 
 # Map keywords
@@ -133,8 +136,7 @@ def check_kw_types(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
     r"""Check and map valid keyword names
 
     :Call:
-        >>> kwo = check_kw_types(
-            kwlist, kwmap, kwtypes, kwdep, mode, **kw)
+        >>> kwo = check_kw_types(|args1|, **kw)
     :Inputs:
         *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
             Data file interface
@@ -157,6 +159,8 @@ def check_kw_types(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
             Valid keywords and their values from *kw*
     :Versions:
         * 2019-12-13 ``@ddalle``: First version
+
+    .. |args1| replace:: kwlist, kwmap, kwtypes, kwdep, mode
     """
     # Check mode
     if mode not in [0, 1, 2]:
@@ -239,8 +243,7 @@ def check_kw_eltypes(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
     type in addition to just being the correct type.
 
     :Call:
-        >>> kwo = check_kw_eltypes(
-            kwlist, kwmap, kwtypes, kwdep, mode, **kw)
+        >>> kwo = check_kw_eltypes(|args2|, **kw)
     :Inputs:
         *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
             Data file interface
@@ -263,6 +266,8 @@ def check_kw_eltypes(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
             Valid keywords and their values from *kw*
     :Versions:
         * 2019-12-13 ``@ddalle``: First version
+
+    .. |args2| replace:: kwlist, kwmap, kwtypes, kwdep, mode
     """
     # Check mode
     if mode not in [0, 1, 2]:
@@ -338,3 +343,242 @@ def check_kw_eltypes(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
                     sys.stderr.flush()
     # Output
     return kwo
+
+
+# Class to contain processed keywords
+def KwargHandler(dict):
+    r"""Class to handle kwargs against preset key lists and types
+
+    :Call:
+        >>> opts = KwargHandler(optsdict=None, warnmode=1, **kw)
+    :Inputs:
+        *opts*: :class:`MPLOpts`
+            Options interface
+        *optsdict*: {``None``} | :class:`dict`
+            Dictionary of previous options (overwritten by *kw*)
+        *warnmode*: ``0`` | {``1``} | ``2``
+            Warning mode from :mod:`kwutils`
+    :Versions:
+        * 2020-01-16 ``@ddalle``: Generalized from :mod:`plot_mpl`
+    """
+  # =================
+  # Class Attributes
+  # =================
+  # <
+   # --- Global Keywords ---
+    # All options
+    _optlist = set()
+
+    # Options for which a singleton should be a list
+    _optlist_list = set()
+
+    # Options for which lists are rings
+    _optlist_ring = set()
+    
+    # Options for which lists are hold-last
+    _optlist_holdlast = set()
+
+    # Default list type
+    _optlist_type = 0
+    
+    # Alternate names
+    _optmap = {}
+
+    # Types
+    _opttypes = {}
+
+    # Dependencies
+    _optdependencies = {}
+
+   # --- Option Sublists ---
+    # Dictionary of options for certain functions (ordered)
+    _optlists = {}
+
+   # --- Cascading Options ---
+    # Global options mapped to subcategory options
+    _kw_submap = {}
+
+    # Options to inherit from elsewhere
+    _kw_cascade = {}
+
+   # --- Conflicting Options ---
+    # Aliases to merge for subcategory options
+    _kw_subalias = {}
+
+   # --- Documentation Data ---
+    # Type strings
+    _rst_types = {}
+
+    # Option descriptions
+    _rst_descriptions = {}
+
+   # --- Default Control ---
+    # Global defaults
+    _rc = {}
+
+    # Subdefaults
+    _rc_sub = {}
+  # >
+
+  # ============
+  # Config
+  # ============
+  
+  # ============
+  # Config
+  # ============
+  # <
+    # Initialization method
+    def __init__(self, optsdict=None, warnmode=1, **kw):
+        r"""Initialization method
+
+        :Call:
+            >>> opts.__init__(optsdict=None, warnmode=1, **kw)
+        :Inputs:
+            *opts*: :class:`KwargHandler`
+                Options interface
+            *optsdict*: {``None``} | :class:`dict`
+                Dictionary of previous options (overwritten by *kw*)
+            *warnmode*: ``0`` | {``1``} | ``2``
+                Warning mode from :mod:`kwutils`
+        :Versions:
+            * 2019-12-19 ``@ddalle``: First version (plot_mpl.MPLOpts)
+        """
+        # Get class
+        cls = self.__class__
+        # Initialize an unfiltered dict
+        if isinstance(optsdict, dict):
+            # Initialize with dictionary
+            optsdict = dict(optsdict, **kw)
+        else:
+            # Initialize from just keywords
+            optsdict = kw
+        # Remove anything that's ``None``
+        opts = cls.denone(optsdict)
+
+        # Check keywords
+        opts = check_kw_eltypes(
+            cls._optlist,
+            cls._optmap,
+            cls._opttypes,
+            cls._optdependencies, warnmode, **opts)
+
+        # Copy entries
+        for (k, v) in opts.items():
+            self[k] = v
+  # >
+
+  # ============
+  # Utilities
+  # ============
+  # <
+    # Remove ``None`` keys
+    @staticmethod
+    def denone(opts):
+        r"""Remove any keys whose value is ``None``
+    
+        :Call:
+            >>> opts = denone(opts)
+        :Inputs:
+            *opts*: :class:`dict`
+                Any dictionary
+        :Outputs:
+            *opts*: :class:`dict`
+                Input with any keys whose value is ``None`` removed;
+                returned for convenience but input is also affected
+        :Versions:
+            * 2019-03-01 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`mplopts`
+            * 2020-01-16 ``@ddalle``: From :mod:`plot_mpl`
+        """
+        # Loop through keys
+        for (k, v) in dict(opts).items():
+            # Check if ``None``
+            if v is None:
+                opts.pop(k)
+        # Output
+        return opts
+
+    # Get rule for phase beyond end of list
+    @classmethod
+    def _get_listtype(cls, k):
+        r"""Get "ring" or "holdlast"  option for named key
+
+        :Call:
+            >>> ringcode = cls._get_listtype(k)
+        :Inputs:
+            *cls*: :class:`type`
+                Options class
+            *k*: :class:`str`
+                Name of key
+        :Outputs:
+            *ringcode*: ``0`` | ``1``
+                ``0`` for a ring, which repeats, ``1`` for a list
+                where calling for indices beyond length of list
+                returns last value
+        :Versions:
+            * 2020-01-16 ``@ddalle``: First version
+        """
+        # Check explicit options
+        if k in cls._optlist_ring:
+            # Explicitly a ring
+            return 0
+        elif k in cls._optlist_holdlas:
+            # Explicitly a hold-last
+            return 1
+        else:
+            # Use the default
+            return cls._optlist_type
+
+    # Select options for phase *i*
+    @classmethod
+    def select_phase(cls, kw, i=0):
+        r"""Select option *i* for each option in *kw*
+    
+        This cycles through lists of options for named options such as
+        *color* and repeats if *i* is longer than the list of options.
+        Special options like *dashes* that accept a list as a value are
+        handled automatically.  If the value of the option is a single
+        value, it is returned regardless of the value of *i*.
+    
+        :Call:
+            >>> kw_p = cls.select_plotphase(kw, i=0)
+        :Inputs:
+            *kw*: :class:`dict`
+                Dictionary of options for one or more graphics features
+            *i*: {``0``} | :class:`int`
+                Index
+        :Outputs:
+            *kw_p*: :class:`dict`
+                Dictionary of options with lists replaced by scalar values
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+            * 2020-01-16 ``@ddalle``: From :mod:`plot_mpl`
+        """
+        # Initialize plot options
+        kw_p = {}
+        # Loop through options
+        for (k, V) in kw.items():
+            # Get ring-vs-holdlast type
+            listtype = cls._get_listtype(k)
+            # Check if this is a "list" option
+            if k in cls._optlist_list:
+                # Get value as a list
+                if listtype == 0
+                    # Repeat entire list
+                    v = optitem.getringel_list(V, i)
+                else:
+                    # Repeat last value
+                    v = optitem.getel_list(v, i)
+            else:
+                # Get value as a scalar
+                if listtype == 0
+                    # Repeat entire list
+                    v = optitem.getringel(V, i)
+                else:
+                    # Repeat last value
+                    v = optitem.getel(v, i)
+            # Set option
+            kw_p[k] = v
+        # Output
+        return kw_p

@@ -30,11 +30,9 @@ from . import genopts
 from . import mplopts
 
 # TNA toolkit modules
+from .. import optitem
 from .. import typeutils
 from .. import statutils as stats
-
-# TNA toolkit submodules
-from ..optutils import optitem
 
 # Get a variable to hold the "type" of "module"
 mod = os.__class__

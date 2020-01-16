@@ -21,12 +21,10 @@ import numpy as np
 
 # TNA toolkit modules
 import cape.tnakit.kwutils as kwutils
+import cape.tnakit.optitem as optitem
 import cape.tnakit.rstutils as rstutils
 import cape.tnakit.statutils as statutils
 import cape.tnakit.typeutils as typeutils
-
-# TNA toolkit direct imports
-from cape.tnakit.optutils import optitem
 
 # Get a variable to hold the "type" of "module"
 mod = os.__class__
@@ -108,7 +106,7 @@ def plot(xv, yv, *a, **kw):
     """Plot connected points with many options
 
     :Call:
-        >>> h, kw = plot_base(xv, yv, *a, **kw)
+        >>> h, kw = plot(xv, yv, *a, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray` (:class:`float`)
             Array of values for *x*-axis
@@ -2889,7 +2887,9 @@ class MPLHandle(object):
             elif v.__class__.__module__.startswith("matplotlib"):
                 # Some other plot handle; replace
                 self.__dict__[k] = v
-        
+
+
+# Function to get 
 
 
 # Standard type strings
@@ -3469,7 +3469,7 @@ class MPLOpts(dict):
         "ymin": typeutils.arraylike,
     }
 
-   # --- Cascading Options
+   # --- Cascading Options ---
     # Global options mapped to subcategory options
     _kw_submap = {
         "AxesOptions": {},
@@ -4010,7 +4010,7 @@ class MPLOpts(dict):
     # Remove ``None`` keys
     @staticmethod
     def denone(opts):
-        """Remove any keys whose value is ``None``
+        r"""Remove any keys whose value is ``None``
     
         :Call:
             >>> opts = denone(opts)

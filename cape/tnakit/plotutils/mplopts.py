@@ -15,7 +15,7 @@ of functions to process options and apply the defaults.
 from . import genopts
 
 # TNA toolkit submodules
-from ..optutils import optitem
+from .. import optitem
 
 
 # List of options whose scalar values are lists

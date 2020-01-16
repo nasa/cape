@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`tnakit.optutils.optitem`: Option List Item Access Tools
+:mod:`cape.tnakit.optitem`: Option List Item Access Tools
 ==============================================================
 
-This module provides several utilities for accessing items from a list or a
-so-called "psuedo-list."  In particular :mod:`tnakit.optutils` options are
-usually considered to be lists whether defined thusly or not.
+This module provides several utilities for accessing items from a list
+or a so-called "psuedo-list."
 
-For example, if the value of the option is just ``"name"``, this is considered
-to be a list with ``"name"`` repeating infinitely many times.  If an option is
-is ``[1, 7]``, this is interpreted as either ``1`` and ``7`` alternating back
-and forth or ``1`` followed by ``7`` arbitrarily many times (depending on
-which access function is used).
+For example, if the value of the option is just ``"name"``, this is
+considered to be a list with ``"name"`` repeating infinitely many times.
+If an option is ``[1, 7]``, this is interpreted as either ``1`` and
+``7`` alternating back and forth or ``1`` followed by ``7`` arbitrarily
+many times (depending on which access function is used).
 """
 
 # TNA toolkit modules
-from .. import typeutils
+from . import typeutils
 
 
 # Utility function to get elements from a list by phase
