@@ -1,20 +1,21 @@
-"""
+r"""
 :mod:`cape.pyfun.case`: FUN3D case control module
 ==================================================
 
-This module contains the important function :func:`case.run_fun3d`, which
-actually runs ``nodet`` or ``nodet_mpi``, along with the utilities that
-support it.
+This module contains the important function :func:`case.run_fun3d`,
+which actually runs ``nodet`` or ``nodet_mpi``, along with the utilities
+that support it.
 
-It also contains FUN3D-specific versions of some of the generic methods from
-:mod:`cape.case`.  For instance the function :func:`GetCurrentIter` determines
-how many FUN3D iterations have been run in the current folder, which is
-obviously a solver-specific task.  It also contains the function
-:func:`LinkPLT`, which creates links to fixed Tecplot file names from the most
-recent output created by FUN3D.
+It also contains FUN3D-specific versions of some of the generic methods
+from :mod:`cape.case`.  For instance the function :func:`GetCurrentIter`
+determines how many FUN3D iterations have been run in the current
+folder, which is obviously a solver-specific task.  It also contains the
+function :func:`LinkPLT`, which creates links to fixed Tecplot file
+names from the most recent output created by FUN3D.
 
-All of the functions from :mod:`cape.case` are imported here.  Thus they are
-available unless specifically overwritten by specific :mod:`cape.pyfun` versions.
+All of the functions from :mod:`cape.case` are imported here.  Thus they
+are available unless specifically overwritten by specific
+:mod:`cape.pyfun` versions.
 
 """
 
@@ -23,7 +24,6 @@ import os
 import glob
 import json
 import shutil
-import resource
 import re
 
 # Standard library direct imports
@@ -31,7 +31,6 @@ from datetime import datetime
 
 # CAPE modules
 import cape.cfdx.case as cc
-import cape.manage    as manage
 
 # Local imports
 from . import bin
@@ -50,9 +49,10 @@ regex_dict = {
 # Combine them; different format for steady and time-accurate modes
 regex_f3dout = re.compile("\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % regex_dict)
 
+
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_fun3d():
-    """Setup and run the appropriate FUN3D command
+    r"""Setup and run the appropriate FUN3D command
     
     :Call:
         >>> pyFun.case.run_fun3d()
@@ -92,9 +92,10 @@ def run_fun3d():
     # Resubmit/restart if this point is reached.
     RestartCase(i)
 
+
 # Prepare the files of the case
 def PrepareFiles(rc, i=None):
-    """Prepare file names appropriate to run phase *i* of FUN3D
+    r"""Prepare file names appropriate to run phase *i* of FUN3D
     
     :Call:
         >>> PrepareFiles(rc, i=None)
@@ -129,9 +130,10 @@ def PrepareFiles(rc, i=None):
     # Return to original folder
     if rc.get_Dual(): os.chdir('..')
 
+
 # Run one phase appropriately
 def RunPhase(rc, i):
-    """Run one phase using appropriate commands
+    r"""Run one phase using appropriate commands
     
     :Call:
         >>> RunPhase(rc, i)
@@ -174,7 +176,8 @@ def RunPhase(rc, i):
             # Check for renamed file
             if fproj_adapt != fproj:
                 # Copy mesh
-                os.symlink('%s.%s' % (fproj,fmt), '%s.%s' % (fproj_adapt,fmt))
+                os.symlink('%s.%s' % (fproj, fmt),
+                           '%s.%s' % (fproj_adapt, fmt))
             # Make sure *n* is not ``None``
             if n is None: n = 0
             # Exit appropriately
@@ -201,7 +204,7 @@ def RunPhase(rc, i):
     # Go back up a folder if we're in the "Flow" folder
     if rc.get_Dual(): os.chdir('..')
     # Check current iteration count.
-    if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
+    if (i >= rc.get_PhaseSequence(-1)) and (n >= rc.get_LastIter()):
         return
     # Check for adaptive solves
     if n1 < np: return
@@ -213,7 +216,7 @@ def RunPhase(rc, i):
         if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
             os.remove('fun3d.nml')
         # Copy the correct one into place
-        os.symlink('fun3d.dual.%02i.nml'%i, 'fun3d.nml')
+        os.symlink('fun3d.dual.%02i.nml' % i, 'fun3d.nml')
         # Enter the 'Adjoint/' folder
         os.chdir('..')
         os.chdir('Adjoint')
@@ -244,9 +247,10 @@ def RunPhase(rc, i):
         # Return home if appropriate
         if rc.get_Dual(): os.chdir('..')
         
+
 # Check success
 def CheckSuccess(rc=None, i=None):
-    """Check for errors before continuing
+    r"""Check for errors before continuing
     
     Currently the following checks are performed.
     
@@ -283,9 +287,10 @@ def CheckSuccess(rc=None, i=None):
         if 'NaN' in line:
             raise RuntimeError("Found NaN locations!")
 
+
 # Clean up immediately after running
 def FinalizeFiles(rc, i=None):
-    """Clean up files after running one cycle of phase *i*
+    r"""Clean up files after running one cycle of phase *i*
     
     :Call:
         >>> FinalizeFiles(rc, i=None)
@@ -305,8 +310,6 @@ def FinalizeFiles(rc, i=None):
     nml = GetNamelist(rc, i)
     # Get the project name
     fproj = GetProjectRootname(nml=nml)
-    # Clean up the folder as appropriate.
-    #manage.ManageFilesProgress(rc)
     # Get the last iteration number
     n = GetCurrentIter()
     # Don't use ``None`` for this
@@ -317,12 +320,12 @@ def FinalizeFiles(rc, i=None):
         os.chdir('Flow')
         qdual = True
         # History gets moved to parent
-        fhist = os.path.join('..', 'run.%02i.%i' % (i,n))
+        fhist = os.path.join('..', 'run.%02i.%i' % (i, n))
     else:
         # Single folder
         qdual = False
         # History remains in present folder
-        fhist = 'run.%02i.%i' % (i,n)
+        fhist = 'run.%02i.%i' % (i, n)
     # Assuming that worked, move the temp output file.
     if os.path.isfile('fun3d.out'):
         # Move the file
@@ -332,13 +335,15 @@ def FinalizeFiles(rc, i=None):
         os.system('touch %s' % fhist)
     # Rename the flow file, too.
     if rc.get_KeepRestarts(i):
-        shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
+        shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj, n))
     # Move back to parent folder if appropriate
     if qdual: os.chdir('..')
-        
+
+
 # Function to call script or submit.
 def StartCase():
-    """Start a case by either submitting it or calling with a system command
+    r"""Start a case by either submitting it or calling with a system
+    command
     
     :Call:
         >>> pyFun.case.StartCase()
@@ -366,10 +371,12 @@ def StartCase():
     else:
         # Simply run the case. Don't reset modules either.
         run_fun3d()
-        
+
+
 # Function to call script or submit.
 def RestartCase(i0=None):
-    """Restart a case by either submitting it or calling with a system command
+    r"""Restart a case by either submitting it or calling with a system
+    command
     
     This version of the command is called within :func:`run_fun3d` after
     running a phase or attempting to run a phase.
@@ -398,9 +405,9 @@ def RestartCase(i0=None):
     if not (qpbs or qslr):
         # Run the case.
         run_fun3d()
-    elif rc.get_Resubmit(max(0,i-1)):
+    elif rc.get_Resubmit(max(0, i-1)):
         # Check for continuance
-        if (i0 is None) or (i>i0) or (not rc.get_Continue(i)):
+        if (i0 is None) or (i > i0) or (not rc.get_Continue(i)):
             # Get the name of the PBS file.
             fpbs = GetPBSScript(i)
             # Submit the case.
@@ -421,9 +428,10 @@ def RestartCase(i0=None):
         # Simply run the case. Don't reset modules either.
         run_fun3d()
     
+
 # Write start time
 def WriteStartTime(tic, rc, i, fname="pyfun_start.dat"):
-    """Write the start time in *tic*
+    r"""Write the start time in *tic*
     
     :Call:
         >>> WriteStartTime(tic, rc, i, fname="pyfun_start.dat")
@@ -442,9 +450,10 @@ def WriteStartTime(tic, rc, i, fname="pyfun_start.dat"):
     # Call the function from :mod:`cape.case`
     cc.WriteStartTimeProg(tic, rc, i, fname, 'run_fun3d.py')
     
+
 # Write time used
 def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
-    """Write time usage since time *tic* to file
+    r"""Write time usage since time *tic* to file
     
     :Call:
         >>> toc = WriteUserTime(tic, rc, i, fname="pyfun_time.dat")
@@ -466,12 +475,13 @@ def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
     # Call the function from :mod:`cape.case`
     cc.WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
 
+
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):
-    """Determine the file name of the PBS script to call
+    r"""Determine the file name of the PBS script to call
     
-    This is a compatibility function for cases that do or do not have multiple
-    PBS scripts in a single run directory
+    This is a compatibility function for cases that do or do not have
+    multiple PBS scripts in a single run directory
     
     :Call:
         >>> fpbs = pyFun.case.GetPBSScript(i=None)
@@ -500,9 +510,11 @@ def GetPBSScript(i=None):
         # Do not search for numbered PBS script if *i* is None
         return 'run_fun3d.pbs'
     
+
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc):
-    """Determine the appropriate input number based on results available
+    r"""Determine the appropriate input number based on results
+    available
     
     :Call:
         >>> i = pyFun.case.GetPhaseNumber(rc)
@@ -536,7 +548,8 @@ def GetPhaseNumber(rc):
         # Check for dual
         if qdual and rc.get_DualPhase(i):
             # Check for the dual output file
-            if not os.path.isfile(os.path.join('Adjoint', 'dual.%02i.out'%i)):
+            if not os.path.isfile(os.path.join('Adjoint',
+                                               'dual.%02i.out' % i)):
                 return i
         # Check for dual
         if qadpt and rc.get_AdaptPhase(i):
@@ -556,9 +569,10 @@ def GetPhaseNumber(rc):
     # Case completed; just return the last value.
     return i
 
+
 # Get the namelist
 def GetNamelist(rc=None, i=None):
-    """Read case namelist file
+    r"""Read case namelist file
     
     :Call:
         >>> nml = pyFun.case.GetNamelist(rc=None, i=None)
@@ -617,11 +631,12 @@ def GetNamelist(rc=None, i=None):
 
 # Get the project rootname
 def GetProjectRootname(rc=None, i=None, nml=None):
-    """Read namelist and return project namelist
+    r"""Read namelist and return project namelist
     
     :Call:
         >>> rname = pyFun.case.GetProjectRootname()
-        >>> rname = pyFun.case.GetProjectRootname(rc=None, i=None, nml=None)
+        >>> rname = pyFun.case.GetProjectRootname(rc=None, i=None,
+                        nml=None)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
@@ -643,7 +658,7 @@ def GetProjectRootname(rc=None, i=None, nml=None):
     
 # Function to read the local settings file.
 def ReadCaseJSON():
-    """Read `RunControl` settings for local case
+    r"""Read `RunControl` settings for local case
     
     :Call:
         >>> rc = pyFun.case.ReadCaseJSON()
@@ -668,7 +683,7 @@ def ReadCaseJSON():
 
 # Get last line of 'history.dat'
 def GetCurrentIter():
-    """Get the most recent iteration number
+    r"""Get the most recent iteration number
     
     :Call:
         >>> n = pyFun.case.GetHistoryIter()
@@ -689,10 +704,11 @@ def GetCurrentIter():
     else:
         # Some iterations saved and some running
         return nh + nr
-        
+
+
 # Get the number of finished iterations
 def GetHistoryIter():
-    """Get the most recent iteration number for a history file
+    r"""Get the most recent iteration number for a history file
     
     :Call:
         >>> nh, n = pyFun.case.GetHistoryIter()
@@ -778,10 +794,11 @@ def GetHistoryIter():
     if qdual: os.chdir('..')
     # Output
     return nh, n
-        
+
+
 # Get the number of iterations from a single iterative history file
 def GetHistoryIterFile(fname):
-    """Get the most recent iteration number from a history file
+    r"""Get the most recent iteration number from a history file
     
     :Call:
         >>> n = pyFun.case.GetHistoryIterFile(fname)
@@ -810,10 +827,11 @@ def GetHistoryIterFile(fname):
         return int(txt.split()[0])
     except Exception:
         return None
-        
+
+
 # Get the last line (or two) from a running output file
 def GetRunningIter():
-    """Get the most recent iteration number for a running file
+    r"""Get the most recent iteration number for a running file
     
     :Call:
         >>> n = pyFun.case.GetRunningIter()
@@ -894,6 +912,7 @@ def GetRunningIter():
     else:
         return n + nr
 
+
 # Function to get total iteration number
 def GetRestartIter():
     r"""Get total iteration number of most recent flow file
@@ -957,7 +976,7 @@ def GetRestartIter():
     # Loop through the matches.
     for fname in fflow:
         # Check for restart of iteration counter
-        lines = bin.grep('on_nohistorykept', fname);
+        lines = bin.grep('on_nohistorykept', fname)
         if len(lines) > 1:
             # Reset iteration counter
             n0 = n
@@ -990,9 +1009,10 @@ def GetRestartIter():
     # Output
     return n0 + n
     
+
 # Function to set the most recent file as restart file.
 def SetRestartIter(rc, n=None):
-    """Set a given check file as the restart point
+    r"""Set a given check file as the restart point
     
     :Call:
         >>> pyFun.case.SetRestartIter(rc, n=None)
@@ -1026,15 +1046,15 @@ def SetRestartIter(rc, n=None):
             f1 = glob.glob('run.%02i.*' % (i-1))
             n1 = rc.get_PhaseIters(i-1)
             # Read the previous namelist
-            if (n>n1) and (len(f1)>0) and os.path.isfile("fun3d.out"):
-                # Current phase was already run, but run.$i.$n wasn't created 
+            if (n > n1) and (len(f1) > 0) and os.path.isfile("fun3d.out"):
+                # Current phase was already run, but run.$i.$n wasn't created
                 nml0 = GetNamelist(rc, i)
             else:
                 # Read the previous phase
                 nml0 = GetNamelist(rc, i-1)
             # Get 'time_accuracy' parameter
             ta0 = nml0.GetVar('nonlinear_solver_parameters', 'time_accuracy')
-            ta1 = nml.GetVar( 'nonlinear_solver_parameters', 'time_accuracy')
+            ta1 = nml.GetVar('nonlinear_solver_parameters', 'time_accuracy')
             # Check for a match
             nohist = ta0 != ta1
             # If we are moving to a new mode, prevent Fun3D deleting history
@@ -1048,9 +1068,10 @@ def SetRestartIter(rc, n=None):
     # Write the namelist.
     nml.Write()
     
+
 # Copy the histories
 def CopyHist(nml, i):
-    """Copy all force and moment histories along with residual history
+    r"""Copy all force and moment histories along with residual history
     
     :Call:
         >>> CopyHist(nml, i)
@@ -1096,10 +1117,12 @@ def CopyHist(nml, i):
         if not os.path.isfile(fcopy) and (ta0 != 'steady'):
             # Copy the file
             os.rename('%s_subhist.dat' % proj, fcopy)
-        
+
+
 # Function to determine newest triangulation file
 def GetPltFile():
-    """Get most recent boundary ``plt`` file and its associated iterations
+    r"""Get most recent boundary ``plt`` file and its associated
+    iterations
     
     :Call:
         >>> fplt, n, i0, i1 = GetPltFile()
@@ -1221,10 +1244,9 @@ def GetPltFile():
 # def GetPltFile
     
     
-    
 # Get best file based on glob
 def GetFromGlob(fglb):
-    """Find the most recently edited file matching a glob
+    r"""Find the most recently edited file matching a glob
     
     :Call:
         >>> fname = pyFun.case.GetFromGlob(fglb)
@@ -1239,8 +1261,6 @@ def GetFromGlob(fglb):
     """
     # List of files matching requested glob
     fglob = glob.glob(fglb)
-    # File extension
-    fext = '.' + fglb.split('.')[-1]
     # Check for empty glob
     if len(fglob) == 0: return
     # Get modification times
@@ -1249,10 +1269,11 @@ def GetFromGlob(fglb):
     fname = fglob[t.index(max(t))]
     # Output
     return fname
-    
+
+   
 # Link best file based on name and glob
 def LinkFromGlob(fname, fglb):
-    """Link the most recent file to a generic Tecplot file name
+    r"""Link the most recent file to a generic Tecplot file name
     
     :Call:
         >>> pyFun.case.LinkFromGlob(fname, fglb)
@@ -1276,9 +1297,10 @@ def LinkFromGlob(fname, fglb):
     # Create the link if possible
     if os.path.isfile(fsrc): os.symlink(fsrc, fname)
     
+
 # Link best Tecplot files
 def LinkPLT():
-    """Link the most recent Tecplot files to fixed file names
+    r"""Link the most recent Tecplot files to fixed file names
     
     :Call:
         >>> pyFun.case.LinkPLT()
