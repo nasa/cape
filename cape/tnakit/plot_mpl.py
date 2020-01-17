@@ -5899,21 +5899,29 @@ class MPLKW(kwutils.KwargHandler):
         "Index": 0,
         "Rotate": False,
         "MinMaxPlotType": "FillBetween",
+        "AxesOptions": {},
+        "FigOptions": {
+            "figwidth": 5.5,
+            "figheight": 4.4,
+        },
+        "FillBetweenOptions": {
+            "alpha": 0.2,
+            "lw": 0,
+            "zorder": 4,
+        },
+        "FontOptions": {
+            "family": "DejaVu Sans",
+        },
         "PlotOptions": {
             "color": ["b", "k", "darkorange", "g"],
             "ls": "-",
             "zorder": 8,
         },
-        "FigOptions": {
-            "figwidth": 5.5,
-            "figheight": 4.4,
-        }
     }
 
     # Options for sections
     _rc_sections = {
         "figure": {},
-        "axopts": {},
         "axes": {},
         "axformat": {
             "Pad": 0.05,
@@ -5923,11 +5931,7 @@ class MPLKW(kwutils.KwargHandler):
         "error": {},
         "minmax": {},
         "uq": {},
-        "fillbetween": {
-            "alpha": 0.2,
-            "lw": 0,
-            "zorder": 4,
-        },
+        "fillbetween": {},
         "errorbar": {
             "capsize": 1.5,
             "lw": 0.5,
@@ -5957,9 +5961,7 @@ class MPLKW(kwutils.KwargHandler):
             "labelspacing": 0.5,
             "framealpha": 1.0,
         },
-        "font": {
-            "family": "DejaVu Sans",
-        },
+        "font": {},
         "spines": {
             "Spines": True,
             "Ticks": True,
@@ -6014,12 +6016,38 @@ class MPLKW(kwutils.KwargHandler):
   # Categories
   # ==================
   # <
+
+    # Axes options
+    def axes_options(self):
+        r"""Process options for axes handle
+
+        :Call:
+            >>> kw = opts.axes_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plt.axes`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Use the "axes" section
+        return self.section_options("axes")
+
     # Figure creation and manipulation
     def figure_options(self):
         r"""Process options specific to Matplotlib figure
 
         :Call:
             >>> kw = figure_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
         :Keys:
             %(keys)s
         :Outputs:
@@ -6030,8 +6058,30 @@ class MPLKW(kwutils.KwargHandler):
             * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Use the "plot" section and only return "PlotOptions"
+        # Use the "figure" section
         return self.section_options("fig")
+
+    # Global font options
+    def font_options(self):
+        r"""Process global font options
+
+        :Call:
+            >>> kw = opts.font_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of font property options
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Use the "font" section and only return "FontOptions"
+        return self.section_options("font", "FontOptions")
 
     # Primary options
     def plot_options(self):
@@ -6054,6 +6104,656 @@ class MPLKW(kwutils.KwargHandler):
         """
         # Use the "plot" section and only return "PlotOptions"
         return self.section_options("plot", "PlotOptions")
+
+    # Process options for min/max plot
+    def minmax_options(self):
+        r"""Process options for min/max plots
+
+        :Call:
+            >>> kw = opts.minmax_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`minmax`
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Use the "minmax" section
+        return self.section_options("minmax")
+
+    # Process options for "error" plot
+    def error_options(self):
+        r"""Process options for error plots
+
+        :Call:
+            >>> error_type, kw = opts.error_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *error_type*: ``"FillBetween"`` | {``"ErrorBar"``}
+                Plot type for error plot
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Get min/max plot options
+        opts = self.get("ErrorOptions", {})
+        # Class
+        cls = self.__class__
+        # Default type
+        terr = cls._rc.get("ErrorPlotType", "ErrorBar")
+        # Specified type
+        terr = self.get("ErrorPlotType", terr)
+        # Simplify case for comparison
+        t = terr.lower().replace("_", "")
+        # Submap
+        kw_map = cls._kw_submap["ErrorOptions"]
+        # Get top-level options
+        kw_err = self.get("ErrorOptions", {})
+        # Apply defaults
+        kw = dict(cls._rc_error, **kw_err)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Fitler type
+        if t == "fillbetween":
+            # Region plot
+            error_type = "FillBetween"
+            # Get options for :func:`fill_between`
+            kw_plt = self.fillbetween_options()
+        elif t == "errorbar":
+            # Error bars
+            error_type = "ErrorBar"
+            # Get options for :func:`errorbar`
+            kw_plt = self.errorbar_options()
+        else:
+            raise ValueError("Unrecognized min/max plot type '%s'" % terr)
+        # MinMaxOptions overrides
+        kw = dict(kw_plt, **kw)
+        # Output
+        return error_type, cls.denone(kw)
+
+    # Process options for UQ plot
+    def uq_options(self):
+        r"""Process options for uncertainty quantification plots
+
+        :Call:
+            >>> uq_type, kw = opts.uq_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *uq_type*: {``"FillBetween"``} | ``"ErrorBar"``
+                Plot type for UQ plot
+            *kw*: :class:`dict`
+                Dictionary of options to plot function
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Get min/max plot options
+        opts = self.get("UncertaintyOptions", {})
+        # Class
+        cls = self.__class__
+        # Default type
+        tuq = cls._rc.get("UncertaintyPlotType", "FillBetween")
+        # Specified type
+        tuq = self.get("UncertaintyPlotType", tuq)
+        # Simplify case for comparison
+        t = tuq.lower().replace("_", "")
+        # Submap
+        kw_map = cls._kw_submap["UncertaintyOptions"]
+        # Get top-level options
+        kw_uq = self.get("UncertaintyOptions", {})
+        # Apply defaults
+        kw = dict(cls._rc_uq, **kw_uq)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Fitler type
+        if t == "fillbetween":
+            # Region plot
+            uq_type = "FillBetween"
+            # Get options for :func:`fill_between`
+            kw_plt = self.fillbetween_options()
+        elif t == "errorbar":
+            # Error bars
+            uq_type = "ErrorBar"
+            # Get options for :func:`errorbar`
+            kw_plt = self.errorbar_options()
+        else:
+            raise ValueError("Unrecognized min/max plot type '%s'" % tuq)
+        # MinMaxOptions overrides
+        kw = dict(kw_plt, **kw)
+        # Output
+        return uq_type, cls.denone(kw)
+
+    # Options for errorbar() plots
+    def errorbar_options(self):
+        r"""Process options for :func:`errorbar` calls
+
+        :Call:
+            >>> kw = opts.errorbar_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`errorbar`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap (global options mapped to errorbar() opts)
+        kw_map = cls._kw_submap["ErrorBarOptions"]
+        # Aliases for errorbar() opts to avoid conflict
+        kw_alias = cls._kw_subalias["ErrorBarOptions"]
+        # Options to cascade css-style from PlotOptions
+        kw_css = cls._kw_cascade["ErrorBarOptions"]
+        # Get directly specified
+        kw_eb = self.get("ErrorBarOptions", {})
+        # Apply aliases
+        kw = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_eb.items()
+        }
+        # Get :func:`plot` options
+        kw_plt = self.plot_options()
+        # loop through cascading options
+        for (k2, k1) in kw_css.items():
+            # Split "from" name into part and option
+            ka, kb = k2.split(".", 1)
+            # Confirm it comes from "plot"
+            if ka == "plot":
+                v = kw_plt.get(kb)
+            else:
+                raise ValuError(
+                    "ErrorBarOptions cannot inherit from '%s'" % ka)
+            # Check for valid value
+            if v is not None:
+                # Don't override specified value
+                kw.setdefault(k1, v)
+        # Apply defaults
+        kw = dict(cls._rc_errorbar, **kw)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Remove "None"
+        return cls.denone(kw)
+
+    # Options for fill_between() plots
+    def fillbetween_options(self):
+        r"""Process options for :func:`fill_between` calls
+
+        :Call:
+            >>> kw = opts.fillbetween_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`fill_between`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap (global options mapped to errorbar() opts)
+        kw_map = cls._kw_submap["FillBetweenOptions"]
+        # Aliases for errorbar() opts to avoid conflict
+        kw_alias = cls._kw_subalias["FillBetweenOptions"]
+        # Options to cascade css-style from PlotOptions
+        kw_css = cls._kw_cascade["FillBetweenOptions"]
+        # Get directly specified
+        kw_eb = self.get("FillBetweenOptions", {})
+        # Apply aliases
+        kw = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_eb.items()
+        }
+        # Get :func:`plot` options
+        kw_plt = self.plot_options()
+        # loop through cascading options
+        for (k2, k1) in kw_css.items():
+            # Split "from" name into part and option
+            ka, kb = k2.split(".", 1)
+            # Confirm it comes from "plot"
+            if ka == "plot":
+                v = kw_plt.get(kb)
+            else:
+                raise ValuError(
+                    "FillBetweenOptions cannot inherit from '%s'" % ka)
+            # Check for valid value
+            if v is not None:
+                # Don't override specified value
+                kw.setdefault(k1, v)
+        # Apply defaults
+        kw = dict(cls._rc_fillbetween, **kw)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Remove "None"
+        return cls.denone(kw)
+
+    # Process axes formatting options
+    def axformat_options(self):
+        r"""Process options for axes format
+
+        :Call:
+            >>> kw = opts.axformat_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_format`
+        :Versions:
+            * 2019-03-07 ``@jmeeroff``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_axformat:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Get rotation option
+        rotate = kw.get("Rotate", False)
+        # Get density option
+        density = kw.get("Density")
+        # Different defaults for histograms
+        if density is None:
+            # No default label
+            ylbl = None
+        elif density:
+            # Default label for PDF
+            ylbl = "Probability Density"
+        else:
+            # Raw histogram option
+            ylbl = "Count"
+        # Process which axis this default applies to
+        if rotate:
+            # Default
+            xlbl = None
+        else:
+            # Data on horizontal axis
+            xlbl = ylbl
+            ylbl = None
+        # Apply defaults
+        kw = dict(cls._rc_axformat, **kw)
+        # Return
+        return cls.denone(kw)
+
+    # Process axes formatting options
+    def axadjust_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust`
+        :Versions:
+            * 2020-01-08 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_axadjust:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_axadjust, **kw)
+        # Return
+        return cls.denone(kw)
+
+    # Process axes formatting options
+    def axadjust_col_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_col_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust_col`
+        :Versions:
+            * 2020-01-10 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_axadjust_col:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_axadjust, **kw)
+        # Return
+        return cls.denone(kw)
+
+    # Process axes formatting options
+    def axadjust_row_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_row_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust_row`
+        :Versions:
+            * 2020-01-10 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_axadjust_row:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_axadjust, **kw)
+        # Return
+        return cls.denone(kw)
+
+    # Process imshow() options
+    def imshow_options(self):
+        r"""Process options for image display calls
+
+        :Call:
+            >>> kw = opts.imshow_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`imshow`
+        :Versions:
+            * 2020-01-09 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Initialize output
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_imshow:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_imshow, **kw)
+        # Return
+        return cls.denone(kw)
+
+    # Grid options
+    def grid_options(self):
+        r"""Process options to axes :func:`grid` command
+
+        :Call:
+            >>> kw = opts.grid_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`grid`
+        :Versions:
+            * 2019-03-07 ``@jmeeroff``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap
+        kw_map = cls._kw_submap["GridOptions"]
+        # Aliases
+        kw_alias = cls._kw_subalias["GridOptions"]
+        # Get top-level options
+        kw_maj = self.get("GridOptions", {})
+        kw_min = self.get("MinorGridOptions", {})
+        # Apply aliases
+        kw_major = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_maj.items()
+        }
+        kw_minor = {
+            kw_alias.get(k, k): v
+            for (k, v) in kw_min.items()
+        }
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw_major[kp] = self[k]
+        # Initialize output
+        kw = {}
+        # Loop through primary options
+        for k in cls._optlist_grid:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            elif k in kw_map:
+                # Already mapped to fig() opts
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw_minor = dict(cls._rc_minorgrid, **kw_minor)
+        kw_major = dict(cls._rc_majorgrid, **kw_major)
+        # Apply overall defaults
+        kw = dict(cls._rc_grid, **kw)
+        # Ensure major and minor oprionts
+        kw["MajorGridOptions"] = cls.denone(kw_major)
+        kw["MinorGridOptions"] = cls.denone(kw_minor)
+        # Remove "None"
+        return cls.denone(kw)
+
+    # Spine options
+    def spine_options(self):
+        r"""Process options for axes "spines"
+
+        :Call:
+            >>> kw = opts.spine_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to each of four spines
+        :Versions:
+            * 2019-03-07 ``@jmeeroff``: First version
+            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap (global options -> AxesOptions)
+        kw_map = cls._kw_submap["SpineOptions"]
+        # Initialize
+        kw = {}
+        # Loop through other options
+        for k in cls._optlist_spines:
+            # Check applicability
+            if k not in self:
+                # Not present
+                continue
+            elif k in kw_map:
+                # Already mapped to fig() opts
+                continue
+            # Otherwise, assign the value
+            kw[k] = self[k]
+        # Apply defaults
+        kw = dict(cls._rc_spines, **kw)
+        # Loop through map options
+        for (k1, k2) in kw_map.items():
+            # Check if the option is specified by the user
+            if k1 not in self:
+                continue
+            # Check prefix
+            if k.startswith("XTick"):
+                optgroup = "XTickOptions"
+            elif k.startswith("YTick"):
+                optgroup = "YTickOptions"
+            elif k.startswith("Tick"):
+                optgroup = "TickOptions"
+            else:
+                continue
+            # Get appropriate subgroup (creating if necessary)
+            opts = kw.setdefault(optgroup, {})
+            # Apply the option
+            opts[k2] = self[k1]
+        # Output
+        return cls.denone(kw)
+
+    # Legend options
+    def legend_options(self):
+        r"""Process options for :func:`legend`
+    
+        :Call:
+            >>> kw = opts.legend_options(kw, kwp={})
+        :Inputs:
+            *kw*: :class:`dict`
+                Dictionary of options to parent function
+            *kwp*: {``{}``}  | :class:`dict`
+                Dictionary of options from which to inherit
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Options to :func:`legend`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+        """
+        # Class
+        cls = self.__class__
+        # Submap (global options -> LegendOptions)
+        kw_map = cls._kw_submap["LegendOptions"]
+        # Font submapt (global FontOptions -> LegendOptions["prop"])
+        kw_fontmap = cls._kw_submap["FontOptions"]
+        # Get overall options
+        kw_font = self.font_options()
+        # Initialize the font properties
+        prop = self.get("LegendFontOptions", {})
+        # Apply defaults
+        prop = dict(cls._rc_legend_font, **prop)
+        # Loop through font options
+        for (k1, k2) in kw_fontmap.items():
+            # Prepend "Legend" to name
+            ka = "Legend" + k1
+            # Check if present
+            if ka not in self:
+                continue
+            # Otherwise assign it
+            prop[k2] = self[ka]
+        # Get *LegendOptions*
+        kw = self.get("LegendOptions", {})
+        # Apply defaults
+        kw = dict(cls._rc_legend, **kw)
+        # Set font properties
+        kw["prop"] = cls.denone(prop)
+        # Individual options
+        for (k, kp) in kw_map.items():
+            # Check if present
+            if k not in self:
+                continue
+            # Remove option and save it under shortened name
+            kw[kp] = self[k]
+        # Global on/off option
+        kw["ShowLegend"] = self.get("ShowLegend")
+        # Specific location options
+        loc = kw.get("loc")
+        # Check it
+        if loc in ["upper center", 9]:
+            # Bounding box location on top spine
+            kw.setdefault("bbox_to_anchor", (0.5, 1.05))
+        elif loc in ["lower center", 8]:
+            # Bounding box location on bottom spine
+            kw.setdefault("bbox_to_anchor", (0.5, -0.05))
+        # Output
+        return cls.denone(kw)
   # >
 
 # Document sublists

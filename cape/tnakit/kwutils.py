@@ -870,7 +870,7 @@ class KwargHandler(dict):
                 # Get cascading options
                 opt_submap = kw_cascade.get(opt)
                 # Check it
-                if opt_submap = is None:
+                if opt_submap is None:
                     continue
                 # Otherwise loop through the submap (dict)
                 for subopt in opt_submap:
@@ -883,7 +883,8 @@ class KwargHandler(dict):
             cls._rst_types,
             cls._rst_descriptions,
             cls._optmap,
-            indent=12)
+            indent=12,
+            strict=False)
         # Apply text to the docstring
         fn.__doc__ = fn.__doc__ % {fmt_key: rst_keys}
   # >
