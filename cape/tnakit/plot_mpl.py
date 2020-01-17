@@ -5899,14 +5899,19 @@ class MPLKW(kwutils.KwargHandler):
         "Index": 0,
         "Rotate": False,
         "MinMaxPlotType": "FillBetween",
+        "PlotOptions": {
+            "color": ["b", "k", "darkorange", "g"],
+            "ls": "-",
+            "zorder": 8,
+        },
+        "FigOptions": {
+            "figwidth": 5.5,
+            "figheight": 4.4,
+        }
     }
 
     # Options for sections
     _rc_sections = {
-        "figopts": {
-            "figwidth": 5.5,
-            "figheight": 4.4,
-        },
         "figure": {},
         "axopts": {},
         "axes": {},
@@ -5914,13 +5919,7 @@ class MPLKW(kwutils.KwargHandler):
             "Pad": 0.05,
         },
         "axadjust": {},
-        "plot": {
-            "PlotOptions": {
-                "color": ["b", "k", "darkorange", "g"],
-                "ls": "-",
-                "zorder": 8,
-            }
-        },
+        "plot": {},
         "error": {},
         "minmax": {},
         "uq": {},
@@ -6010,3 +6009,52 @@ class MPLKW(kwutils.KwargHandler):
         },
     }
   # >
+
+  # ==================
+  # Categories
+  # ==================
+  # <
+    # Figure creation and manipulation
+    def figure_options(self):
+        r"""Process options specific to Matplotlib figure
+
+        :Call:
+            >>> kw = figure_options()
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plt.figure`
+        :Versions:
+            * 2019-03-06 ``@ddalle``: First version
+            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Use the "plot" section and only return "PlotOptions"
+        return self.section_options("fig")
+
+    # Primary options
+    def plot_options(self):
+        r"""Process options to primary plot curve
+
+        :Call:
+            >>> kw = opts.plot_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Use the "plot" section and only return "PlotOptions"
+        return self.section_options("plot", "PlotOptions")
+  # >
+
+# Document sublists
+MPLKW._doc_keys("plot_options", "plot")

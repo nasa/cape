@@ -16,10 +16,12 @@ by checking them against
 
 # Standard library
 import sys
+import copy
 import difflib
 
 # Local modules
 from . import optitem
+from . import rstutils
 
 
 # Map keywords
@@ -618,13 +620,22 @@ class KwargHandler(dict):
         cls = self.__class__
         # Get list of options for section
         optlist = cls._optlists.get(sec, [])
+        # Get defaults
+        rc = cls._rc
        # --- Select Options ---
         # Create dictionary of all hits for this ection
         kw_sec = {}
         # Loop through option list
         for opt in optlist:
+            # Get default
+            optdef = rc.get(opt)
             # Check if present
             if opt not in self:
+                # Check default
+                if optdef is not None:
+                    # Save default value (shallow copy)
+                    kw_sec[opt] = copy.copy(optdef)
+                # Move to next option
                 continue
             # Get a reference
             optval = self[opt]
@@ -633,6 +644,8 @@ class KwargHandler(dict):
                 # Not alias-able
                 kw_sec[opt] = optval
                 continue
+            # Apply default
+            optval = dict(optdef, **optval)
             # Get aliases
             kw_alias =  cls._kw_subalias.get(opt)
             # Check for aliases
@@ -646,9 +659,9 @@ class KwargHandler(dict):
             }
        # --- Defaults ---
         # Get defaults
-        rc = cls._rc_sections.get(sec, {})
+        rc_sec = cls._rc_sections.get(sec, {})
         # Apply defaults
-        kw_sec = dict(rc, **kw_sec)
+        kw_sec = dict(rc_sec, **kw_sec)
        # --- Submaps ---
         # Process any submaps
         # For example "Label" -> "PlotOptions.label"
@@ -667,13 +680,17 @@ class KwargHandler(dict):
             # Loop through submap keys
             for (k, kp) in submap.items():
                 # Check for mapped option ("Label" in example above)
-                if k in self:
-                    # Send it to parent key with new name
-                    optval[kp] = self[k]
-                # Check if in the main list
                 if k in kw_sec:
+                    # Send it to parent key
+                    optval[kp] = kw_sec[k]
                     # Remove it and send it to parent key (w/ new name)
                     k_del.add(k)
+                elif k in self:
+                    # Send it to parent (not in _optlists[sec])
+                    optval[kp] = self[k]
+                elif k in rc:
+                    # Get a default value
+                    optval[kp] = copy.copy(rc[k])
         # Remove any options mapped elsewhere
         for k in k_del:
             kw_sec.pop(k)
@@ -794,4 +811,79 @@ class KwargHandler(dict):
         _opttypes = cls._getattr_class("_opttypes")
         # Add option to set of option names
         _opttypes[opt] = opttype
+
+   # --- Docstring ---
+    # Document a function
+    @classmethod
+    def _doc_keys(cls, func, sec, fmt_key="keys", submap=True):
+        r"""Document the keyword list for a function
+
+        :Call:
+            >>> cls._doc_keys(func, sec, fmt_key="keys", submap=True)
+            >>> cls._doc_keys(func, optlist, fmt_key="keys")
+        :Inputs:
+            *cls*: :class:`type`
+                Class whose *__dict__* has the function to document
+            *func*: :class:`str`
+                Name of function to document
+            *sec*: :class:`str`
+                Name of section to get keys from
+            *optlist*: :class:`list`\ [:class:`str`]
+                Explicit list of keys (like *cls._optlists[sec]*)
+            *fmt_key*: {``"keys"``} | :class:`str`
+                Format key to replace in existing docstring; by default
+                this replaces ``"%(keys)s"`` with the RST list
+            *submap*: {``True``} | ``False``
+                If ``True``, add keys from *cls._kw_submap*
+        :Versions:
+            * 2020-01-17 ``@ddalle``: First version
+        """
+        # Get the function
+        fn = cls.__dict__[func]
+        # Check type
+        if not callable(fn):
+            raise TypeError("Attribute '%s' is not callable" % funcname)
+        # Check *sec*
+        if isinstance(sec, list):
+            # Already a list
+            optlist = sec
+        else:
+            # Get sublist
+            optlist = cls._optlists[sec]
+        # Check for submap
+        if submap:
+            # Get the submap from the class
+            kw_submap = cls._kw_submap
+            kw_cascade = cls._kw_cascade
+            # Loop through parameters
+            for opt in list(optlist):
+                # Get submap
+                opt_submap = kw_submap.get(opt)
+                # Check it
+                if opt_submap is None:
+                    continue
+                # Otherwise loop through the submap (dict)
+                for subopt in opt_submap:
+                    # Check if the option is present
+                    if subopt not in optlist:
+                        optlist.append(subopt)
+                # Get cascading options
+                opt_submap = kw_cascade.get(opt)
+                # Check it
+                if opt_submap = is None:
+                    continue
+                # Otherwise loop through the submap (dict)
+                for subopt in opt_submap:
+                    # Check if the option is present
+                    if subopt not in optlist:
+                        optlist.append(subopt)
+        # Create list
+        rst_keys = rstutils.rst_param_list(
+            optlist,
+            cls._rst_types,
+            cls._rst_descriptions,
+            cls._optmap,
+            indent=12)
+        # Apply text to the docstring
+        fn.__doc__ = fn.__doc__ % {fmt_key: rst_keys}
   # >

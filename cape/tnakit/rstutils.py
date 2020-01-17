@@ -41,6 +41,8 @@ def rst_param_list(keys, types, descrs, alts={}, **kw):
             Additional spaces for further indentation
         *width*: {``72``} | :class:`int`
             Maximum width for line of text (including spaces)
+        *strict*: {``True``} | ``False``
+            If ``False``, skip keys with missing type or description
     :Outputs:
         *txt*: :class:`str`
             Text in CAPE docstring format describing *keys*
@@ -51,6 +53,7 @@ def rst_param_list(keys, types, descrs, alts={}, **kw):
     indent = kw.get("indent", 4)
     tab = kw.get("tab", 4)
     width = kw.get("width", 72)
+    strict = kw.get("strict", True)
     # Check types
     if not isinstance(keys, list):
         raise TypeError("Parameter list must be a list")
@@ -80,13 +83,23 @@ def rst_param_list(keys, types, descrs, alts={}, **kw):
         rst_desc = descrs.get(k)
         # Check types
         if rst_type is None:
-            raise KeyError("No type for parameter '%s'" % k)
+            # Missing type string
+            if strict:
+                raise KeyError("No type for parameter '%s'" % k)
+            else:
+                continue
         elif rst_desc is None:
-            raise KeyError("No description for parameter '%s'" % k)
+            # Missing description
+            if strict:
+                raise KeyError("No description for parameter '%s'" % k)
+            else:
+                continue
         elif not typeutils.isstr(rst_type):
+            # Type spec is a string, *strict* doesn't apply here
             raise TypeError(
                 "Type description for parameter '%s' is not a string" % k)
         elif not typeutils.isstr(rst_desc):
+            # Description must be string, *strict* enforcement
             raise TypeError(
                 "Description for parameter '%s' is not a string" % k)
         # Find alternate names
