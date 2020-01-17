@@ -419,10 +419,6 @@ def KwargHandler(dict):
     # Subdefaults
     _rc_sub = {}
   # >
-
-  # ============
-  # Config
-  # ============
   
   # ============
   # Config
@@ -523,13 +519,19 @@ def KwargHandler(dict):
         if k in cls._optlist_ring:
             # Explicitly a ring
             return 0
-        elif k in cls._optlist_holdlas:
+        elif k in cls._optlist_holdlast:
             # Explicitly a hold-last
             return 1
         else:
             # Use the default
             return cls._optlist_type
+  # >
 
+  # ================
+  # Item Selection
+  # ================
+  # <
+   # --- Phase ---
     # Select options for phase *i*
     @classmethod
     def select_phase(cls, kw, i=0):
@@ -582,3 +584,214 @@ def KwargHandler(dict):
             kw_p[k] = v
         # Output
         return kw_p
+  # >
+
+  # ===============
+  # Subsections
+  # ===============
+  # <
+   # --- Predeclared Sections ---
+    # Generic function
+    def section_options(self, sec, mainopt=None):
+        r"""Process options for a particular section
+
+        :Call:
+            >>> kw = opts.section_options(sec, mainopt=None)
+        :Inputs:
+            *opts*: :class:`KwargHandler`
+                Options interface
+            *sec*: :class:`str`
+                Name of options section
+            *mainopt*: {``None``} | :class:`str`
+                If specified, return value of this option instead of
+                :class:`dict` of all options from section; this is most
+                often used when *mainopt* itself has a :class:`dict`
+                type where the other *sec* options get mapped into it
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options in *opts* relevant to *sec*
+        :Versions:
+            * 2020-01-16 ``@ddalle``: First version
+        """
+       # --- Prep ---
+        # Class
+        cls = self.__class__
+        # Get list of options for section
+        optlist = cls._optlists.get(sec, [])
+       # --- Select Options ---
+        # Create dictionary of all hits for this ection
+        kw_sec = {}
+        # Loop through option list
+        for opt in optlist:
+            # Check if present
+            if opt not in self:
+                continue
+            # Get a reference
+            optval = self[opt]
+            # Check for aliases
+            if not isinstance(v, dict):
+                # Not alias-able
+                kw_sec[opt] = optval
+                continue
+            # Get aliases
+            kw_alias =  cls._kw_subalias.get(opt)
+            # Check for aliases
+            if kw_alias is None:
+                # No aliases for this option
+                kw_sec[opt] = optval
+                continue
+            # Apply aliases
+            kw_sec[opt] = {
+                kw_alias.get(k, k): v for (k, v) in optval.items()
+            }
+       # --- Defaults ---
+        # Get defaults
+        rc = cls._rc.get(sec, {})
+        # Apply defaults
+        kw_sec = dict(rc, **kw_sec)
+       # --- Submaps ---
+        # Process any submaps
+        # For example "Label" -> "PlotOptions.label"
+        # Initialize list of keys to remove
+        k_del = set()
+        # Loop through all current keys
+        for opt, optval in kw_sec.items():
+            # Check if a mappable
+            if not isinstance(optval, dict):
+                continue
+            # Get map
+            submap = cls._kw_subalias.get(opt)
+            # Check for valid map
+            if submap is None:
+                continue
+            # Loop through submap keys
+            for (k, kp) in submap.items():
+                # Check for mapped option ("Label" in example above)
+                if k in self:
+                    # Send it to parent key with new name
+                    kw_sec[kp] = self[k]
+                # Check if in the main list
+                if k in kw_sec:
+                    # Remove it and send it to parent key (w/ new name)
+                    k_del.add(k)
+        # Remove any options mapped elsewhere
+        for k in k_del:
+            kw_sec.pop(k)
+       # --- Output ---
+        # Remove ``None``
+        kw = cls.denone(kw_sec)
+        # Check for *mainopt*
+        if mainopt is None:
+            # No selection
+            return kw
+        else:
+            # Return primary key only (default to ``{}``)
+            return kw.get(mainopt, {})
+        
+  # >
+
+  # ====================
+  # Class Modification
+  # ====================
+  # <
+   # --- Class Attribute ---
+    @classmethod
+    def _getattr_class(cls, attr):
+        r"""Get a class attribute with additional rules
+
+        1. If *attr* is in *cls.__dict__*, return it
+        2. Otherwise, set *cls.__dict__[attr]* equal to
+           ``getattr(cls, attr)`` and return that value
+
+        The purpose of this procedure is for subclasses of
+        :class:`KwargHandler` to extend their own copies of special
+        class attributes without starting over.
+
+        :Call:
+            >>> cls._getattr_class(attr)
+        :Inputs:
+            *cls*: :class:`type`
+                Options class
+            *opt*: :class:`str`
+                Name of option to add to list
+        :Versions:
+            * 2020-01-16 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(attr, str):
+            raise TypeError(
+                "Attribute name must be string (got %s)" % type(attr))
+        # Check if present
+        if attr in cls.__dict__:
+            # Return it
+            return cls.__dict__[attr]
+        else:
+            # Set it from parent (somewhere in MRO)
+            val = getattr(cls, attr)
+            # Save it
+            cls.__dict__[attr] = val
+            # Output
+            return val
+
+   # --- Option Addition ---
+    # Add an option to the list
+    @classmethod
+    def _add_option(cls, opt, **kw):
+        r"""Add an option to a class's option list
+
+        :Call:
+            >>> cls._add_option(opt)
+        :Inputs:
+            *cls*: :class:`type`
+                Options class
+            *opt*: :class:`str`
+                Name of option to add to list
+        :Versions:
+            * 2020-01-16 ``@ddalle``: first version
+        """
+        # Get _optlist attribute
+        _optlist = cls._getattr_class("_optlist")
+        # Add option to set of option names
+        _optlist.add(opt)
+        ## Process additional options
+        #opttype = kw.get("opttype")
+        #aliases = kw.get("aliases")
+        #is_list = kw.get("islist")
+        #is_ring = kw.get("isring")
+        #is_holdlast = kw.get("isholdlast")
+        #sections = kw.get("sections")
+        #subalias = kw.get("subalias")
+        ## Documentation
+        #rst_type = kw.get("doctype")
+        #rst_desc = kw.get('docdescription")
+
+    # Declare an option's type
+    @classmethod
+    def _add_opttype(cls, opt, opttype, **kw):
+        r"""Declare a particular option's required type
+
+        Checks on *opttype* are not performed.  This method extends the
+        parent class's version of *_opttypes* and adds an entry.  The
+        *opttype* need not include :class:`NoneType`; keys with values
+        of ``None`` are removed before type checks are performed.
+
+        :Call:
+            >>> cls._add_opttype(cls, opt, opttype)
+        :Inputs:
+            *cls*: :class:`type`
+                Options class
+            *opt*: :class:`str`
+                Name of option to add to list
+            *opttype*: :class:`type` | :class:`tuple`
+                Types to check, second argument to :func:`isinstance`
+        :Effects:
+            *cls._opttypes*: :class:`dict`
+                *opt* key set to *opttype*
+        :Versions:
+            * 2020-01-16 ``@ddalle``: first version
+        """
+        # Get _opttype attribute
+        _opttypes = cls._getattr_class("_opttypes")
+        # Add option to set of option names
+        _opttypes[opt] = opttype
+  # >
