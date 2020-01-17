@@ -417,7 +417,7 @@ def KwargHandler(dict):
     _rc = {}
 
     # Subdefaults
-    _rc_sub = {}
+    _rc_sections = {}
   # >
   
   # ============
@@ -646,7 +646,7 @@ def KwargHandler(dict):
             }
        # --- Defaults ---
         # Get defaults
-        rc = cls._rc.get(sec, {})
+        rc = cls._rc_sections.get(sec, {})
         # Apply defaults
         kw_sec = dict(rc, **kw_sec)
        # --- Submaps ---
