@@ -346,7 +346,7 @@ def check_kw_eltypes(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
 
 
 # Class to contain processed keywords
-def KwargHandler(dict):
+class KwargHandler(dict):
     r"""Class to handle kwargs against preset key lists and types
 
     :Call:
@@ -566,7 +566,7 @@ def KwargHandler(dict):
             # Check if this is a "list" option
             if k in cls._optlist_list:
                 # Get value as a list
-                if listtype == 0
+                if listtype == 0:
                     # Repeat entire list
                     v = optitem.getringel_list(V, i)
                 else:
@@ -574,7 +574,7 @@ def KwargHandler(dict):
                     v = optitem.getel_list(v, i)
             else:
                 # Get value as a scalar
-                if listtype == 0
+                if listtype == 0:
                     # Repeat entire list
                     v = optitem.getringel(V, i)
                 else:
@@ -629,7 +629,7 @@ def KwargHandler(dict):
             # Get a reference
             optval = self[opt]
             # Check for aliases
-            if not isinstance(v, dict):
+            if not isinstance(optval, dict):
                 # Not alias-able
                 kw_sec[opt] = optval
                 continue
@@ -660,7 +660,7 @@ def KwargHandler(dict):
             if not isinstance(optval, dict):
                 continue
             # Get map
-            submap = cls._kw_subalias.get(opt)
+            submap = cls._kw_submap.get(opt)
             # Check for valid map
             if submap is None:
                 continue
@@ -669,7 +669,7 @@ def KwargHandler(dict):
                 # Check for mapped option ("Label" in example above)
                 if k in self:
                     # Send it to parent key with new name
-                    kw_sec[kp] = self[k]
+                    optval[kp] = self[k]
                 # Check if in the main list
                 if k in kw_sec:
                     # Remove it and send it to parent key (w/ new name)
