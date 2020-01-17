@@ -400,9 +400,6 @@ class KwargHandler(dict):
     # Global options mapped to subcategory options
     _kw_submap = {}
 
-    # Options to inherit from elsewhere
-    _kw_cascade = {}
-
    # --- Conflicting Options ---
     # Aliases to merge for subcategory options
     _kw_subalias = {}
@@ -592,6 +589,100 @@ class KwargHandler(dict):
   # Subsections
   # ===============
   # <
+   # --- Individual Option ---
+    # Get individual option
+    def get_option(self, opt, parents=None):
+        r"""Get value of a specific option, ignoring section
+
+        :Call:
+            >>> optval = opts.get_option(opt, parents=[])
+        :Inputs:
+            *opts*: :class:`KwargHandler`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *parents*: ``None`` | :class:`set`\ [:class:`str`]
+                List of parents, used to detect recursion
+        :Outputs:
+            *optval*: :class:`any`
+                Processed value, from *opts* or *opts._rc*, with
+                additional processing from *opts._kw_submap*, and others
+        :Versions:
+            * 2020-01-17 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Default value
+        optdef = cls._rc.get(opt)
+        # Get value
+        optval = self.get(opt)
+        # Apply default
+        if optval is None:
+            # Copy the default
+            optval = copy.copy(optdef)
+        # Check for dict
+        if optval is None:
+            # Exit on trivial option
+            return optval
+        elif not isinstance(optval, dict):
+            # Return the nontrivial, nondict value
+            return optval
+        # Check for valid default
+        if isinstance(optdef, dict):
+            # Apply defaults, but override with explicit values
+            optval = dict(optdef, **optval)
+        # Default parent set
+        if parents is None:
+            # This option becomes the parent for later cals
+            parents = set()
+        # Get dictionary of options to inherit from
+        kw_submap = cls._kw_submap.get(opt, {})
+        # Loop through cascade options
+        for (fromopt, subopt) in kw_submap.items():
+            # Check for "."
+            ndot = fromopt.count(".")
+            # Filter "."
+            if ndot == 0:
+                # Direct access simple option
+                subval = self.get_option(fromopt, parents)
+            elif ndot == 1:
+                # Split
+                k0, k1 = fromopt.split(".")
+                # Check for recursion
+                if k0 in parents:
+                    raise ValueError(
+                        ("Detected recursion while accessing '%s' " % opt) +
+                        ("with parents %s" % parents))
+                # Get dictionary of options
+                subdict = self.get_option(k0, parents | {opt})
+                # Check for ``None``
+                if subdict is None:
+                    continue
+                # Check for a dictionary
+                if not isinstance(subdict, dict):
+                    raise TypeError(
+                        ("Cannot access '%s' because " % fromopt) +
+                        ("'%s' option is not a dict" % k0))
+                # Get the value
+                subval = subdict.get(k1)
+            else:
+                # Not recursing on dicts of dicts or something
+                raise ValueError("Cannot process option '%s'" % fromopt)
+            # One more check for ``None``
+            if subval is not None:
+                # Don't override
+                optval.setdefault(subopt, subval)
+        # Get aliases
+        kw_alias =  cls._kw_subalias.get(opt)
+        # Check for aliases
+        if isinstance(kw_alias, dict):
+            # Apply aliases
+            optval = {
+                kw_alias.get(k, k): v for (k, v) in optval.items()
+            }
+        # Output
+        return cls.denone(optval)
+        
    # --- Predeclared Sections ---
     # Generic function
     def section_options(self, sec, mainopt=None):
@@ -627,73 +718,17 @@ class KwargHandler(dict):
         kw_sec = {}
         # Loop through option list
         for opt in optlist:
-            # Get default
-            optdef = rc.get(opt)
-            # Check if present
-            if opt not in self:
-                # Check default
-                if optdef is not None:
-                    # Save default value (shallow copy)
-                    kw_sec[opt] = copy.copy(optdef)
-                # Move to next option
-                continue
-            # Get a reference
-            optval = self[opt]
-            # Check for aliases
-            if not isinstance(optval, dict):
-                # Not alias-able
-                kw_sec[opt] = optval
-                continue
-            # Apply default
-            optval = dict(optdef, **optval)
-            # Get aliases
-            kw_alias =  cls._kw_subalias.get(opt)
-            # Check for aliases
-            if kw_alias is None:
-                # No aliases for this option
-                kw_sec[opt] = optval
-                continue
-            # Apply aliases
-            kw_sec[opt] = {
-                kw_alias.get(k, k): v for (k, v) in optval.items()
-            }
+            # Get value for this option
+            kw_sec[opt] = self.get_option(opt)
        # --- Defaults ---
         # Get defaults
         rc_sec = cls._rc_sections.get(sec, {})
         # Apply defaults
-        kw_sec = dict(rc_sec, **kw_sec)
-       # --- Submaps ---
-        # Process any submaps
-        # For example "Label" -> "PlotOptions.label"
-        # Initialize list of keys to remove
-        k_del = set()
-        # Loop through all current keys
-        for opt, optval in kw_sec.items():
-            # Check if a mappable
-            if not isinstance(optval, dict):
-                continue
-            # Get map
-            submap = cls._kw_submap.get(opt)
-            # Check for valid map
-            if submap is None:
-                continue
-            # Loop through submap keys
-            for (k, kp) in submap.items():
-                # Check for mapped option ("Label" in example above)
-                if k in kw_sec:
-                    # Send it to parent key
-                    optval[kp] = kw_sec[k]
-                    # Remove it and send it to parent key (w/ new name)
-                    k_del.add(k)
-                elif k in self:
-                    # Send it to parent (not in _optlists[sec])
-                    optval[kp] = self[k]
-                elif k in rc:
-                    # Get a default value
-                    optval[kp] = copy.copy(rc[k])
-        # Remove any options mapped elsewhere
-        for k in k_del:
-            kw_sec.pop(k)
+        for (k, v) in rc_sec.items():
+            # Set default
+            if k not in kw_sec:
+                # use a shallow copy to avoid changing defaults
+                kw_sec[k] = copy.copy(v)
        # --- Output ---
         # Remove ``None``
         kw = cls.denone(kw_sec)
@@ -854,7 +889,6 @@ class KwargHandler(dict):
         if submap:
             # Get the submap from the class
             kw_submap = cls._kw_submap
-            kw_cascade = cls._kw_cascade
             # Loop through parameters
             for opt in list(optlist):
                 # Get submap
@@ -864,16 +898,10 @@ class KwargHandler(dict):
                     continue
                 # Otherwise loop through the submap (dict)
                 for subopt in opt_submap:
-                    # Check if the option is present
-                    if subopt not in optlist:
-                        optlist.append(subopt)
-                # Get cascading options
-                opt_submap = kw_cascade.get(opt)
-                # Check it
-                if opt_submap is None:
-                    continue
-                # Otherwise loop through the submap (dict)
-                for subopt in opt_submap:
+                    # Check for "."
+                    if "." in subopt:
+                        # Just look up the parent option
+                        subopt, _ = subopt.split(".", 1)
                     # Check if the option is present
                     if subopt not in optlist:
                         optlist.append(subopt)

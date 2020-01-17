@@ -5567,12 +5567,12 @@ class MPLKW(kwutils.KwargHandler):
             "FigWidth": "figwidth",
         },
         "FontOptions": {
-            "FontName":    "family",
-            "FontSize":    "size",
+            "FontName": "family",
+            "FontSize": "size",
             "FontStretch": "stretch",
-            "FontStyle":   "style",
+            "FontStyle": "style",
             "FontVariant": "variant",
-            "FontWeight":  "weight",
+            "FontWeight": "weight",
         },
         "PlotOptions": {
             "Index": "Index",
@@ -5592,11 +5592,13 @@ class MPLKW(kwutils.KwargHandler):
         "FillBetweenOptions": {
             "Index": "Index",
             "Rotate": "Rotate",
+            "PlotOptions.color": "color",
         },
         "ErrorBarOptions": {
             "Index": "Index",
             "Rotate": "Rotate",
             "ErrorBarMarker": "marker",
+            "PlotOptions.color": "color",
         },
         "GridOptions": {
             "GridColor": "color",
@@ -5612,16 +5614,6 @@ class MPLKW(kwutils.KwargHandler):
             "YTickFontSize": "labelsize",
             "YTickRotation": "rotation",
             "YTickSize": "size",
-        },
-    }
-
-    # Options to inherit from elsewhere
-    _kw_cascade = {
-        "ErrorBarOptions": {
-            "plot.color": "color",
-        },
-        "FillBetweenOptions": {
-            "plot.color": "color",
         },
     }
 
@@ -5898,8 +5890,9 @@ class MPLKW(kwutils.KwargHandler):
         "ShowError": False,
         "Index": 0,
         "Rotate": False,
-        "MinMaxPlotType": "FillBetween",
         "AxesOptions": {},
+        "ErrorBarOptions": {},
+        "ErrorOptions": {},
         "FigOptions": {
             "figwidth": 5.5,
             "figheight": 4.4,
@@ -5912,6 +5905,8 @@ class MPLKW(kwutils.KwargHandler):
         "FontOptions": {
             "family": "DejaVu Sans",
         },
+        "MinMaxOptions": {},
+        "MinMaxPlotType": "FillBetween",
         "PlotOptions": {
             "color": ["b", "k", "darkorange", "g"],
             "ls": "-",
@@ -6122,131 +6117,108 @@ class MPLKW(kwutils.KwargHandler):
         :Versions:
             * 2019-03-04 ``@ddalle``: First version
             * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Use the "minmax" section
-        return self.section_options("minmax")
+        kw = self.section_options("minmax")
+        # Save section name
+        mainopt = "MinMaxOptions"
+        # Get type-specific options removed
+        kw_eb = kw.pop("ErrorBarOptions", {})
+        kw_fb = kw.pop("FillBetweenOptions", {})
+        kw_mm = kw.get(mainopt, {})
+        # Get the plot type
+        mmax_type = kw.get("MinMaxPlotType", "fillbetween").lower()
+        mmax_type = mmax_type.replace("_", "")
+        # Check type
+        if mmax_type == "errorbar":
+            # Combine ErrorBar options into main options
+            kw[mainopt] = dict(kw_eb, **kw_mm)
+        else:
+            # Combine FillBetween options into main options
+            kw[mainopt] = dict(kw_fb, **kw_mm)
+        # Output
+        return kw
 
     # Process options for "error" plot
     def error_options(self):
         r"""Process options for error plots
 
         :Call:
-            >>> error_type, kw = opts.error_options()
+            >>> kw = opts.error_options()
         :Inputs:
             *opts*: :class:`MPLOpts`
                 Options interface
         :Keys:
             %(keys)s
         :Outputs:
-            *error_type*: ``"FillBetween"`` | {``"ErrorBar"``}
-                Plot type for error plot
             *kw*: :class:`dict`
-                Dictionary of options to :func:`plot`
+                Dictionary of options to :func:`error`
         :Versions:
             * 2019-03-04 ``@ddalle``: First version
             * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Get min/max plot options
-        opts = self.get("ErrorOptions", {})
-        # Class
-        cls = self.__class__
-        # Default type
-        terr = cls._rc.get("ErrorPlotType", "ErrorBar")
-        # Specified type
-        terr = self.get("ErrorPlotType", terr)
-        # Simplify case for comparison
-        t = terr.lower().replace("_", "")
-        # Submap
-        kw_map = cls._kw_submap["ErrorOptions"]
-        # Get top-level options
-        kw_err = self.get("ErrorOptions", {})
-        # Apply defaults
-        kw = dict(cls._rc_error, **kw_err)
-        # Individual options
-        for (k, kp) in kw_map.items():
-            # Check if present
-            if k not in self:
-                continue
-            # Remove option and save it under shortened name
-            kw[kp] = self[k]
-        # Fitler type
-        if t == "fillbetween":
-            # Region plot
-            error_type = "FillBetween"
-            # Get options for :func:`fill_between`
-            kw_plt = self.fillbetween_options()
-        elif t == "errorbar":
-            # Error bars
-            error_type = "ErrorBar"
-            # Get options for :func:`errorbar`
-            kw_plt = self.errorbar_options()
+        # Use the "minmax" section
+        kw = self.section_options("error")
+        # Save section name
+        mainopt = "ErrorOptions"
+        # Get type-specific options removed
+        kw_eb = kw.pop("ErrorBarOptions", {})
+        kw_fb = kw.pop("FillBetweenOptions", {})
+        kw_mm = kw.get(mainopt, {})
+        # Get the plot type
+        mmax_type = kw.get("MinMaxPlotType", "fillbetween").lower()
+        mmax_type = mmax_type.replace("_", "")
+        # Check type
+        if mmax_type == "errorbar":
+            # Combine ErrorBar options into main options
+            kw[mainopt] = dict(kw_eb, **kw_mm)
         else:
-            raise ValueError("Unrecognized min/max plot type '%s'" % terr)
-        # MinMaxOptions overrides
-        kw = dict(kw_plt, **kw)
+            # Combine FillBetween options into main options
+            kw[mainopt] = dict(kw_fb, **kw_mm)
         # Output
-        return error_type, cls.denone(kw)
+        return kw
 
     # Process options for UQ plot
     def uq_options(self):
         r"""Process options for uncertainty quantification plots
 
         :Call:
-            >>> uq_type, kw = opts.uq_options()
+            >>> kw = opts.uq_options()
         :Inputs:
             *opts*: :class:`MPLOpts`
                 Options interface
         :Keys:
             %(keys)s
         :Outputs:
-            *uq_type*: {``"FillBetween"``} | ``"ErrorBar"``
-                Plot type for UQ plot
             *kw*: :class:`dict`
-                Dictionary of options to plot function
+                Dictionary of options to :func:`uq`
         :Versions:
             * 2019-03-04 ``@ddalle``: First version
             * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Get min/max plot options
-        opts = self.get("UncertaintyOptions", {})
-        # Class
-        cls = self.__class__
-        # Default type
-        tuq = cls._rc.get("UncertaintyPlotType", "FillBetween")
-        # Specified type
-        tuq = self.get("UncertaintyPlotType", tuq)
-        # Simplify case for comparison
-        t = tuq.lower().replace("_", "")
-        # Submap
-        kw_map = cls._kw_submap["UncertaintyOptions"]
-        # Get top-level options
-        kw_uq = self.get("UncertaintyOptions", {})
-        # Apply defaults
-        kw = dict(cls._rc_uq, **kw_uq)
-        # Individual options
-        for (k, kp) in kw_map.items():
-            # Check if present
-            if k not in self:
-                continue
-            # Remove option and save it under shortened name
-            kw[kp] = self[k]
-        # Fitler type
-        if t == "fillbetween":
-            # Region plot
-            uq_type = "FillBetween"
-            # Get options for :func:`fill_between`
-            kw_plt = self.fillbetween_options()
-        elif t == "errorbar":
-            # Error bars
-            uq_type = "ErrorBar"
-            # Get options for :func:`errorbar`
-            kw_plt = self.errorbar_options()
+        # Use the "uq" section
+        kw = self.section_options("uq")
+        # Save section name
+        mainopt = "UncertaintyOptions"
+        # Get type-specific options removed
+        kw_eb = kw.pop("ErrorBarOptions", {})
+        kw_fb = kw.pop("FillBetweenOptions", {})
+        kw_mm = kw.get(mainopt, {})
+        # Get the plot type
+        mmax_type = kw.get("MinMaxPlotType", "fillbetween").lower()
+        mmax_type = mmax_type.replace("_", "")
+        # Check type
+        if mmax_type == "errorbar":
+            # Combine ErrorBar options into main options
+            kw[mainopt] = dict(kw_eb, **kw_mm)
         else:
-            raise ValueError("Unrecognized min/max plot type '%s'" % tuq)
-        # MinMaxOptions overrides
-        kw = dict(kw_plt, **kw)
+            # Combine FillBetween options into main options
+            kw[mainopt] = dict(kw_fb, **kw_mm)
         # Output
-        return uq_type, cls.denone(kw)
+        return kw
 
     # Options for errorbar() plots
     def errorbar_options(self):
@@ -6265,49 +6237,10 @@ class MPLKW(kwutils.KwargHandler):
         :Versions:
             * 2019-03-05 ``@ddalle``: First version
             * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Submap (global options mapped to errorbar() opts)
-        kw_map = cls._kw_submap["ErrorBarOptions"]
-        # Aliases for errorbar() opts to avoid conflict
-        kw_alias = cls._kw_subalias["ErrorBarOptions"]
-        # Options to cascade css-style from PlotOptions
-        kw_css = cls._kw_cascade["ErrorBarOptions"]
-        # Get directly specified
-        kw_eb = self.get("ErrorBarOptions", {})
-        # Apply aliases
-        kw = {
-            kw_alias.get(k, k): v
-            for (k, v) in kw_eb.items()
-        }
-        # Get :func:`plot` options
-        kw_plt = self.plot_options()
-        # loop through cascading options
-        for (k2, k1) in kw_css.items():
-            # Split "from" name into part and option
-            ka, kb = k2.split(".", 1)
-            # Confirm it comes from "plot"
-            if ka == "plot":
-                v = kw_plt.get(kb)
-            else:
-                raise ValuError(
-                    "ErrorBarOptions cannot inherit from '%s'" % ka)
-            # Check for valid value
-            if v is not None:
-                # Don't override specified value
-                kw.setdefault(k1, v)
-        # Apply defaults
-        kw = dict(cls._rc_errorbar, **kw)
-        # Individual options
-        for (k, kp) in kw_map.items():
-            # Check if present
-            if k not in self:
-                continue
-            # Remove option and save it under shortened name
-            kw[kp] = self[k]
-        # Remove "None"
-        return cls.denone(kw)
+        # Specific options
+        return self.get_option("ErrorBarOptions")
 
     # Options for fill_between() plots
     def fillbetween_options(self):
@@ -6326,49 +6259,10 @@ class MPLKW(kwutils.KwargHandler):
         :Versions:
             * 2019-03-05 ``@ddalle``: First version
             * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Submap (global options mapped to errorbar() opts)
-        kw_map = cls._kw_submap["FillBetweenOptions"]
-        # Aliases for errorbar() opts to avoid conflict
-        kw_alias = cls._kw_subalias["FillBetweenOptions"]
-        # Options to cascade css-style from PlotOptions
-        kw_css = cls._kw_cascade["FillBetweenOptions"]
-        # Get directly specified
-        kw_eb = self.get("FillBetweenOptions", {})
-        # Apply aliases
-        kw = {
-            kw_alias.get(k, k): v
-            for (k, v) in kw_eb.items()
-        }
-        # Get :func:`plot` options
-        kw_plt = self.plot_options()
-        # loop through cascading options
-        for (k2, k1) in kw_css.items():
-            # Split "from" name into part and option
-            ka, kb = k2.split(".", 1)
-            # Confirm it comes from "plot"
-            if ka == "plot":
-                v = kw_plt.get(kb)
-            else:
-                raise ValuError(
-                    "FillBetweenOptions cannot inherit from '%s'" % ka)
-            # Check for valid value
-            if v is not None:
-                # Don't override specified value
-                kw.setdefault(k1, v)
-        # Apply defaults
-        kw = dict(cls._rc_fillbetween, **kw)
-        # Individual options
-        for (k, kp) in kw_map.items():
-            # Check if present
-            if k not in self:
-                continue
-            # Remove option and save it under shortened name
-            kw[kp] = self[k]
-        # Remove "None"
-        return cls.denone(kw)
+        # Specific options
+        return self.get_option("FillBetweenOptions")
 
     # Process axes formatting options
     def axformat_options(self):
@@ -6386,6 +6280,7 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`axes_format`
         :Versions:
             * 2019-03-07 ``@jmeeroff``: First version
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6442,6 +6337,7 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`axes_adjust`
         :Versions:
             * 2020-01-08 ``@ddalle``: First version
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6476,6 +6372,7 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`axes_adjust_col`
         :Versions:
             * 2020-01-10 ``@ddalle``: First version
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6510,6 +6407,7 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`axes_adjust_row`
         :Versions:
             * 2020-01-10 ``@ddalle``: First version
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6544,6 +6442,7 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`imshow`
         :Versions:
             * 2020-01-09 ``@ddalle``: First version
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6579,6 +6478,7 @@ class MPLKW(kwutils.KwargHandler):
         :Versions:
             * 2019-03-07 ``@jmeeroff``: First version
             * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6646,6 +6546,7 @@ class MPLKW(kwutils.KwargHandler):
         :Versions:
             * 2019-03-07 ``@jmeeroff``: First version
             * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6706,6 +6607,7 @@ class MPLKW(kwutils.KwargHandler):
         :Versions:
             * 2019-03-07 ``@ddalle``: First version
             * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6757,4 +6659,7 @@ class MPLKW(kwutils.KwargHandler):
   # >
 
 # Document sublists
+MPLKW._doc_keys("axes_options", "axes")
+MPLKW._doc_keys("figure_options", "fig")
+MPLKW._doc_keys("minmax_options", "minmax")
 MPLKW._doc_keys("plot_options", "plot")
