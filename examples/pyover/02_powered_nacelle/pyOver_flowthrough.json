@@ -51,28 +51,10 @@
         "Resubmit": [false, true],
         "Continue": true,
         "mpicmd": null,
-        "nProc": 24,
+        "nProc": 8,
         // Dictionary of environment variables
         "Environ": {
-            "F_UFMTENDIAN": "little",
-            "FORT_BUFFERED": 0,
-            "OMP_STACKSIZE": 800000000,
-            "KMP_STACKSIZE": 100000000,
-            "MPI_BUFS_PER_PROC": 2048,
-            "MPI_BUFS_PER_HOST": 2048,
-            "MPI_DISPLAY_SETTINGS": 1,
-            "MPI_DSM_DISTRIBUTE": 0,
-            "MPI_DSM_VERBOSE": 1,
-            "MPI_IB_RECV_MSGS": 16384,
-            "MPI_IB_RECV_BUFS": 16384,
-            "MPI_IB_MAX_RDMAS": 1,
-            "MPI_IB_TIMEOUT": 20,
-            "MPI_IB_VERBOSE": 1,
-            "MPI_IB_XRC": "false",
-            "MPI_VERBOSE": 1,
-            "MPI_ARRAYD_CONNECTTO": 15,
-            "MPI_ARRAYD_TIMEOUT": 180,
-            "PAGECACHE_MAX_BYTES": 8589934592
+            "F_UFMTENDIAN": "little"
         },
 
         // OVERFLOW command-line interface
@@ -90,7 +72,7 @@
             "NSAVE":  [0,  2000],
             "FMG": [true, false],
             "FMGCYC": [[300,300]],
-            "NGLVL": 2,
+            "NGLVL": 3,
             "ISTART_QAVG": 15000,
             "WALLDIST": [2],
             "DTPHYS": [0.0, 0.0, 0.0, 0.0, 1.0],
@@ -148,42 +130,42 @@
     // Additional surface/mesh configuration
     "Config": {
         // Reference values
-        "RefArea": 3.14159,
-        "RefLength": 2.0,
+        "RefArea": 105.60,
+        "RefLength": 108.0,
         # Special coordinates
         "Points": {
-            "CORE_MRP": [2.5, 0.0, 0.0]
+            "MAC_MRP": [295.422, 0.0, 0.0]
         },
-        "RefPoint": "CORE_MRP"
+        "RefPoint": "MAC_MRP"
     },
     
     // Define data book components to track
     "DataBook": {
         // List of components to track
         "Components": [
-            "bullet_no_base",
-            "bullet_cap",
-            "bullet_body",
-            "bullet_base"
+            "TOTAL FORCE"
         ],
         // Define what iterations to include
-        "nFirst": 2100,
+        "nMin": 1000,
         "nStats": 200,
         // Where to store the aero data
         "Folder": "data",
+        // Information about each component
+        "TOTAL FORCE": {"TYPE": "FM"},
         // Key(s) by which to sort data book
-        "Sort": ["mach", "alpha", "beta"],
+        "Sort": ["mach"],
         // Input files for splitmx/mixsur if doing line loads or similar
-        "fomo": "common/fomo"
+        "fomo": "common_flowthrough/fomo"
     },
     
     // Define a simple report
     "Report": {
-        "bullet": {
-            "Title": "OVERFLOW Bullet Example for pyOver",
-            "Subtitle": "Example \\texttt{01\\_bullet}",
+        "flowthrough": {
+            "Title": "OVERFLOW Flow Through Nacelle Example for pyOver",
+            "Subtitle": "Example \\texttt{01\\_powered\\_nacelle}",
             "Restriction": "pyOver Example - Distribution Unlimited",
-            "Figures": ["CaseTables", "CasePlots", "FlowViz"]
+            //"Figures": ["CaseTables", "CasePlots", "FlowViz"]
+            "Figures": ["CaseTables", "CasePlots"]
         },
         // Define the figures
         "Figures": {
@@ -197,7 +179,7 @@
                 "Subfigures": [
                     "force_CA",  "force_CY",  "force_CN",
                     "force_CLL", "force_CLN", "force_CLM",
-                    "cap_CA",    "L2",        "cap_CN"
+                    "force_CAzoom", "L2"
                 ]
             },
             "FlowViz": {
@@ -213,7 +195,7 @@
             // Tecplot figures
             "MachSlice": {
                 "Type": "Tecplot",
-                "Layout": "inputs/bullet-mach.lay",
+                "Layout": "inputs/nacelle-mach.lay",
                 "FigWidth": 1024,
                 "Width": 0.48,
                 "Caption": "Surface $C_p$ and $y=0$ Mach slice",
@@ -276,7 +258,7 @@
             "force": {
                 "Type": "PlotCoeff",
                 "Component": "TOTAL FORCE",
-                "nPlotFirst": 0,
+                "nPlotFirst": 600,
                 "FigWidth": 4.5,
                 "FigHeight": 3.4,
                 "Width": 0.33,
@@ -288,6 +270,11 @@
             "force_CLL": {"Type": "force", "Coefficient": "CLL"},
             "force_CLM": {"Type": "force", "Coefficient": "CLM"},
             "force_CLN": {"Type": "force", "Coefficient": "CLN"},
+            "force_CAzoom": {
+                "Type": "force", 
+                "Coefficient": "CA",
+                "nPlotFirst": -500
+            },
             // Residual history
             "L2": {
                 "Type": "PlotL2",
