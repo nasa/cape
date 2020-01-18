@@ -1,21 +1,22 @@
-"""
-:mod:`cape.pyfun.cmd`: Create commands for FUN3D executables 
+r"""
+:mod:`cape.pyfun.cmd`: Create commands for FUN3D executables
 =============================================================
 
-This module creates system commands as lists of strings for executable binaries
-or scripts for FUN3D.  The main FUN3D executables are ``nodet`` or
-``nodet_mpi``, for which command are created using :func:`nodet`, and ``dual``
-or ``dual_mpi``, whose commands are constructed using :func:`dual`.
+This module creates system commands as lists of strings for executable
+binaries or scripts for FUN3D.  The main FUN3D executables are ``nodet``
+or ``nodet_mpi``, for which command are created using :func:`nodet`, and
+``dual`` or ``dual_mpi``, whose commands are constructed using
+:func:`dual`.
 
-Commands are created in the form of a list of strings.  This is the format used
-in the built-in module :mod:`subprocess` and also with :func:`cape.bin.calli`. 
-As a very simple example, the system command ``"ls -lh"`` becomes the list
-``["ls", "-lh"]``.
+Commands are created in the form of a list of strings.  This is the
+format used in the built-in module :mod:`subprocess` and also with
+:func:`cape.bin.calli`. As a very simple example, the system command
+``"ls -lh"`` becomes the list ``["ls", "-lh"]``.
 
-These commands also include prefixes such as ``mpiexec`` if necessary.  The
-decision to use ``nodet`` or ``nodet_mpi`` is made based on the options input
-of keyword input ``"MPI"``.  For example, two versions of the command returned
-by :func:`nodet` could be
+These commands also include prefixes such as ``mpiexec`` if necessary.
+The decision to use ``nodet`` or ``nodet_mpi`` is made based on the
+options input of keyword input ``"MPI"``.  For example, two versions of
+the command returned by :func:`nodet` could be
 
     .. code-block:: python
     
@@ -30,15 +31,13 @@ by :func:`nodet` could be
 
 """
 
-# File checking.
-import os.path
 # Options for the binaries
 from .options import runControl, getel
 
 
 # Function to create ``nodet`` or ``nodet_mpi`` command
 def nodet(opts=None, i=0, **kw):
-    """Interface to FUN3D binary ``nodet`` or ``nodet_mpi``
+    r"""Interface to FUN3D binary ``nodet`` or ``nodet_mpi``
     
     :Call:
         >>> cmdi = cmd.nodet(opts, i=0)
@@ -109,15 +108,16 @@ def nodet(opts=None, i=0, **kw):
         else:
             # Select option for this phase
             vi = getel(v, i)
-            # Append the option and value 
+            # Append the option and value
             cmdi.append('--'+k)
             cmdi.append(str(vi))
     # Output
     return cmdi
 
+
 # Function to create ``dual`` or ``dual_mpi`` command
 def dual(opts=None, i=0, **kw):
-    """Interface to FUN3D binary ``dual`` or ``dual_mpi``
+    r"""Interface to FUN3D binary ``dual`` or ``dual_mpi``
     
     :Call:
         >>> cmdi = cmd.dual(opts, i=0)
@@ -213,7 +213,7 @@ def dual(opts=None, i=0, **kw):
         else:
             # Select phase option
             vi = getel(v, i)
-            # Append the option and value 
+            # Append the option and value
             cmdi.append('--'+k)
             cmdi.append(str(vi))
     # Output
