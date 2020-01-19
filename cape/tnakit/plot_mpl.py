@@ -5275,7 +5275,6 @@ class MPLKW(kwutils.KwargHandler):
         "grid": [
             "Grid",
             "GridOptions",
-            "MajorGrid",
             "MinorGrid",
             "MinorGridOptions",
         ],
@@ -6280,46 +6279,9 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`axes_format`
         :Versions:
             * 2019-03-07 ``@jmeeroff``: First version
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Initialize output
-        kw = {}
-        # Loop through other options
-        for k in cls._optlist_axformat:
-            # Check applicability
-            if k not in self:
-                # Not present
-                continue
-            # Otherwise, assign the value
-            kw[k] = self[k]
-        # Get rotation option
-        rotate = kw.get("Rotate", False)
-        # Get density option
-        density = kw.get("Density")
-        # Different defaults for histograms
-        if density is None:
-            # No default label
-            ylbl = None
-        elif density:
-            # Default label for PDF
-            ylbl = "Probability Density"
-        else:
-            # Raw histogram option
-            ylbl = "Count"
-        # Process which axis this default applies to
-        if rotate:
-            # Default
-            xlbl = None
-        else:
-            # Data on horizontal axis
-            xlbl = ylbl
-            ylbl = None
-        # Apply defaults
-        kw = dict(cls._rc_axformat, **kw)
-        # Return
-        return cls.denone(kw)
+        return self.sectin_options("axformat")
 
     # Process axes formatting options
     def axadjust_options(self):
@@ -6337,24 +6299,9 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`axes_adjust`
         :Versions:
             * 2020-01-08 ``@ddalle``: First version
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Initialize output
-        kw = {}
-        # Loop through other options
-        for k in cls._optlist_axadjust:
-            # Check applicability
-            if k not in self:
-                # Not present
-                continue
-            # Otherwise, assign the value
-            kw[k] = self[k]
-        # Apply defaults
-        kw = dict(cls._rc_axadjust, **kw)
-        # Return
-        return cls.denone(kw)
+        return self.sectin_options("axadjust")
 
     # Process axes formatting options
     def axadjust_col_options(self):
@@ -6372,24 +6319,9 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`axes_adjust_col`
         :Versions:
             * 2020-01-10 ``@ddalle``: First version
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Initialize output
-        kw = {}
-        # Loop through other options
-        for k in cls._optlist_axadjust_col:
-            # Check applicability
-            if k not in self:
-                # Not present
-                continue
-            # Otherwise, assign the value
-            kw[k] = self[k]
-        # Apply defaults
-        kw = dict(cls._rc_axadjust, **kw)
-        # Return
-        return cls.denone(kw)
+        return self.sectin_options("axadjust_col")
 
     # Process axes formatting options
     def axadjust_row_options(self):
@@ -6407,24 +6339,9 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`axes_adjust_row`
         :Versions:
             * 2020-01-10 ``@ddalle``: First version
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Initialize output
-        kw = {}
-        # Loop through other options
-        for k in cls._optlist_axadjust_row:
-            # Check applicability
-            if k not in self:
-                # Not present
-                continue
-            # Otherwise, assign the value
-            kw[k] = self[k]
-        # Apply defaults
-        kw = dict(cls._rc_axadjust, **kw)
-        # Return
-        return cls.denone(kw)
+        return self.sectin_options("axadjust_row")
 
     # Process imshow() options
     def imshow_options(self):
@@ -6442,24 +6359,9 @@ class MPLKW(kwutils.KwargHandler):
                 Dictionary of options to :func:`imshow`
         :Versions:
             * 2020-01-09 ``@ddalle``: First version
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Initialize output
-        kw = {}
-        # Loop through other options
-        for k in cls._optlist_imshow:
-            # Check applicability
-            if k not in self:
-                # Not present
-                continue
-            # Otherwise, assign the value
-            kw[k] = self[k]
-        # Apply defaults
-        kw = dict(cls._rc_imshow, **kw)
-        # Return
-        return cls.denone(kw)
+        return self.sectin_options("imshow")
 
     # Grid options
     def grid_options(self):
@@ -6480,54 +6382,7 @@ class MPLKW(kwutils.KwargHandler):
             * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Submap
-        kw_map = cls._kw_submap["GridOptions"]
-        # Aliases
-        kw_alias = cls._kw_subalias["GridOptions"]
-        # Get top-level options
-        kw_maj = self.get("GridOptions", {})
-        kw_min = self.get("MinorGridOptions", {})
-        # Apply aliases
-        kw_major = {
-            kw_alias.get(k, k): v
-            for (k, v) in kw_maj.items()
-        }
-        kw_minor = {
-            kw_alias.get(k, k): v
-            for (k, v) in kw_min.items()
-        }
-        # Individual options
-        for (k, kp) in kw_map.items():
-            # Check if present
-            if k not in self:
-                continue
-            # Remove option and save it under shortened name
-            kw_major[kp] = self[k]
-        # Initialize output
-        kw = {}
-        # Loop through primary options
-        for k in cls._optlist_grid:
-            # Check applicability
-            if k not in self:
-                # Not present
-                continue
-            elif k in kw_map:
-                # Already mapped to fig() opts
-                continue
-            # Otherwise, assign the value
-            kw[k] = self[k]
-        # Apply defaults
-        kw_minor = dict(cls._rc_minorgrid, **kw_minor)
-        kw_major = dict(cls._rc_majorgrid, **kw_major)
-        # Apply overall defaults
-        kw = dict(cls._rc_grid, **kw)
-        # Ensure major and minor oprionts
-        kw["MajorGridOptions"] = cls.denone(kw_major)
-        kw["MinorGridOptions"] = cls.denone(kw_minor)
-        # Remove "None"
-        return cls.denone(kw)
+        return self.section_options("grid")
 
     # Spine options
     def spine_options(self):
@@ -6607,7 +6462,7 @@ class MPLKW(kwutils.KwargHandler):
         :Versions:
             * 2019-03-07 ``@ddalle``: First version
             * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Class
         cls = self.__class__
@@ -6659,7 +6514,19 @@ class MPLKW(kwutils.KwargHandler):
   # >
 
 # Document sublists
+MPLKW._doc_keys("axadjust_options", "axadjust")
+MPLKW._doc_keys("axadjust_col_options", "axadjust_col")
+MPLKW._doc_keys("axadjust_row_options", "axadjust_row")
+MPLKW._doc_keys("axformat_options", "axformat")
 MPLKW._doc_keys("axes_options", "axes")
+MPLKW._doc_keys("error_options", "error")
 MPLKW._doc_keys("figure_options", "fig")
+MPLKW._doc_keys("grid_options", "grid")
+MPLKW._doc_keys("imshow_options", "imshow")
 MPLKW._doc_keys("minmax_options", "minmax")
 MPLKW._doc_keys("plot_options", "plot")
+MPLKW._doc_keys("uq_options", "uq")
+
+# Special categories
+MPLKW._doc_keys("errobar_options", ["ErrorBarOptions"])
+MPLKW._doc_keys("fillbetween_options", ["FillBetweenOptions"])
