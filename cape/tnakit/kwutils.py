@@ -637,7 +637,7 @@ class KwargHandler(dict):
             parents = set()
         # Get dictionary of options to inherit from
         kw_submap = cls._kw_submap.get(opt, {})
-        # Loop through cascade options
+        # Loop through primary submap options
         for (fromopt, subopt) in kw_submap.items():
             # Check for "."
             ndot = fromopt.count(".")
@@ -646,6 +646,26 @@ class KwargHandler(dict):
                 # Direct access simple option
                 subval = self.get_option(fromopt, parents)
             elif ndot == 1:
+                # Process later (to set priority)
+                continue
+            else:
+                # Not recursing on dicts of dicts or something
+                raise ValueError("Cannot process option '%s'" % fromopt)
+            # One more check for ``None``
+            if subval is not None:
+                # Don't override
+                optval.setdefault(subopt, subval)
+        # Store cascading option parents to avoid multiple access
+        kw_cascade = {}
+        # Loop through cascade options
+        for (fromopt, subopt) in kw_submap.items():
+            # Check for "."
+            ndot = fromopt.count(".")
+            # Filter "."
+            if ndot == 0:
+                # Previously accessed
+                continue
+            if ndot == 1:
                 # Split
                 k0, k1 = fromopt.split(".")
                 # Check for recursion
@@ -654,7 +674,14 @@ class KwargHandler(dict):
                         ("Detected recursion while accessing '%s' " % opt) +
                         ("with parents %s" % parents))
                 # Get dictionary of options
-                subdict = self.get_option(k0, parents | {opt})
+                if k0 in kw_cascade:
+                    # Previously calculated
+                    subdict = kw_cascade[k0]
+                else:
+                    # Get parent options for first time
+                    subdict = self.get_option(k0, parents | {opt})
+                    # Save them
+                    kw_cascade[k0] = subdict
                 # Check for ``None``
                 if subdict is None:
                     continue
@@ -665,9 +692,6 @@ class KwargHandler(dict):
                         ("'%s' option is not a dict" % k0))
                 # Get the value
                 subval = subdict.get(k1)
-            else:
-                # Not recursing on dicts of dicts or something
-                raise ValueError("Cannot process option '%s'" % fromopt)
             # One more check for ``None``
             if subval is not None:
                 # Don't override

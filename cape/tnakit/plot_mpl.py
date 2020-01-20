@@ -5049,6 +5049,7 @@ class MPLKW(kwutils.KwargHandler):
         "LeftTickLabels",
         "Legend",
         "LegendFontName",
+        "LegendFontOptions",
         "LegendFontSize",
         "LegendFontStretch",
         "LegendFontStyle",
@@ -5393,14 +5394,17 @@ class MPLKW(kwutils.KwargHandler):
         "legend": [
             "Legend",
             "LegendAnchor",
+            "LegendFontOptions",
+            "LegendLocation",
+            "LegendOptions"
+        ],
+        "legendfont": [
             "LegendFontName",
             "LegendFontSize",
             "LegendFontStretch",
             "LegendFontStyle",
             "LegendFontVariant",
-            "LegendFontWeight",
-            "LegendLocation",
-            "LegendOptions"
+            "LegendFontWeight"
         ],
         "subplot": [
             "AdjustBottom",
@@ -5583,9 +5587,24 @@ class MPLKW(kwutils.KwargHandler):
         },
         "LegendOptions": {
             "LegendAnchor": "bbox_to_anchor",
+            "LegendFontOptions": "prop",
             "LegendLocation": "loc",
             "LegendNCol": "ncol",
             "ShowLegend": "ShowLegend",
+        },
+        "LegendFontOptions": {
+            "FontOptions.family": "family",
+            "FontOptions.size": "size",
+            "FontOptions.stretch": "stretch",
+            "FontOptions.style": "style",
+            "FontOptions.variant": "variant",
+            "FontOptions.weight": "weight",
+            "LegendFontName": "family",
+            "LegendFontSize": "size",
+            "LegendFontStretch": "stretch",
+            "LegendFontStyle": "style",
+            "LegendFontVariant": "variant",
+            "LegendFontWeight": "weight",
         },
         "MinMaxOptions": {},
         "FillBetweenOptions": {
@@ -5904,6 +5923,7 @@ class MPLKW(kwutils.KwargHandler):
         "FontOptions": {
             "family": "DejaVu Sans",
         },
+        "LegendFontOptions": {},
         "MinMaxOptions": {},
         "MinMaxPlotType": "FillBetween",
         "PlotOptions": {
@@ -6010,6 +6030,65 @@ class MPLKW(kwutils.KwargHandler):
   # Categories
   # ==================
   # <
+    # Process axes formatting options
+    def axadjust_col_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_col_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust_col`
+        :Versions:
+            * 2020-01-10 ``@ddalle``: First version
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        return self.section_options("axadjust_col")
+
+    # Process axes formatting options
+    def axadjust_row_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_row_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust_row`
+        :Versions:
+            * 2020-01-10 ``@ddalle``: First version
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        return self.section_options("axadjust_row")
+
+     # Process axes formatting options
+    def axadjust_options(self):
+        r"""Process options for axes margin adjustment
+
+        :Call:
+            >>> kw = opts.axadjust_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_adjust`
+        :Versions:
+            * 2020-01-08 ``@ddalle``: First version
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        return self.section_options("axadjust")
 
     # Axes options
     def axes_options(self):
@@ -6032,6 +6111,26 @@ class MPLKW(kwutils.KwargHandler):
         """
         # Use the "axes" section
         return self.section_options("axes")
+
+    # Process axes formatting options
+    def axformat_options(self):
+        r"""Process options for axes format
+
+        :Call:
+            >>> kw = opts.axformat_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`axes_format`
+        :Versions:
+            * 2019-03-07 ``@jmeeroff``: First version
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        return self.section_options("axformat")
 
     # Figure creation and manipulation
     def figure_options(self):
@@ -6076,6 +6175,26 @@ class MPLKW(kwutils.KwargHandler):
         """
         # Use the "font" section and only return "FontOptions"
         return self.section_options("font", "FontOptions")
+
+    # Options for font in legend
+    def legend_font_options(self):
+        r"""Process font options for :func:`legend` calls
+
+        :Call:
+            >>> kw = opts.legend_font_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`errorbar`
+        :Versions:
+            * 2020-01-19 ``@ddalle``: First version
+        """
+        # Specific options
+        return self.get_option("LegendFontOptions")
 
     # Primary options
     def plot_options(self):
@@ -6263,86 +6382,6 @@ class MPLKW(kwutils.KwargHandler):
         # Specific options
         return self.get_option("FillBetweenOptions")
 
-    # Process axes formatting options
-    def axformat_options(self):
-        r"""Process options for axes format
-
-        :Call:
-            >>> kw = opts.axformat_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_format`
-        :Versions:
-            * 2019-03-07 ``@jmeeroff``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.sectin_options("axformat")
-
-    # Process axes formatting options
-    def axadjust_options(self):
-        r"""Process options for axes margin adjustment
-
-        :Call:
-            >>> kw = opts.axadjust_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_adjust`
-        :Versions:
-            * 2020-01-08 ``@ddalle``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.sectin_options("axadjust")
-
-    # Process axes formatting options
-    def axadjust_col_options(self):
-        r"""Process options for axes margin adjustment
-
-        :Call:
-            >>> kw = opts.axadjust_col_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_adjust_col`
-        :Versions:
-            * 2020-01-10 ``@ddalle``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.sectin_options("axadjust_col")
-
-    # Process axes formatting options
-    def axadjust_row_options(self):
-        r"""Process options for axes margin adjustment
-
-        :Call:
-            >>> kw = opts.axadjust_row_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_adjust_row`
-        :Versions:
-            * 2020-01-10 ``@ddalle``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.sectin_options("axadjust_row")
-
     # Process imshow() options
     def imshow_options(self):
         r"""Process options for image display calls
@@ -6361,7 +6400,7 @@ class MPLKW(kwutils.KwargHandler):
             * 2020-01-09 ``@ddalle``: First version
             * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
-        return self.sectin_options("imshow")
+        return self.section_options("imshow")
 
     # Grid options
     def grid_options(self):
@@ -6528,5 +6567,6 @@ MPLKW._doc_keys("plot_options", "plot")
 MPLKW._doc_keys("uq_options", "uq")
 
 # Special categories
-MPLKW._doc_keys("errobar_options", ["ErrorBarOptions"])
+MPLKW._doc_keys("errorbar_options", ["ErrorBarOptions"])
 MPLKW._doc_keys("fillbetween_options", ["FillBetweenOptions"])
+MPLKW._doc_keys("legend_font_options", ["LegendFontOptions"])
