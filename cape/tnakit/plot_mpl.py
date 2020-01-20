@@ -5924,6 +5924,11 @@ class MPLKW(kwutils.KwargHandler):
             "family": "DejaVu Sans",
         },
         "LegendFontOptions": {},
+        "LegendOptions": {
+            "loc": "upper center",
+            "labelspacing": 0.5,
+            "framealpha": 1.0,
+        },
         "MinMaxOptions": {},
         "MinMaxPlotType": "FillBetween",
         "PlotOptions": {
@@ -6030,7 +6035,7 @@ class MPLKW(kwutils.KwargHandler):
   # Categories
   # ==================
   # <
-    # Process axes formatting options
+    # Subplot column options
     def axadjust_col_options(self):
         r"""Process options for axes margin adjustment
 
@@ -6050,7 +6055,7 @@ class MPLKW(kwutils.KwargHandler):
         """
         return self.section_options("axadjust_col")
 
-    # Process axes formatting options
+    # Subplot row options
     def axadjust_row_options(self):
         r"""Process options for axes margin adjustment
 
@@ -6070,7 +6075,7 @@ class MPLKW(kwutils.KwargHandler):
         """
         return self.section_options("axadjust_row")
 
-     # Process axes formatting options
+    # Process axes formatting options
     def axadjust_options(self):
         r"""Process options for axes margin adjustment
 
@@ -6195,6 +6200,41 @@ class MPLKW(kwutils.KwargHandler):
         """
         # Specific options
         return self.get_option("LegendFontOptions")
+
+    # Legend options
+    def legend_options(self):
+        r"""Process options for :func:`legend`
+    
+        :Call:
+            >>> kw = opts.legend_options(kw, kwp={})
+        :Inputs:
+            *kw*: :class:`dict`
+                Dictionary of options to parent function
+            *kwp*: {``{}``}  | :class:`dict`
+                Dictionary of options from which to inherit
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Options to :func:`legend`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-98 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Get *LegendOptions* options
+        kw = self.get_option("LegendOptions")
+        # Specific location options
+        loc = kw.get("loc")
+        # Check it
+        if loc in ["upper center", 9]:
+            # Bounding box location on top spine
+            kw.setdefault("bbox_to_anchor", (0.5, 1.05))
+        elif loc in ["lower center", 8]:
+            # Bounding box location on bottom spine
+            kw.setdefault("bbox_to_anchor", (0.5, -0.05))
+        # Output
+        return kw
 
     # Primary options
     def plot_options(self):
@@ -6481,75 +6521,6 @@ class MPLKW(kwutils.KwargHandler):
             opts[k2] = self[k1]
         # Output
         return cls.denone(kw)
-
-    # Legend options
-    def legend_options(self):
-        r"""Process options for :func:`legend`
-    
-        :Call:
-            >>> kw = opts.legend_options(kw, kwp={})
-        :Inputs:
-            *kw*: :class:`dict`
-                Dictionary of options to parent function
-            *kwp*: {``{}``}  | :class:`dict`
-                Dictionary of options from which to inherit
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Options to :func:`legend`
-        :Versions:
-            * 2019-03-07 ``@ddalle``: First version
-            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Class
-        cls = self.__class__
-        # Submap (global options -> LegendOptions)
-        kw_map = cls._kw_submap["LegendOptions"]
-        # Font submapt (global FontOptions -> LegendOptions["prop"])
-        kw_fontmap = cls._kw_submap["FontOptions"]
-        # Get overall options
-        kw_font = self.font_options()
-        # Initialize the font properties
-        prop = self.get("LegendFontOptions", {})
-        # Apply defaults
-        prop = dict(cls._rc_legend_font, **prop)
-        # Loop through font options
-        for (k1, k2) in kw_fontmap.items():
-            # Prepend "Legend" to name
-            ka = "Legend" + k1
-            # Check if present
-            if ka not in self:
-                continue
-            # Otherwise assign it
-            prop[k2] = self[ka]
-        # Get *LegendOptions*
-        kw = self.get("LegendOptions", {})
-        # Apply defaults
-        kw = dict(cls._rc_legend, **kw)
-        # Set font properties
-        kw["prop"] = cls.denone(prop)
-        # Individual options
-        for (k, kp) in kw_map.items():
-            # Check if present
-            if k not in self:
-                continue
-            # Remove option and save it under shortened name
-            kw[kp] = self[k]
-        # Global on/off option
-        kw["ShowLegend"] = self.get("ShowLegend")
-        # Specific location options
-        loc = kw.get("loc")
-        # Check it
-        if loc in ["upper center", 9]:
-            # Bounding box location on top spine
-            kw.setdefault("bbox_to_anchor", (0.5, 1.05))
-        elif loc in ["lower center", 8]:
-            # Bounding box location on bottom spine
-            kw.setdefault("bbox_to_anchor", (0.5, -0.05))
-        # Output
-        return cls.denone(kw)
   # >
 
 # Document sublists
@@ -6570,3 +6541,4 @@ MPLKW._doc_keys("uq_options", "uq")
 MPLKW._doc_keys("errorbar_options", ["ErrorBarOptions"])
 MPLKW._doc_keys("fillbetween_options", ["FillBetweenOptions"])
 MPLKW._doc_keys("legend_font_options", ["LegendFontOptions"])
+MPLKW._doc_keys("legend_options", ["LegendOptions"])
