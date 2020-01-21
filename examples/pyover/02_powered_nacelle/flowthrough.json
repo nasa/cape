@@ -151,7 +151,7 @@
         // Where to store the aero data
         "Folder": "data",
         // Information about each component
-        "TOTAL FORCE": {"TYPE": "FM"},
+        "TOTAL FORCE": {"Type": "FM"},
         // Key(s) by which to sort data book
         "Sort": ["mach"],
         // Input files for splitmx/mixsur if doing line loads or similar
@@ -258,7 +258,7 @@
             "force": {
                 "Type": "PlotCoeff",
                 "Component": "TOTAL FORCE",
-                "nPlotFirst": 600,
+                "nPlotFirst": 0,
                 "FigWidth": 4.5,
                 "FigHeight": 3.4,
                 "Width": 0.33,
