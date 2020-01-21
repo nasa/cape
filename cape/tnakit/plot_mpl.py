@@ -5569,6 +5569,17 @@ class MPLKW(kwutils.KwargHandler):
             "FigHeight": "figheight",
             "FigWidth": "figwidth",
         },
+        "ErrorBarOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "ErrorBarMarker": "marker",
+            "PlotOptions.color": "color",
+        },
+        "FillBetweenOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "PlotOptions.color": "color",
+        },
         "FontOptions": {
             "FontName": "family",
             "FontSize": "size",
@@ -5577,13 +5588,8 @@ class MPLKW(kwutils.KwargHandler):
             "FontVariant": "variant",
             "FontWeight": "weight",
         },
-        "PlotOptions": {
-            "Index": "Index",
-            "Rotate": "Rotate",
-            "Label": "label",
-            "PlotColor": "color",
-            "PlotLineWidth": "lw",
-            "PlotLineStyle": "ls"
+        "GridOptions": {
+            "GridColor": "color",
         },
         "LegendOptions": {
             "LegendAnchor": "bbox_to_anchor",
@@ -5607,21 +5613,14 @@ class MPLKW(kwutils.KwargHandler):
             "LegendFontWeight": "weight",
         },
         "MinMaxOptions": {},
-        "FillBetweenOptions": {
+        "PlotOptions": {
             "Index": "Index",
             "Rotate": "Rotate",
-            "PlotOptions.color": "color",
+            "Label": "label",
+            "PlotColor": "color",
+            "PlotLineWidth": "lw",
+            "PlotLineStyle": "ls"
         },
-        "ErrorBarOptions": {
-            "Index": "Index",
-            "Rotate": "Rotate",
-            "ErrorBarMarker": "marker",
-            "PlotOptions.color": "color",
-        },
-        "GridOptions": {
-            "GridColor": "color",
-        },
-        "UncertaintyOptions": {},
         "SpineOptions": {
             "TickFontSize": "labelsize",
             "TickRotation": "rotation",
@@ -5633,6 +5632,7 @@ class MPLKW(kwutils.KwargHandler):
             "YTickRotation": "rotation",
             "YTickSize": "size",
         },
+        "UncertaintyOptions": {},
     }
 
    # --- Conflicting Options ---
@@ -6137,6 +6137,68 @@ class MPLKW(kwutils.KwargHandler):
         """
         return self.section_options("axformat")
 
+    # Process options for "error" plot
+    def error_options(self):
+        r"""Process options for error plots
+
+        :Call:
+            >>> kw = opts.error_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`error`
+        :Versions:
+            * 2019-03-04 ``@ddalle``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Use the "minmax" section
+        kw = self.section_options("error")
+        # Save section name
+        mainopt = "ErrorOptions"
+        # Get type-specific options removed
+        kw_eb = kw.pop("ErrorBarOptions", {})
+        kw_fb = kw.pop("FillBetweenOptions", {})
+        kw_mm = kw.get(mainopt, {})
+        # Get the plot type
+        mmax_type = kw.get("MinMaxPlotType", "fillbetween").lower()
+        mmax_type = mmax_type.replace("_", "")
+        # Check type
+        if mmax_type == "errorbar":
+            # Combine ErrorBar options into main options
+            kw[mainopt] = dict(kw_eb, **kw_mm)
+        else:
+            # Combine FillBetween options into main options
+            kw[mainopt] = dict(kw_fb, **kw_mm)
+        # Output
+        return kw
+
+    # Options for errorbar() plots
+    def errorbar_options(self):
+        r"""Process options for :func:`errorbar` calls
+
+        :Call:
+            >>> kw = opts.errorbar_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`errorbar`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Specific options
+        return self.get_option("ErrorBarOptions")
+
     # Figure creation and manipulation
     def figure_options(self):
         r"""Process options specific to Matplotlib figure
@@ -6159,6 +6221,28 @@ class MPLKW(kwutils.KwargHandler):
         # Use the "figure" section
         return self.section_options("fig")
 
+    # Options for fill_between() plots
+    def fillbetween_options(self):
+        r"""Process options for :func:`fill_between` calls
+
+        :Call:
+            >>> kw = opts.fillbetween_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`fill_between`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Specific options
+        return self.get_option("FillBetweenOptions")
+
     # Global font options
     def font_options(self):
         r"""Process global font options
@@ -6180,6 +6264,47 @@ class MPLKW(kwutils.KwargHandler):
         """
         # Use the "font" section and only return "FontOptions"
         return self.section_options("font", "FontOptions")
+
+    # Grid options
+    def grid_options(self):
+        r"""Process options to axes :func:`grid` command
+
+        :Call:
+            >>> kw = opts.grid_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`grid`
+        :Versions:
+            * 2019-03-07 ``@jmeeroff``: First version
+            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        return self.section_options("grid")
+
+    # Process imshow() options
+    def imshow_options(self):
+        r"""Process options for image display calls
+
+        :Call:
+            >>> kw = opts.imshow_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`imshow`
+        :Versions:
+            * 2020-01-09 ``@ddalle``: First version
+            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        return self.section_options("imshow")
 
     # Options for font in legend
     def legend_font_options(self):
@@ -6298,46 +6423,6 @@ class MPLKW(kwutils.KwargHandler):
         # Output
         return kw
 
-    # Process options for "error" plot
-    def error_options(self):
-        r"""Process options for error plots
-
-        :Call:
-            >>> kw = opts.error_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`error`
-        :Versions:
-            * 2019-03-04 ``@ddalle``: First version
-            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "minmax" section
-        kw = self.section_options("error")
-        # Save section name
-        mainopt = "ErrorOptions"
-        # Get type-specific options removed
-        kw_eb = kw.pop("ErrorBarOptions", {})
-        kw_fb = kw.pop("FillBetweenOptions", {})
-        kw_mm = kw.get(mainopt, {})
-        # Get the plot type
-        mmax_type = kw.get("MinMaxPlotType", "fillbetween").lower()
-        mmax_type = mmax_type.replace("_", "")
-        # Check type
-        if mmax_type == "errorbar":
-            # Combine ErrorBar options into main options
-            kw[mainopt] = dict(kw_eb, **kw_mm)
-        else:
-            # Combine FillBetween options into main options
-            kw[mainopt] = dict(kw_fb, **kw_mm)
-        # Output
-        return kw
-
     # Process options for UQ plot
     def uq_options(self):
         r"""Process options for uncertainty quantification plots
@@ -6366,7 +6451,7 @@ class MPLKW(kwutils.KwargHandler):
         kw_fb = kw.pop("FillBetweenOptions", {})
         kw_mm = kw.get(mainopt, {})
         # Get the plot type
-        mmax_type = kw.get("MinMaxPlotType", "fillbetween").lower()
+        mmax_type = kw.get("UncertaintyPlotType", "fillbetween").lower()
         mmax_type = mmax_type.replace("_", "")
         # Check type
         if mmax_type == "errorbar":
@@ -6377,91 +6462,6 @@ class MPLKW(kwutils.KwargHandler):
             kw[mainopt] = dict(kw_fb, **kw_mm)
         # Output
         return kw
-
-    # Options for errorbar() plots
-    def errorbar_options(self):
-        r"""Process options for :func:`errorbar` calls
-
-        :Call:
-            >>> kw = opts.errorbar_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`errorbar`
-        :Versions:
-            * 2019-03-05 ``@ddalle``: First version
-            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Specific options
-        return self.get_option("ErrorBarOptions")
-
-    # Options for fill_between() plots
-    def fillbetween_options(self):
-        r"""Process options for :func:`fill_between` calls
-
-        :Call:
-            >>> kw = opts.fillbetween_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`fill_between`
-        :Versions:
-            * 2019-03-05 ``@ddalle``: First version
-            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Specific options
-        return self.get_option("FillBetweenOptions")
-
-    # Process imshow() options
-    def imshow_options(self):
-        r"""Process options for image display calls
-
-        :Call:
-            >>> kw = opts.imshow_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`imshow`
-        :Versions:
-            * 2020-01-09 ``@ddalle``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.section_options("imshow")
-
-    # Grid options
-    def grid_options(self):
-        r"""Process options to axes :func:`grid` command
-
-        :Call:
-            >>> kw = opts.grid_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`grid`
-        :Versions:
-            * 2019-03-07 ``@jmeeroff``: First version
-            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.section_options("grid")
 
     # Spine options
     def spine_options(self):
