@@ -750,7 +750,7 @@ class KwargHandler(dict):
         # Apply defaults
         for (k, v) in rc_sec.items():
             # Set default
-            if k not in kw_sec:
+            if kw_sec.get(k) is None:
                 # use a shallow copy to avoid changing defaults
                 kw_sec[k] = copy.copy(v)
        # --- Output ---

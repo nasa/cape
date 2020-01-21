@@ -5621,13 +5621,23 @@ class MPLKW(kwutils.KwargHandler):
             "PlotLineWidth": "lw",
             "PlotLineStyle": "ls"
         },
-        "SpineOptions": {
+       "TickOptions": {
             "TickFontSize": "labelsize",
             "TickRotation": "rotation",
             "TickSize": "size",
+       },
+       "XTickOptions": {
+           "TickOptions.labelsize": "labelsize",
+           "TickOptions.rotation": "rotation",
+           "TickOptions.size": "size",
             "XTickFontSize": "labelsize",
             "XTickRotation": "rotation",
             "XTickSize": "size",
+       },
+       "YTickOptions": {
+           "TickOptions.labelsize": "labelsize",
+           "TickOptions.rotation": "rotation",
+           "TickOptions.size": "size",
             "YTickFontSize": "labelsize",
             "YTickRotation": "rotation",
             "YTickSize": "size",
@@ -5936,6 +5946,9 @@ class MPLKW(kwutils.KwargHandler):
             "ls": "-",
             "zorder": 8,
         },
+        "TickOptions": {},
+        "XTickOptions": {},
+        "YTickOptions": {},
     }
 
     # Options for sections
@@ -6480,47 +6493,10 @@ class MPLKW(kwutils.KwargHandler):
         :Versions:
             * 2019-03-07 ``@jmeeroff``: First version
             * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+            * 2020-01-20 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Class
-        cls = self.__class__
-        # Submap (global options -> AxesOptions)
-        kw_map = cls._kw_submap["SpineOptions"]
-        # Initialize
-        kw = {}
-        # Loop through other options
-        for k in cls._optlist_spines:
-            # Check applicability
-            if k not in self:
-                # Not present
-                continue
-            elif k in kw_map:
-                # Already mapped to fig() opts
-                continue
-            # Otherwise, assign the value
-            kw[k] = self[k]
-        # Apply defaults
-        kw = dict(cls._rc_spines, **kw)
-        # Loop through map options
-        for (k1, k2) in kw_map.items():
-            # Check if the option is specified by the user
-            if k1 not in self:
-                continue
-            # Check prefix
-            if k.startswith("XTick"):
-                optgroup = "XTickOptions"
-            elif k.startswith("YTick"):
-                optgroup = "YTickOptions"
-            elif k.startswith("Tick"):
-                optgroup = "TickOptions"
-            else:
-                continue
-            # Get appropriate subgroup (creating if necessary)
-            opts = kw.setdefault(optgroup, {})
-            # Apply the option
-            opts[k2] = self[k1]
-        # Output
-        return cls.denone(kw)
+        # Use the "spines" section, cascading opts handled internally
+        return self.section_options("spines")
   # >
 
 # Document sublists
@@ -6535,6 +6511,7 @@ MPLKW._doc_keys("grid_options", "grid")
 MPLKW._doc_keys("imshow_options", "imshow")
 MPLKW._doc_keys("minmax_options", "minmax")
 MPLKW._doc_keys("plot_options", "plot")
+MPLKW._doc_keys("spine_options", "spines")
 MPLKW._doc_keys("uq_options", "uq")
 
 # Special categories
