@@ -53,15 +53,15 @@ Flow-Through Nacelle Case
 
 Given the grid and input files created by the OVERFLOW scripts, the only two
 files that are required to run the flow-through example using pyOver are
-``pyOver_flowthrough.json`` and ``inputs/matrix/flowthrough.csv``.
+``flowthrough.json`` and ``inputs/matrix/flowthrough.csv``.
 
 To execute and duplicate the OVERFLOW Mach 0.8 flow-through example, simply run
-the command ``pyover -f pyOver_flowthrough.json -I 1``. This simple problem
+the command ``pyover -f flowthrough.json -I 1``. This simple problem
 will run in a matter of seconds:
 
     .. code-block:: console
 
-        pyover -f pyOver_flowthrough.json -I 1
+        pyover -f flowthrough.json -I 1
         Case Config/Run Directory  Status  Iterations  Que CPU Time 
         ---- --------------------- ------- ----------- --- --------
         1    flowthrough/m0.8      ---     /           .            
@@ -93,7 +93,7 @@ summarized here:
     #. Execute ``overrunmpi -np 8 run 02``
 
 
-The sections in ``pyOver_flowthrough.json`` that control the execution of
+The sections in ``flowthrough.json`` that control the execution of
 OVERFLOW are shown here:
 
     .. code-block:: javascript
@@ -148,7 +148,7 @@ variable *NSTEPS* in the *GLOBAL* namelist. In the first phase we are also
 running full-multi-grid (FMG) iterations with FMGCYC = [[300,300]] and
 *NSTEPS[0]* = 0, thus 600 total iterations in the first phase. 
 
-Here are the sections in ``pyOver_flowthrough.json`` that control the *GLOBAL*
+Here are the sections in ``flowthrough.json`` that control the *GLOBAL*
 and *OMIGLB* namelists:
 
     .. code-block:: javascript
@@ -172,7 +172,7 @@ and *OMIGLB* namelists:
             }
         },
 
-Here are the sections in ``pyOver_flowthrough.json`` that control the namelists
+Here are the sections in ``flowthrough.json`` that control the namelists
 for each individual mesh.  The *"ALL":* section is applied to all grids. 
 If one wants to specify different input values for a single grid, duplicate
 this section and replace *"ALL"* with the name of that grid in double quotes.
@@ -231,7 +231,7 @@ files to create symbolic links for.
 
 
 
-One very important section of ``pyOver_flowthrough.json`` is the *RunMatrix*
+One very important section of ``flowthrough.json`` is the *RunMatrix*
 section, shown here:
 
     .. code-block:: javascript
