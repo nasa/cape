@@ -468,38 +468,30 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
         * 2017-09-29 ``@ddalle``: First version
     """
     # Process defaults
-    if nMax is None: nMax = nAvg
-    if dn   is None: dn = nAvg
-    # Number of available iterations after *nMin*
-    nAvail = np.count_nonzero(x>nMin)
-    # Total number of iterations
-    nx = len(x)
-    # Number of available iterations
-    nMax = min(nMax, nAvail)
-    # Check for insufficient iterations for a single window
-    if nAvg > nx:
-        # Use all the iterations b/c there are less than *nAvg* after *nMin*
-        nAvg = nx
-        nMax = nx
-    elif nAvg > nMax:
-        # Use *nAvg* iterations, which reach before *nMin*
+    if nMax is None:
         nMax = nAvg
+    if dn is None:
+        dn = nAvg
+    # Last iteration available
+    i_last = x[-1]
+    # Figure out first iteration allowed for use
+    # It's either *nMin* specified by user or *nMax* back from end
+    i_first = max(nMin, i_last - nMax)
+    # Number of possible windows
+    n_windows = (nMax - nAvg) // dn + 1
+    # Create an array of allowed cutoff iterations
+    i_start = i_last - dn * (1 + np.arange(n_windows))
     # Create array of minimum window sizes
-    N = nAvg + np.arange(max(1,np.ceil(float(nMax-nAvg)/dn)))*dn
-    # Append *nMax* if not in *N*
-    if np.max(N) < nMax: N = np.append(N, nMax)
+    N = [np.count_nonzero(x > i) for i in i_start]
     # Create one window if no range
-    if len(N) == 1: N = np.append(N, nAvg)
-    # Ensure integer
-    N = np.array(N, dtype="int")
-    # Number of candidate windows
-    nw = len(N) - 1
+    if len(N) == 1:
+        N = np.append(N, N[-1])
     # Initialize candidates
     F = {}
-    n = np.zeros(nw)
-    u = np.zeros(nw)
+    n = np.zeros(n_windows)
+    u = np.zeros(n_windows)
     # Loop through windows
-    for i in range(nw):
+    for i in range(n_windows):
         # Get statistics
         F[i] = SearchSinusoidFit(x, y, N[i], N[i+1], **kw)
         # Save error
@@ -508,8 +500,6 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     i = np.argmin(u)
     # Output
     return F[i]
-
-
 
 
 # Function to calculate best linear/sinusoidal fit within a range of windows

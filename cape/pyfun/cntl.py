@@ -2715,7 +2715,7 @@ class Cntl(cape.cntl.Cntl):
                 Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
-            *rc*: ``None``|:class:`pyOver.options.runControl.RunControl`
+            *rc*: ``None`` | :class:`RunControl`
                 Run control interface read from ``case.json`` file
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
