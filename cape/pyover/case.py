@@ -933,7 +933,7 @@ def GetQ():
     # Get modification times from the files
     tq = [os.path.getmtime(fq) for fq in qglob]
     # Get index of most recent file
-    iq = argmax(tq)
+    iq = np.argmax(tq)
     # Return that file
     return qglob[iq]
     
@@ -971,7 +971,7 @@ def GetLatest(glb):
     # Get modification times from the files
     tg = [os.path.getmtime(fg) for fg in fglb]
     # Get index of most cecent file
-    ig = argmax(tg)
+    ig = np.argmax(tg)
     # return that file
     return fglb[ig]
     
@@ -1054,7 +1054,7 @@ def GetX():
     # Get modification times from the files
     tx = [os.path.getmtime(fx) for fx in xglob]
     # Get index of most recent file
-    ix = argmax(tx)
+    ix = np.argmax(tx)
     # Output
     return xglob[ix]
     
