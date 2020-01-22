@@ -253,17 +253,225 @@ variable (listed in the *Keys* input) is *mach*. Because the flow-through
 nacelle is an axisymmetric flow problem, one cannot run different angles of
 incidence, therefore *alpha* and *beta* are not listed as input variables.
 
+Run Mach Sweep
+--------------
+
+Having defined the *RunMatrix* section in the json file, we can see that the
+run matrix given in the ``inputs/matrix/flowthrough.csv`` file looks
+like this:
+
+  .. code-block:: console
+
+    # mach, config, Label
+      0.75, flowthrough, 
+      0.80, flowthrough, 
+      0.85, flowthrough, 
+      0.90, flowthrough, 
+
+The run matrix consists of four cases with different Mach numbers. These cases
+can all be run using just the command ``pyover``.  Doing this will execute the
+three remaining cases (since we ran case 1 in the beginning).  Afterwards, 
+check the status of the cases using ``pyover -c``, which should produce a list
+showing all the cases with a status of ``DONE``:
+
+  .. code-block:: console
+
+    Case Config/Run Directory  Status  Iterations  Que CPU Time 
+    ---- --------------------- ------- ----------- --- --------
+    0    flowthrough/m0.75     DONE    1400/1400   .        0.0 
+    1    flowthrough/m0.8      DONE    1400/1400   .        0.0 
+    2    flowthrough/m0.85     DONE    1400/1400   .        0.0 
+    3    flowthrough/m0.9      DONE    1400/1400   .        0.0 
+    
+    DONE=4, 
+
+
 Report Generation
 -----------------
 
-After running a case, the first thing to do is examine the convergence and
-view the flow. This can be accomplished for our case using:
+After running all four cases in the run matrix, the next thing to do is
+examine the convergence and view the flow. This can be accomplished for our
+case using the command:
 
     .. code-block:: console
 
-        pyover --report -I 1
+        pyover --report -I 0:4
+
+This will create the report in the file ``report/report-flowthrough.pdf``.
+There should be two pages for each case, one page with a table of aerodynamic
+data and several convergence plots, and one page with two flow-visualization
+figures.
+
+Convergence Plots
+^^^^^^^^^^^^^^^^^
+
+Nine different convergence plots are shown on the first page of the report for
+each case.  In addition to plotting the history of the three force coefficients
+and the three moment coefficients, the plot of the residual history, two
+different views are added zooming into the tail end of the axial force
+coefficient convergence.  The *force_CAzoom1* and *force_CAzoom2* subfigures
+show the last 800 and last 400 iterations of the convergence history. 
+The definition of the subfigures used to view the convergence is relatively
+straightforward. The following shows the these subfigure definitions in
+``flowthrough.json``:
 
 
+    .. code-block:: javascript
+
+        // Definitions for subfigures
+        "Subfigures": {
+            ...
+            ...
+            // Iterative history
+            "force": {
+                "Type": "PlotCoeff",
+                "Component": "TOTAL FORCE",
+                "nPlotFirst": 0,
+                "FigWidth": 4.5,
+                "FigHeight": 3.4,
+                "Width": 0.33,
+                "StandardDeviation": 1.0
+            },
+            "force_CA": {"Type": "force", "Coefficient": "CA"},
+            "force_CY": {"Type": "force", "Coefficient": "CY"},
+            "force_CN": {"Type": "force", "Coefficient": "CN"},
+            "force_CLL": {"Type": "force", "Coefficient": "CLL"},
+            "force_CLM": {"Type": "force", "Coefficient": "CLM"},
+            "force_CLN": {"Type": "force", "Coefficient": "CLN"},
+            "force_CAzoom1": {
+                "Type": "force", 
+                "Coefficient": "CA",
+                "nPlotFirst": -800
+            },
+            "force_CAzoom2": {
+                "Type": "force", 
+                "Coefficient": "CA",
+                "nPlotFirst": -400
+            },
+            // Residual history
+            "L2": {
+                "Type": "PlotL2",
+                "FigWidth": 5.5,
+                "FigHeight": 6,
+                "Width": 0.33,
+                "nPlotFirst": 1,
+                "Caption": "$L_2$ Density Residual"
+            }
+        }
+
+When viewing the convergence and showing the entire history it can appear that
+the forces are very tightly converged. But when viewing the tail end, one can
+see that the axial force is still dropping slightly. The following figures show
+four of the convergence plots illustrating the three views of *CA* as well
+as the history of the L2 norm of the residual of the mean-flow quantities.
+
+    .. _tab-pyover-nacelle-01:
+    .. table:: Convergence plots for the m0.75 case
+
+        +-----------------------------+-----------------------------+
+        |.. image:: force_CA.*        |.. image:: force_CAzoom1.*   |
+        |     :width: 3.2in           |     :width: 3.2in           |
+        |                             |                             |
+        |TOTAL FORCE/*CA*             |TOTAL FORCE/*CA*             |
+        +-----------------------------+-----------------------------+
+        |.. image:: force_CAzoom2.*   |.. image:: L2.*              |
+        |     :width: 3.2in           |     :width: 3.2in           |
+        |                             |                             |
+        |TOTAL FORCE/*CA*             |*L2* Residual                |
+        +-----------------------------+-----------------------------+
+
+
+
+
+Flow Visualization
+^^^^^^^^^^^^^^^^^^
+
+In the *Report* section of ``flowthrough.json``, the subfigures for the 
+flow visualization use Tecplot® subfigures. Here we re-use the contour and 
+color map settings from the ``01-bullet`` pyover example. The *MachSlice*
+subfigure uses tecplot and the supplied layout file in 
+``inputs/flowthrough-mach.lay`` to create Mach contours in the *Y=0* plane
+of the nacelle. Note that the *MaxLevel* for the contours is dependant
+upon the freestream Mach number. The color map break points are also a function
+of the freestream Mach. 
+
+At the end of this section, the *MachSlice-mesh* subfigure is defined. This
+subfigure inherits all of the settings from the *MachSlice* subfigure, but
+uses a different layout file. The only difference between the two layout
+files is that the addition of the mesh overlay on the Mach contours.
+
+
+    .. code-block:: javascript
+
+        // Definitions for subfigures
+        "Subfigures": {
+            // Tecplot figures
+            "MachSlice": {
+                "Type": "Tecplot",
+                "Layout": "inputs/flowthrough-mach.lay",
+                "FigWidth": 1024,
+                "Width": 0.65,
+                "Caption": "Mach slice $y=0$",
+                "ContourLevels": [
+                    {
+                        "NContour": 1,
+                        "MinLevel": 0,
+                        "MaxLevel": "max(1.4, 1.4*$mach)",
+                        "Delta": 0.05
+                    }
+                ],
+                "ColorMaps": [
+                    {
+                        "Name": "Diverging - Purple/Green modified",
+                        "NContour": 2,
+                        "ColorMap": {
+                            "0.0": "purple",
+                            "$mach": "white",
+                            "1.0": ["green", "orange"],
+                            "max(1.4,1.4*$mach)": "red"
+                        }
+                    }
+                ],
+                "Keys": {
+                    "GLOBALCONTOUR": {
+                        "LABELS": {
+                            "Value": {
+                                "AUTOLEVELSKIP": 2,
+                                "NUMFORMAT": {
+                                    "FORMATTING": "'FIXEDFLOAT'",
+                                    "PRECISION": 1,
+                                    "TIMEDATEFORMAT": "''"
+                                }
+                            },
+                            "Parameter": 1
+                        }
+                    }
+                }
+            },
+            "MachSlice-mesh": {
+                "Type": "MachSlice",
+                "Layout": "inputs/flowthrough-mach-mesh.lay"
+            },
+          ...
+          ...
+        }
+
+The resulting *MachSlice* subfigures for each of the four cases are shown here:
+
+    .. _tab-pyover-nacelle-02:
+    .. table:: Tecplot® Mach contour plots for each case
+
+        +------------------------------+------------------------------+
+        |.. image:: MachSlice_m075.png |.. image:: MachSlice_m080.png |
+        |    :width: 3.2in             |    :width: 3.2in             |
+        |                              |                              |
+        |Mach slice m0.75              |Mach slice m0.80              |
+        +------------------------------+------------------------------+
+        |.. image:: MachSlice_m080.png |.. image:: MachSlice_m090.png |
+        |    :width: 3.2in             |    :width: 3.2in             |
+        |                              |                              |
+        |Mach slice m0.80              |Mach slice m0.90              |
+        +------------------------------+------------------------------+
 
 
 

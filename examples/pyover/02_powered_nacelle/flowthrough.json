@@ -164,8 +164,7 @@
             "Title": "OVERFLOW Flow Through Nacelle Example for pyOver",
             "Subtitle": "Example \\texttt{01\\_powered\\_nacelle}",
             "Restriction": "pyOver Example - Distribution Unlimited",
-            //"Figures": ["CaseTables", "CasePlots", "FlowViz"]
-            "Figures": ["CaseTables", "CasePlots"]
+            "Figures": ["CaseTables", "CasePlots", "FlowViz"]
         },
         // Define the figures
         "Figures": {
@@ -179,14 +178,14 @@
                 "Subfigures": [
                     "force_CA",  "force_CY",  "force_CN",
                     "force_CLL", "force_CLN", "force_CLM",
-                    "force_CAzoom", "L2"
+                    "force_CAzoom1", "force_CAzoom2", "L2"
                 ]
             },
             "FlowViz": {
                 "Header": "Flow visualization",
                 "Alignment": "center",
                 "Subfigures": [
-                    "MachSlice", "MachSlice-orange"
+                    "MachSlice", "MachSlice-mesh"
                 ]
             }
         },
@@ -195,17 +194,13 @@
             // Tecplot figures
             "MachSlice": {
                 "Type": "Tecplot",
-                "Layout": "inputs/nacelle-mach.lay",
+                "Layout": "inputs/flowthrough-mach.lay",
                 "FigWidth": 1024,
-                "Width": 0.48,
-                "Caption": "Surface $C_p$ and $y=0$ Mach slice",
-                "FieldMap": [3, 1000]
-            },
-            "MachSlice-orange": {
-                "Type": "MachSlice",
+                "Width": 0.65,
+                "Caption": "Mach slice $y=0$",
                 "ContourLevels": [
                     {
-                        "NContour": 2,
+                        "NContour": 1,
                         "MinLevel": 0,
                         "MaxLevel": "max(1.4, 1.4*$mach)",
                         "Delta": 0.05
@@ -234,10 +229,14 @@
                                     "TIMEDATEFORMAT": "''"
                                 }
                             },
-                            "Parameter": 2
+                            "Parameter": 1
                         }
                     }
                 }
+            },
+            "MachSlice-mesh": {
+                "Type": "MachSlice",
+                "Layout": "inputs/flowthrough-mach-mesh.lay"
             },
             // Table of trajectory variables
             "CaseConds": {
@@ -270,10 +269,15 @@
             "force_CLL": {"Type": "force", "Coefficient": "CLL"},
             "force_CLM": {"Type": "force", "Coefficient": "CLM"},
             "force_CLN": {"Type": "force", "Coefficient": "CLN"},
-            "force_CAzoom": {
+            "force_CAzoom1": {
                 "Type": "force", 
                 "Coefficient": "CA",
-                "nPlotFirst": -500
+                "nPlotFirst": -800
+            },
+            "force_CAzoom2": {
+                "Type": "force", 
+                "Coefficient": "CA",
+                "nPlotFirst": -400
             },
             // Residual history
             "L2": {
