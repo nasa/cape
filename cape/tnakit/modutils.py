@@ -199,7 +199,7 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
                     "tab": kw.get("tab", 4),
                 }
                 # Create list of submodules
-                curtxt = rst_submodules(modfile, **kw_submod)
+                curtxt = rst_submodules(modname, modfile, **kw_submod)
                 # Save to dictionary
                 fmt["submodules"] = curtxt.lstrip()
             elif key == "mod":
@@ -264,13 +264,15 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
 
 
 # List modules
-def rst_submodules(fname, indent=4, maxdepth=2, tab=4, depth=0, prefix=""):
+def rst_submodules(modname, modfile, indent=4, maxdepth=2, **kw):
     r"""Create a bullet list of submodules from folder of *fname*
     
     :Call:
-        >>> txt = rst_submodules(fname, indent=4, maxdepth=2, tab=4)
+        >>> txt = rst_submodules(modname, modfile, **kw)
     :Inputs:
-        *fname*: :class:`str`
+        *modname*: :class:`str`
+            Name of the module as imported in Python
+        *modfile*: :class:`str`
             Name of (Python module) file from which list is started
         *indent*: {``4``} | :class:`int` > 0
             Number of white spaces at the beginning of line
@@ -296,11 +298,11 @@ def rst_submodules(fname, indent=4, maxdepth=2, tab=4, depth=0, prefix=""):
         # Prefix for next depth
         prefixj = prefix
         # Loop through modules
-        for modname in modlist:
+        for modj in modlist:
             # Check type
-            if isinstance(modname, list):
+            if isinstance(modj, list):
                 # Recurse
-                txt += modlist_bullets(modname, idepth+1, prefixj)
+                txt += modlist_bullets(modj, idepth+1, prefixj)
                 continue
             # Get bullet
             if idepth % 2:
@@ -312,18 +314,21 @@ def rst_submodules(fname, indent=4, maxdepth=2, tab=4, depth=0, prefix=""):
             # Indentation
             line = " " * (indent + idepth*tab)
             # Text
-            line += "%s :mod:`%s%s`\n" % (bullet, prefix, modname)
+            line += "%s :mod:`%s%s`\n" % (bullet, prefix, modj)
             # Save text
             txt += line
             # Prefix in case this module has submodules
-            prefixj = prefix + modname + "."
+            prefixj = prefix + modj + "."
         # Output
         return txt
-        
+    # Extra inputs
+    depth = kw.get("depth", 0)
+    tab = kw.get("tab", 4)
+    prefix = kw.get("prefix", "")
     # Get modules
-    modlist = list_modules(fname, maxdepth=maxdepth, depth=depth)
+    modlist = list_modules(modfile, maxdepth=maxdepth, depth=depth)
     # Form list
-    txt = modlist_bullets(modlist, 0, prefix)
+    txt = modlist_bullets(modlist, 0, prefix + modname + ".")
     # Remove final newline character
     return txt.rstrip("\n")
 
