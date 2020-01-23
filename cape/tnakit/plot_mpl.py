@@ -1561,7 +1561,7 @@ def axes(**kw):
 
 
 # Plot part
-def _plot(xv, yv, fmt=None, **kw):
+def _plot_nocheck(xv, yv, fmt, **kw):
     r"""Call the :func:`plot` function with cycling options
 
     :Call:
@@ -1606,6 +1606,39 @@ def _plot(xv, yv, fmt=None, **kw):
         h = plt.plot(xv, yv, **kw_p)
     # Output
     return h
+
+
+def _plot(xv, yv, fmt=None, **kw):
+    r"""Call the :func:`plot` function with cycling options
+
+    :Call:
+        >>> h = _plot(xv, yv, **kw)
+        >>> h = _plot(xv, yv, fmt, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *fmt*: :class:`str`
+            Optional format option
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.plot`
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+    """
+    # Process options
+    opts = MPLOpts(**kw)
+    # Get plot options
+    kw_p = opts.plot_options()
+    # Call root function
+    return _plot_nocheck(xv, yv, fmt=fmt, **kw_p)
 
 
 # Move axes all the way to one side
