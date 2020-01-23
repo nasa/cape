@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-09-18 at 13:07 PDT
+   on 2020-01-22 at 12:25 PST
 
 Test ``01_bullet``
 ====================
@@ -37,8 +37,8 @@ Command 1: Run Case 1
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 140.174 seconds
-    * Cumulative time: 140.174 seconds
+    * Command took 96.7564 seconds
+    * Cumulative time: 96.7564 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -59,9 +59,9 @@ Command 1: Run Case 1
          > overrunmpi -np 24 run 02
              (PWD = '/u/wk/ddalle/usr/pycart/test/pyover/01_bullet/work/poweroff/m0.8a4.0b0.0')
              (STDOUT = 'overrun.out')
-           Wall time used: 0.02 hrs (phase 1)
-           Wall time used: 0.03 hrs
-           Previous phase: 0.02 hrs
+           Wall time used: 0.01 hrs (phase 1)
+           Wall time used: 0.02 hrs
+           Previous phase: 0.01 hrs
          > overrunmpi -np 24 run 03
              (PWD = '/u/wk/ddalle/usr/pycart/test/pyover/01_bullet/work/poweroff/m0.8a4.0b0.0')
              (STDOUT = 'overrun.out')
@@ -89,8 +89,8 @@ Command 2: Show DONE Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.500455 seconds
-    * Cumulative time: 140.675 seconds
+    * Command took 0.384256 seconds
+    * Cumulative time: 97.1407 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -99,7 +99,7 @@ Command 2: Show DONE Status
 
         Case Config/Run Directory  Status  Iterations  Que CPU Time 
         ---- --------------------- ------- ----------- --- --------
-        1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .        0.9 
+        1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .        0.6 
         
         DONE=1, 
         
@@ -132,8 +132,8 @@ Command 3: Collect Aero
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.724776 seconds
-    * Cumulative time: 141.4 seconds
+    * Command took 0.589598 seconds
+    * Cumulative time: 97.7303 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -153,15 +153,15 @@ Command 4: Check DataBook (Python 2)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.550131 seconds
-    * Cumulative time: 141.95 seconds
+    * Command took 0.383489 seconds
+    * Cumulative time: 98.1137 seconds
 :STDOUT:
     * **PASS**
     * Actual:
 
       .. code-block:: none
 
-        CN = 0.190
+        CN = 0.221
         
 
     * Target:
@@ -188,15 +188,15 @@ Command 5: Check DataBook (Python 3)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.836237 seconds
-    * Cumulative time: 142.786 seconds
+    * Command took 0.623385 seconds
+    * Cumulative time: 98.7371 seconds
 :STDOUT:
     * **PASS**
     * Actual:
 
       .. code-block:: none
 
-        CN = 0.190
+        CN = 0.221
         
 
     * Target:
