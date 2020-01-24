@@ -247,10 +247,8 @@ def check_kw_eltypes(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
     :Call:
         >>> kwo = check_kw_eltypes(|args2|, **kw)
     :Inputs:
-        *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-            Data file interface
-        *kwlist*: {*db._kw*} | :class:`list`\ [:class:`str`]
-            List of acceptable parameters
+        *kwlist*: :class:`set`\ [:class:`str`]
+            List (set) of acceptable parameters
         *kwtypes*: {*db._kw_types*} | :class:`dict`
             Dictionary of :class:`type` or
             :class:`tuple`\ [:class:`type`] for some or all
@@ -349,17 +347,20 @@ def check_kw_eltypes(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
 
 # Class to contain processed keywords
 class KwargHandler(dict):
-    r"""Class to handle kwargs against preset key lists and types
+    r"""Class to process kwargs against preset key lists and types
 
     :Call:
-        >>> opts = KwargHandler(optsdict=None, warnmode=1, **kw)
+        >>> opts = KwargHandler(_optsdict=None, _warnmode=1, **kw)
     :Inputs:
-        *opts*: :class:`MPLOpts`
-            Options interface
-        *optsdict*: {``None``} | :class:`dict`
+        *kw*: :class:`dict`
+            Keyword arguments turned into options
+        *_optsdict*: {``None``} | :class:`dict`
             Dictionary of previous options (overwritten by *kw*)
-        *warnmode*: ``0`` | {``1``} | ``2``
+        *_warnmode*: ``0`` | {``1``} | ``2``
             Warning mode from :mod:`kwutils`
+    :Outputs:
+        *opts*: :class:`MPLOpts`
+            Options interface from *kw* with checks and applied defaults
     :Versions:
         * 2020-01-16 ``@ddalle``: Generalized from :mod:`plot_mpl`
     """
@@ -424,27 +425,18 @@ class KwargHandler(dict):
   # ============
   # <
     # Initialization method
-    def __init__(self, optsdict=None, warnmode=1, **kw):
+    def __init__(self, _optsdict=None, _warnmode=1, **kw):
         r"""Initialization method
 
-        :Call:
-            >>> opts.__init__(optsdict=None, warnmode=1, **kw)
-        :Inputs:
-            *opts*: :class:`KwargHandler`
-                Options interface
-            *optsdict*: {``None``} | :class:`dict`
-                Dictionary of previous options (overwritten by *kw*)
-            *warnmode*: ``0`` | {``1``} | ``2``
-                Warning mode from :mod:`kwutils`
         :Versions:
             * 2019-12-19 ``@ddalle``: First version (plot_mpl.MPLOpts)
         """
         # Get class
         cls = self.__class__
         # Initialize an unfiltered dict
-        if isinstance(optsdict, dict):
+        if isinstance(_optsdict, dict):
             # Initialize with dictionary
-            optsdict = dict(optsdict, **kw)
+            optsdict = dict(_optsdict, **kw)
         else:
             # Initialize from just keywords
             optsdict = kw
@@ -456,7 +448,7 @@ class KwargHandler(dict):
             cls._optlist,
             cls._optmap,
             cls._opttypes,
-            cls._optdependencies, warnmode, **opts)
+            cls._optdependencies, _warnmode, **opts)
 
         # Copy entries
         for (k, v) in opts.items():
@@ -595,7 +587,7 @@ class KwargHandler(dict):
         r"""Get value of a specific option, ignoring section
 
         :Call:
-            >>> optval = opts.get_option(opt, parents=[])
+            >>> optval = opts.get_option(opt, parents=None)
         :Inputs:
             *opts*: :class:`KwargHandler`
                 Options interface
@@ -763,7 +755,109 @@ class KwargHandler(dict):
         else:
             # Return primary key only (default to ``{}``)
             return kw.get(mainopt, {})
+
+   # --- Option Lists by Option ---
+    # Get list of option that affect a section
+    @classmethod
+    def _get_optlist_section(cls, sec):
+        r"""Get list of options that affect one section
+
+        :Call:
+            >>> optlist = cls._get_optlist_section(sec)
+        :Inputs:
+            *cls*: :class:`type`
+                Options subclass of :class:`KwargHandler`
+            *sec*: :class:`str`
+                Name of option section
+        :Outputs:
+            *optlist*: :class:`set`\ [:class:`str`]
+                List of options affection at least one option in *sec*
+        :Versions:
+            * 2020-01-23 ``@ddalle``: First version
+        """
+        # Get list
+        opts = cls._optlists.get(sec, [])
+        # Process list
+        return cls._get_optlist_list(opts)
         
+    # Get list of options that a list of options
+    @classmethod
+    def _get_optlist_list(cls, opts):
+        r"""Get list of options that affect a list of options
+
+        :Call:
+            >>> optlist = cls._get_optlist_list(opts)
+        :Inputs:
+            *cls*: :class:`type`
+                Options subclass of :class:`KwargHandler`
+            *opts*: :class:`iterable`\ [:class:`str`]
+                Name of option
+            *parents*: ``None`` | :class:`set`\ [:class:`str`]
+                List of parents, used to detect recursion
+        :Outputs:
+            *optlist*: :class:`set`\ [:class:`str`]
+                List of options that can impact *opt*
+        :Versions:
+            * 2020-01-23 ``@ddalle``: First version
+        """
+        # Initialize list
+        optlist = set()
+        # Loop through options
+        for opt in opts:
+            # Combine affecting options
+            optlist |= cls._get_optlist_option(opt)
+        # Output
+        return optlist
+        
+    # Get list of options that affect one option
+    @classmethod
+    def _get_optlist_option(cls, opt, parents=None):
+        r"""Get list of options that affect one option
+
+        :Call:
+            >>> optlist = cls._get_optlist_option(opt, parents=None)
+        :Inputs:
+            *cls*: :class:`type`
+                Options subclass of :class:`KwargHandler`
+            *opt*: :class:`str`
+                Name of option
+            *parents*: ``None`` | :class:`set`\ [:class:`str`]
+                List of parents, used to detect recursion
+        :Outputs:
+            *optlist*: :class:`set`\ [:class:`str`]
+                List of options that can impact *opt*
+        :Versions:
+            * 2020-01-23 ``@ddalle``: First version
+        """
+        # Initialize list
+        optlist = {opt}
+        # Get dictionary of options to inherit from
+        kw_submap = cls._kw_submap.get(opt)
+        # If there's no map, this is a trivial operation
+        return optlist
+        # Default parent set
+        if parents is None:
+            # This option becomes the parent for later calls
+            parents = set()
+        # Loop through primary submap options
+        for (fromopt, subopt) in kw_submap.items():
+            # Check for "."
+            ndot = fromopt.count(".")
+            # Filter "."
+            if ndot > 0:
+                # Just get name of main option
+                fromopt, _ = fromopt.split(".", 1)
+            # Check for recursion
+            if fromopt in parents:
+                raise ValueError(
+                    ("Detected recursion in submap of '%s' " % opt) +
+                    ("with inheritance from '%s'" % fromopt))
+            # Direct access simple option
+            suboptlist = cls._get_optlist_option(fromopt, parents | {opt})
+            # Combine lists
+            optlist |= suboptlist
+        # Output
+        return optlist
   # >
 
   # ====================

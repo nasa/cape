@@ -37,7 +37,7 @@ mplfig = object()
 
 
 # Import :mod:`matplotlib`
-def import_matplotlib():
+def _import_matplotlib():
     """Function to import Matplotlib if possible
 
     This function checks if the global variable *mpl* is already a
@@ -47,7 +47,7 @@ def import_matplotlib():
     *DISPLAY*, the backend is set to ``"Agg"``.
 
     :Call:
-        >>> import_matplotlib()
+        >>> _import_matplotlib()
     :Versions:
         * 2019-08-22 ``@ddalle``: Documented first version
     """
@@ -72,7 +72,7 @@ def import_matplotlib():
 
 
 # Import :mod:`matplotlib`
-def import_pyplot():
+def _import_pyplot():
     """Function to import Matplotlib's PyPlot if possible
 
     This function checks if the global variable *plt* is already a
@@ -81,7 +81,7 @@ def import_pyplot():
     calling :func:`import_matplotlib`.
 
     :Call:
-        >>> import_pyplot()
+        >>> _import_pyplot()
     :See also:
         * :func:`import_matplotlib`
     :Versions:
@@ -93,7 +93,7 @@ def import_pyplot():
     if isinstance(plt, mod):
         return
     # Otherwise, import matplotlib first
-    import_matplotlib()
+    _import_matplotlib()
     # Import module
     try:
         import matplotlib.pyplot as plt
@@ -121,7 +121,7 @@ def plot(xv, yv, *a, **kw):
     """
    # --- Prep ---
     # Ensure plot() is loaded
-    import_pyplot()
+    _import_pyplot()
     # Process options
     opts = MPLOpts(**kw)
     # Initialize output
@@ -178,7 +178,7 @@ def plot(xv, yv, *a, **kw):
             # No format option
             fmt = tuple()
         # Plot call
-        h.lines += _plot(xv, yv, *fmt, **kw_plot)
+        h.lines += _plot_nocheck(xv, yv, *fmt, **kw_plot)
    # --- Min/Max ---
     # Process min/max options
     opts_mmax = opts.minmax_options()
@@ -296,6 +296,88 @@ def plot(xv, yv, *a, **kw):
     return h
 
 
+# Plot function with options check
+def _plot(xv, yv, fmt=None, **kw):
+    r"""Call the :func:`plot` function with cycling options
+
+    :Call:
+        >>> h = _plot(xv, yv, **kw)
+        >>> h = _plot(xv, yv, fmt, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *fmt*: :class:`str`
+            Optional format option
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.plot`
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+    """
+    # Process options
+    opts = MPLOpts(**kw)
+    # Get plot options
+    kw_p = opts.plot_options()
+    # Call root function
+    return _plot_nocheck(xv, yv, fmt=fmt, **kw_p)
+
+
+# Plot part
+def _plot_nocheck(xv, yv, fmt, **kw):
+    r"""Call the :func:`plot` function with cycling options
+
+    :Call:
+        >>> h = _plot(xv, yv, **kw)
+        >>> h = _plot(xv, yv, fmt, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *fmt*: :class:`str`
+            Optional format option
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.plot`
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+    """
+    # Ensure plot() is available
+    _import_pyplot()
+    # Get index
+    i = kw.pop("Index", kw.pop("i", 0))
+    # Get rotation option
+    r = kw.pop("Rotate", kw.pop("rotate", False))
+    # Flip inputs
+    if r:
+        yv, xv = xv, yv
+    # Initialize plot options
+    kw_p = MPLOpts.select_phase(kw, i)
+    # Call plot
+    if typeutils.isstr(fmt):
+        # Call with extra format argument
+        h = plt.plot(xv, yv, fmt, **kw_p)
+    else:
+        # No format argument
+        h = plt.plot(xv, yv, **kw_p)
+    # Output
+    return h
+
+
 # Manage single subplot extents
 def axes_adjust(fig=None, **kw):
     r"""Manage margins of one axes handle
@@ -352,7 +434,7 @@ def axes_adjust(fig=None, **kw):
         * 2010-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
     """
     # Make sure pyplot is present
-    import_pyplot()
+    _import_pyplot()
     # Default figure
     if fig is None:
         # Get most recent figure or create
@@ -531,7 +613,7 @@ def axes_adjust_col(fig, **kw):
         * 2020-01-10 ``@ddalle``: First version
     """
     # Make sure pyplot is present
-    import_pyplot()
+    _import_pyplot()
     # Default figure
     if fig is None:
         # Get most recent figure or create
@@ -676,7 +758,7 @@ def axes_adjust_row(fig, **kw):
         * 2020-01-10 ``@ddalle``: First version
     """
     # Make sure pyplot is present
-    import_pyplot()
+    _import_pyplot()
     # Default figure
     if fig is None:
         # Get most recent figure or create
@@ -805,7 +887,7 @@ def get_axes_plot_extents(ax=None):
         * 2020-01-08 ``@ddalle``: First version
     """
     # Import modules
-    import_pyplot()
+    _import_pyplot()
     # Default axes
     if ax is None:
         ax = plt.gca()
@@ -848,7 +930,7 @@ def get_axes_full_extents(ax=None):
         * 2020-01-08 ``@ddalle``: First version
     """
     # Import modules
-    import_pyplot()
+    _import_pyplot()
     # Default axes
     if ax is None:
         ax = plt.gca()
@@ -891,7 +973,7 @@ def get_axes_label_margins(ax=None):
         * 2020-01-08 ``@ddalle``: First version
     """
     # Import modules
-    import_pyplot()
+    _import_pyplot()
     # Default axes
     if ax is None:
         ax = plt.gca()
@@ -1119,7 +1201,7 @@ def imshow(png, **kw):
         * 2020-01-09 ``@ddalle``: First version
     """
     # Make sure modules are loaded
-    import_pyplot()
+    _import_pyplot()
     # Process opts
     opts = MPLOpts(**kw)
     # Get opts for imshow
@@ -1280,7 +1362,7 @@ def hist(v, **kw):
     """
    # --- Prep ---
     # Ensure plot() is loaded
-    import_pyplot()
+    _import_pyplot()
     # Initialize output
     h = {}
     # Filter out non-numeric entries
@@ -1477,8 +1559,8 @@ def figure(**kw):
         * 2019-03-06 ``@ddalle``: First version
     """
     # Import PyPlot
-    import_pyplot()
-    import_matplotlib()
+    _import_pyplot()
+    _import_matplotlib()
     # Get figure handle and other options
     fig = kw.get("fig", None)
     figopts = kw.get("FigOptions", {})
@@ -1528,7 +1610,7 @@ def axes(**kw):
         * 2019-03-06 ``@ddalle``: First version
     """
     # Import PyPlot
-    import_pyplot()
+    _import_pyplot()
     # Get figure handle and other options
     ax = kw.get("ax", None)
     axopts = kw.get("AxesOptions", {})
@@ -1560,87 +1642,6 @@ def axes(**kw):
     return ax
 
 
-# Plot part
-def _plot_nocheck(xv, yv, fmt, **kw):
-    r"""Call the :func:`plot` function with cycling options
-
-    :Call:
-        >>> h = _plot(xv, yv, **kw)
-        >>> h = _plot(xv, yv, fmt, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of *x*-coordinates
-        *yv*: :class:`np.ndarray`
-            Array of *y*-coordinates
-        *fmt*: :class:`str`
-            Optional format option
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *rotate*, *Rotate*: ``True`` | {``False``}
-            Plot independent variable on vertical axis
-    :Keyword Arguments:
-        * See :func:`matplotlib.pyplot.plot`
-    :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
-            List of line instances
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-    """
-    # Ensure plot() is available
-    import_pyplot()
-    # Get index
-    i = kw.pop("Index", kw.pop("i", 0))
-    # Get rotation option
-    r = kw.pop("Rotate", kw.pop("rotate", False))
-    # Flip inputs
-    if r:
-        yv, xv = xv, yv
-    # Initialize plot options
-    kw_p = MPLOpts.select_phase(kw, i)
-    # Call plot
-    if typeutils.isstr(fmt):
-        # Call with extra format argument
-        h = plt.plot(xv, yv, fmt, **kw_p)
-    else:
-        # No format argument
-        h = plt.plot(xv, yv, **kw_p)
-    # Output
-    return h
-
-
-def _plot(xv, yv, fmt=None, **kw):
-    r"""Call the :func:`plot` function with cycling options
-
-    :Call:
-        >>> h = _plot(xv, yv, **kw)
-        >>> h = _plot(xv, yv, fmt, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of *x*-coordinates
-        *yv*: :class:`np.ndarray`
-            Array of *y*-coordinates
-        *fmt*: :class:`str`
-            Optional format option
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *rotate*, *Rotate*: ``True`` | {``False``}
-            Plot independent variable on vertical axis
-    :Keyword Arguments:
-        * See :func:`matplotlib.pyplot.plot`
-    :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
-            List of line instances
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-    """
-    # Process options
-    opts = MPLOpts(**kw)
-    # Get plot options
-    kw_p = opts.plot_options()
-    # Call root function
-    return _plot_nocheck(xv, yv, fmt=fmt, **kw_p)
-
-
 # Move axes all the way to one side
 def move_axes(ax, loc, margin=0.0):
     r"""Move an axes object's plot region to one side
@@ -1668,7 +1669,7 @@ def move_axes(ax, loc, margin=0.0):
         * 2020-01-10 ``@ddalle``: First version
     """
     # Import plot modules
-    import_pyplot()
+    _import_pyplot()
     # Check inputs
     if not isinstance(loc, (int, typeutils.strlike)):
         raise TypeError("Location must be int or str (got %s)" % type(loc))
@@ -1727,7 +1728,7 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
         * 2020-01-10 ``@ddalle``: First version
     """
     # Import plot modules
-    import_pyplot()
+    _import_pyplot()
     # Check inputs
     if not isinstance(dx, float):
         raise TypeError("dx must be float (got %s)" % type(dx))
@@ -1788,7 +1789,7 @@ def fill_between(xv, ymin, ymax, **kw):
             ("(got %s)" % ymax.__class__))
    # --- Main ---
     # Ensure fill_between() is available
-    import_pyplot()
+    _import_pyplot()
     # Get index
     i = kw.pop("i", kw.pop("Index", 0))
     # Get rotation option
@@ -1864,7 +1865,7 @@ def errorbar(xv, yv, yerr=None, xerr=None, **kw):
             ("(got %s)" % yerr.__class__))
    # --- Main ---
     # Ensure fill_between() is available
-    import_pyplot()
+    _import_pyplot()
     # Get index
     i = kw.pop("i", kw.pop("Index", 0))
     # Get rotation option
@@ -1900,7 +1901,7 @@ def _hist(v, **kw):
         * 2019-08-22 ``@ddalle``: From :func:`Part.hist_part`
     """
     # Ensure hist() is available
-    import_pyplot()
+    _import_pyplot()
     # Call plot
     h = plt.hist(v, **kw)
     # Output
@@ -1928,7 +1929,7 @@ def plot_mean(ax, vmu, **kw):
         * 2019-03-11 ``@jmeeroff``: First version
     """
     # Ensure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
     # Get horizontal/vertical option
     orient = kw.pop('orientation', "")
     # Check orientation
@@ -1971,7 +1972,7 @@ def plot_interval(ax, vmin, vmax, **kw):
         * 2019-08-22 ``@ddalle``: Added *vmin*, *vmax* inputs
     """
     # Ensure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
     # Get horizontal/vertical option
     orient = kw.pop('orientation', "")
     # Check orientation
@@ -2016,7 +2017,7 @@ def plot_gaussian(ax, vmu, vstd, **kw):
         * 2019-08-22 ``@ddalle``: Added *ngauss*
     """
     # Ensure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
     # Get horizontal/vertical option
     orient = kw.pop('orientation', "")
     # Get axis limits
@@ -2066,7 +2067,7 @@ def _plots_std(ax, vmu, vstd, **kw):
         * 2019-08-22 ``@ddalle``: From :func:`Part.std_part`
     """
     # Ensure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
     # Get orientation option
     orient = kw.pop('orientation', None)
     # Check multiplier
@@ -2122,7 +2123,7 @@ def plot_delta(ax, vmu, **kw):
         * 2019-03-14 ``@jmeeroff``: First version
     """
     # Ensure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
     # Check orientation
     orient = kw.pop('orientation', None)
     # Reference delta
@@ -2177,7 +2178,7 @@ def histlab_part(lbl, pos1, pos2, ax, **kw):
         * 2019-03-14 ``@jmeeroff``: First version
     """
     # Ensure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
     # Remove orientation orientation
     kw.pop('orientation', None)
     # get figure handdle
@@ -2218,7 +2219,7 @@ def legend(ax=None, **kw):
    # --- Setup ---
     # Check basic option
     # Import modules if needed
-    import_pyplot()
+    _import_pyplot()
     # Get overall "Legend" option
     show_legend = kw.pop("ShowLegend", None)
     # Exit immediately if explicit
@@ -2324,7 +2325,7 @@ def axes_format(ax, **kw):
     """
    # --- Prep ---
     # Make sure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
    # --- Labels ---
     # Get user-specified axis labels
     xlbl = kw.get("XLabel", None)
@@ -2396,7 +2397,7 @@ def grid(ax, **kw):
         * 2019-12-23 ``@ddalle``: Updated from :mod:`plotutils`
     """
     # Make sure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
     # Get major grid option
     major_grid = kw.get("Grid", None)
     # Check value
@@ -2497,7 +2498,7 @@ def format_spines(ax, **kw):
     """
    # --- Setup ---
     # Make sure pyplot loaded
-    import_pyplot()
+    _import_pyplot()
     # Get spine handles
     spineL = ax.spines["left"]
     spineR = ax.spines["right"]
@@ -2934,7 +2935,6 @@ class MPLHandle(object):
                 self.__dict__[k] = v
 
 
-# Function to get 
 
 
 # Standard type strings
@@ -2952,9 +2952,21 @@ _rst_str = """{``None``} | :class:`str`"""
 _rst_strnum = """{``None``} | :class:`str` | :class:`int` | :class:`float`"""
 
 
-
 # Options interface
 class MPLOpts(kwutils.KwargHandler):
+    r"""Options class for all plot methods in :mod:`plot_mpl` module
+
+    :Call:
+        >>> opts = MPLOpts(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Keyword options to be filtered and mapped
+    :Outputs:
+        *opts*: :class:`plot_mpl.MPLOpts`
+            Options from kwargs with defaults applied
+    :Versions:
+        * 2020-01-23 ``@ddalle``: Version 2.0 based on KwargHandler
+    """
   # ====================
   # Class Attributes
   # ====================
