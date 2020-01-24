@@ -202,12 +202,12 @@ def plot(xv, yv, *a, **kw):
         # Plot call
         if minmax_type == "FillBetween":
             # Do a :func:`fill_between` plot
-            h.minmax = fill_between(xv, ymin, ymax, **kw_mmax)
+            h.minmax = _fill_between_nocheck(xv, ymin, ymax, **kw_mmax)
         elif minmax_type == "ErrorBar":
             # Convert to error bar widths
             yerr = minmax_to_errorbar(yv, ymin, ymax, **kw_mmax)
             # Do a :func:`errorbar` plot
-            h.minmax = errorbar(xv, yv, yerr, **kw_mmax)
+            h.minmax = _errorbar_nocheck(xv, yv, yerr, **kw_mmax)
    # --- Error ---
     # Process "error" options
     opts_error = opts.error_options()
@@ -233,10 +233,10 @@ def plot(xv, yv, *a, **kw):
             # Convert to min/max values
             ymin, ymax = errorbar_to_minmax(yv, yerr)
             # Do a :func:`fill_between` plot
-            h.error = fill_between(xv, ymin, ymax, **kw_err)
+            h.error = _fill_between_nocheck(xv, ymin, ymax, **kw_err)
         elif t_err == "ErrorBar":
             # Do a :func:`errorbar` plot
-            h.error = errorbar(xv, yv, yerr, **kw_err)
+            h.error = _errorbar_nocheck(xv, yv, yerr, **kw_err)
    # --- UQ ---
     # Process uncertainty quantification options
     opts_uq = opts.uq_options()
@@ -256,16 +256,16 @@ def plot(xv, yv, *a, **kw):
             # Pop values
             yerr = kw.get("uy", kw.get("yerr", None))
         # Check for horizontal error bars
-        xerr = kw.get("ux", kw.get("ux", None))
+        xerr = kw.get("ux", kw.get("xerr", None))
         # Plot call
         if uq_type == "FillBetween":
             # Convert to min/max values
             ymin, ymax = errorbar_to_minmax(yv, yerr)
             # Do a :func:`fill_between` plot
-            h.uq = fill_between(xv, ymin, ymax, **kw_uq)
+            h.uq = _fill_between_nocheck(xv, ymin, ymax, **kw_uq)
         elif uq_type == "ErrorBar":
             # Do a :func:`errorbar` plot
-            h.uq = errobar(xv, yv, yerr, **kw_uq)
+            h.uq = _errorbar_nocheck(xv, yv, yerr, **kw_uq)
    # --- Axis formatting ---
     ## Process grid lines options
     kw_grid = opts.grid_options()
@@ -323,7 +323,7 @@ def _plot(xv, yv, fmt=None, **kw):
         * 2019-03-04 ``@ddalle``: First version
     """
     # Process options
-    opts = MPLOpts(**kw)
+    opts = MPLOpts(_section="plot", **kw)
     # Get plot options
     kw_p = opts.plot_options()
     # Call root function
@@ -1560,7 +1560,6 @@ def figure(**kw):
     """
     # Import PyPlot
     _import_pyplot()
-    _import_matplotlib()
     # Get figure handle and other options
     fig = kw.get("fig", None)
     figopts = kw.get("FigOptions", {})
@@ -1594,12 +1593,12 @@ def figure(**kw):
 
 # Axis part (initial)
 def axes(**kw):
-    """Create new axes or edit one if necessary
+    r"""Create new axes or edit one if necessary
 
     :Call:
-        >>> fig = axes(**kw)
+        >>> ax = axes(**kw)
     :Inputs:
-        *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
+        *ax*: ``None`` | :class:`AxesSubplot`
             Optional axes handle
         *AxesOptions*: {``None``} | :class:`dict`
             Options to apply to figure handle using :func:`ax.set`
@@ -1743,78 +1742,12 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
     ax.set_position([xmin + dx, ymin + dy, w, h])
 
 
-# Region plot
-def fill_between(xv, ymin, ymax, **kw):
-    r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
-
-    :Call:
-        >>> h = fill_between(xv, ymin, ymax, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of independent variable values
-        *ymin*: :class:`np.ndarray` | :class:`float`
-            Array of values or single value for lower bound of window
-        *ymax*: :class:`np.ndarray` | :class:`float`
-            Array of values or single value for upper bound of window
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *Rotate*: ``True`` | {``False``}
-            Option to plot independent variable on vertical axis
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
-    """
-   # --- Values ---
-    # Convert possible scalar for *ymin*
-    if isinstance(ymin, float):
-        # Expand scalar to array
-        yl = ymin*np.ones_like(xv)
-    elif typeutils.isarray(ymin):
-        # Ensure array (not list, etc.)
-        yl = np.asarray(ymin)
-    else:
-        raise TypeError(
-            ("'ymin' value must be either float or array ") +
-            ("(got %s)" % ymin.__class__))
-    # Convert possible scalar for *ymax*
-    if isinstance(ymax, float):
-        # Expand scalar to array
-        yu = ymax*np.ones_like(xv)
-    elif typeutils.isarray(ymax):
-        # Ensure array (not list, etc.)
-        yu = np.asarray(ymax)
-    else:
-        raise TypeError(
-            ("'ymax' value must be either float or array ") +
-            ("(got %s)" % ymax.__class__))
-   # --- Main ---
-    # Ensure fill_between() is available
-    _import_pyplot()
-    # Get index
-    i = kw.pop("i", kw.pop("Index", 0))
-    # Get rotation option
-    r = kw.pop("Rotate", False)
-    # Check for vertical or horizontal
-    if r:
-        # Vertical function
-        fnplt = plt.fill_betweenx
-    else:
-        # Horizontal function
-        fnplt = plt.fill_between
-    # Initialize plot options
-    kw_fb = MPLOpts.select_phase(kw, i)
-    # Call the plot method
-    h = fnplt(xv, yl, yu, **kw_fb)
-    # Output
-    return h
-
-
 # Error bar plot
-def errorbar(xv, yv, yerr=None, xerr=None, **kw):
-    r"""Call the :func:`errobar` function
+def _errorbar(xv, yv, yerr=None, xerr=None, **kw):
+    r"""Call the :func:`errorbar` function with options checks
 
     :Call:
-        >>> h = errorbar(xv, yv, yerr=None, xerr=None, **kw
+        >>> h = _errorbar(xv, yv, yerr=None, xerr=None, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of independent variable values
@@ -1833,6 +1766,41 @@ def errorbar(xv, yv, yerr=None, xerr=None, **kw):
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
         * 2019-08-22 ``@ddalle``: Renamed from :func:`errorbar_part`
+        * 2020-01-24 ``@ddalle``: Renamed from :func:`errorbar`
+    """
+    # Process options
+    opts = MPLOpts(_section="errorbar", **kw)
+    # Get plot options
+    kw_eb = opts.errorbar_options()
+    # Call root function
+    return _errorbar_nocheck(xv, yv, yerr, xerr, **kw_eb)
+
+
+# Error bar plot
+def _errorbar_nocheck(xv, yv, yerr=None, xerr=None, **kw):
+    r"""Call the :func:`errorbar` function
+
+    :Call:
+        >>> h = _errorbar_nocheck(xv, yv, yerr=None, xerr=None, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of independent variable values
+        *yv*: :class:`np.ndarray` | :class:`float`
+            Array of values for center of error bar
+        *yerr*: {``None``} | :class:`np.ndarray` | :class:`float`
+            Array or constant error bar half-heights; shape(2,N) array
+            for distinct above- and below-widths
+        *xerr*: {``None``} | :class:`np.ndarray` | :class:`float`
+            Array or constant error bar half-widths; shape(2,N) array
+            for distinct above- and below-widths
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *Rotate*: ``True`` | {``False``}
+            Option to plot independent variable on vertical axis
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+        * 2019-08-22 ``@ddalle``: Renamed from :func:`errorbar_part`
+        * 2020-01-24 ``@ddalle``: Renamed from :func:`errorbar`
     """
    # --- Values ---
     # Convert possible scalar for *yerr*
@@ -1867,7 +1835,7 @@ def errorbar(xv, yv, yerr=None, xerr=None, **kw):
     # Ensure fill_between() is available
     _import_pyplot()
     # Get index
-    i = kw.pop("i", kw.pop("Index", 0))
+    i = kw.pop("Index", kw.pop("i", 0))
     # Get rotation option
     r = kw.pop("Rotate", False)
     # Check for vertical or horizontal
@@ -1878,6 +1846,103 @@ def errorbar(xv, yv, yerr=None, xerr=None, **kw):
     kw_eb = MPLOpts.select_phase(kw, i)
     # Call the plot method
     h = plt.errorbar(xv, yv, yerr=uy, xerr=ux, **kw_eb)
+    # Output
+    return h
+
+
+# Region plot
+def _fill_between(xv, ymin, ymax, **kw):
+    r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
+
+    :Call:
+        >>> h = _fill_between(xv, ymin, ymax, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of independent variable values
+        *ymin*: :class:`np.ndarray` | :class:`float`
+            Array of values or single value for lower bound of window
+        *ymax*: :class:`np.ndarray` | :class:`float`
+            Array of values or single value for upper bound of window
+        *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *Rotate*: ``True`` | {``False``}
+            Option to plot independent variable on vertical axis
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
+        * 2020-01-24 ``@ddalle``: New version with options checks
+    """
+    # Process options
+    opts = MPLOpts(_section="fillbetween", **kw)
+    # Get plot options
+    kw_fb = opts.fillbetween_options()
+    # Call root function
+    return _fill_between_nocheck(xv, ymin, ymax, **kw_fb)
+
+
+# Region plot
+def _fill_between_nocheck(xv, ymin, ymax, **kw):
+    r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
+
+    :Call:
+        >>> h = _fill_between_nocheck(xv, ymin, ymax, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of independent variable values
+        *ymin*: :class:`np.ndarray` | :class:`float`
+            Array of values or single value for lower bound of window
+        *ymax*: :class:`np.ndarray` | :class:`float`
+            Array of values or single value for upper bound of window
+        *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *Rotate*: ``True`` | {``False``}
+            Option to plot independent variable on vertical axis
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
+        * 2020-01-24 ``@ddalle``: Renamed from :func:`fill_between`
+    """
+   # --- Values ---
+    # Convert possible scalar for *ymin*
+    if isinstance(ymin, float):
+        # Expand scalar to array
+        yl = ymin * np.ones_like(xv)
+    elif typeutils.isarray(ymin):
+        # Ensure array (not list, etc.)
+        yl = np.asarray(ymin)
+    else:
+        raise TypeError(
+            ("'ymin' value must be either float or array ") +
+            ("(got %s)" % ymin.__class__))
+    # Convert possible scalar for *ymax*
+    if isinstance(ymax, float):
+        # Expand scalar to array
+        yu = ymax * np.ones_like(xv)
+    elif typeutils.isarray(ymax):
+        # Ensure array (not list, etc.)
+        yu = np.asarray(ymax)
+    else:
+        raise TypeError(
+            ("'ymax' value must be either float or array ") +
+            ("(got %s)" % ymax.__class__))
+   # --- Main ---
+    # Ensure fill_between() is available
+    _import_pyplot()
+    # Get index
+    i = kw.pop("i", kw.pop("Index", 0))
+    # Get rotation option
+    r = kw.pop("Rotate", False)
+    # Check for vertical or horizontal
+    if r:
+        # Vertical function
+        fnplt = plt.fill_betweenx
+    else:
+        # Horizontal function
+        fnplt = plt.fill_between
+    # Initialize plot options
+    kw_fb = MPLOpts.select_phase(kw, i)
+    # Call the plot method
+    h = fnplt(xv, yl, yu, **kw_fb)
     # Output
     return h
 

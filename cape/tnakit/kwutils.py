@@ -358,6 +358,10 @@ class KwargHandler(dict):
             Dictionary of previous options (overwritten by *kw*)
         *_warnmode*: ``0`` | {``1``} | ``2``
             Warning mode from :mod:`kwutils`
+        *_section*: {``None``} | :class:`str`
+            Name of options section to restrict to
+        *_optlist*: {``None``} | :class:`set`\ [:class:`str`]
+            Specified list of allowed options
     :Outputs:
         *opts*: :class:`MPLOpts`
             Options interface from *kw* with checks and applied defaults
@@ -443,9 +447,41 @@ class KwargHandler(dict):
         # Remove anything that's ``None``
         opts = cls.denone(optsdict)
 
+        # Check for a section
+        sec = kw.pop("_section", None)
+        secs = kw.pop("_sections", None)
+        # Check for a specified list
+        optlist = kw.pop("_optlist", set())
+        
+        # Ensure set
+        if not isinstance(optlist, set):
+            optlist = set(optlist)
+
+        # Process section list
+        if secs is not None:
+            # Loop through sections
+            for sec in secs:
+                # Get options for that section
+                secopts = cls._optlists.get(sec)
+                # Union the options
+                if secopts:
+                    optlist |= set(secopts)
+        elif sec is not None:
+            # Get options for one section
+            secopts = cls._optlists.get(sec)
+            # Union the options
+            if secopts:
+                optlist |= set(secopts)
+
+        # Default option list
+        if len(optlist) == 0:
+            # All options
+            optlist = cls._optlist
+            
+
         # Check keywords
         opts = check_kw_eltypes(
-            cls._optlist,
+            optlist,
             cls._optmap,
             cls._opttypes,
             cls._optdependencies, _warnmode, **opts)
