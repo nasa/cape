@@ -26,79 +26,11 @@ import cape.tnakit.rstutils as rstutils
 import cape.tnakit.statutils as statutils
 import cape.tnakit.typeutils as typeutils
 
-# Get a variable to hold the "type" of "module"
-mod = os.__class__
+# Local modules
+from . import mpl
 
-# Initialize handle for modules
-plt = object()
-mpl = object()
-mplax = object()
-mplfig = object()
-
-
-# Import :mod:`matplotlib`
-def _import_matplotlib():
-    """Function to import Matplotlib if possible
-
-    This function checks if the global variable *mpl* is already a
-    module.  If so, the function exits without doing anything.
-    Otherwise it imports :mod:`matplotlib` as *mpl*.  If the operating
-    system is not Windows, and there is no environment variable
-    *DISPLAY*, the backend is set to ``"Agg"``.
-
-    :Call:
-        >>> _import_matplotlib()
-    :Versions:
-        * 2019-08-22 ``@ddalle``: Documented first version
-    """
-    # Make global variables
-    global mpl
-    global mplax
-    global mplfig
-    # Exit if already imported
-    if isinstance(mpl, mod):
-        return
-    # Import module
-    try:
-        import matplotlib as mpl
-        import matplotlib.axes as mplax
-        import matplotlib.figure as mplfig
-    except ImportError:
-        return
-    # Check for no-display
-    if (os.name != "nt") and (os.environ.get("DISPLAY") is None):
-        # Not on Windows and no display: no window to create fig
-        mpl.use("Agg")
-
-
-# Import :mod:`matplotlib`
-def _import_pyplot():
-    """Function to import Matplotlib's PyPlot if possible
-
-    This function checks if the global variable *plt* is already a
-    module.  If so, the function exits without doing anything.
-    Otherwise it imports :mod:`matplotlib.pyplot` as *plt* after
-    calling :func:`import_matplotlib`.
-
-    :Call:
-        >>> _import_pyplot()
-    :See also:
-        * :func:`import_matplotlib`
-    :Versions:
-        * 2019-08-22 ``@ddalle``: Documented first version
-    """
-    # Make global variables
-    global plt
-    # Exit if already imported
-    if isinstance(plt, mod):
-        return
-    # Otherwise, import matplotlib first
-    _import_matplotlib()
-    # Import module
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError:
-        return
+# Local direct imports
+from .mplopts import MPLOpts
 
 
 # Primary plotter
@@ -120,8 +52,6 @@ def plot(xv, yv, *a, **kw):
         * 2019-12-23 ``@ddalle``: Object-oriented options and output
     """
    # --- Prep ---
-    # Ensure plot() is loaded
-    _import_pyplot()
     # Process options
     opts = MPLOpts(**kw)
     # Initialize output
@@ -178,7 +108,7 @@ def plot(xv, yv, *a, **kw):
             # No format option
             fmt = tuple()
         # Plot call
-        h.lines += _plot_nocheck(xv, yv, *fmt, **kw_plot)
+        h.lines += mpl._plot(xv, yv, *fmt, **kw_plot)
    # --- Min/Max ---
     # Process min/max options
     opts_mmax = opts.minmax_options()
@@ -202,12 +132,12 @@ def plot(xv, yv, *a, **kw):
         # Plot call
         if minmax_type == "FillBetween":
             # Do a :func:`fill_between` plot
-            h.minmax = _fill_between_nocheck(xv, ymin, ymax, **kw_mmax)
+            h.minmax = mpl._fill_between(xv, ymin, ymax, **kw_mmax)
         elif minmax_type == "ErrorBar":
             # Convert to error bar widths
             yerr = minmax_to_errorbar(yv, ymin, ymax, **kw_mmax)
             # Do a :func:`errorbar` plot
-            h.minmax = _errorbar_nocheck(xv, yv, yerr, **kw_mmax)
+            h.minmax = mpl._errorbar(xv, yv, yerr, **kw_mmax)
    # --- Error ---
     # Process "error" options
     opts_error = opts.error_options()
@@ -233,10 +163,10 @@ def plot(xv, yv, *a, **kw):
             # Convert to min/max values
             ymin, ymax = errorbar_to_minmax(yv, yerr)
             # Do a :func:`fill_between` plot
-            h.error = _fill_between_nocheck(xv, ymin, ymax, **kw_err)
+            h.error = mpl._fill_between(xv, ymin, ymax, **kw_err)
         elif t_err == "ErrorBar":
             # Do a :func:`errorbar` plot
-            h.error = _errorbar_nocheck(xv, yv, yerr, **kw_err)
+            h.error = mpl._errorbar(xv, yv, yerr, **kw_err)
    # --- UQ ---
     # Process uncertainty quantification options
     opts_uq = opts.uq_options()
@@ -262,10 +192,10 @@ def plot(xv, yv, *a, **kw):
             # Convert to min/max values
             ymin, ymax = errorbar_to_minmax(yv, yerr)
             # Do a :func:`fill_between` plot
-            h.uq = _fill_between_nocheck(xv, ymin, ymax, **kw_uq)
+            h.uq = mpl._fill_between(xv, ymin, ymax, **kw_uq)
         elif uq_type == "ErrorBar":
             # Do a :func:`errorbar` plot
-            h.uq = _errorbar_nocheck(xv, yv, yerr, **kw_uq)
+            h.uq = mpl._errorbar(xv, yv, yerr, **kw_uq)
    # --- Axis formatting ---
     ## Process grid lines options
     kw_grid = opts.grid_options()
@@ -292,88 +222,6 @@ def plot(xv, yv, *a, **kw):
    # --- Cleanup ---
     # Save options
     h.opts = opts
-    # Output
-    return h
-
-
-# Plot function with options check
-def _plot(xv, yv, fmt=None, **kw):
-    r"""Call the :func:`plot` function with cycling options
-
-    :Call:
-        >>> h = _plot(xv, yv, **kw)
-        >>> h = _plot(xv, yv, fmt, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of *x*-coordinates
-        *yv*: :class:`np.ndarray`
-            Array of *y*-coordinates
-        *fmt*: :class:`str`
-            Optional format option
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *rotate*, *Rotate*: ``True`` | {``False``}
-            Plot independent variable on vertical axis
-    :Keyword Arguments:
-        * See :func:`matplotlib.pyplot.plot`
-    :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
-            List of line instances
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-    """
-    # Process options
-    opts = MPLOpts(_section="plot", **kw)
-    # Get plot options
-    kw_p = opts.plot_options()
-    # Call root function
-    return _plot_nocheck(xv, yv, fmt=fmt, **kw_p)
-
-
-# Plot part
-def _plot_nocheck(xv, yv, fmt, **kw):
-    r"""Call the :func:`plot` function with cycling options
-
-    :Call:
-        >>> h = _plot(xv, yv, **kw)
-        >>> h = _plot(xv, yv, fmt, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of *x*-coordinates
-        *yv*: :class:`np.ndarray`
-            Array of *y*-coordinates
-        *fmt*: :class:`str`
-            Optional format option
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *rotate*, *Rotate*: ``True`` | {``False``}
-            Plot independent variable on vertical axis
-    :Keyword Arguments:
-        * See :func:`matplotlib.pyplot.plot`
-    :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
-            List of line instances
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-    """
-    # Ensure plot() is available
-    _import_pyplot()
-    # Get index
-    i = kw.pop("Index", kw.pop("i", 0))
-    # Get rotation option
-    r = kw.pop("Rotate", kw.pop("rotate", False))
-    # Flip inputs
-    if r:
-        yv, xv = xv, yv
-    # Initialize plot options
-    kw_p = MPLOpts.select_phase(kw, i)
-    # Call plot
-    if typeutils.isstr(fmt):
-        # Call with extra format argument
-        h = plt.plot(xv, yv, fmt, **kw_p)
-    else:
-        # No format argument
-        h = plt.plot(xv, yv, **kw_p)
     # Output
     return h
 
@@ -434,15 +282,15 @@ def axes_adjust(fig=None, **kw):
         * 2010-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
     """
     # Make sure pyplot is present
-    _import_pyplot()
+    mpl._import_pyplot()
     # Default figure
     if fig is None:
         # Get most recent figure or create
-        fig = plt.gcf()
+        fig = mpl.plt.gcf()
     elif isinstance(fig, int):
         # Get figure handle from number
-        fig = plt.figure(fig)
-    elif not isinstance(fig, mplfig.Figure):
+        fig = mpl.plt.figure(fig)
+    elif not isinstance(fig, mpl.mplfig.Figure):
         # Not a figure or number
         raise TypeError(
             "'fig' arg expected 'int' or 'Figure' (got %s)" % type(fig))
@@ -463,7 +311,7 @@ def axes_adjust(fig=None, **kw):
         # Check for index
         if subplot_i is None:
             # Get most recent axes
-            ax = plt.gca()
+            ax = mpl.plt.gca()
             # Reset axes list
             ax_list = fig.get_axes()
             # Get index
@@ -613,15 +461,15 @@ def axes_adjust_col(fig, **kw):
         * 2020-01-10 ``@ddalle``: First version
     """
     # Make sure pyplot is present
-    _import_pyplot()
+    mpl._import_pyplot()
     # Default figure
     if fig is None:
         # Get most recent figure or create
-        fig = plt.gcf()
+        fig = mpl.plt.gcf()
     elif isinstance(fig, int):
         # Get figure handle from number
-        fig = plt.figure(fig)
-    elif not isinstance(fig, mplfig.Figure):
+        fig = mpl.plt.figure(fig)
+    elif not isinstance(fig, mpl.mplfig.Figure):
         # Not a figure or number
         raise TypeError(
             "'fig' arg expected 'int' or 'Figure' (got %s)" % type(fig))
@@ -758,15 +606,15 @@ def axes_adjust_row(fig, **kw):
         * 2020-01-10 ``@ddalle``: First version
     """
     # Make sure pyplot is present
-    _import_pyplot()
+    mpl._import_pyplot()
     # Default figure
     if fig is None:
         # Get most recent figure or create
-        fig = plt.gcf()
+        fig = mpl.plt.gcf()
     elif isinstance(fig, int):
         # Get figure handle from number
-        fig = plt.figure(fig)
-    elif not isinstance(fig, mplfig.Figure):
+        fig = mpl.plt.figure(fig)
+    elif not isinstance(fig, mpl.mplfig.Figure):
         # Not a figure or number
         raise TypeError(
             "'fig' arg expected 'int' or 'Figure' (got %s)" % type(fig))
@@ -887,10 +735,10 @@ def get_axes_plot_extents(ax=None):
         * 2020-01-08 ``@ddalle``: First version
     """
     # Import modules
-    _import_pyplot()
+    mpl._import_pyplot()
     # Default axes
     if ax is None:
-        ax = plt.gca()
+        ax = mpl.plt.gca()
     # Get figure
     fig = ax.figure
     # Draw the figure once to ensure the extents can be calculated
@@ -930,10 +778,10 @@ def get_axes_full_extents(ax=None):
         * 2020-01-08 ``@ddalle``: First version
     """
     # Import modules
-    _import_pyplot()
+    mpl._import_pyplot()
     # Default axes
     if ax is None:
-        ax = plt.gca()
+        ax = mpl.plt.gca()
     # Get figure
     fig = ax.figure
     # Draw the figure once to ensure the extents can be calculated
@@ -973,10 +821,10 @@ def get_axes_label_margins(ax=None):
         * 2020-01-08 ``@ddalle``: First version
     """
     # Import modules
-    _import_pyplot()
+    mpl._import_pyplot()
     # Default axes
     if ax is None:
-        ax = plt.gca()
+        ax = mpl.plt.gca()
     # Get figure
     fig = ax.figure
     # Draw the figure once to ensure the extents can be calculated
@@ -1201,7 +1049,7 @@ def imshow(png, **kw):
         * 2020-01-09 ``@ddalle``: First version
     """
     # Make sure modules are loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Process opts
     opts = MPLOpts(**kw)
     # Get opts for imshow
@@ -1248,7 +1096,7 @@ def _imshow(png, **kw):
         if not os.path.isfile(png):
             raise SystemError("No PNG file '%s'" % png)
         # Read it
-        png = plt.imread(png)
+        png = mpl.plt.imread(png)
     elif not isinstance(png, np.ndarray):
         # Bad type
         raise TypeError("Image array must be NumPy array")
@@ -1340,7 +1188,7 @@ def _imshow(png, **kw):
     if kw_extent is not None:
         extent = kw_extent
     # Show the image
-    img = plt.imshow(png, extent=extent)
+    img = mpl.plt.imshow(png, extent=extent)
     # Output
     return img
 
@@ -1362,7 +1210,7 @@ def hist(v, **kw):
     """
    # --- Prep ---
     # Ensure plot() is loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Initialize output
     h = {}
     # Filter out non-numeric entries
@@ -1559,21 +1407,21 @@ def figure(**kw):
         * 2019-03-06 ``@ddalle``: First version
     """
     # Import PyPlot
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get figure handle and other options
     fig = kw.get("fig", None)
     figopts = kw.get("FigOptions", {})
     # Check for a figure number
     fignum = figopts.pop("num", None)
     # Create figure if needed
-    if not isinstance(fig, mplfig.Figure):
+    if not isinstance(fig, mpl.mplfig.Figure):
         # Check for specified figure
         if fignum is None:
             # Use most recent figure (can be new one)
-            fig = plt.gcf()
+            fig = mpl.plt.gcf()
         else:
             # Get specified figure
-            fig = plt.figure(fignum)
+            fig = mpl.plt.figure(fignum)
     # Loop through options
     for (k, v) in figopts.items():
         # Check for None
@@ -1609,21 +1457,21 @@ def axes(**kw):
         * 2019-03-06 ``@ddalle``: First version
     """
     # Import PyPlot
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get figure handle and other options
     ax = kw.get("ax", None)
     axopts = kw.get("AxesOptions", {})
     # Check for a subplot description
     axnum = axopts.pop("subplot", None)
     # Create figure if needed
-    if not isinstance(ax, mplax._subplots.Axes):
+    if not isinstance(ax, mpl.mplax._subplots.Axes):
         # Check for specified figure
         if axnum is None:
             # Use most recent figure (can be new one)
-            ax = plt.gca()
+            ax = mpl.plt.gca()
         else:
             # Get specified figure
-            ax = plt.subplot(axnum)
+            ax = mpl.plt.subplot(axnum)
     # Loop through options
     for (k, v) in axopts.items():
         # Check for None
@@ -1668,7 +1516,7 @@ def move_axes(ax, loc, margin=0.0):
         * 2020-01-10 ``@ddalle``: First version
     """
     # Import plot modules
-    _import_pyplot()
+    mpl._import_pyplot()
     # Check inputs
     if not isinstance(loc, (int, typeutils.strlike)):
         raise TypeError("Location must be int or str (got %s)" % type(loc))
@@ -1678,7 +1526,7 @@ def move_axes(ax, loc, margin=0.0):
         raise TypeError("Margin must be float (got %s)" % type(margin))
     # Get axes
     if ax is None:
-        ax = plt.gca()
+        ax = mpl.plt.gca()
     # Get current position
     xmin, ymin, w, h = ax.get_position().bounds
     # Max positions
@@ -1727,7 +1575,7 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
         * 2020-01-10 ``@ddalle``: First version
     """
     # Import plot modules
-    _import_pyplot()
+    mpl._import_pyplot()
     # Check inputs
     if not isinstance(dx, float):
         raise TypeError("dx must be float (got %s)" % type(dx))
@@ -1735,216 +1583,11 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
         raise TypeError("dy must be float (got %s)" % type(dy))
     # Get axes
     if ax is None:
-        ax = plt.gca()
+        ax = mpl.plt.gca()
     # Get current position
     xmin, ymin, w, h = ax.get_position().bounds
     # Set new position
     ax.set_position([xmin + dx, ymin + dy, w, h])
-
-
-# Error bar plot
-def _errorbar(xv, yv, yerr=None, xerr=None, **kw):
-    r"""Call the :func:`errorbar` function with options checks
-
-    :Call:
-        >>> h = _errorbar(xv, yv, yerr=None, xerr=None, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of independent variable values
-        *yv*: :class:`np.ndarray` | :class:`float`
-            Array of values for center of error bar
-        *yerr*: {``None``} | :class:`np.ndarray` | :class:`float`
-            Array or constant error bar half-heights; shape(2,N) array
-            for distinct above- and below-widths
-        *xerr*: {``None``} | :class:`np.ndarray` | :class:`float`
-            Array or constant error bar half-widths; shape(2,N) array
-            for distinct above- and below-widths
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *Rotate*: ``True`` | {``False``}
-            Option to plot independent variable on vertical axis
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`errorbar_part`
-        * 2020-01-24 ``@ddalle``: Renamed from :func:`errorbar`
-    """
-    # Process options
-    opts = MPLOpts(_section="errorbar", **kw)
-    # Get plot options
-    kw_eb = opts.errorbar_options()
-    # Call root function
-    return _errorbar_nocheck(xv, yv, yerr, xerr, **kw_eb)
-
-
-# Error bar plot
-def _errorbar_nocheck(xv, yv, yerr=None, xerr=None, **kw):
-    r"""Call the :func:`errorbar` function
-
-    :Call:
-        >>> h = _errorbar_nocheck(xv, yv, yerr=None, xerr=None, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of independent variable values
-        *yv*: :class:`np.ndarray` | :class:`float`
-            Array of values for center of error bar
-        *yerr*: {``None``} | :class:`np.ndarray` | :class:`float`
-            Array or constant error bar half-heights; shape(2,N) array
-            for distinct above- and below-widths
-        *xerr*: {``None``} | :class:`np.ndarray` | :class:`float`
-            Array or constant error bar half-widths; shape(2,N) array
-            for distinct above- and below-widths
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *Rotate*: ``True`` | {``False``}
-            Option to plot independent variable on vertical axis
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`errorbar_part`
-        * 2020-01-24 ``@ddalle``: Renamed from :func:`errorbar`
-    """
-   # --- Values ---
-    # Convert possible scalar for *yerr*
-    if yerr is None:
-        # No vertical uncertainty (?)
-        uy = None
-    elif isinstance(yerr, float):
-        # Expand scalar to array
-        uy = yerr*np.ones_like(yv)
-    elif typeutils.isarray(yerr):
-        # Ensure array (not list, etc.)
-        uy = np.asarray(yerr)
-    else:
-        raise TypeError(
-            ("'yerr' value must be either float or array ") +
-            ("(got %s)" % yerr.__class__))
-    # Convert possible scalar for *ymax*
-    if xerr is None:
-        # No horizontal uncertainty
-        ux = None
-    elif isinstance(xerr, float):
-        # Expand scalar to array
-        ux = xerr*np.ones_like(xv)
-    elif typeutils.isarray(xerr):
-        # Ensure array (not list, etc.)
-        ux = np.asarray(xerr)
-    else:
-        raise TypeError(
-            ("'xerr' value must be either None, float, or array ") +
-            ("(got %s)" % yerr.__class__))
-   # --- Main ---
-    # Ensure fill_between() is available
-    _import_pyplot()
-    # Get index
-    i = kw.pop("Index", kw.pop("i", 0))
-    # Get rotation option
-    r = kw.pop("Rotate", False)
-    # Check for vertical or horizontal
-    if r:
-        # Vertical function
-        xv, yv, xerr, yerr = yv, xv, yerr, xerr
-    # Initialize plot options
-    kw_eb = MPLOpts.select_phase(kw, i)
-    # Call the plot method
-    h = plt.errorbar(xv, yv, yerr=uy, xerr=ux, **kw_eb)
-    # Output
-    return h
-
-
-# Region plot
-def _fill_between(xv, ymin, ymax, **kw):
-    r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
-
-    :Call:
-        >>> h = _fill_between(xv, ymin, ymax, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of independent variable values
-        *ymin*: :class:`np.ndarray` | :class:`float`
-            Array of values or single value for lower bound of window
-        *ymax*: :class:`np.ndarray` | :class:`float`
-            Array of values or single value for upper bound of window
-        *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *Rotate*: ``True`` | {``False``}
-            Option to plot independent variable on vertical axis
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
-        * 2020-01-24 ``@ddalle``: New version with options checks
-    """
-    # Process options
-    opts = MPLOpts(_section="fillbetween", **kw)
-    # Get plot options
-    kw_fb = opts.fillbetween_options()
-    # Call root function
-    return _fill_between_nocheck(xv, ymin, ymax, **kw_fb)
-
-
-# Region plot
-def _fill_between_nocheck(xv, ymin, ymax, **kw):
-    r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
-
-    :Call:
-        >>> h = _fill_between_nocheck(xv, ymin, ymax, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of independent variable values
-        *ymin*: :class:`np.ndarray` | :class:`float`
-            Array of values or single value for lower bound of window
-        *ymax*: :class:`np.ndarray` | :class:`float`
-            Array of values or single value for upper bound of window
-        *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *Rotate*: ``True`` | {``False``}
-            Option to plot independent variable on vertical axis
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
-        * 2020-01-24 ``@ddalle``: Renamed from :func:`fill_between`
-    """
-   # --- Values ---
-    # Convert possible scalar for *ymin*
-    if isinstance(ymin, float):
-        # Expand scalar to array
-        yl = ymin * np.ones_like(xv)
-    elif typeutils.isarray(ymin):
-        # Ensure array (not list, etc.)
-        yl = np.asarray(ymin)
-    else:
-        raise TypeError(
-            ("'ymin' value must be either float or array ") +
-            ("(got %s)" % ymin.__class__))
-    # Convert possible scalar for *ymax*
-    if isinstance(ymax, float):
-        # Expand scalar to array
-        yu = ymax * np.ones_like(xv)
-    elif typeutils.isarray(ymax):
-        # Ensure array (not list, etc.)
-        yu = np.asarray(ymax)
-    else:
-        raise TypeError(
-            ("'ymax' value must be either float or array ") +
-            ("(got %s)" % ymax.__class__))
-   # --- Main ---
-    # Ensure fill_between() is available
-    _import_pyplot()
-    # Get index
-    i = kw.pop("i", kw.pop("Index", 0))
-    # Get rotation option
-    r = kw.pop("Rotate", False)
-    # Check for vertical or horizontal
-    if r:
-        # Vertical function
-        fnplt = plt.fill_betweenx
-    else:
-        # Horizontal function
-        fnplt = plt.fill_between
-    # Initialize plot options
-    kw_fb = MPLOpts.select_phase(kw, i)
-    # Call the plot method
-    h = fnplt(xv, yl, yu, **kw_fb)
-    # Output
-    return h
 
 
 # Histogram
@@ -1966,9 +1609,9 @@ def _hist(v, **kw):
         * 2019-08-22 ``@ddalle``: From :func:`Part.hist_part`
     """
     # Ensure hist() is available
-    _import_pyplot()
+    mpl._import_pyplot()
     # Call plot
-    h = plt.hist(v, **kw)
+    h = mpl.plt.hist(v, **kw)
     # Output
     return h
 
@@ -1994,7 +1637,7 @@ def plot_mean(ax, vmu, **kw):
         * 2019-03-11 ``@jmeeroff``: First version
     """
     # Ensure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get horizontal/vertical option
     orient = kw.pop('orientation', "")
     # Check orientation
@@ -2002,13 +1645,13 @@ def plot_mean(ax, vmu, **kw):
         # Vertical: get vertical limits of axes window
         pmin, pmax = ax.get_ylim()
         # Plot a vertical mean line
-        h = plt.plot([vmu, vmu], [pmin, pmax], **kw)
+        h = mpl.plt.plot([vmu, vmu], [pmin, pmax], **kw)
 
     else:
         # Horizontal: get horizontal limits of axes window
         pmin, pmax = ax.get_xlim()
         # Plot a horizontal range bar
-        h = plt.plot([pmin, pmax], [vmu, vmu], **kw)
+        h = mpl.plt.plot([pmin, pmax], [vmu, vmu], **kw)
     # Return
     return h[0]
 
@@ -2037,7 +1680,7 @@ def plot_interval(ax, vmin, vmax, **kw):
         * 2019-08-22 ``@ddalle``: Added *vmin*, *vmax* inputs
     """
     # Ensure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get horizontal/vertical option
     orient = kw.pop('orientation', "")
     # Check orientation
@@ -2045,13 +1688,13 @@ def plot_interval(ax, vmin, vmax, **kw):
         # Vertical: get vertical limits of axes window
         pmin, pmax = ax.get_ylim()
         # Plot a vertical range bar
-        h = plt.fill_betweenx([pmin, pmax], vmin, vmax, **kw)
+        h = mpl.plt.fill_betweenx([pmin, pmax], vmin, vmax, **kw)
 
     else:
         # Horizontal: get horizontal limits of axes window
         pmin, pmax = ax.get_xlim()
         # Plot a horizontal range bar
-        h = plt.fill_between([pmin, pmax], vmin, vmax, **kw)
+        h = mpl.plt.fill_between([pmin, pmax], vmin, vmax, **kw)
     # Return
     return h
 
@@ -2082,7 +1725,7 @@ def plot_gaussian(ax, vmu, vstd, **kw):
         * 2019-08-22 ``@ddalle``: Added *ngauss*
     """
     # Ensure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get horizontal/vertical option
     orient = kw.pop('orientation', "")
     # Get axis limits
@@ -2101,10 +1744,10 @@ def plot_gaussian(ax, vmu, vstd, **kw):
     # Plot
     if orient == "vertical":
         # Plot vertical dist with bump pointing to the right
-        h = plt.plot(xval, yval, **kw)
+        h = mpl.plt.plot(xval, yval, **kw)
     else:
         # Plot horizontal dist with vertical bump
-        h = plt.plot(yval, xval, **kw)
+        h = mpl.plt.plot(yval, xval, **kw)
     # Return
     return h[0]
 
@@ -2132,7 +1775,7 @@ def _plots_std(ax, vmu, vstd, **kw):
         * 2019-08-22 ``@ddalle``: From :func:`Part.std_part`
     """
     # Ensure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get orientation option
     orient = kw.pop('orientation', None)
     # Check multiplier
@@ -2155,15 +1798,15 @@ def _plots_std(ax, vmu, vstd, **kw):
         pmin, pmax = ax.get_ylim()
         # Plot a vertical line for the min and max
         h = (
-            plt.plot([vmin, vmin], [pmin, pmax], **kw) +
-            plt.plot([vmax, vmax], [pmin, pmax], **kw))
+            mpl.plt.plot([vmin, vmin], [pmin, pmax], **kw) +
+            mpl.plt.plot([vmax, vmax], [pmin, pmax], **kw))
     else:
         # Get horizontal limits
         pmin, pmax = ax.get_xlim()
         # Plot a horizontal line for the min and max
         h = (
-            plt.plot([pmin, pmax], [vmin, vmin], **kw) +
-            plt.plot([pmin, pmax], [vmax, vmax], **kw))
+            mpl.plt.plot([pmin, pmax], [vmin, vmin], **kw) +
+            mpl.plt.plot([pmin, pmax], [vmax, vmax], **kw))
     # Return
     return h
 
@@ -2188,7 +1831,7 @@ def plot_delta(ax, vmu, **kw):
         * 2019-03-14 ``@jmeeroff``: First version
     """
     # Ensure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Check orientation
     orient = kw.pop('orientation', None)
     # Reference delta
@@ -2207,14 +1850,14 @@ def plot_delta(ax, vmu, **kw):
         pmin, pmax = ax.get_ylim()
         # Plot a vertical line for the min and max
         h = (
-            plt.plot([cmin, cmin], [pmin, pmax], **kw) +
-            plt.plot([cmax, cmax], [pmin, pmax], **kw))
+            mpl.plt.plot([cmin, cmin], [pmin, pmax], **kw) +
+            mpl.plt.plot([cmax, cmax], [pmin, pmax], **kw))
     else:
         pmin, pmax = ax.get_xlim()
         # Plot a horizontal line for the min and max
         h = (
-            plt.plot([pmin, pmax], [cmin, cmin], **kw) +
-            plt.plot([pmin, pmax], [cmax, cmax], **kw))
+            mpl.plt.plot([pmin, pmax], [cmin, cmin], **kw) +
+            mpl.plt.plot([pmin, pmax], [cmax, cmax], **kw))
     # Return
     return h
 
@@ -2243,11 +1886,11 @@ def histlab_part(lbl, pos1, pos2, ax, **kw):
         * 2019-03-14 ``@jmeeroff``: First version
     """
     # Ensure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Remove orientation orientation
     kw.pop('orientation', None)
     # get figure handdle
-    f = plt.gcf()
+    f = mpl.plt.gcf()
     # Y-coordinates of the current axes w.r.t. figure scale
     ya = ax.get_position().get_points()
     ha = ya[1, 1] - ya[0, 1]
@@ -2261,7 +1904,7 @@ def histlab_part(lbl, pos1, pos2, ax, **kw):
     else:
         y = yl
     # plot the label
-    h = plt.text(pos1, y, lbl, transform=ax.transAxes, **kw)
+    h = mpl.plt.text(pos1, y, lbl, transform=ax.transAxes, **kw)
     return h
 
 
@@ -2284,7 +1927,7 @@ def legend(ax=None, **kw):
    # --- Setup ---
     # Check basic option
     # Import modules if needed
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get overall "Legend" option
     show_legend = kw.pop("ShowLegend", None)
     # Exit immediately if explicit
@@ -2294,7 +1937,7 @@ def legend(ax=None, **kw):
     opts_prop = dict(kw.pop("prop", {}))
     # Default axis: most recent
     if ax is None:
-        ax = plt.gca()
+        ax = mpl.plt.gca()
     # Get figure
     fig = ax.get_figure()
    # --- Initial Attempt ---
@@ -2390,7 +2033,7 @@ def axes_format(ax, **kw):
     """
    # --- Prep ---
     # Make sure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
    # --- Labels ---
     # Get user-specified axis labels
     xlbl = kw.get("XLabel", None)
@@ -2412,14 +2055,14 @@ def axes_format(ax, **kw):
         xl = ax.xaxis.label
     else:
         # Apply label
-        xl = plt.xlabel(xlbl)
+        xl = mpl.plt.xlabel(xlbl)
     # Apply *y* label
     if ylbl is None:
         # Get handle to empty label
         yl = ax.yaxis.label
     else:
         # Create non-empty label
-        yl = plt.ylabel(ylbl)
+        yl = mpl.plt.ylabel(ylbl)
    # --- Data Limits ---
     # Get pad parameter
     pad = kw.get("Pad", 0.05)
@@ -2462,7 +2105,7 @@ def grid(ax, **kw):
         * 2019-12-23 ``@ddalle``: Updated from :mod:`plotutils`
     """
     # Make sure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get major grid option
     major_grid = kw.get("Grid", None)
     # Check value
@@ -2563,7 +2206,7 @@ def format_spines(ax, **kw):
     """
    # --- Setup ---
     # Make sure pyplot loaded
-    _import_pyplot()
+    mpl._import_pyplot()
     # Get spine handles
     spineL = ax.spines["left"]
     spineR = ax.spines["right"]
@@ -2998,1566 +2641,3 @@ class MPLHandle(object):
             elif v.__class__.__module__.startswith("matplotlib"):
                 # Some other plot handle; replace
                 self.__dict__[k] = v
-
-
-
-
-# Standard type strings
-_rst_boolf = """```True`` | {``False``}"""
-_rst_booln = """{``None``} | ``True`` | ``False``"""
-_rst_boolt = """{``True``} | ``False``"""
-_rst_dict = """{``None``} | :class:`dict`"""
-_rst_float = """{``None``} | :class:`float`"""
-_rst_floatpos = """{``None``} | :class:`float` > 0.0"""
-_rst_int = """{``None``} | :class:`int`"""
-_rst_intpos = """{``None``} | :class:`int` > 0"""
-_rst_num = """{``None``} | :class:`int` | :class:`float`"""
-_rst_numpos = """{``None``} | :class:`int` > 0 | :class:`float` > 0.0"""
-_rst_str = """{``None``} | :class:`str`"""
-_rst_strnum = """{``None``} | :class:`str` | :class:`int` | :class:`float`"""
-
-
-# Options interface
-class MPLOpts(kwutils.KwargHandler):
-    r"""Options class for all plot methods in :mod:`plot_mpl` module
-
-    :Call:
-        >>> opts = MPLOpts(**kw)
-    :Inputs:
-        *kw*: :class:`dict`
-            Keyword options to be filtered and mapped
-    :Outputs:
-        *opts*: :class:`plot_mpl.MPLOpts`
-            Options from kwargs with defaults applied
-    :Versions:
-        * 2020-01-23 ``@ddalle``: Version 2.0 based on KwargHandler
-    """
-  # ====================
-  # Class Attributes
-  # ====================
-  # <
-   # --- Global Options ---
-    # Lists of options
-    _optlist = {
-        "AdjustBottom",
-        "AdjustLeft",
-        "AdjustRight",
-        "AdjustTop",
-        "BottomSpine",
-        "BottomSpineMax",
-        "BottomSpineMin",
-        "BottomSpineOptions",
-        "BottomSpineTicks",
-        "BottomTickLabels",
-        "Density",
-        "ErrorBarOptions",
-        "ErrorBarMarker",
-        "ErrorOptions",
-        "ErrorPlotType",
-        "FigDPI",
-        "FigHeight",
-        "FigNumber",
-        "FigOptions",
-        "FigWidth",
-        "FillBetweenOptions",
-        "FontOptions",
-        "FontName",
-        "FontSize",
-        "FontStretch",
-        "FontStyle",
-        "FontVariant",
-        "FontWeight",
-        "Grid",
-        "GridColor",
-        "GridOptions",
-        "GridStyle",
-        "ImageExtent",
-        "ImageXCenter",
-        "ImageXMax",
-        "ImageXMin",
-        "ImageYCenter",
-        "ImageYMax",
-        "ImageYMin",
-        "Index",
-        "KeepAspect",
-        "Label",
-        "LeftSpine",
-        "LeftSpineMax",
-        "LeftSpineMin",
-        "LeftSpineOptions",
-        "LeftSpineTicks",
-        "LeftTickLabels",
-        "Legend",
-        "LegendFontName",
-        "LegendFontOptions",
-        "LegendFontSize",
-        "LegendFontStretch",
-        "LegendFontStyle",
-        "LegendFontVariant",
-        "LegendFontWeight",
-        "LegendOptions",
-        "MajorGrid",
-        "MarginBottom",
-        "MarginHSpace",
-        "MarginLeft",
-        "MarginRight",
-        "MarginTop",
-        "MarginVSpace",
-        "MinMaxOptions",
-        "MinMaxPlotType",
-        "MinorGrid",
-        "MinorGridOptions",
-        "Pad",
-        "PlotColor",
-        "PlotLineStyle",
-        "PlotLineWidth",
-        "PlotOptions",
-        "RightSpine",
-        "RightSpineMax",
-        "RightSpineMin",
-        "RightSpineOptions",
-        "RightSpineTicks",
-        "RightTickLabels",
-        "Rotate",
-        "ShowError",
-        "ShowLegend",
-        "ShowLine",
-        "ShowMinMax",
-        "ShowUncertainty",
-        "SpineOptions",
-        "Spines",
-        "Subplot",
-        "SubplotCols",
-        "SubplotList",
-        "SubplotRows",
-        "SubplotRubber",
-        "TickDirection",
-        "TickFontSize",
-        "TickLabels",
-        "TickOptions",
-        "TickRotation",
-        "TickSize",
-        "Ticks",
-        "TopSpine",
-        "TopSpineMax",
-        "TopSpineMin",
-        "TopSpineOptions",
-        "TopSpineTicks",
-        "TopTickLabels",
-        "UncertaintyPlotType",
-        "UncertaintyOptions",
-        "XLabel",
-        "XLim",
-        "XPad",
-        "XSpine",
-        "XSpineMax",
-        "XSpineMin",
-        "XSpineOptions",
-        "XTickDirection",
-        "XTickFontSize",
-        "XTickLabels",
-        "XTickOptions",
-        "XTickRotation",
-        "XTickSize",
-        "XTicks",
-        "YLabel",
-        "YLim",
-        "YPad",
-        "YSpine",
-        "YSpineMax",
-        "YSpineMin",
-        "YSpineOptions",
-        "YTickDirection",
-        "YTickFontSize",
-        "YTickLabels",
-        "YTickOptions",
-        "YTickRotation",
-        "YTickSize",
-        "YTicks",
-        "ax",
-        "fig",
-        "xerr",
-        "yerr",
-        "ymin",
-        "ymax"
-    }
-
-    # Options for which a singleton is a list
-    _optlist_list = {
-        "dashes",
-        "XLim",
-        "YLim",
-        "XTickLabels",
-        "XTicks",
-        "YTickLabels",
-        "YTicks"
-    }
-
-    # Alternate names
-    _optmap = {
-        "Axes": "ax",
-        "BottomTicks": "BottomSpineTicks",
-        "ErrorBarOpts": "ErrorBarOptions",
-        "Figure": "fig",
-        "FillBetweenOpts": "FillBetweenOptions",
-        "Font": "FontName",
-        "FontFamily": "FontName",
-        "GridOpts": "GridOptions",
-        "LeftTicks": "LeftSpineTicks",
-        "MajorGridOpts": "GridOptions",
-        "MajorGridOptions": "GridOptions",
-        "MinMaxOpts": "MinMaxOptions",
-        "PlotOpts": "PlotOptions",
-        "RightTicks": "RightSpineTicks",
-        "ShowUQ": "ShowUncertainty",
-        "TopTicks": "TopSpineTicks",
-        "UQOptions": "UncertaintyOptions",
-        "UQOpts": "UncertaintyOptions",
-        "UncertaintyOpts": "UncertaintyOptions",
-        "UQPlotType": "UncertaintyPlotType",
-        "density": "Density",
-        "grid": "Grid",
-        "hfig": "FigHeight",
-        "hspace": "MarginHSpace",
-        "i": "Index",
-        "label": "Label",
-        "lbl": "Label",
-        "nfig": "FigNumber",
-        "numfig": "FigNumber",
-        "rotate": "Rotate",
-        "subplot": "Subplot",
-        "vspace": "MarginVSpace",
-        "wfig": "FigWidth",
-        "xlabel": "XLabel",
-        "xlim": "XLim",
-        "ylabel": "YLabel",
-        "ylim": "YLim",
-    }
-
-   # --- Option Sublists ---
-    _optlists = {
-        "axes": [
-            "ax",
-            "AxesOptions"
-        ],
-        "axadjust": [
-            "MarginBottom",
-            "MarginLeft",
-            "MarginRight",
-            "MarginTop",
-            "AdjustBottom",
-            "AdjustLeft",
-            "AdjustRight",
-            "AdjustTop",
-            "KeepAspect",
-            "Subplot",
-            "SubplotCols",
-            "SubplotRows"
-        ],
-        "axadjust_col": [
-            "MarginBottom",
-            "MarginLeft",
-            "MarginRight",
-            "MarginTop",
-            "MarginVSpace",
-            "AdjustBottom",
-            "AdjustLeft",
-            "AdjustRight",
-            "AdjustTop",
-            "SubplotList",
-            "SubplotRubber"
-        ],
-        "axadjust_row": [
-            "MarginBottom",
-            "MarginLeft",
-            "MarginRight",
-            "MarginTop",
-            "MarginHSpace",
-            "AdjustBottom",
-            "AdjustLeft",
-            "AdjustRight",
-            "AdjustTop",
-            "SubplotList",
-            "SubplotRubber"
-        ],
-        "axformat": [
-            "Density",
-            "Index",
-            "Pad",
-            "Rotate",
-            "XLabel",
-            "XLim",
-            "XLimMax",
-            "XLimMin",
-            "XPad",
-            "YLabel",
-            "YLim",
-            "YLimMax",
-            "YLimMin",
-            "YPad"
-        ],
-        "fig": [
-            "fig",
-            "FigOptions",
-            "FigNumber",
-            "FigWidth",
-            "FigHeight",
-            "FigDPI"
-        ],
-        "font": [
-            "FontOptions",
-            "FontName",
-            "FontSize",
-            "FontStretch",
-            "FontStyle",
-            "FontVariant",
-            "FontWeight"
-        ],
-        "grid": [
-            "Grid",
-            "GridOptions",
-            "MinorGrid",
-            "MinorGridOptions",
-        ],
-        "plot": [
-            "Index",
-            "Rotate",
-            "PlotOptions",
-            "PlotColor",
-            "PlotLineStyle",
-            "PlotLineWidth",
-        ],
-        "imshow": [
-            "ImageXMin",
-            "ImageXMax",
-            "ImageXCenter",
-            "ImageYMin",
-            "ImageYMax",
-            "ImageYCenter",
-            "ImageExtent"
-        ],
-        "errobar": [
-            "Index",
-            "Rotate",
-            "ErrorBarOptions",
-            "ErrorBarMarker"
-        ],
-        "fillbetween": [
-            "Index",
-            "Rotate",
-            "FillBetweenOptions"
-        ],
-        "minmax": [
-            "Index",
-            "Rotate",
-            "MinMaxOptions",
-            "MinMaxPlotType",
-            "ErrorBarOptions",
-            "ErrorBarMarker",
-            "FillBetweenOptions"
-        ],
-        "error": [
-            "Index",
-            "Rotate",
-            "ErrorOptions",
-            "ErrorPlotType",
-            "ErrorBarOptions",
-            "ErrorBarMarker",
-            "FillBetweenOptions"
-        ],
-        "uq": [
-            "Index",
-            "Rotate",
-            "ErrorBarMarker",
-            "ErrorBarOptions",
-            "FillBetweenOptions",
-            "UncertaintyPlotType",
-            "UncertaintyOptions"
-        ],
-        "spines": [
-            "Spines",
-            "SpineOptions",
-            "Ticks",
-            "TickDirection",
-            "TickFontSize",
-            "TickLabels",
-            "TickOptions",
-            "TickRotation",
-            "TickSize",
-            "BottomSpine",
-            "BottomSpineMax",
-            "BottomSpineMin",
-            "BottomSpineOptions",
-            "BottomSpineTicks",
-            "BottomTickLabels",
-            "LeftSpine",
-            "LeftSpineMax",
-            "LeftSpineMin",
-            "LeftSpineOptions",
-            "LeftSpineTicks",
-            "LeftTickLabels",
-            "RightSpine",
-            "RightSpineMax",
-            "RightSpineMin",
-            "RightSpineOptions",
-            "RightSpineTicks",
-            "RightTickLabels",
-            "TopSpine",
-            "TopSpineMax",
-            "TopSpineMin",
-            "TopSpineOptions",
-            "TopSpineTicks",
-            "TopTickLabels",
-            "XSpine",
-            "XSpineMax",
-            "XSpineMin",
-            "XSpineOptions",
-            "XTicks",
-            "XTickDirection",
-            "XTickFontSize",
-            "XTickLabels",
-            "XTickOptions",
-            "XTickRotation",
-            "XTickSize",
-            "YSpine",
-            "YSpineMax",
-            "YSpineMin",
-            "YSpineOptions",
-            "YTicks",
-            "YTickDirection",
-            "YTickFontSize",
-            "YTickLabels",
-            "YTickOptions",
-            "YTickRotation",
-            "YTickSize",
-        ],
-        "legend": [
-            "Legend",
-            "LegendAnchor",
-            "LegendFontOptions",
-            "LegendLocation",
-            "LegendOptions"
-        ],
-        "legendfont": [
-            "LegendFontName",
-            "LegendFontSize",
-            "LegendFontStretch",
-            "LegendFontStyle",
-            "LegendFontVariant",
-            "LegendFontWeight"
-        ],
-        "subplot": [
-            "AdjustBottom",
-            "AdjustLeft",
-            "AdjustRight",
-            "AdjustTop",
-            "Subplot",
-            "SubplotCols",
-            "SubplotRows"
-        ],
-    }
-
-   # --- Types ---
-    # Types
-    _opttypes = {
-        "AdjustBottom": float,
-        "AdjustLeft": float,
-        "AdjustRight": float,
-        "AdjustTop": float,
-        "AxesOptions": dict,
-        "BottomSpine": (bool, typeutils.strlike),
-        "BottomSpineMax": float,
-        "BottomSpineMin": float,
-        "BottomSpineOptions": dict,
-        "BottomSpineTicks": bool,
-        "BottomTickLabels": bool,
-        "Density": bool,
-        "ErrorBarMarker": typeutils.strlike,
-        "ErrorBarOptions": dict,
-        "ErrorOptions": dict,
-        "ErrorPlotType": typeutils.strlike,
-        "FigDPI": (float, int),
-        "FigHeight": float,
-        "FigNumber": int,
-        "FigOptions": dict,
-        "FigWidth": float,
-        "FillBetweenOptions": dict,
-        "FontName": typeutils.strlike,
-        "FontOptions": dict,
-        "FontSize": (int, float, typeutils.strlike),
-        "FontStretch": (int, float, typeutils.strlike),
-        "FontStyle": typeutils.strlike,
-        "FontVariant": typeutils.strlike,
-        "FontWeight": (float, int, typeutils.strlike),
-        "Grid": int,
-        "GridOptions": dict,
-        "ImageExtent": (tuple, dict),
-        "ImageXCenter": float,
-        "ImageXMax": float,
-        "ImageXMin": float,
-        "ImageYCenter": float,
-        "ImageYMax": float,
-        "ImageYMin": float,
-        "Index": int,
-        "KeepAspect": bool,
-        "Label": typeutils.strlike,
-        "LeftSpine": (bool, typeutils.strlike),
-        "LeftSpineMax": float,
-        "LeftSpineMin": float,
-        "LeftSpineOptions": dict,
-        "LeftSpineTicks": bool,
-        "LeftTickLabels": bool,
-        "Legend": bool,
-        "LegendAnchor": (tuple, list),
-        "LegendFontName": typeutils.strlike,
-        "LegendFontOptions": dict,
-        "LegendFontSize": (int, float, typeutils.strlike),
-        "LegendFontStretch": (int, float, typeutils.strlike),
-        "LegendFontStyle": typeutils.strlike,
-        "LegendFontVariant": typeutils.strlike,
-        "LegendFontWeight": (float, int, typeutils.strlike),
-        "LegendLocation": (int, typeutils.strlike),
-        "LegendOptions": dict,
-        "MajorGrid": bool,
-        "MarginBottom": float,
-        "MarginHSpace": float,
-        "MarginLeft": float,
-        "MarginRight": float,
-        "MarginTop": float,
-        "MarginVSpace": float,
-        "MinorGrid": bool,
-        "MinorGridOptions": dict,
-        "MinMaxOptions": dict,
-        "MinMaxPlotType": typeutils.strlike,
-        "Pad": float,
-        "PlotColor": (tuple, typeutils.strlike),
-        "PlotLineStyle": typeutils.strlike,
-        "PlotLineWidth": (float, int),
-        "PlotOptions": dict,
-        "Rotate": bool,
-        "ShowError": bool,
-        "ShowLine": bool,
-        "ShowMinMax":bool,
-        "ShowUncertainty": bool,
-        "SpineOptions": dict,
-        "Spines": bool,
-        "SubplotCols": int,
-        "SubplotList": list,
-        "SubplotRows": int,
-        "SubplotRubber": int,
-        "RightSpine": (bool, typeutils.strlike),
-        "RightSpineMax": float,
-        "RightSpineMin": float,
-        "RightSpineOptions": dict,
-        "RightSpineTicks": bool,
-        "RightTickLabels": bool,
-        "TickDirection": typeutils.strlike,
-        "TickFontSize": (int, float, typeutils.strlike),
-        "TickLabels": bool,
-        "TickOptions": dict,
-        "TickRotation": (int, float),
-        "TickSize": (int, float, typeutils.strlike),
-        "Ticks": bool,
-        "TopSpine": (bool, typeutils.strlike),
-        "TopSpineMax": float,
-        "TopSpineMin": float,
-        "TopSpineOptions": dict,
-        "TopSpineTicks": bool,
-        "TopTickLabels": bool,
-        "UncertaintyOptions": dict,
-        "UncertaintyPlotType": typeutils.strlike,
-        "XLabel": typeutils.strlike,
-        "XLim": (tuple, list),
-        "XLimMax": float,
-        "XLimMin": float,
-        "XPad": float,
-        "XTickDirection": typeutils.strlike,
-        "XTickFontSize": (int, float, typeutils.strlike),
-        "XTickLabels": (bool, list),
-        "XTickOptions": dict,
-        "XTickRotation": (int, float),
-        "XTickSize": (int, float, typeutils.strlike),
-        "XTicks": (bool, list),
-        "YLabel": typeutils.strlike,
-        "YLim": (tuple, list),
-        "YLimMax": float,
-        "YLimMin": float,
-        "YPad": float,
-        "YTickDirection": typeutils.strlike,
-        "YTickFontSize": (int, float, typeutils.strlike),
-        "YTickLabels": (bool, list),
-        "YTickOptions": dict,
-        "YTickRotation": (int, float),
-        "YTickSize": (int, float, typeutils.strlike),
-        "YTicks": (bool, list),
-        "ax": object,
-        "fig": object,
-        "xerr": typeutils.arraylike,
-        "yerr": typeutils.arraylike,
-        "ymax": typeutils.arraylike,
-        "ymin": typeutils.arraylike,
-    }
-
-   # --- Cascading Options ---
-    # Global options mapped to subcategory options
-    _kw_submap = {
-        "AxesOptions": {},
-        "ErrorOptions": {},
-        "FigOptions": {
-            "FigNumber": "num",
-            "FigDPI": "dpi",
-            "FigHeight": "figheight",
-            "FigWidth": "figwidth",
-        },
-        "ErrorBarOptions": {
-            "Index": "Index",
-            "Rotate": "Rotate",
-            "ErrorBarMarker": "marker",
-            "PlotOptions.color": "color",
-        },
-        "FillBetweenOptions": {
-            "Index": "Index",
-            "Rotate": "Rotate",
-            "PlotOptions.color": "color",
-        },
-        "FontOptions": {
-            "FontName": "family",
-            "FontSize": "size",
-            "FontStretch": "stretch",
-            "FontStyle": "style",
-            "FontVariant": "variant",
-            "FontWeight": "weight",
-        },
-        "GridOptions": {
-            "GridColor": "color",
-        },
-        "LegendOptions": {
-            "LegendAnchor": "bbox_to_anchor",
-            "LegendFontOptions": "prop",
-            "LegendLocation": "loc",
-            "LegendNCol": "ncol",
-            "ShowLegend": "ShowLegend",
-        },
-        "LegendFontOptions": {
-            "FontOptions.family": "family",
-            "FontOptions.size": "size",
-            "FontOptions.stretch": "stretch",
-            "FontOptions.style": "style",
-            "FontOptions.variant": "variant",
-            "FontOptions.weight": "weight",
-            "LegendFontName": "family",
-            "LegendFontSize": "size",
-            "LegendFontStretch": "stretch",
-            "LegendFontStyle": "style",
-            "LegendFontVariant": "variant",
-            "LegendFontWeight": "weight",
-        },
-        "MinMaxOptions": {},
-        "PlotOptions": {
-            "Index": "Index",
-            "Rotate": "Rotate",
-            "Label": "label",
-            "PlotColor": "color",
-            "PlotLineWidth": "lw",
-            "PlotLineStyle": "ls"
-        },
-       "TickOptions": {
-            "TickFontSize": "labelsize",
-            "TickRotation": "rotation",
-            "TickSize": "size",
-       },
-       "XTickOptions": {
-           "TickOptions.labelsize": "labelsize",
-           "TickOptions.rotation": "rotation",
-           "TickOptions.size": "size",
-            "XTickFontSize": "labelsize",
-            "XTickRotation": "rotation",
-            "XTickSize": "size",
-       },
-       "YTickOptions": {
-           "TickOptions.labelsize": "labelsize",
-           "TickOptions.rotation": "rotation",
-           "TickOptions.size": "size",
-            "YTickFontSize": "labelsize",
-            "YTickRotation": "rotation",
-            "YTickSize": "size",
-        },
-        "UncertaintyOptions": {},
-    }
-
-   # --- Conflicting Options ---
-    # Aliases to merge for subcategory options
-    _kw_subalias = {
-        "PlotOptions": {
-            "linewidth": "lw",
-            "linestyle": "ls",
-            "c": "color",
-        },
-        "ErrorBarOptions": {
-            "linewidth": "lw",
-            "linestyle": "ls",
-            "c": "color",
-            "mec": "markeredgecolor",
-            "mew": "mergeredgewidth",
-            "mfc": "markerfacecolor",
-            "ms": "markersize",
-        },
-        "FillBetweenOptions": {
-            "linewidth": "lw",
-            "linestyle": "ls",
-            "c": "color",
-        },
-        "GridOptions": {
-            "linewidth": "lw",
-            "linestyle": "ls",
-            "c": "color",
-        },
-    }
-
-   # --- Documentation Data ---
-    # Type strings
-    _rst_types = {
-        "AdjustBottom": _rst_float,
-        "AdjustLeft": _rst_float,
-        "AdjustRight": _rst_float,
-        "AdjustTop": _rst_float,
-        "AxesOptions": _rst_dict,
-        "BottomSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
-        "BottomSpineMax": _rst_float,
-        "BottomSpineMin": _rst_float,
-        "BottomSpineOptions": _rst_dict,
-        "BottomSpineTicks": _rst_booln,
-        "BottomTickLabels": _rst_booln,
-        "Density": _rst_boolt,
-        "ErrorBarMarker": _rst_str,
-        "ErrorBarOptions": _rst_dict,
-        "ErrorOptions": _rst_dict,
-        "ErrorPlotType": """``"FillBetween"`` | {``"ErrorBar"``}""",
-        "FigDPI": _rst_numpos,
-        "FigHeight": _rst_floatpos,
-        "FigNumber": _rst_intpos,
-        "FigOptions": _rst_dict,
-        "FigWidth": _rst_floatpos,
-        "FillBetweenOptions": _rst_dict,
-        "FontName": _rst_str,
-        "FontOptions": _rst_dict,
-        "FontSize": _rst_strnum,
-        "FontStretch": _rst_strnum,
-        "FontStyle": ("""{``None``} | ``"normal"`` | """ +
-            """``"italic"`` | ``"oblique"``"""),
-        "FontVariant": """{``None``} | ``"normal"`` | ``"small-caps"``""",
-        "FontWeight": _rst_strnum,
-        "Grid": _rst_boolt,
-        "GridColor": """{``None``} | :class:`str` | :class:`tuple`""",
-        "GridOptions": _rst_dict,
-        "ImageExtent": """{``None``} | :class:`tuple` | :class:`list`""",
-        "ImageXCenter": _rst_float,
-        "ImageXMax": _rst_float,
-        "ImageXMin": """{``0.0``} | :class:`float`""",
-        "ImageYCenter": """{``0.0``} | :class:`float`""",
-        "ImageYMax": _rst_float,
-        "ImageYMin": _rst_float,
-        "Index": """{``0``} | :class:`int` >=0""",
-        "KeepAspect": _rst_booln,
-        "Label": _rst_str,
-        "LeftSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
-        "LeftSpineMax": _rst_float,
-        "LeftSpineMin": _rst_float,
-        "LeftSpineOptions": _rst_dict,
-        "LeftSpineTicks": _rst_booln,
-        "LeftTickLabels": _rst_booln,
-        "Legend": _rst_booln,
-        "LegendAnchor": r"""{``None``} | :class:`tuple`\ (*x*, *y*)""",
-        "LegendFontName": _rst_str,
-        "LegendFontOptions": _rst_dict,
-        "LegendFontSize": _rst_strnum,
-        "LegendFontStretch": _rst_strnum,
-        "LegendFontStyle": ("""{``None``} | ``"normal"`` | """ +
-            """``"italic"`` | ``"oblique"``"""),
-        "LegendFontVariant": '{``None``} | ``"normal"`` | ``"small-caps"``',
-        "LegendFontWeight": _rst_strnum,
-        "LegendLocation": """{``None``} | :class:`str` | :class:`int`""",
-        "LegendOptions": _rst_dict,
-        "MajorGrid": _rst_boolt,
-        "MarginBottom": _rst_float,
-        "MarginHSpace": _rst_float,
-        "MarginLeft": _rst_float,
-        "MarginRight": _rst_float,
-        "MarginTop": _rst_float,
-        "MarginVSpace": _rst_float,
-        "MinMaxPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
-        "MinMaxOptions": _rst_dict,
-        "MinorGrid": _rst_boolf,
-        "MinorGridOptions": _rst_dict,
-        "Pad": _rst_float,
-        "PlotColor": """{``None``} | :class:`str` | :class:`tuple`""",
-        "PlotLineStyle": ('``":"`` | ``"-"`` | ``"none"`` | ' +
-            '``"-."`` | ``"--"``'),
-        "PlotLineWidth": _rst_numpos,
-        "PlotOptions": _rst_dict,
-        "RightSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
-        "RightSpineMax": _rst_float,
-        "RightSpineMin": _rst_float,
-        "RightSpineOptions": _rst_dict,
-        "RightSpineTicks": _rst_booln,
-        "RightTickLabels": _rst_booln,
-        "Rotate": _rst_boolt,
-        "ShowError": _rst_booln,
-        "ShowMinMax": _rst_booln,
-        "ShowUncertainty": _rst_booln,
-        "Subplot": """{``None``} | :class:`Axes` | :class:`int`""",
-        "SubplotCols": _rst_intpos,
-        "SubplotList": r"""{``None``} | :class:`list`\ [:class:`int`]""",
-        "SubplotRows": _rst_intpos,
-        "SubplotRubber": _rst_int,
-        "TopSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
-        "TopSpineMax": _rst_float,
-        "TopSpineMin": _rst_float,
-        "TopSpineOptions": _rst_dict,
-        "TopSpineTicks": _rst_booln,
-        "TopTickLabels": _rst_booln,
-        "UncertaintyOptions": _rst_dict,
-        "UncertaintyPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
-        "XLabel": _rst_str,
-        "XLim": r"""{``None``} | (:class:`float`, :class:`float`)""",
-        "XLimMax": _rst_float,
-        "XLimMin": _rst_float,
-        "XPad": """{*Pad*} | :class:`float`""",
-        "YLabel": _rst_str,
-        "YLim": r"""{``None``} | (:class:`float`, :class:`float`)""",
-        "YLimMax": _rst_float,
-        "YLimMin": _rst_float,
-        "YPad": """{*Pad*} | :class:`float`""",
-        "ax": """{``None``} | :class:`matplotlib.axes._subplots.Axes`""",
-        "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
-    }
-    # Option descriptions
-    _rst_descriptions = {
-        "AdjustBottom": """Figure-scale coordinates of bottom of axes""",
-        "AdjustLeft": """Figure-scale coordinates of left side of axes""",
-        "AdjustRight": """Figure-scale coordinates of right side of axes""",
-        "AdjustTop": """Figure-scale coordinates of top of axes""",
-        "AxesOptions": """Options to :class:`AxesSubplot`""",
-        "BottomSpine": "Turn on/off bottom plot spine",
-        "BottomSpineMax": "Maximum *x* coord for bottom plot spine",
-        "BottomSpineMin": "Minimum *x* coord for bottom plot spine",
-        "BottomSpineTicks": "Turn on/off labels on bottom spine",
-        "BottomSpineOptions": "Additional options for bottom spine",
-        "BottomTickLabels": "Turn on/off tick labels on bottom spine",
-        "Density": """Option to scale histogram plots""",
-        "ErrorBarMarker": """Marker for :func:`errorbar` plots""",
-        "ErrorBarOptions": """Options for :func:`errorbar` plots""",
-        "ErrorOptions": """Options for error plots""",
-        "ErrorPlotType": """Plot type for "error" plots""",
-        "FigDPI": "Figure resolution in dots per inch",
-        "FigHeight": "Figure height [inches]",
-        "FigNumber": "Figure number",
-        "FigOptions": """Options to :class:`matplotlib.figure.Figure`""",
-        "FigWidth": "Figure width [inches]",
-        "FillBetweenOptions": """Options for :func:`fill_between` plots""",
-        "FontName": """Font name (categories like ``sans-serif`` allowed)""",
-        "FontOptions": """Options to :class:`FontProperties`""",
-        "FontSize": """Font size (options like ``"small"`` allowed)""",
-        "FontStretch": ("""Stretch, numeric in range 0-1000 or """ +
-            """string such as ``"condensed"``, ``"extra-condensed"``, """ +
-            """``"semi-expanded"``"""),
-        "FontStyle": """Font style/slant""",
-        "FontVariant": """Font capitalization variant""",
-        "FontWeight": ("""Numeric font weight 0-1000 or ``"normal"``, """ +
-            """``"bold"``, etc."""),
-        "Grid": """Option to turn on/off axes grid""",
-        "GridColor": """Color passed to *GridOptions*""",
-        "GridOptions": """Plot options for major grid""",
-        "ImageXMin": "Coordinate for left edge of image",
-        "ImageXMax": "Coordinate for right edge of image",
-        "ImageXCenter": "Horizontal center coord if *x* edges not specified",
-        "ImageYMin": "Coordinate for bottom edge of image",
-        "ImageYMax": "Coordinate for top edge of image",
-        "ImageYCenter": "Vertical center coord if *y* edges not specified",
-        "ImageExtent": ("Spec for *ImageXMin*, *ImageXMax*, " +
-            "*ImageYMin*, *ImageYMax*"),
-        "Index": """Index to select specific option from lists""",
-        "KeepAspect": ("""Keep aspect ratio; default is ``True`` unless""" +
-            """``ax.get_aspect()`` is ``"auto"``"""),
-        "Label": """Label passed to :func:`plt.legend`""",
-        "LeftSpine": "Turn on/off left plot spine",
-        "LeftSpineMax": "Maximum *y* coord for left plot spine",
-        "LeftSpineMin": "Minimum *y* coord for left plot spine",
-        "LeftSpineTicks": "Turn on/off labels on left spine",
-        "LeftSpineOptions": "Additional options for left spine",
-        "LeftTickLabels": "Turn on/off tick labels on left spine",
-        "Legend": "Turn on/off (auto) legend",
-        "LegendAnchor": "Location passed to *bbox_to_anchor*",
-        "LegendFontName": "Font name (categories like ``sans-serif`` allowed)",
-        "LegendFontOptions": "Options to :class:`FontProperties`",
-        "LegendFontSize": 'Font size (options like ``"small"`` allowed)',
-        "LegendFontStretch": ("""Stretch, numeric in range 0-1000 or """ +
-            """string such as ``"condensed"``, ``"extra-condensed"``, """ +
-            """``"semi-expanded"``"""),
-        "LegendFontStyle": """Font style/slant""",
-        "LegendFontVariant": """Font capitalization variant""",
-        "LegendFontWeight": ("""Numeric font weight 0-1000 or """ +
-            """``"normal"``, ``"bold"``, etc."""),
-        "LegendLocation": """Numeric location or abbreviation""",
-        "LegendOptions": """Options to :func:`plt.legend`""",
-        "MajorGrid": """Option to turn on/off grid at main ticks""",
-        "MarginBottom": "Figure fraction from bottom edge to bottom label",
-        "MarginHSpace": "Figure fraction for horizontal space between axes",
-        "MarginLeft": "Figure fraction from left edge to left-most label",
-        "MarginRight": "Figure fraction from right edge to right-most label",
-        "MarginTop": "Figure fraction from top edge to top-most label",
-        "MarginVSpace": "Figure fraction for vertical space between axes",
-        "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
-        "MinMaxPlotType": """Plot type for min/max plot""",
-        "MinorGrid": """Turn on/off grid at minor ticks""",
-        "MinorGridOptions": """Plot options for minor grid""",
-        "Pad": "Padding to add to both axes, *ax.set_xlim* and *ax.set_ylim*",
-        "PlotColor": """Color option to :func:`plt.plot` for primary curve""",
-        "PlotOptions": """Options to :func:`plt.plot` for primary curve""",
-        "PlotLineStyle": """Line style for primary :func:`plt.plot`""",
-        "PlotLineWidth": """Line width for primary :func:`plt.plot`""",
-        "RightSpine": "Turn on/off right plot spine",
-        "RightSpineMax": "Maximum *y* coord for right plot spine",
-        "RightSpineMin": "Minimum *y* coord for right plot spine",
-        "RightSpineTicks": "Turn on/off labels on right spine",
-        "RightSpineOptions": "Additional options for right spine",
-        "RightTickLabels": "Turn on/off tick labels on right spine",
-        "Rotate": """Option to flip *x* and *y* axes""",
-        "ShowError": """Show "error" plot using *xerr*""",
-        "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
-        "ShowUncertainty": """Plot uncertainty bounds""",
-        "Subplot": "Subplot index (1-based)",
-        "SubplotCols": "Expected number of subplot columns",
-        "SubplotList": "List of subplots to put in row/column",
-        "SubplotRows": "Expected number of subplot rows",
-        "SubplotRubber": "Index of subplot to expand",
-        "TopSpine": "Turn on/off top plot spine",
-        "TopSpineMax": "Maximum *x* coord for top plot spine",
-        "TopSpineMin": "Minimum *x* coord for top plot spine",
-        "TopSpineTicks": "Turn on/off labels on top spine",
-        "TopSpineOptions": "Additional options for top spine",
-        "TopTickLabels": "Turn on/off tick labels on top spine",
-        "UncertaintyOptions": """Options for UQ plots""",
-        "UncertaintyPlotType": """Plot type for UQ plots""",
-        "XLabel": """Label to put on *x* axis""",
-        "XLim": """Limits for min and max value of *x*-axis""",
-        "XLimMax": """Min value for *x*-axis in plot""",
-        "XLimMin": """Max value for *x*-axis in plot""",
-        "XPad": """Extra padding to add to *x* axis limits""",
-        "YLabel": """Label to put on *y* axis""",
-        "YLim": """Limits for min and max value of *y*-axis""",
-        "YLimMax": """Min value for *y*-axis in plot""",
-        "YLimMin": """Max value for *y*-axis in plot""",
-        "YPad": """Extra padding to add to *y* axis limits""",
-        "ax": """Handle to existing axes""",
-        "fig": """Handle to existing figure""",
-    }
-    
-   # --- RC ---
-    # Default values
-    _rc = {
-        "ShowLine": True,
-        "ShowError": False,
-        "Index": 0,
-        "Rotate": False,
-        "AxesOptions": {},
-        "ErrorBarOptions": {},
-        "ErrorOptions": {},
-        "FigOptions": {
-            "figwidth": 5.5,
-            "figheight": 4.4,
-        },
-        "FillBetweenOptions": {
-            "alpha": 0.2,
-            "lw": 0,
-            "zorder": 4,
-        },
-        "FontOptions": {
-            "family": "DejaVu Sans",
-        },
-        "LegendFontOptions": {},
-        "LegendOptions": {
-            "loc": "upper center",
-            "labelspacing": 0.5,
-            "framealpha": 1.0,
-        },
-        "MinMaxOptions": {},
-        "MinMaxPlotType": "FillBetween",
-        "PlotOptions": {
-            "color": ["b", "k", "darkorange", "g"],
-            "ls": "-",
-            "zorder": 8,
-        },
-        "TickOptions": {},
-        "XTickOptions": {},
-        "YTickOptions": {},
-    }
-
-    # Options for sections
-    _rc_sections = {
-        "figure": {},
-        "axes": {},
-        "axformat": {
-            "Pad": 0.05,
-        },
-        "axadjust": {},
-        "plot": {},
-        "error": {},
-        "minmax": {},
-        "uq": {},
-        "fillbetween": {},
-        "errorbar": {
-            "capsize": 1.5,
-            "lw": 0.5,
-            "elinewidth": 0.8,
-            "zorder": 6,
-        },
-        "imshow": {},
-        "grid": {
-            "Grid": True,
-            "MajorGrid": True,
-        },
-        "majorgrid": {
-            "ls": ":",
-            "lw": 0.5,
-            "color": "#a0a0a0",
-        },
-        "minorgrid": {},
-        "hist": {
-            "facecolor": 'c',
-            "zorder": 2,
-            "bins": 20,
-            "density": True,
-            "edgecolor": 'k',
-        },
-        "legend": {
-            "loc": "upper center",
-            "labelspacing": 0.5,
-            "framealpha": 1.0,
-        },
-        "font": {},
-        "spines": {
-            "Spines": True,
-            "Ticks": True,
-            "TickDirection": "out",
-            "RightSpineTicks": False,
-            "TopSpineTicks": False,
-            "RightSpine": False,
-            "TopSpine": False,
-        },
-        "mu": {
-            "color": 'k',
-            "lw": 2,
-            "zorder": 6,
-            "label": "Mean value",
-        },
-        "gauss": {
-            "color": "navy",
-            "lw": 1.5,
-            "zorder": 7,
-            "label": "Normal Distribution",
-        },
-        "interval": {
-            "color": "b",
-            "lw": 0,
-            "zorder": 1,
-            "alpha": 0.2,
-            "imin": 0.,
-            "imax": 5.,
-        },
-        "std": {
-            'color': 'navy',
-            'lw': 2,
-            'zorder': 5,
-            "dashes": [4, 2],
-            'StDev': 3,
-        },
-        "delta": {
-            'color': "r",
-            'ls': "--",
-            'lw': 1.0,
-            'zorder': 3,
-        },
-        "histlbl": {
-            'color': 'k',
-            'horizontalalignment': 'right',
-            'verticalalignment': 'top',
-        },
-    }
-  # >
-
-  # ==================
-  # Categories
-  # ==================
-  # <
-    # Subplot column options
-    def axadjust_col_options(self):
-        r"""Process options for axes margin adjustment
-
-        :Call:
-            >>> kw = opts.axadjust_col_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_adjust_col`
-        :Versions:
-            * 2020-01-10 ``@ddalle``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.section_options("axadjust_col")
-
-    # Subplot row options
-    def axadjust_row_options(self):
-        r"""Process options for axes margin adjustment
-
-        :Call:
-            >>> kw = opts.axadjust_row_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_adjust_row`
-        :Versions:
-            * 2020-01-10 ``@ddalle``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.section_options("axadjust_row")
-
-    # Process axes formatting options
-    def axadjust_options(self):
-        r"""Process options for axes margin adjustment
-
-        :Call:
-            >>> kw = opts.axadjust_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_adjust`
-        :Versions:
-            * 2020-01-08 ``@ddalle``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.section_options("axadjust")
-
-    # Axes options
-    def axes_options(self):
-        r"""Process options for axes handle
-
-        :Call:
-            >>> kw = opts.axes_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`plt.axes`
-        :Versions:
-            * 2019-03-07 ``@ddalle``: First version
-            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "axes" section
-        return self.section_options("axes")
-
-    # Process axes formatting options
-    def axformat_options(self):
-        r"""Process options for axes format
-
-        :Call:
-            >>> kw = opts.axformat_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_format`
-        :Versions:
-            * 2019-03-07 ``@jmeeroff``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.section_options("axformat")
-
-    # Process options for "error" plot
-    def error_options(self):
-        r"""Process options for error plots
-
-        :Call:
-            >>> kw = opts.error_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`error`
-        :Versions:
-            * 2019-03-04 ``@ddalle``: First version
-            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "minmax" section
-        kw = self.section_options("error")
-        # Save section name
-        mainopt = "ErrorOptions"
-        # Get type-specific options removed
-        kw_eb = kw.pop("ErrorBarOptions", {})
-        kw_fb = kw.pop("FillBetweenOptions", {})
-        kw_mm = kw.get(mainopt, {})
-        # Get the plot type
-        mmax_type = kw.get("MinMaxPlotType", "fillbetween").lower()
-        mmax_type = mmax_type.replace("_", "")
-        # Check type
-        if mmax_type == "errorbar":
-            # Combine ErrorBar options into main options
-            kw[mainopt] = dict(kw_eb, **kw_mm)
-        else:
-            # Combine FillBetween options into main options
-            kw[mainopt] = dict(kw_fb, **kw_mm)
-        # Output
-        return kw
-
-    # Options for errorbar() plots
-    def errorbar_options(self):
-        r"""Process options for :func:`errorbar` calls
-
-        :Call:
-            >>> kw = opts.errorbar_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`errorbar`
-        :Versions:
-            * 2019-03-05 ``@ddalle``: First version
-            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Specific options
-        return self.get_option("ErrorBarOptions")
-
-    # Figure creation and manipulation
-    def figure_options(self):
-        r"""Process options specific to Matplotlib figure
-
-        :Call:
-            >>> kw = figure_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`plt.figure`
-        :Versions:
-            * 2019-03-06 ``@ddalle``: First version
-            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "figure" section
-        return self.section_options("fig")
-
-    # Options for fill_between() plots
-    def fillbetween_options(self):
-        r"""Process options for :func:`fill_between` calls
-
-        :Call:
-            >>> kw = opts.fillbetween_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`fill_between`
-        :Versions:
-            * 2019-03-05 ``@ddalle``: First version
-            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Specific options
-        return self.get_option("FillBetweenOptions")
-
-    # Global font options
-    def font_options(self):
-        r"""Process global font options
-
-        :Call:
-            >>> kw = opts.font_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of font property options
-        :Versions:
-            * 2019-03-07 ``@ddalle``: First version
-            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "font" section and only return "FontOptions"
-        return self.section_options("font", "FontOptions")
-
-    # Grid options
-    def grid_options(self):
-        r"""Process options to axes :func:`grid` command
-
-        :Call:
-            >>> kw = opts.grid_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`grid`
-        :Versions:
-            * 2019-03-07 ``@jmeeroff``: First version
-            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.section_options("grid")
-
-    # Process imshow() options
-    def imshow_options(self):
-        r"""Process options for image display calls
-
-        :Call:
-            >>> kw = opts.imshow_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`imshow`
-        :Versions:
-            * 2020-01-09 ``@ddalle``: First version
-            * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        return self.section_options("imshow")
-
-    # Options for font in legend
-    def legend_font_options(self):
-        r"""Process font options for :func:`legend` calls
-
-        :Call:
-            >>> kw = opts.legend_font_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`errorbar`
-        :Versions:
-            * 2020-01-19 ``@ddalle``: First version
-        """
-        # Specific options
-        return self.get_option("LegendFontOptions")
-
-    # Legend options
-    def legend_options(self):
-        r"""Process options for :func:`legend`
-    
-        :Call:
-            >>> kw = opts.legend_options(kw, kwp={})
-        :Inputs:
-            *kw*: :class:`dict`
-                Dictionary of options to parent function
-            *kwp*: {``{}``}  | :class:`dict`
-                Dictionary of options from which to inherit
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Options to :func:`legend`
-        :Versions:
-            * 2019-03-07 ``@ddalle``: First version
-            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-98 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Get *LegendOptions* options
-        kw = self.get_option("LegendOptions")
-        # Specific location options
-        loc = kw.get("loc")
-        # Check it
-        if loc in ["upper center", 9]:
-            # Bounding box location on top spine
-            kw.setdefault("bbox_to_anchor", (0.5, 1.05))
-        elif loc in ["lower center", 8]:
-            # Bounding box location on bottom spine
-            kw.setdefault("bbox_to_anchor", (0.5, -0.05))
-        # Output
-        return kw
-
-    # Primary options
-    def plot_options(self):
-        r"""Process options to primary plot curve
-
-        :Call:
-            >>> kw = opts.plot_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`plot`
-        :Versions:
-            * 2019-03-07 ``@ddalle``: First version
-            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "plot" section and only return "PlotOptions"
-        return self.section_options("plot", "PlotOptions")
-
-    # Process options for min/max plot
-    def minmax_options(self):
-        r"""Process options for min/max plots
-
-        :Call:
-            >>> kw = opts.minmax_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`minmax`
-        :Versions:
-            * 2019-03-04 ``@ddalle``: First version
-            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "minmax" section
-        kw = self.section_options("minmax")
-        # Save section name
-        mainopt = "MinMaxOptions"
-        # Get type-specific options removed
-        kw_eb = kw.pop("ErrorBarOptions", {})
-        kw_fb = kw.pop("FillBetweenOptions", {})
-        kw_mm = kw.get(mainopt, {})
-        # Get the plot type
-        mmax_type = kw.get("MinMaxPlotType", "fillbetween").lower()
-        mmax_type = mmax_type.replace("_", "")
-        # Check type
-        if mmax_type == "errorbar":
-            # Combine ErrorBar options into main options
-            kw[mainopt] = dict(kw_eb, **kw_mm)
-        else:
-            # Combine FillBetween options into main options
-            kw[mainopt] = dict(kw_fb, **kw_mm)
-        # Output
-        return kw
-
-    # Process options for UQ plot
-    def uq_options(self):
-        r"""Process options for uncertainty quantification plots
-
-        :Call:
-            >>> kw = opts.uq_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`uq`
-        :Versions:
-            * 2019-03-04 ``@ddalle``: First version
-            * 2019-12-23 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "uq" section
-        kw = self.section_options("uq")
-        # Save section name
-        mainopt = "UncertaintyOptions"
-        # Get type-specific options removed
-        kw_eb = kw.pop("ErrorBarOptions", {})
-        kw_fb = kw.pop("FillBetweenOptions", {})
-        kw_mm = kw.get(mainopt, {})
-        # Get the plot type
-        mmax_type = kw.get("UncertaintyPlotType", "fillbetween").lower()
-        mmax_type = mmax_type.replace("_", "")
-        # Check type
-        if mmax_type == "errorbar":
-            # Combine ErrorBar options into main options
-            kw[mainopt] = dict(kw_eb, **kw_mm)
-        else:
-            # Combine FillBetween options into main options
-            kw[mainopt] = dict(kw_fb, **kw_mm)
-        # Output
-        return kw
-
-    # Spine options
-    def spine_options(self):
-        r"""Process options for axes "spines"
-
-        :Call:
-            >>> kw = opts.spine_options()
-        :Inputs:
-            *opts*: :class:`MPLOpts`
-                Options interface
-        :Keys:
-            %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to each of four spines
-        :Versions:
-            * 2019-03-07 ``@jmeeroff``: First version
-            * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-20 ``@ddalle``: Using :class:`KwargHandler`
-        """
-        # Use the "spines" section, cascading opts handled internally
-        return self.section_options("spines")
-  # >
-
-# Document sublists
-MPLOpts._doc_keys("axadjust_options", "axadjust")
-MPLOpts._doc_keys("axadjust_col_options", "axadjust_col")
-MPLOpts._doc_keys("axadjust_row_options", "axadjust_row")
-MPLOpts._doc_keys("axformat_options", "axformat")
-MPLOpts._doc_keys("axes_options", "axes")
-MPLOpts._doc_keys("error_options", "error")
-MPLOpts._doc_keys("figure_options", "fig")
-MPLOpts._doc_keys("grid_options", "grid")
-MPLOpts._doc_keys("imshow_options", "imshow")
-MPLOpts._doc_keys("minmax_options", "minmax")
-MPLOpts._doc_keys("plot_options", "plot")
-MPLOpts._doc_keys("spine_options", "spines")
-MPLOpts._doc_keys("uq_options", "uq")
-
-# Special categories
-MPLOpts._doc_keys("errorbar_options", ["ErrorBarOptions"])
-MPLOpts._doc_keys("fillbetween_options", ["FillBetweenOptions"])
-MPLOpts._doc_keys("legend_font_options", ["LegendFontOptions"])
-MPLOpts._doc_keys("legend_options", ["LegendOptions"])
