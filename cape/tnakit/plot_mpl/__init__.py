@@ -80,19 +80,16 @@ def plot(xv, yv, *a, **kw):
     qmmx = opts.get("ShowMinMax", qmmx)
     qerr = opts.get("ShowError", False)
     quq = opts.get("ShowUncertainty", quq and (not qerr))
-   # --- Universal Options ---
-    # Font options
-    kw_font = opts.font_options()
    # --- Figure Setup ---
     # Process figure options
     kw_fig = opts.figure_options()
     # Get/create figure
-    h.fig = figure(**kw_fig)
+    h.fig = mpl._figure(**kw_fig)
    # --- Axis Setup ---
     # Process axis options
     kw_ax = opts.axes_options()
     # Get/create axis
-    h.ax = axes(**kw_ax)
+    h.ax = mpl._axes(**kw_ax)
    # --- Primary Plot ---
     # Process plot options
     kw_plot = opts.plot_options()
@@ -1405,38 +1402,31 @@ def figure(**kw):
             Figure handle
     :Versions:
         * 2019-03-06 ``@ddalle``: First version
+        * 2020-01-24 ``@ddalle``: Added options checks
     """
-    # Import PyPlot
-    mpl._import_pyplot()
-    # Get figure handle and other options
-    fig = kw.get("fig", None)
-    figopts = kw.get("FigOptions", {})
-    # Check for a figure number
-    fignum = figopts.pop("num", None)
-    # Create figure if needed
-    if not isinstance(fig, mpl.mplfig.Figure):
-        # Check for specified figure
-        if fignum is None:
-            # Use most recent figure (can be new one)
-            fig = mpl.plt.gcf()
-        else:
-            # Get specified figure
-            fig = mpl.plt.figure(fignum)
-    # Loop through options
-    for (k, v) in figopts.items():
-        # Check for None
-        if not v:
-            continue
-        # Get setter function
-        fn = getattr(fig, "set_" + k, None)
-        # Check property
-        if fn is None:
-            sys.stderr.write("No figure property '%s'\n" % k)
-            sys.stderr.flush()
-        # Apply setter
-        fn(v)
-    # Output
-    return fig
+    # Call direct method without special additions
+    return mpl.figure(**kw)
+
+
+# Figure with no checks
+def _figure(**kw):
+    r"""Get or create figure handle and format it
+
+    :Call:
+        >>> fig = _figure(**kw)
+    :Inputs:
+        *fig*: {``None``} | :class:`matplotlib.figure.Figure`
+            Optional figure handle
+        *FigOptions*: {``None``} | :class:`dict`
+            Options to apply to figure handle using :func:`fig.set`
+    :Outputs:
+        *fig*: :class:`matplotlib.figure.Figure`
+            Figure handle
+    :Versions:
+        * 2019-03-06 ``@ddalle``: First version
+    """
+    # Call direct method
+    return mpl._figure(**kw)
 
 
 # Axis part (initial)
@@ -1456,37 +1446,29 @@ def axes(**kw):
     :Versions:
         * 2019-03-06 ``@ddalle``: First version
     """
-    # Import PyPlot
-    mpl._import_pyplot()
-    # Get figure handle and other options
-    ax = kw.get("ax", None)
-    axopts = kw.get("AxesOptions", {})
-    # Check for a subplot description
-    axnum = axopts.pop("subplot", None)
-    # Create figure if needed
-    if not isinstance(ax, mpl.mplax._subplots.Axes):
-        # Check for specified figure
-        if axnum is None:
-            # Use most recent figure (can be new one)
-            ax = mpl.plt.gca()
-        else:
-            # Get specified figure
-            ax = mpl.plt.subplot(axnum)
-    # Loop through options
-    for (k, v) in axopts.items():
-        # Check for None
-        if not v:
-            continue
-        # Get setter function
-        fn = getattr(ax, "set_" + k, None)
-        # Check property
-        if fn is None:
-            sys.stderr.write("No axes property '%s'\n" % k)
-            sys.stderr.flush()
-        # Apply setter
-        fn(v)
-    # Output
-    return ax
+    # Call direct method
+    return mpl.axes(**kw)
+
+
+# Axis part (no checks)
+def _axes(**kw):
+    r"""Create new axes or edit one if necessary
+
+    :Call:
+        >>> ax = _axes(**kw)
+    :Inputs:
+        *ax*: ``None`` | :class:`AxesSubplot`
+            Optional axes handle
+        *AxesOptions*: {``None``} | :class:`dict`
+            Options to apply to figure handle using :func:`ax.set`
+    :Outputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+    :Versions:
+        * 2020-01-24 ``@ddalle``: First version
+    """
+    # Call direct method
+    return mpl._axes(**kw)
 
 
 # Move axes all the way to one side

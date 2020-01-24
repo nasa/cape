@@ -39,6 +39,10 @@ mpl = object()
 mplax = object()
 mplfig = object()
 
+# Specific types
+Axes = object()
+Figure = object()
+
 
 # Import :mod:`matplotlib`
 def _import_matplotlib():
@@ -59,6 +63,8 @@ def _import_matplotlib():
     global mpl
     global mplax
     global mplfig
+    global Axes
+    global Figure
     # Exit if already imported
     if isinstance(mpl, mod):
         return
@@ -67,6 +73,9 @@ def _import_matplotlib():
         import matplotlib as mpl
         import matplotlib.axes as mplax
         import matplotlib.figure as mplfig
+        # Access types
+        Axes = mplax._subplots.Axes
+        Figure = mplfig.Figure
     except ImportError:
         return
     # Check for no-display
@@ -105,6 +114,58 @@ def _import_pyplot():
         return
 
 
+# Figure part
+def figure(**kw):
+    r"""Get or create figure handle and format it
+
+    :Call:
+        >>> fig = figure(**kw)
+    :Inputs:
+        *fig*: {``None``} | :class:`matplotlib.figure.Figure`
+            Optional figure handle
+        *FigOptions*: {``None``} | :class:`dict`
+            Options to apply to figure handle using :func:`fig.set`
+    :Outputs:
+        *fig*: :class:`matplotlib.figure.Figure`
+            Figure handle
+    :Versions:
+        * 2019-03-06 ``@ddalle``: First version
+        * 2020-01-24 ``@ddalle``: Added options checks
+    """
+    # Process options
+    opts = MPLOpts(_section="figure", **kw)
+    # Get figure options
+    kw_fig = opts.figure_options()
+    # Call root function
+    return _figure(**kw_fig)
+
+
+# Axis part (initial)
+def axes(**kw):
+    r"""Create new axes or edit one if necessary
+
+    :Call:
+        >>> ax = axes(**kw)
+    :Inputs:
+        *ax*: ``None`` | :class:`AxesSubplot`
+            Optional axes handle
+        *AxesOptions*: {``None``} | :class:`dict`
+            Options to apply to figure handle using :func:`ax.set`
+    :Outputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+    :Versions:
+        * 2019-03-06 ``@ddalle``: First version
+        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+    """
+    # Process options
+    opts = MPLOpts(_section="axes", **kw)
+    # Get figure options
+    kw_ax = opts.axes_options()
+    # Call root function
+    return _axes(**kw_ax)
+
+
 # Plot function with options check
 def plot(xv, yv, fmt=None, **kw):
     r"""Call the :func:`plot` function with cycling options
@@ -140,55 +201,6 @@ def plot(xv, yv, fmt=None, **kw):
     return _plot(xv, yv, fmt=fmt, **kw_p)
 
 
-# Plot part
-def _plot(xv, yv, fmt=None, **kw):
-    r"""Call the :func:`plot` function with cycling options
-
-    :Call:
-        >>> h = _plot(xv, yv, **kw)
-        >>> h = _plot(xv, yv, fmt, **kw)
-    :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of *x*-coordinates
-        *yv*: :class:`np.ndarray`
-            Array of *y*-coordinates
-        *fmt*: :class:`str`
-            Optional format option
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *rotate*, *Rotate*: ``True`` | {``False``}
-            Plot independent variable on vertical axis
-    :Keyword Arguments:
-        * See :func:`matplotlib.pyplot.plot`
-    :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
-            List of line instances
-    :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
-    """
-    # Ensure plot() is available
-    _import_pyplot()
-    # Get index
-    i = kw.pop("Index", kw.pop("i", 0))
-    # Get rotation option
-    r = kw.pop("Rotate", kw.pop("rotate", False))
-    # Flip inputs
-    if r:
-        yv, xv = xv, yv
-    # Initialize plot options
-    kw_p = MPLOpts.select_phase(kw, i)
-    # Call plot
-    if typeutils.isstr(fmt):
-        # Call with extra format argument
-        h = plt.plot(xv, yv, fmt, **kw_p)
-    else:
-        # No format argument
-        h = plt.plot(xv, yv, **kw_p)
-    # Output
-    return h
-
-
 # Error bar plot
 def errorbar(xv, yv, yerr=None, xerr=None, **kw):
     r"""Call the :func:`errorbar` function with options checks
@@ -221,6 +233,87 @@ def errorbar(xv, yv, yerr=None, xerr=None, **kw):
     kw_eb = opts.errorbar_options()
     # Call root function
     return _errorbar(xv, yv, yerr, xerr, **kw_eb)
+
+
+# Region plot
+def fill_between(xv, ymin, ymax, **kw):
+    r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
+
+    :Call:
+        >>> h = _fill_between(xv, ymin, ymax, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of independent variable values
+        *ymin*: :class:`np.ndarray` | :class:`float`
+            Array of values or single value for lower bound of window
+        *ymax*: :class:`np.ndarray` | :class:`float`
+            Array of values or single value for upper bound of window
+        *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *Rotate*: ``True`` | {``False``}
+            Option to plot independent variable on vertical axis
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
+        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+    """
+    # Process options
+    opts = MPLOpts(_section="fillbetween", **kw)
+    # Get plot options
+    kw_fb = opts.fillbetween_options()
+    # Call root function
+    return _fill_between(xv, ymin, ymax, **kw_fb)
+
+
+# Axis part (initial)
+def _axes(**kw):
+    r"""Create new axes or edit one if necessary
+
+    :Call:
+        >>> ax = axes(**kw)
+    :Inputs:
+        *ax*: ``None`` | :class:`AxesSubplot`
+            Optional axes handle
+        *AxesOptions*: {``None``} | :class:`dict`
+            Options to apply to figure handle using :func:`ax.set`
+    :Outputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+    :Versions:
+        * 2019-03-06 ``@ddalle``: First version
+        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+    """
+    # Import PyPlot
+    _import_pyplot()
+    # Get figure handle and other options
+    ax = kw.get("ax", None)
+    axopts = kw.get("AxesOptions", {})
+    # Check for a subplot description
+    axnum = axopts.pop("subplot", None)
+    # Create figure if needed
+    if not isinstance(ax, Axes):
+        # Check for specified figure
+        if axnum is None:
+            # Use most recent figure (can be new one)
+            ax = plt.gca()
+        else:
+            # Get specified figure
+            ax = plt.subplot(axnum)
+    # Loop through options
+    for (k, v) in axopts.items():
+        # Check for None
+        if not v:
+            continue
+        # Get setter function
+        fn = getattr(ax, "set_" + k, None)
+        # Check property
+        if fn is None:
+            sys.stderr.write("No axes property '%s'\n" % k)
+            sys.stderr.flush()
+        # Apply setter
+        fn(v)
+    # Output
+    return ax
 
 
 # Error bar plot
@@ -297,34 +390,54 @@ def _errorbar(xv, yv, yerr=None, xerr=None, **kw):
     return h
 
 
-# Region plot
-def fill_between(xv, ymin, ymax, **kw):
-    r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
+# Figure part
+def _figure(**kw):
+    r"""Get or create figure handle and format it
 
     :Call:
-        >>> h = _fill_between(xv, ymin, ymax, **kw)
+        >>> fig = _figure(**kw)
     :Inputs:
-        *xv*: :class:`np.ndarray`
-            Array of independent variable values
-        *ymin*: :class:`np.ndarray` | :class:`float`
-            Array of values or single value for lower bound of window
-        *ymax*: :class:`np.ndarray` | :class:`float`
-            Array of values or single value for upper bound of window
-        *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *Rotate*: ``True`` | {``False``}
-            Option to plot independent variable on vertical axis
+        *fig*: {``None``} | :class:`matplotlib.figure.Figure`
+            Optional figure handle
+        *FigOptions*: {``None``} | :class:`dict`
+            Options to apply to figure handle using :func:`fig.set`
+    :Outputs:
+        *fig*: :class:`matplotlib.figure.Figure`
+            Figure handle
     :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
-        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+        * 2019-03-06 ``@ddalle``: First version
     """
-    # Process options
-    opts = MPLOpts(_section="fillbetween", **kw)
-    # Get plot options
-    kw_fb = opts.fillbetween_options()
-    # Call root function
-    return _fill_between(xv, ymin, ymax, **kw_fb)
+    # Import PyPlot
+    _import_pyplot()
+    # Get figure handle and other options
+    fig = kw.get("fig", None)
+    figopts = kw.get("FigOptions", {})
+    # Check for a figure number
+    fignum = figopts.pop("num", None)
+    # Create figure if needed
+    if not isinstance(fig, Figure):
+        # Check for specified figure
+        if fignum is None:
+            # Use most recent figure (can be new one)
+            fig = plt.gcf()
+        else:
+            # Get specified figure
+            fig = plt.figure(fignum)
+    # Loop through options
+    for (k, v) in figopts.items():
+        # Check for None
+        if not v:
+            continue
+        # Get setter function
+        fn = getattr(fig, "set_" + k, None)
+        # Check property
+        if fn is None:
+            sys.stderr.write("No figure property '%s'\n" % k)
+            sys.stderr.flush()
+        # Apply setter
+        fn(v)
+    # Output
+    return fig
 
 
 # Region plot
@@ -390,6 +503,55 @@ def _fill_between(xv, ymin, ymax, **kw):
     kw_fb = MPLOpts.select_phase(kw, i)
     # Call the plot method
     h = fnplt(xv, yl, yu, **kw_fb)
+    # Output
+    return h
+
+
+# Plot part
+def _plot(xv, yv, fmt=None, **kw):
+    r"""Call the :func:`plot` function with cycling options
+
+    :Call:
+        >>> h = _plot(xv, yv, **kw)
+        >>> h = _plot(xv, yv, fmt, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *fmt*: :class:`str`
+            Optional format option
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.plot`
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+    """
+    # Ensure plot() is available
+    _import_pyplot()
+    # Get index
+    i = kw.pop("Index", kw.pop("i", 0))
+    # Get rotation option
+    r = kw.pop("Rotate", kw.pop("rotate", False))
+    # Flip inputs
+    if r:
+        yv, xv = xv, yv
+    # Initialize plot options
+    kw_p = MPLOpts.select_phase(kw, i)
+    # Call plot
+    if typeutils.isstr(fmt):
+        # Call with extra format argument
+        h = plt.plot(xv, yv, fmt, **kw_p)
+    else:
+        # No format argument
+        h = plt.plot(xv, yv, **kw_p)
     # Output
     return h
 
