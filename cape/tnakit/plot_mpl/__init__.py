@@ -53,7 +53,16 @@ def plot(xv, yv, *a, **kw):
     """
    # --- Prep ---
     # Process options
-    opts = MPLOpts(**kw)
+    opts = kw.pop("opts", None)
+    # Process options class
+    optscls = kw.pop("optscls", MPLOpts)
+    # Check if that resulted in anything
+    if isinstance(opts, MPLOpts):
+        # Blend in any other options
+        opts.update(**kw)
+    else:
+        # Get options class
+        opts = optscls(**kw)
     # Initialize output
     h = MPLHandle()
     # Number of args and args used

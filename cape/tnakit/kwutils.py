@@ -477,7 +477,10 @@ class KwargHandler(dict):
         if len(optlist) == 0:
             # All options
             optlist = cls._optlist
-            
+
+        # Save settings
+        self._optlist_check = optlist
+        self._warnmode = _warnmode
 
         # Check keywords
         opts = check_kw_eltypes(
@@ -489,6 +492,59 @@ class KwargHandler(dict):
         # Copy entries
         for (k, v) in opts.items():
             self[k] = v
+  # >
+
+  # ==================
+  # Change Settings
+  # ==================
+  # <
+   # --- Update Many ---
+    # Apply several settings
+    def update(self, **kw):
+        r"""Apply several settings, with checks
+
+        This works like the standard :func:`dict.apply` with two
+        differences:
+
+            * The same keyword checks and name changes that take place
+              during :func:`__init__` are also done on *kw*
+
+            * If both *opts* and *kw* have a value for key *k*, with
+              *v0* for *opts[k]* and *v* for *kw[k]*, then the two
+              values are blended using ``v0.update(v)``
+
+        :Call:
+            >>> opts.update(**kw)
+        :Inputs:
+            *opts*: :class:`KwargHandler`
+                Options interface
+            *kw*: :class:`dict`
+                Additional options added to *opts*, with checks
+        :Versions:
+            * 2020-01-24 ``@ddalle``: First version
+        """
+        # Get class
+        cls = self.__class__
+        # Remove anything that's ``None``
+        opts = cls.denone(kw)
+        # Check validity, apply maps
+        opts = check_kw_eltypes(
+            self._optlist_check,
+            cls._optmap,
+            cls._opttypes,
+            cls._optdependencies,
+            self._warnmode, **opts)
+        # Update settings
+        for k, v in opts.items():
+            # Get current setting
+            v0 = self.get(k)
+            # Check if present
+            if isinstance(v, dict) and isinstance(v0, dict):
+                # Meld settings
+                v0.update(**v)
+            else:
+                # New key or overwritten key
+                self[k] = v
   # >
 
   # ============
