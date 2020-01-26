@@ -501,7 +501,7 @@ class KwargHandler(dict):
    # --- Update Many ---
     # Apply several settings
     def update(self, **kw):
-        r"""Apply several settings, with checks
+        r"""Apply several settings, with checks, from kwargs
 
         This works like the standard :func:`dict.apply` with two
         differences:

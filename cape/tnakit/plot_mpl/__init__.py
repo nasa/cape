@@ -65,9 +65,21 @@ def plot(xv, yv, *a, **kw):
         opts = optscls(**kw)
     # Initialize output
     h = MPLHandle()
-    # Number of args and args used
-    na = len(a)
-    ia = 0
+    # Process plot format
+    if len(a) == 0:
+        # No primary plot specifier
+        fmt = tuple()
+    elif len(a) == 1:
+        # Check one arg for type
+        if not typeutils.isstr(a[0]):
+            raise TypeError(
+                "Extra plot arg must be string (got %s)" % type(a[0]))
+        # Use format from user
+        fmt = a[0]
+    else:
+        # Too many args
+        raise TypeError(
+            "plot() takes at most 3 args (%i given)" % (len(a) + 2))
    # --- Default Control ---
     # Min/Max
     if ("ymin" in opts) and ("ymax" in opts):
@@ -104,15 +116,6 @@ def plot(xv, yv, *a, **kw):
     kw_plot = opts.plot_options()
     # Call plot method
     if qline:
-        # Check *a[0]*
-        if (na > 0) and typeutils.isstr(a[0]):
-            # Format given
-            fmt = (a[0],)
-            # One arg used
-            ia += 1
-        else:
-            # No format option
-            fmt = tuple()
         # Plot call
         h.lines += mpl._plot(xv, yv, *fmt, **kw_plot)
    # --- Min/Max ---
@@ -125,16 +128,8 @@ def plot(xv, yv, *a, **kw):
     # Plot it
     if qmmx:
         # Min/max values
-        if na >= ia + 2:
-            # Get parameter values
-            ymin = a[ia]
-            ymax = a[ia+1]
-            # Increase count
-            ia += 2
-        else:
-            # Pop values
-            ymin = opts.get("ymin", None)
-            ymax = opts.get("ymax", None)
+        ymin = opts.get("ymin", None)
+        ymax = opts.get("ymax", None)
         # Plot call
         if minmax_type == "FillBetween":
             # Do a :func:`fill_between` plot
@@ -153,15 +148,8 @@ def plot(xv, yv, *a, **kw):
     kw_err = opts_error.get("ErrorOptions", {})
     # Plot it
     if qerr:
-        # Min/max values
-        if na >= ia+1:
-            # Get parameter values
-            yerr = a[ia]
-            # Increase count
-            ia += 1
-        else:
-            # Pop values
-            yerr = kw.get("yerr", None)
+        # Error magnitudes
+        yerr = kw.get("yerr", None)
         # Check for horizontal error bars
         xerr = kw.get("xerr", None)
         # Plot call
@@ -182,15 +170,8 @@ def plot(xv, yv, *a, **kw):
     kw_uq = opts_uq.get("UncertaintyOptions", {})
     # Plot it
     if quq:
-        # Min/max values
-        if na >= ia+1:
-            # Get parameter values
-            yerr = a[ia]
-            # Increase count
-            ia += 1
-        else:
-            # Pop values
-            yerr = kw.get("uy", kw.get("yerr", None))
+        # Uncertainty magnitudes
+        yerr = kw.get("uy", kw.get("yerr", None))
         # Check for horizontal error bars
         xerr = kw.get("ux", kw.get("xerr", None))
         # Plot call
@@ -2618,17 +2599,76 @@ class MPLHandle(object):
             raise TypeError("Second handle must be MPLHandle object")
         # Loop through data attributes
         for (k, v) in h1.__dict__.items():
-            # Check for list (combine)
-            if isinstance(v, list):
-                # Get attribute from parent
-                v0 = self.__dict__.get(k)
-                # Check if both are lists
-                if isinstance(v0, list):
-                    # Combine two lists
-                    self.__dict__[k] = v0 + v
-                else:
-                    # Replace non-list value
-                    self.__dict__[k] = v
-            elif v.__class__.__module__.startswith("matplotlib"):
-                # Some other plot handle; replace
-                self.__dict__[k] = v
+            # Save using dedicated method
+            self.save(k, v)
+
+    # Save one attribute
+    def save(self, attr, v):
+        r"""Save one plot object without erasing others
+
+        This method provides a simple method to save multiple instances
+        of a certain kind of plot object without having to perform
+        checks manually.  For example if *h.lines* already contains
+        several lines, and *L* contains several new ones, then
+        ``h.save("lines", L)`` will effectively run ``h.lines += L``.
+
+        Conversions from single object to :class:`list` are handled
+        automatically, and items are only added to the list if not
+        already present.  Thus running :func:`save` several times in a
+        row with the same arguments will not create the illusion of many
+        objects for a given attribute.
+
+        :Call:
+            >>> h.save(attr, v)
+        :Inputs:
+            *h*: :class:`MPLHandle`
+                Matplotlib object handle
+            *attr*: :class:`str`
+                Name of attribute to save
+            *v*: :class:`any`
+                Value to save/add for that attribute
+        :Versions:
+            * 2020-01-25 ``@ddalle``: First version
+        """
+        # Get current value
+        v0 = self.__dict__.get(attr)
+        # Check for case with no current value
+        if v0 is None:
+            # Save as given
+            self.__dict__[attr] = v
+            # No more actions
+            return
+        # Special attributes that should not be a list
+        if attr in {"ax", "fig", "name"}:
+            # Only one value allowed for these
+            self.__dict__[attr] = v
+            return
+        # Otherwise process list combinations
+        if isinstance(v0, list):
+            # Check type of new value
+            if not isinstance(v, list):
+                # Check if *v* is already present
+                if v not in v0:
+                    v0.append(v)
+                return
+            # Otherwise loop through *v* entries
+            for vi in v:
+                # Check if *vi* is already present
+                if vi not in v0:
+                    v0.append(vi)
+        else:
+            # Check type of new value
+            if not isinstance(v, list):
+                # Check if *v* and *v0* are the same
+                if v is not v0:
+                    self.__dict__[attr] = [v0, v]
+                return
+            # Otherwise convert current value to list
+            v0 = [v0]
+            self.__dict__[attr] = v0
+            # Loop through *v* entries
+            for vi in v:
+                # Check if *vi* is already present
+                if vi not in v0:
+                    v0.append(vi)
+        
