@@ -33,9 +33,52 @@ from . import mpl
 from .mplopts import MPLOpts
 
 
+# Preprocess kwargs
+def _preprocess_kwargs(**kw):
+    r"""Process options and output handle from input options
+
+    :Call:
+        >>> opts, h = _preprocess_kwargs(**kw)
+    :Inputs:
+        *opts*: {``None``} | :class:`MPLOpts`
+            Options instance, updated by remaining *kw* items
+        *optscls*: {``MPLOpts``} | :class:`type`
+            If *opts* is ``None``, this class is used to process options
+        *handle*: {``None``} | :class:`MPLHandle`
+            Optional preexisting handle to save plot objects to
+        *kw*: :class:`dict`
+            Other kwargs processed by *optscls* or *opts*
+    :Outputs:
+        *opts*: :class:`MPLOpts`
+            Options with all *kw* checked and applied
+        *h*: *handle* | :class:`MPLHandle`
+            Container to save Matplotlib plot handles
+    :Versions:
+        * 2020-01-25 ``@ddalle``: First version
+    """
+    # Process options
+    opts = kw.pop("opts", None)
+    # Process options class
+    optscls = kw.pop("optscls", MPLOpts)
+    # Check if that resulted in anything
+    if isinstance(opts, MPLOpts):
+        # Blend in any other options
+        opts.update(**kw)
+    else:
+        # Get options class
+        opts = optscls(**kw)
+    # Get output
+    h = kw.pop("handle", None)
+    # Initialize output if necessary
+    if h is None:
+        h = MPLHandle()
+    # Output
+    return opts, h
+
+
 # Primary plotter
 def plot(xv, yv, *a, **kw):
-    """Plot connected points with many options
+    r"""Plot connected points with many options
 
     :Call:
         >>> h, kw = plot(xv, yv, *a, **kw)
@@ -53,18 +96,7 @@ def plot(xv, yv, *a, **kw):
     """
    # --- Prep ---
     # Process options
-    opts = kw.pop("opts", None)
-    # Process options class
-    optscls = kw.pop("optscls", MPLOpts)
-    # Check if that resulted in anything
-    if isinstance(opts, MPLOpts):
-        # Blend in any other options
-        opts.update(**kw)
-    else:
-        # Get options class
-        opts = optscls(**kw)
-    # Initialize output
-    h = MPLHandle()
+    opts, h = _preprocess_kwargs(**kw)
     # Process plot format
     if len(a) == 0:
         # No primary plot specifier
