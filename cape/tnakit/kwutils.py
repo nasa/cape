@@ -539,6 +539,49 @@ class KwargHandler(dict):
         if opts:
             self[opt] = val
 
+    # Set an option, with checks
+    def setdefault_option(self, opt, val):
+        r"""Set an option, with checks, but without overwriting
+
+        The option is first looked up in *_optmap* and saved with the
+        full name found there, if any.  After mapping, *opt* is checked
+        against the *_optlist* and *_opttypes* of the class.
+
+        :Call:
+            >>> v = opts.setdefault_option(opt, val)
+        :Inputs:
+            *opts*: :class:`KwargHandler`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *val*: :class:`any`
+                Specified value
+        :Outputs:
+            *v*: *opts[opt]* | *val*
+                Same as output from :func:`setdefault`
+        :Versions:
+            * 2020-01-26 ``@ddalle``: First version
+        """
+        # Class
+        cls = self.__class__
+        # Expand abbreviation or alternate name
+        opt = cls._optmap.get(opt, opt)
+        # Check for trivial input
+        if val is None:
+            return self.get(opt)
+        # Create simple keyword dict
+        kw = {opt: val}
+        # Check validity, apply maps
+        opts = check_kw_eltypes(
+            self._optlist_check,
+            cls._optmap,
+            cls._opttypes,
+            cls._optdependencies,
+            self._warnmode, **kw)
+        # If that survived, save the value
+        if opts:
+            return self.setdefault(opt, val)
+
    # --- Update Many ---
     # Apply several settings
     def update(self, **kw):
@@ -712,16 +755,18 @@ class KwargHandler(dict):
   # <
    # --- Individual Option ---
     # Get individual option
-    def get_option(self, opt, parents=None):
+    def get_option(self, opt, vdef=None, parents=None):
         r"""Get value of a specific option, ignoring section
 
         :Call:
-            >>> optval = opts.get_option(opt, parents=None)
+            >>> optval = opts.get_option(opt, vdef=None, parents=None)
         :Inputs:
             *opts*: :class:`KwargHandler`
                 Options interface
             *opt*: :class:`str`
                 Name of option
+            *vdef*: {``None``} | :class:`any`
+                Default value, ignored if *opt* in *_rc*
             *parents*: ``None`` | :class:`set`\ [:class:`str`]
                 List of parents, used to detect recursion
         :Outputs:
@@ -734,7 +779,7 @@ class KwargHandler(dict):
         # Class
         cls = self.__class__
         # Default value
-        optdef = cls._rc.get(opt)
+        optdef = cls._rc.get(opt, vdef)
         # Get value
         optval = self.get(opt)
         # Apply default
@@ -765,7 +810,7 @@ class KwargHandler(dict):
             # Filter "."
             if ndot == 0:
                 # Direct access simple option
-                subval = self.get_option(fromopt, parents)
+                subval = self.get_option(fromopt, parents=parents)
             elif ndot == 1:
                 # Process later (to set priority)
                 continue
@@ -800,7 +845,7 @@ class KwargHandler(dict):
                     subdict = kw_cascade[k0]
                 else:
                     # Get parent options for first time
-                    subdict = self.get_option(k0, parents | {opt})
+                    subdict = self.get_option(k0, parents=parents | {opt})
                     # Save them
                     kw_cascade[k0] = subdict
                 # Check for ``None``

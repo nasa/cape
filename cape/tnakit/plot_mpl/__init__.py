@@ -100,39 +100,34 @@ def plot(xv, yv, *a, **kw):
     # Process plot format
     if len(a) == 0:
         # No primary plot specifier
-        fmt = tuple()
+        pass
     elif len(a) == 1:
         # Check one arg for type
         if not typeutils.isstr(a[0]):
             raise TypeError(
                 "Extra plot arg must be string (got %s)" % type(a[0]))
         # Use format from user
-        fmt = a[0]
+        opts.set_option("fmt", a[0])
     else:
         # Too many args
         raise TypeError(
             "plot() takes at most 3 args (%i given)" % (len(a) + 2))
+    # Save values
+    opts.set_option("x", x)
+    opts.set_option("y", y)
    # --- Default Control ---
     # Min/Max
-    if ("ymin" in opts) and ("ymax" in opts):
-        # If min/max values are specified, turn on *PlotMinMax*
-        qmmx = True
-    else:
-        # Otherwise false
-        qmmx = False
+    qmmx =  ("ymin" in opts) and ("ymax" in opts)
+    # Error
+    qerr = opts.get_option("ShowError", False)
     # UQ
-    if ("yerr" in opts) or ("xerr" in opts):
-        # If min/max values are specified, turn on *PlotUncertainty*
-        quq = True
-    else:
-        # Otherwise false
-        quq = False
+    quq = (not qerr) and ("yerr" in opts)
    # --- Control Options ---
-    # Options to plot min/max
-    qline = opts.get("ShowLine", True)
-    qmmx = opts.get("ShowMinMax", qmmx)
-    qerr = opts.get("ShowError", False)
-    quq = opts.get("ShowUncertainty", quq and (not qerr))
+    # Defaults to plot different parts
+    opts.setdefault_option("ShowLine", True)
+    opts.setdefault_option("ShowMinMax", qmmx)
+    opts.setdefault_option("ShowError", qerr)
+    opts.setdefault_option("ShowUncertainty", quq)
    # --- Figure Setup ---
     # Process figure options
     kw_fig = opts.figure_options()
@@ -147,7 +142,7 @@ def plot(xv, yv, *a, **kw):
     # Process plot options
     kw_plot = opts.plot_options()
     # Call plot method
-    if qline:
+    if opts.get_option("ShowLine"):
         # Plot call
         h.lines += mpl._plot(xv, yv, *fmt, **kw_plot)
    # --- Min/Max ---
@@ -158,7 +153,7 @@ def plot(xv, yv, *a, **kw):
     # Options for the plot function
     kw_mmax = opts_mmax.get("MinMaxOptions", {})
     # Plot it
-    if qmmx:
+    if opts.get_option("ShowMinMax"):
         # Min/max values
         ymin = opts.get("ymin", None)
         ymax = opts.get("ymax", None)
@@ -179,7 +174,7 @@ def plot(xv, yv, *a, **kw):
     # Get options for plot function
     kw_err = opts_error.get("ErrorOptions", {})
     # Plot it
-    if qerr:
+    if opts.get_option("ShowError"):
         # Error magnitudes
         yerr = kw.get("yerr", None)
         # Check for horizontal error bars
@@ -201,7 +196,7 @@ def plot(xv, yv, *a, **kw):
     # Get options for plot function
     kw_uq = opts_uq.get("UncertaintyOptions", {})
     # Plot it
-    if quq:
+    if opts.get_option("ShowUncertainty"):
         # Uncertainty magnitudes
         yerr = kw.get("uy", kw.get("yerr", None))
         # Check for horizontal error bars
