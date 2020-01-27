@@ -72,6 +72,8 @@ def _preprocess_kwargs(**kw):
     # Initialize output if necessary
     if h is None:
         h = MPLHandle()
+    # Save options
+    h.opts = opts
     # Output
     return opts, h
 
@@ -113,21 +115,14 @@ def plot(xv, yv, *a, **kw):
         raise TypeError(
             "plot() takes at most 3 args (%i given)" % (len(a) + 2))
     # Save values
-    opts.set_option("x", x)
-    opts.set_option("y", y)
-   # --- Default Control ---
-    # Min/Max
-    qmmx =  ("ymin" in opts) and ("ymax" in opts)
-    # Error
-    qerr = opts.get_option("ShowError", False)
-    # UQ
-    quq = (not qerr) and ("yerr" in opts)
+    opts.set_option("x", xv)
+    opts.set_option("y", yv)
    # --- Control Options ---
     # Defaults to plot different parts
     opts.setdefault_option("ShowLine", True)
-    opts.setdefault_option("ShowMinMax", qmmx)
-    opts.setdefault_option("ShowError", qerr)
-    opts.setdefault_option("ShowUncertainty", quq)
+    opts.setdefault_option("ShowMinMax", ("ymin" in opts) and ("ymax" in opts))
+    opts.setdefault_option("ShowError", ("yerr" in opts))
+    opts.setdefault_option("ShowUncertainty", ("uy" in opts))
    # --- Axes Setup ---
     # Figure, then axes
     _part_init_figure(opts, h)
@@ -135,103 +130,27 @@ def plot(xv, yv, *a, **kw):
    # --- Primary Plot ---
     # Plot, then others
     _part_plot(opts, h)
-   # --- Min/Max ---
-    # Process min/max options
-    opts_mmax = opts.minmax_options()
-    # Get type
-    minmax_type = opts_mmax.get("MinMaxPlotType", "ErrorBar")
-    # Options for the plot function
-    kw_mmax = opts_mmax.get("MinMaxOptions", {})
-    # Plot it
-    if opts.get_option("ShowMinMax"):
-        # Min/max values
-        ymin = opts.get("ymin", None)
-        ymax = opts.get("ymax", None)
-        # Plot call
-        if minmax_type == "FillBetween":
-            # Do a :func:`fill_between` plot
-            h.minmax = mpl._fill_between(xv, ymin, ymax, **kw_mmax)
-        elif minmax_type == "ErrorBar":
-            # Convert to error bar widths
-            yerr = minmax_to_errorbar(yv, ymin, ymax, **kw_mmax)
-            # Do a :func:`errorbar` plot
-            h.minmax = mpl._errorbar(xv, yv, yerr, **kw_mmax)
-   # --- Error ---
-    # Process "error" options
-    opts_error = opts.error_options()
-    # Get type
-    error_type = opts_error.get("ErrorPlotType", "FillBetween")
-    # Get options for plot function
-    kw_err = opts_error.get("ErrorOptions", {})
-    # Plot it
-    if opts.get_option("ShowError"):
-        # Error magnitudes
-        yerr = kw.get("yerr", None)
-        # Check for horizontal error bars
-        xerr = kw.get("xerr", None)
-        # Plot call
-        if error_type == "FillBetween":
-            # Convert to min/max values
-            ymin, ymax = errorbar_to_minmax(yv, yerr)
-            # Do a :func:`fill_between` plot
-            h.error = mpl._fill_between(xv, ymin, ymax, **kw_err)
-        elif t_err == "ErrorBar":
-            # Do a :func:`errorbar` plot
-            h.error = mpl._errorbar(xv, yv, yerr, **kw_err)
-   # --- UQ ---
-    # Process uncertainty quantification options
-    opts_uq = opts.uq_options()
-    # Plot type
-    uq_type = opts.get("UncertaintyPlotType", "FillBetween")
-    # Get options for plot function
-    kw_uq = opts_uq.get("UncertaintyOptions", {})
-    # Plot it
-    if opts.get_option("ShowUncertainty"):
-        # Uncertainty magnitudes
-        yerr = kw.get("uy", kw.get("yerr", None))
-        # Check for horizontal error bars
-        xerr = kw.get("ux", kw.get("xerr", None))
-        # Plot call
-        if uq_type == "FillBetween":
-            # Convert to min/max values
-            ymin, ymax = errorbar_to_minmax(yv, yerr)
-            # Do a :func:`fill_between` plot
-            h.uq = mpl._fill_between(xv, ymin, ymax, **kw_uq)
-        elif uq_type == "ErrorBar":
-            # Do a :func:`errorbar` plot
-            h.uq = mpl._errorbar(xv, yv, yerr, **kw_uq)
+    _part_minmax(opts, h)
+    _part_error(opts, h)
+    _part_uq(opts, h)
    # --- Axis formatting ---
-    ## Process grid lines options
-    kw_grid = opts.grid_options()
-    # Apply grid lines
-    grid(h.ax, **kw_grid)
-    # Process spine options
-    kw_spines = opts.spine_options()
-    # Apply options relating to spines
-    h.spines = format_spines(h.ax, **kw_spines)
-    # Process axes format options
-    kw_axfmt = opts.axformat_options()
-    # Apply formatting
-    h.xlabel, h.ylabel = axes_format(h.ax, **kw_axfmt)
-   # --- Margin adjustment ---
-    # Process axes margin/adjust options
-    kw_axadj = opts.axadjust_options()
-    # Adjust extents
-    axes_adjust(h.fig, ax=h.ax, **kw_axadj)
+    # Format grid
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    _part_axes_format(opts, h)
+    _part_axes_adjust(opts, h)
    # --- Legend ---
     ## Process options for legend
     kw_legend = opts.legend_options()
     # Create legend
     h.legend = legend(h.ax, **kw_legend)
    # --- Cleanup ---
-    # Save options
-    h.opts = opts
     # Output
     return h
 
 
 # Partial function: prepare figure
-_part_init_figure(opts, h):
+def _part_init_figure(opts, h):
     # Process figure options
     kw_fig = opts.figure_options()
     # Get/create figure
@@ -239,7 +158,7 @@ _part_init_figure(opts, h):
 
 
 # Partial function: prepare axes
-_part_init_axes(opts, h):
+def _part_init_axes(opts, h):
     # Process axis options
     kw_ax = opts.axes_options()
     # Get/create axis
@@ -247,14 +166,14 @@ _part_init_axes(opts, h):
 
 
 # Partial function: plot()
-_part_plot(opts, h):
+def _part_plot(opts, h):
     # Call plot method
     if opts.get_option("ShowLine", True):
         # Process plot options
         kw = opts.plot_options()
         # Get values
-        x = opts.get_option("x")
-        y = opts.get_option("y")
+        xv = opts.get_option("x")
+        yv = opts.get_option("y")
         # Get format
         fmt = opts.get_option("PlotFormat")
         # Create format args
@@ -266,6 +185,128 @@ _part_plot(opts, h):
         lines = mpl._plot(xv, yv, *a, **kw)
         # Save lines
         h.save("lines", lines)
+
+
+# Partial function: minmax()
+def _part_minmax(opts, h):
+    # Plot it
+    if opts.get_option("ShowMinMax"):
+        # Process min/max options
+        opts_mmax = opts.minmax_options()
+        # Get type
+        minmax_type = opts_mmax.get("MinMaxPlotType", "ErrorBar")
+        # Options for the plot function
+        kw = opts_mmax.get("MinMaxOptions", {})
+        # Get values
+        xv = opts.get_option("x")
+        yv = opts.get_option("y")
+        # Min/max values
+        ymin = opts.get_option("ymin")
+        ymax = opts.get_option("ymax")
+        # Plot call
+        if minmax_type == "FillBetween":
+            # Do a :func:`fill_between` plot
+            hi = mpl._fill_between(xv, ymin, ymax, **kw)
+        elif minmax_type == "ErrorBar":
+            # Convert to error bar widths
+            yerr = minmax_to_errorbar(yv, ymin, ymax, **kw)
+            # Do a :func:`errorbar` plot
+            hi = mpl._errorbar(xv, yv, yerr, **kw)
+        # Save result
+        h.save("minmax", hi)
+
+
+# Partial function: error()
+def _part_error(opts, h):
+    # Plot it
+    if opts.get_option("ShowError"):
+        # Process "error" options
+        opts_error = opts.error_options()
+        # Get type
+        error_type = opts_error.get("ErrorPlotType", "FillBetween")
+        # Get options for plot function
+        kw = opts_error.get("ErrorOptions", {})
+        # Get values
+        xv = opts.get_option("x")
+        yv = opts.get_option("y")
+        # Error magnitudes
+        yerr = kw.get_option("yerr")
+        # Plot call
+        if error_type == "FillBetween":
+            # Convert to min/max values
+            ymin, ymax = errorbar_to_minmax(yv, yerr)
+            # Do a :func:`fill_between` plot
+            hi = mpl._fill_between(xv, ymin, ymax, **kw)
+        elif t_err == "ErrorBar":
+            # Do a :func:`errorbar` plot
+            hi = mpl._errorbar(xv, yv, yerr, **kw)
+        # Save error handles
+        h.save("error", hi)
+    
+
+# Partial function: uq()
+def _part_uq(opts, h):
+    # Plot it
+    if opts.get_option("ShowUncertainty"):
+        # Process uncertainty quantification options
+        opts_uq = opts.uq_options()
+        # Plot type
+        uq_type = opts.get("UncertaintyPlotType", "FillBetween")
+        # Get options for plot function
+        kw = opts_uq.get("UncertaintyOptions", {})
+        # Get values
+        xv = opts.get_option("x")
+        yv = opts.get_option("y")
+        # Uncertainty magnitudes
+        yerr = opts.get_option("yerr")
+        # Plot call
+        if uq_type == "FillBetween":
+            # Convert to min/max values
+            ymin, ymax = errorbar_to_minmax(yv, yerr)
+            # Do a :func:`fill_between` plot
+            hi = mpl._fill_between(xv, ymin, ymax, **kw)
+        elif uq_type == "ErrorBar":
+            # Do a :func:`errorbar` plot
+            hi = mpl._errorbar(xv, yv, yerr, **kw)
+        # Save UQ handles
+        h.save("uq", hi)
+
+
+# Partial function: axes_adjust()
+def _part_axes_adjust(opts, h):
+    # Process axes_adjust() options
+    kw = opts.axadjust_options()
+    # Apply margin adjustments
+    mpl._axes_adjust(h.fig, ax=h.ax, **kw)
+
+
+# Partial function: grid()
+def _part_axes_grid(opts, h):
+    # Process grid lines options
+    kw = opts.grid_options()
+    # Apply grid lines
+    h.grid = mpl._grid(h.ax, **kw)
+
+
+# Partial function: spines()
+def _part_axes_spines(opts, h):
+    # Process spines options
+    kw = opts.spine_options()
+    # Format the spines
+    h.spines = mpl._spines(h.ax, **kw)
+
+
+# Partial function: formatting for axes
+def _part_axes_format(opts, h):
+    # Process axes format options
+    kw = opts.axformat_options()
+    # Format the axes
+    xl, yl = mpl._axes_format(h.ax, **kw)
+    # Save
+    h.save("xlabel", xl)
+    h.save("ylabel", yl)
+    
+    
     
 
 
@@ -324,146 +365,7 @@ def axes_adjust(fig=None, **kw):
         * 2020-01-03 ``@ddalle``: First version
         * 2010-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
     """
-    # Make sure pyplot is present
-    mpl._import_pyplot()
-    # Default figure
-    if fig is None:
-        # Get most recent figure or create
-        fig = mpl.plt.gcf()
-    elif isinstance(fig, int):
-        # Get figure handle from number
-        fig = mpl.plt.figure(fig)
-    elif not isinstance(fig, mpl.mplfig.Figure):
-        # Not a figure or number
-        raise TypeError(
-            "'fig' arg expected 'int' or 'Figure' (got %s)" % type(fig))
-    # Process options
-    opts = MPLOpts(**kw)
-    # Get axes from figure
-    ax_list = fig.get_axes()
-    # Minimum number of axes
-    nmin_ax = min(1, len(ax_list))
-    # Get "axes" option
-    ax = opts.get("ax")
-    # Get subplot number options
-    subplot_i = opts.get("Subplot")
-    subplot_m = opts.get("SubplotRows", nmin_ax)
-    subplot_n = opts.get("SubplotCols", nmin_ax // subplot_m)
-    # Check for axes
-    if ax is None:
-        # Check for index
-        if subplot_i is None:
-            # Get most recent axes
-            ax = mpl.plt.gca()
-            # Reset axes list
-            ax_list = fig.get_axes()
-            # Get index
-            subplot_i = ax_list.index(ax) + 1
-        elif not isinstance(subplot_i, int):
-            # Must be an integer
-            raise TypeError(
-                "'Subplot' keyword must be 'int' (got %s)" % type(subplot_i))
-        elif subplot_i <= 0:
-            # Must be *positive*
-            raise ValueError(
-                "'Subplot' index must be positive (1-based) (got %i)" %
-                subplot_i)
-        elif subplot_i > len(ax_list):
-            # Create new subplot
-            ax = fig.add_subplot(subplot_m, subplot_n, subplot_i)
-        else:
-            # Get existing subplot (1-based indexing for consistency)
-            ax = ax_list[subplot_i - 1]
-    elif ax not in ax_list:
-        # Axes from different figure!
-        raise ValueError("Axes handle 'ax' is not in current figure")
-    else:
-        # Get subplot index (1-based index)
-        subplot_i = ax_list.index(ax) + 1
-    # Figure out subplot column and row index from counts (0-based)
-    subplot_j = (subplot_i - 1) // subplot_n
-    subplot_k = (subplot_i - 1) % subplot_n
-    # Get sizes of all tick and axes labels
-    labelw_l, labelh_b, labelw_r, labelh_t = get_axes_label_margins(ax)
-    # Process width and height
-    ax_w = 1.0 - labelw_r - labelw_l
-    ax_h = 1.0 - labelh_t - labelh_b
-    # Process row and column space available
-    ax_rowh = ax_h / float(subplot_m)
-    ax_colw = ax_w / float(subplot_n)
-    # Default margins (no tight_layout yet)
-    adj_b = labelh_b + subplot_j * ax_rowh
-    adj_l = labelw_l + subplot_k * ax_colw
-    adj_r = adj_l + ax_colw
-    adj_t = adj_b + ax_rowh
-    # Get extra margins
-    margin_b = opts.get("MarginBottom", 0.02)
-    margin_l = opts.get("MarginLeft", 0.02)
-    margin_r = opts.get("MarginRight", 0.015)
-    margin_t = opts.get("MarginTop", 0.015)
-    # Apply to minimum margins
-    adj_b += margin_b
-    adj_l += margin_l
-    adj_r -= margin_r
-    adj_t -= margin_t
-    # Get user options
-    adj_b = opts.get("AdjustBottom", adj_b)
-    adj_l = opts.get("AdjustLeft", adj_l)
-    adj_r = opts.get("AdjustRight", adj_r)
-    adj_t = opts.get("AdjustTop", adj_t)
-    # Get current position of axes
-    x0, y0, w0, h0 = ax.get_position().bounds
-    # Keep same bottom edge if not specified
-    if adj_b is None:
-        adj_b = y0
-    # Keep same left edge if not specified
-    if adj_l is None:
-        adj_l = x0
-    # Keep same right edge if not specified
-    if adj_r is None:
-        adj_r = x0 + w0
-    # Keep same top edge if not specified
-    if adj_t is None:
-        adj_t = y0 + h0
-    # Aspect ratio option
-    keep_ar = opts.get("KeepAspect")
-    # Default aspect ratio option
-    if keep_ar is None:
-        # True unless current aspect is "equal" (which is usual case)
-        keep_ar = ax.get_aspect() != "auto"
-    # Turn off axis("equal") option if necessary
-    if (not keep_ar) and (ax.get_aspect() != "auto"):
-        # Can only adjust aspect ratio if this is off
-        ax.set_aspect("auto")
-    # Process aspect ratio
-    if keep_ar:
-        # Get the width and height of adjusted figure w/ cur margins
-        w1 = adj_r - adj_l
-        h1 = adj_t - adj_b
-        # Currently expected expansion ratios
-        rw = w1 / w0
-        rh = h1 / h0
-        # We can only use the smaller expansion
-        if rw > rh:
-            # Get current horizontal center
-            xc = 0.5 * (adj_l + adj_r)
-            # Reduce the horizontal expansion
-            w1 = w0 * rh
-            # New edge locations
-            adj_l = xc - 0.5*w1
-            adj_r = xc + 0.5*w1
-        elif rh > rw:
-            # Get current vertical center
-            yc = 0.5 * (adj_b + adj_t)
-            # Reduce vertical expansion
-            h1 = h0 * rw
-            # New edge locations
-            adj_b = yc - 0.5*h1
-            adj_t = yc + 0.5*h1
-    # Set new position
-    ax.set_position([adj_l, adj_b, adj_r-adj_l, adj_t-adj_b])
-    # Output
-    return ax
+    return mpl.axes_adjust(fig=fig, **kw)
 
 
 # Co-align a column of axes
@@ -2059,61 +1961,8 @@ def axes_format(ax, **kw):
         * 2020-01-08 ``@ddalle``: 2.0, removed margin adjustment
         * 2020-01-08 ``@ddalle``: 2.1, from :func:`axes_format`
     """
-   # --- Prep ---
-    # Make sure pyplot loaded
-    mpl._import_pyplot()
-   # --- Labels ---
-    # Get user-specified axis labels
-    xlbl = kw.get("XLabel", None)
-    ylbl = kw.get("YLabel", None)
-    # Check for rotation kw
-    rot = kw.get("Rotate", False)
-    # Switch args if needed
-    if rot:
-        # Flip labels
-        xlbl, ylbl = ylbl, xlbl
-    # Check for orientation kw (histogram)
-    orient = kw.get('orientation', None)
-    if orient == 'vertical':
-        # Flip labels
-        xlbl, ylbl = ylbl, xlbl
-    # Apply *x* label
-    if xlbl is None:
-        # Get empty label
-        xl = ax.xaxis.label
-    else:
-        # Apply label
-        xl = mpl.plt.xlabel(xlbl)
-    # Apply *y* label
-    if ylbl is None:
-        # Get handle to empty label
-        yl = ax.yaxis.label
-    else:
-        # Create non-empty label
-        yl = mpl.plt.ylabel(ylbl)
-   # --- Data Limits ---
-    # Get pad parameter
-    pad = kw.get("Pad", 0.05)
-    # Specific pad parameters
-    xpad = kw.get("XPad", pad)
-    ypad = kw.get("YPad", pad)
-    # Get limits that include all data (and not extra).
-    xmin, xmax = get_xlim(ax, pad=xpad)
-    ymin, ymax = get_ylim(ax, pad=ypad)
-    # Check for specified limits
-    xmin = kw.get("XLimMin", xmin)
-    xmax = kw.get("XLimMax", xmax)
-    ymin = kw.get("YLimMin", ymin)
-    ymax = kw.get("YLimMax", ymax)
-    # Check for typles
-    xmin, xmax = kw.get("XLim", (xmin, xmax))
-    ymin, ymax = kw.get("YLim", (ymin, ymax))
-    # Make sure data is included.
-    ax.set_xlim(xmin, xmax)
-    ax.set_ylim(ymin, ymax)
-   # --- Cleanup ---
-    # Output
-    return xl, yl
+    # Child function
+    return mpl.axes_format(ax, **kw)
 
 
 # Creation and formatting of grid lines
@@ -2131,47 +1980,14 @@ def grid(ax, **kw):
     :Versions:
         * 2019-03-07 ``@jmeeroff``: First version
         * 2019-12-23 ``@ddalle``: Updated from :mod:`plotutils`
+        * 2020-01-27 ``@ddalle``: Moved content to :mod:`mpl`
     """
-    # Make sure pyplot loaded
-    mpl._import_pyplot()
-    # Get major grid option
-    major_grid = kw.get("Grid", None)
-    # Check value
-    if major_grid is None:
-        # Leave it as it currently is
-        pass
-    elif major_grid:
-        # Get grid style
-        kw_major = kw.get("GridOptions", {})
-        # Ensure that the axis is below
-        ax.set_axisbelow(True)
-        # Add the grid
-        ax.grid(True, **kw_major)
-    else:
-        # Turn the grid off, even if previously turned on
-        ax.grid(False)
-    # Get minor grid option
-    minor_grid = kw.get("MinorGrid", None)
-    # Check value
-    if minor_grid is None:
-        # Leave it as it currently is
-        pass
-    elif minor_grid:
-        # Get grid style
-        kw_minor = kw.get("MinorGridOptions", {})
-        # Ensure that the axis is below
-        ax.set_axisbelow(True)
-        # Minor ticks are required
-        ax.minorticks_on()
-        # Add the grid
-        ax.grid(which="minor", **kw_minor)
-    else:
-        # Turn the grid off, even if previously turned on
-        ax.grid(False, which="minor")
+    # Call submethod directly
+    return mpl.grid(ax, **kw)
 
 
 # Single spine: extents
-def format_spine1(spine, opt, vmin, vmax):
+def spine(spine, opt, vmin, vmax):
     r"""Apply visibility options to a single spine
 
     :Call:
@@ -2188,36 +2004,11 @@ def format_spine1(spine, opt, vmin, vmax):
     :Versions:
         * 2019-03-08 ``@ddalle``: First version
     """
-    # Process it
-    if opt is None:
-        # Leave as is
-        pass
-    elif opt is True:
-        # Turn on
-        spine.set_visible(True)
-    elif opt is False:
-        # Turn off
-        spine.set_visible(False)
-    elif typeutils.isstr(opt):
-        # Check value
-        if opt == "on":
-            # Same as ``True``
-            spine.set_visible(True)
-        elif opt == "off":
-            # Same as ``False``
-            spine.set_visible(False)
-        elif opt in ["clip", "clipped", "truncate", "truncated"]:
-            # Set limits
-            spine.set_bounds(vmin, vmax)
-        else:
-            raise ValueError("Could not process spine option '%s'" % opt)
-    else:
-        raise TypeError("Could not process spine option " +
-                        ("of type '%s'" % opt.__class__))
+    return mpl.spine(spine, opt, vmin, vmax)
 
 
 # Spine formatting
-def format_spines(ax, **kw):
+def spines(ax, **kw):
     r"""Format Matplotlib axes spines and ticks
 
     :Call:
@@ -2232,148 +2023,7 @@ def format_spines(ax, **kw):
         * 2019-03-07 ``@jmeeroff``: First version
         * 2019-12-23 ``@ddalle``: From :mod:`tnakit.plotutils`
     """
-   # --- Setup ---
-    # Make sure pyplot loaded
-    mpl._import_pyplot()
-    # Get spine handles
-    spineL = ax.spines["left"]
-    spineR = ax.spines["right"]
-    spineT = ax.spines["top"]
-    spineB = ax.spines["bottom"]
-    # Set default flags to "clipped" if certain other options are present
-    # In particular, if manual bounds are specified, set the default spine
-    # option to "clipped" unless otherwise specified
-    for d in ["X", "Left", "Right", "Y", "Top", "Bottom"]:
-        # Spine flag
-        k = d + "Spine"
-        # Key for min and max spine values
-        kmin = k + "Min"
-        kmax = k + "Max"
-        # Check
-        if kmin in kw:
-            kw.setdefault(k, "clipped")
-        elif kmax in kw:
-            kw.setdefault(k, "clipped")
-   # --- Data/Spine Bounds ---
-    # Get existing data limits
-    xmin, xmax = get_xlim(ax, pad=0.0)
-    ymin, ymax = get_ylim(ax, pad=0.0)
-    # Process manual limits for min and max spines
-    xa = kw.get("XSpineMin", xmin)
-    xb = kw.get("XSpineMax", xmax)
-    ya = kw.get("YSpineMin", ymin)
-    yb = kw.get("YSpineMax", ymax)
-    # Process manual limits for individual spines
-    yaL = kw.get("LeftSpineMin", ya)
-    ybL = kw.get("LeftSpineMax", yb)
-    yaR = kw.get("RightSpineMin", ya)
-    ybR = kw.get("RightSpineMax", yb)
-    xaB = kw.get("BottomSpineMin", xa)
-    xbB = kw.get("BottomSpineMax", xb)
-    xaT = kw.get("TopSpineMin", xa)
-    xbT = kw.get("TopSpineMax", xb)
-   # --- Overall Spine Options ---
-    # Option to turn off all spines
-    qs = kw.get("Spines", None)
-    # Only valid options are ``None`` and ``False``
-    if qs is not False: qs = None
-    # Spine pairs options
-    qX = kw.get("XSpine", qs)
-    qY = kw.get("YSpine", qs)
-    # Left spine options
-    qL = kw.get("LeftSpine",   qY)
-    qR = kw.get("RightSpine",  qY)
-    qT = kw.get("TopSpine",    qX)
-    qB = kw.get("BottomSpine", qX)
-   # --- Spine On/Off Extents ---
-    # Process these options
-    format_spine1(spineL, qL, yaL, ybL)
-    format_spine1(spineR, qR, yaR, ybR)
-    format_spine1(spineT, qT, xaT, xbT)
-    format_spine1(spineB, qB, xaB, xbB)
-   # --- Spine Formatting ---
-    # Paired options
-    spopts = kw.get("SpineOptions", {})
-    xsopts = kw.get("XSpineOptions", {})
-    ysopts = kw.get("YSpineOptions", {})
-    # Individual spines
-    lsopts = kw.get("LeftSpineOptions", {})
-    rsopts = kw.get("RightSpineOptions", {})
-    bsopts = kw.get("BottomSpineOptions", {})
-    tsopts = kw.get("TopSpineOptions", {})
-    # Combine settings
-    xsopts = dict(spopts, **xsopts)
-    ysopts = dict(spopts, **ysopts)
-    lsopts = dict(ysopts, **lsopts)
-    rsopts = dict(ysopts, **rsopts)
-    bsopts = dict(xsopts, **bsopts)
-    tsopts = dict(xsopts, **tsopts)
-    # Apply spine options
-    spineL.set(**lsopts)
-    spineR.set(**rsopts)
-    spineB.set(**bsopts)
-    spineT.set(**tsopts)
-   # --- Tick Settings ---
-    # Option to turn off all ticks
-    qt = kw.get("Ticks", None)
-    # Only valid options are ``None`` and ``False``
-    if qt is not False: qt = None
-    # Options for ticks on each axis
-    qtL = kw.get("LeftSpineTicks",   qt and qL)
-    qtR = kw.get("RightSpineTicks",  qt and qR)
-    qtB = kw.get("BottomSpineTicks", qt and qB)
-    qtT = kw.get("TopSpineTicks",    qt and qT)
-    # Turn on/off
-    if qtL is not None:
-        ax.tick_params(left=qtL)
-    if qtR is not None:
-        ax.tick_params(right=qtR)
-    if qtB is not None:
-        ax.tick_params(bottom=qtB)
-    if qtT is not None:
-        ax.tick_params(top=qtT)
-   # --- Tick label settings ---
-    # Option to turn off all tick labels
-    qtl = kw.pop("TickLabels", None)
-    # Only valid options are ``None`` and ``False``
-    if qtl is not False: qtl = None
-    # Options for labels on each spine
-    qtlL = kw.pop("LeftTickLabels",   qtl)
-    qtlR = kw.pop("RightTickLabels",  qtl)
-    qtlB = kw.pop("BottomTickLabels", qtl)
-    qtlT = kw.pop("TopTickLabels",    qtl)
-    # Turn on/off labels
-    if qtlL is not None:
-        ax.tick_params(labelleft=qtlL)
-    if qtlR is not None:
-        ax.tick_params(labelright=qtlR)
-    if qtlB is not None:
-        ax.tick_params(labelbottom=qtlB)
-    if qtlT is not None:
-        ax.tick_params(labeltop=qtlT)
-   # --- Tick Formatting ---
-    # Directions
-    tkdir = kw.pop("TickDirection", "out")
-    xtdir = kw.pop("XTickDirection", tkdir)
-    ytdir = kw.pop("YTickDirection", tkdir)
-    # Apply tick directions (can be overridden below)
-    ax.tick_params(axis="x", direction=xtdir)
-    ax.tick_params(axis="y", direction=ytdir)
-    # Universal and paired options
-    tkopts = kw.pop("TickOptions", {})
-    xtopts = kw.pop("XTickOptions", {})
-    ytopts = kw.pop("YTickOptions", {})
-    # Inherit options from spines
-    tkopts = dict(spopts, **tkopts)
-    xtopts = dict(xsopts, **xtopts)
-    ytopts = dict(ysopts, **ytopts)
-    # Apply
-    ax.tick_params(axis="both", **tkopts)
-    ax.tick_params(axis="x",    **xtopts)
-    ax.tick_params(axis="y",    **ytopts)
-   # --- Output ---
-    # Return all spine handles
-    return ax.spines
+    return mpl.spines(ax, **kw)
 
 
 # Convert min/max to error bar widths
@@ -2484,52 +2134,7 @@ def get_ylim(ax, pad=0.05):
         * 2015-07-06 ``@ddalle``: First version
         * 2019-03-07 ``@ddalle``: Added ``"LineCollection"``
     """
-    # Initialize limits
-    ymin = np.inf
-    ymax = -np.inf
-    # Loop through all children of the input axes.
-    for h in ax.get_children():
-        # Get the type.
-        t = type(h).__name__
-        # Check the class.
-        if t == 'Line2D':
-            # Get the y data for this line
-            ydata = h.get_ydata()
-            # Check the min and max data
-            if len(ydata) > 0:
-                ymin = min(ymin, min(h.get_ydata()))
-                ymax = max(ymax, max(h.get_ydata()))
-        elif t in ['PathCollection', 'PolyCollection', 'LineCollection']:
-            # Loop through paths
-            for P in h.get_paths():
-                # Get the coordinates
-                ymin = min(ymin, min(P.vertices[:, 1]))
-                ymax = max(ymax, max(P.vertices[:, 1]))
-        elif t in ["Rectangle"]:
-            # Skip if invisible
-            if h.axes is None:
-                continue
-            # Get bounding box
-            bbox = h.get_bbox().extents
-            # Combine limits
-            ymin = min(ymin, bbox[1])
-            ymax = max(ymax, bbox[3])
-        elif t in ["AxesImage"]:
-            # Get bounds
-            bbox = h.get_extent()
-            # Update limits
-            xmin = min(xmin, min(bbox[2], bbox[3]))
-            xmax = max(xmax, max(bbox[2], bbox[3]))
-    # Check for identical values
-    if ymax - ymin <= 0.1*pad:
-        # Expand by manual amount
-        ymax += pad*abs(ymax)
-        ymin -= pad*abs(ymin)
-    # Add padding
-    yminv = (1+pad)*ymin - pad*ymax
-    ymaxv = (1+pad)*ymax - pad*ymin
-    # Output
-    return yminv, ymaxv
+    return mpl.get_ylim()
 
 
 # Function to automatically get inclusive data limits.
@@ -2555,51 +2160,7 @@ def get_xlim(ax, pad=0.05):
         * 2015-07-06 ``@ddalle``: First version
         * 2019-03-07 ``@ddalle``: Added ``"LineCollection"``
     """
-    # Initialize limits
-    xmin = np.inf
-    xmax = -np.inf
-    # Loop through all children of the input axes.
-    for h in ax.get_children()[:-1]:
-        # Get the type's name string
-        t = type(h).__name__
-        # Check the class.
-        if t == 'Line2D':
-            # Get data
-            xdata = h.get_xdata()
-            # Check the min and max data
-            if len(xdata) > 0:
-                xmin = min(xmin, np.min(h.get_xdata()))
-                xmax = max(xmax, np.max(h.get_xdata()))
-        elif t in ['PathCollection', 'PolyCollection', 'LineCollection']:
-            # Loop through paths
-            for P in h.get_paths():
-                # Get the coordinates
-                xmin = min(xmin, np.min(P.vertices[:, 0]))
-                xmax = max(xmax, np.max(P.vertices[:, 0]))
-        elif t in ["Rectangle"]:
-            # Skip if invisible
-            if h.axes is None: continue
-            # Get bounding box
-            bbox = h.get_bbox().extents
-            # Combine limits
-            xmin = min(xmin, bbox[0])
-            xmax = max(xmax, bbox[2])
-        elif t in ["AxesImage"]:
-            # Get bounds
-            bbox = h.get_extent()
-            # Update limits
-            xmin = min(xmin, min(bbox[0], bbox[1]))
-            xmax = max(xmax, max(bbox[0], bbox[1]))
-    # Check for identical values
-    if xmax - xmin <= 0.1*pad:
-        # Expand by manual amount
-        xmax += pad*abs(xmax)
-        xmin -= pad*abs(xmin)
-    # Add padding
-    xminv = (1+pad)*xmin - pad*xmax
-    xmaxv = (1+pad)*xmax - pad*xmin
-    # Output
-    return xminv, xmaxv
+    return mpl.get_xlim()
 
 
 # Output class

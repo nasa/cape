@@ -221,6 +221,8 @@ class MPLOpts(kwutils.KwargHandler):
         "YTicks",
         "ax",
         "fig",
+        "ux",
+        "uy",
         "x",
         "xerr",
         "y",
@@ -344,6 +346,25 @@ class MPLOpts(kwutils.KwargHandler):
             "YLimMin",
             "YPad"
         ],
+        "error": [
+            "Index",
+            "Rotate",
+            "ErrorOptions",
+            "ErrorPlotType",
+            "ErrorBarOptions",
+            "ErrorBarMarker",
+            "FillBetweenOptions",
+            "x",
+            "xerr",
+            "y",
+            "yerr"
+        ],
+        "errorbar": [
+            "Index",
+            "Rotate",
+            "ErrorBarOptions",
+            "ErrorBarMarker"
+        ],
         "fig": [
             "fig",
             "FigOptions",
@@ -351,6 +372,11 @@ class MPLOpts(kwutils.KwargHandler):
             "FigWidth",
             "FigHeight",
             "FigDPI"
+        ],
+        "fillbetween": [
+            "Index",
+            "Rotate",
+            "FillBetweenOptions"
         ],
         "font": [
             "FontOptions",
@@ -367,12 +393,6 @@ class MPLOpts(kwutils.KwargHandler):
             "MinorGrid",
             "MinorGridOptions",
         ],
-        "plot": [
-            "Index",
-            "Rotate",
-            "PlotOptions",
-            "PlotFormat"
-        ],
         "imshow": [
             "ImageXMin",
             "ImageXMax",
@@ -382,16 +402,26 @@ class MPLOpts(kwutils.KwargHandler):
             "ImageYCenter",
             "ImageExtent"
         ],
-        "errobar": [
-            "Index",
-            "Rotate",
-            "ErrorBarOptions",
-            "ErrorBarMarker"
+        "legend": [
+            "Legend",
+            "LegendAnchor",
+            "LegendFontOptions",
+            "LegendLocation",
+            "LegendOptions"
         ],
-        "fillbetween": [
+        "legendfont": [
+            "LegendFontName",
+            "LegendFontSize",
+            "LegendFontStretch",
+            "LegendFontStyle",
+            "LegendFontVariant",
+            "LegendFontWeight"
+        ],
+        "plot": [
             "Index",
             "Rotate",
-            "FillBetweenOptions"
+            "PlotOptions",
+            "PlotFormat"
         ],
         "minmax": [
             "Index",
@@ -400,25 +430,11 @@ class MPLOpts(kwutils.KwargHandler):
             "MinMaxPlotType",
             "ErrorBarOptions",
             "ErrorBarMarker",
-            "FillBetweenOptions"
-        ],
-        "error": [
-            "Index",
-            "Rotate",
-            "ErrorOptions",
-            "ErrorPlotType",
-            "ErrorBarOptions",
-            "ErrorBarMarker",
-            "FillBetweenOptions"
-        ],
-        "uq": [
-            "Index",
-            "Rotate",
-            "ErrorBarMarker",
-            "ErrorBarOptions",
             "FillBetweenOptions",
-            "UncertaintyPlotType",
-            "UncertaintyOptions"
+            "x",
+            "y",
+            "ymax",
+            "ymin"
         ],
         "spines": [
             "Spines",
@@ -477,21 +493,6 @@ class MPLOpts(kwutils.KwargHandler):
             "YTickRotation",
             "YTickSize",
         ],
-        "legend": [
-            "Legend",
-            "LegendAnchor",
-            "LegendFontOptions",
-            "LegendLocation",
-            "LegendOptions"
-        ],
-        "legendfont": [
-            "LegendFontName",
-            "LegendFontSize",
-            "LegendFontStretch",
-            "LegendFontStyle",
-            "LegendFontVariant",
-            "LegendFontWeight"
-        ],
         "subplot": [
             "AdjustBottom",
             "AdjustLeft",
@@ -500,6 +501,19 @@ class MPLOpts(kwutils.KwargHandler):
             "Subplot",
             "SubplotCols",
             "SubplotRows"
+        ],
+        "uq": [
+            "Index",
+            "Rotate",
+            "ErrorBarMarker",
+            "ErrorBarOptions",
+            "FillBetweenOptions",
+            "UncertaintyPlotType",
+            "UncertaintyOptions",
+            "ux",
+            "uy",
+            "x",
+            "y"
         ],
     }
 
@@ -639,6 +653,8 @@ class MPLOpts(kwutils.KwargHandler):
         "YTicks": (bool, list),
         "ax": object,
         "fig": object,
+        "ux": typeutils.arraylike,
+        "uy": typeutils.arraylike,
         "x": typeutils.arraylike,
         "xerr": typeutils.arraylike,
         "y": typeutils.arraylike,
@@ -880,8 +896,14 @@ class MPLOpts(kwutils.KwargHandler):
         "YPad": """{*Pad*} | :class:`float`""",
         "ax": """{``None``} | :class:`matplotlib.axes._subplots.Axes`""",
         "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
+        "ux": r""":class:`np.ndarray`\ [:class:`float`]""",
+        "uy": r""":class:`np.ndarray`\ [:class:`float`]""",
         "x": r""":class:`np.ndarray`\ [:class:`float`]""",
+        "xerr": r""":class:`np.ndarray`\ [:class:`float`]""",
         "y": r""":class:`np.ndarray`\ [:class:`float`]""",
+        "yerr": r""":class:`np.ndarray`\ [:class:`float`]""",
+        "ymax": r""":class:`np.ndarray`\ [:class:`float`]""",
+        "ymin": r""":class:`np.ndarray`\ [:class:`float`]""",
     }
     # Option descriptions
     _rst_descriptions = {
@@ -1004,8 +1026,14 @@ class MPLOpts(kwutils.KwargHandler):
         "YPad": """Extra padding to add to *y* axis limits""",
         "ax": """Handle to existing axes""",
         "fig": """Handle to existing figure""",
+        "ux": """UQ *x* magintudes""",
+        "uy": """UQ magnitudes""",
         "x": """Nominal *x* values to plot""",
+        "xerr": """*x* widths for error plots""",
         "y": """Nominal *y* values to plot""",
+        "yerr": """Error magnitudes""",
+        "ymin": """Max values for min/max plots""",
+        "ymax": """Max values for min/max plots""",
     }
     
    # --- RC ---
