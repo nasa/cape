@@ -498,6 +498,47 @@ class KwargHandler(dict):
   # Change Settings
   # ==================
   # <
+   # --- Set ---
+    # Set an option, with checks
+    def set_option(self, opt, val):
+        r"""Set an option, with checks
+
+        The option is first looked up in *_optmap* and saved with the
+        full name found there, if any.  After mapping, *opt* is checked
+        against the *_optlist* and *_opttypes* of the class.
+
+        :Call:
+            >>> opts.set_option(opt, val)
+        :Inputs:
+            *opts*: :class:`KwargHandler`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *val*: :class:`any`
+                Specified value
+        :Versions:
+            * 2020-01-26 ``@ddalle``: First version
+        """
+        # Check for trivial input
+        if val is None:
+            return
+        # Class
+        cls = self.__class__
+        # Create simple keyword dict
+        kw = {opt: val}
+        # Check validity, apply maps
+        opts = check_kw_eltypes(
+            self._optlist_check,
+            cls._optmap,
+            cls._opttypes,
+            cls._optdependencies,
+            self._warnmode, **kw)
+        # Expand abbreviation or alternate name
+        opt = cls._optmap.get(opt, opt)
+        # If that survived, save the value
+        if opts:
+            self[opt] = val
+
    # --- Update Many ---
     # Apply several settings
     def update(self, **kw):
@@ -551,9 +592,10 @@ class KwargHandler(dict):
   # Utilities
   # ============
   # <
+   # --- Filtering ---
     # Remove ``None`` keys
-    @staticmethod
-    def denone(opts):
+    @classmethod
+    def denone(cls, opts):
         r"""Remove any keys whose value is ``None``
     
         :Call:
@@ -578,42 +620,6 @@ class KwargHandler(dict):
         # Output
         return opts
 
-    # Get rule for phase beyond end of list
-    @classmethod
-    def _get_listtype(cls, k):
-        r"""Get "ring" or "holdlast"  option for named key
-
-        :Call:
-            >>> ringcode = cls._get_listtype(k)
-        :Inputs:
-            *cls*: :class:`type`
-                Options class
-            *k*: :class:`str`
-                Name of key
-        :Outputs:
-            *ringcode*: ``0`` | ``1``
-                ``0`` for a ring, which repeats, ``1`` for a list
-                where calling for indices beyond length of list
-                returns last value
-        :Versions:
-            * 2020-01-16 ``@ddalle``: First version
-        """
-        # Check explicit options
-        if k in cls._optlist_ring:
-            # Explicitly a ring
-            return 0
-        elif k in cls._optlist_holdlast:
-            # Explicitly a hold-last
-            return 1
-        else:
-            # Use the default
-            return cls._optlist_type
-  # >
-
-  # ================
-  # Item Selection
-  # ================
-  # <
    # --- Phase ---
     # Select options for phase *i*
     @classmethod
@@ -667,10 +673,41 @@ class KwargHandler(dict):
             kw_p[k] = v
         # Output
         return kw_p
+
+    # Get rule for phase beyond end of list
+    @classmethod
+    def _get_listtype(cls, k):
+        r"""Get "ring" or "holdlast"  option for named key
+
+        :Call:
+            >>> ringcode = cls._get_listtype(k)
+        :Inputs:
+            *cls*: :class:`type`
+                Options class
+            *k*: :class:`str`
+                Name of key
+        :Outputs:
+            *ringcode*: ``0`` | ``1``
+                ``0`` for a ring, which repeats, ``1`` for a list
+                where calling for indices beyond length of list
+                returns last value
+        :Versions:
+            * 2020-01-16 ``@ddalle``: First version
+        """
+        # Check explicit options
+        if k in cls._optlist_ring:
+            # Explicitly a ring
+            return 0
+        elif k in cls._optlist_holdlast:
+            # Explicitly a hold-last
+            return 1
+        else:
+            # Use the default
+            return cls._optlist_type
   # >
 
   # ===============
-  # Subsections
+  # Item Retrieval
   # ===============
   # <
    # --- Individual Option ---

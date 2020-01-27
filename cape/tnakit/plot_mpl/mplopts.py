@@ -155,6 +155,7 @@ class MPLOpts(kwutils.KwargHandler):
         "PlotColor",
         "PlotLineStyle",
         "PlotLineWidth",
+        "PlotFormat",
         "PlotOptions",
         "RightSpine",
         "RightSpineMax",
@@ -220,7 +221,9 @@ class MPLOpts(kwutils.KwargHandler):
         "YTicks",
         "ax",
         "fig",
+        "x",
         "xerr",
+        "y",
         "yerr",
         "ymin",
         "ymax"
@@ -260,6 +263,7 @@ class MPLOpts(kwutils.KwargHandler):
         "UncertaintyOpts": "UncertaintyOptions",
         "UQPlotType": "UncertaintyPlotType",
         "density": "Density",
+        "fmt": "PlotFormat",
         "grid": "Grid",
         "hfig": "FigHeight",
         "hspace": "MarginHSpace",
@@ -367,9 +371,7 @@ class MPLOpts(kwutils.KwargHandler):
             "Index",
             "Rotate",
             "PlotOptions",
-            "PlotColor",
-            "PlotLineStyle",
-            "PlotLineWidth",
+            "PlotFormat"
         ],
         "imshow": [
             "ImageXMin",
@@ -575,6 +577,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinMaxPlotType": typeutils.strlike,
         "Pad": float,
         "PlotColor": (tuple, typeutils.strlike),
+        "PlotFormat": typeutils.strlike,
         "PlotLineStyle": typeutils.strlike,
         "PlotLineWidth": (float, int),
         "PlotOptions": dict,
@@ -636,7 +639,9 @@ class MPLOpts(kwutils.KwargHandler):
         "YTicks": (bool, list),
         "ax": object,
         "fig": object,
+        "x": typeutils.arraylike,
         "xerr": typeutils.arraylike,
+        "y": typeutils.arraylike,
         "yerr": typeutils.arraylike,
         "ymax": typeutils.arraylike,
         "ymin": typeutils.arraylike,
@@ -835,6 +840,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinorGridOptions": _rst_dict,
         "Pad": _rst_float,
         "PlotColor": """{``None``} | :class:`str` | :class:`tuple`""",
+        "PlotFormat": _rst_str,
         "PlotLineStyle": ('``":"`` | ``"-"`` | ``"none"`` | ' +
             '``"-."`` | ``"--"``'),
         "PlotLineWidth": _rst_numpos,
@@ -874,6 +880,8 @@ class MPLOpts(kwutils.KwargHandler):
         "YPad": """{*Pad*} | :class:`float`""",
         "ax": """{``None``} | :class:`matplotlib.axes._subplots.Axes`""",
         "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
+        "x": r""":class:`np.ndarray`\ [:class:`float`]""",
+        "y": r""":class:`np.ndarray`\ [:class:`float`]""",
     }
     # Option descriptions
     _rst_descriptions = {
@@ -957,9 +965,10 @@ class MPLOpts(kwutils.KwargHandler):
         "MinorGridOptions": """Plot options for minor grid""",
         "Pad": "Padding to add to both axes, *ax.set_xlim* and *ax.set_ylim*",
         "PlotColor": """Color option to :func:`plt.plot` for primary curve""",
-        "PlotOptions": """Options to :func:`plt.plot` for primary curve""",
+        "PlotFormat": """Format specifier as third arg to :func:`plot`""",
         "PlotLineStyle": """Line style for primary :func:`plt.plot`""",
         "PlotLineWidth": """Line width for primary :func:`plt.plot`""",
+        "PlotOptions": """Options to :func:`plt.plot` for primary curve""",
         "RightSpine": "Turn on/off right plot spine",
         "RightSpineMax": "Maximum *y* coord for right plot spine",
         "RightSpineMin": "Minimum *y* coord for right plot spine",
@@ -995,6 +1004,8 @@ class MPLOpts(kwutils.KwargHandler):
         "YPad": """Extra padding to add to *y* axis limits""",
         "ax": """Handle to existing axes""",
         "fig": """Handle to existing figure""",
+        "x": """Nominal *x* values to plot""",
+        "y": """Nominal *y* values to plot""",
     }
     
    # --- RC ---
