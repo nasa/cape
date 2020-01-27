@@ -128,23 +128,13 @@ def plot(xv, yv, *a, **kw):
     opts.setdefault_option("ShowMinMax", qmmx)
     opts.setdefault_option("ShowError", qerr)
     opts.setdefault_option("ShowUncertainty", quq)
-   # --- Figure Setup ---
-    # Process figure options
-    kw_fig = opts.figure_options()
-    # Get/create figure
-    h.fig = mpl._figure(**kw_fig)
-   # --- Axis Setup ---
-    # Process axis options
-    kw_ax = opts.axes_options()
-    # Get/create axis
-    h.ax = mpl._axes(**kw_ax)
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
    # --- Primary Plot ---
-    # Process plot options
-    kw_plot = opts.plot_options()
-    # Call plot method
-    if opts.get_option("ShowLine"):
-        # Plot call
-        h.lines += mpl._plot(xv, yv, *fmt, **kw_plot)
+    # Plot, then others
+    _part_plot(opts, h)
    # --- Min/Max ---
     # Process min/max options
     opts_mmax = opts.minmax_options()
@@ -238,6 +228,45 @@ def plot(xv, yv, *a, **kw):
     h.opts = opts
     # Output
     return h
+
+
+# Partial function: prepare figure
+_part_init_figure(opts, h):
+    # Process figure options
+    kw_fig = opts.figure_options()
+    # Get/create figure
+    h.fig = mpl._figure(**kw_fig)
+
+
+# Partial function: prepare axes
+_part_init_axes(opts, h):
+    # Process axis options
+    kw_ax = opts.axes_options()
+    # Get/create axis
+    h.ax = mpl._axes(**kw_ax)
+
+
+# Partial function: plot()
+_part_plot(opts, h):
+    # Call plot method
+    if opts.get_option("ShowLine", True):
+        # Process plot options
+        kw = opts.plot_options()
+        # Get values
+        x = opts.get_option("x")
+        y = opts.get_option("y")
+        # Get format
+        fmt = opts.get_option("PlotFormat")
+        # Create format args
+        if fmt:
+            a = tuple(fmt)
+        else:
+            a = tuple()
+        # Plot call
+        lines = mpl._plot(xv, yv, *a, **kw)
+        # Save lines
+        h.save("lines", lines)
+    
 
 
 # Manage single subplot extents
