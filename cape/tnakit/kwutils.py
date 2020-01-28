@@ -1142,12 +1142,12 @@ class KwargHandler(dict):
    # --- Docstring ---
     # Document a function
     @classmethod
-    def _doc_keys(cls, func, sec, fmt_key="keys", submap=True):
-        r"""Document the keyword list for a function
+    def _doc_keys(cls, func, sec, indent=12, fmt_key="keys", submap=True):
+        r"""Document the keyword list for a function in a class
 
         :Call:
-            >>> cls._doc_keys(func, sec, fmt_key="keys", submap=True)
-            >>> cls._doc_keys(func, optlist, fmt_key="keys")
+            >>> cls._doc_keys(func, sec, **kw)
+            >>> cls._doc_keys(func, optlist, **kw)
         :Inputs:
             *cls*: :class:`type`
                 Class whose *__dict__* has the function to document
@@ -1157,6 +1157,8 @@ class KwargHandler(dict):
                 Name of section to get keys from
             *optlist*: :class:`list`\ [:class:`str`]
                 Explicit list of keys (like *cls._optlists[sec]*)
+            *indent*: {``12``} | :class:`int` >= 0
+                Indentation level for parameter name
             *fmt_key*: {``"keys"``} | :class:`str`
                 Format key to replace in existing docstring; by default
                 this replaces ``"%(keys)s"`` with the RST list
@@ -1169,7 +1171,75 @@ class KwargHandler(dict):
         fn = cls.__dict__[func]
         # Check type
         if not callable(fn):
-            raise TypeError("Attribute '%s' is not callable" % funcname)
+            raise TypeError(
+                "Attr '%s.%s' is not callable" % (cls.__name__, func))
+        # Call parent function
+        cls._doc_keys_fn(fn, sec, indent, fmt_key, submap)
+
+    # Document a function (any)
+    @classmethod
+    def _doc_keys_fn(cls, fn, sec, indent=8, fmt_key="keys", submap=True):
+        r"""Document the keyword list for a generic function
+
+        :Call:
+            >>> cls._doc_keys(fn, sec, **kw)
+            >>> cls._doc_keys(fn, optlist, **kw)
+        :Inputs:
+            *cls*: :class:`type`
+                Class with option lists to expand
+            *fn*: *callable*
+                Function to document
+            *sec*: :class:`str`
+                Name of section to get keys from
+            *optlist*: :class:`list`\ [:class:`str`]
+                Explicit list of keys (like *cls._optlists[sec]*)
+            *indent*: {``8``} | :class:`int` >= 0
+                Indentation level for parameter name
+            *fmt_key*: {``"keys"``} | :class:`str`
+                Format key to replace in existing docstring; by default
+                this replaces ``"%(keys)s"`` with the RST list
+            *submap*: {``True``} | ``False``
+                If ``True``, add keys from *cls._kw_submap*
+        :Versions:
+            * 2020-01-17 ``@ddalle``: First version
+        """
+        # Check type
+        if not callable(fn):
+            raise TypeError("Function is not callable")
+        # Apply text to the docstring
+        fn.__doc__ = cls._doc_keys_doc(
+            fn.__doc__, sec, indent, fmt_key, submap)
+
+    # Document a string
+    @classmethod
+    def _doc_keys_doc(cls, doc, sec, indent=8, fmt_key="keys", submap=True):
+        r"""Document the keyword list for a generic function
+
+        :Call:
+            >>> doc = cls._doc_keys(doc, sec, **kw)
+            >>> doc = cls._doc_keys(doc, optlist, **kw)
+        :Inputs:
+            *cls*: :class:`type`
+                Class with option lists to expand
+            *doc*: :class:`str`
+                Docstring to update
+            *sec*: :class:`str`
+                Name of section to get keys from
+            *optlist*: :class:`list`\ [:class:`str`]
+                Explicit list of keys (like *cls._optlists[sec]*)
+            *indent*: {``8``} | :class:`int` >= 0
+                Indentation level for parameter name
+            *fmt_key*: {``"keys"``} | :class:`str`
+                Format key to replace in existing docstring; by default
+                this replaces ``"%(keys)s"`` with the RST list
+            *submap*: {``True``} | ``False``
+                If ``True``, add keys from *cls._kw_submap*
+        :Outputs:
+            *doc*: :class:`str`
+                Updated docstring
+        :Versions:
+            * 2020-01-17 ``@ddalle``: First version
+        """
         # Check *sec*
         if isinstance(sec, list):
             # Already a list
@@ -1203,8 +1273,8 @@ class KwargHandler(dict):
             cls._rst_types,
             cls._rst_descriptions,
             cls._optmap,
-            indent=12,
+            indent=indent,
             strict=False)
         # Apply text to the docstring
-        fn.__doc__ = fn.__doc__ % {fmt_key: rst_keys}
+        return doc % {fmt_key: rst_keys}
   # >

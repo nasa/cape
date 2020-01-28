@@ -376,31 +376,7 @@ def axes_adjust_col(fig, **kw):
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
             Figure handle or number (default from :func:`plt.gcf`)
-        *SubplotList*: {``None``} | :class:`list`\ [:class:`int`]
-            List of subplots nums in column (default is all)
-        *SubplotRubber*: {``-1``} | :class:`int`
-            Index of subplot to adjust to expand vertical
-        *MarginBottom*: {``0.02``} | :class:`float`
-            Figure fraction from bottom edge to bottom label
-        *MarginLeft*: {``0.02``} | :class:`float`
-            Figure fraction from left edge to left-most label
-        *MarginRight*: {``0.015``} | :class:`float`
-            Figure fraction from right edge to right-most label
-        *MarginTop*: {``0.015``} | :class:`float`
-            Figure fraction from top edge to top-most label
-        *MarginVSpace*, *vspace*: {``0.02``} | :class:`float`
-            Figure fraction for vertical space between axes
-        *AdjustBottom*: ``None`` | :class:`float`
-            Figure coordinate for bottom edge of axes
-        *AdjustLeft*: ``None`` | :class:`float`
-            Figure coordinate for left edge of axes
-        *AdjustRight*: ``None`` | :class:`float`
-            Figure coordinate for right edge of axes
-        *AdjustTop*: ``None`` | :class:`float`
-            Figure coordinate for top edge of axes
-        *KeepAspect*: {``None``} | ``True`` | ``False``
-            Keep aspect ratio; default is ``True`` unless
-            ``ax.get_aspect()`` is ``"auto"``
+        %(keys)s
     :Versions:
         * 2020-01-10 ``@ddalle``: First version
         * 2020-01-27 ``@ddalle``: Added options checks
@@ -469,6 +445,8 @@ def axes_format(ax, **kw):
             X label
         *yl*: :class:`matplotlib.text.Text`
             Y label
+    :Keywords:
+        %(keys)s
     :Versions:
         * 2019-03-06 ``@jmeeroff``: First version
         * 2020-01-08 ``@ddalle``: 2.0, removed margin adjustment
@@ -2408,3 +2386,8 @@ def _get_axes_label_margins(ax):
     hb = jb - jb_ax
     # Output
     return wa, ha, wb, hb
+
+
+# Automatic documentation
+MPLOpts._doc_keys_fn(axes_adjust_col, "axadjust_col")
+MPLOpts._doc_keys_fn(axes_format, "axformat")
