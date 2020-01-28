@@ -315,6 +315,43 @@ class Tecscript(FileCntl):
    # Find Commands
    # -------------
    # [
+    # Find a command by name
+    def GetCommandIndex(self, cmd, nmax=1):
+        r"""Find indices of command by name
+
+        :Call:
+            >>> Kcmd = tec.GetCommandIndex(cmd, nmax=1)
+        :Inputs:
+            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+                Instance of Tecplot script base class
+            *cmd*: :class:`str`
+                Title of the command to find
+            *nmax*: {``1``} | :class:`int` > 0
+                Maximum finds to locate
+        :Outputs:
+            *Kcmd*: :class:`list`\ [:class:`int`]
+                List of indices of *tec.cmds* that match *cmd*
+        :Versions:
+            * 2020-01-28 ``@ddalle``: First version
+        """
+        # Initialize indices
+        Kcmd = []
+        # Number of finds
+        n = 0
+        # Loop through lines
+        for (j, cmdj) in enumerate(self.cmds):
+            # Check for case-insensitive match
+            if cmdj.lower() == cmd.lower():
+                # Increase find
+                n += 1
+                # Save find
+                Kcmd.append(j)
+                # Check count
+                if nmax and n >= nmax:
+                    break
+        # Output
+        return Kcmd
+        
     # Function to get lines of a command
     def GetCommand(self, cmd, n=0):
         """Get the start and end line numbers in the *n*\ th instance of *cmd*
@@ -341,7 +378,7 @@ class Tecscript(FileCntl):
             * 2017-10-05 ``@ddalle``: First version
         """
         # Find instances of command
-        Kcmd = np.where(np.array(self.cmds) == cmd)[0]
+        Kcmd = self.GetCommandIndex(cmd, n + 1)
         # Append total line count to icmd
         icmd = self.icmd + [len(self.lines)+1]
         # Check for possible patch
@@ -520,7 +557,8 @@ class Tecscript(FileCntl):
         # Delete the command
         kcmd = self.DeleteCommand(cmd, txt=reg, lines=regs)
         # Get the default command index.
-        if kcmd is None: kcmd = k
+        if kcmd is None:
+            kcmd = k
         # Insert the command.
         self.InsertCommand(kcmd, cmd, txt, lines)
    
@@ -556,7 +594,8 @@ class Tecscript(FileCntl):
         # Loop through commands in reverse order.
         for k in range(len(self.cmds)-1, -1, -1):
             # Check the command.
-            if self.cmds[k] != cmd: continue
+            if self.cmds[k].lower() != cmd.lower():
+                continue
             # Check for additional text to match
             if txt:
                 # Get the line of the command.
@@ -620,7 +659,7 @@ class Tecscript(FileCntl):
             * 2016-10-05 ``@ddalle``: First version
         """
         # Find instances of command
-        Kcmd = np.where(np.array(self.cmds) == cmd)[0]
+        Kcmd = self.GetCommandIndex(cmd, n+1)
         # Check for possible match
         if n >= len(Kcmd):
             return

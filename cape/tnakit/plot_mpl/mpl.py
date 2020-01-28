@@ -121,10 +121,7 @@ def figure(**kw):
     :Call:
         >>> fig = figure(**kw)
     :Inputs:
-        *fig*: {``None``} | :class:`matplotlib.figure.Figure`
-            Optional figure handle
-        *FigOptions*: {``None``} | :class:`dict`
-            Options to apply to figure handle using :func:`fig.set`
+        %(keys)s
     :Outputs:
         *fig*: :class:`matplotlib.figure.Figure`
             Figure handle
@@ -147,10 +144,7 @@ def axes(**kw):
     :Call:
         >>> ax = axes(**kw)
     :Inputs:
-        *ax*: ``None`` | :class:`AxesSubplot`
-            Optional axes handle
-        *AxesOptions*: {``None``} | :class:`dict`
-            Options to apply to figure handle using :func:`ax.set`
+        %(keys)s
     :Outputs:
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
@@ -180,12 +174,8 @@ def plot(xv, yv, fmt=None, **kw):
             Array of *y*-coordinates
         *fmt*: :class:`str`
             Optional format option
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
-        *rotate*, *Rotate*: ``True`` | {``False``}
-            Plot independent variable on vertical axis
     :Keyword Arguments:
-        * See :func:`matplotlib.pyplot.plot`
+        %(keys)s
     :Outputs:
         *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
             List of line instances
@@ -2390,4 +2380,7 @@ def _get_axes_label_margins(ax):
 
 # Automatic documentation
 MPLOpts._doc_keys_fn(axes_adjust_col, "axadjust_col")
+MPLOpts._doc_keys_fn(axes, "axes")
 MPLOpts._doc_keys_fn(axes_format, "axformat")
+MPLOpts._doc_keys_fn(figure, "fig")
+MPLOpts._doc_keys_fn(plot, "plot")
