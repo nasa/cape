@@ -487,11 +487,8 @@ def _axes(**kw):
 
     :Call:
         >>> ax = axes(**kw)
-    :Inputs:
-        *ax*: ``None`` | :class:`AxesSubplot`
-            Optional axes handle
-        *AxesOptions*: {``None``} | :class:`dict`
-            Options to apply to figure handle using :func:`ax.set`
+    :Keyword Arguments:
+        %(keys)s
     :Outputs:
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
@@ -551,35 +548,8 @@ def _axes_adjust(fig=None, **kw):
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
             Figure handle or number (default from :func:`plt.gcf`)
-        *ax*: {``None``} | :class:`AxesSubplot`
-            Axes handle, if specified, *Subplot* is ignored
-        *Subplot*: {``None``} | :class:`int` > 0
-            Subplot index; if ``None``, use :func:`plt.gca`; adds a
-            new subplot if *Subplot* is greater than the number of
-            existing subplots in *fig* (1-based index)
-        *SubplotRows*: {*Subplot*} | :class:`int` > 0
-            Number of subplot rows if creating new subplot
-        *SubplotCols*: {*Subplot*} | :class:`int` > 0
-            Number of subplot columns if creating new subplot
-        *MarginBottom*: {``0.02``} | :class:`float`
-            Figure fraction from bottom edge to bottom label
-        *MarginLeft*: {``0.02``} | :class:`float`
-            Figure fraction from left edge to left-most label
-        *MarginRight*: {``0.015``} | :class:`float`
-            Figure fraction from right edge to right-most label
-        *MarginTop*: {``0.015``} | :class:`float`
-            Figure fraction from top edge to top-most label
-        *AdjustBottom*: ``None`` | :class:`float`
-            Figure coordinate for bottom edge of axes
-        *AdjustLeft*: ``None`` | :class:`float`
-            Figure coordinate for left edge of axes
-        *AdjustRight*: ``None`` | :class:`float`
-            Figure coordinate for right edge of axes
-        *AdjustTop*: ``None`` | :class:`float`
-            Figure coordinate for top edge of axes
-        *KeepAspect*: {``None``} | ``True`` | ``False``
-            Keep aspect ratio; default is ``True`` unless
-            ``ax.get_aspect()`` is ``"auto"``
+    :Keyword Arguments:
+        %(keys)s
     :Outputs:
         *ax*: :class:`AxesSubplot`
             Handle to subplot directed to use from these options
@@ -736,31 +706,8 @@ def _axes_adjust_col(fig, **kw):
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
             Figure handle or number (default from :func:`plt.gcf`)
-        *SubplotList*: {``None``} | :class:`list`\ [:class:`int`]
-            List of subplots nums in column (default is all)
-        *SubplotRubber*: {``-1``} | :class:`int`
-            Index of subplot to adjust to expand vertical
-        *MarginBottom*: {``0.02``} | :class:`float`
-            Figure fraction from bottom edge to bottom label
-        *MarginLeft*: {``0.02``} | :class:`float`
-            Figure fraction from left edge to left-most label
-        *MarginRight*: {``0.015``} | :class:`float`
-            Figure fraction from right edge to right-most label
-        *MarginTop*: {``0.015``} | :class:`float`
-            Figure fraction from top edge to top-most label
-        *MarginVSpace*, *vspace*: {``0.02``} | :class:`float`
-            Figure fraction for vertical space between axes
-        *AdjustBottom*: ``None`` | :class:`float`
-            Figure coordinate for bottom edge of axes
-        *AdjustLeft*: ``None`` | :class:`float`
-            Figure coordinate for left edge of axes
-        *AdjustRight*: ``None`` | :class:`float`
-            Figure coordinate for right edge of axes
-        *AdjustTop*: ``None`` | :class:`float`
-            Figure coordinate for top edge of axes
-        *KeepAspect*: {``None``} | ``True`` | ``False``
-            Keep aspect ratio; default is ``True`` unless
-            ``ax.get_aspect()`` is ``"auto"``
+    :Keyword Arguments:
+        %(keys)s
     :Versions:
         * 2020-01-10 ``@ddalle``: First version
         * 2020-01-27 ``@ddalle``: Added options checks
@@ -874,39 +821,16 @@ def _axes_adjust_col(fig, **kw):
 
 
 # Co-align a row of axes
-def axes_adjust_row(fig, **kw):
+def _axes_adjust_row(fig, **kw):
     r"""Adjust a row of axes with shared vertical extents
 
     :Call:
-        >>> axes_adjust_row(fig, **kw)
+        >>> _axes_adjust_row(fig, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
             Figure handle or number (default from :func:`plt.gcf`)
-        *SubplotList*: {``None``} | :class:`list`\ [:class:`int`]
-            List of subplots nums in column (default is all)
-        *SubplotRubber*: {``-1``} | :class:`int`
-            Index of subplot to adjust to expand horizontally
-        *MarginBottom*: {``0.02``} | :class:`float`
-            Figure fraction from bottom edge to bottom label
-        *MarginLeft*: {``0.02``} | :class:`float`
-            Figure fraction from left edge to left-most label
-        *MarginRight*: {``0.015``} | :class:`float`
-            Figure fraction from right edge to right-most label
-        *MarginTop*: {``0.015``} | :class:`float`
-            Figure fraction from top edge to top-most label
-        *MarginHSpace*, *vspace*: {``0.02``} | :class:`float`
-            Figure fraction for horizontal space between axes
-        *AdjustBottom*: ``None`` | :class:`float`
-            Figure coordinate for bottom edge of axes
-        *AdjustLeft*: ``None`` | :class:`float`
-            Figure coordinate for left edge of axes
-        *AdjustRight*: ``None`` | :class:`float`
-            Figure coordinate for right edge of axes
-        *AdjustTop*: ``None`` | :class:`float`
-            Figure coordinate for top edge of axes
-        *KeepAspect*: {``None``} | ``True`` | ``False``
-            Keep aspect ratio; default is ``True`` unless
-            ``ax.get_aspect()`` is ``"auto"``
+    :Keyword Arguments:
+        %(keys)s
     :Versions:
         * 2020-01-10 ``@ddalle``: First version
         * 2020-01-27 ``@ddalle``: Added options checks
@@ -1117,6 +1041,8 @@ def _errorbar(xv, yv, yerr=None, xerr=None, **kw):
             Phase number to cycle through plot options
         *Rotate*: ``True`` | {``False``}
             Option to plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.errorbar`
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
         * 2019-08-22 ``@ddalle``: Renamed from :func:`errorbar_part`
@@ -1176,11 +1102,8 @@ def _figure(**kw):
 
     :Call:
         >>> fig = _figure(**kw)
-    :Inputs:
-        *fig*: {``None``} | :class:`matplotlib.figure.Figure`
-            Optional figure handle
-        *FigOptions*: {``None``} | :class:`dict`
-            Options to apply to figure handle using :func:`fig.set`
+    :Keyword Arguments:
+        %(keys)s
     :Outputs:
         *fig*: :class:`matplotlib.figure.Figure`
             Figure handle
@@ -1225,7 +1148,7 @@ def _fill_between(xv, ymin, ymax, **kw):
     r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
 
     :Call:
-        >>> h = _fill_between_nocheck(xv, ymin, ymax, **kw)
+        >>> h = _fill_between(xv, ymin, ymax, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of independent variable values
@@ -1237,6 +1160,8 @@ def _fill_between(xv, ymin, ymax, **kw):
             Phase number to cycle through plot options
         *Rotate*: ``True`` | {``False``}
             Option to plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.fill_between`
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
         * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
@@ -1296,9 +1221,8 @@ def _grid(ax, **kw):
     :Inputs:
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
-    :Effects:
-        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
-            Grid lines added to axes
+    :Keyword Arguments:
+        %(keys)s
     :Versions:
         * 2019-03-07 ``@jmeeroff``: First version
         * 2019-12-23 ``@ddalle``: Updated from :mod:`plotutils`
@@ -1354,20 +1278,8 @@ def _imshow(png, **kw):
             Name of PNG file
         *png*: :class:`np.ndarray`
             Image array from :func:`plt.imread`
-        *ImageXMin*: {``0.0``} | :class:`float`
-            Coordinate for left edge of image
-        *ImageXMax*: {``None``} | :class:`float`
-            Coordinate for right edge of image
-        *ImageXCenter*: {``None``} | :class:`float`
-            Horizontal center coord if *x* edges not specified
-        *ImageYMin*: {``None``} | :class:`float`
-            Coordinate for bottom edge of image
-        *ImageYMax*: {``None``} | :class:`float`
-            Coordinate for top edge of image
-        *ImageYCenter*: {``0.0``} | :class:`float`
-            Vertical center coord if *y* edges not specified
-        *ImageExtent*: {``None``} | :class:`tuple` | :class:`list`
-            Spec for *ImageXMin*, *ImageXMax*, *ImageYMin*, *ImageYMax*
+    :Keyword Arguments:
+        %(keys)s
     :Outputs:
         *img*: :class:`matplotlib.image.AxesImage`
             Image handle
@@ -1489,6 +1401,8 @@ def _legend(ax=None, **kw):
     :Inputs:
         *ax*: {``None``} | :class:`matplotlib.axes._subplots.AxesSubplot`
             Axis handle (default is ``plt.gca()``
+    :Keyword Arguments:
+        %(keys)s
     :Outputs:
         *leg*: :class:`matplotlib.legend.Legend`
             Legend handle
@@ -1705,9 +1619,8 @@ def _spines(ax, **kw):
     :Inputs:
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
-    :Effects:
-        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
-            Grid lines added to axes
+    :Keyword Arguments:
+        %(keys)s
     :Versions:
         * 2019-03-07 ``@jmeeroff``: First version
         * 2019-12-23 ``@ddalle``: From :mod:`tnakit.plotutils`
@@ -2325,11 +2238,24 @@ MPLOpts._doc_keys_fn(axes_adjust_col, "axadjust_col")
 MPLOpts._doc_keys_fn(axes_adjust_row, "axadjust_row")
 MPLOpts._doc_keys_fn(axes, "axes")
 MPLOpts._doc_keys_fn(axes_format, "axformat")
-MPLOpts._doc_keys_fn(errorbar, ["ErrorBarOptions"])
 MPLOpts._doc_keys_fn(figure, "fig")
-MPLOpts._doc_keys_fn(fill_between, ["FillBetweenOptions"])
 MPLOpts._doc_keys_fn(grid, "grid")
 MPLOpts._doc_keys_fn(imshow, "imshow")
 MPLOpts._doc_keys_fn(legend, "legend")
-MPLOpts._doc_keys_fn(plot, ["PlotOptions"])
 MPLOpts._doc_keys_fn(spines, "spines")
+
+# Document plotters and direct option users
+MPLOpts._doc_keys_fn(errorbar, ["ErrorBarOptions"])
+MPLOpts._doc_keys_fn(fill_between, ["FillBetweenOptions"])
+MPLOpts._doc_keys_fn(plot, ["PlotOptions"])
+
+# Document private functions
+MPLOpts._doc_keys_fn(_axes_adjust, "axadjust", submap=False)
+MPLOpts._doc_keys_fn(_axes_adjust_col, "axadjust_col", submap=False)
+MPLOpts._doc_keys_fn(_axes_adjust_row, "axadjust_row", submap=False)
+MPLOpts._doc_keys_fn(_axes, "axes", submap=False)
+MPLOpts._doc_keys_fn(_figure, "fig", submap=False)
+MPLOpts._doc_keys_fn(_grid, "grid", submap=False)
+MPLOpts._doc_keys_fn(_imshow, "imshow", submap=False)
+MPLOpts._doc_keys_fn(_legend, "legend", submap=False)
+MPLOpts._doc_keys_fn(_spines, "spines", submap=False)

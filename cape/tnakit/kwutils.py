@@ -1249,6 +1249,8 @@ class KwargHandler(dict):
             optlist = cls._optlists[sec]
         # Check for submap
         if submap:
+            # Also map options
+            optmap = cls._optmap
             # Get the submap from the class
             kw_submap = cls._kw_submap
             # Loop through parameters
@@ -1267,12 +1269,15 @@ class KwargHandler(dict):
                     # Check if the option is present
                     if subopt not in optlist:
                         optlist.append(subopt)
+        else:
+            # No option name map
+            optmap = {}
         # Create list
         rst_keys = rstutils.rst_param_list(
             optlist,
             cls._rst_types,
             cls._rst_descriptions,
-            cls._optmap,
+            optmap,
             indent=indent,
             strict=False)
         # Apply text to the docstring
