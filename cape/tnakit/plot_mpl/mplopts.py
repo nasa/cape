@@ -353,11 +353,7 @@ class MPLOpts(kwutils.KwargHandler):
             "ErrorPlotType",
             "ErrorBarOptions",
             "ErrorBarMarker",
-            "FillBetweenOptions",
-            "x",
-            "xerr",
-            "y",
-            "yerr"
+            "FillBetweenOptions"
         ],
         "errorbar": [
             "Index",
@@ -430,11 +426,7 @@ class MPLOpts(kwutils.KwargHandler):
             "MinMaxPlotType",
             "ErrorBarOptions",
             "ErrorBarMarker",
-            "FillBetweenOptions",
-            "x",
-            "y",
-            "ymax",
-            "ymin"
+            "FillBetweenOptions"
         ],
         "spines": [
             "Spines",
@@ -509,11 +501,7 @@ class MPLOpts(kwutils.KwargHandler):
             "ErrorBarOptions",
             "FillBetweenOptions",
             "UncertaintyPlotType",
-            "UncertaintyOptions",
-            "ux",
-            "uy",
-            "x",
-            "y"
+            "UncertaintyOptions"
         ],
     }
 
