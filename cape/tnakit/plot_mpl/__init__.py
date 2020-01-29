@@ -33,6 +33,7 @@ from . import mpl
 from .mplopts import MPLOpts
 from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
+    auto_xlim, auto_ylim,
     figure, grid, imshow, spine, spines)
 
 
@@ -261,16 +262,16 @@ def _part_uq(opts, h):
         xv = opts.get_option("x")
         yv = opts.get_option("y")
         # Uncertainty magnitudes
-        yerr = opts.get_option("yerr")
+        uy = opts.get_option("uy")
         # Plot call
         if uq_type == "FillBetween":
             # Convert to min/max values
-            ymin, ymax = errorbar_to_minmax(yv, yerr)
+            ymin, ymax = errorbar_to_minmax(yv, uy)
             # Do a :func:`fill_between` plot
             hi = mpl._fill_between(xv, ymin, ymax, **kw)
         elif uq_type == "ErrorBar":
             # Do a :func:`errorbar` plot
-            hi = mpl._errorbar(xv, yv, yerr, **kw)
+            hi = mpl._errorbar(xv, yv, uy, **kw)
         # Save UQ handles
         h.save("uq", hi)
 
@@ -1018,58 +1019,6 @@ def errorbar_to_minmax(yv, yerr):
             "Cannot convert %i-D array to min/max values" % yerr.ndim)
     # Output
     return ymin, ymax
-
-
-# Function to automatically get inclusive data limits.
-def get_ylim(ax, pad=0.05):
-    r"""Calculate appropriate *y*-limits to include all lines in a plot
-
-    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
-    :class:`matplotlib.collections.PolyCollection` are checked.
-
-    :Call:
-        >>> ymin, ymax = get_ylim(ax, pad=0.05)
-    :Inputs:
-        *ax*: :class:`matplotlib.axes.AxesSubplot`
-            Axis handle
-        *pad*: :class:`float`
-            Extra padding to min and max values to plot.
-    :Outputs:
-        *ymin*: :class:`float`
-            Minimum *y* coordinate including padding
-        *ymax*: :class:`float`
-            Maximum *y* coordinate including padding
-    :Versions:
-        * 2015-07-06 ``@ddalle``: First version
-        * 2019-03-07 ``@ddalle``: Added ``"LineCollection"``
-    """
-    return mpl.get_ylim()
-
-
-# Function to automatically get inclusive data limits.
-def get_xlim(ax, pad=0.05):
-    r"""Calculate appropriate *x*-limits to include all lines in a plot
-
-    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
-    checked.
-
-    :Call:
-        >>> xmin, xmax = get_xlim(ax, pad=0.05)
-    :Inputs:
-        *ax*: :class:`matplotlib.axes.AxesSubplot`
-            Axis handle
-        *pad*: :class:`float`
-            Extra padding to min and max values to plot.
-    :Outputs:
-        *xmin*: :class:`float`
-            Minimum *x* coordinate including padding
-        *xmax*: :class:`float`
-            Maximum *x* coordinate including padding
-    :Versions:
-        * 2015-07-06 ``@ddalle``: First version
-        * 2019-03-07 ``@ddalle``: Added ``"LineCollection"``
-    """
-    return mpl.get_xlim()
 
 
 # Output class
