@@ -29,6 +29,9 @@ import re
 # Standard library direct imports
 from datetime import datetime
 
+# Third-party modules
+import numpy as np
+
 # CAPE modules
 import cape.cfdx.case as cc
 
