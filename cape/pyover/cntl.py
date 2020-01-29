@@ -878,8 +878,6 @@ class Cntl(cape.cntl.Cntl):
         # Phase number
         if nPhase is None:
             nPhase = self.opts.get_nSeq()
-        # Read namelist file
-        self.ReadNamelist()
         # Extract trajectory.
         x = self.x
         # Process the key types.
@@ -1019,6 +1017,8 @@ class Cntl(cape.cntl.Cntl):
                 rc[k] = rco[k]
             # Write it.
             self.WriteCaseJSON(i, rc=rc)
+        # Reread source namelist template
+        self.ReadNamelist()
         # Rewriting phases
         print("  Writing input namelists 1 to %s" % (nPhase))
         self.PrepareNamelist(i, nPhase)
