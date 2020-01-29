@@ -380,7 +380,7 @@ class Tecscript(FileCntl):
         # Find instances of command
         if n is None:
             # Unlimited finds
-            Kcmd = self.GetCommandIndex(cmd)
+            Kcmd = self.GetCommandIndex(cmd, None)
         else:
             # Modify limit
             Kcmd = self.GetCommandIndex(cmd, n + 1)

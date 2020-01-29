@@ -483,15 +483,14 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     i_start = i_last - dn * (1 + np.arange(n_windows))
     # Create array of minimum window sizes
     N = [np.count_nonzero(x > i) for i in i_start]
-    # Create one window if no range
-    if len(N) == 1:
-        N = np.append(N, N[-1])
+    # Create last (fixed) window
+    N = np.append(N, N[-1])
     # Initialize candidates
     F = {}
     n = np.zeros(n_windows)
     u = np.zeros(n_windows)
     # Loop through windows
-    for i in range(max(1, n_windows-1)):
+    for i in range(n_windows):
         # Get statistics
         F[i] = SearchSinusoidFit(x, y, N[i], N[i+1], **kw)
         # Save error
