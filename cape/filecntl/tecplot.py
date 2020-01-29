@@ -378,20 +378,25 @@ class Tecscript(FileCntl):
             * 2017-10-05 ``@ddalle``: First version
         """
         # Find instances of command
-        Kcmd = self.GetCommandIndex(cmd, n + 1)
+        if n is None:
+            # Unlimited finds
+            Kcmd = self.GetCommandIndex(cmd)
+        else:
+            # Modify limit
+            Kcmd = self.GetCommandIndex(cmd, n + 1)
         # Append total line count to icmd
         icmd = self.icmd + [len(self.lines)+1]
-        # Check for possible patch
-        if n >= len(Kcmd):
-            # Did not find command at least *n* times
-            return None, None
-        elif n is None:
+        # Check for possible match
+        if n is None:
             # Return all matches
             # Create arrays
             ibeg = [icmd[k]   for k in Kcmd]
             iend = [icmd[k+1] for k in Kcmd]
             # Output
             return ibeg, iend
+        elif n >= len(Kcmd):
+            # Did not find command at least *n* times
+            return None, None
         # Get the global index of the command
         k = Kcmd[n]
         # Start line

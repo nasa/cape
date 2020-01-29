@@ -491,7 +491,7 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     n = np.zeros(n_windows)
     u = np.zeros(n_windows)
     # Loop through windows
-    for i in range(n_windows):
+    for i in range(max(1, n_windows-1)):
         # Get statistics
         F[i] = SearchSinusoidFit(x, y, N[i], N[i+1], **kw)
         # Save error
