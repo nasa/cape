@@ -45,7 +45,7 @@ plt = 0
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
-    
+
     :Call:
         >>> pyCart.dataBook.ImportPyPlot()
     :Versions:
@@ -68,7 +68,7 @@ def ImportPyPlot():
 # Data book for triq point sensors
 class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
     """Post-processed point sensor group data book
-    
+
     :Call:
         >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, RootDir=None)
     :Inputs:
@@ -95,10 +95,10 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
     # Read a point sensor
     def ReadPointSensor(self, pt):
         """Read a point sensor
-        
+
         This function needs to be customized for each derived class so that the
         correct class is used for each of the member data books
-        
+
         :Call:
             >>> DBPG.ReadPointSensor(pt)
         :Inputs:
@@ -112,7 +112,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
         # Read the local class
         self[pt] = DBTriqPoint(self.x, self.opts, pt, self.name)
   # >
-  
+
   # ==========
   # Case I/O
   # ==========
@@ -120,7 +120,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
     # Current iteration status
     def GetCurrentIter(self):
         """Determine iteration number of current folder
-        
+
         :Call:
             >>> n = DB.GetCurrentIter()
         :Inputs:
@@ -136,11 +136,11 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
             return case.GetCurrentIter()
         except Exception:
             return None
-    
+
     # Read case point data
     def ReadCasePoint(self, pt, i, **kw):
         """Read point data from current run folder
-        
+
         :Call:
             >>> P = DBPG.ReadCasePoint(pt, i)
         :Inputs:
@@ -201,13 +201,13 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
                 P[col] = q[j]
         # Output
         return P
-            
-        
+
+
 
     # Read Triq file from this folder
     def ReadCaseTriq(self, **kw):
         """Read the the most recent Triq file from this folder
-        
+
         :Call:
             >>> triq, VarList = DBPG.ReadCaseTriq()
         :Inputs:
@@ -224,7 +224,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
         # Get the PLT file
         fplt, n, i0, i1 = case.GetPltFile()
         # Read PLT file
-        pplt = pyFun.plt.Plt(fplt)
+        pplt = cape.pyfun.plt.Plt(fplt)
         # Check for mapbc file
         fglob = glob.glob("*.mapbc")
         # Check for more than one
@@ -245,18 +245,18 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
         VarList = [k for k in pplt.Vars if k not in ['x','y','z']]
         # Output
         return triq, VarList
-        
+
   # >
 # class DBTriqPointGroup
 
 # Data book of point sensor data
 class DBTriqPoint(cape.cfdx.pointSensor.DBTriqPoint):
     """TriQ point sensor data book
-    
+
     Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,
     including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams of
     point sensor results in particular.
-    
+
     :Call:
         >>> DBP = DBTriqPoint(x, opts, pt, name=None)
     :Inputs:
@@ -276,7 +276,7 @@ class DBTriqPoint(cape.cfdx.pointSensor.DBTriqPoint):
     :Versions:
         * 2015-12-04 ``@ddalle``: Started
     """
-    
+
     pass
 
 # class DBTriqPoint
