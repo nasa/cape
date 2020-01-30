@@ -36,8 +36,14 @@
         "ulimit -S -s 4194304"
     ],
     
+    // Module settings
+    "PythonPath": ["tools"],
+    "Modules": ["nacelle"],
+    "InitFunction": ["nacelle.InitNAC1"],
+    "CaseFunction": ["nacelle.ApplyLabel"],
+
     // Namelist template
-    "OverNamelist": "common_powered/overflow.inp",
+    "OverNamelist": "common_powered/overflow_test01.inp",
         
     // Options for overall run control and command-line inputs
     "RunControl": {
@@ -185,9 +191,12 @@
                 "Header": "Iterative analysis and sectional loads",
                 "Alignment": "center",
                 "Subfigures": [
-                    "force_CA",  "force_CY",  "force_CN",
-                    "force_CLL", "force_CLN", "force_CLM",
-                    "force_CAzoom1", "force_CAzoom2", "L2"
+                    "inlet_CA", 
+                    "exit_CA",
+                    "force_CA",  
+                    "force_CAzoom1", 
+                    "force_CAzoom2", 
+                    "L2"
                 ]
             },
             "FlowViz": {
@@ -256,7 +265,9 @@
             // Table of force and moment averages
             "FMTable": {
                 "Type": "Summary",
-                "Components": ["TOTAL FORCE"],
+                "Components": ["TOTAL FORCE",
+                               "INLET",
+                               "EXIT"],
                 "Width": 0.71,
                 "Header": "Force \\& Moment Summary",
                 "MuFormat": "%.3e",
@@ -273,11 +284,6 @@
                 "StandardDeviation": 1.0
             },
             "force_CA": {"Type": "force", "Coefficient": "CA"},
-            "force_CY": {"Type": "force", "Coefficient": "CY"},
-            "force_CN": {"Type": "force", "Coefficient": "CN"},
-            "force_CLL": {"Type": "force", "Coefficient": "CLL"},
-            "force_CLM": {"Type": "force", "Coefficient": "CLM"},
-            "force_CLN": {"Type": "force", "Coefficient": "CLN"},
             "force_CAzoom1": {
                 "Type": "force", 
                 "Coefficient": "CA",
@@ -287,6 +293,21 @@
                 "Type": "force", 
                 "Coefficient": "CA",
                 "nPlotFirst": -400
+            },
+            "inlet_CA": {
+                "Type": "force", 
+                "Component": "INLET", 
+                "Coefficient": "CA"
+                },
+            "exit_CA": {
+                "Type": "force", 
+                "Component": "EXIT", 
+                "Coefficient": "CA"
+            },
+            "exit_MFR": {
+                "Type": "force", 
+                "Component": "EXIT", 
+                "Coefficient": "MFR"
             },
             // Residual history
             "L2": {
@@ -305,49 +326,10 @@
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  RunMatrix values can also be specified locally.
         "File": "inputs/matrix/powered.csv",
-        "Keys": ["mach", "p0inlet", "p0exit", "t0exit", "massratio"],
+        "Keys": ["mach", "config", "Label"],
         // Copy the mesh
         "GroupMesh": true,
         // Configuration name [default]
-        "GroupPrefix": "powered",
-        // Define non-standard keys
-        "Definitions": {
-            // Pressure Ratio in the inlet grid (outflow boundary)
-            "p0inlet": {
-                "Label": true,
-                "Group": false,
-                "Type": "value",
-                "Format": "%.3f",
-                "Grids": ["Inlet"],
-                "BCIndex": {"Inlet": 3}
-            },
-            // Pressure Ratio in the exit grid (inflow boundary)
-            "p0exit": {
-                "Label": true,
-                "Group": false,
-                "Type": "value",
-                "Format": "%.3f",
-                "BCIndex": {"Exit": 3}
-            },
-            // Temperature Ratio in the exit grid (inflow boundary)
-            "t0exit": {
-                "Label": false,
-                "Group": false,
-                "Type": "value",
-                "Value": "float",
-                "Format": "%.3f",
-                "BCIndex": {"Exit": 3},
-                "Abbreviation": "t0"
-            },
-            // Mass flow rate ratio
-            "massratio": {
-                "Label": true,
-                "Group": false,
-                "Type": "value",
-                "Value": "float",
-                "Format": "%.3f",
-                "Abbreviation": "mr"
-            }
-        }
+        "GroupPrefix": "powered"
     }
 }

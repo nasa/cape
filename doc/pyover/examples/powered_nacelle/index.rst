@@ -43,7 +43,11 @@ unformatted versions of the grid files.
     rsync -av Config.xml xrays.in grid.in \
        $CAPE/example/pyover/02_powered_nacelle/common_powered/.
     rsync -av pr136.1.inp \
-       $CAPE/example/pyover/02_powered_nacelle/common_powered/overflow.inp
+       $CAPE/example/pyover/02_powered_nacelle/common_powered/overflow_test01.inp
+    rsync -av mfr663.1.inp \
+       $CAPE/example/pyover/02_powered_nacelle/common_powered/overflow_test02.inp
+    rsync -av mfr_exit.1.inp \
+       $CAPE/example/pyover/02_powered_nacelle/common_powered/overflow_test03.inp
     rsync -av mixsur.{inp,fmp} grid.{ibi,ib,map,i.tri,nsf} \
        $CAPE/example/pyover/02_powered_nacelle/common_powered
 
@@ -475,19 +479,239 @@ The resulting *MachSlice* subfigures for each of the four cases are shown here:
 
 
 
-Other pyOver Actions
---------------------
+Powered Nacelle Cases
+---------------------
 
+The powered nacelle test cases that come with Overflow also include three cases
+simulating the effect of an engine inside of the nacelle. This adds two
+boundaries inside of the nacelle. The first simulates the effect of the forward
+fan face in the inlet side of the nacelle. At this boundary the air is flowing
+out of the CFD domain. The second boundary simulates the flow exiting the
+engine. At this boundary the air is flowing into the CFD domain.  
+
+pyover Setup
+^^^^^^^^^^^^
+
+To create this test case in pyover, we have created these new files:
+
+    - ``powered.json``
+    - ``inputs/matrix/powered.csv``
+    - ``inputs/powered-mach.lay``
+    - ``inputs/powered-mach-mesh.lay``
+
+These were created by merely copying the flowthrough versions of the files and
+making slight modifications. You can compare the powered with the flowthrough
+versions of each file to see the modifications that were made. However, there
+is one more step, and it requires something new.
+
+Note that three different overflow input files are provided in the OVERFLOW
+source code for this case. These three input files have been installed in the
+pyover example as:
+
+    - ``common_powered/overflow_test01.inp``
+    - ``common_powered/overflow_test02.inp``
+    - ``common_powered/overflow_test03.inp``
+
+The basic pyover setup only allows one to specify one OVERFLOW input file for
+the template input file, but we have three different input files that we want
+to use.  This example will show how to incorporate a python module that will
+customize the behavior of pyover in order to specify different OVERFLOW input
+files. To enable this we will make use of the ``Label`` column in the input
+run matrix file.  The ``Label`` values will be used in the naming of the
+run directories.  Here are the first four lines in the input file:
+``inputs/matrix/powered.csv``.
 
     .. code-block:: console
 
-        pyover -c
-        pyover -I 0,2,3
-        pyover --PASS -I 0:4
-        pyover --report
-        pyover --aero
-        pyover --archive
-        pyover --clean
-        pyover --skeleton
+        # mach, config,  Label
+          0.80, powered, test01
+          0.80, powered, test02
+          0.80, powered, test03
+
+Here is the corresponding *RunMatrix* entry in the ``powered.json`` file:
+
+    .. code-block:: javascript
+
+        // RunMatrix description
+        "RunMatrix": {
+            // If a file is specified, and it exists, trajectory values will be
+            // read from it.  RunMatrix values can also be specified locally.
+            "File": "inputs/matrix/powered.csv",
+            "Keys": ["mach", "config", "Label"],
+            // Copy the mesh
+            "GroupMesh": true,
+            // Configuration name [default]
+            "GroupPrefix": "powered"
+        }
+
+In order to customize the pyover behavior, we have added some python code
+in a file called ``tools/nacelle.py``, and have added these lines to the
+``powered.json`` file:
+
+    .. code-block:: javascript
+
+        // Module settings
+        "PythonPath": ["tools"],
+        "Modules": ["nacelle"],
+        "InitFunction": ["nacelle.InitNAC1"],
+        "CaseFunction": ["nacelle.ApplyLabel"],
+
+This notifies pyover to look in the ``tools`` directory for a python module
+called ``nacelle.py``. It also identifies two functions in the ``nacelle.py``
+module that will be executed by pyover. The first function ``InitNac1()`` will
+be called when pyover first starts running.  The second function ``ApplyLabel``
+will be called during the process of creating each of the runs.  These two
+functions have been written in the ``tools/nacelle.py`` file.  The
+``InitNac1()`` does not actually do anything in this example, but this function
+can be used customize certain behaviors at the beginning of a pyover run. The
+``ApplyLabel()`` function is shown here:
+
+    .. code-block:: python
+
+        # Apply options based on the *Label* RunMatrix key
+        def ApplyLabel(cntl, i):
+            """Modify settings for each case using value of *Label*
+        
+            This method is programmed to specify a different OVERFLOW input
+            file based on the value of *Label* for a given case. This is used
+            to run each of the three input files that come with the
+            powered_nacelle test problem that comes with the OVERFLOW source
+            code.
+        
+            :Call:
+                >>> ApplyLabel(cntl, i)
+            :Inputs:
+                *cntl*: :class:`pyOver.overflow.Overflow`
+                    OVERFLOW settings interface
+                *i*: :class:`int`
+                    Case number
+            :Versions:
+                * 2020-01-28 ``@serogers``: First version
+            """
+        
+            # Get the specified label
+            lbl = cntl.x['Label'][i]
+            # Set the overflow input file as a function of the Label
+            if 'test01' in lbl:
+                cntl.opts['OverNamelist'] = 'common_powered/overflow_test01.inp'
+            elif 'test02' in lbl:
+                cntl.opts['OverNamelist'] = 'common_powered/overflow_test02.inp'
+            elif 'test03' in lbl:
+                cntl.opts['OverNamelist'] = 'common_powered/overflow_test03.inp'
+
+
+Executing pyover
+^^^^^^^^^^^^^^^^
+
+This completes the setup, the next step is to run pyover and run all three test
+cases:
+
+    .. code-block:: console
+
+        > pyover -f powered.json
+        Importing module 'nacelle'
+          InitFunction: nacelle.InitNAC1()
+        Case Config/Run Directory  Status  Iterations  Que CPU Time 
+        ---- --------------------- ------- ----------- --- --------
+        0    powered/m0.8_test01   ---     /           .            
+          Case Function: cntl.nacelle.ApplyLabel(0)
+          Case name: 'powered/m0.8_test01' (index 0)
+             Starting case 'powered/m0.8_test01'
+         > overrunmpi -np 8 run 01
+             (PWD = '/u/wk/serogers/usr/cape/examples/pyover/02_powered_nacelle/powered/m0.8_test01')
+             (STDOUT = 'overrun.out')
+           Wall time used: 0.00 hrs (phase 0)
+           Wall time used: 0.00 hrs
+           Previous phase: 0.00 hrs
+         > overrunmpi -np 8 run 02
+             (PWD = '/u/wk/serogers/usr/cape/examples/pyover/02_powered_nacelle/powered/m0.8_test01')
+             (STDOUT = 'overrun.out')
+           Wall time used: 0.00 hrs (phase 1)
+        1    powered/m0.8_test02   ---     /           .            
+          Case Function: cntl.nacelle.ApplyLabel(1)
+          Case name: 'powered/m0.8_test02' (index 1)
+             Starting case 'powered/m0.8_test02'
+         > overrunmpi -np 8 run 01
+             (PWD = '/u/wk/serogers/usr/cape/examples/pyover/02_powered_nacelle/powered/m0.8_test02')
+             (STDOUT = 'overrun.out')
+           Wall time used: 0.00 hrs (phase 0)
+           Wall time used: 0.00 hrs
+           Previous phase: 0.00 hrs
+         > overrunmpi -np 8 run 02
+             (PWD = '/u/wk/serogers/usr/cape/examples/pyover/02_powered_nacelle/powered/m0.8_test02')
+             (STDOUT = 'overrun.out')
+           Wall time used: 0.00 hrs (phase 1)
+        2    powered/m0.8_test03   ---     /           .            
+          Case Function: cntl.nacelle.ApplyLabel(2)
+          Case name: 'powered/m0.8_test03' (index 2)
+             Starting case 'powered/m0.8_test03'
+         > overrunmpi -np 8 run 01
+             (PWD = '/u/wk/serogers/usr/cape/examples/pyover/02_powered_nacelle/powered/m0.8_test03')
+             (STDOUT = 'overrun.out')
+           Wall time used: 0.00 hrs (phase 0)
+           Wall time used: 0.01 hrs
+           Previous phase: 0.00 hrs
+         > overrunmpi -np 8 run 02
+             (PWD = '/u/wk/serogers/usr/cape/examples/pyover/02_powered_nacelle/powered/m0.8_test03')
+             (STDOUT = 'overrun.out')
+           Wall time used: 0.00 hrs (phase 1)
+        
+        Submitted or ran 3 job(s).
+        
+        ---=3, 
+
+Note that the output informs you that it is excuting the *Case Function*
+``cntl.nacelle.ApplyLabel()`` before each case is run, passing the case number
+as the argument.
+
+
+Report Generation
+^^^^^^^^^^^^^^^^^
+
+Generate the report for these three cases using ``pyover -f powered.json
+--report``. The powered runs plot different convergence history plots than the
+flowthrough example.  The plots now include the axial force coefficient for
+both the *INLET* and the *EXIT* components. At this time, pyover does not have
+the capability to plot convergence history for the mass-flow rate.
+
+Convergence plots for the *INLET* and *EXIT* axial force coefficients for
+each of the three case are shown here. 
+
+
+    .. _tab-pyover-nacelle-03:
+    .. table:: Convergence plots for *INLET* and *EXIT* axial force
+
+        +-----------------------------+-----------------------------+
+        |.. image:: test01_inlet_CA.* |.. image:: test01_exit_CA.*  |
+        |     :width: 3.2in           |     :width: 3.2in           |
+        |                             |                             |
+        |INLET/*CA* *test01*          |EXIT/*CA* *test01*           |
+        +-----------------------------+-----------------------------+
+        |.. image:: test02_inlet_CA.* |.. image:: test02_exit_CA.*  |
+        |     :width: 3.2in           |     :width: 3.2in           |
+        |                             |                             |
+        |INLET/*CA* *test02*          |EXIT/*CA* *test02*           |
+        +-----------------------------+-----------------------------+
+        |.. image:: test03_inlet_CA.* |.. image:: test03_exit_CA.*  |
+        |     :width: 3.2in           |     :width: 3.2in           |
+        |                             |                             |
+        |INLET/*CA* *test03*          |EXIT/*CA* *test03*           |
+        +-----------------------------+-----------------------------+
+
+
+The report also includes *MachSlice* subfigures. Each case shows the Mach
+contours with and without the grid included. All three test cases show very
+similar Mach contours, the subfigures for *test01* are shown here:
+
+
+    .. _tab-pyover-nacelle-04:
+    .. table:: Tecplot® Mach contour plots for test01
+
+        +------------------------------+------------------------------+
+        |.. image:: test01_Mach.png    |.. image:: test01_Machg.png   |
+        |    :width: 3.2in             |    :width: 3.2in             |
+        |                              |                              |
+        |Mach slice test01             |Mach slice with grid          |
+        +------------------------------+------------------------------+
 
 

@@ -1,3 +1,4 @@
-# mach, p0inlet, p0exit, T0exit, massratio, config, Label
-  0.80, 1.4,   1.3,    1.385,  0.0,      powered, 
-  0.80, 1.3,   1.2,    1.385,  0.0,      powered, 
+# mach, config, Label
+  0.80, powered, test01
+  0.80, powered, test02
+  0.80, powered, test03
