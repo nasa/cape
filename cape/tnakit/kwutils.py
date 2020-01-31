@@ -1044,7 +1044,7 @@ class KwargHandler(dict):
         r"""Get a class attribute with additional rules
 
         1. If *attr* is in *cls.__dict__*, return it
-        2. Otherwise, set *cls.__dict__[attr]* equal to
+        2. Otherwise, set *cls.__dict__[attr]* equal to a copy of
            ``getattr(cls, attr)`` and return that value
 
         The purpose of this procedure is for subclasses of
@@ -1072,6 +1072,8 @@ class KwargHandler(dict):
         else:
             # Set it from parent (somewhere in MRO)
             val = getattr(cls, attr)
+            # Copy it
+            val = copy.deepcopy(val)
             # Save it
             cls.__dict__[attr] = val
             # Output

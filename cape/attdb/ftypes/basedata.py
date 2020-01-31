@@ -35,6 +35,145 @@ import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
 
 
+# Options for BaseData
+class BaseDataOpts(kwutils.KwargHandler):
+  # ====================
+  # Class Attributes
+  # ====================
+  # <
+   # --- Global Options ---
+    # List of options
+    _optlist = {
+        "Columns",
+        "ExpandScalars",
+        "Definitions",
+        "DefaultDefinition",
+        "Values"
+    }
+
+    # Alternate names
+    _optmap = {
+        "cols": "Columns",
+        "defns": "Definitions",
+        "vals": "Values",
+    }
+
+   # --- Types ---
+    # Types
+    _opttypes = {
+        "Columns": list,
+        "ExpandScalars": bool,
+        "Definitions": dict,
+        "DefaultDefinition": dict,
+        "Values": dict,
+    }
+
+   # --- Defaults ---
+    # Default values
+    _rc = {
+        "Definitions": {},
+        "DefaultDefinition": {},
+    }
+
+   # --- Documentation ---
+        
+  # >
+
+  # ===============
+  # Class Methods
+  # ===============
+  # <
+   # --- Definitions ---
+    # Add options from a definition
+    @classmethod
+    def add_defn(cls, defncls):
+        r"""Add all the "default" options from a definition class
+
+        This loops through the options in *defncls._optlist* and adds
+        two versions of them to *cls._optlist*:
+
+            * Prefixed with "Default"
+            * Suffixed with "s"
+
+        For example if *defncls._optlist* has ``"Type"``, this adds
+        ``"DefaultType"`` and ``"Types"`` to *cls._optlist*.
+
+        :Call:
+            >>> cls.add_defn(defncls)
+        :Inputs:
+            *cls*: :class:`BaseDataOpts`
+                Parent options class
+            *defncls*: :class:`BaseDataDefn`
+                Definition options class
+        :Versions:
+            * 2020-01-30 ``@ddalle``: First version
+        """
+        # Get parameters
+        _optlist = cls._getattr_class("_optlist")
+        _opttypes = cls._getattr_class("_opttypes")
+        # Save the definition class
+        cls._defncls = defncls
+        # Loop through options from definition
+        for opt in defncls._optlist:
+            # Derivative names
+            opt1 = "Default" + opt
+            opt2 = opt + "s"
+            # Add to set
+            _optlist.add(opt1)
+            _optlist.add(opt2)
+            # Second option must be a dict
+            _opttypes.setdefault(opt2, dict)
+        # Loop through types
+        for (opt, val) in defncls._opttypes.items():
+            # Derivative name
+            opt1 = "Default" + opt
+            # Copy type for "default"
+            _opttypes.setdefault(opt1, val)
+        
+  # >
+
+
+# Options for generic definition
+class BaseDataDefn(kwutils.KwargHandler):
+  # ====================
+  # Class Attributes
+  # ====================
+  # <
+   # --- Global Options ---
+    # List of options
+    _optlist = {
+        "Format",
+        "Label",
+        "Type",
+        "WriteFormat"
+    }
+
+   # --- Types ---
+    # Types
+    _opttypes = {
+        "Format": typeutils.strlike,
+        "Label": bool,
+        "Type": typeutils.strlike,
+        "WriteFormat": typeutils.strlike,
+    }
+
+   # --- Defaults ---
+    # Default values
+    _rc = {
+        "Format": "%s",
+        "Label": True,
+        "Type": "float64",
+    }
+
+   # --- Documentation ---
+        
+  # >
+
+
+# Add definition support to option
+BaseDataOpts.add_defn(BaseDataDefn)
+
+
 # Declare basic class
 class BaseData(dict):
     r"""Generic class for storing data from a data-style file
