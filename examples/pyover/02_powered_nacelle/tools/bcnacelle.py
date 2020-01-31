@@ -19,32 +19,62 @@ def InitNAC1(cntl):
             OVERFLOW settings interface
     """
 
-# Filter options based on the *Label* trajectory key
 def ApplyInletBC(cntl, v, i):
     """Modify BCINP for nacelle inlet face
 
     This method is modifies the BCINP namelist in the OVERFLOW input file 
     for the boundary conditions on the Inlet grid
 
+    The IBTYP=33 boundary condition applies a contant pressure outflow
+    at the engine inlet face. This uses the value of BCPAR1 to set the
+    ratio of the boundary static pressure to freestream pressure.
+
+    The IBTYP=34 boundary condition applies a constant mass-flow rate
+    at the engine inlet face. This uses the value of BCPAR1 to set the
+    target mass-flow rate.  BCPAR2 sets the update rate and relaxation factor.
+    BCFILE is used to supply the FOMOCO component and Aref.
+
     :Call:
         >>> ApplyInletBC(cntl, v, i)
     :Inputs:
         *cntl*: :class:`pyOver.overflow.Overflow`
             OVERFLOW settings interface
+        *v*: :class:`float`
+            Run-matrix value in the InletBC column for case i
         *i*: :class:`int`
             Case number
     :Versions:
         * 2020-01-30 ``@serogers``: First version
     """
 
-    pass
     # Get the specified label
-    #lbl = cntl.x['Label'][i]
-
+    lbl = cntl.x['Label'][i]
 
     ## Inlet grid: set boundary conditions
-    #grid = 'Inlet'
-    #bci = 3
+    grid = 'Inlet'
+    bci = 3
+    print("\n\nIn function ApplyInletBC, v = ", v)
+    # Extract the BCINP from the template
+    IBTYP = cntl.Namelist.GetKeyFromGrid(grid, 'BCINP', 'IBTYP')
+    BCPAR1 = cntl.Namelist.GetKeyFromGrid(grid, 'BCINP', 'BCPAR1', i=3)
+    print("Existing value of IBTYP = ", IBTYP)
+    print("Existing value of BCPAR1(3) = ", BCPAR1)
+
+
+    #################################################
+    # Process the pressure BC
+    if IBTYP.count(33) > 0:
+        # Get the column for ibtyp=33
+        bci = IBTYP.index(33)
+        # Change bci to 1-based index
+        bci += 1
+        # Set the BCPAR1 value for this case
+        cntl.Namelist.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', v, i=3)
+        BCPAR1 = cntl.Namelist.GetKeyFromGrid(grid, 'BCINP', 'BCPAR1', i=3)
+        print("    New value of BCPAR1 = ", BCPAR1)
+
+
+
     ## Test case 1:
     #print("\nLabel = %s" % lbl)
     #if 'test01' in lbl:
@@ -64,7 +94,6 @@ def ApplyInletBC(cntl, v, i):
     #    bcfile = 'INLET BC'
     ## Now apply the boundary conditions for Inlet
     #cntl.Namelist.SetKeyForGrid(grid, 'BCINP', 'IBTYP', ibtyp)
-    #cntl.Namelist.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', bcpar1, i=bci)
     #cntl.Namelist.SetKeyForGrid(grid, 'BCINP', 'BCPAR2', bcpar2, i=bci)
     #cntl.Namelist.SetKeyForGrid(grid, 'BCINP', 'BCFILE', bcfile, i=bci)
 
@@ -92,8 +121,33 @@ def ApplyInletBC(cntl, v, i):
     #print("In ApplyLabel:  IBTYP,BCPAR1,BCPAR2 for Inlet = ", 
     #      ibtyp, bcpar1, bcpar2)
     ######################333
+# def ApplyInletBC
+
+def ApplyExitBC(cntl, v, i):
+    """Modify BCINP for nacelle exit face
+
+    This method is modifies the BCINP namelist in the OVERFLOW input file 
+    for the boundary conditions on the Exit grid
+
+    The IBTYP=141 boundary condition applies TBD
 
 
-# def ApplyBCINP
+    :Call:
+        >>> ApplyExitBC(cntl, v, i)
+    :Inputs:
+        *cntl*: :class:`pyOver.overflow.Overflow`
+            OVERFLOW settings interface
+        *i*: :class:`int`
+            Case number
+    :Versions:
+        * 2020-01-31 ``@serogers``: First version
+    """
 
+    # Get the specified label
+    lbl = cntl.x['Label'][i]
+
+    ## Inlet grid: set boundary conditions
+    grid = 'Exit'
+    bci = 3
+    print("\n\nIn function ApplyExitBC, v = ", v)
 

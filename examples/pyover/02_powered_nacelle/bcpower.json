@@ -325,7 +325,7 @@
     "RunMatrix": {
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  RunMatrix values can also be specified locally.
-        "File": "inputs/matrix/powered.csv",
+        "File": "inputs/matrix/bcpower.csv",
         "Keys": ["mach", "InletBC", "ExitBC", "config", "Label"],
         // Copy the mesh
         "GroupMesh": true,
@@ -335,23 +335,23 @@
             // InletBC
             "InletBC": {
                 "Type": "CaseFunction",
-                "Function": "bcnacelle.ApplyInletBC",
+                "Function": "self.bcnacelle.ApplyInletBC",
                 "Value": "float",
                 "Label": true,
-                "Format": "%02.1f_",
+                "Format": "%05.3f_",
                 "Abbreviation": "I",
                 "Grids": "Inlet"
-            }
+            },
             // ExitBC
-            //"ExitBC": {
-            //    "Type": "CaseFunction",
-            //    "Value": "float",
-            //    "Label": true,
-            //    "Format": "%02.1f_",
-            //    "Abbreviation": "E",
-            //    "Grids": "Exit"
-
-            //}
+            "ExitBC": {
+                "Type": "CaseFunction",
+                "Function": "self.bcnacelle.ApplyExitBC",
+                "Value": "float",
+                "Label": true,
+                "Format": "%05.3f_",
+                "Abbreviation": "E",
+                "Grids": "Exit"
+            }
         }
     }
 }
