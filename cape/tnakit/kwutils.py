@@ -376,6 +376,9 @@ class KwargHandler(dict):
     # All options
     _optlist = set()
 
+    # Options for which ``None`` is allowed
+    _optlist_none = set()
+
     # Options for which a singleton should be a list
     _optlist_list = set()
 
@@ -396,6 +399,12 @@ class KwargHandler(dict):
 
     # Dependencies
     _optdependencies = {}
+
+    # Sets of allowed values
+    _optvals = {}
+
+    # Converters (before value checking)
+    _optval_converters = {}
 
    # --- Option Sublists ---
     # Dictionary of options for certain functions (ordered)
@@ -489,8 +498,33 @@ class KwargHandler(dict):
             cls._opttypes,
             cls._optdependencies, _warnmode, **opts)
 
+        # Value-check dicts
+        optvals = cls._optvals
+        optconv = cls._optval_converters
+
         # Copy entries
         for (k, v) in opts.items():
+            # Get converter and set of allowed values
+            f = optconv.get(k)
+            V = optvals.get(k) 
+            # Perform conversion
+            if f is not None:
+                v = f(v)
+            # Value check
+            if (V is not None) and (v not in V):
+                # Create warning message
+                msg = "Keyword '%s' has invalid value" % k
+                # Choose what to do about it
+                if _warnmode == 2:
+                    # Exception
+                    raise ValueError(msg)
+                elif _warnmode == 1:
+                    # Warning
+                    sys.stderr.write(msg + "\n")
+                    sys.stderr.flush()
+                # Don't save it
+                continue
+            # Save value
             self[k] = v
   # >
 
