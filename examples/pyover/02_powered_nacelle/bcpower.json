@@ -38,9 +38,9 @@
     
     // Module settings
     "PythonPath": ["tools"],
-    "Modules": ["nacelle", "nacelle-bcinp"],
-    "InitFunction": ["nacelle-bcinp.InitNAC1"],
-    "CaseFunction": ["nacelle-bcinp.ApplyLabel"],
+    "Modules": ["nacelle", "bcnacelle"],
+    "InitFunction": ["nacelle.InitNAC1"],
+    "CaseFunction": ["nacelle.ApplyLabel"],
 
     // Namelist template
     "OverNamelist": "common_powered/overflow_test01.inp",
@@ -335,7 +335,7 @@
             // InletBC
             "InletBC": {
                 "Type": "CaseFunction",
-                "Function": "nacelle-bcinp.ApplyInletBC",
+                "Function": "bcnacelle.ApplyInletBC",
                 "Value": "float",
                 "Label": true,
                 "Format": "%02.1f_",
