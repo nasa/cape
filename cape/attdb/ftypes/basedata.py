@@ -25,6 +25,7 @@ collection.
 """
 
 # Standard library modules
+import copy
 import os
 
 # Third-party modules
@@ -80,10 +81,10 @@ class BaseDataOpts(kwutils.KwargHandler):
   # >
 
   # =================
-  # Definitions
+  # Methods
   # =================
   # <
-   # --- Get Definition ---
+   # --- Definitions ---
     # Get definition for specified column
     def get_defn(self, col):
         r"""Get the processed definition, without applying defaults
@@ -133,13 +134,44 @@ class BaseDataOpts(kwutils.KwargHandler):
             defn._set_option(opt, val)
         # Output
         return defn
-  # >
 
-  # ===============
-  # Class Methods
-  # ===============
-  # <
-   # --- Definitions ---
+    # Apply defaults to a definition
+    def apply_defaults_defn(self, defn):
+        r"""Apply any defaults to a data column definition
+
+        This first checks instance options like ``"DefaultType"`` and
+        then the global defaults such as ``defn._rc["Type"]``.
+
+        :Call:
+            >>> opts.apply_defaults_defn(defn)
+        :Inputs:
+            *opts*: :class:`BaseDataOpts`
+                Options interface for :mod:`cape.attdb.ftypes`
+            *defn*: :class:`BaseDataDefn` | *opts._defncls*
+                Data column definition
+        :Versions:
+            * 2020-01-31 ``@ddalle``: First version
+        """
+        # Get definition class
+        defncls = defn.__class__
+        # Loop through *default* keys
+        for opt in defncls._optlist:
+            # Check if already set
+            if opt in defn:
+                continue
+            # Process option name
+            opt1 = "Default" + opt
+            # Get value
+            val1 = self.get_option(opt1)
+            # Check for trivial setting
+            if val1 is None:
+                continue
+            # Set it
+            defn[opt] = val1
+        # Apply defaults internally
+        defn.apply_defaults()
+
+   # --- Class Methods ---
     # Add options from a definition
     @classmethod
     def set_defncls(cls, defncls):
@@ -280,6 +312,32 @@ class BaseDataDefn(kwutils.KwargHandler):
 
    # --- Documentation ---
         
+  # >
+
+  # =================
+  # Methods
+  # =================
+  # <
+   # --- Defaults ---
+    # Apply defaults from *rc*
+    def apply_defaults(self):
+        r"""Apply default values from *defn._rc*
+
+        :Call:
+            >>> defn.apply_defaults()
+        :Inputs:
+            *defn*: :class:`BaseDataDefn`
+                Data column definition
+        :Versions:
+            * 2020-01-31 ``@ddalle``: First version
+        """
+        # Loop through _rc
+        for (k, v) in self.__class__._rc.items():
+            # Check if already set
+            if k in self:
+                continue
+            # Otherwise; save a copy
+            self[k] = copy.copy(v)
   # >
 
 
