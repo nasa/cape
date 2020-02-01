@@ -79,6 +79,62 @@ class BaseDataOpts(kwutils.KwargHandler):
         
   # >
 
+  # =================
+  # Definitions
+  # =================
+  # <
+   # --- Get Definition ---
+    # Get definition for specified column
+    def get_defn(self, col):
+        r"""Get the processed definition, without applying defaults
+
+        This method returns a definition-type instance that checks the
+        *Definition* option and dict-like options like *Types*.
+        Defaults, both from the definition class's *_rc* attribute and
+        options like *DefaultType*, are not applied so that they can be
+        automatically guessed from the data.
+
+        :Call:
+            >>> defn = opts.get_defn(col)
+        :Inputs:
+            *opts*: :class:`BaseDataOpts`
+                Options interface for :mod:`cape.attdb.ftypes`
+            *col*: :class:`str`
+                Name of data column
+        :Outputs:
+            *defn*: :class:`BaseDataDefn` | *opts._defncls*
+                Column definition for *col*
+        :Versions:
+            * 2020-01-31 ``@ddalle``: First version
+        """
+        # Get class
+        cls = self.__class__
+        # Get class for column definitions
+        defncls = cls._defncls
+        # Get directly-specified definitions
+        defns = self.get_option("Definitions", {})
+        # Get specific definition and set type
+        defn = defncls(defns.get(col, {}))
+        # Loop through dicts of definition parameters
+        for opt in defncls._optlist:
+            # Derived key name; e.g. "Definitions.Type" -> "Types"
+            opt2 = opt + "s"
+            # Get dict of definitions by col, e.g. "Types"
+            val2 = self.get(opt2)
+            # Skip if None
+            if val2 is None:
+                continue
+            # Get value for this column
+            val = val2.get(col, val2.get("_"))
+            # Check for ``None``
+            if val is None:
+                continue
+            # Try to set it
+            defn._set_option(opt, val)
+        # Output
+        return defn
+  # >
+
   # ===============
   # Class Methods
   # ===============
@@ -86,7 +142,7 @@ class BaseDataOpts(kwutils.KwargHandler):
    # --- Definitions ---
     # Add options from a definition
     @classmethod
-    def add_defn(cls, defncls):
+    def set_defncls(cls, defncls):
         r"""Add all the "default" options from a definition class
 
         This loops through the options in *defncls._optlist* and adds
@@ -99,7 +155,7 @@ class BaseDataOpts(kwutils.KwargHandler):
         ``"DefaultType"`` and ``"Types"`` to *cls._optlist*.
 
         :Call:
-            >>> cls.add_defn(defncls)
+            >>> cls.set_defncls(cls, defncls)
         :Inputs:
             *cls*: :class:`BaseDataOpts`
                 Parent options class
@@ -165,13 +221,70 @@ class BaseDataDefn(kwutils.KwargHandler):
         "Type": "float64",
     }
 
+   # --- Values ---
+    # Alternate names for parameters
+    _optvalmap = {
+        "Type": {
+            "double": "float64",
+            "c": "complex128",
+            "c128": "complex128",
+            "c256": "complex256",
+            "c64": "complex64",
+            "char": "uint8",
+            "f": "float64",
+            "f16": "float16",
+            "f128": "float128",
+            "f32": "float32",
+            "f64": "float64",
+            "i": "int32",
+            "i1": "bool",
+            "i16": "int16",
+            "i32": "int32",
+            "i8": "int8",
+            "int": "int32",
+            "long": "int32",
+            "long long": "int64",
+            "short": "i16",
+            "s": "str",
+            "single": "float32",
+            "ui": "uint32",
+            "ui16": "uint16",
+            "ui32": "uint32",
+            "ui64": "uint64",
+            "ui8": "uint8",
+        }
+    }
+
+    # Allowed values
+    _optvals = {
+        "Type": {
+            "bool",
+            "complex64",
+            "complex128",
+            "complex256",
+            "float16",
+            "float32",
+            "float64",
+            "float128",
+            "int8",
+            "int16",
+            "int32",
+            "int64",
+            "str",
+            "uint8",
+            "uint16",
+            "uint32",
+            "uint64"
+        }
+    }
+
    # --- Documentation ---
         
   # >
 
 
 # Add definition support to option
-BaseDataOpts.add_defn(BaseDataDefn)
+BaseDataOpts.set_defncls(BaseDataDefn)
 
 
 # Declare basic class

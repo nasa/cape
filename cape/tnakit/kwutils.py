@@ -22,6 +22,7 @@ import difflib
 # Local modules
 from . import optitem
 from . import rstutils
+from . import typeutils
 
 
 # Map keywords
@@ -403,6 +404,9 @@ class KwargHandler(dict):
     # Sets of allowed values
     _optvals = {}
 
+    # Transformations for option values
+    _optvalmap = {}
+
     # Converters (before value checking)
     _optval_converters = {}
 
@@ -498,34 +502,10 @@ class KwargHandler(dict):
             cls._opttypes,
             cls._optdependencies, _warnmode, **opts)
 
-        # Value-check dicts
-        optvals = cls._optvals
-        optconv = cls._optval_converters
-
         # Copy entries
         for (k, v) in opts.items():
-            # Get converter and set of allowed values
-            f = optconv.get(k)
-            V = optvals.get(k) 
-            # Perform conversion
-            if f is not None:
-                v = f(v)
-            # Value check
-            if (V is not None) and (v not in V):
-                # Create warning message
-                msg = "Keyword '%s' has invalid value" % k
-                # Choose what to do about it
-                if _warnmode == 2:
-                    # Exception
-                    raise ValueError(msg)
-                elif _warnmode == 1:
-                    # Warning
-                    sys.stderr.write(msg + "\n")
-                    sys.stderr.flush()
-                # Don't save it
-                continue
-            # Save value
-            self[k] = v
+            # Check value before saving
+            self._set_option(k, v)
   # >
 
   # ==================
@@ -571,7 +551,86 @@ class KwargHandler(dict):
         opt = cls._optmap.get(opt, opt)
         # If that survived, save the value
         if opts:
-            self[opt] = val
+            self._set_option(opt, val)
+
+    # Set an option while checking the *value*
+    def _set_option(self, opt, val):
+        r"""Set an option, with checks on *val*
+
+        The option is looked up in *_optvalmap* followed by
+        *_optval_converters* and altered if indicated by those class
+        attributes.  The final value is then checked against *_optvals*
+        before finally saving as a key if that test is passed.
+
+        :Call:
+            >>> opts.set_option(opt, val)
+        :Inputs:
+            *opts*: :class:`KwargHandler`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *val*: :class:`any`
+                Specified value
+        :Versions:
+            * 2020-01-31 ``@ddalle``: First version
+        """
+        # Get class
+        cls = self.__class__
+        # Warning mode
+        _warnmode = getattr(cls, "_warnmode", 1)
+        # Value-check dicts
+        optvmap = cls._optvalmap
+        optvals = cls._optvals
+        optconv = cls._optval_converters
+        # Get map, converter, and set of allowed values
+        M = optvmap.get(opt)
+        f = optconv.get(opt)
+        V = optvals.get(opt) 
+        # Apply map
+        if (M is not None) and typeutils.isstr(val):
+            # Only works for strings
+            val = M.get(val, val)
+        # Perform conversion
+        if f is not None:
+            val = f(val)
+        # Value check
+        if (V is not None) and (val not in V):
+            # Get closet match (n=3 max)
+            if typeutils.isstr(val):
+                # Get closest values
+                try:
+                    # Assume *V* has correct types
+                    mtchs = difflib.get_close_matches(val, V)
+                except TypeError:
+                    # Only works if all of *V* is strings
+                    mtches = []
+                # Choose best warning
+                if len(mtchs) == 0:
+                    # No suggestions
+                    msg = (
+                        ("Unrecognized value '%s' " % val) +
+                        ("for keyword '%s'" % opt))
+                else:
+                    # Show up to three suggestions
+                    msg = (
+                        ("Unrecognized value '%s' " % val) +
+                        ("for keyword '%s'" % opt) +
+                        ("; suggested: %s" % " ".join(mtchs)))
+            else:
+                # Close matches only for strings
+                msg = "Keyword '%s' has invalid value" % opt
+            # Choose what to do about it
+            if _warnmode == 2:
+                # Exception
+                raise ValueError(msg)
+            elif _warnmode == 1:
+                # Warning
+                sys.stderr.write(msg + "\n")
+                sys.stderr.flush()
+            # Don't save it
+            return
+        # Save value
+        self[opt] = val
 
     # Set an option, with checks
     def setdefault_option(self, opt, val):
