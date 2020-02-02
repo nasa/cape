@@ -686,21 +686,11 @@ class BaseData(dict):
             * 2019-12-31 ``@ddalle``: Removed :func:`pop` and output
         """
         # Get values
-        vals1 = kw.get("Values", {})
-        vals2 = kw.get("vals", {})
+        vals = self.opts.get_option("Values", {})
         # Get expansion option
-        expand = kw.get("ExpandScalars", self.get_opt("ExpandScalars", True))
+        expand = self.opts.get_option("ExpandScalars", True)
         # Get number for expansion
         n = max(1, self.__dict__.get("n", 1))
-        # Check types
-        if not isinstance(vals1, dict):
-            raise TypeError(
-                "'Values' keyword must be dict, found %s" % vals1.__class__)
-        elif not isinstance(vals2, dict):
-            raise TypeError(
-                "'vals' keyword must be dict, found %s" % vals2.__class__)
-        # Combine inputs
-        vals = dict(vals2, **vals1)
         # Process values
         for (col, v) in vals.items():
             # Check for scalar
