@@ -522,23 +522,6 @@ class BaseData(dict):
   # =================
   # <
    # --- Options ---
-    # Get options handle
-    def get_opts(self):
-        r"""Get dictionary of options
-
-        :Call:
-            >>> opts = db.get_opts()
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
-                Data container
-        :Outputs:
-            *opts*: :class:`dict`
-                Options for data container
-        :Versions:
-            * 2019-12-31 ``@ddalle``: First version
-        """
-        return self.__dict__.setdefault("opts", {})
-
     # Single option
     def get_opt(self, key, vdef=None):
         r"""Get an option, appealing to default if necessary
@@ -553,19 +536,13 @@ class BaseData(dict):
             *vdef*: {``None``} | :class:`any`
                 Default option for fallback
         :Outputs:
-            *val*: *db.opts[key]* | *cls._DefaultOpts[key]* | *vdef*
+            *val*: *db.opts[key]* | *db.opts._rc[key]* | *vdef*
                 Value of option with fallback
         :Versions:
             * 2019-12-31 ``@ddalle``: First version
+            * 2020-02-01 ``@ddalle``: Using :class:`BaseDataOpts`
         """
-        # Get options
-        opts = self.get_opts()
-        # Check for option
-        if key in opts:
-            # Directly specified
-            return opts[key]
-        # Otherwise use the class
-        return self.__class__._DefaultOpts.get(key, vdef)
+        return self.opts.get_option(key, vdef)
         
    # --- Definitions ---
     # Get definitions
@@ -578,15 +555,44 @@ class BaseData(dict):
             *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
                 Data container
         :Outputs:
-            *defns*: :class:`dict`\ [:class:`dict`]
+            *defns*: :class:`dict`\ [:class:`BaseDataDefn`]
                 Definitions for each column
         :Versions:
             * 2019-12-31 ``@ddalle``: First version
+            * 2020-02-01 ``@ddalle``: Move from ``opts["Definitions"]``
         """
-        # Get options
-        opts = self.get_opts()
-        # Get definitions
-        return opts.setdefault("Definitions", {})
+        # Definitions from "defns" attribute
+        return self.__dict__.setdefault("defns", {})
+
+    # Get definition for specific column
+    def get_defn(self, col):
+        r"""Get column definition for data column *col*
+        
+        :Call:
+            >>> defn = db.get_col_prop(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *col*: :class:`str`
+                Name of column
+        :Outputs:
+            *defn*: :class:`BaseDataDefn`
+                Definition for column *col*
+        :Versions:
+            * 2020-02-01 ``@ddalle``: First version
+        """
+        # Get definition dictionary
+        defns = self.get_defns()
+        # Check for definition
+        if col in defns:
+            # Already formulated
+            return defns[col]
+        # Otherwise, create from options
+        defn = self.opts.get_defn(col)
+        # Save it
+        defns[col] = defn
+        # Output
+        return defn
 
    # --- Column Properties ---
     # Get generic property from column
@@ -611,25 +617,12 @@ class BaseData(dict):
         :Versions:
             * 2019-11-24 ``@ddalle``: First version
             * 2019-12-31 ``@ddalle``: Moved from :mod:`basefile`
+            * 2020-02-01 ``@ddalle``: Using :class:`BaseDataDefn`
         """
-        # Check if column is present
-        if col not in self.cols:
-            # Allow default
-            if col != "_":
-                raise KeyError("No column '%s'" % col)
-        # Get definitions
-        defns = self.get_defns()
         # Get specific definition
-        defn = defns.get(col, {})
-        # Check if option available
-        if prop in defn:
-            # Return it
-            return defn[prop]
-        else:
-            # Use default
-            defn = defns.get("_", {})
-            # Get property from default definition
-            return defn.get(prop, vdef)
+        defn = self.get_defn(col)
+        # Get option from definition
+        return defn.get_option(prop, vdef)
 
     # Get type
     def get_col_type(self, col):
@@ -667,10 +660,10 @@ class BaseData(dict):
         :Versions:
             * 2019-11-24 ``@ddalle``: First version
         """
-        # Get type
-        coltype = self.get_col_type(col)
-        # Apply mapping if needed
-        return self.__class__._DTypeMap.get(coltype, coltype)
+        # Get definition
+        defn = self.get_defn(col)
+        # Process *DType* from definition
+        return defn.get_dtype()
         
    # --- Keyword Values ---
     # Query keyword arguments for manual values
@@ -735,116 +728,6 @@ class BaseData(dict):
             self.save_col(col, V)
             # Save length
             self.n = n
-
-   # --- Keyword Checker ---
-    # Check valid keyword names, with dependencies
-    def map_kw(self, kwmap, **kw):
-        r"""Map alternate keyword names with no checks
-
-        :Call:
-            >>> kwo = db.map_kw(**kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
-                Data container
-            *kw*: :class:`dict`
-                Any keyword arguments
-        :Outputs:
-            *kwo*: :class:`dict`
-                Translated keywords and their values from *kw*
-        :Versions:
-            * 2019-12-13 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Call generic function
-        return kwutils.map_kw(cls._kw_map, **kw)
-
-    # Check valid keyword names, with dependencies
-    def check_kw(self, mode, **kw):
-        r"""Check and map valid keyword names
-
-        :Call:
-            >>> kwo = db.check_kw(mode, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
-                Data container
-            *mode*: ``0`` | {``1``} | ``2``
-                Flag for quiet (``0``), warn (``1``), or strict (``2``)
-            *kw*: :class:`dict`
-                Any keyword arguments
-        :Outputs:
-            *kwo*: :class:`dict`
-                Valid keywords
-        :Versions:
-            * 2019-12-13 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Call generic function with specific attributes
-        return kwutils.check_kw(
-            cls._kw,
-            cls._kw_map,
-            cls._kw_depends,
-            mode, **kw)
-
-    # Check valid keyword names against specified list
-    def check_kw_list(self, kwlist, mode, **kw):
-        r"""Check and map valid keyword names
-
-        :Call:
-            >>> kwo = db.check_kw_list(kwlist, mode, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
-                Data container
-            *kwlist*: :class:`list`\ [:class:`str`]
-                List of acceptable keyword names
-            *mode*: ``0`` | {``1``} | ``2``
-                Flag for quiet (``0``), warn (``1``), or strict (``2``)
-            *kw*: :class:`dict`
-                Any keyword arguments
-        :Outputs:
-            *kwo*: :class:`dict`
-                Valid keywords
-        :Versions:
-            * 2019-12-13 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Call generic function with specific attributes
-        return kwutils.check_kw(
-            kwlist,
-            cls._kw_map,
-            cls._kw_depends,
-            mode, **kw)
-
-    # Check valid keyword names, with dependencies
-    def check_kw_types(self, mode, **kw):
-        r"""Check and map valid keyword names and types
-
-        :Call:
-            >>> kwo = db.check_kw_types(mode, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
-                Data container
-            *mode*: ``0`` | {``1``} | ``2``
-                Flag for quiet (``0``), warn (``1``), or strict (``2``)
-            *kw*: :class:`dict`
-                Any keyword arguments
-        :Outputs:
-            *kwo*: :class:`dict`
-                Valid keywords
-        :Versions:
-            * 2019-12-13 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Call generic function with specific attributes
-        return kwutils.check_kw_types(
-            cls._kw,
-            cls._kw_map,
-            cls._kw_types,
-            cls._kw_depends,
-            mode, **kw)
   # >
 
   # ===============
@@ -891,31 +774,3 @@ class BaseData(dict):
             self[col] = v
   # >
 # class BaseData
-
-
-# Append keywords for *DefaultDefinition* thing
-def _append_kw_DefaultDefn(cls, attr="_kw"):
-    # Get list of parameters
-    _kw = getattr(cls, attr)
-    # Loop through keys in *cls._DefaultDefn*
-    for k in cls._DefaultDefn:
-        # Derivative key name
-        k1 = "Default" + k
-        # Check if key is present
-        if k1 not in _kw:
-            # Append the parameter
-            _kw.append(k1)
-    # Loop through keys in *cls._DefaultDefn*
-    for k in cls._DefaultDefn:
-        # Derivative key name
-        k1 = k + "s"
-        # Check if key is present
-        if k1 not in _kw:
-            # Append the parameter
-            _kw.append(k1)
-        # Save the type as a dict
-        cls._kw_types[k1] = dict
-
-
-# Add parameters
-_append_kw_DefaultDefn(BaseData)
