@@ -310,6 +310,10 @@ class BaseDataDefn(kwutils.KwargHandler):
         }
     }
 
+   # --- DType ---
+    # Map of data types based on *Type*
+    _dtypemap = {}
+
    # --- Documentation ---
         
   # >
@@ -318,6 +322,36 @@ class BaseDataDefn(kwutils.KwargHandler):
   # Methods
   # =================
   # <
+   # --- DType ---
+    # Get data type (from *Type*)
+    def get_dtype(self):
+        r"""Get (and save) data type (*DType*) based on *Type*
+
+        :Call:
+            >>> dtype = defn.get_dtype()
+        :Inputs:
+            *defn*: :class:`BaseDataDefn`
+                Data column definition
+        :Outputs:
+            *dtype*: :class:`str`
+                Data type, looks up *Type* in *defn._dtypemap*
+        :Versions:
+            * 2020-02-01 ``@ddalle``: First version
+        """
+        # Check if already present
+        if "DType" in self:
+            # No need to map
+            return self["DType"]
+        # Otherwise, get *Type*
+        typ = self.get_option("Type")
+        # Get data type
+        dtype = self.__class__._dtypemap.get(typ, typ)
+        # Save it
+        if dtype is not None:
+            self["DType"] = dtype
+        # Output
+        return dtype
+
    # --- Defaults ---
     # Apply defaults from *rc*
     def apply_defaults(self):

@@ -721,7 +721,7 @@ class KwargHandler(dict):
                 v0.update(**v)
             else:
                 # New key or overwritten key
-                self[k] = v
+                self._set_option(k, v)
   # >
 
   # ============
