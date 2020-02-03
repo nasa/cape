@@ -395,18 +395,19 @@ class BaseData(dict):
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
-        *db.opts*: :class:`dict`
+        *db.opts*: :class:`BaseDataOpts` | *db._optsclass*
             Options for this instance
-        *db.opts["Definitions"]*: :class:`dict`
-            Definitions for each column/coefficient
+        *db.defns*: :class:`dict`\ [:class:`BaseDataDefn`]
+            Definitions for each data column
         *db[col]*: :class:`np.ndarray` | :class:`list`
-            Numeric array or list of strings for each column
+            Numeric array or list of strings for column *col*
     :See also:
         * :class:`cape.attdb.ftypes.csv.CSVFile`
         * :class:`cape.attdb.ftypes.csv.CSVSimple`
         * :class:`cape.attdb.ftypes.textdata.TextDataFile`
     :Versions:
         * 2019-11-26 ``@ddalle``: First version
+        * 2020-02-02 ``@ddalle``: Second version
     """
   # ==================
   # Class Attributes
@@ -421,6 +422,20 @@ class BaseData(dict):
   # Config
   # ==========
   # <
+    # Template initialization method
+    def __init__(self, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2020-02-02 ``@ddalle``: First version
+        """
+        # Initialize columns
+        self.cols = []
+        # Process options
+        self.opts = self.process_kw(**kw)
+        # Process values
+        self.process_kw_values()
+
     # Representation method
     def __repr__(self):
         """Generic representation method
@@ -513,6 +528,57 @@ class BaseData(dict):
         optscls = self.__class__._optsclass
         # Convert kwargs to options; return it
         return optscls(**kw)
+
+    # Query keyword arguments for manual values
+    def process_kw_values(self):
+        r"""Process *Values* argument for manual column values
+        
+        :Call:
+            >>> db.process_kw_values()
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+        :Options:
+            *Values*: :class:`dict`
+                Dictionary of values for some columns
+            *ExpandScalars*: ``True`` | ``False``
+                Option to expand scalars to match dimension of arrays
+        :Versions:
+            * 2019-11-12 ``@ddalle``: First version
+            * 2019-12-31 ``@ddalle``: Removed :func:`pop` and output
+            * 2020-02-02 ``@ddalle``: Deleted *kw* as input
+        """
+        # Get values
+        vals = self.get_option("Values", {})
+        # Get expansion option
+        expand = self.get_option("ExpandScalars", True)
+        # Get number for expansion
+        n = max(1, self.__dict__.get("n", 1))
+        # Process values
+        for (col, v) in vals.items():
+            # Check for scalar
+            if isinstance(v, (list, np.ndarray)):
+                # Use array
+                V = v
+                # Update *n*
+                n = max(n, len(V))
+            elif expand:
+                # Get type
+                coldtype = self.get_col_dtype(col)
+                # Check for list-like
+                if coldtype == "str":
+                    # Create expanded list
+                    V = [v] * n
+                else:
+                    # Create array
+                    V = v * np.ones(n, dtype=coldtype)
+            else:
+                # Use as is
+                V = v
+            # Save values
+            self.save_col(col, V)
+            # Save length
+            self.n = n
   # >
   
   # =================
@@ -521,11 +587,11 @@ class BaseData(dict):
   # <
    # --- Options ---
     # Single option
-    def get_opt(self, key, vdef=None):
+    def get_option(self, key, vdef=None):
         r"""Get an option, appealing to default if necessary
 
         :Call:
-            >>> val = db.get_opt(key, vdef=None)
+            >>> val = db.get_option(key, vdef=None)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
                 Data container
@@ -662,60 +728,6 @@ class BaseData(dict):
         defn = self.get_defn(col)
         # Process *DType* from definition
         return defn.get_dtype()
-        
-   # --- Keyword Values ---
-    # Query keyword arguments for manual values
-    def process_kw_values(self):
-        r"""Process *Values* argument for manual column values
-        
-        :Call:
-            >>> db.process_kw_values()
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
-                Data container
-        :Options:
-            *Values*: :class:`dict`
-                Dictionary of values for some columns
-            *ExpandScalars*: ``True`` | ``False``
-                Option to expand scalars to match dimension of arrays
-        :Versions:
-            * 2019-11-12 ``@ddalle``: First version
-            * 2019-12-31 ``@ddalle``: Removed :func:`pop` and output
-            * 2020-02-02 ``@ddalle``: Deleted *kw* as input
-        """
-        # Get values
-        vals = self.get_opton("Values", {})
-        # Get expansion option
-        expand = self.get_opt("ExpandScalars", True)
-        # Get number for expansion
-        n = max(1, self.__dict__.get("n", 1))
-        # Process values
-        for (col, v) in vals.items():
-            # Check for scalar
-            if isinstance(v, (list, np.ndarray)):
-                # Use array
-                V = v
-                # Update *n*
-                n = max(n, len(V))
-            elif expand:
-                # Get type
-                coltyp = self.get_col_type(col)
-                # Convert if necessary
-                colcls = self.__class__._DTypeMap.get(coltyp, coltyp)
-                # Check for list-like
-                if colcls == "str":
-                    # Create expanded list
-                    V = [v] * n
-                else:
-                    # Create array
-                    V = v * np.ones(n, dtype=colcls)
-            else:
-                # Use as is
-                V = v
-            # Save values
-            self.save_col(col, V)
-            # Save length
-            self.n = n
   # >
 
   # ===============

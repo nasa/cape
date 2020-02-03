@@ -36,10 +36,50 @@ import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
 
 # Local modules
-from .basedata import BaseData, _append_kw_DefaultDefn
+from .basedata import BaseData, BaseDataDefn, BaseDataOpts
 
 # Fixed parameter for size of new chunks
 NUM_ARRAY_CHUNK = 5000
+
+
+# Options
+class BaseFileOpts(BaseDataOpts):
+  # ===================
+  # Class Attributes
+  # ===================
+  # <
+   # --- Global Options ---
+    # List of options
+    _optlist = set.union(BaseDataOpts._optlist,
+        {
+            "Prefix",
+            "Suffix",
+            "Translators"
+        }
+    )
+
+    # Alternate names
+    _optmap = dict(BaseDataOpts._optmap,
+        prefix="Prefix",
+        suffix="Suffix",
+        translators="Translators")
+
+   # --- Types ---
+    # Types allowed
+    _opttypes = dict(BaseDataOpts._opttypes,
+        Prefix=(str, dict),
+        Suffix=(str, dict),
+        Translators=(dict))
+  # >
+
+
+# Definition
+class BaseFileDefn(BaseDataDefn):
+    pass
+
+
+# Add definition support to option
+BaseFileOpts.set_defncls(BaseFileDefn)
 
 
 # Declare basic class
@@ -71,57 +111,14 @@ class BaseFile(BaseData):
     :Versions:
         * 2019-11-26 ``@ddalle``: First version
     """
-    # Class attributes
-    _classtypes = []
-    # Recognized types and other defaults
-    _DefaultOpts = {
-        "Definitions": {},
-        "Translators": {},
-        "Prefix": "",
-        "Suffix": "",
-        "ExpandScalars": True,
-    }
-    _DefaultDefn = {
-        "Type": "float64",
-        "Label": True,
-        "LabelFormat": "%s",
-        "WriteFormat": "%s",
-    }
-    _DefaultRoleDefns = {}
-    _DTypeMap = {}
-    _RoleMap = {}
-    # Permitted keyword names
-    _kw = [
-        "cols",
-        "Translators",
-        "Prefix",
-        "Suffix",
-        "ExpandScalars",
-        "Definitions",
-        "DefaultDefinition",
-        "Values",
-    ]
-    _kw_map = {
-        "ColumnNames": "cols",
-        "Keys": "cols",
-        "translators": "Translators",
-        "prefix": "Prefix",
-        "suffix": "Suffix",
-        "defns": "Definitions",
-        "vals": "Values",
-    }
-    _kw_depends = {}
-    _kw_types = {
-        "cols": list,
-        "Translators": (dict, typeutils.strlike),
-        "Definitions": dict,
-        "Values": dict,
-        "ExpandScalars": (bool, int),
-        "Prefix": (dict, typeutils.strlike),
-        "Suffix": (dict, typeutils.strlike),
-        "DefaultDefinition": dict,
-        "DefaultType": typeutils.strlike
-    }
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Options ---
+    # Class for options
+    _optsclass = BaseDataOpts
+  # >
 
   # ==========
   # Config
@@ -1090,7 +1087,3 @@ class TextInterpreter(object):
         # Attempt conversion
         return cls(txt)
 # class TextFile
-
-
-# Add keyword parameters for "DefaultType", etc.
-_append_kw_DefaultDefn(BaseFile)
