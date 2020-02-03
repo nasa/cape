@@ -230,17 +230,22 @@ class BaseDataDefn(kwutils.KwargHandler):
    # --- Global Options ---
     # List of options
     _optlist = {
-        "Format",
         "Label",
+        "LabelFormat",
         "Type",
         "WriteFormat"
+    }
+
+    # Alternate names
+    _optmap = {
+        "Format": "LabelFormat"
     }
 
    # --- Types ---
     # Types
     _opttypes = {
-        "Format": typeutils.strlike,
         "Label": bool,
+        "LabelFormat": typeutils.strlike,
         "Type": typeutils.strlike,
         "WriteFormat": typeutils.strlike,
     }
@@ -248,8 +253,8 @@ class BaseDataDefn(kwutils.KwargHandler):
    # --- Defaults ---
     # Default values
     _rc = {
-        "Format": "%s",
         "Label": True,
+        "LabelFormat": "%s",
         "Type": "float64",
     }
 
