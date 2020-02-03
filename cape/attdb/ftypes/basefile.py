@@ -124,212 +124,28 @@ class BaseFile(BaseData):
   # Config
   # ==========
   # <
+    # Template initialization method
+    def __init__(self, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2020-02-02 ``@ddalle``: First version
+        """
+        # Initialize columns
+        self.cols = []
+        # Process options
+        self.opts = self.process_kw(**kw)
+        # Ensure definitions are present
+        self.get_defns()
+        # Process values
+        self.process_kw_values()
   # >
   
   # =================
-  # Options
+  # Data Columns
   # =================
   # <
-   # --- Key Definitions ---
-    # Process generic options
-    def process_opts_generic(self, **kw):
-        r"""Process generic options from keyword arguments
-
-        :Call:
-            >>> kwo = db.process_opts_generic(**kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *cols*, *ColNames*, *Keys*: :class:`list`\ [:class:`str`]
-                User-specified column names
-            *ExpandScalars*: {``True``} | ``False``
-                Option to expand any scalar inputs into arrays that
-                match other columns (with *size* equal to *db.n*)
-            *[Tt]ranslators*: :class:`dict`\ [:class:`str`]
-                Dictionary of alternate names to store column names as;
-                for example if the header has a column called
-                ``"CAF"``, and ``translators["CAF"]`` is ``"CA"``, that
-                column will be stored as ``db["CA"]`` instead of
-                ``db["CAF"]``
-            *[Pp]refix*: ``""`` | :class:`str` | :class:`dict`
-                Universal column name prefix or dictionary thereof
-            *[Ss]uffix*: ``""`` | :class:`str` | :class:`dict`
-                Universal column name suffix or dictionary thereof
-        :Outputs:
-            *kwo*: :class:`dict`
-                Options not used in this method
-        :Versions:
-            * 2019-11-27 ``@ddalle``: First version
-        """
-        # Process options
-        kwo = self.check_kw_types(1, **kw)
-        # Get columns
-        cols = kwo.get("cols", None)
-        # Save column list if appropriate
-        if isinstance(cols, list):
-            self.cols = cols
-        # Save translators
-        trans = kwo.get("Translators", {})
-        # Save
-        self.opts["Translators"] = trans
-        # Prefix/suffix options
-        prefix = kwo.get("Prefix", "")
-        suffix = kwo.get("Suffix", "")
-        # De-none
-        if prefix is None:
-            prefix = ""
-        if suffix is None:
-            suffix = ""
-        # Save prefix and suffix
-        self.opts["Prefix"] = prefix
-        self.opts["Suffix"] = suffix
-        # Values option
-        if kwo.get("ExpandScalars", True):
-            # Something true-like
-            self.opts["ExpandScalars"] = True
-        else:
-            # Turned off
-            self.opts["ExpandScalars"] = False
-            
-        # Return unused options
-        return kwo
-
-   # --- Columns ---
-    # Process key definitions
-    def process_col_defns(self, **kw):
-        r"""Process *Definitions* of column types
-        
-        :Call:
-            >>> db.process_col_defns(**kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *Types*: {``{}``} | :class:`dict`
-                Dictionary of just tye *Type* for one or more cols
-            *Definitions*, *defns*: {``{}``} | :class:`dict`
-                Dictionary of specific definitions for each *col*
-            *DefaultType*: {``"float"``} | :class:`str`
-                Name of default class
-            *DefaultFormat*: {``None``} | :class:`str`
-                Optional default format string
-            *DefaultDefinition*: :class:`dict`
-                :class:`dict` of default *Type*, *Format*
-        :Outputs:
-            *kwo*: :class:`dict`
-                Options not used in this method
-        :Versions:
-            * 2014-06-05 ``@ddalle``: First version
-            * 2014-06-17 ``@ddalle``: Read from *defns* :class:`dict`
-            * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
-        """
-        # Get options for key definitions
-        defns1 = kw.get("defns", {})
-        defns2 = kw.get("Definitions", {})
-        # Combine definitions
-        defns = dict(defns1, **defns2)
-        # Get default definition from class definition
-        clsdefn = self.__class__._DefaultDefn
-        # Check for default definition
-        odefn = kw.get("DefaultDefinition", {})
-        # Process each option from class definition
-        for (k, opt) in clsdefn.items():
-            # Prepend "Default" to the name
-            key = "Default" + k
-            # Check for option
-            odefk = kw.get(key, opt)
-            # Save it if appropriate
-            odefn.setdefault(k, odefk)
-        # Validate default definition
-        self.validate_defn(odefn)
-        # Ensure definitions exist
-        opts = self.get_defns()
-        # Save defaults
-        opts["_"] = odefn
-
-        # Loop through columns mentioned in input
-        for (col, kwdefn) in defns.items():
-            # Get existing definition
-            defn = opts.setdefault(col, {})
-            # Apply keyword definitions
-            for (key, opt) in kwdefn.items():
-                # Kwargs override anything created automatically
-                defn[key] = opt
-            # Validate values
-            self.validate_defn(defn)
-
-        # Loop through options specific to individual keys
-        for k in clsdefn.keys():
-            # Keyword argument name appends an "s"
-            defnk = k + "s"
-            # Check if present
-            if defnk not in kw:
-                continue
-            # Check the type
-            if not isinstance(kw[defnk], dict):
-                continue
-            # Get the option
-            defnkw = kw.get(defnk)
-            # Loop through cols affected by this dictionary
-            for (col, opt) in defnkw.items():
-                # Get existing definition
-                defn = opts.setdefault(col, {})
-                # Apply the type
-                defn[k] = self.validate_type(opt)
-
-        # Loop through known columns
-        for col in self.cols:
-            # Get definition
-            defn = defns.setdefault(col, {})
-            # Get default definition based on column name
-            odefncol = self.get_col_defaultdefn(col)
-            # Loop through default keys
-            for key, opt in odefncol.items():
-                # Apply default but don't override
-                defn.setdefault(key, opt)
-            # Validate the definition
-            self.validate_defn(defn)
-
-    # Get default definition based on column name
-    def get_col_defaultdefn(self, col):
-        r"""Get the default definition based on a column name
-        
-        :Call:
-            >>> odefn = db.get_col_defaultdefn(col)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column to process
-        :Outputs:
-            *odefn*: :class:`dict`
-                Dictionary of default parameters that might be specific
-                to the column name
-        :Versions:
-            * 2019-12-05 ``@ddalle``: First version
-        """
-        # Get class
-        cls = self.__class__
-        # Get class's default definitions for each family
-        defndict = cls._DefaultRoleDefns
-        # Get map from name to family
-        rolemap = cls._RoleMap
-        # Get global default
-        odefn = cls._DefaultDefn
-        # Loop through roles
-        for role, names in rolemap.items():
-            # Check type
-            if not isinstance(names, list):
-                # Create list
-                names = [names]
-            # Check for a match
-            if col in names:
-                # Get definition for that role
-                coldefn = defndict.get(role, odefn)
-                # Set role
-                return dict(coldefn, Role=role)
-        # If reaching this point, return global default
-        return odefn
-        
+   # --- Name Translation ---
     # Translate column names
     def translate_colnames(self, cols):
         r"""Translate column names
@@ -353,9 +169,9 @@ class BaseFile(BaseData):
             * 2019-12-04 ``@ddalle``: First version
         """
         # Get options
-        trans  = self.opts.get("Translators", {})
-        prefix = self.opts.get("Prefix", "")
-        suffix = self.opts.get("Suffix", "")
+        trans  = self.get_option("Translators", {})
+        prefix = self.get_option("Prefix", "")
+        suffix = self.get_option("Suffix", "")
         # Initialize output
         dbcols = []
         # Output
@@ -410,9 +226,9 @@ class BaseFile(BaseData):
             * 2019-12-11 ``@jmeeroff``: From :func:`translate_colnames`
         """
         # Get options
-        trans  = self.opts.get("Translators", {})
-        prefix = self.opts.get("Prefix", "")
-        suffix = self.opts.get("Suffix", "")
+        trans  = self.get_option("Translators", {})
+        prefix = self.get_option("Prefix", "")
+        suffix = self.get_option("Suffix", "")
         # Initialize output
         cols = []
         # Reverse the translation dictionary
@@ -460,166 +276,28 @@ class BaseFile(BaseData):
         # Output
         return cols
 
-   # --- Keyword Checkers ---
-    # Validate a dictionary of options
-    def validate_defn(self, defn):
-        r"""Validate each key in a dictionary column definition
-        
-        :Call:
-            >>> db.validate_defn(defn)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *defn*: :class:`dict`
-                Name of column definition option to validate
-        :Effects:
-            *defn*: :class:`dict`
-                Each item in *defn* is validated
-        :See Also:
-            * :func:`validate_defnopt`
-        :Versions:
-            * 2019-11-26 ``@ddalle``: First version
-        """
-        # Ensure input type
-        if not isinstance(defn, dict):
-            raise TypeError(
-                ("Valid col definition must be 'dict'") +
-                ("; got '%s'" % defn.__class__))
-        # Loop through keys
-        for (k, v) in defn.items():
-            # Validate individual key
-            defn[k] = self.validate_defnopt(k, v)
-        
-    # Validate any keyword argument
-    def validate_defnopt(self, prop, val):
-        r"""Translate any key definition into validated output
-        
-        :Call:
-            >>> v = db.validate_defnopt(prop, val)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *prop*: :class:`str`
-                Name of column definition option to validate
-            *val*: :class:`any`
-                Initial value for option (raw input)
-        :Outputs:
-            *v*: :class:`any`
-                Validated version of *val*
-        :Versions:
-            * 2019-11-26 ``@ddalle``: First version
-        """
-        # Check property
-        if prop == "Type":
-            return self.validate_type_base(val)
-        else:
-            # Default is to accept any input
-            return val
-
-    # Convert *Type* to validated *Type*
-    def validate_type(self, clsname):
-        r"""Translate free-form type name into type code
-        
-        :Call:
-            >>> dtype = db.validate_type(clsname)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *clsname*: :class:`str`
-                Free-form *Type* option for a column
-        :Outputs:
-            *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
-                Name of data type
-        :Versions:
-            * 2019-12-03 ``@ddalle``: First version
-        """
-        return self.validate_type_base(clsname)
-
-    # Convert *Type* to validated *Type*
-    def validate_type_base(self, clsname):
-        r"""Translate free-form type name into type code
-        
-        :Call:
-            >>> dtype = db.validate_type_base(clsname)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *clsname*: :class:`str`
-                Free-form *Type* option for a column
-        :Outputs:
-            *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
-                Name of data type
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-        """
-        # Force lower case
-        clsname = clsname.lower()
-        # Make some substitutions
-        clsname = clsname.replace("float", "f")
-        clsname = clsname.replace("int",  "i")
-        clsname = clsname.replace("complex", "c")
-        # Filter it
-        if clsname in ["f", "f64", "double"]:
-            # 64-bit float (default
-            return "float64"
-        elif clsname in ["i", "i32", "long"]:
-            # 32-bit int
-            return "int32"
-        elif clsname in ["i16", "short"]:
-            # 16-bit int
-            return "int16"
-        elif clsname in ["f32", "single"]:
-            # 32-bit float
-            return "float32"
-        elif clsname in ["i64", "long long"]:
-            # Double long integer
-            return "int64"
-        elif clsname in ["f128"]:
-            # Double long float
-            return "float128"
-        elif clsname in ["f16"]:
-            # Short float
-            return "float16"
-        elif clsname in ["i8"]:
-            # Extra short integer
-            return "int8"
-        elif clsname in ["ui8"]:
-            # Extra short unsigned
-            return "uint8"
-        elif clsname in ["ui16"]:
-            # Short unsigned
-            return "uint16"
-        elif clsname in ["ui32"]:
-            # Long unsigned
-            return "uint32"
-        elif clsname in ["ui64"]:
-            # Long long unsigned
-            return "uint64"
-        elif clsname in ["i1", "bool"]:
-            # Boolean
-            return "bool"
-        elif clsname in ["c", "c128"]:
-            # Complex (double)
-            return "complex128"
-        elif clsname in ["c", "c64"]:
-            # Complex (double)
-            return "complex64"
-        elif clsname in ["c256"]:
-            # Complex (single)
-            return "complex256"
-        elif clsname in ["str"]:
-            # String
-            return "str"
-        else:
-            # Unrecognized
-            return TypeError("Unrecognized class/type '%s'" % clsname)
-  # >
-
-  # ===============
-  # Data
-  # ===============
-  # <
    # --- Init ---
+    # Initialize list of columns
+    def init_cols(self, cols):
+        r"""Initialize list of columns
+        
+        :Call:
+            >>> db.init_cols(cols)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                Name of column to initialize
+        :See Also:
+            * :func:`init_col`
+        :Versions:
+            * 2019-11-25 ``@ddalle``: First version
+        """
+        # Loop through columns
+        for col in cols:
+            # Initialize column
+            self.init_col(col)
+
     # Initialize single column
     def init_col(self, col):
         r"""Initialize column
@@ -689,27 +367,6 @@ class BaseFile(BaseData):
         """
         raise ValueError(
             "%s class has no special column types" % self.__class__.__name__)
-        
-    # Initialize list of columns
-    def init_cols(self, cols):
-        r"""Initialize list of columns
-        
-        :Call:
-            >>> db.init_cols(cols)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *col*: :class:`str`
-                Name of column to initialize
-        :See Also:
-            * :func:`init_col`
-        :Versions:
-            * 2019-11-25 ``@ddalle``: First version
-        """
-        # Loop through columns
-        for col in cols:
-            # Initialize column
-            self.init_col(col)
 
    # --- Save Data ---
     # Save next value to column's array
@@ -821,7 +478,6 @@ class BaseFile(BaseData):
         # Create pointer
         setattr(self, col, self[col])
   # >
-# class BaseFile
 
 
 # Text interpretation classes
@@ -1086,4 +742,3 @@ class TextInterpreter(object):
             raise ValueError("Invalid integer subtype '%s'" % clsname)
         # Attempt conversion
         return cls(txt)
-# class TextFile
