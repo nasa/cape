@@ -408,44 +408,14 @@ class BaseData(dict):
     :Versions:
         * 2019-11-26 ``@ddalle``: First version
     """
-    # Class attributes
-    _classtypes = []
-    # Recognized types and other defaults
-    _DefaultOpts = {
-        "ExpandScalars": True,
-    }
-    _DefaultDefn = {
-        "Type": "float64",
-        "Label": True,
-        "LabelFormat": "%s",
-        "WriteFormat": "%s",
-    }
-    _DefaultRoleDefns = {}
-    _DTypeMap = {}
-    _RoleMap = {}
-    # Permitted keyword names
-    _kw = [
-        "cols",
-        "ExpandScalars",
-        "Definitions",
-        "DefaultDefinition",
-        "Values"
-    ]
-    _kw_map = {
-        "ColumnNames": "cols",
-        "Keys": "cols",
-        "defns": "Definitions",
-        "vals": "Values",
-    }
-    _kw_depends = {}
-    _kw_types = {
-        "cols": list,
-        "Definitions": dict,
-        "Values": dict,
-        "ExpandScalars": (bool, int),
-        "DefaultDefinition": dict,
-        "DefaultType": typeutils.strlike
-    }
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Options ---
+    # Class for options
+    _optsclass = BaseDataOpts
+  # >
 
   # ==========
   # Config
@@ -515,6 +485,34 @@ class BaseData(dict):
             lbl += "ncol=%i)>" % len(cols)
         # Output
         return lbl
+  # >
+
+  # =================
+  # Inputs & Kwargs
+  # =================
+  # <
+   # --- Options ---
+    # Convert *kw* to options
+    def process_kw(self, **kw):
+        r"""Process options from keyword arguments
+
+        :Call:
+            >>> opts = db.process_kw(**kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *kw*: :class:`dict`
+                Arbitrary keyword arguments
+        :Outputs:
+            *opts*: :class:`BaseDataOpts` | *db._optsclass*
+                Validated options from *kw*
+        :Versions:
+            * 2020-02-02 ``@ddalle``: First version
+        """
+        # Get class
+        optscls = self.__class__._optsclass
+        # Convert kwargs to options; return it
+        return optscls(**kw)
   # >
   
   # =================
@@ -667,28 +665,28 @@ class BaseData(dict):
         
    # --- Keyword Values ---
     # Query keyword arguments for manual values
-    def process_kw_values(self, **kw):
+    def process_kw_values(self):
         r"""Process *Values* argument for manual column values
         
         :Call:
-            >>> db.process_kw_values(**kw)
+            >>> db.process_kw_values()
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
                 Data container
-            *Values*, *vals*: :class:`dict`
+        :Options:
+            *Values*: :class:`dict`
                 Dictionary of values for some columns
             *ExpandScalars*: ``True`` | ``False``
                 Option to expand scalars to match dimension of arrays
-            *n*: {*db.n*} | :class:`int` > 0
-                Target length for *ExpandScalars*
         :Versions:
             * 2019-11-12 ``@ddalle``: First version
             * 2019-12-31 ``@ddalle``: Removed :func:`pop` and output
+            * 2020-02-02 ``@ddalle``: Deleted *kw* as input
         """
         # Get values
-        vals = self.opts.get_option("Values", {})
+        vals = self.get_opton("Values", {})
         # Get expansion option
-        expand = self.opts.get_option("ExpandScalars", True)
+        expand = self.get_opt("ExpandScalars", True)
         # Get number for expansion
         n = max(1, self.__dict__.get("n", 1))
         # Process values
