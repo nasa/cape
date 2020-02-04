@@ -323,10 +323,8 @@ class BaseFile(BaseData):
         # Check validity
         if col not in self.cols:
             raise KeyError("Unrecognized column '%s'" % col)
-        # Get type
-        coltyp = self.get_col_type(col)
         # Convert special type to actual Python type, if necessary
-        colcls = self._DTypeMap.get(coltyp, coltyp)
+        dtype = self.get_col_dtype(col)
         # Make sure _nmax (array length) attribute is present
         if not hasattr(self, "_nmax"):
             self._nmax = {}
@@ -334,7 +332,7 @@ class BaseFile(BaseData):
         if not hasattr(self, "_n"):
             self._n = {}
         # Check for string
-        if colcls == "str":
+        if dtype == "str":
             # Initialize strings in empty list
             self[col] = []
             # No max length
@@ -342,7 +340,7 @@ class BaseFile(BaseData):
             self._nmax[col] = None
         else:
             # Use existing dtype code
-            self[col] = np.zeros(NUM_ARRAY_CHUNK, dtype=colcls)
+            self[col] = np.zeros(NUM_ARRAY_CHUNK, dtype=dtype)
             # Set max length
             self._n[col] = 0
             self._nmax[col] = NUM_ARRAY_CHUNK
