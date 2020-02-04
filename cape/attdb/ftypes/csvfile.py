@@ -24,7 +24,7 @@ import cape.tnakit.typeutils as typeutils
 import cape.tnakit.arrayutils as arrayutils
 
 # Local modules
-from .basefile import BaseFile, TextInterpreter
+from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
 
 # Local extension
 try:
@@ -36,6 +36,19 @@ except ImportError:
 # Regular expressions
 regex_numeric = re.compile(r"\d")
 regex_alpha   = re.compile("[A-z_]")
+
+# Options
+class CSVFileOpts(BaseFileOpts):
+    pass
+
+
+# Definition
+class CSVFileDefn(BaseFileDefn):
+    pass
+
+
+# Add definition support to option
+CSVFileOpts.set_defncls(CSVFileDefn)
 
 
 # Class for handling data from CSV files
@@ -55,9 +68,9 @@ class CSVFile(BaseFile, TextInterpreter):
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
-        *db.opts*: :class:`dict`
+        *db.opts*: :class:`CSVFileOpts`
             Options for this instance
-        *db.opts["Definitions"]*: :class:`dict`
+        *db.defns*: :class:`dict`\ [:class:`CSVFileDefn`]
             Definitions for each column
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for each column
@@ -79,25 +92,27 @@ class CSVFile(BaseFile, TextInterpreter):
         :Versions:
             * 2019-11-12 ``@ddalle``: First version
         """
-        # Initialize options
-        self.opts = {}
+        # Initialize common attributes
         self.cols = []
         self.n = 0
         self.fname = None
 
-        # Process generic options
-        kw = self.process_opts_generic(**kw)
+        # Process keyword arguments
+        self.opts = self.process_kw(**kw)
+
+        # Explicit definition declarations
+        self.get_defns()
 
         # Read file if appropriate
         if fname:
             # Read valid file
-            self.read_csv(fname, **kw)
+            self.read_csv(fname)
         else:
-            # Process inputs
-            self.process_col_defns(**kw)
+            # Apply defaults to definitions
+            self.apply_defn_defaults()
 
         # Check for overrides of values
-        self.process_kw_values(**kw)
+        self.process_kw_values()
   # >
 
   # =============
@@ -106,7 +121,7 @@ class CSVFile(BaseFile, TextInterpreter):
   # <
    # --- Control ---
     # Reader
-    def read_csv(self, fname, **kw):
+    def read_csv(self, fname):
         r"""Read a CSV file, including header
 
         Reads either entire file or from current location
@@ -132,17 +147,17 @@ class CSVFile(BaseFile, TextInterpreter):
             # Safe file name
             self.fname = fname.name
             # Already a file
-            self._read_csv(fname, **kw)
+            self._read_csv(fname)
         else:
             # Save file name
             self.fname = fname
             # Open file
             with open(fname, 'r') as f:
                 # Process file handle
-                self._read_csv(f, **kw)
+                self._read_csv(f)
 
     # Read CSV file from file handle
-    def _read_csv(self, f, **kw):
+    def _read_csv(self, f):
         r"""Read a CSV file from current position
         
         :Call:
@@ -159,9 +174,9 @@ class CSVFile(BaseFile, TextInterpreter):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Process column names
-        self.read_csv_header(f, **kw)
+        self.read_csv_header(f)
         # Process column types
-        self.process_col_defns(**kw)
+        self.process_col_defns()
         # Loop through lines
         self.read_csv_data(f)
 
@@ -185,14 +200,14 @@ class CSVFile(BaseFile, TextInterpreter):
         # Open file
         with open(fname, 'r') as f:
             # Process column names
-            self.read_csv_header(f, **kw)
+            self.read_csv_header(f)
             # Process column types
-            kw = self.process_col_defns(**kw)
+            self.process_col_defns()
             # Loop through lines
             self.c_read_csv_data(f)
 
     # Reader: Python only
-    def py_read_csv(self, fname, **kw):
+    def py_read_csv(self, fname):
         r"""Read an entire CSV file with pure Python
         
         :Call:
@@ -211,15 +226,15 @@ class CSVFile(BaseFile, TextInterpreter):
         # Open file
         with open(fname, 'r') as f:
             # Process column names
-            self.read_csv_header(f, **kw)
+            self.read_csv_header(f)
             # Process column types
-            kw = self.process_col_defns(**kw)
+            self.process_col_defns()
             # Loop through lines
             self.py_read_csv_data(f)
    
    # --- Header ---
     # Read initial comments
-    def read_csv_header(self, f, **kw):
+    def read_csv_header(self, f):
         r"""Read column names from beginning of open file
         
         :Call:
@@ -247,7 +262,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Get default column names if necessary
         self.read_csv_headerdefaultcols(f)
         # Get guesses as to types
-        self.read_csv_firstrowtypes(f, **kw)
+        self.read_csv_firstrowtypes(f)
 
     # Read a line as if it were a header
     def read_csv_headerline(self, f):
@@ -328,7 +343,7 @@ class CSVFile(BaseFile, TextInterpreter):
         return cols
         
     # Read header types from first data row
-    def read_csv_firstrowtypes(self, f, **kw):
+    def read_csv_firstrowtypes(self, f):
         r"""Get initial guess at data types from first data row
         
         If (and only if) the *DefaultType* input is an integer type,
@@ -349,9 +364,7 @@ class CSVFile(BaseFile, TextInterpreter):
             * 2019-11-25 ``@ddalle``: First version
         """
         # Get integer option
-        odefcls = kw.get("DefaultType", "float64")
-        # Translate abbreviated codes
-        odefcls = self.validate_type_base(odefcls)
+        odefcls = self.get_option("DefaultType", "float64")
         # Save position
         pos = f.tell()
         # Read line
@@ -363,12 +376,13 @@ class CSVFile(BaseFile, TextInterpreter):
         f.seek(pos)
         # Otherwise, split into data
         coltxts = [txt.strip() for txt in line.split(",")]
-        # Initialize types
-        defns = self.opts.setdefault("Definitions", {})
         # Attempt to convert columns to ints, then floats
         for (j, col) in enumerate(self.cols):
             # Create definitions if necessary
-            defn = defns.setdefault(col, {})
+            defn = self.get_defn(col)
+            # Check if type already set
+            if "Type" in defn:
+                continue
             # Get text from *j*th column
             txtj = coltxts[j]
             # Cascade through possible conversions
@@ -377,7 +391,7 @@ class CSVFile(BaseFile, TextInterpreter):
                     # Try an integer first
                     int(txtj)
                     # If it works; save it
-                    defn.setdefault("Type", odefcls)
+                    defn["Type"] = odefcls
                     continue
                 except ValueError:
                     pass
@@ -391,10 +405,10 @@ class CSVFile(BaseFile, TextInterpreter):
                 # If it works; save type
                 if odefcls.startswith("float"):
                     # Use specific version
-                    defn.setdefault("Type", odefcls)
+                    defn["Type"] = odefcls
                 else:
                     # Use global default
-                    defn.setdefault("Type", "float64")
+                    defn["Type"] = "float64"
                 continue
             except Exception:
                 pass
@@ -406,10 +420,10 @@ class CSVFile(BaseFile, TextInterpreter):
                 # Try conversion
                 complex(txtj)
                 # If it works; save type
-                defn.setdefault("Type", "complex128")
+                defn["Type"] = "complex128"
             except Exception:
                 # Only option left is a string
-                defn.setdefault("Type", "str")
+                defn["Type"] = "str"
         
     # Read first data line to count columns if necessary
     def read_csv_headerdefaultcols(self, f):

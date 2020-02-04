@@ -438,6 +438,10 @@ class BaseData(dict):
         self.cols = []
         # Process options
         self.opts = self.process_kw(**kw)
+        # Ensure definitions are present
+        self.get_defns()
+        # Apply defaults to definitions
+        self.apply_defn_defaults()
         # Process values
         self.process_kw_values()
 
@@ -662,6 +666,34 @@ class BaseData(dict):
         defns[col] = defn
         # Output
         return defn
+
+    # Apply defaults to a definition
+    def apply_defn_defaults(self, cols=None):
+        r"""Apply any defaults to data column definitions
+
+        This first checks instance options like ``"DefaultType"`` and
+        then the global defaults such as ``defn._rc["Type"]``.
+
+        :Call:
+            >>> db.apply_defn_defaults(defn)
+        :Inputs:
+            *opts*: :class:`BaseDataOpts`
+                Options interface for :mod:`cape.attdb.ftypes`
+            *defn*: :class:`BaseDataDefn` | *opts._defncls*
+                Data column definition
+        :Versions:
+            * 2020-02-03 ``@ddalle``: First version
+        """
+        # Default column list
+        if cols is None:
+            # Use all listed columns
+            cols = self.cols
+        # Loop through those columns
+        for col in cols:
+            # Get definition
+            defn = self.get_defn(col)
+            # Apply defaults
+            defn.apply_defaults()
 
    # --- Column Properties ---
     # Get generic property from column

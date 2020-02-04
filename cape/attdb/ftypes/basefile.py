@@ -137,6 +137,8 @@ class BaseFile(BaseData):
         self.opts = self.process_kw(**kw)
         # Ensure definitions are present
         self.get_defns()
+        # Apply defaults to definitions
+        self.apply_defn_defaults()
         # Process values
         self.process_kw_values()
   # >
