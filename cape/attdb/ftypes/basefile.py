@@ -400,10 +400,10 @@ class BaseFile(BaseData):
             self[col].append(v)
         elif n >= nmax:
             # Get dtype
-            clsname = self.get_col_type(col)
+            dtype = self.get_col_dtype(col)
             # Allocate new chunk
             self[col] = np.hstack(
-                (self[col], np.zeros(NUM_ARRAY_CHUNK, dtype=clsname)))
+                (self[col], np.zeros(NUM_ARRAY_CHUNK, dtype=dtype)))
             # Update maximum
             self._nmax[col] += NUM_ARRAY_CHUNK
             # Save new value
