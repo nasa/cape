@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Import CSV module
-import cape.attdb.ftypes.csv as csv
+import cape.attdb.ftypes.csvfile as csvfile
 
 # Read CSV file
-db = csv.CSVFile("wt-sample.csv")
+db = csvfile.CSVFile("wt-sample.csv")
 
 # Case number
 i = 2

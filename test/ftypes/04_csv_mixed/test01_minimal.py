@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Import CSV module
-import cape.attdb.ftypes.csv as csv
+import cape.attdb.ftypes.csvfile as csvfile
 
 # Read CSV file
-db = csv.CSVFile("runmatrix.csv")
+db = csvfile.CSVFile("runmatrix.csv")
 
 # Case number
 i = 6
