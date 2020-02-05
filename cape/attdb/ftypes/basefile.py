@@ -100,7 +100,7 @@ class BaseFile(BaseData):
             List of columns read
         *db.opts*: :class:`dict`
             Options for this instance
-        *db.opts["Definitions"]*: :class:`dict`
+        *db.defns*: :class:`dict`
             Definitions for each column/coefficient
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for each column

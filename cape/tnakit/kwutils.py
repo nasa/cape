@@ -1168,7 +1168,7 @@ class KwargHandler(dict):
             # Copy it
             val = copy.deepcopy(val)
             # Save it
-            cls.__dict__[attr] = val
+            setattr(cls, attr, val)
             # Output
             return val
 

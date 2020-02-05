@@ -64,7 +64,7 @@ class CSVFile(BaseFile, TextInterpreter):
         *f*: :class:`file`
             Open file handle
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+        *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -130,7 +130,7 @@ class CSVFile(BaseFile, TextInterpreter):
             >>> db.read_csv(f)
             >>> db.read_csv(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 File open for reading
@@ -163,7 +163,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db._read_csv(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 File open for reading
@@ -187,7 +187,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_csv(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *fname*: :class:`str`
                 Name of file to read
@@ -213,7 +213,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.py_read_csv(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *fname*: :class:`str`
                 Name of file to read
@@ -240,7 +240,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_csv_header(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -271,7 +271,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_csv_headerline(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -354,7 +354,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_csv_firstrowtypes(f, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -432,7 +432,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_csv_headerdefaultcols(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -473,7 +473,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_csv_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -496,7 +496,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.c_read_csv_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -527,7 +527,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.py_read_csv_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -565,7 +565,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_csv_dataline(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -604,7 +604,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.get_c_dtypes()
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
         :Effects:
             *db._c_dtypes*: :class:`list`\ [:class:`int`]
@@ -645,7 +645,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.write_csv(fcsv, coeffs=None, fmt=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *fname*: :class:`str`
                 Name of ASCII data file to write
@@ -755,7 +755,7 @@ class CSVFile(BaseFile, TextInterpreter):
             >>> db.write_csv_dense(f, cols=None)
             >>> db.write_csv_dense(fname=None, cols=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 File open for writing
@@ -786,7 +786,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db._write_csv_dense(f, cols=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 File open for writing
@@ -875,7 +875,7 @@ class CSVSimple(BaseFile):
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+        *db*: :class:`cape.attdb.ftypes.csvfile.CSVSimple`
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -938,7 +938,7 @@ class CSVSimple(BaseFile):
         :Call:
             >>> db.read_csvsimple(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVSimple`
                 CSV file interface
             *fname*: :class:`str`
                 Name of file to read
@@ -965,7 +965,7 @@ class CSVSimple(BaseFile):
         :Call:
             >>> db.read_csv_header(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVSimple`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -1002,7 +1002,7 @@ class CSVSimple(BaseFile):
         :Call:
             >>> db.read_csvsimple_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVSimple`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -1034,7 +1034,7 @@ class CSVSimple(BaseFile):
         :Call:
             >>> db.read_csvsimple_dataline(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVSimple`
                 CSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -1073,7 +1073,7 @@ class CSVSimple(BaseFile):
         :Call:
             >>> v = db.translate_simplefloat(txt)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`

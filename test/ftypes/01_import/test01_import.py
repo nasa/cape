@@ -3,5 +3,5 @@
 
 # Import ftypes module(s)
 import cape.attdb.ftypes
-import cape.attdb.ftypes.csv
+import cape.attdb.ftypes.csvfile
 
