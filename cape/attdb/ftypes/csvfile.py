@@ -176,7 +176,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Process column names
         self.read_csv_header(f)
         # Process column types
-        self.process_col_defns()
+        self.apply_defn_defaults()
         # Loop through lines
         self.read_csv_data(f)
 
@@ -202,7 +202,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Process column names
             self.read_csv_header(f)
             # Process column types
-            self.process_col_defns()
+            self.apply_defn_defaults()
             # Loop through lines
             self.c_read_csv_data(f)
 
@@ -228,7 +228,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Process column names
             self.read_csv_header(f)
             # Process column types
-            self.process_col_defns()
+            self.apply_defn_defaults()
             # Loop through lines
             self.py_read_csv_data(f)
    
@@ -901,24 +901,27 @@ class CSVSimple(BaseFile):
         :Versions:
             * 2019-11-12 ``@ddalle``: First version
         """
-        # Initialize options
-        self.opts = {}
+        # Initialize common attributes
         self.cols = []
         self.n = 0
-        
-        # Save file name
-        self.fname = fname
+        self.fname = None
 
-        # Check inputs
-        kw = self.process_opts_generic(**kw)
+        # Process keyword arguments
+        self.opts = self.process_kw(**kw)
+
+        # Explicit definition declarations
+        self.get_defns()
 
         # Read file if appropriate
-        if fname and typeutils.isstr(fname):
+        if fname:
             # Read valid file
-            self.read_csvsimple(fname, **kw)
-            
+            self.read_csvsimple(fname)
+        else:
+            # Apply defaults to definitions
+            self.apply_defn_defaults()
+
         # Check for overrides of values
-        self.process_kw_values(**kw)
+        self.process_kw_values()
   # >
 
   # =============
@@ -927,7 +930,7 @@ class CSVSimple(BaseFile):
   # <
    # --- Control ---
     # Reader
-    def read_csvsimple(self, fname, **kw):
+    def read_csvsimple(self, fname):
         r"""Read an entire CSV file, including header
         
         The CSV file requires exactly one header row, which is the
@@ -951,7 +954,7 @@ class CSVSimple(BaseFile):
         # Open file
         with open(fname, 'r') as f:
             # Process column names
-            self.read_csvsimple_header(f, **kw)
+            self.read_csvsimple_header(f)
             # Initialize columns
             self.init_cols(self.cols)
             # Loop through lines
@@ -959,7 +962,7 @@ class CSVSimple(BaseFile):
    
    # --- Header ---
     # Read initial comments
-    def read_csvsimple_header(self, f, **kw):
+    def read_csvsimple_header(self, f):
         r"""Read column names from beginning of open file
         
         :Call:

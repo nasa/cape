@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Import CSV module
-import cape.attdb.ftypes.csv as csv
+import cape.attdb.ftypes.csvfile as csvfile
 
-# Read CSV file
-db = csv.CSVFile()
+# Create empty CSV file
+db = csvfile.CSVFile()
 
 # Read in C
 db.c_read_csv("aeroenv.csv")

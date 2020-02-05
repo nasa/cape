@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Import CSV module
-import cape.attdb.ftypes.csv as csv
+import cape.attdb.ftypes.csvfile as csvfile
 
 # Read CSV file
-db = csv.CSVFile("aeroenv.csv",
+db = csvfile.CSVFile("aeroenv.csv",
     DefaultType="float32",
     Definitions={"beta": {"Type": "float16"}})
 
