@@ -1,4 +1,4 @@
 # mach, InletBC, ExitBC, config,   Label
-  0.80, 1.258,    1.000,  bcpower, test01
-  0.80, 1.358,    1.000,  bcpower, test01
-  0.80, 1.458,    1.000,  bcpower, test01
+  0.80, 1.258,    1.200,  bcpower, test01
+  0.80, 1.358,    2.000,  bcpower, test01
+  0.80, 1.458,    4.000,  bcpower, test01

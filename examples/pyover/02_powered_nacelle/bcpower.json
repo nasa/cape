@@ -348,7 +348,7 @@
                 "Function": "self.bcnacelle.ApplyExitBC",
                 "Value": "float",
                 "Label": true,
-                "Format": "%05.3f_",
+                "Format": "%05.3f",
                 "Abbreviation": "E",
                 "Grids": "Exit"
             }
