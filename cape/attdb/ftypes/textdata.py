@@ -74,7 +74,9 @@ class TextDataOpts(BaseFileOpts):
    # --- Defaults ---
     _rc = dict(BaseFileOpts._rc,
         Comment="#",
-        Delimeter=",")
+        Delimeter=",",
+        FirstColBoolMap=False,
+        FirstColName="_col1")
   # >
 
 
@@ -196,48 +198,6 @@ class TextDataFile(BaseFile, TextInterpreter):
   # ===========
   # <
    # --- Main ---
-    # Process more options
-    def process_opts(self, **kw):
-        r"""Process all options for data text file instances
-        
-        :Call:
-            >>> kwo = db.process_opts(**kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *cols*, *ColNames*, *Keys*: :class:`list`\ [:class:`str`]
-                User-specified column names
-            *delim*, *Delimiter*: {``", "``} | :class:`str`
-                Delimiter(s) option
-            *comment*, *Comment*: {``"#"``} | :class:`str`
-                Character(s) used to demark a line comment
-            *[Tt]ranslators*: :class:`dict`\ [:class:`str`]
-                Dictionary of alternate names to store column names as;
-                for example if the header has a column called
-                ``"CAF"``, and ``translators["CAF"]`` is ``"CA"``, that
-                column will be stored as ``db["CA"]`` instead of
-                ``db["CAF"]``
-        :Outputs:
-            *kwo*: :class:`dict`
-                Options not used in this method
-        :See also:
-            * :func:`BaseFile.process_opts_generic`
-        :Versions:
-            * 2019-11-27 ``@ddalle``: First version
-        """
-        # Generic options
-        kw = self.process_opts_generic(**kw)
-        # Check for local options
-        delim = kw.get("Delimiter", ", ")
-        # Comment character
-        comment = kw.get("Comment", "#")
-        # Save the delimiter
-        self.opts["Delimiter"] = delim
-        # Save the comment character
-        self.opts["Comment"] = comment
-        # Return remaining options
-        return kw
-
     # Process key definitions
     def process_col_defns(self, **kw):
         r"""Process *Definitions* of column types
@@ -270,11 +230,11 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
         """
         # Check for first-column boolean map
-        col1bmap = kw.get("FirstColBoolMap", False)
+        col1bmap = self.opts.get_option("FirstColBoolMap", False)
         # Validate it if not False-like
         if col1bmap:
             # Name
-            col0 = kw.get("FirstColName", "_col1")
+            col0 = self.opts.get_option("FirstColName", "_col1")
             # Add to column lists
             if self.cols[0] != col0:
                 # List of coefficients in data set
@@ -285,7 +245,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             self.process_defns_boolmap(col0, col1bmap)
 
         # Call parent method
-        BaseFile.process_col_defns(self, **kw)
+        BaseFile.apply_defn_defaults(self)
 
     # Process boolean map definitions
     def process_defns_boolmap(self, col, bmap):
@@ -307,10 +267,8 @@ class TextDataFile(BaseFile, TextInterpreter):
         """
         # Validate
         boolmap = self.validate_boolmap(bmap)
-        # Get definitions
-        defns = self.opts.setdefault("Definitions", {})
         # Save definition for this key
-        defn = defns.setdefault(col, {})
+        defn = self.get_defn(col)
         # Set properties
         defn["Map"] = boolmap
         defn["Type"] = "boolmap"
@@ -344,67 +302,6 @@ class TextDataFile(BaseFile, TextInterpreter):
         defn["Abbreviations"] = vals
 
    # --- Keyword Checkers ---
-    # Validate any keyword argument
-    def validate_defnopt(self, prop, val):
-        r"""Translate any key definition into validated output
-
-        :Call:
-            >>> v = db.validate_defnopt(prop, val)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *prop*: :class:`str`
-                Name of column definition option to validate
-            *val*: :class:`any`
-                Initial value for option (raw input)
-        :Outputs:
-            *v*: :class:`any`
-                Validated version of *val*
-        :Versions:
-            * 2019-11-26 ``@ddalle``: First version
-        """
-        # Check property
-        if prop == "Type":
-            # Local type validator
-            return self.validate_type(val)
-        elif prop == "BoolMap":
-            # Validate dictionary of boolean maps
-            return self.validate_boolmap(val)
-        else:
-            # Default is to accept any input
-            return val
-
-    # Validate dtype
-    def validate_type(self, clsname):
-        r"""Translate free-form *Type* option into validated code
-        
-        :Call:
-            >>> dtype = db.validate_type(clsname)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
-                Data file interface
-            *clsname*: :class:`str`
-                Free-form *Type* option for a column
-        :Outputs:
-            *dtype*: ``"f64"`` | ``"i32"`` | ``"str"`` | :class:`str`
-                Name of data type
-        :Versions:
-            * 2019-11-24 ``@ddalle``: First version
-            * 2019-12-02 ``@ddalle``: Forked from :class:`BaseFile`
-        """
-        # Check type
-        if not typeutils.isstr(clsname):
-            raise TypeError("'Type' parameter must be a string")
-        # Force lower case
-        clsname = clsname.lower()
-        # Filter
-        if clsname in ["boolmap"]:
-            # Valid
-            return "boolmap"
-        else:
-            # Fallback
-            return self.validate_type_base(clsname)
-            
     # Validate boolean flag columns
     def validate_boolmap(self, boolmap):
         r"""Translate free-form *Type* option into validated code
@@ -412,7 +309,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> bmap = db.validate_boolmap(boolmap)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.attdb.ftypes.textdata.TextData`
                 Data file interface
             *boolmap*: :class:`str`\ [:class:`str` | :class:`list`]
                 Initial boolean flag map; the keys are names of the
@@ -456,7 +353,7 @@ class TextDataFile(BaseFile, TextInterpreter):
   # <
    # --- Readers ---
     # Reader: Python only
-    def read_textdata(self, fname, **kw):
+    def read_textdata(self, fname):
         r"""Read an entire text data file
         
         :Call:
@@ -482,9 +379,9 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Open file
         with open(fname, 'r') as f:
             # Process column names
-            self.read_textdata_header(f, **kw)
+            self.read_textdata_header(f)
             # Process column types
-            kw = self.process_col_defns(**kw)
+            kw = self.process_col_defns()
             # Loop through lines
             self.read_textdata_data(f)
         # Cleanup
@@ -494,7 +391,7 @@ class TextDataFile(BaseFile, TextInterpreter):
    
    # --- Header ---
     # Read initial comments
-    def read_textdata_header(self, f, **kw):
+    def read_textdata_header(self, f):
         r"""Read column names from beginning of open file
         
         :Call:
@@ -525,7 +422,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Get default column names if necessary
         self.read_textdata_headerdefaultcols(f)
         # Get guesses as to types
-        self.read_textdata_firstrowtypes(f, **kw)
+        self.read_textdata_firstrowtypes(f)
         # Save text columns
         self.textcols = list(self.cols)
 
@@ -616,7 +513,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         return cols
         
     # Read header types from first data row
-    def read_textdata_firstrowtypes(self, f, **kw):
+    def read_textdata_firstrowtypes(self, f):
         r"""Get initial guess at data types from first data row
         
         If (and only if) the *DefaultType* input is an integer type,
@@ -638,9 +535,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2019-12-02 ``@ddalle``: Copied from :class:`CSVFile`
         """
         # Get integer option
-        odefcls = kw.get("DefaultType", "float64")
-        # Translate abbreviated codes
-        odefcls = self.validate_type_base(odefcls)
+        odefcls = self.opts.get_option("DefaultType", "float64")
         # Save position
         pos = f.tell()
         # Read line
@@ -652,12 +547,10 @@ class TextDataFile(BaseFile, TextInterpreter):
         f.seek(pos)
         # Otherwise, split into data
         coltxts = self.split_textdata_line(line)
-        # Initialize types
-        defns = self.opts.setdefault("Definitions", {})
         # Attempt to convert columns to ints, then floats
         for (j, col) in enumerate(self.cols):
             # Create definitions if necessary
-            defn = defns.setdefault(col, {})
+            defn = self.get_defn(col)
             # Get text from *j*th column
             txtj = coltxts[j]
             # Cascade through possible conversions
