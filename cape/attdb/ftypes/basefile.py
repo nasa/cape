@@ -55,8 +55,7 @@ class BaseFileOpts(BaseDataOpts):
             "Prefix",
             "Suffix",
             "Translators"
-        }
-    )
+        })
 
     # Alternate names
     _optmap = dict(BaseDataOpts._optmap,
@@ -67,8 +66,8 @@ class BaseFileOpts(BaseDataOpts):
    # --- Types ---
     # Types allowed
     _opttypes = dict(BaseDataOpts._opttypes,
-        Prefix=(str, dict),
-        Suffix=(str, dict),
+        Prefix=(typeutils.strlike, dict),
+        Suffix=(typeutils.strlike, dict),
         Translators=(dict))
   # >
 

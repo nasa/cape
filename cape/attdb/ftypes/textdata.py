@@ -27,7 +27,7 @@ import re
 import cape.tnakit.typeutils as typeutils
 
 # Local modules
-from .basefile import BaseFile, TextInterpreter
+from .basefile import BaseFile, BadeFileDefn, BaseFileOpts, TextInterpreter
 
 # Local extension
 try:
@@ -39,6 +39,65 @@ except ImportError:
 # Regular expressions
 regex_numeric = re.compile(r"\d")
 regex_alpha   = re.compile("[A-z_]")
+
+
+# Options
+class TextDataOpts(BaseFileOpts):
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Global Options ---
+    # List of options
+    _optlist = set.union(BaseFileOpts._optlist,
+        {
+            "Delimeter",
+            "Comment",
+            "FirstColBoolMap",
+            "FirstColName"
+        })
+
+    # Alternate names
+    _optmap = dict(BaseFileOpts._optmap,
+        comments="Comment",
+        delim="Delimiter",
+        delimeter="Delimiter")
+
+   # --- Types ---
+    # Types allowed
+    _opttypes = dict(BaseFileOpts._opttypes,
+        Comment=typeutils.strlike,
+        Delimiter=typeutils.strlike,
+        FirstColBoolMap=(bool, dict),
+        FirstColName=typeutils.strlike)
+
+   # --- Defaults ---
+    _rc = dict(BaseFileOpts._rc,
+        Comment="#",
+        Delimeter=",")
+  # >
+
+
+# Definition
+class TextDataDefn(BaseFileDefn):
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Values ---
+    # Allowed values
+    _optvals = dict(BaseFileDefn._optvals)
+    # Extra "Types"
+    _optvals["Type"] = set.union(BaseFiledefn._optvals["Type"],
+        {
+            "boolmap"
+        })
+
+   # --- DType ---
+    # Map of data types based on *Type*
+    _dtypemap = dict(BaseFileDefn._dtypemap,
+        "boolmap": "str")
+  # >
 
 
 # Class for generic text data
@@ -59,11 +118,9 @@ class TextDataFile(BaseFile, TextInterpreter):
             List of columns read
         *db.lines*: :class:`list`\ [:class:`str`]
             Lines of text from the file that was read
-        *db.opts*: :class:`dict`
+        *db.opts*: :class:`TextdataOpts`
             Options for this instance
-        *db.opts["Delimiter"]*: {``" ,"``} | :class:`str`
-            Delimiter(s) to allow
-        *db.opts["Definitions"]*: :class:`dict`
+        *db.defns*: :class:`dict`\ [:class:`TextDataDefn`
             Definitions for each column
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for each column
@@ -110,30 +167,28 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Versions:
             * 2019-11-12 ``@ddalle``: First version
         """
-        # Initialize options
-        self.opts = {}
+        # Initialize common attributes
         self.cols = []
         self.n = 0
-
-        # Save file name
-        self.fname = fname
-        
-        # Initialize text
+        self.fname = None
         self.lines = []
 
-        # Process generic options
-        kw = self.process_opts(**kw)
+        # Process keyword arguments
+        self.opts = self.process_kw(**kw)
+
+        # Explicit definition declarations
+        self.get_defns()
 
         # Read file if appropriate
         if fname and typeutils.isstr(fname):
             # Read valid file
-            self.read_textdata(fname, **kw)
+            self.read_textdata(fname)
         else:
             # Process inputs
-            self.process_col_defns(**kw)
+            self.apply_defn_defaults()
 
         # Check for overrides of values
-        self.process_kw_values(**kw)
+        self.process_kw_values()
   # >
   
   # ===========
