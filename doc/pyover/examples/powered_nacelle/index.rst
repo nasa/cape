@@ -707,11 +707,163 @@ similar Mach contours, the subfigures for *test01* are shown here:
     .. _tab-pyover-nacelle-04:
     .. table:: Tecplot® Mach contour plots for test01
 
-        +------------------------------+------------------------------+
-        |.. image:: test01_Mach.png    |.. image:: test01_Machg.png   |
-        |    :width: 3.2in             |    :width: 3.2in             |
-        |                              |                              |
-        |Mach slice test01             |Mach slice with grid          |
-        +------------------------------+------------------------------+
+        +------------------------------+
+        |.. image:: test01_Mach.png    |
+        |    :width: 6.0in             |
+        |                              |
+        |Mach slice test01             |
+        +------------------------------+
+        |.. image:: test01_Machg.png   |
+        |    :width: 6.0in             |
+        |                              |
+        |Mach slice with grid          |
+        +------------------------------+
+
+
+Powered Boundary Conditions
+---------------------------
+
+This example comes with one more configuration using the powered-nacelle
+setup that comes with OVERFLOW. This configuration illustrates the ability
+to manipulate the nacelle boundary conditions in the run matrix file. This
+can be very useful for developing simulations where the thrust or engine
+conditions are changed as part of the run matrix. This configuration setup
+uses the following files:
+
+    - inputs/matrix/bcpower.json
+    - bcpower.json
+    - tools/bcpower.py
+
+The ``inputs/matrix/bcpower.json`` file contains the new run matrix. This file
+contains the following:
+
+    .. code-block:: console
+
+        # mach, InletBC, ExitBC, config,   Label
+          0.80, 1.258,    1.200,  bcpower, test01
+          0.80, 1.358,    2.000,  bcpower, test01
+          0.80, 1.458,    4.000,  bcpower, test01
+
+This has added two new columns called *InletBC* and *ExitBC*. These are defined
+in the *RunMatrix* section in the ``bcpower.json`` file:
+
+    .. code-block:: javascript
+
+        // RunMatrix description
+        "RunMatrix": {
+            "File": "inputs/matrix/bcpower.csv",
+            "Keys": ["mach", "InletBC", "ExitBC", "config", "Label"],
+            // Copy the mesh
+            "GroupMesh": true,
+            // Configuration name [default]
+            "GroupPrefix": "powered",
+            "Definitions": {
+                // InletBC
+                "InletBC": {
+                    "Type": "CaseFunction",
+                    "Function": "self.bcnacelle.ApplyInletBC",
+                    "Value": "float",
+                    "Label": true,
+                    "Format": "%05.3f_",
+                    "Abbreviation": "I",
+                    "Grids": "Inlet"
+                },
+                // ExitBC
+                "ExitBC": {
+                    "Type": "CaseFunction",
+                    "Function": "self.bcnacelle.ApplyExitBC",
+                    "Value": "float",
+                    "Label": true,
+                    "Format": "%05.3f",
+                    "Abbreviation": "E",
+                    "Grids": "Exit"
+                }
+            }
+        }
+
+The new columns are assigned the with ``"Type": "CaseFunction"``, and has
+an attribute assigned for ``"Function"``. This will cause 
+*pyover* to execute that function when it is time to build the OVERFLOW 
+input file for each case. It will pass the value from the column in the 
+RunMatrix to that function for each individual case. Thus when it starts the
+first case, it will pass a value of *1.258* to the ``bcnacelle.ApplyInletBC``
+function. This is a user-defined function that is located in the
+``tools/bcnacelle.py`` python module. Let us examine the contents of this
+function:
+
+    .. code-block:: python
+
+        def ApplyInletBC(cntl, v, i):
+            """Modify BCINP for nacelle inlet face
+        
+            This method is modifies the BCINP namelist in the OVERFLOW input file 
+            for the boundary conditions on the Inlet grid
+        
+            The IBTYP=33 boundary condition applies a contant pressure outflow
+            at the engine inlet face. This uses the value of BCPAR1 to set the
+            ratio of the boundary static pressure to freestream pressure.
+        
+            The IBTYP=34 boundary condition applies a constant mass-flow rate
+            at the engine inlet face. This uses the value of BCPAR1 to set the
+            target mass-flow rate.  BCPAR2 sets the update rate and relaxation factor.
+            BCFILE is used to supply the FOMOCO component and Aref.
+        
+            :Call:
+                >>> ApplyInletBC(cntl, v, i)
+            :Inputs:
+                *cntl*: :class:`pyOver.overflow.Overflow`
+                    OVERFLOW settings interface
+                *v*: :class:`float`
+                    Run-matrix value in the InletBC column for case i
+                *i*: :class:`int`
+                    Case number
+            :Versions:
+                * 2020-01-30 ``@serogers``: First version
+            """
+        
+            ## Inlet grid: set boundary conditions
+            grid = 'Inlet'
+            bci = 3
+            print("\n\nIn function ApplyInletBC, v = ", v)
+            # Extract the BCINP from the template for this grid
+            IBTYP = cntl.Namelist.GetKeyFromGrid(grid, 'BCINP', 'IBTYP')
+        
+            #################################################
+            # Process the pressure BC
+            if IBTYP.count(33) > 0:
+                # Get the column for ibtyp=33
+                bci = IBTYP.index(33)
+                # Change bci to 1-based index
+                bci += 1
+                # Set the BCPAR1 value for this case
+                cntl.Namelist.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', v, i=bci)
+                BCPAR1 = cntl.Namelist.GetKeyFromGrid(grid, 'BCINP', 'BCPAR1', i=bci)
+
+
+This function is programmed to change the value of *BCPAR1* associated with
+the boundary condition entry that uses IBTYP=33 for the grid named
+*Inlet* in the OVERFLOW input file.  For IBTYP=33, the *BCPAR1* value is used
+to set the static pressure ratio at an outflow boundary. In other words, it
+sets the static pressure at the boundary of the engine fan face in our 
+nacelle example.  The run matrix is set up to run three different values of
+static-pressure ratio for the three different cases.
+
+Note that the ``ApplyInletBC`` function only changes the boundary condition 
+if it finds an entry with IBTYP=33 in the OVERFLOW template input file.
+It is left as an exercise to the reader to add python code that will change
+the boundary condition if IBTYP=34, which controls the mass-flow rate instead
+of the pressure.
+
+Similarly, the run-matrix column for *ExitBC* is tied to a function called
+``ApplyExitBC``, contained in the ``tools/bcnacelle.py`` file. This function
+sets the value of *BCPAR1* for the IBTYP=141 boundary condition.  This sets
+the total pressure value used at the boundary condition for the nacelle
+exit. By varying the values in the *ExitBC* column of the run matrix, this
+changes the total pressure in the flow coming out of the engine, changing
+the resulting engine thrust.
+value 
+
+
+
 
 
