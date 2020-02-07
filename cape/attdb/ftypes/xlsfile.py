@@ -45,7 +45,68 @@ except ImportError:
 import cape.tnakit.typeutils as typeutils
 
 # Local modules
-from .basefile import BaseFile
+from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
+
+
+# Options
+class XLSFileOpts(BaseFileOpts):
+   # --- Global Options ---
+    # Option list
+    _optlist = set.union(BaseFileOpts._optlist,
+        {
+            "ColSpec",
+            "MaxCols",
+            "MaxRows",
+            "SkipCols",
+            "SkipRows",
+            "SubCols",
+            "SubRows",
+            "sheet"
+        })
+
+    # Alternate names
+    _optmap = dict(BaseFileOpts._optmap,
+        colspec="ColSpec",
+        maxcols="MaxCols",
+        maxrows="MaxRows",
+        skipcols="SkipCols",
+        skiprows="SkipRows",
+        subcols="SubCols",
+        subrows="SubRows")
+
+   # --- Types ---
+    # Allowed types
+    _opttypes = dict(BaseFileOpts._opttypes,
+        ColSpec=(list, tuple),
+        MaxCols=int,
+        MaxRows=int,
+        SubCols=int,
+        SubRows=int,
+        SkipCols=int,
+        SkipRows=int)
+
+
+# Definition
+class XLSFileDefn(BaseFileDefn):
+   # --- Global Options ---
+    # Option list
+    _optlist = set.nunion(BaseFileDefn._optlist,
+        {
+            "ColWidth"
+        })
+
+    # Alternate names
+    _optmap = dict(BaseFileDefn._optmap,
+        colwidth="ColWidth")
+
+   # --- Types ---
+    # Allowed types
+    _opttypes = dict(BaseFiledefn._opttypes,
+        ColWidth=int)
+
+
+# Add definition support to option
+XLSFileOpts.set_defncls(XLSFileDefn)
 
 
 # Class for handling data from XLS files
@@ -77,46 +138,14 @@ class XLSFile(BaseFile):
     :Versions:
         * 2019-12-12 ``@ddalle``: First version
     """
-    # Special class list
-    _classtypes = ["boolmap"]
-    # Recognized types and other defaults
-    _DTypeMap = dict(BaseFile._DTypeMap, boolmap="str")
-    # Keyword parameters
-    _kw = BaseFile._kw + [
-        "colspec",
-        "sheet",
-        "ColSpec",
-        "SkipRows",
-        "SkipCols",
-        "SubCols",
-        "SubRows",
-        "MaxCols",
-        "MaxRows",
-        "skiprows",
-        "skipcols",
-        "subcols",
-        "subrows",
-        "maxrows",
-        "maxcols"
-    ]
-    # Abbreviations
-    _kw_map = dict(BaseFile._kw_map,
-        colspec="ColSpec",
-        skipcols="SkipCols",
-        skiprows="SkipRows",
-        subcols="SubCols",
-        subrows="SubRows",
-        maxcols="MaxCols",
-        maxrows="MaxRows")
-    # Types
-    _kw_types = dict(BaseFile._kw_types,
-        ColSpec=(typeutils.nonetype, list, tuple),
-        MaxCols=(typeutils.nonetype, int),
-        MaxRows=(typeutils.nonetype, int),
-        SubCols=(typeutils.nonetype, int),
-        SubRows=(typeutils.nonetype, int),
-        SkipCols=(typeutils.nonetype, int),
-        SkipRows=(typeutils.nonetype, int))
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Options ---
+    # Class for options
+    _optsclass = XLSFileOpts
+  # >
 
   # =============
   # Config
@@ -131,25 +160,27 @@ class XLSFile(BaseFile):
             * 2019-12-26 ``@ddalle``: Follow TNA/S-24
         """
         # Initialize options
-        self.opts = {}
         self.cols = []
         self.n = 0
         self._n = {}
         self.fname = None
 
-        # Process options
-        kw = self.process_opts_generic(**kw)
+        # Process keyword arguments
+        self.opts = self.process_opts_generic(sheet=sheet, **kw)
+
+        # Reassess worksheet, in case it got lost in *kw*
+        sheet = self.opts.get_option("sheet")
 
         # Read file if appropriate
         if fname:
             # Read file
-            self.read_xls(fname, sheet=sheet, **kw)
+            self.read_xls(fname, sheet=sheet)
         else:
             # Process input column defs
-            self.process_col_defns(**kw)
+            self.apply_defn_defaults()
 
         # Check for overrides of values
-        self.process_kw_values(**kw)
+        self.process_kw_values()
   # >
 
   # ================
@@ -158,7 +189,7 @@ class XLSFile(BaseFile):
   # <
    # --- Control ---
     # Reader
-    def read_xls(self, fname, sheet=None, **kw):
+    def read_xls(self, fname, sheet=None):
         r"""Read an ``.xls`` or ``.xlsx`` file
 
         :Call:
@@ -177,16 +208,6 @@ class XLSFile(BaseFile):
                 Open workbook (spreadsheet file)
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
-            *skiprows*: {``None``} | :class:`int` >= 0
-                Number of rows to skip before reading data
-            *subrows*: {``0``} | :class:`int` > 0
-                Number of rows below header row to skip
-            *skipcols*: {``None``} | :class:`int` >= 0
-                Number of columns to skip before first data column
-            *maxrows*: {``None``} | :class:`int` > *skiprows*
-                Maximum row number of data
-            *maxcols*: {``None``} | :class:`int` > *skipcols*
-                Maximum column number of data
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Support "array" worksheets
@@ -222,13 +243,13 @@ class XLSFile(BaseFile):
         # Read worksheet if possible, else read workbook
         if ws:
             # Read directly-specified worksheet
-            self.read_xls_worksheet(ws, **kw)
+            self.read_xls_worksheet(ws)
         else:
             # Read all worksheets
-            self.read_xls_workbook(wb, **kw)
+            self.read_xls_workbook(wb)
 
     # Read a worksheet
-    def read_xls_workbook(self, wb, **kw):
+    def read_xls_workbook(self, wb):
         r"""Read ``.xls`` or ``.xlsx`` workbook with multiple worksheets
 
         :Call:
@@ -258,7 +279,7 @@ class XLSFile(BaseFile):
             # Get the first (only) worksheet
             ws = wb.sheet_by_index(0)
             # Read it without prefixing column names
-            self.read_xls_worksheet(ws, **kw)
+            self.read_xls_worksheet(ws)
         else:
             # Loop through worksheets
             for wsname in wb.sheet_names():
@@ -269,12 +290,12 @@ class XLSFile(BaseFile):
                     # Get the worksheet handle
                     ws = wb.sheet_by_name(wsname)
                     # Read it
-                    self.read_xls_worksheet(ws, **kw)
+                    self.read_xls_worksheet(ws)
                 except Exception:
                     pass
 
     # Read a worksheet
-    def read_xls_worksheet(self, ws, **kw):
+    def read_xls_worksheet(self, ws):
         r"""Read one worksheet of an ``.xls`` or ``.xlsx`` file
 
         :Call:
@@ -284,18 +305,6 @@ class XLSFile(BaseFile):
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
-            *ndim*: {``0``} | ``1``
-                Dimensionality of one row of data column(s) to read
-            *skiprows*: {``None``} | :class:`int` >= 0
-                Number of rows to skip before reading data
-            *subrows*: {``None``} | :class:`int` >= 0
-                Number of rows below header row to skip
-            *skipcols*: {``None``} | :class:`int` >= 0
-                Number of columns to skip before first data column
-            *maxrows*: {``None``} | :class:`int` > *skiprows*
-                Maximum row number of data
-            *maxcols*: {``None``} | :class:`int` > *skipcols*
-                Maximum column number of data
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Support "array" worksheets
@@ -303,15 +312,15 @@ class XLSFile(BaseFile):
             * 2020-01-16 ``@ddalle``: Unified two worksheet methods
         """
         # Read header
-        cols = self.read_xls_header(ws, **kw)
+        cols = self.read_xls_header(ws)
         # Process definitions
-        self.process_col_defns(**kw)
+        self.apply_defn_defaults()
         # Read data
         self.read_xls_coldata(ws, cols)
 
    # --- Header ---
     # Read worksheet header
-    def read_xls_header(self, ws, **kw):
+    def read_xls_header(self, ws):
         r"""Read header row from a worksheet
 
         :Call:
@@ -341,13 +350,13 @@ class XLSFile(BaseFile):
             * 2020-01-16 ``@ddalle``: Full scalar/array support
         """
         # Process skip options
-        self.get_autoskip(ws, **kw)
+        self.get_autoskip(ws)
         # Get options
         opts = self.opts
         # Initialize types
-        defns = opts.setdefault("Definitions", {})
+        defns = self.get_defns()
         # Check for directly specified columns
-        colspec = kw.get("ColSpec", kw.get("colspec"))
+        colspec = opts.get_option("ColSpec", {})
         # Unpack skip options
         skipcols = opts["SkipCols"]
         skiprows = opts["SkipRows"]
@@ -362,8 +371,6 @@ class XLSFile(BaseFile):
             skiprows + subrows + 1, start_colx=skipcols, end_colx=maxcols)
         # Number of cols read
         nheader = len(header)
-        import pdb
-        pdb.set_trace()
         # Process column specification
         if isinstance(colspec, (list, tuple)):
             # Initialize columns and widths
@@ -394,7 +401,7 @@ class XLSFile(BaseFile):
                 # Translate name
                 col, = self.translate_colnames([col])
                 # Get definition
-                defn = defns.setdefault(col, {})
+                defn = self.get_defn(col)
                 # Save
                 cols.append(col)
                 # Get value
@@ -481,7 +488,7 @@ class XLSFile(BaseFile):
             # Save it as a scalar for now
             dim2.append(1)
             # Get definition for new column
-            defn = defns.setdefault(col, {})
+            defn = self.get_defn(col)
             # Filter its type
             if isinstance(v, float):
                 # Convert float type
