@@ -27,7 +27,7 @@ import re
 import cape.tnakit.typeutils as typeutils
 
 # Local modules
-from .basefile import BaseFile, BadeFileDefn, BaseFileOpts, TextInterpreter
+from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
 
 # Local extension
 try:
@@ -86,11 +86,26 @@ class TextDataDefn(BaseFileDefn):
   # Class Attributes
   # ==================
   # <
+   # --- Global Options ---
+    # List of options
+    _optlist = set.union(BaseFileDefn._optlist,
+        {
+            "Abbreviations",
+            "Keys",
+            "Map"
+        })
+
+    # Types
+    _opttypes = dict(BaseFileDefn._opttypes,
+        Abbreviations=(set, list),
+        Keys=(set, list),
+        Map=(bool, dict))
+
    # --- Values ---
     # Allowed values
     _optvals = dict(BaseFileDefn._optvals)
     # Extra "Types"
-    _optvals["Type"] = set.union(BaseFiledefn._optvals["Type"],
+    _optvals["Type"] = set.union(BaseFileDefn._optvals["Type"],
         {
             "boolmap"
         })
@@ -98,8 +113,12 @@ class TextDataDefn(BaseFileDefn):
    # --- DType ---
     # Map of data types based on *Type*
     _dtypemap = dict(BaseFileDefn._dtypemap,
-        "boolmap": "str")
+        boolmap="str")
   # >
+
+
+# Add definition support to option
+TextDataOpts.set_defncls(TextDataDefn)
 
 
 # Class for generic text data
@@ -129,34 +148,14 @@ class TextDataFile(BaseFile, TextInterpreter):
     :Versions:
         * 2019-12-02 ``@ddalle``: First version
     """
-    # Class attributes
-    _classtypes = ["boolmap"]
-    # Recognized types and other defaults
-    _DTypeMap = dict(BaseFile._DTypeMap, boolmap="str")
-    # Default options
-    _DefaultOpts = dict(
-        BaseFile._DefaultOpts,
-        Delimiter=", ",
-        Comment="#")
-    # Keyword parameters
-    _kw = BaseFile._kw + [
-        "Delimiter",
-        "Comment",
-        "FirstColBoolMap",
-        "FirstColName",
-    ]
-    # Abbreviations
-    _kw_map = dict(
-        BaseFile._kw_map,
-        delim="Delimiter",
-        comment="Comment")
-    # types
-    _kw_types = dict(
-        BaseFile._kw_types,
-        Delimiter=typeutils.strlike,
-        Comment=typeutils.strlike,
-        FirstColBoolMap=(dict, bool),
-        FirstColName=typeutils.strlike)
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Options ---
+    # Class for options
+    _optsclass = TextDataOpts
+  # >
 
   # ======
   # Config
@@ -187,7 +186,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             self.read_textdata(fname)
         else:
             # Process inputs
-            self.apply_defn_defaults()
+            self.process_col_defns()
 
         # Check for overrides of values
         self.process_kw_values()
@@ -199,7 +198,7 @@ class TextDataFile(BaseFile, TextInterpreter):
   # <
    # --- Main ---
     # Process key definitions
-    def process_col_defns(self, **kw):
+    def process_col_defns(self):
         r"""Process *Definitions* of column types
         
         :Call:
@@ -207,27 +206,11 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
                 Data file interface
-            *FirstColBoolMap*: {``False``} | :class:`dict`
-                Optional map for abbreviations that set boolean columns
-            *FirstColName*: {``"_col1"``} | :class:`str`
-                Name for special added first column
-            *Types*: {``{}``} | :class:`dict`
-                Dictionary of just tye *Type* for one or more cols
-            *Definitions*, *defns*: {``{}``} | :class:`dict`
-                Dictionary of specific definitions for each *col*
-            *DefaultType*: {``"float"``} | :class:`str`
-                Name of default class
-            *DefaultFormat*: {``None``} | :class:`str`
-                Optional default format string
-            *DefaultDefinition*: :class:`dict`
-                :class:`dict` of default *Type*, *Format*
-        :Outputs:
-            *kwo*: :class:`dict`
-                Options not used in this method
         :Versions:
             * 2014-06-05 ``@ddalle``: First version
             * 2014-06-17 ``@ddalle``: Read from *defns* :class:`dict`
             * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
+            * 2020-02-06 ``@ddalle``: Using *self.opts*
         """
         # Check for first-column boolean map
         col1bmap = self.opts.get_option("FirstColBoolMap", False)
@@ -278,8 +261,8 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Get list of boolean columns
         for (k, abbrevs) in boolmap.items():
             # Create a definition
-            defnc = defns.setdefault(k, {})
-            # Set type
+            defnc = self.get_defn(k)
+            # Set type (forced)
             defnc["Type"] = "bool"
             # Save to list of children
             keys.append(k)
@@ -291,7 +274,7 @@ class TextDataFile(BaseFile, TextInterpreter):
                 if v in vals:
                     raise ValueError(
                         ("Abbreviation '%s' used in previous key" % v) +
-                        ("of BoolMap column '%s'" % col))
+                        ("of column '%s' BoolMap" % col))
                 # Save
                 vals.append(v)
         # Append empty string to abbreviations
@@ -381,7 +364,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Process column names
             self.read_textdata_header(f)
             # Process column types
-            kw = self.process_col_defns()
+            self.process_col_defns()
             # Loop through lines
             self.read_textdata_data(f)
         # Cleanup

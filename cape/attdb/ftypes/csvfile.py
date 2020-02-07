@@ -81,6 +81,15 @@ class CSVFile(BaseFile, TextInterpreter):
         * 2019-11-12 ``@ddalle``: First version
         * 2019-11-26 ``@ddalle``: Generic version
     """
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Options ---
+    # Class for options
+    _optsclass = CSVFileOpts
+  # >
+
   # ======
   # Config
   # ======
