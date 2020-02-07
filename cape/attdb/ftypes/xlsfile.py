@@ -28,6 +28,9 @@ provide no functionality if these modules are not available.
 
 """
 
+# Standard library
+import copy
+
 # Third-party modules
 import numpy as np
 
@@ -152,7 +155,7 @@ class XLSFile(BaseFile):
   # =============
   # <
     # Initialization method
-    def __init__(self, fname, sheet=None, **kw):
+    def __init__(self, fname=None, sheet=None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -166,7 +169,7 @@ class XLSFile(BaseFile):
         self.fname = None
 
         # Process keyword arguments
-        self.opts = self.process_opts_generic(sheet=sheet, **kw)
+        self.opts = self.process_kw(sheet=sheet, **kw)
 
         # Reassess worksheet, in case it got lost in *kw*
         sheet = self.opts.get_option("sheet")
