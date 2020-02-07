@@ -203,7 +203,7 @@
                 "Header": "Flow visualization",
                 "Alignment": "center",
                 "Subfigures": [
-                    "MachSlice", "MachSlice-mesh"
+                    "CpSlice", "MachSlice", "MachSlice-mesh"
                 ]
             }
         },
@@ -255,6 +255,48 @@
             "MachSlice-mesh": {
                 "Type": "MachSlice",
                 "Layout": "inputs/powered-mach-mesh.lay"
+            },
+            "CpSlice": {
+                "Type": "Tecplot",
+                "Layout": "inputs/powered-cp.lay",
+                "FigWidth": 1024,
+                "Width": 0.65,
+                "Caption": "Mach slice $y=0$",
+                "ContourLevels": [
+                    {
+                        "NContour": 1,
+                        "MinLevel": -2,
+                        "MaxLevel": "2.0",
+                        "Delta": 0.05
+                    }
+                ],
+                "ColorMaps": [
+                    {
+                        "Name": "Diverging - Blue/Red modified",
+                        "NContour": 2,
+                        "ColorMap": {
+                            "-2.0": "blue",
+                            "0.0": "white",
+                            "1.0": ["red", "#550055"],
+                            "2.0": "#cc44cc"
+                        }
+                    }
+                ],
+                "Keys": {
+                    "GLOBALCONTOUR": {
+                        "LABELS": {
+                            "Value": {
+                                "AUTOLEVELSKIP": 5,
+                                "NUMFORMAT": {
+                                    "FORMATTING": "'FIXEDFLOAT'",
+                                    "PRECISION": 1,
+                                    "TIMEDATEFORMAT": "''"
+                                }
+                            },
+                            "Parameter": 1
+                        }
+                    }
+                }
             },
             // Table of trajectory variables
             "CaseConds": {

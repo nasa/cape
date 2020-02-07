@@ -861,7 +861,52 @@ the total pressure value used at the boundary condition for the nacelle
 exit. By varying the values in the *ExitBC* column of the run matrix, this
 changes the total pressure in the flow coming out of the engine, changing
 the resulting engine thrust.
-value 
+
+
+The commands to run the three cases and generating the report for this
+configuration are:
+
+    .. code-block:: console
+
+        pyover -f bcpower.json -I 0,1,2
+        pyover -f bcpower.json --report
+
+The report is setup to create the same force and moment convergence plots as
+the ``powered.json`` configuration. The flow-field contour plots include the
+same Mach contour figures, and additionally a figure of pressure coefficient
+(Cp) contours.  The effect of the changes of the Inlet and Exit boundary conditions
+are illustrated in these contour plots. The following table combines the
+Cp and Mach contour images for the three cases for each comparison. 
+
+The change to flow into the inlet is seen for the InletBC values of
+1.258, 1.358, and 1.458. The increasing static pressure on the boundary
+can be seen in the Cp contours, and its effect of reducing the Mach
+number of the flow into the inlet boundary.
+
+The total pressure values of 1.2, 2.0, and 4.0 prescribed in the run matrix
+in the ExitBC column are also evident. The increasing total pressure creates
+higher exit pressures and higher Mach numbers as the flow exits the nacelle.
+
+
+    .. _tab-pyover-nacelle-05:
+    .. table:: Tecplot® Cp and Mach contour plots for each case
+
+        +---------------------------------+----------------------------------+
+        |.. image:: CpSlice_bcpower1.png  |.. image:: MachSlice_bcpower1.png |
+        |     :width: 3.5in               |     :width: 3.5in                |
+        |                                 |                                  |
+        |Cp slice bc_power_1.258_E1.200   |Mach slice  bc_power_1.258_E1.200 |
+        +---------------------------------+----------------------------------+
+        |.. image:: CpSlice_bcpower2.png  |.. image:: MachSlice_bcpower2.png |
+        |     :width: 3.5in               |     :width: 3.5in                |
+        |                                 |                                  |
+        |Cp slice bc_power_1.358_E2.000   |Mach slice  bc_power_1.358_E2.000 |
+        +---------------------------------+----------------------------------+
+        |.. image:: CpSlice_bcpower3.png  |.. image:: MachSlice_bcpower3.png |
+        |     :width: 3.5in               |     :width: 3.5in                |
+        |                                 |                                  |
+        |Cp slice bc_power_1.458_E4.000   |Mach slice  bc_power_1.458_E4.000 |
+        +---------------------------------+----------------------------------+
 
 
 
