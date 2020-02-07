@@ -64,14 +64,17 @@ class XLSFileOpts(BaseFileOpts):
             "SkipRows",
             "SubCols",
             "SubRows",
+            "WorksheetOptions",
             "sheet"
         })
 
     # Alternate names
     _optmap = dict(BaseFileOpts._optmap,
+        WorksheetOpts="WorksheetOptions",
         colspec="ColSpec",
         maxcols="MaxCols",
         maxrows="MaxRows",
+        sheetopts="WorksheetOptions",
         skipcols="SkipCols",
         skiprows="SkipRows",
         subcols="SubCols",
@@ -86,7 +89,8 @@ class XLSFileOpts(BaseFileOpts):
         SubCols=int,
         SubRows=int,
         SkipCols=int,
-        SkipRows=int)
+        SkipRows=int,
+        WorksheetOptions=dict)
 
 
 # Definition
@@ -168,6 +172,9 @@ class XLSFile(BaseFile):
         self._n = {}
         self.fname = None
 
+        # Options for each sheet
+        self.opts_by_sheet = {}
+
         # Process keyword arguments
         self.opts = self.process_kw(sheet=sheet, **kw)
 
@@ -202,7 +209,7 @@ class XLSFile(BaseFile):
                 XLS file interface
             *kw*: :class:`dict`
                 Keyword options valid to *db._optsclass*
-        :Versions:
+        :Outputs:
             *opts*: :class:`XLSFileOpts` | *db._optsclass*
                 Combined options
         :Versions:
@@ -210,12 +217,55 @@ class XLSFile(BaseFile):
         """
         # Create copy of current options
         opts = copy.deepcopy(self.opts)
-        # Loop through *kw*
-        for (k, v) in kw.items():
-            # Use options class's setter to do validation
-            opts.set_option(k, v)
+        # Apply options, with checks
+        opts.update(**kw)
         # Output
         return opts
+
+   # --- Worksheet Options ---
+    # Get options for a specific worksheet, combining *kw*
+    def get_worksheet_opts(self, sheet, **kw):
+        r"""Get or create specific options for each worksheet
+
+        :Call:
+            >>> opts = db.get_worksheet_opts(sheet, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+                XLS file interface
+            *sheet*: :class:`str`
+                Name of worksheet in question
+            *kw*: :class:`dict`
+                Keyword options valid to *db._optsclass*
+        :Outputs:
+            *opts*: :class:`XLSFileOpts` | *db._optsclass*
+                Combined options from *db.opts* and *kw*
+        :Effects:
+            *db.opts_by_sheet[sheet]*: :class:`XLSFileOpts`
+                Set to *opts*
+        :Versions:
+            * 2020-02-06 ``@ddalle``: First version
+        """
+        # Check if present
+        opts = self.opts_by_sheet.get(sheet)
+        # If present, exit
+        if not isinstance(opts, XLSFileOpts):
+            # Create a copy of global options
+            opts = copy.deepcopy(self.opts)
+            # Check for "WorksheetOptions"
+            wbopts = opts.pop("WorksheetOptions", {})
+            # Get options from there
+            wsopts = wbopts.get(sheet)
+            # If present, apply them
+            if wsopts and isinstance(wsopts, dict):
+                # Apply WorksheetOptions with checks
+                opts.update(**wsopts)
+            # Save the options for future use
+            self.opts_by_sheet[sheet] = opts
+        # Apply *kw*
+        opts.update(**kw)
+        # Output
+        return opts
+        
   # >
 
   # ================
