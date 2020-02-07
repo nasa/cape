@@ -90,7 +90,7 @@ class XLSFileOpts(BaseFileOpts):
 class XLSFileDefn(BaseFileDefn):
    # --- Global Options ---
     # Option list
-    _optlist = set.nunion(BaseFileDefn._optlist,
+    _optlist = set.union(BaseFileDefn._optlist,
         {
             "ColWidth"
         })
@@ -101,7 +101,7 @@ class XLSFileDefn(BaseFileDefn):
 
    # --- Types ---
     # Allowed types
-    _opttypes = dict(BaseFiledefn._opttypes,
+    _opttypes = dict(BaseFileDefn._opttypes,
         ColWidth=int)
 
 
@@ -127,7 +127,7 @@ class XLSFile(BaseFile):
         *ws*: :class:`xlrd.sheet.Sheet`
             Direct access to a worksheet
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+        *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
             XLS file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -153,7 +153,7 @@ class XLSFile(BaseFile):
   # <
     # Initialization method
     def __init__(self, fname, sheet=None, **kw):
-        """Initialization method
+        r"""Initialization method
 
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
@@ -184,6 +184,38 @@ class XLSFile(BaseFile):
   # >
 
   # ================
+  # Options
+  # ================
+  # <
+   # --- Combine ---
+    # Process *kw* into opts
+    def get_opts_kw(self, **kw):
+        r"""Create a new options instance combing *db.opts* and *kw*
+
+        :Call:
+            >>> opts = db.get_opts_kw(**kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+                XLS file interface
+            *kw*: :class:`dict`
+                Keyword options valid to *db._optsclass*
+        :Versions:
+            *opts*: :class:`XLSFileOpts` | *db._optsclass*
+                Combined options
+        :Versions:
+            * 2020-02-06 ``@ddalle``: First version
+        """
+        # Create copy of current options
+        opts = copy.deepcopy(self.opts)
+        # Loop through *kw*
+        for (k, v) in kw.items():
+            # Use options class's setter to do validation
+            opts.set_option(k, v)
+        # Output
+        return opts
+  # >
+
+  # ================
   # Read
   # ================
   # <
@@ -198,7 +230,7 @@ class XLSFile(BaseFile):
             >>> db.read_xls(wb, **kw)
             >>> db.read_xls(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *fname*: :class:`str`
                 Name of ``.xls`` or ``.xlsx`` file to read
@@ -255,7 +287,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db.read_xls_workbook(wb, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *wb*: :class:`xlrd.Book`
                 Direct access to a workbook
@@ -301,7 +333,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db.read_xls_worksheet(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -326,7 +358,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> cols = db.read_xls_header(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -520,7 +552,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db.get_autoskip(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -573,7 +605,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> skips = db._get_skip(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -638,7 +670,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> maxrows = db._get_maxrows(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -674,7 +706,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> maxcols = db._get_maxcols(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -710,7 +742,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> skiprows = db._get_skiprows(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -767,7 +799,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> skipcols = db._get_skipcols(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -823,7 +855,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> subrows = db._get_subrows(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -880,7 +912,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> subcols = db._get_subcols(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -922,7 +954,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db.read_xls_coldata(ws, cols, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -1019,92 +1051,4 @@ class XLSFile(BaseFile):
             icol += colwidth
             # Save
             self.save_col(col, V)
-
-   # --- Options ---
-    # Process all read-related options
-    def process_kw_xlsread(self, kw):
-        r"""Process all options related to reading XLS worksheet
-
-        The mentioned options will be removed from *kw*.
-
-        :Call:
-            >>> kwread = db.process_kw_xlsread(kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
-                XLS file interface
-            *kw*: :class:`dict`
-                Keyword arguments from parent function
-        :Keys:
-            *SkipRows*, *skiprows*: {``None``} | :class:`int` >= 0
-                Number of rows to skip before reading data
-            *SubRows*, *subrows*: {``0``} | :class:`int` > 0
-                Number of rows below header row to skip
-            *SkipCols*, *skipcols*: {``None``} | :class:`int` >= 0
-                Number of columns to skip before first data column
-            *MaxRows*, *maxrows*: {``None``} | :class:`int` > *skiprows*
-                Maximum row number of data
-            *MaxCols*, *maxcols*: {``None``} | :class:`int` > *skipcols*
-                Maximum column number of data
-            *warn*: {``True``} | ``False``
-                Whether or not to warn about unused keyword args
-        :Outputs:
-            *kwread*: :class:`dict`
-                Dictionary of options mentioned above
-        :Versions:
-            * 2019-12-12 ``@ddalle``: First version
-        """
-        # Check inputs
-        if not isinstance(kw, dict):
-            raise TypeError("Keyword input must be dict")
-        # Initialize options
-        kwread = dict(
-            maxcols=self.process_xls_opt(["MaxCols", "maxcols"],  kw, None),
-            maxrows=self.process_xls_opt(["MaxRows", "maxrows"],  kw, None),
-            subrows=self.process_xls_opt(["SubRows", "subrows"],  kw, None),
-            skipcols=self.process_xls_opt(["SkipCols", "skipcols"], kw, None),
-            skiprows=self.process_xls_opt(["SkipRows", "skiprows"], kw, None))
-        # Output
-        return kwread
-
-    # Process number of rows to skip or similar
-    def process_xls_opt(self, K, kw, vdef=None):
-        r"""Process an option for reading XLS files
-
-        :Call:
-            >>> v = db.process_xls_opt(K, kw, vdef=None)
-            >>> v = db.process_xls_opt([k1, k2], kw, vdef=None)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
-                XLS file interface
-            *K*: :class:`list`\ [:class:`str`]
-                List of key names
-            *kw*: :class:`dict`
-                Keyword options to parent function call
-            *vdef*: {``None``} | :class:`object`
-                Default value if not found in *kw* or *db.opts*
-        :Outputs:
-            *v*: {*kw[k1]*} | *kw[k2]* | *db.opts[k1]* | *vdef*
-                Appropriate option by cascading preference
-        :Versions:
-            * 2019-12-12 ``@ddalle``: First version
-        """
-        # Check type
-        if not isinstance(K, list):
-            raise TypeError("Key names must be specified as list")
-        elif len(K) == 0:
-            raise ValueError("Empty key name list")
-        elif not isinstance(kw, dict):
-            raise TypeError("Keyword input must be dict")
-        # Primary key name
-        kref = K[0]
-        # Option value
-        v = self.opts.get(kref, vdef)
-        # Loop through kwargs in reverse order
-        for k in reversed(K):
-            # Pop option from *kw*
-            v = kw.pop(k, v)
-        # Save option
-        self.opts[kref] = v
-        # Output
-        return v
   # >
