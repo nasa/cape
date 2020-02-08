@@ -77,7 +77,7 @@ class MATFileDefn(BaseFileDefn):
 
 
 # Add definition support to options
-MATFileOpts.set_defncls(MATFiledefn)
+MATFileOpts.set_defncls(MATFileDefn)
 
 
 # Class for handling data from XLS files
