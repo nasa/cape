@@ -886,10 +886,6 @@ class KwargHandler(dict):
         elif not isinstance(optval, dict):
             # Return the nontrivial, nondict value
             return optval
-        # Check for valid default
-        if isinstance(optdef, dict):
-            # Apply defaults, but override with explicit values
-            optval = dict(optdef, **optval)
         # Default parent set
         if parents is None:
             # This option becomes the parent for later cals
@@ -963,6 +959,10 @@ class KwargHandler(dict):
             optval = {
                 kw_alias.get(k, k): v for (k, v) in optval.items()
             }
+        # Check for valid default
+        if isinstance(optdef, dict):
+            # Apply defaults, but override with explicit values
+            optval = dict(optdef, **optval)
         # Output
         return cls.denone(optval)
         

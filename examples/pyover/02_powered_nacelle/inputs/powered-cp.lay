@@ -3,22 +3,22 @@ $!VarSet |LFDSRN1| = 'PLOT3D Loader'
 $!VarSet |LFDSFN1| = '"STANDARDSYNTAX" "1.0" "APPEND" "No" "FILELIST_GRIDFILES" "1" "x.pyover.p3d" "FILELIST_SOLUTIONFILES" "1" "q.pyover.p3d" "IINDEXRANGE" "1,,1" "JINDEXRANGE" "1,,1" "KINDEXRANGE" "1,,1" "AUTODETECT" "Yes" "LOADBOUNDARY" "No" "ASCIIISDOUBLE" "No" "ASCIIHASIBLANK" "No" "SOLUTIONSSHARESTRUCTURE" "Yes" "ASSIGNSTRANDIDS" "Yes" "ADDTOEXISTINGSTRANDS" "No" "UNIFORMGRIDSTRUCTURE" "Yes" "ASSIGNNEWSTRANDIDFOREACHTIMESTEP" "Yes" "EXTRACTTIMEFROMSOLFILENAMES" "No"'
 $!SETSTYLEBASE FACTORY
 $!CREATECOLORMAP 
-  NAME = 'Diverging - Purple/Green modified'
+  NAME = 'Diverging - Blue/Red modified'
   NUMCONTROLPOINTS = 4
   CONTROLPOINT 1
     {
     COLORMAPFRACTION = 0
     LEADRGB
       {
-      R = 128
+      R = 0
       G = 0
-      B = 128
+      B = 255
       }
     TRAILRGB
       {
-      R = 128
+      R = 0
       G = 0
-      B = 128
+      B = 255
       }
     }
   CONTROLPOINT 2
@@ -43,14 +43,14 @@ $!CREATECOLORMAP
     LEADRGB
       {
       R = 255
-      G = 165
+      G = 0
       B = 0
       }
     TRAILRGB
       {
-      R = 0
-      G = 128
-      B = 0
+      R = 128
+      G = 0
+      B = 128
       }
     }
   CONTROLPOINT 4
@@ -60,13 +60,13 @@ $!CREATECOLORMAP
       {
       R = 255
       G = 0
-      B = 0
+      B = 255
       }
     TRAILRGB
       {
       R = 255
       G = 0
-      B = 0
+      B = 255
       }
     }
 $!GLOBALPAPER 
@@ -142,8 +142,8 @@ $!GLOBALRGB
   RANGEMIN = 0
   RANGEMAX = 1
 $!GLOBALCONTOUR  1
-  VAR = 13
-  COLORMAPNAME = 'Diverging - Purple/Green modified'
+  VAR = 12
+  COLORMAPNAME = 'Diverging - Blue/Red modified'
   LEGEND
     {
     SHOW = YES
@@ -168,8 +168,8 @@ $!GLOBALCONTOUR  1
     }
   COLORCUTOFF
     {
-    RANGEMIN = 0.284327359589
-    RANGEMAX = 0.852982078766
+    RANGEMIN = -2.0
+    RANGEMAX = 2.0
     }
   COLORMAPFILTER
     {
@@ -542,6 +542,14 @@ $!THREEDAXIS
   XYDEPXTOYRATIO = 1
   DEPXTOYRATIO = 0.0392679144839
   DEPXTOZRATIO = 1.125
+  FRAMEAXIS
+    {
+    XYPOS
+      {
+      X = 88.834
+      Y = 68.686
+      }
+    }
 $!THREEDAXIS 
   XDETAIL
     {
