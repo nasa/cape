@@ -93,6 +93,22 @@ class XLSFileOpts(BaseFileOpts):
         WorksheetOptions=dict)
 
 
+# Options
+class XLSSheetOpts(XLSFileOpts):
+   # --- Global Options ---
+    # Disallowed options
+    _optrm = {
+        "ExpandScalars",
+        "Definitions",
+        "Values",
+        "WorksheetOptions",
+        "sheet"
+    }
+
+    # Reduce option list
+    _optlist = set.difference(XLSFileOpts._optlist, _optrm)
+
+
 # Definition
 class XLSFileDefn(BaseFileDefn):
    # --- Global Options ---
@@ -248,13 +264,18 @@ class XLSFile(BaseFile):
         # Check if present
         opts = self.opts_by_sheet.get(sheet)
         # If present, exit
-        if not isinstance(opts, XLSFileOpts):
+        if not isinstance(opts, XLSSheetOpts):
             # Create a copy of global options
             opts = copy.deepcopy(self.opts)
             # Check for "WorksheetOptions"
             wbopts = opts.pop("WorksheetOptions", {})
             # Get options from there
             wsopts = wbopts.get(sheet)
+            # Eliminate other options
+            for k in XLSSheetOpts._optrm:
+                opts.pop(k, None)
+            # Convert to worksheet options
+            opts = XLSSheetOpts(**opts)
             # If present, apply them
             if wsopts and isinstance(wsopts, dict):
                 # Apply WorksheetOptions with checks
@@ -265,7 +286,6 @@ class XLSFile(BaseFile):
         opts.update(**kw)
         # Output
         return opts
-        
   # >
 
   # ================
@@ -736,21 +756,27 @@ class XLSFile(BaseFile):
             * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
             * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
         """
+        # Get worksheet options
+        opts = self.get_worksheet_opts(ws.name)
+        # Apply keywords
+        opts.update(**kw)
         # Check for explicit option
-        maxrows = kw.get("MaxRows", kw.get("maxrows"))
+        maxrows = opts.get_option("MaxRows")
         # Find header row if needed
         if maxrows is None:
             # Use worksheet size
-            return ws.nrows
+            maxrows = ws.nrows
         elif isinstance(maxrows, int):
             # Check value
             if maxrows < 1:
                 # Negative skip?
                 raise ValueError("Cannot have %i rows" % maxrows)
-            # Output
-            return maxrows
         else:
             raise TypeError("'maxrows' arg must be None or int")
+        # Set it
+        opts._set_option("MaxRows", maxrows)
+        # Output (convenience)
+        return maxrows
 
     # Process *maxcols*
     def _get_maxcols(self, ws, **kw):
