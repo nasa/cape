@@ -294,7 +294,7 @@ class XLSFile(BaseFile):
   # <
    # --- Control ---
     # Reader
-    def read_xls(self, fname, sheet=None):
+    def read_xls(self, fname, sheet=None, **kw):
         r"""Read an ``.xls`` or ``.xlsx`` file
 
         :Call:
@@ -316,7 +316,10 @@ class XLSFile(BaseFile):
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Support "array" worksheets
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
+        # Update options if needed
+        self.opts.update(**kw)
         # Check module
         if xlrd is None:
             raise ImportError("No module 'xlrd'")
@@ -354,7 +357,7 @@ class XLSFile(BaseFile):
             self.read_xls_workbook(wb)
 
     # Read a worksheet
-    def read_xls_workbook(self, wb):
+    def read_xls_workbook(self, wb, **kw):
         r"""Read ``.xls`` or ``.xlsx`` workbook with multiple worksheets
 
         :Call:
@@ -378,7 +381,10 @@ class XLSFile(BaseFile):
                 Maximum column number of data
         :Versions:
             * 2020-01-08 ``@jmeeroff`` : First version
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
+        # Combine options if needed
+        self.opts.update(**kw)
         # Check number of sheets
         if wb.nsheets == 1:
             # Get the first (only) worksheet
@@ -400,7 +406,7 @@ class XLSFile(BaseFile):
                     pass
 
     # Read a worksheet
-    def read_xls_worksheet(self, ws):
+    def read_xls_worksheet(self, ws, **kw):
         r"""Read one worksheet of an ``.xls`` or ``.xlsx`` file
 
         :Call:
@@ -415,9 +421,10 @@ class XLSFile(BaseFile):
             * 2019-12-26 ``@ddalle``: Support "array" worksheets
             * 2020-01-10 ``@jmeeroff``: Array read as fallback
             * 2020-01-16 ``@ddalle``: Unified two worksheet methods
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
         # Read header
-        cols = self.read_xls_header(ws)
+        cols = self.read_xls_header(ws, **kw)
         # Process definitions
         self.apply_defn_defaults()
         # Read data
@@ -425,7 +432,7 @@ class XLSFile(BaseFile):
 
    # --- Header ---
     # Read worksheet header
-    def read_xls_header(self, ws):
+    def read_xls_header(self, ws, **kw):
         r"""Read header row from a worksheet
 
         :Call:
@@ -453,13 +460,10 @@ class XLSFile(BaseFile):
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
             * 2020-01-16 ``@ddalle``: Full scalar/array support
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
         # Process skip options
-        self.get_autoskip(ws)
-        # Get options
-        opts = self.opts
-        # Initialize types
-        defns = self.get_defns()
+        opts = self.get_autoskip(ws, **kw)
         # Check for directly specified columns
         colspec = opts.get_option("ColSpec", {})
         # Unpack skip options
@@ -623,7 +627,7 @@ class XLSFile(BaseFile):
         r"""Automatically determine number of rows and columns to skip
 
         :Call:
-            >>> db.get_autoskip(ws, **kw)
+            >>> wsopts = db.get_autoskip(ws, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
@@ -640,33 +644,17 @@ class XLSFile(BaseFile):
             *maxcols*: {``None``} | :class:`int` > *skipcols*
                 Maximum column number of data
         :Outputs:
-            *db.opts*: :class:`dict`
-                Saves *SkipCols*, *SkipRows*, etc. as scalar keys
+            *wsopts*: :class:`XLSSheetOpts`
+                Options from *db.opts_by_sheet[ws.name]*,
         :Versions:
             * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
             * 2020-01-14 ``@ddalle``: Moved everything to smaller funcs
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
-        # Get maximum extents
-        maxcols = self._get_maxcols(ws, **kw)
-        maxrows = self._get_maxrows(ws, **kw)
-        # Save results to save minuscule amounts of time
-        kw["MaxCols"] = maxcols
-        kw["MaxRows"] = maxrows
-        # Get pre-header row count
-        skiprows = self._get_skiprows(ws, **kw)
-        kw["SkipRows"] = skiprows
-        # Get pre-data col count
-        skipcols = self._get_skipcols(ws, **kw)
-        # Get empty rows/cols between header and data
-        subrows = self._get_subrows(ws, **kw)
-        subcols = self._get_subcols(ws, **kw)
-        # Save *skipcols* option, etc.
-        self.opts["SkipRows"] = skiprows
-        self.opts["SkipCols"] = skipcols
-        self.opts["MaxCols"] = maxcols
-        self.opts["MaxRows"] = maxrows
-        self.opts["SubCols"] = subcols
-        self.opts["SubRows"] = subrows
+        # Same as :func:`_get_skip` but with options output
+        self._get_skip(ws, **kw)
+        # Output the options
+        return self.get_worksheet_opts(ws.name)
 
     # Get all skip and max options
     def _get_skip(self, ws, **kw):
@@ -711,16 +699,13 @@ class XLSFile(BaseFile):
                 Maximum column number of data
         :Versions:
             * 2020-01-14 ``@ddalle``: First version
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
         # Get maximum extents
         maxcols = self._get_maxcols(ws, **kw)
         maxrows = self._get_maxrows(ws, **kw)
-        # Save results to save minuscule amounts of time
-        kw["MaxCols"] = maxcols
-        kw["MaxRows"] = maxrows
         # Get pre-header row count
         skiprows = self._get_skiprows(ws, **kw)
-        kw["SkipRows"] = skiprows
         # Get pre-data col count
         skipcols = self._get_skipcols(ws, **kw)
         # Get empty rows/cols between header and data
@@ -755,17 +740,18 @@ class XLSFile(BaseFile):
         :Versions:
             * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
             * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
         # Get worksheet options
-        opts = self.get_worksheet_opts(ws.name)
-        # Apply keywords
-        opts.update(**kw)
+        opts = self.get_worksheet_opts(ws.name, **kw)
         # Check for explicit option
         maxrows = opts.get_option("MaxRows")
         # Find header row if needed
         if maxrows is None:
             # Use worksheet size
             maxrows = ws.nrows
+            # Set it
+            opts._set_option("MaxRows", maxrows)
         elif isinstance(maxrows, int):
             # Check value
             if maxrows < 1:
@@ -773,8 +759,6 @@ class XLSFile(BaseFile):
                 raise ValueError("Cannot have %i rows" % maxrows)
         else:
             raise TypeError("'maxrows' arg must be None or int")
-        # Set it
-        opts._set_option("MaxRows", maxrows)
         # Output (convenience)
         return maxrows
 
@@ -797,22 +781,27 @@ class XLSFile(BaseFile):
         :Versions:
             * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
             * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
+        # Get worksheet options
+        opts = self.get_worksheet_opts(ws.name, **kw)
         # Check for explicit option
-        maxcols = kw.get("MaxCols", kw.get("maxcols"))
+        maxcols = opts.get_option("MaxCols")
         # Find header row if needed
         if maxcols is None:
             # Use worksheet size
-            return ws.ncols
+            maxcols = ws.ncols
+            # Set it
+            opts._set_option("MaxCols", maxcols)
         elif isinstance(maxcols, int):
             # Check value
             if maxcols < 1:
                 # Negative skip?
                 raise ValueError("Cannot have %i columns" % maxcols)
-            # Output
-            return maxcols
         else:
             raise TypeError("'maxcols' arg must be None or int")
+        # Output
+        return maxcols
 
     # Process *skiprows*
     def _get_skiprows(self, ws, **kw):
@@ -835,16 +824,19 @@ class XLSFile(BaseFile):
         :Versions:
             * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
             * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
+        # Get worksheet options
+        opts = self.get_worksheet_opts(ws.name, **kw)
         # Check for explicit option
-        skiprows = kw.get("SkipRows", kw.get("skiprows"))
+        skiprows = opts.get_option("SkipRows")
         # Find header row if needed
         if skiprows is None:
             # Process maximum column count
             # (can be relevant in worksheets with two or more tables)
             maxcols = self._get_maxcols(ws, **kw)
             # Check for *skipcols* option, but don't recurse!
-            skipcols = kw.get("SkipCols", kw.get("skipcols", 0))
+            skipcols = opts.get_option("SkipCols")
             # Loop until we have an empty row
             for skiprows in range(ws.nrows):
                 # Read the row
@@ -852,10 +844,12 @@ class XLSFile(BaseFile):
                     skiprows, start_colx=skipcols, end_colx=maxcols)
                 # Check if there's anything in it
                 if any(header):
-                    return skiprows
+                    break
             else:
                 # This means an empty worksheet or only has "" and 0.0
                 raise ValueError("No nonempty rows found")
+            # Save option
+            opts._set_option("SkipRows", skiprows)
         elif isinstance(skiprows, int):
             # Check value
             if skiprows < 0:
@@ -866,10 +860,10 @@ class XLSFile(BaseFile):
                 raise ValueError(
                     "Cannot skip %i rows in worksheet with %i rows"
                     % (skiprows, ws.nrows))
-            # Output
-            return skiprows
         else:
             raise TypeError("'skiprows' arg must be None or int")
+        # Output
+        return skiprows
 
     # Process *skipcols*
     def _get_skipcols(self, ws, **kw):
@@ -892,9 +886,12 @@ class XLSFile(BaseFile):
         :Versions:
             * 2019-12-26 ``@ddalle``: Split from :func:`read_xls_header`
             * 2020-01-13 ``@ddalle``: Split from :func:`get_autoskip`
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
-        # Get keyword option
-        skipcols = kw.get("SkipCols", kw.get("skipcols"))
+        # Get worksheet options
+        opts = self.get_worksheet_opts(ws.name, **kw)
+        # Get option
+        skipcols = opts.get_option("SkipCols")
         # Find header column if needed
         if skipcols is None:
             # Get number of rows to skip
@@ -908,10 +905,12 @@ class XLSFile(BaseFile):
                 # Check for entry
                 if header[skipcols] != "":
                     # Found something other than ""
-                    return skipcols
+                    break
             else:
                 # Empty header plausible if *skiprows* is bad
                 raise ValueError("No nonempty columns in row %i" % skiprows)
+            # Save option
+            opts._set_option("SkipCols", skipcols)
         elif isinstance(skipcols, int):
             # Check value
             if skipcols < 0:
@@ -922,10 +921,10 @@ class XLSFile(BaseFile):
                 raise ValueError(
                     "Cannot skip %i cols in worksheet with %i cols"
                     % (skipcols, ws.ncols))
-            # Output
-            return skipcols
         else:
             raise TypeError("'skipcols' arg must be None or int")
+        # Output (for convenience)
+        return skipcols
 
     # Process *subrows*
     def _get_subrows(self, ws, **kw):
@@ -949,9 +948,12 @@ class XLSFile(BaseFile):
                 Number of rows between header row and first data row
         :Versions:
             * 2020-01-14 ``@ddalle``: First version
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
-        # Check for explicit option
-        subrows = kw.get("SubRows", kw.get("subrows"))
+        # Get worksheet options
+        opts = self.get_worksheet_opts(ws.name, **kw)
+        # Get option
+        subrows = opts.get_option("SubRows")
         # Find rows between header and data if needed
         if subrows is None:
             # Get header skip rows
@@ -965,10 +967,12 @@ class XLSFile(BaseFile):
                 row1 = ws.row_values(skiprows + subrows + 1, end_colx=maxcols)
                 # Check if there's anything in it
                 if any(row1):
-                    return subrows
+                    break
             else:
                 # This means the worksheet only has a header row
-                return 0
+                subrows = 0
+            # Save option
+            opts._set_option("SubRows", subrows)
         elif isinstance(subrows, int):
             # Check value
             if subrows < 0:
@@ -979,10 +983,10 @@ class XLSFile(BaseFile):
                 raise ValueError(
                     "Cannot skip %i rows in worksheet with %i rows"
                     % (subrows, ws.nrows))
-            # Output
-            return subrows
         else:
             raise TypeError("'subrows' arg must be None or int")
+        # Output
+        return subrows
 
     # Process *subcols*
     def _get_subcols(self, ws, **kw):
@@ -1002,13 +1006,18 @@ class XLSFile(BaseFile):
                 Number of cols between header col and first data col
         :Versions:
             * 2020-01-14 ``@ddalle``: First version
+            * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
         """
-        # Check for explicit option
-        subcols = kw.get("SubCols", kw.get("subcols"))
+        # Get worksheet options
+        opts = self.get_worksheet_opts(ws.name, **kw)
+        # Get option
+        subcols = opts.get_option("SubCols")
         # Find rows between header and data if needed
         if subcols is None:
             # Default
-            return 0
+            subcols = 0
+            # Save option
+            opts._set_option("SubCols", subcols)
         elif isinstance(subcols, int):
             # Check value
             if subcols < 0:
@@ -1019,10 +1028,10 @@ class XLSFile(BaseFile):
                 raise ValueError(
                     "Cannot skip %i cols in worksheet with %i rows"
                     % (subcols, ws.ncols))
-            # Output
-            return subcols
         else:
             raise TypeError("'subcols' arg must be None or int")
+        # Output
+        return subcols
 
 
    # --- Data ---
