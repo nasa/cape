@@ -45,7 +45,39 @@ except ImportError:
 import cape.tnakit.typeutils as typeutils
 
 # Local modules
-from .basefile import BaseFile
+from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
+
+
+# Options
+class MATFileOpts(BaseFileOpts):
+    pass
+
+
+# Definition
+class MATFileDefn(BaseFileDefn):
+   # --- Global Options ---
+    # Option list
+    _optlist = set.union(BaseFileDefn._optlist,
+        {
+            "Dimension",
+            "Shape"
+        })
+
+    # Alternate names
+    _optmap = dict(BaseFileDefn._optmap,
+        dim="Dimension",
+        ndim="Dimension",
+        shape="Shape")
+
+   # --- Types ---
+    # Allowed types
+    _opttypes = dict(BaseFileDefn._opttypes,
+        Dimension=int,
+        Shape=tuple)
+
+
+# Add definition support to options
+MATFileOpts.set_defncls(MATFiledefn)
 
 
 # Class for handling data from XLS files
@@ -69,10 +101,14 @@ class MATFile(BaseFile):
     :Versions:
         * 2019-12-17 ``@ddalle``: First version
     """
-    # Special class list
-    _classtypes = ["boolmap"]
-    # Recognized types and other defaults
-    _DTypeMap = dict(BaseFile._DTypeMap, boolmap="str")
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Options ---
+    # Class for options
+    _optsclass = MATFileOpts
+  # >
 
   # =============
   # Config
@@ -84,26 +120,26 @@ class MATFile(BaseFile):
 
         :Versions:
             * 2019-12-17 ``@ddalle``: First version
+            * 2020-02-07 ``@ddalle``: Utilize :class:`KwargHandler`
         """
         # Initialize options
-        self.opts = {}
         self.cols = []
         self.n = 0
         self.fname = None
 
         # Process options
-        kw = self.process_opts_generic(**kw)
+        self.opts = self.process_kw(**kw)
 
         # Read file if appropriate
         if fname:
             # Read valid file
-            self.read_mat(fname, **kw)
+            self.read_mat(fname)
         else:
             # Process inputs
-            self.process_col_defns(**kw)
+            self.apply_defn_defaults()
 
         # Check for overrides of values
-        self.process_kw_values(**kw)
+        self.process_kw_values()
   # >
 
   # ===============
@@ -128,9 +164,12 @@ class MATFile(BaseFile):
                 Name of file to read
         :Versions:
             * 2019-11-25 ``@ddalle``: First version
+            * 2020-02-07 ``@ddalle``: Utilize :class:`KwargHandler`
         """
         # Check modules
         _check_sio()
+        # Update options
+        self.opts.update(**kw)
         # Check type
         if typeutils.isfile(fname):
             # Safe file name
@@ -156,7 +195,7 @@ class MATFile(BaseFile):
             self.from_mat_field(col, V)
 
         # Process column definitions
-        self.process_col_defns(**kw)
+        self.apply_defn_defaults()
 
     # Read an array from MAT file
     def from_mat_field(self, col, V):
@@ -178,12 +217,8 @@ class MATFile(BaseFile):
         if not isinstance(V, (list, np.ndarray, float, int)):
             raise TypeError(
                 "Database field '%s' must be list or array" % col)
-        # Get options
-        opts = self.__dict__.setdefault("opts", {})
-        # Get definitions
-        defns = opts.setdefault("Definitions", {})
         # Definition for this column
-        defn = defns.setdefault(col, {})
+        defn = self.get_defn(col)
         # Process type
         if isinstance(V, (int, float)):
             # Save as a scalar
@@ -193,13 +228,13 @@ class MATFile(BaseFile):
             # Assume string
             dtype = "str"
             # Save length
-            defn["Shape"] = (len(V), )
+            defn.set_option("Shape", (len(V), ))
         else:
             # Array; get data type from instance
             dtype = str(V.dtype)
             # Dimensions
-            defn["Dimension"] = V.ndim
-            defn["Shape"] = V.shape
+            defn.set_option("Dimension", V.ndim)
+            defn.set_option("Shape", V.shape)
         # Set type
         defn["Type"] = dtype
         # Save column
@@ -280,9 +315,6 @@ class MATFile(BaseFile):
         elif not isinstance(DB, siom.mat_struct):
             # The "database" is not a struct
             raise TypeError("The 'DB' field must be a MATLAB struct")
-
-        # Get options
-        opts = self.__dict__.setdefault("opts", {})
         # Get lengths
         _n = self.__dict__.setdefault("_n", {})
         # Get definitions
@@ -292,10 +324,8 @@ class MATFile(BaseFile):
         for col in DB._fieldnames:
             # Get value
             V = DB.__dict__[col]
-            import pdb
-            pdb.set_trace()
             # Definition for this column
-            defn = defns.setdefault(col, {})
+            defn = self.get_defn(col)
             # Check type
             if not isinstance(V, (list, np.ndarray)):
                 raise TypeError(
@@ -305,13 +335,13 @@ class MATFile(BaseFile):
                 # Assume string
                 dtype = "str"
                 # Save length
-                defn["Shape"] = (len(V), )
+                defn.set_option("Shape", (len(V), ))
             else:
                 # Array; get data type from instance
                 dtype = str(V.dtype)
                 # Dimensions
-                defn["Dimension"] = V.ndim
-                defn["Shape"] = V.shape
+                defn.set_option("Dimension", V.ndim)
+                defn.set_option("Shape", V.shape)
             # Set type
             defn["Type"] = dtype
             # Save column
