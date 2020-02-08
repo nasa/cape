@@ -616,7 +616,7 @@ class XLSFile(BaseFile):
                 # Append if not
                 self.cols.append(col)
             # Get the definition
-            defn = defns[col]
+            defn = self.get_defn(col)
             # Set the definition
             defn["ColWidth"] = dim2[j]
         # Output
@@ -1064,39 +1064,35 @@ class XLSFile(BaseFile):
         :Versions:
             * 2019-12-12 ``@ddalle``: First version
         """
+        # Get worksheet options
+        opts = self.get_worksheet_opts(ws.name)
+        # Apply any updates
+        opts.update(**kw)
         # Get skip options
-        skiprows = kw.get("skiprows", self.opts.get("SkipRows", 0))
-        skipcols = kw.get("skipcols", self.opts.get("SkipCols", 0))
+        skiprows = opts.get_option("SkipRows")
+        skipcols = opts.get_option("SkipCols")
         # Maximum option
-        maxcols = kw.get("maxcols", self.opts.get("MaxCols"))
-        maxrows = kw.get("maxrows", self.opts.get("MaxRows"))
-        # Sub-header row count
-        subrows = kw.get("subrows", self.opts.get("SubRows", 0))
-        # Check types
-        if not ((maxcols is None) or isinstance(maxcols, int)):
-            raise TypeError("'maxcols' arg must be None or int")
-        if not ((maxrows is None) or isinstance(maxrows, int)):
-            raise TypeError("'maxrows' arg must be None or int")
-        if not ((subrows is None) or isinstance(subrows, int)):
-            raise TypeError("'subrows' arg must be None or int")
+        maxcols = opts.get_option("MaxCols")
+        maxrows = opts.get_option("MaxRows")
+        # Sub-header gaps
+        subcols = opts.get_option("SubCols")
+        subrows = opts.get_option("SubRows")
         # Get counts
         _n = self.__dict__.setdefault("_n", {})
-        # Initialize types
-        defns = self.opts.get("Definitions", {})
         # First data row number
         irow = skiprows + subrows + 1
         # First data col number
-        icol = skipcols
+        icol = skipcols + subcols
         # Loop through columns
         for col in cols:
-            # Get type
-            defn = defns.get(col, {})
-            # Get data type
+            # Get data column definition
+            defn = self.get_defn(col)
+            # Get data class name
             clsname = defn.get("Type", "float64")
+            # Get data type, if different
+            dtype = defn.get("DType", clsname)
             # Get array length
             colwidth = defn.get("ColWidth", 1)
-            # Translate if necessary
-            dtype = self._DTypeMap.get(clsname, clsname)
             # Read the whole column
             V0 = ws.col_values(icol, irow, end_rowx=maxrows)
             # Read data based on type

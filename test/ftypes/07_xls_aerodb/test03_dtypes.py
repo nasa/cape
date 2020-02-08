@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Import CSV module
-import cape.attdb.ftypes.xls as xls
+import cape.attdb.ftypes.xlsfile as xlsfile
 
 # Read CSV file
-db = xls.XLSFile("aero_arrow_no_base.xlsx",
+db = xlsfile.XLSFile("aero_arrow_no_base.xlsx",
     Types={
         "config": "str",
         "alpha": "float16",
