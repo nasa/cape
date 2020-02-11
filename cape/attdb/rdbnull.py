@@ -584,15 +584,13 @@ class DBResponseNull(ftypes.BaseData):
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
+            * 2020-02-10 ``@ddalle``: Removed *db.defns* effect
         """
         # Check input
         if not isinstance(opts, dict):
             raise TypeError("Options input must be dict-type")
-        # Get definitions
-        defns = opts.get("Definitions", {})
         # Get options
         dbopts = self.__dict__.setdefault("opts", {})
-        dbdefs = self.__dict__.setdefault("defns", {})
         # Merge options
         for (k, v) in opts.items():
             # Apply prefix
@@ -610,21 +608,49 @@ class DBResponseNull(ftypes.BaseData):
             # Check types
             if isinstance(v, dict) and isinstance(v0, dict):
                 # Update dictionary
-                v0.update(v)
+                v0.update(**v)
             else:
                 # Overwrite or add
                 dbopts[k] = v
+
+    # Link definitions
+    def copy_defns(self, defns, prefix=""):
+        r"""Copy a database's column definitions
+
+        :Call:
+            >>> db.copy_defns(defns, prefix="")
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DBResponseNull`
+                Data container
+            *defns*: :class:`dict`
+                Dictionary of column definitions
+            *prefix*: {``""``} | :class:`str`
+                Prefix to append to key names in *db.opts*
+        :Effects:
+            *db.opts*: :class:`dict`
+                Options merged with or copied from *opts*
+            *db.defns*: :class:`dict`
+                Merged with ``opts["Definitions"]``
+        :Versions:
+            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-26 ``@ddalle``: Added *db.defns* effect
+        """
+        # Check input
+        if not isinstance(opts, dict):
+            raise TypeError("Options input must be dict-type")
+        # Get options
+        dbdefns = self.__dict__.setdefault("defns", {})
         # Merge definitions
         for (k, v) in opts.items():
             # Get existing value
-            v0 = dbdefs.get(k)
+            v0 = dbdefbs.get(k)
             # Check types
             if isinstance(v, dict) and isinstance(v0, dict):
                 # Update dictionary
-                v0.update(v)
+                v0.update(**v)
             else:
                 # Overwrite or add
-                dbdefs[k] = v
+                dbdefns[k] = v
 
    # --- Column Properties ---
   # >
@@ -1050,18 +1076,25 @@ class DBResponseNull(ftypes.BaseData):
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
+        # Check type of data set
+        if not isinstance(dbsrc, dict):
+            # Source must be a dictionary
+            raise TypeError("Source data must be a dict")
         # Default columns
         if cols is None:
-            cols = dbsrc.cols
-        # Check input types
+            # Check for explicit list
+            if "cols" in dbsrc.__dict__:
+                # Explicit list
+                cols = dbsrc.cols
+            else:
+                # Get all keys
+                cols = list(dbsrc.keys())
+        # Check type of *cols*
         if not isinstance(cols, list):
             # Column list must be a list
             raise TypeError(
                 "Column list must be a list, got '%s'"
                 % cols.__class__.__name__)
-        elif not isinstance(dbsrc, dict):
-            # Source must be a dictionary
-            raise TypeError("Source data must be a dict")
         # Loop through columns
         for col in cols:
             # Check type

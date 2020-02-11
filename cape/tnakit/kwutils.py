@@ -702,6 +702,8 @@ class KwargHandler(dict):
         """
         # Get class
         cls = self.__class__
+        # Warning mode
+        warnmode = kw.pop("_warnmode", self._warnmode)
         # Remove anything that's ``None``
         opts = cls.denone(kw)
         # Check validity, apply maps
@@ -710,7 +712,7 @@ class KwargHandler(dict):
             cls._optmap,
             cls._opttypes,
             cls._optdependencies,
-            self._warnmode, **opts)
+            warnmode, **opts)
         # Update settings
         for k, v in opts.items():
             # Get current setting
