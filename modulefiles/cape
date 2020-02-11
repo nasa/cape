@@ -12,21 +12,21 @@ proc ModulesHelp { } {
 module-whatis "loads PYCART"
 
 # Module parameters
-set     app        pycart
+set     app        cape
 set     version    current
 
 # Local variables
-set  CAPE   $HOME/cape0.8
+set  CAPE   /u/wk/hlee9/git/cape
 
 # Set environment variables
-setenv  CAPE              $PYCART
-setenv  PYCART            $PYCART
-setenv  PYFUN             $PYCART
-setenv  PYOVER            $PYCART
-setenv  CAPE_SCRIPTLIB    $PYCART/bin
-setenv  PYCART_SCRIPTLIB  $PYCART/bin
-setenv  PYFUN_SCRIPTLIB   $PYCART/bin
-setenv  PYOVER_SCRIPTLIB  $PYCART/bin
+setenv  CAPE              $CAPE
+setenv  PYCART            $CAPE
+setenv  PYFUN             $CAPE
+setenv  PYOVER            $CAPE
+setenv  CAPE_SCRIPTLIB    $CAPE/bin
+setenv  PYCART_SCRIPTLIB  $CAPE/bin
+setenv  PYFUN_SCRIPTLIB   $CAPE/bin
+setenv  PYOVER_SCRIPTLIB  $CAPE/bin
 
 # Modules in conflict
 conflict pycart
@@ -35,6 +35,6 @@ conflict pyfun
 conflict pyover
 
 # Folders to add to path
-prepend-path PYTHONPATH       $PYCART
-prepend-path PATH             $PYCART/bin
+prepend-path PYTHONPATH       $CAPE
+prepend-path PATH             $CAPE/bin
 

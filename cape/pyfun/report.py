@@ -1,45 +1,51 @@
-"""
+r"""
 :mod:`cape.pyfun.report`: Automated report interface
 ======================================================
 
-The pyFun module for generating automated results reports using PDFLaTeX
-provides a single class :class:`pyFun.report.Report`, which is based off the
-CAPE version :class:`cape.cfdx.report.Report`. The :class:`cape.cfdx.report.Report` class
-is a sort of dual-purpose object that contains a file interface using
-:class:`cape.tex.Tex` combined with a capability to create figures for each
-case or sweep of cases mostly based on :mod:`cape.cfdx.dataBook`.
+The pyFun module for generating automated results reports using 
+PDFLaTeX provides a single class :class:`pyFun.report.Report`, which is
+based off the CAPE version :class:`cape.cfdx.report.Report`. The :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
+that contains a file interface using :class:`cape.tex.Tex` combined 
+with a capability to create figures for each case or sweep of cases 
+mostly based on :mod:`cape.cfdx.dataBook`.
 
-An automated report is a multi-page PDF generated using PDFLaTeX. Usually, each
-CFD case has one or more pages dedicated to results for that case. The user
-defines a list of figures, each with its own list of subfigures, and these are
-generated for each case in the run matrix (subject to any command-line
-constraints the user may specify). Types of subfigures include
+An automated report is a multi-page PDF generated using PDFLaTeX. 
+Usually, each CFD case has one or more pages dedicated to results for 
+that case. The user defines a list of figures, each with its own list
+of subfigures, and these are generated for each case in the run matrix
+(subject to any command-line constraints the user may specify). Types 
+of subfigures include
 
     * Table of the values of the input variables for this case
     * Table of force and moment values and statistics
-    * Iterative histories of forces or moments (for one or more coefficients)
+    * Iterative histories of forces or moments (for one or more 
+      coefficients)
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
     
-In addition, the user may also define "sweeps," which analyze groups of cases
-defined by user-specified constraints. For example, a sweep may be used to plot
-results as a function of Mach number for sets of cases having matching angle of
-attack and sideslip angle. When using a sweep, the report contains one or more
-pages for each sweep (rather than one or more pages for each case).
+In addition, the user may also define "sweeps," which analyze groups of
+cases defined by user-specified constraints. For example, a sweep may 
+be used to plot results as a function of Mach number for sets of cases
+having matching angle of attack and sideslip angle. When using a sweep,
+the report contains one or more pages for each sweep (rather than one 
+or more pages for each case).
 
-Reports are usually created using system commands of the following format.
+Reports are usually created using system commands of the following 
+format.
 
     .. code-block: console
     
         $ pyfun --report
 
-The class has an immense number of methods, which can be somewhat grouped into
-bookkeeping methods and plotting methods.  The main user-facing methods are
+The class has an immense number of methods, which can be somewhat 
+grouped into bookkeeping methods and plotting methods.  The main 
+user-facing methods are
 :func:`cape.cfdx.report.Report.UpdateCases` and
 :func:`cape.cfdx.report.Report.UpdateSweep`.  Each 
-:ref:`type of subfigure <cape-json-ReportSubfigure>` has its own method, for
-example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
+:ref:`type of subfigure <cape-json-ReportSubfigure>` has its own 
+method, for example
+:func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"`` or
 :func:`cape.cfdx.report.Report.SubfigPlotL2` for ``"PlotL2"``.
 
 :See also:
@@ -74,7 +80,7 @@ from .tecplot  import ExportLayout, Tecscript
 
 # Class to interface with report generation and updating.
 class Report(cape.cfdx.report.Report):
-    """Interface for automated report generation
+    r"""Interface for automated report generation
     
     :Call:
         >>> R = pyFun.report.Report(fun3d, rep)
@@ -104,7 +110,7 @@ class Report(cape.cfdx.report.Report):
             
     # Update subfig for case
     def SubfigSwitch(self, sfig, i, lines, q):
-        """Switch function to find the correct subfigure function
+        r"""Switch function to find the correct subfigure function
         
         This function may need to be defined for each CFD solver
         
@@ -126,7 +132,8 @@ class Report(cape.cfdx.report.Report):
                 Updated list of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
-            * 2016-10-25 ``@ddalle``: *UpdateCaseSubfigs* -> *SubfigSwitch*
+            * 2016-10-25 ``@ddalle``: *UpdateCaseSubfigs* -> 
+                                      *SubfigSwitch*
         """
         # Get the base type.
         btyp = self.cntl.opts.get_SubfigBaseType(sfig)
@@ -174,7 +181,7 @@ class Report(cape.cfdx.report.Report):
         
     # Read iterative history
     def ReadCaseFM(self, comp):
-        """Read iterative history for a component
+        r"""Read iterative history for a component
         
         This function needs to be customized for each solver
         
@@ -186,7 +193,8 @@ class Report(cape.cfdx.report.Report):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM` derivative
+            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM` 
+                derivative
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
@@ -217,7 +225,7 @@ class Report(cape.cfdx.report.Report):
         
     # Read residual history
     def ReadCaseResid(self, sfig=None):
-        """Read iterative residual history for a component
+        r"""Read iterative residual history for a component
         
         This function needs to be customized for each solver
         
@@ -229,7 +237,8 @@ class Report(cape.cfdx.report.Report):
             *sfig*: :class:`str` | ``None``
                 Name of subfigure to process
         :Outputs:
-            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid` derivative
+            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid` 
+                derivative
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
@@ -242,7 +251,7 @@ class Report(cape.cfdx.report.Report):
         
     # Read a Tecplot script
     def ReadTecscript(self, fsrc):
-        """Read a Tecplot script interface
+        r"""Read a Tecplot script interface
         
         :Call:
             >>> R.ReadTecscript(fsrc)

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-"""
+r"""
 :mod:`cape.pyfun.mapbc`: FUN3D boundary condition module
 =========================================================
 
-This module provides an interface to FUN3D ``.mapbc`` files, which specify a
-boundary condition and name for each component ID in the surface grid.  An
-example of such a file is shown below.
+This module provides an interface to FUN3D ``.mapbc`` files, which 
+specify a boundary condition and name for each component ID in the 
+surface grid. An example of such a file is shown below.
 
     .. code-block:: none
     
@@ -24,23 +24,24 @@ example of such a file is shown below.
         13   4000        fin3
         14   4000        fin4
         
-The entry on the first line is the total number of components, which is also
-the number of remaining rows.  Each data row has three columns:
+The entry on the first line is the total number of components, which is
+also the number of remaining rows.  Each data row has three columns:
 
     1. Surface component ID in original mesh
     2. FUN3D boundary condition index
     3. Name of the surface component
     
-Providing an interface for this file (rather than simply copying a template 
-into each run folder) is convenient because FUN3D considers these to be
-components 1 through 13 (not 21, 22, ... 14), and combining this interface with
-a configuration XML file or configuration JSON file allows users to get the
-index or indices of of surfaces in a FUN3D component by name.
+Providing an interface for this file (rather than simply copying a 
+template into each run folder) is convenient because FUN3D considers 
+these to be components 1 through 13 (not 21, 22, ... 14), and combining
+this interface with a configuration XML file or configuration JSON file
+allows users to get the index or indices of of surfaces in a FUN3D 
+component by name.
 
-If *BC* is an instance of the class provided in this module, :class:`MapBC`,
-for the ``.mapbc`` file shown above, then the following methods show the main
-capabilities for going back and forth between component numbers and surface
-numbers.
+If *BC* is an instance of the class provided in this module, 
+:class:`MapBC`, for the ``.mapbc`` file shown above, then the following
+methods show the main capabilities for going back and forth between 
+component numbers and surface numbers.
 
     .. code-block:: pycon
     
@@ -74,7 +75,7 @@ import numpy as np
 
 # MapBC class
 class MapBC(object):
-    """FUN3D boundary condition map class
+    r"""FUN3D boundary condition map class
     
     :Call:
         >>> BC = MapBC(fname)
@@ -99,7 +100,7 @@ class MapBC(object):
     """
     # Initialization method
     def __init__(self, fname=None):
-        """Initialization method
+        r"""Initialization method
         
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
@@ -118,7 +119,7 @@ class MapBC(object):
     
     # Representation method(s)
     def __repr__(self):
-        """Representation method
+        r"""Representation method
         
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
@@ -127,7 +128,7 @@ class MapBC(object):
     
     # Read file
     def Read(self, fname):
-        """Read a FUN3D boundary condition map file (``.mapbc``)
+        r"""Read a FUN3D boundary condition map file (``.mapbc``)
         
         :Call:
             >>> BC.Read(fname)
@@ -177,7 +178,7 @@ class MapBC(object):
     
     # Get surface ID
     def GetSurfID(self, compID, check=True, warn=False):
-        """Get surface ID number from input component ID or name
+        r"""Get surface ID number from input component ID or name
         
         :Call:
             >>> surfID = BC.GetSurfID(compID, check=True, warn=False)
@@ -190,7 +191,8 @@ class MapBC(object):
             *face*: :class:`str`
                 Name of face
             *check*: {``True``} | ``False``
-                Whether or not to return an error if component is not found
+                Whether or not to return an error if component is not 
+                found
             *warn*: ``True`` | {``False``}
                 Whether or not to print warnings if not raising errors
         :Outputs:
@@ -210,7 +212,7 @@ class MapBC(object):
         
     # Get surface index
     def GetSurfIndex(self, compID, check=True, warn=False):
-        """Get surface ID number from input component ID or name
+        r"""Get surface ID number from input component ID or name
         
         :Call:
             >>> i = BC.GetSurfID(compID, check=True, warn=False)
@@ -223,7 +225,8 @@ class MapBC(object):
             *face*: :class:`str`
                 Name of face
             *check*: {``True``} | ``False``
-                Whether or not to return an error if component is not found
+                Whether or not to return an error if component is not 
+                found
             *warn*: ``True`` | {``False``}
                 Whether or not to print warnings if not raising errors
         :Outputs:
@@ -268,7 +271,8 @@ class MapBC(object):
         
     # Get the component ID number
     def GetCompID(self, compID):
-        """Get the component ID number used to tag this face in the mesh
+        r"""Get the component ID number used to tag this face in the 
+        mesh
         
         :Call:
             >>> compID = BC.GetCompID(compID)
@@ -307,7 +311,7 @@ class MapBC(object):
             
     # Set BC
     def SetBC(self, compID, bc):
-        """Set boundary condition
+        r"""Set boundary condition
         
         :Call:
             >>> BC.SetBC(compID, bc)
@@ -331,7 +335,7 @@ class MapBC(object):
             
     # Write the file
     def Write(self, fname=None):
-        """Write FUN3D MapBC file
+        r"""Write FUN3D MapBC file
         
         :Call:
             >>> BC.Write(fname=None)

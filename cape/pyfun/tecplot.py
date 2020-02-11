@@ -1,20 +1,19 @@
-"""
+r"""
 :mod:`cape.pyfun.tecplot`: Interface to FUN3D Tecplot scripts 
 ==============================================================
 
-This is a module built off of the :mod:`cape.filecntl` module customized for
-manipulating Tecplot layout files and macros.  The FUN3D version of this
-module is based off of the generic version :mod:`cape.filecntl.tecplot` with minimal
+This is a module built off of the :mod:`cape.filecntl` module 
+customized for manipulating Tecplot layout files and macros.  The FUN3D
+version of this module is based off of the generic version :mod:`cape.filecntl.tecplot` with minimal
 modifications.
 
-The module allows users to edit quantities of any layout command in addition to
-declaring and adding layout variables. In addition, the :func:`ExportLayout`
-function provides a utility to open a layout using Tecplot in batch mode to
-export an image.
+The module allows users to edit quantities of any layout command in 
+addition to declaring and adding layout variables. In addition, the :func:`ExportLayout` function provides a utility to open a layout using
+Tecplot in batch mode to export an image.
 
-The class provides two classes, the first of which is the generic version
-typically used for layout files.  The second class has a few extra methods for
-handling Tecplot macros specifically.
+The class provides two classes, the first of which is the generic 
+version typically used for layout files.  The second class has a few 
+extra methods for handling Tecplot macros specifically.
 
     * :class:`cape.pyfun.tecplot.Tecsript`
     * :class:`cape.pyfun.tecplot.TecMacro`
@@ -30,10 +29,11 @@ import cape.filecntl.tecplot
 
 # Stand-alone function to run a Tecplot layout file
 def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):
-    """Stand-alone function to open a layout and export an image
+    r"""Stand-alone function to open a layout and export an image
     
     :Call:
-        >>> ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None)
+        >>> ExportLayout(lay="layout.lay", fname="export.png", 
+        fmt="PNG", w=None)
     :Inputs:
         *lay*: {``"layout.lay"``} | :class:`str`
             Name of Tecplot layout file
@@ -50,8 +50,7 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):
     
 # Aerodynamic history class
 class Tecscript(cape.filecntl.tecplot.Tecscript):
-    """
-    File control class for Tecplot script files
+    r"""File control class for Tecplot script files
     
     :Call:
         >>> tec = pyfun.tecplot.Tecscript()
@@ -73,8 +72,7 @@ class Tecscript(cape.filecntl.tecplot.Tecscript):
 
 # Tecplot macro
 class TecMacro(cape.filecntl.tecplot.TecMacro):
-    """
-    File control class for Tecplot macr files
+    r"""File control class for Tecplot macr files
     
     :Call:
         >>> tec = TecMacro()

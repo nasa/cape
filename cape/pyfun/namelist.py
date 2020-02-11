@@ -1,11 +1,11 @@
-"""
+r"""
 :mod:`cape.namelist`: FUN3D namelist module 
 ==============================================
 
 This is a module built off of the :mod:`cape.filecntl.namelist` module
-customized for manipulating FUN3D's namelist files.  Such files are split into
-sections which are called "name lists."  Each name list has syntax similar to
-the following.
+customized for manipulating FUN3D's namelist files.  Such files are 
+split into sections which are called "name lists."  Each name list has 
+syntax similar to the following.
 
     .. code-block:: none
     
@@ -14,26 +14,29 @@ the following.
             case_title = "Test case"
         /
     
-and this module is designed to recognize such sections.  The main feature of
-this module is methods to set specific properties of a namelist file, for
-example the Mach number or CFL number.
+and this module is designed to recognize such sections.  The main 
+feature of this module is methods to set specific properties of a 
+namelist file, for example the Mach number or CFL number.
 
-Namelists are the primary FUN3D input file, and one is written for each phase
-of a FUN3D case.  The namelist files prepared using this module are written to
-``fun3d.00.nml``, ``fun3d.01.nml``, etc.  These must be linked to a hard-coded
-file name ``fun3d.nml`` as appropriate for the currently running phase.
+Namelists are the primary FUN3D input file, and one is written for each
+phase of a FUN3D case.  The namelist files prepared using this module 
+are written to ``fun3d.00.nml``, ``fun3d.01.nml``, etc.  These must be 
+linked to a hard-coded file name ``fun3d.nml`` as appropriate for the 
+currently running phase.
 
-This function provides a class :class:`cape.filecntl.namelist.Namelist` that can both
-read and set values in the namelist.  The key functions are
+This function provides a class :class:`cape.filecntl.namelist.Namelist`
+that can both read and set values in the namelist.  The key functions 
+are
 
     * :func:`Namelist.SetVar`
     * :func:`Namelist.GetVar`
     
 The conversion from namelist text to Python is handled by
 :func:`Namelist.ConvertToText`, and the reverse is handled by
-:func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed just by
-the Python functions :func:`print` and :func:`eval` because delimiters are not
-used in the same fashion.  Some of the conversions are tabulated below.
+:func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed 
+just by the Python functions :func:`print` and :func:`eval` because 
+delimiters are not used in the same fashion.  Some of the conversions 
+are tabulated below.
 
     +----------------------+------------------------+
     | Namelist             | Python                 |
@@ -65,15 +68,16 @@ used in the same fashion.  Some of the conversions are tabulated below.
     | ``val = _mach_``     | ``val = "_mach_"``     |
     +----------------------+------------------------+
 
-In most cases, the :class:`Namelist` will try to interpret invalid values for
-any namelist entry as a string with missing quotes.  The reason for this is
-that users often create template namelist with entries like ``_mach_`` that can
-be safely replaced with appropriate values using ``sed`` commands or something
-similar.
+In most cases, the :class:`Namelist` will try to interpret invalid 
+values for any namelist entry as a string with missing quotes.  The 
+reason for this is that users often create template namelist with 
+entries like ``_mach_`` that can be safely replaced with appropriate 
+values using ``sed`` commands or something similar.
 
-There is also a function :func:`Namelist.ReturnDict` to access the entire
-namelist as a :class:`dict`.  Similarly, :func:`Namelist.ApplyDict` can be used
-to apply multiple settings using a :class:`dict` as input.
+There is also a function :func:`Namelist.ReturnDict` to access the 
+entire namelist as a :class:`dict`.  Similarly, 
+:func:`Namelist.ApplyDict` can be used to apply multiple settings using
+a :class:`dict` as input.
 
 See also:
 
@@ -92,12 +96,10 @@ import cape.filecntl.namelist
 
 # Base this class off of the main file control class.
 class Namelist(cape.filecntl.namelist.Namelist):
-    """
-    File control class for :file:`fun3d.nml`
+    r"""File control class for :file:`fun3d.nml`
             
-    This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
-    all methods applicable to that class can also be used for instances of this
-    class.
+    This class is derived from the :class:`pyCart.fileCntl.FileCntl` 
+    class, so all methods applicable to that class can also be used for instances of this class.
     
     :Call:
         >>> nml = pyFun.Namelist()
@@ -111,7 +113,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
     
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="fun3d.nml"):
-        """Initialization method"""
+        r"""Initialization method"""
         # Read the file.
         self.Read(fname)
         # Save the file name.
@@ -121,7 +123,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Set restart on
     def SetRestart(self, q=True, nohist=False):
-        """Set the FUN3D restart flag on or off
+        r"""Set the FUN3D restart flag on or off
         
         :Call:
             >>> nml.SetRestart(q=True, nohist=False)
@@ -151,7 +153,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Function set the Mach number.
     def SetMach(self, mach):
-        """Set the freestream Mach number
+        r"""Set the freestream Mach number
         
         :Call:
             >>> nml.SetMach(mach)
@@ -168,8 +170,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Function to get the current Mach number.
     def GetMach(self):
-        """
-        Find the current Mach number
+        r"""Find the current Mach number
         
         :Call:
             >>> mach = nml.GetMach()
@@ -187,7 +188,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Function to set the angle of attack
     def SetAlpha(self, alpha):
-        """Set the angle of attack
+        r"""Set the angle of attack
         
         :Call:
             >>> nml.SetAlpha(alpha)
@@ -205,7 +206,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Function to set the sideslip angle
     def SetBeta(self, beta):
-        """Set the sideslip angle
+        r"""Set the sideslip angle
         
         :Call:
             >>> nml.SetBeta(beta)
@@ -223,7 +224,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Set temperature unites
     def SetTemperatureUnits(self, units=None):
-        """Set the temperature units
+        r"""Set the temperature units
         
         :Call:
             >>> nml.SetTemperatureUnits(units)
@@ -243,7 +244,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Set the density
     def SetDensity(self, rho):
-        """Set the freestream density
+        r"""Set the freestream density
         
         :Call:
             >>> nml.SetDensity(rho)
@@ -259,7 +260,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Set the velocity
     def SetVelocity(self, V):
-        """Set the freestream velocity magnitude
+        r"""Set the freestream velocity magnitude
         
         :Call:
             >>> nml.SetTemperature(T)
@@ -275,7 +276,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Set the temperature
     def SetTemperature(self, T):
-        """Set the freestream temperature
+        r"""Set the freestream temperature
         
         :Call:
             >>> nml.SetTemperature(T)
@@ -291,7 +292,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Set the Reynolds number
     def SetReynoldsNumber(self, Re):
-        """Set the Reynolds number per unit length
+        r"""Set the Reynolds number per unit length
         
         :Call:
             >>> nml.SetReynoldsNumber(Re)
@@ -307,7 +308,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Set the number of iterations
     def SetnIter(self, nIter):
-        """Set the number of iterations
+        r"""Set the number of iterations
         
         :Call:
             >>> nml.SetnIter(nIter)
@@ -324,7 +325,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
     
     # Get the project root name
     def GetRootname(self):
-        """Get the project root name
+        r"""Get the project root name
         
         :Call:
             >>> name = nml.GetRootname()
@@ -341,7 +342,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
     
     # Set the project root name
     def SetRootname(self, name):
-        """Set the project root name
+        r"""Set the project root name
         
         :Call:
             >>> nml.SetRootname(name)
@@ -357,7 +358,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Get the grid format
     def GetGridFormat(self):
-        """Get the mesh file extention
+        r"""Get the mesh file extention
         
         :Call:
             >>> fext = nml.GetGridFormat()
@@ -408,7 +409,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
     
     # Get the adapt project root name
     def GetAdaptRootname(self):
-        """Get the post-adaptation project root name
+        r"""Get the post-adaptation project root name
         
         :Call:
             >>> name = nml.GetAdaptRootname()
@@ -425,7 +426,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Set the adapt project root name
     def SetAdaptRootname(self, name):
-        """Set the post-adaptation project root name
+        r"""Set the post-adaptation project root name
         
         :Call:
             >>> nml.SetAdaptRootname(name)
@@ -441,7 +442,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         
     # Get the number of flow initialization volumes
     def GetNFlowInitVolumes(self):
-        """Get the current number of flow initialization volumes
+        r"""Get the current number of flow initialization volumes
         
         :Call:
             >>> n = nml.GetNFlowInitVolumes()
@@ -466,7 +467,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
             
     # Set the number of flow initialization volumes
     def SetNFlowInitVolumes(self, n):
-        """Set the number of flow initialization volumes
+        r"""Set the number of flow initialization volumes
         
         :Call:
             >>> nml.SetNFlowInitVolumes(n)

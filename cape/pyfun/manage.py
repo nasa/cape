@@ -1,11 +1,12 @@
-"""
+r"""
 :mod:`cape.pyfun.manage`: Manage pyFun case folders
 =====================================================
 
-This module is a derivative of the main solution folder management module
-:mod:`cape.manage`.  It provides FUN3D-specific versions of the three top-level
-functions, which each correspond to a primary command-line option.
-    
+This module is a derivative of the main solution folder management 
+module :mod:`cape.manage`.  It provides FUN3D-specific versions of the 
+three top-level functions, which each correspond to a primary 
+command-line option.
+
     =======================   ==================
     Function                  Command-line
     =======================   ==================
@@ -15,9 +16,9 @@ functions, which each correspond to a primary command-line option.
     =======================   ==================
     
 The FUN3D-specific versions of these commands use the function
-:func:`pyFun.options.Archive.auto_Archive`, which apply the default settings
-appropriate to pyFun, and then call the generic version of the function with
-the same name from :mod:`cape.manage`.  In addition, this module sets
+:func:`pyFun.options.Archive.auto_Archive`, which apply the default 
+settings appropriate to pyFun, and then call the generic version of the function with the same name from :mod:`cape.manage`.  In addition, this 
+module sets
 
     .. code-block:: python
         
@@ -27,9 +28,8 @@ the same name from :mod:`cape.manage`.  In addition, this module sets
 which instructs the archiving functions to also look inside the folder
 ``Flow/`` if it exists.
 
-The ``--unarchive`` command does not require any specific customizations for
-FUN3D, and the generic version of :func:`cape.manage.UnarchiveFolder` is just
-called directly.
+The ``--unarchive`` command does not require any specific 
+customizations for FUN3D, and the generic version of :func:`cape.manage.UnarchiveFolder` is just called directly.
 
 :See also:
     * :mod:`cape.manage`
@@ -47,7 +47,7 @@ fsub = ["Flow"]
 
 # Clear folder
 def CleanFolder(opts, phantom=False):
-    """Delete files before archiving and regardless of status
+    r"""Delete files before archiving and regardless of status
     
     :Call:
         >>> pyFun.manage.CleanFolder(opts, phantom=False)
@@ -67,7 +67,8 @@ def CleanFolder(opts, phantom=False):
 
 # Archive folder
 def ArchiveFolder(opts, phantom=False):
-    """Archive a folder to a backup location and clean up nonessential files
+    r"""Archive a folder to a backup location and clean up nonessential 
+    files
     
     :Call:
         >>> pyFun.manage.ArchiveFolder(opts, phantom=False)
@@ -87,7 +88,8 @@ def ArchiveFolder(opts, phantom=False):
 
 # Replace folder contents with skeleton
 def SkeletonFolder(opts, phantom=False):
-    """Archive a folder to a backup location and clean up nonessential files
+    r"""Archive a folder to a backup location and clean up nonessential 
+    files
     
     :Call:
         >>> pyFun.manage.SkeletonFolder(opts, phantom=False)

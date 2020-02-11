@@ -1,15 +1,15 @@
-"""
+r"""
 :mod:`cape.pyfun.pointSensor`: FUN3D point sensors module
 ===========================================================
 
-This module contains several classes for extracting point sensor data from
-FUN3D solutions. The database classes, :class:`DBTriqPointGroup` and
-:class:`DBTriqPoint`, are based on versions from the generic point sensor
-module :mod:`cape.cfdx.pointSensor`. These classes extract surface solution data
-from a FUN3D boundary output file (usually with a name of
-``pyfun_tec_boundary_timestep1000.plt`` or similar) using :class:`pyFun.plt`
-and :class:`cape.tri` by interpolating the surface solution to the point on the
-discretized surface nearest the requested point.
+This module contains several classes for extracting point sensor data
+from FUN3D solutions. The database classes, :class:`DBTriqPointGroup` 
+and :class:`DBTriqPoint`, are based on versions from the generic point
+sensor module :mod:`cape.cfdx.pointSensor`. These classes extract 
+surface solution data from a FUN3D boundary output file (usually with a
+name of ``pyfun_tec_boundary_timestep1000.plt`` or similar) using :class:`pyFun.plt` and :class:`cape.tri` by interpolating the surface 
+solution to the point on the discretized surface nearest the requested 
+point.
 
 At present, there is no support for reading point sensor values directly from
 FUN3D output that can be requested from ``fun3d.nml``.
@@ -44,7 +44,7 @@ plt = 0
 
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
-    """Import :mod:`matplotlib.pyplot` if not loaded
+    r"""Import :mod:`matplotlib.pyplot` if not loaded
 
     :Call:
         >>> pyCart.dataBook.ImportPyPlot()
@@ -67,10 +67,11 @@ def ImportPyPlot():
 
 # Data book for triq point sensors
 class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
-    """Post-processed point sensor group data book
+    r"""Post-processed point sensor group data book
 
     :Call:
-        >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, RootDir=None)
+        >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, 
+                                    RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -79,7 +80,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
         *name*: :class:`str` | ``None``
             Name of data book group
         *pts*: {``None``} | :class:`list` (:class:`str`)
-            List of points to read; defaults to all points in thegroup
+            List of points to read; defaults to all points in the group
         *RootDir*: {``None``} | :class:`str`
             Project root directory absolute path, default is *PWD*
     :Outputs:
@@ -94,10 +95,11 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
   # <
     # Read a point sensor
     def ReadPointSensor(self, pt):
-        """Read a point sensor
+        r"""Read a point sensor
 
-        This function needs to be customized for each derived class so that the
-        correct class is used for each of the member data books
+        This function needs to be customized for each derived class so 
+        that the correct class is used for each of the member data 
+        books
 
         :Call:
             >>> DBPG.ReadPointSensor(pt)
@@ -119,7 +121,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
   # <
     # Current iteration status
     def GetCurrentIter(self):
-        """Determine iteration number of current folder
+        r"""Determine iteration number of current folder
 
         :Call:
             >>> n = DB.GetCurrentIter()
@@ -139,7 +141,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
 
     # Read case point data
     def ReadCasePoint(self, pt, i, **kw):
-        """Read point data from current run folder
+        r"""Read point data from current run folder
 
         :Call:
             >>> P = DBPG.ReadCasePoint(pt, i)
@@ -152,7 +154,8 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
                 Case index
         :Outputs:
             *P*: :class:`dict`
-                Dictionary of state variables as requested from the point
+                Dictionary of state variables as requested from the 
+                point
         :Versions:
             * 2017-10-10 ``@ddalle``: First version
         """
@@ -206,7 +209,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
 
     # Read Triq file from this folder
     def ReadCaseTriq(self, **kw):
-        """Read the the most recent Triq file from this folder
+        r"""Read the the most recent Triq file from this folder
 
         :Call:
             >>> triq, VarList = DBPG.ReadCaseTriq()
@@ -251,11 +254,11 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
 
 # Data book of point sensor data
 class DBTriqPoint(cape.cfdx.pointSensor.DBTriqPoint):
-    """TriQ point sensor data book
+    r"""TriQ point sensor data book
 
-    Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,
-    including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams of
-    point sensor results in particular.
+    Plotting methods are inherited from 
+    :class:`cape.cfdx.dataBook.DBBase`, including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams
+    of point sensor results in particular.
 
     :Call:
         >>> DBP = DBTriqPoint(x, opts, pt, name=None)

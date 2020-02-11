@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-"""
+r"""
 :mod:`cape.pyfun.rubberData`: FUN3D file ``rubber.data``
 ===========================================================
 
-This module provides an interface to the fixed-name FUN3D file ``rubber.data``
-that is used in FUN3D to provide inputs for optimization and or adjoint-based
-mesh adaptation.  It provides a single class
-:class:`pyFun.rubberData.RubberData` that interprets and sets individual lines
-of this customized data file.
+This module provides an interface to the fixed-name FUN3D file 
+``rubber.data`` that is used in FUN3D to provide inputs for 
+optimization and or adjoint-based mesh adaptation.  It provides a 
+single class :class:`pyFun.rubberData.RubberData` that interprets and 
+sets individual lines of this customized data file.
 
 :See also:
     * :mod:`cape.filecntl`
@@ -31,6 +31,8 @@ class RubberData(FileCntl):
     
     # Initialization method
     def __init__(self, fname=None):
+        r"""Initialization Method
+        """
         # Read the file.
         if fname is not None:
             self.Read(fname)
@@ -39,7 +41,8 @@ class RubberData(FileCntl):
         
     # Get the next line
     def GetNextLineIndex(self, i, n=1):
-        """Get index of the next non-comment line after a specified line number
+        r"""Get index of the next non-comment line after a specified 
+        line number
         
         :Call:
             >>> j = R.GetNextLineIndex(i)
@@ -75,7 +78,8 @@ class RubberData(FileCntl):
         
     # Get the contents of that line
     def GetNextLine(self, i, n=1):
-        """Get index of the next non-comment line after a specified line number
+        r"""Get index of the next non-comment line after a specified 
+        line number
         
         :Call:
             >>> line = R.GetNextLine(i)
@@ -104,7 +108,7 @@ class RubberData(FileCntl):
         
     # Get the number of functions
     def GetNFunction(self):
-        """Get the number of output/objective/constraint functions
+        r"""Get the number of output/objective/constraint functions
         
         :Call:
             >>> n = R.GetNFunction()
@@ -133,7 +137,7 @@ class RubberData(FileCntl):
             
     # Set the number of functions
     def SetNFunction(self, n):
-        """Set the number of output/objective/constraint functions
+        r"""Set the number of output/objective/constraint functions
         
         :Call:
             >>> R.SetNFunction(n)
@@ -161,7 +165,7 @@ class RubberData(FileCntl):
         
     # Get number of components for a function
     def GetNComp(self, k=1):
-        """Get number of components for function *k*
+        r"""Get number of components for function *k*
         
         :Call:
             >>> m = R.GetNComp(k)
@@ -193,7 +197,7 @@ class RubberData(FileCntl):
             
     # Set number of components for a function
     def SetNComp(self, k=1, m=1):
-        """Set number of components for function *k*
+        r"""Set number of components for function *k*
         
         :Call:
             >>> R.SetNComp(k, m=1)
@@ -219,7 +223,7 @@ class RubberData(FileCntl):
     
     # Add another component if necessry
     def AddCoeff(self, k=1, m=None):
-        """Add one or more components to a function definition
+        r"""Add one or more components to a function definition
         
         :Call:
             >>> R.AddCoeff(k)
@@ -230,7 +234,8 @@ class RubberData(FileCntl):
             *k*: :class:`int`
                 Composite function number (almost always ``1``)
             *m*: {``None``} | :class:`int`
-                Number of components; if ``None``, add one more component
+                Number of components; if ``None``, add one more 
+                component
         :Versions:
             * 2016-04-27 ``@ddalle``: First version
         """
@@ -258,7 +263,7 @@ class RubberData(FileCntl):
     
     # Add a new section
     def AddFunction(self):
-        """Append an empty section (with default *CD* definition)
+        r"""Append an empty section (with default *CD* definition)
         
         :Call:
             >>> R.AddFunction()
@@ -297,7 +302,7 @@ class RubberData(FileCntl):
     
     # Set get function type
     def GetFunctionType(self, k):
-        """Get the type of function *k*
+        r"""Get the type of function *k*
         
         :Call:
             >>> typ = R.GetFunctionType(k)
@@ -308,7 +313,8 @@ class RubberData(FileCntl):
                 Function number
         :Outputs:
             *typ*: ``1`` | ``2``
-                Function type index; ``1`` for function and ``2`` for constraint
+                Function type index; ``1`` for function and ``2`` for 
+                constraint
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
         """
@@ -329,7 +335,7 @@ class RubberData(FileCntl):
     
     # Set the function type
     def SetFunctionType(self, k, typ):
-        """Set the type of function *k*
+        r"""Set the type of function *k*
         
         :Call:
             >>> R.SetFunctionType(k, typ)
@@ -339,7 +345,8 @@ class RubberData(FileCntl):
             *k*: :class:`int`
                 Function number
             *typ*: ``1`` | ``2``
-                Function type index; ``1`` for function and ``2`` for constraint
+                Function type index; ``1`` for function and ``2`` for 
+                constraint
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
         """
@@ -353,7 +360,7 @@ class RubberData(FileCntl):
         
     # Get the function component
     def GetCoeffComp(self, k, j=1):
-        """Get the component for function *k* component *j*
+        r"""Get the component for function *k* component *j*
         
         :Call:
             >>> comp = R.GetFunctionComp(k, j=1)
@@ -388,7 +395,7 @@ class RubberData(FileCntl):
     
     # Set the function component
     def SetCoeffComp(self, k, comp, j=1):
-        """Set the component for function *k*
+        r"""Set the component for function *k*
         
         :Call:
             >>> R.SetCoeffComp(k, comp)
@@ -426,7 +433,7 @@ class RubberData(FileCntl):
         
     # Get the function tag
     def GetCoeffType(self, k, j=1):
-        """Get the keyword for coefficient *j* of function *k*
+        r"""Get the keyword for coefficient *j* of function *k*
         
         :Call:
             >>> name = R.GetCoeffType(k, j=1)
@@ -456,7 +463,7 @@ class RubberData(FileCntl):
         
     # Set the function type
     def SetCoeffType(self, k, name, j=1):
-        """Set the keyword for function *k*
+        r"""Set the keyword for function *k*
         
         :Call:
             >>> R.SetCoeffType(k, name, j=1)
@@ -498,7 +505,7 @@ class RubberData(FileCntl):
         
     # Get the function weight
     def GetCoeffWeight(self, k, j=1):
-        """Get the component weight for coefficient *j* of function *k*
+        r"""Get the component weight for coefficient *j* of function *k*
         
         :Call:
             >>> w = R.GetCoeffWeight(k, j=1)
@@ -528,7 +535,7 @@ class RubberData(FileCntl):
         
     # Set the weight
     def SetCoeffWeight(self, k, w=1.0, j=1):
-        """Set the weight for function *k*
+        r"""Set the weight for function *k*
         
         :Call:
             >>> R.SetCoeffWeight(k, w, j=1)
@@ -570,7 +577,7 @@ class RubberData(FileCntl):
     
     # Get the function weight
     def GetCoeffTarget(self, k, j=1):
-        """Get the target value for coefficient *j* of function *k*
+        r"""Get the target value for coefficient *j* of function *k*
         
         :Call:
             >>> t = R.GetCoeffTarget(k, j=1)
@@ -600,7 +607,7 @@ class RubberData(FileCntl):
     
     # Set the weight
     def SetCoeffTarget(self, k, t=0.0, j=1):
-        """Set the weight for function *k*
+        r"""Set the weight for function *k*
         
         :Call:
             >>> R.SetCoeffTarget(k, t, j=1)
@@ -642,7 +649,7 @@ class RubberData(FileCntl):
     
     # Get the function power
     def GetCoeffPower(self, k, j=1):
-        """Get the target value for coefficient *j* of function *k*
+        r"""Get the target value for coefficient *j* of function *k*
         
         :Call:
             >>> p = R.GetCoeffPower(k, j=1)
@@ -672,7 +679,7 @@ class RubberData(FileCntl):
         
     # Set the power/exponent
     def SetCoeffPower(self, k, p=1.0, j=1):
-        """Set the exponent for function *k*
+        r"""Set the exponent for function *k*
         
         :Call:
             >>> R.SetCoeffPower(k, p, j=1)

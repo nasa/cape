@@ -1,10 +1,11 @@
-"""
+r"""
 :mod:`cape.pyfun.faux`: FAUXGeom interface module
 ==================================================
 
-This is a module for interacting with FUN3D input files that define geometry
-for adaptation.  Files defined in the FAUXGeom file ``faux_input`` can have
-their surface meshes refined while other surfaces must be frozen.
+This is a module for interacting with FUN3D input files that define 
+geometry for adaptation.  Files defined in the FAUXGeom file 
+``faux_input`` can have their surface meshes refined while other 
+surfaces must be frozen.
 
 :See also:
     * :func:`cape.pyfun.cntl.Cntl.ReadFAUXGeom`
@@ -18,7 +19,7 @@ import os.path
 
 # Base this class off of the main file control class.
 class FAUXGeom(object):
-    """File control class for :file:`faux_input`
+    r"""File control class for :file:`faux_input`
     
     :Call:
         >>> faux = pyFun.FAUXGeom()
@@ -40,7 +41,7 @@ class FAUXGeom(object):
     
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="faux_input"):
-        """Initialization method
+        r"""Initialization method
         
         :Versions:
             * 2017-02-23 ``@ddalle``: First version
@@ -67,7 +68,7 @@ class FAUXGeom(object):
         
     # Read a ``faux_input`` file or template
     def Read(self, fname):
-        """Read a ``faux_input`` input file or template
+        r"""Read a ``faux_input`` input file or template
         
         :Call:
             >>> faux.Read(fname)
@@ -118,7 +119,7 @@ class FAUXGeom(object):
         
     # Convert a string to a value
     def ConvertToVal(self, val):
-        """Convert a text description to a Python value
+        r"""Convert a text description to a Python value
         
         :Call:
             >>> v = faux.ConvertToVal(val)
@@ -128,7 +129,8 @@ class FAUXGeom(object):
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
         :Outputs:
-            *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
+            *v*: :class:`str` | :class:`int` | :class:`float` | 
+                 :class:`list`
                 Evaluated value of the text
         :Versions:
             * 2017-02-23 ``@ddalle``: First version
@@ -163,7 +165,7 @@ class FAUXGeom(object):
         
     # Set value for a plane
     def SetGeom(self, comp, geom):
-        """Set geometry definition for a component
+        r"""Set geometry definition for a component
         
         :Call:
             >>> faux.SetGeom(comp, geom)
@@ -190,7 +192,7 @@ class FAUXGeom(object):
         
     # Write a ``faux_input`` file
     def Write(self, fname="faux_input"):
-        """Write FAUXGeom input file
+        r"""Write FAUXGeom input file
         
         :Call:
             >>> faux.Write(fname="faux_input")

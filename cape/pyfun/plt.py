@@ -1,24 +1,26 @@
-"""
+r"""
 :mod:`cape.pyfun.plt`: Interface to FUN3D Tecplot PLT files
 ============================================================
 
-This module provides the class :class:`cape.pyfun.plt.Plt`, which intends to read
-and write Tecplot binary or ASCII PLT files for surface grid solutions from
-FUN3D. It is based on the generic PLT interface, :class:`cape.bin.plt.Plt`,
-which does not use the TecIO library to avoid causing unnecessary dependencies
-for the software.
+This module provides the class :class:`cape.pyfun.plt.Plt`, which 
+intends to read and write Tecplot binary or ASCII PLT files for surface
+grid solutions from FUN3D. It is based on the generic PLT interface, :class:`cape.bin.plt.Plt`,
+which does not use the TecIO library to avoid causing unnecessary 
+dependencies for the software.
 
-This version of the module has several modifications that are particular to
-FUN3D solutions.  It has a special method for calculating time-averaged *Cp*
-values from named FUN3D outputs, and it also includes an interface to FUN3D
-``.mapbc`` files to interpret names for each boundary zone.
+This version of the module has several modifications that are
+particular to FUN3D solutions.  It has a special method for calculating 
+time-averaged *Cp* values from named FUN3D outputs, and it also 
+includes an interface to FUN3D ``.mapbc`` files to interpret names for 
+each boundary zone.
 
-This class cannot read any generic ``.plt`` file; it focuses on surface grids
-with a mix of triangles and quads.  In particular it is closely paired with
-the :mod:`cape.tri` triangulation module.  The initial driving cause for
-creating this module was to read FUN3D boundary solution files and convert them
-to annotated Cart3D ``triq`` format for input to ``triload`` and other
-post-processing based on the :mod:`cape.tri` module.
+This class cannot read any generic ``.plt`` file; it focuses on surface
+grids with a mix of triangles and quads.  In particular it is closely 
+paired with the :mod:`cape.tri` triangulation module.  The initial 
+driving cause for creating this module was to read FUN3D boundary 
+solution files and convert them to annotated Cart3D ``triq`` format for
+input to ``triload`` and other post-processing based on the 
+:mod:`cape.tri` module.
 
 :See also:
     * :mod:`cape.plt`
@@ -46,7 +48,8 @@ import cape.pyfun.mapbc
 
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):
-    """Convert a Tecplot PLT file to a Cart3D annotated triangulation (TRIQ)
+    r"""Convert a Tecplot PLT file to a Cart3D annotated triangulation 
+    (TRIQ)
     
     :Call:
         >>> Plt2Triq(fplt, ftriq=None, **kw)
@@ -54,7 +57,8 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         *fplt*: :class:`str`
             Name of Tecplot PLT file
         *ftriq*: {``None``} | :class:`str`
-            Name of output file (default: replace extension with ``.triq``)
+            Name of output file (default: replace extension with 
+            ``.triq``)
         *mach*: {``1.0``} | positive :class:`float`
             Freestream Mach number for skin friction coeff conversion
         *triload*: {``True``} | ``False``
@@ -96,7 +100,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
 
 # Tecplot class
 class Plt(cape.plt.Plt):
-    """Interface for Tecplot PLT files
+    r"""Interface for Tecplot PLT files
     
     :Call:
         >>> plt = plt.Plt(fname)
@@ -126,7 +130,7 @@ class Plt(cape.plt.Plt):
     """
     # Calculate cp_tavg
     def GetCpTAvg(self, mach, gam=1.4):
-        """Calculate *cp_tavg* if *p_tavg* exists
+        r"""Calculate *cp_tavg* if *p_tavg* exists
         
         :Call:
             >>> plt.GetCpTAvg(mach, gam=1.4)

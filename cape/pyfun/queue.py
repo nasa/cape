@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pyfun.queue`: PBS queue interface for pyFun 
 =======================================================
 

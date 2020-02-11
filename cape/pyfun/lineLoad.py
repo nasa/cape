@@ -1,17 +1,18 @@
-"""
+r"""
 :mod:`cape.pyfun.lineLoad`: Sectional loads module
 ==================================================
 
-This module contains functions for reading and processing sectional loads. It
-is a version of :mod:`cape.cfdx.lineLoad` that is closely tied to
-:mod:`cape.pyfun.dataBook`.
+This module contains functions for reading and processing sectional 
+loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely 
+tied to :mod:`cape.pyfun.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
 is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
 all line load data for a specific surface component.
 
-For reading the sectional load for a single solution on one component (which
-includes multiple coefficients), there is another class :class:`CaseLL`.
+For reading the sectional load for a single solution on one component 
+(which includes multiple coefficients), there is another class 
+:class:`CaseLL`.
 
 Finally, reading seam curves from individual cases utilizes the class
 :class:`CaseSeam`.
@@ -49,7 +50,7 @@ from cape import tar
 
 # Data book of line loads
 class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
-    """Line load (sectional load) data book for one group
+    r"""Line load (sectional load) data book for one group
     
     :Call:
         >>> DBL = DBLineLoad(x, opts. comp, conf=None, RootDir=None)
@@ -83,7 +84,7 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
     
     # Get component ID numbers
     def GetCompID(self):
-        """Create list of component IDs
+        r"""Create list of component IDs
         
         :Call:
             >>> DBL.GetCompID()
@@ -91,7 +92,8 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
             *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
                 Instance of line load data book
         :Versions:
-            * 2016-12-22 ``@ddalle``: First version, extracted from __init__
+            * 2016-12-22 ``@ddalle``: First version, extracted from 
+                                      __init__
         """
         # Figure out reference component
         self.CompID = self.opts.get_DataBookCompID(self.comp)
@@ -128,7 +130,7 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
     
     # Get file
     def GetTriqFile(self):
-        """Get most recent ``triq`` file and its associated iterations
+        r"""Get most recent ``triq`` file and its associated iterations
         
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
@@ -179,7 +181,7 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
     
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, ftriq, **kw):
-        """Perform any necessary preprocessing to create ``triq`` file
+        r"""Perform any necessary preprocessing to create ``triq`` file
         
         :Call:
             >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
@@ -223,7 +225,7 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
 
 # Line loads
 class CaseLL(cape.cfdx.lineLoad.CaseLL):
-    """Individual class line load class
+    r"""Individual class line load class
     
     :Call:
         >>> LL = CaseLL(cart3d, i, comp)
@@ -260,7 +262,7 @@ class CaseLL(cape.cfdx.lineLoad.CaseLL):
 
 # Class for seam curves
 class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
-    """Seam curve interface
+    r"""Seam curve interface
     
     :Call:
         >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
@@ -289,7 +291,8 @@ class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
 
 # Function to determine newest triangulation file
 def GetPltFile():
-    """Get most recent boundary ``plt`` file and its associated iterations
+    r"""Get most recent boundary ``plt`` file and its associated 
+    iterations
     
     :Call:
         >>> fplt, n, i0, i1 = GetPltFile()
