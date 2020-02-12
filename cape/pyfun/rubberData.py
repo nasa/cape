@@ -27,8 +27,19 @@ from cape.filecntl.filecntl import FileCntl
 
 # ``rubber.data`` class
 class RubberData(FileCntl):
+    r"""Read the :file:`rubber.data` file
     
-    
+    :Call:
+        >>> R = pyFun.rubberData.RubberData(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Rubber data file, default ``rubber.data``
+    :Outputs:
+        *R*: :class:`pyFun.rubberData.RubberData`
+            Instance of the pyFun rubber data class
+    :Versions:
+        * 2016-04-22 ``@ddalle``: First version    
+    """
     # Initialization method
     def __init__(self, fname=None):
         r"""Initialization Method
