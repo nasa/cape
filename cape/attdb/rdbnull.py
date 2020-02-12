@@ -41,6 +41,29 @@ import cape.tnakit.kwutils as kwutils
 import cape.attdb.ftypes as ftypes
 
 
+# Options for RDBNull
+class DBResonseOpts(ftypes.BaseDataOpts):
+   # --- Global Options ---
+    # List of options
+    _optlist = set.union(ftypes.BaseDataOpts._optlist,
+        {
+            "csv",
+            "mat",
+            "simplecsv",
+            "xls"
+        })
+
+    # Alternate names
+    _optmap = dict(ftypes.BaseDataOpts._optmap,
+        csvsimple="simplecsv",
+        xlsx="xlsx")
+
+
+# Definitions for RDBNull
+class DBResponseDefn(ftypes.BaseDataDefn):
+    pass
+
+
 # Declare base class
 class DBResponseNull(ftypes.BaseData):
     r"""Basic database template without responses
