@@ -1133,6 +1133,224 @@ class KwargHandler(dict):
   # Class Modification
   # ====================
   # <
+   # --- Combine with Parent ---
+    # Combine all primary attributes
+    @classmethod
+    def combine_opts(cls, parentcls=None, f=False):
+        r"""Combine *_optlist* and all other :class:`KwargHandler` attrs
+
+        :Call:
+            >>> cls.combine_opts(parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | {``False``}
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        # Call specific function for each attribute
+        cls.combine_optlist(parentcls, f)
+        cls.combine_optmap(parentcls, f)
+        cls.combine_opttypes(parentcls, f)
+        cls.combine_optdependencies(parentcls, f)
+        cls.combine_optlists(parentcls, f)
+
+    # Combine options list
+    @classmethod
+    def combine_optlist(cls, parentcls=None, f=False):
+        r"""Combine *_optlist* from two classes
+
+        :Call:
+            >>> cls.combine_optlist(parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | {``False``}
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        cls.combine_optset("_optlist", parentcls, f)
+        cls.combine_optset("_optlist_holdlast", parentcls, f)
+        cls.combine_optset("_optlist_list", parentcls, f)
+        cls.combine_optset("_optlist_none", parentcls, f)
+        cls.combine_optset("_optlist_ring", parentcls, f)
+
+    # Combine options alternate names
+    @classmethod
+    def combine_optmap(cls, parentcls=None, f=False):
+        r"""Combine *_optmap* from two classes
+
+        :Call:
+            >>> cls.combine_optmap(parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | {``False``}
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        cls.combine_optdict("_optmap", parentcls, f)
+
+    # Combine options allowed types
+    @classmethod
+    def combine_opttypes(cls, parentcls=None, f=False):
+        r"""Combine *_opttypes* from two classes
+
+        :Call:
+            >>> cls.combine_opttypes(parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | {``False``}
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        cls.combine_optdict("_opttypes", parentcls, f)
+
+    # Combine options required dependencies
+    @classmethod
+    def combine_optdependencies(cls, parentcls=None, f=False):
+        r"""Combine *_optdependencies* from two classes
+
+        :Call:
+            >>> cls.combine_optdependencies(parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | {``False``}
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        cls.combine_optdict("_optdependencies", parentcls, f)
+
+    # Combine options allowed values
+    @classmethod
+    def combine_optvals(cls, parentcls=None, f=False):
+        r"""Combine *_optvals* from two classes
+
+        :Call:
+            >>> cls.combine_optvals(parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | {``False``}
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        cls.combine_optdict("_optvals", parentcls, f)
+        cls.combine_optdict("_optvalmap", parentcls, f)
+        cls.combine_optdict("_optval_converters", parentcls, f)
+
+    # Combine option list subsections
+    @classmethod
+    def combine_optlists(cls, parentcls=None, f=False):
+        r"""Combine *_optlists* from two classes
+
+        Sections present in both *cls._optlists* and
+        *parentcls._optlists* are **not** merged.
+
+        :Call:
+            >>> cls.combine_optlists(parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | {``False``}
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        cls.combine_optdict("_optlists", parentcls, f)
+
+    # Combine set attributes
+    @classmethod
+    def combine_optset(cls, attr, parentcls=None, f=False):
+        r"""Combine :class:`set` attribute from two classes
+
+        :Call:
+            >>> cls.combine_optset(cls, attr, parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *attr*: :class:`str`
+                Name of attribute to combine
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | ``False``
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        # Get current value
+        v1 = cls.__dict__.get(attr)
+        # Exit if not specifically defined
+        if (v1 is None) and (not f):
+            return
+        # Default parent
+        if parentcls is None:
+            # Use first basis class
+            parentcls = cls.__bases__[0]
+        # Get parent value
+        v2 = getattr(parentcls, attr)
+        # Combine values (enforce set)
+        v3 = set.union(v1, v2)
+        # Save it
+        setattr(cls, attr, v3)
+
+    # Combine dict attributes
+    @classmethod
+    def combine_optdict(cls, attr, parentcls=None, f=False):
+        r"""Combine :class:`dict` attribute from two classes
+
+        :Call:
+            >>> cls.combine_optdict(cls, attr, parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *attr*: :class:`str`
+                Name of attribute to combine
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | ``False``
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-02-11 ``@ddalle``: First version
+        """
+        # Get current value
+        v1 = cls.__dict__.get(attr)
+        # Exit if not specifically defined
+        if (v1 is None) and (not f):
+            return
+        # Default parent
+        if parentcls is None:
+            # Use first basis class
+            parentcls = cls.__bases__[0]
+        # Get parent value
+        v2 = getattr(parentcls, attr)
+        # Combine values (*v1* takes priority)
+        v3 = dict(v2, **v1)
+        # Save it
+        setattr(cls, attr, v3)
+
    # --- Class Attribute ---
     @classmethod
     def _getattr_class(cls, attr):

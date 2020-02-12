@@ -55,42 +55,47 @@ from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
 class XLSFileOpts(BaseFileOpts):
    # --- Global Options ---
     # Option list
-    _optlist = set.union(BaseFileOpts._optlist,
-        {
-            "ColSpec",
-            "MaxCols",
-            "MaxRows",
-            "SkipCols",
-            "SkipRows",
-            "SubCols",
-            "SubRows",
-            "WorksheetOptions",
-            "sheet"
-        })
+    _optlist = {
+        "ColSpec",
+        "MaxCols",
+        "MaxRows",
+        "SkipCols",
+        "SkipRows",
+        "SubCols",
+        "SubRows",
+        "WorksheetOptions",
+        "sheet"
+    }
 
     # Alternate names
-    _optmap = dict(BaseFileOpts._optmap,
-        WorksheetOpts="WorksheetOptions",
-        colspec="ColSpec",
-        maxcols="MaxCols",
-        maxrows="MaxRows",
-        sheetopts="WorksheetOptions",
-        skipcols="SkipCols",
-        skiprows="SkipRows",
-        subcols="SubCols",
-        subrows="SubRows")
+    _optmap = {
+        "WorksheetOpts": "WorksheetOptions",
+        "colspec": "ColSpec",
+        "maxcols": "MaxCols",
+        "maxrows": "MaxRows",
+        "sheetopts": "WorksheetOptions",
+        "skipcols": "SkipCols",
+        "skiprows": "SkipRows",
+        "subcols": "SubCols",
+        "subrows": "SubRows",
+    }
 
    # --- Types ---
     # Allowed types
-    _opttypes = dict(BaseFileOpts._opttypes,
-        ColSpec=(list, tuple),
-        MaxCols=int,
-        MaxRows=int,
-        SubCols=int,
-        SubRows=int,
-        SkipCols=int,
-        SkipRows=int,
-        WorksheetOptions=dict)
+    _opttypes = {
+        "ColSpec": (list, tuple),
+        "MaxCols": int,
+        "MaxRows": int,
+        "SubCols": int,
+        "SubRows": int,
+        "SkipCols": int,
+        "SkipRows": int,
+        "WorksheetOptions": dict,
+    }
+
+
+# Combine options with parent class
+XLSFileOpts.combine_opts()
 
 
 # Options

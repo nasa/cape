@@ -50,6 +50,7 @@ class DBResonseOpts(ftypes.BaseDataOpts):
             "csv",
             "mat",
             "simplecsv",
+            "textdata",
             "xls"
         })
 
