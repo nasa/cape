@@ -98,6 +98,10 @@ class DBResponseNull(ftypes.BaseData):
   # Class Attributes
   # =====================
   # <
+   # --- Options ---
+    # Class for options
+    _optsclass = TextDataOpts
+   # --- Old ---
     # Data types
     _DTypeMap = {}
     # Default definition
@@ -138,6 +142,11 @@ class DBResponseNull(ftypes.BaseData):
         self.n = 0
         self.defns = {}
         self.bkpts = {}
+
+        # Process keyword options
+        self.opts = self.process_kw(**kw)
+        # Create a checked and mapped copy for below
+        kw = dict(**self.opts)
 
         # Check for null inputs
         if (fname is None) and (not kw):
@@ -203,7 +212,7 @@ class DBResponseNull(ftypes.BaseData):
             self.read_mat(fmat, **kw)
         else:
             # If reaching this point, process values
-            kw = ftypes.BaseFile.process_kw_values(self, **kw)
+            self.process_kw_values(self)
 
    # --- Class Constructors ---
     # Read data from a CSV instance
