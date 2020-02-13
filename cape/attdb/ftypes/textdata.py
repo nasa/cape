@@ -49,34 +49,36 @@ class TextDataOpts(BaseFileOpts):
   # <
    # --- Global Options ---
     # List of options
-    _optlist = set.union(BaseFileOpts._optlist,
-        {
-            "Delimeter",
-            "Comment",
-            "FirstColBoolMap",
-            "FirstColName"
-        })
+    _optlist = {
+        "Delimeter",
+        "Comment",
+        "FirstColBoolMap",
+        "FirstColName"
+    }
 
     # Alternate names
-    _optmap = dict(BaseFileOpts._optmap,
-        comments="Comment",
-        delim="Delimiter",
-        delimeter="Delimiter")
+    _optmap = {
+        "comments": "Comment",
+        "delim": "Delimiter",
+        "delimeter": "Delimiter",
+    }
 
    # --- Types ---
     # Types allowed
-    _opttypes = dict(BaseFileOpts._opttypes,
-        Comment=typeutils.strlike,
-        Delimiter=typeutils.strlike,
-        FirstColBoolMap=(bool, dict),
-        FirstColName=typeutils.strlike)
+    _opttypes = {
+        "Comment": typeutils.strlike,
+        "Delimiter": typeutils.strlike,
+        "FirstColBoolMap": (bool, dict),
+        "FirstColName": typeutils.strlike,
+    }
 
    # --- Defaults ---
-    _rc = dict(BaseFileOpts._rc,
-        Comment="#",
-        Delimeter=",",
-        FirstColBoolMap=False,
-        FirstColName="_col1")
+    _rc = {
+        "Comment": "#",
+        "Delimeter": ",",
+        "FirstColBoolMap": False,
+        "FirstColName": "_col1",
+    }
   # >
 
 
@@ -88,34 +90,39 @@ class TextDataDefn(BaseFileDefn):
   # <
    # --- Global Options ---
     # List of options
-    _optlist = set.union(BaseFileDefn._optlist,
-        {
-            "Abbreviations",
-            "Keys",
-            "Map"
-        })
+    _optlist = {
+        "Abbreviations",
+        "Keys",
+        "Map"
+    }
 
     # Types
-    _opttypes = dict(BaseFileDefn._opttypes,
-        Abbreviations=(set, list),
-        Keys=(set, list),
-        Map=(bool, dict))
+    _opttypes = {
+        "Abbreviations": (set, list),
+        "Keys": (set, list),
+        "Map": (bool, dict),
+    }
 
    # --- Values ---
     # Allowed values
-    _optvals = dict(BaseFileDefn._optvals)
-    # Extra "Types"
-    _optvals["Type"] = set.union(BaseFileDefn._optvals["Type"],
-        {
+    _optvals = {
+        "Type": {
             "boolmap"
-        })
+        }
+    }
 
    # --- DType ---
     # Map of data types based on *Type*
-    _dtypemap = dict(BaseFileDefn._dtypemap,
-        boolmap="str")
+    _dtypemap = {
+        "boolmap": "str",
+    }
   # >
 
+
+# Combine options with parent class
+TextDataOpts.combine_optdefs()
+TextDataDefn.combine_optdefs()
+TextDataDefn.combine_optdict("_dtypemap")
 
 # Add definition support to option
 TextDataOpts.set_defncls(TextDataDefn)

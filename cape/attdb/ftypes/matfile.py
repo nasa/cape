@@ -57,23 +57,28 @@ class MATFileOpts(BaseFileOpts):
 class MATFileDefn(BaseFileDefn):
    # --- Global Options ---
     # Option list
-    _optlist = set.union(BaseFileDefn._optlist,
-        {
-            "Dimension",
-            "Shape"
-        })
+    _optlist = {
+        "Dimension",
+        "Shape"
+    }
 
     # Alternate names
-    _optmap = dict(BaseFileDefn._optmap,
-        dim="Dimension",
-        ndim="Dimension",
-        shape="Shape")
+    _optmap = {
+        "dim": "Dimension",
+        "ndim": "Dimension",
+        "shape": "Shape",
+    }
 
    # --- Types ---
     # Allowed types
-    _opttypes = dict(BaseFileDefn._opttypes,
-        Dimension=int,
-        Shape=tuple)
+    _opttypes = {
+        "Dimension": int,
+        "Shape": tuple,
+    }
+
+
+# Combine options with parent class
+MATFileDefn.combine_optdefs()
 
 
 # Add definition support to options

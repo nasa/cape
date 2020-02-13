@@ -50,26 +50,31 @@ class BaseFileOpts(BaseDataOpts):
   # <
    # --- Global Options ---
     # List of options
-    _optlist = set.union(BaseDataOpts._optlist,
-        {
-            "Prefix",
-            "Suffix",
-            "Translators"
-        })
+    _optlist = {
+        "Prefix",
+        "Suffix",
+        "Translators"
+    }
 
     # Alternate names
-    _optmap = dict(BaseDataOpts._optmap,
-        prefix="Prefix",
-        suffix="Suffix",
-        translators="Translators")
+    _optmap = {
+        "prefix": "Prefix",
+        "suffix": "Suffix",
+        "translators": "Translators",
+    }
 
    # --- Types ---
     # Types allowed
-    _opttypes = dict(BaseDataOpts._opttypes,
-        Prefix=(typeutils.strlike, dict),
-        Suffix=(typeutils.strlike, dict),
-        Translators=(dict))
+    _opttypes = {
+        "Prefix": (typeutils.strlike, dict),
+        "Suffix": (typeutils.strlike, dict),
+        "Translators": dict,
+    }
   # >
+
+
+# Combine options with parent class
+BaseFileOpts.combine_optdefs()
 
 
 # Definition

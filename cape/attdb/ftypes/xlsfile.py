@@ -95,7 +95,7 @@ class XLSFileOpts(BaseFileOpts):
 
 
 # Combine options with parent class
-XLSFileOpts.combine_opts()
+XLSFileOpts.combine_optdefs()
 
 
 # Options
