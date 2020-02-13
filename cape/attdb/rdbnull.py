@@ -470,6 +470,96 @@ class DBResponseNull(ftypes.BaseData):
    # --- Column Properties ---
   # >
 
+  # ================
+  # Sources
+  # ================
+  # <
+   # --- Get Source ---
+    # Get a source by type and number
+    def get_source(self, ext, n=None):
+        r"""Get a source by category (and number), if possible
+
+        :Call:
+            >>> dbf = db.get_source(ext)
+            >>> dbf = db.get_source(ext, n)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *n*: {``None``} | :class:`int` >= 0
+                Source number
+        :Outputs:
+            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-02-13 ``@ddalle``: First version
+        """
+        # Get sources
+        srcs = self.__dict__.get("sources", {})
+        # Check for *n*
+        if n is None:
+            # Loop through sources
+            for name, dbf in srcs.items():
+                # Check name
+                if name.split("-") == ext:
+                    # Output
+                    return dbf
+            else:
+                # No match
+                return
+        else:
+            # Get explicit name
+            name = "%02i-%s" % (n, ext)
+            # Check for source
+            return srcs.get(name)
+
+    # Get source, creating if necessary
+    def get_dbf(self, ext, cls, n=None, cols=None):
+        r"""Get or create a source by category (and number)
+
+        :Call:
+            >>> dbf = db.get_dbf(ext, cls)
+            >>> dbf = db.get_dbf(ext, cls, n=None, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *n*: {``None``} | :class:`int` >= 0
+                Source number to search for
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+        :Outputs:
+            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-02-13 ``@ddalle``: First version
+        """
+        # Get the source
+        dbf = self.get_source(ext, n=n)
+        # Check if found
+        if dbf is None:
+            # Default columns
+            if cols is None:
+                # Use listed columns
+                cols = self.cols
+            # Get relevant options
+            kw = {}
+            # Set values
+            kw["Values"] = {col: self[col] for col in cols}
+            # Explicit column list
+            kw["cols"] = cols
+            # Copy definitions
+            kw["Definitions"] = self.defns
+            # Create from class
+            dbf = cls(**kw)
+        # Output
+        return dbf
+  # >
+
   # ==================
   # I/O
   # ==================

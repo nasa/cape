@@ -688,6 +688,10 @@ class BaseData(dict):
         if cols is None:
             # Use all listed columns
             cols = self.cols
+            # If empty, get from option
+            if len(cols) == 0:
+                # Get *Columns* option
+                cols = self.opts.get_option("Columns")
         # Loop through those columns
         for col in cols:
             # Get definition
