@@ -42,7 +42,7 @@ import cape.attdb.ftypes as ftypes
 
 
 # Options for RDBNull
-class DBResonseOpts(ftypes.BaseDataOpts):
+class DBResponseOpts(ftypes.BaseDataOpts):
    # --- Global Options ---
     # List of options
     _optlist = {
@@ -100,29 +100,9 @@ class DBResponseNull(ftypes.BaseData):
   # <
    # --- Options ---
     # Class for options
-    _optsclass = TextDataOpts
-   # --- Old ---
-    # Data types
-    _DTypeMap = {}
-    # Default definition
-    _DefaultDefn = {
-        "Type": "float64",
-        "Label": True,
-        "LabelFormat": "%s",
-        "OutputDim": 0,
-    }
-    # Default evaluation parameters
-    _DefaultRole = {
-        "ResponseRole": "xvar",
-        "EvalMethod": "nearest",
-        "XVars": [],
-        "kwargs": {},
-        "xvar_aliases": {},
-        "OutputDim": 0,
-        "OutputXVars": [],
-    }
-    # Definitions based on names
-    _DefaultDefnMap = {}
+    _optscls = DBResponseOpts
+    # Class for definitions
+    _defncls = DBResponseDefn
   # >
 
   # =============
@@ -142,11 +122,12 @@ class DBResponseNull(ftypes.BaseData):
         self.n = 0
         self.defns = {}
         self.bkpts = {}
+        self.sources = {}
 
         # Process keyword options
-        self.opts = self.process_kw(**kw)
+        self.kw = self.process_kw(**kw)
         # Create a checked and mapped copy for below
-        kw = dict(**self.opts)
+        kw = dict(**self.kw)
 
         # Check for null inputs
         if (fname is None) and (not kw):
@@ -213,172 +194,6 @@ class DBResponseNull(ftypes.BaseData):
         else:
             # If reaching this point, process values
             self.process_kw_values(self)
-
-   # --- Class Constructors ---
-    # Read data from a CSV instance
-    @classmethod
-    def from_csv(cls, fname, **kw):
-        r"""Read a database from a CSV file
-
-        :Call:
-            >>> db = DBResponseNull.from_csv(fname, **kw)
-            >>> db = DBResponseNull.from_csv(dbcsv, **kw)
-            >>> db = DBResponseNull.from_csv(f, **kw)
-        :Inputs:
-            *fname*: :class:`str`
-                Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVFile`
-                Existing CSV file
-            *f*: :class:`file`
-                Open CSV file interface
-            *save*, *SaveCSV*: ``True`` | {``False``}
-                Option to save the CSV interface to *db._csv*
-        :Outputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Generic database
-        :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # Create a new instance
-        self = cls()
-        # Call reader method
-        self.read_csv(fname, **kw)
-        # Output
-        return self
-
-    # Read data from a simple CSV instance
-    @classmethod
-    def from_csvsimple(cls, fname, **kw):
-        r"""Read a database from a CSV file
-
-        :Call:
-            >>> db = DBResponseNull.from_simplecsv(fname, **kw)
-            >>> db = DBResponseNull.from_simplecsv(dbcsv, **kw)
-            >>> db = DBResponseNull.from_simplecsv(f, **kw)
-        :Inputs:
-            *fname*: :class:`str`
-                Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
-                Existing CSV file
-            *f*: :class:`file`
-                Open CSV file interface
-            *save*, *SaveCSV*: ``True`` | {``False``}
-                Option to save the CSV interface to *db._csv*
-        :Outputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Generic database
-        :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # Create a new instance
-        self = cls()
-        # Call reader method
-        self.read_csvsimple(fname, **kw)
-        # Output
-        return self
-
-    # Read data from an arbitrary-text data instance
-    @classmethod
-    def from_textdata(cls, fname, **kw):
-        r"""Read a database from a generic text data file
-
-        :Call:
-            >>> db = DBResponseNull.from_textdata(fname, **kw)
-            >>> db = DBResponseNull.from_textdata(dbf, **kw)
-            >>> db = DBResponseNull.from_textdata(f, **kw)
-        :Inputs:
-            *fname*: :class:`str`
-                Name of CSV file to read
-            *dbf*: :class:`cape.attdb.ftypes.TextDataFile`
-                Existing text data file interface
-            *f*: :class:`file`
-                Open CSV file interface
-            *save*: {``True``} | ``False``
-                Option to save the CSV interface to *db._csv*
-        :Outputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Generic database
-        :See Also:
-            * :class:`cape.attdb.ftypes.textdata.TextDataFile`
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # New instance
-        self = cls()
-        # Call reader method
-        self.read_textdata(fname, **kw)
-        # Output
-        return self
-
-    # Read data from an Excel file
-    @classmethod
-    def from_xls(cls, fname, **kw):
-        r"""Read a database from a spreadsheet
-
-        :Call:
-            >>> db = DBResponseNull.from_xls(fname, **kw)
-            >>> db = DBResponseNull.from_xls(dbf, **kw)
-            >>> db = DBResponseNull.from_xls(wb, **kw)
-            >>> db = DBResponseNull.from_xls(ws, **kw)
-        :Inputs:
-            *fname*: :class:`str`
-                Name of CSV file to read
-            *dbf*: :class:`cape.attdb.ftypes.TextDataFile`
-                Existing text data file interface
-            *f*: :class:`file`
-                Open CSV file interface
-            *save*: {``True``} | ``False``
-                Option to save the CSV interface to *db._csv*
-        :Outputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Generic database
-        :See Also:
-            * :class:`cape.attdb.ftypes.textdata.TextDataFile`
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # New instance
-        self = cls()
-        # Call reader method
-        self.read_xls(fname, **kw)
-        # Output
-        return self
-
-    # Read data from an MATLAB file
-    @classmethod
-    def from_mat(cls, fname, **kw):
-        r"""Read a database from a MATLAB ``.mat`` file
-
-        :Call:
-            >>> db = DBResponseNull.from_mat(fname, **kw)
-            >>> db = DBResponseNull.from_mat(dbf, **kw)
-        :Inputs:
-            *fname*: :class:`str`
-                Name of MAT file to read
-            *dbf*: :class:`cape.attdb.ftypes.MATFile`
-                Existing MAT file interface
-            *f*: :class:`file`
-                Open CSV file interface
-            *save*: {``True``} | ``False``
-                Option to save the CSV interface to *db._csv*
-        :Outputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Generic database
-        :See Also:
-            * :class:`cape.attdb.ftypes.textdata.TextDataFile`
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # New instance
-        self = cls()
-        # Call reader method
-        self.read_mat(fname, **kw)
-        # Output
-        return self
 
    # --- Copy ---
     # Copy
@@ -543,61 +358,19 @@ class DBResponseNull(ftypes.BaseData):
   # ==================
   # <
    # --- Column Definitions ---
-    # Get all definitions
-    def get_defns(self):
-        r"""Get dictionary of column definitions
+    # Set a definition
+    def set_defn(self, col, defn, _warnmode=0):
+        r"""Set a column definition, with checks
 
         :Call:
-            >>> defns = db.get_defns()
-        :Inputs:
-            *db*: :class:`attdb.rdbnull.DBResponseNull`
-                Data container
-        :Outputs:
-            *defns*: :class:`dict`\ [:class:`dict`]
-                Definitions for each column
-        :Versions:
-            * 2019-12-31 ``@ddalle``: First version
+            >>> db.set_defn(col, 
         """
-        # Get definitions
-        return self.__dict__.setdefault("defns", {})
-
-    # Get definition for one column
-    def get_col_defn(self, col):
-        r"""Get definition for data column *col*
-
-        :Call:
-            >>> defn = db.get_col_defn(col)
-        :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
-                Database with multidimensional output functions
-            *col*: :class:`str`
-                Name of column to evaluate
-        :Outputs:
-            *defn*: {``{}``} | :class:`dict`
-                Definitions for data column *col*
-        :Effects:
-            *db.defns*: :class:`dict`
-                Created if not existing
-            *db.defns[col]*: :class:`dict`
-                Created if not existing
-        :Versions:
-            * 2019-12-30 ``@ddalle``: First version
-        """
-        # Get all definitions
-        defns = self.get_defns()
-        # Check type
-        if not isinstance(defns, dict):
-            raise TypeError("defns attribute is not a dict")
-        # Get column definition
-        defn = defns.setdefault(col, {})
-        # Check types
-        if not isinstance(defn, dict):
-            raise TypeError("Definition for col '%s' is not a dict" % col)
-        elif not typeutils.isstr(col):
-            raise TypeError(
-                "Data column name must be str (got %s)" % type(col))
-        # Output
-        return defn
+        # Get dictionary of options
+        defns = self.__dict__.setdefault("defns", {})
+        # Create filtered definition
+        defn_checked = self._defncls(_warnmode=_warnmode, **defn)
+        # Set definition
+        defns[col] = defn_checked
 
    # --- Copy/Link ---
     # Link options
@@ -651,8 +424,8 @@ class DBResponseNull(ftypes.BaseData):
                 dbopts[k] = v
 
     # Link definitions
-    def copy_defns(self, defns, prefix=""):
-        r"""Copy a database's column definitions
+    def copy_defns(self, defns, prefix="", _warnmode=0):
+        r"""Copy a data store's column definitions
 
         :Call:
             >>> db.copy_defns(defns, prefix="")
@@ -671,23 +444,28 @@ class DBResponseNull(ftypes.BaseData):
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
+            * 2020-02-13 ``@ddalle``: Split from :func:`copy_options`
         """
         # Check input
-        if not isinstance(opts, dict):
-            raise TypeError("Options input must be dict-type")
-        # Get options
-        dbdefns = self.__dict__.setdefault("defns", {})
-        # Merge definitions
-        for (k, v) in opts.items():
-            # Get existing value
-            v0 = dbdefbs.get(k)
-            # Check types
-            if isinstance(v, dict) and isinstance(v0, dict):
-                # Update dictionary
-                v0.update(**v)
+        if not isinstance(defns, dict):
+            raise TypeError(
+                "'defns' input must be 'dict', got '%s'" % defns.__class__)
+        # Loop through input definitions
+        for (k, defn) in defns.items():
+            # Check definition type
+            if not isinstance(defn, dict):
+                raise TypeError(
+                    ("Definition for col '%s' " % k) +
+                    ("must be 'dict', got '%s'" % defns.__class__))
+            # Apply prefix
+            if prefix:
+                # Prepend column name
+                col = prefix + k
             else:
-                # Overwrite or add
-                dbdefns[k] = v
+                # Reuse column name
+                col = k
+            # Save the definition (in database format)
+            self.set_defn(col, defn, _warnmode)
 
    # --- Column Properties ---
   # >
@@ -722,7 +500,7 @@ class DBResponseNull(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        savecsv = kw.pop("save", kw.pop("SaveCSV", True))
+        save = kw.pop("save", kw.pop("SaveCSV", True))
         # Check input type
         if isinstance(fname, ftypes.CSVFile):
             # Already a CSV database
@@ -733,10 +511,13 @@ class DBResponseNull(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the options
-        self.copy_options(dbf.opts)
+        self.copy_defns(dbf.defns)
         # Save the file interface if needed
-        if savecsv:
-            self._csv = dbf
+        if save:
+            # Name for this source
+            name = "%02i-csv" % len(self.sources)
+            # Save it
+            self.sources[name] = dbf
 
     # Create a CSV file
     def get_CSVFile(self, cols=None):
@@ -840,15 +621,16 @@ class DBResponseNull(ftypes.BaseData):
         else:
             # Create an instance
             dbf = ftypes.CSVSimple(fname, **kw)
-            import pdb
-            pdb.set_trace()
         # Link the data
         self.link_data(dbf)
-        # Copy the options
-        self.copy_options(dbf.opts)
+        # Copy the definitions
+        self.copy_defns(dbf.defns)
         # Save the file interface if needed
-        if savecsv:
-            self._csvsimple = dbf
+        if save:
+            # Name for this source
+            name = "%02i-csvsimple" % len(self.sources)
+            # Save it
+            self.sources[name] = dbf
 
    # --- Text Data ---
     # Read text data fiel
@@ -886,11 +668,14 @@ class DBResponseNull(ftypes.BaseData):
             dbf = ftypes.TextDataFile(fname, **kw)
         # Linke the data
         self.link_data(dbf)
-        # Copy the otpions
-        self.copy_options(dbf.opts)
+        # Copy the definitions
+        self.copy_defns(dbf.defns)
         # Save the file interface if needed
-        if savedat:
-            self._textdata = dbf
+        if save:
+            # Name for this source
+            name = "%02i-textdata" % len(self.sources)
+            # Save it
+            self.sources[name] = dbf
 
    # --- XLS ---
     # Read XLS file
@@ -943,11 +728,14 @@ class DBResponseNull(ftypes.BaseData):
             dbf = ftypes.XLSFile(fname, **kw)
         # Link the data
         self.link_data(dbf)
-        # Copy the options
-        self.copy_options(dbf.opts)
+        # Copy the definitions
+        self.copy_defns(dbf.defns)
         # Save the file interface if needed
         if save:
-            self._xls = dbf
+            # Name for this source
+            name = "%02i-xls" % len(self.sources)
+            # Save it
+            self.sources[name] = dbf
 
 
    # --- MAT ---
@@ -965,7 +753,7 @@ class DBResponseNull(ftypes.BaseData):
                 Name of ``.mat`` file to read
             *dbmat*: :class:`cape.attdb.ftypes.mat.MATFile`
                 Existing MAT file interface
-            *save*, *SaveXLS*: ``True`` | {``False``}
+            *save*, *SaveMAT*: ``True`` | {``False``}
                 Option to save the MAT interface to *db._mat*
         :See Also:
             * :class:`cape.attdb.ftypes.mat.MATFile`
@@ -1007,8 +795,8 @@ class DBResponseNull(ftypes.BaseData):
         dbf.cols = cols
         # Link the data
         self.link_data(dbf)
-        # Copy the options
-        self.copy_options(dbf.opts)
+        # Copy the definitions
+        self.copy_defns(dbf.defns)
         # Link other attributes
         for (k, v) in dbf.__dict__.items():
             # Check if present and nonempty
@@ -1018,7 +806,10 @@ class DBResponseNull(ftypes.BaseData):
             self.__dict__[k] = v
         # Save the file interface if needed
         if save:
-            self._mat = dbf
+            # Name for this source
+            name = "%02i-mat" % len(self.sources)
+            # Save it
+            self.sources[name] = dbf
 
     # Write MAT file
     def write_mat(self, fname, cols=None):

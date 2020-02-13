@@ -172,7 +172,7 @@ class XLSFile(BaseFile):
   # <
    # --- Options ---
     # Class for options
-    _optsclass = XLSFileOpts
+    _optscls = XLSFileOpts
   # >
 
   # =============
@@ -229,9 +229,9 @@ class XLSFile(BaseFile):
             *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *kw*: :class:`dict`
-                Keyword options valid to *db._optsclass*
+                Keyword options valid to *db._optscls*
         :Outputs:
-            *opts*: :class:`XLSFileOpts` | *db._optsclass*
+            *opts*: :class:`XLSFileOpts` | *db._optscls*
                 Combined options
         :Versions:
             * 2020-02-06 ``@ddalle``: First version
@@ -256,9 +256,9 @@ class XLSFile(BaseFile):
             *sheet*: :class:`str`
                 Name of worksheet in question
             *kw*: :class:`dict`
-                Keyword options valid to *db._optsclass*
+                Keyword options valid to *db._optscls*
         :Outputs:
-            *opts*: :class:`XLSFileOpts` | *db._optsclass*
+            *opts*: :class:`XLSFileOpts` | *db._optscls*
                 Combined options from *db.opts* and *kw*
         :Effects:
             *db.opts_by_sheet[sheet]*: :class:`XLSFileOpts`

@@ -87,7 +87,7 @@ class CSVFile(BaseFile, TextInterpreter):
   # <
    # --- Options ---
     # Class for options
-    _optsclass = CSVFileOpts
+    _optscls = CSVFileOpts
   # >
 
   # ======

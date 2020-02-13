@@ -400,7 +400,7 @@ class BaseData(dict):
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
-        *db.opts*: :class:`BaseDataOpts` | *db._optsclass*
+        *db.opts*: :class:`BaseDataOpts` | *db._optscls*
             Options for this instance
         *db.defns*: :class:`dict`\ [:class:`BaseDataDefn`]
             Definitions for each data column
@@ -420,7 +420,7 @@ class BaseData(dict):
   # <
    # --- Options ---
     # Class for options
-    _optsclass = BaseDataOpts
+    _optscls = BaseDataOpts
   # >
 
   # ==========
@@ -528,13 +528,13 @@ class BaseData(dict):
             *kw*: :class:`dict`
                 Arbitrary keyword arguments
         :Outputs:
-            *opts*: :class:`BaseDataOpts` | *db._optsclass*
+            *opts*: :class:`BaseDataOpts` | *db._optscls*
                 Validated options from *kw*
         :Versions:
             * 2020-02-02 ``@ddalle``: First version
         """
         # Get class
-        optscls = self.__class__._optsclass
+        optscls = self.__class__._optscls
         # Convert kwargs to options; return it
         return optscls(**kw)
 

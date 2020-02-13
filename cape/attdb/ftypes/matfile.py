@@ -112,7 +112,7 @@ class MATFile(BaseFile):
   # <
    # --- Options ---
     # Class for options
-    _optsclass = MATFileOpts
+    _optscls = MATFileOpts
   # >
 
   # =============
