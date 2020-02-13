@@ -45,24 +45,28 @@ import cape.attdb.ftypes as ftypes
 class DBResonseOpts(ftypes.BaseDataOpts):
    # --- Global Options ---
     # List of options
-    _optlist = set.union(ftypes.BaseDataOpts._optlist,
-        {
-            "csv",
-            "mat",
-            "simplecsv",
-            "textdata",
-            "xls"
-        })
+    _optlist = {
+        "csv",
+        "mat",
+        "simplecsv",
+        "textdata",
+        "xls"
+    }
 
     # Alternate names
-    _optmap = dict(ftypes.BaseDataOpts._optmap,
-        csvsimple="simplecsv",
-        xlsx="xlsx")
+    _optmap = {
+        "csvsimple": "simplecsv",
+        "xlsx": "xlsx",
+    }
 
 
 # Definitions for RDBNull
 class DBResponseDefn(ftypes.BaseDataDefn):
     pass
+
+
+# Combine options with parent class
+DBResponseOpts.combine_optdefs()
 
 
 # Declare base class
