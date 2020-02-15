@@ -791,9 +791,10 @@ class BaseData(dict):
                 Value(s) to save for specified column
         :Versions:
             * 2019-11-12 ``@ddalle``: Started
+            * 2020-02-14 ``@ddalle``: Tweak rules for *cols* append
         """
         # Check if column is present
-        if col not in self.cols:
+        if col not in self:
             self.cols.append(col)
         # Check type
         if isinstance(v, np.ndarray):

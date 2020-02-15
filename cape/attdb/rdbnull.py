@@ -609,42 +609,6 @@ class DBResponseNull(ftypes.BaseData):
             # Save it
             self.sources[name] = dbf
 
-    # Create a CSV file
-    def get_CSVFile(self, cols=None):
-        r"""Turn data container into CSV file interface
-
-        :Call:
-            >>> dbcsv = db.get_CSVFile(cols=None)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Data container
-            *cols*: {``None``} | :class:`list`\ [:class:`str`]
-                List of columns to include (default *db.cols*)
-        :Outputs:
-            *dbcsv*: :class:`cape.attdb.ftypes.CSVFile`
-                CSV file interface
-        :Versions:
-            * 2019-12-06 ``@ddalle``: First version
-        """
-        # Default column list
-        if cols is None:
-            cols = self.cols
-        # Get options interface
-        opts = self.__dict__.get("opts", {})
-        # Get relevant options
-        kw = {}
-        for (k, vdef) in ftypes.CSVFile._DefaultOpts.items():
-            # Set property
-            kw[k] = opts.get(k, vdef)
-        # Set values
-        kw["Values"] = {col: self[col] for col in cols}
-        # Turn off expansion
-        kw["ExpandScalars"] = False
-        # Explicit column list
-        kw["cols"] = cols
-        # Create instance
-        return ftypes.CSVFile(**kw)
-
     # Write dense CSV file
     def write_csv_dense(self, fname, cols=None):
         r""""Write dense CSV file
@@ -666,14 +630,10 @@ class DBResponseNull(ftypes.BaseData):
                 List of columns to write
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
+            * 2020-02-14 ``@ddalle``: Uniform "sources" interface
         """
-        # Check for CSV handle
-        if "_csv" in self.__dict__:
-            # Already ready
-            dbcsv = self._csv
-        else:
-            # Get a CSV file interface
-            dbcsv = self.get_CSVFile(cols=cols)
+        # Get CSV file interface
+        dbcsv = self.get_dbf("csv", ftypes.CSVFile, cols=cols)
         # Write it
         dbcsv.write_csv_dense(fname, cols=cols)
 
@@ -922,51 +882,10 @@ class DBResponseNull(ftypes.BaseData):
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
-        # Check for CSV handle
-        if "_csv" in self.__dict__:
-            # Already ready
-            dbmat = self._mat
-        else:
-            # Get a CSV file interface
-            dbmat = self.get_MATFile(cols=cols)
+        # Get/create MAT file interface
+        dbmat = self.get_dbf("mat", ftypes.MATFile, cols=cols)
         # Write it
         dbmat.write_mat(fname, cols=cols)
-
-    # Create a CSV file
-    def get_MATFile(self, cols=None):
-        r"""Turn data container into MAT file interface
-
-        :Call:
-            >>> dbmat = db.get_MATFile(cols=None)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
-                Data container
-            *cols*: {``None``} | :class:`list`\ [:class:`str`]
-                List of columns to include (default *db.cols*)
-        :Outputs:
-            *dbmat*: :class:`cape.attdb.ftypes.MATFile`
-                MAT file interface
-        :Versions:
-            * 2019-12-17 ``@ddalle``: First version
-        """
-        # Default column list
-        if cols is None:
-            cols = self.cols
-        # Get options interface
-        opts = self.__dict__.get("opts", {})
-        # Get relevant options
-        kw = {}
-        for (k, vdef) in ftypes.MATFile._DefaultOpts.items():
-            # Set property
-            kw[k] = opts.get(k, vdef)
-        # Set values
-        kw["Values"] = {col: self[col] for col in cols}
-        # Turn off expansion
-        kw["ExpandScalars"] = False
-        # Explicit column list
-        kw["cols"] = cols
-        # Create instance
-        return ftypes.MATFile(**kw)
   # >
 
   # ==================
@@ -1611,4 +1530,3 @@ class DBResponseNull(ftypes.BaseData):
         # Output
         return V
   # >
-
