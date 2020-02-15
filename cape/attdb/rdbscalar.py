@@ -945,7 +945,7 @@ class DBResponseScalar(DBResponseNull):
         elif not isinstance(args, list):
             raise TypeError("'args' list must be list (got %s)" % type(args))
         # Call function
-        self.CreateSliceRBFs([col], args, **kw)
+        self.create_slice_rbfs([col], args, **kw)
 
     # Schedule-RBFs
     def _construct_rbf_map(self, col, *a, **kw):
@@ -974,7 +974,7 @@ class DBResponseScalar(DBResponseNull):
         elif not isinstance(args, list):
             raise TypeError("'args' list must be list (got %s)" % type(args))
         # Call function
-        self.CreateSliceRBFs([col], args, **kw)
+        self.create_slice_rbfs([col], args, **kw)
 
    # --- Options: Get ---
     # Get argument list
@@ -2557,14 +2557,14 @@ class DBResponseScalar(DBResponseNull):
         sys.stdout.flush()
 
     # Regularization
-    def CreateSliceRBFs(self, cols, args, I=None, **kw):
+    def create_slice_rbfs(self, cols, args, I=None, **kw):
         r"""Create radial basis functions for each slice of *args[0]*
 
         The first entry in *args* is interpreted as a "slice" key; RBFs
         will be constructed at constant values of *args[0]*.
 
         :Call:
-            >>> db.CreateSliceRBFs(coeffs, args, I=None)
+            >>> db.create_slice_rbfs(coeffs, args, I=None)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions

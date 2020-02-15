@@ -1006,12 +1006,12 @@ class DBResponseNull(ftypes.BaseData):
   # <
    # --- Breakpoint Creation ---
     # Get automatic break points
-    def GetBreakPoints(self, cols, nmin=5, tol=1e-12):
+    def get_bkpts(self, cols, nmin=5, tol=1e-12):
         r"""Create automatic list of break points for interpolation
 
         :Call:
-            >>> db.GetBreakPoints(col, nmin=5, tol=1e-12)
-            >>> db.GetBreakPoints(cols, nmin=5, tol=1e-12)
+            >>> db.get_bkpts(col, nmin=5, tol=1e-12)
+            >>> db.get_bkpts(cols, nmin=5, tol=1e-12)
         :Inputs:
             *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
                 Data container
@@ -1081,7 +1081,7 @@ class DBResponseNull(ftypes.BaseData):
             bkpts[col] = B
 
     # Map break points from other key
-    def MapBreakPoints(self, cols, scol, tol=1e-12):
+    def map_bkpts(self, cols, scol, tol=1e-12):
         r"""Map break points of one column to one or more others
 
         The most common purpose to use this method is to create
@@ -1092,7 +1092,7 @@ class DBResponseNull(ftypes.BaseData):
         flight.
 
         :Call:
-            >>> db.MapBreakPoints(cols, scol, tol=1e-12)
+            >>> db.map_bkpts(cols, scol, tol=1e-12)
         :Inputs:
             *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
                 Data container
@@ -1120,7 +1120,7 @@ class DBResponseNull(ftypes.BaseData):
         bkpts = self.__dict__.get("bkpts")
         # Check break points for *scol*
         if bkpts is None:
-            raise AttributeError("No 'bkpts' attribute; call GetBreakPoints()")
+            raise AttributeError("No 'bkpts' attribute; call get_bkpts()")
         elif scol not in bkpts:
             raise AttributeError("No bkpts for col '%s'" % col)
         # Get data type of *scol*
@@ -1167,7 +1167,7 @@ class DBResponseNull(ftypes.BaseData):
             bkpts[col] = V
 
     # Schedule break points at slices at other key
-    def ScheduleBreakPoints(self, cols, scol, nmin=5, tol=1e-12):
+    def schedule_bkpts(self, cols, scol, nmin=5, tol=1e-12):
         r"""Create lists of unique values at each unique value of *scol*
 
         This function creates a break point list of the unique values of
@@ -1178,7 +1178,7 @@ class DBResponseNull(ftypes.BaseData):
         Mach number in *db.bkpts["mach"]*.
 
         :Call:
-            >>> db.ScheduleBreakPoints(cols, scol)
+            >>> db.schedule_bkpts(cols, scol)
         :Inputs:
             *db*: :class:`cape.attdb.rdbnull.DBResponseNull`
                 Data container
@@ -1208,7 +1208,7 @@ class DBResponseNull(ftypes.BaseData):
         bkpts = self.__dict__.get("bkpts")
         # Check break points for *scol*
         if bkpts is None:
-            raise AttributeError("No 'bkpts' attribute; call GetBreakPoints()")
+            raise AttributeError("No 'bkpts' attribute; call get_bkpts()")
         elif scol not in bkpts:
             raise AttributeError("No bkpts for col '%s'" % col)
         # Get data type of *scol*
