@@ -286,6 +286,44 @@ def imshow(png, **kw):
     return _imshow(png, **kw)
 
 
+# Scatter function with options check
+def scatter(xv, yv, s=None, c=None, **kw):
+    r"""Call the :func:`scatter` function with cycling options
+
+    :Call:
+        >>> h = scatter(xv, yv, **kw)
+        >>> h = scatter(xv, yv, s=None, c=None, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *s*: :class:`np.ndarray` | :class:`float`
+            Size of marker for each data point, in points^2
+        *c*: :class:`np.ndarray` | :class:`list`
+            Color or color description to use for each data point;
+            usually an array of floats that maps into color map
+    :Keyword Arguments:
+        %(keys)s
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2020-02-14 ``@ddalle``: First version
+    """
+    # Apply optional positional arguments
+    if s:
+        kw["ScatterSize"] = s
+    if c:
+        kw["ScatterColor"] = c
+    # Process options
+    opts = MPLOpts(_section="scatter", **kw)
+    # Get plot options
+    kw_p = opts.get_option("ScatterOptions")
+    # Call root function
+    return _scatter(xv, yv, **kw_p)
+
+
 # Manage single subplot extents
 def axes_adjust(fig=None, **kw):
     r"""Manage margins of one axes handle
@@ -1559,6 +1597,52 @@ def _plot(xv, yv, fmt=None, **kw):
     else:
         # No format argument
         h = plt.plot(xv, yv, **kw_p)
+    # Output
+    return h
+
+
+# Scatter part
+def _scatter(xv, yv, s=None, c=None, **kw):
+    r"""Call the :func:`plot` function with cycling options
+
+    :Call:
+        >>> h = _scatter(xv, yv, **kw)
+        >>> h = _scatter(xv, yv, s=None, c=None, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *s*: :class:`np.ndarray` | :class:`float`
+            Size of marker for each data point, in points^2
+        *c*: :class:`np.ndarray` | :class:`list`
+            Color or color indicator to use for each data point; usually
+            an array of floats that maps into color map
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.scatter`
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2020-02-14 ``@ddalle``: First version
+    """
+    # Ensure plot() is available
+    _import_pyplot()
+    # Get index
+    i = kw.pop("Index", kw.pop("i", 0))
+    # Get rotation option
+    r = kw.pop("Rotate", kw.pop("rotate", False))
+    # Flip inputs
+    if r:
+        yv, xv = xv, yv
+    # Initialize plot options
+    kw_p = MPLOpts.select_phase(kw, i)
+    # Call scatter
+    h = plt.scatter(xv, yv, s=None, c=None, **kw_p)
     # Output
     return h
 

@@ -431,6 +431,13 @@ class MPLOpts(kwutils.KwargHandler):
             "ErrorBarMarker",
             "FillBetweenOptions"
         ],
+        "scatter": [
+            "Index",
+            "Rotate",
+            "ScatterOptions",
+            "ScatterColor",
+            "ScatterSize"
+        ],
         "spines": [
             "Spines",
             "SpineOptions",
@@ -718,6 +725,12 @@ class MPLOpts(kwutils.KwargHandler):
             "PlotLineWidth": "lw",
             "PlotLineStyle": "ls"
         },
+        "ScatterOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "ScatterColor": "c",
+            "ScatterSize": "s",
+        },
        "TickOptions": {
             "TickFontSize": "labelsize",
             "TickRotation": "rotation",
@@ -860,6 +873,9 @@ class MPLOpts(kwutils.KwargHandler):
         "RightSpineTicks": _rst_booln,
         "RightTickLabels": _rst_booln,
         "Rotate": _rst_boolt,
+        "ScatterColor": "{``None``} | :class:`np.ndarray` | :class:`list`",
+        "ScatterOptions": _rst_dict,
+        "ScatterSize": "{``None``} | :class:`np.ndarray` | :class:`float`",
         "ShowError": _rst_booln,
         "ShowMinMax": _rst_booln,
         "ShowUncertainty": _rst_booln,
@@ -990,6 +1006,11 @@ class MPLOpts(kwutils.KwargHandler):
         "RightSpineOptions": "Additional options for right spine",
         "RightTickLabels": "Turn on/off tick labels on right spine",
         "Rotate": """Option to flip *x* and *y* axes""",
+        "ScatterColor": (
+            "Color or color description to use for each data point; " +
+            "usually an array of floats that maps into color map"),
+        "ScatterOptions": """Options to :func:`plt.scatter`""",
+        "ScatterSize": "Size [pt^2] of marker for each data point",
         "ShowError": """Show "error" plot using *xerr*""",
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
         "ShowUncertainty": """Plot uncertainty bounds""",
