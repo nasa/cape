@@ -132,7 +132,7 @@ class DBResponseLinear(DBResponseScalar):
             * 2019-12-30 ``@ddalle``: First version
         """
         # Get column definition
-        defn = self.get_col_defn(col)
+        defn = self.get_defn(col)
         # Get dimensionality
         xargs = defn.get("OutputXVars")
         # De-None
@@ -163,7 +163,7 @@ class DBResponseLinear(DBResponseScalar):
             * 2019-12-30 ``@ddalle``: First version
         """
         # Get column definition
-        defn = self.get_col_defn(col)
+        defn = self.get_defn(col)
         # De-None
         if xargs is None:
             xargs = []

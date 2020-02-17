@@ -1,0 +1,25 @@
+{
+    "CopyFiles": [
+        "header_categories.xlsx",
+        "test01_workbook.py"
+    ],
+    "Commands": [
+        "python2 test01_workbook.py",
+        "python3 test01_workbook.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.02.out"
+    ],
+    "CommandTitles": [
+        "Auto-Workbook with Arrays: Python 2",
+        "Auto-Workbook with Arrays: Python 3"
+    ],
+    "DocFilesShow": [
+        "test01_workbook.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/ftypes",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
