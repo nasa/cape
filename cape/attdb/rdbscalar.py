@@ -708,23 +708,22 @@ class DBResponseScalar(DBResponseNull):
 
    # --- Declaration ---
     # Set evaluation methods
-    def SetEvalMethod(self, cols=None, method=None, args=None, *a, **kw):
-        r"""Set evaluation method for a one or more columns
+    def set_responses(self, cols, method, args, *a, **kw):
+        r"""Set evaluation method for a list of columns
 
         :Call:
-            >>> db.SetEvalMethod(col, method=None, args=None, **kw)
-            >>> db.SetEvalMethod(cols, method=None, args=None, **kw)
+            >>> db.set_responses(cols, method, args, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns for which to declare evaluation rules
-            *col*: :class:`str`
-                Name of column for which to declare evaluation rules
             *method*: ``"nearest"`` | ``"linear"`` | :class:`str`
                 Response (lookup/interpolation/evaluation) method name 
             *args*: :class:`list`\ [:class:`str`]
                 List of input arguments
+            *a*: :class:`tuple`
+                Args passed to constructor, if used
             *aliases*: {``{}``} | :class:`dict`\ [:class:`str`]
                 Dictionary of alternate variable names during
                 evaluation; if *aliases[k1]* is *k2*, that means *k1*
@@ -732,7 +731,7 @@ class DBResponseScalar(DBResponseNull):
             *eval_kwargs*: {``{}``} | :class:`dict`
                 Keyword arguments passed to functions
             *I*: {``None``} | :class:`np.ndarray`
-                Indices of cases to include in response surface {all}
+                Indices of cases to include in response {all}
             *function*: {``"cubic"``} | :class:`str`
                 Radial basis function type
             *smooth*: {``0.0``} | :class:`float` >= 0
@@ -741,31 +740,29 @@ class DBResponseScalar(DBResponseNull):
         :Versions:
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2020-02-18 ``@ddalle``: Name from :func:`SetEvalMethod`
         """
         # Check for list
-        if isinstance(cols, typeutils.strlike):
-            # Singleton list
-            cols = [cols]
-        elif not isinstance(cols, (list, tuple, set)):
+        if not isinstance(cols, (list, tuple, set)):
             # Not a list
             raise TypeError(
-                "Columns to specify evaluation for must be list; " +
+                "Response col list must be list, " +
                 ("got '%s'" % type(cols)))
         # Loop through coefficients
         for col in cols:
             # Check type
             if not isinstance(col, typeutils.strlike):
                 # Not a string
-                raise TypeError("Eval col must be a string")
+                raise TypeError("Response col must be a string")
             # Specify individual col
-            self._set_method1(col, method, args, *a, **kw)
+            self.set_response(col, method, args, *a, **kw)
 
     # Save a method for one coefficient
-    def _set_method1(self, col=None, method=None, args=None, *a, **kw):
+    def set_response(self, col, method, args, *a, **kw):
         r"""Set evaluation method for a single column
 
         :Call:
-            >>> db._set_method1(col=None, method=None, args=None, **kw)
+            >>> db.set_response(col, method, args, **kw)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions
@@ -775,6 +772,8 @@ class DBResponseScalar(DBResponseNull):
                 Response (lookup/interpolation/evaluation) method name 
             *args*: :class:`list`\ [:class:`str`]
                 List of input arguments
+            *a*: :class:`tuple`
+                Args passed to constructor, if used
             *ndim*: {``0``} | :class:`int` >= 0
                 Output dimensionality
             *aliases*: {``{}``} | :class:`dict`\ [:class:`str`]
@@ -794,6 +793,7 @@ class DBResponseScalar(DBResponseNull):
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-30 ``@ddalle``: Version 2.0; map of methods
+            * 2020-02-18 ``@ddalle``: Name from :func:`_set_method1`
         """
        # --- Input checks ---
         # Check inputs
@@ -845,7 +845,7 @@ class DBResponseScalar(DBResponseNull):
             # Call the constructor
             constructor_col(*a, args=args, **kw)
         # Save method name
-        self.set_eval_method_(col, method)
+        self.set_eval_method(col, method)
         # Argument list is the same for all methods
         self.set_eval_args(col, args)
 
@@ -1261,11 +1261,11 @@ class DBResponseScalar(DBResponseNull):
         eval_args[col] = list(args)
 
     # Set evaluation method
-    def set_eval_method_(self, col, method):
+    def set_eval_method(self, col, method):
         r"""Set name (only) of evaluation method
 
         :Call:
-            >>> db.set_eval_method_(col, method)
+            >>> db.set_eval_method(col, method)
         :Inputs:
             *db*: :class:`attdb.rdbscalar.DBResponseScalar`
                 Database with scalar output functions
