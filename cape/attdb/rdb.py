@@ -4538,8 +4538,8 @@ class DataKit(ftypes.BaseData):
         # Default columns
         if cols is None:
             # Take all columns with a "float" type
-            cols = [col for col in db.cols
-                if db.get_col_dtype(col).startswith("float")
+            cols = [col for col in self.cols
+                if self.get_col_dtype(col).startswith("float")
             ]
         # Check *cols* type
         if not isinstance(cols, list):
