@@ -4298,6 +4298,7 @@ class DataKit(ftypes.BaseData):
 
         :Call:
             >>> I, J = db.find(args, *a, **kw)
+            >>> Imap, J = db.find(args, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -4313,6 +4314,8 @@ class DataKit(ftypes.BaseData):
                 Dictionary of tolerances specific to arguments
             *once*: ``True`` | {``False``}
                 Option to find max of one *db* index per test point
+            *mapped*: ``True`` | {``False``}
+                Option to switch output to *Imap* (overrides *once*)
             *kw*: :class:`dict`
                 Additional values to use during evaluation
         :Outputs:
@@ -4320,6 +4323,8 @@ class DataKit(ftypes.BaseData):
                 Indices of cases in *db* that match conditions
             *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of (*a*, *kw*) that have a match in *db*
+            *Imap*: :class:`list`\ [:class:`np.ndarray`]
+                List of *db* indices for each test point in *J*
         :Versions:
             * 2019-03-11 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: From :func:`DBCoeff.FindMatches`
@@ -4346,6 +4351,8 @@ class DataKit(ftypes.BaseData):
         tols = kw.pop("tols", {})
         # Option for unique matches
         once = kw.pop("once", False)
+        # Option for mapped matches
+        mapped = kw.pop("mapped", False)
         # Number of values
         n0 = V.size
        # --- Mask Prep ---
@@ -4407,6 +4414,9 @@ class DataKit(ftypes.BaseData):
         MI = np.arange(n) < 0
         # Initialize tests for input data indices (set to ``False``)
         MJ = np.arange(nx) < 0
+        # Initialize maps if needed
+        if mapped:
+            Imap = []
         # Loop through entries
         for i in range(nx):
             # Initialize tests for this point (set to ``True``)
@@ -4440,7 +4450,17 @@ class DataKit(ftypes.BaseData):
                 Mj[i] = found
                 continue
             # Check reporting method
-            if once:
+            if mapped:
+                # Save test-point status (no uniqueness check)
+                MJ[i] = found
+                # Find matches
+                I = np.where(Mi)[0]
+                # Invert mask if needed
+                if mask is not None:
+                    I = mask_index[I]
+                # Append to map
+                Imap.append(I)
+            elif once:
                 # Check for uniqueness
                 M2 = np.logical_and(np.logical_not(MI), Mi)
                 # Check that
@@ -4459,14 +4479,20 @@ class DataKit(ftypes.BaseData):
                 MJ[i] = found
                 # Combine point constraints (*Mi* multiple matches)
                 MI = np.logical_or(MI, Mi)
-        # Convert masks to indices
-        I = np.where(MI)[0]
+        # Convert test point status to indices
         J = np.where(MJ)[0]
-        # Invert mask if needed
-        if mask is not None:
-            I = mask_index[I]
-        # Return combined set of matches
-        return I, J
+        # Convert database point mask to indices
+        if mapped:
+            # Output map and test point index array
+            return Imap, J
+        else:
+            # Convert masks to indices
+            I = np.where(MI)[0]
+            # Invert mask if needed
+            if mask is not None:
+                I = mask_index[I]
+            # Return combined set of matches
+            return I, J
 
     # Find matches from a target
     def find_pairwise(self, dbt, maskt=None, cols=None, **kw):
@@ -4474,6 +4500,7 @@ class DataKit(ftypes.BaseData):
 
         :Call:
             >>> I, J = db.find_pairwise(dbt, maskt, cols=None, **kw)
+            >>> Imap, J = db.find_pairwise(dbt, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data kit with response surfaces
@@ -4491,6 +4518,8 @@ class DataKit(ftypes.BaseData):
                 Dictionary of tolerances specific to arguments
             *once*: ``True`` | {``False``}
                 Option to find max of one *db* index per test point
+            *mapped*: ``True`` | {``False``}
+                Option to switch output to *Imap* (overrides *once*)
             *kw*: :class:`dict`
                 Additional values to use during evaluation
         :Outputs:
@@ -4498,6 +4527,8 @@ class DataKit(ftypes.BaseData):
                 Indices of cases in *db* that have a match in *dbt*
             *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases in *dbt* that have a match in *db*
+            *Imap*: :class:`list`\ [:class:`np.ndarray`]
+                List of *db* indices for each test point in *J*
         :Versions:
             * 2020-02-20 ``@ddalle``: First version
         """
