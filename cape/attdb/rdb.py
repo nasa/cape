@@ -4323,8 +4323,10 @@ class DataKit(ftypes.BaseData):
        # --- Input Checks ---
         # Find a valid argument
         for arg in args:
-            # Check if it's present
-            if arg in self:
+            # Attempt to either access or convert it
+            V = self.get_all_values(arg)
+            # Check if it was processed
+            if V is not None:
                 # Found at least one valid argument
                 break
         else:
@@ -4338,7 +4340,8 @@ class DataKit(ftypes.BaseData):
         # Specific tolerances
         tols = kw.pop("tols", {})
         # Number of values
-        n = len(self[arg])
+        n0 = V.size
+       # --- Mask Prep ---
         # Check mask type
         if mask is None:
             # Ok
@@ -4356,29 +4359,36 @@ class DataKit(ftypes.BaseData):
         # Filter mask
         if mask is None:
             # Create indices
-            mask_index = None
+            mask_index = np.arange(n0)
         elif mask.dtype.name == "bool":
             # Get indices
             mask_index = np.where(mask)[0]
+            # Check consistency
+            if mask.size != n0:
+                # Size mismatch
+                raise IndexError(
+                    ("Index mask has size %i; " % mask.size) +
+                    ("test values size is %i" % n0))
         elif mask.dtype.name.startswith("int"):
             # Convert to indices
             mask_index = mask
+            # Check values
+            if np.max(mask) >= n0:
+                raise IndexError(
+                    "Cannot mask element %i for test values with size %i"
+                    % (np.max(mask), n0))
         else:
             # Bad type
             raise TypeError("Mask must have dtype 'bool' or 'int'")
+        # Update test size
+        n = mask_index.size
        # --- Argument values ---
         # Initialize lookup point
         x = []
         # Loop through arguments
-        for i, k in enumerate(args):
+        for i, col in enumerate(args):
             # Get value
-            xi = self.get_arg_value(i, k, *a, **kw)
-            # Check for mask
-            if mask and len(xi) > 1:
-                # Apply mask
-                x.append(np.asarray(xi)[mask])
-            else:
-                # Save entire list
+            xi = self.get_arg_value(i, col, *a, **kw)
             # Save it
             x.append(np.asarray(xi))
         # Normalize arguments
@@ -4396,17 +4406,20 @@ class DataKit(ftypes.BaseData):
             Mi = np.arange(n) > -1
             # Loop through arguments
             for j, k in enumerate(args):
-                # Get total set of values
+                # Get array of database values
                 Xk = self.get_all_values(k)
                 # Check if present
                 if (k is None) or (Xk is None):
                     continue
                 # Check size
-                if (i == 0) and (len(Xk) != n):
+                if len(Xk) != n0:
                     raise ValueError(
                         ("Parameter '%s' has size %i, " % (k, len(Xk))) +
                         ("expecting %i" % n))
-                # Get argument value
+                # Apply mask
+                if mask is not None:
+                    Xk = Xk[mask]
+                # Get input test value
                 xi = X[j][i]
                 # Get tolerance for this key
                 xtol = tols.get(k, tol)
@@ -4414,11 +4427,14 @@ class DataKit(ftypes.BaseData):
                 Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
             # Combine point constraints
             MI = np.logical_or(MI, Mi)
-            # Check for any matches of this data point
+            # Check for any matches of this test point
             MJ[i] = np.any(Mi)
         # Convert masks to indices
         I = np.where(MI)[0]
         J = np.where(MJ)[0]
+        # Invert mask if needed
+        if mask is not None:
+            I = mask_index[I]
         # Return combined set of matches
         return I, J
 

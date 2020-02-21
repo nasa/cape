@@ -32,6 +32,6 @@ import sys
 import numpy as np
 
 # Local modules
-from . import rdbscalar
+from . import rdb
 
 
