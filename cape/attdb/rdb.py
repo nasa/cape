@@ -4305,10 +4305,14 @@ class DataKit(ftypes.BaseData):
                 List of columns names to match
             *a*: :class:`tuple`\ [:class:`float`]
                 Values of the arguments
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
             *tol*: {``1e-4``} | :class:`float` >= 0
                 Default tolerance for all *args*
             *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
                 Dictionary of tolerances specific to arguments
+            *once*: ``True`` | {``False``}
+                Option to find max of one *db* index per test point
             *kw*: :class:`dict`
                 Additional values to use during evaluation
         :Outputs:
@@ -4319,6 +4323,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-03-11 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: From :func:`DBCoeff.FindMatches`
+            * 2020-02-20 ``@ddalle``: Added *mask*, *once* kwargs
         """
        # --- Input Checks ---
         # Find a valid argument
@@ -4339,6 +4344,8 @@ class DataKit(ftypes.BaseData):
         tol = kw.pop("tol", 1e-4)
         # Specific tolerances
         tols = kw.pop("tols", {})
+        # Option for unique matches
+        once = kw.pop("once", False)
         # Number of values
         n0 = V.size
        # --- Mask Prep ---
@@ -4425,10 +4432,33 @@ class DataKit(ftypes.BaseData):
                 xtol = tols.get(k, tol)
                 # Check tolerance
                 Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
-            # Combine point constraints
-            MI = np.logical_or(MI, Mi)
             # Check for any matches of this test point
-            MJ[i] = np.any(Mi)
+            found = np.any(Mi)
+            # Got to next test point if no match
+            if not found:
+                # Save status
+                Mj[i] = found
+                continue
+            # Check reporting method
+            if once:
+                # Check for uniqueness
+                M2 = np.logical_and(np.logical_not(MI), Mi)
+                # Check that
+                found = np.any(M2)
+                # Save status
+                MJ[i] = found
+                # Exit if not found (match but previously used)
+                if not found:
+                    continue
+                # Select first not-previously-used match
+                j2 = np.where(M2)[0][0]
+                # Save it
+                MI[j2] = True
+            else:
+                # Save test-point status (no uniqueness check)
+                MJ[i] = found
+                # Combine point constraints (*Mi* multiple matches)
+                MI = np.logical_or(MI, Mi)
         # Convert masks to indices
         I = np.where(MI)[0]
         J = np.where(MJ)[0]
@@ -4439,36 +4469,40 @@ class DataKit(ftypes.BaseData):
         return I, J
 
     # Find matches from a target
-    def find_target(self, dbt, I=None, cols=None, **kw):
+    def find_pairwise(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
 
         :Call:
-            >>> I, J = db.find_target(dbt, I=None, cols=None)
+            >>> I, J = db.find_pairwise(dbt, maskt, cols=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data kit with response surfaces
-            *dbt*: :class:`cape.attdb.rdb.DataKit`
-                Target data kit
-            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
-                Cases in *db* to consider
+            *dbt*: :class:`dict` | :class:`cape.attdb.rdb.DataKit`
+                Target data set
+            *maskt*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *dbt* to consider
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
             *cols*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 List of cols to compare (default all *db* float cols)
             *tol*: {``1e-4``} | :class:`float` >= 0
                 Default tolerance for all *args*
             *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
                 Dictionary of tolerances specific to arguments
+            *once*: ``True`` | {``False``}
+                Option to find max of one *db* index per test point
             *kw*: :class:`dict`
                 Additional values to use during evaluation
         :Outputs:
             *I*: :class:`np.ndarray`\ [:class:`int`]
-                Indices of cases in *db* that match conditions
+                Indices of cases in *db* that have a match in *dbt*
             *J*: :class:`np.ndarray`\ [:class:`int`]
-                Indices of (*a*, *kw*) that have a match in *db*
+                Indices of cases in *dbt* that have a match in *db*
         :Versions:
             * 2020-02-20 ``@ddalle``: First version
         """
         # Check types
-        if not isinstance(dbt, DataKit):
+        if not isinstance(dbt, dict):
             raise TypeError("Target database is not a DataKit")
         # Default columns
         if cols is None:
@@ -4483,32 +4517,84 @@ class DataKit(ftypes.BaseData):
         # Check for nontrivial cols
         if len(cols) == 0:
             raise ValueError("Empty column list")
-        # Default indices
-        if I is None:
-            # Use all points from first column
-            n = self[cols[0]].size
-            # Create index list
-            I = np.arange(n)
+        # Check mask type
+        if maskt is None:
+            # Ok
+            pass
+        elif not isinstance(maskt, np.ndarray):
+            # Bad type
+            raise TypeError(
+                "Target mask must be 'ndarray', got '%s'"
+                % type(maskt).__name__)
+        elif maskt.size == 0:
+            # Empty mask
+            raise IndexError("Target index mask cannot be empty")
+        elif maskt.ndim != 1:
+            # Dimension error
+            raise IndexError("Target index mask must be one-dimensional array")
+        # Filter mask
+        if maskt is None:
+            # No inversion
+            pass
+        elif maskt.dtype.name == "bool":
+            # Get indices
+            maskt_index = np.where(maskt)[0]
+        elif maskt.dtype.name.startswith("int"):
+            # Convert to indices
+            maskt_index = maskt
+        else:
+            # Bad type
+            raise TypeError("Target mask must have dtype 'bool' or 'int'")
         # Create list or args and their values to :func:`find`
         args = []
         argvals = []
+        # Check mode for data-kit (versus generic dict) target
+        isdatakit = isinstance(dbt, DataKit)
         # Loop through columns
         for col in cols:
             # Check type
             if not typeutils.isstr(col):
                 raise TypeError(
                     "Col name must be 'str', got '%s'" % type(col).__name__)
-            # Check presence
-            if col not in self:
+            # Get *dbt* values
+            if isdatakit:
+                # Get value; use converters if necessary
+                V = dbt.get_all_values(col)
+            else:
+                # Get value from a dict
+                V = dbt.get(col)
+            # Ensure array
+            if V is None:
+                # No match
                 continue
-            elif col not in dbt:
+            elif isinstance(V, (list, np.ndarray)):
+                # Check size
+                if len(V) == 0:
+                    continue
+                # Check data type
+                if typeutils.isstr(V[0]):
+                    # No strings
+                    continue
+                # If list, convert
+                if isinstance(V, list):
+                    # Force array
+                    V = np.asarray(V)
+                # Apply mask
+                if maskt is not None:
+                    V = V[maskt]
+            elif not isinstance(V, (int, float, complex)):
+                # Non-numeric type
                 continue
             # Save to arg list
             args.append(col)
             # Save value
-            argvals.append(dbt[col])
+            argvals.append(V)
         # Find matches in *db* based on args
         I, J = self.find(args, *argvals, **kw)
+        # Check for mask
+        if maskt is not None:
+            # Invert mask
+            J = maskt_index[J]
         # Output
         return I, J
             
