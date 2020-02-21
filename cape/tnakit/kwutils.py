@@ -26,7 +26,7 @@ from . import typeutils
 
 
 # Map keywords
-def map_kw(self, kwmap, **kw):
+def map_kw(kwmap, **kw):
     r"""Map alternate keyword names with no checks
 
     :Call:
@@ -55,11 +55,11 @@ def map_kw(self, kwmap, **kw):
 
 
 # Check valid keyword names, with dependencies
-def check_kw(self, kwlist, kwmap, kwdep, mode, **kw):
+def check_kw(kwlist, kwmap, kwdep, mode, **kw):
     r"""Check and map valid keyword names
 
     :Call:
-        >>> kwo = _check_kw(kwlist, kwmap, kwdep, mode, **kw)
+        >>> kwo = check_kw(kwlist, kwmap, kwdep, mode, **kw)
     :Inputs:
         *kwlist*: {*db._kw*} | :class:`list`\ [:class:`str`]
             List of acceptable parameters
