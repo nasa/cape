@@ -209,9 +209,9 @@ class DataKit(ftypes.BaseData):
         self.sources = {}
 
         # Process keyword options
-        self.kw = self.process_kw(**kw)
-        # Create a checked and mapped copy for below
-        kw = dict(**self.kw)
+        self.kw = self.process_kw(_warnmode=0, **kw)
+        # Create a mapped copy for below
+        kw = kwutils.map_kw(self._optscls._optmap, **kw)
 
         # Check for null inputs
         if (fname is None) and (not kw):
@@ -3908,6 +3908,203 @@ class DataKit(ftypes.BaseData):
                     ("at slice %i" % j))
         # Output
         return V
+
+   # --- Full Factorial ---
+    # Fill out a slice matrix
+    def get_fullfactorial(self, scol=None, cols=None):
+        r"""Create full-factorial matrix of values in break points
+        
+        This allows some of the break points cols to be scheduled, i.e.
+        there are different matrices of *cols* for each separate value
+        of *scol*.
+        
+        :Call:
+            >>> X, slices = db.get_fullfactorial(scol=None, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *scol*: {``None``} | :class:`str` | :class:`list`
+                Optional name of slicing col(s)
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of (ordered) input keys, default is from *DBc.bkpts*
+        :Outputs:
+            *X*: :class:`dict`
+                Dictionary of full-factorial matrix
+            *slices*: :class:`dict` (:class:`ndarray`)
+                Array of slice values for each key in *skey*
+        :Versions:
+            * 2018-11-16 ``@ddalle``: First version
+        """
+       # --- Slice col Checks ---
+        # Check for list or string
+        if isinstance(scol, list):
+            # Get additional slice keys
+            subcols = subcol[1:]
+            # Single slice key
+            maincol = subcol[0]
+        elif scol is None:
+            # No slices at all
+            subcols = []
+            maincol = None
+        elif typeutils.isstr(scol):
+            # No additional slice keys
+            subcols = []
+            maincol = scol
+            # List of slice keys
+            scol = [scol]
+        else:
+            raise TypeError("Slicing column must be 'list' or 'str'")
+       # --- col Checks ---
+        # Get break points
+        bkpts = self.__dict__.get("bkpts", {})
+        # Default col list
+        if cols is None:
+            # Default list
+            cols = []
+            # Loop through breakpoints
+            for (col, V) in bkpts.items():
+                # Check if *V* is an array
+                if not isinstance(V, np.ndarray):
+                    # Non-array
+                    continue
+                elif V.size == 0:
+                    # Empty break points
+                    continue
+                elif V.ndim != 1:
+                    # What? ND array
+                    continue
+                elif not isinstance(V[0], float):
+                    # Not a simple number
+                    continue
+                # If reaching this point, usable column
+                cols.append(col)
+        else:
+            # Loop through breakpoints
+            for col in cols:
+                # Get break points
+                V = bkpts.get(col)
+                # Check if *V* is an array
+                if V is None:
+                    raise KeyError("No breakpoints for col '%s'" % col)
+                elif not isinstance(V, np.ndarray):
+                    # Non-array
+                    raise TypeError(
+                        "Breakpoints for col '%s' is not array" % col)
+                elif V.size == 0:
+                    # Empty break points
+                    raise IndexError(
+                        "Breakpoints for col '%s' is empty" % col)
+                elif V.ndim != 1:
+                    # What? ND array
+                    raise IndexError(
+                        "Breakpoints for col '%s' is not 1D" % col)
+                elif not isinstance(V[0], (float, int, complex)):
+                    # Not a simple number
+                    raise TypeError(
+                        "Non-numeric breakpoitns for col '%s'" % col)
+            # Make a copy
+            cols = list(cols)
+        # Eliminate *skey* if in key list
+        if maincol in cols:
+            cols.remove(maincol)
+        # Number of columns
+        ncol = len(cols)
+       # --- Slice Init ---
+        # Initialize slice dictionary
+        slices = {maincol: np.zeros(0)}
+        # Loop through slice keys
+        for col in subcols:
+            # Initialize slice
+            slices[col] = np.zeros(0)
+        # Number of slice keys
+        if scol is None:
+            # No slices
+            nscol = 0
+        else:
+            # Get length
+            nscol = len(scol)
+       # --- Matrix Init ---
+        # Initialize dictionary of full-factorial matrix
+        X = {}
+        # Set values
+        for col in cols:
+            X[col] = np.zeros(0)
+        # Slice check
+        if maincol is None:
+            # No values to check
+            M = np.zeros(1)
+        else:
+            # Get breakpoints for specified value
+            M = bkpts[maincol]
+            # Also keep track of slice key values
+            X[maincol] = np.zeros(0)
+       # --- Main Slice Loop ---
+        # Loop through slice values
+        for (im, m) in enumerate(M):
+            # Initialize matrix for this slice
+            Xm = {}
+            # Initialize slice values for this slice
+            Xs = {}
+            if maincol:
+                Xs[maincol] = np.array([m])
+            # Copy values
+            for col in cols:
+                # Get values
+                Vm = bkpts[col]
+                # Get first entry for type checks
+                v0 = bkpts[col][0]
+                # Check if it's a scheduled key; will be a list
+                if isinstance(v0, list):
+                    # Get break points for this slice key value
+                    Vm = Vm[im]
+                # Save the values
+                Xm[col] = Vm
+                # Save slice if appropriate
+                if col in subcols:
+                    Xs[col] = Vm
+            # Loop through break point keys to create full-factorial inputs
+            for i in range(1, ncol):
+                # Name of first key
+                col1 = cols[i]
+                # Loop through keys 0 to *i*-1
+                for j in range(i):
+                    # Name of second key
+                    col2 = cols[j]
+                    # Create N+1 dimensional interpolation
+                    x1, x2 = np.meshgrid(Xm[col1], Xm[col2])
+                    # Flatten
+                    Xm[col2] = x2.flatten()
+                    # Save first key if *j* ix 0
+                    if j == i-1:
+                        Xm[col1] = x1.flatten()
+            # Loop through slice keys to create full-factorial inputs
+            for i in range(1, nscol):
+                # Name of first key
+                col1 = scol[i]
+                # Loop through keys 0 to *i*-1
+                for j in range(i):
+                    # Name of second key
+                    col2 = scol[j]
+                    # Create N+1 dimensional interpolation
+                    x1, x2 = np.meshgrid(Xs[col1], Xs[col2])
+                    # Flatten
+                    Xs[col2] = x2.flatten()
+                    # Save first key if *j* ix 0
+                    if j == i-1:
+                        Xs[col1] = x1.flatten()
+            # Save values
+            for col in cols:
+                X[col] = np.hstack((X[col], Xm[col]))
+            # Process slices
+            if maincol is not None:
+                # Append to *scol* matrix
+                X[maincol] = np.hstack(
+                    (X[maincol], m*np.ones_like(Xm[maincol])))
+                # Save slice full-factorial matrix
+                for col in scol:
+                    slices[col] = np.hstack((slices[col], Xs[col]))
+        # Output
+        return X, slices
   # >
 
   # ====================
