@@ -42,6 +42,7 @@ except ImportError:
 # CAPE modules
 import cape.tnakit.kwutils as kwutils
 import cape.tnakit.plot_mpl as pmpl
+import cape.tnakit.statutils as statutils
 import cape.tnakit.typeutils as typeutils
 
 # Data Interfaces
@@ -2339,6 +2340,69 @@ class DataKit(ftypes.BaseData):
             # Failed
             return None
 
+    # Attempt to get values of an argument or column, with mask
+    def get_values(self, col, I=None):
+        r"""Attempt to get all or some values of a specified column
+
+        This will use *db.eval_arg_converters* if possible.
+
+        :Call:
+            >>> V = db.get_values(col)
+            >>> V = db.get_values(col, I=None)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of evaluation argument
+            *I*: :class:`np.ndarray`\ [:class:`int` | :class:`bool`]
+                Optional subset of *db* indices to access
+        :Outputs:
+            *V*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
+                *db[col]* if available, otherwise an attempt to apply
+                *db.eval_arg_converters[col]*
+        :Versions:
+            * 2020-02-21 ``@ddalle``: First version
+        """
+        # Get all values
+        V = self.get_all_values(col)
+        # Check for empty result
+        if V is None:
+            return
+        # Check for mask
+        if I is None:
+            # No mask
+            return V
+        # Check mask
+        if not isinstance(I, np.ndarray):
+            raise TypeError("Index mask must be NumPy array")
+        elif I.ndim != 1:
+            raise IndexError("Index mask must be 1D array")
+        elif I.size == 0:
+            raise ValueError("Index mask must not be empty")
+        # Size of full array
+        n = V.size
+        # Get data type (as string)
+        dtype = I.dtype.name
+        # Check type
+        if "int" in dtype:
+            # Check indices
+            if np.max(I) >= n:
+                raise IndexError(
+                    ("Cannot access element %i " % np.max(I)) +
+                    ("for array of length %i" % n))
+            # Access
+            return V[I]
+        elif dtype == "bool":
+            # Check size
+            if I.size != n:
+                raise IndexError(
+                    ("Bool index mask has size %i; " % I.size) +
+                    ("array has size %i" % n))
+            # Access
+            return V[I]
+        else:
+            raise TypeError("Index mask must be int or bool array")
+
     # Get argument value
     def get_arg_value(self, i, k, *a, **kw):
         r"""Get the value of the *i*\ th argument to a function
@@ -4628,8 +4692,143 @@ class DataKit(ftypes.BaseData):
             J = maskt_index[J]
         # Output
         return I, J
-            
+
+   # --- Statistics ---
+    # Get coverage
+    def est_cov_interval(self, dbt, col, mask=None, cov=0.95, **kw):
+        r"""Calculate Student's t-distribution confidence region
         
+        If the nominal application of the Student's t-distribution fails
+        to cover a high enough fraction of the data, the bounds are
+        extended until the data is covered.
+        
+        :Call:
+            >>> a, b = db.est_cov_interval(dbt, col, mask, cov, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`cape.attdb.rdb.DataKit`
+                Target data set
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
+            *maskt*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *dbt* to consider
+            *cov*: {``0.95``} | 0 < :class:`float` < 1
+                Coverage percentage
+            *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
+                CDF if no extra coverage needed
+            *osig*, *OutlierSigma*: {``1.5*ksig``} | :class:`float`
+                Multiple of standard deviation to identify outliers;
+                default is 150% of the nominal coverage calculated using
+                t-distribution
+            *searchcols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of cols to use for finding matches; default is all
+                :class:`float` cols of *db*
+            *tol*: {``1e-8``} | :class:`float`
+                Default tolerance for matching conditions
+            *tols*: :class:`dict`\ [:class:`float`]
+                Dict of tolerances for specific columns during search
+        :Outputs:
+            *a*: :class:`float`
+                Lower bound of coverage interval
+            *b*: :class:`float`
+                Upper bound of coverage intervalregion
+        :Versins:
+            * 2018-09-28 ``@ddalle``: First version
+            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`attdb.fm`
+        """
+        # Process search kwargs
+        kw_find = {
+            "mask": "mask",
+            "maskt": kw.pop("maskt", None),
+            "once": True,
+            "cols": kw.pop("searchcols", None),
+        }
+        # Find indices of matches
+        I, J = self.find_pairwise(dbt, **kw_find)
+        # Check for empty
+        if I.size == 0:
+            raise ValueError("No matches between databases")
+        # Get values from this database
+        V1 = self.get_values(col, I)
+        # Get values from target database
+        if isinstance(dbt, DataKit):
+            # Get values with converters
+            V2 = dbt.get_values(col, J)
+        else:
+            # Get values from dict
+            V2 = dbt[col][J]
+        # Deltas (signed)
+        dV = V2 - V1
+        # Calculate interval
+        return statutils.get_cov_interval(dV, cov, **kw)
+
+    # Get coverage
+    def est_range(self, dbt, col, mask=None, cov=0.95, **kw):
+        r"""Calculate Student's t-distribution confidence range
+        
+        If the nominal application of the Student's t-distribution fails
+        to cover a high enough fraction of the data, the bounds are
+        extended until the data is covered.
+        
+        :Call:
+            >>> r = db.est_range(dbt, col, mask, cov, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`cape.attdb.rdb.DataKit`
+                Target data set
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
+            *maskt*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *dbt* to consider
+            *cov*: {``0.95``} | 0 < :class:`float` < 1
+                Coverage percentage
+            *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
+                CDF if no extra coverage needed
+            *osig*, *OutlierSigma*: {``1.5*ksig``} | :class:`float`
+                Multiple of standard deviation to identify outliers;
+                default is 150% of the nominal coverage calculated using
+                t-distribution
+            *searchcols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of cols to use for finding matches; default is all
+                :class:`float` cols of *db*
+            *tol*: {``1e-8``} | :class:`float`
+                Default tolerance for matching conditions
+            *tols*: :class:`dict`\ [:class:`float`]
+                Dict of tolerances for specific columns during search
+        :Outputs:
+            *r*: :class:`float`
+                Half-width of coverage range
+        :Versins:
+            * 2018-09-28 ``@ddalle``: First version
+            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`attdb.fm`
+        """
+        # Process search kwargs
+        kw_find = {
+            "mask": "mask",
+            "maskt": kw.pop("maskt", None),
+            "once": True,
+            "cols": kw.pop("searchcols", None),
+        }
+        # Find indices of matches
+        I, J = self.find_pairwise(dbt, **kw_find)
+        # Check for empty
+        if I.size == 0:
+            raise ValueError("No matches between databases")
+        # Get values from this database
+        V1 = self.get_values(col, I)
+        # Get values from target database
+        if isinstance(dbt, DataKit):
+            # Get values with converters
+            V2 = dbt.get_values(col, J)
+        else:
+            # Get values from dict
+            V2 = dbt[col][J]
+        # Deltas (unsigned)
+        R = np.abs(V2 - V1)
+        # Calculate interval
+        return statutils.get_range(R, cov, **kw)
   # >
 
   # ===================
