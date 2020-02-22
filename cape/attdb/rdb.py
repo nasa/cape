@@ -3931,7 +3931,7 @@ class DataKit(ftypes.BaseData):
             *X*: :class:`dict`
                 Dictionary of full-factorial matrix
             *slices*: :class:`dict` (:class:`ndarray`)
-                Array of slice values for each key in *skey*
+                Array of slice values for each col in *scol*
         :Versions:
             * 2018-11-16 ``@ddalle``: First version
         """
@@ -4011,7 +4011,10 @@ class DataKit(ftypes.BaseData):
         ncol = len(cols)
        # --- Slice Init ---
         # Initialize slice dictionary
-        slices = {maincol: np.zeros(0)}
+        slices = {}
+        # Initialize main slice values
+        if maincol is not None:
+            slices[maincol] = np.zeros(0)
         # Loop through slice keys
         for col in subcols:
             # Initialize slice
@@ -4099,7 +4102,7 @@ class DataKit(ftypes.BaseData):
             if maincol is not None:
                 # Append to *scol* matrix
                 X[maincol] = np.hstack(
-                    (X[maincol], m*np.ones_like(Xm[maincol])))
+                    (X[maincol], m*np.ones_like(Xm[col])))
                 # Save slice full-factorial matrix
                 for col in scol:
                     slices[col] = np.hstack((slices[col], Xs[col]))
