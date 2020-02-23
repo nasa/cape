@@ -151,6 +151,64 @@ class BaseFile(BaseData):
   # Data Columns
   # =================
   # <
+   # --- Name Translation ---
+    # Translate column names
+    def translate_colnames(self, cols):
+        r"""Translate column names
+
+        This method utilizes the options *Translators*, *Prefix*, and
+        *Suffix* from the *db.opts* dictionary. The *Translators* are
+        applied before *Prefix* and *Suffix*.
+
+        :Call:
+            >>> dbcols = db.translate_colnames(cols)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *cols*: :class:`list`\ [:class:`str`]
+                List of "original" column names, e.g. from file
+        :Outputs:
+            *dbcols*: :class:`list`\ [:class:`str`]
+                List of column names as stored in *db*
+        :Versions:
+            * 2019-12-04 ``@ddalle``: First version
+        """
+        # Get options
+        trans  = self.get_option("Translators", {})
+        prefix = self.get_option("Prefix", "")
+        suffix = self.get_option("Suffix", "")
+        # Call private function
+        return self._translate_colnames(cols, trans, prefix, suffix)
+
+    # Reverse translation of column names
+    def translate_colnames_reverse(self, dbcols):
+        r"""Reverse translation of column names
+
+        This method utilizes the options *Translators*, *Prefix*, and
+        *Suffix* from the *db.opts* dictionary.*Prefix* and *Suffix*
+        removed before reverse translation.
+
+        :Call:
+            >>> cols = db.translate_colnames_reverse(dbcols)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *dbcols*: :class:`list`\ [:class:`str`]
+                List of raw column names as stored in *db*
+        :Outputs:
+            *cols*: :class:`list`\ [:class:`str`]
+                List of "original" column names, e.g. from file
+        :Versions:
+            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-11 ``@jmeeroff``: From :func:`translate_colnames`
+        """
+        # Get options
+        trans  = self.get_option("Translators", {})
+        prefix = self.get_option("Prefix", "")
+        suffix = self.get_option("Suffix", "")
+        # Call private function
+        return self._translate_colnames_reverse(dbcols, trans, prefix, suffix)
+
    # --- Init ---
     # Initialize list of columns
     def init_cols(self, cols):

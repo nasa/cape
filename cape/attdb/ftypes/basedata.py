@@ -817,7 +817,7 @@ class BaseData(dict):
 
    # --- Name Translation ---
     # Translate column names
-    def translate_colnames(self, cols):
+    def _translate_colnames(self, cols, trans, prefix, suffix):
         r"""Translate column names
 
         This method utilizes the options *Translators*, *Prefix*, and
@@ -825,23 +825,27 @@ class BaseData(dict):
         applied before *Prefix* and *Suffix*.
 
         :Call:
-            >>> dbcols = db.translate_colnames(cols)
+            >>> dbcols = db._translate_colnames(cols, |args|)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
             *cols*: :class:`list`\ [:class:`str`]
-                List of raw column names
+                List of "original" column names, e.g. from file
+            *trans*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
         :Outputs:
             *dbcols*: :class:`list`\ [:class:`str`]
-                Prepended and appended column names with substitutions
-                if appropriate
+                List of column names as stored in *db*
         :Versions:
             * 2019-12-04 ``@ddalle``: First version
+            * 2020-02-22 ``@ddalle``: Stole content from main function
+
+        .. |args| replace:: trans, prefix, suffix
         """
-        # Get options
-        trans  = self.get_option("Translators", {})
-        prefix = self.get_option("Prefix", "")
-        suffix = self.get_option("Suffix", "")
         # Initialize output
         dbcols = []
         # Output
@@ -874,7 +878,7 @@ class BaseData(dict):
         return dbcols
 
     # Reverse translation of column names
-    def translate_colnames_reverse(self, dbcols):
+    def _translate_colnames_reverse(self, dbcols, trans, prefix, suffix):
         r"""Reverse translation of column names
 
         This method utilizes the options *Translators*, *Prefix*, and
@@ -882,23 +886,28 @@ class BaseData(dict):
         removed before reverse translation.
 
         :Call:
-            >>> dbcols = db.translate_colnames_reverse(cols)
+            >>> cols = db._translate_colnames_reverse(dbcols, |args|)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
             *dbcols*: :class:`list`\ [:class:`str`]
-                List of raw column names as stored in *db*
+                List of column names as stored in *db*
+            *trans*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
         :Outputs:
             *cols*: :class:`list`\ [:class:`str`]
-                List of column names as written to file
+                List of "original" column names, e.g. from file
         :Versions:
             * 2019-12-04 ``@ddalle``: First version
             * 2019-12-11 ``@jmeeroff``: From :func:`translate_colnames`
+            * 2020-02-22 ``@ddalle``: Moved code from main function
+
+        .. |args| replace:: trans, prefix, suffix
         """
-        # Get options
-        trans  = self.get_option("Translators", {})
-        prefix = self.get_option("Prefix", "")
-        suffix = self.get_option("Suffix", "")
         # Initialize output
         cols = []
         # Reverse the translation dictionary
