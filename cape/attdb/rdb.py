@@ -5394,6 +5394,13 @@ class DataKit(ftypes.BaseData):
             * 2018-06-08 ``@ddalle``: First version
             * 2020-02-24 ``@ddalle``: Version 2.0
         """
+       # --- Options ---
+        # Get translators
+        trans = kw.get("translators", {})
+        prefix = kw.get("prefix")
+        suffix = kw.get("suffix")
+        # Translator args
+        tr_args = (trans, prefix, suffix)
        # --- Status Checks ---
         # Get break points
         bkpts = self.__dict__.get("bkpts")
@@ -5496,20 +5503,22 @@ class DataKit(ftypes.BaseData):
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
         # Number of output points
         nX = X[args[0]].size
-        
-        # Create blank database (of correct type)
-        DBi = self.__class__()
-        # Save the break points
-        DBi.bkpts = {}
-        for k in keys:
-            DBi.bkpts[k] = self.bkpts[k]
+        # 
         # Save the lookup values
-        for k in keys:
+        for arg in args:
+            # Translate column name
+            argreg = self._translate_colname(arg, *tr_args)
             # Save values
-            DBi[k] = X[k]
-            # Append to coefficient list
-            DBi.coeffs.append(k)
-            
+            self.save_col(argreg, X[arg])
+            # Check if new
+            if argreg != arg:
+                # Get previous definition
+                defn = self.get_defn(arg)
+                # Save a copy
+                self.defns[argref] = self._defncls(**defn)
+                # Link break points
+                bkpts[argreg] = bkpts[arg]
+       # --- Regularization ---
         # Perform interpolations
         for c in coeffs:
             # Status update
