@@ -5560,53 +5560,47 @@ class DataKit(ftypes.BaseData):
                 f = self.create_rbf(col, args, **kw)
                 # Create tuple of input arguments
                 x = tuple(X[arg] for arg in args)
-                # Evaluate RBF and save
-                self.save_col(colreg, f(*x))
+                # Evaluate RBF
+                V = f(*x)
             else:
                 # Number of slices
-                nslice = slices[mainxol].size
+                nslice = slices[maincol].size
                 # Initialize data
-                V = np.zeros_like(X[mainkey])
+                V = np.zeros_like(X[maincol])
                 # Loop through slices
                 for i in range(nslice):
                     # Status update
                     if kw.get("v"):
                         # Get main key value
-                        m = slices[mainkey][i]
+                        m = slices[maincol][i]
                         # Get value in fixed number of characters
                         sv = ("%6g" % m)[:6]
                         # In-place status update
                         sys.stdout.write("    Slice %s=%s (%i/%i)\r"
                             % (mainkey, sv, i+1, nslice))
                         sys.stdout.flush()
-                        
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
-                    # Initialize slice
-                    slice_i = {}
-                    # Loop through keys
-                    for k in skey:
+                    # Loop through cols that define slice
+                    for k in scol:
                         # Get value
                         vk = slices[k][i]
                         # Constrain
                         J = np.logical_and(J, X[k]==vk)
-                        # Save local slice
-                        slice_i[k] = vk
                     # Get indices of slice
                     I = np.where(J)[0]
                     # Create interpolant for fixed value of *skey*
-                    f = self.CreateRBF(c, ikeys, slices=slice_i, **kw)
+                    f = self.create_rbf(col, iargs, I=I, **kw)
                     # Create tuple of input arguments
-                    args = tuple(X[k][I] for k in ikeys)
+                    x = tuple(X[k][I] for k in iargs)
                     # Evaluate coefficient
-                    V[I] = f(*args)
-                # Save the values
-                DBi[c] = V
+                    V[I] = f(*x)
                 # Clean up prompt
                 if kw.get("v"):
                     print("")
-            # Add to coefficient list
-            DBi.coeffs.append(c)
+            # Save the values
+            self.save_col(colreg, V)
+       # --- Co-mapped XAargs ---
         # Trajectory co-keys
         cokeys = kw.get("cokeys", self.bkpts.keys())
         # Map other breakpoint keys
@@ -5645,13 +5639,4 @@ class DataKit(ftypes.BaseData):
             DBi.bkpts[k] = np.array(T)
             # Save key name if needed
             if k not in DBi.coeffs: DBi.coeffs.append(k)
-            
-        # Copy any other keys
-        for k in kw.get("copykeys", self.coeffs):
-            # Skip if already processed
-            if k in DBi: continue
-            # Otherwise, copy
-            DBi[k] = self[k].copy()
-            # Save the coefficient to the list, too
-            DBi.coeffs.append(k)
   # >
