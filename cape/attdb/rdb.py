@@ -4140,23 +4140,13 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-01-01 ``@ddalle``: First version
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2020-02-22 ``@ddalle``: Utilize :func:`create_rbf`
         """
         # Check for module
         if scirbf is None:
             raise ImportError("No scipy.interpolate.rbf module")
         # Create *rbf* attribute if needed
         rbf = self.__dict__.setdefault("rbf", {})
-        # RBF options
-        func   = kw.get("function", "cubic")
-        smooth = kw.get("smooth", 0.0)
-        # Default indices
-        if I is None:
-            # Size of database
-            n = len(self[args[0]])
-            # All the indices
-            I = np.arange(n)
-        # Create tuple of input points
-        V = tuple(self[k][I] for k in args)
         # Loop through coefficients
         for col in cols:
             # Eval arguments for status update
@@ -4168,12 +4158,8 @@ class DataKit(ftypes.BaseData):
             txt = "Creating RBF for %s%s" % (col, txt)
             sys.stdout.write("%-72s\r" % txt)
             sys.stdout.flush()
-            # Append reference values to input tuple
-            Z = V + (self[col][I],)
             # Create a single RBF
-            f = scirbf.Rbf(*Z, function=func, smooth=smooth)
-            # Save it
-            rbf[col] = f
+            rbf[col] = self.create_rbf(col, args, I=I, **kw)
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
@@ -4262,6 +4248,48 @@ class DataKit(ftypes.BaseData):
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
+
+    # Regularization
+    def create_rbf(self, col, args, I=None, **kw):
+        r"""Create global radial basis functions for one or more columns
+
+        :Call:
+            >>> rbf = db.create_rbf(col, args, I=None)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`list`\ [:class:`str`]
+                Data column to create RBF for
+            *args*: :class:`list`\ [:class:`str`]
+                List of (ordered) input cols
+            *I*: {``None``} | :class:`np.ndarray`
+                Indices of cases to include in RBF (default is all)
+            *function*: {``"cubic"``} | :class:`str`
+                Radial basis function type
+            *smooth*: {``0.0``} | :class:`float` >= 0
+                Smoothing factor, ``0.0`` for exact interpolation
+        :Output:
+            *rbf*: :class:`scipy.interpolate.rbf.Rbf`
+                Radial basis function for *col*
+        :Versions:
+            * 2019-01-01 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2020-02-22 ``@ddalle``: Single-*col* version
+        """
+        # Check for module
+        if scirbf is None:
+            raise ImportError("No scipy.interpolate.rbf module")
+        # RBF options
+        func   = kw.get("function", "cubic")
+        smooth = kw.get("smooth", 0.0)
+        # Create tuple of input points
+        V = tuple(self.get_values(arg, I) for arg in args)
+        # Append reference values to input tuple
+        Z = V + (self.get_values(col, I),)
+        # Create a single RBF
+        rbf = scirbf.Rbf(*Z, function=func, smooth=smooth)
+        # Output
+        return rbf
   # >
 
   # ==================
@@ -5520,23 +5548,23 @@ class DataKit(ftypes.BaseData):
                 bkpts[argreg] = bkpts[arg]
        # --- Regularization ---
         # Perform interpolations
-        for c in coeffs:
+        for col in cols:
+            # Translate column name
+            colreg = self._translate_colname(col, *tr_args)
             # Status update
             if kw.get("v"):
-                print("  Interpolating coefficient '%s'" % c)
+                print("  Regularizing col '%s' -> '%s'" % (col, colreg))
             # Check for slices
-            if skey is None:
+            if scol is None:
                 # One interpolant
-                f = self.CreateRBF(c, keys, **kw)
+                f = self.create_rbf(col, args, **kw)
                 # Create tuple of input arguments
-                args = tuple(X[k] for k in keys)
-                # Evaluate coefficient
-                DBi[c] = f(*args)
-                
+                x = tuple(X[arg] for arg in args)
+                # Evaluate RBF and save
+                self.save_col(colreg, f(*x))
             else:
-                
                 # Number of slices
-                nslice = slices[mainkey].size
+                nslice = slices[mainxol].size
                 # Initialize data
                 V = np.zeros_like(X[mainkey])
                 # Loop through slices
@@ -5626,9 +5654,4 @@ class DataKit(ftypes.BaseData):
             DBi[k] = self[k].copy()
             # Save the coefficient to the list, too
             DBi.coeffs.append(k)
-            
-        # Normalize trajectory
-        DBi.GetTrajectory()
-        # Output
-        return DBi
   # >
