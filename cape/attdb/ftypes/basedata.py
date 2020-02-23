@@ -820,10 +820,6 @@ class BaseData(dict):
     def _translate_colnames(self, cols, trans, prefix, suffix):
         r"""Translate column names
 
-        This method utilizes the options *Translators*, *Prefix*, and
-        *Suffix* from the *db.opts* dictionary. The *Translators* are
-        applied before *Prefix* and *Suffix*.
-
         :Call:
             >>> dbcols = db._translate_colnames(cols, |args|)
         :Inputs:
@@ -846,44 +842,15 @@ class BaseData(dict):
 
         .. |args| replace:: trans, prefix, suffix
         """
-        # Initialize output
-        dbcols = []
-        # Output
-        for col in cols:
-            # Get substitution (default is no substitution)
-            col = trans.get(col, col)
-            # Get prefix
-            if isinstance(prefix, dict):
-                # Get specific prefix
-                pre = prefix.get(col, prefix.get("_", ""))
-            elif prefix:
-                # Universal prefix
-                pre = prefix
-            else:
-                # No prefix (type-safe)
-                pre = ""
-            # Get suffix
-            if isinstance(suffix, dict):
-                # Get specific suffix
-                suf = suffix.get(col, suffix.get("_", ""))
-            elif suffix:
-                # Universal suffix
-                suf = suffix
-            else:
-                # No suffix (type-safe)
-                suf = ""
-            # Combine appendages
-            dbcols.append(pre + col + suf)
-        # Output
-        return dbcols
+        # Translate each col name
+        return [
+            self._translate_colname(col, trans, prefix, suffix)
+            for col in cols
+        ]
 
     # Reverse translation of column names
     def _translate_colnames_reverse(self, dbcols, trans, prefix, suffix):
         r"""Reverse translation of column names
-
-        This method utilizes the options *Translators*, *Prefix*, and
-        *Suffix* from the *db.opts* dictionary.*Prefix* and *Suffix*
-        removed before reverse translation.
 
         :Call:
             >>> cols = db._translate_colnames_reverse(dbcols, |args|)
@@ -954,5 +921,120 @@ class BaseData(dict):
             cols.append(col)
         # Output
         return cols
+
+    # Translate column names
+    def _translate_colname(self, col, trans, prefix, suffix):
+        r"""Translate column name
+
+        :Call:
+            >>> dbcol = db._translate_colname(col, |args|)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col*: :class:`str`
+                "Original" column name, e.g. from file
+            *trans*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
+        :Outputs:
+            *dbcol*: :class:`str`
+                Column names as stored in *db*
+        :Versions:
+            * 2019-12-04 ``@ddalle``: First version
+            * 2020-02-22 ``@ddalle``: Single-column version
+
+        .. |args| replace:: trans, prefix, suffix
+        """
+        # Get substitution (default is no substitution)
+        dbcol = trans.get(col, col)
+        # Get prefix
+        if isinstance(prefix, dict):
+            # Get specific prefix
+            pre = prefix.get(col, prefix.get("_", ""))
+        elif prefix:
+            # Universal prefix
+            pre = prefix
+        else:
+            # No prefix (type-safe)
+            pre = ""
+        # Get suffix
+        if isinstance(suffix, dict):
+            # Get specific suffix
+            suf = suffix.get(col, suffix.get("_", ""))
+        elif suffix:
+            # Universal suffix
+            suf = suffix
+        else:
+            # No suffix (type-safe)
+            suf = ""
+        # Combine fixes
+        return pre + col + suf
+
+    # Reverse translation of column names
+    def _translate_colname_reverse(self, dbcols, transr, prefix, suffix):
+        r"""Reverse translation of column name
+
+        :Call:
+            >>> col = db._translate_colname_reverse(dbcol, |args|)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *dbcol*: :class:`str`
+                Column names as stored in *db*
+            *transr*: :class:`dict`\ [:class:`str`]
+                Alternate names; *dbcol* -> *trans[dbcol]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
+        :Outputs:
+            *col*: :class:`str`
+                "Original" column name, e.g. from file
+        :Versions:
+            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-11 ``@jmeeroff``: From :func:`translate_colnames`
+            * 2020-02-22 ``@ddalle``: Single-column version
+
+        .. |args| replace:: transr, prefix, suffix
+        """
+        # First strip prefix
+        # Get prefix
+        if isinstance(prefix, dict):
+            # Get specific prefix
+            pre = prefix.get(dbcol, prefix.get("_", ""))
+        elif prefix:
+            # Universal prefix
+            pre = prefix
+        else:
+            # No prefix (type-safe)
+            pre = ""
+        # Check if col starts with specified prefix
+        if pre and dbcol.startswith(pre):
+            # Get length of prefix
+            lval = len(pre)
+            # Strip of prefix
+            dbcol = dbcol[lval:]
+        # Now strip suffix
+        # Get suffix
+        if isinstance(suffix, dict):
+            # Get specific suffix
+            suf = suffix.get(dbcol, suffix.get("_", ""))
+        elif suffix:
+            # Universal suffix
+            suf = suffix
+        else:
+            # No suffix (type-safe)
+            suf = ""
+        # Check if column name ends with suffix
+        if suf and dbcol.endsiwth(suf):
+            # Get length of suf
+            lval = len(suf)
+            # Strip of prefix
+            dbcol = dbcol[:-lval]
+        # Check for alternate name
+        return transr.get(dbcol, dbcol)
   # >
 # class BaseData
