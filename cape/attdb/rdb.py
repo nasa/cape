@@ -5432,6 +5432,8 @@ class DataKit(ftypes.BaseData):
         trans = kw.get("translators", {})
         prefix = kw.get("prefix")
         suffix = kw.get("suffix")
+        # Overall mask
+        mask = kw.get("mask")
         # Translator args
         tr_args = (trans, prefix, suffix)
        # --- Status Checks ---
@@ -5536,7 +5538,6 @@ class DataKit(ftypes.BaseData):
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
         # Number of output points
         nX = X[args[0]].size
-        # 
         # Save the lookup values
         for arg in args:
             # Translate column name
@@ -5572,6 +5573,8 @@ class DataKit(ftypes.BaseData):
                 nslice = slices[maincol].size
                 # Initialize data
                 V = np.zeros_like(X[maincol])
+                # Convert slices to indices within *db*
+                masks = self.find(scol, mapped=True, mask=mask, **slices)
                 # Loop through slices
                 for i in range(nslice):
                     # Status update
@@ -5595,7 +5598,7 @@ class DataKit(ftypes.BaseData):
                     # Get indices of slice
                     I = np.where(J)[0]
                     # Create interpolant for fixed value of *skey*
-                    f = self.create_rbf(col, iargs, I=I, **kw)
+                    f = self.create_rbf(col, iargs, I=masks[i], **kw)
                     # Create tuple of input arguments
                     x = tuple(X[k][I] for k in iargs)
                     # Evaluate coefficient
