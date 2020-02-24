@@ -3939,9 +3939,9 @@ class DataKit(ftypes.BaseData):
         # Check for list or string
         if isinstance(scol, list):
             # Get additional slice keys
-            subcols = subcol[1:]
+            subcols = scol[1:]
             # Single slice key
-            maincol = subcol[0]
+            maincol = scol[0]
         elif scol is None:
             # No slices at all
             subcols = []
@@ -4007,8 +4007,6 @@ class DataKit(ftypes.BaseData):
         # Eliminate *skey* if in key list
         if maincol in cols:
             cols.remove(maincol)
-        # Number of columns
-        ncol = len(cols)
        # --- Slice Init ---
         # Initialize slice dictionary
         slices = {}
@@ -4019,6 +4017,11 @@ class DataKit(ftypes.BaseData):
         for col in subcols:
             # Initialize slice
             slices[col] = np.zeros(0)
+            # Check if listed in "cols"
+            if col not in cols:
+                cols.insert(0, col)
+        # Number of columns
+        ncol = len(cols)
         # Number of slice keys
         if scol is None:
             # No slices
@@ -4029,9 +4032,6 @@ class DataKit(ftypes.BaseData):
        # --- Matrix Init ---
         # Initialize dictionary of full-factorial matrix
         X = {}
-        # Set values
-        for col in cols:
-            X[col] = np.zeros(0)
         # Slice check
         if maincol is None:
             # No values to check
@@ -4041,6 +4041,9 @@ class DataKit(ftypes.BaseData):
             M = bkpts[maincol]
             # Also keep track of slice key values
             X[maincol] = np.zeros(0)
+        # Initialize values
+        for col in cols:
+            X[col] = np.zeros(0)
        # --- Main Slice Loop ---
         # Loop through slice values
         for (im, m) in enumerate(M):
@@ -4048,7 +4051,9 @@ class DataKit(ftypes.BaseData):
             Xm = {}
             # Initialize slice values for this slice
             Xs = {}
+            # Set slice values
             if maincol:
+                # Main slice col has value of main col
                 Xs[maincol] = np.array([m])
             # Copy values
             for col in cols:
