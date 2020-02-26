@@ -65,18 +65,24 @@ from .geom import RotatePoints
 
 # Decorator for moving directories
 def run_rootdir(func):
-    """Decorator to run a function within a specified folder
+    r"""Decorator to run a function within a specified folder
     
     :Call:
-        >>> @run_rootdir(func)
-        >>> v = self.func(*a, **kw)
+        >>> func = run_rootdir(func)
+    :Wrapper Signature:
+        >>> v = cntl.func(*a, **kw)
     :Inputs:
         *func*: :class:`func`
             Name of function
         *cntl*: :class:`Cntl`
             Control instance from which to use *cntl.RootDir*
+        *a*: :class:`tuple`
+            Positional args to :func:`cntl.func`
+        *kw*: :class:`dict`
+            Keyword args to :func:`cntl.func`
     :Versions:
         * 2018-11-20 ``@ddalle``: First version
+        * 2020-02-25 ``@ddalle``: Improved exception raising
     """
     # Declare wrapper function to change directory
     @functools.wraps(func)
@@ -89,17 +95,16 @@ def run_rootdir(func):
         try:
             # Attempt to run the function
             v = func(self, *args, **kwargs)
-        except Exception as e:
+        except Exception:
             # Go back to original folder
             os.chdir(fpwd)
             # Raise the error
-            traceback.print_exc()
-            raise e
-        except KeyboardInterrupt as e:
+            raise
+        except KeyboardInterrupt:
             # Go back to original folder
             os.chdir(fpwd)
             # Raise the error
-            raise e
+            raise
         # Go back to original folder
         os.chdir(fpwd)
         # Return function values
