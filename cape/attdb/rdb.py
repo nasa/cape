@@ -5533,6 +5533,8 @@ class DataKit(ftypes.BaseData):
         else:
             # Check against *scol*
             iargs = [arg for arg in args if arg not in scol]
+            # Save original values for *maincol*
+            mainvals = self.get_values(maincol).copy()
        # --- Full-Factorial Matrix ---
         # Get full-factorial matrix at the current slice value
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
@@ -5610,18 +5612,27 @@ class DataKit(ftypes.BaseData):
             self.save_col(colreg, V)
        # --- Co-mapped XAargs ---
         # Trajectory co-keys
-        cokeys = kw.get("cokeys", self.bkpts.keys())
+        cocols = kw.get("cocols", list(bkpts.keys())):
         # Map other breakpoint keys
-        for k in cokeys:
+        for col in cocols:
             # Skip if already present
-            if k in DBi.bkpts: continue
+            if col in args:
+                continue
+            elif col in cols:
+                continue
             # Check for slices
-            if mainkey is None: break
+            if maincol is None:
+                break
+            # Translate col name
+            colreg = self._translate_colname(col, **tr_args)
+            # Get values for this column
+            V0 = self.get_all_values(col)
             # Check size
-            if self[mainkey].size != self[k].size:
+            if mainvals.size != V0.size:
+                # Original sizes do not match; no map applicable
                 continue
             # Regular matrix values of slice key
-            M = X[mainkey]
+            M = X[maincol]
             # Initialize data
             V = np.zeros_like(M)
             # Initialize break points
@@ -5630,11 +5641,11 @@ class DataKit(ftypes.BaseData):
             if kw.get("v"):
                 print("  Mapping key '%s'" % k)
             # Loop through slice values
-            for m in DBi.bkpts[mainkey]:
+            for m in bkpts[maincol]:
                 # Find value of slice key matching that parameter
-                i = np.where(self[mainkey] == m)[0][0]
+                i = np.where(mainvals == m)[0][0]
                 # Output value
-                v = self[k][i]
+                v = V0[i]
                 # Get the indices of break points with that value
                 J = np.where(M == m)[0]
                 # Evaluate coefficient
@@ -5642,9 +5653,7 @@ class DataKit(ftypes.BaseData):
                 # Save break point
                 T.append(v)
             # Save the values
-            DBi[k] = V
+            self.save_col(colreg, V)
             # Save break points
-            DBi.bkpts[k] = np.array(T)
-            # Save key name if needed
-            if k not in DBi.coeffs: DBi.coeffs.append(k)
+            bkpts[colreg] = np.array(T)
   # >
