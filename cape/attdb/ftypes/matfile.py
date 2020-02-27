@@ -234,16 +234,39 @@ class MATFile(BaseFile):
             dtype = "str"
             # Save length
             defn.set_option("Shape", (len(V), ))
+            # No change
+            V1 = V
         else:
             # Array; get data type from instance
-            dtype = str(V.dtype)
+            dtype = V.dtype.name
             # Dimensions
             defn.set_option("Dimension", V.ndim)
             defn.set_option("Shape", V.shape)
+            # Check for strings (convert to list of strings)
+            if dtype.startswith("str"):
+                # Regular strings
+                dtype = "str"
+                # Convert to string (Python 2 only)
+                V1 = [str(v) for v in V]
+            elif dtype.startswith("unicode"):
+                # Check Python version
+                if typeutils.PY_MAJOR_VERSION == 2:
+                    # Strings using :class:`unicode`
+                    dtype = "str"
+                    # Convert to unicode strings
+                    V1 = [unicode(v) for v in V]
+                else:
+                    # Standard strings (which are unicode)
+                    dtype = "str"
+                    # Convert to Python 3 (unicode) strings
+                    V1 = [str(v) for v in V]
+            else:
+                # No change
+                V1 = V
         # Set type
         defn["Type"] = dtype
         # Save column
-        self.save_col(col, V)
+        self.save_col(col, V1)
 
     # Read a MAT struct
     def from_mat_struct(self, V, prefix=""):
