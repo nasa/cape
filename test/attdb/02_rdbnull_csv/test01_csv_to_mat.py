@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Import CSV module
-import cape.attdb.rdbnull as rdbnull
+import cape.attdb.rdb as rdb
 
 # Read CSV file
-db = rdbnull.DBResponseNull("aero_arrow_no_base.csv")
+db = rdb.DataKit("aero_arrow_no_base.csv")
 
 # Case number
 i = 13
@@ -22,7 +22,7 @@ print("Case %i: m%.2fa%.2f CA=%.3f" % (i, mach, alph, CA))
 db.write_mat("aero_arrow_no_base.mat")
 
 # Reread
-db1 = rdbnull.DBResponseNull("aero_arrow_no_base.mat")
+db1 = rdb.DataKit("aero_arrow_no_base.mat")
 
 # Get attributes
 mach = db1["mach"][i]

@@ -5612,7 +5612,7 @@ class DataKit(ftypes.BaseData):
             self.save_col(colreg, V)
        # --- Co-mapped XAargs ---
         # Trajectory co-keys
-        cocols = kw.get("cocols", list(bkpts.keys())):
+        cocols = kw.get("cocols", list(bkpts.keys()))
         # Map other breakpoint keys
         for col in cocols:
             # Skip if already present
