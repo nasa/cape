@@ -1,0 +1,23 @@
+{
+    "CopyFiles": [
+        "mab01.mat",
+        "test01_find.py"
+    ],
+    "Commands": [
+        "python2 test01_find.py",
+        "python3 test01_find.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out"
+    ],
+    "CommandTitles": [
+        "Basic DataKit search: Python 2",
+        "Basic DataKit search: Python 3"
+    ],
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/attdb",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

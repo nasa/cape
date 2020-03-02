@@ -277,7 +277,7 @@ class DataKit(ftypes.BaseData):
             self.read_mat(fmat, **kw)
         else:
             # If reaching this point, process values
-            self.process_kw_values(self)
+            self.process_kw_values()
 
    # --- Copy ---
     # Copy
