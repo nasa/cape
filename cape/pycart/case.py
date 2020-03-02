@@ -23,21 +23,25 @@ import shutil
 import resource
 import re
 
+# Third-party modules
+from numpy import isnan
+
 # Standard library direct imports
 from datetime import datetime
 
 # Template class
 import cape.cfdx.case as cc
 
-# Import options class
-from .options.runControl import RunControl
-# Interface for writing commands
-from . import cmd, queue, manage, bin
-# Point sensors
-from . import pointSensor
+# Direct CAPE imports
+from cape.cfdx.case import CaseIntersect, CaseVerify
 
-# Need triangulations for cases with `intersect` and for averaging
+# Direct local imports
 from .tri import Tri, Triq
+from .options.runControl import RunControl
+
+# Local modules
+from . import cmd, queue, manage, bin
+from . import pointSensor
 
 
 # Function to setup and call the appropriate flowCart file.
