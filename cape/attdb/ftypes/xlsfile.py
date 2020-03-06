@@ -208,7 +208,7 @@ class XLSFile(BaseFile):
             self.read_xls(fname, sheet=sheet)
         else:
             # Process input column defs
-            self.apply_defn_defaults()
+            self.finish_defns()
 
         # Check for overrides of values
         self.process_kw_values()
@@ -218,31 +218,6 @@ class XLSFile(BaseFile):
   # Options
   # ================
   # <
-   # --- Combine ---
-    # Process *kw* into opts
-    def get_opts_kw(self, **kw):
-        r"""Create a new options instance combing *db.opts* and *kw*
-
-        :Call:
-            >>> opts = db.get_opts_kw(**kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
-                XLS file interface
-            *kw*: :class:`dict`
-                Keyword options valid to *db._optscls*
-        :Outputs:
-            *opts*: :class:`XLSFileOpts` | *db._optscls*
-                Combined options
-        :Versions:
-            * 2020-02-06 ``@ddalle``: First version
-        """
-        # Create copy of current options
-        opts = copy.deepcopy(self.opts)
-        # Apply options, with checks
-        opts.update(**kw)
-        # Output
-        return opts
-
    # --- Worksheet Options ---
     # Get options for a specific worksheet, combining *kw*
     def get_worksheet_opts(self, sheet, **kw):
@@ -431,7 +406,7 @@ class XLSFile(BaseFile):
         # Read header
         cols = self.read_xls_header(ws, **kw)
         # Process definitions
-        self.apply_defn_defaults()
+        self.finish_defns()
         # Read data
         self.read_xls_coldata(ws, cols)
 

@@ -118,7 +118,7 @@ class CSVFile(BaseFile, TextInterpreter):
             self.read_csv(fname)
         else:
             # Apply defaults to definitions
-            self.apply_defn_defaults()
+            self.finish_defns()
 
         # Check for overrides of values
         self.process_kw_values()
@@ -185,7 +185,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Process column names
         self.read_csv_header(f)
         # Process column types
-        self.apply_defn_defaults()
+        self.finish_defns()
         # Loop through lines
         self.read_csv_data(f)
 
@@ -211,7 +211,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Process column names
             self.read_csv_header(f)
             # Process column types
-            self.apply_defn_defaults()
+            self.finish_defns()
             # Loop through lines
             self.c_read_csv_data(f)
 
@@ -237,7 +237,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Process column names
             self.read_csv_header(f)
             # Process column types
-            self.apply_defn_defaults()
+            self.finish_defns()
             # Loop through lines
             self.py_read_csv_data(f)
    
@@ -519,7 +519,7 @@ class CSVFile(BaseFile, TextInterpreter):
         if _ftypes is None:
             raise ImportError("No _ftypes extension module")
         # Get data types
-        self.get_c_dtypes()
+        self.create_c_dtypes()
         # Call C function
         _ftypes.CSVFileReadData(self, f)
         # Get lengths
@@ -607,11 +607,11 @@ class CSVFile(BaseFile, TextInterpreter):
     
    # --- C Interface ---
     # Get data types for C input
-    def get_c_dtypes(self):
+    def create_c_dtypes(self):
         r"""Initialize *db._c_dtypes* for C text input
         
         :Call:
-            >>> db.get_c_dtypes()
+            >>> db.create_c_dtypes()
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
@@ -927,7 +927,7 @@ class CSVSimple(BaseFile):
             self.read_csvsimple(fname)
         else:
             # Apply defaults to definitions
-            self.apply_defn_defaults()
+            self.finish_defns()
 
         # Check for overrides of values
         self.process_kw_values()

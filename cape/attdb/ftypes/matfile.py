@@ -141,7 +141,7 @@ class MATFile(BaseFile):
             self.read_mat(fname)
         else:
             # Process inputs
-            self.apply_defn_defaults()
+            self.finish_defns()
 
         # Check for overrides of values
         self.process_kw_values()
@@ -200,7 +200,7 @@ class MATFile(BaseFile):
             self.from_mat_field(col, V)
 
         # Process column definitions
-        self.apply_defn_defaults()
+        self.finish_defns()
 
     # Read an array from MAT file
     def from_mat_field(self, col, V):
@@ -408,21 +408,21 @@ class MATFile(BaseFile):
             *fname*: :class:`str`
                 Name of ``.mat`` file to write
         :See Also:
-            * :func:`create_mat`
+            * :func:`genr8_mat`
         :Versions:
             * 2019-12-17 ``@ddalle``: First version
         """
         # Create database
-        dbmat = self.create_mat(**kw)
+        dbmat = self.genr8_mat(**kw)
         # Write it
         sio.savemat(fname, dbmat, oned_as="column")
 
     # Create MAT file
-    def create_mat(self, **kw):
+    def genr8_mat(self, **kw):
         r"""Create a :class:`dict` for output as ``.mat`` file
 
         :Call:
-            >>> dbmat = db.create_mat(dbmat={})
+            >>> dbmat = db.genr8_mat(dbmat={})
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.mat.MATFile`
                 MAT file interface

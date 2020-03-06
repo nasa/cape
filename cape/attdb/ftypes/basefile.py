@@ -142,7 +142,7 @@ class BaseFile(BaseData):
         # Ensure definitions are present
         self.get_defns()
         # Apply defaults to definitions
-        self.apply_defn_defaults()
+        self.finish_defns()
         # Process values
         self.process_kw_values()
   # >

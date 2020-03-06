@@ -136,14 +136,14 @@ class BaseDataOpts(kwutils.KwargHandler):
         return defn
 
     # Apply defaults to a definition
-    def apply_defaults_defn(self, defn):
+    def finish_defn(self, defn):
         r"""Apply any defaults to a data column definition
 
         This first checks instance options like ``"DefaultType"`` and
         then the global defaults such as ``defn._rc["Type"]``.
 
         :Call:
-            >>> opts.apply_defaults_defn(defn)
+            >>> opts.finish_defn(defn)
         :Inputs:
             *opts*: :class:`BaseDataOpts`
                 Options interface for :mod:`cape.attdb.ftypes`
@@ -169,7 +169,7 @@ class BaseDataOpts(kwutils.KwargHandler):
             # Set it
             defn[opt] = val1
         # Apply defaults internally
-        defn.apply_defaults()
+        defn.finish()
 
    # --- Class Methods ---
     # Add options from a definition
@@ -359,16 +359,17 @@ class BaseDataDefn(kwutils.KwargHandler):
 
    # --- Defaults ---
     # Apply defaults from *rc*
-    def apply_defaults(self):
+    def finish(self):
         r"""Apply default values from *defn._rc*
 
         :Call:
-            >>> defn.apply_defaults()
+            >>> defn.finish()
         :Inputs:
             *defn*: :class:`BaseDataDefn`
                 Data column definition
         :Versions:
             * 2020-01-31 ``@ddalle``: First version
+            * 2020-03-06 ``@ddalle``: Rename :func:`apply_defaults`
         """
         # Loop through _rc
         for (k, v) in self.__class__._rc.items():
@@ -441,7 +442,7 @@ class BaseData(dict):
         # Ensure definitions are present
         self.get_defns()
         # Apply defaults to definitions
-        self.apply_defn_defaults()
+        self.finish_defns()
         # Process values
         self.process_kw_values()
 
@@ -642,7 +643,7 @@ class BaseData(dict):
         r"""Get column definition for data column *col*
         
         :Call:
-            >>> defn = db.get_col_prop(col)
+            >>> defn = db.get_defn(col)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
                 Data container
@@ -668,19 +669,19 @@ class BaseData(dict):
         return defn
 
     # Apply defaults to a definition
-    def apply_defn_defaults(self, cols=None):
+    def finish_defns(self, cols=None):
         r"""Apply any defaults to data column definitions
 
         This first checks instance options like ``"DefaultType"`` and
         then the global defaults such as ``defn._rc["Type"]``.
 
         :Call:
-            >>> db.apply_defn_defaults(defn)
+            >>> db.finish_defns(cols=None)
         :Inputs:
             *opts*: :class:`BaseDataOpts`
                 Options interface for :mod:`cape.attdb.ftypes`
-            *defn*: :class:`BaseDataDefn` | *opts._defncls*
-                Data column definition
+            *cols*: :class:`list`\ [:class:`str`]
+                List of column names
         :Versions:
             * 2020-02-03 ``@ddalle``: First version
         """
@@ -697,7 +698,7 @@ class BaseData(dict):
             # Get definition
             defn = self.get_defn(col)
             # Apply defaults
-            defn.apply_defaults()
+            defn.finish()
 
    # --- Column Properties ---
     # Get generic property from column
