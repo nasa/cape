@@ -182,10 +182,10 @@ class DataKit(ftypes.BaseData):
 
     # Method constructors
     _method_constructors = {
-        "function": "_construct_function",
-        "rbf": "_construct_rbf",
-        "rbf-linear": "_construct_rbf_linear",
-        "rbf-map": "_construct_rbf_map",
+        "function": "_create_function",
+        "rbf": "_create_rbf",
+        "rbf-linear": "_create_rbf_linear",
+        "rbf-map": "_create_rbf_map",
     }
   # >
 
@@ -447,7 +447,18 @@ class DataKit(ftypes.BaseData):
         r"""Set a column definition, with checks
 
         :Call:
-            >>> db.set_defn(col, 
+            >>> db.set_defn(col, defn, _warnmode=0)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *col*: :class:`str`
+                Data column name
+            *defn*: :class:`dict`
+                (Partial) definition for *col*
+            *_warnmode*: {``0``} | ``1`` | ``2``
+                Warning mode for invalid *defn* keys or values
+        :Versions:
+            * 2020-03-06 ``@ddalle``: Documented
         """
         # Get dictionary of options
         defns = self.__dict__.setdefault("defns", {})
@@ -458,11 +469,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Copy/Link ---
     # Link options
-    def copy_options(self, opts, prefix=""):
+    def clone_options(self, opts, prefix=""):
         r"""Copy a database's options
 
         :Call:
-            >>> db.copy_options(opts, prefix="")
+            >>> db.clone_options(opts, prefix="")
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -479,6 +490,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
             * 2020-02-10 ``@ddalle``: Removed *db.defns* effect
+            * 2020-03-06 ``@ddalle``: Renamed from :func:`copy_options`
         """
         # Check input
         if not isinstance(opts, dict):
@@ -508,11 +520,11 @@ class DataKit(ftypes.BaseData):
                 dbopts[k] = v
 
     # Link definitions
-    def copy_defns(self, defns, prefix="", _warnmode=0):
+    def clone_defns(self, defns, prefix="", _warnmode=0):
         r"""Copy a data store's column definitions
 
         :Call:
-            >>> db.copy_defns(defns, prefix="")
+            >>> db.clone_defns(defns, prefix="")
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -529,6 +541,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
             * 2020-02-13 ``@ddalle``: Split from :func:`copy_options`
+            * 2020-03-06 ``@ddalle``: Renamed from :func:`copy_defns`
         """
         # Check input
         if not isinstance(defns, dict):
@@ -655,12 +668,12 @@ class DataKit(ftypes.BaseData):
             return srcs.get(name)
 
     # Get source, creating if necessary
-    def get_dbf(self, ext, cls, n=None, cols=None):
+    def make_source(self, ext, cls, n=None, cols=None, save=True):
         r"""Get or create a source by category (and number)
 
         :Call:
-            >>> dbf = db.get_dbf(ext, cls)
-            >>> dbf = db.get_dbf(ext, cls, n=None, cols=None)
+            >>> dbf = db.make_source(ext, cls)
+            >>> dbf = db.make_source(ext, cls, n=None, cols=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Generic database
@@ -672,30 +685,68 @@ class DataKit(ftypes.BaseData):
                 Source number to search for
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of data columns to include in *dbf*
+            *save*: {``True``} | ``False``
+                Option to save *dbf* in *db.sources*
         :Outputs:
             *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
         :Versions:
             * 2020-02-13 ``@ddalle``: First version
+            * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
         """
         # Get the source
         dbf = self.get_source(ext, n=n)
         # Check if found
-        if dbf is None:
-            # Default columns
-            if cols is None:
-                # Use listed columns
-                cols = self.cols
-            # Get relevant options
-            kw = {}
-            # Set values
-            kw["Values"] = {col: self[col] for col in cols}
-            # Explicit column list
-            kw["cols"] = cols
-            # Copy definitions
-            kw["Definitions"] = self.defns
-            # Create from class
-            dbf = cls(**kw)
+        if dbf is not None:
+            # Done
+            return dbf
+        # Create a new one
+        dbf = self.genr8_source(ext, cls, cols=cols)
+        # Save the file interface if needed
+        if save:
+            # Name for this source
+            name = "%02i-%s" % (len(self.sources), ext)
+            # Save it
+            self.sources[name] = dbf
+        # Output
+        return dbf
+
+    # Build new source, creating if necessary
+    def genr8_source(self, ext, cls, cols=None):
+        r"""Create a new source file interface
+
+        :Call:
+            >>> dbf = db.genr8_source(ext, cls)
+            >>> dbf = db.genr8_source(ext, cls, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+        :Outputs:
+            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
+        """
+        # Default columns
+        if cols is None:
+            # Use listed columns
+            cols = self.cols
+        # Get relevant options
+        kw = {}
+        # Set values
+        kw["Values"] = {col: self[col] for col in cols}
+        # Explicit column list
+        kw["cols"] = cols
+        # Copy definitions
+        kw["Definitions"] = self.defns
+        # Create from class
+        dbf = cls(**kw)
         # Output
         return dbf
   # >
@@ -741,7 +792,7 @@ class DataKit(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the options
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -773,7 +824,7 @@ class DataKit(ftypes.BaseData):
             * 2020-02-14 ``@ddalle``: Uniform "sources" interface
         """
         # Get CSV file interface
-        dbcsv = self.get_dbf("csv", ftypes.CSVFile, cols=cols)
+        dbcsv = self.make_source("csv", ftypes.CSVFile, cols=cols)
         # Write it
         dbcsv.write_csv_dense(fname, cols=cols)
 
@@ -814,7 +865,7 @@ class DataKit(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -859,7 +910,7 @@ class DataKit(ftypes.BaseData):
         # Linke the data
         self.link_data(dbf)
         # Copy the definitions
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -919,7 +970,7 @@ class DataKit(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -986,7 +1037,7 @@ class DataKit(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Link other attributes
         for (k, v) in dbf.__dict__.items():
             # Check if present and nonempty
@@ -1023,7 +1074,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get/create MAT file interface
-        dbmat = self.get_dbf("mat", ftypes.MATFile, cols=cols)
+        dbmat = self.make_source("mat", ftypes.MATFile, cols=cols)
         # Write it
         dbmat.write_mat(fname, cols=cols)
   # >
@@ -1470,11 +1521,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Declaration ---
     # Set evaluation methods
-    def set_responses(self, cols, method, args, *a, **kw):
+    def make_responses(self, cols, method, args, *a, **kw):
         r"""Set evaluation method for a list of columns
 
         :Call:
-            >>> db.set_responses(cols, method, args, *a, **kw)
+            >>> db.make_responses(cols, method, args, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1503,6 +1554,7 @@ class DataKit(ftypes.BaseData):
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-18 ``@ddalle``: Name from :func:`SetEvalMethod`
+            * 2020-03-06 ``@ddalle``: Name from :func:`set_responses`
         """
         # Check for list
         if not isinstance(cols, (list, tuple, set)):
@@ -1517,14 +1569,14 @@ class DataKit(ftypes.BaseData):
                 # Not a string
                 raise TypeError("Response col must be a string")
             # Specify individual col
-            self.set_response(col, method, args, *a, **kw)
+            self.make_response(col, method, args, *a, **kw)
 
     # Save a method for one coefficient
-    def set_response(self, col, method, args, *a, **kw):
+    def make_response(self, col, method, args, *a, **kw):
         r"""Set evaluation method for a single column
 
         :Call:
-            >>> db.set_response(col, method, args, **kw)
+            >>> db.make_response(col, method, args, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1556,6 +1608,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-30 ``@ddalle``: Version 2.0; map of methods
             * 2020-02-18 ``@ddalle``: Name from :func:`_set_method1`
+            * 2020-03-06 ``@ddalle``: Name from :func:`set_response`
         """
        # --- Input checks ---
         # Check inputs
@@ -1613,12 +1666,12 @@ class DataKit(ftypes.BaseData):
 
    # --- Constructors ---
     # Explicit function
-    def _construct_function(self, col, *a, **kw):
+    def _create_function(self, col, *a, **kw):
         r"""Constructor for ``"function"`` methods
 
         :Call:
-            >>> db._construct_function(col, *a, **kw)
-            >>> db._construct_function(col, fn, *a[1:], **kw)
+            >>> db._create_function(col, *a, **kw)
+            >>> db._create_function(col, fn, *a[1:], **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1652,11 +1705,11 @@ class DataKit(ftypes.BaseData):
         eval_func_self[col] = kw.get("self", True)
 
     # Global RBFs
-    def _construct_rbf(self, col, *a, **kw):
+    def _create_rbf(self, col, *a, **kw):
         r"""Constructor for ``"rbf"`` methods
 
         :Call:
-            >>> db._construct_rbf(col, *a, **kw)
+            >>> db._create_rbf(col, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1681,11 +1734,11 @@ class DataKit(ftypes.BaseData):
         self.create_global_rbfs([col], args, **kw)
 
     # Linear-RBFs
-    def _construct_rbf_linear(self, col, *a, **kw):
+    def _create_rbf_linear(self, col, *a, **kw):
         r"""Constructor for ``"rbf-linear"`` methods
 
         :Call:
-            >>> db._construct_rbf_linear(col, *a, **kw)
+            >>> db._create_rbf_linear(col, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1710,11 +1763,11 @@ class DataKit(ftypes.BaseData):
         self.create_slice_rbfs([col], args, **kw)
 
     # Schedule-RBFs
-    def _construct_rbf_map(self, col, *a, **kw):
+    def _create_rbf_map(self, col, *a, **kw):
         r"""Constructor for ``"rbf-map"`` methods
 
         :Call:
-            >>> db._construct_rbf_map(col, *a, **kw)
+            >>> db._create_rbf_map(col, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -4164,7 +4217,7 @@ class DataKit(ftypes.BaseData):
             sys.stdout.write("%-72s\r" % txt)
             sys.stdout.flush()
             # Create a single RBF
-            rbf[col] = self.create_rbf(col, args, I=I, **kw)
+            rbf[col] = self.genr8_rbf(col, args, I=I, **kw)
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
@@ -4255,11 +4308,11 @@ class DataKit(ftypes.BaseData):
         sys.stdout.flush()
 
     # Regularization
-    def create_rbf(self, col, args, I=None, **kw):
+    def genr8_rbf(self, col, args, I=None, **kw):
         r"""Create global radial basis functions for one or more columns
 
         :Call:
-            >>> rbf = db.create_rbf(col, args, I=None)
+            >>> rbf = db.genr8_rbf(col, args, I=None)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -4280,6 +4333,7 @@ class DataKit(ftypes.BaseData):
             * 2019-01-01 ``@ddalle``: First version
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-22 ``@ddalle``: Single-*col* version
+            * 2020-03-06 ``@ddalle``: Name from :funC:`create_rbf`
         """
         # Check for module
         if scirbf is None:
@@ -4792,12 +4846,12 @@ class DataKit(ftypes.BaseData):
             return I, J
 
     # Find matches from a target
-    def find_pairwise(self, dbt, maskt=None, cols=None, **kw):
+    def match(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
 
         :Call:
-            >>> I, J = db.find_pairwise(dbt, maskt, cols=None, **kw)
-            >>> Imap, J = db.find_pairwise(dbt, **kw)
+            >>> I, J = db.match(dbt, maskt, cols=None, **kw)
+            >>> Imap, J = db.match(dbt, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data kit with response surfaces
@@ -4828,6 +4882,7 @@ class DataKit(ftypes.BaseData):
                 List of *db* indices for each test point in *J*
         :Versions:
             * 2020-02-20 ``@ddalle``: First version
+            * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
         """
         # Check types
         if not isinstance(dbt, dict):
@@ -4978,7 +5033,7 @@ class DataKit(ftypes.BaseData):
             "cols": kw.pop("searchcols", None),
         }
         # Find indices of matches
-        I, J = self.find_pairwise(dbt, **kw_find)
+        I, J = self.match(dbt, **kw_find)
         # Check for empty
         if I.size == 0:
             raise ValueError("No matches between databases")
@@ -5045,7 +5100,7 @@ class DataKit(ftypes.BaseData):
             "cols": kw.pop("searchcols", None),
         }
         # Find indices of matches
-        I, J = self.find_pairwise(dbt, **kw_find)
+        I, J = self.match(dbt, **kw_find)
         # Check for empty
         if I.size == 0:
             raise ValueError("No matches between databases")
@@ -5565,7 +5620,7 @@ class DataKit(ftypes.BaseData):
             # Check for slices
             if scol is None:
                 # One interpolant
-                f = self.create_rbf(col, args, **kw)
+                f = self.genr8_rbf(col, args, **kw)
                 # Create tuple of input arguments
                 x = tuple(X[arg] for arg in args)
                 # Evaluate RBF
@@ -5600,7 +5655,7 @@ class DataKit(ftypes.BaseData):
                     # Get indices of slice
                     I = np.where(J)[0]
                     # Create interpolant for fixed value of *skey*
-                    f = self.create_rbf(col, iargs, I=masks[i], **kw)
+                    f = self.genr8_rbf(col, iargs, I=masks[i], **kw)
                     # Create tuple of input arguments
                     x = tuple(X[k][I] for k in iargs)
                     # Evaluate coefficient
