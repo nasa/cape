@@ -13,15 +13,15 @@
 
 static PyMethodDef CapeMethods[] = {
     // pc_Tri methods
-    {"WriteTri",     pc_WriteTri,     METH_VARARGS, doc_WriteTri},
-    {"WriteCompID",  pc_WriteCompID,  METH_VARARGS, doc_WriteCompID},
-    {"WriteTriQ",    pc_WriteTriQ,    METH_VARARGS, doc_WriteTriQ},
-    {"WriteSurf",    pc_WriteSurf,    METH_VARARGS, doc_WriteSurf},
-    {"WriteTriSTL",  pc_WriteTriSTL,  METH_VARARGS, doc_WriteTriSTL},
-    {"WriteTri_b4",  pc_WriteTri_b4,  METH_VARARGS, doc_WriteTri_b4},
-    {"WriteTri_lb4", pc_WriteTri_lb4, METH_VARARGS, doc_WriteTri_lb4},
-    {"WriteTri_b8",  pc_WriteTri_b8,  METH_VARARGS, doc_WriteTri_b8},
-    {"WriteTri_lb8", pc_WriteTri_lb8, METH_VARARGS, doc_WriteTri_lb8},
+    {"WriteTri",     cape_WriteTri,     METH_VARARGS, doc_WriteTri},
+    {"WriteCompID",  cape_WriteCompID,  METH_VARARGS, doc_WriteCompID},
+    {"WriteTriQ",    cape_WriteTriQ,    METH_VARARGS, doc_WriteTriQ},
+    {"WriteSurf",    cape_WriteSurf,    METH_VARARGS, doc_WriteSurf},
+    {"WriteTriSTL",  cape_WriteTriSTL,  METH_VARARGS, doc_WriteTriSTL},
+    {"WriteTri_b4",  cape_WriteTri_b4,  METH_VARARGS, doc_WriteTri_b4},
+    {"WriteTri_lb4", cape_WriteTri_lb4, METH_VARARGS, doc_WriteTri_lb4},
+    {"WriteTri_b8",  cape_WriteTri_b8,  METH_VARARGS, doc_WriteTri_b8},
+    {"WriteTri_lb8", cape_WriteTri_lb8, METH_VARARGS, doc_WriteTri_lb8},
     {NULL, NULL, 0, NULL}
 };
 

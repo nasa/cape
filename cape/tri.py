@@ -60,12 +60,13 @@ rztoldef = cape.cfdx.options.rc.get("rztoldef", 1e-5)
 try:
     if sys.version_info.major == 2:
         # Python 2 extension
-        from . import _cape2 as pc
+        from . import _cape2 as _cape
     else:
         # Python 3 extension
-        from . import _cape3 as pc
+        from . import _cape3 as _cape
 except ImportError:
-    pass
+    # No module
+    _cape = None
 
 # Function to get a non comment line
 def _readline(f, comment='#'):
@@ -1379,9 +1380,9 @@ class TriBase(object):
             * 2015-01-03 ``@ddalle``: First version
         """
         # Write the nodes.
-        pc.WriteTri(self.Nodes, self.Tris)
+        _cape.WriteTri(self.Nodes, self.Tris)
         # Write the component IDs.
-        pc.WriteCompID(self.CompID)
+        _cape.WriteCompID(self.CompID)
         # Check the file name.
         if fname != "Components.pyCart.tri":
             # Move the file.
@@ -1472,7 +1473,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         #
-        pc.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
+        _cape.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -1551,7 +1552,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         #
-        pc.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
+        _cape.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -1630,7 +1631,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         #
-        pc.WriteTri_lb8(self.Nodes, self.Tris, self.CompID)
+        _cape.WriteTri_lb8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -1709,7 +1710,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         #
-        pc.WriteTri_b8(self.Nodes, self.Tris, self.CompID)
+        _cape.WriteTri_b8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -1788,7 +1789,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         #
-        pc.WriteTri_lr4(self.Nodes, self.Tris, self.CompID)
+        _cape.WriteTri_lr4(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -1867,7 +1868,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         #
-        pc.WriteTri_r4(self.Nodes, self.Tris, self.CompID)
+        _cape.WriteTri_r4(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -1946,7 +1947,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         #
-        pc.WriteTri_lr8(self.Nodes, self.Tris, self.CompID)
+        _cape.WriteTri_lr8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -2025,7 +2026,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         #
-        pc.WriteTri_r8(self.Nodes, self.Tris, self.CompID)
+        _cape.WriteTri_r8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -2673,7 +2674,7 @@ class TriBase(object):
             * 2015-09-14 ``@ddalle``: First version
         """
         # Write the nodes.
-        pc.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
+        _cape.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
         # Check the file name.
         if fname != "Components.pyCart.tri":
             # Move the file.
@@ -2871,7 +2872,7 @@ class TriBase(object):
             * 2016-04-08 ``@ddalle``: First version
         """
         # Write the nodes.
-        pc.WriteTriSTL(self.Nodes, self.Tris)
+        _cape.WriteTriSTL(self.Nodes, self.Tris)
         # Check the file name.
         if fname != "Components.pyCart.stl":
             # Move the file.
@@ -2974,7 +2975,7 @@ class TriBase(object):
             * 2015-01-03 ``@ddalle``: First version
         """
         # Write the nodes.
-        pc.WriteSurf(
+        _cape.WriteSurf(
             self.Nodes, self.blds,       self.bldel,
             self.Tris,  self.CompID,     self.BCs,
             self.Quads, self.CompIDQuad, self.BCsQuad)

@@ -14,7 +14,7 @@
 
 // Function to write Components.pyCart.tri file
 PyObject *
-pc_WriteTri(PyObject *self, PyObject *args)
+cape_WriteTri(PyObject *self, PyObject *args)
 {
     int i, ierr;
     int nNode, nTri;
@@ -55,13 +55,13 @@ pc_WriteTri(PyObject *self, PyObject *args)
     fprintf(fid, "%12i%12i\n", nNode, nTri);
     
     // Write the nodes.
-    ierr = pc_WriteTriNodes(fid, P);
+    ierr = capec_WriteTriNodes(fid, P);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
             "Failure writing nodes to `Components.pyCart.tri'");
     }
     // Write the tris.
-    ierr = pc_WriteTriTris(fid, T);
+    ierr = capec_WriteTriTris(fid, T);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
             "Failure writing tris to `Components.pyCart.tri'");
@@ -83,7 +83,7 @@ pc_WriteTri(PyObject *self, PyObject *args)
 
 // Function to write binary tri, single-precision big-endian
 PyObject *
-pc_WriteTri_b4(PyObject *self, PyObject *args)
+cape_WriteTri_b4(PyObject *self, PyObject *args)
 {
     int i, ierr=1;
     int nNode, nTri, nb;
@@ -110,15 +110,15 @@ pc_WriteTri_b4(PyObject *self, PyObject *args)
     fid = fopen("Components.pyCart.tri", "wb");
     
     // Write header record
-    pc_Write_b4_i(fid, nb);
-    pc_Write_b4_i(fid, nNode);
-    pc_Write_b4_i(fid, nTri);
-    pc_Write_b4_i(fid, nb);
+    capec_Write_b4_i(fid, nb);
+    capec_Write_b4_i(fid, nNode);
+    capec_Write_b4_i(fid, nTri);
+    capec_Write_b4_i(fid, nb);
     
     // Write the nodes, tris, and CompIDs
-    ierr = ierr & pc_WriteRecord_b4_f2(fid, P);
-    ierr = ierr & pc_WriteRecord_b4_i2(fid, T);
-    ierr = ierr & pc_WriteRecord_b4_i1(fid, C);
+    ierr = ierr & capec_WriteRecord_b4_f2(fid, P);
+    ierr = ierr & capec_WriteRecord_b4_i2(fid, T);
+    ierr = ierr & capec_WriteRecord_b4_i1(fid, C);
     
     // Check for errors; error message set elsewhere
     if (ierr) {return NULL; }
@@ -139,7 +139,7 @@ pc_WriteTri_b4(PyObject *self, PyObject *args)
 
 // Function to write binary tri, single-precision little-endian
 PyObject *
-pc_WriteTri_lb4(PyObject *self, PyObject *args)
+cape_WriteTri_lb4(PyObject *self, PyObject *args)
 {
     int i, ierr=1;
     int nNode, nTri, nb;
@@ -166,15 +166,15 @@ pc_WriteTri_lb4(PyObject *self, PyObject *args)
     fid = fopen("Components.pyCart.tri", "wb");
     
     // Write header record
-    pc_Write_lb4_i(fid, nb);
-    pc_Write_lb4_i(fid, nNode);
-    pc_Write_lb4_i(fid, nTri);
-    pc_Write_lb4_i(fid, nb);
+    capec_Write_lb4_i(fid, nb);
+    capec_Write_lb4_i(fid, nNode);
+    capec_Write_lb4_i(fid, nTri);
+    capec_Write_lb4_i(fid, nb);
     
     // Write the nodes, tris, and CompIDs
-    ierr = ierr & pc_WriteRecord_lb4_f2(fid, P);
-    ierr = ierr & pc_WriteRecord_lb4_i2(fid, T);
-    ierr = ierr & pc_WriteRecord_lb4_i1(fid, C);
+    ierr = ierr & capec_WriteRecord_lb4_f2(fid, P);
+    ierr = ierr & capec_WriteRecord_lb4_i2(fid, T);
+    ierr = ierr & capec_WriteRecord_lb4_i1(fid, C);
     
     // Check for errors; error message set elsewhere
     if (ierr) {return NULL; }
@@ -195,7 +195,7 @@ pc_WriteTri_lb4(PyObject *self, PyObject *args)
 
 // Function to write binary tri, double-precision big-endian
 PyObject *
-pc_WriteTri_b8(PyObject *self, PyObject *args)
+cape_WriteTri_b8(PyObject *self, PyObject *args)
 {
     int i, ierr=1;
     int nNode, nTri, nb;
@@ -222,15 +222,15 @@ pc_WriteTri_b8(PyObject *self, PyObject *args)
     fid = fopen("Components.pyCart.tri", "wb");
     
     // Write header record
-    pc_Write_b4_i(fid, nb);
-    pc_Write_b4_i(fid, nNode);
-    pc_Write_b4_i(fid, nTri);
-    pc_Write_b4_i(fid, nb);
+    capec_Write_b4_i(fid, nb);
+    capec_Write_b4_i(fid, nNode);
+    capec_Write_b4_i(fid, nTri);
+    capec_Write_b4_i(fid, nb);
     
     // Write the nodes, tris, and CompIDs
-    ierr = ierr & pc_WriteRecord_b8_f2(fid, P);
-    ierr = ierr & pc_WriteRecord_b4_i2(fid, T);
-    ierr = ierr & pc_WriteRecord_b4_i1(fid, C);
+    ierr = ierr & capec_WriteRecord_b8_f2(fid, P);
+    ierr = ierr & capec_WriteRecord_b4_i2(fid, T);
+    ierr = ierr & capec_WriteRecord_b4_i1(fid, C);
     
     // Check for errors; error message set elsewhere
     if (ierr) {return NULL; }
@@ -251,7 +251,7 @@ pc_WriteTri_b8(PyObject *self, PyObject *args)
 
 // Function to write binary tri, double-precision little-endian
 PyObject *
-pc_WriteTri_lb8(PyObject *self, PyObject *args)
+cape_WriteTri_lb8(PyObject *self, PyObject *args)
 {
     int i, ierr=1;
     int nNode, nTri, nb;
@@ -278,15 +278,15 @@ pc_WriteTri_lb8(PyObject *self, PyObject *args)
     fid = fopen("Components.pyCart.tri", "wb");
     
     // Write header record
-    pc_Write_lb4_i(fid, nb);
-    pc_Write_lb4_i(fid, nNode);
-    pc_Write_lb4_i(fid, nTri);
-    pc_Write_lb4_i(fid, nb);
+    capec_Write_lb4_i(fid, nb);
+    capec_Write_lb4_i(fid, nNode);
+    capec_Write_lb4_i(fid, nTri);
+    capec_Write_lb4_i(fid, nb);
     
     // Write the nodes, tris, and CompIDs
-    ierr = ierr & pc_WriteRecord_lb8_f2(fid, P);
-    ierr = ierr & pc_WriteRecord_lb4_i2(fid, T);
-    ierr = ierr & pc_WriteRecord_lb4_i1(fid, C);
+    ierr = ierr & capec_WriteRecord_lb8_f2(fid, P);
+    ierr = ierr & capec_WriteRecord_lb4_i2(fid, T);
+    ierr = ierr & capec_WriteRecord_lb4_i1(fid, C);
     
     // Check for errors; error message set elsewhere
     if (ierr) {return NULL; }
@@ -309,7 +309,7 @@ pc_WriteTri_lb8(PyObject *self, PyObject *args)
 
 // Function to write AFLR3 surface file
 PyObject *
-pc_WriteSurf(PyObject *self, PyObject *args)
+cape_WriteSurf(PyObject *self, PyObject *args)
 {
     int i, ierr;
     int nNode, nTri, nQuad;
@@ -366,14 +366,14 @@ pc_WriteSurf(PyObject *self, PyObject *args)
     fprintf(fid, "%12i%12i%12i\n", nTri, nQuad, nNode);
     
     // Write the nodes.
-    ierr = pc_WriteSurfNodes(fid, P, blds, bldel);
+    ierr = capec_WriteSurfNodes(fid, P, blds, bldel);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
             "Failure writing nodes to `Components.pyCart.surf'");
     }
     // Write the tris.
     if (nTri > 0) {
-        ierr = pc_WriteSurfTris(fid, T, CT, BCT);
+        ierr = capec_WriteSurfTris(fid, T, CT, BCT);
         if (ierr) {
             PyErr_SetString(PyExc_IOError, \
                 "Failure writing tris to `Components.pyCart.surf'");
@@ -381,7 +381,7 @@ pc_WriteSurf(PyObject *self, PyObject *args)
     }
     // Write the quads.
     if (nQuad > 0) {
-        ierr = pc_WriteSurfQuads(fid, Q, CQ, BCQ);
+        ierr = capec_WriteSurfQuads(fid, Q, CQ, BCQ);
         if (ierr) {
             PyErr_SetString(PyExc_IOError, \
                 "Failure writing quads to `Components.pyCart.surf'");
@@ -406,7 +406,7 @@ pc_WriteSurf(PyObject *self, PyObject *args)
 
 // Function to write the component IDs
 PyObject *
-pc_WriteCompID(PyObject *self, PyObject *args)
+cape_WriteCompID(PyObject *self, PyObject *args)
 {
     int i, ierr;
     int nTri;
@@ -425,7 +425,7 @@ pc_WriteCompID(PyObject *self, PyObject *args)
     fid = fopen("Components.pyCart.tri", "a");
     
     // Write the nodes.
-    ierr = pc_WriteTriCompID(fid, C);
+    ierr = capec_WriteTriCompID(fid, C);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
             "Failure writing component IDs to `Components.pyCart.tri'");
@@ -448,7 +448,7 @@ pc_WriteCompID(PyObject *self, PyObject *args)
 
 // Function to write Components.pyCart.tri file
 PyObject *
-pc_WriteTriQ(PyObject *self, PyObject *args)
+cape_WriteTriQ(PyObject *self, PyObject *args)
 {
     int i, ierr;
     int nNode, nTri, nq;
@@ -507,25 +507,25 @@ pc_WriteTriQ(PyObject *self, PyObject *args)
     fprintf(fid, "%12i%12i%4i\n", nNode, nTri, nq);
     
     // Write the nodes.
-    ierr = pc_WriteTriNodes(fid, P);
+    ierr = capec_WriteTriNodes(fid, P);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
             "Failure writing nodes to `Components.pyCart.tri'");
     }
     // Write the tris.
-    ierr = pc_WriteTriTris(fid, T);
+    ierr = capec_WriteTriTris(fid, T);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
             "Failure writing tris to `Components.pyCart.tri'");
     }
     // Write the ComponentIDs.
-    ierr = pc_WriteTriCompID(fid, C);
+    ierr = capec_WriteTriCompID(fid, C);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
             "Failure writing CompIDs to `Components.pyCart.tri'");
     }
     // Write the tris.
-    ierr = pc_WriteTriState(fid, Q);
+    ierr = capec_WriteTriState(fid, Q);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
             "Failure writing state to `Components.pyCart.tri'");
@@ -548,7 +548,7 @@ pc_WriteTriQ(PyObject *self, PyObject *args)
 
 // Function to write Components.pyCart.stl file
 PyObject *
-pc_WriteTriSTL(PyObject *self, PyObject *args)
+cape_WriteTriSTL(PyObject *self, PyObject *args)
 {
     int i, ierr;
     int i0, i1, i2;

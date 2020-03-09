@@ -2,12 +2,12 @@
 #define _CAPE_TRI_H
 
 PyObject *
-pc_WriteTri(PyObject *self, PyObject *args);
+cape_WriteTri(PyObject *self, PyObject *args);
 char doc_WriteTri[] =
 "Write a Cart3D triangulation to :file:`Components.pyCart.tri` file\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTri(P, T)\n"
+"    >>> _cape.WriteTri(P, T)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -17,7 +17,7 @@ char doc_WriteTri[] =
 "   * 2014-01-02 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTri_b4(PyObject *self, PyObject *args);
+cape_WriteTri_b4(PyObject *self, PyObject *args);
 char doc_WriteTri_b4[] =
 "Write a single-precision big-endian Fortran-style triangulation file\n"
 "\n"
@@ -25,7 +25,7 @@ char doc_WriteTri_b4[] =
 "whatever the native byte order is.  Fortran record markers are included.\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTri_b4(P, T, C)\n"
+"    >>> _cape.WriteTri_b4(P, T, C)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -37,7 +37,7 @@ char doc_WriteTri_b4[] =
 "    * 2016-10-10 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTri_lb4(PyObject *self, PyObject *args);
+cape_WriteTri_lb4(PyObject *self, PyObject *args);
 char doc_WriteTri_lb4[] =
 "Write a single-precision little-endian Fortran-style triangulation file\n"
 "\n"
@@ -45,7 +45,7 @@ char doc_WriteTri_lb4[] =
 "whatever the native byte order is.  Fortran record markers are included.\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTri_lb4(P, T, C)\n"
+"    >>> _cape.WriteTri_lb4(P, T, C)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -57,7 +57,7 @@ char doc_WriteTri_lb4[] =
 "    * 2016-10-10 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTri_b8(PyObject *self, PyObject *args);
+cape_WriteTri_b8(PyObject *self, PyObject *args);
 char doc_WriteTri_b8[] =
 "Write a double-precision big-endian Fortran-style triangulation file\n"
 "\n"
@@ -65,7 +65,7 @@ char doc_WriteTri_b8[] =
 "whatever the native byte order is.  Fortran record markers are included.\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTri_b8(P, T, C)\n"
+"    >>> _cape.WriteTri_b8(P, T, C)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -77,7 +77,7 @@ char doc_WriteTri_b8[] =
 "    * 2016-10-10 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTri_lb8(PyObject *self, PyObject *args);
+cape_WriteTri_lb8(PyObject *self, PyObject *args);
 char doc_WriteTri_lb8[] =
 "Write a double-precision little-endian Fortran-style triangulation file\n"
 "\n"
@@ -85,7 +85,7 @@ char doc_WriteTri_lb8[] =
 "whatever the native byte order is.  Fortran record markers are included.\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTri_lb8(P, T, C)\n"
+"    >>> _cape.WriteTri_lb8(P, T, C)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -98,12 +98,12 @@ char doc_WriteTri_lb8[] =
 
 
 PyObject *
-pc_WriteCompID(PyObject *self, PyObject *args);
+cape_WriteCompID(PyObject *self, PyObject *args);
 char doc_WriteCompID[] =
 "Write component ID numbers to :file:`Components.pyCart.tri`\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteCompID(C)\n"
+"    >>> _cape.WriteCompID(C)\n"
 ":Inputs:\n"
 "    *C*: :class:`numpy.ndarray` (:class:`int`) (*nTri*)\n"
 "        Vector of component IDs\n"
@@ -112,12 +112,12 @@ char doc_WriteCompID[] =
 
 
 PyObject *
-pc_WriteTriQ(PyObject *self, PyObject *args);
+cape_WriteTriQ(PyObject *self, PyObject *args);
 char doc_WriteTriQ[] =
 "Write ``.triq`` file to :file:`Components.pyCart.tri`\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTriQ(P, T, C, Q)\n"
+"    >>> _cape.WriteTriQ(P, T, C, Q)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -131,12 +131,12 @@ char doc_WriteTriQ[] =
 "    * 2015-09-24 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteSurf(PyObject *self, PyObject *args);
+cape_WriteSurf(PyObject *self, PyObject *args);
 char doc_WriteSurf[] =
 "Write AFLR3 surface file to :file:`Components.pyCart.surf`\n"
 "\n"
 ":Call:\n"
-"    >>> pc_WriteSurf(P, blds, bldel, T, CT, BCT, Q, CQ, BCQ)\n"
+"    >>> cape_WriteSurf(P, blds, bldel, T, CT, BCT, Q, CQ, BCQ)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -156,12 +156,12 @@ char doc_WriteSurf[] =
 "    * 2016-04-13 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTriSTL(PyObject *self, PyObject *args);
+cape_WriteTriSTL(PyObject *self, PyObject *args);
 char doc_WriteTriSTL[] = 
 "Write ``.stl`` file to :file:`Components.pyCart.stl`\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTriSTL(P, T, N)\n"
+"    >>> _cape.WriteTriSTL(P, T, N)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"

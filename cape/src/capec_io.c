@@ -81,7 +81,7 @@ double swap_double(const double f)
 // ======================================================================
 
 // Write big-endian, single-precision integer
-int pc_Write_b4_i(FILE *fid, int v)
+int capec_Write_b4_i(FILE *fid, int v)
 {
     int n;
     int u;
@@ -103,7 +103,7 @@ int pc_Write_b4_i(FILE *fid, int v)
 }
 
 // Write little-endian, single-precision integer
-int pc_Write_lb4_i(FILE *fid, int v)
+int capec_Write_lb4_i(FILE *fid, int v)
 {
     int n;
     int u;
@@ -130,7 +130,7 @@ int pc_Write_lb4_i(FILE *fid, int v)
 // ======================================================================
 
 // Write big-endian float
-int pc_Write_b4_f(FILE *fid, float v)
+int capec_Write_b4_f(FILE *fid, float v)
 {
     int n;
     
@@ -147,7 +147,7 @@ int pc_Write_b4_f(FILE *fid, float v)
 }
 
 // Write little-endian float
-int pc_Write_lb4_f(FILE *fid, float v)
+int capec_Write_lb4_f(FILE *fid, float v)
 {
     int n;
     
@@ -169,7 +169,7 @@ int pc_Write_lb4_f(FILE *fid, float v)
 // ======================================================================
 
 // Write big-endian double
-int pc_Write_b4_d(FILE *fid, double v)
+int capec_Write_b4_d(FILE *fid, double v)
 {
     int n;
     
@@ -186,7 +186,7 @@ int pc_Write_b4_d(FILE *fid, double v)
 }
 
 // Write little-endian double
-int pc_Write_lb4_d(FILE *fid, double v)
+int capec_Write_lb4_d(FILE *fid, double v)
 {
     int n;
     
@@ -208,7 +208,7 @@ int pc_Write_lb4_d(FILE *fid, double v)
 // ======================================================================
 
 // Write native, single-precision integer record from 1D array
-int pc_WriteRecord_ne4_i1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne4_i1(FILE *fid, PyArrayObject *P)
 {
     int i;
     int v;
@@ -240,7 +240,7 @@ int pc_WriteRecord_ne4_i1(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision integer record from 1D array
-int pc_WriteRecord_bs4_i1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs4_i1(FILE *fid, PyArrayObject *P)
 {
     int i;
     int v;
@@ -272,22 +272,22 @@ int pc_WriteRecord_bs4_i1(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, single-precision integer record from 1D array
-int pc_WriteRecord_b4_i1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b4_i1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs4_i1(fid, P);
+        return capec_WriteRecord_bs4_i1(fid, P);
     } else {
-        return pc_WriteRecord_ne4_i1(fid, P);
+        return capec_WriteRecord_ne4_i1(fid, P);
     }
 }
 
 // Write little-endian, single-precision integer record from 1D array
-int pc_WriteRecord_lb4_i1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb4_i1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne4_i1(fid, P);
+        return capec_WriteRecord_ne4_i1(fid, P);
     } else {
-        return pc_WriteRecord_bs4_i1(fid, P);
+        return capec_WriteRecord_bs4_i1(fid, P);
     }
 }
 
@@ -297,7 +297,7 @@ int pc_WriteRecord_lb4_i1(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision integer record from 2D array
-int pc_WriteRecord_ne4_i2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne4_i2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     int v;
@@ -333,7 +333,7 @@ int pc_WriteRecord_ne4_i2(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision integer record from 2D array
-int pc_WriteRecord_bs4_i2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs4_i2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     int v;
@@ -369,22 +369,22 @@ int pc_WriteRecord_bs4_i2(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, single-precision integer record from 2D array
-int pc_WriteRecord_b4_i2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b4_i2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs4_i2(fid, P);
+        return capec_WriteRecord_bs4_i2(fid, P);
     } else {
-        return pc_WriteRecord_ne4_i2(fid, P);
+        return capec_WriteRecord_ne4_i2(fid, P);
     }
 }
 
 // Write little-endian, single-precision integer record from 2D array
-int pc_WriteRecord_lb4_i2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb4_i2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne4_i2(fid, P);
+        return capec_WriteRecord_ne4_i2(fid, P);
     } else {
-        return pc_WriteRecord_bs4_i2(fid, P);
+        return capec_WriteRecord_bs4_i2(fid, P);
     }
 }
 
@@ -394,7 +394,7 @@ int pc_WriteRecord_lb4_i2(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision integer record from 3D array
-int pc_WriteRecord_ne4_i3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne4_i3(FILE *fid, PyArrayObject *P)
 {
     int j, k, l;
     int v;
@@ -434,7 +434,7 @@ int pc_WriteRecord_ne4_i3(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision integer record from 3D array
-int pc_WriteRecord_bs4_i3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs4_i3(FILE *fid, PyArrayObject *P)
 {
     int j, k, l;
     int v;
@@ -474,22 +474,22 @@ int pc_WriteRecord_bs4_i3(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, single-precision float record from 3D array
-int pc_WriteRecord_b4_i3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b4_i3(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs4_i3(fid, P);
+        return capec_WriteRecord_bs4_i3(fid, P);
     } else {
-        return pc_WriteRecord_ne4_i3(fid, P);
+        return capec_WriteRecord_ne4_i3(fid, P);
     }
 }
 
 // Write little-endian, single-precision float record from 3D array
-int pc_WriteRecord_lb4_i3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb4_i3(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne4_i3(fid, P);
+        return capec_WriteRecord_ne4_i3(fid, P);
     } else {
-        return pc_WriteRecord_bs4_i3(fid, P);
+        return capec_WriteRecord_bs4_i3(fid, P);
     }
 }
 
@@ -499,7 +499,7 @@ int pc_WriteRecord_lb4_i3(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision float record from 1D array
-int pc_WriteRecord_ne4_f1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne4_f1(FILE *fid, PyArrayObject *P)
 {
     int i;
     float v;
@@ -531,7 +531,7 @@ int pc_WriteRecord_ne4_f1(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision float record from 1D array
-int pc_WriteRecord_bs4_f1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs4_f1(FILE *fid, PyArrayObject *P)
 {
     int i;
     float v;
@@ -563,22 +563,22 @@ int pc_WriteRecord_bs4_f1(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, single-precision float record from 1D array
-int pc_WriteRecord_b4_f1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b4_f1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs4_f1(fid, P);
+        return capec_WriteRecord_bs4_f1(fid, P);
     } else {
-        return pc_WriteRecord_ne4_f1(fid, P);
+        return capec_WriteRecord_ne4_f1(fid, P);
     }
 }
 
 // Write little-endian, single-precision float record from 1D array
-int pc_WriteRecord_lb4_f1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb4_f1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne4_f1(fid, P);
+        return capec_WriteRecord_ne4_f1(fid, P);
     } else {
-        return pc_WriteRecord_bs4_f1(fid, P);
+        return capec_WriteRecord_bs4_f1(fid, P);
     }
 }
 
@@ -588,7 +588,7 @@ int pc_WriteRecord_lb4_f1(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision float record from 2D array
-int pc_WriteRecord_ne4_f2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne4_f2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     float v;
@@ -624,7 +624,7 @@ int pc_WriteRecord_ne4_f2(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision float record from 2D array
-int pc_WriteRecord_bs4_f2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs4_f2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     float v;
@@ -661,22 +661,22 @@ int pc_WriteRecord_bs4_f2(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, single-precision float record from 2D array
-int pc_WriteRecord_b4_f2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b4_f2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs4_f2(fid, P);
+        return capec_WriteRecord_bs4_f2(fid, P);
     } else {
-        return pc_WriteRecord_ne4_f2(fid, P);
+        return capec_WriteRecord_ne4_f2(fid, P);
     }
 }
 
 // Write little-endian, single-precision float record from 2D array
-int pc_WriteRecord_lb4_f2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb4_f2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne4_f2(fid, P);
+        return capec_WriteRecord_ne4_f2(fid, P);
     } else {
-        return pc_WriteRecord_bs4_f2(fid, P);
+        return capec_WriteRecord_bs4_f2(fid, P);
     }
 }
 
@@ -686,7 +686,7 @@ int pc_WriteRecord_lb4_f2(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision float record from 3D array
-int pc_WriteRecord_ne4_f3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne4_f3(FILE *fid, PyArrayObject *P)
 {
     int j, k, l;
     float v;
@@ -726,7 +726,7 @@ int pc_WriteRecord_ne4_f3(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision float record from 3D array
-int pc_WriteRecord_bs4_f3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs4_f3(FILE *fid, PyArrayObject *P)
 {
     int j, k, l;
     float v;
@@ -766,22 +766,22 @@ int pc_WriteRecord_bs4_f3(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, single-precision float record from 3D array
-int pc_WriteRecord_b4_f3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b4_f3(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs4_f3(fid, P);
+        return capec_WriteRecord_bs4_f3(fid, P);
     } else {
-        return pc_WriteRecord_ne4_f3(fid, P);
+        return capec_WriteRecord_ne4_f3(fid, P);
     }
 }
 
 // Write little-endian, single-precision float record from 3D array
-int pc_WriteRecord_lb4_f3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb4_f3(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne4_f3(fid, P);
+        return capec_WriteRecord_ne4_f3(fid, P);
     } else {
-        return pc_WriteRecord_bs4_f3(fid, P);
+        return capec_WriteRecord_bs4_f3(fid, P);
     }
 }
 
@@ -791,7 +791,7 @@ int pc_WriteRecord_lb4_f3(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision float record from 1D array
-int pc_WriteRecord_ne8_f1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne8_f1(FILE *fid, PyArrayObject *P)
 {
     int i;
     double v;
@@ -823,7 +823,7 @@ int pc_WriteRecord_ne8_f1(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision float record from 1D array
-int pc_WriteRecord_bs8_f1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs8_f1(FILE *fid, PyArrayObject *P)
 {
     int i;
     double v;
@@ -856,22 +856,22 @@ int pc_WriteRecord_bs8_f1(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, single-precision float record from 1D array
-int pc_WriteRecord_b8_f1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b8_f1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs8_f1(fid, P);
+        return capec_WriteRecord_bs8_f1(fid, P);
     } else {
-        return pc_WriteRecord_ne8_f1(fid, P);
+        return capec_WriteRecord_ne8_f1(fid, P);
     }
 }
 
 // Write little-endian, single-precision float record from 1D array
-int pc_WriteRecord_lb8_f1(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb8_f1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne8_f1(fid, P);
+        return capec_WriteRecord_ne8_f1(fid, P);
     } else {
-        return pc_WriteRecord_bs8_f1(fid, P);
+        return capec_WriteRecord_bs8_f1(fid, P);
     }
 }
 
@@ -881,7 +881,7 @@ int pc_WriteRecord_lb8_f1(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, double-precision float record from 2D array
-int pc_WriteRecord_ne8_f2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne8_f2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     double v;
@@ -917,7 +917,7 @@ int pc_WriteRecord_ne8_f2(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, double-precision float record from 2D array
-int pc_WriteRecord_bs8_f2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs8_f2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     double v;
@@ -954,22 +954,22 @@ int pc_WriteRecord_bs8_f2(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, double-precision float record from 2D array
-int pc_WriteRecord_b8_f2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b8_f2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs8_f2(fid, P);
+        return capec_WriteRecord_bs8_f2(fid, P);
     } else {
-        return pc_WriteRecord_ne8_f2(fid, P);
+        return capec_WriteRecord_ne8_f2(fid, P);
     }
 }
 
 // Write little-endian, double-precision float record from 2D array
-int pc_WriteRecord_lb8_f2(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb8_f2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne8_f2(fid, P);
+        return capec_WriteRecord_ne8_f2(fid, P);
     } else {
-        return pc_WriteRecord_bs8_f2(fid, P);
+        return capec_WriteRecord_bs8_f2(fid, P);
     }
 }
 
@@ -979,7 +979,7 @@ int pc_WriteRecord_lb8_f2(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision float record from 3D array
-int pc_WriteRecord_ne8_f3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_ne8_f3(FILE *fid, PyArrayObject *P)
 {
     int j, k, l;
     double v;
@@ -1019,7 +1019,7 @@ int pc_WriteRecord_ne8_f3(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision float record from 3D array
-int pc_WriteRecord_bs8_f3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_bs8_f3(FILE *fid, PyArrayObject *P)
 {
     int j, k, l;
     double v;
@@ -1059,22 +1059,22 @@ int pc_WriteRecord_bs8_f3(FILE *fid, PyArrayObject *P)
 }
 
 // Write big-endian, single-precision float record from 3D array
-int pc_WriteRecord_b8_f3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_b8_f3(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs4_f3(fid, P);
+        return capec_WriteRecord_bs4_f3(fid, P);
     } else {
-        return pc_WriteRecord_ne4_f3(fid, P);
+        return capec_WriteRecord_ne4_f3(fid, P);
     }
 }
 
 // Write little-endian, single-precision float record from 3D array
-int pc_WriteRecord_lb8_f3(FILE *fid, PyArrayObject *P)
+int capec_WriteRecord_lb8_f3(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne4_f3(fid, P);
+        return capec_WriteRecord_ne4_f3(fid, P);
     } else {
-        return pc_WriteRecord_bs4_f3(fid, P);
+        return capec_WriteRecord_bs4_f3(fid, P);
     }
 }
 
