@@ -8,6 +8,7 @@
 // Local includes
 #include "capec_NumPy.h"
 #include "capec_io.h"
+#include "capec_Tri.h"
 #include "cape_Tri.h"
 
 static PyMethodDef CapeMethods[] = {

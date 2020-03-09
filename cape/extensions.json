@@ -4,6 +4,7 @@
         "sources": [
             "src/_capemodule.c",
             "src/capec_io.c",
+            "src/capec_Tri.c",
             "src/cape_Tri.c"
         ]
     },
