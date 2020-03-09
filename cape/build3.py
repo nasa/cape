@@ -52,8 +52,7 @@ for (ext, opts) in extopts.items():
     # Destination folder
     fdest = opts["destination"].replace("/", os.sep)
     # File name for compiled module
-    fname = "%s.so" % ext
-    fout  = "%s3.so" % ext
+    fname = "%s3.so" % ext
     # Final location for module
     fmod = os.path.join(fpwd, fdest, fout)
     # Expected build location

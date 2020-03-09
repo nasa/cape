@@ -38,7 +38,7 @@ for (ext, opts) in extopts.items():
     extsources = [str(src) for src in opts["sources"]]
     # Create extension
     _ext = distutils.core.Extension(
-        str(ext),
+        str(ext) + "3",
         include_dirs = include_dirs,
         extra_compile_args = cflags,
         extra_link_args = ldflags,
