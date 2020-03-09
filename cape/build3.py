@@ -54,7 +54,7 @@ for (ext, opts) in extopts.items():
     # File name for compiled module
     fname = "%s3.so" % ext
     # Final location for module
-    fmod = os.path.join(fpwd, fdest, fout)
+    fmod = os.path.join(fpwd, fdest, fname)
     # Expected build location
     fbld = os.path.join(fpwd, flib, fname)
     # Exit if no build

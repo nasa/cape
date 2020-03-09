@@ -13,6 +13,9 @@
     #define capePyString_Check(o)       PyUnicode_Check(o)
     #define capePyString_AsString(o)    PyUnicode_AsUTF8(o)
     #define capePyString_FromString(s)  PyUnicode_FromString(s)
+    #define capePyInt_Check(i)          PyLong_Check(i)
+    #define capePyInt_FromLong(i)       PyLong_FromLong(i)
+    #define capePyInt_AS_LONG(i)        PyLong_AS_LONG(i)
     
     
     //const char* capePyString_AsString(PyObject* o);
@@ -23,6 +26,9 @@
     #define capePyString_Check(o)       PyString_Check(o)
     #define capePyString_AsString(o)    PyString_AsString(o)
     #define capePyString_FromString(s)  PyString_FromString(s)
+    #define capePyInt_Check(i)          PyInt_Check(i)
+    #define capePyInt_FromLong(i)       PyInt_FromLong(i)
+    #define capePyInt_AS_LONG(i)        PyInt_AS_LONG(i)
 
 #endif
 

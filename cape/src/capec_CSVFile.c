@@ -4,6 +4,7 @@
 
 // Local includes
 #include "capec_Error.h"
+#include "capec_PyTypes.h"
 #include "capec_BaseFile.h"
 #include "capec_CSVFile.h"
 
@@ -63,7 +64,7 @@ int capeCSV_ReadSTR(FILE *fp, PyObject *coldata, size_t irow)
     // Attempt to read next entry as a string
     nscan = fscanf(fp, "%80[^,\n\r\t]", buff);
     // Convert to Python string
-    v = PyString_FromString((const char *) buff);
+    v = capePyString_FromString((const char *) buff);
     // Check for errors
     if (v == NULL) {
         PyErr_Format(PyExc_ValueError,
