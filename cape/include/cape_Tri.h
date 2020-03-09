@@ -1,5 +1,5 @@
-#ifndef _PC_TRI_H
-#define _PC_TRI_H
+#ifndef _CAPE_TRI_H
+#define _CAPE_TRI_H
 
 PyObject *
 pc_WriteTri(PyObject *self, PyObject *args);

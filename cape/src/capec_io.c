@@ -1,12 +1,13 @@
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#define PY_ARRAY_UNIQUE_SYMBOL _pycart_ARRAY_API
+#define PY_ARRAY_UNIQUE_SYMBOL _cape_ARRAY_API
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
 #include <stdio.h>
 #include <byteswap.h>
 
-#include "pc_NumPy.h"
+// Local includes
+#include "capec_NumPy.h"
 
 // Byteswap macros
 #define bs32(x) (*(unsigned *)&(x) = __bswap_32(*(unsigned *)&(x)))

@@ -1,13 +1,14 @@
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#define PY_ARRAY_UNIQUE_SYMBOL _pycart_ARRAY_API
+#define PY_ARRAY_UNIQUE_SYMBOL _cape_ARRAY_API
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
 #include <stdio.h>
 #include <byteswap.h>
 
-#include "pc_io.h"
-#include "pc_NumPy.h"
+// Local includes
+#include "capec_io.h"
+#include "capec_NumPy.h"
 
 
 // Function to write nodes

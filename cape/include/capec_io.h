@@ -1,5 +1,5 @@
-#ifndef _PC_IO_H
-#define _PC_IO_H
+#ifndef _CAPEC_IO_H
+#define _CAPEC_IO_H
 
 #include <byteswap.h>
 
