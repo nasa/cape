@@ -28,7 +28,12 @@ from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
 
 # Local extension
 try:
-    from . import _ftypes
+    if sys.version_info.major == 2:
+        # Python 2 extension
+        from . import _ftypes2 as _ftypes
+    else:
+        # Python 3 extension
+        from . import _ftypes3 as _ftypes
 except ImportError:
     _ftypes = None
 

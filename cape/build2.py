@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
+#-*- coding: utf-8 -*-
 
 # Standard library modules
 import os
@@ -21,7 +22,7 @@ extopts = json.load(open(extjson))
 # Get a get/set type object
 config = ConfigParser.SafeConfigParser()
 # Read the configuration options
-config.read(os.path.join(fpwd, "config.cfg"))
+config.read(os.path.join(fpwd, "config2.cfg"))
 
 # Python command, in cases of potential ambiguity.
 pythonexec = config.get("python", "exec")
@@ -35,7 +36,7 @@ if os.path.isdir("build"):
 
 # Compile
 print("Executing setup...")
-sp.call([pythonexec, "setup.py", "build"])
+sp.call([pythonexec, "setup2.py", "build"])
 # Status update
 print("Moving the module into place...")
 
@@ -52,7 +53,7 @@ for (ext, opts) in extopts.items():
     # Destination folder
     fdest = opts["destination"].replace("/", os.sep)
     # File name for compiled module
-    fname = "%s.so" % ext
+    fname = "%s2.so" % ext
     # Final location for module
     fmod = os.path.join(fpwd, fdest, fname)
     # Expected build location

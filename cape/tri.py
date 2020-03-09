@@ -58,7 +58,12 @@ rztoldef = cape.cfdx.options.rc.get("rztoldef", 1e-5)
 
 # Attempt to load the compiled helper module.
 try:
-    from . import _cape as pc
+    if sys.version_info.major == 2:
+        # Python 2 extension
+        from . import _cape2 as pc
+    else:
+        # Python 3 extension
+        from . import _cape3 as pc
 except ImportError:
     pass
 

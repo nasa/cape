@@ -5469,7 +5469,7 @@ class DataKit(ftypes.BaseData):
             *args*: {``None``} | :class:`list`\ [:class:`str`]
                 List of arguments; default from *db.eval_args*
             *scol*: {``None``} | :class:`str` | :class:`list`
-                Optional name of slicing arg for matrix
+                Optional name of slicing col(s) for matrix
             *cocols*: {``None``} | :class:`list`\ [:class:`str`]
                 Other dependent input cols; default from *db.bkpts*
             *function*: {``"cubic"``} | ``"multiquadric"`` | ``"linear"``

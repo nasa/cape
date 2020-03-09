@@ -14,7 +14,7 @@ fpwd = os.path.dirname(os.path.realpath(__file__))
 # Get a get/set type object
 config = ConfigParser.SafeConfigParser()
 # Read the configuration options
-config.read(os.path.join(fpwd, "config.cfg"))
+config.read(os.path.join(fpwd, "config2.cfg"))
 
 # C compiler flags
 cflags = config.get("compiler", "extra_cflags").split()
@@ -34,11 +34,11 @@ extopts = json.load(open(extjson))
 exts = []
 # Loop through specified extensions
 for (ext, opts) in extopts.items():
-    # Get sources
+    # Get sources (ensure not :class:`unicode` objects)
     extsources = [str(src) for src in opts["sources"]]
     # Create extension
     _ext = distutils.core.Extension(
-        str(ext),
+        str(ext) + "2",
         include_dirs = include_dirs,
         extra_compile_args = cflags,
         extra_link_args = ldflags,
