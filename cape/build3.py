@@ -40,7 +40,7 @@ sp.call([pythonexec, "setup3.py", "build"])
 print("Moving the module into place...")
 
 # Find all build folders
-dirs = glob.glob("build/lib*3.6*")
+dirs = glob.glob("build/lib*3.[6-9]*")
 # There can be only one
 if len(dirs) > 1:
     raise ValueError("More than one build directory found.")
@@ -53,10 +53,19 @@ for (ext, opts) in extopts.items():
     fdest = opts["destination"].replace("/", os.sep)
     # File name for compiled module
     fname = "%s3.so" % ext
+    # File name pattern for file created by Python
+    fname_wc = "%s3.cpython*.so" % ext
     # Final location for module
     fmod = os.path.join(fpwd, fdest, fname)
     # Expected build location
-    fbld = os.path.join(fpwd, flib, fname)
+    fglob = glob.glob(os.path.join(fpwd, flib, fname_wc))
+    # Check for match
+    if len(fglob) == 0:
+        print("No extension '%s' build" % ext)
+    elif len(fglob) > 1:
+        print("Multiple .so files found for extension '%s" % ext)
+    # File actually built
+    fbld = fglob[0]
     # Exit if no build
     if not os.path.isfile(fbld):
         print("Build of extension '%s' failed" % ext)
