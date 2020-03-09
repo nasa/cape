@@ -135,7 +135,9 @@ int capec_Write_b4_f(FILE *fid, float v)
     int n;
     
     // Byte swap if necessary
-    if (is_le()) {bs32(v); }
+    if (is_le()) {
+        bs32(v);
+    }
     // Write.
     n = fwrite(&v, sizeof(int), 1, fid);
     
