@@ -4357,6 +4357,26 @@ class DataKit(ftypes.BaseData):
     def genr8_griddata_weights(self, args, *a, **kw):
         r"""Generate interpolation weights for :func:`griddata`
 
+        :Call:
+            >>> W = db.genr8_griddata_weights(arg, *a, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *a*: :class:`tuple`\ [:class:`np.ndarray`]
+                Test values at which to interpolate
+            *mask*: :class:`np.ndarray`\ [:class:`bool`]
+                Mask of which database indices to consider
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Database indices to consider
+            *method*: {``"linear"``} | ``"cubic"`` | ``"nearest"``
+                Interpolation method; ``"cubic"`` only for 1D or 2D
+            *rescale*: ``True`` | {``False``}
+                Rescale input points to unit cube before interpolation
+        :Outputs:
+            *W*: :class:`np.ndarray`\ [:class:`float`]
+                Interpolation weights; same size as test points *a*
+        :Versions:
+            * 2020-03-10 ``@ddalle``: First version
         """
         # Check for module
         if sciint is None:
@@ -4375,14 +4395,16 @@ class DataKit(ftypes.BaseData):
                 raise TypeError("Arg %i is not a string" % j)
         # Get method
         method = kw.get("method", "linear")
+        # Other :func:`griddata` options
+        rescale = kw.get("rescale", False)
         # Check it
-        if method not in ["linear", "cubic"]:
+        if method not in ["linear", "cubic", "nearest"]:
             # Invalid method
             raise ValueError("'method' must be either 'linear' or 'cubic'")
         # Check consistency
-        if (method == "cubic") and (narg != 2):
+        if (method == "cubic") and (narg > 2):
             raise ValueError(
-                "'cubic' method is for exactly 2 args (got %i)" % narg)
+                "'cubic' method is for at most 2 args (got %i)" % narg)
         # Number of positional inputs
         na = len(a)
         # Check values
@@ -4419,8 +4441,8 @@ class DataKit(ftypes.BaseData):
             # Artificial values
             kmode = np.eye(n)[k]
             # Calculate scattered interpolation weights
-            W1 = sciint.griddata(x, kmode, y, method)
-            W2 = sciint.griddata(x, kmode, y, "nearest")
+            W1 = sciint.griddata(x, kmode, y, method, rescale=rescale)
+            W2 = sciint.griddata(x, kmode, y, "nearest", rescale=rescale)
             # Find any NaNs from extrapolation
             K = np.isnan(W1)
             # Replace NaNs with nearest value
@@ -4429,9 +4451,6 @@ class DataKit(ftypes.BaseData):
             W[:,k] = W1
         # Output
         return W
-        
-        
-        
   # >
 
   # ==================
