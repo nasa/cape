@@ -35,7 +35,7 @@ import numpy as np
 
 # Semi-optional third-party modules
 try:
-    import scipy.interpolatio as sciint
+    import scipy.interpolate as sciint
     import scipy.interpolate.rbf as scirbf
 except ImportError:
     sciint = None
@@ -4364,34 +4364,72 @@ class DataKit(ftypes.BaseData):
         # Ensure list (len=2)
         if not isinstance(args, list):
             raise TypeError("Args must be a list, got '%s'" % type(args))
-        elif len(args) != 2:
-            raise ValueError("Args must have length 2, got %i" % len(args))
+        elif len(args) == 0:
+            raise ValueError("Arg list cannot be empty")
+        # Number of args
+        narg = len(args)
         # Check args
         for (j, arg) in enumerate(args):
             # Check string
             if not typeutils.isstr(arg):
                 raise TypeError("Arg %i is not a string" % j)
+        # Get method
+        method = kw.get("method", "linear")
+        # Check it
+        if method not in ["linear", "cubic"]:
+            # Invalid method
+            raise ValueError("'method' must be either 'linear' or 'cubic'")
+        # Check consistency
+        if (method == "cubic") and (narg != 2):
+            raise ValueError(
+                "'cubic' method is for exactly 2 args (got %i)" % narg)
         # Number of positional inputs
         na = len(a)
         # Check values
-        if na < 2:
+        if na < narg:
             raise TypeError(
-                "At least 2 positional args required (got %i)" % na)
+                "At least %i positional args required (got %i)" % (narg, na))
         elif na > 3:
             raise TypeError(
-                "At most 3 positional args allowed (got %i)" % na)
+                "At most %i positional args allowed (got %i)"
+                % (narg + 1, na))
         # Get indices
-        if na > 2:
+        if na > narg:
             # Initialize with third arg
-            I = a[2]
+            I = a[narg]
         else:
             # Leave blank for Now
             I = None
         # Get *I* from kwargs
-        I = kw.get("I", kw.get("mask", None))
+        mask = kw.get("I", kw.get("mask", None))
         # Get length of database array for *args*
         n = len(self.get_all_values(args[0]))
-        # Check
+        # Length of output
+        nout = len(a[0])
+        # Prepare mask
+        I = self.prep_mask(mask, args[0])
+        # Get values of args from database
+        x = np.vstack(tuple([self.get_values(arg, I)] for arg in args)).T
+        # Get output values
+        y = np.vstack(tuple([ai] for ai in a[:narg])).T
+        # Initialize weights
+        W = np.zeros((nout, n))
+        # Loop through evaluation points
+        for k in range(n):
+            # Artificial values
+            kmode = np.eye(n)[k]
+            # Calculate scattered interpolation weights
+            W1 = sciint.griddata(x, kmode, y, method)
+            W2 = sciint.griddata(x, kmode, y, "nearest")
+            # Find any NaNs from extrapolation
+            K = np.isnan(W1)
+            # Replace NaNs with nearest value
+            W1[K] = W2[K]
+            # Save weights
+            W[:,k] = W1
+        # Output
+        return W
+        
         
         
   # >
