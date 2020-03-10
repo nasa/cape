@@ -35,8 +35,10 @@ import numpy as np
 
 # Semi-optional third-party modules
 try:
+    import scipy.interpolatio as sciint
     import scipy.interpolate.rbf as scirbf
 except ImportError:
+    sciint = None
     scirbf = None
 
 # CAPE modules
@@ -4169,7 +4171,7 @@ class DataKit(ftypes.BaseData):
   # >
 
   # ====================
-  # RBF Tools
+  # Interpolation Tools
   # ====================
   # <
    # --- RBF construction ---
@@ -4222,7 +4224,7 @@ class DataKit(ftypes.BaseData):
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
 
-    # Regularization
+    # RBFs on slices
     def create_slice_rbfs(self, cols, args, I=None, **kw):
         r"""Create radial basis functions for each slice of *args[0]*
 
@@ -4307,7 +4309,7 @@ class DataKit(ftypes.BaseData):
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
 
-    # Regularization
+    # Individual RBF generator
     def genr8_rbf(self, col, args, I=None, **kw):
         r"""Create global radial basis functions for one or more columns
 
@@ -4349,6 +4351,49 @@ class DataKit(ftypes.BaseData):
         rbf = scirbf.Rbf(*Z, function=func, smooth=smooth)
         # Output
         return rbf
+
+   # --- Griddata ---
+    # Individual griddata generator
+    def genr8_griddata_weights(self, args, *a, **kw):
+        r"""Generate interpolation weights for :func:`griddata`
+
+        """
+        # Check for module
+        if sciint is None:
+            raise ImportError("No scipy.interpolate module")
+        # Ensure list (len=2)
+        if not isinstance(args, list):
+            raise TypeError("Args must be a list, got '%s'" % type(args))
+        elif len(args) != 2:
+            raise ValueError("Args must have length 2, got %i" % len(args))
+        # Check args
+        for (j, arg) in enumerate(args):
+            # Check string
+            if not typeutils.isstr(arg):
+                raise TypeError("Arg %i is not a string" % j)
+        # Number of positional inputs
+        na = len(a)
+        # Check values
+        if na < 2:
+            raise TypeError(
+                "At least 2 positional args required (got %i)" % na)
+        elif na > 3:
+            raise TypeError(
+                "At most 3 positional args allowed (got %i)" % na)
+        # Get indices
+        if na > 2:
+            # Initialize with third arg
+            I = a[2]
+        else:
+            # Leave blank for Now
+            I = None
+        # Get *I* from kwargs
+        I = kw.get("I", kw.get("mask", None))
+        # Get length of database array for *args*
+        n = len(self.get_all_values(args[0]))
+        # Check
+        
+        
   # >
 
   # ==================
@@ -4642,6 +4687,72 @@ class DataKit(ftypes.BaseData):
             # Output
             return V
 
+   # --- Subsets ---
+    # Prepare mask
+    def prep_mask(self, mask, col):
+        r"""Prepare logical or index mask
+
+        :Call:
+            >>> I = db.prep_mask(mask, col)
+            >>> I = db.prep_mask(mask_index, col)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Data container
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
+                Logical mask of ``True`` / ``False`` values
+            *mask_index*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of *db[col]* to consider
+            *col*: :class:`str`
+                Reference column to use for size checks
+        :Outputs:
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of *db[col]* to consider
+        :Versions:
+            * 2020-03-09 ``@ddalle``: First version
+        """
+        # Length of reference *col*
+        n0 = len(self.get_all_values(col))
+        # Check mask type
+        if mask is None:
+            # Ok
+            pass
+        elif not isinstance(mask, np.ndarray):
+            # Bad type
+            raise TypeError(
+                "Index mask must be 'ndarray', got '%s'" % type(mask).__name__)
+        elif mask.size == 0:
+            # Empty mask
+            raise IndexError("Index mask cannot be empty")
+        elif mask.ndim != 1:
+            # Dimension error
+            raise IndexError("Index mask must be one-dimensional array")
+        # Filter mask
+        if mask is None:
+            # Create indices
+            mask_index = np.arange(n0)
+        elif mask.dtype.name == "bool":
+            # Get indices
+            mask_index = np.where(mask)[0]
+            # Check consistency
+            if mask.size != n0:
+                # Size mismatch
+                raise IndexError(
+                    ("Index mask has size %i; " % mask.size) +
+                    ("test values size is %i" % n0))
+        elif mask.dtype.name.startswith("int"):
+            # Convert to indices
+            mask_index = mask
+            # Check values
+            if np.max(mask) >= n0:
+                raise IndexError(
+                    "Cannot mask element %i for test values with size %i"
+                    % (np.max(mask), n0))
+        else:
+            # Bad type
+            raise TypeError("Mask must have dtype 'bool' or 'int'")
+        # Output
+        return mask_index
+        
    # --- Search ---
     # Find matches
     def find(self, args, *a, **kw):
@@ -4652,7 +4763,7 @@ class DataKit(ftypes.BaseData):
             >>> Imap, J = db.find(args, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
-                Database with scalar output functions
+                Data container
             *args*: :class:`list`\ [:class:`str`]
                 List of columns names to match
             *a*: :class:`tuple`\ [:class:`float`]
@@ -4707,44 +4818,8 @@ class DataKit(ftypes.BaseData):
         # Number of values
         n0 = V.size
        # --- Mask Prep ---
-        # Check mask type
-        if mask is None:
-            # Ok
-            pass
-        elif not isinstance(mask, np.ndarray):
-            # Bad type
-            raise TypeError(
-                "Index mask must be 'ndarray', got '%s'" % type(mask).__name__)
-        elif mask.size == 0:
-            # Empty mask
-            raise IndexError("Index mask cannot be empty")
-        elif mask.ndim != 1:
-            # Dimension error
-            raise IndexError("Index mask must be one-dimensional array")
-        # Filter mask
-        if mask is None:
-            # Create indices
-            mask_index = np.arange(n0)
-        elif mask.dtype.name == "bool":
-            # Get indices
-            mask_index = np.where(mask)[0]
-            # Check consistency
-            if mask.size != n0:
-                # Size mismatch
-                raise IndexError(
-                    ("Index mask has size %i; " % mask.size) +
-                    ("test values size is %i" % n0))
-        elif mask.dtype.name.startswith("int"):
-            # Convert to indices
-            mask_index = mask
-            # Check values
-            if np.max(mask) >= n0:
-                raise IndexError(
-                    "Cannot mask element %i for test values with size %i"
-                    % (np.max(mask), n0))
-        else:
-            # Bad type
-            raise TypeError("Mask must have dtype 'bool' or 'int'")
+        # Get mask
+        mask_index = self.prep_mask(mask, arg)
         # Update test size
         n = mask_index.size
        # --- Argument values ---
