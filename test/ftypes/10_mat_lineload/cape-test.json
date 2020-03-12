@@ -1,0 +1,34 @@
+{
+    "CopyFiles": [
+        "bullet.mat",
+        "test01_read.py",
+        "test02_write.py"
+    ],
+    "Commands": [
+        "python2 test01_read.py",
+        "python3 test01_read.py",
+        "python2 test02_write.py",
+        "python3 test02_write.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out",
+        "test.02.out",
+        "test.02.out"
+
+    ],
+    "CommandTitles": [
+        "Clean MAT read: Python 2",
+        "Clean MAT read: Python 3",
+        "MATFile write: Python 2",
+        "MATFile write: Python 3"
+    ],
+    "DocFilesShow": [
+        "test01_read.py",
+        "test02_write.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/ftypes",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
