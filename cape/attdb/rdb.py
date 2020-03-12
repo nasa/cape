@@ -90,7 +90,30 @@ class DataKitOpts(ftypes.BaseDataOpts):
 
 # Definitions for RDBNull
 class DataKitDefn(ftypes.BaseDataDefn):
-    pass
+   # --- Global Options ---
+    # Option list
+    _optlist = {
+        "Dimension",
+        "Shape"
+    }
+
+    # Alternate names
+    _optmap = {
+        "dim": "Dimension",
+        "ndim": "Dimension",
+        "shape": "Shape",
+    }
+
+   # --- Types ---
+    # Allowed types
+    _opttypes = {
+        "Dimension": int,
+        "Shape": tuple,
+    }
+
+
+# Combine options with parent class
+DataKitDefn.combine_optdefs()
 
 
 # Combine options with parent class
@@ -566,7 +589,48 @@ class DataKit(ftypes.BaseData):
             # Save the definition (in database format)
             self.set_defn(col, defn, _warnmode)
 
-   # --- Definitions: Get ---
+   # --- Definitions: Get ---# Get output dimension
+    def get_ndim(self, col):
+        r"""Get database dimension for column *col*
+
+        :Call:
+            >>> ndim = db.get_ndim(col)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *ndim*: {``0``} | :class:`int`
+                Dimension of *col* in database
+        :Versions:
+            * 2020-03-12 ``@ddalle``: First version
+        """
+        # Get column definition
+        defn = self.get_defn(col)
+        # Get dimensionality
+        ndim = defn.get("Dimension")
+        # Check valid result
+        if isinstance(ndim, int):
+            return ndim
+        # Otherwise, get data
+        V = self.get_all_values(col)
+        # Check
+        if isinstance(V, np.ndarray):
+            # Get dimensions directly from data
+            ndim = V.ndim
+            # Save it
+            defn["Dimension"] = ndim
+            defn["Shape"] = V.shape
+        elif V is None:
+            # No dimension
+            return
+        else:
+            # List is 1-dimensional
+            ndim = 1
+        # Output
+        return ndim
+
     # Get output dimension
     def get_output_ndim(self, col):
         r"""Get output dimension for column *col*
@@ -583,21 +647,47 @@ class DataKit(ftypes.BaseData):
                 Dimension of *col* at a single condition
         :Versions:
             * 2019-12-27 ``@ddalle``: First version
+            * 2020-03-12 ``@ddalle``: Keyed from "Dimension"
         """
-        # Get column definition
-        defn = self.get_col_defn(col)
-        # Get dimensionality
-        ndim = defn.get("OutputDimension")
-        # Check valid result
-        if ndim is not None:
-            return ndim
-        # Get default parameter definition
-        defn = self.defns.get("_", {})
-        # Get dimensionality
-        return defn.get("OutputDimension", 0)
+        # Get column dimension
+        ndim = self.get_ndim(col)
+        # Check for miss
+        if ndim is None:
+            # No dimension
+            return
+        else:
+            # Subtract one
+            return ndim - 1
 
    # --- Definitions: Set ---
     # Set dimensionality
+    def set_ndim(self, col, ndim):
+        r"""Set database dimension for column *col*
+
+        :Call:
+            >>> db.set_ndim(col, ndim)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *ndim*: {``0``} | :class:`int`
+                Dimension of *col* in database
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get column definition
+        defn = self.get_defn(col)
+        # Check type
+        if not isinstance(ndim, int):
+            raise TypeError(
+                "Output dimension for '%s' must be int (got %s)" %
+                (col, type(ndim)))
+        # Set it
+        defn["Dimension"] = ndim
+
+    # Set output dimensionality
     def set_output_ndim(self, col, ndim):
         r"""Set output dimension for column *col*
 
@@ -615,14 +705,14 @@ class DataKit(ftypes.BaseData):
             * 2019-12-30 ``@ddalle``: First version
         """
         # Get column definition
-        defn = self.get_col_defn(col)
+        defn = self.get_defn(col)
         # Check type
         if not isinstance(ndim, int):
             raise TypeError(
                 "Output dimension for '%s' must be int (got %s)" %
                 (col, type(ndim)))
         # Set it
-        defn["OutputDimension"] = ndim
+        defn["Dimension"] = ndim + 1
   # >
 
   # ================
