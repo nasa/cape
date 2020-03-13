@@ -1,9 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?> 
-<Configuration AngleUnit="degree"> 
- 
-   <Component Name="Nacelle" Type="struc"> 
-      <Data> Grid List=1 </Data>
-   </Component>
- 
- 
-</Configuration>

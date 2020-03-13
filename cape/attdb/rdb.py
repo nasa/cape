@@ -35,8 +35,10 @@ import numpy as np
 
 # Semi-optional third-party modules
 try:
+    import scipy.interpolate as sciint
     import scipy.interpolate.rbf as scirbf
 except ImportError:
+    sciint = None
     scirbf = None
 
 # CAPE modules
@@ -88,7 +90,30 @@ class DataKitOpts(ftypes.BaseDataOpts):
 
 # Definitions for RDBNull
 class DataKitDefn(ftypes.BaseDataDefn):
-    pass
+   # --- Global Options ---
+    # Option list
+    _optlist = {
+        "Dimension",
+        "Shape"
+    }
+
+    # Alternate names
+    _optmap = {
+        "dim": "Dimension",
+        "ndim": "Dimension",
+        "shape": "Shape",
+    }
+
+   # --- Types ---
+    # Allowed types
+    _opttypes = {
+        "Dimension": int,
+        "Shape": tuple,
+    }
+
+
+# Combine options with parent class
+DataKitDefn.combine_optdefs()
 
 
 # Combine options with parent class
@@ -182,10 +207,10 @@ class DataKit(ftypes.BaseData):
 
     # Method constructors
     _method_constructors = {
-        "function": "_construct_function",
-        "rbf": "_construct_rbf",
-        "rbf-linear": "_construct_rbf_linear",
-        "rbf-map": "_construct_rbf_map",
+        "function": "_create_function",
+        "rbf": "_create_rbf",
+        "rbf-linear": "_create_rbf_linear",
+        "rbf-map": "_create_rbf_map",
     }
   # >
 
@@ -277,7 +302,7 @@ class DataKit(ftypes.BaseData):
             self.read_mat(fmat, **kw)
         else:
             # If reaching this point, process values
-            self.process_kw_values(self)
+            self.process_kw_values()
 
    # --- Copy ---
     # Copy
@@ -447,7 +472,18 @@ class DataKit(ftypes.BaseData):
         r"""Set a column definition, with checks
 
         :Call:
-            >>> db.set_defn(col, 
+            >>> db.set_defn(col, defn, _warnmode=0)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *col*: :class:`str`
+                Data column name
+            *defn*: :class:`dict`
+                (Partial) definition for *col*
+            *_warnmode*: {``0``} | ``1`` | ``2``
+                Warning mode for invalid *defn* keys or values
+        :Versions:
+            * 2020-03-06 ``@ddalle``: Documented
         """
         # Get dictionary of options
         defns = self.__dict__.setdefault("defns", {})
@@ -458,11 +494,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Copy/Link ---
     # Link options
-    def copy_options(self, opts, prefix=""):
+    def clone_options(self, opts, prefix=""):
         r"""Copy a database's options
 
         :Call:
-            >>> db.copy_options(opts, prefix="")
+            >>> db.clone_options(opts, prefix="")
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -479,6 +515,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
             * 2020-02-10 ``@ddalle``: Removed *db.defns* effect
+            * 2020-03-06 ``@ddalle``: Renamed from :func:`copy_options`
         """
         # Check input
         if not isinstance(opts, dict):
@@ -508,11 +545,11 @@ class DataKit(ftypes.BaseData):
                 dbopts[k] = v
 
     # Link definitions
-    def copy_defns(self, defns, prefix="", _warnmode=0):
+    def clone_defns(self, defns, prefix="", _warnmode=0):
         r"""Copy a data store's column definitions
 
         :Call:
-            >>> db.copy_defns(defns, prefix="")
+            >>> db.clone_defns(defns, prefix="")
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -529,6 +566,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
             * 2020-02-13 ``@ddalle``: Split from :func:`copy_options`
+            * 2020-03-06 ``@ddalle``: Renamed from :func:`copy_defns`
         """
         # Check input
         if not isinstance(defns, dict):
@@ -551,7 +589,48 @@ class DataKit(ftypes.BaseData):
             # Save the definition (in database format)
             self.set_defn(col, defn, _warnmode)
 
-   # --- Definitions: Get ---
+   # --- Definitions: Get ---# Get output dimension
+    def get_ndim(self, col):
+        r"""Get database dimension for column *col*
+
+        :Call:
+            >>> ndim = db.get_ndim(col)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *ndim*: {``0``} | :class:`int`
+                Dimension of *col* in database
+        :Versions:
+            * 2020-03-12 ``@ddalle``: First version
+        """
+        # Get column definition
+        defn = self.get_defn(col)
+        # Get dimensionality
+        ndim = defn.get("Dimension")
+        # Check valid result
+        if isinstance(ndim, int):
+            return ndim
+        # Otherwise, get data
+        V = self.get_all_values(col)
+        # Check
+        if isinstance(V, np.ndarray):
+            # Get dimensions directly from data
+            ndim = V.ndim
+            # Save it
+            defn["Dimension"] = ndim
+            defn["Shape"] = V.shape
+        elif V is None:
+            # No dimension
+            return
+        else:
+            # List is 1-dimensional
+            ndim = 1
+        # Output
+        return ndim
+
     # Get output dimension
     def get_output_ndim(self, col):
         r"""Get output dimension for column *col*
@@ -568,21 +647,47 @@ class DataKit(ftypes.BaseData):
                 Dimension of *col* at a single condition
         :Versions:
             * 2019-12-27 ``@ddalle``: First version
+            * 2020-03-12 ``@ddalle``: Keyed from "Dimension"
         """
-        # Get column definition
-        defn = self.get_col_defn(col)
-        # Get dimensionality
-        ndim = defn.get("OutputDimension")
-        # Check valid result
-        if ndim is not None:
-            return ndim
-        # Get default parameter definition
-        defn = self.defns.get("_", {})
-        # Get dimensionality
-        return defn.get("OutputDimension", 0)
+        # Get column dimension
+        ndim = self.get_ndim(col)
+        # Check for miss
+        if ndim is None:
+            # No dimension
+            return
+        else:
+            # Subtract one
+            return ndim - 1
 
    # --- Definitions: Set ---
     # Set dimensionality
+    def set_ndim(self, col, ndim):
+        r"""Set database dimension for column *col*
+
+        :Call:
+            >>> db.set_ndim(col, ndim)
+        :Inputs:
+            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *ndim*: {``0``} | :class:`int`
+                Dimension of *col* in database
+        :Versions:
+            * 2019-12-30 ``@ddalle``: First version
+        """
+        # Get column definition
+        defn = self.get_defn(col)
+        # Check type
+        if not isinstance(ndim, int):
+            raise TypeError(
+                "Output dimension for '%s' must be int (got %s)" %
+                (col, type(ndim)))
+        # Set it
+        defn["Dimension"] = ndim
+
+    # Set output dimensionality
     def set_output_ndim(self, col, ndim):
         r"""Set output dimension for column *col*
 
@@ -600,14 +705,14 @@ class DataKit(ftypes.BaseData):
             * 2019-12-30 ``@ddalle``: First version
         """
         # Get column definition
-        defn = self.get_col_defn(col)
+        defn = self.get_defn(col)
         # Check type
         if not isinstance(ndim, int):
             raise TypeError(
                 "Output dimension for '%s' must be int (got %s)" %
                 (col, type(ndim)))
         # Set it
-        defn["OutputDimension"] = ndim
+        defn["Dimension"] = ndim + 1
   # >
 
   # ================
@@ -655,12 +760,12 @@ class DataKit(ftypes.BaseData):
             return srcs.get(name)
 
     # Get source, creating if necessary
-    def get_dbf(self, ext, cls, n=None, cols=None):
+    def make_source(self, ext, cls, n=None, cols=None, save=True):
         r"""Get or create a source by category (and number)
 
         :Call:
-            >>> dbf = db.get_dbf(ext, cls)
-            >>> dbf = db.get_dbf(ext, cls, n=None, cols=None)
+            >>> dbf = db.make_source(ext, cls)
+            >>> dbf = db.make_source(ext, cls, n=None, cols=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Generic database
@@ -672,30 +777,68 @@ class DataKit(ftypes.BaseData):
                 Source number to search for
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of data columns to include in *dbf*
+            *save*: {``True``} | ``False``
+                Option to save *dbf* in *db.sources*
         :Outputs:
             *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
         :Versions:
             * 2020-02-13 ``@ddalle``: First version
+            * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
         """
         # Get the source
         dbf = self.get_source(ext, n=n)
         # Check if found
-        if dbf is None:
-            # Default columns
-            if cols is None:
-                # Use listed columns
-                cols = self.cols
-            # Get relevant options
-            kw = {}
-            # Set values
-            kw["Values"] = {col: self[col] for col in cols}
-            # Explicit column list
-            kw["cols"] = cols
-            # Copy definitions
-            kw["Definitions"] = self.defns
-            # Create from class
-            dbf = cls(**kw)
+        if dbf is not None:
+            # Done
+            return dbf
+        # Create a new one
+        dbf = self.genr8_source(ext, cls, cols=cols)
+        # Save the file interface if needed
+        if save:
+            # Name for this source
+            name = "%02i-%s" % (len(self.sources), ext)
+            # Save it
+            self.sources[name] = dbf
+        # Output
+        return dbf
+
+    # Build new source, creating if necessary
+    def genr8_source(self, ext, cls, cols=None):
+        r"""Create a new source file interface
+
+        :Call:
+            >>> dbf = db.genr8_source(ext, cls)
+            >>> dbf = db.genr8_source(ext, cls, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+        :Outputs:
+            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
+        """
+        # Default columns
+        if cols is None:
+            # Use listed columns
+            cols = self.cols
+        # Get relevant options
+        kw = {}
+        # Set values
+        kw["Values"] = {col: self[col] for col in cols}
+        # Explicit column list
+        kw["cols"] = cols
+        # Copy definitions
+        kw["Definitions"] = self.defns
+        # Create from class
+        dbf = cls(**kw)
         # Output
         return dbf
   # >
@@ -741,7 +884,7 @@ class DataKit(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the options
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -773,7 +916,7 @@ class DataKit(ftypes.BaseData):
             * 2020-02-14 ``@ddalle``: Uniform "sources" interface
         """
         # Get CSV file interface
-        dbcsv = self.get_dbf("csv", ftypes.CSVFile, cols=cols)
+        dbcsv = self.make_source("csv", ftypes.CSVFile, cols=cols)
         # Write it
         dbcsv.write_csv_dense(fname, cols=cols)
 
@@ -814,7 +957,7 @@ class DataKit(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -859,7 +1002,7 @@ class DataKit(ftypes.BaseData):
         # Linke the data
         self.link_data(dbf)
         # Copy the definitions
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -919,7 +1062,7 @@ class DataKit(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -986,7 +1129,7 @@ class DataKit(ftypes.BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
-        self.copy_defns(dbf.defns)
+        self.clone_defns(dbf.defns)
         # Link other attributes
         for (k, v) in dbf.__dict__.items():
             # Check if present and nonempty
@@ -1023,7 +1166,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get/create MAT file interface
-        dbmat = self.get_dbf("mat", ftypes.MATFile, cols=cols)
+        dbmat = self.make_source("mat", ftypes.MATFile, cols=cols)
         # Write it
         dbmat.write_mat(fname, cols=cols)
   # >
@@ -1470,11 +1613,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Declaration ---
     # Set evaluation methods
-    def set_responses(self, cols, method, args, *a, **kw):
+    def make_responses(self, cols, method, args, *a, **kw):
         r"""Set evaluation method for a list of columns
 
         :Call:
-            >>> db.set_responses(cols, method, args, *a, **kw)
+            >>> db.make_responses(cols, method, args, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1503,6 +1646,7 @@ class DataKit(ftypes.BaseData):
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-18 ``@ddalle``: Name from :func:`SetEvalMethod`
+            * 2020-03-06 ``@ddalle``: Name from :func:`set_responses`
         """
         # Check for list
         if not isinstance(cols, (list, tuple, set)):
@@ -1517,14 +1661,14 @@ class DataKit(ftypes.BaseData):
                 # Not a string
                 raise TypeError("Response col must be a string")
             # Specify individual col
-            self.set_response(col, method, args, *a, **kw)
+            self.make_response(col, method, args, *a, **kw)
 
     # Save a method for one coefficient
-    def set_response(self, col, method, args, *a, **kw):
+    def make_response(self, col, method, args, *a, **kw):
         r"""Set evaluation method for a single column
 
         :Call:
-            >>> db.set_response(col, method, args, **kw)
+            >>> db.make_response(col, method, args, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1556,6 +1700,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-30 ``@ddalle``: Version 2.0; map of methods
             * 2020-02-18 ``@ddalle``: Name from :func:`_set_method1`
+            * 2020-03-06 ``@ddalle``: Name from :func:`set_response`
         """
        # --- Input checks ---
         # Check inputs
@@ -1613,12 +1758,12 @@ class DataKit(ftypes.BaseData):
 
    # --- Constructors ---
     # Explicit function
-    def _construct_function(self, col, *a, **kw):
+    def _create_function(self, col, *a, **kw):
         r"""Constructor for ``"function"`` methods
 
         :Call:
-            >>> db._construct_function(col, *a, **kw)
-            >>> db._construct_function(col, fn, *a[1:], **kw)
+            >>> db._create_function(col, *a, **kw)
+            >>> db._create_function(col, fn, *a[1:], **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1652,11 +1797,11 @@ class DataKit(ftypes.BaseData):
         eval_func_self[col] = kw.get("self", True)
 
     # Global RBFs
-    def _construct_rbf(self, col, *a, **kw):
+    def _create_rbf(self, col, *a, **kw):
         r"""Constructor for ``"rbf"`` methods
 
         :Call:
-            >>> db._construct_rbf(col, *a, **kw)
+            >>> db._create_rbf(col, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1681,11 +1826,11 @@ class DataKit(ftypes.BaseData):
         self.create_global_rbfs([col], args, **kw)
 
     # Linear-RBFs
-    def _construct_rbf_linear(self, col, *a, **kw):
+    def _create_rbf_linear(self, col, *a, **kw):
         r"""Constructor for ``"rbf-linear"`` methods
 
         :Call:
-            >>> db._construct_rbf_linear(col, *a, **kw)
+            >>> db._create_rbf_linear(col, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1710,11 +1855,11 @@ class DataKit(ftypes.BaseData):
         self.create_slice_rbfs([col], args, **kw)
 
     # Schedule-RBFs
-    def _construct_rbf_map(self, col, *a, **kw):
+    def _create_rbf_map(self, col, *a, **kw):
         r"""Constructor for ``"rbf-map"`` methods
 
         :Call:
-            >>> db._construct_rbf_map(col, *a, **kw)
+            >>> db._create_rbf_map(col, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2379,10 +2524,14 @@ class DataKit(ftypes.BaseData):
             raise IndexError("Index mask must be 1D array")
         elif I.size == 0:
             raise ValueError("Index mask must not be empty")
-        # Size of full array
-        n = V.size
+        # Dimension
+        ndim = V.ndim
+        # "Length" of array; last dimension
+        n = V.shape[-1]
         # Get data type (as string)
         dtype = I.dtype.name
+        # Create slice that looks up last column
+        J = tuple(slice(None) for j in range(ndim-1)) +  (I,)
         # Check type
         if "int" in dtype:
             # Check indices
@@ -2390,16 +2539,16 @@ class DataKit(ftypes.BaseData):
                 raise IndexError(
                     ("Cannot access element %i " % np.max(I)) +
                     ("for array of length %i" % n))
-            # Access
-            return V[I]
+            # Apply mask to last dimension
+            return V.__getitem__(J)
         elif dtype == "bool":
             # Check size
             if I.size != n:
                 raise IndexError(
                     ("Bool index mask has size %i; " % I.size) +
                     ("array has size %i" % n))
-            # Access
-            return V[I]
+            # Apply mask to last dimension
+            return V.__getitem__(J)
         else:
             raise TypeError("Index mask must be int or bool array")
 
@@ -4116,7 +4265,7 @@ class DataKit(ftypes.BaseData):
   # >
 
   # ====================
-  # RBF Tools
+  # Interpolation Tools
   # ====================
   # <
    # --- RBF construction ---
@@ -4164,12 +4313,12 @@ class DataKit(ftypes.BaseData):
             sys.stdout.write("%-72s\r" % txt)
             sys.stdout.flush()
             # Create a single RBF
-            rbf[col] = self.create_rbf(col, args, I=I, **kw)
+            rbf[col] = self.genr8_rbf(col, args, I=I, **kw)
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
 
-    # Regularization
+    # RBFs on slices
     def create_slice_rbfs(self, cols, args, I=None, **kw):
         r"""Create radial basis functions for each slice of *args[0]*
 
@@ -4254,12 +4403,12 @@ class DataKit(ftypes.BaseData):
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
 
-    # Regularization
-    def create_rbf(self, col, args, I=None, **kw):
+    # Individual RBF generator
+    def genr8_rbf(self, col, args, I=None, **kw):
         r"""Create global radial basis functions for one or more columns
 
         :Call:
-            >>> rbf = db.create_rbf(col, args, I=None)
+            >>> rbf = db.genr8_rbf(col, args, I=None)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -4280,6 +4429,7 @@ class DataKit(ftypes.BaseData):
             * 2019-01-01 ``@ddalle``: First version
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-22 ``@ddalle``: Single-*col* version
+            * 2020-03-06 ``@ddalle``: Name from :funC:`create_rbf`
         """
         # Check for module
         if scirbf is None:
@@ -4295,6 +4445,105 @@ class DataKit(ftypes.BaseData):
         rbf = scirbf.Rbf(*Z, function=func, smooth=smooth)
         # Output
         return rbf
+
+   # --- Griddata ---
+    # Individual griddata generator
+    def genr8_griddata_weights(self, args, *a, **kw):
+        r"""Generate interpolation weights for :func:`griddata`
+
+        :Call:
+            >>> W = db.genr8_griddata_weights(arg, *a, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *a*: :class:`tuple`\ [:class:`np.ndarray`]
+                Test values at which to interpolate
+            *mask*: :class:`np.ndarray`\ [:class:`bool`]
+                Mask of which database indices to consider
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Database indices to consider
+            *method*: {``"linear"``} | ``"cubic"`` | ``"nearest"``
+                Interpolation method; ``"cubic"`` only for 1D or 2D
+            *rescale*: ``True`` | {``False``}
+                Rescale input points to unit cube before interpolation
+        :Outputs:
+            *W*: :class:`np.ndarray`\ [:class:`float`]
+                Interpolation weights; same size as test points *a*
+        :Versions:
+            * 2020-03-10 ``@ddalle``: First version
+        """
+        # Check for module
+        if sciint is None:
+            raise ImportError("No scipy.interpolate module")
+        # Ensure list (len=2)
+        if not isinstance(args, list):
+            raise TypeError("Args must be a list, got '%s'" % type(args))
+        elif len(args) == 0:
+            raise ValueError("Arg list cannot be empty")
+        # Number of args
+        narg = len(args)
+        # Check args
+        for (j, arg) in enumerate(args):
+            # Check string
+            if not typeutils.isstr(arg):
+                raise TypeError("Arg %i is not a string" % j)
+        # Get method
+        method = kw.get("method", "linear")
+        # Other :func:`griddata` options
+        rescale = kw.get("rescale", False)
+        # Check it
+        if method not in ["linear", "cubic", "nearest"]:
+            # Invalid method
+            raise ValueError("'method' must be either 'linear' or 'cubic'")
+        # Check consistency
+        if (method == "cubic") and (narg > 2):
+            raise ValueError(
+                "'cubic' method is for at most 2 args (got %i)" % narg)
+        # Number of positional inputs
+        na = len(a)
+        # Check values
+        if na < narg:
+            raise TypeError(
+                "At least %i positional args required (got %i)" % (narg, na))
+        elif na > 3:
+            raise TypeError(
+                "At most %i positional args allowed (got %i)"
+                % (narg + 1, na))
+        # Get indices
+        if na > narg:
+            # Initialize with third arg
+            I = a[narg]
+        else:
+            # Leave blank for Now
+            I = None
+        # Get *I* from kwargs
+        mask = kw.get("I", kw.get("mask", None))
+        # Prepare mask
+        I = self.prep_mask(mask, args[0])
+        # Get values of args from database
+        x = np.vstack(tuple([self.get_values(arg, I)] for arg in args)).T
+        # Get output values
+        y = np.vstack(tuple([ai] for ai in a[:narg])).T
+        # Length of input and output
+        n = x.shape[0]
+        nout = len(a[0])
+        # Initialize weights
+        W = np.zeros((nout, n))
+        # Loop through evaluation points
+        for k in range(n):
+            # Artificial values
+            kmode = np.eye(n)[k]
+            # Calculate scattered interpolation weights
+            W1 = sciint.griddata(x, kmode, y, method, rescale=rescale)
+            W2 = sciint.griddata(x, kmode, y, "nearest", rescale=rescale)
+            # Find any NaNs from extrapolation
+            K = np.isnan(W1)
+            # Replace NaNs with nearest value
+            W1[K] = W2[K]
+            # Save weights
+            W[:,k] = W1
+        # Output
+        return W
   # >
 
   # ==================
@@ -4588,6 +4837,72 @@ class DataKit(ftypes.BaseData):
             # Output
             return V
 
+   # --- Subsets ---
+    # Prepare mask
+    def prep_mask(self, mask, col):
+        r"""Prepare logical or index mask
+
+        :Call:
+            >>> I = db.prep_mask(mask, col)
+            >>> I = db.prep_mask(mask_index, col)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Data container
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
+                Logical mask of ``True`` / ``False`` values
+            *mask_index*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of *db[col]* to consider
+            *col*: :class:`str`
+                Reference column to use for size checks
+        :Outputs:
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of *db[col]* to consider
+        :Versions:
+            * 2020-03-09 ``@ddalle``: First version
+        """
+        # Length of reference *col*
+        n0 = len(self.get_all_values(col))
+        # Check mask type
+        if mask is None:
+            # Ok
+            pass
+        elif not isinstance(mask, np.ndarray):
+            # Bad type
+            raise TypeError(
+                "Index mask must be 'ndarray', got '%s'" % type(mask).__name__)
+        elif mask.size == 0:
+            # Empty mask
+            raise IndexError("Index mask cannot be empty")
+        elif mask.ndim != 1:
+            # Dimension error
+            raise IndexError("Index mask must be one-dimensional array")
+        # Filter mask
+        if mask is None:
+            # Create indices
+            mask_index = np.arange(n0)
+        elif mask.dtype.name == "bool":
+            # Get indices
+            mask_index = np.where(mask)[0]
+            # Check consistency
+            if mask.size != n0:
+                # Size mismatch
+                raise IndexError(
+                    ("Index mask has size %i; " % mask.size) +
+                    ("test values size is %i" % n0))
+        elif mask.dtype.name.startswith("int"):
+            # Convert to indices
+            mask_index = mask
+            # Check values
+            if np.max(mask) >= n0:
+                raise IndexError(
+                    "Cannot mask element %i for test values with size %i"
+                    % (np.max(mask), n0))
+        else:
+            # Bad type
+            raise TypeError("Mask must have dtype 'bool' or 'int'")
+        # Output
+        return mask_index
+        
    # --- Search ---
     # Find matches
     def find(self, args, *a, **kw):
@@ -4598,7 +4913,7 @@ class DataKit(ftypes.BaseData):
             >>> Imap, J = db.find(args, *a, **kw)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
-                Database with scalar output functions
+                Data container
             *args*: :class:`list`\ [:class:`str`]
                 List of columns names to match
             *a*: :class:`tuple`\ [:class:`float`]
@@ -4653,44 +4968,8 @@ class DataKit(ftypes.BaseData):
         # Number of values
         n0 = V.size
        # --- Mask Prep ---
-        # Check mask type
-        if mask is None:
-            # Ok
-            pass
-        elif not isinstance(mask, np.ndarray):
-            # Bad type
-            raise TypeError(
-                "Index mask must be 'ndarray', got '%s'" % type(mask).__name__)
-        elif mask.size == 0:
-            # Empty mask
-            raise IndexError("Index mask cannot be empty")
-        elif mask.ndim != 1:
-            # Dimension error
-            raise IndexError("Index mask must be one-dimensional array")
-        # Filter mask
-        if mask is None:
-            # Create indices
-            mask_index = np.arange(n0)
-        elif mask.dtype.name == "bool":
-            # Get indices
-            mask_index = np.where(mask)[0]
-            # Check consistency
-            if mask.size != n0:
-                # Size mismatch
-                raise IndexError(
-                    ("Index mask has size %i; " % mask.size) +
-                    ("test values size is %i" % n0))
-        elif mask.dtype.name.startswith("int"):
-            # Convert to indices
-            mask_index = mask
-            # Check values
-            if np.max(mask) >= n0:
-                raise IndexError(
-                    "Cannot mask element %i for test values with size %i"
-                    % (np.max(mask), n0))
-        else:
-            # Bad type
-            raise TypeError("Mask must have dtype 'bool' or 'int'")
+        # Get mask
+        mask_index = self.prep_mask(mask, arg)
         # Update test size
         n = mask_index.size
        # --- Argument values ---
@@ -4792,12 +5071,12 @@ class DataKit(ftypes.BaseData):
             return I, J
 
     # Find matches from a target
-    def find_pairwise(self, dbt, maskt=None, cols=None, **kw):
+    def match(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
 
         :Call:
-            >>> I, J = db.find_pairwise(dbt, maskt, cols=None, **kw)
-            >>> Imap, J = db.find_pairwise(dbt, **kw)
+            >>> I, J = db.match(dbt, maskt, cols=None, **kw)
+            >>> Imap, J = db.match(dbt, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data kit with response surfaces
@@ -4828,6 +5107,7 @@ class DataKit(ftypes.BaseData):
                 List of *db* indices for each test point in *J*
         :Versions:
             * 2020-02-20 ``@ddalle``: First version
+            * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
         """
         # Check types
         if not isinstance(dbt, dict):
@@ -4978,7 +5258,7 @@ class DataKit(ftypes.BaseData):
             "cols": kw.pop("searchcols", None),
         }
         # Find indices of matches
-        I, J = self.find_pairwise(dbt, **kw_find)
+        I, J = self.match(dbt, **kw_find)
         # Check for empty
         if I.size == 0:
             raise ValueError("No matches between databases")
@@ -5045,7 +5325,7 @@ class DataKit(ftypes.BaseData):
             "cols": kw.pop("searchcols", None),
         }
         # Find indices of matches
-        I, J = self.find_pairwise(dbt, **kw_find)
+        I, J = self.match(dbt, **kw_find)
         # Check for empty
         if I.size == 0:
             raise ValueError("No matches between databases")
@@ -5414,7 +5694,7 @@ class DataKit(ftypes.BaseData):
             *args*: {``None``} | :class:`list`\ [:class:`str`]
                 List of arguments; default from *db.eval_args*
             *scol*: {``None``} | :class:`str` | :class:`list`
-                Optional name of slicing arg for matrix
+                Optional name of slicing col(s) for matrix
             *cocols*: {``None``} | :class:`list`\ [:class:`str`]
                 Other dependent input cols; default from *db.bkpts*
             *function*: {``"cubic"``} | ``"multiquadric"`` | ``"linear"``
@@ -5551,7 +5831,7 @@ class DataKit(ftypes.BaseData):
                 # Get previous definition
                 defn = self.get_defn(arg)
                 # Save a copy
-                self.defns[argref] = self._defncls(**defn)
+                self.defns[argreg] = self._defncls(**defn)
                 # Link break points
                 bkpts[argreg] = bkpts[arg]
        # --- Regularization ---
@@ -5565,7 +5845,7 @@ class DataKit(ftypes.BaseData):
             # Check for slices
             if scol is None:
                 # One interpolant
-                f = self.create_rbf(col, args, **kw)
+                f = self.genr8_rbf(col, args, **kw)
                 # Create tuple of input arguments
                 x = tuple(X[arg] for arg in args)
                 # Evaluate RBF
@@ -5600,7 +5880,7 @@ class DataKit(ftypes.BaseData):
                     # Get indices of slice
                     I = np.where(J)[0]
                     # Create interpolant for fixed value of *skey*
-                    f = self.create_rbf(col, iargs, I=masks[i], **kw)
+                    f = self.genr8_rbf(col, iargs, I=masks[i], **kw)
                     # Create tuple of input arguments
                     x = tuple(X[k][I] for k in iargs)
                     # Evaluate coefficient
@@ -5625,6 +5905,289 @@ class DataKit(ftypes.BaseData):
                 break
             # Translate col name
             colreg = self._translate_colname(col, **tr_args)
+            # Get values for this column
+            V0 = self.get_all_values(col)
+            # Check size
+            if mainvals.size != V0.size:
+                # Original sizes do not match; no map applicable
+                continue
+            # Regular matrix values of slice key
+            M = X[maincol]
+            # Initialize data
+            V = np.zeros_like(M)
+            # Initialize break points
+            T = []
+            # Status update
+            if kw.get("v"):
+                print("  Mapping key '%s'" % k)
+            # Loop through slice values
+            for m in bkpts[maincol]:
+                # Find value of slice key matching that parameter
+                i = np.where(mainvals == m)[0][0]
+                # Output value
+                v = V0[i]
+                # Get the indices of break points with that value
+                J = np.where(M == m)[0]
+                # Evaluate coefficient
+                V[J] = v
+                # Save break point
+                T.append(v)
+            # Save the values
+            self.save_col(colreg, V)
+            # Save break points
+            bkpts[colreg] = np.array(T)
+
+   # --- Griddata ---
+    # Regularize using piecewise linear
+    def regularize_by_griddata(self, cols, args=None, **kw):
+        r"""Regularize col(s) to full-factorial matrix of several args
+
+        The values of each *arg* to use for the full-factorial matrix
+        are taken from the *db.bkpts* dictionary, usually generated by
+        :func:`get_bkpts`.  The values in *db.bkpts*, however, can be
+        set manually in order to interpolate the data onto a specific
+        matrix of points.
+        
+        :Call:
+            >>> db.regularize_by_griddata(cols=None, args=None, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with response toolkit
+            *cols*: :class:`list`\ [:class:`str`]
+                List of output data columns to regularize
+            *args*: {``None``} | :class:`list`\ [:class:`str`]
+                List of arguments; default from *db.eval_args*
+            *scol*: {``None``} | :class:`str` | :class:`list`
+                Optional name of slicing col(s) for matrix
+            *cocols*: {``None``} | :class:`list`\ [:class:`str`]
+                Other dependent input cols; default from *db.bkpts*
+            *method*: {``"linear"``} | ``"cubic"`` | ``"nearest"``
+                Interpolation method; ``"cubic"`` only for 1D or 2D
+            *rescale*: ``True`` | {``False``}
+                Rescale input points to unit cube before interpolation
+            *tol*: {``1e-4``}  | :class:`float`
+                Default tolerance to use in combination with *slices*
+            *tols*: {``{}``} | :class:`dict`
+                Dictionary of specific tolerances for single keys in *slices*
+        :Versions:
+            * 2020-03-10 ``@ddalle``: Version 1.0
+        """
+       # --- Options ---
+        # Get translators
+        trans = kw.get("translators", {})
+        prefix = kw.get("prefix")
+        suffix = kw.get("suffix")
+        # Overall mask
+        mask = kw.get("mask")
+        # Translator args
+        tr_args = (trans, prefix, suffix)
+       # --- Status Checks ---
+        # Get break points
+        bkpts = self.__dict__.get("bkpts")
+        # Check
+        if bkpts is None:
+            raise AttributeError(
+                "Break point dict must be present; see get_bkpts()")
+       # --- Cols Check ---
+        # Convert single column
+        if typeutils.isstr(cols):
+            cols = [cols]
+        # Check columns
+        if not isinstance(cols, list):
+            raise TypeError(
+                "Regularization cols must be list, got %s" % type(cols))
+        # Number of cols
+        ncols = len(cols)
+        # Check for empty list
+        if ncols == 0:
+            raise IndexError("Col list is empty")
+        # Check each column
+        for (j, col) in enumerate(cols):
+            # Check type
+            if not typeutils.isstr(col):
+                raise TypeError(
+                    "Col %i must be str, got %s" % (j, type(col)))
+            # Check availability
+            if col not in self:
+                raise KeyError("Col '%s' is not in database" % col)
+            # Get data type
+            dtype = self.get_col_dtype(col)
+            # Ensure float
+            if not (dtype.startswith("float") or dtype.startswith("complex")):
+                raise TypeError(
+                    "Nonnumeric dtype '%s' for col '%s'" % (dtype, col))
+       # --- Args Check ---
+        # Default input args
+        if args is None:
+            # Use args for last *col*
+            args = self.get_eval_args(col)
+        # Backup input args
+        if args is None:
+            # Initialize list
+            args = []
+            # Loop through keys of *bkpts*
+            # Note uncontrolled order
+            for arg in bkpts:
+                # Check if used as *col*
+                if arg in cols:
+                    continue
+                # Get data type
+                dtype = self.get_col_dtype(arg)
+                # Ensure float
+                if (dtype is not None) and not dtype.startswith("float"):
+                    continue
+                # Otherwise use it
+                args.append(arg)
+        # Checks
+        if not isinstance(args, list):
+            raise TypeError("Arg list must be 'list', got %s" % type(args))
+        # Number of input args
+        narg = len(args)
+        # Check types
+        for (j, arg) in enumerate(args):
+            # Check type
+            if not typeutils.isstr(arg):
+                raise TypeError(
+                    "Arg %i must be str, got %s" % (j, type(arg)))
+            # Check presence
+            if arg not in bkpts:
+                raise KeyError("No break points for arg '%s'" % arg)
+       # --- Slice Cols ---
+        # Get optional slice column
+        scol = kw.get("scol")
+        # Check for list
+        if isinstance(scol, list):
+            # Get additional slice keys
+            subcols = scol[1:]
+            # Single slice key
+            maincol = scol[0]
+        elif scol is None:
+            # No slices at all
+            subcols = []
+            maincol = None
+        else:
+            # No additional slice keys
+            subcols = []
+            maincol = scol
+            # List of slice keys
+            scol = [scol]
+        # Remove slice keys from arg list to interpolants
+        if scol is None:
+            # No checks
+            iargs = args
+        else:
+            # Check against *scol*
+            iargs = [arg for arg in args if arg not in scol]
+            # Save original values for *maincol*
+            mainvals = self.get_values(maincol).copy()
+       # --- Full-Factorial Matrix ---
+        # Get full-factorial matrix at the current slice value
+        X, slices = self.get_fullfactorial(scol=scol, cols=args)
+        # Number of output points
+        nX = X[args[0]].size
+        # Save the lookup values
+        for arg in args:
+            # Translate column name
+            argreg = self._translate_colname(arg, *tr_args)
+            # Save values
+            self.save_col(argreg, X[arg])
+            # Check if new
+            if argreg != arg:
+                # Get previous definition
+                defn = self.get_defn(arg)
+                # Save a copy
+                self.defns[argreg] = self._defncls(**defn)
+                # Link break points
+                bkpts[argreg] = bkpts[arg]
+       # --- Regularization ---
+        # Perform interpolations
+        for col in cols:
+            # Translate column name
+            colreg = self._translate_colname(col, *tr_args)
+            # Status update
+            if kw.get("v"):
+                print("  Regularizing col '%s' -> '%s'" % (col, colreg))
+            # Check for slices
+            if scol is None:
+                # Create inputs
+                x = tuple(X[k] for k in args)
+                # Single grid weights
+                W = self.genr8_griddata_weights(args, *x, **kw)
+                # Reference values
+                Y = self.get_values(col, mask)
+                # Multiply weights
+                V = np.dot(W, Y)
+            else:
+                # Number of slices
+                nslice = slices[maincol].size
+                # Number of output points
+                nout = len(X[maincol])
+                # Get initial values
+                V0 = self.get_all_values(col)
+                # Extra dimensions from inputs to be copied
+                shape0 = V0.shape[:-1]
+                # Number of dimensions
+                ndim = V0.ndim
+                # Initialize data
+                V = np.zeros(shape0 + (nout,), dtype=V0.dtype)
+                # Convert slices to indices within *db*
+                masks, _ = self.find(scol, mapped=True, mask=mask, **slices)
+                # Loop through slices
+                for i in range(nslice):
+                    # Status update
+                    if kw.get("v"):
+                        # Get main key value
+                        m = slices[maincol][i]
+                        # Get value in fixed number of characters
+                        sv = ("%6g" % m)[:6]
+                        # In-place status update
+                        sys.stdout.write("    Slice %s=%s (%i/%i)\r"
+                            % (mainkey, sv, i+1, nslice))
+                        sys.stdout.flush()
+                    # Initialize mask
+                    J = np.ones(nX, dtype="bool")
+                    # Loop through cols that define slice
+                    for k in scol:
+                        # Get value
+                        vk = slices[k][i]
+                        # Constrain
+                        J = np.logical_and(J, X[k]==vk)
+                    # Get indices of slice
+                    I = np.where(J)[0]
+                    # Create tuple of input arguments test values
+                    x = tuple(X[k][I] for k in iargs)
+                    # Create interpolant for fixed value of *scol*
+                    W = self.genr8_griddata_weights(
+                        iargs, *x, I=masks[i], **kw)
+                    # Get database values
+                    Y = self.get_values(col, masks[i])
+                    # Evaluate coefficient
+                    if ndim == 1:
+                        # Scalar
+                        V[I] = np.dot(W, Y)
+                    elif ndim == 2:
+                        # Linear output
+                        V[:,I] = np.dot(Y, W.T)
+                # Clean up prompt
+                if kw.get("v"):
+                    print("")
+            # Save the values
+            self.save_col(colreg, V)
+       # --- Co-mapped XAargs ---
+        # Trajectory co-keys
+        cocols = kw.get("cocols", list(bkpts.keys()))
+        # Map other breakpoint keys
+        for col in cocols:
+            # Skip if already present
+            if col in args:
+                continue
+            elif col in cols:
+                continue
+            # Check for slices
+            if maincol is None:
+                break
+            # Translate col name
+            colreg = self._translate_colname(col, *tr_args)
             # Get values for this column
             V0 = self.get_all_values(col)
             # Check size

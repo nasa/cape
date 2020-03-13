@@ -3,8 +3,9 @@
         "destination": ".",
         "sources": [
             "src/_capemodule.c",
-            "src/pc_io.c",
-            "src/pc_Tri.c"
+            "src/capec_io.c",
+            "src/capec_Tri.c",
+            "src/cape_Tri.c"
         ]
     },
     "_ftypes": {

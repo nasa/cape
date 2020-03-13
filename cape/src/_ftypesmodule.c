@@ -66,4 +66,9 @@ init_ftypes(void)
     
     // Add data types to module
     capec_AddDTypes(m);
+    
+    // Return module
+    #if PY_MAJOR_VERSION >= 3
+        return m;
+    #endif
 }

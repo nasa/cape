@@ -193,7 +193,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             self.read_textdata(fname)
         else:
             # Process inputs
-            self.process_col_defns()
+            self.finish_defns()
 
         # Check for overrides of values
         self.process_kw_values()
@@ -205,11 +205,11 @@ class TextDataFile(BaseFile, TextInterpreter):
   # <
    # --- Main ---
     # Process key definitions
-    def process_col_defns(self):
+    def finish_defns(self):
         r"""Process *Definitions* of column types
         
         :Call:
-            >>> db.process_col_defns(**kw)
+            >>> db.finish_defns(**kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
                 Data file interface
@@ -235,7 +235,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             self.process_defns_boolmap(col0, col1bmap)
 
         # Call parent method
-        BaseFile.apply_defn_defaults(self)
+        BaseFile.finish_defns(self)
 
     # Process boolean map definitions
     def process_defns_boolmap(self, col, bmap):
@@ -371,7 +371,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Process column names
             self.read_textdata_header(f)
             # Process column types
-            self.process_col_defns()
+            self.finish_defns()
             # Loop through lines
             self.read_textdata_data(f)
         # Cleanup

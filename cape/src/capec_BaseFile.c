@@ -125,7 +125,7 @@ int capec_AddDTypes(PyObject *m)
             return -1;
         // Add integer code to the module
         ierr = PyModule_AddObject(m, (const char*) attr_name,
-            PyInt_FromLong(i));
+            capePyInt_FromLong(i));
         // Check for errors
         if (ierr)
             return ierr;

@@ -3,6 +3,7 @@
 #include <math.h>
 
 // Local includes
+#include "capec_PyTypes.h"
 #include "capec_Memory.h"
 #include "capec_NumPy.h"
 #include "capec_BaseFile.h"
@@ -19,6 +20,7 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
     size_t nline;
     // File handle
     PyObject *f;
+    int fd;
     FILE *fp;
  
    // --- Inputs ---
@@ -29,27 +31,43 @@ cape_CSVFileCountLines(PyObject *self, PyObject *args)
         return NULL;
     }
     
-    // Check type
-    if (!PyFile_Check(f)) {
-        // Not a file
-        PyErr_SetString(PyExc_TypeError, "Input is not a file handle");
-        return NULL;
-    }
-    // Convert to native C
-    fp = PyFile_AsFile(f);
-    // Increment use count
-    PyFile_IncUseCount((PyFileObject *) f);
-    
+    // Check Python version
+    #if PY_MAJOR_VERSION >= 3
+        // Get file from object
+        fd = PyObject_AsFileDescriptor(f);
+        // Check success
+        if (fd == -1) {
+            // Not a file
+            PyErr_SetString(PyExc_TypeError, "Input is not a file handle");
+            return NULL;
+        }
+        // Convert to file handle
+        fp = fdopen(fd, "r");
+    #else
+        // Check type
+        if (!PyFile_Check(f)) {
+            // Not a file
+            PyErr_SetString(PyExc_TypeError, "Input is not a file handle");
+            return NULL;
+        }
+        // Convert to native C
+        fp = PyFile_AsFile(f);
+        // Increment use count
+        PyFile_IncUseCount((PyFileObject *) f);
+    #endif
+
    // --- Read ---
     // Get line count
     nline = capec_CSVFileCountLines(fp);
     
    // -- Cleanup ---
     // Decrease use count
-    PyFile_DecUseCount((PyFileObject *) f);
+    #if PY_MAJOR_VERSION == 2
+        PyFile_DecUseCount((PyFileObject *) f);
+    #endif
     
     // Convert to integer
-    n = PyInt_FromLong((long) nline);
+    n = capePyInt_FromLong((long) nline);
     
     // Output
     return n;
@@ -85,6 +103,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     // File handle
     PyObject *f;
     FILE *fp;
+    int fd;
     long pos;
     // Strings
     char buff[80];
@@ -103,13 +122,6 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
         // Not a dictionary
         PyErr_SetString(PyExc_TypeError,
             "CSV file object is not an instance of 'dict' class");
-        return NULL;
-    }
-    
-    // Check type of file handle
-    if (!PyFile_Check(f)) {
-        // Not a file
-        PyErr_SetString(PyExc_TypeError, "Input is not a file handle");
         return NULL;
     }
     
@@ -136,7 +148,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
         // Get column name
         col = PyList_GET_ITEM(cols, i);
         // Check type
-        if (!PyString_Check(col)) {
+        if (!capePyString_Check(col)) {
             // *db.cols[i]* is not a string
             // ... watch out for unicode situation
             PyErr_Format(PyExc_TypeError,
@@ -175,24 +187,46 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
         // Get type
         j = PyList_GET_ITEM(dtypes, i);
         // Check that it's an integer
-        if (!PyInt_Check(j)) {
+        if (!capePyInt_Check(j)) {
             PyErr_Format(PyExc_TypeError,
                 "_c_dtypes[%i] is not an int", (int) i);
             return NULL;
         }
         // Convert to integer
-        DTYPE = PyInt_AS_LONG(j);
+        DTYPE = capePyInt_AS_LONG(j);
         // Save it
         DTYPES[i] = (int) DTYPE;
     }
     
    // --- File Length ---
-    // Convert to native C
-    fp = PyFile_AsFile(f);
+    
+    // Check Python version
+    #if PY_MAJOR_VERSION >= 3
+        // Get file from object
+        fd = PyObject_AsFileDescriptor(f);
+        // Check success
+        if (fd == -1) {
+            // Not a file
+            PyErr_SetString(PyExc_TypeError, "Input is not a file handle");
+            return NULL;
+        }
+        // Convert to file handle
+        fp = fdopen(fd, "r");
+    #else
+        // Check type
+        if (!PyFile_Check(f)) {
+            // Not a file
+            PyErr_SetString(PyExc_TypeError, "Input is not a file handle");
+            return NULL;
+        }
+        // Convert to native C
+        fp = PyFile_AsFile(f);
+        // Increment use count
+        PyFile_IncUseCount((PyFileObject *) f);
+    #endif
+
     // Remember current location
     pos = ftell(fp);
-    // Increment use count
-    PyFile_IncUseCount((PyFileObject *) f);
     
     // Get line count
     nrow = capec_CSVFileCountLines(fp);
@@ -211,7 +245,8 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
             // Error check
             if (ierr) {
                 PyErr_Format(PyExc_KeyError, 
-                    "Failed to delete column '%s'", PyString_AsString(col));
+                    "Failed to delete column '%s'",
+                    capePyString_AsString(col));
                 return NULL;
             }
         }
@@ -219,7 +254,10 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
         V = capeFILE_NewCol1D(DTYPES[i], nrow);
         // Check for errors
         if (V == NULL) {
-            PyFile_DecUseCount((PyFileObject *) f);
+            // Release file if Python 2
+            #if PY_MAJOR_VERSION == 2
+                PyFile_DecUseCount((PyFileObject *) f);
+            #endif
             fseek(fp, pos, SEEK_SET);
             return NULL;
         }
@@ -228,7 +266,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
         // Check for errors
         if (ierr) {
             PyErr_Format(PyExc_KeyError, "Failed to set column '%s'",
-                PyString_AsString(col));
+                capePyString_AsString(col));
             return NULL;
         }
         // Assign data to quick-access list
@@ -272,7 +310,11 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
             // Read next entry
             ierr = capeCSV_ReadNext(fp, coldata[jcol], DTYPES[jcol], irow);
             if (ierr) {
-                PyFile_DecUseCount((PyFileObject *) f);
+                // Release file if Python 2
+                #if PY_MAJOR_VERSION == 2
+                    PyFile_DecUseCount((PyFileObject *) f);
+                #endif
+                // Return to original location
                 fseek(fp, pos, SEEK_SET);
                 return NULL;
             }
@@ -291,7 +333,11 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
                     PyErr_Format(PyExc_ValueError,
                         "Data row %li extends past %i columns",
                         (long) irow, (int) jcol);
-                    PyFile_DecUseCount((PyFileObject *) f);
+                    // Release file if Python 2
+                    #if PY_MAJOR_VERSION == 2
+                        PyFile_DecUseCount((PyFileObject *) f);
+                    #endif
+                    // Return to original location
                     fseek(fp, pos, SEEK_SET);
                     return NULL;
                 }
@@ -302,7 +348,11 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
                     PyErr_Format(PyExc_ValueError,
                         "After col %i on data row %li: expected ',', not '%c'",
                         (int) (jcol + 1), (long) irow, c);
-                    PyFile_DecUseCount((PyFileObject *) f);
+                    // Release file if Python 2
+                    #if PY_MAJOR_VERSION == 2
+                        PyFile_DecUseCount((PyFileObject *) f);
+                    #endif
+                    // Return to original location
                     fseek(fp, pos, SEEK_SET);
                     return NULL;
                 }
@@ -317,7 +367,9 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     
    // --- Cleanup ---
     // Decrease use count
-    PyFile_DecUseCount((PyFileObject *) f);
+    #if PY_MAJOR_VERSION == 2
+        PyFile_DecUseCount((PyFileObject *) f);
+    #endif
     
     // Deallocate list of points
     free(coldata);

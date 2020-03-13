@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
+#-*- coding: utf-8 -*-
 
 # Standard library modules
 import os
@@ -6,7 +7,7 @@ import sys
 import json
 import glob
 import shutil
-import configparser
+import ConfigParser
 import subprocess as sp
 
 
@@ -19,9 +20,9 @@ extjson = os.path.join(fpwd, "extensions.json")
 extopts = json.load(open(extjson))
 
 # Get a get/set type object
-config = configparser.SafeConfigParser()
+config = ConfigParser.SafeConfigParser()
 # Read the configuration options
-config.read(os.path.join(fpwd, "config3.cfg"))
+config.read(os.path.join(fpwd, "config2.cfg"))
 
 # Python command, in cases of potential ambiguity.
 pythonexec = config.get("python", "exec")
@@ -35,12 +36,12 @@ if os.path.isdir("build"):
 
 # Compile
 print("Executing setup...")
-sp.call([pythonexec, "setup3.py", "build"])
+sp.call([pythonexec, "setup2.py", "build"])
 # Status update
 print("Moving the module into place...")
 
 # Find all build folders
-dirs = glob.glob("build/lib*3.[6-9]*")
+dirs = glob.glob("build/lib*2.7")
 # There can be only one
 if len(dirs) > 1:
     raise ValueError("More than one build directory found.")
@@ -52,20 +53,11 @@ for (ext, opts) in extopts.items():
     # Destination folder
     fdest = opts["destination"].replace("/", os.sep)
     # File name for compiled module
-    fname = "%s3.so" % ext
-    # File name pattern for file created by Python
-    fname_wc = "%s3.cpython*.so" % ext
+    fname = "%s2.so" % ext
     # Final location for module
     fmod = os.path.join(fpwd, fdest, fname)
     # Expected build location
-    fglob = glob.glob(os.path.join(fpwd, flib, fname_wc))
-    # Check for match
-    if len(fglob) == 0:
-        print("No extension '%s' build" % ext)
-    elif len(fglob) > 1:
-        print("Multiple .so files found for extension '%s" % ext)
-    # File actually built
-    fbld = fglob[0]
+    fbld = os.path.join(fpwd, flib, fname)
     # Exit if no build
     if not os.path.isfile(fbld):
         print("Build of extension '%s' failed" % ext)
