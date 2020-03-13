@@ -355,7 +355,7 @@ def axes_adjust(fig=None, **kw):
         * 2010-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
     """
     # Get options
-    opts = MPLOpts(_section="axformat", **kw)
+    opts = MPLOpts(_section="axadjust", **kw)
     # Call root function
     return _axes_adjust(fig, **opts)
 
@@ -614,10 +614,17 @@ def _axes_adjust(fig=None, **kw):
     nmin_ax = min(1, len(ax_list))
     # Get "axes" option
     ax = kw.get("ax")
-    # Get subplot number options
+    # Get subplot number option
     subplot_i = kw.get("Subplot")
-    subplot_m = kw.get("SubplotRows", nmin_ax)
-    subplot_n = kw.get("SubplotCols", nmin_ax // subplot_m)
+    # Get number of rows and columns of figures
+    if subplot_i is None:
+        # Use existing number of axes
+        subplot_m = kw.get("SubplotRows", nmin_ax)
+        subplot_n = kw.get("SubplotCols", (nmin_ax+subplot_m-1) / subplot_m)
+    else:
+        # Allow for *Subplot* to be greater than current count
+        subplot_m = kw.get("SubplotRows", max(nmin_ax, subplot_i))
+        subplot_n = kw.get("SubplotCols", (nmin_ax+subplot_m-1) / subplot_m)
     # Check for axes
     if ax is None:
         # Check for index
@@ -770,7 +777,15 @@ def _axes_adjust_col(fig, **kw):
     # Number of axes
     nax = len(ax_list)
     # Get list of figures
-    subplot_list = kw.get("SubplotList", range(1, nax+1))
+    subplot_list = kw.get("SubplotList")
+    # Default order
+    if subplot_list is None:
+        # Get current extents
+        extents = [ax_list[i].get_position().bounds for i in range(nax)]
+        # Get middle *y* coordinate for sorting
+        y0 = [extent[1] + 0.5*extent[3] for extent in extents]
+        # Sort
+        subplot_list = list(np.argsort(y0) + 1)
     # Get index of ax to use for vertical rubber
     subplot_rubber = kw.get("SubplotRubber", -1)
     # Adjust for 1-based index
