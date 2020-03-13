@@ -1,0 +1,23 @@
+{
+    "CopyFiles": [
+        "bullet-mab.mat",
+        "test01_griddata.py"
+    ],
+    "Commands": [
+        "python2 test01_griddata.py",
+        "python3 test01_griddata.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out"
+    ],
+    "CommandTitles": [
+        "Regularize line load using griddata: Python 2",
+        "Regularize line load using griddata: Python 3"
+    ],
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/attdb",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

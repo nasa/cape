@@ -2524,10 +2524,14 @@ class DataKit(ftypes.BaseData):
             raise IndexError("Index mask must be 1D array")
         elif I.size == 0:
             raise ValueError("Index mask must not be empty")
-        # Size of full array
-        n = V.size
+        # Dimension
+        ndim = V.ndim
+        # "Length" of array; last dimension
+        n = V.shape[-1]
         # Get data type (as string)
         dtype = I.dtype.name
+        # Create slice that looks up last column
+        J = tuple(slice(None) for j in range(ndim-1)) +  (I,)
         # Check type
         if "int" in dtype:
             # Check indices
@@ -2535,16 +2539,16 @@ class DataKit(ftypes.BaseData):
                 raise IndexError(
                     ("Cannot access element %i " % np.max(I)) +
                     ("for array of length %i" % n))
-            # Access
-            return V[I]
+            # Apply mask to last dimension
+            return V.__getitem__(J)
         elif dtype == "bool":
             # Check size
             if I.size != n:
                 raise IndexError(
                     ("Bool index mask has size %i; " % I.size) +
                     ("array has size %i" % n))
-            # Access
-            return V[I]
+            # Apply mask to last dimension
+            return V.__getitem__(J)
         else:
             raise TypeError("Index mask must be int or bool array")
 
@@ -4514,16 +4518,15 @@ class DataKit(ftypes.BaseData):
             I = None
         # Get *I* from kwargs
         mask = kw.get("I", kw.get("mask", None))
-        # Get length of database array for *args*
-        n = len(self.get_all_values(args[0]))
-        # Length of output
-        nout = len(a[0])
         # Prepare mask
         I = self.prep_mask(mask, args[0])
         # Get values of args from database
         x = np.vstack(tuple([self.get_values(arg, I)] for arg in args)).T
         # Get output values
         y = np.vstack(tuple([ai] for ai in a[:narg])).T
+        # Length of input and output
+        n = x.shape[0]
+        nout = len(a[0])
         # Initialize weights
         W = np.zeros((nout, n))
         # Loop through evaluation points
@@ -6117,10 +6120,18 @@ class DataKit(ftypes.BaseData):
             else:
                 # Number of slices
                 nslice = slices[maincol].size
+                # Number of output points
+                nout = len(X[maincol])
+                # Get initial values
+                V0 = self.get_all_values(col)
+                # Extra dimensions from inputs to be copied
+                shape0 = V0.shape[:-1]
+                # Number of dimensions
+                ndim = V0.ndim
                 # Initialize data
-                V = np.zeros_like(X[maincol])
+                V = np.zeros(shape0 + (nout,), dtype=V0.dtype)
                 # Convert slices to indices within *db*
-                masks = self.find(scol, mapped=True, mask=mask, **slices)
+                masks, _ = self.find(scol, mapped=True, mask=mask, **slices)
                 # Loop through slices
                 for i in range(nslice):
                     # Status update
@@ -6151,7 +6162,12 @@ class DataKit(ftypes.BaseData):
                     # Get database values
                     Y = self.get_values(col, masks[i])
                     # Evaluate coefficient
-                    V[I] = np.dot(W, Y)
+                    if ndim == 1:
+                        # Scalar
+                        V[I] = np.dot(W, Y)
+                    elif ndim == 2:
+                        # Linear output
+                        V[:,I] = np.dot(Y, W.T)
                 # Clean up prompt
                 if kw.get("v"):
                     print("")
@@ -6171,7 +6187,7 @@ class DataKit(ftypes.BaseData):
             if maincol is None:
                 break
             # Translate col name
-            colreg = self._translate_colname(col, **tr_args)
+            colreg = self._translate_colname(col, *tr_args)
             # Get values for this column
             V0 = self.get_all_values(col)
             # Check size
