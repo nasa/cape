@@ -34,7 +34,8 @@ to a file called :file:`jobID.dat` or the value of *FOUT* (see below).
 import sys
 
 # Full CAPE modules
-import cape.queue
+import cape.cfdx.queue as queue
+
 # CAPE module partial imports
 from cape.argread import readflagstar
     
@@ -60,7 +61,7 @@ if __name__ == "__main__":
     fout = kw.get('f', 'jobID.dat')
     
     # Submit the job.
-    jobID = cape.queue.pqsub(fname, fout)
+    jobID = queue.pqsub(fname, fout)
     
     # Display status.
     if jobID:
