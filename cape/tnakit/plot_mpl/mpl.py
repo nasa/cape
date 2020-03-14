@@ -829,6 +829,10 @@ def _axes_adjust_col(fig, **kw):
     for (j, i) in enumerate(subplot_list):
         # Get axes
         ax = ax_list[i-1]
+        # Check for rubber axes
+        if ax is ax_rubber:
+            # Remember index
+            j_rubber = j
         # Check for aspect ratio
         if ax.get_aspect() == "auto":
             # No adjustments necessary
@@ -842,7 +846,7 @@ def _axes_adjust_col(fig, **kw):
     # Measure all the current figure heights
     h_list = [pos[3] for pos in extents]
     # Total vertical space occupied by fixed plots
-    h_fixed = sum(h_list) - h_list[subplot_rubber]
+    h_fixed = sum(h_list) - h_list[j_rubber]
     # Add in required vertical text space
     if nrows > 1:
         h_fixed += sum(margins_b[1:]) + sum(margins_t[:-1])
@@ -908,7 +912,15 @@ def _axes_adjust_row(fig, **kw):
     # Number of axes
     nax = len(ax_list)
     # Get list of figures
-    subplot_list = kw.get("SubplotList", range(1, nax+1))
+    subplot_list = kw.get("SubplotList")
+    # Default order
+    if subplot_list is None:
+        # Get current extents
+        extents = [ax_list[i].get_position().bounds for i in range(nax)]
+        # Get middle *y* coordinate for sorting
+        y0 = [extent[0] + 0.5*extent[2] for extent in extents]
+        # Sort
+        subplot_list = list(np.argsort(y0) + 1)
     # Get index of ax to use for vertical rubber
     subplot_rubber = kw.get("SubplotRubber", -1)
     # Adjust for 1-based index
@@ -952,6 +964,10 @@ def _axes_adjust_row(fig, **kw):
     for (j, i) in enumerate(subplot_list):
         # Get axes
         ax = ax_list[i-1]
+        # Check for rubber axes
+        if ax is ax_rubber:
+            # Remember index
+            j_rubber = j
         # Check for aspect ratio
         if ax.get_aspect() == "auto":
             # No adjustments necessary
@@ -965,7 +981,7 @@ def _axes_adjust_row(fig, **kw):
     # Measure all the current figure widths
     w_list = [pos[2] for pos in extents]
     # Total vertical space occupied by fixed plots
-    w_fixed = sum(w_list) - w_list[subplot_rubber]
+    w_fixed = sum(w_list) - w_list[j_rubber]
     # Add in required vertical text space
     if ncols > 1:
         w_fixed += sum(margins_l[1:]) + sum(margins_r[:-1])
