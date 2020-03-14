@@ -1,0 +1,20 @@
+{
+    "CopyFiles": [
+        "bullet-mab.mat",
+        "bullet-xz.png",
+        "test01_plot_col.py"
+    ],
+    "Commands": [
+        "python2 test01_plot_col.py",
+        "python3 test01_plot_col.py"
+    ],
+    "CommandTitles": [
+        "Line load plot with image: Python 2",
+        "Line load plot with image: Python 3"
+    ],
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/attdb",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
