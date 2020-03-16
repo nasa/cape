@@ -400,6 +400,60 @@ def axes_adjust_row(fig, **kw):
     return _axes_adjust_row(fig, **kw)
 
 
+# Autoscale axes plot window height
+def axes_autoscale_height(ax=None, **kw):
+    r"""Autoscale height of axes plot window
+
+    For scaling purposes, the *x* limits are taken from
+    :func:`ax.get_xlim`.
+
+    :Call:
+        >>> axes_autoscale_height(ax, **kw)
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+        *YPad*, *Pad*: {``0.07``} | :class:`float`
+            Padding for *y* axis
+        *YMin*, *ymin*: {``None``} | :class:`float`
+            Override automatic *ymin* coordinate
+        *YMax*, *ymax*: {``None``} | :class:`float`
+            Override automatic *ymax* coordinate
+    :Versions:
+        * 2020-03-16 ``@ddalle``: First version
+    """
+    # Get options
+    opts = MPLOpts(_section="axheight", **kw)
+    # Call root function
+    return _axes_autoscale_height(ax, **kw)
+
+
+# Autoscale axes plot window width
+def axes_autoscale_width(ax=None, **kw):
+    r"""Autoscale width of axes plot window
+
+    For scaling purposes, the *y* limits are taken from
+    :func:`ax.get_ylim`.
+
+    :Call:
+        >>> axes_autoscale_width(ax, **kw)
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+        *XPad*, *Pad*: {``0.07``} | :class:`float`
+            Padding for *y* axis
+        *XMin*, *xmin*: {``None``} | :class:`float`
+            Override automatic *xmin* coordinate
+        *XMax*, *xmax*: {``None``} | :class:`float`
+            Override automatic *xmax* coordinate
+    :Versions:
+        * 2020-03-16 ``@ddalle``: First version
+    """
+    # Get options
+    opts = MPLOpts(_section="axwidth", **kw)
+    # Call root function
+    return _axes_autoscale_height(ax, **kw)
+
+
 # Axes format
 def axes_format(ax, **kw):
     r"""Format and label axes
@@ -1010,6 +1064,96 @@ def _axes_adjust_row(fig, **kw):
         xmin += margins_r[j] + margin_h
         # Add plot extent
         xmin += wj
+
+
+# Autoscale axes
+def _axes_autoscale_height(ax=None, **kw):
+    r"""Autoscale height of axes
+
+    For scaling purposes, the *x* limits are taken from
+    :func:`ax.get_xlim`.
+
+    :Call:
+        >>> _axes_autoscale_height(ax, **kw)
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+        *YPad*, *Pad*: {``0.07``} | :class:`float`
+            Padding for *y* axis
+        *YMin*, *ymin*: {``None``} | :class:`float`
+            Override automatic *ymin* coordinate
+        *YMax*, *ymax*: {``None``} | :class:`float`
+            Override automatic *ymax* coordinate
+    :Versions:
+        * 2020-03-16 ``@ddalle``: First version
+    """
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.get_figure()
+    # Aspect ratio of the figure
+    ar_fig = fig.get_figheight() / fig.get_figwidth()
+    # Get current axes xlims
+    xmin, xmax = ax.get_xlim()
+    # Find appropriate y limits
+    ymin, ymax = auto_ylim(ax, pad=kw.get("YPad", kw.get("Pad", 0.07)))
+    # Check for overrides
+    ymin = kw.get("YMin", ymin)
+    ymax = kw.get("YMax", ymax)
+    # Get current axes position
+    x0, y0, x1, _ = get_axes_plot_extents(ax)
+    # Axes width
+    w_ax = x1 - x0
+    # Calculate appropriate axes height
+    h_ax = (ymax - ymin) / (xmax - xmin) * w_ax / ar_fig
+    # Set new position
+    ax.set_position([x0, y0, w_ax, h_ax])
+
+
+# Autoscale axes
+def _axes_autoscale_width(ax=None, **kw):
+    r"""Autoscale width of axes
+
+    For scaling purposes, the *y* limits are taken from
+    :func:`ax.get_ylim`.
+
+    :Call:
+        >>> _axes_autoscale_width(ax, **kw)
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+        *XPad*, *Pad*: {``0.07``} | :class:`float`
+            Padding for *y* axis
+        *XMin*, *xmin*: {``None``} | :class:`float`
+            Override automatic *xmin* coordinate
+        *XMax*, *xmax*: {``None``} | :class:`float`
+            Override automatic *xmax* coordinate
+    :Versions:
+        * 2020-03-16 ``@ddalle``: First version
+    """
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.get_figure()
+    # Aspect ratio of the figure
+    ar_fig = fig.get_figheight() / fig.get_figwidth()
+    # Get current axes xlims
+    ymin, ymax = ax.get_ylim()
+    # Find appropriate y limits
+    xmin, xmax = auto_xlim(ax, pad=kw.get("XPad", kw.get("Pad", 0.07)))
+    # Check for overrides
+    xmin = kw.get("XMin", xmin)
+    xmax = kw.get("XMax", xmax)
+    # Get current axes position
+    x0, y0, _, y1 = get_axes_plot_extents(ax)
+    # Axes width
+    h_ax = y1 - y0
+    # Calculate appropriate axes height
+    w_ax = (xmax - xmin) / (ymax - ymin) * h_ax * ar_fig
+    # Set new position
+    ax.set_position([x0, y0, w_ax, h_ax])
 
 
 # Axes format

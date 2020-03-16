@@ -349,6 +349,18 @@ class MPLOpts(kwutils.KwargHandler):
             "YLimMin",
             "YPad"
         ],
+        "axheight": [
+            "Pad",
+            "YPad",
+            "YMax",
+            "YMin"
+        ],
+        "axwidth": [
+            "Pad",
+            "XPad",
+            "XMax",
+            "XMin"
+        ],
         "error": [
             "Index",
             "Rotate",
