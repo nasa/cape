@@ -1921,10 +1921,12 @@ def auto_xlim(ax, pad=0.05):
         if t == 'Line2D':
             # Get data
             xdata = h.get_xdata()
+            # Filter Nans
+            xdata = xdata[np.isfinite(xdata)]
             # Check the min and max data
             if len(xdata) > 0:
-                xmin = min(xmin, np.min(h.get_xdata()))
-                xmax = max(xmax, np.max(h.get_xdata()))
+                xmin = min(xmin, np.min(xdata))
+                xmax = max(xmax, np.max(xdata))
         elif t in ['PathCollection', 'PolyCollection', 'LineCollection']:
             # Loop through paths
             for P in h.get_paths():
@@ -1991,10 +1993,12 @@ def auto_ylim(ax, pad=0.05):
         if t == 'Line2D':
             # Get the y data for this line
             ydata = h.get_ydata()
+            # Filter Nans
+            ydata = ydata[np.isfinite(ydata)]
             # Check the min and max data
             if len(ydata) > 0:
-                ymin = min(ymin, min(h.get_ydata()))
-                ymax = max(ymax, max(h.get_ydata()))
+                ymin = min(ymin, np.min(ydata))
+                ymax = max(ymax, np.max(ydata))
         elif t in ['PathCollection', 'PolyCollection', 'LineCollection']:
             # Loop through paths
             for P in h.get_paths():
@@ -2061,7 +2065,7 @@ def get_axes_plot_extents(ax=None):
     # Size of figure in pixels
     _, _, ifig, jfig = fig.get_window_extent().bounds
     # Get pixel count for axes extents
-    ia, ja, ib, jb = _get_axes_extents(ax)
+    ia, ja, ib, jb = _get_axes_plot_extents(ax)
     # Convert to fractions
     xmin = ia / ifig
     ymin = ja / jfig
