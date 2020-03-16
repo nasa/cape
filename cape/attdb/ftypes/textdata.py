@@ -23,6 +23,9 @@ final comment before the beginning of data.
 # Standard library
 import re
 
+# Third-party modules
+import numpy as np
+
 # CAPE modules
 import cape.tnakit.typeutils as typeutils
 
@@ -52,6 +55,7 @@ class TextDataOpts(BaseFileOpts):
     _optlist = {
         "Delimeter",
         "Comment",
+        "NanDivider",
         "FirstColBoolMap",
         "FirstColName"
     }
@@ -76,6 +80,7 @@ class TextDataOpts(BaseFileOpts):
     _rc = {
         "Comment": "#",
         "Delimeter": ",",
+        "NanDivider": False,
         "FirstColBoolMap": False,
         "FirstColName": "_col1",
     }
@@ -400,6 +405,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Save special characters
         self._delim = self.opts.get("Delimiter", ", ")
         self._comment = self.opts.get("Comment", "#")
+        self._nanline = self.opts.get("NanDivider", False)
         # Set header flags
         self._textdata_header_once = False
         self._textdata_header_complete = False
@@ -452,11 +458,11 @@ class TextDataFile(BaseFile, TextInterpreter):
             # End of file
             self._textdata_header_complete = True
             return
-        elif line.startswith(_comment):
+        elif line.lstrip().startswith(_comment):
             # Save the line
             self.lines.append(line)
             # Remove comment
-            line = line.lstrip(_comment)
+            line = line.lstrip().lstrip(_comment)
             # Check for empty comment
             if line.strip() == "":
                 # Don't process and don't set any flags
@@ -497,8 +503,12 @@ class TextDataFile(BaseFile, TextInterpreter):
             self._textdata_header_complete = True
             # Exit
             return
-        # Save column names if reaching this point
-        self.cols = self.translate_colnames(cols)
+        # Translate names if reaching this point
+        cols = self.translate_colnames(cols)
+        # Check for override
+        cols = self.opts.get_option("Columns", cols)
+        # Save them
+        self.cols = cols
         # Output column names for kicks
         return cols
         
@@ -622,7 +632,11 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Create default column names
         cols = ["col%i" % (i+1) for i in range(ncol)]
         # Translate column names
-        self.cols = self.translate_colnames(cols)
+        cols = self.translate_colnames(cols)
+        # Check for manual override
+        cols = self.opts.get_option("Columns", cols)
+        # Save
+        self.cols = cols
    
    # --- Data ---
     # Read data: Python implementation
@@ -687,11 +701,21 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Save the line
         self.lines.append(line)
         # Check if line is a comment
-        if line.startswith(self._comment):
+        if line.lstrip().startswith(self._comment):
             # Comment
+            if self._nanline:
+                # Save NaN
+                for col in self.textcols:
+                    self.append_colval(col, np.nan)
+            # Done with this line
             return
         elif line.strip() == "":
             # Empty line
+            if self._nanline:
+                # Save NaN
+                for col in self.textcols:
+                    self.append_colval(col, np.nan)
+            # Done with this line
             return
         # Save the line number for this data row
         self.linenos.append(self._nline)
@@ -704,7 +728,11 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Get type
             clsname = _types[j]
             # Convert text
-            v = self.fromtext_val(coltxts[j], clsname, col)
+            try:
+                v = self.fromtext_val(coltxts[j], clsname, col)
+            except Exception:
+                import pdb
+                pdb.set_trace()
             # Save data
             if isinstance(v, tuple):
                 # Got text and a map
