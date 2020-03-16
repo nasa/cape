@@ -2640,7 +2640,6 @@ class TriBase(object):
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
-        print("Label 110: Failed")
         # Write the Common portion of the triangulation
         self.WriteSlow_ASCII(fname=fname)
         # Open the file to append.
