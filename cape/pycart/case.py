@@ -24,7 +24,7 @@ import resource
 import re
 
 # Third-party modules
-from numpy import isnan
+import numpy as np
 
 # Standard library direct imports
 from datetime import datetime
@@ -472,7 +472,7 @@ def CheckSuccess(rc=None, i=None):
     L1i = GetFirstResid()
     L1f = GetCurrentResid()
     # Check for bad (large or NaN) values.
-    if isnan(L1f) or L1f/(0.1+L1i)>1.0e+6:
+    if np.isnan(L1f) or L1f/(0.1+L1i)>1.0e+6:
         # Exploded.
         f = open('FAIL', 'w')
         # Write the failure type.
