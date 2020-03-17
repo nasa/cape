@@ -407,6 +407,51 @@ class TestOpts(dict):
                 "STDERR has unrecognized type '%s'" %
                 fnerr.__class__.__name__)
 
+    # Get PNG output image names
+    def get_PNG(self, i):
+        r"""Get PNG image file name for case *i* to compare to target
+
+        :Call:
+            >>> fpngs = opts.get_PNG(i)
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+            *i*: {``None``} | :class:`int`
+                Index
+        :Outputs:
+            *fpngs*: ``None`` | :class:`list`\ [:class:`str`]
+                Output file name, if appropriate
+        :Versions:
+            * 2020-03-16 ``@ddalle``: First version
+        """
+        # Get "TargetPng" to use as default
+        fpngs = self.get_TargetPNG(i)
+        # Get option for *i*
+        fpng = self.getel("PNG", i, vdef=fpngs)
+        # Check type
+        if fpng is None:
+            # No target STDOUT option
+            return None
+        # Check for singleton
+        if isinstance(fpng, (str, unicode)):
+            # Singleton list
+            fpngs = [fpng]
+        elif isinstance(fpng, list):
+            # Already a list
+            fpngs = fpng
+        else:
+            raise TypeError(
+                "PNG has unrecognized type '%s'" %
+                fpng.__class__.__name__)
+        # Loop through strings
+        for (j, fpng) in enumerate(fpngs):
+            # Check for '%' sign
+            if '%' in fpng:
+                # Use the index (1-based)
+                fpngs[j] = fpng % (i+1)
+        # Output
+        return fpngs
+
     # Get STDOUT comparison file
     def get_TargetSTDOUT(self, i):
         """Get target STDOUT file for case *i*
@@ -482,6 +527,49 @@ class TestOpts(dict):
             raise TypeError(
                 "Target STDERR has unrecognized type '%s'" %
                 fnerr.__class__.__name__)
+
+    # Get PNG comparison image
+    def get_TargetPNG(self, i):
+        r"""Get target PNG image file name for case *i*
+
+        :Call:
+            >>> fpngs = opts.get_TargetPNG(i)
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+            *i*: {``None``} | :class:`int`
+                Index
+        :Outputs:
+            *fpngs*: ``None`` | :class:`list`\ [:class:`str`]
+                Output file name, if appropriate
+        :Versions:
+            * 2020-03-16 ``@ddalle``: First version
+        """
+        # Get option for *i*
+        fpng = self.getel("TargetPNG", i, vdef=None)
+        # Check type
+        if fpng is None:
+            # No target STDOUT option
+            return None
+        # Check for singleton
+        if isinstance(fpng, (str, unicode)):
+            # Singleton list
+            fpngs = [fpng]
+        elif isinstance(fpng, list):
+            # Already a list
+            fpngs = fpng
+        else:
+            raise TypeError(
+                "Target PNG has unrecognized type '%s'" %
+                fpng.__class__.__name__)
+        # Loop through strings
+        for (j, fpng) in enumerate(fpngs):
+            # Check for '%' sign
+            if '%' in fpng:
+                # Use the index (1-based)
+                fpngs[j] = fpng % (i+1)
+        # Output
+        return fpngs
 
     # Get options for file comparison
     def get_FileComparisonOpts(self, i=0):

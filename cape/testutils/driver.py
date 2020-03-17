@@ -36,6 +36,20 @@ from . import fileutils
 from . import testshell
 from . import testopts
 
+# Third-party modules
+plt = None
+
+
+# Function to import Matplotlib
+def _import_pyplot():
+    # Make global variables
+    global plt
+    # Exit if plt imported
+    if plt is not None:
+        return
+    # Import the module
+    import matplotlib.pyplot as plt
+
 
 # Crawler class
 class TestDriver(object):
@@ -52,25 +66,6 @@ class TestDriver(object):
     :Versions:
         * 2019-07-03 ``@ddalle``: Started
     """
-    
-    # Standard attributes
-    opts = {}
-    fname = "cape-test.json"
-    fdoc = None
-    frst = None
-    RootDir = None
-    dirname = None
-    # Results attributes
-    TestStatus = True
-    TestStatus_ReturnCode = True
-    TestStatus_MaxTime = True
-    TestStatus_STDOUT = True
-    TestStatus_STDERR = True
-    TestRunTimeTotal = 0.0
-    TestRunTimeList = []
-    TestReturnCodes = []
-    TestCommandsNum = 0
-    TestCommandsRun = 0
     
     # Initialization method
     def __init__(self, *a, **kw):
@@ -91,6 +86,21 @@ class TestDriver(object):
         self.opts = testopts.TestOpts(fname)
         # Get commands to run
         cmds = self.opts.get_commands()
+        # Standard attributes
+        self.fdoc = None
+        self.frst = None
+        # Results attributes
+        self.TestStatus = True
+        self.TestStatus_ReturnCode = True
+        self.TestStatus_MaxTime = True
+        self.TestStatus_STDOUT = True
+        self.TestStatus_STDERR = True
+        self.TestStatus_PNG = True
+        self.TestRunTimeTotal = 0.0
+        self.TestRunTimeList = []
+        self.TestReturnCodes = []
+        self.TestCommandsNum = 0
+        self.TestCommandsRun = 0
         # Save number of commands
         self.TestCommandsNum = len(cmds)
         
@@ -137,6 +147,7 @@ class TestDriver(object):
         self.TestStatus_MaxTime = []
         self.TestStatus_STDOUT = []
         self.TestStatus_STDERR = []
+        self.TestStatus_PNG = []
         # Statistics
         self.TestRunTimeTotal = 0.0
         self.TestRunTimeList = []
@@ -925,7 +936,7 @@ class TestDriver(object):
         fnterr = self.opts.get_TargetSTDERR(i)
         # Extend attributes as necessary
         self._extend_attribute_list("TestStatus_STDERR", i)
-        # Individual tests on whether STDOUT and TargetSTDOUT exist
+        # Individual tests on whether STDERR and TargetSTDERR exist
         qtarget = fnterr and isinstance(fnterr, (str, unicode))
         qactual = fnerr  and isinstance(fnerr,  (str, unicode))
         # Absolutize the path to *fntout*; usually in parent folder
@@ -1053,6 +1064,107 @@ class TestDriver(object):
         f.write("\n")
         # Output
         return q
+
+    # Test PNG
+    def process_results_png(self, i):
+        """Compare PNG results from command *i* to target
+        
+        :Call:
+            >>> q = testd.process_results_png(i)
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+            *i*: :class:`int`
+                Command number
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not PNG matched target (``True`` if no
+                target specified)
+        :Attributes:
+            *testd.TestStatus_PNG[i]*: *q*
+                Whether or not PNG matched target
+            *testd.TestStatus*: ``True`` | ``False``
+                Set to ``False`` if above test fails
+        :Versions:
+            * 2020-03-16 ``@ddalle``: First version
+        """
+        # PNG file names
+        fpngs_targ = self.opts.get_TargetPNG(i)
+        fpngs_work = self.opts.get_PNG(i)
+        # Check for something to check
+        if fpngs_targ is None:
+            return True
+        # Extend attributes as necessary
+        self._extend_attribute_list("TestStatus_PNG", i)
+        # Check for matching-length lists
+        if not isinstance(fpngs_targ, list):
+            # Nonsense targets
+            status = 101
+        elif not isinstance(fpngs_work, list):
+            # Nonsense outputs
+            status = 102
+        elif not all(
+                [isinstance(fpng, (str, unicode)) for png in fpngs_targ]):
+            # Nonsense target type
+            status = 103
+        elif not all(
+                [isinstance(fpng, (str, unicode)) for png in fpngs_work]):
+            # Nonsense working file name type
+            status = 104
+        elif len(fpngs_targ) != len(fpngs_work):
+            # Mismatching lists
+            status = 105
+        else:
+            # Absolutize the path to *fnpngs_targ*
+            for (j, fpng) in enumerate(fpngs_targ):
+                if not os.path.isabs(fpng):
+                    fpngs_work[j] = os.path.join(os.path.realpath(".."), fpng)
+            # Absolutize the path to *fnpngs_work*
+            for (j, fpng) in enumerate(fpngs_work):
+                if not os.path.isabs(fpng):
+                    fpngs_work[j] = os.path.join(os.path.realpath("."), fpng)
+            # Ensure pyplot is ready
+            _import_pyplot()
+            # Loop through targets
+            for (j, ftarg) in enumerate(fpngs_targ):
+                # Get working file
+                fwork = fpngs_work[j]
+                # Check for both files
+                if not os.path.isfile(ftarg):
+                    # No target file
+                    status = 200 + j
+                    break
+                elif not os.path.isfile(fwork):
+                    # No working file
+                    status = 300 + j
+                    break
+                # Read target image
+                try:
+                    # Attempt read
+                    imtarg = plt.imread(ftarg)
+                except Exception:
+                    # Failed
+                    status = 400 + j
+                    break
+                # Read working image
+                try:
+                    # Attempt read
+                    imwork = plt.imread(fwork)
+                except Exception:
+                    # Failed
+                    status = 500 + j
+                    break
+                # Check dimensionality
+                if imtarg.ndim != imwork.ndim:
+                    # Mismatching dimension
+                    status = 600 + j
+                    break
+                elif imtarg.shape != imwork.shape:
+                    # Mismatching size
+                    status = 700 + j
+                    break
+                # Test matchy-matchiness
+                    
 
     # Get results dictionary
     def get_results_dict(self):
