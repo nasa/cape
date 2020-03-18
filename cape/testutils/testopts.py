@@ -24,6 +24,7 @@ The allowable options and their default values are contained in the variable
 """
 
 # Standard library modules
+import io
 import os
 import json
 
@@ -32,9 +33,19 @@ import json
 from .verutils import ver
 
 
-# Create :class:`unicode` class for Python 3+
+# Create tuples of types
 if ver > 2:
+    # Categories of types for Python 3
+    strlike = str
+    intlike = int
+    filelike = io.IOBase
+    # Create extra handle for unicode objects
     unicode = str
+else:
+    # Categories of types for Python 2
+    strlike = (str, unicode)
+    intlike = (int, long)
+    filelike = (file, io.IOBase)
 
 
 # Default attributes
@@ -51,14 +62,23 @@ rc = {
     "ReturnCode": 0,
     "TargetSTDOUT": None,
     "TargetSTDERR": None,
+    "TargetPNG": [],
     "LexerSTDOUT": "none",
     "LexerSTDERR": "none",
+    "PNG": [],
+    "PNGTol": 0.99,
+    "ShowDiffPNG": False,
+    "ShowPNG": True,
     "ShowSTDOUT": None,
     "ShowSTDERR": None,
+    "ShowTargetPNG": True,
     "ShowTargetSTDOUT": True,
     "ShowTargetSTDERR": True,
+    "LinkDiffPNG": False,
+    "LinkPNG": False,
     "LinkSTDOUT": False,
     "LinkSTDERR": False,
+    "LinkTargetPNG": False,
     "LinkTargetSTDOUT": False,
     "LinkTargetSTDERR": False,
     "RootLevel": None,
@@ -239,11 +259,11 @@ class TestOpts(dict):
         if not kw:
             return
         # Initialize error text
-        msg = "TestOpts received unrecognized options:\n"
+        msg = "TestOpts received unrecognized options:"
         # Loop through any remaining optoins
         for (k, v) in kw.items():
             # Append to error message
-            msg += "  '%s'\n" % k
+            msg += " '%s'" % k
         # Raise exception using this message message
         raise KeyError(msg)
 
@@ -430,8 +450,8 @@ class TestOpts(dict):
         fpng = self.getel("PNG", i, vdef=fpngs)
         # Check type
         if fpng is None:
-            # No target STDOUT option
-            return None
+            # Default to the "TargetPNG" list
+            return fpngs
         # Check for singleton
         if isinstance(fpng, (str, unicode)):
             # Singleton list
@@ -570,6 +590,38 @@ class TestOpts(dict):
                 fpngs[j] = fpng % (i+1)
         # Output
         return fpngs
+
+    # Get match percentage for images
+    def get_PNGTol(self, i=0):
+        r"""Get allowed percentage of PNG difference
+
+        :Call:
+            >>> tol = opts.get_PNGTol(i=0)
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+            *i*: {``None``} | :class:`int`
+                Index
+        :Outputs:
+            *tol*: {``0.99``} | :class:`float`
+                Fraction of pixels that must match for image(s)
+        :Versions:
+            * 2020-03-17 ``@ddalle``: First version
+        """
+        # Get tolerance
+        tol = self.getel("PNGTol", i, vdef=rc["PNGTol"])
+        # Check type
+        if not isinstance(tol, float):
+            raise TypeError(
+                "PNG tolerance 'PNGTol' has type '%s'" %
+                tol.__class__.__name)
+        # Test values
+        if tol < 0:
+            raise ValueError("PNG tolerance %.2f must be positive" % tol)
+        elif tol > 1:
+            raise ValueError("PNG tolerance %.2f must be less than 1" % tol)
+        # Output
+        return tol
 
     # Get options for file comparison
     def get_FileComparisonOpts(self, i=0):

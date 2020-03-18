@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Standard library
+import sys
+
 # Third-party modules
 import matplotlib.pyplot as plt
 
@@ -30,5 +33,5 @@ pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
 ax.set_xlim(h.ax.get_xlim())
 
 # Save figure
-h.fig.savefig("bullet-ll.png")
+h.fig.savefig("python%i-bullet-ll.png" % sys.version_info.major)
 

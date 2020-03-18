@@ -185,3 +185,4 @@ defined.  In general the required files are the following.
         test/pyover/index
         test/ftypes/index
         test/attdb/index 
+        test/tnakit/index

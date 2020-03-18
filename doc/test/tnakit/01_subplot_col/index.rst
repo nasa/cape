@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2020-03-14 at 16:17 PDT
+   on 2020-03-17 at 23:43 PDT
 
 Test ``01_subplot_col``
 =========================
@@ -34,12 +34,20 @@ Command 1: Line load plot with image: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.714747 seconds
-    * Cumulative time: 0.714747 seconds
+    * Command took 0.702384 seconds
+    * Cumulative time: 0.702384 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-00-00.png
+            :width: 4.5in
 
 Command 2: Line load plot with image: Python 3
 -----------------------------------------------
@@ -55,10 +63,18 @@ Command 2: Line load plot with image: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.14332 seconds
-    * Cumulative time: 1.85807 seconds
+    * Command took 1.12239 seconds
+    * Cumulative time: 1.82477 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-01-00.png
+            :width: 4.5in
 

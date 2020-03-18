@@ -26,6 +26,7 @@ options to the test crawler.
 """
 
 # Standard library modules
+import io
 import os
 import time
 import shlex
@@ -35,20 +36,48 @@ import shutil
 from . import fileutils
 from . import testshell
 from . import testopts
+from . import verutils
+
+
+# Create tuples of types
+if verutils.ver > 2:
+    # Categories of types for Python 3
+    strlike = str
+    intlike = int
+    filelike = io.IOBase
+    # Create extra handle for unicode objects
+    unicode = str
+else:
+    # Categories of types for Python 2
+    strlike = (str, unicode)
+    intlike = (int, long)
+    filelike = (file, io.IOBase)
 
 # Third-party modules
+np = None
 plt = None
 
 
 # Function to import Matplotlib
 def _import_pyplot():
     # Make global variables
+    global np
     global plt
     # Exit if plt imported
     if plt is not None:
         return
     # Import the module
-    import matplotlib.pyplot as plt
+    try:
+        # Import matplotlib first to set backend
+        import matplotlib
+        # Turn off interactive windows
+        matplotlib.use("Agg")
+        # Import pyplot
+        import matplotlib.pyplot as plt
+        # Import NumPy
+        import numpy as np
+    except ImportError:
+        return
 
 
 # Crawler class
@@ -260,7 +289,7 @@ class TestDriver(object):
             * 2019-07-09 ``@ddalle``: First version
         """
         # If *frst* is already a file, do nothing
-        if isinstance(self.frst, file):
+        if isinstance(self.frst, filelike):
             return
         # Get option for root level
         nroot = self.opts.get("RootLevel")
@@ -284,7 +313,7 @@ class TestDriver(object):
             # Bad root level
             raise ValueError(
                 "'RootLevel' option must be <= 0 (got %i)" % nroot)
-        elif not isinstance(fdoc_rel, (str, unicode)):
+        elif not isinstance(fdoc_rel, strlike):
             # Bad type for doc folder
             raise TypeError(
                 "'DocFolder' option must be str (got '%s')"
@@ -386,7 +415,7 @@ class TestDriver(object):
         if fintro is None:
             # Do nothing
             pass
-        elif not isinstance(fintro, (str, unicode)):
+        elif not isinstance(fintro, strlike):
             # Invalid type
             raise TypeError(
                 "'DocFileIntro' must be a string (got '%s')"
@@ -493,7 +522,7 @@ class TestDriver(object):
             * 2019-07-08 ``@ddalle``: First version
         """
         # Check if *frst* is a file
-        if isinstance(self.frst, file):
+        if isinstance(self.frst, filelike):
             # Close it
             self.frst.close()
             # Delete handle
@@ -540,10 +569,10 @@ class TestDriver(object):
             t, ierr, out, err = testshell.comm(
                 cmdi, maxtime=tsec, dt=tstp, stdout=fout, stderr=ferr)
             # Close files
-            if isinstance(fout, file):
+            if isinstance(fout, filelike):
                 fout.close()
             # (No concern about closing same file twice if STDERR==STDOUT)
-            if isinstance(ferr, file):
+            if isinstance(ferr, filelike):
                 ferr.close()
             # Start the log for this command
             self.process_results_summary(i, cmd)
@@ -554,6 +583,8 @@ class TestDriver(object):
             # Check STDOUT and STDERR against targets
             self.process_results_stdout(i, fnout)
             self.process_results_stderr(i, fnerr, fnout)
+            # Check images
+            self.process_results_png(i)
             # Update number of commands run
             self.TestCommandsRun = i + 1
             # Exit if a failure was detected
@@ -608,7 +639,7 @@ class TestDriver(object):
         # Get file handle
         f = self.frst
         # reST output
-        if not isinstance(f, file) or f.closed:
+        if not isinstance(f, filelike) or f.closed:
             return
         # Get subtitle
         subt = self.opts.getel("CommandTitles", i, vdef=None)
@@ -680,7 +711,7 @@ class TestDriver(object):
         # Get file handle
         f = self.frst
         # reST output
-        if isinstance(f, file) and (not f.closed):
+        if isinstance(f, filelike) and (not f.closed):
             # Return code section
             f.write(":Return Code:\n")
             # Write status of the test
@@ -750,7 +781,7 @@ class TestDriver(object):
         # Get file handle
         f = self.frst
         # reST output
-        if isinstance(f, file) and (not f.closed):
+        if isinstance(f, filelike) and (not f.closed):
             # Return code section
             f.write(":Time Taken:\n")
             # Write status of the test
@@ -797,8 +828,8 @@ class TestDriver(object):
         # Extend attributes as necessary
         self._extend_attribute_list("TestStatus_STDOUT", i)
         # Individual tests on whether STDOUT and TargetSTDOUT exist
-        qtarget = fntout and isinstance(fntout, (str, unicode))
-        qactual = fnout  and isinstance(fnout,  (str, unicode))
+        qtarget = fntout and isinstance(fntout, strlike)
+        qactual = fnout  and isinstance(fnout,  strlike)
         # Absolutize the path to *fntout*; usually in parent folder
         if qtarget and not os.path.isabs(fntout):
             # If relative, compare to parent
@@ -828,7 +859,7 @@ class TestDriver(object):
         # Get file handle
         f = self.frst
         # Check for file
-        if not isinstance(f, file) or f.closed:
+        if not isinstance(f, filelike) or f.closed:
             # If no file, exit now
             return q
         # Indentation
@@ -937,8 +968,8 @@ class TestDriver(object):
         # Extend attributes as necessary
         self._extend_attribute_list("TestStatus_STDERR", i)
         # Individual tests on whether STDERR and TargetSTDERR exist
-        qtarget = fnterr and isinstance(fnterr, (str, unicode))
-        qactual = fnerr  and isinstance(fnerr,  (str, unicode))
+        qtarget = fnterr and isinstance(fnterr, strlike)
+        qactual = fnerr  and isinstance(fnerr,  strlike)
         # Absolutize the path to *fntout*; usually in parent folder
         if qtarget and not os.path.isabs(fnterr):
             # If relative, assume it's in parent folder
@@ -952,7 +983,7 @@ class TestDriver(object):
             if not fnerr:
                 # Neither
                 q = True
-            elif not isinstance(fnerr, (str, unicode)):
+            elif not isinstance(fnerr, strlike):
                 # STDERR not mapped to file: unknowable
                 q = True
             elif (fnerr == fnout):
@@ -986,7 +1017,7 @@ class TestDriver(object):
         # Get file handle
         f = self.frst
         # Check for a log file
-        if not isinstance(f, file) or f.closed:
+        if not isinstance(f, filelike) or f.closed:
             # Early output
             return q
         # Indentation
@@ -1096,6 +1127,17 @@ class TestDriver(object):
             return True
         # Extend attributes as necessary
         self._extend_attribute_list("TestStatus_PNG", i)
+        # reST settings
+        show_work = self.opts.getel("ShowPNG", i, vdef=True)
+        link_work = self.opts.getel("LinkPNG", i, vdef=False)
+        show_targ = self.opts.getel("ShowTargetPNG", i, vdef=True)
+        link_targ = self.opts.getel("LinkTargetPNG", i, vdef=False)     
+        show_diff = self.opts.getel("ShowDiffPNG", i, vdef=False)
+        link_diff = self.opts.getel("LinkDiffPNG", i, vdef=False)
+        # Get tolerance
+        tol = self.opts.get_PNGTol(i)
+        # Initialize status as "success"
+        status = 0
         # Check for matching-length lists
         if not isinstance(fpngs_targ, list):
             # Nonsense targets
@@ -1104,11 +1146,11 @@ class TestDriver(object):
             # Nonsense outputs
             status = 102
         elif not all(
-                [isinstance(fpng, (str, unicode)) for png in fpngs_targ]):
+                [isinstance(fpng, strlike) for fpng in fpngs_targ]):
             # Nonsense target type
             status = 103
         elif not all(
-                [isinstance(fpng, (str, unicode)) for png in fpngs_work]):
+                [isinstance(fpng, strlike) for fpng in fpngs_work]):
             # Nonsense working file name type
             status = 104
         elif len(fpngs_targ) != len(fpngs_work):
@@ -1125,6 +1167,12 @@ class TestDriver(object):
                     fpngs_work[j] = os.path.join(os.path.realpath("."), fpng)
             # Ensure pyplot is ready
             _import_pyplot()
+            # Check for pyplot
+            if plt is None:
+                # Set status
+                self.TestStatus_PNG[i] = False
+                self.TestStatus = False
+                return False
             # Loop through targets
             for (j, ftarg) in enumerate(fpngs_targ):
                 # Get working file
@@ -1163,8 +1211,150 @@ class TestDriver(object):
                     # Mismatching size
                     status = 700 + j
                     break
+                # Number of pixels
+                npix = imwork.shape[0] * imwork.shape[1]
+                # Difference
+                imdiff = imwork - imtarg
                 # Test matchy-matchiness
-                    
+                if imwork.ndim == 3:
+                    # root-sum-square in dimension 3
+                    imsq = np.sqrt(np.sum(imdiff * imdiff, axis=2))
+                else:
+                    # Just use absolute value if no colors
+                    imsq = np.abs(imdiff)
+                # "Integrate" differences
+                ndiff = np.sum(imsq)
+                # Difference fraction
+                frac_diff = ndiff / npix
+                # Check tolerance
+                if frac_diff > 1 - tol:
+                    # Images too different
+                    status = 800 + j
+                    # Copy files if necessary
+                    if (show_diff or link_diff):
+                        # Name of output file
+                        fndiff = "PNG-diff-%02i-%02i.png" % (i, j)
+                        # Absolute
+                        fdiff = os.path.join(self.fdoc, fndiff)
+                        # Write it
+                        plt.imsave(fdiff, imdiff)
+                    # Exit
+                    break
+        # Overall status
+        q = status == 0
+        # Save result
+        self.TestStatus_PNG[i] = q
+        # Update overall status
+        self.TestStatus = self.TestStatus and q
+        # Get file handle
+        f = self.frst
+        # Check for a log file
+        if not isinstance(f, filelike) or f.closed:
+            # Early output
+            return q
+        # Indentation
+        tab = "    "
+        # Return code section
+        f.write(":PNG:\n")
+        # Write status of the test
+        if q:
+            # Overall status
+            f.write("    * **PASS**\n")
+            # Fraction
+            f.write("    * Difference fraction: %.4f\n" % frac_diff)
+        else:
+            # Overall status
+            f.write("    * **FAIL**\n")
+            # Fraction if status sufficient
+            if status >= 800:
+                # Write fraction
+                f.write("    * Difference fraction: %.4f\n" % frac_diff)
+        # Copy and include working images
+        if (show_work and not (q and show_targ)) or link_work:
+            # Loop through files
+            for k, fpng in enumerate(fpngs_work[:j+1]):
+                # Subsection header
+                f.write(tab)
+                f.write("* Actual:\n")
+                # Skip cases if target shown
+                if show_targ and show_work and (q or k < j):
+                    continue
+                # Name of copied image
+                fname = "PNG-%02i-%02i.png" % (i, k)
+                # Absolute paths
+                fsrc = os.path.join(os.path.realpath("."), fpng)
+                fout = os.path.join(self.fdoc, fname)
+                # Check for source
+                if not os.path.isfile(fsrc):
+                    continue
+                # Copy file
+                shutil.copy(fsrc, fout)
+                # Include instructions
+                if show_work:
+                    # Image directive
+                    f.write("\n")
+                    f.write(tab*2)
+                    f.write(".. image:: %s\n" % fname)
+                    # Width instructions
+                    f.write(tab*3)
+                    f.write(":width: 4.5in\n")
+                else:
+                    # Include a link
+                    f.write("- :download:`%s`\n" % fname)
+            # Extra blank line
+            f.write("\n")
+        # Copy and include target files
+        if show_targ or link_targ:
+            # Header
+            f.write(tab)
+            f.write("* Target:\n")
+            # Loop through files
+            for k, fpng in enumerate(fpngs_targ[:j+1]):
+                # Name of copied image
+                fname = "PNG-target-%02i-%02i.png" % (i, k)
+                # Absolute paths
+                fsrc = os.path.join(os.path.realpath(".."), fpng)
+                fout = os.path.join(self.fdoc, fname)
+                # Check for source
+                if not os.path.isfile(fsrc):
+                    continue
+                # Copy file
+                shutil.copy(fsrc, fout)
+                # Include instructions
+                if show_targ:
+                    # Image directive
+                    f.write("\n")
+                    f.write(tab*2)
+                    f.write(".. image:: %s\n" % fname)
+                    # Width instructions
+                    f.write(tab*3)
+                    f.write(":width: 4.5in\n")
+                else:
+                    # Include a link
+                    f.write("- :download:`%s`\n" % fname)
+            # Extra blank line
+            f.write("\n")
+        # Copy and include diff
+        if (status >= 800) and (show_diff or link_diff):
+            # Header
+            f.write(tab)
+            f.write("* Diff:\n")
+            # Include image
+            if show_diff:
+                # Image directive
+                f.write("\n")
+                f.write(tab*2)
+                f.write(".. image:: %s\n" % fdiff)
+                # Width instructions
+                f.write(tab*3)
+                f.write(":width: 4.5in\n")
+            else:
+                # Include a link
+                f.write("- :download:`%s`\n" % fdiff)
+            # Extra blank line
+            f.write("\n")
+        # Output
+        return q
 
     # Get results dictionary
     def get_results_dict(self):
@@ -1210,6 +1400,7 @@ class TestDriver(object):
             "TestStatus_MaxTime":    self.TestStatus_MaxTime,
             "TestStatus_STDOUT":     self.TestStatus_STDOUT,
             "TestStatus_STDERR":     self.TestStatus_STDERR,
+            "TestStatus_PNG":        self.TestStatus_PNG,
             "TestReturnCodes":       self.TestReturnCodes,
             "TestRunTimeTotal":      self.TestRunTimeTotal,
             "TestRunTimeList":       self.TestRunTimeList,
