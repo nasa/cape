@@ -7,7 +7,7 @@
     
     basedata
     basefile
-    csv
-    mat
+    csvfile
+    matfile
     textdata
-    xls
+    xlsfile
