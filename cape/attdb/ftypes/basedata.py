@@ -232,8 +232,9 @@ class BaseDataDefn(kwutils.KwargHandler):
     _optlist = {
         "Label",
         "LabelFormat",
+        "Tag",
         "Type",
-        "WriteFormat"
+        "WriteFormat",
     }
 
     # Alternate names
@@ -256,6 +257,7 @@ class BaseDataDefn(kwutils.KwargHandler):
         "Label": True,
         "LabelFormat": "%s",
         "Type": "float64",
+        "Tag": None,
     }
 
    # --- Values ---
@@ -419,6 +421,10 @@ class BaseData(dict):
   # Class Attributes
   # ==================
   # <
+   # --- Tags ---
+    # Map for "tag" based on column name
+    _tagmap = {}
+
    # --- Options ---
     # Class for options
     _optscls = BaseDataOpts
@@ -678,8 +684,8 @@ class BaseData(dict):
         :Call:
             >>> db.finish_defns(cols=None)
         :Inputs:
-            *opts*: :class:`BaseDataOpts`
-                Options interface for :mod:`cape.attdb.ftypes`
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
             *cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
@@ -699,6 +705,130 @@ class BaseData(dict):
             defn = self.get_defn(col)
             # Apply defaults
             defn.finish()
+            # Apply default tag
+            self.apply_defn_tag(col)
+
+    # Apply all default tags
+    def apply_defns_tag(self, cols=None):
+        r"""Apply all default *Tag* properties based on col name
+
+        :Call:
+            >>> db.apply_defns_tag(cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *cols*: :class:`list`\ [:class:`str`]
+                List of column names
+        :Versions:
+            * 2020-03-18 ``@ddalle``: First version
+        """
+        # Default column list
+        if cols is None:
+            # Use all listed columns
+            cols = self.cols
+            # If empty, get from option
+            if len(cols) == 0:
+                # Get *Columns* option
+                cols = self.opts.get_option("Columns", [])
+        # Loop through columns
+        for col in cols:
+            # Apply default tag
+            self.apply_defn_tag(col)
+
+    # Apply default tags
+    def apply_defn_tag(self, col, tagdef=None):
+        r"""Apply default *Tag* to each definition
+
+        :Call:
+            >>> db.apply_defn_tag(col, tagdef=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *col*: :class:`str`
+                Name of column for which to set default tag
+            *tagdef*: {``None``} | :class:`str`
+                Manually specified default tag
+        :Versions:
+            * 2020-03-18 ``@ddalle``: First version
+        """
+        # Check for specified tag
+        if tagdef is None:
+            # Check for a default tag
+            tagdef = self._tagmap.get(col)
+        # If no default, exit
+        if not tagdef:
+            return
+        # Get definition
+        defn = self.get_defn(col)
+        # Get current tag
+        tag = defn.get("Tag")
+        # If there is a tag, do nothing
+        if tag:
+            return
+        # Otherwise set tag
+        defn["Tag"] = tagdef
+
+    # Get columns by tag
+    def get_col_by_tag(self, tag):
+        r"""Return the first *col* with specified "Tag", if any
+
+        :Call:
+            >>> col = db.get_col_by_tag(tag)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *tag*: :class:`str`
+                Target "Tag" from column definitions
+        :Outputs:
+            *col*: {``None``} | :class:`str`
+                Name of column for which to set default tag
+        :Versions:
+            * 2020-03-18 ``@ddalle``: First version
+        """
+        # Loop through columns
+        for col in self.cols:
+            # Get definition
+            defn = self.get_defn(col)
+            # Get the tag
+            coltag = defn.get("Tag")
+            # Check match
+            if coltag == tag:
+                # Match
+                return col
+        # Otherwise return no column name
+        return
+
+    # Get all columns by tag
+    def get_cols_by_tag(self, tag):
+        r"""Return all *col* with specified "Tag"
+
+        :Call:
+            >>> cols = db.get_cols_by_tag(tag)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *tag*: :class:`str`
+                Target "Tag" from column definitions
+        :Outputs:
+            *cols*: :class:`list`\ [:class:`str`]
+                Name of column for which to set default tag
+        :Versions:
+            * 2020-03-18 ``@ddalle``: First version
+        """
+        # Initialize list
+        cols = []
+        # Loop through columns
+        for col in self:
+            # Get definition
+            defn = self.get_defn(col)
+            # Get the tag
+            coltag = defn.get("Tag")
+            # Check match
+            if coltag == tag:
+                # Append to list
+                cols.append(col)
+        # Output
+        return cols
 
    # --- Column Properties ---
     # Get generic property from column

@@ -1158,6 +1158,7 @@ class KwargHandler(dict):
         cls.combine_optdependencies(parentcls, f)
         cls.combine_optlists(parentcls, f)
         cls.combine_optvals(parentcls, f)
+        cls.combine_tagmap(parentcls, f)
         cls.combine_kw_submap(parentcls, f)
         cls.combine_kw_subalias(parentcls, f)
         cls.combine_rst_types(parentcls, f)
@@ -1287,6 +1288,25 @@ class KwargHandler(dict):
             * 2020-02-11 ``@ddalle``: First version
         """
         cls.combine_optdict("_optlists", parentcls, f)
+
+    # Combine "Tag" mappings
+    @classmethod
+    def combine_tagmap(cls, parentcls=None, f=False):
+        r"""Combine *_tagmap* from two classes
+
+        :Call:
+            >>> cls.combine_tagmap(parentcls=None, f=False)
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`KwargHandler` class or subclass
+            *parentcls*: {*cls.__bases__[0]*} | :class:`type`
+                Second :class:`KwargHandler` class or subclass
+            *f*: ``True`` | {``False``}
+                Option to combine even if no value in *cls.__dict__*
+        :Versions:
+            * 2020-03-18 ``@ddalle``: First version
+        """
+        cls.combine_optdict("_tagmap", parentcls, f)
 
     # Combine option submap
     @classmethod

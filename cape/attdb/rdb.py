@@ -885,6 +885,8 @@ class DataKit(ftypes.BaseData):
         self.link_data(dbf)
         # Copy the options
         self.clone_defns(dbf.defns)
+        # Apply default
+        self.finish_defns(dbf.cols)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -958,6 +960,8 @@ class DataKit(ftypes.BaseData):
         self.link_data(dbf)
         # Copy the definitions
         self.clone_defns(dbf.defns)
+        # Apply default
+        self.finish_defns(dbf.cols)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -1003,6 +1007,8 @@ class DataKit(ftypes.BaseData):
         self.link_data(dbf)
         # Copy the definitions
         self.clone_defns(dbf.defns)
+        # Apply default
+        self.finish_defns(dbf.cols)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -1063,6 +1069,8 @@ class DataKit(ftypes.BaseData):
         self.link_data(dbf)
         # Copy the definitions
         self.clone_defns(dbf.defns)
+        # Apply default
+        self.finish_defns(dbf.cols)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -1130,6 +1138,8 @@ class DataKit(ftypes.BaseData):
         self.link_data(dbf)
         # Copy the definitions
         self.clone_defns(dbf.defns)
+        # Apply default
+        self.finish_defns(dbf.cols)
         # Link other attributes
         for (k, v) in dbf.__dict__.items():
             # Check if present and nonempty
