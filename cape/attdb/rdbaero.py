@@ -29,30 +29,39 @@ class AeroDataKit(rdb.DataKit):
   # <
    # --- Tags ---
     _tagmap = {
-        "ALPHA":   "alpha",
-        "ALPHA":   "alpha",
-        "ALPHA_T": "aoap",
-        "AOAP":    "aoap",
-        "Alpha":   "alpha",
-        "Alpha_T": "aoap",
-        "Alpha_t": "aoap",
-        "BETA":    "beta",
-        "Beta":    "beta",
-        "MACH":    "mach",
-        "Mach":    "mach",
-        "PHI":     "phip",
-        "PHIP":    "phip",
-        "PHIV":    "phiv",
-        "Phi":     "phip",
-        "alpha":   "alpha",
-        "aoa":     "alpha",
-        "aoap":    "aoap",
-        "aos":     "beta",
-        "beta":    "beta",
-        "mach":    "mach",
-        "phi":     "phip",
-        "phip":    "phip",
-        "phiv":    "phiv",
+        "ALPHA":     "alpha",
+        "ALPHA":     "alpha",
+        "ALPHA_T":   "aoap",
+        "AOAP":      "aoap",
+        "Alpha":     "alpha",
+        "Alpha_T":   "aoap",
+        "Alpha_t":   "aoap",
+        "BETA":      "beta",
+        "Beta":      "beta",
+        "MACH":      "mach",
+        "Mach":      "mach",
+        "PHI":       "phip",
+        "PHIP":      "phip",
+        "PHIV":      "phiv",
+        "Phi":       "phip",
+        "RE":        "Re",
+        "REYNODLDS": "Re",
+        "Rey":       "Re",
+        "Re":        "Re",
+        "T":         "T",
+        "Tinf":      "T",
+        "alpha":     "alpha",
+        "aoa":       "alpha",
+        "aoap":      "aoap",
+        "aos":       "beta",
+        "beta":      "beta",
+        "mach":      "mach",
+        "phi":       "phip",
+        "phip":      "phip",
+        "phiv":      "phiv",
+        "q":         "q",
+        "qbar":      "q",
+        "qinf":      "q",
     }
   # >
 
@@ -61,18 +70,23 @@ class AeroDataKit(rdb.DataKit):
   # ================
   # <
    # --- Angle of Attack ---
-    def make_alpha_beta(self):
-        r"""Build *alpha* and *beta* cols exist, if possible
+    # Create angles of attack and sideslip
+    def make_alpha_beta(self, col1="alpha", col2="beta"):
+        r"""Build *alpha* and *beta* cols if necessary and possible
 
         :Call:
-            >>> db.make_alpha_beta()
+            >>> db.make_alpha_beta(col1="alpha", col2="beta")
         :Inputs:
             *db*: :class:`cape.attdb.rdbaero.AeroDataKit`
                 Data container with aerospace tags
+            *col1*: {``"alpha"``} | :class:`str`
+                Name of new column for angle of attack
+            *col2*: {``"beta"``} | :class:`str`
+                Name of new column for angle of sideslip
         :Effects:
-            *db["alpha"]*: :class:`np.ndarray`
+            *db[col1]*: :class:`np.ndarray`
                 Created if no other key with ``"alpha"`` tag present
-            *db["beta"]*: :class:`np.ndarray`
+            *db[col2]*: :class:`np.ndarray`
                 Created if no other key with ``"beta"`` tag present
         :Versions:
             * 2020-03-18 ``@ddalle``: First version
@@ -87,32 +101,145 @@ class AeroDataKit(rdb.DataKit):
         # Get *aoap* and *phip* keys, if any
         kaoap = self.get_col_by_tag("aoap")
         kphip = self.get_col_by_tag("phip")
-        # Check if usable
-        if kaoap and kphip:
-            # Get values
-            aoap = self.get_all_values(kaoap)
-            phip = self.get_all_values(kphip)
-            # Convert
-            a, b = convert.AlphaTPhi2AlphaBeta(aoap, phip)
-            # Save them (using default key names)
-            self.save_col("alpha", a)
-            self.save_col("beta", b)
-            # Done
-            return
         # Try *aoav* and *phiv*
         kaoav = self.get_col_by_tag("aoav")
         kphiv = self.get_col_by_tag("phiv")
         # Check if usable
-        if kaoav and kphiv:
-            # Get values
+        if kaoap and kphip:
+            # Get values from total angle of attack
+            aoap = self.get_all_values(kaoap)
+            phip = self.get_all_values(kphip)
+            # Convert
+            a, b = convert.AlphaTPhi2AlphaBeta(aoap, phip)
+        elif kaoav and kphiv:
+            # Get values from maneuver angle of attack
             aoav = self.get_all_values(kaoav)
             phiv = self.get_all_values(kphiv)
             # Convert
             a, b = convert.AlphaTPhi2AlphaBeta(aoav, phiv)
-            # Save them (using default key names)
-            self.save_col("alpha", a)
-            self.save_col("beta", b)
-        
+        else:
+            # No conversion possible
+            return
+        # Save them (using default key names)
+        self.save_col(col1, a)
+        self.save_col(col2, b)
+        # Create definitions
+        self.create_defn(col1, a, Tag="alpha")
+        self.create_defn(col2, b, Tag="beta")
+
+    # Create total angle of attack and roll
+    def make_aoap_phip(self, col1="aoap", col2="phip"):
+        r"""Build *aoap* and *phip* if necessary and possible
+
+        :Call:
+            >>> db.make_aoap_phip(col1="aoap", col2="phip")
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbaero.AeroDataKit`
+                Data container with aerospace tags
+            *col1*: {``"aoap"``} | :class:`str`
+                Name of new column for total angle of attack
+            *col2*: {``"phip"``} | :class:`str`
+                Name of new column for missile-axis roll
+        :Effects:
+            *db[col1]*: :class:`np.ndarray`
+                Created if no other key with ``"aoap"`` tag present
+            *db[col2]*: :class:`np.ndarray`
+                Created if no other key with ``"phip"`` tag present
+        :Versions:
+            * 2020-03-18 ``@ddalle``: First version
+        """
+        # Get *aoap* and *phip* keys, if any
+        kaoap = self.get_col_by_tag("aoap")
+        kphip = self.get_col_by_tag("phip")
+        # Check if present
+        if not (kaoap is None or kphip is None):
+            # Nothing to do; already computed
+            return
+        # Get *alpha* and *beta* keys, if any
+        ka = self.get_col_by_tag("alpha")
+        kb = self.get_col_by_tag("beta")
+        # Try *aoav* and *phiv*
+        kaoav = self.get_col_by_tag("aoav")
+        kphiv = self.get_col_by_tag("phiv")
+        # Check if usable
+        if ka and kb:
+            # Get values from angle of attack and sideslip
+            a = self.get_all_values(ka)
+            b = self.get_all_values(kb)
+            # Convert
+            aoap, phip = convert.AlphaBeta2AlphaTPhi(a, b)
+        elif kaoav and kphiv:
+            # Get values from maneuver angle of attack
+            aoav = self.get_all_values(kaoav)
+            phiv = self.get_all_values(kphiv)
+            # Convert
+            aoap, phip = convert.AlphaMPhi2AlphaTPhi(aoav, phiv)
+        else:
+            # No conversion possible
+            return
+        # Save them (using default key names)
+        self.save_col(col1, aoap)
+        self.save_col(col2, phip)
+        # Create definitions
+        self.create_defn(col1, aoap, Tag="aoap")
+        self.create_defn(col2, phip, Tag="phip")
+
+    # Create missile-axis angle of attack and roll
+    def make_aoav_phiv(self, col1="aoav", col2="phiv"):
+        r"""Build *aoav* and *phiv* if necessary and possible
+
+        :Call:
+            >>> db.make_aoav_phiv(col1="aoav", col2="phiv")
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbaero.AeroDataKit`
+                Data container with aerospace tags
+            *col1*: {``"aoav"``} | :class:`str`
+                Name of new column for missile-axis angle of attack
+            *col2*: {``"phiv"``} | :class:`str`
+                Name of new column for missile-axis roll angle
+        :Effects:
+            *db[col1]*: :class:`np.ndarray`
+                Created if no other key with ``"aoav"`` tag present
+            *db[col2]*: :class:`np.ndarray`
+                Created if no other key with ``"phiv"`` tag present
+        :Versions:
+            * 2020-03-18 ``@ddalle``: First version
+        """
+        # Get *aoav* and *phiv* keys, if any
+        kaoav = self.get_col_by_tag("aoav")
+        kphiv = self.get_col_by_tag("phiv")
+        # Check if present
+        if not (kaoav is None or kphiv is None):
+            # Nothing to do; already computed
+            return
+        # Get *alpha* and *beta* keys, if any
+        ka = self.get_col_by_tag("alpha")
+        kb = self.get_col_by_tag("beta")
+        # Try *aoap* and *phip*
+        kaoap = self.get_col_by_tag("aoap")
+        kphip = self.get_col_by_tag("phip")
+        # Check if usable
+        if ka and kb:
+            # Get values from angle of attack and sideslip
+            a = self.get_all_values(ka)
+            b = self.get_all_values(kb)
+            # Convert
+            aoav, phiv = convert.AlphaBeta2AlphaMPhi(a, b)
+        elif kaoap and kphip:
+            # Get values from maneuver angle of attack
+            aoap = self.get_all_values(kaoap)
+            phip = self.get_all_values(kphip)
+            # Convert
+            aoav, phiv = convert.AlphaTPhi2AlphaMPhi(aoap, phip)
+        else:
+            # No conversion possible
+            return
+        # Save them (using default key names)
+        self.save_col(col1, aoav)
+        self.save_col(col2, phiv)
+        # Create definitions
+        self.create_defn(col1, aoav, Tag="aoav")
+        self.create_defn(col2, phiv, Tag="phiv")
   # >
 
 

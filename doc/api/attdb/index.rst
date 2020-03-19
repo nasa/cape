@@ -10,4 +10,4 @@
     :maxdepth: 2
     
     ftypes/index
-    rdbnull
+    rdb

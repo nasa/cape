@@ -674,6 +674,154 @@ class BaseData(dict):
         # Output
         return defn
 
+    # Form a new definition if needed for a given column
+    def make_defn(self, col, V, **kw):
+        r"""Access or create new definition based on values
+
+        :Call:
+            >>> defn = db.make_defn(col, V, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *col*: :class:`str`
+                Name of column (used for "Tag" option)
+            *V*: :class:`list` | :class:`np.ndarray`
+                Values for column *col*
+            *kw*: :class:`dict`
+                Optional overrides or additions to definition
+        :Outputs:
+            *defn*: *db._defncls*
+                Definition based on values *V*
+        :Effects:
+            *db[col]*: *defn*
+        :Versions:
+            * 2020-03-19 ``@ddalle``: First version
+        """
+        # Attempt to get definition
+        defns = self.get_defns()
+        # Return it if any
+        if col in defns:
+            return defns[col]
+        # Create the definition
+        defn = self.genr8_defn(col, V, **kw)
+        # Save it
+        self.defns[col] = defn
+        # Output
+        return defn
+
+    # Form a new definition for a given column
+    def create_defn(self, col, V, **kw):
+        r"""Create and save a new definition based on values
+
+        :Call:
+            >>> defn = db.create_defn(col, V, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *col*: :class:`str`
+                Name of column (used for "Tag" option)
+            *V*: :class:`list` | :class:`np.ndarray`
+                Values for column *col*
+            *kw*: :class:`dict`
+                Optional overrides or additions to definition
+        :Outputs:
+            *defn*: *db._defncls*
+                Definition based on values *V*
+        :Effects:
+            *db[col]*: *defn*
+        :Versions:
+            * 2020-03-19 ``@ddalle``: First version
+        """
+        # Create the definition
+        defn = self.genr8_defn(col, V, **kw)
+        # Save it
+        self.defns[col] = defn
+        # Output
+        return defn
+
+    # Create a definition for a given column
+    def genr8_defn(self, col, V, **kw):
+        r"""Generate a new definition based on values
+
+        :Call:
+            >>> defn = db.genr8_defn(col, V, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *col*: :class:`str`
+                Name of column (used for "Tag" option)
+            *V*: :class:`list` | :class:`np.ndarray`
+                Values for column *col*
+            *kw*: :class:`dict`
+                Optional overrides or additions to definition
+        :Outputs:
+            *defn*: *db._defncls*
+                Definition based on values *V*
+        :Versions:
+            * 2020-03-19 ``@ddalle``: First version
+        """
+        # Get definition from values (and kwargs)
+        defn = self._genr8_defn(V, **kw)
+        # Check for tag
+        if not defn.get("Tag"):
+            # Get default tag
+            tag = self._tagmap.get(col)
+            # If valid tag, set it
+            if tag:
+                defn.set_option("Tag", tag)
+        # Output
+        return defn
+
+    # Create a definition for a given column
+    def _genr8_defn(self, V, **kw):
+        r"""Generate a new definition based on values
+
+        :Call:
+            >>> defn = db._genr8_defn(V, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *V*: :class:`list` | :class:`np.ndarray`
+                Values for column *col*
+            *kw*: :class:`dict`
+                Optional overrides or additions to definition
+        :Outputs:
+            *defn*: *db._defncls*
+                Definition based on values *V*
+        :Versions:
+            * 2020-03-19 ``@ddalle``: First version
+        """
+        # Initialize definition
+        defn = self._defncls()
+        # Check values
+        if isinstance(V, list):
+            # Assume string
+            dtype = "str"
+            # Save length and dimension
+            defn.set_opiton("Dimension", 1)
+            defn.set_option("Shape", (len(V), ))
+        else:
+            # Array; get data type from instance
+            dtype = V.dtype.name
+            # Dimensions
+            defn.set_option("Dimension", V.ndim)
+            defn.set_option("Shape", V.shape)
+            # Check for strings (convert to list of strings)
+            if dtype.startswith("str"):
+                # Regular strings (Python 2 only)
+                dtype = "str"
+            elif dtype.startswith("unicode"):
+                # Strings using Python 2 "unicode" or Python 3 "str"
+                dtype = "str"
+        # Set type
+        defn["Type"] = dtype
+        # Loop through any kwargs
+        for k, v in kw.items():
+            # Attempt to set it (_warnmode is 1)
+            defn.set_option(k, v)
+        # Output
+        return defn
+
     # Apply defaults to a definition
     def finish_defns(self, cols=None):
         r"""Apply any defaults to data column definitions
@@ -945,6 +1093,43 @@ class BaseData(dict):
         else:
             # Nonstandard value; don't convert
             self[col] = v
+
+   # --- Remove Data ---
+    # Remove a column and its parameters
+    def burst_col(self, col):
+        r"""Remove a column and its definition is possible
+
+        :Call:
+            >>> V = db.burst_col(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *col*: :class:`str`
+                Name of column
+        :Outputs:
+            *V*: :class:`np.ndarray` | :class:`list` | :class:`scalar`
+                Value(s) to save for specified column
+        :Versions:
+            * 2020-03-19 ``@ddalle``: First version
+        """
+        # Check if column is present
+        if col in self:
+            # Get values
+            V = self.pop(col)
+        else:
+            # No values
+            V = None
+        # Get definitions
+        defns = self.get_defns()
+        # Check if present
+        if col in defns:
+            # Remove it
+            defns.pop(col)
+        # Check if in list
+        if col in self.cols:
+            self.cols.remove(col)
+        # Output
+        return V
 
    # --- Name Translation ---
     # Translate column names
