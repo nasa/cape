@@ -610,6 +610,15 @@ class DBFM(rdbaero.AeroDataKit):
     _defncls = _DBFMDefn
 
    # --- Tags ---
+    # Additional tags
+    _tagmap = {
+        "CA":   "CA",
+        "CLL":  "CLL",
+        "CLM":  "CLM",
+        "CLN":  "CLN",
+        "CN":   "CN",
+        "CY":   "CY",
+    }
   # >
 
   # ==================
@@ -627,7 +636,9 @@ class DBFM(rdbaero.AeroDataKit):
         # Call parent's init method
         rdbaero.AeroDataKit.__init__(self, fname, **kw)
         # Set default arg converters
-        self._make_arg_converters()
+        self._make_arg_converters_aero()
+        # Set UQ cols
+        self._make_uq_cols_FM()
         # Save reference properties
         self.Lref = self.opts.get_option("RefLength", 1.0)
         self.Aref = self.opts.get_option("RefArea", 0.25*np.pi)
@@ -636,15 +647,16 @@ class DBFM(rdbaero.AeroDataKit):
   # >
 
   # ==================
-  # Converters
+  # Attributes
   # ==================
+  # <
    # --- Arg Converters ---
     # Automate arg converters for preset tags
-    def _make_arg_converters(self):
+    def _make_arg_converters_aero(self):
         r"""Set default arg converters for cols with known tags
 
         :Call:
-            >>> db._make_arg_converters()
+            >>> db._make_arg_converters_aero()
         :Inputs:
             *db*: :class:`cape.attdb.dbfm.DBFM`
                 LV force & moment database
@@ -667,3 +679,37 @@ class DBFM(rdbaero.AeroDataKit):
         for col in self.get_cols_by_tag("phip"):
             # Set converter
             self.set_arg_converter(col, convert_phip)
+
+   # --- UQ Columns ---
+    # Set UQ col for all FM coeffs
+    def _make_uq_cols_FM(self):
+        r"""Set default UQ col names for forces & moments
+
+        :Call:
+            >>> db._make_uq_cols_FM()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-20 ``@ddalle``: First version
+        """
+        # List FM tags
+        tags = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+        # Get UQ cols dict
+        uq_cols = self.__dict__.setdefault("uq_cols", {})
+        # Loop through them
+        for tag in tags:
+            # Get cols with matching tag
+            for col in self.get_cols_by_tag(tag):
+                # Name of [default] UQ col
+                uq_col = "U" + col
+                # Set it
+                uq_cols.setdefault(col, uq_col)
+   # >
+
+
+# Combine options
+kwutils._combine_val(AeroDataKit, rdb.DataKit._tagmap)
+
+# Invert the _tagmap
+AeroDataKit.create_tagcols()
