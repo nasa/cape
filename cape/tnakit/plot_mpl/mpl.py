@@ -1775,6 +1775,60 @@ def _plot(xv, yv, fmt=None, **kw):
     # Output
     return h
 
+# contour part
+def _contour(xv, yv, zv, ContourType="tricontourf", **kw):
+    r"""Call the :func:`contour` function with cycling options
+
+    :Call:
+        >>> h = _plot(xv, yv, zv, **kw)
+        >>> h = _plot(xv, yv, zv, ContourType, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *ContourType*: 
+            :class:`str`:{"tricontourf"} | "tricontour" | "tripcolor"
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.tricontourf`
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2019-03-04 ``@ddalle``: First version
+        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+        * 2020-03-20 ``@jmeeroff``: Adapted from mpl._plot
+    """
+    # Ensure plot() is available
+    _import_pyplot()
+    # Get index
+    i = kw.pop("Index", kw.pop("i", 0))
+    # Get rotation option
+    r = kw.pop("Rotate", kw.pop("rotate", False))
+    # Flip inputs
+    if r:
+        yv, xv = xv, yv
+    # Initialize plot options
+    kw_p = MPLOpts.select_phase(kw, i)
+    if ContourType = "tricontourf":
+        # Filled contour
+        h = plt.tricontourf(xv, yv, zv, **kw_p)
+    elif ContourType = "tricontour":
+        # Contour lines
+        h = plt.tricontour(xv, yv, zv, **kw_p)
+    elif ContourType = "tripcolor":
+        # Triangulated 
+        h = plt.tripcolor(xv, yv, zv, **kw_p)
+    else:
+         # Unrecognized
+        raise ValueError("Unrecognized ContourType '%s'" % ContourType)
+    # Output
+    return h
+
 
 # Scatter part
 def _scatter(xv, yv, s=None, c=None, **kw):
