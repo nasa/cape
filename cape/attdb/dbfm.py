@@ -36,6 +36,7 @@ import cape.attdb.convert as convert
 import cape.tnakit.kwutils as kwutils
 
 # Local modules
+from . import rdb
 from . import rdbaero
 
 
@@ -46,6 +47,7 @@ _aoav_cols  = rdbaero.AeroDataKit._tagcols["aoav"]
 _beta_cols  = rdbaero.AeroDataKit._tagcols["beta"]
 _phip_cols  = rdbaero.AeroDataKit._tagcols["phip"]
 _phiv_cols  = rdbaero.AeroDataKit._tagcols["phiv"]
+
 
 # Standard converters: alpha
 def convert_alpha(*a, **kw):
@@ -395,6 +397,183 @@ def convert_phip(*a, **kw):
         return phip
 
 
+# Special evaluators: CLM vs x
+def eval_CLMX(db, *a, **kw):
+    r"""Evaluate *CLM* about arbitrary *x* moment reference point
+    
+    :Call:
+        >>> CLMX = eval_CLMX(db, *a, **kw)
+    :Inputs:
+        *db*: :class:`DBFM`
+            Force & moment data kit
+        *a*: :class:`tuple`
+            Arguments to call ``db("CLM", *a)`` [plus *xMRP*]
+        *kw*: :class:`dict`
+            Keywords used as alternate definition of *a*
+    :Outputs:
+        *CLMX*: :class:`float` | :class:`np.ndarray`
+            Pitching moment about arbitrary *xMRP*
+    :Versions:
+        * 2019-02-28 ``@ddalle``: First version
+        * 2020-03-20 ``@ddalle``: :class:`DataKit` version
+    """
+    # *xMRP* of original data
+    xmrp = db.xMRP / db.Lref
+    # Number of original arguments
+    nf = len(db.eval_args["CLM"])
+    # Get value for *xMRP*
+    xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
+    # Check for an *xhat*
+    xhat = kw.get("xhat", xMRP/FM.Lref)
+    # Evaluate main functions
+    CLM = db("CLM", *a, **kw)
+    CN  = db("CN",  *a, **kw)
+    # Transfer
+    return CLM + (xhat-xmrp)*CN
+
+
+# Special evaluators: CLN vs x
+def eval_CLNX(db, *a, **kw):
+    r"""Evaluate *CLN* about arbitrary *x* moment reference point
+    
+    :Call:
+        >>> CLNX = eval_CLNX(db, *a, **kw)
+    :Inputs:
+        *db*: :class:`DBFM`
+            Force & moment data kit
+        *a*: :class:`tuple`
+            Arguments to call ``FM("CLM", *a)`` [plus *xMRP*]
+        *kw*: :class:`dict`
+            Keywords used as alternate definition of *a*
+    :Outputs:
+        *CLNX*: :class:`float` | :class:`np.ndarray`
+            Pitching moment about arbitrary *xMRP*
+    :Versions:
+        * 2019-02-28 ``@ddalle``: First version
+        * 2020-03-20 ``@ddalle``: :class:`DataKit` version
+    """
+    # *xMRP* of original data
+    xmrp = db.xMRP / db.Lref
+    # Number of original arguments
+    nf = len(db.eval_args["CLN"])
+    # Get value for *xMRP*
+    xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
+    # Check for an *xhat*
+    xhat = kw.get("xhat", xMRP/FM.Lref)
+    # Evaluate main functions
+    CLN = db("CLN", *a, **kw)
+    CY  = db("CY",  *a, **kw)
+    # Transfer
+    return CLN + (xhat-xmrp)*CY
+
+
+# Evaluate *UCLM* about different x
+def eval_UCLMX(db, *a, **kw):
+    r"""Evaluate *UCLM* about arbitrary *x* moment reference point
+    
+    :Call:
+        >>> UCLMX = eval_UCLMX(db, *a, **kw)
+    :Inputs:
+        *db*: :class:`DBFM`
+            Force & moment data kit
+        *a*: :class:`tuple`
+            Arguments to call ``FM("CLM", *a)`` [plus *xMRP*]
+        *kw*: :class:`dict`
+            Keywords used as alternate definition of *a*
+    :Outputs:
+        *UCLMX*: :class:`float` | :class:`np.ndarray`
+            Pitching moment uncertainty about arbitrary *xMRP*
+    :Versions:
+        * 2019-03-13 ``@ddalle``: First version
+        * 2020-03-20 ``@ddalle``: :class:`DataKit` version
+    """
+    # *xMRP* of original data
+    xmrp = db.xMRP / db.Lref
+    # Number of original arguments
+    nf = len(db.eval_args["CLM"])
+    # Get value for *xMRP*
+    xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
+    # Check for an *xhat*
+    xhat = kw.get("xhat", xMRP/FM.Lref)
+    # Evaluate main functions
+    UCLM = db("UCLM", *a, **kw)
+    xCLM = db("xCLM", *a, **kw)
+    UCN  = db("UCN",  *a, **kw)
+    # Transfer
+    UCLMX = np.sqrt(UCLM*UCLM + ((xCLM-xhat)*UCN)**2)
+    # Output
+    return UCLMX
+
+
+# Evaluate *UCLN* about different x
+def eval_UCLNX(db, *a, **kw):
+    r"""Evaluate *UCLN* about arbitrary *x* moment reference point
+    
+    :Call:
+        >>> UCLNX = eval_UCLNX(db, *a, **kw)
+    :Inputs:
+        *db*: :class:`DBFM`
+            Force & moment data kit
+        *a*: :class:`tuple`
+            Arguments to call ``FM("CLM", *a)`` [plus *xMRP*]
+        *kw*: :class:`dict`
+            Keywords used as alternate definition of *a*
+    :Outputs:
+        *UCLNX*: :class:`float` | :class:`np.ndarray`
+            Pitching moment uncertainty about arbitrary *xMRP*
+    :Versions:
+        * 2019-03-13 ``@ddalle``: First version
+        * 2020-03-20 ``@ddalle``: :class:`DataKit` version
+    """
+    # *xMRP* of original data
+    xmrp = db.xMRP / FM.Lref
+    # Number of original arguments
+    nf = len(db.eval_args["CLN"])
+    # Get value for *xMRP*
+    xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
+    # Check for an *xhat*
+    xhat = kw.get("xhat", xMRP/FM.Lref)
+    # Evaluate main functions
+    UCLN = db("UCLN", *a, **kw)
+    xCLN = db("xCLN", *a, **kw)
+    UCY  = db("UCY",  *a, **kw)
+    # Transfer
+    UCLNX = np.sqrt(UCLN*UCLN + ((xCLN-xhat)*UCY)**2)
+    # Output
+    return UCLNX
+
+
+# DBFM options
+class _DBFMOpts(rdb.DataKitOpts):
+   # --- Global Options ---
+    # List of options
+    _optlist = {
+        "RefLength",
+        "RefArea",
+        "xMRP",
+        "yMRP",
+        "zMRP",
+    }
+
+    # Alternate names
+    _optmap = {
+        "Aref": "RefArea",
+        "Lref": "RefLength",
+        "XMRP": "xMRP",
+        "YMRP": "yMRP",
+        "ZMRP": "zMRP",
+    }
+
+
+# DBFM definition
+class _DBFMDefn(rdb.DataKitDefn):
+    pass
+
+
+# Combine options with parent class
+_DBFMOpts.combine_optdefs()
+
+
 # Create class
 class DBFM(rdbaero.AeroDataKit):
     r"""Database class for launch vehicle force & moment
@@ -424,13 +603,36 @@ class DBFM(rdbaero.AeroDataKit):
   # Class Attributes
   # ==================
   # <
+   # --- Options ---
+    # Class for options
+    _optscls = _DBFMOpts
+    # Class for definitions
+    _defncls = _DBFMDefn
+
    # --- Tags ---
   # >
 
   # ==================
   # Config
   # ==================
-  # < 
+  # <
+   # --- Init ---
+    # Initialization method
+    def __init__(self, fname=None, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2020-03-20 ``@ddalle``: First version
+        """
+        # Call parent's init method
+        rdbaero.AeroDataKit.__init__(self, fname, **kw)
+        # Set default arg converters
+        self._make_arg_converters()
+        # Save reference properties
+        self.Lref = self.opts.get_option("RefLength", 1.0)
+        self.Aref = self.opts.get_option("RefArea", 0.25*np.pi)
+        self.xMRP = self.opts.get_option("xMRP", 0.0)
+        
   # >
 
   # ==================

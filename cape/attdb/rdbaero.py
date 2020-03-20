@@ -79,6 +79,7 @@ class AeroDataKit(rdb.DataKit):
         "Tinf":      "T",
         "alph":      "alpha",
         "alpha":     "alpha",
+        "alpha_t":   "aoap",
         "aoa":       "alpha",
         "aoap":      "aoap",
         "aos":       "beta",

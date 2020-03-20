@@ -221,7 +221,7 @@ class DataKit(ftypes.BaseData):
    # --- Primary Methods ---
     # Initialization method
     def __init__(self, fname=None, **kw):
-        """Initialization method
+        r"""Initialization method
         
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
@@ -874,6 +874,8 @@ class DataKit(ftypes.BaseData):
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveCSV", True))
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
         # Check input type
         if isinstance(fname, ftypes.CSVFile):
             # Already a CSV database
@@ -949,6 +951,8 @@ class DataKit(ftypes.BaseData):
         """
         # Get option to save database
         savecsv = kw.pop("save", kw.pop("SaveCSV", True))
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
         # Check input type
         if isinstance(fname, ftypes.CSVSimple):
             # Already a CSV database
@@ -996,6 +1000,8 @@ class DataKit(ftypes.BaseData):
         """
         # Get option to save database
         savedat = kw.pop("save", True)
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
         # Check input type
         if isinstance(fname, ftypes.TextDataFile):
             # Already a file itnerface
@@ -1058,6 +1064,8 @@ class DataKit(ftypes.BaseData):
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveXLS", True))
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
         # Check input type
         if isinstance(fname, ftypes.XLSFile):
             # Already a CSV database
@@ -1103,6 +1111,8 @@ class DataKit(ftypes.BaseData):
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveMAT", True))
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
         # Check input type
         if isinstance(fname, ftypes.MATFile):
             # Already a MAT database
