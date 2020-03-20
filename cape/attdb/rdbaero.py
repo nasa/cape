@@ -23,16 +23,42 @@ from . import convert
 
 # Class definition
 class AeroDataKit(rdb.DataKit):
+    r""":class:`DataKit` extension for aerospace applications
+
+    :Call:
+        >>> db = AeroDataKit(fname=None, **kw)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            File name; extension is used to guess data format
+        *csv*: {``None``} | :class:`str`
+            Explicit file name for :class:`CSVFile` read
+        *textdata*: {``None``} | :class:`str`
+            Explicit file name for :class:`TextDataFile`
+        *simplecsv*: {``None``} | :class:`str`
+            Explicit file name for :class:`CSVSimple`
+        *xls*: {``None``} | :class:`str`
+            File name for :class:`XLSFile`
+        *mat*: {``None``} | :class:`str`
+            File name for :class:`MATFile`
+    :Outputs:
+        *db*: :class:`cape.attdb.rdbaero.AeroDataKit`
+            Generic database
+    :Versions:
+        * 2020-03-19 ``@ddalle``: First version
+    """
   # ==================
   # Class Attributes
   # ==================
   # <
    # --- Tags ---
     _tagmap = {
+        "ALPH":      "alpha",
         "ALPHA":     "alpha",
         "ALPHA":     "alpha",
         "ALPHA_T":   "aoap",
+        "AOA":       "alpha",
         "AOAP":      "aoap",
+        "AOAV":      "aoav",
         "Alpha":     "alpha",
         "Alpha_T":   "aoap",
         "Alpha_t":   "aoap",
@@ -45,11 +71,13 @@ class AeroDataKit(rdb.DataKit):
         "PHIV":      "phiv",
         "Phi":       "phip",
         "RE":        "Re",
+        "REY":       "Re",
         "REYNODLDS": "Re",
         "Rey":       "Re",
         "Re":        "Re",
         "T":         "T",
         "Tinf":      "T",
+        "alph":      "alpha",
         "alpha":     "alpha",
         "aoa":       "alpha",
         "aoap":      "aoap",
@@ -245,3 +273,6 @@ class AeroDataKit(rdb.DataKit):
 
 # Combine options
 kwutils._combine_val(AeroDataKit, rdb.DataKit._tagmap)
+
+# Invert the _tagmap
+AeroDataKit.create_tagcols()

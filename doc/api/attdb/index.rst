@@ -11,3 +11,4 @@
     
     ftypes/index
     rdb
+    rdbaero

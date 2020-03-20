@@ -428,6 +428,31 @@ class BaseData(dict):
    # --- Options ---
     # Class for options
     _optscls = BaseDataOpts
+
+   # --- Class Functions ---
+    # Invert the _tagmap
+    @classmethod
+    def create_tagcols(cls):
+        r"""Invert *cls._tagmap* as *cls._tagcols*
+
+        :Call:
+            >>> cls.create_tagcols()
+        :Inputs:
+            *cls*: :class:`type`
+                Data container class
+        :Versions:
+            * 2020-03-19 ``@ddalle``: First version
+        """
+        # Initialize tag -> set(col) map
+        _tagcols = {}
+        # Loop through _tagmap
+        for col, tag in cls._tagmap.items():
+            # Get set of cols for current *tag*
+            cols = _tagcols.setdefault(tag, set())
+            # Add this column to the set
+            cols.add(col)
+        # Set the attribute
+        cls._tagcols = _tagcols
   # >
 
   # ==========
@@ -800,7 +825,7 @@ class BaseData(dict):
             # Save length and dimension
             defn.set_opiton("Dimension", 1)
             defn.set_option("Shape", (len(V), ))
-        else:
+        elif isinstance(V, np.ndarray):
             # Array; get data type from instance
             dtype = V.dtype.name
             # Dimensions
@@ -813,6 +838,27 @@ class BaseData(dict):
             elif dtype.startswith("unicode"):
                 # Strings using Python 2 "unicode" or Python 3 "str"
                 dtype = "str"
+        elif V.__class__.__module__ == "numpy":
+            # Scalar NumPy object
+            dtype = V.__class__.__name__
+        elif isinstance(V, float):
+            # Float (64)
+            dtype = "float64"
+        elif isinstance(V, typeutils.intlike):
+            # Integer (pretend we know the type)
+            if typeutils.PY_MAJOR_VERSION > 2:
+                # Long
+                dtype = "int64"
+            elif V.__class__.__name__ == "long":
+                # Long (Python 2)
+                dtype = "int64"
+            else:
+                # Regular int (Python 2)
+                dtype = "int32"
+        else:
+            # Unrecognized
+            raise TypeError(
+                "Could not generate definition for type '%s'" % type(V))
         # Set type
         defn["Type"] = dtype
         # Loop through any kwargs
