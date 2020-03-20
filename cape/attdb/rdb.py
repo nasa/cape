@@ -2004,33 +2004,6 @@ class DataKit(ftypes.BaseData):
         # Output
         return f
 
-    # Get UQ coefficient
-    def get_uq_col(self, col):
-        r"""Get name of UQ coefficient(s) for *coeff*
-
-        :Call:
-            >>> ucol = db.get_uq_col(col)
-            >>> ucols = db.get_uq_col(col)
-        :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
-                Database with scalar output functions
-            *col*: :class:`str`
-                Name of data column to evaluate
-        :Outputs:
-            *ucol*: ``None`` | :class:`str`
-                Name of UQ columns for *col*
-            *ucols*: :class:`list`\ [:class:`str`]
-                List of UQ columns for *col*
-        :Versions:
-            * 2019-03-13 ``@ddalle``: First version
-            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
-            * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
-        """
-        # Get dictionary of UQ coeffs
-        uq_cols = self.__dict__.setdefault("uq_cols", {})
-        # Get entry for this coefficient
-        return uq_cols.get(col)
-
     # Get user-set callable function
     def get_eval_func(self, col):
         r"""Get callable function predefined for a column
@@ -3546,6 +3519,42 @@ class DataKit(ftypes.BaseData):
         else:
             # Stand-alone function
             return f(*x, **kw)
+  # >
+
+  # ===================
+  # UQ
+  # ===================
+  # <
+   # --- Options: Get ---
+    # Get UQ coefficient
+    def get_uq_col(self, col):
+        r"""Get name of UQ coefficient(s) for *coeff*
+
+        :Call:
+            >>> ucol = db.get_uq_col(col)
+            >>> ucols = db.get_uq_col(col)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+        :Outputs:
+            *ucol*: ``None`` | :class:`str`
+                Name of UQ columns for *col*
+            *ucols*: :class:`list`\ [:class:`str`]
+                List of UQ columns for *col*
+        :Versions:
+            * 2019-03-13 ``@ddalle``: First version
+            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
+        """
+        # Get dictionary of UQ coeffs
+        uq_cols = self.__dict__.setdefault("uq_cols", {})
+        # Get entry for this coefficient
+        return uq_cols.get(col)
+
+   # --- Options: Set ---
+    # Set 
   # >
 
   # ===================
