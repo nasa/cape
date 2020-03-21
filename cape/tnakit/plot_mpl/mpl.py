@@ -1814,13 +1814,13 @@ def _contour(xv, yv, zv, ContourType="tricontourf", **kw):
         yv, xv = xv, yv
     # Initialize plot options
     kw_p = MPLOpts.select_phase(kw, i)
-    if ContourType = "tricontourf":
+    if ContourType == "tricontourf":
         # Filled contour
         h = plt.tricontourf(xv, yv, zv, **kw_p)
-    elif ContourType = "tricontour":
+    elif ContourType == "tricontour":
         # Contour lines
         h = plt.tricontour(xv, yv, zv, **kw_p)
-    elif ContourType = "tripcolor":
+    elif ContourType == "tripcolor":
         # Triangulated 
         h = plt.tripcolor(xv, yv, zv, **kw_p)
     else:
