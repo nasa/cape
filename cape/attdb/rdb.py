@@ -3525,6 +3525,194 @@ class DataKit(ftypes.BaseData):
   # UQ
   # ===================
   # <
+   # --- Estimators ---
+    # Estimate UQ on a slice/subset
+    def est_uq_slice(self, db2, col, ucol, mask, **kw):
+        
+       # --- Inputs ---
+        # Probability
+        cov = kw.get("Coverage", kw.get("cov", 0.99865))
+        cdf = kw.get("CoverageCDF", kw.get("cdf", cov))
+        # Outlier cutoff
+        osig_kw = kw.get('OutlierSigma', kw.get("osig"))
+       # --- Attributes ---
+        # Unpack useful attributes for additional functions
+        uq_funcs_extra = getattr(self, "uq_funcs_extra", {})
+        uq_funcs_shift = getattr(self, "uq_funcs_shift", {})
+        # Additional information
+        uq_keys_extra = getattr(self, "uq_keys_extra", {})
+        uq_keys_shift = getattr(self, "uq_keys_shift", {})
+        # Get eval arguments for input coeff and UQ coeff
+        argsc = self.eval_args[col]
+        argsu = self.eval_args[ucol]
+       # --- Test Conditions ---
+        # Get test values and test break points
+        vals, bkpts = self._get_test_values(argsc, **kw)
+        # --- Evaluation ---
+        # Initialize input values for comparison evaluation
+        A = []
+        # Get dictionary values
+        for k in argsc:
+            # Apply mask
+            A.append(vals[k][mask])
+        # Evaluate both databases
+        V1 = self(col, *A)
+        V2 = FM2(col, *A)
+        # Deltas
+        DV = V2 - V1
+       # --- Shift coeffs ---
+        # Get extra keys
+        cokeys = uq_keys_shift.get(col, [])
+        # Ensure list
+        if cokeys.__class__.__name__ in ["str", "unicode"]:
+            # Convert string to singleton
+            cokeys = [cokeys]
+        # Deltas of co-keys
+        DV0_shift = []
+        # Loop through shift keys
+        for k in cokeys:
+            # Evaluate both databases
+            V1 = self(k, *A)
+            V2 = FM2(k, *A)
+            # Append deltas
+            DV0_shift.append(V2-V1)
+       # --- Outliers ---
+        # Degrees of freedom
+        df = DV.size
+        # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
+        ksig = student.ppf(0.5+0.5*cdf, df)
+        kcov = student.ppf(0.5+0.5*cov, df)
+        # Outlier cutoff
+        if osig_kw is None:
+            # Default
+            osig = 1.5*ksig
+        else:
+            # User-supplied value
+            osig = osig_kw
+        # Check outliers on main deltas
+        J = stats.check_outliers(DV, cov, cdf=cdf, osig=osig)
+        # Loop through shift keys; points must be non-outlier in all keys
+        for DVk in DV0_shift:
+            # Check outliers in these deltas
+            Jk = stats.check_outliers(DV, cov, cdf=cdf, osig=osig)
+            # Combine constraints
+            J = np.logical_and(J, Jk)
+        # Downselect original deltas
+        DV = DV[J]
+        # Initialize downselected correlated deltas
+        DV_shift = tuple()
+        # Downselect correlated deltas
+        for DVk in DV0_shift:
+            DV_shift += (DVk[J],)
+        # New degrees of freedom
+        df = DV.size
+        # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
+        ksig = student.ppf(0.5+0.5*cdf, df)
+        kcov = student.ppf(0.5+0.5*cov, df)
+        # Outlier cutoff
+        if osig_kw is None:
+            # Default
+            osig = 1.5*ksig
+        else:
+            # User-supplied value
+            osig = osig_kw
+       # --- Extra coeffs ---
+        # List of extra keys
+        extrakeys = uq_keys_extra.get(ucoeff, [])
+        # Ensure list
+        if extrakeys.__class__.__name__ in ["str", "unicode"]:
+            # Convert string to singleton
+            extrakeys = [extrakeys]
+        # Initialize tuple of extra key values
+        a_extra = tuple()
+        # Loop through extra keys
+        for k in extrakeys:
+            # Get function
+            fn = uq_funcs_extra.get(k)
+            # This function is required
+            if fn is None:
+                raise ValueError("No function for extra key '%s'" % k)
+            # Evaluate
+            a_extra += fn(self, DV, *DV_shift),
+       # --- Delta shifting ---
+        # Function to perform any shifts
+        f_shift = uq_funcs_shift.get(ucoeff)
+        # Perform shift
+        if f_shift is not None:
+            # Extra arguments for shift key
+            a_shift = DV_shift + a_extra
+            # Perform shift using appropriate function
+            DV = f_shift(self, DV, *a_shift)
+       # --- Statistics ---
+        # Calculate coverage interval
+        vmin, vmax = stats.get_cov_interval(DV, cov, cdf=cdf, osig=osig)
+        # Max value
+        u = max(abs(vmin), abs(vmax))
+       # --- Output ---
+        # Return all extra values
+        return (u,) + a_extra
+
+   # --- Grouping ---
+    # Get dictionary of test values
+    def _get_test_values(self, args, **kw):
+        r"""Get test values for creating windows or comparing databases
+
+        :Call:
+            >>> vals, bkpts = db._get_test_values(args, **kw)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *args*: :class:`list`\ [:class:`str`]
+                List of arguments to use for windowing
+        :Keyword Arguments:
+            *test_values*: {*db*} | :class:`DataKit` | :class:`dict`
+                Specify values of each parameter in *args* that are the
+                candidate points for the window; default is from *db*
+            *test_bkpts*: {*db.bkpts*} | :class:`dict`
+                Specify candidate window boundaries; must be ascending
+                array of unique values for each key
+        :Outputs:
+            *vals*: :class:`dict`\ [:class:`np.ndarray`]
+                Dictionary of lookup values for each key in *args*
+            *bkpts*: :class:`dict`\ [:class:`np.ndarray`]
+                Dictionary of unique candidate values for each key
+        :Versions:
+            * 2019-02-13 ``@ddalle``: First version
+            * 2020-03-20 ``@ddalle``: Migrated from :mod:`tnakit`
+        """
+       # --- Lookup values ---
+        # Values to use (default is direct from database)
+        vals = {}
+        # Dictionary from keyword args
+        test_values = kw.get("test_values", {})
+        # Loop through parameters
+        for k in args:
+            # Get reference values for parameter *k*
+            vals[k] = test_values.get(k, self.get_all_values(k))
+       # --- Break points ---
+        # Values to use for searching
+        bkpts = {}
+        # Primary default: *DBc.bkpts*
+        self_bkpts = self.__dict__.get("bkpts", {})
+        # Secondary default: *bkpts* attribute from secondary database
+        test_bkpts = test_values.get("test_bkpts", {})
+        # User-specified option
+        test_bkpts = kw.get("test_bkpts", test_bkpts)
+        # Primary default: *bkpts* from this database
+        for k in args:
+            # Check for specified values
+            if k in test_bkpts:
+                # Use user-specified or secondary-db values
+                bkpts[k] = test_bkpts[k].copy()
+            elif k in self_bkpts:
+                # Use break points from this database
+                bkpts[k] = self_bkpts[k].copy()
+            else:
+                # Use unique test values
+                bkpts[k] = np.unique(vals[k])
+       # --- Output ---
+        return vals, bkpts
+
    # --- Options: Get ---
     # Get UQ coefficient
     def get_uq_col(self, col):
@@ -3532,7 +3720,6 @@ class DataKit(ftypes.BaseData):
 
         :Call:
             >>> ucol = db.get_uq_col(col)
-            >>> ucols = db.get_uq_col(col)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3540,9 +3727,7 @@ class DataKit(ftypes.BaseData):
                 Name of data column to evaluate
         :Outputs:
             *ucol*: ``None`` | :class:`str`
-                Name of UQ columns for *col*
-            *ucols*: :class:`list`\ [:class:`str`]
-                List of UQ columns for *col*
+                Name of UQ column for *col*
         :Versions:
             * 2019-03-13 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
@@ -3553,8 +3738,62 @@ class DataKit(ftypes.BaseData):
         # Get entry for this coefficient
         return uq_cols.get(col)
 
+    # Get extra functions for uq
+    def get_uq_func_extra(self, col):
+        r"""Get function
+
+        :Call:
+            >>> uq_col = db.get_uq_col(col)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+        :Outputs:
+            *uq_col*: ``None`` | :class:`str`
+                Name of UQ column for *col*
+        :Versions:
+            * 2019-03-13 ``@ddalle``: First version
+            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
+        """
+        # Get dictionary of extra UQ funcs
+        uq_funcs = self.__dict__.get("uq_funcs_extra", {})
+        # Get entry for *col*
+        return uq_funcs.get(col)
+
    # --- Options: Set ---
-    # Set 
+    # Set name of UQ col for given col
+    def set_uq_col(self, col, ucol):
+        r"""Set uncertainty column name for given *col*
+
+        :Call:
+            >>> db.set_uq_col(col, ucol)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column
+        :Effects:
+            *db.uq_cols*: :class:`dict`
+                Entry for *col* set to *ucol*
+        :Versions:
+            * 2020-03-20 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be str (got %s)" % type(col))
+        if not typeutils.isstr(ucol):
+            raise TypeError(
+                "UQ column name must be str (got %s)" % type(ucol))
+        # Get handle to attribute
+        uq_cols = self.__dict__.setdefault("uq_cols", {})
+        # Check type
+        if not isinstance(uq_cols, dict):
+            raise TypeError("uq_cols attribute is not a dict")
+        # Set parameter
+        uq_cols[col] = ucol
   # >
 
   # ===================

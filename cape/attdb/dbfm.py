@@ -695,8 +695,6 @@ class DBFM(rdbaero.AeroDataKit):
         """
         # List FM tags
         tags = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
-        # Get UQ cols dict
-        uq_cols = self.__dict__.setdefault("uq_cols", {})
         # Loop through them
         for tag in tags:
             # Get cols with matching tag
@@ -704,12 +702,12 @@ class DBFM(rdbaero.AeroDataKit):
                 # Name of [default] UQ col
                 uq_col = "U" + col
                 # Set it
-                uq_cols.setdefault(col, uq_col)
+                self.set_uq_col(col, uq_col)
    # >
 
 
 # Combine options
-kwutils._combine_val(AeroDataKit, rdb.DataKit._tagmap)
+kwutils._combine_val(DBFM._tagmap, rdbaero.AeroDataKit._tagmap)
 
 # Invert the _tagmap
-AeroDataKit.create_tagcols()
+DBFM.create_tagcols()
