@@ -596,7 +596,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> ndim = db.get_ndim(col)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -638,7 +638,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> ndim = db.get_output_ndim(col)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -667,7 +667,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_ndim(col, ndim)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -694,7 +694,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_output_ndim(col, ndim)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1207,7 +1207,7 @@ class DataKit(ftypes.BaseData):
             >>> v = db(col, k0=x0, k1=x1, ...)
             >>> V = db(col, k0=x0, k1=X1, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1321,7 +1321,7 @@ class DataKit(ftypes.BaseData):
             >>> V, I, J, X = db.eval_exact(col, x0, X1, ...)
             >>> V, I, J, X = db.eval_exact(col, k0=x0, k1=X1, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1413,7 +1413,7 @@ class DataKit(ftypes.BaseData):
             >>> U = db.eval_uq(col, k0=x0, k1=x1, ...)
             >>> U = db.eval_uq(col, k0=x0, k1=X1, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of **nominal** column to evaluate
@@ -1513,7 +1513,7 @@ class DataKit(ftypes.BaseData):
             >>> V = db.eval_from_arglist(col, args, k0=x0, k1=x1, ...)
             >>> V = db.eval_from_arglist(col, args, k0=x0, k1=X1, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1601,7 +1601,7 @@ class DataKit(ftypes.BaseData):
             >>> V = db.eval_from_index(col, I, **kw)
             >>> v = db.eval_from_index(col, i, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1639,7 +1639,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.make_responses(cols, method, args, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns for which to declare evaluation rules
@@ -1690,7 +1690,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.make_response(col, method, args, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column for which to declare evaluation rules
@@ -1785,7 +1785,7 @@ class DataKit(ftypes.BaseData):
             >>> db._create_function(col, *a, **kw)
             >>> db._create_function(col, fn, *a[1:], **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1823,7 +1823,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db._create_rbf(col, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1852,7 +1852,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db._create_rbf_linear(col, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1881,7 +1881,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db._create_rbf_map(col, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1911,7 +1911,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> args = db.get_eval_args(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1950,7 +1950,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> method = db.get_eval_method(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1980,7 +1980,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> f = db.get_eval_arg_converter(k)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str` | :class:`unicode`
                 Name of argument
@@ -2011,7 +2011,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> fn = db.get_eval_func(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2047,7 +2047,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> aliases = db.get_eval_arg_aliases(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2087,7 +2087,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> kwargs = db.get_eval_kwargs(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2126,7 +2126,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> xargs = db.get_output_xvars(col)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -2159,7 +2159,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_args(col, args)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column
@@ -2199,7 +2199,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_method(col, method)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column
@@ -2234,7 +2234,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_func(col, fn)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column
@@ -2273,7 +2273,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_arg_default(k, v)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
@@ -2295,7 +2295,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_arg_converter(k, fn)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
@@ -2320,7 +2320,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_arg_aliases(col, aliases)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2362,7 +2362,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_kwargs(col, kwargs)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2401,7 +2401,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_output_xvars(col, xargs)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -2438,7 +2438,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> V = db.get_all_values(k)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
@@ -2488,7 +2488,7 @@ class DataKit(ftypes.BaseData):
             >>> V = db.get_values(col)
             >>> V = db.get_values(col, I=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of evaluation argument
@@ -2552,7 +2552,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> v = db.get_arg_value(i, k, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *i*: :class:`int`
                 Argument index within *db.eval_args*
@@ -2625,7 +2625,7 @@ class DataKit(ftypes.BaseData):
             >>> X = db.get_arg_value_dict(*a, **kw)
             >>> X = db.get_arg_value_dict(coeff, x1, x2, ..., k3=x3)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *coeff*: :class:`str`
                 Name of coefficient
@@ -2681,7 +2681,7 @@ class DataKit(ftypes.BaseData):
             >>> col, a, kw = db._prep_args_colname(col, *a, **kw)
             >>> col, a, kw = db._prep_args_colname(*a, col=c, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of evaluation col
@@ -2729,7 +2729,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> X, dims = db.normalize_args(x, asarray=False)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *x*: :class:`list`\ [:class:`float` | :class:`np.ndarray`]
                 Values for arguments, either float or array
@@ -2808,7 +2808,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> i0, i1, f, x0, x1 = db.get_schedule(args, x, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *args*: :class:`list`\ [:class:`str`]
                 List of input argument names (*args[0]* is master key)
@@ -2923,7 +2923,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> i0, i1, f, x0, x1 = db.get_schedule(args, x, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *args*: :class:`list`\ [:class:`str`]
                 List of input argument names (*args[0]* is master key)
@@ -2999,7 +2999,7 @@ class DataKit(ftypes.BaseData):
             >>> y = db.eval_exact(col, args, x, **kw)
             >>> Y = db.eval_exact(col, args, x, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3060,7 +3060,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_nearest(col, args, x, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of (numeric) column to evaluate
@@ -3114,7 +3114,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_multilinear(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3145,7 +3145,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db._eval_multilinear(col, args, x, I=None, j=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3294,7 +3294,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_multilinear(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3337,7 +3337,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = DBc.eval_rbf(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3368,7 +3368,7 @@ class DataKit(ftypes.BaseData):
             >>> f = db.get_rbf(col, i, j)
             >>> f = db.get_rbf(col, i, j, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3422,7 +3422,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_rbf_linear(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3458,7 +3458,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_rbf_schedule(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3495,7 +3495,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_function(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3528,7 +3528,54 @@ class DataKit(ftypes.BaseData):
    # --- Estimators ---
     # Estimate UQ on a slice/subset
     def est_uq_point(self, db2, col, ucol, mask, **kw):
-        
+        """Quantify uncertainty interval for a single point or window
+
+        :Call:
+            >>> u, a = db1.est_uq_point(db2, col, ucol, mask, **kw)
+            >>> u, a = db1.est_uq_point(db2, col, I, mask, **kw)
+        :Inputs:
+            *db1*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *db2*: :class:`cape.attdb.rdb.DataKit`
+                Target database (UQ based on difference)
+            *col*: :class:`str`
+                Name of data column to analyze
+            *ucol*: :class:`str`
+                Name of UQ column to estimate
+            *mask*: :class:`np.ndarray`\ [:class:`bool`]
+                Mask of which *db1[col]* indices to consider
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of *db1[col]* to consider
+        :Required Attributes:
+            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *col*
+            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *ucol*
+            *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
+                List of extra UQ cols related to *ucol*
+            *db1.uq_acols[ucol]*: {``[]``} | :class:`list`
+                Aux cols whose deltas are used to estimate *ucol*
+            *db1.uq_efuncs*: {``{}``} | :class:`dict` (:class:`function`)
+                Function to calculate any "extra" keys by name of key
+            *db1.uq_funcs_shift*: {``{}``} | :class:`dict` (:class:`function`)
+                Function to use when "shifting" deltas in *coeff*
+            *db1.uq_keys_extra[ucoeff]*: :class:`list` (:class:`str`)
+                List of extra coeffs for *ucoeff* {``[]``}
+            *db1.uq_keys_shift[ucoeff]*: :class:`list` (:class:`str`)
+                List of coeffs to use while shifting *ucoeff* deltas  {``[]``}
+            *db1.uq_funcs_extra[ecoeff]*: :class:`function`
+                Function to use to estimate extra key *ecoeff*
+            *db1.uq_funcs_shift[ucoeff]*: :class:`function`
+                Function to use to shift/alter *ucoeff* deltas
+        :Outputs:
+            *u*: :class:`float`
+                Single uncertainty estimate for generated window
+            *U*: :class:`tuple` (:class:`float`)
+                Value of *ucoeff* and any "extra" coefficients in
+                ``FM1.uq_keys_extra[ucoeff]``
+        :Versions:
+            * 2019-02-15 ``@ddalle``: First version
+        """
        # --- Inputs ---
         # Probability
         cov = kw.get("Coverage", kw.get("cov", 0.99865))
@@ -3652,7 +3699,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> vals, bkpts = db._get_test_values(args, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *args*: :class:`list`\ [:class:`str`]
                 List of arguments to use for windowing
@@ -3713,7 +3760,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> ucol = db.get_uq_col(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -3737,7 +3784,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> ecols = db.get_uq_ecol(ucol)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *ucol*: :class:`str`
                 Name of UQ column to evaluate
@@ -3773,7 +3820,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> efunc = db.get_uq_efunc(ecol)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *ecol*: :class:`str`
                 Name of (correlated) UQ column to evaluate
@@ -3795,7 +3842,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> acols = db.get_uq_acol(ucol)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *ucol*: :class:`str`
                 Name of UQ column to evaluate
@@ -3831,7 +3878,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> afunc = db.get_uq_afunc(ucol)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *ucol*: :class:`str`
                 Name of UQ col to estimate
@@ -3854,7 +3901,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_uq_col(col, ucol)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column
@@ -3887,7 +3934,7 @@ class DataKit(ftypes.BaseData):
             >>> db.get_uq_ecol(ucol, ecol)
             >>> db.get_uq_ecol(ucol, ecols)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *ucol*: :class:`str`
                 Name of UQ column to evaluate
@@ -3922,7 +3969,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_uq_ecol_funcs(ecol, efunc)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *ecol*: :class:`str`
                 Name of (correlated) UQ column to evaluate
@@ -3946,7 +3993,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_uq_acol(ucol, acols)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *ucol*: :class:`str`
                 Name of UQ column to evaluate
@@ -3979,7 +4026,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_uq_afunc(ucol, afunc)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *ucol*: :class:`str`
                 Name of UQ col to estimate
@@ -4745,7 +4792,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.create_global_rbfs(cols, args, I=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns to create RBFs for
@@ -4797,7 +4844,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.create_slice_rbfs(coeffs, args, I=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns to create RBFs for
@@ -4879,7 +4926,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> rbf = db.genr8_rbf(col, args, I=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`list`\ [:class:`str`]
                 Data column to create RBF for
@@ -5142,7 +5189,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> V = db.get_xvals(col, I=None, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to access
@@ -5212,7 +5259,7 @@ class DataKit(ftypes.BaseData):
             >>> V = db.get_xvals_eval(k, *a, **kw)
             >>> V = db.get_xvals_eval(k, coeff, x1, x2, ..., k3=x3)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str`
                 Name of key to calculate
@@ -5268,7 +5315,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> V = db.get_yvals_exact(col, I=None, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to access
@@ -5315,7 +5362,7 @@ class DataKit(ftypes.BaseData):
             >>> I = db.prep_mask(mask, col)
             >>> I = db.prep_mask(mask_index, col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
             *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
                 Logical mask of ``True`` / ``False`` values
@@ -5381,7 +5428,7 @@ class DataKit(ftypes.BaseData):
             >>> I, J = db.find(args, *a, **kw)
             >>> Imap, J = db.find(args, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
             *args*: :class:`list`\ [:class:`str`]
                 List of columns names to match
@@ -5717,7 +5764,7 @@ class DataKit(ftypes.BaseData):
                 Upper bound of coverage intervalregion
         :Versins:
             * 2018-09-28 ``@ddalle``: First version
-            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`attdb.fm`
+            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
         """
         # Process search kwargs
         kw_find = {
@@ -5784,7 +5831,7 @@ class DataKit(ftypes.BaseData):
                 Half-width of coverage range
         :Versins:
             * 2018-09-28 ``@ddalle``: First version
-            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`attdb.fm`
+            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
         """
         # Process search kwargs
         kw_find = {
@@ -5826,7 +5873,7 @@ class DataKit(ftypes.BaseData):
             >>> col, I, J, a, kw = db._process_plot_args1(*a, **kw)
             >>> col, I, J, a, kw = db._process_plot_args1(I, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
                 Array of values for arguments to :func:`db.__call__`
@@ -5946,7 +5993,7 @@ class DataKit(ftypes.BaseData):
             >>> h = db.plot_scalar(col, *a, **kw)
             >>> h = db.plot_scalar(col, I, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Data column (or derived column) to evaluate
@@ -6156,7 +6203,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.regularize_by_rbf(cols=None, args=None, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with response toolkit
             *cols*: :class:`list`\ [:class:`str`]
                 List of output data columns to regularize
@@ -6420,7 +6467,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.regularize_by_griddata(cols=None, args=None, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with response toolkit
             *cols*: :class:`list`\ [:class:`str`]
                 List of output data columns to regularize

@@ -639,10 +639,19 @@ class DBFM(rdbaero.AeroDataKit):
         self._make_arg_converters_aero()
         # Set UQ cols
         self._make_uq_cols_FM()
+        self._make_uq_ecols_FM()
+        self._make_uq_acols_FM()
         # Save reference properties
         self.Lref = self.opts.get_option("RefLength", 1.0)
         self.Aref = self.opts.get_option("RefArea", 0.25*np.pi)
         self.xMRP = self.opts.get_option("xMRP", 0.0)
+        self.yMRP = self.opts.get_option("yMRP", 0.0)
+        self.zMRP = self.opts.get_option("zMRP", 0.0)
+        # Set default arguments
+        self.set_arg_default("xMRP", self.xMRP)
+        self.set_arg_default("yMRP", self.yMRP)
+        self.set_arg_default("zMRP", self.zMRP)
+        # 
         
   # >
 
@@ -681,7 +690,7 @@ class DBFM(rdbaero.AeroDataKit):
             self.set_arg_converter(col, convert_phip)
 
    # --- UQ Columns ---
-    # Set UQ col for all FM coeffs
+    # Set UQ col for all FM cols
     def _make_uq_cols_FM(self):
         r"""Set default UQ col names for forces & moments
 
@@ -700,9 +709,81 @@ class DBFM(rdbaero.AeroDataKit):
             # Get cols with matching tag
             for col in self.get_cols_by_tag(tag):
                 # Name of [default] UQ col
-                uq_col = "U" + col
+                ucol = "U" + col
                 # Set it
-                self.set_uq_col(col, uq_col)
+                self.set_uq_col(col, ucol)
+
+    # Set UQ extra cols for all FM cols
+    def _make_uq_ecols_FM(self):
+        r"""Set default UQ extra cols for reference UQ MRP
+
+        :Call:
+            >>> db._make_uq_ecols_FM()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # List moment tags
+        tags = ["CLM", "CLN"]
+        # Loop through them
+        for tag in tags:
+            # Get cols with matching tag
+            for col in self.get_cols_by_tag(tag):
+                # Get actual UQ col
+                ucol = self.get_uq_col(col)
+                # Default UQ col if needed
+                if ucol is None:
+                    ucol = "U" + col
+                # Form ecol name
+                if ucol.startswith("U"):
+                    # Strip "U" and prepend with "x"
+                    ecol = "x" + ucol[1:]
+                else:
+                    # Just prepend *col* with "x"
+                    ecol = "x" + col
+                # Set it
+                self.set_uq_ecol(ucol, ecol)
+
+    # Set UQ aux cols for moment cols
+    def _make_uq_acols_FM(self):
+        r"""Set default UQ aux cols for reference UQ MRP
+
+        :Call:
+            >>> db._make_uq_acols_FM()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # List moment tags
+        tags = ["CLM", "CLN"]
+        # Loop through them
+        for tag in tags:
+            # Get cols with matching tag
+            for col in self.get_cols_by_tag(tag):
+                # Check col names' ending
+                if col.endswith("LM"):
+                    # CLM -> CN
+                    acol = col[:-2] + "N"
+                elif col.endswith("LN"):
+                    # CLN -> CY
+                    acol = col[:-2] + "Y"
+                elif col.endswith("m"):
+                    # Cm -> CN
+                    acol = col[:-1] + "N"
+                elif col.endswith("n"):
+                    # Cn -> CY
+                    acol = col[:-1] + "Y"
+                # Get actual UQ col
+                ucol = self.get_uq_col(col)
+                # Default UQ col if needed
+                if ucol is None:
+                    ucol = "U" + col
+                # Set it
+                self.set_uq_acol(ucol, acol)
    # >
 
 
