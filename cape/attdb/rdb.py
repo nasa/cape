@@ -3527,7 +3527,7 @@ class DataKit(ftypes.BaseData):
   # <
    # --- Estimators ---
     # Estimate UQ on a slice/subset
-    def est_uq_slice(self, db2, col, ucol, mask, **kw):
+    def est_uq_point(self, db2, col, ucol, mask, **kw):
         
        # --- Inputs ---
         # Probability
@@ -3557,25 +3557,21 @@ class DataKit(ftypes.BaseData):
             A.append(vals[k][mask])
         # Evaluate both databases
         V1 = self(col, *A)
-        V2 = FM2(col, *A)
+        V2 = db2(col, *A)
         # Deltas
         DV = V2 - V1
-       # --- Shift coeffs ---
-        # Get extra keys
-        cokeys = uq_keys_shift.get(col, [])
-        # Ensure list
-        if cokeys.__class__.__name__ in ["str", "unicode"]:
-            # Convert string to singleton
-            cokeys = [cokeys]
+       # --- Aux cols ---
+        # Get aux cols require to estimate *ucol*
+        acols = self.get_uq_acol(ucol)
         # Deltas of co-keys
-        DV0_shift = []
+        DV0_aux = []
         # Loop through shift keys
-        for k in cokeys:
+        for acol in acols:
             # Evaluate both databases
-            V1 = self(k, *A)
-            V2 = FM2(k, *A)
+            V1 = self(acol, *A)
+            V2 = db2(acol, *A)
             # Append deltas
-            DV0_shift.append(V2-V1)
+            DV0_aux.append(V2-V1)
        # --- Outliers ---
         # Degrees of freedom
         df = DV.size
@@ -3592,18 +3588,18 @@ class DataKit(ftypes.BaseData):
         # Check outliers on main deltas
         J = stats.check_outliers(DV, cov, cdf=cdf, osig=osig)
         # Loop through shift keys; points must be non-outlier in all keys
-        for DVk in DV0_shift:
+        for DVk in DV0_aux:
             # Check outliers in these deltas
-            Jk = stats.check_outliers(DV, cov, cdf=cdf, osig=osig)
+            Jk = stats.check_outliers(DVk, cov, cdf=cdf, osig=osig)
             # Combine constraints
             J = np.logical_and(J, Jk)
         # Downselect original deltas
         DV = DV[J]
         # Initialize downselected correlated deltas
-        DV_shift = tuple()
+        DV_aux = []
         # Downselect correlated deltas
-        for DVk in DV0_shift:
-            DV_shift += (DVk[J],)
+        for DVk in DV0_aux:
+            DV_aux.append(DVk[J])
         # New degrees of freedom
         df = DV.size
         # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
@@ -3616,33 +3612,29 @@ class DataKit(ftypes.BaseData):
         else:
             # User-supplied value
             osig = osig_kw
-       # --- Extra coeffs ---
+       # --- Extra cols ---
         # List of extra keys
-        extrakeys = uq_keys_extra.get(ucoeff, [])
-        # Ensure list
-        if extrakeys.__class__.__name__ in ["str", "unicode"]:
-            # Convert string to singleton
-            extrakeys = [extrakeys]
+        ecols = self.get_uq_ecol(ucol)
         # Initialize tuple of extra key values
-        a_extra = tuple()
+        a_extra = []
         # Loop through extra keys
-        for k in extrakeys:
+        for ecol in ecols:
             # Get function
-            fn = uq_funcs_extra.get(k)
+            fn = self.get_uq_efunc(ecol)
             # This function is required
             if fn is None:
-                raise ValueError("No function for extra key '%s'" % k)
+                raise ValueError("No function for extra UQ col '%s'" % ecol)
             # Evaluate
-            a_extra += fn(self, DV, *DV_shift),
-       # --- Delta shifting ---
+            a_extra.apend(fn(self, DV, *DV_aux))
+       # --- Delta shifting (aux functions) ---
         # Function to perform any shifts
-        f_shift = uq_funcs_shift.get(ucoeff)
+        afunc = self.get_uq_afunc(ucol)
         # Perform shift
-        if f_shift is not None:
+        if afunc is not None:
             # Extra arguments for shift key
-            a_shift = DV_shift + a_extra
+            a_aux = DV_aux + a_extra
             # Perform shift using appropriate function
-            DV = f_shift(self, DV, *a_shift)
+            DV = afunc(self, DV, *a_aux)
        # --- Statistics ---
         # Calculate coverage interval
         vmin, vmax = stats.get_cov_interval(DV, cov, cdf=cdf, osig=osig)
@@ -3716,7 +3708,7 @@ class DataKit(ftypes.BaseData):
    # --- Options: Get ---
     # Get UQ coefficient
     def get_uq_col(self, col):
-        r"""Get name of UQ coefficient(s) for *coeff*
+        r"""Get name of UQ columns for *col*
 
         :Call:
             >>> ucol = db.get_uq_col(col)
@@ -3733,34 +3725,126 @@ class DataKit(ftypes.BaseData):
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
         """
-        # Get dictionary of UQ coeffs
+        # Get dictionary of UQ cols
         uq_cols = self.__dict__.setdefault("uq_cols", {})
         # Get entry for this coefficient
         return uq_cols.get(col)
 
-    # Get extra functions for uq
-    def get_uq_func_extra(self, col):
-        r"""Get function
+    # Get extra UQ cols
+    def get_uq_ecol(self, ucol):
+        r"""Get names of any extra UQ cols related to primary UQ col
 
         :Call:
-            >>> uq_col = db.get_uq_col(col)
+            >>> ecols = db.get_uq_ecol(ucol)
         :Inputs:
             *db*: :class:`attdb.rdb.DataKit`
                 Database with scalar output functions
-            *col*: :class:`str`
-                Name of data column to evaluate
+            *ucol*: :class:`str`
+                Name of UQ column to evaluate
         :Outputs:
-            *uq_col*: ``None`` | :class:`str`
-                Name of UQ column for *col*
+            *ecols*: :class:`list`\ [:class:`str`]
+                Name of extra columns required to evaluate *ucol*
         :Versions:
-            * 2019-03-13 ``@ddalle``: First version
-            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
-            * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
+            * 2020-03-21 ``@ddalle``: First version
+        """
+        # Get dictionary of ecols
+        uq_ecols = self.__dict__.get("uq_ecols", {})
+        # Get ecols
+        ecols = uq_ecols.get(ucol, [])
+        # Check type
+        if typeutils.isstr(ecols):
+            # Create single list
+            ecols = [ecols]
+        elif ecols is None:
+            # Empty result should be empty list
+            ecols = []
+        elif not isinstance(ecols, list):
+            # Invalid type
+            raise TypeError(
+                "uq_ecols for col '%s' should be list; got '%s'"
+                % (ucol, type(ecols)))
+        # Return it
+        return ecols
+
+    # Get extra functions for uq
+    def get_uq_efunc(self, ecol):
+        r"""Get function to evaluate extra UQ column
+
+        :Call:
+            >>> efunc = db.get_uq_efunc(ecol)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ecol*: :class:`str`
+                Name of (correlated) UQ column to evaluate
+        :Outputs:
+            *efunc*: **callable**
+                Function to evaluate *ecol*
+        :Versions:
+            * 2020-03-20 ``@ddalle``: First version
         """
         # Get dictionary of extra UQ funcs
-        uq_funcs = self.__dict__.get("uq_funcs_extra", {})
+        uq_efuncs = self.__dict__.get("uq_efuncs", {})
         # Get entry for *col*
-        return uq_funcs.get(col)
+        return uq_efuncs.get(ecol)
+
+    # Get aux columns needed to compute UQ of a col
+    def get_uq_acol(self, ucol):
+        r"""Get name of extra data cols needed to compute UQ col
+
+        :Call:
+            >>> acols = db.get_uq_acol(ucol)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ column to evaluate
+        :Outputs:
+            *acols*: :class:`list`\ [:class:`str`]
+                Name of extra columns required for estimate *ucol*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Get dictionary of acols
+        uq_acols = self.__dict__.get("uq_acols", {})
+        # Get acols
+        acols = uq_acols.get(ucol, [])
+        # Check type
+        if typeutils.isstr(acols):
+            # Create single list
+            acols = [acols]
+        elif ecols is None:
+            # Empty result should be empty list
+            acols = []
+        elif not isinstance(ecols, list):
+            # Invalid type
+            raise TypeError(
+                "uq_acols for col '%s' should be list; got '%s'"
+                % (ucol, type(acols)))
+        # Return it
+        return acols
+
+    # Get functions to compute UQ for aux col
+    def get_uq_afunc(self, ucol):
+        r"""Get function to UQ column if aux cols are present
+
+        :Call:
+            >>> afunc = db.get_uq_afunc(ucol)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ col to estimate
+        :Outputs:
+            *afunc*: **callable**
+                Function to estimate *ucol*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Get dictionary of aux UQ funcs
+        uq_afuncs = self.__dict__.get("uq_afuncs", {})
+        # Get entry for *col*
+        return uq_afuncs.get(ucol)
 
    # --- Options: Set ---
     # Set name of UQ col for given col
@@ -3794,6 +3878,123 @@ class DataKit(ftypes.BaseData):
             raise TypeError("uq_cols attribute is not a dict")
         # Set parameter
         uq_cols[col] = ucol
+
+    # Get extra UQ cols
+    def set_uq_ecol(self, ucol, ecols):
+        r"""Get name of any extra cols required for a UQ col
+
+        :Call:
+            >>> db.get_uq_ecol(ucol, ecol)
+            >>> db.get_uq_ecol(ucol, ecols)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ column to evaluate
+            *ecol*: :class:`str`
+                Name of extra column required for *ucol*
+            *ecols*: :class:`list`\ [:class:`str`]
+                Name of extra columns required for *ucol*
+        :Versions:
+            * 2020-03-21 ``@ddalle``: First version
+        """
+        # Check type
+        if typeutils.isstr(ecols):
+            # Create single list
+            ecols = [ecols]
+        elif ecols is None:
+            # Empty result should be empty list
+            ecols = []
+        elif not isinstance(ecols, list):
+            # Invalid type
+            raise TypeError(
+                "uq_ecols for col '%s' should be list; got '%s'"
+                % (ucol, type(ecols)))
+        # Get dictionary of ecols
+        uq_ecols = self.__dict__.setdefault("uq_ecols", {})
+        # Set it
+        uq_ecols[ucol] = ecols
+
+    # Set extra functions for uq
+    def set_uq_efunc(self, ecol, efunc):
+        r"""Set function to evaluate extra UQ column
+
+        :Call:
+            >>> db.set_uq_ecol_funcs(ecol, efunc)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ecol*: :class:`str`
+                Name of (correlated) UQ column to evaluate
+            *efunc*: **callable**
+                Function to evaluate *ecol*
+        :Versions:
+            * 2020-03-21 ``@ddalle``: First version
+        """
+        # Check input
+        if not callable(efunc):
+            raise TypeError("Function is not callable")
+        # Get dictionary of extra UQ funcs
+        uq_efuncs = self.__dict__.setdefault("uq_efuncs", {})
+        # Get entry for *col*
+        uq_efuncs[ecol] = efunc
+
+    # Get aux columns needed to compute UQ of a col
+    def set_uq_acol(self, ucol, acols):
+        r"""Set name of extra data cols needed to compute UQ col
+
+        :Call:
+            >>> db.set_uq_acol(ucol, acols)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ column to evaluate
+            *acols*: :class:`list`\ [:class:`str`]
+                Name of extra columns required for estimate *ucol*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Check type
+        if typeutils.isstr(acols):
+            # Create single list
+            acols = [acols]
+        elif acols is None:
+            # Empty result should be empty list
+            acols = []
+        elif not isinstance(acols, list):
+            # Invalid type
+            raise TypeError(
+                "uq_acols for col '%s' should be list; got '%s'"
+                % (ucol, type(acols)))
+        # Get dictionary of ecols
+        uq_acols = self.__dict__.setdefault("uq_acols", {})
+        # Set it
+        uq_acols[ucol] = acols
+
+    # Set aux functions for uq
+    def set_uq_afunc(self, ucol, afunc):
+        r"""Set function to UQ column if aux cols are present
+
+        :Call:
+            >>> db.set_uq_afunc(ucol, afunc)
+        :Inputs:
+            *db*: :class:`attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ col to estimate
+            *afunc*: **callable**
+                Function to estimate *ucol*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Check input
+        if not callable(afunc):
+            raise TypeError("Function is not callable")
+        # Get dictionary of aux UQ funcs
+        uq_afuncs = self.__dict__.setdefault("uq_afuncs", {})
+        # Get entry for *col*
+        uq_afuncs[ucol] = afunc
   # >
 
   # ===================

@@ -470,7 +470,7 @@ def eval_CLNX(db, *a, **kw):
 # Evaluate *UCLM* about different x
 def eval_UCLMX(db, *a, **kw):
     r"""Evaluate *UCLM* about arbitrary *x* moment reference point
-    
+
     :Call:
         >>> UCLMX = eval_UCLMX(db, *a, **kw)
     :Inputs:
