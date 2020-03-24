@@ -589,7 +589,8 @@ class DataKit(ftypes.BaseData):
             # Save the definition (in database format)
             self.set_defn(col, defn, _warnmode)
 
-   # --- Definitions: Get ---# Get output dimension
+   # --- Definitions: Get ---
+    # Get output dimension
     def get_ndim(self, col):
         r"""Get database dimension for column *col*
 
@@ -2151,6 +2152,42 @@ class DataKit(ftypes.BaseData):
         # Output (copy)
         return list(xargs)
 
+    # Get auxiliary cols
+    def get_eval_acol(self, col):
+        r"""Get names of any aux cols related to primary col
+
+        :Call:
+            >>> acols = db.get_eval_acol(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+        :Outputs:
+            *acols*: :class:`list`\ [:class:`str`]
+                Name of aux columns required to evaluate *col*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Get dictionary of ecols
+        eval_acols = self.__dict__.get("eval_acols", {})
+        # Get ecols
+        acols = eval_acols.get(col, [])
+        # Check type
+        if typeutils.isstr(acols):
+            # Create single list
+            acols = [acols]
+        elif ecols is None:
+            # Empty result should be empty list
+            acols = []
+        elif not isinstance(acols, list):
+            # Invalid type
+            raise TypeError(
+                "eval_acols for col '%s' should be list; got '%s'"
+                % (col, type(acols)))
+        # Return it
+        return acols
+
    # --- Options: Set ---
     # Set evaluation args
     def set_eval_args(self, col, args):
@@ -2427,6 +2464,39 @@ class DataKit(ftypes.BaseData):
                     % (j, col, type(k)))
         # Set (copy)
         defn["OutputXVars"] = list(xargs)
+
+    # Get auxiliary cols
+    def set_eval_acol(self, col, acols):
+        r"""Set names of any aux cols related to primary col
+
+        :Call:
+            >>> db.set_eval_acol(col, acols)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+            *acols*: :class:`list`\ [:class:`str`]
+                Name of aux columns required to evaluate *col*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Check type
+        if typeutils.isstr(acols):
+            # Create single list
+            acols = [acols]
+        elif acols is None:
+            # Empty result should be empty list
+            acols = []
+        elif not isinstance(acols, list):
+            # Invalid type
+            raise TypeError(
+                "eval_acols for col '%s' should be list; got '%s'"
+                % (col, type(acols)))
+        # Get dictionary of ecols
+        eval_acols = self.__dict__.setdefault("eval_acols", {})
+        # Set it
+        eval_acols[col] = acols
 
    # --- Arguments ---
     # Attempt to get all values of an argument

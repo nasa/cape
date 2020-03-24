@@ -424,7 +424,7 @@ def eval_CLMX(db, *a, **kw):
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
-    xhat = kw.get("xhat", xMRP/FM.Lref)
+    xhat = kw.get("xhat", xMRP/db.Lref)
     # Evaluate main functions
     CLM = db("CLM", *a, **kw)
     CN  = db("CN",  *a, **kw)
@@ -637,6 +637,8 @@ class DBFM(rdbaero.AeroDataKit):
         rdbaero.AeroDataKit.__init__(self, fname, **kw)
         # Set default arg converters
         self._make_arg_converters_aero()
+        # Set aux cols
+        self._make_eval_acols_FM()
         # Set UQ cols
         self._make_uq_cols_FM()
         self._make_uq_ecols_FM()
@@ -712,6 +714,44 @@ class DBFM(rdbaero.AeroDataKit):
                 ucol = "U" + col
                 # Set it
                 self.set_uq_col(col, ucol)
+
+    # Set eval aux cols for moment cols
+    def _make_eval_acols_FM(self):
+        r"""Set default aux cols for moment cols
+
+        :Call:
+            >>> db._make_eval_acols_FM()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # List moment tags
+        tags = ["CLM", "CLN"]
+        # Loop through them
+        for tag in tags:
+            # Get cols with matching tag
+            for col in self.get_cols_by_tag(tag):
+                # Check col names' ending
+                if col.endswith("LM"):
+                    # CLM -> CN
+                    acol = col[:-2] + "N"
+                elif col.endswith("LN"):
+                    # CLN -> CY
+                    acol = col[:-2] + "Y"
+                elif col.endswith("m"):
+                    # Cm -> CN
+                    acol = col[:-1] + "N"
+                elif col.endswith("n"):
+                    # Cn -> CY
+                    acol = col[:-1] + "Y"
+                # Name of shifted col
+                scol = col + "X"
+                # Set aux cols for "CLM" to "CN"
+                self.set_eval_acol(col, [acol])
+                # Set aux cols for "CLMX" to ["CLM", "CN"]
+                self.set_eval_acol(scol, [col, acol])
 
     # Set UQ extra cols for all FM cols
     def _make_uq_ecols_FM(self):
