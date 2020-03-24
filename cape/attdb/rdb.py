@@ -3592,6 +3592,16 @@ class DataKit(ftypes.BaseData):
   # >
 
   # ===================
+  # Column Names
+  # ===================
+  # <
+   # --- Prefix ---
+    # Prepend something to the name of a columns
+    def prepend_colname(self, col, prefix):
+        pass
+  # >
+
+  # ===================
   # UQ
   # ===================
   # <
@@ -5928,6 +5938,16 @@ class DataKit(ftypes.BaseData):
         R = np.abs(V2 - V1)
         # Calculate interval
         return statutils.get_range(R, cov, **kw)
+  # >
+
+  # ===================
+  # Analysis/Derivation
+  # ===================
+  # <
+   # --- Integration ---
+    # Integrate a 2D field
+    def genr8_integral(self, col, xcol=None, **kw):
+        pass
   # >
 
   # ===================
