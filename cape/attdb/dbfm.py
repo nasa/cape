@@ -711,7 +711,7 @@ class DBFM(rdbaero.AeroDataKit):
             # Get cols with matching tag
             for col in self.get_cols_by_tag(tag):
                 # Name of [default] UQ col
-                ucol = "U" + col
+                ucol = self.prepend_colname(col, "U")
                 # Set it
                 self.set_uq_col(col, ucol)
 
@@ -747,7 +747,7 @@ class DBFM(rdbaero.AeroDataKit):
                     # Cn -> CY
                     acol = col[:-1] + "Y"
                 # Name of shifted col
-                scol = col + "X"
+                scol = self.append_colname(col, "X")
                 # Set aux cols for "CLM" to "CN"
                 self.set_eval_acol(col, [acol])
                 # Set aux cols for "CLMX" to ["CLM", "CN"]
@@ -775,14 +775,9 @@ class DBFM(rdbaero.AeroDataKit):
                 ucol = self.get_uq_col(col)
                 # Default UQ col if needed
                 if ucol is None:
-                    ucol = "U" + col
+                    ucol = self.prepend_colname(col, "U")
                 # Form ecol name
-                if ucol.startswith("U"):
-                    # Strip "U" and prepend with "x"
-                    ecol = "x" + ucol[1:]
-                else:
-                    # Just prepend *col* with "x"
-                    ecol = "x" + col
+                ecol = self.substitute_prefix(col, "U", "x")
                 # Set it
                 self.set_uq_ecol(ucol, ecol)
 
@@ -821,7 +816,7 @@ class DBFM(rdbaero.AeroDataKit):
                 ucol = self.get_uq_col(col)
                 # Default UQ col if needed
                 if ucol is None:
-                    ucol = "U" + col
+                    ucol = self.prepend_colname(col, "U")
                 # Set it
                 self.set_uq_acol(ucol, acol)
    # >
