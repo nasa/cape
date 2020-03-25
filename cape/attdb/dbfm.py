@@ -398,14 +398,18 @@ def convert_phip(*a, **kw):
 
 
 # Special evaluators: CLM vs x
-def eval_CLMX(db, *a, **kw):
+def eval_CLMX(db, col1, col2, *a, **kw):
     r"""Evaluate *CLM* about arbitrary *x* moment reference point
     
     :Call:
-        >>> CLMX = eval_CLMX(db, *a, **kw)
+        >>> CLMX = eval_CLMX(db, col1, col2, *a, **kw)
     :Inputs:
         *db*: :class:`DBFM`
             Force & moment data kit
+        *col1*: ``"CLM"`` | :class:`str`
+            Name of pitching moment column
+        *col2*: ``"CN"`` | :class:`str`
+            Name of normal force column
         *a*: :class:`tuple`
             Arguments to call ``db("CLM", *a)`` [plus *xMRP*]
         *kw*: :class:`dict`
@@ -416,20 +420,28 @@ def eval_CLMX(db, *a, **kw):
     :Versions:
         * 2019-02-28 ``@ddalle``: First version
         * 2020-03-20 ``@ddalle``: :class:`DataKit` version
+        * 2020-03-25 ``@ddalle``: Added *col1*, *col2* args
     """
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.eval_args["CLM"])
+    nf = len(db.eval_args[col1])
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
     xhat = kw.get("xhat", xMRP/db.Lref)
     # Evaluate main functions
-    CLM = db("CLM", *a, **kw)
-    CN  = db("CN",  *a, **kw)
+    CLM = db(col1, *a, **kw)
+    CN  = db(col2, *a, **kw)
     # Transfer
     return CLM + (xhat-xmrp)*CN
+
+
+# Create evaluator
+def genr8_fnCLMX(col1, col2):
+    def fn(db, *a, **kw):
+        return eval_CLMX(db, col1, col2, *a, **kw)
+    return fn
 
 
 # Special evaluators: CLN vs x

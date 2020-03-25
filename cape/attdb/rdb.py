@@ -6857,7 +6857,7 @@ class DataKit(ftypes.BaseData):
                 # Initialize data
                 V = np.zeros_like(X[maincol])
                 # Convert slices to indices within *db*
-                masks = self.find(scol, mapped=True, mask=mask, **slices)
+                masks, _ = self.find(scol, mapped=True, mask=mask, **slices)
                 # Loop through slices
                 for i in range(nslice):
                     # Status update
@@ -6905,7 +6905,7 @@ class DataKit(ftypes.BaseData):
             if maincol is None:
                 break
             # Translate col name
-            colreg = self._translate_colname(col, **tr_args)
+            colreg = self._translate_colname(col, *tr_args)
             # Get values for this column
             V0 = self.get_all_values(col)
             # Check size
