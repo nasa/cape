@@ -794,7 +794,7 @@ class BaseData(dict):
         # Check for tag
         if not defn.get("Tag"):
             # Get default tag
-            tag = self._tagmap.get(col)
+            tag = self._tagmap.get(col.split(".")[-1])
             # If valid tag, set it
             if tag:
                 defn.set_option("Tag", tag)
@@ -952,7 +952,7 @@ class BaseData(dict):
         # Check for specified tag
         if tagdef is None:
             # Check for a default tag
-            tagdef = self._tagmap.get(col)
+            tagdef = self._tagmap.get(col.split(".")[-1])
         # If no default, exit
         if not tagdef:
             return
