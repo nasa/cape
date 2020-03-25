@@ -831,7 +831,7 @@ class DataKit(ftypes.BaseData):
             # Use listed columns
             cols = self.cols
         # Get relevant options
-        kw = {}
+        kw = {"_warnmode": 0}
         # Set values
         kw["Values"] = {col: self[col] for col in cols}
         # Explicit column list
@@ -6197,6 +6197,44 @@ class DataKit(ftypes.BaseData):
         return statutils.get_range(R, cov, **kw)
 
    # --- Integration ---
+    # Integrate a 2D field
+    def create_integral(self, col, xcol=None, icol=None, **kw):
+        r"""Integrate the columns of a 2D data col
+
+        :Call:
+            >>> y = db.genr8_integral(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for integration
+            *x*: {``None``} | :class:`np.ndarray`
+                Optional 1D or 2D *x*-coordinates directly specified
+            *dx*: {``1.0``} | :class:`float`
+                Uniform spacing to use if *xcol* and *x* are not used
+            *method*: {``"trapz"``} | ``"left"`` | ``"right"``
+                Integration method
+        :Outputs:
+            *y*: :class:`np.ndarray`
+                1D array of integral of each column of *db[col]*
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Default column name
+        if icol is None:
+            # Try to remove a "d" from *col* ("dCN" -> "CN")
+            icol = self.lstrip_colname(col, "d")
+        # Perform the integration
+        y = self.genr8_integral(col, xcol, **kw)
+        # Save column
+        self.save_col(icol, y)
+        # Save definition
+        self.make_defn(icol, y)
+        # Output
+        return y
+
     # Integrate a 2D field
     def genr8_integral(self, col, xcol=None, **kw):
         r"""Integrate the columns of a 2D data col

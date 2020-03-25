@@ -115,6 +115,10 @@ class BaseDataOpts(kwutils.KwargHandler):
         # Get directly-specified definitions
         defns = self.get_option("Definitions", {})
         # Get specific definition and set type
+        defn = defns.get(col, {})
+        # Remove "DType"
+        defn.pop("DType", None)
+        # Convert to class
         defn = defncls(defns.get(col, {}))
         # Loop through dicts of definition parameters
         for opt in defncls._optlist:
@@ -567,7 +571,7 @@ class BaseData(dict):
         """
         # Get class
         optscls = self.__class__._optscls
-        # Convert kwargs to options; return it
+        # Convert kwargs to options
         return optscls(**kw)
 
     # Query keyword arguments for manual values
