@@ -3596,9 +3596,266 @@ class DataKit(ftypes.BaseData):
   # ===================
   # <
    # --- Prefix ---
-    # Prepend something to the name of a columns
+    # Prepend something to the name of a column
     def prepend_colname(self, col, prefix):
-        pass
+        r"""Add a prefix to a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CN"``, and *prefix* is ``"U"``, the result is
+        ``"bullet.UCN"``.
+
+        :Call:
+            >>> newcol = db.prepend_colname(col, prefix)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to prepend
+            *prefix*: :class:`str`
+                Prefix to prefix
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + prefix + coeff
+        else:
+            # No component name
+            newcol = prefix + coeff
+        # Output
+        return newcol
+
+    # Remove prefix from the name of a column
+    def lstrip_colname(self, col, prefix):
+        r"""Remove a prefix from a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.UCN"``, and *prefix* is ``"U"``, the result is
+        ``"bullet.CN"``.
+
+        :Call:
+            >>> newcol = db.lstrip_colname(col, prefix)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to strip
+            *prefix*: :class:`str`
+                Prefix to remove
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Remove prefix
+        if coeff.startswith(prefix):
+            # Strip it
+            coeff = coeff[len(prefix):]
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff
+        else:
+            # No component name
+            newcol = coeff
+        # Output
+        return newcol
+
+    # Substitute suffix
+    def substitute_prefix(self, col, prefix1, prefix2):
+        r"""Remove a prefix from a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CLMF"``, *prefix1* is ``"CLM"``, *suffix2* is
+        ``"CN"``, and the result is ``"bullet.CNF"``.
+
+        :Call:
+            >>> newcol = db.substitute_prefix(col, prefix1, prefix2)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to strip
+            *prefix1*: :class:`str`
+                Prefix to remove from column name
+            *prefix2*: :class:`str`
+                Prefix to add to column name
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Remove prefix
+        if coeff.startswith(prefix1):
+            # Replace it
+            coeff = prefix2 + coeff[len(prefix1):]
+        else:
+            # Add prefix anyway
+            coeff = prefix2 + coeff
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff
+        else:
+            # No component name
+            newcol = coeff
+        # Output
+        return newcol
+
+   # --- Suffix ---
+    # Append something to the name of a column
+    def append_colname(self, col, suffix):
+        r"""Add a suffix to a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CLM"``, and *suffix* is ``"X"``, the result is
+        ``"bullet.CLMX"``.
+
+        :Call:
+            >>> newcol = db.append_colname(col, suffix)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to append
+            *suffix*: :class:`str`
+                Suffix to append to column name
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff + suffix
+        else:
+            # No component name
+            newcol = coeff + suffix
+        # Output
+        return newcol
+
+    # Prepend something to the name of a columns
+    def rstrip_colname(self, col, suffix):
+        r"""Remove a suffix from a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CLMX"``, and *suffix* is ``"X"``, the result is
+        ``"bullet.CLM"``.
+
+        :Call:
+            >>> newcol = db.rstrip_colname(col, suffix)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to strip
+            *suffix*: :class:`str`
+                Suffix to remove from column name
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Remove prefix
+        if coeff.endswith(suffix):
+            # Strip it
+            coeff = coeff[:-len(suffix)]
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff
+        else:
+            # No component name
+            newcol = coeff
+        # Output
+        return newcol
+
+    # Substitute suffix
+    def substitute_suffix(self, col, suffix1, suffix2):
+        r"""Remove a suffix from a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CLM"``, *suffix1* is ``"LM"``, *suffix2* is ``"N"``,
+        and the result is ``"bullet.CN"``.
+
+        :Call:
+            >>> newcol = db.substitute_suffix(col, suffix1, suffix2)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to strip
+            *suffix1*: :class:`str`
+                Suffix to remove from column name
+            *suffix2*: :class:`str`
+                Suffix to add to column name
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Remove prefix
+        if coeff.endswith(suffix1):
+            # Replace it
+            coeff = coeff[:-len(suffix1)] + suffix2
+        else:
+            # Add suffix anyway
+            coeff = coeff + suffix2
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff
+        else:
+            # No component name
+            newcol = coeff
+        # Output
+        return newcol
   # >
 
   # ===================
@@ -5938,16 +6195,116 @@ class DataKit(ftypes.BaseData):
         R = np.abs(V2 - V1)
         # Calculate interval
         return statutils.get_range(R, cov, **kw)
-  # >
 
-  # ===================
-  # Analysis/Derivation
-  # ===================
-  # <
    # --- Integration ---
     # Integrate a 2D field
     def genr8_integral(self, col, xcol=None, **kw):
-        pass
+        r"""Integrate the columns of a 2D data col
+
+        :Call:
+            >>> y = db.genr8_integral(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for integration
+            *x*: {``None``} | :class:`np.ndarray`
+                Optional 1D or 2D *x*-coordinates directly specified
+            *dx*: {``1.0``} | :class:`float`
+                Uniform spacing to use if *xcol* and *x* are not used
+            *method*: {``"trapz"``} | ``"left"`` | ``"right"``
+                Integration method
+        :Outputs:
+            *y*: :class:`np.ndarray`
+                1D array of integral of each column of *db[col]*
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Select method
+        method = kw.get("method")
+        # Default method
+        if method is None:
+            method = "trapz"
+        # Check it
+        if not typeutils.isstr(method):
+            # Method must be string
+            raise TypeError("'method' must be 'str', got '%s'" % type(method))
+        if method not in {"trapz", "left", "right"}:
+            # Invalid name
+            raise ValueError(
+                ("method '%s' not supported; " % method) +
+                ("options are 'trapz', 'left', 'right'"))
+        # Get dimension of *col*
+        ndim = self.get_col_prop(col, "Dimension")
+        # Ensure 2D column
+        if ndim != 2:
+            raise ValueError("Col '%s' is not 2D" % col)
+        # Get values
+        Y = self.get_all_values(col)
+        # Number of conditions
+        nx, ny = Y.shape
+        # Process *x*
+        if xcol is None:
+            # Use 0, 1, 2, ... as *x* coords
+            x = kw.get("x")
+        else:
+            # Get values
+            x = self.get_all_values(xcol)
+        # Get dimension
+        if x is None:
+            # Get "dx"
+            dx = kw.get("dx")
+            # Default
+            if dx is None:
+                dx = 1.0
+            # Create default
+            x = dx * np.arange(nx)
+        else:
+            # Ensure array
+            if not isinstance(x, np.ndarray):
+                raise TypeError("x-coords for integration must be array")
+        # Determine from *x*
+        ndx = x.ndim
+        # Ensure 1 or 2
+        if ndx == 1:
+            # Calculate *dx* vector beforehand
+            dx = np.diff(x)
+        elif ndx == 2:
+            # Nothing to do here
+            pass
+        else:
+            raise ValueError(
+                "Integration does not support %i-D x coords" % ndx)
+        # Initialize output
+        y = np.zeros(ny, dtype=self.get_col_dtype(col))
+        # Loop through conditions
+        for i in range(ny):
+            # Check method
+            if method == "trapz":
+                # Trapezoidal integration
+                if ndx == 1:
+                    # Common *x* coords
+                    y[i] = np.trapz(Y[:,i], x)
+                else:
+                    # Select *x* column
+                    y[i] = np.trapz(Y[:,i], x[:,i])
+                # Go to next interval
+                continue
+            # Check *x* dimension
+            if ndx == 2:
+                # Select column and get intervale widhtds
+                dx = np.diff(x[:,i])
+            # Check L/R
+            if method == "left":
+                # Lower rectangular sum
+                y[i] = np.sum(dx * Y[:,i][:-1])
+            elif method == "right":
+                # Upper rectangular sum
+                y[i] = np.sum(dx * Y[:,i][1:])
+        # Output
+        return y
   # >
 
   # ===================
