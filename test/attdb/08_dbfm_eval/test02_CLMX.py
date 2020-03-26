@@ -27,22 +27,31 @@ db.get_bkpts(args)
 
 # Set evaluation
 db.make_responses(fmcols, "linear", args)
-# Set evaluator for "bullet.CLMX"
+# Set evaluator for "bullet.CLMX" and "bullet.CLNX"
 db.make_CLMX()
+db.make_CLNX()
 
 # Pick some conditions
 mach = 0.90
 alph = 1.50
 beta = 0.50
-
-print("CLMX: %.2f" % db("bullet.CLMX", mach, alph, beta, xMRP=1.0))
+xmrp = 2.00
 
 # Conditions
-print("mach: %.2f" % mach)
+print("mach : %.2f" % mach)
 print("alpha: %.2f" % alph)
-print("beta: %.2f" % beta)
+print("beta : %.2f" % beta)
+print("xMRP : %.2f" % xmrp)
+
 # Loop throuch columns
-for col in fmcols:
-    # Print it
-    print("%s: %.2f" % (col, db(col, mach, alph, beta)))
+for col in ["CLM", "CLN"]:
+    # Column names
+    col1 = "bullet.%s" % col
+    col2 = "bullet.%sX" % col
+    # Evaluate
+    v1 = db(col1, mach, alph, beta)
+    v2 = db(col2, mach, alph, beta, xmrp)
+    # Print them
+    print("%-11s: %.3f" % (col1, v1))
+    print("%-11s: %.3f" % (col2, v2))
 
