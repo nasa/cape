@@ -398,14 +398,18 @@ def convert_phip(*a, **kw):
 
 
 # Special evaluators: CLM vs x
-def eval_CLMX(db, *a, **kw):
+def eval_CLMX(db, col1, col2, *a, **kw):
     r"""Evaluate *CLM* about arbitrary *x* moment reference point
     
     :Call:
-        >>> CLMX = eval_CLMX(db, *a, **kw)
+        >>> CLMX = eval_CLMX(db, col1, col2, *a, **kw)
     :Inputs:
         *db*: :class:`DBFM`
             Force & moment data kit
+        *col1*: ``"CLM"`` | :class:`str`
+            Name of pitching moment column
+        *col2*: ``"CN"`` | :class:`str`
+            Name of normal force column
         *a*: :class:`tuple`
             Arguments to call ``db("CLM", *a)`` [plus *xMRP*]
         *kw*: :class:`dict`
@@ -416,31 +420,36 @@ def eval_CLMX(db, *a, **kw):
     :Versions:
         * 2019-02-28 ``@ddalle``: First version
         * 2020-03-20 ``@ddalle``: :class:`DataKit` version
+        * 2020-03-25 ``@ddalle``: Added *col1*, *col2* args
     """
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.eval_args["CLM"])
+    nf = len(db.eval_args[col1])
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
-    xhat = kw.get("xhat", xMRP/FM.Lref)
+    xhat = kw.get("xhat", xMRP/db.Lref)
     # Evaluate main functions
-    CLM = db("CLM", *a, **kw)
-    CN  = db("CN",  *a, **kw)
+    CLM = db(col1, *a, **kw)
+    CN  = db(col2, *a, **kw)
     # Transfer
     return CLM + (xhat-xmrp)*CN
 
 
 # Special evaluators: CLN vs x
-def eval_CLNX(db, *a, **kw):
+def eval_CLNX(db, col1, col2, *a, **kw):
     r"""Evaluate *CLN* about arbitrary *x* moment reference point
     
     :Call:
-        >>> CLNX = eval_CLNX(db, *a, **kw)
+        >>> CLNX = eval_CLNX(db, col1, col2, *a, **kw)
     :Inputs:
         *db*: :class:`DBFM`
             Force & moment data kit
+        *col1*: ``"CLN"`` | :class:`str`
+            Name of yawing moment column
+        *col2*: ``"CY"`` | :class:`str`
+            Name of side force column
         *a*: :class:`tuple`
             Arguments to call ``FM("CLM", *a)`` [plus *xMRP*]
         *kw*: :class:`dict`
@@ -455,22 +464,88 @@ def eval_CLNX(db, *a, **kw):
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.eval_args["CLN"])
+    nf = len(db.eval_args[col1])
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
-    xhat = kw.get("xhat", xMRP/FM.Lref)
+    xhat = kw.get("xhat", xMRP/db.Lref)
     # Evaluate main functions
-    CLN = db("CLN", *a, **kw)
-    CY  = db("CY",  *a, **kw)
+    CLN = db(col1, *a, **kw)
+    CY  = db(col2, *a, **kw)
     # Transfer
     return CLN + (xhat-xmrp)*CY
+
+
+# Create evaluator
+def genr8_fCLMX(col1, col2):
+    r"""Generate an evaluator for *CLMX* with specified *cols*
+
+    :Call:
+        >>> func = genr8_fCLMX(col1="CLM", col2="CN")
+    :Inputs:
+        *col1*: {``"CLM"``} | :class:`str`
+            Name of *CLM* column to evaluate
+        *col2*: {``"CN"``} | :class:`str`
+            Name of *CN* column to evaluate
+    :Outputs:
+        *func*: :class:`function`
+            Function to evaluate *col1* about arbitrary *xMRP*
+    :Output Call:
+        >>> CLMX = func(db, *a, **kw)
+    :Output Args:
+        *db*: :class:`DBFM`
+            Force and moment data kit
+        *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+            Args to *col1* and *col2*, plus optional *xMRP*
+        *kw*: :class:`dict`
+            Keyword args to *col1* and *col2*, plus optional *xMRP*
+    :Versions:
+        * 2020-03-26 ``@ddalle``: First version
+    """
+    # Define the function
+    def func(db, *a, **kw):
+        return eval_CLMX(db, col1, col2, *a, **kw)
+    # Return the function
+    return func
+
+
+# Create evaluator
+def genr8_fCLNX(col1, col2):
+    r"""Generate an evaluator for *CLNX* with specified *cols*
+
+    :Call:
+        >>> func = genr8_fCLNX(col1="CLN", col2="CN")
+    :Inputs:
+        *col1*: ``"CLN"`` | :class:`str`
+            Name of yawing moment column
+        *col2*: ``"CY"`` | :class:`str`
+            Name of side force column
+    :Outputs:
+        *func*: :class:`function`
+            Function to evaluate *col1* about arbitrary *xMRP*
+    :Output Call:
+        >>> CLNX = func(db, *a, **kw)
+    :Output Args:
+        *db*: :class:`DBFM`
+            Force and moment data kit
+        *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+            Args to *col1* and *col2*, plus optional *xMRP*
+        *kw*: :class:`dict`
+            Keyword args to *col1* and *col2*, plus optional *xMRP*
+    :Versions:
+        * 2020-03-26 ``@ddalle``: First version
+    """
+    # Define the function
+    def func(db, *a, **kw):
+        return eval_CLNX(db, col1, col2, *a, **kw)
+    # Return the function
+    return func
 
 
 # Evaluate *UCLM* about different x
 def eval_UCLMX(db, *a, **kw):
     r"""Evaluate *UCLM* about arbitrary *x* moment reference point
-    
+
     :Call:
         >>> UCLMX = eval_UCLMX(db, *a, **kw)
     :Inputs:
@@ -618,6 +693,9 @@ class DBFM(rdbaero.AeroDataKit):
         "CLN":  "CLN",
         "CN":   "CN",
         "CY":   "CY",
+        "Cl":   "CLL",
+        "Cm":   "CLM",
+        "Cn":   "CLN",
     }
   # >
 
@@ -639,10 +717,19 @@ class DBFM(rdbaero.AeroDataKit):
         self._make_arg_converters_aero()
         # Set UQ cols
         self._make_uq_cols_FM()
+        self._make_uq_ecols_FM()
+        self._make_uq_acols_FM()
         # Save reference properties
         self.Lref = self.opts.get_option("RefLength", 1.0)
         self.Aref = self.opts.get_option("RefArea", 0.25*np.pi)
         self.xMRP = self.opts.get_option("xMRP", 0.0)
+        self.yMRP = self.opts.get_option("yMRP", 0.0)
+        self.zMRP = self.opts.get_option("zMRP", 0.0)
+        # Set default arguments
+        self.set_arg_default("xMRP", self.xMRP)
+        self.set_arg_default("yMRP", self.yMRP)
+        self.set_arg_default("zMRP", self.zMRP)
+        # 
         
   # >
 
@@ -681,7 +768,7 @@ class DBFM(rdbaero.AeroDataKit):
             self.set_arg_converter(col, convert_phip)
 
    # --- UQ Columns ---
-    # Set UQ col for all FM coeffs
+    # Set UQ col for all FM cols
     def _make_uq_cols_FM(self):
         r"""Set default UQ col names for forces & moments
 
@@ -695,21 +782,257 @@ class DBFM(rdbaero.AeroDataKit):
         """
         # List FM tags
         tags = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
-        # Get UQ cols dict
-        uq_cols = self.__dict__.setdefault("uq_cols", {})
         # Loop through them
         for tag in tags:
             # Get cols with matching tag
             for col in self.get_cols_by_tag(tag):
                 # Name of [default] UQ col
-                uq_col = "U" + col
+                ucol = self.prepend_colname(col, "U")
                 # Set it
-                uq_cols.setdefault(col, uq_col)
-   # >
+                self.set_uq_col(col, ucol)
+
+    # Set UQ extra cols for all FM cols
+    def _make_uq_ecols_FM(self):
+        r"""Set default UQ extra cols for reference UQ MRP
+
+        :Call:
+            >>> db._make_uq_ecols_FM()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # List moment tags
+        tags = ["CLM", "CLN"]
+        # Loop through them
+        for tag in tags:
+            # Get cols with matching tag
+            for col in self.get_cols_by_tag(tag):
+                # Get actual UQ col
+                ucol = self.get_uq_col(col)
+                # Default UQ col if needed
+                if ucol is None:
+                    ucol = self.prepend_colname(col, "U")
+                # Form ecol name
+                ecol = self.substitute_prefix(col, "U", "x")
+                # Set it
+                self.set_uq_ecol(ucol, ecol)
+
+    # Set UQ aux cols for moment cols
+    def _make_uq_acols_FM(self):
+        r"""Set default UQ aux cols for reference UQ MRP
+
+        :Call:
+            >>> db._make_uq_acols_FM()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # List moment tags
+        tags = ["CLM", "CLN"]
+        # Loop through them
+        for tag in tags:
+            # Get cols with matching tag
+            for col in self.get_cols_by_tag(tag):
+                # Check col names' ending
+                if col.endswith("LM"):
+                    # CLM -> CN
+                    acol = col[:-2] + "N"
+                elif col.endswith("LN"):
+                    # CLN -> CY
+                    acol = col[:-2] + "Y"
+                elif col.endswith("m"):
+                    # Cm -> CN
+                    acol = col[:-1] + "N"
+                elif col.endswith("n"):
+                    # Cn -> CY
+                    acol = col[:-1] + "Y"
+                # Get actual UQ col
+                ucol = self.get_uq_col(col)
+                # Default UQ col if needed
+                if ucol is None:
+                    ucol = self.prepend_colname(col, "U")
+                # Set it
+                self.set_uq_acol(ucol, acol)
+
+   # --- Derived Data Columns ---
+    # Make *CLMX* evaluators
+    def make_CLMX(self):
+        r"""Build and save evaluators for *CLMX* cols
+
+        :Call:
+            >>> db.make_CLMX()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-26 ``@ddalle``: First version
+        """
+        # Loop through *CLM* cols
+        for col in self.get_cols_by_tag("CLM"):
+            # Args
+            args = self.get_eval_args(col)
+            # Check if set
+            if args is None:
+                return
+            # Append MRP location
+            args += ["xMRP"]
+            # Get aux column name
+            acol = self._getcol_CN_from_CLM(col)
+            # Name of shifted col
+            scol = self.append_colname(col, "X")
+            # Test if *scol* is already present
+            if self.get_eval_method(scol):
+                continue
+            # Set aux cols for "CLM" to "CN"
+            self.set_eval_acol(col, [acol])
+            # Set aux cols for "CLMX" to ["CLM", "CN"]
+            self.set_eval_acol(scol, [col, acol])
+            # Generate *CLMX* function
+            func = genr8_fCLMX(col, acol)
+            # Save it
+            self.make_response(scol, "function", args, func=func)
+
+    # Make *CLNX* evaluators
+    def make_CLNX(self):
+        r"""Build and save evaluators for *CLNX* cols
+
+        :Call:
+            >>> db.make_CLNX()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-26 ``@ddalle``: First version
+        """
+        # Loop through *CLM* cols
+        for col in self.get_cols_by_tag("CLN"):
+            # Args
+            args = self.get_eval_args(col)
+            # Check if set
+            if args is None:
+                return
+            # Append MRP location
+            args += ["xMRP"]
+            # Get aux column name
+            acol = self._getcol_CY_from_CLN(col)
+            # Name of shifted col
+            scol = self.append_colname(col, "X")
+            # Test if *scol* is already present
+            if self.get_eval_method(scol):
+                continue
+            # Set aux cols for "CLN" to "CY"
+            self.set_eval_acol(col, [acol])
+            # Set aux cols for "CLNX" to ["CLN", "CY"]
+            self.set_eval_acol(scol, [col, acol])
+            # Generate *CLMX* function
+            func = genr8_fCLNX(col, acol)
+            # Save it
+            self.make_response(scol, "function", args, func=func)
+
+    # Get *CN* col name from *CLM*
+    def _getcol_CN_from_CLM(self, col):
+        r"""Form *CN* col name from *CLM* col name
+
+        :Call:
+            >>> acol = db._getcol_CN_from_CLM(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+            *col*: ``"CLM"`` | :class:`str`
+                Name of *CLM* column
+        :Outputs:
+            *acol*: ``"CN"`` | :class:`str`
+                Name of *CN* column
+        :Versions:
+            * 2020-03-26 ``@ddalle``: First version
+        """
+        # Split component and coeff
+        parts = col.split(".")
+        # Get coeff
+        coeff = parts[-1]
+        # Get aux column name
+        if coeff.endswith("LM"):
+            # CLM -> CN
+            acoeff = coeff[:-2] + "N"
+        elif coeff.endswith("m"):
+            # Cm -> CN
+            acoeff = coeff[:-1] + "N"
+        elif coeff.startswith("CLM"):
+            # CLMF -> CNF
+            acoeff = "CN" + coeff[3:]
+        elif coeff.startswith("Cm"):
+            # Cmf -> CNf
+            acoeff = "CN" + coeff[2:]
+        elif coeff.startswith("MLM"):
+            # MLM -> FN
+            acoeff = "FN" + acoeff[3:]
+        elif coeff.startswith("My"):
+            # My -> Fz
+            acoeff = "Fz" + coeff[2:]
+        else:
+            # Just add N
+            acoeff = coeff + "N"
+        # Save updated coeff
+        parts[-1] = acoeff
+        # Output
+        return ".".join(parts)
+
+    # Get *CY* col name from *CLN*
+    def _getcol_CY_from_CLN(self, col):
+        r"""Form *CY* col name from *CLN* col name
+
+        :Call:
+            >>> acol = db._getcol_CY_from_CLN(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+            *col*: ``"CLM"`` | :class:`str`
+                Name of *CLM* column
+        :Outputs:
+            *acol*: ``"CN"`` | :class:`str`
+                Name of *CN* column
+        :Versions:
+            * 2020-03-26 ``@ddalle``: First version
+        """
+        # Split component and coeff
+        parts = col.split(".")
+        # Get coeff
+        coeff = parts[-1]
+        # Get aux column name
+        if coeff.endswith("LN"):
+            # CLN -> CY
+            acoeff = coeff[:-2] + "Y"
+        elif coeff.endswith("n"):
+            # Cn -> CY
+            acoeff = coeff[:-1] + "Y"
+        elif coeff.startswith("CLN"):
+            # CLNF -> CYF
+            acoeff = "CY" + coeff[3:]
+        elif coeff.startswith("Cn"):
+            # Cnf -> CYf
+            acoeff = "CY" + coeff[2:]
+        elif coeff.startswith("MLN"):
+            # MLN -> FY
+            acoeff = "FY" + acoeff[3:]
+        elif coeff.startswith("Mz"):
+            # Mz -> Fy
+            acoeff = "Fy" + coeff[2:]
+        else:
+            # Just add N
+            acoeff = coeff + "Y"
+        # Save updated coeff
+        parts[-1] = acoeff
+        # Output
+        return ".".join(parts)
+  # >
 
 
 # Combine options
-kwutils._combine_val(AeroDataKit, rdb.DataKit._tagmap)
+kwutils._combine_val(DBFM._tagmap, rdbaero.AeroDataKit._tagmap)
 
 # Invert the _tagmap
-AeroDataKit.create_tagcols()
+DBFM.create_tagcols()

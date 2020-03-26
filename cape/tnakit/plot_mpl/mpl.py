@@ -1850,6 +1850,7 @@ def _contour(xv, yv, zv, **kw):
         # Contour lines
         h = plt.tricontour(xv, yv, zv, **kw_p)
     elif ctyp == "tripcolor":
+
         # Triangulated 
         h = plt.tripcolor(xv, yv, zv, **kw_p)
     else:

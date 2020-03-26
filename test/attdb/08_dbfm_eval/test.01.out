@@ -1,0 +1,9 @@
+mach: 0.90
+alpha: 1.50
+beta: 0.50
+bullet.CA: 0.24
+bullet.CY: 0.02
+bullet.CN: 0.07
+bullet.CLL: 0.00
+bullet.CLM: 0.22
+bullet.CLN: 0.07

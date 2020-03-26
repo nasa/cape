@@ -589,14 +589,15 @@ class DataKit(ftypes.BaseData):
             # Save the definition (in database format)
             self.set_defn(col, defn, _warnmode)
 
-   # --- Definitions: Get ---# Get output dimension
+   # --- Definitions: Get ---
+    # Get output dimension
     def get_ndim(self, col):
         r"""Get database dimension for column *col*
 
         :Call:
             >>> ndim = db.get_ndim(col)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -609,7 +610,7 @@ class DataKit(ftypes.BaseData):
         # Get column definition
         defn = self.get_defn(col)
         # Get dimensionality
-        ndim = defn.get("Dimension")
+        ndim = defn.get("Dimension", 1)
         # Check valid result
         if isinstance(ndim, int):
             return ndim
@@ -638,7 +639,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> ndim = db.get_output_ndim(col)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -667,7 +668,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_ndim(col, ndim)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -694,7 +695,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_output_ndim(col, ndim)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -830,7 +831,7 @@ class DataKit(ftypes.BaseData):
             # Use listed columns
             cols = self.cols
         # Get relevant options
-        kw = {}
+        kw = {"_warnmode": 0}
         # Set values
         kw["Values"] = {col: self[col] for col in cols}
         # Explicit column list
@@ -1207,7 +1208,7 @@ class DataKit(ftypes.BaseData):
             >>> v = db(col, k0=x0, k1=x1, ...)
             >>> V = db(col, k0=x0, k1=X1, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1321,7 +1322,7 @@ class DataKit(ftypes.BaseData):
             >>> V, I, J, X = db.eval_exact(col, x0, X1, ...)
             >>> V, I, J, X = db.eval_exact(col, k0=x0, k1=X1, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1413,7 +1414,7 @@ class DataKit(ftypes.BaseData):
             >>> U = db.eval_uq(col, k0=x0, k1=x1, ...)
             >>> U = db.eval_uq(col, k0=x0, k1=X1, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of **nominal** column to evaluate
@@ -1513,7 +1514,7 @@ class DataKit(ftypes.BaseData):
             >>> V = db.eval_from_arglist(col, args, k0=x0, k1=x1, ...)
             >>> V = db.eval_from_arglist(col, args, k0=x0, k1=X1, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1601,7 +1602,7 @@ class DataKit(ftypes.BaseData):
             >>> V = db.eval_from_index(col, I, **kw)
             >>> v = db.eval_from_index(col, i, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1639,7 +1640,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.make_responses(cols, method, args, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns for which to declare evaluation rules
@@ -1690,7 +1691,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.make_response(col, method, args, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column for which to declare evaluation rules
@@ -1715,6 +1716,8 @@ class DataKit(ftypes.BaseData):
             *smooth*: {``0.0``} | :class:`float` >= 0
                 Smoothing factor for methods that allow inexact
                 interpolation, ``0.0`` for exact interpolation
+            *func*: **callable**
+                Function to use for ``"function"`` *method*
         :Versions:
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
@@ -1760,9 +1763,12 @@ class DataKit(ftypes.BaseData):
                 ("No %i-D eval method '%s'; " % (ndim, method)) +
                 ("closest matches: %s" % mtches))
         # Check for required constructor method
-        constructor_col = cls._method_constructors.get(method)
+        constructor_name = cls._method_constructors.get(method)
+        # Get constructor
+        if constructor_name is not None:
+            constructor_col = getattr(self, constructor_name, None)
         # Apply it if appropriate
-        if constructor_col is None:
+        if constructor_name is None:
             # Do nothing
             pass
         elif not callable(constructor_col):
@@ -1770,7 +1776,7 @@ class DataKit(ftypes.BaseData):
                 "Constructor for method '%s' is not callable" % method)
         else:
             # Call the constructor
-            constructor_col(*a, args=args, **kw)
+            constructor_col(col, *a, args=args, **kw)
         # Save method name
         self.set_eval_method(col, method)
         # Argument list is the same for all methods
@@ -1785,7 +1791,7 @@ class DataKit(ftypes.BaseData):
             >>> db._create_function(col, *a, **kw)
             >>> db._create_function(col, fn, *a[1:], **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1796,7 +1802,7 @@ class DataKit(ftypes.BaseData):
         :Keywords:
             *function*, *func*: *callable*
                 Callable function to save, overrides *a[0]*
-            *self*: {``True``} | ``False``
+            *use_self*: {``True``} | ``False``
                 Flag to include database in callback
         :Versions:
             * 2019-12-30 ``@ddalle``: First version
@@ -1808,13 +1814,15 @@ class DataKit(ftypes.BaseData):
         # Get the function
         if len(a) > 0:
             # Function given as arg
-            fn = a[0]
+            func = a[0]
         else:
             # Function better be a keyword because there are no args
-            fn = None
+            func = None
+        # Get function
+        func = kw.get("func", kw.get("function", func))
         # Save the function
-        eval_func[col] = kw.get("function", kw.get("func", fn))
-        eval_func_self[col] = kw.get("self", True)
+        eval_func[col] = func
+        eval_func_self[col] = kw.get("use_self", True)
 
     # Global RBFs
     def _create_rbf(self, col, *a, **kw):
@@ -1823,7 +1831,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db._create_rbf(col, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1852,7 +1860,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db._create_rbf_linear(col, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1881,7 +1889,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db._create_rbf_map(col, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1911,7 +1919,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> args = db.get_eval_args(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1950,7 +1958,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> method = db.get_eval_method(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -1980,7 +1988,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> f = db.get_eval_arg_converter(k)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str` | :class:`unicode`
                 Name of argument
@@ -2004,33 +2012,6 @@ class DataKit(ftypes.BaseData):
         # Output
         return f
 
-    # Get UQ coefficient
-    def get_uq_col(self, col):
-        r"""Get name of UQ coefficient(s) for *coeff*
-
-        :Call:
-            >>> ucol = db.get_uq_col(col)
-            >>> ucols = db.get_uq_col(col)
-        :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
-                Database with scalar output functions
-            *col*: :class:`str`
-                Name of data column to evaluate
-        :Outputs:
-            *ucol*: ``None`` | :class:`str`
-                Name of UQ columns for *col*
-            *ucols*: :class:`list`\ [:class:`str`]
-                List of UQ columns for *col*
-        :Versions:
-            * 2019-03-13 ``@ddalle``: First version
-            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
-            * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
-        """
-        # Get dictionary of UQ coeffs
-        uq_cols = self.__dict__.setdefault("uq_cols", {})
-        # Get entry for this coefficient
-        return uq_cols.get(col)
-
     # Get user-set callable function
     def get_eval_func(self, col):
         r"""Get callable function predefined for a column
@@ -2038,7 +2019,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> fn = db.get_eval_func(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2074,7 +2055,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> aliases = db.get_eval_arg_aliases(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2114,7 +2095,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> kwargs = db.get_eval_kwargs(col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2153,7 +2134,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> xargs = db.get_output_xvars(col)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -2178,6 +2159,42 @@ class DataKit(ftypes.BaseData):
         # Output (copy)
         return list(xargs)
 
+    # Get auxiliary cols
+    def get_eval_acol(self, col):
+        r"""Get names of any aux cols related to primary col
+
+        :Call:
+            >>> acols = db.get_eval_acol(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+        :Outputs:
+            *acols*: :class:`list`\ [:class:`str`]
+                Name of aux columns required to evaluate *col*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Get dictionary of ecols
+        eval_acols = self.__dict__.get("eval_acols", {})
+        # Get ecols
+        acols = eval_acols.get(col, [])
+        # Check type
+        if typeutils.isstr(acols):
+            # Create single list
+            acols = [acols]
+        elif ecols is None:
+            # Empty result should be empty list
+            acols = []
+        elif not isinstance(acols, list):
+            # Invalid type
+            raise TypeError(
+                "eval_acols for col '%s' should be list; got '%s'"
+                % (col, type(acols)))
+        # Return it
+        return acols
+
    # --- Options: Set ---
     # Set evaluation args
     def set_eval_args(self, col, args):
@@ -2186,7 +2203,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_args(col, args)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column
@@ -2226,7 +2243,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_method(col, method)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column
@@ -2261,7 +2278,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_func(col, fn)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column
@@ -2300,7 +2317,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_arg_default(k, v)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
@@ -2322,7 +2339,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_arg_converter(k, fn)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
@@ -2347,7 +2364,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_arg_aliases(col, aliases)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2389,7 +2406,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_eval_kwargs(col, kwargs)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column to evaluate
@@ -2428,7 +2445,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_output_xvars(col, xargs)
         :Inputs:
-            *db*: :class:`attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -2455,6 +2472,39 @@ class DataKit(ftypes.BaseData):
         # Set (copy)
         defn["OutputXVars"] = list(xargs)
 
+    # Get auxiliary cols
+    def set_eval_acol(self, col, acols):
+        r"""Set names of any aux cols related to primary col
+
+        :Call:
+            >>> db.set_eval_acol(col, acols)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+            *acols*: :class:`list`\ [:class:`str`]
+                Name of aux columns required to evaluate *col*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Check type
+        if typeutils.isstr(acols):
+            # Create single list
+            acols = [acols]
+        elif acols is None:
+            # Empty result should be empty list
+            acols = []
+        elif not isinstance(acols, list):
+            # Invalid type
+            raise TypeError(
+                "eval_acols for col '%s' should be list; got '%s'"
+                % (col, type(acols)))
+        # Get dictionary of ecols
+        eval_acols = self.__dict__.setdefault("eval_acols", {})
+        # Set it
+        eval_acols[col] = acols
+
    # --- Arguments ---
     # Attempt to get all values of an argument
     def get_all_values(self, k):
@@ -2465,7 +2515,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> V = db.get_all_values(k)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str`
                 Name of evaluation argument
@@ -2515,7 +2565,7 @@ class DataKit(ftypes.BaseData):
             >>> V = db.get_values(col)
             >>> V = db.get_values(col, I=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of evaluation argument
@@ -2579,7 +2629,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> v = db.get_arg_value(i, k, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *i*: :class:`int`
                 Argument index within *db.eval_args*
@@ -2652,7 +2702,7 @@ class DataKit(ftypes.BaseData):
             >>> X = db.get_arg_value_dict(*a, **kw)
             >>> X = db.get_arg_value_dict(coeff, x1, x2, ..., k3=x3)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *coeff*: :class:`str`
                 Name of coefficient
@@ -2708,7 +2758,7 @@ class DataKit(ftypes.BaseData):
             >>> col, a, kw = db._prep_args_colname(col, *a, **kw)
             >>> col, a, kw = db._prep_args_colname(*a, col=c, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of evaluation col
@@ -2756,7 +2806,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> X, dims = db.normalize_args(x, asarray=False)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *x*: :class:`list`\ [:class:`float` | :class:`np.ndarray`]
                 Values for arguments, either float or array
@@ -2835,7 +2885,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> i0, i1, f, x0, x1 = db.get_schedule(args, x, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *args*: :class:`list`\ [:class:`str`]
                 List of input argument names (*args[0]* is master key)
@@ -2950,7 +3000,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> i0, i1, f, x0, x1 = db.get_schedule(args, x, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *args*: :class:`list`\ [:class:`str`]
                 List of input argument names (*args[0]* is master key)
@@ -3026,7 +3076,7 @@ class DataKit(ftypes.BaseData):
             >>> y = db.eval_exact(col, args, x, **kw)
             >>> Y = db.eval_exact(col, args, x, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3087,7 +3137,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_nearest(col, args, x, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of (numeric) column to evaluate
@@ -3141,7 +3191,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_multilinear(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3172,7 +3222,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db._eval_multilinear(col, args, x, I=None, j=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3321,7 +3371,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_multilinear(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3364,7 +3414,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = DBc.eval_rbf(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3395,7 +3445,7 @@ class DataKit(ftypes.BaseData):
             >>> f = db.get_rbf(col, i, j)
             >>> f = db.get_rbf(col, i, j, ...)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3449,7 +3499,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_rbf_linear(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3485,7 +3535,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_rbf_schedule(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3522,7 +3572,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> y = db.eval_function(col, args, x)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -3546,6 +3596,796 @@ class DataKit(ftypes.BaseData):
         else:
             # Stand-alone function
             return f(*x, **kw)
+  # >
+
+  # ===================
+  # Column Names
+  # ===================
+  # <
+   # --- Prefix ---
+    # Prepend something to the name of a column
+    def prepend_colname(self, col, prefix):
+        r"""Add a prefix to a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CN"``, and *prefix* is ``"U"``, the result is
+        ``"bullet.UCN"``.
+
+        :Call:
+            >>> newcol = db.prepend_colname(col, prefix)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to prepend
+            *prefix*: :class:`str`
+                Prefix to prefix
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + prefix + coeff
+        else:
+            # No component name
+            newcol = prefix + coeff
+        # Output
+        return newcol
+
+    # Remove prefix from the name of a column
+    def lstrip_colname(self, col, prefix):
+        r"""Remove a prefix from a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.UCN"``, and *prefix* is ``"U"``, the result is
+        ``"bullet.CN"``.
+
+        :Call:
+            >>> newcol = db.lstrip_colname(col, prefix)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to strip
+            *prefix*: :class:`str`
+                Prefix to remove
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Remove prefix
+        if coeff.startswith(prefix):
+            # Strip it
+            coeff = coeff[len(prefix):]
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff
+        else:
+            # No component name
+            newcol = coeff
+        # Output
+        return newcol
+
+    # Substitute suffix
+    def substitute_prefix(self, col, prefix1, prefix2):
+        r"""Remove a prefix from a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CLMF"``, *prefix1* is ``"CLM"``, *suffix2* is
+        ``"CN"``, and the result is ``"bullet.CNF"``.
+
+        :Call:
+            >>> newcol = db.substitute_prefix(col, prefix1, prefix2)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to strip
+            *prefix1*: :class:`str`
+                Prefix to remove from column name
+            *prefix2*: :class:`str`
+                Prefix to add to column name
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Remove prefix
+        if coeff.startswith(prefix1):
+            # Replace it
+            coeff = prefix2 + coeff[len(prefix1):]
+        else:
+            # Add prefix anyway
+            coeff = prefix2 + coeff
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff
+        else:
+            # No component name
+            newcol = coeff
+        # Output
+        return newcol
+
+   # --- Suffix ---
+    # Append something to the name of a column
+    def append_colname(self, col, suffix):
+        r"""Add a suffix to a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CLM"``, and *suffix* is ``"X"``, the result is
+        ``"bullet.CLMX"``.
+
+        :Call:
+            >>> newcol = db.append_colname(col, suffix)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to append
+            *suffix*: :class:`str`
+                Suffix to append to column name
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff + suffix
+        else:
+            # No component name
+            newcol = coeff + suffix
+        # Output
+        return newcol
+
+    # Prepend something to the name of a columns
+    def rstrip_colname(self, col, suffix):
+        r"""Remove a suffix from a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CLMX"``, and *suffix* is ``"X"``, the result is
+        ``"bullet.CLM"``.
+
+        :Call:
+            >>> newcol = db.rstrip_colname(col, suffix)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to strip
+            *suffix*: :class:`str`
+                Suffix to remove from column name
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Remove prefix
+        if coeff.endswith(suffix):
+            # Strip it
+            coeff = coeff[:-len(suffix)]
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff
+        else:
+            # No component name
+            newcol = coeff
+        # Output
+        return newcol
+
+    # Substitute suffix
+    def substitute_suffix(self, col, suffix1, suffix2):
+        r"""Remove a suffix from a column name
+
+        This maintains component names, so for example if *col* is
+        ``"bullet.CLM"``, *suffix1* is ``"LM"``, *suffix2* is ``"N"``,
+        and the result is ``"bullet.CN"``.
+
+        :Call:
+            >>> newcol = db.substitute_suffix(col, suffix1, suffix2)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to strip
+            *suffix1*: :class:`str`
+                Suffix to remove from column name
+            *suffix2*: :class:`str`
+                Suffix to add to column name
+        :Outputs:
+            *newcol*: :class:`str`
+                Prefixed name
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Check for component name
+        parts = col.split(".")
+        # Component name
+        comp = ".".join(parts[:-1])
+        # Original critical part
+        coeff = parts[-1]
+        # Remove prefix
+        if coeff.endswith(suffix1):
+            # Replace it
+            coeff = coeff[:-len(suffix1)] + suffix2
+        else:
+            # Add suffix anyway
+            coeff = coeff + suffix2
+        # Reassemble parts
+        if comp:
+            # Preserve component name
+            newcol = comp + "." + coeff
+        else:
+            # No component name
+            newcol = coeff
+        # Output
+        return newcol
+  # >
+
+  # ===================
+  # UQ
+  # ===================
+  # <
+   # --- Estimators ---
+    # Estimate UQ on a slice/subset
+    def est_uq_point(self, db2, col, ucol, mask, **kw):
+        """Quantify uncertainty interval for a single point or window
+
+        :Call:
+            >>> u, a = db1.est_uq_point(db2, col, ucol, mask, **kw)
+            >>> u, a = db1.est_uq_point(db2, col, I, mask, **kw)
+        :Inputs:
+            *db1*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *db2*: :class:`cape.attdb.rdb.DataKit`
+                Target database (UQ based on difference)
+            *col*: :class:`str`
+                Name of data column to analyze
+            *ucol*: :class:`str`
+                Name of UQ column to estimate
+            *mask*: :class:`np.ndarray`\ [:class:`bool`]
+                Mask of which *db1[col]* indices to consider
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of *db1[col]* to consider
+        :Required Attributes:
+            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *col*
+            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *ucol*
+            *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
+                List of extra UQ cols related to *ucol*
+            *db1.uq_acols[ucol]*: {``[]``} | :class:`list`
+                Aux cols whose deltas are used to estimate *ucol*
+            *db1.uq_efuncs*: {``{}``} | :class:`dict` (:class:`function`)
+                Function to calculate any "extra" keys by name of key
+            *db1.uq_funcs_shift*: {``{}``} | :class:`dict` (:class:`function`)
+                Function to use when "shifting" deltas in *coeff*
+            *db1.uq_keys_extra[ucoeff]*: :class:`list` (:class:`str`)
+                List of extra coeffs for *ucoeff* {``[]``}
+            *db1.uq_keys_shift[ucoeff]*: :class:`list` (:class:`str`)
+                List of coeffs to use while shifting *ucoeff* deltas  {``[]``}
+            *db1.uq_funcs_extra[ecoeff]*: :class:`function`
+                Function to use to estimate extra key *ecoeff*
+            *db1.uq_funcs_shift[ucoeff]*: :class:`function`
+                Function to use to shift/alter *ucoeff* deltas
+        :Outputs:
+            *u*: :class:`float`
+                Single uncertainty estimate for generated window
+            *U*: :class:`tuple` (:class:`float`)
+                Value of *ucoeff* and any "extra" coefficients in
+                ``FM1.uq_keys_extra[ucoeff]``
+        :Versions:
+            * 2019-02-15 ``@ddalle``: First version
+        """
+       # --- Inputs ---
+        # Probability
+        cov = kw.get("Coverage", kw.get("cov", 0.99865))
+        cdf = kw.get("CoverageCDF", kw.get("cdf", cov))
+        # Outlier cutoff
+        osig_kw = kw.get('OutlierSigma', kw.get("osig"))
+       # --- Attributes ---
+        # Unpack useful attributes for additional functions
+        uq_funcs_extra = getattr(self, "uq_funcs_extra", {})
+        uq_funcs_shift = getattr(self, "uq_funcs_shift", {})
+        # Additional information
+        uq_keys_extra = getattr(self, "uq_keys_extra", {})
+        uq_keys_shift = getattr(self, "uq_keys_shift", {})
+        # Get eval arguments for input coeff and UQ coeff
+        argsc = self.eval_args[col]
+        argsu = self.eval_args[ucol]
+       # --- Test Conditions ---
+        # Get test values and test break points
+        vals, bkpts = self._get_test_values(argsc, **kw)
+        # --- Evaluation ---
+        # Initialize input values for comparison evaluation
+        A = []
+        # Get dictionary values
+        for k in argsc:
+            # Apply mask
+            A.append(vals[k][mask])
+        # Evaluate both databases
+        V1 = self(col, *A)
+        V2 = db2(col, *A)
+        # Deltas
+        DV = V2 - V1
+       # --- Aux cols ---
+        # Get aux cols require to estimate *ucol*
+        acols = self.get_uq_acol(ucol)
+        # Deltas of co-keys
+        DV0_aux = []
+        # Loop through shift keys
+        for acol in acols:
+            # Evaluate both databases
+            V1 = self(acol, *A)
+            V2 = db2(acol, *A)
+            # Append deltas
+            DV0_aux.append(V2-V1)
+       # --- Outliers ---
+        # Degrees of freedom
+        df = DV.size
+        # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
+        ksig = student.ppf(0.5+0.5*cdf, df)
+        kcov = student.ppf(0.5+0.5*cov, df)
+        # Outlier cutoff
+        if osig_kw is None:
+            # Default
+            osig = 1.5*ksig
+        else:
+            # User-supplied value
+            osig = osig_kw
+        # Check outliers on main deltas
+        J = stats.check_outliers(DV, cov, cdf=cdf, osig=osig)
+        # Loop through shift keys; points must be non-outlier in all keys
+        for DVk in DV0_aux:
+            # Check outliers in these deltas
+            Jk = stats.check_outliers(DVk, cov, cdf=cdf, osig=osig)
+            # Combine constraints
+            J = np.logical_and(J, Jk)
+        # Downselect original deltas
+        DV = DV[J]
+        # Initialize downselected correlated deltas
+        DV_aux = []
+        # Downselect correlated deltas
+        for DVk in DV0_aux:
+            DV_aux.append(DVk[J])
+        # New degrees of freedom
+        df = DV.size
+        # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
+        ksig = student.ppf(0.5+0.5*cdf, df)
+        kcov = student.ppf(0.5+0.5*cov, df)
+        # Outlier cutoff
+        if osig_kw is None:
+            # Default
+            osig = 1.5*ksig
+        else:
+            # User-supplied value
+            osig = osig_kw
+       # --- Extra cols ---
+        # List of extra keys
+        ecols = self.get_uq_ecol(ucol)
+        # Initialize tuple of extra key values
+        a_extra = []
+        # Loop through extra keys
+        for ecol in ecols:
+            # Get function
+            fn = self.get_uq_efunc(ecol)
+            # This function is required
+            if fn is None:
+                raise ValueError("No function for extra UQ col '%s'" % ecol)
+            # Evaluate
+            a_extra.apend(fn(self, DV, *DV_aux))
+       # --- Delta shifting (aux functions) ---
+        # Function to perform any shifts
+        afunc = self.get_uq_afunc(ucol)
+        # Perform shift
+        if afunc is not None:
+            # Extra arguments for shift key
+            a_aux = DV_aux + a_extra
+            # Perform shift using appropriate function
+            DV = afunc(self, DV, *a_aux)
+       # --- Statistics ---
+        # Calculate coverage interval
+        vmin, vmax = stats.get_cov_interval(DV, cov, cdf=cdf, osig=osig)
+        # Max value
+        u = max(abs(vmin), abs(vmax))
+       # --- Output ---
+        # Return all extra values
+        return (u,) + a_extra
+
+   # --- Grouping ---
+    # Get dictionary of test values
+    def _get_test_values(self, args, **kw):
+        r"""Get test values for creating windows or comparing databases
+
+        :Call:
+            >>> vals, bkpts = db._get_test_values(args, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *args*: :class:`list`\ [:class:`str`]
+                List of arguments to use for windowing
+        :Keyword Arguments:
+            *test_values*: {*db*} | :class:`DataKit` | :class:`dict`
+                Specify values of each parameter in *args* that are the
+                candidate points for the window; default is from *db*
+            *test_bkpts*: {*db.bkpts*} | :class:`dict`
+                Specify candidate window boundaries; must be ascending
+                array of unique values for each key
+        :Outputs:
+            *vals*: :class:`dict`\ [:class:`np.ndarray`]
+                Dictionary of lookup values for each key in *args*
+            *bkpts*: :class:`dict`\ [:class:`np.ndarray`]
+                Dictionary of unique candidate values for each key
+        :Versions:
+            * 2019-02-13 ``@ddalle``: First version
+            * 2020-03-20 ``@ddalle``: Migrated from :mod:`tnakit`
+        """
+       # --- Lookup values ---
+        # Values to use (default is direct from database)
+        vals = {}
+        # Dictionary from keyword args
+        test_values = kw.get("test_values", {})
+        # Loop through parameters
+        for k in args:
+            # Get reference values for parameter *k*
+            vals[k] = test_values.get(k, self.get_all_values(k))
+       # --- Break points ---
+        # Values to use for searching
+        bkpts = {}
+        # Primary default: *DBc.bkpts*
+        self_bkpts = self.__dict__.get("bkpts", {})
+        # Secondary default: *bkpts* attribute from secondary database
+        test_bkpts = test_values.get("test_bkpts", {})
+        # User-specified option
+        test_bkpts = kw.get("test_bkpts", test_bkpts)
+        # Primary default: *bkpts* from this database
+        for k in args:
+            # Check for specified values
+            if k in test_bkpts:
+                # Use user-specified or secondary-db values
+                bkpts[k] = test_bkpts[k].copy()
+            elif k in self_bkpts:
+                # Use break points from this database
+                bkpts[k] = self_bkpts[k].copy()
+            else:
+                # Use unique test values
+                bkpts[k] = np.unique(vals[k])
+       # --- Output ---
+        return vals, bkpts
+
+   # --- Options: Get ---
+    # Get UQ coefficient
+    def get_uq_col(self, col):
+        r"""Get name of UQ columns for *col*
+
+        :Call:
+            >>> ucol = db.get_uq_col(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to evaluate
+        :Outputs:
+            *ucol*: ``None`` | :class:`str`
+                Name of UQ column for *col*
+        :Versions:
+            * 2019-03-13 ``@ddalle``: First version
+            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
+        """
+        # Get dictionary of UQ cols
+        uq_cols = self.__dict__.setdefault("uq_cols", {})
+        # Get entry for this coefficient
+        return uq_cols.get(col)
+
+    # Get extra UQ cols
+    def get_uq_ecol(self, ucol):
+        r"""Get names of any extra UQ cols related to primary UQ col
+
+        :Call:
+            >>> ecols = db.get_uq_ecol(ucol)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ column to evaluate
+        :Outputs:
+            *ecols*: :class:`list`\ [:class:`str`]
+                Name of extra columns required to evaluate *ucol*
+        :Versions:
+            * 2020-03-21 ``@ddalle``: First version
+        """
+        # Get dictionary of ecols
+        uq_ecols = self.__dict__.get("uq_ecols", {})
+        # Get ecols
+        ecols = uq_ecols.get(ucol, [])
+        # Check type
+        if typeutils.isstr(ecols):
+            # Create single list
+            ecols = [ecols]
+        elif ecols is None:
+            # Empty result should be empty list
+            ecols = []
+        elif not isinstance(ecols, list):
+            # Invalid type
+            raise TypeError(
+                "uq_ecols for col '%s' should be list; got '%s'"
+                % (ucol, type(ecols)))
+        # Return it
+        return ecols
+
+    # Get extra functions for uq
+    def get_uq_efunc(self, ecol):
+        r"""Get function to evaluate extra UQ column
+
+        :Call:
+            >>> efunc = db.get_uq_efunc(ecol)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ecol*: :class:`str`
+                Name of (correlated) UQ column to evaluate
+        :Outputs:
+            *efunc*: **callable**
+                Function to evaluate *ecol*
+        :Versions:
+            * 2020-03-20 ``@ddalle``: First version
+        """
+        # Get dictionary of extra UQ funcs
+        uq_efuncs = self.__dict__.get("uq_efuncs", {})
+        # Get entry for *col*
+        return uq_efuncs.get(ecol)
+
+    # Get aux columns needed to compute UQ of a col
+    def get_uq_acol(self, ucol):
+        r"""Get name of extra data cols needed to compute UQ col
+
+        :Call:
+            >>> acols = db.get_uq_acol(ucol)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ column to evaluate
+        :Outputs:
+            *acols*: :class:`list`\ [:class:`str`]
+                Name of extra columns required for estimate *ucol*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Get dictionary of acols
+        uq_acols = self.__dict__.get("uq_acols", {})
+        # Get acols
+        acols = uq_acols.get(ucol, [])
+        # Check type
+        if typeutils.isstr(acols):
+            # Create single list
+            acols = [acols]
+        elif ecols is None:
+            # Empty result should be empty list
+            acols = []
+        elif not isinstance(ecols, list):
+            # Invalid type
+            raise TypeError(
+                "uq_acols for col '%s' should be list; got '%s'"
+                % (ucol, type(acols)))
+        # Return it
+        return acols
+
+    # Get functions to compute UQ for aux col
+    def get_uq_afunc(self, ucol):
+        r"""Get function to UQ column if aux cols are present
+
+        :Call:
+            >>> afunc = db.get_uq_afunc(ucol)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ col to estimate
+        :Outputs:
+            *afunc*: **callable**
+                Function to estimate *ucol*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Get dictionary of aux UQ funcs
+        uq_afuncs = self.__dict__.get("uq_afuncs", {})
+        # Get entry for *col*
+        return uq_afuncs.get(ucol)
+
+   # --- Options: Set ---
+    # Set name of UQ col for given col
+    def set_uq_col(self, col, ucol):
+        r"""Set uncertainty column name for given *col*
+
+        :Call:
+            >>> db.set_uq_col(col, ucol)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column
+        :Effects:
+            *db.uq_cols*: :class:`dict`
+                Entry for *col* set to *ucol*
+        :Versions:
+            * 2020-03-20 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column name must be str (got %s)" % type(col))
+        if not typeutils.isstr(ucol):
+            raise TypeError(
+                "UQ column name must be str (got %s)" % type(ucol))
+        # Get handle to attribute
+        uq_cols = self.__dict__.setdefault("uq_cols", {})
+        # Check type
+        if not isinstance(uq_cols, dict):
+            raise TypeError("uq_cols attribute is not a dict")
+        # Set parameter
+        uq_cols[col] = ucol
+
+    # Get extra UQ cols
+    def set_uq_ecol(self, ucol, ecols):
+        r"""Get name of any extra cols required for a UQ col
+
+        :Call:
+            >>> db.get_uq_ecol(ucol, ecol)
+            >>> db.get_uq_ecol(ucol, ecols)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ column to evaluate
+            *ecol*: :class:`str`
+                Name of extra column required for *ucol*
+            *ecols*: :class:`list`\ [:class:`str`]
+                Name of extra columns required for *ucol*
+        :Versions:
+            * 2020-03-21 ``@ddalle``: First version
+        """
+        # Check type
+        if typeutils.isstr(ecols):
+            # Create single list
+            ecols = [ecols]
+        elif ecols is None:
+            # Empty result should be empty list
+            ecols = []
+        elif not isinstance(ecols, list):
+            # Invalid type
+            raise TypeError(
+                "uq_ecols for col '%s' should be list; got '%s'"
+                % (ucol, type(ecols)))
+        # Get dictionary of ecols
+        uq_ecols = self.__dict__.setdefault("uq_ecols", {})
+        # Set it
+        uq_ecols[ucol] = ecols
+
+    # Set extra functions for uq
+    def set_uq_efunc(self, ecol, efunc):
+        r"""Set function to evaluate extra UQ column
+
+        :Call:
+            >>> db.set_uq_ecol_funcs(ecol, efunc)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ecol*: :class:`str`
+                Name of (correlated) UQ column to evaluate
+            *efunc*: **callable**
+                Function to evaluate *ecol*
+        :Versions:
+            * 2020-03-21 ``@ddalle``: First version
+        """
+        # Check input
+        if not callable(efunc):
+            raise TypeError("Function is not callable")
+        # Get dictionary of extra UQ funcs
+        uq_efuncs = self.__dict__.setdefault("uq_efuncs", {})
+        # Get entry for *col*
+        uq_efuncs[ecol] = efunc
+
+    # Get aux columns needed to compute UQ of a col
+    def set_uq_acol(self, ucol, acols):
+        r"""Set name of extra data cols needed to compute UQ col
+
+        :Call:
+            >>> db.set_uq_acol(ucol, acols)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ column to evaluate
+            *acols*: :class:`list`\ [:class:`str`]
+                Name of extra columns required for estimate *ucol*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Check type
+        if typeutils.isstr(acols):
+            # Create single list
+            acols = [acols]
+        elif acols is None:
+            # Empty result should be empty list
+            acols = []
+        elif not isinstance(acols, list):
+            # Invalid type
+            raise TypeError(
+                "uq_acols for col '%s' should be list; got '%s'"
+                % (ucol, type(acols)))
+        # Get dictionary of ecols
+        uq_acols = self.__dict__.setdefault("uq_acols", {})
+        # Set it
+        uq_acols[ucol] = acols
+
+    # Set aux functions for uq
+    def set_uq_afunc(self, ucol, afunc):
+        r"""Set function to UQ column if aux cols are present
+
+        :Call:
+            >>> db.set_uq_afunc(ucol, afunc)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *ucol*: :class:`str`
+                Name of UQ col to estimate
+            *afunc*: **callable**
+                Function to estimate *ucol*
+        :Versions:
+            * 2020-03-23 ``@ddalle``: First version
+        """
+        # Check input
+        if not callable(afunc):
+            raise TypeError("Function is not callable")
+        # Get dictionary of aux UQ funcs
+        uq_afuncs = self.__dict__.setdefault("uq_afuncs", {})
+        # Get entry for *col*
+        uq_afuncs[ucol] = afunc
   # >
 
   # ===================
@@ -4296,7 +5136,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.create_global_rbfs(cols, args, I=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns to create RBFs for
@@ -4348,7 +5188,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.create_slice_rbfs(coeffs, args, I=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns to create RBFs for
@@ -4430,7 +5270,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> rbf = db.genr8_rbf(col, args, I=None)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`list`\ [:class:`str`]
                 Data column to create RBF for
@@ -4693,7 +5533,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> V = db.get_xvals(col, I=None, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to access
@@ -4763,7 +5603,7 @@ class DataKit(ftypes.BaseData):
             >>> V = db.get_xvals_eval(k, *a, **kw)
             >>> V = db.get_xvals_eval(k, coeff, x1, x2, ..., k3=x3)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *k*: :class:`str`
                 Name of key to calculate
@@ -4819,7 +5659,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> V = db.get_yvals_exact(col, I=None, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to access
@@ -4866,7 +5706,7 @@ class DataKit(ftypes.BaseData):
             >>> I = db.prep_mask(mask, col)
             >>> I = db.prep_mask(mask_index, col)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
             *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
                 Logical mask of ``True`` / ``False`` values
@@ -4932,7 +5772,7 @@ class DataKit(ftypes.BaseData):
             >>> I, J = db.find(args, *a, **kw)
             >>> Imap, J = db.find(args, *a, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
             *args*: :class:`list`\ [:class:`str`]
                 List of columns names to match
@@ -5268,7 +6108,7 @@ class DataKit(ftypes.BaseData):
                 Upper bound of coverage intervalregion
         :Versins:
             * 2018-09-28 ``@ddalle``: First version
-            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`attdb.fm`
+            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
         """
         # Process search kwargs
         kw_find = {
@@ -5335,7 +6175,7 @@ class DataKit(ftypes.BaseData):
                 Half-width of coverage range
         :Versins:
             * 2018-09-28 ``@ddalle``: First version
-            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`attdb.fm`
+            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
         """
         # Process search kwargs
         kw_find = {
@@ -5362,6 +6202,154 @@ class DataKit(ftypes.BaseData):
         R = np.abs(V2 - V1)
         # Calculate interval
         return statutils.get_range(R, cov, **kw)
+
+   # --- Integration ---
+    # Integrate a 2D field
+    def create_integral(self, col, xcol=None, icol=None, **kw):
+        r"""Integrate the columns of a 2D data col
+
+        :Call:
+            >>> y = db.genr8_integral(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for integration
+            *x*: {``None``} | :class:`np.ndarray`
+                Optional 1D or 2D *x*-coordinates directly specified
+            *dx*: {``1.0``} | :class:`float`
+                Uniform spacing to use if *xcol* and *x* are not used
+            *method*: {``"trapz"``} | ``"left"`` | ``"right"``
+                Integration method
+        :Outputs:
+            *y*: :class:`np.ndarray`
+                1D array of integral of each column of *db[col]*
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Default column name
+        if icol is None:
+            # Try to remove a "d" from *col* ("dCN" -> "CN")
+            icol = self.lstrip_colname(col, "d")
+        # Perform the integration
+        y = self.genr8_integral(col, xcol, **kw)
+        # Save column
+        self.save_col(icol, y)
+        # Save definition
+        self.make_defn(icol, y)
+        # Output
+        return y
+
+    # Integrate a 2D field
+    def genr8_integral(self, col, xcol=None, **kw):
+        r"""Integrate the columns of a 2D data col
+
+        :Call:
+            >>> y = db.genr8_integral(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for integration
+            *x*: {``None``} | :class:`np.ndarray`
+                Optional 1D or 2D *x*-coordinates directly specified
+            *dx*: {``1.0``} | :class:`float`
+                Uniform spacing to use if *xcol* and *x* are not used
+            *method*: {``"trapz"``} | ``"left"`` | ``"right"``
+                Integration method
+        :Outputs:
+            *y*: :class:`np.ndarray`
+                1D array of integral of each column of *db[col]*
+        :Versions:
+            * 2020-03-24 ``@ddalle``: First version
+        """
+        # Select method
+        method = kw.get("method")
+        # Default method
+        if method is None:
+            method = "trapz"
+        # Check it
+        if not typeutils.isstr(method):
+            # Method must be string
+            raise TypeError("'method' must be 'str', got '%s'" % type(method))
+        if method not in {"trapz", "left", "right"}:
+            # Invalid name
+            raise ValueError(
+                ("method '%s' not supported; " % method) +
+                ("options are 'trapz', 'left', 'right'"))
+        # Get dimension of *col*
+        ndim = self.get_col_prop(col, "Dimension")
+        # Ensure 2D column
+        if ndim != 2:
+            raise ValueError("Col '%s' is not 2D" % col)
+        # Get values
+        Y = self.get_all_values(col)
+        # Number of conditions
+        nx, ny = Y.shape
+        # Process *x*
+        if xcol is None:
+            # Use 0, 1, 2, ... as *x* coords
+            x = kw.get("x")
+        else:
+            # Get values
+            x = self.get_all_values(xcol)
+        # Get dimension
+        if x is None:
+            # Get "dx"
+            dx = kw.get("dx")
+            # Default
+            if dx is None:
+                dx = 1.0
+            # Create default
+            x = dx * np.arange(nx)
+        else:
+            # Ensure array
+            if not isinstance(x, np.ndarray):
+                raise TypeError("x-coords for integration must be array")
+        # Determine from *x*
+        ndx = x.ndim
+        # Ensure 1 or 2
+        if ndx == 1:
+            # Calculate *dx* vector beforehand
+            dx = np.diff(x)
+        elif ndx == 2:
+            # Nothing to do here
+            pass
+        else:
+            raise ValueError(
+                "Integration does not support %i-D x coords" % ndx)
+        # Initialize output
+        y = np.zeros(ny, dtype=self.get_col_dtype(col))
+        # Loop through conditions
+        for i in range(ny):
+            # Check method
+            if method == "trapz":
+                # Trapezoidal integration
+                if ndx == 1:
+                    # Common *x* coords
+                    y[i] = np.trapz(Y[:,i], x)
+                else:
+                    # Select *x* column
+                    y[i] = np.trapz(Y[:,i], x[:,i])
+                # Go to next interval
+                continue
+            # Check *x* dimension
+            if ndx == 2:
+                # Select column and get intervale widhtds
+                dx = np.diff(x[:,i])
+            # Check L/R
+            if method == "left":
+                # Lower rectangular sum
+                y[i] = np.sum(dx * Y[:,i][:-1])
+            elif method == "right":
+                # Upper rectangular sum
+                y[i] = np.sum(dx * Y[:,i][1:])
+        # Output
+        return y
   # >
 
   # ===================
@@ -5377,7 +6365,7 @@ class DataKit(ftypes.BaseData):
             >>> col, I, J, a, kw = db._process_plot_args1(*a, **kw)
             >>> col, I, J, a, kw = db._process_plot_args1(I, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
                 Array of values for arguments to :func:`db.__call__`
@@ -5497,7 +6485,7 @@ class DataKit(ftypes.BaseData):
             >>> h = db.plot_scalar(col, *a, **kw)
             >>> h = db.plot_scalar(col, I, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Data column (or derived column) to evaluate
@@ -5707,7 +6695,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.regularize_by_rbf(cols=None, args=None, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with response toolkit
             *cols*: :class:`list`\ [:class:`str`]
                 List of output data columns to regularize
@@ -5876,7 +6864,7 @@ class DataKit(ftypes.BaseData):
                 # Initialize data
                 V = np.zeros_like(X[maincol])
                 # Convert slices to indices within *db*
-                masks = self.find(scol, mapped=True, mask=mask, **slices)
+                masks, _ = self.find(scol, mapped=True, mask=mask, **slices)
                 # Loop through slices
                 for i in range(nslice):
                     # Status update
@@ -5924,7 +6912,7 @@ class DataKit(ftypes.BaseData):
             if maincol is None:
                 break
             # Translate col name
-            colreg = self._translate_colname(col, **tr_args)
+            colreg = self._translate_colname(col, *tr_args)
             # Get values for this column
             V0 = self.get_all_values(col)
             # Check size
@@ -5971,7 +6959,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.regularize_by_griddata(cols=None, args=None, **kw)
         :Inputs:
-            *db*: :class:`attdb.rdb.DataKit`
+            *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with response toolkit
             *cols*: :class:`list`\ [:class:`str`]
                 List of output data columns to regularize
