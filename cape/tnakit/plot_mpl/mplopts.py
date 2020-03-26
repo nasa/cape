@@ -794,9 +794,6 @@ class MPLOpts(kwutils.KwargHandler):
             "c": "color",
         },
         "ContourOptions": {
-            "linewidth": "lw",
-            "linestyle": "ls",
-            "c": "color",
         },
         "ErrorBarOptions": {
             "linewidth": "lw",
@@ -1136,6 +1133,7 @@ class MPLOpts(kwutils.KwargHandler):
             "Pad": 0.05,
         },
         "axadjust": {},
+        "contour": {},
         "plot": {},
         "error": {},
         "minmax": {},
@@ -1703,6 +1701,7 @@ MPLOpts._doc_keys("axadjust_col_options", "axadjust_col")
 MPLOpts._doc_keys("axadjust_row_options", "axadjust_row")
 MPLOpts._doc_keys("axformat_options", "axformat")
 MPLOpts._doc_keys("axes_options", "axes")
+MPLOpts._doc_keys("contour_options", "contour")
 MPLOpts._doc_keys("error_options", "error")
 MPLOpts._doc_keys("figure_options", "fig")
 MPLOpts._doc_keys("grid_options", "grid")
