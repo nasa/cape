@@ -1,0 +1,27 @@
+{
+    "CopyFiles": [
+        "bullet-fm-mab.mat",
+        "test01_fm.py"
+    ],
+    "Commands": [
+        "python2 test01_fm.py",
+        "python3 test01_fm.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out",
+        "test.01.out",
+        "test.01.out"
+    ],
+    "CommandTitles": [
+        "Evaluate FM cols: Python 2",
+        "Evaluate FM cols: Python 3",
+        "Regularize using RBF: Python 2",
+        "Regularize using RBF: Python 3"
+    ],
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/attdb",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
