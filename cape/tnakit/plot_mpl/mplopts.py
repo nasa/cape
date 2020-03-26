@@ -93,6 +93,9 @@ class MPLOpts(kwutils.KwargHandler):
         "BottomSpineOptions",
         "BottomSpineTicks",
         "BottomTickLabels",
+        "ContourColorMap",
+        "ContourOptions",
+        "ContourType",
         "Density",
         "ErrorBarOptions",
         "ErrorBarMarker",
@@ -434,6 +437,12 @@ class MPLOpts(kwutils.KwargHandler):
             "PlotOptions",
             "PlotFormat"
         ],
+        "contour": [
+            "Index",
+            "Rotate",
+            "ContourType",
+            "ContourOptions"
+        ],
         "minmax": [
             "Index",
             "Rotate",
@@ -541,6 +550,9 @@ class MPLOpts(kwutils.KwargHandler):
         "BottomSpineOptions": dict,
         "BottomSpineTicks": bool,
         "BottomTickLabels": bool,
+        "ContourColorMap" : typeutils.strlike,
+        "ContourType": typeutils.strlike,
+        "ContourOptions": dict,
         "Density": bool,
         "ErrorBarMarker": typeutils.strlike,
         "ErrorBarOptions": dict,
@@ -737,6 +749,12 @@ class MPLOpts(kwutils.KwargHandler):
             "PlotLineWidth": "lw",
             "PlotLineStyle": "ls"
         },
+        "ContourOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "Label": "label",
+            "ContourColorMap": "cmap",
+        },
         "ScatterOptions": {
             "Index": "Index",
             "Rotate": "Rotate",
@@ -771,6 +789,11 @@ class MPLOpts(kwutils.KwargHandler):
     # Aliases to merge for subcategory options
     _kw_subalias = {
         "PlotOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
+        "ContourOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
             "c": "color",
@@ -1069,6 +1092,10 @@ class MPLOpts(kwutils.KwargHandler):
         "Index": 0,
         "Rotate": False,
         "AxesOptions": {},
+        "ContourOptions": {
+            "cmap": "viridis",
+            "alpha": 1,
+        },
         "ErrorBarOptions": {},
         "ErrorOptions": {},
         "FigOptions": {
@@ -1545,6 +1572,26 @@ class MPLOpts(kwutils.KwargHandler):
         """
         # Use the "plot" section and only return "PlotOptions"
         return self.section_options("plot", "PlotOptions")
+
+    # Process options for contour plots
+    def contour_options(self):
+        r"""Process options for contour plots
+
+        :Call:
+            >>> kw = opts.contour_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`contour`
+        :Versions:
+            * 2020-03-26 ``@jmeeroff``: First version
+        """
+        # Use the "contour" section and only return "ContourOptions"
+        return self.section_options("contour", "ContourOptions")
 
     # Process options for min/max plot
     def minmax_options(self):
