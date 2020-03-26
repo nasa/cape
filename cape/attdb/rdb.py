@@ -610,7 +610,7 @@ class DataKit(ftypes.BaseData):
         # Get column definition
         defn = self.get_defn(col)
         # Get dimensionality
-        ndim = defn.get("Dimension")
+        ndim = defn.get("Dimension", 1)
         # Check valid result
         if isinstance(ndim, int):
             return ndim
@@ -1716,6 +1716,8 @@ class DataKit(ftypes.BaseData):
             *smooth*: {``0.0``} | :class:`float` >= 0
                 Smoothing factor for methods that allow inexact
                 interpolation, ``0.0`` for exact interpolation
+            *func*: **callable**
+                Function to use for ``"function"`` *method*
         :Versions:
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
@@ -1761,9 +1763,12 @@ class DataKit(ftypes.BaseData):
                 ("No %i-D eval method '%s'; " % (ndim, method)) +
                 ("closest matches: %s" % mtches))
         # Check for required constructor method
-        constructor_col = cls._method_constructors.get(method)
+        constructor_name = cls._method_constructors.get(method)
+        # Get constructor
+        if constructor_name is not None:
+            constructor_col = getattr(self, constructor_name, None)
         # Apply it if appropriate
-        if constructor_col is None:
+        if constructor_name is None:
             # Do nothing
             pass
         elif not callable(constructor_col):
@@ -1771,7 +1776,7 @@ class DataKit(ftypes.BaseData):
                 "Constructor for method '%s' is not callable" % method)
         else:
             # Call the constructor
-            constructor_col(*a, args=args, **kw)
+            constructor_col(col, *a, args=args, **kw)
         # Save method name
         self.set_eval_method(col, method)
         # Argument list is the same for all methods
@@ -1797,7 +1802,7 @@ class DataKit(ftypes.BaseData):
         :Keywords:
             *function*, *func*: *callable*
                 Callable function to save, overrides *a[0]*
-            *self*: {``True``} | ``False``
+            *use_self*: {``True``} | ``False``
                 Flag to include database in callback
         :Versions:
             * 2019-12-30 ``@ddalle``: First version
@@ -1809,13 +1814,15 @@ class DataKit(ftypes.BaseData):
         # Get the function
         if len(a) > 0:
             # Function given as arg
-            fn = a[0]
+            func = a[0]
         else:
             # Function better be a keyword because there are no args
-            fn = None
+            func = None
+        # Get function
+        func = kw.get("func", kw.get("function", func))
         # Save the function
-        eval_func[col] = kw.get("function", kw.get("func", fn))
-        eval_func_self[col] = kw.get("self", True)
+        eval_func[col] = func
+        eval_func_self[col] = kw.get("use_self", True)
 
     # Global RBFs
     def _create_rbf(self, col, *a, **kw):

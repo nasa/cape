@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2020-03-26 at 08:34 PDT
+   on 2020-03-26 at 09:06 PDT
 
 Test ``07_dbfm_regularize``
 =============================
@@ -36,8 +36,8 @@ Command 1: Regularize using griddata: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50407 seconds
-    * Cumulative time: 0.50407 seconds
+    * Command took 0.475306 seconds
+    * Cumulative time: 0.475306 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -47,7 +47,8 @@ Command 1: Regularize using griddata: Python 2
         regularized cols:
             reg.alpha     : 578  reg.beta      : 578  reg.bullet.CA : 578
             reg.bullet.CY : 578  reg.bullet.CN : 578  reg.bullet.CLL: 578
-            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.mach      : 578
+            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.q         : 578
+            reg.T         : 578  reg.mach      : 578
         
 
 :STDERR:
@@ -67,8 +68,8 @@ Command 2: Regularize using griddata: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.20807 seconds
-    * Cumulative time: 1.71214 seconds
+    * Command took 1.10313 seconds
+    * Cumulative time: 1.57843 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -78,7 +79,8 @@ Command 2: Regularize using griddata: Python 3
         regularized cols:
             reg.alpha     : 578  reg.beta      : 578  reg.bullet.CA : 578
             reg.bullet.CY : 578  reg.bullet.CN : 578  reg.bullet.CLL: 578
-            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.mach      : 578
+            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.q         : 578
+            reg.T         : 578  reg.mach      : 578
         
 
 :STDERR:
@@ -98,8 +100,8 @@ Command 3: Regularize using RBF: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.282931 seconds
-    * Cumulative time: 1.99507 seconds
+    * Command took 0.274116 seconds
+    * Cumulative time: 1.85255 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -109,7 +111,8 @@ Command 3: Regularize using RBF: Python 2
         regularized cols:
             reg.alpha     : 578  reg.beta      : 578  reg.bullet.CA : 578
             reg.bullet.CY : 578  reg.bullet.CN : 578  reg.bullet.CLL: 578
-            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.mach      : 578
+            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.q         : 578
+            reg.T         : 578  reg.mach      : 578
         
 
 :STDERR:
@@ -129,8 +132,8 @@ Command 4: Regularize using RBF: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.556892 seconds
-    * Cumulative time: 2.55196 seconds
+    * Command took 0.546057 seconds
+    * Cumulative time: 2.39861 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -140,7 +143,8 @@ Command 4: Regularize using RBF: Python 3
         regularized cols:
             reg.alpha     : 578  reg.beta      : 578  reg.bullet.CA : 578
             reg.bullet.CY : 578  reg.bullet.CN : 578  reg.bullet.CLL: 578
-            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.mach      : 578
+            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.q         : 578
+            reg.T         : 578  reg.mach      : 578
         
 
 :STDERR:

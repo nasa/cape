@@ -438,10 +438,36 @@ def eval_CLMX(db, col1, col2, *a, **kw):
 
 
 # Create evaluator
-def genr8_fnCLMX(col1, col2):
-    def fn(db, *a, **kw):
+def genr8_fCLMX(col1, col2):
+    r"""Generate an evaluator for *CLMX* with specified *cols*
+
+    :Call:
+        >>> func = genr8_fCLMX(col1="CLM", col2="CN")
+    :Inputs:
+        *col1*: {``"CLM"``} | :class:`str`
+            Name of *CLM* column to evaluate
+        *col2*: {``"CN"``} | :class:`str`
+            Name of *CN* column to evaluate
+    :Outputs:
+        *func*: :class:`function`
+            Function to evaluate *col1* about arbitrary *xMRP*
+    :Output Call:
+        >>> CLMX = func(db, *a, **kw)
+    :Output Args:
+        *db*: :class:`DBFM`
+            Force and moment data kit
+        *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+            Args to *col1* and *col2*, plus optional *xMRP*
+        *kw*: :class:`dict`
+            Keyword args to *col1* and *col2*, plus optional *xMRP*
+    :Versions:
+        * 2020-03-26 ``@ddalle``: First version
+    """
+    # Define the function
+    def func(db, *a, **kw):
         return eval_CLMX(db, col1, col2, *a, **kw)
-    return fn
+    # Return the function
+    return func
 
 
 # Special evaluators: CLN vs x
@@ -630,6 +656,9 @@ class DBFM(rdbaero.AeroDataKit):
         "CLN":  "CLN",
         "CN":   "CN",
         "CY":   "CY",
+        "Cl":   "CLL",
+        "Cm":   "CLM",
+        "Cn":   "CLN",
     }
   # >
 
@@ -649,8 +678,6 @@ class DBFM(rdbaero.AeroDataKit):
         rdbaero.AeroDataKit.__init__(self, fname, **kw)
         # Set default arg converters
         self._make_arg_converters_aero()
-        # Set aux cols
-        self._make_eval_acols_FM()
         # Set UQ cols
         self._make_uq_cols_FM()
         self._make_uq_ecols_FM()
@@ -727,44 +754,6 @@ class DBFM(rdbaero.AeroDataKit):
                 # Set it
                 self.set_uq_col(col, ucol)
 
-    # Set eval aux cols for moment cols
-    def _make_eval_acols_FM(self):
-        r"""Set default aux cols for moment cols
-
-        :Call:
-            >>> db._make_eval_acols_FM()
-        :Inputs:
-            *db*: :class:`cape.attdb.dbfm.DBFM`
-                LV force & moment database
-        :Versions:
-            * 2020-03-23 ``@ddalle``: First version
-        """
-        # List moment tags
-        tags = ["CLM", "CLN"]
-        # Loop through them
-        for tag in tags:
-            # Get cols with matching tag
-            for col in self.get_cols_by_tag(tag):
-                # Check col names' ending
-                if col.endswith("LM"):
-                    # CLM -> CN
-                    acol = col[:-2] + "N"
-                elif col.endswith("LN"):
-                    # CLN -> CY
-                    acol = col[:-2] + "Y"
-                elif col.endswith("m"):
-                    # Cm -> CN
-                    acol = col[:-1] + "N"
-                elif col.endswith("n"):
-                    # Cn -> CY
-                    acol = col[:-1] + "Y"
-                # Name of shifted col
-                scol = self.append_colname(col, "X")
-                # Set aux cols for "CLM" to "CN"
-                self.set_eval_acol(col, [acol])
-                # Set aux cols for "CLMX" to ["CLM", "CN"]
-                self.set_eval_acol(scol, [col, acol])
-
     # Set UQ extra cols for all FM cols
     def _make_uq_ecols_FM(self):
         r"""Set default UQ extra cols for reference UQ MRP
@@ -831,7 +820,46 @@ class DBFM(rdbaero.AeroDataKit):
                     ucol = self.prepend_colname(col, "U")
                 # Set it
                 self.set_uq_acol(ucol, acol)
-   # >
+
+   # --- Derived Data Columns ---
+    # Make *CLMX* evaluators
+    def make_CLMX(self):
+        r"""Build and save evaluators for *CLMX* cols
+
+        :Call:
+            >>> db.make_CLMX()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-03-26 ``@ddalle``: First version
+        """
+        # Loop through *CLM* cols
+        for col in self.get_cols_by_tag("CLM"):
+            # Args
+            args = self.get_eval_args(col)
+            # Check if set
+            if args is None:
+                return
+            # Get aux column name
+            if col.endswith("LM"):
+                # CLM -> CN
+                acol = col[:-2] + "N"
+            elif col.endswith("m"):
+                # Cm -> CN
+                acol = col[:-1] + "N"
+            # Name of shifted col
+            scol = self.append_colname(col, "X")
+            # Set aux cols for "CLM" to "CN"
+            self.set_eval_acol(col, [acol])
+            # Set aux cols for "CLMX" to ["CLM", "CN"]
+            self.set_eval_acol(scol, [col, acol])
+            # Generate *CLMX* function
+            func = genr8_fCLMX(col, acol)
+            # Save it
+            self.make_response(scol, "function", args, func=func)
+        
+  # >
 
 
 # Combine options

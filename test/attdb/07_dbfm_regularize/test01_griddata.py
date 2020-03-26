@@ -31,7 +31,7 @@ B0 = np.linspace(-2, 2, n)
 # Save break points
 db.bkpts = {"alpha": A0, "beta": B0}
 # Get Mach number break points
-db.get_bkpts("mach")
+db.get_bkpts(["mach", "q", "T"])
 
 # Regularize
 db.regularize_by_griddata(

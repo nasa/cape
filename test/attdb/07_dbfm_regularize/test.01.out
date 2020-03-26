@@ -1,4 +1,5 @@
 regularized cols:
     reg.alpha     : 578  reg.beta      : 578  reg.bullet.CA : 578
     reg.bullet.CY : 578  reg.bullet.CN : 578  reg.bullet.CLL: 578
-    reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.mach      : 578
+    reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.q         : 578
+    reg.T         : 578  reg.mach      : 578
