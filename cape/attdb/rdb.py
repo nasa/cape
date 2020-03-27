@@ -232,6 +232,14 @@ class DataKit(ftypes.BaseData):
         self.defns = {}
         self.bkpts = {}
         self.sources = {}
+        # Evaluation attributes
+        self.eval_arg_converters = {}
+        self.eval_arg_aliases = {}
+        self.eval_arg_defaults = {}
+        self.eval_args = {}
+        self.eval_kwargs = {}
+        self.eval_method = {}
+        self.eval_xargs = {}
 
         # Process keyword options
         self.opts = self.process_kw(_warnmode=0, **kw)
@@ -2132,11 +2140,11 @@ class DataKit(ftypes.BaseData):
         return kwargs
 
     # Get xvars for output
-    def get_output_xvars(self, col):
+    def get_output_xargs(self, col):
         r"""Get list of args to output for column *col*
 
         :Call:
-            >>> xargs = db.get_output_xvars(col)
+            >>> xargs = db.get_output_xargs(col)
         :Inputs:
             *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
@@ -2147,18 +2155,19 @@ class DataKit(ftypes.BaseData):
                 List of input args to one condition of *col*
         :Versions:
             * 2019-12-30 ``@ddalle``: First version
+            * 2020-03-27 ``@ddalle``: From *db.defns* to *db.eval_xargs*
         """
-        # Get column definition
-        defn = self.get_defn(col)
+        # Get attribute
+        eval_xargs = self.__dict__.get("eval_xargs", {})
         # Get dimensionality
-        xargs = defn.get("OutputXVars")
+        xargs = eval_xargs.get(col)
         # De-None
         if xargs is None:
             xargs = []
         # Check type
         if not isinstance(xargs, list):
             raise TypeError(
-                "OutputXVars for col '%s' must be list (got %s)"
+                "eval_xargs for col '%s' must be list (got %s)"
                 % (col, type(xargs)))
         # Output (copy)
         return list(xargs)
@@ -2442,12 +2451,12 @@ class DataKit(ftypes.BaseData):
         # Save it
         eval_kwargs[col] = kwargs
 
-    # Set xvars for output
-    def set_output_xvars(self, col, xargs):
+    # Set xargs for output
+    def set_output_xargs(self, col, xargs):
         r"""Set list of args to output for column *col*
 
         :Call:
-            >>> db.set_output_xvars(col, xargs)
+            >>> db.set_output_xargs(col, xargs)
         :Inputs:
             *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
@@ -2456,12 +2465,13 @@ class DataKit(ftypes.BaseData):
                 List of input args to one condition of *col*
         :Versions:
             * 2019-12-30 ``@ddalle``: First version
+            * 2020-03-27 ``@ddalle``: From *db.defns* to *db.eval_xargs*
         """
-        # Get column definition
-        defn = self.get_defn(col)
         # De-None
         if xargs is None:
             xargs = []
+        # Get attribute
+        eval_xargs = self.__dict__.setdefault("eval_xargs", {})
         # Check type
         if not isinstance(xargs, list):
             raise TypeError(
@@ -2474,7 +2484,7 @@ class DataKit(ftypes.BaseData):
                     "Output arg %i for col '%s' must be str (got %s)"
                     % (j, col, type(k)))
         # Set (copy)
-        defn["OutputXVars"] = list(xargs)
+        eval_xargs[col] = list(xargs)
 
     # Get auxiliary cols
     def set_eval_acol(self, col, acols):
@@ -5890,7 +5900,7 @@ class DataKit(ftypes.BaseData):
             # Got to next test point if no match
             if not found:
                 # Save status
-                Mj[i] = found
+                MJ[i] = found
                 continue
             # Check reporting method
             if mapped:
@@ -6405,7 +6415,7 @@ class DataKit(ftypes.BaseData):
         # Check for indices
         if len(a) == 0:
             raise ValueError("At least 2 inputs required; received 1")
-        # Process first second arg as indices
+        # Process first second arg as a mask
         I = np.asarray(a[0])
         # Check for integer
         if (I.ndim > 0) and isinstance(I[0], int):
@@ -6417,9 +6427,9 @@ class DataKit(ftypes.BaseData):
             # Get values of arg list from *DBc* and *I*
             A = []
             # Loop through *eval_args*
-            for col in arg_list:
+            for arg in arg_list:
                 # Get values
-                A.append(self.get_xvals(col, I, **kw))
+                A.append(self.get_xvals(arg, I, **kw))
             # Convert to tuple
             a = tuple(A)
             # Plot all points
@@ -6477,6 +6487,27 @@ class DataKit(ftypes.BaseData):
         return col, I, J, a, kw
 
    # --- Base Plot Commands ---
+    # Master plot controller
+    def plot(self, *a, **kw):
+        # Process column name and remaining coeffs
+        col, a, kw = self._prep_args_colname(*a, **kw)
+        # Get dimension of *col*
+        ndim = self.get_ndim(col)
+        # Check dimension
+        if ndim == 1:
+            # Scalar plot
+            return self.plot_scalar(col, *a, **kw)
+        elif ndim == 2:
+            # Line load plot
+            return self.plot_linear(col, *q, **kw)
+        else:
+            # Not implemented
+            raise ValueError("No plot method for %iD col '%s'" % (ndim, col))
+    
+    # Plot single line load
+    def plot_linear(self, *a, **kw):
+        pass
+
     # Plot a sweep of one or more coefficients
     def plot_scalar(self, *a, **kw):
         r"""Plot a sweep of one data column over several cases
