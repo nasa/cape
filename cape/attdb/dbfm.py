@@ -47,8 +47,8 @@ _aoav_cols  = rdbaero.AeroDataKit._tagcols["aoav"]
 _beta_cols  = rdbaero.AeroDataKit._tagcols["beta"]
 _phip_cols  = rdbaero.AeroDataKit._tagcols["phip"]
 _phiv_cols  = rdbaero.AeroDataKit._tagcols["phiv"]
-
-
+        
+    
 # Standard converters: alpha
 def convert_alpha(*a, **kw):
     r"""Determine angle of attack from *kwargs*
@@ -603,7 +603,7 @@ def eval_UCLNX(db, col1, col2, col3, *a, **kw):
         *col3*: ``"xCLN"`` | :class:`str`
             Name of *UCLN* reference MRP column
         *a*: :class:`tuple`
-            Arguments to call ``FM("CLM", *a)`` [plus *xMRP*]
+            Arguments to call ``FM(col1, *a)`` [plus *xMRP*]
         *kw*: :class:`dict`
             Keywords used as alternate definition of *a*
     :Outputs:

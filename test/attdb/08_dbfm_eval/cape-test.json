@@ -2,7 +2,9 @@
     "CopyFiles": [
         "bullet-fm-mab.mat",
         "test01_fm.py",
-        "test02_CLMX.py"
+        "test02_CLMX.py",
+        "test03_q.py",
+        "test04_aoap.py"
     ],
     "Commands": [
         "python2 test01_fm.py",
@@ -10,7 +12,9 @@
         "python2 test02_CLMX.py",
         "python3 test02_CLMX.py",
         "python2 test03_q.py",
-        "python3 test03_q.py"
+        "python3 test03_q.py",
+        "python2 test04_aoap.py",
+        "python3 test04_aoap.py"
     ],
     "TargetSTDOUT": [
         "test.01.out",
@@ -18,7 +22,9 @@
         "test.02.out",
         "test.02.out",
         "test.03.out",
-        "test.03.out"
+        "test.03.out",
+        "test.04.out",
+        "test.04.out"
     ],
     "CommandTitles": [
         "Evaluate FM cols: Python 2",
@@ -26,7 +32,9 @@
         "Evaluate *CLMX* and *CLNX*: Python 2",
         "Evaluate *CLMX* and *CLNX*: Python 3",
         "Evaluate *q* and *T*: Python 2",
-        "Evaluate *q* and *T*: Python 3"
+        "Evaluate *q* and *T*: Python 3",
+        "Process *aoap* and *phip*: Python 2",
+        "Process *aoap* and *phip*: Python 3"
     ],
     "DocFilesShow": [],
     "DocFilesLexer": "python",

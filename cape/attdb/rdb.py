@@ -3262,7 +3262,7 @@ class DataKit(ftypes.BaseData):
                 V = self[col]
         except KeyError:
             # Missing key
-            raise KeyError("Coefficient '%s' is not present" % coeff)
+            raise KeyError("Col '%s' is not present" % col)
         # Subset if appropriate
         if I is not None:
             # Attempt to subset
