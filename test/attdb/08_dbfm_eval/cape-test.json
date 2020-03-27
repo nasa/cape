@@ -8,11 +8,15 @@
         "python2 test01_fm.py",
         "python3 test01_fm.py",
         "python2 test02_CLMX.py",
-        "python3 test02_CLMX.py"
+        "python3 test02_CLMX.py",
+        "python2 test03_q.py",
+        "python3 test03_q.py"
     ],
     "TargetSTDOUT": [
         "test.01.out",
         "test.01.out",
+        "test.02.out",
+        "test.02.out",
         "test.03.out",
         "test.03.out"
     ],
@@ -20,7 +24,9 @@
         "Evaluate FM cols: Python 2",
         "Evaluate FM cols: Python 3",
         "Evaluate *CLMX* and *CLNX*: Python 2",
-        "Evaluate *CLMX* and *CLNX*: Python 3"
+        "Evaluate *CLMX* and *CLNX*: Python 3",
+        "Evaluate *q* and *T*: Python 2",
+        "Evaluate *q* and *T*: Python 3"
     ],
     "DocFilesShow": [],
     "DocFilesLexer": "python",

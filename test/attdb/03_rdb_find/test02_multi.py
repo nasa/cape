@@ -8,7 +8,7 @@ import cape.attdb.rdb as rdb
 db = rdb.DataKit("mab01.mat")
 
 # Calculate break points
-db.get_bkpts(["mach"], nmin=1)
+db.create_bkpts(["mach"], nmin=1)
 
 # All Mach numbers
 mach = db.bkpts["mach"]
