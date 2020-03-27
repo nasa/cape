@@ -1384,6 +1384,32 @@ def _figure(**kw):
     return fig
 
 
+# Colorbars
+def _colorbar(ax=None, **kw):
+    r"""Add colorbar to a contour plot
+
+    :Call:
+        >>> _colorbar(**kw)
+        >>> _colorbar(ax, **kw)
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+    :Keyword Arguments:
+        %(keys)s
+    :Versions:
+        * 2020-03-27 ``@jmeeroff``: First version
+    """
+    # Make sure pyplot loaded
+    _import_pyplot()
+    # Call the colorbar 
+    if ax:
+        h = plt.colorbar(ax, **kw)
+    else:
+        h = plt.colorbar(**kw)
+    # Retrun colorbar
+    return h
+
+
 # Region plot
 def _fill_between(xv, ymin, ymax, **kw):
     r"""Call the :func:`fill_between` or :func:`fill_betweenx` function
