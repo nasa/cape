@@ -47,8 +47,8 @@ _aoav_cols  = rdbaero.AeroDataKit._tagcols["aoav"]
 _beta_cols  = rdbaero.AeroDataKit._tagcols["beta"]
 _phip_cols  = rdbaero.AeroDataKit._tagcols["phip"]
 _phiv_cols  = rdbaero.AeroDataKit._tagcols["phiv"]
-
-
+        
+    
 # Standard converters: alpha
 def convert_alpha(*a, **kw):
     r"""Determine angle of attack from *kwargs*
@@ -425,7 +425,7 @@ def eval_CLMX(db, col1, col2, *a, **kw):
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.eval_args[col1])
+    nf = len(db.get_eval_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
@@ -464,7 +464,7 @@ def eval_CLNX(db, col1, col2, *a, **kw):
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.eval_args[col1])
+    nf = len(db.get_eval_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
@@ -477,7 +477,7 @@ def eval_CLNX(db, col1, col2, *a, **kw):
 
 
 # Create evaluator
-def genr8_fCLMX(col1, col2):
+def genr8_fCLMX(col1="CLM", col2="CLN"):
     r"""Generate an evaluator for *CLMX* with specified *cols*
 
     :Call:
@@ -510,15 +510,15 @@ def genr8_fCLMX(col1, col2):
 
 
 # Create evaluator
-def genr8_fCLNX(col1, col2):
+def genr8_fCLNX(col1="CLN", col2="CY"):
     r"""Generate an evaluator for *CLNX* with specified *cols*
 
     :Call:
         >>> func = genr8_fCLNX(col1="CLN", col2="CN")
     :Inputs:
-        *col1*: ``"CLN"`` | :class:`str`
+        *col1*: {``"CLN"``} | :class:`str`
             Name of yawing moment column
-        *col2*: ``"CY"`` | :class:`str`
+        *col2*: {``"CY"``} | :class:`str`
             Name of side force column
     :Outputs:
         *func*: :class:`function`
@@ -543,16 +543,22 @@ def genr8_fCLNX(col1, col2):
 
 
 # Evaluate *UCLM* about different x
-def eval_UCLMX(db, *a, **kw):
+def eval_UCLMX(db, col1, col2, col3, *a, **kw):
     r"""Evaluate *UCLM* about arbitrary *x* moment reference point
 
     :Call:
-        >>> UCLMX = eval_UCLMX(db, *a, **kw)
+        >>> UCLMX = eval_UCLMX(db, col1, col2, col3, *a, **kw)
     :Inputs:
         *db*: :class:`DBFM`
             Force & moment data kit
+        *col1*: ``"UCLM"`` | :class:`str`
+            Name of pitching moment uncertainty column
+        *col2*: ``"UCN"`` | :class:`str`
+            Name of normal force uncertainty column
+        *col3*: ``"xCLM"`` | :class:`str`
+            Name of *UCLM* reference MRP column
         *a*: :class:`tuple`
-            Arguments to call ``FM("CLM", *a)`` [plus *xMRP*]
+            Arguments to call ``FM(col1, *a)`` [plus *xMRP*]
         *kw*: :class:`dict`
             Keywords used as alternate definition of *a*
     :Outputs:
@@ -561,19 +567,20 @@ def eval_UCLMX(db, *a, **kw):
     :Versions:
         * 2019-03-13 ``@ddalle``: First version
         * 2020-03-20 ``@ddalle``: :class:`DataKit` version
+        * 2020-03-26 ``@ddalle``: Added *col* args
     """
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.eval_args["CLM"])
+    nf = len(db.get_eval_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
-    xhat = kw.get("xhat", xMRP/FM.Lref)
+    xhat = kw.get("xhat", xMRP/db.Lref)
     # Evaluate main functions
-    UCLM = db("UCLM", *a, **kw)
-    xCLM = db("xCLM", *a, **kw)
-    UCN  = db("UCN",  *a, **kw)
+    UCLM = db(col1, *a, **kw)
+    xCLM = db(col3, *a, **kw)
+    UCN  = db(col2, *a, **kw)
     # Transfer
     UCLMX = np.sqrt(UCLM*UCLM + ((xCLM-xhat)*UCN)**2)
     # Output
@@ -581,16 +588,22 @@ def eval_UCLMX(db, *a, **kw):
 
 
 # Evaluate *UCLN* about different x
-def eval_UCLNX(db, *a, **kw):
+def eval_UCLNX(db, col1, col2, col3, *a, **kw):
     r"""Evaluate *UCLN* about arbitrary *x* moment reference point
     
     :Call:
-        >>> UCLNX = eval_UCLNX(db, *a, **kw)
+        >>> UCLNX = eval_UCLNX(db, col1, col2, col3, *a, **kw)
     :Inputs:
         *db*: :class:`DBFM`
             Force & moment data kit
+        *col1*: ``"UCLN"`` | :class:`str`
+            Name of yawing moment uncertainty column
+        *col2*: ``"UCY"`` | :class:`str`
+            Name of side force uncertainty column
+        *col3*: ``"xCLN"`` | :class:`str`
+            Name of *UCLN* reference MRP column
         *a*: :class:`tuple`
-            Arguments to call ``FM("CLM", *a)`` [plus *xMRP*]
+            Arguments to call ``FM(col1, *a)`` [plus *xMRP*]
         *kw*: :class:`dict`
             Keywords used as alternate definition of *a*
     :Outputs:
@@ -601,21 +614,91 @@ def eval_UCLNX(db, *a, **kw):
         * 2020-03-20 ``@ddalle``: :class:`DataKit` version
     """
     # *xMRP* of original data
-    xmrp = db.xMRP / FM.Lref
+    xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.eval_args["CLN"])
+    nf = len(db.get_eval_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
-    xhat = kw.get("xhat", xMRP/FM.Lref)
+    xhat = kw.get("xhat", xMRP/db.Lref)
     # Evaluate main functions
-    UCLN = db("UCLN", *a, **kw)
-    xCLN = db("xCLN", *a, **kw)
-    UCY  = db("UCY",  *a, **kw)
+    UCLN = db(col1, *a, **kw)
+    xCLN = db(col3, *a, **kw)
+    UCY  = db(col2, *a, **kw)
     # Transfer
     UCLNX = np.sqrt(UCLN*UCLN + ((xCLN-xhat)*UCY)**2)
     # Output
     return UCLNX
+
+
+# Create evaluator for *UCLMX*
+def genr8_fUCLMX(col1="UCLM", col2="UCN", col3="xCLM"):
+    r"""Generate an evaluator for *UCLMX* with specified *cols*
+
+    :Call:
+        >>> func = genr8_fUCLMX(col1="UCLM", col2="UCN", col3="xCLM")
+    :Inputs:
+        *col1*: ``"UCLM"`` | :class:`str`
+            Name of pitching moment uncertainty column
+        *col2*: ``"UCN"`` | :class:`str`
+            Name of normal force uncertainty column
+        *col3*: ``"xCLM"`` | :class:`str`
+            Name of *UCLM* reference MRP column
+    :Outputs:
+        *func*: :class:`function`
+            Function to evaluate *col1* about arbitrary *xMRP*
+    :Output Call:
+        >>> UCLMX = func(db, *a, **kw)
+    :Output Args:
+        *db*: :class:`DBFM`
+            Force and moment data kit
+        *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+            Args to *col1*, plus optional *xMRP*
+        *kw*: :class:`dict`
+            Keyword args to *col1*, plus optional *xMRP*
+    :Versions:
+        * 2020-03-26 ``@ddalle``: First version
+    """
+    # Define the function
+    def func(db, *a, **kw):
+        return eval_UCLMX(db, col1, col2, col3, *a, **kw)
+    # Return the function
+    return func
+
+
+# Create evaluator for *UCLNX*
+def genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN"):
+    r"""Generate an evaluator for *UCLMX* with specified *cols*
+
+    :Call:
+        >>> func = genr8_fUCLMX(col1="UCLN", col2="UCY", col3="xCLN")
+    :Inputs:
+        *col1*: ``"UCLN"`` | :class:`str`
+            Name of yawing moment uncertainty column
+        *col2*: ``"UCY"`` | :class:`str`
+            Name of side force uncertainty column
+        *col3*: ``"xCLN"`` | :class:`str`
+            Name of *UCLN* reference MRP column
+    :Outputs:
+        *func*: :class:`function`
+            Function to evaluate *col1* about arbitrary *xMRP*
+    :Output Call:
+        >>> UCLNX = func(db, *a, **kw)
+    :Output Args:
+        *db*: :class:`DBFM`
+            Force and moment data kit
+        *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+            Args to *col1*, plus optional *xMRP*
+        *kw*: :class:`dict`
+            Keyword args to *col1*, plus optional *xMRP*
+    :Versions:
+        * 2020-03-26 ``@ddalle``: First version
+    """
+    # Define the function
+    def func(db, *a, **kw):
+        return eval_UCLNX(db, col1, col2, col3, *a, **kw)
+    # Return the function
+    return func
 
 
 # DBFM options

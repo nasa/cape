@@ -1913,22 +1913,25 @@ class DataKit(ftypes.BaseData):
 
    # --- Options: Get ---
     # Get argument list
-    def get_eval_args(self, col):
+    def get_eval_args(self, col, argsdef=None):
         r"""Get list of evaluation arguments
 
         :Call:
-            >>> args = db.get_eval_args(col)
+            >>> args = db.get_eval_args(col, argsdef=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
+            *argsdef*: {``None``} | :class:`list`\ [:class:`str`]
+                Default arg list if none found in *db*
         :Outputs:
             *args*: :class:`list`\ [:class:`str`]
                 List of parameters used to evaluate *col*
         :Versions:
             * 2019-03-11 ``@ddalle``: Forked from :func:`__call__`
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2020-03-26 ``@ddalle``: Added *argsdef*
         """
         # Get overall handle
         eval_args = self.__dict__.get("eval_args", {})
@@ -1940,9 +1943,10 @@ class DataKit(ftypes.BaseData):
             args_col = eval_args.get("_")
         # Create a copy if a list
         if args_col is None:
-            # Don't have to copy ``None``
-            return args_col
-        elif isinstance(args_col, list):
+            # User user-provided default
+            args_col = argsdef
+        # Check type and make copy
+        if isinstance(args_col, list):
             # Create a copy to prevent muting the definitions
             return list(args_col)
         else:
@@ -2106,7 +2110,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-30 ``@ddalle``: First version
         """
         # Get attribute
-        eval_kwargs = self.__dict__.get("eval_eval_kwargs", {})
+        eval_kwargs = self.__dict__.get("eval_kwargs", {})
         # Check types
         if not typeutils.isstr(col):
             raise TypeError(
@@ -3258,7 +3262,7 @@ class DataKit(ftypes.BaseData):
                 V = self[col]
         except KeyError:
             # Missing key
-            raise KeyError("Coefficient '%s' is not present" % coeff)
+            raise KeyError("Col '%s' is not present" % col)
         # Subset if appropriate
         if I is not None:
             # Attempt to subset
@@ -4394,12 +4398,12 @@ class DataKit(ftypes.BaseData):
   # <
    # --- Breakpoint Creation ---
     # Get automatic break points
-    def get_bkpts(self, cols, nmin=5, tol=1e-12):
+    def create_bkpts(self, cols, nmin=5, tol=1e-12):
         r"""Create automatic list of break points for interpolation
 
         :Call:
-            >>> db.get_bkpts(col, nmin=5, tol=1e-12)
-            >>> db.get_bkpts(cols, nmin=5, tol=1e-12)
+            >>> db.create_bkpts(col, nmin=5, tol=1e-12)
+            >>> db.create_bkpts(cols, nmin=5, tol=1e-12)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -4419,6 +4423,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
+            * 2020-03-26 ``@ddalle``: Renamed, :func:`get_bkpts`
         """
         # Check for single key list
         if not isinstance(cols, (list, tuple)):
@@ -4469,7 +4474,7 @@ class DataKit(ftypes.BaseData):
             bkpts[col] = B
 
     # Map break points from other key
-    def map_bkpts(self, cols, scol, tol=1e-12):
+    def create_bkpts_map(self, cols, scol, tol=1e-12):
         r"""Map break points of one column to one or more others
 
         The most common purpose to use this method is to create
@@ -4480,7 +4485,7 @@ class DataKit(ftypes.BaseData):
         flight.
 
         :Call:
-            >>> db.map_bkpts(cols, scol, tol=1e-12)
+            >>> db.create_bkpts_map(cols, scol, tol=1e-12)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -4498,6 +4503,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2018-06-29 ``@ddalle``: First version
             * 2019-12-16 ``@ddalle``: Ported to :mod:`rdbnull`
+            * 2020-03-26 ``@ddalle``: Renamed, :func:`map_bkpts`
         """
         # Check inputs
         if not isinstance(cols, list):
@@ -4550,12 +4556,12 @@ class DataKit(ftypes.BaseData):
                 # Find value of slice key matching that parameter
                 i = np.where(np.abs(V0 - v0) <= tol)[0][0]
                 # Save value of that index from col
-                V[j] = V[i]
+                U[j] = V[i]
             # Save break points
-            bkpts[col] = V
+            bkpts[col] = U
 
     # Schedule break points at slices at other key
-    def schedule_bkpts(self, cols, scol, nmin=5, tol=1e-12):
+    def create_bkpts_schedule(self, cols, scol, nmin=5, tol=1e-12):
         r"""Create lists of unique values at each unique value of *scol*
 
         This function creates a break point list of the unique values of
@@ -4566,7 +4572,7 @@ class DataKit(ftypes.BaseData):
         Mach number in *db.bkpts["mach"]*.
 
         :Call:
-            >>> db.schedule_bkpts(cols, scol)
+            >>> db.create_bkpts_schedule(cols, scol)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -4586,6 +4592,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2018-06-29 ``@ddalle``: First version
             * 2019-12-16 ``@ddalle``: Ported to :mod:`rdbnull`
+            * 2020-03-26 ``@ddalle``: Renamed, :func:`schedule_bkpts`
         """
         # Check inputs
         if not isinstance(cols, list):

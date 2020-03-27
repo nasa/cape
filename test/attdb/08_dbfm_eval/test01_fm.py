@@ -23,7 +23,7 @@ for tag in fmtags:
 # Standard args
 args = ["mach", "alpha", "beta"]
 # Get Mach number break points
-db.get_bkpts(args)
+db.create_bkpts(args)
 
 # Set evaluation
 db.make_responses(fmcols, "linear", args)

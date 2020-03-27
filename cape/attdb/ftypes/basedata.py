@@ -967,7 +967,7 @@ class BaseData(dict):
         defn["Tag"] = tagdef
 
     # Get columns by tag
-    def get_col_by_tag(self, tag):
+    def get_col_by_tag(self, tag, coldef=None):
         r"""Return the first *col* with specified "Tag", if any
 
         :Call:
@@ -977,8 +977,10 @@ class BaseData(dict):
                 Data container
             *tag*: :class:`str`
                 Target "Tag" from column definitions
+            *coldef*: {``None``} | :class:`str`
+                Default column name
         :Outputs:
-            *col*: {``None``} | :class:`str`
+            *col*: ``None`` | :class:`str`
                 Name of column for which to set default tag
         :Versions:
             * 2020-03-18 ``@ddalle``: First version
@@ -993,8 +995,8 @@ class BaseData(dict):
             if coltag == tag:
                 # Match
                 return col
-        # Otherwise return no column name
-        return
+        # Otherwise return default column name
+        return coldef
 
     # Get all columns by tag
     def get_cols_by_tag(self, tag):
