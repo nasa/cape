@@ -19,6 +19,8 @@ db.create_bkpts(args)
 
 # Set evaluation
 db.make_response("bullet.dCN", "linear", args)
+# Set output args
+db.set_output_xargs("bullet.dCN", ["bullet.x"])
 
 # Pick some conditions
 mach = 0.90
@@ -35,4 +37,6 @@ dCN = db("bullet.dCN", mach, alph, beta)
 plt.plot(db["bullet.x"], dCN)
 # Display size
 print("bullet.dCN.size: %i" % dCN.size)
+# Display output args
+print("bullet.dCN.xargs: %s" % db.get_output_xargs("bullet.dCN"))
 
