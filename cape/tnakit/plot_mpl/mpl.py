@@ -191,6 +191,34 @@ def plot(xv, yv, fmt=None, **kw):
     return _plot(xv, yv, fmt=fmt, **kw_p)
 
 
+# Contour function with options check
+def contour(xv, yv, zv, **kw):
+    r"""Call the :func:`contour` function with cycling options
+
+    :Call:
+        >>> h = contour(xv, yv, zv, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *zv*: :class:`np.ndarray`
+            Array of contour levels
+    :Keyword Arguments:
+        %(keys)s
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.tri.tricontour`)
+            List of line instances
+    :Versions:
+        * 2020-03-26 ``@jmeeroff``: First version
+    """
+    # Process options
+    opts = MPLOpts(_section="contour", **kw)
+    # Get contour options
+    kw_p = opts.contour_options()
+    # Call root function
+    return _contour(xv, yv, zv, **kw_p)
+
 # Error bar plot
 def errorbar(xv, yv, yerr=None, xerr=None, **kw):
     r"""Call the :func:`errorbar` function with options checks
@@ -1776,12 +1804,11 @@ def _plot(xv, yv, fmt=None, **kw):
     return h
 
 # contour part
-def _contour(xv, yv, zv, ContourType="tricontourf", **kw):
+def _contour(xv, yv, zv, **kw):
     r"""Call the :func:`contour` function with cycling options
 
     :Call:
         >>> h = _plot(xv, yv, zv, **kw)
-        >>> h = _plot(xv, yv, zv, ContourType, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of *x*-coordinates
@@ -1796,7 +1823,7 @@ def _contour(xv, yv, zv, ContourType="tricontourf", **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.tricontourf`
     :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+        *h*: :class:`list` (:class:`matplotlib.tri.tricontour`)
             List of line instances
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
@@ -1805,6 +1832,8 @@ def _contour(xv, yv, zv, ContourType="tricontourf", **kw):
     """
     # Ensure plot() is available
     _import_pyplot()
+    # Get Contour Type
+    ctyp = kw.pop("ContourType", kw.pop("ctyp", "tricontourf"))
     # Get index
     i = kw.pop("Index", kw.pop("i", 0))
     # Get rotation option
@@ -1814,18 +1843,19 @@ def _contour(xv, yv, zv, ContourType="tricontourf", **kw):
         yv, xv = xv, yv
     # Initialize plot options
     kw_p = MPLOpts.select_phase(kw, i)
-    if ContourType == "tricontourf":
+    if ctyp == "tricontourf":
         # Filled contour
         h = plt.tricontourf(xv, yv, zv, **kw_p)
-    elif ContourType == "tricontour":
+    elif ctyp == "tricontour":
         # Contour lines
         h = plt.tricontour(xv, yv, zv, **kw_p)
-    elif ContourType == "tripcolor":
+    elif ctyp == "tripcolor":
+
         # Triangulated 
         h = plt.tripcolor(xv, yv, zv, **kw_p)
     else:
          # Unrecognized
-        raise ValueError("Unrecognized ContourType '%s'" % ContourType)
+        raise ValueError("Unrecognized ContourType '%s'" % ctyp)
     # Output
     return h
 
