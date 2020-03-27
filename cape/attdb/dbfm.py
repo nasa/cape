@@ -616,7 +616,7 @@ def eval_UCLNX(db, col1, col2, col3, *a, **kw):
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.get_eval_args(col1)
+    nf = len(db.get_eval_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
