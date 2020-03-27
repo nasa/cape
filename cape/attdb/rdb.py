@@ -6415,7 +6415,7 @@ class DataKit(ftypes.BaseData):
         # Check for indices
         if len(a) == 0:
             raise ValueError("At least 2 inputs required; received 1")
-        # Process first second arg as indices
+        # Process first second arg as a mask
         I = np.asarray(a[0])
         # Check for integer
         if (I.ndim > 0) and isinstance(I[0], int):
@@ -6427,9 +6427,9 @@ class DataKit(ftypes.BaseData):
             # Get values of arg list from *DBc* and *I*
             A = []
             # Loop through *eval_args*
-            for col in arg_list:
+            for arg in arg_list:
                 # Get values
-                A.append(self.get_xvals(col, I, **kw))
+                A.append(self.get_xvals(arg, I, **kw))
             # Convert to tuple
             a = tuple(A)
             # Plot all points

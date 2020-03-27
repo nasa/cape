@@ -28,5 +28,15 @@ alph = 1.50
 beta = 0.50
 
 # Preprpocess
-print(db._process_plot_args1("bullet.CN", 0.9, 1.9, -0.1))
-print(db._process_plot_args1("bullet.CN", np.array([200, 238])))
+args1 = db._process_plot_args1("bullet.CN", 0.9, 1.9, -0.1)
+args2 = db._process_plot_args1("bullet.CN", np.array([200, 238]))
+
+# Display
+print("Version 1:")
+print("  col = '%s'" % args1[0])
+print("  I   = %s" % args1[1])
+print("  a   = %s" % list(args1[3]))
+print("Version 2:")
+print("  col = '%s'" % args2[0])
+print("  I   = %s" % args2[1])
+print("  a   = %s" % list(args2[3]))
