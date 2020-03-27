@@ -82,6 +82,52 @@ def _preprocess_kwargs(**kw):
     return opts, h
 
 
+# Contour plotter
+def contour(xv, yv, zv, *a, **kw):
+    r"""Plot contours many options
+
+    :Call:
+        >>> h, kw = plot(xv, yv, zv, *a, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for *x*-axis
+        *yv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for *y*-axis
+        *zv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for contour levels
+    :Outputs:
+        *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
+            Dictionary of plot handles
+    :Versions:
+        * 2020-03-26 ``@jmeeroff``: First version
+    """
+   # --- Prep ---
+    # Process options
+    opts, h = _preprocess_kwargs(**kw)
+    # Save values
+    opts.set_option("x", xv)
+    opts.set_option("y", yv)
+    opts.set_option("z", zv)
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
+   # --- Primary Plot ---
+    # Plot, then others
+    _part_contour(opts, h)
+   # --- Axis formatting ---
+    # Format grid, spines, extents, and window
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    _part_axes_format(opts, h)
+    _part_axes_adjust(opts, h)
+   # --- Labeling ---
+    # Colorbar
+    _part_colorbar(opts, h)
+    # Output
+    return h
+
+
 # Primary plotter
 def plot(xv, yv, *a, **kw):
     r"""Plot connected points with many options
@@ -189,6 +235,22 @@ def _part_plot(opts, h):
         lines = mpl._plot(xv, yv, *a, **kw)
         # Save lines
         h.save("lines", lines)
+
+
+# Partial function: contour()
+def _part_contour(opts, h):
+    # Call contour method
+    # Process contour options
+    kw = opts.contour_options()
+    # Get values
+    xv = opts.get_option("x")
+    yv = opts.get_option("y")
+    zv = opts.get_option("z")
+    # Contour plot call
+    contour = mpl._contour(xv, yv, zv, **kw)
+    # Save contour
+    h.save("contour", contour)
+
 
 
 # Partial function: minmax()
@@ -319,6 +381,16 @@ def _part_legend(opts, h):
     leg = mpl._legend(h.ax, **kw)
     # Save
     h.save("legend", leg)
+
+
+# Partial function: colorbar()
+def _part_colorbar(opts, h):
+    # Process colorbar options [None yet]
+    kw = {}
+    # Setup colobar
+    cbar = mpl._colorbar(h.contour, **kw)
+    # Save
+    h.save("colorbar", cbar)
 
 
 # Primary Histogram plotter
