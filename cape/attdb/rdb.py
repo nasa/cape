@@ -5900,7 +5900,7 @@ class DataKit(ftypes.BaseData):
             # Got to next test point if no match
             if not found:
                 # Save status
-                Mj[i] = found
+                MJ[i] = found
                 continue
             # Check reporting method
             if mapped:
@@ -6487,6 +6487,27 @@ class DataKit(ftypes.BaseData):
         return col, I, J, a, kw
 
    # --- Base Plot Commands ---
+    # Master plot controller
+    def plot(self, *a, **kw):
+        # Process column name and remaining coeffs
+        col, a, kw = self._prep_args_colname(*a, **kw)
+        # Get dimension of *col*
+        ndim = self.get_ndim(col)
+        # Check dimension
+        if ndim == 1:
+            # Scalar plot
+            return self.plot_scalar(col, *a, **kw)
+        elif ndim == 2:
+            # Line load plot
+            return self.plot_linear(col, *q, **kw)
+        else:
+            # Not implemented
+            raise ValueError("No plot method for %iD col '%s'" % (ndim, col))
+    
+    # Plot single line load
+    def plot_linear(self, *a, **kw):
+        pass
+
     # Plot a sweep of one or more coefficients
     def plot_scalar(self, *a, **kw):
         r"""Plot a sweep of one data column over several cases
