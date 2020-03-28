@@ -234,7 +234,8 @@ class MPLOpts(kwutils.KwargHandler):
         "y",
         "yerr",
         "ymin",
-        "ymax"
+        "ymax",
+        "z"
     }
 
     # Options for which a singleton is a list
@@ -684,6 +685,7 @@ class MPLOpts(kwutils.KwargHandler):
         "yerr": typeutils.arraylike,
         "ymax": typeutils.arraylike,
         "ymin": typeutils.arraylike,
+        "z": typeutils.arraylike,
     }
 
    # --- Cascading Options ---
@@ -950,6 +952,7 @@ class MPLOpts(kwutils.KwargHandler):
         "yerr": r""":class:`np.ndarray`\ [:class:`float`]""",
         "ymax": r""":class:`np.ndarray`\ [:class:`float`]""",
         "ymin": r""":class:`np.ndarray`\ [:class:`float`]""",
+        "z": r""":class:`np.ndarray`\ [:class:`float`]""",
     }
     # Option descriptions
     _rst_descriptions = {
@@ -1088,6 +1091,7 @@ class MPLOpts(kwutils.KwargHandler):
         "yerr": """Error magnitudes""",
         "ymin": """Max values for min/max plots""",
         "ymax": """Max values for min/max plots""",
+        "z": """Contour levels to plot""",
     }
     
    # --- RC ---
