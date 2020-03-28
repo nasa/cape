@@ -6374,13 +6374,13 @@ class DataKit(ftypes.BaseData):
   # ===================
   # <
    # --- Preprocessors ---
-    # Process arguments to PlotCoeff()
-    def _process_plot_args1(self, *a, **kw):
-        r"""Process arguments to :func:`plot` and other plot methods
+    # Process arguments to plot_scalar()
+    def _prep_args_plot1(self, *a, **kw):
+        r"""Process arguments to :func:`plot_scalar`
 
         :Call:
-            >>> col, I, J, a, kw = db._process_plot_args1(*a, **kw)
-            >>> col, I, J, a, kw = db._process_plot_args1(I, **kw)
+            >>> col, I, J, a, kw = db._prep_args_plot1(*a, **kw)
+            >>> col, I, J, a, kw = db._prep_args_plot1(I, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -6404,6 +6404,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-03-14 ``@ddalle``: First version
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
+            * 2020-03-27 ``@ddalle``: From :func:`_process_plot_args1`
         """
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
@@ -6435,7 +6436,7 @@ class DataKit(ftypes.BaseData):
             # Plot all points
             J = np.arange(I.size)
         else:
-            # No request for exat values
+            # No request for exact values
             qexact  = False
             qinterp = True
             qmark   = True
@@ -6485,6 +6486,118 @@ class DataKit(ftypes.BaseData):
        # --- Cleanup ---
         # Output
         return col, I, J, a, kw
+
+    # Process arguments to plot_scalar()
+    def _prep_args_plot2(self, *a, **kw):
+        r"""Process arguments to :func:`plot_linear`
+
+        :Call:
+            >>> col, I, J, a, kw = db._prep_args_plot1(*a, **kw)
+            >>> col, I, J, a, kw = db._prep_args_plot1(I, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
+                Array of values for arguments to :func:`db.__call__`
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of exact entries to plot
+            *kw*: :class:`dict`
+                Keyword arguments to plot function and evaluation
+        :Outputs:
+            *col*: :class:`str`
+                Data field to evaluate
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of exact entries to plot
+            *J*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of matches within *a*
+            *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+                Values for arguments for *coeff* evaluator
+            *kw*: :class:`dict`
+                Processed keyword arguments with defaults applied
+        :Versions:
+            * 2020-03-27 ``@ddalle``: First version
+        """
+       # --- Argument Types ---
+        # Process coefficient name and remaining coeffs
+        col, a, kw = self._prep_args_colname(*a, **kw)
+        # Get list of arguments
+        args = self.get_eval_args(col)
+        # Get *xk* for output
+        xargs = self.get_eval_xargs(col)
+        # unpack
+        xarg, = xargs
+        # Get key for *x* axis
+        xk = kw.setdefault("xk", xarg)
+        # Check for indices
+        if len(a) == 0:
+            raise ValueError("At least 2 inputs required; received 1")
+        # Get dimension of xarg
+        ndimx = self.get_ndim(xk)
+        # Get first entry to determine index vs values
+        I = np.asarray(a[0])
+        # Data types for first input and first eval_arg
+        dtypeI = I.dtype.name
+        dtype0 = self.get_col_dtype(col)
+        # Check for integer
+        qintI = dtypeI.startswith("int") or dtypeI.startswith("uint")
+        # Check for first arg integer
+        qint0 = dtype0.startswith("int") or dtype0.startswith("uint")
+        # If first *arg* is int, try to parse all values
+        if qint0:
+            # If it fails, use indices
+            try:
+                # Loop through args
+                for j, arg in enumerate(args):
+                    # Get arg value
+                    aj = self.get_arg_value(j, arg, *a, **kw)
+            except Exception:
+                # Didn't work; assume indices
+                qindex = True
+            else:
+                # Worked; assume values
+                qindex = False
+        else:
+            # First *eval_arg* not int; check *a[0]* for int
+            qindex = qintI
+        # Check data
+        if qindex:
+            # Get values
+            V = self.get_all_values(col)[:,I]
+            # Get *x* values
+            if ndimx == 2:
+                # Get *x* values for each index
+                X = self.get_all_values(xk)[:,I]
+            else:
+                # Common *x* values
+                X = self.get_all_values(xk)
+        else:
+            # Evaluate
+            V = self(col, *a, **kw)
+            # Get *x* values
+            if ndimx == 2:
+                # Get *x* values for each index
+                X = self(xk, *a, **kw)
+            else:
+                # Common *x* values
+                X = self.get_all_values(xk)
+       # --- Options ---
+        # Default label starter: db.name
+        dlbl = self.__dict__.get("name")
+        # Some fallbacks
+        if dlbl is None:
+            dlbl = self.__dict__.get("comp")
+        if dlbl is None:
+            dlbl = self.__dict__.get("Name")
+        if dlbl is None:
+            dlbl = col
+        # Set default label
+        kw.setdefault("Label", dlbl)
+        # Default x-axis label is *xk*
+        kw.setdefault("XLabel", xk)
+        kw.setdefault("YLabel", col)
+       # --- Cleanup ---
+        # Output
+        return col, X, V, kw
 
    # --- Base Plot Commands ---
     # Master plot controller
@@ -6565,7 +6678,7 @@ class DataKit(ftypes.BaseData):
         """
        # --- Process Args ---
         # Process coefficient name and remaining coeffs
-        col, I, J, a, kw = self._process_plot_args1(*a, **kw)
+        col, I, J, a, kw = self._prep_args_plot1(*a, **kw)
         # Get list of arguments
         arg_list = self.get_eval_args(col)
         # Get key for *x* axis
