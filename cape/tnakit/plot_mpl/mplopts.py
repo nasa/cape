@@ -967,7 +967,7 @@ class MPLOpts(kwutils.KwargHandler):
         "BottomSpineTicks": "Turn on/off labels on bottom spine",
         "BottomSpineOptions": "Additional options for bottom spine",
         "BottomTickLabels": "Turn on/off tick labels on bottom spine",
-        "ContourColorBar": """Colorbar option to :func:`plt.tricontour` and variants""",
+        "ContourColorMap": """Colormap option to :func:`plt.tricontour` and variants""",
         "ContourType": """Contour type specifier""",
         "ContourOptions": """Options to :func:`plt.tricontour` and variants""",
         "Density": """Option to scale histogram plots""",
