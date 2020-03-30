@@ -21,6 +21,7 @@ db.create_bkpts(args)
 
 # Set evaluation
 db.make_responses(cols, "linear", args)
+db.set_output_xargs("bullet.dCN", ["bullet.x"])
 
 # Pick some conditions
 mach = 0.90

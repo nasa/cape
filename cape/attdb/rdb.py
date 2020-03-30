@@ -6418,8 +6418,11 @@ class DataKit(ftypes.BaseData):
             raise ValueError("At least 2 inputs required; received 1")
         # Process first second arg as a mask
         I = np.asarray(a[0])
+        # Get data type
+        dtype = I.dtype.name
         # Check for integer
-        if (I.ndim > 0) and isinstance(I[0], int):
+        if (I.ndim > 0) and (
+                dtype.startswith("int") or dtype.startswith("uint")):
             # Request for exact values
             qexact  = True
             qinterp = False
@@ -6521,7 +6524,7 @@ class DataKit(ftypes.BaseData):
         # Get list of arguments
         args = self.get_eval_args(col)
         # Get *xk* for output
-        xargs = self.get_eval_xargs(col)
+        xargs = self.get_output_xargs(col)
         # unpack
         xarg, = xargs
         # Get key for *x* axis
@@ -6610,25 +6613,18 @@ class DataKit(ftypes.BaseData):
             return self.plot_scalar(col, *a, **kw)
         elif ndim == 2:
             # Line load plot
-            return self.plot_linear(col, *q, **kw)
+            return self.plot_linear(col, *a, **kw)
         else:
             # Not implemented
             raise ValueError("No plot method for %iD col '%s'" % (ndim, col))
-    
-    # Plot single line load
-    def plot_linear(self, *a, **kw):
-        pass
 
     # Plot a sweep of one or more coefficients
     def plot_scalar(self, *a, **kw):
         r"""Plot a sweep of one data column over several cases
 
-        This is the base method upon which scalar data book sweep plotting is built.
+        This is the base method upon which scalar *col* plotting is built.
         Other methods may call this one with modifications to the default
-        settings.  For example :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes
-        the default *LineOptions* to show a red line instead of the standard
-        black line.  All settings can still be overruled by explicit inputs to
-        either this function or any of its children.
+        settings.
 
         :Call:
             >>> h = db.plot_scalar(col, *a, **kw)
@@ -6646,17 +6642,17 @@ class DataKit(ftypes.BaseData):
             *xcol*, *xk*: {``None``} | :class:`str`
                 Key/column name for *x* axis
             *PlotExact*: ``True`` | ``False``
-                Plot exact values directly from database without interpolation
-                Default is ``True`` if *I* is used
+                Plot exact values directly from database without
+                interpolation. Default is ``True`` if *I* is used
             *PlotInterp*: ``True`` | ``False``
                 Plot values by using :func:`DBc.__call__`
             *MarkExact*: ``True`` | ``False``
-                Mark interpolated curves with markers where actual data points
-                are present
+                Mark interpolated curves with markers where actual data
+                points are present
         :Plot Options:
             *ShowLegend*: {``None``} | ``True`` | ``False``
                 Whether or not to use a legend
-            *LegendFontSize*: {``9``} | :class:`int` > 0 | :class:`float`
+            *LegendFontSize*: {``9``} | :class:`int` | :class:`float`
                 Font size for use in legends
             *Grid*: {``None``} | ``True`` | ``False``
                 Turn on/off major grid lines, or leave as is if ``None``
@@ -6673,6 +6669,7 @@ class DataKit(ftypes.BaseData):
             * 2015-05-30 ``@ddalle``: First version
             * 2015-12-14 ``@ddalle``: Added error bars
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
+            * 2020-03-30 ``@ddalle``: Redocumented
         """
        # --- Process Args ---
         # Process coefficient name and remaining coeffs
@@ -6699,7 +6696,7 @@ class DataKit(ftypes.BaseData):
         # Initialize output
         h = pmpl.MPLHandle()
         # Initialize plot options in order to reduce aliases, etc.
-        opts = pmpl.MPLOpts(warnmode=0, **kw)
+        opts = pmpl.MPLOpts(_warnmode=0, **kw)
         # Uncertainty plot flag
         quq = opts.get("ShowUncertainty", False)
         # Y-axis values: exact
@@ -6822,6 +6819,79 @@ class DataKit(ftypes.BaseData):
             h.add(he)
        # --- Cleanup ---
         # Output
+        return h
+       # ---
+    
+    # Plot single line load
+    def plot_linear(self, *a, **kw):
+        r"""Plot a 1D-output col for one or more cases or conditions
+
+        :Call:
+            >>> h = db.plot_linear(col, *a, **kw)
+            >>> h = db.plot_linear(col, I, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column (or derived column) to evaluate
+            *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
+                Array of values for arguments to evaluator for *col*
+            *I*: :class:`np.ndarray` (:class:`int`)
+                Indices of exact entries to plot
+        :Keyword Arguments:
+            *xcol*, *xk*: {*db.eval_xargs[col][0]*} | :class:`str`
+                Key/column name for *x* axis
+        :Plot Options:
+            *ShowLegend*: {``None``} | ``True`` | ``False``
+                Whether or not to use a legend
+            *LegendFontSize*: {``9``} | :class:`int` > 0 | :class:`float`
+                Font size for use in legends
+            *Grid*: {``None``} | ``True`` | ``False``
+                Turn on/off major grid lines, or leave as is if ``None``
+            *GridStyle*: {``{}``} | :class:`dict`
+                Dictionary of major grid line line style options
+            *MinorGrid*: {``None``} | ``True`` | ``False``
+                Turn on/off minor grid lines, or leave as is if ``None``
+            *MinorGridStyle*: {``{}``} | :class:`dict`
+                Dictionary of minor grid line line style options
+        :Outputs:
+            *h*: :class:`plot_mpl.MPLHandle`
+                Object of :mod:`matplotlib` handles
+        :Versions:
+            * 2020-03-30 ``@ddalle``: First version
+        """
+       # --- Prep ---
+        # Process column name and values to plot
+        col, X, V, kw = self._prep_args_plot2(*a, **kw)
+        # Get key for *x* axis
+        xk = kw.pop("xcol", kw.pop("xk", self.get_output_xargs(col)[0]))
+       # --- Plot Values ---
+        # Initialize output
+        h = pmpl.MPLHandle()
+        # Initialize plot options in order to reduce aliases, etc.
+        opts = pmpl.MPLOpts(_warnmode=0, **kw)
+        # Check dimension of *V*
+        if V.ndim == 1:
+            # Scalar line plot
+            hi = pmpl.plot(X, V, **opts)
+            # Combine plot handles
+            h.add(hi)
+        elif X.ndim == 1:
+            # Multiple conditions with common *x*
+            for i in range(V.shape[1]):
+                # Line plot for column of *V*
+                hi = pmpl.plot(X, V[:,i], Index=i, **opts)
+                # combine plot handles
+                h.add(hi)
+        else:
+            # Multiple conditions with common *x*
+            for i in range(V.shape[1]):
+                # Line plot for column of *V*
+                hi = pmpl.plot(X, V[:,i], Index=i, **opts)
+                # combine plot handles
+                h.add(hi)
+       # --- Output ---
+        # Return plot handle
         return h
        # ---
   # >
