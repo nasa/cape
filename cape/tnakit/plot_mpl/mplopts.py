@@ -763,23 +763,23 @@ class MPLOpts(kwutils.KwargHandler):
             "ScatterColor": "c",
             "ScatterSize": "s",
         },
-       "TickOptions": {
+        "TickOptions": {
             "TickFontSize": "labelsize",
             "TickRotation": "rotation",
             "TickSize": "size",
-       },
-       "XTickOptions": {
-           "TickOptions.labelsize": "labelsize",
-           "TickOptions.rotation": "rotation",
-           "TickOptions.size": "size",
+        },
+        "XTickOptions": {
+            "TickOptions.labelsize": "labelsize",
+            "TickOptions.rotation": "rotation",
+            "TickOptions.size": "size",
             "XTickFontSize": "labelsize",
             "XTickRotation": "rotation",
             "XTickSize": "size",
-       },
-       "YTickOptions": {
-           "TickOptions.labelsize": "labelsize",
-           "TickOptions.rotation": "rotation",
-           "TickOptions.size": "size",
+        },
+        "YTickOptions": {
+            "TickOptions.labelsize": "labelsize",
+            "TickOptions.rotation": "rotation",
+            "TickOptions.size": "size",
             "YTickFontSize": "labelsize",
             "YTickRotation": "rotation",
             "YTickSize": "size",
