@@ -868,7 +868,7 @@ def _plots_std(ax, vmu, vstd, **kw):
     :Keyword Arguments:
         * "StdOptions" : :dict: of line `LineOptions`
     :Outputs:
-        *h*: ``None`` | :class:`list`\ [:class:`matplotlib.Line2D`]
+        *h*: ``None`` | :class:`list`| [:class:`matplotlib.Line2D`]
             List of line instances
     :Versions:
         * 2019-03-14 ``@jmeeroff``: First version
