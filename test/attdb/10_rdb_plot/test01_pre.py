@@ -32,16 +32,28 @@ args1 = db._prep_args_plot1("bullet.CN", 0.9, 1.9, -0.1)
 args2 = db._prep_args_plot1("bullet.CN", np.array([200, 238]))
 args3 = db._prep_args_plot1("bullet.dCN", np.array([240, 251]))
 
+# Unpack
+mach1, aoa1, beta1 = args1[3]
+mach2, aoa2, beta2 = args2[3]
+mach3, aoa3, beta3 = args3[3]
+
 # Display
-print("Version 1:")
-print("  col = '%s'" % args1[0])
-print("  I   = %s" % args1[1])
-print("  a   = %s" % list(args1[3]))
-print("Version 2:")
-print("  col = '%s'" % args2[0])
-print("  I   = %s" % args2[1])
-print("  a   = %s" % list(args2[3]))
+print("Version 1: scalar by scalar args")
+print("  col  = '%s'" % args1[0])
+print("  I    = %s" % args1[1])
+print("  mach = %5.2f" % mach1)
+print("  aoa  = %5.2f" % aoa1)
+print("  beta = %5.2f" % beta1)
+print("Version 2: scalar by array indices")
+print("  col  = '%s'" % args2[0])
+print("  I    = %s" % ", ".join(["%i" % x for x in args2[1]]))
+print("  mach = %s" % ", ".join(["%5.2f" % x for x in mach2]))
+print("  aoa  = %s" % ", ".join(["%5.2f" % x for x in aoa2]))
+print("  beta = %s" % ", ".join(["%5.2f" % x for x in beta2]))
 print("Version 3:")
 print("  col = '%s'" % args3[0])
-print("  I   = %s" % args3[1])
-print("  a   = %s" % list(args3[3]))
+print("  I    = %s" % ", ".join(["%i" % x for x in args3[1]]))
+print("  mach = %s" % ", ".join(["%5.2f" % x for x in mach3]))
+print("  aoa  = %s" % ", ".join(["%5.2f" % x for x in aoa3]))
+print("  beta = %s" % ", ".join(["%5.2f" % x for x in beta3]))
+

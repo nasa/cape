@@ -1,0 +1,23 @@
+{
+    "CopyFiles": [
+        "bullet-reg.mat",
+        "test01_pre.py"
+    ],
+    "Commands": [
+        "python2 test01_pre.py",
+        "python3 test01_pre.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out"
+    ],
+    "CommandTitles": [
+        "Prep plot args: Python 2",
+        "Prep plot args: Python 3"
+    ],
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/attdb",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

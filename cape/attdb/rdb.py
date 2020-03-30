@@ -6398,7 +6398,7 @@ class DataKit(ftypes.BaseData):
             *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of matches within *a*
             *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
-                Values for arguments for *coeff* evaluator
+                Values for arguments for *col* evaluator
             *kw*: :class:`dict`
                 Processed keyword arguments with defaults applied
         :Versions:
@@ -6492,8 +6492,8 @@ class DataKit(ftypes.BaseData):
         r"""Process arguments to :func:`plot_linear`
 
         :Call:
-            >>> col, I, J, a, kw = db._prep_args_plot1(*a, **kw)
-            >>> col, I, J, a, kw = db._prep_args_plot1(I, **kw)
+            >>> col, X, V, kw = db._prep_args_plot2(*a, **kw)
+            >>> col, X, V, kw = db._prep_args_plot2(I, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -6506,12 +6506,10 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *col*: :class:`str`
                 Data field to evaluate
-            *I*: :class:`np.ndarray`\ [:class:`int`]
-                Indices of exact entries to plot
-            *J*: :class:`np.ndarray`\ [:class:`int`]
-                Indices of matches within *a*
-            *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
-                Values for arguments for *coeff* evaluator
+            *X*: :class:`np.ndarray`\ [:class:`float`]
+                *x*-values for 1D output sensitivity
+            *V*: :class:`np.ndarray`\ [:class:`float`]
+                Values of *col* for cases *I*
             *kw*: :class:`dict`
                 Processed keyword arguments with defaults applied
         :Versions:
