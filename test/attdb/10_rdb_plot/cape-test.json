@@ -1,0 +1,36 @@
+{
+    "CopyFiles": [
+        "bullet-reg.mat",
+        "test01_pre.py",
+        "test02_ll.py"
+    ],
+    "Commands": [
+        "python2 test01_pre.py",
+        "python3 test01_pre.py",
+        "python2 test02_ll.py",
+        "python3 test02_ll.py"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out",
+        "test.02.out",
+        "test.02.out"
+    ],
+    "CommandTitles": [
+        "Prep plot args: Python 2",
+        "Prep plot args: Python 3",
+        "Plot line load: Python 2",
+        "Plot line load: Python 3"
+    ],
+    "TargetPNG": [
+        null,
+        null,
+        "python2-dCN-index.png",
+        "python3-dCN-index.png"
+    ],
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/attdb",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

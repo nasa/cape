@@ -827,7 +827,7 @@ class BaseData(dict):
             # Assume string
             dtype = "str"
             # Save length and dimension
-            defn.set_opiton("Dimension", 1)
+            defn.set_option("Dimension", 1)
             defn.set_option("Shape", (len(V), ))
         elif isinstance(V, np.ndarray):
             # Array; get data type from instance

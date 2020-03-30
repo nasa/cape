@@ -1,0 +1,18 @@
+Version 1: scalar by scalar args
+  col  = 'bullet.CN'
+  I    = []
+  mach =  0.90
+  aoa  =  1.90
+  beta = -0.10
+Version 2: scalar by array indices
+  col  = 'bullet.CN'
+  I    = 200, 238
+  mach =  0.80,  0.80
+  aoa  =  0.75,  1.50
+  beta =  1.25, -2.00
+Version 3:
+  col = 'bullet.dCN'
+  I    = 240, 251
+  mach =  0.80,  0.80
+  aoa  =  1.50,  1.50
+  beta = -1.50,  1.25

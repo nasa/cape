@@ -911,7 +911,7 @@ class KwargHandler(dict):
             # One more check for ``None``
             if subval is not None:
                 # Don't override
-                optval.setdefault(subopt, subval)
+                optval[subopt] = subval
         # Store cascading option parents to avoid multiple access
         kw_cascade = {}
         # Loop through cascade options
