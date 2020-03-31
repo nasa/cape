@@ -240,6 +240,16 @@ class DataKit(ftypes.BaseData):
         self.eval_kwargs = {}
         self.eval_method = {}
         self.eval_xargs = {}
+        # 1D output image and seam directives
+        self.im_fnames = {}
+        self.im_objs = {}
+        self.im_cols = {}
+        self.im_figs = {}
+        self.im_kwargs = {}
+        self.seam_names = {}
+        self.seam_cols = {}
+        self.seam_figs = {}
+        self.seam_kwargs = {}
 
         # Process keyword options
         self.opts = self.process_kw(_warnmode=0, **kw)
