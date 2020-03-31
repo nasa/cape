@@ -240,13 +240,13 @@ class DataKit(ftypes.BaseData):
         self.eval_kwargs = {}
         self.eval_method = {}
         self.eval_xargs = {}
+        # Extra attributes for plotting
+        self.col_pngs = {}
+        self.col_seams = {}
         # 1D output image and seam directives
-        self.im_fnames = {}
-        self.im_objs = {}
-        self.im_cols = {}
-        self.im_figs = {}
-        self.im_kwargs = {}
-        self.seam_names = {}
+        self.png_fnames = {}
+        self.png_figs = {}
+        self.png_kwargs = {}
         self.seam_cols = {}
         self.seam_figs = {}
         self.seam_kwargs = {}
@@ -6904,6 +6904,142 @@ class DataKit(ftypes.BaseData):
         # Return plot handle
         return h
        # ---
+
+   # --- PNG Options ---
+    # Set PNG file name
+    def set_png_fname(self, png, fpng):
+        r"""Set name of PNG file
+
+        :Call:
+            >>> db.set_png_fname(png, fpng)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *png*: :class:`str`
+                Name used to tag this PNG image
+            *fpng*: :class:`str`
+                Name of PNG file
+        :Effects:
+            *db.png_fnames*: :class:`dict`
+                Entry for *png* set to *fpng*
+        :Versions:
+            * 2020-03-31 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(png):
+            raise TypeError(
+                "PNG name must be str (got %s)" % type(png))
+        if not typeutils.isstr(fpng):
+            raise TypeError(
+                "png_name for '%s' must be str (got %s)"
+                % (png, type(fpng)))
+        # Check if file exists
+        if not os.path.isfile(fpng):
+            raise SystemError("No PNG file '%s' found" % fpng)
+        # Ensure absolute file name
+        fpng = os.path.abspath(fpng)
+        # Get handle to attribute
+        png_fnames = self.__dict__.setdefault("png_fnames", {})
+        # Check type
+        if not isinstance(png_fnames, dict):
+            raise TypeError("png_fnames attribute is not a dict")
+        # Set parameter (to a copy)
+        png_fnames[png] = fpng
+
+    # Set plot kwargs for named PNG
+    def set_png_kwargs(self, png, **kw):
+        pass
+
+    # Set *col* to use named PNG
+    def set_col_png(self, col, png):
+        pass
+
+    # Set PNG to use for list of *cols*
+    def set_cols_png(self, cols, png):
+        pass
+
+    # Add figure handle to list of figures
+    def add_png_fig(self, png, fig):
+        # Get current handles
+        figs = self.png_figs.setdefault(png, set())
+        # Add it
+        figs.add(fig)
+
+    # Check figure handle if it's in current list
+    def check_png_fig(self, png, fig):
+        pass
+
+    # 
+
+   # --- Seam Curve Options ---
+    # Set column name for seam
+    def set_seam_col(self, seam, xcol, ycol):
+        r"""Set column names that define named seam curve
+
+        :Call:
+            >>> db.set_seam_col(seam, xcol, ycol)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *seam*: :class:`str`
+                Name used to tag this seam curve
+            *xcol*: :class:`str`
+                Name of *col* for seam curve *x* coords
+            *ycol*: :class:`str`
+                Name of *col* for seam curve *y* coords
+        :Effects:
+            *db.seam_cols*: :class:`dict`
+                Entry for *seam* set to (*xcol*, *ycol*)
+        :Versions:
+            * 2020-03-31 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(seam):
+            raise TypeError(
+                "Seam curve name must be str (got %s)" % type(seam))
+        if not typeutils.isstr(xcol):
+            raise TypeError(
+                "seam_colx for '%s' must be str (got %s)"
+                % (seam, type(xcol)))
+        if not typeutils.isstr(ycol):
+            raise TypeError(
+                "seam_coly for '%s' must be str (got %s)"
+                % (seam, type(ycol)))
+        # Check if cols are present
+        if xcol not in self:
+            raise KeyError("Seam '%s' missing xcol '%s'" % (seam, xcol))
+        if ycol not in self:
+            raise KeyError("Seam '%s' missing ycol '%s'" % (seam, ycol))
+        # Get handle to attribute
+        seam_cols = self.__dict__.setdefault("seam_cols", {})
+        # Check type
+        if not isinstance(seam_cols, dict):
+            raise TypeError("seam_cols attribute is not a dict")
+        # Set parameter (to a copy)
+        seam_cols[seam] = (xcol, ycol)
+
+    # Set plot kwargs for named PNG
+    def set_seam_kwargs(self, seam, **kw):
+        pass
+
+    # Set *col* to use named seam curve
+    def set_col_seam(self, col, seam):
+        pass
+
+    # Set seam curve to use for list of *cols*
+    def set_cols_seam(self, cols, seam):
+        pass
+
+    # Add figure handle to list of figures for named seam curve
+    def add_seam_fig(self, seam, fig):
+        # Get current handles
+        figs = self.seam_figs.setdefault(seam, set())
+        # Add it
+        figs.add(seam)
+
+    # Check figure handle if it's in current set
+    def check_seam_fig(self, seam, fig):
+        pass
   # >
 
   # ===================
