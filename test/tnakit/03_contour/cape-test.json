@@ -1,0 +1,23 @@
+{
+    "CopyFiles": [
+        "bullet-fm.mat",
+        "test01_contourplot.py"
+    ],
+    "Commands": [
+        "python2 test01_contourplot.py",
+        "python3 test01_contourplot.py"
+    ],
+    "CommandTitles": [
+        "Contour plot: Python 2",
+        "Contour plot: Python 3"
+    ],
+    "TargetPNG": [
+        "python2-bullet-CLM-contour.png",
+        "python3-bullet-CLM-contour.png"
+    ],
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/tnakit",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
