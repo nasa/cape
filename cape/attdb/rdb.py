@@ -6905,6 +6905,18 @@ class DataKit(ftypes.BaseData):
         return h
        # ---
 
+   # --- PNG ---
+    # Plot PNG
+    def plot_png(self, col, fig=None, **kw):
+        # Get name of PNG to add
+        png = self.get_col_png(col)
+        # Check for override from *kw*
+        png = kw.pop("png", png)
+        # Exit if None
+        if png is None:
+            return
+        # 
+
    # --- PNG Options ---
     # Set PNG file name
     def set_png_fname(self, png, fpng):

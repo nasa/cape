@@ -119,7 +119,7 @@ class BaseDataOpts(kwutils.KwargHandler):
         # Remove "DType"
         defn.pop("DType", None)
         # Convert to class
-        defn = defncls(defns.get(col, {}))
+        defn = defncls(defns.get(col, {}), _warnmode=self._warnmode)
         # Loop through dicts of definition parameters
         for opt in defncls._optlist:
             # Derived key name; e.g. "Definitions.Type" -> "Types"
@@ -888,6 +888,7 @@ class BaseData(dict):
                 List of column names
         :Versions:
             * 2020-02-03 ``@ddalle``: First version
+            * 2020-03-31 ``@ddalle``: Handled *db.opts* properly
         """
         # Default column list
         if cols is None:
@@ -899,12 +900,80 @@ class BaseData(dict):
                 cols = self.opts.get_option("Columns", [])
         # Loop through those columns
         for col in cols:
-            # Get definition
-            defn = self.get_defn(col)
-            # Apply defaults
-            defn.finish()
-            # Apply default tag
-            self.apply_defn_tag(col)
+            # Individual-column function
+            self.finish_defn(col)
+
+    # Apply any defaults to one col's definition
+    def finish_defn(self, col):
+        r"""Apply any defaults to a data column definition
+
+        This first checks instance options like ``"DefaultType"`` and
+        then the global defaults such as ``defn._rc["Type"]``.
+
+        :Call:
+            >>> db.finish_defn(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *col*: :class:`str`
+                Data column name
+        :Versions:
+            * 2020-03-31 ``@ddalle``: Split from :func:`finish_defns`
+        """
+        # Get definition
+        defn = self.get_defn(col)
+        # Apply values from *opts*
+        self._finish_defn_opts(col, defn)
+        # Apply defaults
+        defn.finish()
+        # Apply default tag
+        self.apply_defn_tag(col)
+
+    # Apply defaults from *self.opts* to a definition
+    def _finish_defn_opts(self, col, defn):
+        r"""Apply any defaults from *opts* to partial definition
+
+        :Call:
+            >>> db._finish_defn_opts(col, defn)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *cols*: :class:`str`
+                Data column name
+            *defn*: *db._optscls._defncls*
+                Partial definition
+        :Versions:
+            * 2020-03-31 ``@ddalle``: First version
+        """
+        # Options and definition class
+        optscls = self._optscls
+        defncls = optscls._defncls
+        # Option list from options
+        optlist = optscls._optlist
+        # Options handle
+        opts = self.opts
+        # Loop through definition parameters
+        for opt in defncls._optlist:
+            # Check if already set (in which case ignore)
+            if opt in defn:
+                continue
+            # Combined option names
+            opt1 = "Default" + opt
+            opt2 = opt + "s"
+            # Check for dictionary of *opt* (like "Types")
+            if (opt2 in optlist) and (opt2 in opts):
+                # Dictionary of *opt* for each *col*
+                d2 = opts[opt2]
+                # Get value for this *col*
+                val2 = d1.get(col, d2.get("_"))
+                # Check if valid
+                if val2 is not None:
+                    # Set it
+                    defn[opt] = val2
+            # Check for *Default* value
+            if (opt1 in optlist) and (opt1 in opts):
+                # Copy value
+                defn[opt] = copy.copy(opts[opt1])
 
     # Apply all default tags
     def apply_defns_tag(self, cols=None):

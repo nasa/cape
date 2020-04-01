@@ -676,8 +676,8 @@ class CSVFile(BaseFile, TextInterpreter):
             *translators*: {``{}``} | :class:`dict`
                 Dictionary of coefficient translations, e.g. *CAF* -> *CA*
         :Versions:
-            * 2018-06-11 ``@ddalle``: First versions
-            * 2020-01-15 ``@jmeeroff``: Copied From cape.attdb.db.db1
+            * 2018-06-11 ``@ddalle``: First version
+            * 2020-01-15 ``@jmeeroff``: From :mod:`cape.attdb.db.db1`
         """
         # Process coefficient list
         if cols is None:
@@ -685,7 +685,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Check for presence
         for col in cols:
             if col not in self:
-                raise KeyError("No output coefficient '%s'" % col)
+                raise KeyError("No data column '%s'" % col)
         # Get the count of the first key
         n = len(self[cols[0]])
         # Loop through the keys
