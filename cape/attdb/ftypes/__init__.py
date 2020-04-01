@@ -15,7 +15,7 @@ directly to this module.
 
 # Import basic file type
 from .basedata import BaseData, BaseDataDefn, BaseDataOpts
-from .basefile import BaseFile
+from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
 from .csvfile import CSVFile, CSVSimple
 from .matfile import MATFile
 from .xlsfile import XLSFile
