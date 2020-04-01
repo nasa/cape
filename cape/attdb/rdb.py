@@ -7029,7 +7029,41 @@ class DataKit(ftypes.BaseData):
 
     # Set *col* to use named PNG
     def set_col_png(self, col, png):
-        pass
+        r"""Set column name that define name PNG file
+
+        :Call:
+            >>> db.set_col_png(col, png)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of *col* for name PNG file
+            *png*: :class:`str`
+                Name used to tag this PNG image
+        :Effects:
+            *db.png_cols*: :class:`dict`
+                Entry for *png* set to *col*
+        :Versions:
+            * 2020-04-01 ``@jmeeroff``: First version
+        """
+        # Check types
+        if not typeutils.isstr(png):
+            raise TypeError(
+                "PNG name must be str (got %s)" % type(png))
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "png_col for '%s' must be str (got %s)"
+                % (png, type(col)))
+        # Check if cols are present
+        if col not in self:
+            raise KeyError("PNG '%s' missing col '%s'" % (seam, col))
+        # Get handle to attribute
+        png_col = self.__dict__.setdefault("png_col", {})
+        # Check type
+        if not isinstance(png_col, str):
+            raise TypeError("png_col attribute is not a string")
+        # Set parameter (to a copy)
+        png_col[png] = col
 
     # Set PNG to use for list of *cols*
     def set_cols_png(self, cols, png):
