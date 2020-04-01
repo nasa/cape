@@ -52,8 +52,85 @@ class CSVFileDefn(BaseFileDefn):
     pass
 
 
+# Options for CSVFile.write_csv()
+class _WriteCSVOpts(CSVFileOpts):
+  # ===================
+  # Class Attributes
+  # ===================
+  # <
+   # --- Global Options ---
+    # List of options
+    _optlist = {
+        "Comment",
+        "Delimiter",
+        "ExpChar",
+        "ExpChars",
+        "ExpMax",
+        "ExpMaxs",
+        "ExpMin",
+        "ExpMins",
+        "Precision",
+        "Precisions",
+        "Translators",
+        "WriteFormat",
+        "WriteFormats",
+    }
+
+    # Alternate names
+    _optmap = {
+        "comment": "Comment",
+        "comments": "Comment",
+        "delim": "Delimiter",
+        "delimiter": "Delimiter",
+        "echar": "ExpChar",
+        "echars": "ExpChars",
+        "emax": "ExpMax",
+        "emaxs": "ExpMaxs",
+        "emin": "ExpMin",
+        "emins": "ExpMins",
+        "format": "WriteFormat",
+        "formats": "WriteFormats",
+        "fmt": "WriteFormat",
+        "fmts": "WriteFormats",
+        "prec": "Precision",
+        "precs": "Precisions",
+        "precision": "Precision",
+        "precisions": "Precisions",
+    }
+
+   # --- Types ---
+    # Types allowed
+    _opttypes = {
+        "Comment": typeutils.strlike,
+        "Delimiter": typeutils.strlike,
+        "ExpChar": typeutils.strlike,
+        "ExpChars": dict,
+        "ExpMax": int,
+        "ExpMaxs": dict,
+        "ExpMin": int,
+        "ExpMins": dict,
+        "Precision": typeutils.intlike,
+        "Precisions": dict,
+        "WriteFormat": typeutils.strlike,
+        "WriteFormats": dict,
+    }
+
+   # --- Defaults ---
+    _rc = {
+        "Comment": "#",
+        "Delimeter": ", ",
+        "ExpChar": "e",
+        "ExpMax": 4,
+        "ExpMin": -2,
+        "Precision": 6,
+    }
+  # >
+
+
 # Add definition support to option
 CSVFileOpts.set_defncls(CSVFileDefn)
+# Combine options
+_WriteCSVOpts.combine_optdefs()
 
 
 # Class for handling data from CSV files
@@ -653,16 +730,16 @@ class CSVFile(BaseFile, TextInterpreter):
   # <
    # --- Write Drivers ---
     # Write a CSV file
-    def write_csv(self, fname, cols=None, fmt=None, **kw):
+    def write_csv(self, fname, cols=None, **kw):
         """Write a comma-separated file of some of the coefficients
 
         :Call:
-            >>> db.write_csv(fcsv, coeffs=None, fmt=None, **kw)
+            >>> db.write_csv(fname, cols=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
             *fname*: :class:`str`
-                Name of ASCII data file to write
+                Name of CSV file to write
             *cols*: {``None``} | :class:`list` (:class:`str`)
                 List of coefficients to write, or write all coefficients
             *fmt*: {``None``} | :class:`str`
@@ -674,53 +751,130 @@ class CSVFile(BaseFile, TextInterpreter):
             *delim*: {``", "``} | :class:`str`
                 Delimiter
             *translators*: {``{}``} | :class:`dict`
-                Dictionary of coefficient translations, e.g. *CAF* -> *CA*
+                Dictionary of col name translations, e.g. *CAF* -> *CA*;
+                this dictionary is run in reverse
         :Versions:
             * 2018-06-11 ``@ddalle``: First version
             * 2020-01-15 ``@jmeeroff``: From :mod:`cape.attdb.db.db1`
+            * 2020-04-01 ``@ddalle``: Full options, version 2.0
         """
+        # Get file handle
+        if fname is None:
+            # Use *db.fname*
+            with open(self.fname, "w") as f:
+                self._write_csv(f, cols=cols, **kw)
+        elif typeutils.isstr(fname):
+            # Open file based in specified name
+            with open(fname, "w") as f:
+                self._write_csv(f, cols=cols, **kw)
+        else:
+            # Already a file (maybe)
+            self._write_csv(fname, cols=cols, **kw)
+
+    # Write a CSV file
+    def _write_csv(self, f, cols=None, **kw):
+        """Write a comma-separated file of some of the coefficients
+
+        :Call:
+            >>> db._write_csv(f, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                CSV file handle, open for writing
+            *cols*: {``None``} | :class:`list` (:class:`str`)
+                List of coefficients to write, or write all coefficients
+            *fmt*: {``None``} | :class:`str`
+                Format string to be used for each row (optional)
+            *fmts*: :class:`dict` | :class:`str`
+                Dictionary of formats to use for each *coeff*
+            *comments*: {``"#"``} | :class:`str`
+                Comment character, used as first character of file
+            *delim*: {``", "``} | :class:`str`
+                Delimiter
+            *translators*: {``{}``} | :class:`dict`
+                Dictionary of col name translations, e.g. *CAF* -> *CA*;
+                this dictionary is run in reverse
+        :Versions:
+            * 2018-06-11 ``@ddalle``: First version
+            * 2020-01-15 ``@jmeeroff``: From :mod:`cape.attdb.db.db1`
+            * 2020-04-01 ``@ddalle``: Full options, version 2.0
+        """
+       # --- Input Prep ---
         # Process coefficient list
         if cols is None:
             cols = list(self.cols)
-        # Check for presence
-        for col in cols:
+        # Initialize col indices to remove
+        idel = []
+        # Check individual column validity
+        for i, col in enumerate(cols):
+            # Check for presence
             if col not in self:
-                raise KeyError("No data column '%s'" % col)
+                # Print a warning
+                sys.stderr.write("Warning: skipping col '%s'; " % col)
+                sys.stderr.write("not in database\n")
+                sys.stderr.flush()
+                # Delete it
+                idel.append(i)
+            # Get dimension
+            ndim = self.get_col_prop(col, "Dimension", 1)
+            # Check dimension
+            if ndim != 1:
+                # Print a warning
+                sys.stderr.write("Warning: skipping col '%s'; " % col)
+                sys.stderr.write("cannot write %iD data" % ndim)
+                sys.stderr.flush()
+                # Delete it
+                idel.append(i)
+        # Perform deletions
+        for i in idel:
+            cols.pop(i)
         # Get the count of the first key
         n = len(self[cols[0]])
         # Loop through the keys
-        for i in range(len(cols)-1, 0, -1):
-            # Coefficient
-            col = cols[i]
+        for i, col in enumerate(cols):
             # Check length
             if len(self[col]) != n:
                 # Print a warning
-                sys.stderr.write("WARNING: skipping ")
-                sys.stderr.write("coefficient '%s' " % col)
+                sys.stderr.write("Warning: skipping col '%s' " % col)
                 sys.stderr.write("with mismatching length\n")
                 sys.stderr.flush()
                 # Delete it
-                del cols[i]
-
+                idel.append(i)
+        # Perform deletions
+        for i in idel:
+            cols.pop(i)
+        # Options handle
+        opts = self.opts
+        # Process kwargs
+        kw = _WriteCSVOpts(**kw)
+       # --- Format ---
         # Dictionary of translators
-        translators = kw.get("translators", {})
+        trans = opts.get_option("Translators", {})
+        trans = kw.get_option("Translators", trans)
         # Get comment character and delimiter
-        cchar = kw.get("comments", "#")
-        delim = kw.get("delim", ", ")
-
+        cchar = kw.get_option("Comment", "#")
+        delim = kw.get_option("Delimiter", ", ")
+        # Prefix and suffix
+        prefix = opts.get_option("Prefix", "")
+        suffix = opts.get_option("Suffix", "")
+        prefix = kw.get_option("Prefix", prefix)
+        suffix = kw.get_option("Suffix", suffix)
+        # Write format string
+        fmt = kw.get_option("WriteFormat")
         # Default line format
         if fmt is None:
-            # Set up printing format
-            fmts = kw.get("fmts", {})
+            # Print format by col
+            fmts = kw.get_option("WriteFormats", {})
             # Options for default print flag
-            prec = kw.get("prec", kw.get("precision", 6))
-            emax = kw.get("emax", 4)
-            emin = kw.get("emin", -2)
-            echr = kw.get("echar", "e")
-            # Specific
-            precs = kw.get("precs", kw.get("precisions", {}))
-            emaxs = kw.get("emaxs", {})
-            emins = kw.get("emins", {})
+            prec = kw.get_option("Precision", 6)
+            emax = kw.get_option("ExpMax", 4)
+            emin = kw.get_option("ExpMin", -2)
+            echr = kw.get_option("ExpChar", "e")
+            # Specific to col
+            precs = kw.get_option("Precisions", {})
+            emaxs = kw.get_option("ExpMaxs", {})
+            emins = kw.get_option("ExpMins", {})
             # Initialize final format
             fmt_list = []
             # Loop through keys to create default format
@@ -734,6 +888,8 @@ class CSVFile(BaseFile, TextInterpreter):
                 }
                 # Make a default *fmt* for this coefficient
                 fmti = arrayutils.get_printf_fmt(self[col], **kwf)
+                # Check for *WriteFormat* from options
+                fmti = self.get_col_prop(col, "WriteFormat", fmti)
                 # Get format, using above default
                 fmti = fmts.get(col, fmti)
                 # Save to list
@@ -741,13 +897,11 @@ class CSVFile(BaseFile, TextInterpreter):
             # Just use the delimiter
             fmt = delim.join(fmt_list)
         # Apply translators to the headers
-        cols = [translators.get(col, col) for col in cols]
-
-        # Create the file
-        f = open(fname, 'w')
+        hcols = self._translate_colnames_reverse(cols, trans, prefix, suffix)
+       # --- Write ---
         # Write header
         f.write("%s " % cchar)
-        f.write(delim.join(cols))
+        f.write(delim.join(hcols))
         f.write("\n")
         # Loop through entries
         for i in range(n):
@@ -757,9 +911,6 @@ class CSVFile(BaseFile, TextInterpreter):
             f.write(fmt % V)
             # Newline
             f.write("\n")
-
-        # Close the file
-        f.close()
 
     # Write raw
     def write_csv_dense(self, fname=None, cols=None):

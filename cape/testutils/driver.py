@@ -125,6 +125,7 @@ class TestDriver(object):
         self.TestStatus_STDOUT = True
         self.TestStatus_STDERR = True
         self.TestStatus_PNG = True
+        self.TestStatus_File = True
         self.TestRunTimeTotal = 0.0
         self.TestRunTimeList = []
         self.TestReturnCodes = []
@@ -177,6 +178,7 @@ class TestDriver(object):
         self.TestStatus_STDOUT = []
         self.TestStatus_STDERR = []
         self.TestStatus_PNG = []
+        self.TestStatus_File = []
         # Statistics
         self.TestRunTimeTotal = 0.0
         self.TestRunTimeList = []
@@ -585,6 +587,8 @@ class TestDriver(object):
             self.process_results_stderr(i, fnerr, fnout)
             # Check images
             self.process_results_png(i)
+            # Check files
+            self.process_results_file(i)
             # Update number of commands run
             self.TestCommandsRun = i + 1
             # Exit if a failure was detected
@@ -1271,11 +1275,11 @@ class TestDriver(object):
                 f.write("    * Difference fraction: %.4f\n" % frac_diff)
         # Copy and include working images
         if (show_work and not (q and show_targ)) or link_work:
+            # Subsection header
+            f.write(tab)
+            f.write("* Actual:\n")
             # Loop through files
             for k, fpng in enumerate(fpngs_work[:j+1]):
-                # Subsection header
-                f.write(tab)
-                f.write("* Actual:\n")
                 # Skip cases if target shown
                 if show_targ and show_work and (q or k < j):
                     continue
@@ -1300,6 +1304,7 @@ class TestDriver(object):
                     f.write(":width: 4.5in\n")
                 else:
                     # Include a link
+                    f.write(tab*2)
                     f.write("- :download:`%s`\n" % fname)
             # Extra blank line
             f.write("\n")
@@ -1331,6 +1336,7 @@ class TestDriver(object):
                     f.write(":width: 4.5in\n")
                 else:
                     # Include a link
+                    f.write(tab*2)
                     f.write("- :download:`%s`\n" % fname)
             # Extra blank line
             f.write("\n")
@@ -1350,7 +1356,218 @@ class TestDriver(object):
                 f.write(":width: 4.5in\n")
             else:
                 # Include a link
+                f.write(tab*2)
                 f.write("- :download:`%s`\n" % fdiff)
+            # Extra blank line
+            f.write("\n")
+        # Output
+        return q
+
+    # Test file
+    def process_results_file(self, i):
+        """Compare files written from command *i* to target
+        
+        :Call:
+            >>> q = testd.process_results_file(i)
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+            *i*: :class:`int`
+                Command number
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not PNG matched target (``True`` if no
+                target specified)
+        :Attributes:
+            *testd.TestStatus_File[i]*: *q*
+                Whether or not file matched target
+            *testd.TestStatus*: ``True`` | ``False``
+                Set to ``False`` if above test fails
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
+        # File names
+        fnames_targ = self.opts.get_TargetFile(i)
+        fnames_work = self.opts.get_CompareFile(i)
+        # Check for something to check
+        if fnames_targ is None:
+            return True
+        # Extend attributes as necessary
+        self._extend_attribute_list("TestStatus_File", i)
+        # reST settings
+        show_work = self.opts.getel("ShowCompareFile", i, vdef=False)
+        link_work = self.opts.getel("LinkCompareFile", i, vdef=True)
+        show_targ = self.opts.getel("ShowTargetFile", i, vdef=False)
+        link_targ = self.opts.getel("LinkTargetFile", i, vdef=True)
+        #
+        disp_work = show_work or link_work
+        disp_targ = show_targ or link_targ
+        # Get options for file comparisons
+        kw_comp = self.opts.get_FileComparisonOpts(i)  
+        # Initialize status as "success"
+        status = 0
+        # Check for matching-length lists
+        if not isinstance(fnames_targ, list):
+            # Nonsense targets
+            status = 101
+        elif not isinstance(fnames_work, list):
+            # Nonsense outputs
+            status = 102
+        elif not all(
+                [isinstance(fname, strlike) for fname in fnames_targ]):
+            # Nonsense target type
+            status = 103
+        elif not all(
+                [isinstance(fname, strlike) for fnamr in fnames_work]):
+            # Nonsense working file name type
+            status = 104
+        elif len(fnames_targ) != len(fnames_work):
+            # Mismatching lists
+            status = 105
+        else:
+            # Absolutize the path to *fnames_targ*
+            for (j, fname) in enumerate(fnames_targ):
+                if not os.path.isabs(fname):
+                    fnames_work[j] = os.path.join(
+                        os.path.realpath(".."), fname)
+            # Absolutize the path to *fnpngs_work*
+            for (j, fname) in enumerate(fnames_work):
+                if not os.path.isabs(fname):
+                    fnames_work[j] = os.path.join(
+                        os.path.realpath("."), fname)
+            # Loop through targets
+            for (j, ftarg) in enumerate(fnames_targ):
+                # Get working file
+                fwork = fnames_work[j]
+                # Check for both files
+                if not os.path.isfile(ftarg):
+                    # No target file
+                    status = 200 + j
+                    break
+                elif not os.path.isfile(fwork):
+                    # No working file
+                    status = 300 + j
+                    break
+                # Compare STDOUT files
+                qi = fileutils.compare_files(fwork, ftarg, **kw_comp)
+                # Test
+                if not qi:
+                    # Files differ (according to *kw_comp* rules)
+                    status = 500 + j
+                    # Exit
+                    break
+        # Overall status
+        q = status == 0
+        # Save result
+        self.TestStatus_File[i] = q
+        # Update overall status
+        self.TestStatus = self.TestStatus and q
+        # Get file handle
+        f = self.frst
+        # Check for a log file
+        if not isinstance(f, filelike) or f.closed:
+            # Early output
+            return q
+        # Indentation
+        tab = "    "
+        # Return code section
+        f.write(":Compare Files:\n")
+        # Write status of the test
+        if q:
+            # Overall status
+            f.write("    * **PASS**\n")
+        else:
+            # Overall status
+            f.write("    * **FAIL**\n")
+        # Copy and include working images
+        if disp_work and not (q and disp_targ):
+            # Header
+            f.write(tab)
+            f.write("* Actual:\n")
+            # Loop through files
+            for k, fname in enumerate(fnames_work[:j+1]):
+                # Skip cases if target shown
+                if disp_targ and disp_work and (q or k < j):
+                    continue
+                # Name of copied image
+                flink = "FILE-%02i-%02i.txt" % (i, k)
+                # Absolute paths
+                fsrc = os.path.join(os.path.realpath("."), fname)
+                fout = os.path.join(self.fdoc, flink)
+                # Check for source
+                if not os.path.isfile(fsrc):
+                    continue
+                # Include instructions
+                if show_work:
+                    # Image directive
+                    f.write("\n")
+                    f.write(tab*2)
+                    f.write(".. code-block:: none\n\n")
+                    # Read file
+                    lines = open(fsrc).readlines()
+                    # Check for content
+                    if len(linnes) > 0:
+                        # Write directive to show file
+                        f.write("\n")
+                        f.write(tab*2)
+                        f.write(tab + "  .. code-block:: none\n\n")
+                        # Loop through lines
+                        for line in lines:
+                            # Indent it 12 spaces
+                            f.write(tab*3)
+                            f.write(line)
+                        # Blank line
+                        f.write("\n")
+                else:
+                    # Copy file
+                    shutil.copy(fsrc, fout)
+                    # Include a link
+                    f.write(tab*2)
+                    f.write("- :download:`%s`\n" % flink)
+            # Extra blank line
+            f.write("\n")
+        # Copy and include target files
+        if disp_targ:
+            # Header
+            f.write(tab)
+            f.write("* Target:\n")
+            # Loop through files
+            for k, fname in enumerate(fnames_targ[:j+1]):
+                # Name of copied file
+                flink = "FILE-target-%02i-%02i.txt" % (i, k)
+                # Absolute paths
+                fsrc = os.path.join(os.path.realpath(".."), fname)
+                fout = os.path.join(self.fdoc, flink)
+                # Check for source
+                if not os.path.isfile(fsrc):
+                    continue
+                # Include instructions
+                if show_targ:
+                    # Image directive
+                    f.write("\n")
+                    f.write(tab*2)
+                    f.write(".. code-block:: none\n\n")
+                    # Read file
+                    lines = open(fsrc).readlines()
+                    # Check for content
+                    if len(linnes) > 0:
+                        # Write directive to show file
+                        f.write("\n")
+                        f.write(tab*2)
+                        f.write(tab + "  .. code-block:: none\n\n")
+                        # Loop through lines
+                        for line in lines:
+                            # Indent it 12 spaces
+                            f.write(tab*3)
+                            f.write(line)
+                        # Blank line
+                        f.write("\n")
+                else:
+                    # Copy file
+                    shutil.copy(fsrc, fout)
+                    # Include a link
+                    f.write(tab*2)
+                    f.write("- :download:`%s`\n" % flink)
             # Extra blank line
             f.write("\n")
         # Output
@@ -1382,6 +1599,8 @@ class TestDriver(object):
                 STDOUT comparison test results for each command
             *TestStatus_STDERR*: :class:`list`\ [:class:`bool`]
                 STDERR comparison test results for each command
+            *TestStatus_PNG*: :class:`list`\ [:class:`bool`]
+                PNG image comparison test results for each command
             *TestReturnCodes*: :class:`list`\ [:class:`int`]
                 Return codes fro each command run
             *TestRunTimeTotal*: :class:`float`
@@ -1401,6 +1620,7 @@ class TestDriver(object):
             "TestStatus_STDOUT":     self.TestStatus_STDOUT,
             "TestStatus_STDERR":     self.TestStatus_STDERR,
             "TestStatus_PNG":        self.TestStatus_PNG,
+            "TestStatus_File":       self.TestStatus_File,
             "TestReturnCodes":       self.TestReturnCodes,
             "TestRunTimeTotal":      self.TestRunTimeTotal,
             "TestRunTimeList":       self.TestRunTimeList,

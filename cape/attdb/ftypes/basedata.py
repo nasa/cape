@@ -965,7 +965,7 @@ class BaseData(dict):
                 # Dictionary of *opt* for each *col*
                 d2 = opts[opt2]
                 # Get value for this *col*
-                val2 = d1.get(col, d2.get("_"))
+                val2 = d2.get(col, d2.get("_"))
                 # Check if valid
                 if val2 is not None:
                     # Set it

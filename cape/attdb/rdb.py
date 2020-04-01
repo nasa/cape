@@ -70,7 +70,7 @@ RBF_FUNCS = [
 
 
 # Options for RDBNull
-class DataKitOpts(ftypes.BaseDataOpts):
+class DataKitOpts(ftypes.BaseFileOpts):
    # --- Global Options ---
     # List of options
     _optlist = {
@@ -89,7 +89,7 @@ class DataKitOpts(ftypes.BaseDataOpts):
 
 
 # Definitions for RDBNull
-class DataKitDefn(ftypes.BaseDataDefn):
+class DataKitDefn(ftypes.BaseFileDefn):
    # --- Global Options ---
     # Option list
     _optlist = {
@@ -919,8 +919,8 @@ class DataKit(ftypes.BaseData):
     def write_csv_dense(self, fname, cols=None):
         r""""Write dense CSV file
 
-        If *db._csv* exists, the database will be written from that
-        interface.  Otherwise, :func:`get_CSVFile` will be called.
+        If *db.sources* has a CSV file, the database will be written
+        from that object.  Otherwise, :func:`make_source` is called.
 
         :Call:
             >>> db.write_csv_dense(fname, cols=None)
@@ -942,6 +942,35 @@ class DataKit(ftypes.BaseData):
         dbcsv = self.make_source("csv", ftypes.CSVFile, cols=cols)
         # Write it
         dbcsv.write_csv_dense(fname, cols=cols)
+
+    # Write (nice) CSV file
+    def write_csv(self, fname, cols=None, **kw):
+        r""""Write CSV file with full options
+
+        If *db.sources* has a CSV file, the database will be written
+        from that object.  Otherwise, :func:`make_source` is called.
+
+        :Call:
+            >>> db.write_csv_dense(fname, cols=None, **kw)
+            >>> db.write_csv_dense(f, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *fname*: :class:`str`
+                Name of file to write
+            *f*: :class:`file`
+                File open for writing
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of columns to write
+            *kw*: :class:`dict`
+                Keyword args to :func:`CSVFile.write_csv`
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
+        # Get CSV file interface
+        dbcsv = self.make_source("csv", ftypes.CSVFile, cols=cols)
+        # Write it
+        dbcsv.write_csv(fname, cols=cols)
 
    # --- Simple CSV ---
     # Read simple CSV file
@@ -1187,8 +1216,8 @@ class DataKit(ftypes.BaseData):
     def write_mat(self, fname, cols=None):
         r""""Write a MAT file
 
-        If *db._mat* exists, the database will be written from that
-        interface.  Otherwise, :func:`get_MATFile` will be called.
+        If *db.sources* has a MAT file, the database will be written
+        from that object.  Otherwise, :func:`make_source` is called.
 
         :Call:
             >>> db.write_mat(fname, cols=None)
