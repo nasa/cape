@@ -6960,7 +6960,43 @@ class DataKit(ftypes.BaseData):
 
     # Set plot kwargs for named PNG
     def set_png_kwargs(self, png, **kw):
-        pass
+        r"""Set evaluation keyword arguments for PNG file
+
+        :Call:
+            >>> db.set_png_kwargs(png, kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *png*: :class:`str`
+                Name used to tag this PNG image
+            *kw*: {``{}``} | :class:`dict`
+                Keyword arguments to add for PNG file
+        :Versions:
+            * 2020-04-01 ``@jmeeroff``: First version
+        """
+        # Transform any False-like thing to {}
+        if not kw:
+            kw = {}
+        # Get handle to kw 
+        png_kwargs = self.__dict__.setdefault("png_kwargs", {})
+        # Check types
+        if not typeutils.isstr(png):
+            raise TypeError(
+                "PNG name must be str (got %s)" % type(png))
+        elif not isinstance(png_kwargs, dict):
+            raise TypeError("png_kwargs attribute is not a dict")
+        elif not isinstance(kw, dict):
+            raise TypeError(
+                "kw must be dict (got %s)" % type(kw))
+        # Check key-value types
+        for (k, v) in kw.items():
+            # Check key
+            if not typeutils.isstr(k):
+                raise TypeError(
+                    "Found keyword for '%s' that is not a string" % col)
+        # Save it
+        png_kwargs[png] = kw
+        
 
     # Set *col* to use named PNG
     def set_col_png(self, col, png):
