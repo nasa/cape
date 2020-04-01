@@ -899,8 +899,6 @@ class CSVFile(BaseFile, TextInterpreter):
         # Apply translators to the headers
         hcols = self._translate_colnames_reverse(cols, trans, prefix, suffix)
        # --- Write ---
-        # Create the file
-        f = open(fname, 'w')
         # Write header
         f.write("%s " % cchar)
         f.write(delim.join(hcols))
@@ -913,8 +911,6 @@ class CSVFile(BaseFile, TextInterpreter):
             f.write(fmt % V)
             # Newline
             f.write("\n")
-        # Close the file
-        f.close()
 
     # Write raw
     def write_csv_dense(self, fname=None, cols=None):

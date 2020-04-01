@@ -54,30 +54,36 @@ rc = {
     "CopyDirs": [],
     "LinkFiles": [],
     "Commands": [],
+    "CompareFile": [],
     "STDOUT": "test.%02i.out",
     "STDERR": "test.%02i.err",
     "MaxTime": None,
     "MaxTimeCheckInterval": None,
     "ContainerName": "work",
     "ReturnCode": 0,
+    "TargetFile": [],
+    "TargetPNG": [],
     "TargetSTDOUT": None,
     "TargetSTDERR": None,
-    "TargetPNG": [],
     "LexerSTDOUT": "none",
     "LexerSTDERR": "none",
     "PNG": [],
     "PNGTol": 0.99,
+    "ShowCompareFile": False,
     "ShowDiffPNG": False,
     "ShowPNG": True,
     "ShowSTDOUT": None,
     "ShowSTDERR": None,
+    "ShowTargetFile": False,
     "ShowTargetPNG": True,
     "ShowTargetSTDOUT": True,
     "ShowTargetSTDERR": True,
+    "LinkeCompareFile": True,
     "LinkDiffPNG": False,
     "LinkPNG": False,
     "LinkSTDOUT": False,
     "LinkSTDERR": False,
+    "LinkTargetFile": True,
     "LinkTargetPNG": False,
     "LinkTargetSTDOUT": False,
     "LinkTargetSTDERR": False,
@@ -472,6 +478,51 @@ class TestOpts(dict):
         # Output
         return fpngs
 
+    # Get file output image names
+    def get_CompareFile(self, i):
+        r"""Get text file name for case *i* to compare to target
+
+        :Call:
+            >>> fnames = opts.get_CompareFile(i)
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+            *i*: {``None``} | :class:`int`
+                Index
+        :Outputs:
+            *fnames*: ``None`` | :class:`list`\ [:class:`str`]
+                Output file names, if appropriate
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
+        # Get "TargetPng" to use as default
+        fnames = self.get_TargetFile(i)
+        # Get option for *i*
+        fname = self.getel("CompareFile", i, vdef=fnames)
+        # Check type
+        if fname is None:
+            # Default to the "TargetFile" list
+            return fnames
+        # Check for singleton
+        if isinstance(fname, (str, unicode)):
+            # Singleton list
+            fnames = [fname]
+        elif isinstance(fpng, list):
+            # Already a list
+            fnames = fname
+        else:
+            raise TypeError(
+                "CompareFile has unrecognized type '%s'" %
+                fname.__class__.__name__)
+        # Loop through strings
+        for (j, fname) in enumerate(fnames):
+            # Check for '%' sign
+            if '%' in fname:
+                # Use the index (1-based)
+                fnames[j] = fname % (i+1)
+        # Output
+        return fnames
+
     # Get STDOUT comparison file
     def get_TargetSTDOUT(self, i):
         """Get target STDOUT file for case *i*
@@ -590,6 +641,49 @@ class TestOpts(dict):
                 fpngs[j] = fpng % (i+1)
         # Output
         return fpngs
+
+    # Get text file targets for comparison
+    def get_TargetFile(self, i):
+        r"""Get target text file name for case *i*
+
+        :Call:
+            >>> fnames = opts.get_TargetFileNG(i)
+        :Inputs:
+            *opts*: :class:`TestOpts`
+                Test options class based on :class:`dict`
+            *i*: {``None``} | :class:`int`
+                Index
+        :Outputs:
+            *fnames*: ``None`` | :class:`list`\ [:class:`str`]
+                Output file names, if appropriate
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
+        # Get option for *i*
+        fname = self.getel("TargetFile", i, vdef=None)
+        # Check type
+        if fname is None:
+            # No target file option
+            return None
+        # Check for singleton
+        if isinstance(fname, (str, unicode)):
+            # Singleton list
+            fnames = [fname]
+        elif isinstance(fname, list):
+            # Already a list
+            fnames = fname
+        else:
+            raise TypeError(
+                "Target file has unrecognized type '%s'" %
+                fname.__class__.__name__)
+        # Loop through strings
+        for (j, fname) in enumerate(fnames):
+            # Check for '%' sign
+            if '%' in fname:
+                # Use the index (1-based)
+                fnames[j] = fname % (i+1)
+        # Output
+        return fnames
 
     # Get match percentage for images
     def get_PNGTol(self, i=0):
