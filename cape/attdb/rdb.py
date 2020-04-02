@@ -4089,6 +4089,138 @@ class DataKit(ftypes.BaseData):
         return (u,) + a_extra
 
    # --- Grouping ---
+    # Find *N* neighbors based on list of args
+    def genr8_window(self, n, args, *a, **kw):
+        r"""Get indices of neighboring points
+
+        This function creates a moving "window" for averaging or for
+        performing other statistics (especially estimating difference
+        between two databases).
+
+        :Call:
+            >>> I = db.genr8_window(n, args, *a, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with evaluation tools
+            *n*: :class:`int`
+                Minimum number of points in window
+            *args*: :class:`list`\ [:class:`str`]
+                List of arguments to use for windowing
+            *a[0]*: :class:`float`
+                Value of the first argument
+            *a[1]*: :class:`float`
+                Value of the second argument
+        :Keyword Arguments:
+            *test_values*: {*db*} | :class:`DBCoeff` | :class:`dict`
+                Specify values of each *arg* in *args* that are the
+                candidate points for the window; default is from *db*
+            *test_bkpts*: {*db.bkpts*} | :class:`dict`
+                Specify candidate window boundaries; must be ascending
+                array of unique values for each *arg*
+        :Outputs:
+            *I*: :class:`np.ndarray`
+                Indices of cases (relative to *test_values*) in window
+        :Versions:
+            * 2019-02-13 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Modified from :mod:`tnakit.db`
+        """
+       # --- Check bounds ---
+        def check_bounds(vmin, vmax, vals):
+            # Loop through parameters
+            for i,k in enumerate(arg_list):
+                # Get values
+                Vk = vals[k]
+                # Check bounds
+                J = np.logical_and(Vk>=vmin[k], Vk<=vmax[k])
+                # Combine constraints if i>0
+                if i == 0:
+                    # First run
+                    I = J
+                else:
+                    # Combine constraints
+                    I = np.logical_and(I, J)
+            # Output
+            return I
+       # --- Init ---
+        # Check inputs
+        if not isinstance(args, (list, tuple)):
+            raise TypeError("Arg list must be 'list' (got '%s')" % type(args))
+        # Number of args
+        narg = len(args)
+        # Check inputs
+        if narg == 0:
+            # No windowing arguments
+            raise ValueError("At least one named argument required")
+        elif len(a) != narg:
+            # Not enough values
+            raise ValueError("%i argument names provided but %i values"
+                % (narg, len(a)))
+        # Get the length of the database for the first argument
+        nx = self[args[0]].size
+        # Initialize mask
+        I = np.arange(nx) > -1
+       # --- Lookup values ---
+        # Get test values and test break points
+        vals, bkpts = self._get_test_values(args, **kw)
+       # --- Tolerances/Bounds ---
+        # Default tolerance
+        tol = kw.get("tol", 1e-8)
+        # Tolerance dictionary
+        tols = {}
+        # Initialize bounds
+        vmin = {}
+        vmax = {}
+        # Loop through parameters
+        for i,k in enumerate(arg_list):
+            # Get value
+            v = a[i]
+            # Get tolerance
+            tolk = kw.get("%stol" % k, tol)
+            # Save it
+            tols[k] = tolk
+            # Bounds
+            vmin[k] = v - tolk
+            vmax[k] = v + tolk
+       # --- Initial Check ---
+        I = check_bounds(vmin, vmax, vals)
+        # Initial window count
+        m = np.count_nonzero(I)
+       # --- Expansion ---
+        # Maximum loop
+        maxloops = kw.get("nmax", kw.get("maxloops", 10))
+        # Loop until enough points are included
+        for nloop in range(maxloops):
+            # Check count
+            if m >= n:
+                break
+            # Expand each argument in order
+            for i, k in enumerate(args):
+                # Current bounds
+                ak = vmin[k]
+                bk = vmax[k]
+                # Tolerance
+                tolk = tols[k]
+                # Break points
+                Xk = bkpts[k]
+                # Look for next point outside bound
+                ja = Xk < ak - tolk
+                jb = Xk > bk + tolk
+                # Expand bounds if possible
+                if np.any(ja):
+                    vmin[k] = np.max(Xk[ja])
+                if np.any(jb):
+                    vmax[k] = np.min(Xk[jb])
+                # Check new window
+                I = check_bounds(vmin, vmax, vals)
+                # Update count
+                m = np.count_nonzero(I)
+                # Check count
+                if m >= n:
+                    break
+       # --- Output ---
+        # Output
+        return np.where(I)[0]
+
     # Get dictionary of test values
     def _get_test_values(self, args, **kw):
         r"""Get test values for creating windows or comparing databases
