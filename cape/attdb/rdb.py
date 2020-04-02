@@ -6999,13 +6999,11 @@ class DataKit(ftypes.BaseData):
             *png*: :class:`str`
                 Name used to tag this PNG image
             *kw*: {``{}``} | :class:`dict`
-                Keyword arguments to add for PNG file
+                Options to use when showing PNG image
         :Versions:
             * 2020-04-01 ``@jmeeroff``: First version
+            * 2020-04-02 ``@ddalle``: Use :class:`MPLOpts`
         """
-        # Transform any False-like thing to {}
-        if not kw:
-            kw = {}
         # Get handle to kw 
         png_kwargs = self.__dict__.setdefault("png_kwargs", {})
         # Check types
@@ -7014,22 +7012,14 @@ class DataKit(ftypes.BaseData):
                 "PNG name must be str (got %s)" % type(png))
         elif not isinstance(png_kwargs, dict):
             raise TypeError("png_kwargs attribute is not a dict")
-        elif not isinstance(kw, dict):
-            raise TypeError(
-                "kw must be dict (got %s)" % type(kw))
-        # Check key-value types
-        for (k, v) in kw.items():
-            # Check key
-            if not typeutils.isstr(k):
-                raise TypeError(
-                    "Found keyword for '%s' that is not a string" % col)
+        # Convert to options and check
+        kw = pmpl.MPLOpts(_section="imshow", **kw)
         # Save it
         png_kwargs[png] = kw
-        
 
     # Set *col* to use named PNG
     def set_col_png(self, col, png):
-        r"""Set column name that define name PNG file
+        r"""Set name/tag of PNG image to use when plotting *col*
 
         :Call:
             >>> db.set_col_png(col, png)
@@ -7037,12 +7027,12 @@ class DataKit(ftypes.BaseData):
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
-                Name of *col* for name PNG file
+                Data column for to associate with *png*
             *png*: :class:`str`
-                Name used to tag this PNG image
+                Name/abbreviation/tag of PNG image to use
         :Effects:
-            *db.png_cols*: :class:`dict`
-                Entry for *png* set to *col*
+            *db.col_pngs*: :class:`dict`
+                Entry for *col* set to *png*
         :Versions:
             * 2020-04-01 ``@jmeeroff``: First version
         """
@@ -7052,33 +7042,74 @@ class DataKit(ftypes.BaseData):
                 "PNG name must be str (got %s)" % type(png))
         if not typeutils.isstr(col):
             raise TypeError(
-                "png_col for '%s' must be str (got %s)"
-                % (png, type(col)))
-        # Check if cols are present
-        if col not in self:
-            raise KeyError("PNG '%s' missing col '%s'" % (seam, col))
+                "Data column must be str (got %s)" % type(col))
         # Get handle to attribute
-        png_col = self.__dict__.setdefault("png_col", {})
+        col_pngs = self.__dict__.setdefault("col_pngs", {})
         # Check type
-        if not isinstance(png_col, str):
-            raise TypeError("png_col attribute is not a string")
+        if not isinstance(col_pngs, dict):
+            raise TypeError("col_pngs attribute is not a dict")
         # Set parameter (to a copy)
-        png_col[png] = col
+        col_pngs[col] = png
 
     # Set PNG to use for list of *cols*
     def set_cols_png(self, cols, png):
-        pass
+        r"""Set name/tag of PNG image for several data columns
+
+        :Call:
+            >>> db.set_cols_png(cols, png)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *cols*: :class:`list`\ [:class:`str`]
+                Data column for to associate with *png*
+            *png*: :class:`str`
+                Name/abbreviation/tag of PNG image to use
+        :Effects:
+            *db.col_pngs*: :class:`dict`
+                Entry for *col* in *cols* set to *png*
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
+        # Check input
+        if not isinstance(cols, list):
+            raise TypeError(
+                "List of cols must be 'list' (got '%s')" % type(cols))
+        # Check each col
+        for (j, col) in enumerate(cols):
+            if not typeutils.isstr(col):
+                raise TypeError(
+                    "col %i must be 'str' (got '%s')" % (j, type(col)))
+        # Loop through columns
+        for col in cols:
+            # Call individual function
+            self.set_col_png(col, png)
 
     # Add figure handle to list of figures
     def add_png_fig(self, png, fig):
+        # Get attribute
+        png_figs = self.__dict__.setdefault("png_figs", {})
         # Get current handles
-        figs = self.png_figs.setdefault(png, set())
+        figs = png_figs.setdefault(png, set())
         # Add it
         figs.add(fig)
 
     # Check figure handle if it's in current list
     def check_png_fig(self, png, fig):
-        pass
+        # Get attribute
+        png_figs = self.__dict__.get("png_figs", {})
+        # Get current handles
+        figs = png_figs.get(png, set())
+        # Check for figure
+        return fig in figs
+
+    # Clear/reset list of figure handles
+    def clear_png_fig(self, png):
+        # Get attribute
+        png_figs = self.__dict__.setdefault("png_figs", {})
+        # Get current handles
+        figs = png_figs.setdefault(png, set())
+        # Clear/reset it
+        figs.clear()
 
     # 
 
