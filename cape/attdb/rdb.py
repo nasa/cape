@@ -7292,17 +7292,103 @@ class DataKit(ftypes.BaseData):
         # Set parameter (to a copy)
         seam_cols[seam] = (xcol, ycol)
 
-    # Set plot kwargs for named PNG
+    # Set plot kwargs for named seam curve
     def set_seam_kwargs(self, seam, **kw):
-        pass
+        r"""Set evaluation keyword arguments for seam curve
+
+        :Call:
+            >>> db.set_seam_kwargs(seam, kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *seam*: :class:`str`
+                Name used to tag this seam curve
+            *kw*: {``{}``} | :class:`dict`
+                Options to use when showing seam curve
+        :Versions:
+            * 2020-04-02 ``@jmeeroff``: First version
+        """
+        # Get handle to kw 
+        seam_kwargs = self.__dict__.setdefault("seam_kwargs", {})
+        # Check types
+        if not typeutils.isstr(seam):
+            raise TypeError(
+                "seam name must be str (got %s)" % type(seam))
+        elif not isinstance(seam_kwargs, dict):
+            raise TypeError("seam_kwargs attribute is not a dict")
+        # Convert to options and check
+        kw = pmpl.MPLOpts(_section="plot", **kw)
+        # Remove legend from options
+        kw.set_option('Legend', False)
+        # Save it
+        seam_kwargs[seam] = kw
 
     # Set *col* to use named seam curve
     def set_col_seam(self, col, seam):
-        pass
+        r"""Set name/tag of seam curve to use when plotting *col*
+
+        :Call:
+            >>> db.set_col_seam(col, seam)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column for to associate with *png*
+            *seam*: :class:`str`
+                Name/abbreviation/tag of seam curve to use
+        :Effects:
+            *db.col_seams*: :class:`dict`
+                Entry for *col* set to *png*
+        :Versions:
+            * 2020-04-02 ``@jmeeroff``: First version
+        """
+        # Check types
+        if not typeutils.isstr(seam):
+            raise TypeError(
+                "seam curve name must be str (got %s)" % type(seam))
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column must be str (got %s)" % type(col))
+        # Get handle to attribute
+        col_seams = self.__dict__.setdefault("col_seams", {})
+        # Check type
+        if not isinstance(col_seams, dict):
+            raise TypeError("col_seams attribute is not a dict")
+        # Set parameter (to a copy)
+        col_seams[col] = seam
 
     # Set seam curve to use for list of *cols*
     def set_cols_seam(self, cols, seam):
-        pass
+        r"""Set name/tag of seam curve for several data columns
+
+        :Call:
+            >>> db.set_cols_seam(cols, seam)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *cols*: :class:`list`\ [:class:`str`]
+                Data column for to associate with *png*
+            *seam*: :class:`str`
+                Name/abbreviation/tag of seam curve to use
+        :Effects:
+            *db.col_seams*: :class:`dict`
+                Entry for *col* in *cols* set to *seam*
+        :Versions:
+            * 2020-04-02 ``@jmeeroff``: First version
+        """
+        # Check input
+        if not isinstance(cols, list):
+            raise TypeError(
+                "List of cols must be 'list' (got '%s')" % type(cols))
+        # Check each col
+        for (j, col) in enumerate(cols):
+            if not typeutils.isstr(col):
+                raise TypeError(
+                    "col %i must be 'str' (got '%s')" % (j, type(col)))
+        # Loop through columns
+        for col in cols:
+            # Call individual function
+            self.set_col_seam(col, seam)
 
     # Add figure handle to list of figures for named seam curve
     def add_seam_fig(self, seam, fig):
@@ -7313,7 +7399,12 @@ class DataKit(ftypes.BaseData):
 
     # Check figure handle if it's in current set
     def check_seam_fig(self, seam, fig):
-        pass
+        # Get attribute
+        seam_figs = self.__dict__.get("seam_figs", {})
+        # Get current handles
+        figs = seam_figs.get(seam, set())
+        # Check for figure
+        return fig in figs
   # >
 
   # ===================
