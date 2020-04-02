@@ -3923,9 +3923,82 @@ class DataKit(ftypes.BaseData):
   # ===================
   # <
    # --- Estimators ---
-    # Estimate UQ on a slice/subset
-    def est_uq_point(self, db2, col, ucol, mask, **kw):
-        """Quantify uncertainty interval for a single point or window
+    # Entire database UQ generation
+    def est_uq_db(self, db2, **kw):
+        r"""Quantify uncertainty for all *col*, *ucol* pairings in DB
+
+        :Call:
+            >>> db1.est_uq_db(db2, **kw)
+        :Inputs:
+            *db1*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *db2*: :class:`cape.attdb.rdb.DataKit`
+                Target database (UQ based on difference)
+        :Keyword Arguments:
+            *nmin*: {``30``} | :class:`int` > 0
+                Minimum number of points in window
+            *cov*, *Coverage*: {``0.99865``} | 0 < :class:`float` < 1
+                Fraction of data that must be covered by UQ term
+            *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
+                Coverage fraction assuming perfect distribution
+            *test_values*: {``{}``} | :class:`dict`
+                Candidate values of each *col* for comparison
+            *test_bkpts*: {``{}``} | :class:`dict`
+                Candidate break points (1D unique) for *col*
+        :Required Attributes:
+            *db1.uq_cols*: :class:`dict`\ [:class:`list`]
+                Names of UQ col for each *col*, if any
+            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *col*
+            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *ucol*
+            *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
+                List of extra UQ cols related to *ucol*
+            *db1.uq_acols[ucol]*: {``[]``} | :class:`list`
+                Aux cols whose deltas are used to estimate *ucol*
+            *db1.uq_efuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to calculate any *uq_ecols*
+            *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to use aux cols when estimating *ucol*
+        :Versions:
+            * 2019-02-15 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Ver2.0, from ``EstimateUQ_DB()``
+        """
+       # --- Inputs ---
+        # Get minimum number of points in statistical window
+        nmin = kw.get("nmin", 30)
+       # --- Coefficient Loop ---
+        # Loop through data coefficients
+        for col in self:
+            # Get UQ col list
+            ucols = self.get_uq_col(col)
+            # Skip if no UQ cols
+            if not ucols:
+                continue
+            # Loop through them
+            for ucol in ucols:
+                # Status update
+                sys.stdout.write("%-60s\r" %
+                    ("Estimating UQ: %s --> %s" % (col, ucol)))
+                sys.stdout.flush()
+                # Process "extra" keys
+                uq_ecols = self.get_uq_ecol(ucol)
+                # Call particular method
+                A, U = self.est_uq_col(db2, col, ucol, **kw)
+                # Save primary key
+                self.save_col(ucol, U[:,0])
+                self.make_defn(ucol, U[:,0])
+                # Save additional keys
+                for (j, acol) in enumerate(uq_ecols):
+                    # Save additional key values
+                    self.save_col(acol, U[:,j+1])
+                    self.make_defn(acol, U[:,j+1])
+        # Clean up prompt
+        sys.stdout.write("%60s\r" % "")
+
+    # Estimate UQ at one eval point of *ucol*
+    def _est_uq_point(self, db2, col, ucol, mask, **kw):
+        r"""Quantify uncertainty interval for a single point or window
 
         :Call:
             >>> u, a = db1.est_uq_point(db2, col, ucol, mask, **kw)
@@ -3952,26 +4025,18 @@ class DataKit(ftypes.BaseData):
                 List of extra UQ cols related to *ucol*
             *db1.uq_acols[ucol]*: {``[]``} | :class:`list`
                 Aux cols whose deltas are used to estimate *ucol*
-            *db1.uq_efuncs*: {``{}``} | :class:`dict` (:class:`function`)
-                Function to calculate any "extra" keys by name of key
-            *db1.uq_funcs_shift*: {``{}``} | :class:`dict` (:class:`function`)
-                Function to use when "shifting" deltas in *coeff*
-            *db1.uq_keys_extra[ucoeff]*: :class:`list` (:class:`str`)
-                List of extra coeffs for *ucoeff* {``[]``}
-            *db1.uq_keys_shift[ucoeff]*: :class:`list` (:class:`str`)
-                List of coeffs to use while shifting *ucoeff* deltas  {``[]``}
-            *db1.uq_funcs_extra[ecoeff]*: :class:`function`
-                Function to use to estimate extra key *ecoeff*
-            *db1.uq_funcs_shift[ucoeff]*: :class:`function`
-                Function to use to shift/alter *ucoeff* deltas
+            *db1.uq_efuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to calculate any *uq_ecols*
+            *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to use aux cols when estimating *ucol*
         :Outputs:
             *u*: :class:`float`
                 Single uncertainty estimate for generated window
-            *U*: :class:`tuple` (:class:`float`)
-                Value of *ucoeff* and any "extra" coefficients in
-                ``FM1.uq_keys_extra[ucoeff]``
+            *a*: :class:`tuple`\ [:class:`float`]
+                Values of any "extra" *uq_ecols*
         :Versions:
             * 2019-02-15 ``@ddalle``: First version
+            * 2020-03-20 ``@ddalle``: Mods from :mod:`tnakit.db.db1`
         """
        # --- Inputs ---
         # Probability
@@ -4087,6 +4152,155 @@ class DataKit(ftypes.BaseData):
        # --- Output ---
         # Return all extra values
         return (u,) + a_extra
+
+    # Estimate UQ at a single *ucol* condition
+    def est_uq_point(self, db2, col, ucol, *a, **kw):
+        r"""Quantify uncertainty interval for a single point or window
+
+        :Call:
+            >>> u, U = db1.est_uq_point(db2, col, ucol, *a, **kw)
+        :Inputs:
+            *db1*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *db2*: :class:`cape.attdb.rdb.DataKit`
+                Target database (UQ based on difference)
+            *col*: :class:`str`
+                Name of data column to analyze
+            *ucol*: :class:`str`
+                Name of UQ column to estimate
+            *a*: :class:`tuple`\ [:class:`float`]
+                Conditions at which to evaluate uncertainty
+            *a[0]*: :class:`float`
+                Value of *db1.eval_args[ucol][0]*
+        :Keyword Arguments:
+            *nmin*: {``30``} | :class:`int` > 0
+                Minimum number of points in window
+            *cov*, *Coverage*: {``0.99865``} | 0 < :class:`float` < 1
+                Fraction of data that must be covered by UQ term
+            *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
+                Coverage fraction assuming perfect distribution
+            *test_values*: {``{}``} | :class:`dict`
+                Candidate values of each *eval_arg* for comparison
+            *test_bkpts*: {``{}``} | :class:`dict`
+                Candidate break points (1D unique) for *eval_args*
+        :Required Attributes:
+            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *col*
+            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *ucol*
+            *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
+                List of extra UQ cols related to *ucol*
+            *db1.uq_acols[ucol]*: {``[]``} | :class:`list`
+                Aux cols whose deltas are used to estimate *ucol*
+            *db1.uq_efuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to calculate any *uq_ecols*
+            *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to use aux cols when estimating *ucol*
+        :Outputs:
+            *u*: :class:`float`
+                Single uncertainty estimate for generated window
+            *U*: :class:`tuple`\ [:class:`float`]
+                Values of any "extra" *uq_ecols*
+        :Versions:
+            * 2019-02-15 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Second version
+        """
+       # --- Inputs ---
+        # Get eval arguments for input coeff and UQ coeff
+        uargs = self.get_eval_args(ucol)
+        # Get minimum number of points in statistical window
+        nmin = kw.get("nmin", 30)
+       # --- Windowing ---
+        # Get window
+        I = self.genr8_window(nmin, uargs, *a, **kw)
+       # --- Evaluation ---
+        # Call stand-alone method
+        U = self._est_uq_point(db2, col, ucol, I, **kw)
+       # --- Output ---
+        # Return all values
+        return U
+
+    # UQ estimates for each condition in a col
+    def est_uq_col(self, db2, col, ucol, **kw):
+        r"""Quantify uncertainty interval for all points of one *ucol*
+
+        :Call:
+            >>> A, U  = db1.est_uq_col(db2, col, ucol, **kw)
+        :Inputs:
+            *db1*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *db2*: :class:`cape.attdb.rdb.DataKit`
+                Target database (UQ based on difference)
+            *col*: :class:`str`
+                Name of data column to analyze
+            *ucol*: :class:`str`
+                Name of UQ column to estimate
+        :Keyword Arguments:
+            *nmin*: {``30``} | :class:`int` > 0
+                Minimum number of points in window
+            *cov*, *Coverage*: {``0.99865``} | 0 < :class:`float` < 1
+                Fraction of data that must be covered by UQ term
+            *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
+                Coverage fraction assuming perfect distribution
+            *test_values*: {``{}``} | :class:`dict`
+                Candidate values of each *eval_arg* for comparison
+            *test_bkpts*: {``{}``} | :class:`dict`
+                Candidate break points (1D unique) for *eval_args*
+        :Required Attributes:
+            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *col*
+            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *ucol*
+            *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
+                List of extra UQ cols related to *ucol*
+            *db1.uq_acols[ucol]*: {``[]``} | :class:`list`
+                Aux cols whose deltas are used to estimate *ucol*
+            *db1.uq_efuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to calculate any *uq_ecols*
+            *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to use aux cols when estimating *ucol*
+        :Outputs:
+            *A*: :class:`np.ndarray` size=(*nx*\ ,*na*\ )
+                Conditions for each *ucol* window, for *nx* windows,
+                each with *na* values (length of *db1.eval_args[ucol]*)
+            *U*: :class:`np.ndarray` size=(*nx*\ ,*nu*\ +1)
+                Values of *ucol* and any *nu* "extra" *uq_ecols* for
+                each window
+        :Versions:
+            * 2019-02-15 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: v2.0, from ``EstimateUQ_coeff()``
+        """
+       # --- Inputs ---
+        # Get eval arguments for input coeff and UQ coeff
+        uargs = self.get_eval_args(ucol)
+        # Get minimum number of points in statistical window
+        nmin = kw.get("nmin", 30)
+        # Additional information
+        uq_ecols = self.get_uq_ecol(ucol)
+        # Check length
+        if uq_acols is None:
+            # No extra ecols
+            nu = 1
+        else:
+            # Total number of cols
+            nu = 1 + len(uq_ecols)
+       # --- Windowing ---
+        # Break up possible run matrix into window centers
+        A = self._genr8_uq_conditions(uargs, **kw)
+        # Number of windows
+        nx = len(A)
+        # Initialize output
+        U = np.zeros((nx, nu))
+       # --- Evaluation ---
+        # Loop through conditions
+        for (i, a) in enumerate(A):
+            # Get window
+            I = self.genr8_window(nmin, uargs, *a, **kw)
+            # Estimate UQ for this window
+            U[i] = self._est_uq_point(db2, col, ucol, I, **kw)
+       # --- Output ---
+        # Return conditions and values
+        return A, U
 
    # --- Grouping ---
     # Find *N* neighbors based on list of args
@@ -4279,7 +4493,51 @@ class DataKit(ftypes.BaseData):
                 # Use unique test values
                 bkpts[k] = np.unique(vals[k])
        # --- Output ---
+        # Return actual values and break points (unique vals)
         return vals, bkpts
+
+    # Find *N* neighbors based on list of args
+    def _genr8_uq_conditions(self, uargs, **kw):
+        r"""Get list of points at which to estimate UQ database
+
+        :Call:
+            >>> A = db._genr8_uq_conditions(uargs, **kw)
+            >>> [a0, a1, ...] = db._genr8_uq_conditions(uargs, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *uargs*: :class:`list`\ [:class:`str`]
+                List of args to *ucol* for window generation
+        :Keyword Arguments:
+            *test_values*: {``{}``} | :class:`dict`
+                Candidate values of each *uarg* for comparison
+            *test_bkpts*: {``{}``} | :class:`dict`
+                Candidate break points (1D unique) for *uargs*
+        :Outputs:
+            *A*: :class:`np.ndarray`\ [:class:`float`]
+                List of conditions for each window
+            *a0*: :class:`np.ndarray`\ [:class:`float`]
+                Value of *uargs* for first window
+            *a01*: :class:`float`
+                Value of *uargs[1]* for second window
+        :Versions:
+            * 2019-02-16 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Updates for :class:`DataKit`
+        """
+        # Get test values and test break points
+        vals, bkpts = self._get_test_values(uargs, **kw)
+        # Number of args
+        narg = len(uargs)
+        # Create tuple of all breakpoints
+        bkpts1d = tuple(bkpts[k] for k in uargs)
+        # Create *n*-dimensional array of points (full factorial)
+        vals_nd = np.meshgrid(*bkpts1d, indexing="ij")
+        # Flatten each entry and make into a row vector
+        V = tuple([v.flatten()] for v in vals_nd)
+        # Combine into single vector
+        A = np.vstack(V).T
+        # Output
+        return A
 
    # --- Options: Get ---
     # Get UQ coefficient
