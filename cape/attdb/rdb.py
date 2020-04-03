@@ -7333,10 +7333,223 @@ class DataKit(ftypes.BaseData):
         png = kw.pop("png", png)
         # Exit if None
         if png is None:
+            # Nothing to show
             return
-        # 
+        # Check if already plotted
+        if self.check_png_fig(png, fig):
+            # Already plotted
+            return
+        
 
-   # --- PNG Options ---
+   # --- PNG Options: Get ---
+    # Get PNG file name
+    def get_png_fname(self, png):
+        r"""Get name of PNG file
+
+        :Call:
+            >>> fpng = db.get_png_fname(png)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *png*: :class:`str`
+                Name used to tag this PNG image
+        :Outputs:
+            *fpng*: ``None`` | :class:`str`
+                Name of PNG file, if any
+        :Versions:
+            * 2020-04-02 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(png):
+            raise TypeError(
+                "PNG name must be str (got %s)" % type(png))
+        # Get handle to attribute
+        png_fnames = self.__dict__.setdefault("png_fnames", {})
+        # Get parameter
+        return png_fnames.get(png)
+
+    # Get plot kwargs for named PNG
+    def get_png_kwargs(self, png):
+        r"""Set evaluation keyword arguments for PNG file
+
+        :Call:
+            >>> kw = db.set_png_kwargs(png)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *png*: :class:`str`
+                Name used to tag this PNG image
+        :Outputs:
+            *kw*: {``{}``} | :class:`MPLOpts`
+                Options to use when showing PNG image (copied)
+        :Versions:
+            * 2020-04-02 ``@ddalle``: First version
+        """
+        # Get handle to kw 
+        png_kwargs = self.__dict__.setdefault("png_kwargs", {})
+        # Check types
+        if not typeutils.isstr(png):
+            raise TypeError(
+                "PNG name must be str (got %s)" % type(png))
+        # Get kwargs
+        kw = png_kwargs.get(png, {})
+        # Create a copy
+        return copy.copy(kw)
+
+    # Get PNG tag to use for a given col
+    def get_col_png(self, col):
+        r"""Get name/tag of PNG image to use when plotting *col*
+
+        :Call:
+            >>> png = db.set_col_png(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column for to associate with *png*
+        :Outputs:
+            *png*: ``None`` | :class:`str`
+                Name/abbreviation/tag of PNG image to use
+        :Versions:
+            * 2020-04-02 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column must be str (got %s)" % type(col))
+        # Get handle to attribute
+        col_pngs = self.__dict__.setdefault("col_pngs", {})
+        # Get PNG name
+        return col_pngs.get(col)
+
+    # Check figure handle if it's in current list
+    def check_png_fig(self, png, fig):
+        r"""Check if figure is in set of active figs for PNG tag
+
+        :Call:
+            >>> q = db.check_png_fig(png, fig)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *png*: :class:`str`
+                Name/abbreviation/tag of PNG image to use
+            *fig*: ``None`` | :class:`matplotlib.figure.Figure`
+                Figure handle
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not *fig* is in *db.png_figs[png]*
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
+        # Return ``False`` if *fig* is ``None``
+        if fig is None:
+            return False
+        # Get attribute
+        png_figs = self.__dict__.get("png_figs", {})
+        # Get current handles
+        figs = png_figs.get(png, set())
+        # Check for figure
+        return fig in figs
+
+   # --- PNG Options: Set ---
+    # Build overall PNG description
+    def make_png(self, png, fpng, cols=None, **kw):
+        r"""Set all parameters to describe PNG image
+
+        :Call:
+            >>> db.make_png(png, fpng, cols, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *png*: :class:`str`
+                Name used to tag this PNG image
+            *fpng*: :class:`str`
+                Name of PNG file
+            *kw*: {``{}``} | :class:`dict`
+                Options to use when showing PNG image
+        :See Also:`
+            * :func:`set_cols_png`
+            * :func:`set_png_fname`
+            * :func:`set_png_kwargs`
+        :Versions:
+            * 2020-04-02 ``@ddalle``: First version
+        """
+        # Set file name
+        self.set_png_fname(png, fpng)
+        # Set plot *kwargs*
+        self.set_png_kwargs(png, **kw)
+        # Set *png* as tag for *cols*
+        if cols:
+            # Set for each column
+            self.set_cols_png(cols, png)
+
+    # Set PNG to use for list of *cols*
+    def set_cols_png(self, cols, png):
+        r"""Set name/tag of PNG image for several data columns
+
+        :Call:
+            >>> db.set_cols_png(cols, png)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *cols*: :class:`list`\ [:class:`str`]
+                Data column for to associate with *png*
+            *png*: :class:`str`
+                Name/abbreviation/tag of PNG image to use
+        :Effects:
+            *db.col_pngs*: :class:`dict`
+                Entry for *col* in *cols* set to *png*
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
+        # Check input
+        if not isinstance(cols, list):
+            raise TypeError(
+                "List of cols must be 'list' (got '%s')" % type(cols))
+        # Check each col
+        for (j, col) in enumerate(cols):
+            if not typeutils.isstr(col):
+                raise TypeError(
+                    "col %i must be 'str' (got '%s')" % (j, type(col)))
+        # Loop through columns
+        for col in cols:
+            # Call individual function
+            self.set_col_png(col, png)
+
+    # Set PNG tag to use for a given col
+    def set_col_png(self, col, png):
+        r"""Set name/tag of PNG image to use when plotting *col*
+
+        :Call:
+            >>> db.set_col_png(col, png)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column for to associate with *png*
+            *png*: :class:`str`
+                Name/abbreviation/tag of PNG image to use
+        :Effects:
+            *db.col_pngs*: :class:`dict`
+                Entry for *col* set to *png*
+        :Versions:
+            * 2020-04-01 ``@jmeeroff``: First version
+        """
+        # Check types
+        if not typeutils.isstr(png):
+            raise TypeError(
+                "PNG name must be str (got %s)" % type(png))
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column must be str (got %s)" % type(col))
+        # Get handle to attribute
+        col_pngs = self.__dict__.setdefault("col_pngs", {})
+        # Check type
+        if not isinstance(col_pngs, dict):
+            raise TypeError("col_pngs attribute is not a dict")
+        # Set parameter (to a copy)
+        col_pngs[col] = png
+
     # Set PNG file name
     def set_png_fname(self, png, fpng):
         r"""Set name of PNG file
@@ -7407,75 +7620,25 @@ class DataKit(ftypes.BaseData):
         # Save it
         png_kwargs[png] = kw
 
-    # Set *col* to use named PNG
-    def set_col_png(self, col, png):
-        r"""Set name/tag of PNG image to use when plotting *col*
+    # Add figure handle to list of figures
+    def add_png_fig(self, png, fig):
+        r"""Add figure handle to set of active figs for PNG tag
 
         :Call:
-            >>> db.set_col_png(col, png)
+            >>> db.add_png_fig(png, fig)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
-            *col*: :class:`str`
-                Data column for to associate with *png*
             *png*: :class:`str`
                 Name/abbreviation/tag of PNG image to use
+            *fig*: :class:`matplotlib.figure.Figure`
+                Figure handle
         :Effects:
-            *db.col_pngs*: :class:`dict`
-                Entry for *col* set to *png*
-        :Versions:
-            * 2020-04-01 ``@jmeeroff``: First version
-        """
-        # Check types
-        if not typeutils.isstr(png):
-            raise TypeError(
-                "PNG name must be str (got %s)" % type(png))
-        if not typeutils.isstr(col):
-            raise TypeError(
-                "Data column must be str (got %s)" % type(col))
-        # Get handle to attribute
-        col_pngs = self.__dict__.setdefault("col_pngs", {})
-        # Check type
-        if not isinstance(col_pngs, dict):
-            raise TypeError("col_pngs attribute is not a dict")
-        # Set parameter (to a copy)
-        col_pngs[col] = png
-
-    # Set PNG to use for list of *cols*
-    def set_cols_png(self, cols, png):
-        r"""Set name/tag of PNG image for several data columns
-
-        :Call:
-            >>> db.set_cols_png(cols, png)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *cols*: :class:`list`\ [:class:`str`]
-                Data column for to associate with *png*
-            *png*: :class:`str`
-                Name/abbreviation/tag of PNG image to use
-        :Effects:
-            *db.col_pngs*: :class:`dict`
-                Entry for *col* in *cols* set to *png*
+            *db.png_figs[png]*: :class:`set`
+                Adds *fig* to :class:`set` if not already present
         :Versions:
             * 2020-04-01 ``@ddalle``: First version
         """
-        # Check input
-        if not isinstance(cols, list):
-            raise TypeError(
-                "List of cols must be 'list' (got '%s')" % type(cols))
-        # Check each col
-        for (j, col) in enumerate(cols):
-            if not typeutils.isstr(col):
-                raise TypeError(
-                    "col %i must be 'str' (got '%s')" % (j, type(col)))
-        # Loop through columns
-        for col in cols:
-            # Call individual function
-            self.set_col_png(col, png)
-
-    # Add figure handle to list of figures
-    def add_png_fig(self, png, fig):
         # Get attribute
         png_figs = self.__dict__.setdefault("png_figs", {})
         # Get current handles
@@ -7483,25 +7646,29 @@ class DataKit(ftypes.BaseData):
         # Add it
         figs.add(fig)
 
-    # Check figure handle if it's in current list
-    def check_png_fig(self, png, fig):
-        # Get attribute
-        png_figs = self.__dict__.get("png_figs", {})
-        # Get current handles
-        figs = png_figs.get(png, set())
-        # Check for figure
-        return fig in figs
-
     # Clear/reset list of figure handles
     def clear_png_fig(self, png):
+        r"""Reset the set of figures for PNG tag
+
+        :Call:
+            >>> db.clear_png_fig(png)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *png*: :class:`str`
+                Name/abbreviation/tag of PNG image to use
+        :Effects:
+            *db.png_figs[png]*: :class:`set`
+                Cleared to empty :class:`set`
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
         # Get attribute
         png_figs = self.__dict__.setdefault("png_figs", {})
         # Get current handles
         figs = png_figs.setdefault(png, set())
         # Clear/reset it
         figs.clear()
-
-    # 
 
    # --- Seam Curve Options ---
     # Set column name for seam
