@@ -17,18 +17,21 @@ db = rdb.DataKit("bullet-mab.mat")
 db.set_output_xargs("bullet.dCN", ["bullet.x"])
 
 # Name of seam curve file
-fsmy = "arrow.smy"
+fseam = "arrow.smy"
 # Seam title
 seam = "smy"
 # Seam col names
-seamcols = ["smy.x", "smy.y"]
+xcol = "smy.x"
+ycol = "smy.z"
+# Cols for this seam curve
+cols = ["bullet.dCN"]
 
-# Set a PNG
-db.make_png("xz", fpng, ["bullet.dCN"], ImageXMin=-0.15, ImageXMax=4.12)
+# Set up a seam curve
+db.make_seam(seam, fseam, xcol, ycol, cols)
 
 # Initial plot of a column
-h = db.plot("bullet.dCN", 1, XLabel="x/Lref", YLabel="dCN/d(x/Lref)")
+#h = db.plot("bullet.dCN", 1, XLabel="x/Lref", YLabel="dCN/d(x/Lref)")
 
 # Save figure
-h.fig.savefig("python%i-bullet-ll.png" % sys.version_info.major)
+#h.fig.savefig("python%i-bullet-ll.png" % sys.version_info.major)
 

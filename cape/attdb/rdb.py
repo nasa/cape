@@ -7411,6 +7411,60 @@ class DataKit(ftypes.BaseData):
         # Output
         return h
 
+   # --- Seam ---
+    # Plot seam curve
+    def plot_seam(self, col, fig=None, h=None, **kw):
+        # Get name of seam curve to add
+        seam = self.get_col_seam(col)
+        # Check for override from *kw*
+        seam = kw.pop("seam", seam)
+        # Default handle
+        if h is None:
+            # Create one
+            h = pmpl.MPLHandle()
+            # Create axes
+            h.ax = plt.gca()
+        # Exit if None
+        if seam is None:
+            # Nothing to show
+            return h
+        # Get figure handle (from ``None``, handle, or number)
+        fig = pmpl.get_figure(fig)
+        # Check if already plotted
+        if self.check_seam_fig(seam, fig):
+            # Already plotted
+            return h
+        # Get axes
+        ax_seam = fig.add_subplot(212)
+        # Get col names for seam
+        xcol, ycol = self.get_seam_col(seam)
+        # Get plot kwargs
+        kw_seam = self.get_seam_kwargs(seam)
+        # Plot the image
+        hseam = pmpl.plot(self[xcol], self[ycol], **kw_seam)
+        # Steal the x-axis label
+        xlbl = h.ax.get_xlabel()
+        # Shift it from main plot to seam plot
+        ax_seam.set_xlabel(xlbl)
+        h.ax.set_xlabel("")
+        # Turn off x-coord labels too
+        h.ax.set_xticklabels([])
+        # Format extents nicely
+        pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
+        # Tie horizontal limits
+        ax_png.set_xlim(h.ax.get_xlim())
+        # Label the axes
+        ax_seam.set_label("seam")
+        # Save parameters
+        h.fig = fig
+        h.lines_seam = hseam.lines
+        h.ax_seam = ax_seam
+        # Save this image in list for seam tag
+        self.add_seam_fig(seam, fig)
+        # Output
+        return h
+        
+
    # --- PNG Options: Get ---
     # Get PNG file name
     def get_png_fname(self, png):
@@ -7740,7 +7794,110 @@ class DataKit(ftypes.BaseData):
         # Clear/reset it
         figs.clear()
 
-   # --- Seam Curve Options ---
+   # --- Seam Curve: Set ---
+    # Read seam curves
+    def make_seam(self, seam, fseam, xcol, ycol, cols, **kw):
+        r"""Define and read a seam curve
+
+        :Call:
+            >>> db.make_seam(seam, fseam, xcol, ycol, cols, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *seam*: :class:`str`
+                Name used to tag this seam curve
+            *fseam*: :class:`str`
+                Name of seam curve file written by ``triload``
+            *xcol*: :class:`str`
+                Name of *col* for seam curve *x* coords
+            *ycol*: :class:`str`
+                Name of *col* for seam curve *y* coords
+            *kw*: {``{}``} | :class:`dict`
+                Options to use when plotting seam curve
+        :See Also:`
+            * :func:`set_cols_seam`
+            * :func:`set_seam_col`
+            * :func:`set_seam_kwargs`
+        :Versions:
+            * 2020-04-03 ``@ddalle``: First version
+        """
+        # Read a text file
+        self.read_textdata(
+            fname, NanDivider=False, cols=[xcol, ycol], save=False)
+        # Save col names
+        self.set_seam_col(seam, xcol, ycol)
+        # Save the keyword args
+        self.set_seam_kwargs(seam, **kw)
+        # Save columns
+        self.set_cols_seam(cols, seam)
+
+    # Set seam curve to use for list of *cols*
+    def set_cols_seam(self, cols, seam):
+        r"""Set name/tag of seam curve for several data columns
+
+        :Call:
+            >>> db.set_cols_seam(cols, seam)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *cols*: :class:`list`\ [:class:`str`]
+                Data column for to associate with *png*
+            *seam*: :class:`str`
+                Name/abbreviation/tag of seam curve to use
+        :Effects:
+            *db.col_seams*: :class:`dict`
+                Entry for *col* in *cols* set to *seam*
+        :Versions:
+            * 2020-04-02 ``@jmeeroff``: First version
+        """
+        # Check input
+        if not isinstance(cols, list):
+            raise TypeError(
+                "List of cols must be 'list' (got '%s')" % type(cols))
+        # Check each col
+        for (j, col) in enumerate(cols):
+            if not typeutils.isstr(col):
+                raise TypeError(
+                    "col %i must be 'str' (got '%s')" % (j, type(col)))
+        # Loop through columns
+        for col in cols:
+            # Call individual function
+            self.set_col_seam(col, seam)
+
+    # Set *col* to use named seam curve
+    def set_col_seam(self, col, seam):
+        r"""Set name/tag of seam curve to use when plotting *col*
+
+        :Call:
+            >>> db.set_col_seam(col, seam)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column for to associate with *png*
+            *seam*: :class:`str`
+                Name/abbreviation/tag of seam curve to use
+        :Effects:
+            *db.col_seams*: :class:`dict`
+                Entry for *col* set to *png*
+        :Versions:
+            * 2020-04-02 ``@jmeeroff``: First version
+        """
+        # Check types
+        if not typeutils.isstr(seam):
+            raise TypeError(
+                "seam curve name must be str (got %s)" % type(seam))
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column must be str (got %s)" % type(col))
+        # Get handle to attribute
+        col_seams = self.__dict__.setdefault("col_seams", {})
+        # Check type
+        if not isinstance(col_seams, dict):
+            raise TypeError("col_seams attribute is not a dict")
+        # Set parameter (to a copy)
+        col_seams[col] = seam
+
     # Set column name for seam
     def set_seam_col(self, seam, xcol, ycol):
         r"""Set column names that define named seam curve
@@ -7813,77 +7970,8 @@ class DataKit(ftypes.BaseData):
             raise TypeError("seam_kwargs attribute is not a dict")
         # Convert to options and check
         kw = pmpl.MPLOpts(_section="plot", **kw)
-        # Remove legend from options
-        kw.set_option('Legend', False)
         # Save it
         seam_kwargs[seam] = kw
-
-    # Set *col* to use named seam curve
-    def set_col_seam(self, col, seam):
-        r"""Set name/tag of seam curve to use when plotting *col*
-
-        :Call:
-            >>> db.set_col_seam(col, seam)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *col*: :class:`str`
-                Data column for to associate with *png*
-            *seam*: :class:`str`
-                Name/abbreviation/tag of seam curve to use
-        :Effects:
-            *db.col_seams*: :class:`dict`
-                Entry for *col* set to *png*
-        :Versions:
-            * 2020-04-02 ``@jmeeroff``: First version
-        """
-        # Check types
-        if not typeutils.isstr(seam):
-            raise TypeError(
-                "seam curve name must be str (got %s)" % type(seam))
-        if not typeutils.isstr(col):
-            raise TypeError(
-                "Data column must be str (got %s)" % type(col))
-        # Get handle to attribute
-        col_seams = self.__dict__.setdefault("col_seams", {})
-        # Check type
-        if not isinstance(col_seams, dict):
-            raise TypeError("col_seams attribute is not a dict")
-        # Set parameter (to a copy)
-        col_seams[col] = seam
-
-    # Set seam curve to use for list of *cols*
-    def set_cols_seam(self, cols, seam):
-        r"""Set name/tag of seam curve for several data columns
-
-        :Call:
-            >>> db.set_cols_seam(cols, seam)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *cols*: :class:`list`\ [:class:`str`]
-                Data column for to associate with *png*
-            *seam*: :class:`str`
-                Name/abbreviation/tag of seam curve to use
-        :Effects:
-            *db.col_seams*: :class:`dict`
-                Entry for *col* in *cols* set to *seam*
-        :Versions:
-            * 2020-04-02 ``@jmeeroff``: First version
-        """
-        # Check input
-        if not isinstance(cols, list):
-            raise TypeError(
-                "List of cols must be 'list' (got '%s')" % type(cols))
-        # Check each col
-        for (j, col) in enumerate(cols):
-            if not typeutils.isstr(col):
-                raise TypeError(
-                    "col %i must be 'str' (got '%s')" % (j, type(col)))
-        # Loop through columns
-        for col in cols:
-            # Call individual function
-            self.set_col_seam(col, seam)
 
     # Add figure handle to list of figures for named seam curve
     def add_seam_fig(self, seam, fig):
