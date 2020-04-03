@@ -7327,6 +7327,31 @@ class DataKit(ftypes.BaseData):
    # --- PNG ---
     # Plot PNG
     def plot_png(self, col, fig=None, h=None, **kw):
+        r"""Show tagged PNG image in new axes
+
+        :Call:
+            >>> h = db.plot_png(col, fig=None, h=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column being plotted
+            *png*: {*db.cols_png[col]*} | :class:`str`
+                Name used to tag this PNG image
+            *fig*: {``None``} | :class:`Figure` | :class:`int`
+                Name or number of figure in which to plot image
+            *h*: {``None``} | :class:`cape.tnakit.plot_mpl.MPLHandle`
+                Optional existing handle to various plot objects
+        :Outputs:
+            *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+                Plot object container
+            *h.img*: :class:`matplotlib.image.AxesImage`
+                PNG image object
+            *h.ax_img*: :class:`AxesSubplot`
+                Axes handle in wich *h.img* is shown
+        :Versions:
+            * 2020-04-02 ``@ddalle``: First version
+        """
         # Get name of PNG to add
         png = self.get_col_png(col)
         # Check for override from *kw*
