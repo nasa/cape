@@ -14,6 +14,9 @@ import cape.tnakit.plot_mpl as pmpl
 # Read a line load datbase
 db = rdb.DataKit("bullet-mab.mat")
 
+# Need to set col for x-axis
+db.set_output_xargs("bullet.dCN", ["bullet.x"])
+
 # Name of image file to show
 fpng = "bullet-xz.png"
 
@@ -21,7 +24,7 @@ fpng = "bullet-xz.png"
 db.make_png("xz", fpng, ["bullet.dCN"], ImageXMin=-0.15, ImageXMax=4.12)
 
 # Initial plot of a column
-h = pmpl.plot(db["bullet.x"], db["bullet.dCN"][:,1], YLabel="dCN/d(x/Lref)")
+h = db.plot("bullet.dCN", 1, XLabel="x/Lref", YLabel="dCN/d(x/Lref)")
 
 # Plot the image
 h = db.plot_png("bullet.dCN", h.fig, h=h)

@@ -1993,7 +1993,10 @@ class DataKit(ftypes.BaseData):
             # User user-provided default
             args_col = argsdef
         # Check type and make copy
-        if isinstance(args_col, list):
+        if args_col is None:
+            # Not set up
+            return
+        elif isinstance(args_col, list):
             # Create a copy to prevent muting the definitions
             return list(args_col)
         else:
@@ -6954,8 +6957,11 @@ class DataKit(ftypes.BaseData):
         args = self.get_eval_args(col)
         # Get *xk* for output
         xargs = self.get_output_xargs(col)
-        # unpack
-        xarg, = xargs
+        # Unpack
+        if xargs is None:
+            xarg = None
+        else:
+            xarg, = xargs
         # Get key for *x* axis
         xk = kw.setdefault("xk", xarg)
         # Check for indices
@@ -7380,6 +7386,13 @@ class DataKit(ftypes.BaseData):
         kw_png = self.get_png_kwargs(png)
         # Show the image nicely
         img = pmpl.imshow(fpng, **kw_png)
+        # Steal the x-axis label
+        xlbl = h.ax.get_xlabel()
+        # Shift it from main plot to PNG plot
+        ax_png.set_xlabel(xlbl)
+        h.ax.set_xlabel("")
+        # Turn off x-coord labels too
+        h.ax.set_xticklabels([])
         # Format extents nicely
         pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
         # Tie horizontal limits
