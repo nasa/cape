@@ -7384,7 +7384,10 @@ class DataKit(ftypes.BaseData):
         pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
         # Tie horizontal limits
         ax_png.set_xlim(h.ax.get_xlim())
+        # Label the axes
+        ax_png.set_label("img")
         # Save parameters
+        h.fig = fig
         h.img = img
         h.ax_img = ax_png
         # Output
