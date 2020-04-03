@@ -7325,6 +7325,9 @@ class DataKit(ftypes.BaseData):
                 hi = pmpl.plot(X, V[:,i], Index=i, **opts)
                 # combine plot handles
                 h.add(hi)
+       # --- PNG ---
+        # Plot the png image if appropriate
+        h = self.plot_png(col, fig=h.fig, h=h)
        # --- Output ---
         # Return plot handle
         return h
@@ -7362,22 +7365,22 @@ class DataKit(ftypes.BaseData):
         png = self.get_col_png(col)
         # Check for override from *kw*
         png = kw.pop("png", png)
-        # Exit if None
-        if png is None:
-            # Nothing to show
-            return
-        # Get figure handle (from ``None``, handle, or number)
-        fig = pmpl.get_figure(fig)
-        # Check if already plotted
-        if self.check_png_fig(png, fig):
-            # Already plotted
-            return
         # Default handle
         if h is None:
             # Create one
             h = pmpl.MPLHandle()
             # Create axes
             h.ax = plt.gca()
+        # Exit if None
+        if png is None:
+            # Nothing to show
+            return h
+        # Get figure handle (from ``None``, handle, or number)
+        fig = pmpl.get_figure(fig)
+        # Check if already plotted
+        if self.check_png_fig(png, fig):
+            # Already plotted
+            return h
         # Get axes
         ax_png = fig.add_subplot(212)
         # Get name of image file to show
@@ -7403,9 +7406,10 @@ class DataKit(ftypes.BaseData):
         h.fig = fig
         h.img = img
         h.ax_img = ax_png
+        # Save this image in list for PNG tag
+        self.add_png_fig(png, fig)
         # Output
         return h
-        
 
    # --- PNG Options: Get ---
     # Get PNG file name
