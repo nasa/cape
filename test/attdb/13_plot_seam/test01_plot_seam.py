@@ -16,8 +16,12 @@ db = rdb.DataKit("bullet-mab.mat")
 # Need to set col for x-axis
 db.set_output_xargs("bullet.dCN", ["bullet.x"])
 
-# Name of image file to show
-fpng = "bullet-xz.png"
+# Name of seam curve file
+fsmy = "arrow.smy"
+# Seam title
+seam = "smy"
+# Seam col names
+seamcols = ["smy.x", "smy.y"]
 
 # Set a PNG
 db.make_png("xz", fpng, ["bullet.dCN"], ImageXMin=-0.15, ImageXMax=4.12)

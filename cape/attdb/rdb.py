@@ -1064,7 +1064,7 @@ class DataKit(ftypes.BaseData):
         # Apply default
         self.finish_defns(dbf.cols)
         # Save the file interface if needed
-        if save:
+        if savedat:
             # Name for this source
             name = "%02i-textdata" % len(self.sources)
             # Save it
