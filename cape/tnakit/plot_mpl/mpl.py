@@ -601,6 +601,38 @@ def spines(ax, **kw):
     return _spines(ax, **opts)
 
 
+# Get figure handle based on inputs
+def get_figure(fig=None):
+    r"""Get figure handle from default, handle, or number
+
+    :Call:
+        >>> fig = get_figure(fig=None)
+    :Inputs:
+        *fig*: {``None``} | :class:`Figure` | :class:`int`
+            Figure handle or number
+    :Outputs:
+        *fig*: :class:`Figure`
+            Converted :class:`matplotlib` figure handle
+    :Versions:
+        * 2020-04-02 ``@ddalle``: First version
+    """
+    # Make sure pyplot is present
+    _import_pyplot()
+    # Default figure
+    if fig is None:
+        # Get most recent figure or create
+        fig = plt.gcf()
+    elif isinstance(fig, int):
+        # Get figure handle from number
+        fig = plt.figure(fig)
+    elif not isinstance(fig, Figure):
+        # Not a figure or number
+        raise TypeError(
+            "'fig' arg expected 'int' or 'Figure' (got %s)" % type(fig))
+    # Output
+    return fig
+
+
 # Axis part (initial)
 def _axes(**kw):
     r"""Create new axes or edit one if necessary

@@ -7326,7 +7326,7 @@ class DataKit(ftypes.BaseData):
 
    # --- PNG ---
     # Plot PNG
-    def plot_png(self, col, fig=None, **kw):
+    def plot_png(self, col, fig=None, h=None **kw):
         # Get name of PNG to add
         png = self.get_col_png(col)
         # Check for override from *kw*
@@ -7335,10 +7335,35 @@ class DataKit(ftypes.BaseData):
         if png is None:
             # Nothing to show
             return
+        # Get figure handle (from ``None``, handle, or number)
+        fig = pmpl.get_figure(fig)
         # Check if already plotted
         if self.check_png_fig(png, fig):
             # Already plotted
             return
+        # Default handle
+        if h is None:
+            # Create one
+            h = pmpl.MPLHandle()
+            # Create axes
+            h.ax = plt.gca()
+        # Get axes
+        ax_png = fig.add_subplot(212)
+        # Get name of image file to show
+        fpng = self.get_png_fname(png)
+        # Get plot kwargs
+        kw_png = self.get_png_kwargs(png)
+        # Show the image nicely
+        img = pmpl.imshow(fpng, **kw_png)
+        # Format extents nicely
+        pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
+        # Tie horizontal limits
+        ax_png.set_xlim(h.ax.get_xlim())
+        # Save parameters
+        h.img = img
+        h.ax_img = ax_png
+        # Output
+        return h
         
 
    # --- PNG Options: Get ---
