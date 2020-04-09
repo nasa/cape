@@ -1408,7 +1408,7 @@ class BaseData(dict):
             # No suffix (type-safe)
             suf = ""
         # Combine fixes
-        return pre + col + suf
+        return pre + dbcol + suf
 
     # Reverse translation of column names
     def _translate_colname_reverse(self, dbcols, transr, prefix, suffix):
