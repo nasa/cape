@@ -970,7 +970,7 @@ class DataKit(ftypes.BaseData):
         # Get CSV file interface
         dbcsv = self.make_source("csv", ftypes.CSVFile, cols=cols)
         # Write it
-        dbcsv.write_csv(fname, cols=cols)
+        dbcsv.write_csv(fname, cols=cols, **kw)
 
    # --- Simple CSV ---
     # Read simple CSV file
@@ -6843,8 +6843,15 @@ class DataKit(ftypes.BaseData):
         col, a, kw = self._prep_args_colname(*a, **kw)
         # Get list of arguments
         arg_list = self.get_eval_args(col)
+        # Default arg
+        if arg_list is None:
+            # No default arg
+            xk = "Index"
+        else:
+            # Default to first arg
+            xk = arg_list[0]
         # Get key for *x* axis
-        xk = kw.setdefault("xk", arg_list[0])
+        xk = kw.setdefault("xk", xk)
         # Check for indices
         if len(a) == 0:
             raise ValueError("At least 2 inputs required; received 1")
