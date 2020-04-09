@@ -7444,7 +7444,7 @@ class DataKit(ftypes.BaseData):
         # Get axes
         ax_seam = fig.add_subplot(212)
         # Get col names for seam
-        xcol, ycol = self.get_seam_col(seam)
+        xcol, ycol = self.get_col_seam(seam)
         # Get plot kwargs
         kw_seam = self.get_seam_kwargs(seam)
         # Plot the image
@@ -7801,6 +7801,61 @@ class DataKit(ftypes.BaseData):
         # Clear/reset it
         figs.clear()
 
+   # --- Seam Curve: Get ---
+    # Get plot kwargs for named seam
+    def get_seam_kwargs(self, seam):
+        r"""Set evaluation keyword arguments for PNG file
+
+        :Call:
+            >>> kw = db.set_seam_kwargs(seam)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *seam*: :class:`str`
+                Name used to tag this seam curve
+        :Outputs:
+            *kw*: {``{}``} | :class:`MPLOpts`
+                Options to use when showing seam curve (copied)
+        :Versions:
+            * 2020-04-03 ``@jmeeroff``: First version
+        """
+        # Get handle to kw 
+        seam_kwargs = self.__dict__.setdefault("seam_kwargs", {})
+        # Check types
+        if not typeutils.isstr(seam):
+            raise TypeError(
+                "Seam curve name must be str (got %s)" % type(seam))
+        # Get kwargs
+        kw = seam_kwargs.get(seam, {})
+        # Create a copy
+        return copy.copy(kw)
+
+    # Get seam tag to use for a given col
+    def get_col_seam(self, col):
+        r"""Get name/tag of seam curve to use when plotting *col*
+
+        :Call:
+            >>> png = db.get_col_seam(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column for to associate with *png*
+        :Outputs:
+            *seam*: :class:`str`
+                Name used to tag seam curve
+        :Versions:
+            * 2020-04-03 ``@jmeeroff``: First version
+        """
+        # Check types
+        if not typeutils.isstr(col):
+            raise TypeError(
+                "Data column must be str (got %s)" % type(col))
+        # Get handle to attribute
+        col_seams = self.__dict__.setdefault("col_seams", {})
+        # Get PNG name
+        return col_seams.get(col)
+
    # --- Seam Curve: Set ---
     # Read seam curves
     def make_seam(self, seam, fseam, xcol, ycol, cols, **kw):
@@ -7982,6 +8037,23 @@ class DataKit(ftypes.BaseData):
 
     # Add figure handle to list of figures for named seam curve
     def add_seam_fig(self, seam, fig):
+        r"""Add figure handle to set of active figs for seam curve tag
+
+        :Call:
+            >>> db.add_seam_fig(seam, fig)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *seam*: :class:`str`
+                Name used to tag this seam curve
+            *fig*: :class:`matplotlib.figure.Figure`
+                Figure handle
+        :Effects:
+            *db.seam_figs[seam]*: :class:`set`
+                Adds *fig* to :class:`set` if not already present
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
         # Get current handles
         figs = self.seam_figs.setdefault(seam, set())
         # Add it
@@ -7989,6 +8061,23 @@ class DataKit(ftypes.BaseData):
 
     # Check figure handle if it's in current set
     def check_seam_fig(self, seam, fig):
+        r"""Check if figure is in set of active figs for seam curve tag
+
+        :Call:
+            >>> q = db.check_seam_fig(seam, fig)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *seam*: :class:`str`
+                Name used to tag this seam curve
+            *fig*: ``None`` | :class:`matplotlib.figure.Figure`
+                Figure handle
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not *fig* is in *db.seam_figs[seam]*
+        :Versions:
+            * 2020-04-01 ``@ddalle``: First version
+        """
         # Get attribute
         seam_figs = self.__dict__.get("seam_figs", {})
         # Get current handles
