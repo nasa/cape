@@ -1120,6 +1120,11 @@ class MPLOpts(kwutils.KwargHandler):
         "FontOptions": {
             "family": "DejaVu Sans",
         },
+        "GridOptions": {
+            "ls": ":",
+            "lw": 0.9,
+            "color": "#a0a0a0",
+        },
         "LegendFontOptions": {},
         "LegendOptions": {
             "loc": "upper center",
@@ -1128,6 +1133,11 @@ class MPLOpts(kwutils.KwargHandler):
         },
         "MinMaxOptions": {},
         "MinMaxPlotType": "FillBetween",
+        "MinorGridOptions": {
+            "ls": ":",
+            "lw": 0.5,
+            "color": "#b0b0b0",
+        },
         "PlotOptions": {
             "color": ["b", "k", "darkorange", "g"],
             "ls": "-",
@@ -1163,12 +1173,6 @@ class MPLOpts(kwutils.KwargHandler):
             "Grid": True,
             "MajorGrid": True,
         },
-        "majorgrid": {
-            "ls": ":",
-            "lw": 0.5,
-            "color": "#a0a0a0",
-        },
-        "minorgrid": {},
         "hist": {
             "facecolor": 'c',
             "zorder": 2,

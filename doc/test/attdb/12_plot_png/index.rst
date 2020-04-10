@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2020-04-03 at 10:42 PDT
+   on 2020-04-10 at 08:46 PDT
 
 Test ``12_plot_png``
 ======================
@@ -34,8 +34,8 @@ Command 1: Line load plot with PNG: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.776675 seconds
-    * Cumulative time: 0.776675 seconds
+    * Command took 0.801389 seconds
+    * Cumulative time: 0.801389 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -63,8 +63,8 @@ Command 2: Line load plot with PNG: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.24811 seconds
-    * Cumulative time: 2.02479 seconds
+    * Command took 1.27779 seconds
+    * Cumulative time: 2.07917 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2020-03-30 at 14:05 PDT
+   on 2020-04-10 at 08:45 PDT
 
 Test ``03_contour``
 =====================
 
 This test is run in the folder:
 
-    ``/home/jmeeroff/usr/cape/test/tnakit/03_contour/``
+    ``/home/dalle/usr/pycart/test/tnakit/03_contour/``
 
 and the working folder for the test is
 
@@ -34,8 +34,8 @@ Command 1: Contour plot: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.803271 seconds
-    * Cumulative time: 0.803271 seconds
+    * Command took 0.695365 seconds
+    * Cumulative time: 0.695365 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -63,8 +63,8 @@ Command 2: Contour plot: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.61794 seconds
-    * Cumulative time: 2.42121 seconds
+    * Command took 1.09074 seconds
+    * Cumulative time: 1.7861 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
