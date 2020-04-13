@@ -658,7 +658,7 @@ class InputInp(cape.filecntl.namelist.Namelist):
                 return self.get_MANAGE_table()
             elif key in ["schedule"]:
                 # Get the other rows in the table
-                return se.f.get_MANAGE_schedule()
+                return self.get_MANAGE_schedule()
             else:
                 # Unknown
                 raise ValueError(

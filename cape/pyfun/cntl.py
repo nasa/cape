@@ -10,15 +10,15 @@ post-processing, and managing the solutions. A collection of cases
 combined into a run matrix can be loaded using the following commands.
 
     .. code-block:: pycon
-    
+
         >>> import cape.pyfun.cntl
         >>> cntl = cape.pyfun.cntl.Cntl("pyFun.json")
         >>> fun3d
         <cape.pyfun.Cntl(nCase=892)>
         >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
-        
-        
+
+
 An instance of this :class:`cape.pyfun.cntl.Cntl` class has many
 methods, which include the run matrix (``fun3d.x``), the options
 interface (``fun3d.opts``), and optionally the data book
@@ -75,26 +75,26 @@ _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyFunFolder = os.path.split(_fname)[0]
-    
-    
+
+
 # Class to read input files
 class Cntl(cape.cntl.Cntl):
     r"""
     Class for handling global options and setup for FUN3D.
-    
+
     This class is intended to handle all settings used to describe a
     group of FUN3D cases.  For situations where it is not sufficiently
     customized, it can be used partially, e.g., to set up a Mach/alpha
     sweep for each single control variable setting.
-    
+
     The settings are read from a JSON file, which is robust and simple
     to read, but has the disadvantage that there is no support for
     comments. Hopefully the various names are descriptive enough not to
     require explanation.
-    
+
     Defaults are read from the file
     ``$CAPE/settings/pyFun.default.json``.
-    
+
     :Call:
         >>> cntl = pyFun.Cntl(fname="pyFun.json")
     :Inputs:
@@ -125,42 +125,42 @@ class Cntl(cape.cntl.Cntl):
             # Raise error but suppress traceback
             os.sys.tracebacklimit = 0
             raise ValueError("No pyFun control file '%s' found" % fname)
-        
+
         # Read settings
         self.opts = options.Options(fname=fname)
-        
+
         # Save the current directory as the root
         self.RootDir = os.getcwd()
-        
+
         # Import modules
         self.ImportModules()
-        
+
         # Process the trajectory.
         self.x = RunMatrix(**self.opts['RunMatrix'])
 
         # Job list
         self.jobs = {}
-        
+
         # Read the namelist(s)
         self.ReadNamelist()
         self.ReadMovingBodyInputFile()
-        
+
         # Check for dual
         if self.opts.get_Dual():
             self.ReadRubberData()
-        
+
         # Read the boundary conditions
         self.ReadMapBC()
-        
+
         # Read the configuration
         self.ReadConfig()
-        
+
         # Set umask
         os.umask(self.opts.get_umask())
-        
+
         # Run any initialization functions
         self.InitFunction()
-        
+
     # Output representation
     def __repr__(self):
         r"""Output representation for the class."""
@@ -168,7 +168,7 @@ class Cntl(cape.cntl.Cntl):
         return "<pyFun.Cntl(nCase=%i)>" % (
             self.x.nCase)
   # >
-  
+
   # =======================
   # Command-Line Interface
   # =======================
@@ -176,7 +176,7 @@ class Cntl(cape.cntl.Cntl):
     # Baseline function
     def cli(self, *a, **kw):
         r"""Command-line interface
-        
+
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
@@ -232,9 +232,9 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Submit the jobs
             self.SubmitJobs(**kw)
-    
+
   # >
-  
+
   # ========
   # Readers
   # ========
@@ -242,7 +242,7 @@ class Cntl(cape.cntl.Cntl):
     # Function to read the databook.
     def ReadDataBook(self, comp=None):
         r"""Read the current data book
-        
+
         :Call:
             >>> cntl.ReadDataBook()
         :Inputs:
@@ -269,11 +269,11 @@ class Cntl(cape.cntl.Cntl):
         self.DataBook.proj = self.GetProjectRootName(None)
         # Return to original folder.
         os.chdir(fpwd)
-        
+
     # Function to read a report
     def ReadReport(self, rep):
         r"""Read a report interface
-        
+
         :Call:
             >>> R = cntl.ReadReport(rep)
         :Inputs:
@@ -292,7 +292,7 @@ class Cntl(cape.cntl.Cntl):
         # Output
         return R
   # >
-  
+
   # ========
   # Namelist
   # ========
@@ -300,7 +300,7 @@ class Cntl(cape.cntl.Cntl):
     # Read the namelist
     def ReadNamelist(self, j=0, q=True):
         r"""Read the :file:`fun3d.nml` file
-        
+
         :Call:
             >>> cntl.ReadNamelist(j=0, q=True)
         :Inputs:
@@ -332,13 +332,13 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Template for reading original parameters
             self.Namelist0 = nml
-    
+
     # Get namelist var
     def GetNamelistVar(self, sec, key, j=0):
         r"""Get a namelist variable's value
-        
+
         The JSON file overrides the value from the namelist file
-        
+
         :Call:
             >>> val = cntl.GetNamelistVar(sec, key, j=0)
         :Inputs:
@@ -374,14 +374,14 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Default to the options
             return self.opts.get_namelist_var(sec, key, j)
-        
+
     # Get the project rootname
     def GetProjectRootName(self, j=0):
         r"""Get the project root name
-        
+
         The JSON file overrides the value from the namelist file if
         appropriate
-        
+
         :Call:
             >>> name = cntl.GetProjectName(j=0)
         :Inputs:
@@ -426,13 +426,13 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Append the adaptation number
             return '%s%02i' % (name, k)
-                
+
     # Get the grid format
     def GetGridFormat(self, j=0):
         r"""Get the grid format
-        
+
         The JSON file overrides the value from the namelist file
-        
+
         :Call:
             >>> fmt = cntl.GetGridFormat(j=0)
         :Inputs:
@@ -447,9 +447,9 @@ class Cntl(cape.cntl.Cntl):
             * 2015-10-18 ``@ddalle``: First version
         """
         return self.GetNamelistVar('raw_grid', 'grid_format', j)
-        
+
   # >
-  
+
   # ===========
   # Other Files
   # ===========
@@ -457,7 +457,7 @@ class Cntl(cape.cntl.Cntl):
     # Read the boundary condition map
     def ReadMapBC(self, j=0, q=True):
         r"""Read the FUN3D boundary condition map
-        
+
         :Call:
             >>> cntl.ReadMapBC(q=True)
         :Inputs:
@@ -482,11 +482,11 @@ class Cntl(cape.cntl.Cntl):
             self.MapBC0 = BC
         # Go back to original location
         os.chdir(fpwd)
-        
+
     # Read the ``rubber.data`` file
     def ReadRubberData(self, j=0, q=True):
         r"""Read the :file:`rubber.data` file
-        
+
         :Call:
             >>> cntl.ReadRubberData(j=0, q=True)
         :Inputs:
@@ -524,11 +524,11 @@ class Cntl(cape.cntl.Cntl):
             self.RubberData0 = RD
         # Go back to original location
         os.chdir(fpwd)
-        
+
     # Read the FAUXGeom instruction
     def ReadFAUXGeom(self):
         r"""Read any FAUXGeom input file template
-        
+
         :Call:
             >>> cntl.ReadFAUXGeom()
         :Inputs:
@@ -560,11 +560,11 @@ class Cntl(cape.cntl.Cntl):
             surf = self.EvalSurfID(comp)
             # Set the geometry
             self.FAUXGeom.SetGeom(surf, ofaux[comp])
-            
+
     # Read the ``moving_body.input`` file
     def ReadMovingBodyInputFile(self, j=0, q=True):
         r"""Read the :file:`moving_body.input` template
-        
+
         :Call:
             >>> cntl.ReadMovingBodyInputFile(j=0, q=True)
         :Inputs:
@@ -600,14 +600,14 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Template for reading original parameters
             self.MovingBodyInput0 = nml
-        
+
     # Write FreezeSurfs
     def WriteFreezeSurfs(self, fname):
         r"""Write a ``pyfun.freeze`` file that lists surfaces to freeze
-        
+
         This is about the simplest file format in history, which is
         simply a list of surface indices.
-        
+
         :Call:
             >>> cntl.WriteFreezeSurfs(fname)
         :Inputs:
@@ -635,11 +635,11 @@ class Cntl(cape.cntl.Cntl):
                 f.write("%s\n" % self.FreezeSurfs[i])
         # Close the file
         f.close()
-    
+
     # Read FreezeSurfs
     def ReadFreezeSurfs(self):
         r"""Read list of surfaces to freeze
-        
+
         :Call:
             >>> cntl.ReadFreezeSurfs()
         :Inputs:
@@ -694,9 +694,9 @@ class Cntl(cape.cntl.Cntl):
             surfs.append(surf)
         # Save
         self.FreezeSurfs = surfs
-         
+
   # >
-  
+
   # =====
   # Case
   # =====
@@ -704,10 +704,10 @@ class Cntl(cape.cntl.Cntl):
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
         r"""Get the current iteration number from the appropriate module
-        
+
         This function utilizes the :mod:`cape.case` module, and so it
         must be copied to the definition for each solver's control class
-        
+
         :Call:
             >>> n = cntl.CaseGetCurrentIter()
         :Inputs:
@@ -728,14 +728,14 @@ class Cntl(cape.cntl.Cntl):
             return 0
         else:
             return n
-        
+
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentPhase(self):
         r"""Get the current phase number from the appropriate module
-        
+
         This function utilizes the :mod:`cape.case` module, and so it
         must be copied to the definition for each solver's control class
-        
+
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
@@ -757,11 +757,11 @@ class Cntl(cape.cntl.Cntl):
             return case.GetPhaseNumber(rc)
         except:
             return 0
-          
+
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         r"""Check if the current folder has the necessary files to run
-        
+
         :Call:
             >>> q = cntl.CheckNone(v=False)
         :Inputs:
@@ -810,11 +810,11 @@ class Cntl(cape.cntl.Cntl):
         if qdual: os.chdir('..')
         # Output
         return not q
-    
+
     # Check for a failure.
     def CheckError(self, i):
         r"""Check if a case has a failure
-        
+
         :Call:
             >>> q = cntl.CheckError(i)
         :Inputs:
@@ -849,11 +849,11 @@ class Cntl(cape.cntl.Cntl):
         os.chdir(fpwd)
         # Output
         return q
-            
+
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i, running=False):
         r"""Read a CAPE-style core-hour file from a case
-        
+
         :Call:
             >>> CPUt = cntl.GetCPUTime(i, running=False)
         :Inputs:
@@ -875,9 +875,9 @@ class Cntl(cape.cntl.Cntl):
         fstrt = 'pyfun_start.dat'
         # Call the general function using hard-coded file name
         return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
-        
+
   # >
-  
+
   # ======
   # Mesh
   # ======
@@ -885,7 +885,7 @@ class Cntl(cape.cntl.Cntl):
     # Get list of raw file names
     def GetInputMeshFileNames(self):
         r"""Return the list of mesh files from file
-        
+
         :Call:
             >>> fname = cntl.GetInputMeshFileNames()
         :Inputs:
@@ -909,11 +909,11 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Convert to list.
             return [fname]
-        
+
     # Get list of mesh file names that should be in a case folder.
     def GetProcessedMeshFileNames(self):
         r"""Return the list of mesh files that are written
-        
+
         :Call:
             >>> fname = cntl.GetProcessedMeshFileNames()
         :Inputs:
@@ -933,11 +933,11 @@ class Cntl(cape.cntl.Cntl):
             fname.append(self.ProcessMeshFileName(f))
         # Output
         return fname
-        
+
     # Process a mesh file name to use the project root name
     def ProcessMeshFileName(self, fname):
         r"""Return a mesh file name using the project root name
-        
+
         :Call:
             >>> fout = cntl.ProcessMeshFileName(fname)
         :Inputs:
@@ -965,11 +965,11 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Just the extension
             return "%s.%s" % (fproj, fext)
-        
+
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared
-        
+
         :Call:
             >>> q = cntl.CheckMesh(i)
         :Inputs:
@@ -1023,11 +1023,11 @@ class Cntl(cape.cntl.Cntl):
         os.chdir(fpwd)
         # Output
         return q
-        
+
     # Check mesh files
     def CheckMeshFiles(self, v=False):
         r"""Check for the mesh files in the present folder
-        
+
         :Call:
             >>> q = cntl.CheckMeshFiles(v=False)
         :Inputs:
@@ -1090,9 +1090,9 @@ class Cntl(cape.cntl.Cntl):
                             "surf"))
         # Output
         return q
-        
+
   # >
-  
+
   # ===========
   # Preparation
   # ===========
@@ -1104,7 +1104,7 @@ class Cntl(cape.cntl.Cntl):
     # Prepare the mesh for case *i* (if necessary)
     def PrepareMesh(self, i):
         r"""Prepare the mesh for case *i* if necessary
-        
+
         :Call:
             >>> cntl.PrepareMesh(i)
         :Inputs:
@@ -1273,7 +1273,7 @@ class Cntl(cape.cntl.Cntl):
     # Prepare a case.
     def PrepareCase(self, i):
         r"""Prepare a case for running if it is not already prepared
-        
+
         :Call:
             >>> cntl.PrepareCase(i)
         :Inputs:
@@ -1360,7 +1360,7 @@ class Cntl(cape.cntl.Cntl):
         # Return to original location
         os.chdir(fpwd)
    # ]
-   
+
    # --------
    # Namelist
    # --------
@@ -1370,7 +1370,7 @@ class Cntl(cape.cntl.Cntl):
         r"""
         Write :file:`fun3d.nml` for run case *i* in the appropriate
         folder and with the appropriate settings.
-        
+
         :Call:
             >>> cntl.PrepareNamelist(i)
         :Inputs:
@@ -1394,14 +1394,14 @@ class Cntl(cape.cntl.Cntl):
         os.chdir(self.RootDir)
         # Set the flight conditions
         self.PrepareNamelistFlightConditions(i)
-        
+
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
         # Set up boundary point stuff
         self.PrepareNamelistBoundaryPoints()
-        
+
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
             # Ensure the presence of the triangulation
@@ -1422,12 +1422,12 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Main folder
             fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
-            
+
         # Prepare internal boundary conditions
         self.PrepareNamelistBoundaryConditions()
         # Write the BC file
         self.MapBC.Write(fout)
-        
+
         # Make folder if necessary.
         if not os.path.isdir(frun): self.mkdir(frun)
         # Apply any namelist functions
@@ -1512,11 +1512,11 @@ class Cntl(cape.cntl.Cntl):
                 self.MovingBodyInput.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
-        
+
     # Prepare freestream conditions
     def PrepareNamelistFlightConditions(self, i):
         r"""Set namelist flight conditions
-        
+
         :Call:
             >>> cntl.PrepareNamelistFligntConditions(i)
         :Inputs:
@@ -1581,29 +1581,29 @@ class Cntl(cape.cntl.Cntl):
             if Re is not None: self.Namelist.SetReynoldsNumber(Re)
             # Temperature
             if T  is not None: self.Namelist.SetTemperature(T)
-               
+
     # Call function to apply namelist settings for case *i*
     def NamelistFunction(self, i):
         r"""Apply a function at the end of :func:`PrepareNamelist(i)`
-        
+
         This is allows the user to modify settings at a later point than
         is done using :func:`CaseFunction`
-        
+
         This calls the function(s) in the global ``"NamelistFunction"``
         option from the JSON file. These functions must take *cntl* as
         an input and the case number *i*. The function(s) are usually
         from a module imported via the ``"Modules"`` option. See the
          following example:
-        
+
             .. code-block:: javascript
-            
+
                 "Modules": ["testmod"],
                 "NamelistFunction": ["testmod.nmlfunc"]
-                
+
         This leads pyFun to call ``testmod.nmlfunc(cntl, i)`` near the
         end of :func:`PrepareNamelist` for each case *i* in the run
         matrix.
-        
+
         :Call:
             >>> cntl.NamelistFunction(i)
         :Inputs:
@@ -1629,12 +1629,12 @@ class Cntl(cape.cntl.Cntl):
             print("  Namelist Function: cntl.%s(%s)" % (func, i))
             # Run the function
             exec("self.%s(self, %s)" % (func, i))
-        
+
     # Set up a namelist config
     def PrepareNamelistConfig(self):
         r"""Write the lines for the force/moment output in a namelist
         file
-        
+
         :Call:
             >>> cntl.PrepareNamelistConfig()
         :Inputs:
@@ -1692,11 +1692,11 @@ class Cntl(cape.cntl.Cntl):
             nml.SetVar('component_parameters', 'component_count', -1, k)
         # Set the number of components
         nml.SetVar('component_parameters', 'number_of_components', n)
-        
+
     # Set boundary condition flags
     def PrepareNamelistBoundaryConditions(self):
         r"""Prepare any boundary condition flags if needed
-        
+
         :Call:
             >>> cntl.PrepareNamelistBoundaryConditions()
         :Inputs:
@@ -1739,11 +1739,11 @@ class Cntl(cape.cntl.Cntl):
                 if temp is None:
                     # Use adiabatic wall
                     nml.SetVar(bcs, wtk, -1, k+1)
-    
+
     # Set boundary points
     def PrepareNamelistBoundaryPoints(self):
         r"""Write the lines of the boundary point sensors in the namelist
-        
+
         :Call:
             >>> cntl.PrepareNamelistBoundaryPoints()
         :Inputs:
@@ -1796,7 +1796,7 @@ class Cntl(cape.cntl.Cntl):
         # Set number of geometries
         nml.SetVar('sampling_parameters', 'number_of_geometries', ngeom)
    # ]
-   
+
    # -----------
    # Other Files
    # -----------
@@ -1804,7 +1804,7 @@ class Cntl(cape.cntl.Cntl):
     # Prepare ``rubber.data`` file
     def PrepareRubberData(self, i):
         r"""Prepare ``rubber.data`` file if appropriate
-        
+
         :Call:
             >>> cntl.PrepareRubberData(i)
         :Inputs:
@@ -1854,11 +1854,11 @@ class Cntl(cape.cntl.Cntl):
                 R.SetCoeffPower(1, p, n)
         # Write the file
         R.Write('rubber.data')
-        
+
     # Prepare FAUXGeom file if appropriate
     def PrepareFAUXGeom(self, i):
         r"""Prepare/edit a FAUXGeom input file for a case
-        
+
         :Call:
             >>> cntl.PrepareFAUXGeom(i)
         :Inputs:
@@ -1892,11 +1892,11 @@ class Cntl(cape.cntl.Cntl):
         self.FAUXGeom.Write("faux_input")
         # Go back to original location
         os.chdir(fpwd)
-        
+
     # Prepare list of surfaces to freeze
     def PrepareFreezeSurfs(self, i):
         r"""Prepare adaption file for list of surfaces to freeze during adapts
-        
+
         :Call:
             >>> cntl.PrepareFreezeSurfs(i)
         :Inputs:
@@ -1933,11 +1933,11 @@ class Cntl(cape.cntl.Cntl):
             self.WriteFreezeSurfs('%s.freeze' % fj)
         # Go back to original location
         os.chdir(fpwd)
-        
+
     # Prepare ``tdata`` file if appropriate
     def PrepareTData(self, i):
         r"""Prepare/edit a ``tdata`` input file for a case
-        
+
         :Call:
             >>> cntl.PrepareTData(i)
         :Inputs:
@@ -1970,11 +1970,11 @@ class Cntl(cape.cntl.Cntl):
         shutil.copy(fname, fout)
         # Go back to original location
         os.chdir(fpwd)
-        
+
     # Prepare ``speciesthermodata`` file if appropriate
     def PrepareSpeciesThermoData(self, i):
         r"""Prepare/edit a ``speciesthermodata`` input file for a case
-        
+
         :Call:
             >>> cntl.PrepareSpeciesThermoData(i)
         :Inputs:
@@ -2007,11 +2007,11 @@ class Cntl(cape.cntl.Cntl):
         shutil.copy(fname, fout)
         # Go back to original location
         os.chdir(fpwd)
-        
+
     # Prepare ``speciesthermodata`` file if appropriate
     def PrepareKineticData(self, i):
         r"""Prepare/edit a ``kineticdata`` input file for a case
-        
+
         :Call:
             >>> cntl.PrepareKineticData(i)
         :Inputs:
@@ -2044,10 +2044,10 @@ class Cntl(cape.cntl.Cntl):
         shutil.copy(fname, fout)
         # Go back to original location
         os.chdir(fpwd)
-    
+
    # ]
   # >
-  
+
   # =============
   # SurfCT/SurfBC
   # =============
@@ -2056,12 +2056,12 @@ class Cntl(cape.cntl.Cntl):
     def SetSurfBC(self, key, i, CT=False):
         r"""Set all surface BCs and flow initialization volumes for one
         key
-        
+
         This uses the 7011 boundary condition and sets the values of BC
         stagnation pressure to freestream pressure and stagnation
         temperature to freestream temperature. Further, it creates a
         flow initialization volume to help with solution startup
-        
+
         :Call:
             >>> cntl.SetSurfBC(key, i, CT=False)
         :Inputs:
@@ -2149,11 +2149,11 @@ class Cntl(cape.cntl.Cntl):
             nml.SetVar('flow_initialization', 'point2', x2, (None, n))
         # Update number of volumes
         nml.SetNFlowInitVolumes(n)
-    
+
     # Get surface BC inputs
     def GetSurfBCState(self, key, i, comp=None):
         r"""Get stagnation pressure and temperature ratios
-        
+
         :Call:
             >>> p0, T0 = cntl.GetSurfBCState(key, i, comp=None)
         :Inputs:
@@ -2197,12 +2197,12 @@ class Cntl(cape.cntl.Cntl):
         T = (aT*T0 + bT) / Tinf
         # Output
         return p, T
-        
+
     # Get surface CT state inputs
     def GetSurfCTState(self, key, i, comp=None):
         r"""Get stagnation pressure and temperature ratios for *SurfCT*
         key
-        
+
         :Call:
             >>> p0, T0 = cntl.GetSurfCTState(key, i, comp=None)
         :Inputs:
@@ -2261,11 +2261,11 @@ class Cntl(cape.cntl.Cntl):
         bT = self.x.GetSurfCT_TemperatureOffset(i, key, comp=comp)
         # Output
         return (ap*p0+bp)/pinf, (aT*T0+bT)/Tinf
-        
+
     # Get startup volume for a surface BC input
     def GetSurfBCVolume(self, key, compID):
         r"""Get coordinates for flow initialization box
-        
+
         :Call:
             >>> x1, x2, r = cntl.GetSurfBCVolume(key, compID)
         :Inputs:
@@ -2303,11 +2303,11 @@ class Cntl(cape.cntl.Cntl):
         x2 = x0 + L*N
         # Output
         return x1, x2, r
-        
+
     # Get startup conditions for surface BC input
     def GetSurfBCFlowInitState(self, key, i, CT=False, comp=None):
         """Get nondimensional state for flow initialization volumes
-        
+
         :Call:
             >>> rho, U, c = cntl.GetSurfBCFlowInitState(key, i,
                                                         CT=False)
@@ -2369,7 +2369,7 @@ class Cntl(cape.cntl.Cntl):
         # Output
         return rho, U, c
   # >
-  
+
   # ===========
   # Surface IDs
   # ===========
@@ -2377,10 +2377,10 @@ class Cntl(cape.cntl.Cntl):
     # Get surface ID numbers
     def CompID2SurfID(self, compID):
         r"""Convert triangulation component ID to surface index
-        
+
         This relies on an XML configuration file and a FUN3D ``mapbc``
         file
-        
+
         :Call:
             >>> surfID = cntl.CompID2SurfID(compID)
             >>> surfID = cntl.CompID2SurfID(face)
@@ -2415,16 +2415,16 @@ class Cntl(cape.cntl.Cntl):
             surfID.append(self.MapBC.GetSurfID(comp))
         # Output
         return surfID
-        
+
     # Convert string to MapBC surfID
     def EvalSurfID(self, comp):
         r"""Convert a component name to a MapBC surface index (1-based)
-        
+
         This function also works if the input, *comp*, is an integer
         (returns the same integer) or an integer string such as ``"1"``.
         Before looking up an index by name, the function attempts to
         return ``int(comp)``.
-        
+
         :Call:
             >>> surfID = cntl.EvalSurfID(comp)
         :Inputs:
@@ -2450,18 +2450,18 @@ class Cntl(cape.cntl.Cntl):
             raise AttributeError("Interface to FUN3D 'mapbc' file not found")
         # Read from MapBC
         return self.MapBC.GetSurfID(comp)
-        
+
     # Get string describing which components are in config
     def GetConfigInput(self, comp, warn=False):
         r"""
         Determine which component indices are in a named component based
         on the MapBC file, which is always numbered 1,2,...,N.  Output
         the format as a nice string, such as ``"4-10,13,15-18"``.
-        
+
         If possible, this is read from the ``"Inputs"`` subsection of
         the ``"Config"`` section of the master JSON file.  Otherwise,
         it is read from the ``"mapbc"`` and configuration files.
-        
+
         :Call:
             >>> cntl.GetConfigInput(comp, warn=False)
         :Inputs:
@@ -2512,9 +2512,9 @@ class Cntl(cape.cntl.Cntl):
         if len(surf) > 0: inp = RangeString(surf)
         # Output
         return inp
-        
+
   # >
-   
+
   # =================
   # Case Modification
   # =================
@@ -2523,7 +2523,7 @@ class Cntl(cape.cntl.Cntl):
     def ExtendCase(self, i, n=1, j=None, imax=None):
         r"""Add *NSTEPS* iterations to case *i* using the last phase's
         namelist
-        
+
         :Call:
             >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
         :Inputs:
@@ -2575,14 +2575,14 @@ class Cntl(cape.cntl.Cntl):
         print("  Phase %i: %s --> %s" % (j, N, N1))
         # Write new options
         self.WriteCaseJSON(i, rc=rc)
-            
+
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *fun3d.opts* to an individual case
-        
+
         This rewrites each run namelist file and the :file:`case.json`
         file in the specified directories.
-        
+
         :Call:
             >>> cntl.ApplyCase(i, nPhase=None)
         :Inputs:
@@ -2657,7 +2657,7 @@ class Cntl(cape.cntl.Cntl):
         print("  Writing PBS scripts 0 to %s" % (nPBS-1))
         self.WritePBS(i)
   # >
-  
+
   # ==============
   # Case Interface
   # ==============
@@ -2665,7 +2665,7 @@ class Cntl(cape.cntl.Cntl):
     # Read run control options from case JSON file
     def ReadCaseJSON(self, i):
         r"""Read ``case.json`` file from case *i* if possible
-        
+
         :Call:
             >>> rc = cntl.ReadCaseJSON(i)
         :Inputs:
@@ -2703,11 +2703,11 @@ class Cntl(cape.cntl.Cntl):
         os.chdir(fpwd)
         # Output
         return rc
-        
+
     # Read a namelist from a case folder
     def ReadCaseNamelist(self, i, rc=None, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
-        
+
         :Call:
             >>> nml = cntl.ReadCaseNamelist(i, rc=None, j=None)
         :Inputs:
@@ -2751,11 +2751,11 @@ class Cntl(cape.cntl.Cntl):
         os.chdir(fpwd)
         # Output
         return nml
-        
+
     # Write the PBS script.
     def WritePBS(self, i):
         r"""Write the PBS script(s) for a given case
-        
+
         :Call:
             >>> cntl.WritePBS(i)
         :Inputs:
@@ -2783,7 +2783,7 @@ class Cntl(cape.cntl.Cntl):
         else:
             # Otherwise use a single PBS script.
             nPBS = 1
-        
+
         # Loop through the runs.
         for j in range(nPBS):
             # PBS script name.
@@ -2797,27 +2797,27 @@ class Cntl(cape.cntl.Cntl):
             f = open(fpbs, 'w')
             # Write the header.
             self.WritePBSHeader(f, i, j)
-            
+
             # Initialize options to `run_FUN3D.py`
             flgs = ''
 
             # Simply call the advanced interface.
             f.write('\n# Call the FUN3D interface.\n')
             f.write('run_fun3d.py' + flgs + '\n')
-            
+
             # Close the file.
             f.close()
         # Return.
         os.chdir(fpwd)
-        
+
     # Call the correct :mod:`case` module to start a case
     def CaseStartCase(self):
         r"""Start a case by either submitting it or running it
-        
+
         This function relies on :mod:`cape.pycart.case`, and so it is
         customized for the Cart3D solver only in that it calls the
         correct *case* module.
-        
+
         :Call:
             >>> pbs = cntl.CaseStartCase()
         :Inputs:
@@ -2831,7 +2831,7 @@ class Cntl(cape.cntl.Cntl):
         """
         return case.StartCase()
   # >
-  
+
   # =========
   # Archiving
   # =========
@@ -2839,7 +2839,7 @@ class Cntl(cape.cntl.Cntl):
     # Individual case archive function
     def ArchivePWD(self, phantom=False):
         r"""Archive a single case in the current folder ($PWD)
-        
+
         :Call:
             >>> cntl.ArchivePWD(phantom=False)
         :Inputs:
@@ -2854,11 +2854,11 @@ class Cntl(cape.cntl.Cntl):
         """
         # Archive using the local module
         manage.ArchiveFolder(self.opts, phantom=phantom)
-    
+
     # Individual case archive function
     def SkeletonPWD(self, phantom=False):
         r"""Delete most files in current folder, leaving only a skeleton
-        
+
         :Call:
             >>> cntl.SkeletonPWD(phantom=False)
         :Inputs:
@@ -2872,11 +2872,11 @@ class Cntl(cape.cntl.Cntl):
         """
         # Archive using the local module
         manage.SkeletonFolder(self.opts, phantom=phantom)
-    
+
     # Individual case archive function
     def CleanPWD(self, phantom=False):
         r"""Archive a single case in the current folder ($PWD)
-        
+
         :Call:
             >>> cntl.CleanPWD(phantom=False)
         :Inputs:
@@ -2892,6 +2892,5 @@ class Cntl(cape.cntl.Cntl):
         # Archive using the local module
         manage.CleanFolder(self.opts, phantom=phantom)
   # >
-        
-# class Fun3d
 
+# class Fun3d

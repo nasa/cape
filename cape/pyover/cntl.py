@@ -707,7 +707,8 @@ class Cntl(cape.cntl.Cntl):
             # Remove the file if necessary
             if os.path.islink(f1): os.remove(f1)
             # Skip if full file
-            if os.path.isfile(f1): continue
+            if os.path.isfile(f1):
+                continue
             # Link the file.
             if os.path.isfile(f0):
                 shutil.copy(f0, f1)
@@ -723,9 +724,11 @@ class Cntl(cape.cntl.Cntl):
             # Remove the file if necessary
             if os.path.islink(f1): os.remove(f1)
             # Skip if full file
-            if os.path.isfile(f1): continue
+            if os.path.isfile(f1):
+                continue
             # Link the file.
-            if os.path.isfile(f0): os.symlink(f0, f1)
+            if os.path.isfile(f0):
+                os.symlink(f0, f1)
         # -------
         # Cleanup
         # -------

@@ -12,6 +12,13 @@
         "q": "normal",
         "walltime": "2:00:00"
     },
+	
+	// Commands to load at head of run scripts (run_cart3d.pbs)
+	"ShellCmds": [
+	    ". $MODULESHOME/init/bash",
+	    "module load us3d",
+	    "module load cape"
+	],
     
 	// The names of these two files have the obvious defaults.
 	"InputInp": "input.inp",
@@ -28,13 +35,6 @@
             "flag": 4
         }
     },
-	
-	// Commands to load at head of run scripts (run_cart3d.pbs)
-	"ShellCmds": [
-	    ". $MODULESHOME/init/bash",
-	    "module load us3d",
-	    "module load cape"
-	],
 	
 	// Iteration control and command-line inputs
 	"RunControl": {
@@ -63,9 +63,16 @@
     
     // Describe the reference values and config.
     "Config": {
-        
+       "RefArea": 3.14159,
+       "RefLength": 2.0
     },
-    
+
+    // Describe the mesh files
+    "Mesh": {
+        // Initial mesh file
+        "MeshFile": "bullet.tri"
+    },
+
     // Run matrix description
     "RunMatrix": {
         // File and variable list

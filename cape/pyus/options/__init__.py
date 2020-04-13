@@ -2,7 +2,7 @@
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pyfun`.  The class is based off of the built-in :class:`dict` class, so
-its default behavior, such as ``opts['InputInp']`` or 
+its default behavior, such as ``opts['InputInp']`` or
 ``opts.get('InputInp')`` are also present.  In addition, many convenience
 methods, such as ``opts.get_CFDSOLVER_ires()``, are also provided.
 
@@ -11,10 +11,10 @@ parameter in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
     1. Values directly specified in the input file, :file:`pyUS.json`
-    
+
     2. Values specified in the default control file,
        ``$PYFUN/settings/pyUS.default.json``
-    
+
     3. Hard-coded defaults from this module
 
 """
@@ -37,9 +37,8 @@ from .Config      import Config
 
 # Class definition
 class Options(cape.cfdx.options.Options):
-    """
-    Options structure, subclass of :class:`dict`
-    
+    r"""Options class based on :class:`dict`
+
     :Call:
         >>> opts = Options(fname=None, **kw)
     :Inputs:
@@ -48,9 +47,9 @@ class Options(cape.cfdx.options.Options):
         *kw*: :class:`dict`
             Dictionary to be transformed into :class:`pyCart.options.Options`
     :Versions:
-        * 2014.07.28 ``@ddalle``: First version
+        * 2014-07-28 ``@ddalle``: First version
     """
-    
+
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Initialization method with optional JSON input"""
@@ -63,7 +62,7 @@ class Options(cape.cfdx.options.Options):
                 kw[k] = d[k]
         # Read the defaults.
         defs = getPyUSDefaults()
-        
+
         # Apply the defaults.
         kw = applyDefaults(kw, defs)
         # Store the data in *this* instance
@@ -83,7 +82,7 @@ class Options(cape.cfdx.options.Options):
         self._PostPBS()
         # Add extra folders to path.
         self.AddPythonPath()
-    
+
    # ============
    # Initializers
    # ============
@@ -102,7 +101,7 @@ class Options(cape.cfdx.options.Options):
                 tmp["PBS_"+k] = self['PBS'][k]
             # Convert to special class.
             self['PBS'] = PBS(**tmp)
-            
+
     # Initialization method for overall run control
     def _RunControl(self):
         """Initialize report options if necessary"""
@@ -113,7 +112,7 @@ class Options(cape.cfdx.options.Options):
         elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class
             self['RunControl'] = RunControl(**self['RunControl'])
-    
+
     # Initialization method for ``input.inp`` variables
     def _US3D(self):
         """Initialize namelist options"""
@@ -124,7 +123,7 @@ class Options(cape.cfdx.options.Options):
         elif type(self['US3D']).__name__ == 'dict':
             # Convert to special class
             self['US3D'] = InputInpOpts(**self['US3D'])
-    
+
     # Initialization method for mesh settings
     def _Mesh(self):
         """Initialize mesh options"""
@@ -135,7 +134,7 @@ class Options(cape.cfdx.options.Options):
         elif type(self['Mesh']).__name__ == 'dict':
             # Convert to special class
             self['Mesh'] = Mesh(**self['Mesh'])
-    
+
     # Initialization method for databook
     def _DataBook(self):
         """Initialize data book options if necessary"""
@@ -146,7 +145,7 @@ class Options(cape.cfdx.options.Options):
         elif type(self['DataBook']).__name__ == 'dict':
             # Convert to special class
             self['DataBook'] = DataBook(**self['DataBook'])
-            
+
     # Initialization method for automated report
     def _Report(self):
         """Initialize report options if necessary"""
@@ -157,7 +156,7 @@ class Options(cape.cfdx.options.Options):
         elif type(self['Report']).__name__ == 'dict':
             # Convert to special class
             self['Report'] = Report(**self['Report'])
-            
+
     # Initialization and confirmation for PBS options
     def _Config(self):
         """Initialize configuration options if necessary"""
@@ -179,8 +178,7 @@ class Options(cape.cfdx.options.Options):
             # Convert to special class.
             self['Config'] = Config(**tmp)
    # >
-    
-    
+
    # ==============
    # Global Options
    # ==============
@@ -188,7 +186,7 @@ class Options(cape.cfdx.options.Options):
     # Method to get the ``input.inp`` template file name
     def get_InputInp(self, j=None):
         """Return the name of the master :file:`fun3d.nml` file
-        
+
         :Call:
             >>> fname = opts.get_InputInp(j=None)
         :Inputs:
@@ -203,11 +201,11 @@ class Options(cape.cfdx.options.Options):
             * 2019-06-27 ``@ddalle``: First version
         """
         return self.get_key('InputInp', j)
-        
+
     # Method to set the ``input.inp`` template file name
     def set_InputInp(self, fname):
         """Set the name of the master :file:`fun3d.nml` file
-        
+
         :Call:
             >>> opts.set_InputInp(fname)
         :Inputs:
@@ -219,11 +217,11 @@ class Options(cape.cfdx.options.Options):
             * 2019-06-27 ``@ddalle``: First version
         """
         self['InputInp'] = fname
-    
+
     # Method to determine if groups have common meshes.
     def get_GroupMesh(self):
         """Determine whether or not groups have common meshes
-        
+
         :Call:
             >>> qGM = opts.get_GroupMesh()
         :Inputs:
@@ -238,11 +236,11 @@ class Options(cape.cfdx.options.Options):
         # Safely get the trajectory.
         x = self.get('RunMatrix', {})
         return x.get('GroupMesh', rc0('GroupMesh'))
-        
+
     # Method to specify that meshes do or do not use the same mesh
     def set_GroupMesh(self, qGM=rc0('GroupMesh')):
         """Specify that groups do or do not use common meshes
-        
+
         :Call:
             >>> opts.get_GroupMesh(qGM)
         :Inputs:
@@ -255,83 +253,74 @@ class Options(cape.cfdx.options.Options):
         """
         self['RunMatrix']['GroupMesh'] = qGM
    # >
-   
-   
+
    # ===================
    # Overall run control
    # ===================
    # <
-    
-        
+
+
     # Copy documentation
     for k in []:
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
-   
+
    # >
-   
-   
-   # =================
-   # Namelist settings
-   # =================
+
+   # ===================
+   # input.inp settings
+   # ===================
    # <
-    
+
     # CFD_SOLVER section
     def get_CFDSOLVER(self, j=None):
         self._US3D()
         return self['US3D'].get_CFDSOLVER(j)
-        
+
     # One CFD_SOLVER setting
     def get_CFDSOLVER_key(self, k, j=None):
         self._US3D()
         return self['US3D'].get_CFDSOLVER_key(k, j)
-        
+
     # Project rootname
     def get_section(self, sec, j=None):
         self._US3D()
         return self['US3D'].get_section(sec, j)
-        
-    # Grid format
-    def get_grid_format(self, j=None):
-        self._Fun3D()
-        return self['Fun3D'].get_grid_format(j)
-        
+
     # Generic value
     def get_InputInp_key(self, sec, key, j=None):
         self._US3D()
         return self['US3D'].get_InputInp_key(sec, key, j)
-        
+
     # Copy documentation
     for k in ['CFDSOLVER', 'CFDSOLVER_key', 'section', 'InputInp_key']:
         eval('get_'+k).__doc__ = getattr(InputInpOpts,'get_'+k).__doc__
-        
+
     # Set generic value
     def set_InputInp_key(self, sec, key, val, j=None):
         self._US3D()
         return self['US3D'].set_InputInp_key(sec, key, val, j)
-        
+
     # Copy documentation
     for k in ['InputInp_key']:
         eval('set_'+k).__doc__ = getattr(InputInpOpts,'set_'+k).__doc__
-        
+
     # Downselect
     def select_InputInp(self, j=0):
         self._US3D()
         return self['US3D'].select_InputInp(j)
     select_InputInp.__doc__ = InputInpOpts.select_InputInp.__doc__
    # >
-   
-    
+
    # =============
    # Mesh settings
    # =============
    # <
-        
+
     # Copy documentation
     for k in []:
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
-    
-    
+
    # =============
    # Configuration
    # =============
@@ -340,12 +329,12 @@ class Options(cape.cfdx.options.Options):
     def get_ConfigInput(self, comp):
         self._Config()
         return self['Config'].get_ConfigInput(comp)
-        
+
     # Set components
     def set_ConfigInput(self, comp, inp):
         self._Config()
         self['Config'].set_ConfigInput(comp, inp)
-        
+
     # Copy over the documentation.
     for k in [
             'ConfigInput'
@@ -353,58 +342,52 @@ class Options(cape.cfdx.options.Options):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
-    
+
     # post.scr file
     def get_PostScrFile(self, j=None):
         self._Config()
         return self['Config'].get_PostScrFile(j)
-        
+
     # Copy over the documentation.
     for k in [
             'PostScrFile'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
-        
-    
+
+
    # >
-    
+
    # ============
    # PBS settings
    # ============
    # <
    # >
-    
-    
+
    # =================
    # Folder management
    # =================
    # <
    # >
-    
+
    # =========
    # Data book
    # =========
    # <
-    
+
     # Copy over the documentation.
     for k in []:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
    # >
-   
-    
+
    # =======
    # Reports
    # =======
    # <
-    
+
     # Copy over the documentation
     for k in []:
         # Get the documentation from the submodule
         eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__
    # >
-   
-   
-
-# class Options
