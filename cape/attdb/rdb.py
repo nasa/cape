@@ -740,7 +740,7 @@ class DataKit(ftypes.BaseData):
   # <
    # --- Get Source ---
     # Get a source by type and number
-    def get_source(self, ext, n=None):
+    def get_source(self, ext=None, n=None):
         r"""Get a source by category (and number), if possible
 
         :Call:
@@ -749,7 +749,7 @@ class DataKit(ftypes.BaseData):
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Generic database
-            *ext*: :class:`str`
+            *ext*: {``None``} | :class:`str`
                 Source type, by extension, to retrieve
             *n*: {``None``} | :class:`int` >= 0
                 Source number
@@ -763,10 +763,25 @@ class DataKit(ftypes.BaseData):
         srcs = self.__dict__.get("sources", {})
         # Check for *n*
         if n is None:
+            # Check for both ``None``
+            if ext is None:
+                raise ValueError("Either 'ext' or 'n' must be specified")
             # Loop through sources
             for name, dbf in srcs.items():
                 # Check name
-                if name.split("-") == ext:
+                if name.split("-")[1] == ext:
+                    # Output
+                    return dbf
+            else:
+                # No match
+                return
+        elif ext is None:
+            # Check names
+            targ = "%02i" % n
+            # Loop through sources
+            for name, dbf in srcs.items():
+                # Check name
+                if name.split("-")[0] == targ:
                     # Output
                     return dbf
             else:

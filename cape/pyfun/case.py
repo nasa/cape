@@ -58,7 +58,7 @@ def run_fun3d():
     r"""Setup and run the appropriate FUN3D command
     
     :Call:
-        >>> pyFun.case.run_fun3d()
+        >>> case.run_fun3d()
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
         * 2016-04-05 ``@ddalle``: Added AFLR3 to this function
@@ -103,7 +103,7 @@ def PrepareFiles(rc, i=None):
     :Call:
         >>> PrepareFiles(rc, i=None)
     :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -121,7 +121,7 @@ def PrepareFiles(rc, i=None):
         os.remove('fun3d.nml')
     # Create the correct namelist
     os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
-    # Delete any moving_body.input namelist linke
+    # Delete any moving_body.input namelist link
     fmove = 'moving_body.input'
     if os.path.isfile(fmove) or os.path.islink(fmove):
         os.remove(fmove)
@@ -141,7 +141,7 @@ def RunPhase(rc, i):
     :Call:
         >>> RunPhase(rc, i)
     :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -262,7 +262,7 @@ def CheckSuccess(rc=None, i=None):
     :Call:
         >>> CheckSuccess(rc=None, i=None)
     :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -298,7 +298,7 @@ def FinalizeFiles(rc, i=None):
     :Call:
         >>> FinalizeFiles(rc, i=None)
     :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -345,11 +345,10 @@ def FinalizeFiles(rc, i=None):
 
 # Function to call script or submit.
 def StartCase():
-    r"""Start a case by either submitting it or calling with a system
-    command
+    r"""Start a case by either submitting it or calling locally
     
     :Call:
-        >>> pyFun.case.StartCase()
+        >>> case.StartCase()
     :Versions:
         * 2014-10-06 ``@ddalle``: First version
         * 2015-10-19 ``@ddalle``: Copied from pyCart
@@ -385,7 +384,7 @@ def RestartCase(i0=None):
     running a phase or attempting to run a phase.
     
     :Call:
-        >>> pyFun.case.RestartCase(i0=None)
+        >>> case.RestartCase(i0=None)
     :Inputs:
         *i0*: :class:`int` | ``None``
             Run sequence index of the previous run
@@ -487,7 +486,7 @@ def GetPBSScript(i=None):
     multiple PBS scripts in a single run directory
     
     :Call:
-        >>> fpbs = pyFun.case.GetPBSScript(i=None)
+        >>> fpbs = case.GetPBSScript(i=None)
     :Inputs:
         *i*: :class:`int`
             Run index
@@ -516,13 +515,12 @@ def GetPBSScript(i=None):
 
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc):
-    r"""Determine the appropriate input number based on results
-    available
+    r"""Determine the phase number based on files in folder
     
     :Call:
-        >>> i = pyFun.case.GetPhaseNumber(rc)
+        >>> i = case.GetPhaseNumber(rc)
     :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Options interface for run control
     :Outputs:
         *i*: :class:`int`
@@ -578,14 +576,14 @@ def GetNamelist(rc=None, i=None):
     r"""Read case namelist file
     
     :Call:
-        >>> nml = pyFun.case.GetNamelist(rc=None, i=None)
+        >>> nml = case.GetNamelist(rc=None, i=None)
     :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Run control options
         *i*: :class:`int`
             Phase number
     :Outputs:
-        *nml*: :class:`pyFun.namelist.Namelist`
+        *nml*: :class:`cape.pyfun.namelist.Namelist`
             Namelist interface
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
@@ -637,15 +635,15 @@ def GetProjectRootname(rc=None, i=None, nml=None):
     r"""Read namelist and return project namelist
     
     :Call:
-        >>> rname = pyFun.case.GetProjectRootname()
-        >>> rname = pyFun.case.GetProjectRootname(rc=None, i=None,
+        >>> rname = case.GetProjectRootname()
+        >>> rname = case.GetProjectRootname(rc=None, i=None,
                         nml=None)
     :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Run control options
         *i*: :class:`int`
             Phase number
-        *nml*: :class:`pyFun.namelist.Namelist`
+        *nml*: :class:`cape.pyfun.namelist.Namelist`
             Namelist interface; overrides *rc* and *i* if used
     :Outputs:
         *rname*: :class:`str`
@@ -664,9 +662,9 @@ def ReadCaseJSON():
     r"""Read `RunControl` settings for local case
     
     :Call:
-        >>> rc = pyFun.case.ReadCaseJSON()
+        >>> rc = case.ReadCaseJSON()
     :Outputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Options interface for run control settings
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
@@ -689,7 +687,7 @@ def GetCurrentIter():
     r"""Get the most recent iteration number
     
     :Call:
-        >>> n = pyFun.case.GetHistoryIter()
+        >>> n = case.GetHistoryIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Last iteration number
@@ -714,7 +712,7 @@ def GetHistoryIter():
     r"""Get the most recent iteration number for a history file
     
     :Call:
-        >>> nh, n = pyFun.case.GetHistoryIter()
+        >>> nh, n = case.GetHistoryIter()
     :Outputs:
         *nh*: :class:`int`
             Iterations from previous cases before Fun3D deleted history
@@ -804,7 +802,7 @@ def GetHistoryIterFile(fname):
     r"""Get the most recent iteration number from a history file
     
     :Call:
-        >>> n = pyFun.case.GetHistoryIterFile(fname)
+        >>> n = case.GetHistoryIterFile(fname)
     :Inputs:
         *fname*: {``"pyfun_hist.dat"``} | :class:`str`
             Name of file to read
@@ -837,7 +835,7 @@ def GetRunningIter():
     r"""Get the most recent iteration number for a running file
     
     :Call:
-        >>> n = pyFun.case.GetRunningIter()
+        >>> n = case.GetRunningIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
@@ -1018,9 +1016,9 @@ def SetRestartIter(rc, n=None):
     r"""Set a given check file as the restart point
     
     :Call:
-        >>> pyFun.case.SetRestartIter(rc, n=None)
+        >>> case.SetRestartIter(rc, n=None)
     :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
+        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Run control options
         *n*: :class:`int`
             Restart iteration number, defaults to most recent available
@@ -1079,7 +1077,7 @@ def CopyHist(nml, i):
     :Call:
         >>> CopyHist(nml, i)
     :Inputs:
-        *nml*: :class:`pyFun.namelist.Namelist`
+        *nml*: :class:`cape.pyfun.namelist.Namelist`
             Fun3D namelist interface for phase *i*
         *i*: :class:`int`
             Phase number to use for storing histories
@@ -1252,7 +1250,7 @@ def GetFromGlob(fglb):
     r"""Find the most recently edited file matching a glob
     
     :Call:
-        >>> fname = pyFun.case.GetFromGlob(fglb)
+        >>> fname = case.GetFromGlob(fglb)
     :Inputs:
         *fglb*: :class:`str`
             Glob for targeted file names
@@ -1279,7 +1277,7 @@ def LinkFromGlob(fname, fglb):
     r"""Link the most recent file to a generic Tecplot file name
     
     :Call:
-        >>> pyFun.case.LinkFromGlob(fname, fglb)
+        >>> case.LinkFromGlob(fname, fglb)
     :Inputs:
         *fname*: :class:`str`
             Name of unmarked file, like ``Components.i.plt``
@@ -1306,7 +1304,7 @@ def LinkPLT():
     r"""Link the most recent Tecplot files to fixed file names
     
     :Call:
-        >>> pyFun.case.LinkPLT()
+        >>> case.LinkPLT()
     :Versions:
         * 2016-10-24 ``@ddalle``: First version
     """
