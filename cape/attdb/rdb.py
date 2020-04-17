@@ -820,12 +820,14 @@ class DataKit(ftypes.BaseData):
             * 2020-02-13 ``@ddalle``: First version
             * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
         """
-        # Get the source
-        dbf = self.get_source(ext, n=n)
-        # Check if found
-        if dbf is not None:
-            # Done
-            return dbf
+        # Don't use existing if *cols* is specified
+        if cols is None:
+            # Get the source
+            dbf = self.get_source(ext, n=n)
+            # Check if found
+            if dbf is not None:
+                # Done
+                return dbf
         # Create a new one
         dbf = self.genr8_source(ext, cls, cols=cols)
         # Save the file interface if needed
