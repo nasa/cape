@@ -6863,12 +6863,21 @@ class DataKit(ftypes.BaseData):
         # Default arg
         if arg_list is None:
             # No default arg
-            xk = "Index"
+            xk = None
+            # Get key for *x* axis (don't set to ``None``)
+            xk = kw.get("xk")
         else:
             # Default to first arg
             xk = arg_list[0]
-        # Get key for *x* axis
-        xk = kw.setdefault("xk", xk)
+            # Get key for *x* axis
+            xk = kw.setdefault("xk", xk)
+        # Set label
+        if xk is None:
+            # Default label becomes "Index"
+            xlbl = "Index"
+        else:
+            # Default *x*-axis label is name of *x* key
+            xlbl = xk
         # Check for indices
         if len(a) == 0:
             raise ValueError("At least 2 inputs required; received 1")
@@ -6885,13 +6894,21 @@ class DataKit(ftypes.BaseData):
             qmark   = False
             qindex  = True
             # Get values of arg list from *DBc* and *I*
-            A = []
-            # Loop through *eval_args*
-            for arg in arg_list:
-                # Get values
-                A.append(self.get_xvals(arg, I, **kw))
-            # Convert to tuple
-            a = tuple(A)
+            if arg_list:
+                # Initialize
+                A = []
+                # Loop through *eval_args*
+                for arg in arg_list:
+                    # Get values
+                    A.append(self.get_xvals(arg, I, **kw))
+                # Convert to tuple
+                a = tuple(A)
+            elif xk:
+                # Use the *xk* only
+                a = (self.get_xvals(xk, I, **kw),)
+            else:
+                # For trivial case, eval arg is just *I*
+                a = (I,)
             # Plot all points
             J = np.arange(I.size)
         else:
@@ -6940,7 +6957,7 @@ class DataKit(ftypes.BaseData):
         # Set default label
         kw.setdefault("Label", dlbl)
         # Default x-axis label is *xk*
-        kw.setdefault("XLabel", xk)
+        kw.setdefault("XLabel", xlbl)
         kw.setdefault("YLabel", col)
        # --- Cleanup ---
         # Output
@@ -7166,7 +7183,14 @@ class DataKit(ftypes.BaseData):
         # Get list of arguments
         arg_list = self.get_eval_args(col)
         # Get key for *x* axis
-        xk = kw.pop("xcol", kw.pop("xk", arg_list[0]))
+        if arg_list:
+            # Default to first *arg*
+            xk = arg_list[0]
+        else:
+            # No key
+            xk = None
+        # Check for direct specification
+        xk = kw.pop("xcol", kw.pop("xk", xk))
        # --- Options: What to plot ---
         # Plot exact values, interpolated (eval), and markers of actual data
         qexact  = kw.pop("PlotExact",  False)
@@ -7191,7 +7215,12 @@ class DataKit(ftypes.BaseData):
         # Y-axis values: exact
         if qexact:
             # Get corresponding *x* values
-            xe = self.get_xvals(xk, I, **kw)
+            if xk is None:
+                # Just use index
+                xe = I
+            else:
+                # Get values
+                xe = self.get_xvals(xk, I, **kw)
             # Try to get values directly from database
             ye = self.get_yvals_exact(col, I, **kw)
             # Evaluate UQ-minus
@@ -7245,8 +7274,9 @@ class DataKit(ftypes.BaseData):
                 # Convert to list
                 marke = list(J)
         # Remove extra keywords if possible
-        for k in arg_list:
-            kw.pop(k, None)
+        if arg_list:
+            for k in arg_list:
+                kw.pop(k, None)
        # --- Primary Plot ---
         # Initialize output
         h = pmpl.MPLHandle()
