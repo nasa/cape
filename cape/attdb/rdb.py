@@ -1263,7 +1263,7 @@ class DataKit(ftypes.BaseData):
    # --- Evaluation ---
     # Evaluate interpolation
     def __call__(self, *a, **kw):
-        """Generic evaluation function
+        r"""Generic evaluation function
 
         :Call:
             >>> v = db(*a, **kw)
@@ -1277,15 +1277,15 @@ class DataKit(ftypes.BaseData):
             *col*: :class:`str`
                 Name of column to evaluate
             *x0*: :class:`float` | :class:`int`
-                Numeric value for first argument to *coeff* evaluator
+                Numeric value for first argument to *col* response
             *x1*: :class:`float` | :class:`int`
-                Numeric value for second argument to *coeff* evaluator
+                Numeric value for second argument to *col* response
             *X1*: :class:`np.ndarray` (:class:`float`)
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
-                Name of first argument to *coeff* evaluator
+                Name of first argument to *col* response
             *k1*: :class:`str` | :class:`unicode`
-                Name of second argument to *coeff* evaluator
+                Name of second argument to *col* response
         :Outputs:
             *v*: :class:`float` | :class:`int`
                 Function output for scalar evaluation
@@ -1294,6 +1294,68 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-01-07 ``@ddalle``: Version 1.0
             * 2019-12-30 ``@ddalle``: Version 2.0: map of methods
+        """
+       # --- Argument Types ---
+        # Process coefficient name and remaining coeffs
+        col, a, kw = self._prep_args_colname(*a, **kw)
+        # Check for single arg
+        if len(a) == 0:
+            # Just return everything
+            return self.get_all_values(col)
+        # Get list of arguments
+        arg_list = self.get_eval_args(col)
+        # Process first second arg as a mask
+        I = np.asarray(a[0])
+        # Get data type
+        dtype = I.dtype.name
+        # Default arg
+        if arg_list is None:
+            # Return values based on index
+            return self.get_values(col, I)
+        # Check *I* data type
+        qmask = [dtype.startswith(pre) for pre in ["bool", "uint", "int"]]
+        # Check if any of those are met
+        if any(qmask):
+            # Look up using indices
+            return self.get_values(col, I)
+        else:
+            # Call response surface
+            return self.eval_response(col, *a, **kw)
+
+    # Evaluate response
+    def eval_response(self, *a, **kw):
+        r"""Evaluate predefined response method
+
+        :Call:
+            >>> v = db.eval_response(*a, **kw)
+            >>> v = db.eval_response(col, x0, x1, ...)
+            >>> V = db.eval_response(col, x0, X1, ...)
+            >>> v = db.eval_response(col, k0=x0, k1=x1, ...)
+            >>> V = db.eval_response(col, k0=x0, k1=X1, ...)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *x0*: :class:`float` | :class:`int`
+                Numeric value for first argument to *col* response
+            *x1*: :class:`float` | :class:`int`
+                Numeric value for second argument to *col* response
+            *X1*: :class:`np.ndarray` (:class:`float`)
+                Array of *x1* values
+            *k0*: :class:`str` | :class:`unicode`
+                Name of first argument to *col* response
+            *k1*: :class:`str` | :class:`unicode`
+                Name of second argument to *col* response
+        :Outputs:
+            *v*: :class:`float` | :class:`int`
+                Function output for scalar evaluation
+            *V*: :class:`np.ndarray`\ [:class:`float`]
+                Array of function outputs
+        :Versions:
+            * 2019-01-07 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: Version 2.0: map of methods
+            * 2020-04-20 ``@ddalle``: Moved meat from :func:`__call__`
         """
        # --- Get coefficient name ---
         # Process coefficient
@@ -2852,25 +2914,25 @@ class DataKit(ftypes.BaseData):
             * 2019-12-18 ``@ddalle``: From :func:`_process_coeff`
         """
         # Check for keyword
-        coeff = kw.pop("coeff", None)
+        col = kw.pop("col", None)
         # Check for string
-        if typeutils.isstr(coeff):
+        if typeutils.isstr(col):
             # Output
-            return coeff, a, kw
+            return col, a, kw
         # Number of direct inputs
         na = len(a)
         # Process *coeff* from *a* if possible
         if na > 0:
             # First argument is coefficient
-            coeff = a[0]
+            col = a[0]
             # Check for string
-            if typeutils.isstr(coeff):
+            if typeutils.isstr(col):
                 # Remove first entry
                 a = a[1:]
                 # Output
-                return coeff, a, kw
+                return col, a, kw
         # Must be string-like
-        raise TypeError("Coefficient must be a string")
+        raise TypeError("Column name must be a string")
 
     # Normalize arguments
     def normalize_args(self, x, asarray=False):
