@@ -7062,6 +7062,36 @@ class DataKit(ftypes.BaseData):
    # --- Base Plot Commands ---
     # Master plot controller
     def plot(self, *a, **kw):
+        r"""Plot a scalar or linear data column
+
+        This function tests the output dimension of *col*.  For a
+        standard data column, which is a scalar, this will pass the
+        args to :func:`plot_scalar`.  If ``db.get_ndim(col)`` is ``2``,
+        however (for example a line load), :func:`plot_linear` will be
+        called instead.
+
+        :Call:
+            >>> h = db.plot(col, *a, **kw)
+            >>> h = db.plot(col, I, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column (or derived column) to evaluate
+            *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
+                Array of values for arguments to evaluator for *col*
+            *I*: :class:`np.ndarray` (:class:`int`)
+                Indices of exact entries to plot
+        :Outputs:
+            *h*: :class:`plot_mpl.MPLHandle`
+                Object of :mod:`matplotlib` handles
+        :See Also:
+            * :func:`DataKit.plot_scalar`
+            * :func:`DataKit.plot_linear`
+            * :func:`cape.tnakit.plot_mpl.plot`
+        :Versions:
+            * 2020-04-20 ``@ddalle``: First version
+        """
         # Process column name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
         # Get dimension of *col*
@@ -7081,8 +7111,8 @@ class DataKit(ftypes.BaseData):
     def plot_scalar(self, *a, **kw):
         r"""Plot a sweep of one data column over several cases
 
-        This is the base method upon which scalar *col* plotting is built.
-        Other methods may call this one with modifications to the default
+        This is the base method for plotting scalar *col*\ s. Other
+        methods may call this one with modifications to the default
         settings.
 
         :Call:
