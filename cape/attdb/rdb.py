@@ -51,7 +51,7 @@ import cape.tnakit.typeutils as typeutils
 import cape.attdb.ftypes as ftypes
 
 
-# Accepted list for eval_method
+# Accepted list for response_method
 RBF_METHODS = [
     "rbf",
     "rbf-map",
@@ -236,9 +236,9 @@ class DataKit(ftypes.BaseData):
         self.eval_arg_converters = {}
         self.eval_arg_aliases = {}
         self.eval_arg_defaults = {}
-        self.eval_args = {}
+        self.response_args = {}
         self.eval_kwargs = {}
-        self.eval_method = {}
+        self.response_methods = {}
         self.eval_xargs = {}
         # Extra attributes for plotting
         self.col_pngs = {}
@@ -1303,7 +1303,7 @@ class DataKit(ftypes.BaseData):
             # Just return everything
             return self.get_all_values(col)
         # Get list of arguments
-        arg_list = self.get_eval_args(col)
+        arg_list = self.get_response_args(col)
         # Process first second arg as a mask
         mask = np.asarray(a[0])
         # Get data type
@@ -1362,9 +1362,9 @@ class DataKit(ftypes.BaseData):
         col, a, kw = self._prep_args_colname(*a, **kw)
        # --- Get method and other parameters ---
         # Specific method
-        method_col = self.get_eval_method(col)
+        method_col = self.get_response_method(col)
         # Specific lookup arguments (and copy it)
-        args_col = self.get_eval_args(col)
+        args_col = self.get_response_args(col)
         # Get extra args passed along to evaluator
         kw_fn = self.get_eval_kwargs(col)
         # Attempt to get default aliases
@@ -1480,7 +1480,7 @@ class DataKit(ftypes.BaseData):
         col, a, kw = self._prep_args_colname(*a, **kw)
        # --- Matching values
         # Get list of arguments for this coefficient
-        args = self.get_eval_args(coeff)
+        args = self.get_response_args(coeff)
         # Possibility of fallback values
         arg_defaults = getattr(self, "eval_arg_defaults", {})
         # Find exact matches
@@ -1528,8 +1528,8 @@ class DataKit(ftypes.BaseData):
 
         This function will evaluate the UQ cols specified for a given
         nominal column by referencing the appropriate subset of
-        *db.eval_args* for any UQ cols.  It evaluates the UQ col named
-        in *db.uq_cols*.  For example if *CN* is a function of
+        *db.response_args* for any UQ cols.  It evaluates the UQ col
+        named in *db.uq_cols*.  For example if *CN* is a function of
         ``"mach"``, ``"alpha"``, and ``"beta"``; ``db.uq_cols["CN"]``
         is *UCN*; and *UCN* is a function of ``"mach"`` only, this
         function passes only the Mach numbers to *UCN* for evaluation.
@@ -1568,7 +1568,7 @@ class DataKit(ftypes.BaseData):
         col, a, kw = self._prep_args_colname(*a, **kw)
        # --- Argument processing ---
         # Specific lookup arguments
-        args_col = self.get_eval_args(col)
+        args_col = self.get_response_args(col)
         # Initialize lookup point
         x = []
         # Loop through arguments
@@ -1603,7 +1603,7 @@ class DataKit(ftypes.BaseData):
         # Loop through UQ coeffs
         for uk in uq_col_list:
             # Get evaluation args
-            args_k = self.get_eval_args(uk)
+            args_k = self.get_response_args(uk)
             # Initialize inputs to *uk*
             UX = []
             # Loop through eval args
@@ -1665,7 +1665,7 @@ class DataKit(ftypes.BaseData):
         """
        # --- Argument processing ---
         # Specific lookup arguments for *coeff*
-        args_col = self.get_eval_args(col)
+        args_col = self.get_response_args(col)
         # Initialize lookup point
         x = []
         # Loop through arguments asgiven
@@ -1747,7 +1747,7 @@ class DataKit(ftypes.BaseData):
         """
        # --- Argument processing ---
         # Specific lookup arguments for *col*
-        args_col = self.get_eval_args(col)
+        args_col = self.get_response_args(col)
        # --- Evaluation ---
         # Initialize inputs to *coeff*
         A = []
@@ -1904,9 +1904,9 @@ class DataKit(ftypes.BaseData):
             # Call the constructor
             constructor_col(col, *a, args=args, **kw)
         # Save method name
-        self.set_eval_method(col, method)
+        self.set_response_method(col, method)
         # Argument list is the same for all methods
-        self.set_eval_args(col, args)
+        self.set_response_args(col, args)
 
    # --- Constructors ---
     # Explicit function
@@ -2039,11 +2039,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Options: Get ---
     # Get argument list
-    def get_eval_args(self, col, argsdef=None):
+    def get_response_args(self, col, argsdef=None):
         r"""Get list of evaluation arguments
 
         :Call:
-            >>> args = db.get_eval_args(col, argsdef=None)
+            >>> args = db.get_response_args(col, argsdef=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2058,15 +2058,16 @@ class DataKit(ftypes.BaseData):
             * 2019-03-11 ``@ddalle``: Forked from :func:`__call__`
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-03-26 ``@ddalle``: Added *argsdef*
+            * 2020-04-21 ``@ddalle``: Rename from :func:`get_eval_args`
         """
         # Get overall handle
-        eval_args = self.__dict__.get("eval_args", {})
+        response_args = self.__dict__.get("response_args", {})
         # Get option
-        args_col = eval_args.get(col)
+        args_col = response_args.get(col)
         # Check for default
         if args_col is None:
             # Attempt to get a default
-            args_col = eval_args.get("_")
+            args_col = response_args.get("_")
         # Create a copy if a list
         if args_col is None:
             # User user-provided default
@@ -2081,15 +2082,15 @@ class DataKit(ftypes.BaseData):
         else:
             # What?
             raise TypeError(
-                "eval_args for '%s' must be list (got %s)"
+                "response_args for '%s' must be list (got %s)"
                 % (col, type(args_col)))
 
     # Get evaluation method
-    def get_eval_method(self, col):
+    def get_response_method(self, col):
         r"""Get evaluation method (if any) for a column
 
         :Call:
-            >>> method = db.get_eval_method(col)
+            >>> method = db.get_response_method(col)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2104,13 +2105,13 @@ class DataKit(ftypes.BaseData):
             * 2019-12-30 ``@ddalle``: Added default
         """
         # Get attribute
-        eval_methods = self.__dict__.setdefault("eval_method", {})
+        response_methods = self.__dict__.setdefault("response_methods", {})
         # Get method
-        method = eval_methods.get(col)
+        method = response_methods.get(col)
         # Check for ``None``
         if method is None:
             # Get default
-            method = eval_methods.get("_")
+            method = response_methods.get("_")
         # Output
         return method
 
@@ -2294,11 +2295,11 @@ class DataKit(ftypes.BaseData):
         return list(xargs)
 
     # Get auxiliary cols
-    def get_eval_acol(self, col):
+    def get_response_acol(self, col):
         r"""Get names of any aux cols related to primary col
 
         :Call:
-            >>> acols = db.get_eval_acol(col)
+            >>> acols = db.get_response_acol(col)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2309,11 +2310,12 @@ class DataKit(ftypes.BaseData):
                 Name of aux columns required to evaluate *col*
         :Versions:
             * 2020-03-23 ``@ddalle``: First version
+            * 2020-04-21 ``@ddalle``: Rename *eval_acols*
         """
         # Get dictionary of ecols
-        eval_acols = self.__dict__.get("eval_acols", {})
+        response_acols = self.__dict__.get("response_acols", {})
         # Get ecols
-        acols = eval_acols.get(col, [])
+        acols = response_acols.get(col, [])
         # Check type
         if typeutils.isstr(acols):
             # Create single list
@@ -2324,18 +2326,18 @@ class DataKit(ftypes.BaseData):
         elif not isinstance(acols, list):
             # Invalid type
             raise TypeError(
-                "eval_acols for col '%s' should be list; got '%s'"
+                "response_acols for col '%s' should be list; got '%s'"
                 % (col, type(acols)))
         # Return it
         return acols
 
    # --- Options: Set ---
     # Set evaluation args
-    def set_eval_args(self, col, args):
+    def set_response_args(self, col, args):
         r"""Set list of evaluation arguments for a column
 
         :Call:
-            >>> db.set_eval_args(col, args)
+            >>> db.set_response_args(col, args)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2344,10 +2346,11 @@ class DataKit(ftypes.BaseData):
             *args*: :class:`list`\ [:class:`str`]
                 List of arguments for evaluating *col*
         :Effects:
-            *db.eval_args*: :class:`dict`
+            *db.response_args*: :class:`dict`
                 Entry for *col* set to copy of *args* w/ type checks
         :Versions:
             * 2019-12-28 ``@ddalle``: First version
+            * 2020-04-21 ``@ddalle``: Rename from :func:`set_eval_args`
         """
         # Check types
         if not typeutils.isstr(col):
@@ -2355,7 +2358,7 @@ class DataKit(ftypes.BaseData):
                 "Data column name must be str (got %s)" % type(col))
         if not isinstance(args, list):
             raise TypeError(
-                "eval_args for '%s' must be list (got %s)"
+                "response_args for '%s' must be list (got %s)"
                 % (col, type(args)))
         # Check args
         for (j, k) in enumerate(args):
@@ -2363,19 +2366,19 @@ class DataKit(ftypes.BaseData):
                 raise TypeError(
                     "Arg %i for col '%s' is not a string" % (j, col))
         # Get handle to attribute
-        eval_args = self.__dict__.setdefault("eval_args", {})
+        response_args = self.__dict__.setdefault("response_args", {})
         # Check type
-        if not isinstance(eval_args, dict):
-            raise TypeError("eval_args attribute is not a dict")
+        if not isinstance(response_args, dict):
+            raise TypeError("response_args attribute is not a dict")
         # Set parameter (to a copy)
-        eval_args[col] = list(args)
+        response_args[col] = list(args)
 
     # Set evaluation method
-    def set_eval_method(self, col, method):
+    def set_response_method(self, col, method):
         r"""Set name (only) of evaluation method
 
         :Call:
-            >>> db.set_eval_method(col, method)
+            >>> db.set_response_method(col, method)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2395,15 +2398,15 @@ class DataKit(ftypes.BaseData):
                 "Data column name must be str (got %s)" % type(col))
         if not typeutils.isstr(method):
             raise TypeError(
-                "eval_method for '%s' must be list (got %s)"
+                "response_method for '%s' must be list (got %s)"
                 % (col, type(method)))
         # Get handle to attribute
-        eval_method = self.__dict__.setdefault("eval_method", {})
+        response_methods = self.__dict__.setdefault("response_methods", {})
         # Check type
-        if not isinstance(eval_method, dict):
-            raise TypeError("eval_method attribute is not a dict")
+        if not isinstance(response_methods, dict):
+            raise TypeError("response_method attribute is not a dict")
         # Set parameter (to a copy)
-        eval_method[col] = method
+        response_methods[col] = method
 
     # Set evaluation function
     def set_eval_func(self, col, fn):
@@ -2608,11 +2611,11 @@ class DataKit(ftypes.BaseData):
         eval_xargs[col] = list(xargs)
 
     # Get auxiliary cols
-    def set_eval_acol(self, col, acols):
+    def set_response_acol(self, col, acols):
         r"""Set names of any aux cols related to primary col
 
         :Call:
-            >>> db.set_eval_acol(col, acols)
+            >>> db.set_response_acol(col, acols)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2622,6 +2625,7 @@ class DataKit(ftypes.BaseData):
                 Name of aux columns required to evaluate *col*
         :Versions:
             * 2020-03-23 ``@ddalle``: First version
+            * 2020-04-21 ``@ddalle``: Rename *eval_acols*
         """
         # Check type
         if typeutils.isstr(acols):
@@ -2633,12 +2637,12 @@ class DataKit(ftypes.BaseData):
         elif not isinstance(acols, list):
             # Invalid type
             raise TypeError(
-                "eval_acols for col '%s' should be list; got '%s'"
+                "response_acols for col '%s' should be list; got '%s'"
                 % (col, type(acols)))
         # Get dictionary of ecols
-        eval_acols = self.__dict__.setdefault("eval_acols", {})
+        response_acols = self.__dict__.setdefault("response_acols", {})
         # Set it
-        eval_acols[col] = acols
+        response_acols[col] = acols
 
    # --- Arguments ---
     # Get argument value
@@ -2651,7 +2655,7 @@ class DataKit(ftypes.BaseData):
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *i*: :class:`int`
-                Argument index within *db.eval_args*
+                Argument index within *db.response_args*
             *k*: :class:`str`
                 Name of evaluation argument
             *a*: :class:`tuple`
@@ -2715,16 +2719,16 @@ class DataKit(ftypes.BaseData):
 
         Specifically, he dictionary contains a key for every argument used to
         evaluate the coefficient that is either the first argument or uses the
-        keyword argument *coeff*.
+        keyword argument *col*.
 
         :Call:
             >>> X = db.get_arg_value_dict(*a, **kw)
-            >>> X = db.get_arg_value_dict(coeff, x1, x2, ..., k3=x3)
+            >>> X = db.get_arg_value_dict(col, x1, x2, ..., k3=x3)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
-            *coeff*: :class:`str`
-                Name of coefficient
+            *col*: :class:`str`
+                Name of data column
             *x1*: :class:`float` | :class:`np.ndarray`
                 Value(s) of first argument
             *x2*: :class:`float` | :class:`np.ndarray`
@@ -2734,24 +2738,24 @@ class DataKit(ftypes.BaseData):
             *x3*: :class:`float` | :class:`np.ndarray`
                 Value(s) of argument *k3*, if applicable
         :Outputs:
-            *X*: :class:`dict` (:class:`np.ndarray`)
-                Dictionary of values for each key used to evaluate *coeff*
-                according to *b.eval_args[coeff]*; each entry of *X* will
-                have the same size
+            *X*: :class:`dict`\ [:class:`np.ndarray`]
+                Dictionary of values for each key used to evaluate *col*
+                according to *b.response_args[col]*; each entry of *X*
+                will have the same size
         :Versions:
             * 2019-03-12 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
-       # --- Get coefficient name ---
-        # Coeff name should be either a[0] or kw["coeff"]
-        coeff, a, kw = self._prep_args_colname(*a, **kw)
+       # --- Get column name ---
+        # Col name should be either a[0] or kw["coeff"]
+        col, a, kw = self._prep_args_colname(*a, **kw)
        # --- Argument processing ---
         # Specific lookup arguments
-        args_coeff = self.get_eval_args(coeff)
+        args_col = self.get_response_args(col)
         # Initialize lookup point
         x = []
         # Loop through arguments
-        for i, k in enumerate(args_coeff):
+        for i, k in enumerate(args_col):
             # Get value
             xi = self.get_arg_value(i, k, *a, **kw)
             # Save it
@@ -2762,7 +2766,7 @@ class DataKit(ftypes.BaseData):
         # Initialize
         X = {}
         # Loop through args
-        for i, k in enumerate(args_coeff):
+        for i, k in enumerate(args_col):
             # Save value
             X[k] = xn[i]
         # Output
@@ -3914,9 +3918,9 @@ class DataKit(ftypes.BaseData):
         :Required Attributes:
             *db1.uq_cols*: :class:`dict`\ [:class:`list`]
                 Names of UQ col for each *col*, if any
-            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+            *db1.response_args[col]*: :class:`list`\ [:class:`str`]
                 List of args to evaluate *col*
-            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+            *db1.response_args[ucol]*: :class:`list`\ [:class:`str`]
                 List of args to evaluate *ucol*
             *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
                 List of extra UQ cols related to *ucol*
@@ -3983,9 +3987,9 @@ class DataKit(ftypes.BaseData):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of *db1[col]* to consider
         :Required Attributes:
-            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+            *db1.response_args[col]*: :class:`list`\ [:class:`str`]
                 List of args to evaluate *col*
-            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+            *db1.response_args[ucol]*: :class:`list`\ [:class:`str`]
                 List of args to evaluate *ucol*
             *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
                 List of extra UQ cols related to *ucol*
@@ -4018,8 +4022,8 @@ class DataKit(ftypes.BaseData):
         uq_keys_extra = getattr(self, "uq_keys_extra", {})
         uq_keys_shift = getattr(self, "uq_keys_shift", {})
         # Get eval arguments for input coeff and UQ coeff
-        argsc = self.eval_args[col]
-        argsu = self.eval_args[ucol]
+        argsc = self.response_args[col]
+        argsu = self.response_args[ucol]
        # --- Test Conditions ---
         # Get test values and test break points
         vals, bkpts = self._get_test_values(argsc, **kw)
@@ -4137,7 +4141,7 @@ class DataKit(ftypes.BaseData):
             *a*: :class:`tuple`\ [:class:`float`]
                 Conditions at which to evaluate uncertainty
             *a[0]*: :class:`float`
-                Value of *db1.eval_args[ucol][0]*
+                Value of *db1.response_args[ucol][0]*
         :Keyword Arguments:
             *nmin*: {``30``} | :class:`int` > 0
                 Minimum number of points in window
@@ -4148,11 +4152,11 @@ class DataKit(ftypes.BaseData):
             *test_values*: {``{}``} | :class:`dict`
                 Candidate values of each *eval_arg* for comparison
             *test_bkpts*: {``{}``} | :class:`dict`
-                Candidate break points (1D unique) for *eval_args*
+                Candidate break points (1D unique) for *response_args*
         :Required Attributes:
-            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+            *db1.response_args[col]*: :class:`list`\ [:class:`str`]
                 List of args to evaluate *col*
-            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+            *db1.response_args[ucol]*: :class:`list`\ [:class:`str`]
                 List of args to evaluate *ucol*
             *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
                 List of extra UQ cols related to *ucol*
@@ -4173,7 +4177,7 @@ class DataKit(ftypes.BaseData):
         """
        # --- Inputs ---
         # Get eval arguments for input coeff and UQ coeff
-        uargs = self.get_eval_args(ucol)
+        uargs = self.get_response_args(ucol)
         # Get minimum number of points in statistical window
         nmin = kw.get("nmin", 30)
        # --- Windowing ---
@@ -4211,11 +4215,11 @@ class DataKit(ftypes.BaseData):
             *test_values*: {``{}``} | :class:`dict`
                 Candidate values of each *eval_arg* for comparison
             *test_bkpts*: {``{}``} | :class:`dict`
-                Candidate break points (1D unique) for *eval_args*
+                Candidate break points (1D unique) for *response_args*
         :Required Attributes:
-            *db1.eval_args[col]*: :class:`list`\ [:class:`str`]
+            *db1.response_args[col]*: :class:`list`\ [:class:`str`]
                 List of args to evaluate *col*
-            *db1.eval_args[ucol]*: :class:`list`\ [:class:`str`]
+            *db1.response_args[ucol]*: :class:`list`\ [:class:`str`]
                 List of args to evaluate *ucol*
             *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
                 List of extra UQ cols related to *ucol*
@@ -4228,7 +4232,8 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *A*: :class:`np.ndarray` size=(*nx*\ ,*na*\ )
                 Conditions for each *ucol* window, for *nx* windows,
-                each with *na* values (length of *db1.eval_args[ucol]*)
+                each with *na* values (length of
+                *db1.response_args[ucol]*)
             *U*: :class:`np.ndarray` size=(*nx*\ ,*nu*\ +1)
                 Values of *ucol* and any *nu* "extra" *uq_ecols* for
                 each window
@@ -4238,7 +4243,7 @@ class DataKit(ftypes.BaseData):
         """
        # --- Inputs ---
         # Get eval arguments for input coeff and UQ coeff
-        uargs = self.get_eval_args(ucol)
+        uargs = self.get_response_args(ucol)
         # Get minimum number of points in statistical window
         nmin = kw.get("nmin", 30)
         # Additional information
@@ -6094,14 +6099,14 @@ class DataKit(ftypes.BaseData):
                 return V[I]
         else:
             # Get evaluation type
-            meth = self.get_eval_method(col)
+            meth = self.get_response_method(col)
             # Only allow "function" type
             if meth != "function":
                 raise ValueError(
                     ("Cannot evaluate exact values for '%s', " % col) +
                     ("which has method '%s'" % meth))
             # Get args
-            args = self.get_eval_args(col)
+            args = self.get_response_args(col)
             # Create inputs
             a = tuple([self.get_xvals(k, I, **kw) for k in args])
             # Evaluate
@@ -6981,7 +6986,7 @@ class DataKit(ftypes.BaseData):
         # Process coefficient name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
         # Get list of arguments
-        arg_list = self.get_eval_args(col)
+        arg_list = self.get_response_args(col)
         # Default arg
         if arg_list is None:
             # No default arg
@@ -7019,7 +7024,7 @@ class DataKit(ftypes.BaseData):
             if arg_list:
                 # Initialize
                 A = []
-                # Loop through *eval_args*
+                # Loop through *response_args*
                 for arg in arg_list:
                     # Get values
                     A.append(self.get_xvals(arg, I, **kw))
@@ -7117,7 +7122,7 @@ class DataKit(ftypes.BaseData):
         # Process coefficient name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
         # Get list of arguments
-        args = self.get_eval_args(col)
+        args = self.get_response_args(col)
         # Get *xk* for output
         xargs = self.get_output_xargs(col)
         # Unpack
@@ -7303,7 +7308,7 @@ class DataKit(ftypes.BaseData):
         # Process coefficient name and remaining coeffs
         col, I, J, a, kw = self._prep_args_plot1(*a, **kw)
         # Get list of arguments
-        arg_list = self.get_eval_args(col)
+        arg_list = self.get_response_args(col)
         # Get key for *x* axis
         if arg_list:
             # Default to first *arg*
@@ -8308,7 +8313,7 @@ class DataKit(ftypes.BaseData):
             *cols*: :class:`list`\ [:class:`str`]
                 List of output data columns to regularize
             *args*: {``None``} | :class:`list`\ [:class:`str`]
-                List of arguments; default from *db.eval_args*
+                List of arguments; default from *db.response_args*
             *scol*: {``None``} | :class:`str` | :class:`list`
                 Optional name of slicing col(s) for matrix
             *cocols*: {``None``} | :class:`list`\ [:class:`str`]
@@ -8371,7 +8376,7 @@ class DataKit(ftypes.BaseData):
         # Default input args
         if args is None:
             # Use args for last *col*
-            args = self.get_eval_args(col)
+            args = self.get_response_args(col)
         # Backup input args
         if args is None:
             # Initialize list
@@ -8572,7 +8577,7 @@ class DataKit(ftypes.BaseData):
             *cols*: :class:`list`\ [:class:`str`]
                 List of output data columns to regularize
             *args*: {``None``} | :class:`list`\ [:class:`str`]
-                List of arguments; default from *db.eval_args*
+                List of arguments; default from *db.response_args*
             *scol*: {``None``} | :class:`str` | :class:`list`
                 Optional name of slicing col(s) for matrix
             *cocols*: {``None``} | :class:`list`\ [:class:`str`]
@@ -8636,7 +8641,7 @@ class DataKit(ftypes.BaseData):
         # Default input args
         if args is None:
             # Use args for last *col*
-            args = self.get_eval_args(col)
+            args = self.get_response_args(col)
         # Backup input args
         if args is None:
             # Initialize list

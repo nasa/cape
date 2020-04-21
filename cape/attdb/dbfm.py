@@ -425,7 +425,7 @@ def eval_CLMX(db, col1, col2, *a, **kw):
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.get_eval_args(col1))
+    nf = len(db.get_response_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
@@ -464,7 +464,7 @@ def eval_CLNX(db, col1, col2, *a, **kw):
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.get_eval_args(col1))
+    nf = len(db.get_response_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
@@ -572,7 +572,7 @@ def eval_UCLMX(db, col1, col2, col3, *a, **kw):
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.get_eval_args(col1))
+    nf = len(db.get_response_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
@@ -616,7 +616,7 @@ def eval_UCLNX(db, col1, col2, col3, *a, **kw):
     # *xMRP* of original data
     xmrp = db.xMRP / db.Lref
     # Number of original arguments
-    nf = len(db.get_eval_args(col1))
+    nf = len(db.get_response_args(col1))
     # Get value for *xMRP*
     xMRP = db.get_arg_value(nf, "xMRP", *a, **kw)
     # Check for an *xhat*
@@ -957,7 +957,7 @@ class DBFM(rdbaero.AeroDataKit):
         # Loop through *CLM* cols
         for col in self.get_cols_by_tag("CLM"):
             # Args
-            args = self.get_eval_args(col)
+            args = self.get_response_args(col)
             # Check if set
             if args is None:
                 return
@@ -968,12 +968,12 @@ class DBFM(rdbaero.AeroDataKit):
             # Name of shifted col
             scol = self.append_colname(col, "X")
             # Test if *scol* is already present
-            if self.get_eval_method(scol):
+            if self.get_response_method(scol):
                 continue
             # Set aux cols for "CLM" to "CN"
-            self.set_eval_acol(col, [acol])
+            self.set_response_acol(col, [acol])
             # Set aux cols for "CLMX" to ["CLM", "CN"]
-            self.set_eval_acol(scol, [col, acol])
+            self.set_response_acol(scol, [col, acol])
             # Generate *CLMX* function
             func = genr8_fCLMX(col, acol)
             # Save it
@@ -994,7 +994,7 @@ class DBFM(rdbaero.AeroDataKit):
         # Loop through *CLM* cols
         for col in self.get_cols_by_tag("CLN"):
             # Args
-            args = self.get_eval_args(col)
+            args = self.get_response_args(col)
             # Check if set
             if args is None:
                 return
@@ -1005,12 +1005,12 @@ class DBFM(rdbaero.AeroDataKit):
             # Name of shifted col
             scol = self.append_colname(col, "X")
             # Test if *scol* is already present
-            if self.get_eval_method(scol):
+            if self.get_response_method(scol):
                 continue
             # Set aux cols for "CLN" to "CY"
-            self.set_eval_acol(col, [acol])
+            self.set_response_acol(col, [acol])
             # Set aux cols for "CLNX" to ["CLN", "CY"]
-            self.set_eval_acol(scol, [col, acol])
+            self.set_response_acol(scol, [col, acol])
             # Generate *CLMX* function
             func = genr8_fCLNX(col, acol)
             # Save it
