@@ -157,7 +157,7 @@ def UH3D2Tri(*a, **kw):
             cfg = cape.config.ConfigMIXSUR(fxml)
         else:
             # Read the XML configuration
-            cfg = cape.config.Config(fxml)
+            cfg = cape.config.ConfigXML(fxml)
         # Apply it.
         tri.ApplyConfig(cfg)
     
