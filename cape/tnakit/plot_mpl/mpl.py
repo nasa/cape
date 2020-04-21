@@ -1908,7 +1908,6 @@ def _contour(xv, yv, zv, **kw):
         # Contour lines
         h = plt.tricontour(xv, yv, zv, **kw_p)
     elif ctyp == "tripcolor":
-
         # Triangulated 
         h = plt.tripcolor(xv, yv, zv, **kw_p)
     else:
@@ -1960,6 +1959,37 @@ def _scatter(xv, yv, s=None, c=None, **kw):
     kw_p = MPLOpts.select_phase(kw, i)
     # Call scatter
     h = plt.scatter(xv, yv, s=None, c=None, **kw_p)
+    # Output
+    return h
+
+
+# Scatter part
+def _hist(v, **kw):
+    r"""Call the :func:`hist` function with cycling options
+
+    :Call:
+        >>> h = _hist(v, **kw)
+    :Inputs:
+        *v*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.hist`
+    :Outputs:
+        *h*: :class:`tuple` 
+            Tuple of values, bins, patches
+    :Versions:
+        * 2020-04-21 ``@jmeeroff``: First version
+    """
+    # Ensure plot() is available
+    _import_pyplot()
+    # Get index
+    i = kw.pop("Index", kw.pop("i", 0))
+    # Initialize plot options
+    kw_p = MPLOpts.select_phase(kw, i)
+    # Call scatter
+    h = plt.hist(v, **kw_p)
     # Output
     return h
 
