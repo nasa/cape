@@ -6308,9 +6308,10 @@ class DataKit(ftypes.BaseData):
         if not isinstance(mask, np.ndarray):
             # Must be array
             raise TypeError("Index mask must be NumPy array")
-        elif mask.ndim != 1:
+        elif mask.ndim > 1:
             # Bad dimension
-            raise IndexError("Index mask must be 1D array")
+            raise IndexError(
+                "%iD index mask; must be scalar or 1D array" % mask.ndim)
         elif mask.size == 0:
             # Empty mask (``None`` is correct empty mask)
             raise ValueError("Index mask must not be empty")
