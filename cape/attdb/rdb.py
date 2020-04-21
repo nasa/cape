@@ -1305,19 +1305,19 @@ class DataKit(ftypes.BaseData):
         # Get list of arguments
         arg_list = self.get_eval_args(col)
         # Process first second arg as a mask
-        I = np.asarray(a[0])
+        mask = np.asarray(a[0])
         # Get data type
-        dtype = I.dtype.name
+        dtype = mask.dtype.name
         # Default arg
         if arg_list is None:
             # Return values based on index
-            return self.get_values(col, I)
+            return self.get_values(col, mask)
         # Check *I* data type
         qmask = [dtype.startswith(pre) for pre in ["bool", "uint", "int"]]
         # Check if any of those are met
         if any(qmask):
             # Look up using indices
-            return self.get_values(col, I)
+            return self.get_values(col, mask)
         else:
             # Call response surface
             return self.eval_response(col, *a, **kw)
@@ -2641,122 +2641,6 @@ class DataKit(ftypes.BaseData):
         eval_acols[col] = acols
 
    # --- Arguments ---
-    # Attempt to get all values of an argument
-    def get_all_values(self, k):
-        r"""Attempt to get all values of a specified argument
-
-        This will use *db.eval_arg_converters* if possible.
-
-        :Call:
-            >>> V = db.get_all_values(k)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *k*: :class:`str`
-                Name of evaluation argument
-        :Outputs:
-            *V*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
-                *db[k]* if available, otherwise an attempt to apply
-                *db.eval_arg_converters[k]*
-        :Versions:
-            * 2019-03-11 ``@ddalle``: First version
-            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
-        """
-        # Check if present
-        if k in self:
-            # Get values
-            return self[k]
-        # Otherwise check for evaluation argument
-        arg_converters = self.__dict__.get("eval_arg_converters", {})
-        # Check if there's a converter
-        if k not in arg_converters:
-            return None
-        # Get converter
-        f = arg_converters.get(k)
-        # Check if there's a converter
-        if f is None:
-            # No converter
-            return
-        elif not callable(f):
-            # Not callable
-            raise TypeError("Converter for col '%s' is not callable" % k)
-        # Attempt to apply it
-        try:
-            # Call in keyword-only mode
-            V = f(**self)
-            # Return values
-            return V
-        except Exception:
-            # Failed
-            return None
-
-    # Attempt to get values of an argument or column, with mask
-    def get_values(self, col, I=None):
-        r"""Attempt to get all or some values of a specified column
-
-        This will use *db.eval_arg_converters* if possible.
-
-        :Call:
-            >>> V = db.get_values(col)
-            >>> V = db.get_values(col, I=None)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *col*: :class:`str`
-                Name of evaluation argument
-            *I*: :class:`np.ndarray`\ [:class:`int` | :class:`bool`]
-                Optional subset of *db* indices to access
-        :Outputs:
-            *V*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
-                *db[col]* if available, otherwise an attempt to apply
-                *db.eval_arg_converters[col]*
-        :Versions:
-            * 2020-02-21 ``@ddalle``: First version
-        """
-        # Get all values
-        V = self.get_all_values(col)
-        # Check for empty result
-        if V is None:
-            return
-        # Check for mask
-        if I is None:
-            # No mask
-            return V
-        # Check mask
-        if not isinstance(I, np.ndarray):
-            raise TypeError("Index mask must be NumPy array")
-        elif I.ndim != 1:
-            raise IndexError("Index mask must be 1D array")
-        elif I.size == 0:
-            raise ValueError("Index mask must not be empty")
-        # Dimension
-        ndim = V.ndim
-        # "Length" of array; last dimension
-        n = V.shape[-1]
-        # Get data type (as string)
-        dtype = I.dtype.name
-        # Create slice that looks up last column
-        J = tuple(slice(None) for j in range(ndim-1)) +  (I,)
-        # Check type
-        if "int" in dtype:
-            # Check indices
-            if np.max(I) >= n:
-                raise IndexError(
-                    ("Cannot access element %i " % np.max(I)) +
-                    ("for array of length %i" % n))
-            # Apply mask to last dimension
-            return V.__getitem__(J)
-        elif dtype == "bool":
-            # Check size
-            if I.size != n:
-                raise IndexError(
-                    ("Bool index mask has size %i; " % I.size) +
-                    ("array has size %i" % n))
-            # Apply mask to last dimension
-            return V.__getitem__(J)
-        else:
-            raise TypeError("Index mask must be int or bool array")
-
     # Get argument value
     def get_arg_value(self, i, k, *a, **kw):
         r"""Get the value of the *i*\ th argument to a function
@@ -6226,13 +6110,113 @@ class DataKit(ftypes.BaseData):
             return V
 
    # --- Subsets ---
+    # Attempt to get all values of an argument
+    def get_all_values(self, col):
+        r"""Attempt to get all values of a specified argument
+
+        This will use *db.eval_arg_converters* if possible.
+
+        :Call:
+            >>> V = db.get_all_values(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column
+        :Outputs:
+            *V*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
+                *db[col]* if available, otherwise an attempt to apply
+                *db.eval_arg_converters[col]*
+        :Versions:
+            * 2019-03-11 ``@ddalle``: First version
+            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
+        """
+        # Check if present
+        if col in self:
+            # Get values
+            return self[col]
+        # Otherwise check for evaluation argument
+        arg_converters = self.__dict__.get("eval_arg_converters", {})
+        # Check if there's a converter
+        if col not in arg_converters:
+            return None
+        # Get converter
+        f = arg_converters.get(col)
+        # Check if there's a converter
+        if f is None:
+            # No converter
+            return
+        elif not callable(f):
+            # Not callable
+            raise TypeError("Converter for col '%s' is not callable" % col)
+        # Attempt to apply it
+        try:
+            # Call in keyword-only mode
+            V = f(**self)
+            # Return values
+            return V
+        except Exception:
+            # Failed
+            return None
+
+    # Attempt to get values of an argument or column, with mask
+    def get_values(self, col, mask=None):
+        r"""Attempt to get all or some values of a specified column
+
+        This will use *db.eval_arg_converters* if possible.
+
+        :Call:
+            >>> V = db.get_values(col)
+            >>> V = db.get_values(col, mask=None)
+            >>> V = db.get_values(col, mask_index)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of evaluation argument
+            *I*: :class:`np.ndarray`\ [:class:`int` | :class:`bool`]
+                Optional subset of *db* indices to access
+        :Outputs:
+            *V*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
+                *db[col]* if available, otherwise an attempt to apply
+                *db.eval_arg_converters[col]*
+        :Versions:
+            * 2020-02-21 ``@ddalle``: First version
+        """
+        # Get all values
+        V = self.get_all_values(col)
+        # Check for empty result
+        if V is None:
+            return
+        # Check for mask
+        if mask is None:
+            # No mask
+            return V
+        # Otherwise check validity of mask
+        I = self.prep_mask(mask, V=V)
+        # Dimension
+        if isinstance(V, list):
+            # Lists always 1D
+            ndim = 1
+            # Length of array is length of list
+            n = len(V)
+        else:
+            # Get array dimension
+            ndim = V.ndim
+            # "Length" of array; last dimension
+            n = V.shape[-1]
+        # Create slice that looks up last column
+        J = tuple(slice(None) for j in range(ndim-1)) +  (I,)
+        # Apply mask to last dimension
+        return V.__getitem__(J)
+
     # Prepare mask
-    def prep_mask(self, mask, col):
+    def prep_mask(self, mask, col=None, V=None):
         r"""Prepare logical or index mask
 
         :Call:
-            >>> I = db.prep_mask(mask, col)
-            >>> I = db.prep_mask(mask_index, col)
+            >>> I = db.prep_mask(mask, col=None, V=None)
+            >>> I = db.prep_mask(mask_index, col=None, V=Nne)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -6240,56 +6224,131 @@ class DataKit(ftypes.BaseData):
                 Logical mask of ``True`` / ``False`` values
             *mask_index*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of *db[col]* to consider
-            *col*: :class:`str`
+            *col*: {``None``} | :class:`str`
                 Reference column to use for size checks
+            *V*: {``None``} | :class:`np.ndarray`
+                Array of values to test shape/values of *mask*
         :Outputs:
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of *db[col]* to consider
         :Versions:
             * 2020-03-09 ``@ddalle``: First version
         """
-        # Length of reference *col*
-        n0 = len(self.get_all_values(col))
-        # Check mask type
-        if mask is None:
-            # Ok
-            pass
-        elif not isinstance(mask, np.ndarray):
-            # Bad type
-            raise TypeError(
-                "Index mask must be 'ndarray', got '%s'" % type(mask).__name__)
-        elif mask.size == 0:
-            # Empty mask
-            raise IndexError("Index mask cannot be empty")
-        elif mask.ndim != 1:
-            # Dimension error
-            raise IndexError("Index mask must be one-dimensional array")
+        # Get data so size can be determined
+        if V is None:
+            # Check for column
+            if col is None:
+                raise ValueError("Either column or array must be specified")
+            # Get all values
+            V = self.get_all_values(col)
+        # Assert validity of mask
+        self.assert_mask(mask, V=V)
+        # Length of reference array
+        if isinstance(V, list):
+            # Just use length for lists
+            n0 = len(V)
+        else:
+            # Use last dimension
+            n0 = V.shape[-1]
+        # Ensure array
+        if isinstance(mask, list):
+            mask = np.array(mask)
+        # Get data type
+        dtype = mask.dtype.name
         # Filter mask
         if mask is None:
             # Create indices
             mask_index = np.arange(n0)
-        elif mask.dtype.name == "bool":
+        elif dtype.startswith("bool"):
             # Get indices
             mask_index = np.where(mask)[0]
-            # Check consistency
-            if mask.size != n0:
-                # Size mismatch
-                raise IndexError(
-                    ("Index mask has size %i; " % mask.size) +
-                    ("test values size is %i" % n0))
-        elif mask.dtype.name.startswith("int"):
-            # Convert to indices
+        elif dtype.startswith("int") or dtype.startswith("uint"):
+            # Already indices
             mask_index = mask
-            # Check values
-            if np.max(mask) >= n0:
-                raise IndexError(
-                    "Cannot mask element %i for test values with size %i"
-                    % (np.max(mask), n0))
         else:
             # Bad type
+            # Note: should not be reachable
             raise TypeError("Mask must have dtype 'bool' or 'int'")
         # Output
         return mask_index
+
+    # Ensure mask
+    def assert_mask(self, mask, col=None, V=None):
+        r"""Make sure that *mask* is a valid index/bool mask
+
+        :Call:
+            >>> db.assert_mask(mask, col=None, V=None)
+            >>> db.assert_mask(I, col=None, V=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
+                Logical mask of ``True`` / ``False`` values
+            *mask_index*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of values to consider
+            *col*: {``None``} | :class:`str`
+                Column name to use to create default *V*
+            *V*: {``None``} | :class:`np.ndarray`
+                Array of values to test shape/values of *mask*
+        :Versions:
+            * 2020-04-21 ``@ddalle``: First version
+        """
+        # Check for empty mask
+        if mask is None:
+            return
+        # Get values
+        if (V is None) and (col is not None):
+            # Use all values
+            V = self.get_all_values(col)
+        # Convert list to array
+        if isinstance(mask, list):
+            # Create an array instead of a list
+            mask = np.array(mask)
+        # Check mask type and dimension
+        if not isinstance(mask, np.ndarray):
+            # Must be array
+            raise TypeError("Index mask must be NumPy array")
+        elif mask.ndim != 1:
+            # Bad dimension
+            raise IndexError("Index mask must be 1D array")
+        elif mask.size == 0:
+            # Empty mask (``None`` is correct empty mask)
+            raise ValueError("Index mask must not be empty")
+        # Check dimensions
+        if V is not None:
+            # Get size
+            if isinstance(V, list):
+                # Special case for list of strings
+                n = len(V)
+            else:
+                # Use last dimension
+                n = V.shape[-1]
+        # Get data type
+        dtype = mask.dtype.name
+        # Check data type
+        if dtype.startswith("uint") or dtype.startswith("int"):
+            # Check values
+            if V is not None:
+                # Check values
+                if np.min(mask) < -n:
+                    raise ValueError(
+                        "Index %i is outside of range for array of length %i"
+                        % (np.min(mask), n))
+                elif np.max(mask) >= n:
+                    raise ValueError(
+                        "Index %i is outside of range for array of length %i"
+                        % (np.max(mask), n))
+        elif dtype.startswith("bool"):
+            # Check size
+            if V is not None:
+                # Check length
+                if mask.size != n:
+                    raise ValueError(
+                        "Boolean mask (%i) and array (%i) have different sizes"
+                        % (mask.size, n))
+        else:
+            # Invalid data type
+            raise TypeError("Invalid mask data type '%s'" % dtype)
         
    # --- Search ---
     # Find matches
