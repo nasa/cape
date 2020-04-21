@@ -187,21 +187,21 @@ class DataKit(ftypes.BaseData):
     # Method functions
     _method_funcs = {
         0: {
-            "exact": "eval_exact",
-            "function": "eval_function",
-            "multilinear": "eval_multilinear",
-            "multilinear-schedule": "eval_multilinear_schedule",
-            "nearest": "eval_nearest",
-            "rbf": "eval_rbf",
-            "rbf-linear": "eval_rbf_linear",
-            "rbf-map": "eval_rbf_schedule",
+            "exact": "rcall_exact",
+            "function": "rcall_function",
+            "multilinear": "rcall_multilinear",
+            "multilinear-schedule": "rcall_multilinear_schedule",
+            "nearest": "rcall_nearest",
+            "rbf": "rcall_rbf",
+            "rbf-linear": "rcall_rbf_linear",
+            "rbf-map": "rcall_rbf_schedule",
         },
         1: {
-            "exact": "eval_exact",
-            "function": "eval_function",
-            "multilinear": "eval_multilinear",
-            "multilinear-schedule": "eval_multilinear_schedule",
-            "nearest": "eval_nearest",
+            "exact": "rcall_exact",
+            "function": "rcall_function",
+            "multilinear": "rcall_multilinear",
+            "multilinear-schedule": "rcall_multilinear_schedule",
+            "nearest": "rcall_nearest",
         },
     }
 
@@ -233,13 +233,13 @@ class DataKit(ftypes.BaseData):
         self.bkpts = {}
         self.sources = {}
         # Evaluation attributes
-        self.eval_arg_converters = {}
-        self.eval_arg_aliases = {}
-        self.eval_arg_defaults = {}
+        self.response_arg_converters = {}
+        self.response_arg_aliases = {}
+        self.response_arg_defaults = {}
         self.response_args = {}
-        self.eval_kwargs = {}
+        self.response_kwargs = {}
         self.response_methods = {}
-        self.eval_xargs = {}
+        self.response_xargs = {}
         # Extra attributes for plotting
         self.col_pngs = {}
         self.col_seams = {}
@@ -1320,18 +1320,18 @@ class DataKit(ftypes.BaseData):
             return self.get_values(col, mask)
         else:
             # Call response surface
-            return self.eval_response(col, *a, **kw)
+            return self.rcall(col, *a, **kw)
 
     # Evaluate response
-    def eval_response(self, *a, **kw):
+    def rcall(self, *a, **kw):
         r"""Evaluate predefined response method
 
         :Call:
-            >>> v = db.eval_response(*a, **kw)
-            >>> v = db.eval_response(col, x0, x1, ...)
-            >>> V = db.eval_response(col, x0, X1, ...)
-            >>> v = db.eval_response(col, k0=x0, k1=x1, ...)
-            >>> V = db.eval_response(col, k0=x0, k1=X1, ...)
+            >>> v = db.rcall(*a, **kw)
+            >>> v = db.rcall(col, x0, x1, ...)
+            >>> V = db.rcall(col, x0, X1, ...)
+            >>> v = db.rcall(col, k0=x0, k1=x1, ...)
+            >>> V = db.rcall(col, k0=x0, k1=X1, ...)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1366,9 +1366,9 @@ class DataKit(ftypes.BaseData):
         # Specific lookup arguments (and copy it)
         args_col = self.get_response_args(col)
         # Get extra args passed along to evaluator
-        kw_fn = self.get_eval_kwargs(col)
+        kw_fn = self.get_response_kwargs(col)
         # Attempt to get default aliases
-        arg_aliases = self.get_eval_arg_aliases(col)
+        arg_aliases = self.get_response_arg_aliases(col)
        # --- Aliases ---
         # Process aliases in *kw*
         for k in dict(kw):
@@ -1440,13 +1440,13 @@ class DataKit(ftypes.BaseData):
 
    # --- Alternative Evaluation ---
     # Evaluate only exact matches
-    def eval_exact(self, *a, **kw):
+    def rcall_exact(self, *a, **kw):
         r"""Evaluate a column but only at points with exact matches
 
         :Call:
-            >>> V, I, J, X = db.eval_exact(*a, **kw)
-            >>> V, I, J, X = db.eval_exact(col, x0, X1, ...)
-            >>> V, I, J, X = db.eval_exact(col, k0=x0, k1=X1, ...)
+            >>> V, I, J, X = db.rcall_exact(*a, **kw)
+            >>> V, I, J, X = db.rcall_exact(col, x0, X1, ...)
+            >>> V, I, J, X = db.rcall_exact(col, k0=x0, k1=X1, ...)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1482,7 +1482,7 @@ class DataKit(ftypes.BaseData):
         # Get list of arguments for this coefficient
         args = self.get_response_args(coeff)
         # Possibility of fallback values
-        arg_defaults = getattr(self, "eval_arg_defaults", {})
+        arg_defaults = getattr(self, "response_arg_defaults", {})
         # Find exact matches
         I, J = self.find(args, *a, **kw)
         # Initialize values
@@ -1523,7 +1523,7 @@ class DataKit(ftypes.BaseData):
         return V, I, J, X
 
     # Evaluate UQ from coefficient
-    def eval_uq(self, *a, **kw):
+    def rcall_uq(self, *a, **kw):
         r"""Evaluate specified UQ cols for a specified col
 
         This function will evaluate the UQ cols specified for a given
@@ -1535,10 +1535,10 @@ class DataKit(ftypes.BaseData):
         function passes only the Mach numbers to *UCN* for evaluation.
 
         :Call:
-            >>> U = db.eval_uq(*a, **kw)
-            >>> U = db.eval_uq(col, x0, X1, ...)
-            >>> U = db.eval_uq(col, k0=x0, k1=x1, ...)
-            >>> U = db.eval_uq(col, k0=x0, k1=X1, ...)
+            >>> U = db.rcall_uq(*a, **kw)
+            >>> U = db.rcall_uq(col, x0, X1, ...)
+            >>> U = db.rcall_uq(col, k0=x0, k1=x1, ...)
+            >>> U = db.rcall_uq(col, k0=x0, k1=X1, ...)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1628,17 +1628,17 @@ class DataKit(ftypes.BaseData):
             return U
 
     # Evaluate coefficient from arbitrary list of arguments
-    def eval_from_arglist(self, col, args, *a, **kw):
+    def rcall_from_arglist(self, col, args, *a, **kw):
         r"""Evaluate column from arbitrary argument list
 
         This function is used to evaluate a col when given the
         arguments to some other column.
 
         :Call:
-            >>> V = db.eval_from_arglist(col, args, *a, **kw)
-            >>> V = db.eval_from_arglist(col, args, x0, X1, ...)
-            >>> V = db.eval_from_arglist(col, args, k0=x0, k1=x1, ...)
-            >>> V = db.eval_from_arglist(col, args, k0=x0, k1=X1, ...)
+            >>> V = db.rcall_from_arglist(col, args, *a, **kw)
+            >>> V = db.rcall_from_arglist(col, args, x0, X1, ...)
+            >>> V = db.rcall_from_arglist(col, args, k0=x0, k1=x1, ...)
+            >>> V = db.rcall_from_arglist(col, args, k0=x0, k1=X1, ...)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1682,7 +1682,7 @@ class DataKit(ftypes.BaseData):
         # Initialize inputs to *coeff*
         A = []
         # Get aliases for this coeffiient
-        aliases = getattr(self, "eval_arg_aliases", {})
+        aliases = getattr(self, "response_arg_aliases", {})
         aliases = aliases.get(col, {})
         # Loop through eval args
         for ai in args_col:
@@ -1712,7 +1712,7 @@ class DataKit(ftypes.BaseData):
         return self.__call__(col, *A, **kw)
 
     # Evaluate coefficient from arbitrary list of arguments
-    def eval_from_index(self, col, I, **kw):
+    def rcall_from_index(self, col, I, **kw):
         r"""Evaluate data column from indices
 
         This function has the same output as accessing ``db[col][I]`` if
@@ -1725,8 +1725,8 @@ class DataKit(ftypes.BaseData):
         them to generate inputs to the database evaluation method.
 
         :Call:
-            >>> V = db.eval_from_index(col, I, **kw)
-            >>> v = db.eval_from_index(col, i, **kw)
+            >>> V = db.rcall_from_index(col, I, **kw)
+            >>> v = db.rcall_from_index(col, i, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -1780,7 +1780,7 @@ class DataKit(ftypes.BaseData):
                 Dictionary of alternate variable names during
                 evaluation; if *aliases[k1]* is *k2*, that means *k1*
                 is an alternate name for *k2*, and *k2* is in *args*
-            *eval_kwargs*: {``{}``} | :class:`dict`
+            *response_kwargs*: {``{}``} | :class:`dict`
                 Keyword arguments passed to functions
             *I*: {``None``} | :class:`np.ndarray`
                 Indices of cases to include in response {all}
@@ -1833,7 +1833,7 @@ class DataKit(ftypes.BaseData):
                 Dictionary of alternate variable names during
                 evaluation; if *aliases[k1]* is *k2*, that means *k1*
                 is an alternate name for *k2*, and *k2* is in *args*
-            *eval_kwargs*: {``{}``} | :class:`dict`
+            *response_kwargs*: {``{}``} | :class:`dict`
                 Keyword arguments passed to functions
             *I*: {``None``} | :class:`np.ndarray`
                 Indices of cases to include in response surface {all}
@@ -1865,10 +1865,10 @@ class DataKit(ftypes.BaseData):
         # Get alias option
         arg_aliases = kw.get("aliases", {})
         # Get alias option
-        eval_kwargs = kw.get("eval_kwargs", {})
+        response_kwargs = kw.get("response_kwargs", {})
         # Save aliases
-        self.set_eval_arg_aliases(col, arg_aliases)
-        self.set_eval_kwargs(col, eval_kwargs)
+        self.set_response_arg_aliases(col, arg_aliases)
+        self.set_response_kwargs(col, response_kwargs)
        # --- Method switch ---
         # Get class
         cls = self.__class__
@@ -1933,10 +1933,11 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-12-30 ``@ddalle``: First version
         """
-        # Create eval_func dictionary
-        eval_func = self.__dict__.setdefault("eval_func", {})
-        # Create eval_func dictionary
-        eval_func_self = self.__dict__.setdefault("eval_func_self", {})
+        # Create response_funcs dictionary
+        response_funcs = self.__dict__.setdefault("response_funcs", {})
+        # Create response_funcs dictionary
+        response_funcs_self = self.__dict__.setdefault(
+            "response_funcs_self", {})
         # Get the function
         if len(a) > 0:
             # Function given as arg
@@ -1947,8 +1948,8 @@ class DataKit(ftypes.BaseData):
         # Get function
         func = kw.get("func", kw.get("function", func))
         # Save the function
-        eval_func[col] = func
-        eval_func_self[col] = kw.get("use_self", True)
+        response_funcs[col] = func
+        response_funcs_self[col] = kw.get("use_self", True)
 
     # Global RBFs
     def _create_rbf(self, col, *a, **kw):
@@ -2116,11 +2117,11 @@ class DataKit(ftypes.BaseData):
         return method
 
     # Get evaluation argument converter
-    def get_eval_arg_converter(self, k):
+    def get_response_arg_converter(self, k):
         r"""Get evaluation argument converter
 
         :Call:
-            >>> f = db.get_eval_arg_converter(k)
+            >>> f = db.get_response_arg_converter(k)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2134,7 +2135,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get converter dictionary
-        converters = self.__dict__.setdefault("eval_arg_covnerters", {})
+        converters = self.__dict__.setdefault("response_arg_covnerters", {})
         # Get converter
         f = converters.get(k)
         # Output if None
@@ -2147,11 +2148,11 @@ class DataKit(ftypes.BaseData):
         return f
 
     # Get user-set callable function
-    def get_eval_func(self, col):
+    def get_response_func(self, col):
         r"""Get callable function predefined for a column
 
         :Call:
-            >>> fn = db.get_eval_func(col)
+            >>> fn = db.get_response_func(col)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2164,30 +2165,30 @@ class DataKit(ftypes.BaseData):
             * 2019-12-28 ``@ddalle``: First version
         """
         # Get dictionary
-        eval_func = self.__dict__.get("eval_func", {})
+        response_funcs = self.__dict__.get("response_funcs", {})
         # Check types
         if not typeutils.isstr(col):
             raise TypeError(
                 "Data column name must be string (got %s)" % type(col))
-        elif not isinstance(eval_func, dict):
-            raise TypeError("eval_func attribute is not a dict")
+        elif not isinstance(response_funcs, dict):
+            raise TypeError("response_funcs attribute is not a dict")
         # Get entry
-        fn = eval_func.get(col)
+        fn = response_funcs.get(col)
         # If none, acceptable
         if fn is None:
             return
         # Check type if nonempty
         if not callable(fn):
-            raise TypeError("eval_func for col '%s' is not callable" % col)
+            raise TypeError("response_func for col '%s' is not callable" % col)
         # Output
         return fn
 
     # Get aliases for evaluation args
-    def get_eval_arg_aliases(self, col):
+    def get_response_arg_aliases(self, col):
         r"""Get alias names for evaluation args for a data column
 
         :Call:
-            >>> aliases = db.get_eval_arg_aliases(col)
+            >>> aliases = db.get_response_arg_aliases(col)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2200,13 +2201,13 @@ class DataKit(ftypes.BaseData):
             * 2019-12-30 ``@ddalle``: First version
         """
         # Get attribute
-        arg_aliases = self.__dict__.get("eval_arg_aliases", {})
+        arg_aliases = self.__dict__.get("response_arg_aliases", {})
         # Check types
         if not typeutils.isstr(col):
             raise TypeError(
                 "Data column name must be string (got %s)" % type(col))
         elif not isinstance(arg_aliases, dict):
-            raise TypeError("eval_arg_aliases attribute is not a dict")
+            raise TypeError("response_arg_aliases attribute is not a dict")
         # Get entry
         aliases = arg_aliases.get(col)
         # Check for empty response
@@ -2223,11 +2224,11 @@ class DataKit(ftypes.BaseData):
         return aliases
 
     # Get eval arg keywords
-    def get_eval_kwargs(self, col):
+    def get_response_kwargs(self, col):
         r"""Get any keyword arguments passed to *col* evaluator
 
         :Call:
-            >>> kwargs = db.get_eval_kwargs(col)
+            >>> kwargs = db.get_response_kwargs(col)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2240,23 +2241,23 @@ class DataKit(ftypes.BaseData):
             * 2019-12-30 ``@ddalle``: First version
         """
         # Get attribute
-        eval_kwargs = self.__dict__.get("eval_kwargs", {})
+        response_kwargs = self.__dict__.get("response_kwargs", {})
         # Check types
         if not typeutils.isstr(col):
             raise TypeError(
                 "Data column name must be string (got %s)" % type(col))
-        elif not isinstance(eval_kwargs, dict):
-            raise TypeError("eval_kwargs attribute is not a dict")
+        elif not isinstance(response_kwargs, dict):
+            raise TypeError("response_kwargs attribute is not a dict")
         # Get entry
-        kwargs = eval_kwargs.get(col)
+        kwargs = response_kwargs.get(col)
         # Check for empty response
         if kwargs is None:
             # Use defaults
-            kwargs = eval_kwargs.get("_", {})
+            kwargs = response_kwargs.get("_", {})
         # Check types
         if not isinstance(kwargs, dict):
             raise TypeError(
-                "eval_kwargs for col '%s' must be dict (got %s)" %
+                "response_kwargs for col '%s' must be dict (got %s)" %
                 (col, type(kwargs)))
         # Output
         return kwargs
@@ -2277,19 +2278,19 @@ class DataKit(ftypes.BaseData):
                 List of input args to one condition of *col*
         :Versions:
             * 2019-12-30 ``@ddalle``: First version
-            * 2020-03-27 ``@ddalle``: From *db.defns* to *db.eval_xargs*
+            * 2020-03-27 ``@ddalle``: From *db.defns* to *db.response_xargs*
         """
         # Get attribute
-        eval_xargs = self.__dict__.get("eval_xargs", {})
+        response_xargs = self.__dict__.get("response_xargs", {})
         # Get dimensionality
-        xargs = eval_xargs.get(col)
+        xargs = response_xargs.get(col)
         # De-None
         if xargs is None:
             xargs = []
         # Check type
         if not isinstance(xargs, list):
             raise TypeError(
-                "eval_xargs for col '%s' must be list (got %s)"
+                "response_xargs for col '%s' must be list (got %s)"
                 % (col, type(xargs)))
         # Output (copy)
         return list(xargs)
@@ -2387,7 +2388,7 @@ class DataKit(ftypes.BaseData):
             *method*: :class:`str`
                 Name of evaluation method (only checked for type)
         :Effects:
-            *db.eval_meth*: :class:`dict`
+            *db.response_methods*: :class:`dict`
                 Entry for *col* set to *method*
         :Versions:
             * 2019-12-28 ``@ddalle``: First version
@@ -2409,11 +2410,11 @@ class DataKit(ftypes.BaseData):
         response_methods[col] = method
 
     # Set evaluation function
-    def set_eval_func(self, col, fn):
+    def set_response_func(self, col, fn):
         r"""Set specific callable for a column
 
         :Call:
-            >>> db.set_eval_func(col, fn)
+            >>> db.set_response_func(col, fn)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2422,7 +2423,7 @@ class DataKit(ftypes.BaseData):
             *fn*: *callable* | ``None``
                 Function or other callable entity
         :Effects:
-            *db.eval_meth*: :class:`dict`
+            *db.response_methods*: :class:`dict`
                 Entry for *col* set to *method*
         :Versions:
             * 2019-12-28 ``@ddalle``: First version
@@ -2433,19 +2434,19 @@ class DataKit(ftypes.BaseData):
                 "Data column name must be str (got %s)" % type(col))
         if (fn is not None) and not callable(fn):
             raise TypeError(
-                "eval_func for '%s' must be callable" % col)
+                "response_func for '%s' must be callable" % col)
         # Get handle to attribute
-        eval_func = self.__dict__.setdefault("eval_func", {})
+        response_funcs = self.__dict__.setdefault("response_funcs", {})
         # Check type
-        if not isinstance(eval_func, dict):
-            raise TypeError("eval_func attribute is not a dict")
+        if not isinstance(response_funcs, dict):
+            raise TypeError("response_funcs attribute is not a dict")
         # Set parameter
         if fn is None:
             # Remove it
-            eval_func.pop(col, None)
+            response_funcs.pop(col, None)
         else:
             # Set it
-            eval_func[col] = fn
+            response_funcs[col] = fn
             
     # Set a default value for an argument
     def set_arg_default(self, k, v):
@@ -2465,7 +2466,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get dictionary
-        arg_defaults = self.__dict__.setdefault("eval_arg_defaults", {})
+        arg_defaults = self.__dict__.setdefault("response_arg_defaults", {})
         # Save key/value
         arg_defaults[k] = v
 
@@ -2490,16 +2491,16 @@ class DataKit(ftypes.BaseData):
         if not callable(fn):
             raise TypeError("Converter is not callable")
         # Get dictionary of converters
-        arg_converters = self.__dict__.setdefault("eval_arg_converters", {})
+        arg_converters = self.__dict__.setdefault("response_arg_converters", {})
         # Save function
         arg_converters[k] = fn
 
     # Set eval argument aliases
-    def set_eval_arg_aliases(self, col, aliases):
+    def set_response_arg_aliases(self, col, aliases):
         r"""Set alias names for evaluation args for a data column
 
         :Call:
-            >>> db.set_eval_arg_aliases(col, aliases)
+            >>> db.set_response_arg_aliases(col, aliases)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2514,13 +2515,13 @@ class DataKit(ftypes.BaseData):
         if not aliases:
             aliases = {}
         # Get attribute
-        arg_aliases = self.__dict__.setdefault("eval_arg_aliases", {})
+        arg_aliases = self.__dict__.setdefault("response_arg_aliases", {})
         # Check types
         if not typeutils.isstr(col):
             raise TypeError(
                 "Data column name must be string (got %s)" % type(col))
         elif not isinstance(arg_aliases, dict):
-            raise TypeError("eval_arg_aliases attribute is not a dict")
+            raise TypeError("response_arg_aliases attribute is not a dict")
         elif not isinstance(aliases, dict):
             raise TypeError(
                 "aliases arg must be dict (got %s)" % type(aliases))
@@ -2537,11 +2538,11 @@ class DataKit(ftypes.BaseData):
         arg_aliases[col] = aliases
 
     # Set eval argument keyword arguments
-    def set_eval_kwargs(self, col, kwargs):
+    def set_response_kwargs(self, col, kwargs):
         r"""Set evaluation keyword arguments for *col* evaluator
 
         :Call:
-            >>> db.set_eval_kwargs(col, kwargs)
+            >>> db.set_response_kwargs(col, kwargs)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -2556,13 +2557,13 @@ class DataKit(ftypes.BaseData):
         if not kwargs:
             kwargs = {}
         # Get attribute
-        eval_kwargs = self.__dict__.setdefault("eval_kwargs", {})
+        response_kwargs = self.__dict__.setdefault("response_kwargs", {})
         # Check types
         if not typeutils.isstr(col):
             raise TypeError(
                 "Data column name must be string (got %s)" % type(col))
-        elif not isinstance(eval_kwargs, dict):
-            raise TypeError("eval_kwargs attribute is not a dict")
+        elif not isinstance(response_kwargs, dict):
+            raise TypeError("response_kwargs attribute is not a dict")
         elif not isinstance(kwargs, dict):
             raise TypeError(
                 "kwargs must be dict (got %s)" % type(kwargs))
@@ -2573,7 +2574,7 @@ class DataKit(ftypes.BaseData):
                 raise TypeError(
                     "Found keyword for '%s' that is not a string" % col)
         # Save it
-        eval_kwargs[col] = kwargs
+        response_kwargs[col] = kwargs
 
     # Set xargs for output
     def set_output_xargs(self, col, xargs):
@@ -2589,13 +2590,13 @@ class DataKit(ftypes.BaseData):
                 List of input args to one condition of *col*
         :Versions:
             * 2019-12-30 ``@ddalle``: First version
-            * 2020-03-27 ``@ddalle``: From *db.defns* to *db.eval_xargs*
+            * 2020-03-27 ``@ddalle``: From *db.defns* to *db.response_xargs*
         """
         # De-None
         if xargs is None:
             xargs = []
         # Get attribute
-        eval_xargs = self.__dict__.setdefault("eval_xargs", {})
+        response_xargs = self.__dict__.setdefault("response_xargs", {})
         # Check type
         if not isinstance(xargs, list):
             raise TypeError(
@@ -2608,7 +2609,7 @@ class DataKit(ftypes.BaseData):
                     "Output arg %i for col '%s' must be str (got %s)"
                     % (j, col, type(k)))
         # Set (copy)
-        eval_xargs[col] = list(xargs)
+        response_xargs[col] = list(xargs)
 
     # Get auxiliary cols
     def set_response_acol(self, col, acols):
@@ -2672,8 +2673,8 @@ class DataKit(ftypes.BaseData):
         # Number of direct arguments
         na = len(a)
         # Converters
-        arg_converters = self.__dict__.get("eval_arg_converters", {})
-        arg_defaults   = self.__dict__.get("eval_arg_defaults",   {})
+        arg_converters = self.__dict__.get("response_arg_converters", {})
+        arg_defaults   = self.__dict__.get("response_arg_defaults",   {})
         # Check for sufficient non-keyword inputs
         if na > i:
             # Directly specified
@@ -3092,12 +3093,12 @@ class DataKit(ftypes.BaseData):
 
    # --- Nearest/Exact ---
     # Find exact match
-    def eval_exact(self, col, args, x, **kw):
+    def rcall_exact(self, col, args, x, **kw):
         r"""Evaluate a coefficient by looking up exact matches
 
         :Call:
-            >>> y = db.eval_exact(col, args, x, **kw)
-            >>> Y = db.eval_exact(col, args, x, **kw)
+            >>> y = db.rcall_exact(col, args, x, **kw)
+            >>> Y = db.rcall_exact(col, args, x, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3154,11 +3155,11 @@ class DataKit(ftypes.BaseData):
             return V[I]
 
     # Lookup nearest value
-    def eval_nearest(self, col, args, x, **kw):
+    def rcall_nearest(self, col, args, x, **kw):
         r"""Evaluate a coefficient by looking up nearest match
 
         :Call:
-            >>> y = db.eval_nearest(col, args, x, **kw)
+            >>> y = db.rcall_nearest(col, args, x, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3204,7 +3205,7 @@ class DataKit(ftypes.BaseData):
 
    # --- Linear ---
     # Multilinear lookup
-    def eval_multilinear(self, col, args, x, **kw):
+    def rcall_multilinear(self, col, args, x, **kw):
         r"""Perform linear interpolation in *n* dimensions
 
         This assumes the database is ordered with the first entry of
@@ -3212,7 +3213,7 @@ class DataKit(ftypes.BaseData):
         regular.
 
         :Call:
-            >>> y = db.eval_multilinear(col, args, x)
+            >>> y = db.rcall_multilinear(col, args, x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3232,10 +3233,10 @@ class DataKit(ftypes.BaseData):
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Call root method without two of the options
-        return self._eval_multilinear(col, args, x, **kw)
+        return self._rcall_multilinear(col, args, x, **kw)
 
     # Evaluate multilinear interpolation with caveats
-    def _eval_multilinear(self, col, args, x, I=None, j=None, **kw):
+    def _rcall_multilinear(self, col, args, x, I=None, j=None, **kw):
         r"""Perform linear interpolation in *n* dimensions
 
         This assumes the database is ordered with the first entry of
@@ -3243,7 +3244,7 @@ class DataKit(ftypes.BaseData):
         regular.
 
         :Call:
-            >>> y = db._eval_multilinear(col, args, x, I=None, j=None)
+            >>> y = db._rcall_multilinear(col, args, x, I=None, j=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3257,7 +3258,7 @@ class DataKit(ftypes.BaseData):
                 Optional subset of database on which to perform
                 interpolation
             *j*: {``None``} | :class:`int`
-                Slice index, used by :func:`eval_multilinear_schedule`
+                Slice index, used by :func:`rcall_multilinear_schedule`
             *bkpt*: ``True`` | {``False``}
                 Flag to interpolate break points instead of data
         :Outputs:
@@ -3379,7 +3380,7 @@ class DataKit(ftypes.BaseData):
 
    # --- Multilinear-schedule ---
     # Multilinear lookup at each value of arg
-    def eval_multilinear_schedule(self, col, args, x, **kw):
+    def rcall_multilinear_schedule(self, col, args, x, **kw):
         r"""Perform "scheduled" linear interpolation in *n* dimensions
 
         This assumes the database is ordered with the first entry of
@@ -3392,7 +3393,7 @@ class DataKit(ftypes.BaseData):
         single 1D array for *mach*.
 
         :Call:
-            >>> y = db.eval_multilinear(col, args, x)
+            >>> y = db.rcall_multilinear(col, args, x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3424,18 +3425,18 @@ class DataKit(ftypes.BaseData):
         I0 = np.where(np.abs(self[skey] - x00) <= tol)[0]
         I1 = np.where(np.abs(self[skey] - x01) <= tol)[0]
         # Perform interpolations
-        y0 = self._eval_multilinear(col, args, x0, I=I0, j=i0)
-        y1 = self._eval_multilinear(col, args, x1, I=I1, j=i1)
+        y0 = self._rcall_multilinear(col, args, x0, I=I0, j=i0)
+        y1 = self._rcall_multilinear(col, args, x1, I=I1, j=i1)
         # Linear interpolation in the schedule key
         return (1-f)*y0 + f*y1
 
    # --- Radial Basis Functions ---
     # RBF lookup
-    def eval_rbf(self, col, args, x, **kw):
+    def rcall_rbf(self, col, args, x, **kw):
         """Evaluate a single radial basis function
 
         :Call:
-            >>> y = DBc.eval_rbf(col, args, x)
+            >>> y = DBc.rcall_rbf(col, args, x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3516,11 +3517,11 @@ class DataKit(ftypes.BaseData):
 
    # --- RBF-linear ---
     # Multiple RBF lookup
-    def eval_rbf_linear(self, col, args, x, **kw):
+    def rcall_rbf_linear(self, col, args, x, **kw):
         r"""Evaluate two RBFs at slices of first *arg* and interpolate
 
         :Call:
-            >>> y = db.eval_rbf_linear(col, args, x)
+            >>> y = db.rcall_rbf_linear(col, args, x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3552,11 +3553,11 @@ class DataKit(ftypes.BaseData):
 
    # --- RBF-schedule ---
     # Multiple RBF lookup, curvilinear
-    def eval_rbf_schedule(self, col, args, x, **kw):
+    def rcall_rbf_schedule(self, col, args, x, **kw):
         r"""Evaluate two RBFs at slices of first *arg* and interpolate
 
         :Call:
-            >>> y = db.eval_rbf_schedule(col, args, x)
+            >>> y = db.rcall_rbf_schedule(col, args, x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3589,11 +3590,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Generic Function ---
     # Generic function
-    def eval_function(self, col, args, x, **kw):
+    def rcall_function(self, col, args, x, **kw):
         r"""Evaluate a single user-saved function
 
         :Call:
-            >>> y = db.eval_function(col, args, x)
+            >>> y = db.rcall_function(col, args, x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3611,9 +3612,9 @@ class DataKit(ftypes.BaseData):
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get the function
-        f = self.get_eval_func(col)
+        f = self.get_response_func(col)
         # Evaluate
-        if self.eval_func_self.get(col):
+        if self.response_funcs_self.get(col):
             # Use reference to *self*
             return f(self, *x, **kw)
         else:
@@ -4150,7 +4151,7 @@ class DataKit(ftypes.BaseData):
             *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
                 Coverage fraction assuming perfect distribution
             *test_values*: {``{}``} | :class:`dict`
-                Candidate values of each *eval_arg* for comparison
+                Candidate values of each *response_args* for comparison
             *test_bkpts*: {``{}``} | :class:`dict`
                 Candidate break points (1D unique) for *response_args*
         :Required Attributes:
@@ -4213,7 +4214,7 @@ class DataKit(ftypes.BaseData):
             *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
                 Coverage fraction assuming perfect distribution
             *test_values*: {``{}``} | :class:`dict`
-                Candidate values of each *eval_arg* for comparison
+                Candidate values of each *response_arg* for comparison
             *test_bkpts*: {``{}``} | :class:`dict`
                 Candidate break points (1D unique) for *response_args*
         :Required Attributes:
@@ -5944,7 +5945,7 @@ class DataKit(ftypes.BaseData):
         example if columns *alpha* and *beta* (for angle of attack and
         angle of sideslip, respectively) are present and the user wants
         to get the total angle of attack *aoap*, this function will
-        attempt to use ``db.eval_arg_converters["aoap"]`` to convert
+        attempt to use ``db.response_arg_converters["aoap"]`` to convert
         available *alpha* and *beta* data.
 
         :Call:
@@ -5982,7 +5983,7 @@ class DataKit(ftypes.BaseData):
             V = self[col]
         else:
             # Get converter
-            f = self.get_eval_arg_converter(col)
+            f = self.get_response_arg_converter(col)
             # Check for converter
             if f is None:
                 raise ValueError("No converter for col '%s'" % col)
@@ -6014,7 +6015,7 @@ class DataKit(ftypes.BaseData):
         For example, this can be used to derive the total angle of
         attack from inputs to an evaluation call to *CN* when it is a
         function of *mach*, *alpha*, and *beta*.  This method attempts
-        to use :func:`db.eval_arg_converters`.
+        to use :func:`db.response_arg_converters`.
 
         :Call:
             >>> V = db.get_xvals_eval(k, *a, **kw)
@@ -6049,7 +6050,7 @@ class DataKit(ftypes.BaseData):
             return X[k]
         else:
             # Get dictionary of converters
-            converters = getattr(self, "eval_arg_converters", {})
+            converters = getattr(self, "response_arg_converters", {})
             # Check for membership
             if k not in converters:
                 raise ValueError(
@@ -6119,7 +6120,7 @@ class DataKit(ftypes.BaseData):
     def get_all_values(self, col):
         r"""Attempt to get all values of a specified argument
 
-        This will use *db.eval_arg_converters* if possible.
+        This will use *db.response_arg_converters* if possible.
 
         :Call:
             >>> V = db.get_all_values(col)
@@ -6131,7 +6132,7 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *V*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
                 *db[col]* if available, otherwise an attempt to apply
-                *db.eval_arg_converters[col]*
+                *db.response_arg_converters[col]*
         :Versions:
             * 2019-03-11 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
@@ -6141,7 +6142,7 @@ class DataKit(ftypes.BaseData):
             # Get values
             return self[col]
         # Otherwise check for evaluation argument
-        arg_converters = self.__dict__.get("eval_arg_converters", {})
+        arg_converters = self.__dict__.get("response_arg_converters", {})
         # Check if there's a converter
         if col not in arg_converters:
             return None
@@ -6168,7 +6169,7 @@ class DataKit(ftypes.BaseData):
     def get_values(self, col, mask=None):
         r"""Attempt to get all or some values of a specified column
 
-        This will use *db.eval_arg_converters* if possible.
+        This will use *db.response_arg_converters* if possible.
 
         :Call:
             >>> V = db.get_values(col)
@@ -6184,7 +6185,7 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *V*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
                 *db[col]* if available, otherwise an attempt to apply
-                *db.eval_arg_converters[col]*
+                *db.response_arg_converters[col]*
         :Versions:
             * 2020-02-21 ``@ddalle``: First version
         """
@@ -7139,7 +7140,7 @@ class DataKit(ftypes.BaseData):
         ndimx = self.get_ndim(xk)
         # Get first entry to determine index vs values
         I = np.asarray(a[0])
-        # Data types for first input and first eval_arg
+        # Data types for first input and first response_arg
         dtypeI = I.dtype.name
         dtype0 = self.get_col_dtype(col)
         # Check for integer
@@ -7161,7 +7162,7 @@ class DataKit(ftypes.BaseData):
                 # Worked; assume values
                 qindex = False
         else:
-            # First *eval_arg* not int; check *a[0]* for int
+            # First *response_arg* not int; check *a[0]* for int
             qindex = qintI
         # Check data
         if qindex:
@@ -7353,7 +7354,7 @@ class DataKit(ftypes.BaseData):
             # Evaluate UQ-minus
             if quq and ukM:
                 # Get UQ value below
-                uyeM = self.eval_from_index(ukM, I, **kw)
+                uyeM = self.rcall_from_index(ukM, I, **kw)
             elif quq:
                 # Use zeros for negative error term
                 uyeM = np.zeros_like(ye)
@@ -7363,7 +7364,7 @@ class DataKit(ftypes.BaseData):
                 uyeP = uyeM
             elif quq and ukP:
                 # Evaluate separate UQ above
-                uyeP = self.eval_from_index(ukP, I, **kw)
+                uyeP = self.rcall_from_index(ukP, I, **kw)
             elif quq:
                 # Use zeros
                 uyeP = np.zeros_like(ye)
@@ -7376,7 +7377,7 @@ class DataKit(ftypes.BaseData):
             # Evaluate UQ-minus
             if quq and ukM:
                 # Get UQ value below
-                uyM = self.eval_from_arglist(ukM, arg_list, *a, **kw)
+                uyM = self.rcall_from_arglist(ukM, arg_list, *a, **kw)
             elif quq:
                 # Use zeros for negative error term
                 uyM = np.zeros_like(yv)
@@ -7386,7 +7387,7 @@ class DataKit(ftypes.BaseData):
                 uyP = uyM
             elif quq and ukP:
                 # Evaluate separate UQ above
-                uyP = self.eval_from_arglist(ukP, arg_list, *a, **kw)
+                uyP = self.rcall_from_arglist(ukP, arg_list, *a, **kw)
             elif quq:
                 # Use zeros
                 uyP = np.zeros_like(yv)
@@ -7485,7 +7486,7 @@ class DataKit(ftypes.BaseData):
             *I*: :class:`np.ndarray` (:class:`int`)
                 Indices of exact entries to plot
         :Keyword Arguments:
-            *xcol*, *xk*: {*db.eval_xargs[col][0]*} | :class:`str`
+            *xcol*, *xk*: {*db.response_xargs[col][0]*} | :class:`str`
                 Key/column name for *x* axis
         :Plot Options:
             *ShowLegend*: {``None``} | ``True`` | ``False``
