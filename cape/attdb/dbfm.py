@@ -812,8 +812,6 @@ class DBFM(rdbaero.AeroDataKit):
         self.set_arg_default("xMRP", self.xMRP)
         self.set_arg_default("yMRP", self.yMRP)
         self.set_arg_default("zMRP", self.zMRP)
-        # 
-        
   # >
 
   # ==================

@@ -1298,28 +1298,38 @@ class DataKit(ftypes.BaseData):
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
-        # Check for single arg
-        if len(a) == 0:
-            # Just return everything
+        # Number of args specified (roughly)
+        na = len(a)
+        nkw = len(kw)
+        # Check for empty inputs
+        if na + nkw == 0:
+            # Just return entire column
             return self.get_all_values(col)
-        # Get list of arguments
+        # Get response definition
+        method = self.get_response_method(col)
         arg_list = self.get_response_args(col)
-        # Process first second arg as a mask
-        mask = np.asarray(a[0])
-        # Get data type
-        dtype = mask.dtype.name
-        # Default arg
-        if arg_list is None:
-            # Return values based on index
+        # Check for empty response
+        if (method is None) or (not arg_list):
+            # Check for a mask
+            if na > 0:
+                # At least one arg specified
+                mask = kw.get("mask", a[0])
+            else:
+                # No args specified
+                mask = kw.get("mask")
+            # If no response, then use indexing
             return self.get_values(col, mask)
-        # Check *I* data type
-        qmask = [dtype.startswith(pre) for pre in ["bool", "uint", "int"]]
-        # Check if any of those are met
-        if any(qmask):
-            # Look up using indices
-            return self.get_values(col, mask)
+        # Check for indexing in more ambiguous case
+        if na == 1:
+            # Process first arg as a mask
+            if self.check_mask(a[0]):
+                # Look up using indices
+                return self.get_values(col, a[0])
+            else:
+                # Call response surface
+                return self.rcall(col, *a, **kw)
         else:
-            # Call response surface
+            # If not exactly one arg, use the response
             return self.rcall(col, *a, **kw)
 
     # Evaluate response
@@ -6216,6 +6226,7 @@ class DataKit(ftypes.BaseData):
         # Apply mask to last dimension
         return V.__getitem__(J)
 
+   # --- Mask ---
     # Prepare mask
     def prep_mask(self, mask, col=None, V=None):
         r"""Prepare logical or index mask
@@ -6257,7 +6268,7 @@ class DataKit(ftypes.BaseData):
             # Use last dimension
             n0 = V.shape[-1]
         # Ensure array
-        if isinstance(mask, list):
+        if isinstance(mask, (list, int)):
             mask = np.array(mask)
         # Get data type
         dtype = mask.dtype.name
@@ -6278,17 +6289,96 @@ class DataKit(ftypes.BaseData):
         # Output
         return mask_index
 
+    # Check if mask
+    def check_mask(self, mask, col=None, V=None):
+        r"""Check if *mask* is a valid index/bool mask
+
+        :Call:
+            >>> q = db.check_mask(mask, col=None, V=None)
+            >>> q = db.check_mask(mask_index, col=None, V=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
+                Logical mask of ``True`` / ``False`` values
+            *mask_index*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of values to consider
+            *col*: {``None``} | :class:`str`
+                Column name to use to create default *V*
+            *V*: {``None``} | :class:`np.ndarray`
+                Array of values to test shape/values of *mask*
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not *mask* is a valid mask
+        :Versions:
+            * 2020-04-21 ``@ddalle``: First version
+        """
+        # Check for empty mask
+        if mask is None:
+            return
+        # Get values
+        if (V is None) and (col is not None):
+            # Use all values
+            V = self.get_all_values(col)
+        # Convert list to array
+        if isinstance(mask, (list, int)):
+            # Create an array instead of a list
+            mask = np.array(mask)
+        # Check mask type and dimension
+        if not isinstance(mask, np.ndarray):
+            # Must be array
+            return False
+        elif mask.ndim > 1:
+            # Bad dimension
+            return False
+        elif mask.size == 0:
+            # Empty mask (``None`` is correct empty mask)
+            return False
+        # Check dimensions
+        if V is not None:
+            # Get size
+            if isinstance(V, list):
+                # Special case for list of strings
+                n = len(V)
+            else:
+                # Use last dimension
+                n = V.shape[-1]
+        # Get data type
+        dtype = mask.dtype.name
+        # Check data type
+        if dtype.startswith("uint") or dtype.startswith("int"):
+            # Check values
+            if V is not None:
+                # Check values
+                if np.min(mask) < -n:
+                    return False
+                elif np.max(mask) >= n:
+                    return False
+            # Ints are valid masks
+            return True
+        elif dtype.startswith("bool"):
+            # Check size
+            if V is not None:
+                # Check length
+                if mask.size != n:
+                    return False
+            # Boolean masks are valid if dimension matches
+            return True
+        else:
+            # Invalid data type
+            return False
+
     # Ensure mask
     def assert_mask(self, mask, col=None, V=None):
         r"""Make sure that *mask* is a valid index/bool mask
 
         :Call:
             >>> db.assert_mask(mask, col=None, V=None)
-            >>> db.assert_mask(I, col=None, V=None)
+            >>> db.assert_mask(mask_index, col=None, V=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
-            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
+            *mask*: ``None`` | :class:`np.ndarray`\ [:class:`bool`]
                 Logical mask of ``True`` / ``False`` values
             *mask_index*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of values to consider
@@ -6307,7 +6397,7 @@ class DataKit(ftypes.BaseData):
             # Use all values
             V = self.get_all_values(col)
         # Convert list to array
-        if isinstance(mask, list):
+        if isinstance(mask, (list, int)):
             # Create an array instead of a list
             mask = np.array(mask)
         # Check mask type and dimension
