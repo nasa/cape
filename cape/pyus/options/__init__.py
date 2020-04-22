@@ -301,17 +301,17 @@ class Options(cape.cfdx.options.Options):
         self["RunControl"].set_us3d_prepar_conn(conn, i=i)
 
     # Option for grid file
-    def get_us3d_prepar_out(self, i=None):
+    def get_us3d_prepar_output(self, i=None):
         self._RunControl()
-        return self["RunControl"].get_us3d_prepar_out(i=i)
+        return self["RunControl"].get_us3d_prepar_output(i=i)
 
     # Option for grid file
-    def set_us3d_prepar_out(self, out=rc0("us3d_prepar_out"), i=None):
+    def set_us3d_prepar_output(self, fout=rc0("us3d_prepar_output"), i=None):
         self._RunControl()
-        self["RunControl"].set_us3d_prepar_out(out, i=i)
+        self["RunControl"].set_us3d_prepar_output(fout, i=i)
 
     # Copy documentation     
-    for k in ["run", "grid", "conn", "out"]:
+    for k in ["run", "grid", "conn", "output"]:
         n1 = "get_us3d_prepar_" + k
         n2 = "set_us3d_prepar_" + k
         eval(n1).__doc__ = getattr(RunControl, n1).__doc__

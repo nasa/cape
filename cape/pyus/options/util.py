@@ -38,7 +38,7 @@ PyUSFolder = os.path.split(os.path.split(_fname)[0])[0]
 rc["us3d_prepar_run"] = True
 rc["us3d_prepar_grid"] = "pyus.cas"
 rc["us3d_prepar_conn"] = "conn.h5"
-rc["us3d_prepar_out"] = "grid.h5"
+rc["us3d_prepar_output"] = "grid.h5"
     
 
 # Function to ensure scalar from above

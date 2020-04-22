@@ -166,42 +166,42 @@ class US3DPrepar(odict):
         """
         self.set_key("conn", conn, i)
 
-    # Name of grid input file
-    def get_us3d_prepar_out(self, i=None):
+    # Name of grid output file
+    def get_us3d_prepar_output(self, i=None):
         r"""Get name of mesh file converted by ``us3d-prepar``
 
         :Call:
-            >>> out = opts.get_us3d_prepar_out(i=None)
+            >>> fout = opts.get_us3d_prepar_output(i=None)
         :Inputs:
             *opts*: :class:`cape.pyus.options.Options`
                 Options interface
             *i*: :class:`int`
                 Phase number
         :Outputs:
-            *out*: :class:`str`
+            *fout*: :class:`str`
                 Name of HDF5 mesh file for US3D
         :Versions:
             * 2020-04-22 ``@ddalle``: First version
         """
-        return self.get_key("out", i, rck="us3d_prepar_out")
+        return self.get_key("output", i, rck="us3d_prepar_output")
 
-    # Name of grid input file
-    def set_us3d_prepar_out(self, out=rc0("us3d_prepar_out"), i=None):
+    # Name of grid output file
+    def set_us3d_prepar_output(self, fout=rc0("us3d_prepar_output"), i=None):
         r"""Get name of mesh file converted by ``us3d-prepar``
 
         :Call:
-            >>> out = opts.get_us3d_prepar_out(i=None)
+            >>> fout = opts.get_us3d_prepar_output(i=None)
         :Inputs:
             *opts*: :class:`cape.pyus.options.Options`
                 Options interface
-            *out*: :class:`str`
+            *fout*: :class:`str`
                 Name of HDF5 mesh file for US3D
             *i*: :class:`int`
                 Phase number
         :Versions:
             * 2020-04-22 ``@ddalle``: First version
         """
-        self.set_key("out", out, i)
+        self.set_key("output", fout, i)
 
 
 # Class for Report settings
@@ -309,17 +309,17 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         self["us3d-prepar"].set_us3d_prepar_conn(conn, i=i)
 
     # Option for grid file
-    def get_us3d_prepar_out(self, i=None):
+    def get_us3d_prepar_output(self, i=None):
         self._US3DPrepar()
-        return self["us3d-prepar"].get_us3d_prepar_out(i=i)
+        return self["us3d-prepar"].get_us3d_prepar_output(i=i)
 
     # Option for grid file
-    def set_us3d_prepar_out(self, out=rc0("us3d_prepar_out"), i=None):
+    def set_us3d_prepar_output(self, fout=rc0("us3d_prepar_output"), i=None):
         self._US3DPrepar()
-        self["us3d-prepar"].set_us3d_prepar_out(out, i=i)
+        self["us3d-prepar"].set_us3d_prepar_output(fout, i=i)
 
     # Copy documentation     
-    for k in ["run", "grid", "conn", "out"]:
+    for k in ["run", "grid", "conn", "output"]:
         n1 = "get_us3d_prepar_" + k
         n2 = "set_us3d_prepar_" + k
         eval(n1).__doc__ = getattr(US3DPrepar, n1).__doc__
