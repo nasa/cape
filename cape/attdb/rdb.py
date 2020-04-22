@@ -7100,12 +7100,13 @@ class DataKit(ftypes.BaseData):
         if len(a) == 0:
             raise ValueError("At least 2 inputs required; received 1")
         # Process first second arg as a mask
-        I = np.asarray(a[0])
-        # Get data type
-        dtype = I.dtype.name
+        mask = a[0]
+        # Check if it looks like a mask
+        qmask = self.check_mask(mask)
         # Check for integer
-        if (I.ndim > 0) and (
-                dtype.startswith("int") or dtype.startswith("uint")):
+        if qmask:
+            # Turn it into indices
+            I = self.prep_mask(mask)
             # Request for exact values
             qexact  = True
             qinterp = False
