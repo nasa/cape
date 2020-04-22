@@ -6271,7 +6271,8 @@ class DataKit(ftypes.BaseData):
         if isinstance(mask, (list, int)):
             mask = np.array(mask)
         # Get data type
-        dtype = mask.dtype.name
+        if mask is not None:
+            dtype = mask.dtype.name
         # Filter mask
         if mask is None:
             # Create indices
