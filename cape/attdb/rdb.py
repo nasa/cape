@@ -7895,7 +7895,7 @@ class DataKit(ftypes.BaseData):
                 Name of PNG file
             *kw*: {``{}``} | :class:`dict`
                 Options to use when showing PNG image
-        :See Also:`
+        :See Also:
             * :func:`set_cols_png`
             * :func:`set_png_fname`
             * :func:`set_png_kwargs`
@@ -8173,7 +8173,7 @@ class DataKit(ftypes.BaseData):
                 Name of *col* for seam curve *y* coords
             *kw*: {``{}``} | :class:`dict`
                 Options to use when plotting seam curve
-        :See Also:`
+        :See Also:
             * :func:`set_cols_seam`
             * :func:`set_seam_col`
             * :func:`set_seam_kwargs`

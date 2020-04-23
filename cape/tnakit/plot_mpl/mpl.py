@@ -707,7 +707,8 @@ def _axes_adjust(fig=None, **kw):
             Handle to subplot directed to use from these options
     :Versions:
         * 2020-01-03 ``@ddalle``: First version
-        * 2010-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
+        * 2020-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
+        * 2020-04-23 ``@ddalle``: Process neighboring axes
     """
     # Make sure pyplot is present
     _import_pyplot()
@@ -1476,6 +1477,10 @@ def _figure(**kw):
 def _colorbar(ax=None, **kw):
     r"""Add colorbar to a contour plot
 
+    Note that any previous colorbar axes will be removed by default.  To
+    keep old colorbars and add a new one, set the label of the
+    preexisting colorbar axes to something other than ``"<colorbar>"``.
+
     :Call:
         >>> _colorbar(**kw)
         >>> _colorbar(ax, **kw)
@@ -1486,15 +1491,25 @@ def _colorbar(ax=None, **kw):
         %(keys)s
     :Versions:
         * 2020-03-27 ``@jmeeroff``: First version
+        * 2020-04-23 ``@ddalle``: Add checks for previous colorbars
     """
     # Make sure pyplot loaded
     _import_pyplot()
-    # Call the colorbar 
-    if ax:
-        h = plt.colorbar(ax, **kw)
-    else:
-        h = plt.colorbar(**kw)
-    # Retrun colorbar
+    # Gte axes
+    if ax is None:
+        # Assume current figure can be used
+        ax = plt.gca()
+    # Get figure handle
+    fig = ax.figure
+    # Loop through all axes to check for other color bars
+    for axk in list(fig.get_axes()):
+        # Check the label
+        if axk.get_label() == "<colorbar>":
+            # If it's a colorbar already... remove it
+            axk.remove()
+    # Create the new colorbar
+    h = plt.colorbar(**kw)
+    # Return colorbar
     return h
 
 
