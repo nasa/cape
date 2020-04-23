@@ -240,6 +240,7 @@ class DataKit(ftypes.BaseData):
         self.response_kwargs = {}
         self.response_methods = {}
         self.response_xargs = {}
+        self.response_tagcols = {}
         # Extra attributes for plotting
         self.col_pngs = {}
         self.col_seams = {}
@@ -2655,6 +2656,21 @@ class DataKit(ftypes.BaseData):
         # Set it
         response_acols[col] = acols
 
+   # --- Aliases and Tagcols ---
+    # Get list of tag cols
+    def genr8_tagcols(self, col):
+        # Initialize set
+        tagcols = set()
+        # Get list of args for *col*
+        args = self.get_response_args(col)
+        # Get aliases
+        arg_aliases = self.get_response_arg_aliases(col)
+        # Loop through them
+        pass
+        
+        # Get list of args for cols
+        
+    
    # --- Arguments ---
     # Get argument value
     def get_arg_value(self, i, k, *a, **kw):

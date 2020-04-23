@@ -41,13 +41,21 @@ from . import rdbaero
 
 
 # Sets of common variable names
-_alpha_cols = rdbaero.AeroDataKit._tagcols["alpha"]
-_aoap_cols  = rdbaero.AeroDataKit._tagcols["aoap"]
-_aoav_cols  = rdbaero.AeroDataKit._tagcols["aoav"]
-_beta_cols  = rdbaero.AeroDataKit._tagcols["beta"]
-_phip_cols  = rdbaero.AeroDataKit._tagcols["phip"]
-_phiv_cols  = rdbaero.AeroDataKit._tagcols["phiv"]
-        
+_alph_cols = rdbaero.AeroDataKit._tagcols["alpha"]
+_aoap_cols = rdbaero.AeroDataKit._tagcols["aoap"]
+_aoav_cols = rdbaero.AeroDataKit._tagcols["aoav"]
+_beta_cols = rdbaero.AeroDataKit._tagcols["beta"]
+_phip_cols = rdbaero.AeroDataKit._tagcols["phip"]
+_phiv_cols = rdbaero.AeroDataKit._tagcols["phiv"]
+
+# Combined sets of cols for taging
+_alph_tcols = _alph_cols | _aoap_cols | _aoav_cols | _phip_cols | _phiv_cols
+_aoap_tcols = _alph_cols | _aoap_cols | _aoav_cols | _beta_cols | _phiv_cols
+_aoav_tcols = _alph_cols | _aoap_cols | _aoav_cols | _beta_cols | _phip_cols
+_beta_tcols = _aoap_cols | _aoav_cols | _beta_cols | _phip_cols | _phiv_cols
+_phip_tcols = _alph_cols | _aoav_cols | _beta_cols | _phip_cols | _phiv_cols
+_phip_tcols = _alph_cols | _aoap_cols | _beta_cols | _phip_cols | _phiv_cols
+
     
 # Standard converters: alpha
 def convert_alpha(*a, **kw):
@@ -63,7 +71,7 @@ def convert_alpha(*a, **kw):
         *a*: :class:`tuple`
             Positional args; discarded here
         *alpha*: :class:`float` | :class:`np.ndarray`
-            Direct alias from *_alpha_cols*
+            Direct alias from *_alph_cols*
         *aoap*: :class:`float` | :class:`np.ndarray`
             Total angle of attack [deg]
         *phip*: {``0.0``} | :class:`float` | :class:`np.ndarray`
@@ -81,7 +89,7 @@ def convert_alpha(*a, **kw):
     """
    # --- Direct ---
     # Check for alias
-    for col in _alpha_cols:
+    for col in _alph_cols:
         # Check if present
         if col in kw:
             # Return that
@@ -150,7 +158,7 @@ def convert_beta(*a, **kw):
         *a*: :class:`tuple`
             Positional args; discarded here
         *beta*: :class:`float` | :class:`np.ndarray`
-            Direct alias from *_alpha_cols*
+            Direct alias from *_alph_cols*
         *aoap*: :class:`float` | :class:`np.ndarray`
             Total angle of attack [deg]
         *phip*: {``0.0``} | :class:`float` | :class:`np.ndarray`
@@ -241,7 +249,7 @@ def convert_aoap(*a, **kw):
         *alpha*: :class:`float` | :class:`np.ndarray`
             Angle of attack [deg]
         *beta*: :class:`float` | :class:`np.ndarray`
-            Direct alias from *_alpha_cols*
+            Direct alias from *_alph_cols*
         *aoav*: :class:`float` | :class:`np.ndarray`
             Missile-axis angle of attack [deg]
         *phiv*: {``0.0``} | :class:`float` | :class:`np.ndarray`
@@ -262,7 +270,7 @@ def convert_aoap(*a, **kw):
             return kw[col]
    # --- alpha, beta ---
     # Get angle of attack
-    for col in _alpha_cols:
+    for col in _alph_cols:
         # Get total angle of attack
         a = kw.get(col)
         # Check
@@ -328,7 +336,7 @@ def convert_phip(*a, **kw):
         *alpha*: :class:`float` | :class:`np.ndarray`
             Angle of attack [deg]
         *beta*: :class:`float` | :class:`np.ndarray`
-            Direct alias from *_alpha_cols*
+            Direct alias from *_alph_cols*
         *aoav*: :class:`float` | :class:`np.ndarray`
             Missile-axis angle of attack [deg]
         *phiv*: {``0.0``} | :class:`float` | :class:`np.ndarray`
@@ -349,7 +357,7 @@ def convert_phip(*a, **kw):
             return kw[col]
    # --- alpha, beta ---
     # Get angle of attack
-    for col in _alpha_cols:
+    for col in _alph_cols:
         # Get total angle of attack
         a = kw.get(col)
         # Check
