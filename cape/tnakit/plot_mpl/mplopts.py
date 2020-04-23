@@ -118,6 +118,8 @@ class MPLOpts(kwutils.KwargHandler):
         "GridColor",
         "GridOptions",
         "GridStyle",
+        "HistBins",
+        "HistColor",
         "ImageExtent",
         "ImageXCenter",
         "ImageXMax",
@@ -229,6 +231,7 @@ class MPLOpts(kwutils.KwargHandler):
         "fig",
         "ux",
         "uy",
+        "v",
         "x",
         "xerr",
         "y",
@@ -444,6 +447,11 @@ class MPLOpts(kwutils.KwargHandler):
             "ContourType",
             "ContourOptions"
         ],
+        "hist" : [
+            "HistBins",
+            "HistColor",
+            "HistOptions"
+        ],
         "minmax": [
             "Index",
             "Rotate",
@@ -574,6 +582,9 @@ class MPLOpts(kwutils.KwargHandler):
         "FontWeight": (float, int, typeutils.strlike),
         "Grid": int,
         "GridOptions": dict,
+        "HistBins": int,
+        "HistColor": (tuple, typeutils.strlike),
+        "HistOptions" : dict,
         "ImageExtent": (tuple, dict),
         "ImageXCenter": float,
         "ImageXMax": float,
@@ -679,6 +690,7 @@ class MPLOpts(kwutils.KwargHandler):
         "fig": object,
         "ux": typeutils.arraylike,
         "uy": typeutils.arraylike,
+        "v": typeutils.arraylike,
         "x": typeutils.arraylike,
         "xerr": typeutils.arraylike,
         "y": typeutils.arraylike,
@@ -720,6 +732,10 @@ class MPLOpts(kwutils.KwargHandler):
         },
         "GridOptions": {
             "GridColor": "color",
+        },
+        "HistOptions": {
+            "HistBins" : "bins",
+            "HistColor" : "color"
         },
         "LegendOptions": {
             "LegendAnchor": "bbox_to_anchor",
@@ -819,6 +835,11 @@ class MPLOpts(kwutils.KwargHandler):
             "linestyle": "ls",
             "c": "color",
         },
+        "HistOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
     }
 
    # --- Documentation Data ---
@@ -860,6 +881,9 @@ class MPLOpts(kwutils.KwargHandler):
         "Grid": _rst_boolt,
         "GridColor": """{``None``} | :class:`str` | :class:`tuple`""",
         "GridOptions": _rst_dict,
+        "HistBins" : _rst_intpos,
+        "HistColor" : """{``None``} | :class:`str` | :class:`tuple`""",
+        "HistOptions" : _rst_dict,     
         "ImageExtent": """{``None``} | :class:`tuple` | :class:`list`""",
         "ImageXCenter": _rst_float,
         "ImageXMax": _rst_float,
@@ -946,6 +970,7 @@ class MPLOpts(kwutils.KwargHandler):
         "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
         "ux": r""":class:`np.ndarray`\ [:class:`float`]""",
         "uy": r""":class:`np.ndarray`\ [:class:`float`]""",
+        "v": r""":class:`np.ndarray`""",
         "x": r""":class:`np.ndarray`\ [:class:`float`]""",
         "xerr": r""":class:`np.ndarray`\ [:class:`float`]""",
         "y": r""":class:`np.ndarray`\ [:class:`float`]""",
@@ -994,6 +1019,9 @@ class MPLOpts(kwutils.KwargHandler):
         "Grid": """Option to turn on/off axes grid""",
         "GridColor": """Color passed to *GridOptions*""",
         "GridOptions": """Plot options for major grid""",
+        "HistBins" : """Number of histogram bins passed to *HistOptions*""",
+        "HistColor": """Histogram passed to *HistOptions*""",
+        "HistOptions": """Plot options for histograms""",
         "ImageXMin": "Coordinate for left edge of image",
         "ImageXMax": "Coordinate for right edge of image",
         "ImageXCenter": "Horizontal center coord if *x* edges not specified",
@@ -1085,6 +1113,7 @@ class MPLOpts(kwutils.KwargHandler):
         "fig": """Handle to existing figure""",
         "ux": """UQ *x* magintudes""",
         "uy": """UQ magnitudes""",
+        "v": """Values for histogram plot""",
         "x": """Nominal *x* values to plot""",
         "xerr": """*x* widths for error plots""",
         "y": """Nominal *y* values to plot""",
@@ -1124,6 +1153,14 @@ class MPLOpts(kwutils.KwargHandler):
             "ls": ":",
             "lw": 0.9,
             "color": "#a0a0a0",
+        },
+        "HistOptions": {
+            "bins" : 20,
+            "color" : "c",
+            "zorder" : 2,
+            "edgecolor" : "k",
+            "lw" : 1, 
+            "density" : True
         },
         "LegendFontOptions": {},
         "LegendOptions": {
@@ -1173,13 +1210,7 @@ class MPLOpts(kwutils.KwargHandler):
             "Grid": True,
             "MajorGrid": True,
         },
-        "hist": {
-            "facecolor": 'c',
-            "zorder": 2,
-            "bins": 20,
-            "density": True,
-            "edgecolor": 'k',
-        },
+        "hist": {},
         "legend": {
             "loc": "upper center",
             "labelspacing": 0.5,
@@ -1607,6 +1638,27 @@ class MPLOpts(kwutils.KwargHandler):
         """
         # Use the "contour" section and only return "ContourOptions"
         return self.section_options("contour", "ContourOptions")
+
+    # Process options for contour plots
+    def hist_options(self):
+        r"""Process options for histogram plots
+
+        :Call:
+            >>> kw = opts.hist_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`hist`
+        :Versions:
+            * 2020-04-23 ``@jmeeroff``: First version
+        """
+        # Use the "hist" section and only return "HistOptions"
+        return self.section_options("hist", "HistOptions")
+
 
     # Process options for min/max plot
     def minmax_options(self):

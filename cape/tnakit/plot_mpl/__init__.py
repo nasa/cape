@@ -128,6 +128,44 @@ def contour(xv, yv, zv, *a, **kw):
     return h
 
 
+# Contour plotter
+def hist(v, *a, **kw):
+    r"""Plot histogram with many options
+
+    :Call:
+        >>> h, kw = hist(v,*a, **kw)
+    :Inputs:
+        *v*: :class:`np.ndarray` (:class:`float`)
+            Array of values to plot in historgram
+    :Outputs:
+        *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
+            Dictionary of plot handles
+    :Versions:
+        * 2020-04-23 ``@jmeeroff``: First version
+    """
+   # --- Prep ---
+    # Process options
+    opts, h = _preprocess_kwargs(**kw)
+    # Save values
+    opts.set_option("v", v)
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
+   # --- Primary Plot ---
+    # Plot, then others
+    _part_hist(opts, h)
+   # --- Axis formatting ---
+    # Format grid, spines, extents, and window
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    #_part_axes_format(opts, h)
+    _part_axes_adjust(opts, h)
+   # --- Labeling ---
+    # Output
+    return h
+
+
 # Primary plotter
 def plot(xv, yv, *a, **kw):
     r"""Plot connected points with many options
@@ -251,6 +289,18 @@ def _part_contour(opts, h):
     # Save contour
     h.save("contour", contour)
 
+
+# Partial function: contour()
+def _part_hist(opts, h):
+    # Call histogram method
+    # Process histogram options
+    kw = opts.hist_options()
+    # Get values
+    v = opts.get_option("v")
+    # Histogram plot call
+    hist = mpl._hist(v, **kw)
+    # Save histogram
+    h.save("hist", hist)
 
 
 # Partial function: minmax()
@@ -393,202 +443,6 @@ def _part_colorbar(opts, h):
     h.save("colorbar", cbar)
 
 
-# Primary Histogram plotter
-def hist(v, **kw):
-    """Plot histograms with many options
-
-    :Call:
-        >>> h, kw = plot_base(xv, yv, *a, **kw)
-    :Inputs:
-        *v*: :class:`np.ndarray` (:class:`float`)
-            List of values for which to create histogram
-    :Outputs:
-        *h*: :class:`dict`
-            Dictionary of plot handles
-    :Versions:
-        * 2019-03-11 ``@jmeeroff``: function created
-    """
-   # --- Prep ---
-    # Ensure plot() is loaded
-    mpl._import_pyplot()
-    # Initialize output
-    h = {}
-    # Filter out non-numeric entries
-    v = v[np.logical_not(np.isnan(v))]
-    # define coefficient for labeling
-    coeff = kw.pop("coeff", "c")
-   # --- Statistics ---
-    # Calculate the mean
-    vmu = np.mean(v)
-    # Calculate StdDev
-    vstd = np.std(v)
-    # Coverage Intervals
-    cov = kw.pop("Coverage", kw.pop("cov", 0.99))
-    cdf = kw.pop("CoverageCDF", kw.pop("cdf", cov))
-    # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
-    kcdf = student.ppf(0.5+0.5*cdf, v.size)
-    # Check for outliers ...
-    fstd = kw.pop('FilterSigma', 2.0*kcdf)
-    # Remove values from histogram
-    if fstd:
-        # Find indices of cases that are within outlier range
-        j = np.abs(v-vmu)/vstd <= fstd
-        # Filter values
-        v = v[j]
-    # Calculate interval
-    acov, bcov = stats.get_cov_interval(v, cov, cdf=cdf, **kw)
-   # --- Universal Options ---
-    # dictionary for universal options
-    # 1 -- Orientation
-    orient = kw.pop("orientation", "vertical")
-    kw_u = {
-        "orientation": orient,
-    }
-   # --- Figure Setup ---
-    # Process figure options
-    kw_f = mplopts.figure_options(kw)
-    # Get/create figure
-    h["fig"] = figure(**kw_f)
-   # --- Axis Setup ---
-    # Process axis options
-    kw_a = mplopts.axes_options(kw)
-    # Get/create axis
-    ax = axes(**kw_a)
-    # Save it
-    h["ax"] = ax
-   # --- Histogram Plot ---
-    # Process histogram plot options
-    kw_p = mplopts.hist_options(kw, kw_u)
-    # Plot
-    h['hist'] = _hist(v, **kw_p)
-   # --- Plot Gaussian ---
-    normed = kw_p['density']
-    # Need to pop the gaussian command regardless
-    qgaus = kw.pop("PlotGaussian", True)
-    # Only plot gaussian if the historgram is 'normed'
-    qgaus = normed and qgaus
-    # Process gaussian options
-    kw_gauss = mplopts.gauss_options(kw, kw_p, kw_u)
-    # Plot gaussian
-    if qgaus:
-        h['gauss'] = plot_gaussian(ax, vmu, vstd, **kw_gauss)
-   # --- Axis formatting ---
-    # Process grid lines options
-    kw_gl = mplopts.grid_options(kw, kw_p, kw_u)
-    # Apply grid lines
-    grid(ax, **kw_gl)
-    # Process spine options
-    kw_sp = mplopts.spine_options(kw, kw_p, kw_u)
-    # Apply options relating to spines
-    h["spines"] = format_spines(ax, **kw_sp)
-    # Process axes format options
-    kw_axfmt = mplopts.axformat_options(kw, kw_p, kw_u)
-    # Force y=0 or x=0 depending on orientation
-    if orient == "vertical":
-        kw_axfmt['YMin'] = 0
-    else:
-        kw_axfmt['XMin'] = 0
-    # Apply formatting
-    h['xlabel'], h['ylabel'] = axes_format(h['ax'], **kw_axfmt)
-   # --- Plot an Interval ---
-    # Get flag for manual interval plot
-    qint = kw.pop("PlotInterval", False)
-    # Process options
-    kw_interval = mplopts.interval_options(kw, kw_p, kw_u)
-    # Plot if necessary
-    if qint:
-        h['interval'] = plot_interval(ax, acov, bcov, **kw_interval)
-   # --- Plot Mean ---
-    qmu = kw.pop("PlotMean", True)
-    # Process mean options
-    kw_mu = mplopts.mu_options(kw, kw_p, kw_u)
-    # Plot the mean
-    if qmu:
-        h['mean'] = plot_mean(ax, vmu, **kw_mu)
-   # --- Plot Standard Deviation ---
-    qsig = kw.pop("PlotSigma", False)
-    # Process sigma options
-    kw_s = mplopts.std_options(kw, kw_p, kw_u)
-    # Plot the sigma
-    if qsig:
-        h['sigma'] = _plots_std(ax, vmu, vstd, **kw_s)
-   # --- Delta Plot ----
-    qdel = kw.pop("PlotDelta", False)
-    # Process delta options
-    kw_delta = mplopts.delta_options(kw, kw_p, kw_u)
-    # Plot the delta
-    if qdel:
-        h['delta'] = plot_delta(ax, vmu, **kw_delta)
-   # --- Mean labels ---
-    # Process mean labeling options
-    opts = kw.pop("MeanLabelOptions", {})
-    kw_mu_lab = mplopts.histlabel_options(opts, kw_p, kw_u)
-    c = kw_mu_lab.pop('clabel', 'mu')
-    # Do the label
-    if qmu:
-        # Formulate the label
-        # Format code
-        flbl = kw_mu_lab.pop("MuFormat", "%.4f")
-        # First part
-        klbl = (u'%s' % c)
-        # Insert value
-        lbl = ('%s = %s' % (klbl, flbl)) % vmu
-        h['MeanLabel'] = histlab_part(lbl, 0.99, True, ax, **kw_mu_lab)
-   # --- StdDev labels ---
-    # Process mean labeling options
-    opts = kw.pop("SigmaLabelOptions", {})
-    # Make sure alignment is correct
-    opts.setdefault('horizontalalignment', 'left')
-    kw_sig_lab = mplopts.histlabel_options(opts, kw_p, kw_u)
-    c = kw_sig_lab.pop('clabel', coeff)
-    # Do the label
-    if qsig:
-        # Formulate the label
-        # Format code
-        flbl = kw_mu_lab.pop("SigFormat", "%.4f")
-        # First part
-        klbl = (u'\u03c3(%s)' % c)
-        # Insert value
-        lbl = ('%s = %s' % (klbl, flbl)) % vstd
-        h['SigmaLabel'] = histlab_part(lbl, 0.01, True, ax, **kw_sig_lab)
-   # --- Interval Labels ---
-    # Process mean labeling options
-    opts = kw.pop("IntLabelOptions", {})
-    kw_int_lab = mplopts.histlabel_options(opts, kw_p, kw_u)
-    c = kw_int_lab.pop('clabel', cov)
-    if qint:
-        flbl = kw_sig_lab.get("IntervalFormat", "%.4f")
-        # Form
-        klbl = "I(%.1f%%%%)" % (100*c)
-        # Get ionterval values
-        a = kw_interval.get('imin', None)
-        b = kw_interval.get('imax', None)
-        # Insert value
-        lbl = ('%s = [%s,%s]' % (klbl, flbl, flbl)) % (a, b)
-        h['IntLabel'] = histlab_part(lbl, 0.99, False, ax, **kw_int_lab)
-   # --- Delta Labels ---
-    # Process Delta labeling options
-    opts = kw.pop("DeltaLabelOptions", {})
-    opts.setdefault('horizontalalignment', 'left')
-    kw_del_lab = mplopts.histlabel_options(opts, kw_p, kw_u)
-    c = kw_del_lab.pop('clabel', 'coeff')
-    if qdel:
-        flbl = kw_del_lab.get("DeltaFormat", "%.4f")
-        # Get delta values
-        dc = kw_delta.get('Delta', 0.0)
-        # Insert value
-        if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
-            lbl = (u'\u0394%s = (%s, %s)' % (c, flbl, flbl)) % (dc[0], dc[1])
-        else:
-            lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
-        h['delta'] = histlab_part(lbl, 0.01, False, ax, **kw_del_lab)
-   # --- Cleanup ---
-    # Any unused keys?
-    genopts.display_remaining("plot_hist", "    ", **kw)
-    # Output
-    return h
-
-
 # Move axes all the way to one side
 def move_axes(ax, loc, margin=0.0):
     r"""Move an axes object's plot region to one side
@@ -688,32 +542,6 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
     xmin, ymin, w, h = ax.get_position().bounds
     # Set new position
     ax.set_position([xmin + dx, ymin + dy, w, h])
-
-
-# Histogram
-def _hist(v, **kw):
-    """Call the :func:`hist` function
-
-    :Call:
-        >>> h = _hist(V, **kw))
-    :Inputs:
-        *v*: :class:`np.ndarray` (:class:`float`)
-            List of values for which to create histogram
-    :Keyword Arguments:
-        * See :func:`matplotlib.pyplot.hist`
-    :Outputs:
-        *h*: :class: `tuple`
-            Tuple of (n, bins, patches)
-    :Versions:
-        * 2019-03-11 ``@jmeeroff``: First version
-        * 2019-08-22 ``@ddalle``: From :func:`Part.hist_part`
-    """
-    # Ensure hist() is available
-    mpl._import_pyplot()
-    # Call plot
-    h = mpl.plt.hist(v, **kw)
-    # Output
-    return h
 
 
 # Mean plotting part
