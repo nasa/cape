@@ -774,16 +774,20 @@ def _axes_adjust(fig=None, **kw):
     subplot_j = (subplot_i - 1) // subplot_n
     subplot_k = (subplot_i - 1) % subplot_n
     # Get sizes of all tick and axes labels
-    labelw_l, labelh_b, labelw_r, labelh_t = get_axes_label_margins(ax)
+    label_wl, label_hb, label_wr, label_ht = get_axes_label_margins(ax)
+    # Get information on neighboring axes
+    ax_margins, neighbors = get_axes_neighbors(ax)
+    # Unpack axes margins
+    axes_wl, axes_hb, axes_wr, axes_ht = ax_margins 
     # Process width and height
-    ax_w = 1.0 - labelw_r - labelw_l
-    ax_h = 1.0 - labelh_t - labelh_b
+    ax_w = 1.0 - label_wr - label_wl - axes_wr - axes_wl
+    ax_h = 1.0 - label_ht - label_hb - axes_ht - axes_hb
     # Process row and column space available
     ax_rowh = ax_h / float(subplot_m)
     ax_colw = ax_w / float(subplot_n)
     # Default margins (no tight_layout yet)
-    adj_b = labelh_b + subplot_j * ax_rowh
-    adj_l = labelw_l + subplot_k * ax_colw
+    adj_b = label_hb + subplot_j * ax_rowh
+    adj_l = label_wl + subplot_k * ax_colw
     adj_r = adj_l + ax_colw
     adj_t = adj_b + ax_rowh
     # Get extra margins
@@ -850,8 +854,60 @@ def _axes_adjust(fig=None, **kw):
             # New edge locations
             adj_b = yc - 0.5*h1
             adj_t = yc + 0.5*h1
+    # Calculate shifts of each plot margin
+    dxa = adj_l - x0
+    dxb = adj_r - x0 - w0
+    dya = adj_b - y0
+    dyb = adj_t - y0 - h0
+    # New positions
+    x1 = adj_l
+    y1 = adj_b
+    w1 = adj_r - adj_l
+    h1 = adj_t - adj_b
     # Set new position
-    ax.set_position([adj_l, adj_b, adj_r-adj_l, adj_t-adj_b])
+    ax.set_position([x1, y1, w1, h1])
+    # Loop through neighbors
+    for k, axk in enumerate(fig.get_axes()):
+        # Skip main axes
+        if axk is ax:
+            continue
+        # Get current bounds
+        xk, yk, wk, hk = axk.get_position().bounds
+        # Get neighbor information
+        neighbor = neighbors[k]
+        # Determine horizontal shift (prior to link considerations)
+        if neighbor["lshift"]:
+            # Shift leftward
+            dxk = dxa
+        elif neighbor["rshift"]:
+            # Shift to the right
+            dxk = dxb
+        else:
+            # No shift
+            dxk = 0.0
+        # Determine vertical shift (prior to link considerations)
+        if neighbor["dshift"]:
+            # Shift downward
+            dyk = dya
+        elif neighbor["ushift"]:
+            # Shift upward
+            dyk = dyb
+        else:
+            # No vertical shift
+            dyk = 0.0
+        # Apply shifts to current bounds
+        xk1 = xk + dxk
+        yk1 = yk + dyk
+        # Check for horizontal linking
+        if neighbor["xlink"]:
+            # Copy horizontal from *ax*, shift vertical
+            axk.set_position([x1, yk1, w1, hk])
+        elif neighbor["ylink"]:
+            # Copy vertical from *ax*, shift horizontal
+            axk.set_position([xk1, y1, wk, h1])
+        else:
+            # Apply nominal shifts
+            axk.set_position([xk1, yk1, wk, hk])
     # Output
     return ax
 
@@ -2475,6 +2531,222 @@ def get_axes_label_margins(ax=None):
     margin_t = hb / jfig
     # Output
     return margin_l, margin_b, margin_r, margin_t
+
+
+# Get extents of other axes
+def get_axes_fig_margins(ax=None):
+    r"""Get margins due to other axes in figure
+
+    :Call:
+        >>> wl, hb, wr, ht = get_axes_fig_margins(ax)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Axes handle (defaults to ``plt.gca()``)
+    :Outputs:
+        *wl*: :class:`float`
+            Figure fraction beyond plot of axes on left
+        *hb*: :class:`float`
+            Figure fraction beyond plot of axes below
+        *wr*: :class:`float`
+            Figure fraction beyond plot of axes on right
+        *ht*: :class:`float`
+            Figure fraction beyond plot of axes above
+    :Versions:
+        * 2020-04-23 ``@ddalle``: First version
+    """
+    # Import modules
+    _import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # List of current axes
+    axs = fig.get_axes()
+    # Check for trivial case
+    if len(axs) == 1:
+        # No extra margins
+        return 0.0, 0.0, 0.0, 0.0
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Get pixel count for main axes
+    ia, ja, ib, jb = _get_axes_full_extents(ax)
+    # Initialize margins
+    wa = 0.0
+    ha = 0.0
+    wb = 0.0
+    hb = 0.0
+    # Loop through axes
+    for ax1 in axs:
+        # Skip main axes
+        if ax1 is ax:
+            continue
+        # Draw the axes once to ensure the extents can be calculated
+        ax1.draw(fig.canvas.get_renderer())
+        # Get extents of this figure
+        ia1, ja1, ib1, jb1 = _get_axes_full_extents(ax1)
+        # Expand margins if needed
+        wa = max(wa, ia - ia1)
+        ha = max(ha, ja - ja1)
+        wb = max(wb, ib1 - ib)
+        hb = max(hb, jb1 - jb)
+    # Convert to fractions
+    margin_l = wa / ifig
+    margin_b = ha / jfig
+    margin_r = wb / ifig
+    margin_t = hb / jfig
+    # Output
+    return margin_l, margin_b, margin_r, margin_t
+
+
+# Get extents of other axes
+def get_axes_neighbors(ax=None):
+    r"""Get information on neighboring axes
+
+    :Call:
+        >>> margins, neighbors = get_axes_neighbors(ax)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Axes handle (defaults to ``plt.gca()``)
+    :Outputs:
+        *wl*: :class:`float`
+            Figure fraction beyond plot of axes on left
+        *hb*: :class:`float`
+            Figure fraction beyond plot of axes below
+        *wr*: :class:`float`
+            Figure fraction beyond plot of axes on right
+        *ht*: :class:`float`
+            Figure fraction beyond plot of axes above
+    :Versions:
+        * 2020-04-23 ``@ddalle``: First version
+    """
+    # Import modules
+    _import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # List of current axes
+    axs = fig.get_axes()
+    # Check for trivial case
+    if len(axs) == 1:
+        # No extra margins
+        return (0.0, 0.0, 0.0, 0.0), [None]
+    # Draw the figure once to ensure the extents can be calculated
+    ax.draw(fig.canvas.get_renderer())
+    # Size of figure in pixels
+    _, _, ifig, jfig = fig.get_window_extent().bounds
+    # Get pixel count for main axes (plot only)
+    plot_ia, plot_ja, plot_ib, plot_jb = _get_axes_plot_extents(ax)
+    full_ia, full_ja, full_ib, full_jb = _get_axes_full_extents(ax)
+    # Bounds for up/down, left/right margins
+    x1 = plot_ia + 0.1*(plot_ib - plot_ia)
+    x2 = plot_ia + 0.9*(plot_ib - plot_ia)
+    y1 = plot_ja + 0.1*(plot_jb - plot_ja)
+    y2 = plot_ja + 0.9*(plot_jb - plot_ja)
+    # Tolerance for linked axes
+    tol = 0.05
+    # Initialize neighbors
+    neighbors = []
+    # Initialize margins
+    wa = 0.0
+    ha = 0.0
+    wb = 0.0
+    hb = 0.0
+    # Loop through axes
+    for k, axk in enumerate(axs):
+        # Check for main axes
+        if axk is ax:
+            # No margins needed
+            neighbors.append(None)
+            # Go to next axes
+            continue
+        # Initialize information for this neighbor
+        neighbor = {}
+        # Draw the axes once to ensure the extents can be calculated
+        axk.draw(fig.canvas.get_renderer())
+        # Get extents of this figure
+        ia1, ja1, ib1, jb1 = _get_axes_plot_extents(axk)
+        ia2, ja2, ib2, jb2 = _get_axes_full_extents(axk)
+        # Expand margins if needed
+        wa = max(wa, full_ia - ia2)
+        ha = max(ha, full_ja - ja2)
+        wb = max(wb, ib2 - full_ib)
+        hb = max(hb, jb2 - full_jb)
+        # Midpoint
+        xk = 0.5 * (ia1 + ib1)
+        yk = 0.5 * (ja1 + jb1)
+        # Check horizontal orientation
+        if xk < x1:
+            # To the left
+            lshift = True
+            rshift = False
+        elif xk <= x2:
+            # No horizontal shift
+            lshift = False
+            rshift = False
+        else:
+            # Shift right
+            lshift = False
+            rshift = True
+        # Check vertical orientation
+        if yk < y1:
+            # Downward
+            dshift = True
+            ushift = False
+        elif yk <= y2:
+            # No vertical shift
+            dshift = False
+            ushift = False
+        else:
+            # Shift up
+            dshift = False
+            ushift = True
+        # Check horizontal links
+        if abs(ia1 - plot_ia) / ifig <= tol:
+            if abs(ib1 - plot_ib) / ifig <= tol:
+                # Linked
+                xlink = True
+            else:
+                # Not linked
+                xlink = False
+        else:
+            # Not linked
+            xlink = False
+        # Check vertical links
+        if abs(ja1 - plot_ja) / jfig <= tol:
+            if abs(jb1 - plot_jb) / jfig <= tol:
+                # Linked
+                ylink = True
+            else:
+                # Not linked
+                ylink = False
+        else:
+            # Not linked
+            ylink = False
+        # Save neighbor information
+        neighbor = {
+            "xlink": xlink,
+            "ylink": ylink,
+            "lshift": lshift,
+            "rshift": rshift,
+            "dshift": dshift,
+            "ushift": ushift,
+        }
+        # Add neighbor to list
+        neighbors.append(neighbor)
+    # Convert to fractions
+    margin_l = wa / ifig
+    margin_b = ha / jfig
+    margin_r = wb / ifig
+    margin_t = hb / jfig
+    # Combine into tuple
+    margins = margin_l, margin_b, margin_r, margin_t
+    # Output
+    return margins, neighbors
 
 
 # Get extents of axes in pixels
