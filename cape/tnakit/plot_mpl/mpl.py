@@ -219,6 +219,30 @@ def contour(xv, yv, zv, **kw):
     # Call root function
     return _contour(xv, yv, zv, **kw_p)
 
+# Histogram function with options check
+def hist(v, **kw):
+    r"""Call the :func:`hist` function with cycling options
+
+    :Call:
+        >>> h = contour(v, **kw)
+    :Inputs:
+        *v*: :class:`np.ndarray`
+            Array of values
+    :Keyword Arguments:
+        %(keys)s
+    :Outputs:
+        *h*: :class:`tuple` 
+            Tuple of values, bins, patches
+    :Versions:
+        * 2020-04-23 ``@jmeeroff``: First version
+    """
+    # Process options
+    opts = MPLOpts(_section="hist", **kw)
+    # Get hist options
+    kw_p = opts.hist_options()
+    # Call root function
+    return _hist(v, **kw_p)
+
 # Error bar plot
 def errorbar(xv, yv, yerr=None, xerr=None, **kw):
     r"""Call the :func:`errorbar` function with options checks
@@ -2034,7 +2058,7 @@ def _scatter(xv, yv, s=None, c=None, **kw):
     return h
 
 
-# Scatter part
+# Histogram part
 def _hist(v, **kw):
     r"""Call the :func:`hist` function with cycling options
 
@@ -2042,7 +2066,7 @@ def _hist(v, **kw):
         >>> h = _hist(v, **kw)
     :Inputs:
         *v*: :class:`np.ndarray`
-            Array of *x*-coordinates
+            Array of values
         *i*, *Index*: {``0``} | :class:`int`
             Phase number to cycle through plot options
     :Keyword Arguments:
