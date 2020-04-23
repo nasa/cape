@@ -266,6 +266,58 @@ class Options(cape.cfdx.options.Options):
 
    # >
 
+   # =============
+   # us3d-prepar
+   # =============
+   # <
+    # Option to run
+    def get_us3d_prepar_run(self, i=0):
+        self._RunControl()
+        return self["RunControl"].get_us3d_prepar_run(i=i)
+
+    # Option to run
+    def set_us3d_prepar_run(self, run=rc0("us3d_prepar_run"), i=0):
+        self._RunControl()
+        self["RunControl"].set_us3d_prepar_run(run, i=i)
+
+    # Option for input file
+    def get_us3d_prepar_grid(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_us3d_prepar_grid(i=i)
+
+    # Option for input file
+    def set_us3d_prepar_grid(self, grid=rc0("us3d_prepar_grid"), i=None):
+        self._RunControl()
+        self["RunControl"].set_us3d_prepar_grid(grid, i=i)
+
+    # Option for conn file
+    def get_us3d_prepar_conn(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_us3d_prepar_conn(i=i)
+
+    # Option for conn file
+    def set_us3d_prepar_conn(self, conn=rc0("us3d_prepar_conn"), i=None):
+        self._RunControl()
+        self["RunControl"].set_us3d_prepar_conn(conn, i=i)
+
+    # Option for grid file
+    def get_us3d_prepar_output(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_us3d_prepar_output(i=i)
+
+    # Option for grid file
+    def set_us3d_prepar_output(self, fout=rc0("us3d_prepar_output"), i=None):
+        self._RunControl()
+        self["RunControl"].set_us3d_prepar_output(fout, i=i)
+
+    # Copy documentation     
+    for k in ["run", "grid", "conn", "output"]:
+        n1 = "get_us3d_prepar_" + k
+        n2 = "set_us3d_prepar_" + k
+        eval(n1).__doc__ = getattr(RunControl, n1).__doc__
+        eval(n2).__doc__ = getattr(RunControl, n2).__doc__
+   # >
+
    # ===================
    # input.inp settings
    # ===================

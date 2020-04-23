@@ -26,7 +26,7 @@ from datetime import datetime
 
 # CAPE modules
 import cape.cfdx.case as cc
-import acape.cfdx.queue as queue
+import cape.cfdx.queue as queue
 import cape.manage
 
 # Local imports

@@ -22,10 +22,10 @@ fpng = "bullet-CLM-contour.png"
 i = np.where(db['mach']==0.8)[0]
 
 # Set colormap keyword
-kw = {"ContourColorMap": "RdBu", "XLabel": "Alpha", "YLabel": "Beta"}
+kw = {"ContourColorMap": "RdBu", "XLabel": "beta", "YLabel": "alpha"}
 
 # Plot contour
-h = pmpl.contour(db["alpha"][i], db["beta"][i], db["bullet.CLM"][i], **kw)
+h = pmpl.contour(db["beta"][i], db["alpha"][i], db["bullet.CLM"][i], **kw)
 
 # Save figure
 h.fig.savefig("python%i-bullet-CLM-contour.png" % sys.version_info.major)

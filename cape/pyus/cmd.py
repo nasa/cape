@@ -38,6 +38,10 @@ The decision to use ``mpiexec`` or not is based on the keyword input
 from .options import runControl, getel
 
 
+# Handle to defaults
+rc0 = runControl.rc0
+
+
 # Function to create ``nodet`` or ``nodet_mpi`` command
 def nodet(opts=None, i=0, **kw):
     r"""Interface to FUN3D binary ``nodet`` or ``nodet_mpi``
@@ -146,27 +150,44 @@ def us3d_prepar(opts=None, i=0, **kw):
     if opts is not None:
         # Downselect to "RunControl" section if necessary
         if "RunControl" in opts:
-            opts = opts["RunControl"]
-        # Downselect to "dual" section if necessary
-        if "dual" in opts:
+            # Get subsection
+            rc = opts["RunControl"]
+        else:
+            # Use whole thing
+            rc = opts
+        # Downselect to "us3d-prepar" section if necessary
+        if "us3d-prepar" in rc:
+            opts = rc["us3d-prepar"]
+        # Check if we have a valid "RunControl" instance
+        if isinstance(rc, runControl.RunControl):
             # Get values for run configuration
-            n_mpi  = opts.get_MPI(i)
-            mpicmd = opts.get_mpicmd(i)
+            n_mpi  = rc.get_MPI(i)
+            mpicmd = rc.get_mpicmd(i)
         else:
             # Use defaults
-            n_mpi  = runControl.rc0('MPI')
-            mpicmd = runControl.rc0('mpicmd')
+            n_mpi  = rc.get("MPI", rc0('MPI'))
+            mpicmd = rc.get("mpicmd", rc0('mpicmd'))
+        # Check if we have a valid "us3d-prepar" instance
+        if isinstance(opts, runControl.US3DPrepar):
+            # Get values for command line
+            grid = opts.get_us3d_prepar_grid(i)
+            conn = opts.get_us3d_prepar_conn(i)
+            fout = opts.get_us3d_prepar_output(i)
+        else:
+            # Defaults
+            grid = opts.get("grid", rc0("us3d_prepar_grid"))
+            conn = opts.get("conn", rc0("us3d_prepar_conn"))
+            fout = opts.get("output", rc0("us3d_prepar_output"))
     else:
         # Use defaults
-        n_mpi  = runControl.rc0('MPI')
-        mpicmd = runControl.rc0('mpicmd')
+        n_mpi  = rc0('MPI')
+        mpicmd = rc0('mpicmd')
+        grid = rc0("us3d_prepar_grid")
+        conn = rc0("us3d_prepar_conn")
+        fout = rc0("us3d_prepar_output")
     # Process keyword overrides
     n_mpi  = kw.get('MPI',    n_mpi)
     mpicmd = kw.get('mpicmd', mpicmd)
-    # Process CLI options
-    grid = "pyus.cas"
-    fout = None
-    conn = None
     # Process keyword overrides
     grid = kw.get("grid", grid)
     fout = kw.get("output", fout)

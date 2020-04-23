@@ -124,6 +124,9 @@ def contour(xv, yv, zv, *a, **kw):
    # --- Labeling ---
     # Colorbar
     _part_colorbar(opts, h)
+   # --- Cleanup ---
+    # Final margin adjustment
+    _part_axes_adjust(opts, h)
     # Output
     return h
 
@@ -438,7 +441,7 @@ def _part_colorbar(opts, h):
     # Process colorbar options [None yet]
     kw = {}
     # Setup colobar
-    cbar = mpl._colorbar(h.contour, **kw)
+    cbar = mpl._colorbar(**kw)
     # Save
     h.save("colorbar", cbar)
 
