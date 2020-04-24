@@ -2702,8 +2702,8 @@ class DataKit(ftypes.BaseData):
         # Handle to class
         cls = self.__class__
         # Class attributes
-        _tagcols = cls._tagcols
-        _tagsubs = cls._tagsubmap
+        _tagcols = cls.__dict__.get("_tagcols", {})
+        _tagsubs = cls.__dict__.get("_tagsubmap", {})
         # Initialize set
         args_alt = set(cls._tagsubcols.get(col, set()))
         # Use extra columns provided by user
@@ -7822,6 +7822,13 @@ class DataKit(ftypes.BaseData):
         # Default labels
         kwo.setdefault("XLabel", xk)
         kwo.setdefault("YLabel", yk)
+        # Set default for *MarkPoints*
+        if mode < 2:
+            # Plotting exact points
+            kwo.setdefault("MarkPoints", True)
+        else:
+            # Plotting output from response
+            kwo.setdefault("MarkPoints", False)
         # Call contour function
         return pmpl.contour(x, y, v, **kwo)
 

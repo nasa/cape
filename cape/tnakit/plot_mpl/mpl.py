@@ -2005,16 +2005,25 @@ def _contour(xv, yv, zv, **kw):
     kw_c = MPLOpts.select_phase(kw, i)
     # Option to mark the data points
     mark = kw_c.pop("MarkPoints", kw_c.pop("mark", True))
+    # Get levels
+    levels = kw_c.pop("levels", None)
+    # Put together args
+    if levels is None:
+        # No specified levels
+        a = xv, yv, zv
+    else:
+        # Number of values of levels specified
+        a = xv, yv, zv, levels
     # Filter the contour type
     if ctyp == "tricontourf":
         # Filled contour
-        h = plt.tricontourf(xv, yv, zv, **kw_c)
+        h = plt.tricontourf(*a, **kw_c)
     elif ctyp == "tricontour":
         # Contour lines
-        h = plt.tricontour(xv, yv, zv, **kw_c)
+        h = plt.tricontour(*a, **kw_c)
     elif ctyp == "tripcolor":
         # Triangulated 
-        h = plt.tripcolor(xv, yv, zv, **kw_c)
+        h = plt.tripcolor(*a, **kw_c)
     else:
          # Unrecognized
         raise ValueError("Unrecognized ContourType '%s'" % ctyp)

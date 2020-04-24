@@ -16,18 +16,27 @@ db = rdb.DataKit("bullet-fm-mab.mat")
 
 # Column to plot
 col = "bullet.CN"
+# Args
+args = ["mach", "alpha", "beta"]
+# Create response
+db.make_response(col, "linear", args)
+# Create break points
+db.create_bkpts(args)
 # Filter
 I, _ = db.find(["mach"], 0.95)
+# Get mach, alpha, beta values
+mach = 0.90
+alpha = db["alpha"][I]
+beta = db["beta"][I]
 
 # Other options
 kw = {
     "ContourColorMap": "RdYlBu_r",
-    "MarkerSize": 3,
 }
 
 # Plot
-h = db.plot_contour(col, I, xk="beta", yk="alpha", **kw)
+h = db.plot_contour(col, mach, alpha, beta, xk="beta", yk="alpha", **kw)
 
 # Save figure
-h.fig.savefig("python%i-CN-mask.png" % sys.version_info.major)
+h.fig.savefig("python%i-CN-response.png" % sys.version_info.major)
 
