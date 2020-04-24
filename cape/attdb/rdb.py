@@ -2834,7 +2834,56 @@ class DataKit(ftypes.BaseData):
         elif narg > 0:
             # Args declared but no method
             return 3
-            
+
+    # Separate rcall keywords and other kwargs
+    def sep_response_kwargs(self, col, **kw):
+        r"""Separate kwargs used for response and other options
+
+        :Call:
+            >>> kwr, kwo = db.sep_response_kwargs(col, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to look up or calculate
+            *kw*: :class:`dict`
+                Keyword args to :func:`__call__` or other methods
+        :Outputs:
+            *kwr*: :class:`dict`
+                Keyword args to :func:`__call__` or other methods
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+        # Check for trivial case
+        if not kw:
+            # No kwargs to separate
+            return {}, {}
+        # Otherwise, check for kwargs
+        altargs = self.get_arg_alternates(col)
+        # Get nominal args
+        args = self.get_response_args(col)
+        # Check if any defined
+        if (not args) and (not altargs):
+            # All kwargs are "other"
+            return {}, kw
+        # Initialize groups
+        kwr = {}
+        kwo = {}
+        # Loop through input kwargs
+        for k, v in kw.items():
+            # Check if it's an arg or possible arg
+            if args and (k in args):
+                # Main rcall() arg
+                kwr[k] = v
+            elif altargs and (k in altargs):
+                # Alternate rcall arg
+                kwr[k] = v
+            else:
+                # Other kwarg
+                kwo[k] = v
+        # Output
+        return kwr, kwo
+
    # --- Arguments ---
     # Get argument value
     def get_arg_value(self, i, k, *a, **kw):
@@ -7704,6 +7753,77 @@ class DataKit(ftypes.BaseData):
         # Return plot handle
         return h
        # ---
+
+   # --- Contour ---
+    # Plot contour
+    def plot_contour(self, *a, **kw):
+       # --- Argument Types ---
+        # Process coefficient name and remaining coeffs
+        col, a, kw = self._prep_args_colname(*a, **kw)
+        # Separate out rcall() and plot() kwargs
+        kwr, kwo = self.sep_response_kwargs(col, **kw)
+       # --- Value Lookup ---
+        # Check call mode
+        mode = self._check_callmode(col, *a, **kw)
+        # Response args
+        args = self.get_response_args(col)
+        # Number of args
+        if args:
+            # Nontrivial response args set
+            narg = len(args)
+        else:
+            # No args
+            narg = 0
+        # Default cols for axes
+        if narg > 0:
+            xk = args[0]
+        else:
+            xk = None
+        if narg > 1:
+            yk = args[1]
+        else:
+            yk = None
+        # Get cols to use for axes
+        xk = kwo.pop("xcol", kwo.pop("xk", xk))
+        yk = kwo.pop("ycol", kwo.pop("yk", xk))
+        # These are required
+        if xk is None:
+            raise ValueError("No required 'xcol' option specified")
+        if yk is None:
+            raise ValueError("No required 'ycol' option specified")
+        # Get main values
+        v = self(col, *a, **kwr)
+        # Lookup main args
+        if mode == 0:
+            # All values
+            x = self.get_all_values(xk)
+            y = self.get_all_values(yk)
+        elif mode == 1:
+            # Indices/mask
+            x = self.get_values(xk, a[0])
+            y = self.get_values(yk, a[0])
+        elif mode in [2, 3]:
+            # Check if this is an arg
+            if xk not in args:
+                raise ValueError(
+                    "Cannot determine values of '%s' from args to '%s'"
+                    % (xk, col))
+            if yk not in args:
+                raise ValueError(
+                    "Cannot determine values of '%s' from args to '%s'"
+                    % (xk, col))
+            # Evaluation args
+            x = self.get_arg_value(args.index(xk), xk, *a, **kwr)
+            y = self.get_arg_value(args.index(yk), yk, *a, **kwr)
+        else:
+            # Couldn't figure out *x* and *y*
+            raise ValueError("Could not determine lookup mode for '%s'" % col)
+       # --- Plot ---
+        # Default labels
+        kwo.setdefault("XLabel", xk)
+        kwo.setdefault("YLabel", yk)
+        # Call contour function
+        return pmpl.contour(x, y, v, **kwo)
 
    # --- PNG ---
     # Plot PNG
