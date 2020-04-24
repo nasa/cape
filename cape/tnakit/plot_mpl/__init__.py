@@ -288,9 +288,10 @@ def _part_contour(opts, h):
     yv = opts.get_option("y")
     zv = opts.get_option("z")
     # Contour plot call
-    contour = mpl._contour(xv, yv, zv, **kw)
-    # Save contour
+    contour, lines = mpl._contour(xv, yv, zv, **kw)
+    # Save contour and lines
     h.save("contour", contour)
+    h.save("lines", lines)
 
 
 # Partial function: contour()

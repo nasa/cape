@@ -196,7 +196,7 @@ def contour(xv, yv, zv, **kw):
     r"""Call the :func:`contour` function with cycling options
 
     :Call:
-        >>> h = contour(xv, yv, zv, **kw)
+        >>> hc, hl = contour(xv, yv, zv, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of *x*-coordinates
@@ -207,7 +207,9 @@ def contour(xv, yv, zv, **kw):
     :Keyword Arguments:
         %(keys)s
     :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.tri.tricontour`)
+        *hc*: :class:`matplotlib.tri.tricontour.TriContourSet`
+            Unstructured contour handles
+        *hl*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
         * 2020-03-26 ``@jmeeroff``: First version
@@ -1929,7 +1931,7 @@ def _plot(xv, yv, fmt=None, **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.plot`
     :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+        *h*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
@@ -1962,7 +1964,7 @@ def _contour(xv, yv, zv, **kw):
     r"""Call the :func:`contour` function with cycling options
 
     :Call:
-        >>> h = _plot(xv, yv, zv, **kw)
+        >>> hc, hl = _plot(xv, yv, zv, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of *x*-coordinates
@@ -1977,7 +1979,9 @@ def _contour(xv, yv, zv, **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.tricontourf`
     :Outputs:
-        *h*: :class:`list`\ [:class:`matplotlib.tri.tricontour`]
+        *hc*: :class:`matplotlib.tri.tricontour.TriContourSet`
+            Unstructured contour handles
+        *hl*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
@@ -2020,8 +2024,11 @@ def _contour(xv, yv, zv, **kw):
         kw_p = MPLOpts.select_phase(kw_p, i)
         # Plot
         hline = plt.plot(xv, yv, **kw_p)
+    else:
+        # No lines
+        hline = []
     # Output
-    return h
+    return h, hline
 
 
 # Scatter part

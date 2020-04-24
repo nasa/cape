@@ -19,8 +19,14 @@ col = "bullet.CN"
 # Filter
 I, _ = db.find(["mach"], 0.95)
 
+# Other options
+kw = {
+    "ContourColorMap": "seismic",
+    "MarkerSize": 3,
+}
+
 # Plot
-h = db.plot_contour(col, I, xk="beta", yk="alpha")
+h = db.plot_contour(col, I, xk="beta", yk="alpha", **kw)
 
 # Save figure
 h.fig.savefig("python%i-CN-mask.png" % sys.version_info.major)
