@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2020-04-23 at 10:47 PDT
+   on 2020-04-24 at 15:34 PDT
 
 Test ``03_contour``
 =====================
@@ -34,8 +34,8 @@ Command 1: Contour plot: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.770492 seconds
-    * Cumulative time: 0.770492 seconds
+    * Command took 0.761818 seconds
+    * Cumulative time: 0.761818 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -63,8 +63,8 @@ Command 2: Contour plot: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.19567 seconds
-    * Cumulative time: 1.96616 seconds
+    * Command took 1.18024 seconds
+    * Cumulative time: 1.94206 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

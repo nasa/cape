@@ -1956,6 +1956,7 @@ def _plot(xv, yv, fmt=None, **kw):
     # Output
     return h
 
+
 # contour part
 def _contour(xv, yv, zv, **kw):
     r"""Call the :func:`contour` function with cycling options
@@ -1976,7 +1977,7 @@ def _contour(xv, yv, zv, **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.tricontourf`
     :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.tri.tricontour`)
+        *h*: :class:`list`\ [:class:`matplotlib.tri.tricontour`]
             List of line instances
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
@@ -1991,23 +1992,34 @@ def _contour(xv, yv, zv, **kw):
     i = kw.pop("Index", kw.pop("i", 0))
     # Get rotation option
     r = kw.pop("Rotate", kw.pop("rotate", False))
+    # Options for marker
+    kw_p = kw.pop("MarkerOptions", {})
     # Flip inputs
     if r:
         yv, xv = xv, yv
     # Initialize plot options
-    kw_p = MPLOpts.select_phase(kw, i)
+    kw_c = MPLOpts.select_phase(kw, i)
+    # Option to mark the data points
+    mark = kw_c.pop("MarkPoints", kw_c.pop("mark", True))
+    # Filter the contour type
     if ctyp == "tricontourf":
         # Filled contour
-        h = plt.tricontourf(xv, yv, zv, **kw_p)
+        h = plt.tricontourf(xv, yv, zv, **kw_c)
     elif ctyp == "tricontour":
         # Contour lines
-        h = plt.tricontour(xv, yv, zv, **kw_p)
+        h = plt.tricontour(xv, yv, zv, **kw_c)
     elif ctyp == "tripcolor":
         # Triangulated 
-        h = plt.tripcolor(xv, yv, zv, **kw_p)
+        h = plt.tripcolor(xv, yv, zv, **kw_c)
     else:
          # Unrecognized
         raise ValueError("Unrecognized ContourType '%s'" % ctyp)
+    # Check for marker options
+    if mark:
+        # Select phase for markers
+        kw_p = MPLOpts.select_phase(kw_p, i)
+        # Plot
+        hline = plt.plot(xv, yv, **kw_p)
     # Output
     return h
 

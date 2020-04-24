@@ -152,6 +152,10 @@ class MPLOpts(kwutils.KwargHandler):
         "MarginRight",
         "MarginTop",
         "MarginVSpace",
+        "MarkPoints",
+        "MarkerColor",
+        "MarkerOptions",
+        "MarkerSize",
         "MinMaxOptions",
         "MinMaxPlotType",
         "MinorGrid",
@@ -372,7 +376,11 @@ class MPLOpts(kwutils.KwargHandler):
             "Index",
             "Rotate",
             "ContourType",
-            "ContourOptions"
+            "ContourOptions",
+            "MarkPoints",
+            "MarkerColor",
+            "MarkerOptions",
+            "MarkerSize"
         ],
         "error": [
             "Index",
@@ -619,6 +627,10 @@ class MPLOpts(kwutils.KwargHandler):
         "MarginRight": float,
         "MarginTop": float,
         "MarginVSpace": float,
+        "MarkPoints": bool,
+        "MarkerColor": (tuple, typeutils.strlike),
+        "MarkerOptions": dict,
+        "MarkerSize": (int, float),
         "MinorGrid": bool,
         "MinorGridOptions": dict,
         "MinMaxOptions": dict,
@@ -704,6 +716,13 @@ class MPLOpts(kwutils.KwargHandler):
     # Global options mapped to subcategory options
     _kw_submap = {
         "AxesOptions": {},
+        "ContourOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "Label": "label",
+            "ContourColorMap": "cmap",
+            "MarkerOptions": "MarkerOptions",
+        },
         "ErrorOptions": {},
         "FigOptions": {
             "FigNumber": "num",
@@ -758,6 +777,10 @@ class MPLOpts(kwutils.KwargHandler):
             "LegendFontVariant": "variant",
             "LegendFontWeight": "weight",
         },
+        "MarkerOptions": {
+            "MarkerColor": "color",
+            "MarkerSize": "markersize",
+        },
         "MinMaxOptions": {},
         "PlotOptions": {
             "Index": "Index",
@@ -765,13 +788,7 @@ class MPLOpts(kwutils.KwargHandler):
             "Label": "label",
             "PlotColor": "color",
             "PlotLineWidth": "lw",
-            "PlotLineStyle": "ls"
-        },
-        "ContourOptions": {
-            "Index": "Index",
-            "Rotate": "Rotate",
-            "Label": "label",
-            "ContourColorMap": "cmap",
+            "PlotLineStyle": "ls",
         },
         "ScatterOptions": {
             "Index": "Index",
@@ -806,11 +823,6 @@ class MPLOpts(kwutils.KwargHandler):
    # --- Conflicting Options ---
     # Aliases to merge for subcategory options
     _kw_subalias = {
-        "PlotOptions": {
-            "linewidth": "lw",
-            "linestyle": "ls",
-            "c": "color",
-        },
         "ContourOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
@@ -836,6 +848,17 @@ class MPLOpts(kwutils.KwargHandler):
             "c": "color",
         },
         "HistOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
+        "PlotOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
+        "MarkerOptions": {
+            "ms": "markersize",
             "linewidth": "lw",
             "linestyle": "ls",
             "c": "color",
@@ -919,6 +942,10 @@ class MPLOpts(kwutils.KwargHandler):
         "MarginRight": _rst_float,
         "MarginTop": _rst_float,
         "MarginVSpace": _rst_float,
+        "MarkPoints": _rst_boolt,
+        "MarkerColor": """{``None``} | :class:`str` | :class:`tuple`""",
+        "MarkerOptions": _rst_dict,
+        "MarkerSize": """{``None``} | :class:`int` | :class:`float`""",
         "MinMaxPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "MinMaxOptions": _rst_dict,
         "MinorGrid": _rst_boolf,
@@ -943,6 +970,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowError": _rst_booln,
         "ShowMinMax": _rst_booln,
         "ShowUncertainty": _rst_booln,
+        "SpineOptions": _rst_dict,
         "Subplot": """{``None``} | :class:`Axes` | :class:`int`""",
         "SubplotCols": _rst_intpos,
         "SubplotList": r"""{``None``} | :class:`list`\ [:class:`int`]""",
@@ -1061,6 +1089,10 @@ class MPLOpts(kwutils.KwargHandler):
         "MarginRight": "Figure fraction from right edge to right-most label",
         "MarginTop": "Figure fraction from top edge to top-most label",
         "MarginVSpace": "Figure fraction for vertical space between axes",
+        "MarkPoints": "Put a marker at contributing data points",
+        "MarkerColor": "Color for markers in *MarkerOptions*",
+        "MarkerOptions": "Options for markers on non-plot() functions",
+        "MarkerSize": "*markersize* passed to *MarkerOptions*",
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
         "MinMaxPlotType": """Plot type for min/max plot""",
         "MinorGrid": """Turn on/off grid at minor ticks""",
@@ -1086,6 +1118,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowError": """Show "error" plot using *xerr*""",
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
         "ShowUncertainty": """Plot uncertainty bounds""",
+        "SpineOptions": """Options for all spines""",
         "Subplot": "Subplot index (1-based)",
         "SubplotCols": "Expected number of subplot columns",
         "SubplotList": "List of subplots to put in row/column",
@@ -1167,6 +1200,14 @@ class MPLOpts(kwutils.KwargHandler):
             "loc": "upper center",
             "labelspacing": 0.5,
             "framealpha": 1.0,
+        },
+        "MarkerOptions": {
+            "color": "k",
+            "marker": "o",
+            "markersize": 4,
+            "ls": "-",
+            "lw": 0,
+            "zorder": 7,
         },
         "MinMaxOptions": {},
         "MinMaxPlotType": "FillBetween",
