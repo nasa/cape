@@ -368,6 +368,12 @@ class MPLOpts(kwutils.KwargHandler):
             "XMax",
             "XMin"
         ],
+        "contour": [
+            "Index",
+            "Rotate",
+            "ContourType",
+            "ContourOptions"
+        ],
         "error": [
             "Index",
             "Rotate",
@@ -411,6 +417,11 @@ class MPLOpts(kwutils.KwargHandler):
             "MinorGrid",
             "MinorGridOptions",
         ],
+        "hist" : [
+            "HistBins",
+            "HistColor",
+            "HistOptions"
+        ],
         "imshow": [
             "ImageXMin",
             "ImageXMax",
@@ -440,17 +451,6 @@ class MPLOpts(kwutils.KwargHandler):
             "Rotate",
             "PlotOptions",
             "PlotFormat"
-        ],
-        "contour": [
-            "Index",
-            "Rotate",
-            "ContourType",
-            "ContourOptions"
-        ],
-        "hist" : [
-            "HistBins",
-            "HistColor",
-            "HistOptions"
         ],
         "minmax": [
             "Index",
