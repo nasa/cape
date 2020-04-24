@@ -51,6 +51,7 @@ class AeroDataKit(rdb.DataKit):
   # ==================
   # <
    # --- Tags ---
+    # Built-in list of default tags based on column name
     _tagmap = {
         "ALPH":      "alpha",
         "ALPHA":     "alpha",
@@ -91,6 +92,16 @@ class AeroDataKit(rdb.DataKit):
         "q":         "q",
         "qbar":      "q",
         "qinf":      "q",
+    }
+
+    # Tags that could be computed using other tags
+    _tagsubmap = {
+        "alpha": {"aoap", "aoav", "phip", "phiv"},
+        "aoap": {"alpha", "aoav", "beta", "phiv"},
+        "aoav": {"alpha", "aoap", "beta", "phip"},
+        "beta": {"aoap", "aoav", "phip", "phiv"},
+        "phip": {"alpha", "aoav", "beta", "phiv"},
+        "phiv": {"alpha", "aoap", "beta", "phip"},
     }
   # >
 
@@ -274,6 +285,7 @@ class AeroDataKit(rdb.DataKit):
 
 # Combine options
 kwutils._combine_val(AeroDataKit._tagmap, rdb.DataKit._tagmap)
+kwutils._combine_val(AeroDataKit._tagsubmap, rdb.DataKit._tagsubmap)
 
 # Invert the _tagmap
 AeroDataKit.create_tagcols()

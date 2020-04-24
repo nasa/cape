@@ -48,14 +48,6 @@ _beta_cols = rdbaero.AeroDataKit._tagcols["beta"]
 _phip_cols = rdbaero.AeroDataKit._tagcols["phip"]
 _phiv_cols = rdbaero.AeroDataKit._tagcols["phiv"]
 
-# Combined sets of cols for taging
-_alph_tcols = _alph_cols | _aoap_cols | _aoav_cols | _phip_cols | _phiv_cols
-_aoap_tcols = _alph_cols | _aoap_cols | _aoav_cols | _beta_cols | _phiv_cols
-_aoav_tcols = _alph_cols | _aoap_cols | _aoav_cols | _beta_cols | _phip_cols
-_beta_tcols = _aoap_cols | _aoav_cols | _beta_cols | _phip_cols | _phiv_cols
-_phip_tcols = _alph_cols | _aoav_cols | _beta_cols | _phip_cols | _phiv_cols
-_phip_tcols = _alph_cols | _aoap_cols | _beta_cols | _phip_cols | _phiv_cols
-
     
 # Standard converters: alpha
 def convert_alpha(*a, **kw):

@@ -156,7 +156,10 @@ class DataKit(ftypes.BaseData):
     # Class for definitions
     _defncls = DataKitDefn
 
-   # --- Method Names ---
+   # --- Special Columns ---
+    _tagsubmap = {}
+
+   # --- Response Method Names ---
     # Primary names
     _method_names = [
         "exact",
@@ -233,6 +236,7 @@ class DataKit(ftypes.BaseData):
         self.bkpts = {}
         self.sources = {}
         # Evaluation attributes
+        self.response_arg_alternates = {}
         self.response_arg_converters = {}
         self.response_arg_aliases = {}
         self.response_arg_defaults = {}
@@ -240,7 +244,6 @@ class DataKit(ftypes.BaseData):
         self.response_kwargs = {}
         self.response_methods = {}
         self.response_xargs = {}
-        self.response_tagcols = {}
         # Extra attributes for plotting
         self.col_pngs = {}
         self.col_seams = {}
@@ -1299,39 +1302,23 @@ class DataKit(ftypes.BaseData):
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
-        # Number of args specified (roughly)
-        na = len(a)
-        nkw = len(kw)
-        # Check for empty inputs
-        if na + nkw == 0:
-            # Just return entire column
+        # Determine call mode
+        mode = self._check_callmode(col, *a, **kw)
+        # Filter mode
+        if mode == 0:
+            # Return entire column
             return self.get_all_values(col)
-        # Get response definition
-        method = self.get_response_method(col)
-        arg_list = self.get_response_args(col)
-        # Check for empty response
-        if (method is None) or (not arg_list):
-            # Check for a mask
-            if na > 0:
-                # At least one arg specified
-                mask = kw.get("mask", a[0])
-            else:
-                # No args specified
-                mask = kw.get("mask")
-            # If no response, then use indexing
-            return self.get_values(col, mask)
-        # Check for indexing in more ambiguous case
-        if na == 1:
-            # Process first arg as a mask
-            if self.check_mask(a[0]):
-                # Look up using indices
-                return self.get_values(col, a[0])
-            else:
-                # Call response surface
-                return self.rcall(col, *a, **kw)
-        else:
-            # If not exactly one arg, use the response
+        elif mode == 1:
+            # Use a mask
+            return self.get_values(col, a[0])
+        elif mode == 2:
+            # Use defined response
             return self.rcall(col, *a, **kw)
+        elif mode == 3:
+            # Use exact; args defined but no method
+            args = self.get_response_args(col)
+            # Get exact matches
+            return self.rcall_exact(col, args, *a, **kw)
 
     # Evaluate response
     def rcall(self, *a, **kw):
@@ -1449,89 +1436,120 @@ class DataKit(ftypes.BaseData):
             # Output
             return V
 
-   # --- Alternative Evaluation ---
-    # Evaluate only exact matches
-    def rcall_exact(self, *a, **kw):
-        r"""Evaluate a column but only at points with exact matches
+   # --- Alternative Evaluation ---# Find exact match
+    def rcall_exact(self, col, args, *a, **kw):
+        r"""Evaluate a coefficient by looking up exact matches
 
         :Call:
-            >>> V, I, J, X = db.rcall_exact(*a, **kw)
-            >>> V, I, J, X = db.rcall_exact(col, x0, X1, ...)
-            >>> V, I, J, X = db.rcall_exact(col, k0=x0, k1=X1, ...)
+            >>> v = db.rcall_exact(col, args, *a, **kw)
+            >>> V = db.rcall_exact(col, args, *a, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
-            *x0*: :class:`float` | :class:`int`
-                Value[s] for first argument to *col* evaluator
-            *x1*: :class:`float` | :class:`int`
-                Value[s] for second argument to *col* evaluator
-            *X1*: :class:`np.ndarray`\ [:class:`float`]
-                Array of *x1* values
-            *k0*: :class:`str`
-                Name of first argument to *col* evaluator
-            *k1*: :class:`str`
-                Name of second argument to *col* evaluator
+            *args*: :class:`list` | :class:`tuple`
+                List of explanatory col names (numeric)
+            *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+                Tuple of values for each argument in *args*
+            *tol*: {``1.0e-4``} | :class:`float` > 0
+                Default tolerance for exact match
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` > 0]
+                Dictionary of key-specific tolerances
+            *kw*: :class:`dict`\ [:class:`float` | :class:`np.ndarray`]
+                Alternate keyword arguments
         :Outputs:
+            *v*: ``None`` | :class:`float`
+                Value of *db[col]* exactly matching conditions *a*
             *V*: :class:`np.ndarray`\ [:class:`float`]
-                Array of function outputs
-            *I*: :class:`np.ndarray`\ [:class:`int`]
-                Indices of cases matching inputs (see :func:`find`)
-            *J*: :class:`np.ndarray`\ [:class:`int`]
-                Indices of matches within input arrays
-            *X*: :class:`tuple`\ [:class:`np.ndarray`]
-                Values of arguments at exact matches
+                Multiple values matching exactly
         :Versions:
-            * 2019-03-11 ``@ddalle``: First version
-            * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
         """
-       # --- Get coefficient name ---
-        # Process coefficient name and remaining coeffs
-        col, a, kw = self._prep_args_colname(*a, **kw)
-       # --- Matching values
-        # Get list of arguments for this coefficient
-        args = self.get_response_args(coeff)
-        # Possibility of fallback values
-        arg_defaults = getattr(self, "response_arg_defaults", {})
-        # Find exact matches
-        I, J = self.find(args, *a, **kw)
-        # Initialize values
-        x = []
-        # Loop through coefficients
+        # Check for column
+        if (col not in self.cols) or (col not in self):
+            # Missing col
+            raise KeyError("Col '%s' is not present" % col)
+        # Get values
+        V = self[col]
+        # Create mask
+        I = np.arange(len(V))
+        # Tolerance dictionary
+        tols = kw.get("tols", {})
+        # Default tolerance
+        tol = 1.0e-4
+        # Loop through keys
         for (i, k) in enumerate(args):
-            # Get values
-            V = self.get_all_values(k)
-            # Check for mismatch
-            if V is None:
-                # Attempt to get value from inputs
-                xi = self.get_arg_value(i, k, *a, **kw)
-                # Check for scalar
-                if xi is None:
-                    raise ValueError(
-                        ("Could not generate array of possible values ") +
-                        ("for argument '%s'" % k))
-                elif typeutils.isarray(xi):
-                    raise ValueError(
-                        ("Could not generate fixed scalar for test values ") +
-                        ("of argument '%s'" % k))
-                # Save the scalar value
-                x.append(xi)
-            else:
-                # Save array of varying test values
-                x.append(V[I])
-        # Normalize
-        X, dims = self.normalize_args(x)
-       # --- Evaluation ---
-        # Evaluate coefficient at matching points
-        if col in self:
-            # Use direct indexing
-            V = self[col][I]
+            # Get value
+            xi = a[i]
+            # Get tolerance
+            toli = tols.get(k, kw.get("tol", tol))
+            # Apply test
+            qi = np.abs(self[k][I] - xi) <= toli
+            # Combine constraints
+            I = I[qi]
+            # Break if no matches
+            if len(I) == 0:
+                return None
+        # Test number of outputs
+        if len(I) == 1:
+            # Single output
+            return V[I[0]]
         else:
-            # Use evaluator (necessary for coeffs like *CLMX*)
-            V = self.__call__(col, *X, **kw)
-        # Output
-        return V, I, J, X
+            # Multiple outputs
+            return V[I]
+
+    # Lookup nearest value
+    def rcall_nearest(self, col, args, *a, **kw):
+        r"""Evaluate a coefficient by looking up nearest match
+
+        :Call:
+            >>> v = db.rcall_nearest(col, args, *a, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of (numeric) column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of explanatory col names (numeric)
+            *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+                Tuple of values for each argument in *args*
+            *weights*: {``{}``} | :class:`dict` (:class:`float` > 0)
+                Dictionary of arg-specific distance weights
+        :Outputs:
+            *y*: :class:`float` | *db[col].__class__*
+                Value of *db[col]* at point closest to *a*
+        :Versions:
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
+        """
+        # Check for column
+        if (col not in self.cols) or (col not in self):
+            # Missing col
+            raise KeyError("Col '%s' is not present" % col)
+        # Get values
+        V = self[col]
+        # Array length
+        n = len(V)
+        # Initialize distances
+        d = np.zeros(n, dtype="float")
+        # Dictionary of distance weights
+        W = kw.get("weights", {})
+        # Loop through keys
+        for (i, k) in enumerate(args):
+            # Get value
+            xi = x[i]
+            # Get weight
+            wi = W.get(k, 1.0)
+            # Distance
+            d += wi*(self[k] - xi)**2
+        # Find minimum distance
+        j = np.argmin(d)
+        # Use that value
+        return V[j]
 
     # Evaluate UQ from coefficient
     def rcall_uq(self, *a, **kw):
@@ -1855,12 +1873,15 @@ class DataKit(ftypes.BaseData):
                 interpolation, ``0.0`` for exact interpolation
             *func*: **callable**
                 Function to use for ``"function"`` *method*
+            *extracols*: {``None``} | :class:`set` | :class:`list`
+                Additional col names that might be used as kwargs
         :Versions:
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-30 ``@ddalle``: Version 2.0; map of methods
             * 2020-02-18 ``@ddalle``: Name from :func:`_set_method1`
             * 2020-03-06 ``@ddalle``: Name from :func:`set_response`
+            * 2020-04-24 ``@ddalle``: Add *response_arg_alternates*
         """
        # --- Input checks ---
         # Check inputs
@@ -1918,6 +1939,8 @@ class DataKit(ftypes.BaseData):
         self.set_response_method(col, method)
         # Argument list is the same for all methods
         self.set_response_args(col, args)
+        # Construct list (set actually) of kwargs for this key
+        self.create_arg_alternates(col, extracols=kw.get("extracols"))
 
    # --- Constructors ---
     # Explicit function
@@ -2657,20 +2680,161 @@ class DataKit(ftypes.BaseData):
         response_acols[col] = acols
 
    # --- Aliases and Tagcols ---
-    # Get list of tag cols
-    def genr8_tagcols(self, col):
+    # Create set of kwargs that might be used as alternates
+    def create_arg_alternates(self, col, extracols=None):
+        r"""Create set of keys that might be used as kwargs to *col*
+
+        :Call:
+            >>> db.create_arg_alternates(col, extracols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column with response method
+            *extracols*: {``None``} | :class:`set` | :class:`list`
+                Additional col names that might be used as kwargs
+        :Effects:
+            *db.respone_arg_alternates[col]*: :class:`set`
+                Cols that are used by response for *col*
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+        # Handle to class
+        cls = self.__class__
+        # Class attributes
+        _tagcols = cls._tagcols
+        _tagsubs = cls._tagsubmap
         # Initialize set
-        tagcols = set()
+        args_alt = set(cls._tagsubcols.get(col, set()))
+        # Use extra columns provided by user
+        if extracols:
+            args_alt.update(set(extracols))
         # Get list of args for *col*
         args = self.get_response_args(col)
         # Get aliases
         arg_aliases = self.get_response_arg_aliases(col)
-        # Loop through them
-        pass
-        
-        # Get list of args for cols
-        
-    
+        # Add any aliases
+        if arg_aliases:
+            # Loop through aliases
+            for k1, k2 in arg_aliases.items():
+                # Check if *k2* is an arg
+                if k2 in args:
+                    args.append(k1)
+        # Loop through the response args
+        for arg in args:
+            # Get tag for this argument
+            tag = self.get_col_prop(arg, "Tag", arg)
+            # Get suggested cols for main arg
+            cols = _tagcols.get(tag)
+            # Join cols if possible
+            if cols:
+                args_alt.update(cols)
+            # Other tags that might be used to compute this tag
+            subtags = _tagsubs.get(tag)
+            # Move on if no subtags
+            if subtags is None:
+                continue
+            # Loop through them
+            for tag in subtags:
+                # Get cols that could be used to compute this tag
+                cols = _tagcols.get(tag)
+                # Join if possible
+                if cols:
+                    args_alt.update(cols)
+        # Save them
+        self.response_arg_alternates[col] = args_alt
+
+    # Get alternate args
+    def get_arg_alternates(self, col):
+        r"""Get :class:`set` of usable keyword args for *col*
+
+        :Call:
+            >>> altcols = db.get_arg_alternates(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column with response method
+        :Outputs:
+            *altcols*: :class:`set`\ [:class:`str`\
+                Cols that are used by response for *col*
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+        # Get dictionary
+        arg_alts = self.__dict__.get("response_arg_alternates", {})
+        # Return values for *col*
+        return arg_alts.get(col, set())
+
+    # Check mode for __call__ (either by index or response)
+    def _check_callmode(self, col, *a, **kw):
+        r"""Determine call mode
+
+        :Call:
+            >>> mode = db._check_callmode(col, *a, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to look up or calculate
+            *a*: :class:`tuple`
+                Positional args to :func:`__call__`
+            *kw*: :class:`dict`
+                Keyword args to :func:`__call__` or other methods
+        :Outputs:
+            *mod*: ``0`` | ``1`` | ``2``
+                Lookup method:
+                    * ``0``: return all values
+                    * ``1``: lookup by index
+                    * ``2``: use declared response method
+                    * ``3``: use :func:`rcall_exact`
+
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+        # Get method, if any
+        method = self.get_response_method(col)
+        # Get args
+        args = self.get_response_args(col)
+        # Number of expected args
+        if args:
+            narg = len(args)
+        else:
+            narg = 0
+        # Number of positional args given
+        na = len(a)
+        nx = na
+        # Check for all args specified
+        if na >= narg > 1:
+            # Sufficient args for response
+            if method:
+                # Use declared response
+                return 2
+            else:
+                # Args declared but no method
+                return 3
+        # Otherwise, check for kwargs
+        altargs = self.get_arg_alternates(col)
+        # Loop through keywords
+        for k in kw:
+            # Check if it's a usable keyword arg
+            if k in altargs:
+                # Increase number of args
+                nx += 1
+        # Recheck
+        if nx == 0:
+            # No args at all
+            return 0
+        elif (na == 1) and self.check_mask(a[0]):
+            # Given indices/mask in first arg
+            return 1
+        elif method:
+            # Use declared response
+            return 2
+        elif narg > 0:
+            # Args declared but no method
+            return 3
+            
    # --- Arguments ---
     # Get argument value
     def get_arg_value(self, i, k, *a, **kw):
@@ -2744,9 +2908,9 @@ class DataKit(ftypes.BaseData):
     def get_arg_value_dict(self, *a, **kw):
         r"""Return a dictionary of normalized argument variables
 
-        Specifically, he dictionary contains a key for every argument used to
-        evaluate the coefficient that is either the first argument or uses the
-        keyword argument *col*.
+        Specifically, the dictionary contains a key for every argument
+        used to evaluate the coefficient that is either the first
+        argument or uses the keyword argument *col*.
 
         :Call:
             >>> X = db.get_arg_value_dict(*a, **kw)
@@ -3116,118 +3280,6 @@ class DataKit(ftypes.BaseData):
             x1[j] = (1-fj)*xmin1 + fj*xmax1
         # Output
         return i0, i1, f, x0, x1
-
-   # --- Nearest/Exact ---
-    # Find exact match
-    def rcall_exact(self, col, args, x, **kw):
-        r"""Evaluate a coefficient by looking up exact matches
-
-        :Call:
-            >>> y = db.rcall_exact(col, args, x, **kw)
-            >>> Y = db.rcall_exact(col, args, x, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *col*: :class:`str`
-                Name of column to evaluate
-            *args*: :class:`list` | :class:`tuple`
-                List of explanatory col names (numeric)
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
-            *tol*: {``1.0e-4``} | :class:`float` > 0
-                Default tolerance for exact match
-            *tols*: {``{}``} | :class:`dict`\ [:class:`float` > 0]
-                Dictionary of key-specific tolerances
-        :Outputs:
-            *y*: ``None`` | :class:`float` | *db[col].__class__*
-                Value of ``db[col]`` exactly matching conditions *x*
-            *Y*: :class:`np.ndarray`
-                Multiple values matching exactly
-        :Versions:
-            * 2018-12-30 ``@ddalle``: First version
-            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
-        """
-        # Check for column
-        if (col not in self.cols) or (col not in self):
-            # Missing col
-            raise KeyError("Col '%s' is not present" % col)
-        # Get values
-        V = self[col]
-        # Create mask
-        I = np.arange(len(V))
-        # Tolerance dictionary
-        tols = kw.get("tols", {})
-        # Default tolerance
-        tol = 1.0e-4
-        # Loop through keys
-        for (i, k) in enumerate(args):
-            # Get value
-            xi = x[i]
-            # Get tolerance
-            toli = tols.get(k, kw.get("tol", tol))
-            # Apply test
-            qi = np.abs(self[k][I] - xi) <= toli
-            # Combine constraints
-            I = I[qi]
-            # Break if no matches
-            if len(I) == 0:
-                return None
-        # Test number of outputs
-        if len(I) == 1:
-            # Single output
-            return V[I[0]]
-        else:
-            # Multiple outputs
-            return V[I]
-
-    # Lookup nearest value
-    def rcall_nearest(self, col, args, x, **kw):
-        r"""Evaluate a coefficient by looking up nearest match
-
-        :Call:
-            >>> y = db.rcall_nearest(col, args, x, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *col*: :class:`str`
-                Name of (numeric) column to evaluate
-            *args*: :class:`list` | :class:`tuple`
-                List of explanatory col names (numeric)
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
-            *weights*: {``{}``} | :class:`dict` (:class:`float` > 0)
-                Dictionary of key-specific distance weights
-        :Outputs:
-            *y*: :class:`float` | *db[col].__class__*
-                Value of *db[col]* at point closest to *x*
-        :Versions:
-            * 2018-12-30 ``@ddalle``: First version
-            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
-        """
-        # Check for column
-        if (col not in self.cols) or (col not in self):
-            # Missing col
-            raise KeyError("Col '%s' is not present" % col)
-        # Get values
-        V = self[col]
-        # Array length
-        n = len(V)
-        # Initialize distances
-        d = np.zeros(n, dtype="float")
-        # Dictionary of distance weights
-        W = kw.get("weights", {})
-        # Loop through keys
-        for (i, k) in enumerate(args):
-            # Get value
-            xi = x[i]
-            # Get weight
-            wi = W.get(k, 1.0)
-            # Distance
-            d += wi*(self[k] - xi)**2
-        # Find minimum distance
-        j = np.argmin(d)
-        # Use that value
-        return V[j]
 
    # --- Linear ---
     # Multilinear lookup
@@ -8950,3 +9002,7 @@ class DataKit(ftypes.BaseData):
             # Save break points
             bkpts[colreg] = np.array(T)
   # >
+
+
+# Combine options
+kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)

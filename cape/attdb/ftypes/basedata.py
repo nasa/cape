@@ -428,6 +428,8 @@ class BaseData(dict):
    # --- Tags ---
     # Map for "tag" based on column name
     _tagmap = {}
+    # Extra columns expected as kwargs for some tags
+    _tagsubcols = {}
 
    # --- Options ---
     # Class for options
