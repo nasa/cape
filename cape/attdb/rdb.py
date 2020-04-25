@@ -7436,6 +7436,10 @@ class DataKit(ftypes.BaseData):
                 Array of values for arguments to evaluator for *col*
             *I*: :class:`np.ndarray` (:class:`int`)
                 Indices of exact entries to plot
+            *xcol*, *xk*: :class:`str`
+                Key/column name for *x* axis
+        :Keyword Arguments:
+            %(keys)s
         :Outputs:
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
@@ -7481,7 +7485,6 @@ class DataKit(ftypes.BaseData):
                 Array of values for arguments to evaluator for *col*
             *I*: :class:`np.ndarray` (:class:`int`)
                 Indices of exact entries to plot
-        :Keyword Arguments:
             *xcol*, *xk*: {``None``} | :class:`str`
                 Key/column name for *x* axis
             *PlotExact*: ``True`` | ``False``
@@ -7492,19 +7495,8 @@ class DataKit(ftypes.BaseData):
             *MarkExact*: ``True`` | ``False``
                 Mark interpolated curves with markers where actual data
                 points are present
-        :Plot Options:
-            *ShowLegend*: {``None``} | ``True`` | ``False``
-                Whether or not to use a legend
-            *LegendFontSize*: {``9``} | :class:`int` | :class:`float`
-                Font size for use in legends
-            *Grid*: {``None``} | ``True`` | ``False``
-                Turn on/off major grid lines, or leave as is if ``None``
-            *GridStyle*: {``{}``} | :class:`dict`
-                Dictionary of major grid line line style options
-            *MinorGrid*: {``None``} | ``True`` | ``False``
-                Turn on/off minor grid lines, or leave as is if ``None``
-            *MinorGridStyle*: {``{}``} | :class:`dict`
-                Dictionary of minor grid line line style options
+        :Keyword Arguments:
+            %(keys)s
         :Outputs:
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
@@ -7692,24 +7684,12 @@ class DataKit(ftypes.BaseData):
                 Data column (or derived column) to evaluate
             *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
                 Array of values for arguments to evaluator for *col*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
-        :Keyword Arguments:
             *xcol*, *xk*: {*db.response_xargs[col][0]*} | :class:`str`
                 Key/column name for *x* axis
-        :Plot Options:
-            *ShowLegend*: {``None``} | ``True`` | ``False``
-                Whether or not to use a legend
-            *LegendFontSize*: {``9``} | :class:`int` > 0 | :class:`float`
-                Font size for use in legends
-            *Grid*: {``None``} | ``True`` | ``False``
-                Turn on/off major grid lines, or leave as is if ``None``
-            *GridStyle*: {``{}``} | :class:`dict`
-                Dictionary of major grid line line style options
-            *MinorGrid*: {``None``} | ``True`` | ``False``
-                Turn on/off minor grid lines, or leave as is if ``None``
-            *MinorGridStyle*: {``{}``} | :class:`dict`
-                Dictionary of minor grid line line style options
+        :Keyword Arguments:
+            %(keys)s
         :Outputs:
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
@@ -7757,6 +7737,36 @@ class DataKit(ftypes.BaseData):
    # --- Contour ---
     # Plot contour
     def plot_contour(self, *a, **kw):
+        r"""Create a contour plot of one *col* vs two others
+
+        :Call:
+            >>> h = db.plot_contour(col, *a, **kw)
+            >>> h = db.plot_contour(col, mask, **kw)
+            >>> h = db.plot_contour(col, mask_index, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column (or derived column) to evaluate
+            *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
+                Array of values for arguments to evaluator for *col*
+            *mask*: :class:`np.ndarray`\ [:class:`bool`]
+                Mask of which points to include in plot
+            *mask_index*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of points to include in plot
+            *xcol*, *xk*: :class:`str`
+                Name of column to use for *x* axis
+            *ycol*, *yk*: :class:`str`
+                Name of column to use for *y* axis
+        :Keyword Arguments:
+            %(keys)s
+            %(axkeys)s
+        :Outputs:
+            *h*: :class:`plot_mpl.MPLHandle`
+                Object of :mod:`matplotlib` handles
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
@@ -8576,6 +8586,15 @@ class DataKit(ftypes.BaseData):
         figs = seam_figs.get(seam, set())
         # Check for figure
         return fig in figs
+
+   # --- Docstrings ---
+    # Document functions
+    pmpl.MPLOpts._doc_keys_fn(plot, "plot", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(plot_contour, "contour", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(plot_linear, "plot", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(plot_scalar, "plot", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(
+        plot_contour, "axformat", fmt_key="axkeys", indent=12)
   # >
 
   # ===================
