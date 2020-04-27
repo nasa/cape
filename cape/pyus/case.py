@@ -80,7 +80,6 @@ def run_us3d():
     # Resubmit/restart if this point is reached.
     #RestartCase(i)
 
-
 # Function to read the local settings file.
 def ReadCaseJSON():
     """Read `RunControl` settings for local case
@@ -235,7 +234,7 @@ def RunPhase(rc, i):
         # Get the ``us3d``
         cmdi = cmd.us3d(rc, i=i)
         # Call the command.
-        bin.callf(cmdi, f='fun3d.out')
+        bin.callf(cmdi, f='us3d.out')
         # Get new iteration number
         n1 = GetCurrentIter()
         # Check for lack of progress
