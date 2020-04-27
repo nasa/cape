@@ -350,6 +350,28 @@ def RunUS3DPrepar(rc, i):
     return bin.us3d_prepar(rc, i)
 
 
+# Run ``us3d-prepar``
+def RunUS3DGenBC(rc, i):
+    r"""Execute ``us3d-genbc``
+
+    :Call:
+        >>> RunUS3DPrepar(rc, i)
+    :Inputs:
+        *rc*: :class:`cape.pyus.options.runControl.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number, does nothing if *i* is not ``0``
+    :Versions:
+        * 2020-04-16 ``@ddalle``: First version
+    """
+    # Get phase number
+    if i != 0:
+        # Do nothing
+        return
+    # Execute command
+    ierr = bin.us3d_genbc(rc, i)
+
+
 # Write start time
 def WriteStartTime(tic, rc, i, fname="pyus_start.dat"):
     """Write the start time in *tic*

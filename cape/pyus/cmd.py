@@ -144,7 +144,7 @@ def us3d_prepar(opts=None, i=0, **kw):
         *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
-        * 2016-04-28 ``@ddalle``: First version
+        * 2020-04-20 ``@ddalle``: First version
     """
     # Check for options input
     if opts is not None:
@@ -157,7 +157,11 @@ def us3d_prepar(opts=None, i=0, **kw):
             rc = opts
         # Downselect to "us3d-prepar" section if necessary
         if "us3d-prepar" in rc:
+            # Get subsection
             opts = rc["us3d-prepar"]
+        else:
+            # Use whole thing
+            opts = rc
         # Check if we have a valid "RunControl" instance
         if isinstance(rc, runControl.RunControl):
             # Get values for run configuration
@@ -206,6 +210,63 @@ def us3d_prepar(opts=None, i=0, **kw):
         cmdi.extend(["--output", fout])
     if conn:
         cmdi.extend(["--conn", conn])
+    # Output
+    return cmdi
+
+
+# Function to execute ``us3d-genbc``
+def us3d_genbc(opts=None, i=0, **kw):
+    r"""Interface to US3D executable ``us3d-genbc``
+    
+    :Call:
+        >>> cmdi = cmd.us3d_genbc(opts, i=0)
+        >>> cmdi = cmd.us3d_genbc(**kw)
+    :Inputs:
+        *opts*: :class:`cape.pyus.options.Options`
+            Global or "RunControl" pyUS options
+        *i*: :class:`int`
+            Phase number
+        *grid*: {``"grid.h5"``} | :class:`str`
+            Name of prepared US3D grid
+    :Outputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            Command split into a list of strings
+    :Versions:
+        * 20120-04-27 ``@ddalle``: First version
+    """
+    # Check for options input
+    if opts is not None:
+        # Downselect to "RunControl" section if necessary
+        if "RunControl" in opts:
+            # Get subsection
+            rc = opts["RunControl"]
+        else:
+            # Use whole thing
+            rc = opts
+        # Downselect to "us3d-prepar" section if necessary
+        if "us3d-prepar" in rc:
+            # Get subsection
+            opts = rc["us3d-prepar"]
+        else:
+            # Use whole thing
+            opts = rc
+        # Check if we have a valid "us3d-prepar" instance
+        if isinstance(opts, runControl.US3DPrepar):
+            # Get values for command line
+            grid = opts.get_us3d_prepar_output(i)
+        else:
+            # Defaults
+            grid = opts.get("output", rc0("us3d_prepar_output"))
+    else:
+        # Use defaults
+        grid = rc0("us3d_prepar_output")
+    # Process keyword overrides
+    grid = kw.get("grid", grid)
+    # Form the initial command
+    cmdi = ["us3d-genbc"]
+    # Process known options
+    if grid:
+        cmdi.extend(["--grid", grid])
     # Output
     return cmdi
 
