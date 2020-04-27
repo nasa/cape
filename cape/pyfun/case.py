@@ -355,7 +355,7 @@ def StartCase():
         >>> case.StartCase()
     :Versions:
         * 2014-10-06 ``@ddalle``: First version
-        * 2015-10-19 ``@ddalle``: Copied from pyCart
+        * 2015-10-19 ``@ddalle``: Copied from :mod:`cape.pycart`
     """
     # Get the config.
     rc = ReadCaseJSON()

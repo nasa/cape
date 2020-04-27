@@ -32,7 +32,7 @@ def us3d_prepar(opts, i=0, **kw):
     # Get verbosity option
     if opts:
         # Specified from "RunControl" section
-        v = opts.get_Verbose(j)
+        v = opts.get_Verbose(i)
     else:
         # Default is ``True``
         v = True
