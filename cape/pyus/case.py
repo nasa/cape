@@ -259,14 +259,10 @@ def RunPhase(rc, i):
             if n is None:
                 n = 0
             # Create an output file to make phase number programs work
-            fstdout = "run.%02i.%i" % (i, n)
-            # check for an existing output file
-            if os.path.isfile("us3d-prepar.out"):
-                # Move it to the overall run file
-                os.rename("us3d-prepar.out", fstdout)
-            else:
-                # Just create an empty one
-                os.system('touch run.%02i.%i' % (i, n))
+            fphase = "run.%02i.%i" % (i, n)
+            # Create empty phase file
+            with open(fphase, "w") as f:
+                pass
             return
     # Prepare for restart if that's appropriate.
     #SetRestartIter(rc)
