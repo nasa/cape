@@ -1393,9 +1393,15 @@ def _axlabel(ax, lbl, pos=None, **kw):
             Horizontal spacing in inches
         *ygap*: {``0.05``} | :class:`float`
             Vertical spacing in inches
+        *x*: {``None``} | :class:`float`
+            Override default *x*-coordinate in *ax.transAxes* scale
+        *y*: {``None``} | :class:`float`
+            Override default *y*-coordinate in *ax.transAxes* scale
     :Outputs:
         *h*: :class:`matplotlib.text.Text`
             Matplotlib ``Text`` instance
+        *h._label*: :class:`str`
+            Set to ``"<axlabel>"`` for automatic detection
     :Versions:
         * 2020-04-29 ``@ddalle``: First version
     """
@@ -1413,21 +1419,58 @@ def _axlabel(ax, lbl, pos=None, **kw):
     dx = (xgap / wfig) * (1 / wa)
     dy = (ygap / hfig) * (1 / ha)
     
+    # Default position
+    if pos is None:
+        # Create mask of which positions are available
+        mask = np.ones(9, dtype="bool")
+        # Loop through children
+        for hi in ax.get_children():
+            # Check if it's a :class:`Text` object
+            if hi.__class__.__name__ != "Text":
+                continue
+            # Check its labe
+            if hi.get_label() != "<axlabel>":
+                continue
+            # Get position
+            xi, yi = hi.get_position()
+            # Filter position
+            if xi <= 0.2 and yi >= 1.0:
+                # Upper left (above)
+                mask[0] = False
+            elif xi >= 0.8 and yi >= 1.0:
+                # Upper right (above)
+                mask[1] = False
+        # Get available positions
+        pos_avail = np.where(mask)[0]
+        # Check for any available positions
+        if len(pos_avail) == 0:
+            # Just go to the beginning
+            pos = 0
+        else:
+            # Use first available position
+            pos = pos_avail[0]
     # Filter position
     if pos == 0:
-        # Upper left
+        # Upper left (above)
         kw.setdefault("horizontalalignment", "left")
         kw.setdefault("verticalalignment", "bottom")
         # Default positions
         x = dx
         y = 1 + dy
     elif pos == 1:
-        # Upper right
+        # Upper right (above)
         kw.setdefault("horizontalalignment", "right")
         kw.setdefault("verticalalignment", "bottom")
         # Default positions
         x = 1 - dx
         y = 1 + dy
+    elif pos == 2:
+        # Upper left (below)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = dx
+        y = 1 - dy
     # Override coordinates
     x = kw.pop("x", x)
     y = kw.pop("y", y)
@@ -1435,6 +1478,8 @@ def _axlabel(ax, lbl, pos=None, **kw):
     kw.setdefault("transform", ax.transAxes)
     # Create label
     h = plt.text(x, y, lbl, **kw)
+    # Set a special label (used for automatic *pos*)
+    h.set_label("<axlabel>")
     # Output
     return h
 
