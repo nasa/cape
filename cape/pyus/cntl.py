@@ -392,7 +392,7 @@ class Cntl(cape.cntl.Cntl):
         :Call:
             >>> cntl.PrepareInputInpFlightConditions(i)
         :Inputs:
-            *fun3d*: :class:`cape.pyus.cntl.Cntl`
+            *cntl*: :class:`cape.pyus.cntl.Cntl`
                 Instance of US3D control class
             *i*: :class:`int`
                 Run index
@@ -400,21 +400,117 @@ class Cntl(cape.cntl.Cntl):
             * 2018-04-19 ``@ddalle``: First version
             * 2020-04-13 ``@ddalle``: Forked from :mod:`cape.pyfun`
         """
-        # Get handle
+        # Unpack handles
+        x = self.x
         inp = self.InputInp
-        # Get properties
-        a  = self.x.GetAlpha(i)
-        b  = self.x.GetBeta(i)
-        # TODO:
-        #     * parameters on "infloW" BC like temperature, density...
-        #     * mass fractions
-        #          inp.SetBCMassFraction("inflow", Y)
+        # Get name(s) of BC for freestream
+        compIDs = self.GetInflowBC()
+        # Get flow angle properties
+        a  = x.GetAlpha(i)
+        b  = x.GetBeta(i)
         # Angle of attack
         if a is not None:
-            inp.SetAlpha(a)
+            for comp in compIDs:
+                inp.SetAlpha(a, name=comp)
         # Sideslip angle
         if b is not None:
-            inp.SetBeta(b)
+            for comp in compIDs:
+                inp.SetBeta(b, name=comp)
+        # Get state properties
+        rho = x.GetDensity(i)
+        T = x.GetTemperature(i)
+        V = x.GetVelocity(i)
+        # Check for vibrational temperature key
+        ktv = x.GetKeysByType("Tv")
+        # If any, use that
+        if len(ktv) > 0:
+            # Get vibrational temperature
+            Tv = x[ktv[0]][i]
+        else:
+            # Use static temperature
+            Tv = T
+        # Set density
+        if rho is not None:
+            for comp in compIDs:
+                inp.SetDensity(rho, name=comp)
+        # Set temperature
+        if T is not None:
+            for comp in compIDs:
+                inp.SetTemperature(T, name=comp)
+        # Set vibrational temperature
+        if Tv is not None:
+            for comp in compIDs:
+                inp.SetVibTemp(Tv, name=comp)
+        # Set velocity
+        if V is not None:
+            for comp in compIDs:
+                inp.SetVelocity(V, name=comp)
+
+    # Get name of BC used for freestream
+    def GetInflowBC(self):
+        r"""Find name(s) of freestream BC faces
+
+        :Call:
+            >>> compIDs = cntl.GetInflowBC()
+        :Inputs:
+            *cntl*: :class:`cape.pyus.cntl.Cntl`
+                Instance of US3D control class
+        :Outputs:
+            *compIDs*: :class:`list`\ [:class:`str`]
+                List of 1 or more BC names
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Trajectory handle
+        x = self.x
+        # Valid flight condition key *Type*\ s
+        ktypes = {
+            "mach", "alpha", "beta", "alpha_t", "phi",
+            "T", "rho", "V", "p", "p0", "q", "Tv", "T0", "Re"
+        }
+        # Loop through actual run matrix keys
+        for col in x.cols:
+            # Get type
+            if col.get("Type") not in ktypes:
+                continue
+            # Get definition
+            defn = x.defns.get(col)
+            # Check for valid definition
+            if defn is None:
+                continue
+            # Get CompID
+            compID = defn.get("CompID")
+            # Check for valid CompID
+            if compID is not None:
+                break
+        else:
+            # If None found, try finding from *InputInp* interface
+            inp = self.InputInp
+                # Process existing BCs
+            bcs = inp.ReadBCs()
+            # Get *bcn* for existing BCs
+            if isinstance(bcs, dict):
+                # Process the :class:`dict`
+                bcns = {bc.get("bcn"): name for name, bc in bcs.items()}
+            else:
+                # Empty BCs
+                bcns = {}
+            # Get name of BC with *bcn* of ``10``
+            if 10 in bcns:
+                # Get it (this will be the last one if multiple
+                compID = bcns[10]
+            else:
+                # Just use a standard name
+                compID = "inflow"
+        # Ensure list
+        if isinstance(compID, list):
+            # Already list
+            compIDs = compID
+        else:
+            # Make list; "inflow" -> ["inflow"]
+            compIDs = [compID]
+        # Output
+        return compIDs
    # ]
   # >
 
