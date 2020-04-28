@@ -1,23 +1,26 @@
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.runmatrix`: Run matrix interface
 ==============================================
 
 This module provides a class :class:`cape.runmatrix.RunMatrix` for
-interacting with a list of cases. Usually this is the list of cases defined as
-the run matrix for a set of CFD solutions, and it is defined in the
-``"RunMatrix"`` :ref:`section of the JSON file <cape-json-runmatrix>`.
+interacting with a list of cases. Usually this is the list of cases
+defined as the run matrix for a set of CFD solutions, and it is defined
+in the ``"RunMatrix"``
+:ref:`section of the JSON file <cape-json-runmatrix>`.
 
-However, the contents of the :class:`cape.runmatrix.RunMatrix` may have a
-list of cases that differs from the run matrix, for example containing instead
-the cases contained in a data book.
+However, the contents of the :class:`cape.runmatrix.RunMatrix` may have
+a list of cases that differs from the run matrix, for example containing
+instead the cases contained in a data book.
 
 The key defining parameter of a run matrix is the list of independent
-variables, which are referred to as "trajectory keys" within Cape. For example,
-a common list of trajectory keys for an inviscid setup is
-``["mach", "alpha", "beta"]``. If the run matrix is loaded as *x*, then the
-value of the Mach number for case number *i* would be ``x.mach[i]``. If the
-name of the key to query is held within a variable *k*, use the following
-syntax to get the value.
+variables, which are referred to as "trajectory keys" within Cape. For
+example, a common list of trajectory keys for an inviscid setup is
+``["mach", "alpha", "beta"]``. If the run matrix is loaded as *x*, then
+the value of the Mach number for case number *i* would be ``x.mach[i]``.
+If the name of the key to query is held within a variable *k*, use the
+following syntax to get the value.
 
     .. code-block:: python
 
@@ -28,49 +31,52 @@ syntax to get the value.
         # Value of that key for case *i*
         x[k][i]
 
-Each case has a particular folder name.  To get the name of the folder for case
-*i*, use the syntax
+Each case has a particular folder name.  To get the name of the folder
+for case *i*, use the syntax
 
     .. code-block:: python
 
-        // Group folder name
+        # Group folder name
         x.GetGroupFolderNames(i)
-        // Case folder name
+        # Case folder name
         x.GetFolderNames(i)
-        // Combined group and case folder name
+        # Combined group and case folder name
         x.GetFullFolderNames(i)
 
-The trajectory class also contains several methods for filtering cases.  For
-example, the user may get the list of indices of cases with a Mach number
-greater than 1.0, or the user may restrict to cases containing the text "a1.0".
-These use the methods :func:`cape.runmatrix.RunMatrix.Filter` and
+The trajectory class also contains several methods for filtering cases.
+For example, the user may get the list of indices of cases with a Mach
+number greater than 1.0, or the user may restrict to cases containing
+the text ``"a1.0"``. These use the methods
+:func:`cape.runmatrix.RunMatrix.Filter` and
 :func:`cape.runmatrix.RunMatrix.FilterString`, respectively.  Filtering
 examples are shown below.
 
     .. code-block:: python
 
-        // Constraints
+        # Constraints
         I = x.Filter(cons=['mach>=0.5', 'mach<1.0'])
-        // Contains exact text
+        # Contains exact text
         I = x.FilterString('m0.9')
-        // Contains text with wildcards (like file globs)
+        # Contains text with wildcards (like file globs)
         I = x.FilterWildcard('m?.?a-*')
-        // Contains a regular expression
+        # Contains a regular expression
         I = x.FilterRegex('m0\.[5-8]+a')
 
 These methods are all combined in the
 :func:`cape.runmatrix.RunMatrix.GetIndices` method.  The
-:func:`cape.runmatrix.RunMatrix.GetSweeps` method provides a capability to
-split a run matrix into groups in which the cases in each group satisfy
-user-specified constraints, for example having the same angle of attack.
+:func:`cape.runmatrix.RunMatrix.GetSweeps` method provides a capability
+to split a run matrix into groups in which the cases in each group
+satisfy user-specified constraints, for example having the same angle of
+attack.
 
-Also provided are methods such as :func:`cape.runmatrix.RunMatrix.GetAlpha`,
-which allows the user to easily access the angle of attack for case *i* even if
-the run matrix is defined using total angle of attack and roll angle.
-Similarly, :func:`cape.runmatrix.RunMatrix.GetReynoldsNumber` returns the
-Reynolds number per grid unit even if the run matrix uses static or dynamic
-pressure, which relieves the user from having to do the conversions before
-creating the run matrix conditions.
+Also provided are methods such as
+:func:`cape.runmatrix.RunMatrix.GetAlpha`, which allows the user to
+easily access the angle of attack for case *i* even if the run matrix is
+defined using total angle of attack and roll angle. Similarly,
+:func:`cape.runmatrix.RunMatrix.GetReynoldsNumber` returns the Reynolds
+number per grid unit even if the run matrix uses static or dynamic
+pressure, which relieves the user from having to do the conversions
+before creating the run matrix conditions.
 """
 
 # Standard library modules
@@ -1032,6 +1038,26 @@ class RunMatrix(dict):
                     "Format": "%s",
                     "Label": False,
                     "Abbreviation": "T0"
+                }
+            elif key in ["Tw", "T_wall"]:
+                # Wall temperature
+                defkey = {
+                    "Group": False,
+                    "Type": "Tw",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Label": False,
+                    "Abbreviation": "Tw"
+                }
+            elif key in ["VibTemp", "Tv", "T_vib"]:
+                # Vibrational temperature
+                defkey = {
+                    "Group": False,
+                    "Type": "Tv",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Label": False,
+                    "Abbreviation": "Tv",
                 }
             elif key.lower() in ['gamma']:
                 # Freestream ratio of specific heats
