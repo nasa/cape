@@ -1376,6 +1376,69 @@ def _axes_format(ax, **kw):
     return xl, yl
 
 
+# Label axes in one of 12 special positions
+def _axlabel(ax, lbl, pos=None, **kw):
+    r"""Create a label for an axes object
+
+    :Call:
+        >>> h = _axlabel(ax, lbl, pos=None, **kw):
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+        *lbl*: :class:`str`
+            Text of label to add
+        *pos*: :class:`int`
+            Index for label position
+        *xgap*: {``0.05``} | :class:`float`
+            Horizontal spacing in inches
+        *ygap*: {``0.05``} | :class:`float`
+            Vertical spacing in inches
+    :Outputs:
+        *h*: :class:`matplotlib.text.Text`
+            Matplotlib ``Text`` instance
+    :Versions:
+        * 2020-04-29 ``@ddalle``: First version
+    """
+    # Get figure
+    fig = ax.figure
+    # Options for spacing as figure fraction [inches]
+    xgap = 0.05
+    ygap = 0.05
+    # Dimensions of figure [inches]
+    wfig = fig.get_figwidth()
+    hfig = fig.get_figheight()
+    # Get axes-relative positions
+    xa, ya, wa, ha = ax.get_position().bounds
+    # Convert gap to axes units
+    dx = (xgap / wfig) * (1 / wa)
+    dy = (ygap / hfig) * (1 / ha)
+    
+    # Filter position
+    if pos == 0:
+        # Upper left
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = dx
+        y = 1 + dy
+    elif pos == 1:
+        # Upper right
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 1 - dx
+        y = 1 + dy
+    # Override coordinates
+    x = kw.pop("x", x)
+    y = kw.pop("y", y)
+    # Set transformation unless overridden
+    kw.setdefault("transform", ax.transAxes)
+    # Create label
+    h = plt.text(x, y, lbl, **kw)
+    # Output
+    return h
+
+
 # Error bar plot
 def _errorbar(xv, yv, yerr=None, xerr=None, **kw):
     r"""Call the :func:`errorbar` function
@@ -2968,6 +3031,9 @@ def _get_axes_full_extents(ax):
             ib = max(ib, ib_t)
             ja = min(ja, ja_t)
             jb = max(jb, jb_t)
+    # Deal with children
+    for h in ax.get_children():
+        pass
     # Output
     return ia, ja, ib, jb
 
