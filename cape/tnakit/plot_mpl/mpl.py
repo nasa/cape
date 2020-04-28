@@ -3033,7 +3033,28 @@ def _get_axes_full_extents(ax):
             jb = max(jb, jb_t)
     # Deal with children
     for h in ax.get_children():
-        pass
+        # Only process certain types
+        typ = h.__class__.__name__
+        # Check if it's an object we want to consider
+        if typ == "Text":
+            # Check for text
+            if h.get_text().strip() == "":
+                continue
+        else:
+            # Don't process this kind of Matplotlib object
+            continue
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = h.get_window_extent().bounds
+        # Check for null window
+        if iw_t*jw_t > 0.0:
+            # Translate to actual bounds
+            ib_t = ia_t + iw_t
+            jb_t = ja_t + jw_t
+            # Update bounds
+            ia = min(ia, ia_t)
+            ib = max(ib, ib_t)
+            ja = min(ja, ja_t)
+            jb = max(jb, jb_t)
     # Output
     return ia, ja, ib, jb
 
