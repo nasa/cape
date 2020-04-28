@@ -1757,61 +1757,6 @@ class InputInp(cape.filecntl.namelist.Namelist):
         # Output
         return BCTable
 
-    # Set BC parameter
-    def SetBCParam(self, name, param, i=None):
-        r"""Set BC "params" for specified BC
-
-        :Call:
-            >>> inp.SetBCParam(name, param, i=None)
-        :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
-                Namelist file control instance
-            *name*: :class:`str`
-                Name of boundary condition zone
-            *param*: :class:`str` | :class:`float` | :class:`list`
-                Parameter or array of parameters to set
-            *i*: {``None``} | :class:`int` >= 0
-                Parameter index
-        :Outputs:
-            *y*: :class:`float` | ``None``
-                Mass fraction of species *i*
-            *Y*: :class:`list`\ [:class:`float`]
-                List of species mass fractions
-        :Versions:
-            * 2019-06-06 ``@ddalle``: First version
-        """
-        # Process the BCs
-        bcs = self.ReadBCs()
-        # Check if BC is present
-        if name not in self.bcs:
-            raise KeyError("No BC named '%s'" % name)
-        # Get the row
-        row = bcs[name].get("row")
-        # Make sure that worked
-        if row is None:
-            raise ValueError(
-                "Could not determine line number for BC '%s'" % name)
-        # Get the line
-        line0 = self.Section["CFD_BCS"][row]
-        # Set it
-        if i is None:
-            # Check for array
-            if isinstance(param, (list, np.ndarray)):
-                # Copy line
-                line = line0
-                # Loop through entries
-                for (j, v) in enumerate(param):
-                    # Set parameter
-                    line = self.SetLineValueSequential(line, j+4, v)
-            else:
-                # Set entire parameter to this value
-                line = self.SetLineValueSequential(line, 4, param)
-        else:
-            # Set indexed value
-            line = self.SetLineValueSequential(line0, i + 4, param)
-        # Save the new line
-        self.ReplaceLineInSectionStartWith("CFD_BCS", line0, line)
-
     # Read mass fractions
     def GetBCMassFraction(self, name, i=None):
         r"""Get boundary condition mass fraction(s) for specified BC
@@ -2017,6 +1962,56 @@ class InputInp(cape.filecntl.namelist.Namelist):
    # [/CFD_BCS]
 
    # [CFD_BCS/param]
+    # Set BC parameter
+    def SetBCParam(self, name, param, i=None):
+        r"""Set BC "params" for specified BC
+
+        :Call:
+            >>> inp.SetBCParam(name, param, i=None)
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *name*: :class:`str`
+                Name of boundary condition zone
+            *param*: :class:`str` | :class:`float` | :class:`list`
+                Parameter or array of parameters to set
+            *i*: {``None``} | :class:`int` >= 0
+                Parameter index
+        :Versions:
+            * 2019-06-06 ``@ddalle``: First version
+        """
+        # Process the BCs
+        bcs = self.ReadBCs()
+        # Check if BC is present
+        if name not in self.bcs:
+            raise KeyError("No BC named '%s'" % name)
+        # Get the row
+        row = bcs[name].get("row")
+        # Make sure that worked
+        if row is None:
+            raise ValueError(
+                "Could not determine line number for BC '%s'" % name)
+        # Get the line
+        line0 = self.Section["CFD_BCS"][row]
+        # Set it
+        if i is None:
+            # Check for array
+            if isinstance(param, (list, np.ndarray)):
+                # Copy line
+                line = line0
+                # Loop through entries
+                for (j, v) in enumerate(param):
+                    # Set parameter
+                    line = self.SetLineValueSequential(line, j+4, v)
+            else:
+                # Set entire parameter to this value
+                line = self.SetLineValueSequential(line, 4, param)
+        else:
+            # Set indexed value
+            line = self.SetLineValueSequential(line0, i + 4, param)
+        # Save the new line
+        self.ReplaceLineInSectionStartWith("CFD_BCS", line0, line)
+
     # Get parameter
     def GetBCParam(self, name, i=None):
         r"""Get value of BC parameter by index
@@ -2078,7 +2073,226 @@ class InputInp(cape.filecntl.namelist.Namelist):
         """
         # Set first *param* for BC
         self.SetBCParam(name, v, i=0)
+
+    # Set freestream temperature
+    def SetTemperature(self, v, name="inflow"):
+        r"""Set static temperature on inflow boundary condition
+
+        :Call:
+            >>> inp.SetTemperature(v, name="inflow")
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *v*: :class:`float` | :class:`str`
+                Value of freestream static temperature
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Set second *param* for BC
+        self.SetBCParam(name, v, i=1)
+
+    # Set freestream temperature
+    def SetVibTemp(self, v, name="inflow"):
+        r"""Set vibrational temperature on inflow boundary condition
+
+        :Call:
+            >>> inp.SetVibTemp(v, name="inflow")
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *v*: :class:`float` | :class:`str`
+                Value of freestream vibrational temperature
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Set third *param* for BC
+        self.SetBCParam(name, v, i=2)
+
+    # Set freestream velocity
+    def SetVelocity(self, v, name="inflow"):
+        r"""Set vibrational temperature on inflow boundary condition
+
+        :Call:
+            >>> inp.SetVibTemp(v, name="inflow")
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *v*: :class:`float` | :class:`str`
+                Value of freestream vibrational temperature
+            *name*: {``"inflow"``} | :class:`str`
+                Name of boundary condition zone
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Set fourth *param* for BC
+        self.SetBCParam(name, v, i=3)
+
+    # Set wall temperature
+    def SetTWall(self, v, name="wall"):
+        r"""Set wall temperature on one BC
+
+        :Call:
+            >>> inp.SetTWall(v, name="wall")
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *v*: :class:`float` | :class:`str`
+                Value of wall temperature
+            *name*: {``"wall"``} | :class:`str`
+                Name of boundary condition zone
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Set second *param* for BC
+        self.SetBCParam(name, v, i=1)
+
+    # Set wall temperature mode
+    def SetIWall(self, v, name="wall"):
+        r"""Set wall temperature mode on one BC
+
+        :Call:
+            >>> inp.SetIWall(v, name="wall")
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *v*: :class:`int` | :class:`str`
+                Mode for wall temperature BC
+            *name*: {``"wall"``} | :class:`str`
+                Name of boundary condition zone
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Convert floats to int
+        if isinstance(v, float):
+            v = int(v)
+        # Set first *param* for BC
+        self.SetBCParam(name, v, i=0)
    # [/CFD_BCS/param]
+
+   # [CFD_BCS/table]
+    # Set BC table
+    def SetBCTableParam(self, name, v, i):
+        r"""Set BC table parameter
+
+        :Call:
+            >>> inp.SetBCTableParam(name, v, i)
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *name*: :class:`str`
+                Name of boundary condition zone
+            *v*: :class:`str` | :class:`int`
+                Parameter or string 
+            *i*: :class:`int` >= 0
+                Table column index
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Check inputs
+        if isinstance(v, (list, np.ndarray)):
+            raise TypeError("Cannot set list in BC table")
+        elif i < 0:
+            raise ValueError("Cannot use negative BC table column index")
+        elif i > 2:
+            raise ValueError("Cannot set BC table beyond column 3")
+        # Process the BCs
+        bcs = self.ReadBCs()
+        # Check if BC is present
+        if name not in self.bcs:
+            raise KeyError("No BC named '%s'" % name)
+        # Get the row
+        row = bcs[name].get("row")
+        # Make sure that worked
+        if row is None:
+            raise ValueError(
+                "Could not determine line number for BC '%s'" % name)
+        # Get the line
+        line0 = self.Section["CFD_BCS"][row]
+        # Set indexed value
+        line = self.SetLineValueSequential(line0, i, v)
+        # Save the new line
+        self.ReplaceLineInSectionStartWith("CFD_BCS", line0, line)
+
+    # Set zone
+    def SetBCZone(self, name, zone):
+        r"""Set *zone* for a BC by name
+
+        :Call:
+            >>> inp.SetBCZone(name, zone)
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *name*: :class:`str`
+                Name of boundary condition zone
+            *zone*: :class:`str` | :class:`int`
+                Zone number
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Set first column
+        self.SetBCTableParam(name, zone, 0)
+
+    # Set *bcn*
+    def SetBCNum(self, name, bcn):
+        r"""Set *bcn* for a BC by name
+
+        :Call:
+            >>> inp.SetBCNum(name, bcn)
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *name*: :class:`str`
+                Name of boundary condition zone
+            *bcn*: :class:`str` | :class:`int`
+                Boundary condition number
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Set second column
+        self.SetBCTableParam(name, bcn, 1)
+
+    # Set *igrow*
+    def SetBCIGrow(self, name, igrow):
+        r"""Set *igrow* for a BC by name
+
+        :Call:
+            >>> inp.SetBCIGrow(name, igrow)
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *name*: :class:`str`
+                Name of boundary condition zone
+            *igrow*: :class:`str` | :class:`int`
+                BC growth parameter
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Set third column
+        self.SetBCTableParam(name, igrow, 2)
+
+    # Set *igrow*
+    def SetIGrow(self, igrow, name="wall"):
+        r"""Set *igrow* for a BC by name
+
+        :Call:
+            >>> inp.SetBCIGrow(name, igrow)
+        :Inputs:
+            *inp*: :class:`cape.pyus.inputInp.InputInp`
+                Namelist file control instance
+            *igrow*: :class:`str` | :class:`int`
+                BC growth parameter
+            *name*: {``"wall"``} | :class:`str`
+                Name of boundary condition zone
+        :Versions:
+            * 2020-04-28 ``@ddalle``: First version
+        """
+        # Set third column
+        self.SetBCIGrow(name, igrow)
+   # [/CFD_BCS/table]
    
    # [CFD_BCS/angles]
     # Get angle of attack
