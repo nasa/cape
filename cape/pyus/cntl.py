@@ -470,13 +470,13 @@ class Cntl(cape.cntl.Cntl):
         }
         # Loop through actual run matrix keys
         for col in x.cols:
-            # Get type
-            if col.get("Type") not in ktypes:
-                continue
             # Get definition
             defn = x.defns.get(col)
             # Check for valid definition
             if defn is None:
+                continue
+            # Get type
+            if defn.get("Type") not in ktypes:
                 continue
             # Get CompID
             compID = defn.get("CompID")
