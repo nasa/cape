@@ -134,7 +134,7 @@ def us3d_prepar(opts=None, i=0, **kw):
             Global or "RunControl" pyUS options
         *i*: :class:`int`
             Phase number
-        *grid*: {``"pyus.case"``} | :class:`str`
+        *grid*: {``"pyus.cas"``} | :class:`str`
             Name of input Fluent mesh
         *output*: {``None``} | :class:`str`
             Name of output HDF5 grid (``"grid.h5"``)
@@ -270,3 +270,110 @@ def us3d_genbc(opts=None, i=0, **kw):
     # Output
     return cmdi
 
+
+# Function to create ``us3d`` command
+def us3d(opts=None, i=0, **kw):
+    r"""Interface to US3D executable ``us3d``
+    
+    :Call:
+        >>> cmdi = cmd.us3d(opts, i=0)
+        >>> cmdi = cmd.us3d(**kw)
+    :Inputs:
+        *opts*: :class:`cape.pyus.options.Options`
+            Global or "RunControl" pyUS options
+        *i*: :class:`int`
+            Phase number
+        *input*: {``"input.inp"``} | :class:`str`
+            Name of US3D input file
+        *grid*: {``"grid.h5"``} | :class:`str`
+            Name of input HDF5 mesh
+        *gas*: {``None``} | :class:`str`
+            Name of gas file to use
+    :Outputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            Command split into a list of strings
+    :Versions:
+        * 2020-04-29 ``@ddalle``: First version
+    """
+    # Check for options input
+    if opts is not None:
+        # Downselect to "RunControl" section if necessary
+        if "RunControl" in opts:
+            # Get subsection
+            rc = opts["RunControl"]
+        else:
+            # Use whole thing
+            rc = opts
+        # Downselect to "us3d-prepar" section if necessary
+        if "us3d" in rc:
+            # Get subsection
+            cli_us3d = rc["us3d"]
+        else:
+            # Use whole thing
+            cli_us3d = rc
+        # Check if we have a valid "RunControl" instance
+        if isinstance(rc, runControl.RunControl):
+            # Get values for run configuration
+            n_mpi  = rc.get_MPI(i)
+            mpicmd = rc.get_mpicmd(i)
+            nProc  = rc.get_nProc(i)
+        else:
+            # Use defaults
+            n_mpi  = rc.get("MPI", rc0("MPI"))
+            mpicmd = rc.get("mpicmd", rc0("mpicmd"))
+            nProc  = rc.get("nProc", rc0("nProc"))
+    else:
+        # Get values from keyword arguments
+        n_mpi  = kw.get("MPI", False)
+        nProc  = kw.get("nProc", 1)
+        mpicmd = kw.get("mpicmd", "mpiexec")
+        # Form other command-line argument dictionary
+        cli_us3d = kw
+        # Remove above options
+        for k in ["MPI", "nProc", "mpicmd"]:
+            cli_us3d.pop(k, None)
+    # Form the initial command.
+    if n_mpi:
+        # Use the ``us3d`` command even for MPI
+        cmdi = [mpicmd, "-np", str(nProc), "us3d"]
+    else:
+        # Use the serial ``nodeus3d`` command
+        cmdi = ["us3d"]
+    # Check for known options
+    if isinstance(cli_us3d, runControl.US3D):
+        # Specific options
+        finp = cli_us3d.get_us3d_input(i)
+        grid = cli_us3d.get_us3d_grid(i)
+        gas = cli_us3d.get_us3d_gas(i)
+    else:
+        # General keywords
+        finp = cli_us3d.get("input", "input.inp")
+        grid = cli_us3d.get("grid", "grid.h5")
+        gas = cli_us3d.get("gas")
+    # Append these options
+    if finp:
+        cmdi.extend(["--input", finp])
+    if grid:
+        cmdi.extend(["--grid", grid])
+    if gas:
+        cmdi.extend(["--gas", gas])
+    # Loop through command-line inputs
+    for k, v in cli_us3d.items():
+        # Check for known option
+        if k in ["input", "grid", "gas"]:
+            continue
+        # Check the type
+        if v == True:
+            # Just an option with no value
+            cmdi.append('--'+k)
+        elif v == False or v is None:
+            # Do not use
+            pass
+        else:
+            # Select option for this phase
+            vi = getel(v, i)
+            # Append the option and value
+            cmdi.append('--'+k)
+            cmdi.append(str(vi))
+    # Output
+    return cmdi

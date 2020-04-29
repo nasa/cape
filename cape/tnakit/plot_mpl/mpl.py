@@ -184,8 +184,8 @@ def axlabel(lbl, pos=None, **kw):
             Text of label to add
         *pos*: :class:`int`
             Index for label position
-        :Keyword Arguments:
-            %(keys)s
+    :Keyword Arguments:
+        %(keys)s
     :Outputs:
         *h*: :class:`matplotlib.text.Text`
             Matplotlib ``Text`` instance

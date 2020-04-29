@@ -266,66 +266,20 @@ def RunPhase(rc, i):
             return
     # Prepare for restart if that's appropriate.
     #SetRestartIter(rc)
-    return
     # Check if the primal solution has already been run
-    if n < ntarg or nprev == 0:
+    if 0 < ntarg or nprev == 0:
         # Get the ``us3d``
         cmdi = cmd.us3d(rc, i=i)
         # Call the command.
         bin.callf(cmdi, f='us3d.out')
-        # Get new iteration number
-        n1 = GetCurrentIter()
-        # Check for lack of progress
-        if n1 <= n:
-            raise SystemError("Running phase did not advance iteration count.")
+        ## Get new iteration number
+        #n1 = GetCurrentIter()
+        ## Check for lack of progress
+        #if n1 <= n:
+        #    raise SystemError("Running phase did not advance iteration count.")
     else:
-        # No new iteratoins
+        # No new iterations
         n1 = n
-    # Go back up a folder if we're in the "Flow" folder
-    if rc.get_Dual(): os.chdir('..')
-    # Check current iteration count.
-    if (i >= rc.get_PhaseSequence(-1)) and (n >= rc.get_LastIter()):
-        return
-    # Check for adaptive solves
-    if n1 < np: return
-    # Check for adjoint solver
-    if rc.get_Dual() and rc.get_DualPhase(i):
-        # Copy the correct namelist
-        os.chdir('Flow')
-        # Delete ``fun3d.nml`` if appropriate
-        if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-            os.remove('fun3d.nml')
-        # Copy the correct one into place
-        os.symlink('fun3d.dual.%02i.nml' % i, 'fun3d.nml')
-        # Enter the 'Adjoint/' folder
-        os.chdir('..')
-        os.chdir('Adjoint')
-        # Create the command to calculate the adjoint
-        cmdi = cmd.dual(rc, i=i, rad=False, adapt=False)
-        # Run the adjoint analysis
-        bin.callf(cmdi, f='dual.out')
-        # Create the command to adapt
-        cmdi = cmd.dual(rc, i=i, adapt=True)
-        # Estimate error and adapt
-        bin.callf(cmdi, f='dual.out')
-        # Rename output file after completing that command
-        os.rename('dual.out', 'dual.%02i.out' % i)
-        # Return
-        os.chdir('..')
-    elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
-        # Check if this is a weird mixed case with Dual and Adaptive
-        if rc.get_Dual(): os.chdir('Flow')
-        # Run the feature-based adaptive mesher
-        cmdi = cmd.nodet(rc, adapt=True, i=i)
-        # Make sure "restart_read" is set to .true.
-        nml.SetRestart(True)
-        nml.Write('fun3d.%02i.nml' % i)
-        # Call the command.
-        bin.callf(cmdi, f='adapt.out')
-        # Rename output file after completing that command
-        os.rename('adapt.out', 'adapt.%02i.out' % i)
-        # Return home if appropriate
-        if rc.get_Dual(): os.chdir('..')
 
 
 # Run ``us3d-prepar``
