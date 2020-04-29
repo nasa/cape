@@ -39,6 +39,9 @@ rc["us3d_prepar_run"] = True
 rc["us3d_prepar_grid"] = "pyus.cas"
 rc["us3d_prepar_conn"] = "conn.h5"
 rc["us3d_prepar_output"] = "grid.h5"
+rc["us3d_input"] = "input.inp"
+rc["us3d_grid"] = "grid.h5"
+rc["us3d_gas"] = None
     
 
 # Function to ensure scalar from above
