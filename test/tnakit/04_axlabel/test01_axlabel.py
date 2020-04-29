@@ -20,12 +20,12 @@ y = np.sin(th)
 h = pmpl.plot(x, y, TopSpine=True, RightSpine=True)
 
 # Start making labels
-pmpl.axlabel("Position 8", pos=8, color="purple")
-pmpl.axlabel("Position 15", pos=15, rotation=-90)
+pmpl.axlabel("Position 8", pos=8, AxesLabelColor="purple")
+pmpl.axlabel("Position 15", pos=15, AxesLabelOptions=dict(rotation=-90))
 
 # Make labels using automatic positions
-pmpl.axlabel(u"μ = 0.0000", color="red")
-pmpl.axlabel(u"r = 1.0000", color="navy", fontdict={"weight": "bold"})
+pmpl.axlabel(u"μ = 0.0000", AxesLabelColor="red")
+pmpl.axlabel(u"r = 1.0000", AxesLabelFontOptions={"weight": "bold"})
 pmpl.axlabel("Third auto position")
 
 # Redo margins

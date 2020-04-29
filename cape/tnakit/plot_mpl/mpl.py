@@ -161,7 +161,7 @@ def axes(**kw):
 
 
 # Label axes in one of 12 special positions
-def axlabel(lbl, pos=None, ax=None, **kw):
+def axlabel(lbl, pos=None, **kw):
     r"""Create a label for an axes object
 
     The *pos* integer implies positions represented by the following
@@ -178,22 +178,14 @@ def axlabel(lbl, pos=None, ax=None, **kw):
           12          14           13
 
     :Call:
-        >>> h = axlabel(ax, lbl, pos=None, **kw):
+        >>> h = axlabel(lbl, pos=None, **kw):
     :Inputs:
-        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
-            Axes handle
         *lbl*: :class:`str`
             Text of label to add
         *pos*: :class:`int`
             Index for label position
-        *xgap*: {``0.05``} | :class:`float`
-            Horizontal spacing in inches
-        *ygap*: {``0.05``} | :class:`float`
-            Vertical spacing in inches
-        *x*: {``None``} | :class:`float`
-            Override default *x*-coordinate in *ax.transAxes* scale
-        *y*: {``None``} | :class:`float`
-            Override default *y*-coordinate in *ax.transAxes* scale
+        :Keyword Arguments:
+            %(keys)s
     :Outputs:
         *h*: :class:`matplotlib.text.Text`
             Matplotlib ``Text`` instance
@@ -202,9 +194,16 @@ def axlabel(lbl, pos=None, ax=None, **kw):
     :Versions:
         * 2020-04-29 ``@ddalle``: First version
     """
-    # Process options?
+    # Process options
+    opts = MPLOpts(_section="axlabel", **kw)
+    # Get axlabel options
+    kw_lbl = opts.get_option("AxesLabelOptions")
+    # Set default position
+    kw_lbl.setdefault("pos", pos)
+    # Remove it
+    ax = kw_lbl.pop("ax", None)
     # Call root function
-    return _axlabel(ax, lbl, pos=pos, **kw)
+    return _axlabel(ax, lbl, **kw_lbl)
 
 
 # Plot function with options check
@@ -3383,6 +3382,7 @@ MPLOpts._doc_keys_fn(spines, "spines")
 MPLOpts._doc_keys_fn(errorbar, ["ErrorBarOptions"])
 MPLOpts._doc_keys_fn(fill_between, ["FillBetweenOptions"])
 MPLOpts._doc_keys_fn(plot, ["PlotOptions"])
+MPLOpts._doc_keys_fn(axlabel, ["AxesLabelOptions"])
 
 # Document private functions
 MPLOpts._doc_keys_fn(_axes_adjust, "axadjust", submap=False)

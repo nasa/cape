@@ -83,10 +83,21 @@ class MPLOpts(kwutils.KwargHandler):
    # --- Global Options ---
     # Lists of options
     _optlist = {
+       # A-E
         "AdjustBottom",
         "AdjustLeft",
         "AdjustRight",
         "AdjustTop",
+        "AxesLabelColor",
+        "AxesLabelFontOptions",
+        "AxesLabelFontName",
+        "AxesLabelFontSize",
+        "AxesLabelFontStretch",
+        "AxesLabelFontStyle",
+        "AxesLabelFontVariant",
+        "AxesLabelFontWeight",
+        "AxesLabelOptions",
+        "AxesLabelPosition",
         "BottomSpine",
         "BottomSpineMax",
         "BottomSpineMin",
@@ -102,6 +113,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ErrorBarMarker",
         "ErrorOptions",
         "ErrorPlotType",
+       # F-J
         "FigDPI",
         "FigHeight",
         "FigNumber",
@@ -129,6 +141,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ImageYMax",
         "ImageYMin",
         "Index",
+       # K-O
         "KeepAspect",
         "Label",
         "LeftSpine",
@@ -161,6 +174,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinMaxPlotType",
         "MinorGrid",
         "MinorGridOptions",
+       # P-T
         "Pad",
         "PlotColor",
         "PlotLineStyle",
@@ -202,6 +216,7 @@ class MPLOpts(kwutils.KwargHandler):
         "TopSpineOptions",
         "TopSpineTicks",
         "TopTickLabels",
+       # U-Z
         "UncertaintyPlotType",
         "UncertaintyOptions",
         "XLabel",
@@ -232,6 +247,7 @@ class MPLOpts(kwutils.KwargHandler):
         "YTickRotation",
         "YTickSize",
         "YTicks",
+       # a-z
         "ax",
         "fig",
         "ux",
@@ -280,6 +296,7 @@ class MPLOpts(kwutils.KwargHandler):
         "UQOpts": "UncertaintyOptions",
         "UncertaintyOpts": "UncertaintyOptions",
         "UQPlotType": "UncertaintyPlotType",
+        "axlabelopts": "AxesLabelOptions",
         "density": "Density",
         "fmt": "PlotFormat",
         "grid": "Grid",
@@ -367,6 +384,19 @@ class MPLOpts(kwutils.KwargHandler):
             "YPad",
             "YMax",
             "YMin"
+        ],
+        "axlabel": [
+            "ax",
+            "AxesLabelColor",
+            "AxesLabelOptions",
+            "AxesLabelFontOptions",
+            "AxesLabelFontName",
+            "AxesLabelFontSize",
+            "AxesLabelFontStretch",
+            "AxesLabelFontStyle",
+            "AxesLabelFontVariant",
+            "AxesLabelFontWeight",
+            "AxesLabelPosition"
         ],
         "axwidth": [
             "Pad",
@@ -559,11 +589,22 @@ class MPLOpts(kwutils.KwargHandler):
    # --- Types ---
     # Types
     _opttypes = {
+       # A-E
         "AdjustBottom": float,
         "AdjustLeft": float,
         "AdjustRight": float,
         "AdjustTop": float,
         "AxesLabelOptions": dict,
+        "AxesLabelColor": (tuple, typeutils.strlike),
+        "AxesLabelOptions": dict,
+        "AxesLabelFontOptions": dict,
+        "AxesLabelFontName": typeutils.strlike,
+        "AxesLabelFontSize": (int, float, typeutils.strlike),
+        "AxesLabelFontStretch": (int, float, typeutils.strlike),
+        "AxesLabelFontStyle": typeutils.strlike,
+        "AxesLabelFontVariant": typeutils.strlike,
+        "AxesLabelFontWeight": (float, int, typeutils.strlike),
+        "AxesLabelPosition": int,
         "AxesOptions": dict,
         "BottomSpine": (bool, typeutils.strlike),
         "BottomSpineMax": float,
@@ -580,6 +621,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ErrorBarOptions": dict,
         "ErrorOptions": dict,
         "ErrorPlotType": typeutils.strlike,
+       # F-J
         "FigDPI": (float, int),
         "FigHeight": float,
         "FigNumber": int,
@@ -606,6 +648,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ImageYMax": float,
         "ImageYMin": float,
         "Index": int,
+       # K-O
         "KeepAspect": bool,
         "Label": typeutils.strlike,
         "LeftSpine": (bool, typeutils.strlike),
@@ -640,6 +683,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinorGridOptions": dict,
         "MinMaxOptions": dict,
         "MinMaxPlotType": typeutils.strlike,
+       # P-T
         "Pad": float,
         "PlotColor": (tuple, typeutils.strlike),
         "PlotFormat": typeutils.strlike,
@@ -677,6 +721,7 @@ class MPLOpts(kwutils.KwargHandler):
         "TopSpineOptions": dict,
         "TopSpineTicks": bool,
         "TopTickLabels": bool,
+       # U-Z
         "UncertaintyOptions": dict,
         "UncertaintyPlotType": typeutils.strlike,
         "XLabel": typeutils.strlike,
@@ -703,6 +748,7 @@ class MPLOpts(kwutils.KwargHandler):
         "YTickRotation": (int, float),
         "YTickSize": (int, float, typeutils.strlike),
         "YTicks": (bool, list),
+       # a-z
         "ax": object,
         "fig": object,
         "ux": typeutils.arraylike,
@@ -720,6 +766,25 @@ class MPLOpts(kwutils.KwargHandler):
    # --- Cascading Options ---
     # Global options mapped to subcategory options
     _kw_submap = {
+        "AxesLabelFontOptions": {
+            "FontOptions.family": "family",
+            "FontOptions.size": "size",
+            "FontOptions.stretch": "stretch",
+            "FontOptions.style": "style",
+            "FontOptions.variant": "variant",
+            "FontOptions.weight": "weight",
+            "AxesLabelFontName": "family",
+            "AxesLabelFontSize": "size",
+            "AxesLabelFontStretch": "stretch",
+            "AxesLabelFontStyle": "style",
+            "AxesLabelFontVariant": "variant",
+            "AxesLabelFontWeight": "weight",
+        },
+        "AxesLabelOptions": {
+            "AxesLabelColor": "color",
+            "AxesLabelFontOptions": "fontdict",
+            "AxesLabelPosition": "pos",
+        },
         "AxesOptions": {},
         "ContourOptions": {
             "Index": "Index",
@@ -875,11 +940,23 @@ class MPLOpts(kwutils.KwargHandler):
    # --- Documentation Data ---
     # Type strings
     _rst_types = {
+        # A-E
         "AdjustBottom": _rst_float,
         "AdjustLeft": _rst_float,
         "AdjustRight": _rst_float,
         "AdjustTop": _rst_float,
         "AxesOptions": _rst_dict,
+        "AxesLabelColor": """{``None``} | :class:`str` | :class:`tuple`""",
+        "AxesLabelFontName": _rst_str,
+        "AxesLabelFontOptions": _rst_dict,
+        "AxesLabelFontSize": _rst_strnum,
+        "AxesLabelFontStretch": _rst_strnum,
+        "AxesLabelFontStyle": ("""{``None``} | ``"normal"`` | """ +
+            """``"italic"`` | ``"oblique"``"""),
+        "AxesLabelFontVariant": '{``None``} | ``"normal"`` | ``"small-caps"``',
+        "AxesLabelFontWeight": _rst_strnum,
+        "AxesLabelOptions": _rst_dict,
+        "AxesLabelPosition": _rst_int,
         "BottomSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
         "BottomSpineMax": _rst_float,
         "BottomSpineMin": _rst_float,
@@ -895,6 +972,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ErrorBarOptions": _rst_dict,
         "ErrorOptions": _rst_dict,
         "ErrorPlotType": """``"FillBetween"`` | {``"ErrorBar"``}""",
+       # F-J
         "FigDPI": _rst_numpos,
         "FigHeight": _rst_floatpos,
         "FigNumber": _rst_intpos,
@@ -923,6 +1001,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ImageYMax": _rst_float,
         "ImageYMin": _rst_float,
         "Index": """{``0``} | :class:`int` >=0""",
+       # K-O
         "KeepAspect": _rst_booln,
         "Label": _rst_str,
         "LeftSpine": """{``None``} | ``True`` | ``False`` | ``"clipped"``""",
@@ -958,6 +1037,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinMaxOptions": _rst_dict,
         "MinorGrid": _rst_boolf,
         "MinorGridOptions": _rst_dict,
+       # P-T
         "Pad": _rst_float,
         "PlotColor": """{``None``} | :class:`str` | :class:`tuple`""",
         "PlotFormat": _rst_str,
@@ -990,6 +1070,7 @@ class MPLOpts(kwutils.KwargHandler):
         "TopSpineOptions": _rst_dict,
         "TopSpineTicks": _rst_booln,
         "TopTickLabels": _rst_booln,
+       # U-Z
         "UncertaintyOptions": _rst_dict,
         "UncertaintyPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "XLabel": _rst_str,
@@ -1002,6 +1083,7 @@ class MPLOpts(kwutils.KwargHandler):
         "YLimMax": _rst_float,
         "YLimMin": _rst_float,
         "YPad": """{*Pad*} | :class:`float`""",
+       # a-z
         "ax": """{``None``} | :class:`matplotlib.axes._subplots.Axes`""",
         "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
         "ux": r""":class:`np.ndarray`\ [:class:`float`]""",
@@ -1017,10 +1099,21 @@ class MPLOpts(kwutils.KwargHandler):
     }
     # Option descriptions
     _rst_descriptions = {
+       # A-E
         "AdjustBottom": """Figure-scale coordinates of bottom of axes""",
         "AdjustLeft": """Figure-scale coordinates of left side of axes""",
         "AdjustRight": """Figure-scale coordinates of right side of axes""",
         "AdjustTop": """Figure-scale coordinates of top of axes""",
+        "AxesLabelColor": "Color option to :func:`plt.text` for axlabel",
+        "AxesLabelFontName": "Font name (types like ``sans-serif`` allowed)",
+        "AxesLabelFontOptions": "*fontdict* for :func:`plt.text`",
+        "AxesLabelFontSize": 'Font size (options like ``"small"`` allowed)',
+        "AxesLabelFontStretch": "Stretch option for :func:`axlabel`",
+        "AxesLabelFontStyle": """Font style/slant""",
+        "AxesLabelFontVariant": """Font capitalization variant""",
+        "AxesLabelFontWeight": 'Numeric weight 0-1000 or ``"bold"``, etc.',
+        "AxesLabelOptions": """Options for axes labels""",
+        "AxesLabelPosition": """Position code for axes label""",
         "AxesOptions": """Options to :class:`AxesSubplot`""",
         "BottomSpine": "Turn on/off bottom plot spine",
         "BottomSpineMax": "Maximum *x* coord for bottom plot spine",
@@ -1037,6 +1130,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ErrorBarOptions": """Options for :func:`errorbar` plots""",
         "ErrorOptions": """Options for error plots""",
         "ErrorPlotType": """Plot type for "error" plots""",
+       # F-J
         "FigDPI": "Figure resolution in dots per inch",
         "FigHeight": "Figure height [inches]",
         "FigNumber": "Figure number",
@@ -1068,6 +1162,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ImageExtent": ("Spec for *ImageXMin*, *ImageXMax*, " +
             "*ImageYMin*, *ImageYMax*"),
         "Index": """Index to select specific option from lists""",
+       # K-O
         "KeepAspect": ("""Keep aspect ratio; default is ``True`` unless""" +
             """``ax.get_aspect()`` is ``"auto"``"""),
         "Label": """Label passed to :func:`plt.legend`""",
@@ -1106,6 +1201,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinMaxPlotType": """Plot type for min/max plot""",
         "MinorGrid": """Turn on/off grid at minor ticks""",
         "MinorGridOptions": """Plot options for minor grid""",
+       # P-T
         "Pad": "Padding to add to both axes, *ax.set_xlim* and *ax.set_ylim*",
         "PlotColor": """Color option to :func:`plt.plot` for primary curve""",
         "PlotFormat": """Format specifier as third arg to :func:`plot`""",
@@ -1139,6 +1235,7 @@ class MPLOpts(kwutils.KwargHandler):
         "TopSpineTicks": "Turn on/off labels on top spine",
         "TopSpineOptions": "Additional options for top spine",
         "TopTickLabels": "Turn on/off tick labels on top spine",
+       # U-Z
         "UncertaintyOptions": """Options for UQ plots""",
         "UncertaintyPlotType": """Plot type for UQ plots""",
         "XLabel": """Label to put on *x* axis""",
@@ -1151,6 +1248,7 @@ class MPLOpts(kwutils.KwargHandler):
         "YLimMax": """Min value for *y*-axis in plot""",
         "YLimMin": """Max value for *y*-axis in plot""",
         "YPad": """Extra padding to add to *y* axis limits""",
+       # a-z
         "ax": """Handle to existing axes""",
         "fig": """Handle to existing figure""",
         "ux": """UQ *x* magintudes""",
@@ -1172,6 +1270,8 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowError": False,
         "Index": 0,
         "Rotate": False,
+        "AxesLabelOptions": {},
+        "AxesLabelFontOptions": {},
         "AxesOptions": {},
         "ContourOptions": {
             "cmap": "viridis",
