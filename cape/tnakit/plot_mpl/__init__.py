@@ -33,7 +33,7 @@ from . import mpl
 from .mplopts import MPLOpts
 from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
-    auto_xlim, auto_ylim, get_figure,
+    axlabel, auto_xlim, auto_ylim, get_figure,
     figure, grid, imshow, spine, spines)
 
 
@@ -1050,4 +1050,3 @@ class MPLHandle(object):
                 # Check if *vi* is already present
                 if vi not in v0:
                     v0.append(vi)
-        

@@ -563,6 +563,7 @@ class MPLOpts(kwutils.KwargHandler):
         "AdjustLeft": float,
         "AdjustRight": float,
         "AdjustTop": float,
+        "AxesLabelOptions": dict,
         "AxesOptions": dict,
         "BottomSpine": (bool, typeutils.strlike),
         "BottomSpineMax": float,

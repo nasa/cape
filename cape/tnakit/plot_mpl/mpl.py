@@ -160,6 +160,53 @@ def axes(**kw):
     return _axes(**kw_ax)
 
 
+# Label axes in one of 12 special positions
+def axlabel(lbl, pos=None, ax=None, **kw):
+    r"""Create a label for an axes object
+
+    The *pos* integer implies positions represented by the following
+    text diagram::
+
+          0            6            1
+        +-----------------------------+
+        | 2            7            3 | 10
+        |                             |
+        | 17           9           16 | 15
+        |                             |
+        | 4            8            5 | 11
+        +-----------------------------+
+          12          14           13
+
+    :Call:
+        >>> h = axlabel(ax, lbl, pos=None, **kw):
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+        *lbl*: :class:`str`
+            Text of label to add
+        *pos*: :class:`int`
+            Index for label position
+        *xgap*: {``0.05``} | :class:`float`
+            Horizontal spacing in inches
+        *ygap*: {``0.05``} | :class:`float`
+            Vertical spacing in inches
+        *x*: {``None``} | :class:`float`
+            Override default *x*-coordinate in *ax.transAxes* scale
+        *y*: {``None``} | :class:`float`
+            Override default *y*-coordinate in *ax.transAxes* scale
+    :Outputs:
+        *h*: :class:`matplotlib.text.Text`
+            Matplotlib ``Text`` instance
+        *h._label*: :class:`str`
+            Set to ``"<axlabel>"`` for automatic detection
+    :Versions:
+        * 2020-04-29 ``@ddalle``: First version
+    """
+    # Process options?
+    # Call root function
+    return _axlabel(ax, lbl, pos=pos, **kw)
+
+
 # Plot function with options check
 def plot(xv, yv, fmt=None, **kw):
     r"""Call the :func:`plot` function with cycling options
@@ -1380,6 +1427,19 @@ def _axes_format(ax, **kw):
 def _axlabel(ax, lbl, pos=None, **kw):
     r"""Create a label for an axes object
 
+    The *pos* integer implies positions represented by the following
+    text diagram::
+
+          0            6            1
+        +-----------------------------+
+        | 2            7            3 | 10
+        |                             |
+        | 17           9           16 | 15
+        |                             |
+        | 4            8            5 | 11
+        +-----------------------------+
+          12          14           13
+
     :Call:
         >>> h = _axlabel(ax, lbl, pos=None, **kw):
     :Inputs:
@@ -1405,6 +1465,11 @@ def _axlabel(ax, lbl, pos=None, **kw):
     :Versions:
         * 2020-04-29 ``@ddalle``: First version
     """
+    # Import module
+    _import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
     # Get figure
     fig = ax.figure
     # Options for spacing as figure fraction [inches]
@@ -1418,11 +1483,10 @@ def _axlabel(ax, lbl, pos=None, **kw):
     # Convert gap to axes units
     dx = (xgap / wfig) * (1 / wa)
     dy = (ygap / hfig) * (1 / ha)
-    
     # Default position
     if pos is None:
         # Create mask of which positions are available
-        mask = np.ones(9, dtype="bool")
+        mask = np.ones(18, dtype="bool")
         # Loop through children
         for hi in ax.get_children():
             # Check if it's a :class:`Text` object
@@ -1434,12 +1498,60 @@ def _axlabel(ax, lbl, pos=None, **kw):
             # Get position
             xi, yi = hi.get_position()
             # Filter position
-            if xi <= 0.2 and yi >= 1.0:
+            if 0.0 <= xi < 0.1 and 1.0 <= yi < 1.1:
                 # Upper left (above)
                 mask[0] = False
-            elif xi >= 0.8 and yi >= 1.0:
+            elif 0.9 < xi < 1.0 and 1.0 <= yi < 1.1:
                 # Upper right (above)
                 mask[1] = False
+            elif 0.0 < xi < 0.1 and 0.9 < yi < 1.0:
+                # Upper left (below)
+                mask[2] = False
+            elif 0.9 < xi < 1.0 and 0.9 < yi < 1.0:
+                # Upper right (below)
+                mask[3] = False
+            elif 0.0 <= xi < 0.1 and 0.0 <= yi < 0.1:
+                # Lower left (above)
+                mask[4] = False
+            elif 0.9 < xi < 1.0 and 0.0 <= yi < 0.1:
+                # Lower right (above)
+                mask[5] = False
+            elif 0.38 < xi < 0.55 and 1.0 <= yi < 1.1:
+                # Upper center (above)
+                mask[6] = False
+            elif 0.38 < xi < 0.55 and 0.9 < yi < 1.0:
+                # Upper center (below)
+                mask[7] = False
+            elif 0.38 < xi < 0.55 and 0.0 <= yi < 0.1:
+                # Lower center (above)
+                mask[8] = False
+            elif 0.38 < xi < 0.55 and 0.38 < yi < 0.6:
+                # Center
+                mask[9] = False
+            elif 1.0 <= xi < 1.1 and 0.9 < yi < 1.0:
+                # Upper right (outside)
+                mask[10] = False
+            elif 1.0 <= xi < 1.1 and 0.0 <= yi < 0.1:
+                # Lower right (outside)
+                mask[11] = False
+            elif 0.0 <= xi < 0.1 and -0.1 < yi < 0.0:
+                # Lower left (below)
+                mask[12] = False
+            elif 0.9 < xi < 1.0 and -0.1 < yi < 0.0:
+                # Lower right (below)
+                mask[13] = False
+            elif 0.38 < xi < 0.55 and -0.1 < yi < 0.0:
+                # Lower center (below)
+                mask[14] = False
+            elif 1.0 <= xi < 1.1 and 0.38 < yi < 0.6:
+                # Center right (outside)
+                mask[15] = False
+            elif 0.9 < xi < 1.0 and 0.38 < yi < 0.6:
+                # Center right (inside)
+                mask[16] = False
+            elif 0.0 <= xi < 0.1 and 0.38 < yi < 0.6:
+                # Center left (inside)
+                mask[17] = False
         # Get available positions
         pos_avail = np.where(mask)[0]
         # Check for any available positions
@@ -1448,22 +1560,25 @@ def _axlabel(ax, lbl, pos=None, **kw):
             pos = 0
         else:
             # Use first available position
-            pos = pos_avail[0]
+            pos = int(pos_avail[0])
     # Filter position
-    if pos == 0:
+    if not isinstance(pos, int):
+        # Bad type
+        raise TypeError("*pos* parameter must be 'int'; got '%s'" % type(pos))
+    elif pos == 0:
         # Upper left (above)
         kw.setdefault("horizontalalignment", "left")
         kw.setdefault("verticalalignment", "bottom")
         # Default positions
         x = dx
-        y = 1 + dy
+        y = 1 + 0.65*dy
     elif pos == 1:
         # Upper right (above)
         kw.setdefault("horizontalalignment", "right")
         kw.setdefault("verticalalignment", "bottom")
         # Default positions
         x = 1 - dx
-        y = 1 + dy
+        y = 1 + 0.65*dy
     elif pos == 2:
         # Upper left (below)
         kw.setdefault("horizontalalignment", "left")
@@ -1471,6 +1586,120 @@ def _axlabel(ax, lbl, pos=None, **kw):
         # Default positions
         x = dx
         y = 1 - dy
+    elif pos == 3:
+        # Upper right (below)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 1 - dx
+        y = 1 - dy
+    elif pos == 4:
+        # Lower left (above)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = dx
+        y = 0.65*dy
+    elif pos == 5:
+        # Lower right (above)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 1 - dx
+        y = 0.65*dy
+    elif pos == 6:
+        # Top middle (above)
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 0.5
+        y = 1 + 0.65*dy
+    elif pos == 7:
+        # Top middle (below)
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 0.5
+        y = 1 - dy
+    elif pos == 8:
+        # Bottom middle (above)
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 0.5
+        y = 0.65*dy
+    elif pos == 9:
+        # Center
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "center")
+        # Default positions
+        x = 0.5
+        y = 0.5
+    elif pos == 10:
+        # Top right (right)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 1 + dx
+        y = 1 - dy
+    elif pos == 11:
+        # Bottom right (right)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 1 + dx
+        y = 0.65*dy
+    elif pos == 12:
+        # Bottom left (below)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = dx
+        y = -dy
+    elif pos == 13:
+        # Bottom right (below)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 1 - dx
+        y = -dy
+    elif pos == 14:
+        # Bottom center (below)
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 0.5
+        y = -dy
+    elif pos == 15:
+        # Center right (outside)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "center")
+        # Default rotation
+        kw.setdefault("rotation", -90)
+        # Default positions
+        x = 1 + dx
+        y = 0.5
+    elif pos == 16:
+        # Center right (inside)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "center")
+        # Default rotation
+        kw.setdefault("rotation", -90)
+        # Default positions
+        x = 1 - dx
+        y = 0.5
+    elif pos == 17:
+        # Center left (inside)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "center")
+        # Default rotation
+        kw.setdefault("rotation", 90)
+        # Default positions
+        x = dx
+        y = 0.5
+    else:
+        # Unrecognized
+        raise ValueError("Unrecognized *pos*; must be in range [0, 17]")
     # Override coordinates
     x = kw.pop("x", x)
     y = kw.pop("y", y)

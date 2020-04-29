@@ -516,6 +516,9 @@ class TextInterpreter(object):
         :Versions:
             * 2019-11-25 ``@ddalle``: First version
         """
+        # Check for NaN (empty text)
+        if txt.strip() == "":
+            return np.nan
         # Filter name
         if clsname is None:
             # Standard Python type
@@ -640,6 +643,9 @@ class TextInterpreter(object):
         :Versions:
             * 2019-11-25 ``@ddalle``: First version
         """
+        # Check for NaN (empty text)
+        if txt.strip() == "":
+            return 0
         # Filter name
         if clsname is None:
             # Standard Python type
