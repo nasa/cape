@@ -350,7 +350,7 @@ class Options(cape.cfdx.options.Options):
     # Option for gas file
     def set_us3d_gas(self, gas=rc0("us3d_gas"), i=None):
         self._RunControl()
-        self["RunControl"][.set_us3d_gas(gas, i=i)
+        self["RunControl"].set_us3d_gas(gas, i=i)
 
     # Copy documentation     
     for k in ["input", "grid", "gas"]:
