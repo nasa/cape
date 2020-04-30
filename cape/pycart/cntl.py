@@ -63,6 +63,7 @@ from . import bin
 from . import case
 from . import manage
 from . import dataBook
+from . import report
 
 # Functions and classes from other modules
 from .runmatrix   import RunMatrix
