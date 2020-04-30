@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pyus.options.util`: Utilities for pyUS options module
 =================================================================
 
@@ -27,6 +27,7 @@ parameter should be is below.
 
 # Import CAPE options utilities
 from cape.cfdx.options.util import *
+
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

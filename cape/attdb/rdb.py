@@ -28,6 +28,7 @@ interfaces to several different file types.
 
 # Standard library modules
 import os
+import sys
 import copy
 
 # Third-party modules
