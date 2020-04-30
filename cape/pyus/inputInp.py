@@ -1983,7 +1983,7 @@ class InputInp(cape.filecntl.namelist.Namelist):
         # Process the BCs
         bcs = self.ReadBCs()
         # Check if BC is present
-        if name not in self.bcs:
+        if name not in bcs:
             raise KeyError("No BC named '%s'" % name)
         # Get the row
         row = bcs[name].get("row")
@@ -2010,7 +2010,7 @@ class InputInp(cape.filecntl.namelist.Namelist):
             # Set indexed value
             line = self.SetLineValueSequential(line0, i + 4, param)
         # Save the new line
-        self.ReplaceLineInSectionStartWith("CFD_BCS", line0, line)
+        self.ReplaceLineInSectionStartsWith("CFD_BCS", line0, line)
 
     # Get parameter
     def GetBCParam(self, name, i=None):
@@ -2215,7 +2215,7 @@ class InputInp(cape.filecntl.namelist.Namelist):
         # Set indexed value
         line = self.SetLineValueSequential(line0, i, v)
         # Save the new line
-        self.ReplaceLineInSectionStartWith("CFD_BCS", line0, line)
+        self.ReplaceLineInSectionStartsWith("CFD_BCS", line0, line)
 
     # Set zone
     def SetBCZone(self, name, zone):
