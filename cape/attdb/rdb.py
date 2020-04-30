@@ -799,12 +799,12 @@ class DataKit(ftypes.BaseData):
             return srcs.get(name)
 
     # Get source, creating if necessary
-    def make_source(self, ext, cls, n=None, cols=None, save=True):
+    def make_source(self, ext, cls, n=None, cols=None, save=True, **kw):
         r"""Get or create a source by category (and number)
 
         :Call:
             >>> dbf = db.make_source(ext, cls)
-            >>> dbf = db.make_source(ext, cls, n=None, cols=None)
+            >>> dbf = db.make_source(ext, cls, n=None, cols=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Generic database
@@ -818,6 +818,8 @@ class DataKit(ftypes.BaseData):
                 List of data columns to include in *dbf*
             *save*: {``True``} | ``False``
                 Option to save *dbf* in *db.sources*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
         :Outputs:
             *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -834,7 +836,7 @@ class DataKit(ftypes.BaseData):
                 # Done
                 return dbf
         # Create a new one
-        dbf = self.genr8_source(ext, cls, cols=cols)
+        dbf = self.genr8_source(ext, cls, cols=cols, **kw)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -845,12 +847,12 @@ class DataKit(ftypes.BaseData):
         return dbf
 
     # Build new source, creating if necessary
-    def genr8_source(self, ext, cls, cols=None):
+    def genr8_source(self, ext, cls, cols=None, **kw):
         r"""Create a new source file interface
 
         :Call:
             >>> dbf = db.genr8_source(ext, cls)
-            >>> dbf = db.genr8_source(ext, cls, cols=None)
+            >>> dbf = db.genr8_source(ext, cls, cols=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Generic database
@@ -860,6 +862,8 @@ class DataKit(ftypes.BaseData):
                 Subclass of :class:`BaseFile` to create (if needed)
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of data columns to include in *dbf*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
         :Outputs:
             *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -871,17 +875,63 @@ class DataKit(ftypes.BaseData):
             # Use listed columns
             cols = self.cols
         # Get relevant options
-        kw = {"_warnmode": 0}
+        kwcls = {"_warnmode": 0}
         # Set values
-        kw["Values"] = {col: self[col] for col in cols}
+        kwcls["Values"] = {col: self[col] for col in cols}
         # Explicit column list
-        kw["cols"] = cols
+        kwcls["cols"] = cols
         # Copy definitions
-        kw["Definitions"] = self.defns
+        kwcls["Definitions"] = self.defns
         # Create from class
-        dbf = cls(**kw)
+        dbf = cls(**kwcls)
+        # Get attributes to copy
+        attrs = kw.get("attrs")
+        # Copy them
+        self._copy_attrs(dbf, attrs)
         # Output
         return dbf
+
+    # Copy attributes
+    def _copy_attrs(self, dbf, attrs):
+        r"""Copy additional attributes to new "source" database
+
+        :Call:
+            >>> db._copy_attrs(dbf, attrs)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Generic database
+            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *attrs*: ``None`` | :class:`list`\ [:class:`str`]
+                List of *db* attributes to copy
+        :Versions:
+            * 2020-04-30 ``@ddalle``: First version
+        """
+        # Check for null option
+        if attrs is None:
+            return
+        # Loop through attributes
+        for attr in attrs:
+            # Get current value
+            v = self.__dict__.get(attr)
+            # Check for :class:`dict`
+            if not isinstance(v, dict):
+                # Copy attribute and move to next attribute
+                setattr(dbf, attr, copy.copy(v))
+                continue
+            # Check if this is a dict of information by column
+            if not any([col in v for col in dbf]):
+                # Just some other :class:`dict`; copy whole hting
+                setattr(dbf, attr, copy.copy(v))
+            # Initialize dict to save
+            v1 = {}
+            # Loop through cols
+            for col, vi in v.items():
+                # Check if it's a *col* in *dbf*
+                if col in dbf:
+                    v1[col] = copy.copy(vi)
+            # Save new :class:`dict`
+            setattr(dbf, attr, v1)
   # >
 
   # ==================
@@ -1235,7 +1285,7 @@ class DataKit(ftypes.BaseData):
             self.sources[name] = dbf
 
     # Write MAT file
-    def write_mat(self, fname, cols=None):
+    def write_mat(self, fname, cols=None, **kw):
         r""""Write a MAT file
 
         If *db.sources* has a MAT file, the database will be written
@@ -1255,10 +1305,12 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
+        # Attributes
+        attrs = kw.get("attrs", ["bkpts"])
         # Get/create MAT file interface
-        dbmat = self.make_source("mat", ftypes.MATFile, cols=cols)
+        dbmat = self.make_source("mat", ftypes.MATFile, cols=cols, attrs=attrs)
         # Write it
-        dbmat.write_mat(fname, cols=cols)
+        dbmat.write_mat(fname, cols=cols, attrs=attrs)
   # >
 
   # ===============
@@ -1420,7 +1472,7 @@ class DataKit(ftypes.BaseData):
         # Calls
         if nd == 0:
             # Scalar call
-            v = f(col, args_col, x, **kw_fn)
+            v = f(col, args_col, *x, **kw_fn)
             # Output
             return v
         else:
@@ -1431,13 +1483,14 @@ class DataKit(ftypes.BaseData):
                 # Construct inputs
                 xj = [Xi[j] for Xi in X]
                 # Call scalar function
-                V[j] = f(col, args_col, xj, **kw_fn)
+                V[j] = f(col, args_col, *xj, **kw_fn)
             # Reshape
             V = V.reshape(dims)
             # Output
             return V
 
-   # --- Alternative Evaluation ---# Find exact match
+   # --- Alternative Evaluation ---
+    # Find exact match
     def rcall_exact(self, col, args, *a, **kw):
         r"""Evaluate a coefficient by looking up exact matches
 
@@ -1542,7 +1595,7 @@ class DataKit(ftypes.BaseData):
         # Loop through keys
         for (i, k) in enumerate(args):
             # Get value
-            xi = x[i]
+            xi = a[i]
             # Get weight
             wi = W.get(k, 1.0)
             # Distance
@@ -3333,7 +3386,7 @@ class DataKit(ftypes.BaseData):
 
    # --- Linear ---
     # Multilinear lookup
-    def rcall_multilinear(self, col, args, x, **kw):
+    def rcall_multilinear(self, col, args, *x, **kw):
         r"""Perform linear interpolation in *n* dimensions
 
         This assumes the database is ordered with the first entry of
@@ -3341,7 +3394,7 @@ class DataKit(ftypes.BaseData):
         regular.
 
         :Call:
-            >>> y = db.rcall_multilinear(col, args, x)
+            >>> y = db.rcall_multilinear(col, args, *x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3372,7 +3425,7 @@ class DataKit(ftypes.BaseData):
         regular.
 
         :Call:
-            >>> y = db._rcall_multilinear(col, args, x, I=None, j=None)
+            >>> y = db._rcall_multilinear(col, args, *x, I=None, j=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3508,7 +3561,7 @@ class DataKit(ftypes.BaseData):
 
    # --- Multilinear-schedule ---
     # Multilinear lookup at each value of arg
-    def rcall_multilinear_schedule(self, col, args, x, **kw):
+    def rcall_multilinear_schedule(self, col, args, *x, **kw):
         r"""Perform "scheduled" linear interpolation in *n* dimensions
 
         This assumes the database is ordered with the first entry of
@@ -3529,8 +3582,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
             *tol*: {``1e-6``} | :class:`float` >= 0
                 Tolerance for matching slice key
         :Outputs:
@@ -3560,11 +3613,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Radial Basis Functions ---
     # RBF lookup
-    def rcall_rbf(self, col, args, x, **kw):
+    def rcall_rbf(self, col, args, *x, **kw):
         """Evaluate a single radial basis function
 
         :Call:
-            >>> y = DBc.rcall_rbf(col, args, x)
+            >>> y = DBc.rcall_rbf(col, args, *x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3572,8 +3625,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
         :Outputs:
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
@@ -3645,7 +3698,7 @@ class DataKit(ftypes.BaseData):
 
    # --- RBF-linear ---
     # Multiple RBF lookup
-    def rcall_rbf_linear(self, col, args, x, **kw):
+    def rcall_rbf_linear(self, col, args, *x, **kw):
         r"""Evaluate two RBFs at slices of first *arg* and interpolate
 
         :Call:
@@ -3657,8 +3710,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
         :Outputs:
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
@@ -3681,11 +3734,11 @@ class DataKit(ftypes.BaseData):
 
    # --- RBF-schedule ---
     # Multiple RBF lookup, curvilinear
-    def rcall_rbf_schedule(self, col, args, x, **kw):
+    def rcall_rbf_schedule(self, col, args, *x, **kw):
         r"""Evaluate two RBFs at slices of first *arg* and interpolate
 
         :Call:
-            >>> y = db.rcall_rbf_schedule(col, args, x)
+            >>> y = db.rcall_rbf_schedule(col, args, *x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3693,8 +3746,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
         :Outputs:
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
@@ -3718,11 +3771,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Generic Function ---
     # Generic function
-    def rcall_function(self, col, args, x, **kw):
+    def rcall_function(self, col, args, *x, **kw):
         r"""Evaluate a single user-saved function
 
         :Call:
-            >>> y = db.rcall_function(col, args, x)
+            >>> y = db.rcall_function(col, args, *x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3730,8 +3783,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
         :Outputs:
             *y*: ``None`` | :class:`float` | ``DBc[coeff].__class__``
                 Interpolated value from ``DBc[coeff]``
@@ -8747,22 +8800,10 @@ class DataKit(ftypes.BaseData):
        # --- Full-Factorial Matrix ---
         # Get full-factorial matrix at the current slice value
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
+        # Original values retained for creating masks during slices
+        X0 = {}
         # Number of output points
         nX = X[args[0]].size
-        # Save the lookup values
-        for arg in args:
-            # Translate column name
-            argreg = self._translate_colname(arg, *tr_args)
-            # Save values
-            self.save_col(argreg, X[arg])
-            # Check if new
-            if argreg != arg:
-                # Get previous definition
-                defn = self.get_defn(arg)
-                # Save a copy
-                self.defns[argreg] = self._defncls(**defn)
-                # Link break points
-                bkpts[argreg] = bkpts[arg]
        # --- Regularization ---
         # Perform interpolations
         for col in cols:
@@ -8814,11 +8855,34 @@ class DataKit(ftypes.BaseData):
                     x = tuple(X[k][I] for k in iargs)
                     # Evaluate coefficient
                     V[I] = f(*x)
-                # Clean up prompt
+                # Status update
                 if kw.get("v"):
-                    print("")
+                    # Get main key value
+                    m = slices[maincol][i]
+                    # Get value in fixed number of characters
+                    sv = ("%6g" % m)[:6]
+                    # In-place status update
+                    sys.stdout.write("%72s\r" % "")
+                    sys.stdout.flush()
             # Save the values
             self.save_col(colreg, V)
+       # --- New Arg Values ---
+        # Save the lookup values
+        for arg in args:
+            # Translate column name
+            argreg = self._translate_colname(arg, *tr_args)
+            # Save original values
+            #X0[arg] = self.get_all_values(arg)
+            # Save values
+            self.save_col(argreg, X[arg])
+            # Check if new
+            if argreg != arg:
+                # Get previous definition
+                defn = self.get_defn(arg)
+                # Save a copy
+                self.defns[argreg] = self._defncls(**defn)
+                # Link break points
+                bkpts[argreg] = bkpts[arg]
        # --- Co-mapped XAargs ---
         # Trajectory co-keys
         cocols = kw.get("cocols", list(bkpts.keys()))
@@ -8848,7 +8912,7 @@ class DataKit(ftypes.BaseData):
             T = []
             # Status update
             if kw.get("v"):
-                print("  Mapping key '%s'" % k)
+                print("  Mapping key '%s'" % col)
             # Loop through slice values
             for m in bkpts[maincol]:
                 # Find value of slice key matching that parameter
