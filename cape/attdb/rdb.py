@@ -8796,7 +8796,7 @@ class DataKit(ftypes.BaseData):
                         sv = ("%6g" % m)[:6]
                         # In-place status update
                         sys.stdout.write("    Slice %s=%s (%i/%i)\r"
-                            % (mainkey, sv, i+1, nslice))
+                            % (maincol, sv, i+1, nslice))
                         sys.stdout.flush()
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
@@ -9071,7 +9071,7 @@ class DataKit(ftypes.BaseData):
                         sv = ("%6g" % m)[:6]
                         # In-place status update
                         sys.stdout.write("    Slice %s=%s (%i/%i)\r"
-                            % (mainkey, sv, i+1, nslice))
+                            % (maincol, sv, i+1, nslice))
                         sys.stdout.flush()
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
