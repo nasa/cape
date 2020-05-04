@@ -701,6 +701,74 @@ def genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN"):
     return func
 
 
+# Estimate *xCLM*
+def estimate_xCLM(self, DCLM, DCN):
+    r"""Estimate reference *x* for *UCLM* calculations
+    
+    :Call:
+        >>> xCLM = estimate_xCLM(self, DCLM, DCN)
+    :Inputs:
+        *self*: :class:`DBFM`
+            Force & moment database with *self.xMRP* and *self.Lref*
+        *DCLM*: :class:`np.ndarray` (:class:`float`)
+            Deltas between two databases' *CLM* values
+        *DCN*: :class:`np.ndarray` (:class:`float`)
+            Deltas between two databases' *CN* values
+    :Outputs:
+        *xCLM*: :class:`float`
+            Reference *x* that minimizes *UCLM*
+    :Versions:
+        * 2019-02-20 ``@ddalle``: First version
+        * 2020-05-04 ``@ddalle``: Copied from :mod:`attdb.fm`
+    """
+    # Original MRP in nondimensional coordinates
+    xMRP = self.xMRP / self.Lref
+    # Calculate mean deltas
+    muDCN = np.mean(DCN)
+    muDCLM = np.mean(DCLM)
+    # Reduced deltas
+    DCN1  = DCN  - muDCN
+    DCLM1 = DCLM - muDCLM
+    # Calculate reference *xCLM* for *UCLM*
+    xCLM = xMRP - np.sum(DCLM1*DCN1)/np.sum(DCN1*DCN1)
+    # Output
+    return xCLM
+
+
+# Estimate *xCLN*
+def estimate_xCLN(self, DCLN, DCY):
+    r"""Estimate reference *x* for *UCLN* calculations
+    
+    :Call:
+        >>> xCLN = estimate_xCLN(self, DCLN, DCY)
+    :Inputs:
+        *self*: :class:`DBFM`
+            Force & moment database with *self.xMRP* and *self.Lref*
+        *DCLN*: :class:`np.ndarray` (:class:`float`)
+            Deltas between two databases' *CLN* values
+        *DCY*: :class:`np.ndarray` (:class:`float`)
+            Deltas between two databases' *CY* values
+    :Outputs:
+        *xCLN*: :class:`float`
+            Reference *x* that minimizes *UCLN*
+    :Versions:
+        * 2019-02-20 ``@ddalle``: First version
+        * 2020-05-04 ``@ddalle``: Copied from :mod:`attdb.fm`
+    """
+    # Original MRP in nondimensional coordinates
+    xMRP = self.xMRP / self.Lref
+    # Calculate mean deltas
+    muDCY = np.mean(DCY)
+    muDCLN = np.mean(DCLN)
+    # Reduced deltas
+    DCY1  = DCY  - muDCY
+    DCLN1 = DCLN - muDCLN
+    # Calculate reference *xCLM* for *UCLM*
+    xCLN = xMRP - np.sum(DCLN1*DCY1)/np.sum(DCY1*DCY1)
+    # Output
+    return xCLN
+
+
 # DBFM options
 class _DBFMOpts(rdb.DataKitOpts):
    # --- Global Options ---
@@ -899,6 +967,13 @@ class DBFM(rdbaero.AeroDataKit):
                 ecol = self.substitute_prefix(col, "U", "x")
                 # Set it
                 self.set_uq_ecol(ucol, ecol)
+                # Set function
+                if tag == "CLM":
+                    # Set efunc
+                    self.set_uq_efunc(ecol, estimate_xCLM)
+                elif tag == "CLN":
+                    # Set efunc
+                    self.set_uq_efunc(ecol, estimate_xCLN)
 
     # Set UQ aux cols for moment cols
     def _make_uq_acols_FM(self):

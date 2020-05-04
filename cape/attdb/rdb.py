@@ -4121,12 +4121,16 @@ class DataKit(ftypes.BaseData):
         nmin = kw.get("nmin", 30)
        # --- Coefficient Loop ---
         # Loop through data coefficients
-        for col in self:
+        for col in list(self.keys()):
             # Get UQ col list
             ucols = self.get_uq_col(col)
             # Skip if no UQ cols
             if not ucols:
                 continue
+            # Enlist
+            if typeutils.isstr(ucols):
+                # Make single list
+                ucols = [ucols]
             # Loop through them
             for ucol in ucols:
                 # Status update
@@ -4237,8 +4241,8 @@ class DataKit(ftypes.BaseData):
         # Degrees of freedom
         df = DV.size
         # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
-        ksig = student.ppf(0.5+0.5*cdf, df)
-        kcov = student.ppf(0.5+0.5*cov, df)
+        ksig = statutils.student.ppf(0.5+0.5*cdf, df)
+        kcov = statutils.student.ppf(0.5+0.5*cov, df)
         # Outlier cutoff
         if osig_kw is None:
             # Default
@@ -4247,11 +4251,11 @@ class DataKit(ftypes.BaseData):
             # User-supplied value
             osig = osig_kw
         # Check outliers on main deltas
-        J = stats.check_outliers(DV, cov, cdf=cdf, osig=osig)
+        J = statutils.check_outliers(DV, cov, cdf=cdf, osig=osig)
         # Loop through shift keys; points must be non-outlier in all keys
         for DVk in DV0_aux:
             # Check outliers in these deltas
-            Jk = stats.check_outliers(DVk, cov, cdf=cdf, osig=osig)
+            Jk = statutils.check_outliers(DVk, cov, cdf=cdf, osig=osig)
             # Combine constraints
             J = np.logical_and(J, Jk)
         # Downselect original deltas
@@ -4264,8 +4268,8 @@ class DataKit(ftypes.BaseData):
         # New degrees of freedom
         df = DV.size
         # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
-        ksig = student.ppf(0.5+0.5*cdf, df)
-        kcov = student.ppf(0.5+0.5*cov, df)
+        ksig = statutils.student.ppf(0.5+0.5*cdf, df)
+        kcov = statutils.student.ppf(0.5+0.5*cov, df)
         # Outlier cutoff
         if osig_kw is None:
             # Default
@@ -4286,7 +4290,7 @@ class DataKit(ftypes.BaseData):
             if fn is None:
                 raise ValueError("No function for extra UQ col '%s'" % ecol)
             # Evaluate
-            a_extra.apend(fn(self, DV, *DV_aux))
+            a_extra.append(fn(self, DV, *DV_aux))
        # --- Delta shifting (aux functions) ---
         # Function to perform any shifts
         afunc = self.get_uq_afunc(ucol)
@@ -4298,12 +4302,12 @@ class DataKit(ftypes.BaseData):
             DV = afunc(self, DV, *a_aux)
        # --- Statistics ---
         # Calculate coverage interval
-        vmin, vmax = stats.get_cov_interval(DV, cov, cdf=cdf, osig=osig)
+        vmin, vmax = statutils.get_cov_interval(DV, cov, cdf=cdf, osig=osig)
         # Max value
         u = max(abs(vmin), abs(vmax))
        # --- Output ---
         # Return all extra values
-        return (u,) + a_extra
+        return (u,) + tuple(a_extra)
 
     # Estimate UQ at a single *ucol* condition
     def est_uq_point(self, db2, col, ucol, *a, **kw):
@@ -4431,7 +4435,7 @@ class DataKit(ftypes.BaseData):
         # Additional information
         uq_ecols = self.get_uq_ecol(ucol)
         # Check length
-        if uq_acols is None:
+        if uq_ecols is None:
             # No extra ecols
             nu = 1
         else:
@@ -4494,7 +4498,7 @@ class DataKit(ftypes.BaseData):
        # --- Check bounds ---
         def check_bounds(vmin, vmax, vals):
             # Loop through parameters
-            for i,k in enumerate(arg_list):
+            for i,k in enumerate(args):
                 # Get values
                 Vk = vals[k]
                 # Check bounds
@@ -4538,7 +4542,7 @@ class DataKit(ftypes.BaseData):
         vmin = {}
         vmax = {}
         # Loop through parameters
-        for i,k in enumerate(arg_list):
+        for i, k in enumerate(args):
             # Get value
             v = a[i]
             # Get tolerance
@@ -4777,7 +4781,7 @@ class DataKit(ftypes.BaseData):
 
     # Get aux columns needed to compute UQ of a col
     def get_uq_acol(self, ucol):
-        r"""Get name of extra data cols needed to compute UQ col
+        r"""Get name of aux data cols needed to compute UQ col
 
         :Call:
             >>> acols = db.get_uq_acol(ucol)
@@ -4800,10 +4804,10 @@ class DataKit(ftypes.BaseData):
         if typeutils.isstr(acols):
             # Create single list
             acols = [acols]
-        elif ecols is None:
+        elif acols is None:
             # Empty result should be empty list
             acols = []
-        elif not isinstance(ecols, list):
+        elif not isinstance(acols, list):
             # Invalid type
             raise TypeError(
                 "uq_acols for col '%s' should be list; got '%s'"
