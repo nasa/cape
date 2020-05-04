@@ -52,14 +52,14 @@ generation.
                 },
                 "wingFM": {
                     "Type": "PlotCoeff",
-                    "Component": "CA",
+                    "Component": "wing",
                     "Width": 0.5,
                     "StandardDeviation": 1.0, 
                     "nStats": 200
                 },
-                "CA": {"Type": "wingFM" "Coefficient": "CA"},
-                "CY": {"Type": "wingFM" "Coefficient": "CY"},
-                "CN": {"Type": "wingFM" "Coefficient": "CN"},
+                "CA": {"Type": "wingFM", "Coefficient": "CA"},
+                "CY": {"Type": "wingFM", "Coefficient": "CY"},
+                "CN": {"Type": "wingFM", "Coefficient": "CN"},
                 "L1": {"Type": "PlotL1"}
             }
         }
