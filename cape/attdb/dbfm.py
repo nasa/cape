@@ -668,10 +668,10 @@ def genr8_fUCLMX(col1="UCLM", col2="UCN", col3="xCLM"):
 
 # Create evaluator for *UCLNX*
 def genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN"):
-    r"""Generate an evaluator for *UCLMX* with specified *cols*
+    r"""Generate an evaluator for *UCLNX* with specified *cols*
 
     :Call:
-        >>> func = genr8_fUCLMX(col1="UCLN", col2="UCY", col3="xCLN")
+        >>> func = genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN")
     :Inputs:
         *col1*: ``"UCLN"`` | :class:`str`
             Name of yawing moment uncertainty column
@@ -1088,6 +1088,114 @@ class DBFM(rdbaero.AeroDataKit):
             func = genr8_fCLNX(col, acol)
             # Save it
             self.make_response(scol, "function", args, func=func)
+
+    # Make *UCLMX* evaluators
+    def make_UCLMX(self):
+        r"""Build and save evaluators for *UCLMX* cols
+
+        :Call:
+            >>> db.make_UCLMX()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-05-04 ``@ddalle``: First version
+        """
+        # Loop through *CLM* cols
+        for col in self.get_cols_by_tag("CLM"):
+            # Uncertainty column
+            ucol0 = self.get_uq_col(col)
+            # Check if set
+            if ucol0 is None:
+                continue
+            # Args
+            args = self.get_response_args(ucol0)
+            # Check if set
+            if args is None:
+                continue
+            # Append MRP location
+            args += ["xMRP"]
+            # Get aux column name
+            acol = self._getcol_CN_from_CLM(col)
+            # Check it
+            if acol is None:
+                continue
+            # UQ col for *CN*
+            ucol1 = self.get_uq_col(acol)
+            # Check it
+            if ucol1 is None:
+                continue
+            # Name of col for UQ at shifted location
+            ucol = self.append_colname(ucol0, "X")
+            # Test if *scol* is already present
+            if self.get_response_method(ucol):
+                continue
+            # Name for UQ reference MRP
+            ecols = self.get_uq_ecol(ucol0)
+            # Check it
+            if len(ecols) != 1:
+                continue
+            else:
+                # Unpack
+                ucol2, = ecols
+            # Generate *CLMX* function
+            func = genr8_fUCLMX(ucol0, ucol1, ucol2)
+            # Save it
+            self.make_response(ucol, "function", args, func=func)
+
+    # Make *UCLNX* evaluators
+    def make_UCLNX(self):
+        r"""Build and save evaluators for *UCLNX* cols
+
+        :Call:
+            >>> db.make_UCLNX()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-05-04 ``@ddalle``: First version
+        """
+        # Loop through *CLM* cols
+        for col in self.get_cols_by_tag("CLN"):
+            # Uncertainty column
+            ucol0 = self.get_uq_col(col)
+            # Check if set
+            if ucol0 is None:
+                continue
+            # Args
+            args = self.get_response_args(ucol0)
+            # Check if set
+            if args is None:
+                continue
+            # Append MRP location
+            args += ["xMRP"]
+            # Get aux column name
+            acol = self._getcol_CY_from_CLN(col)
+            # Check it
+            if acol is None:
+                continue
+            # UQ col for *CN*
+            ucol1 = self.get_uq_col(acol)
+            # Check it
+            if ucol1 is None:
+                continue
+            # Name of col for UQ at shifted location
+            ucol = self.append_colname(ucol0, "X")
+            # Test if *scol* is already present
+            if self.get_response_method(ucol):
+                continue
+            # Name for UQ reference MRP
+            ecols = self.get_uq_ecol(ucol0)
+            # Check it
+            if len(ecols) != 1:
+                continue
+            else:
+                # Unpack
+                ucol2, = ecols
+            # Generate *CLNX* function
+            func = genr8_fUCLNX(ucol0, ucol1, ucol2)
+            # Save it
+            self.make_response(ucol, "function", args, func=func)
 
     # Get *CN* col name from *CLM*
     def _getcol_CN_from_CLM(self, col):
