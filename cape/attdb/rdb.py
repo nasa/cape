@@ -7248,7 +7248,7 @@ class DataKit(ftypes.BaseData):
                 Lower bound of coverage interval
             *b*: :class:`float`
                 Upper bound of coverage intervalregion
-        :Versins:
+        :Versions:
             * 2018-09-28 ``@ddalle``: First version
             * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
         """
