@@ -1854,6 +1854,35 @@ def _colorbar(ax=None, **kw):
     :Versions:
         * 2020-03-27 ``@jmeeroff``: First version
         * 2020-04-23 ``@ddalle``: Add checks for previous colorbars
+        * 2020-05-06 ``@ddalle``: Forked :func:`_colorbar_rm`
+    """
+    # Make sure pyplot loaded
+    _import_pyplot()
+    # Gte axes
+    if ax is None:
+        # Assume current figure can be used
+        ax = plt.gca()
+    # Get figure handle
+    fig = ax.figure
+    # Remove any existing colorbars
+    _colorbar_rm(ax)
+    # Create the new colorbar
+    h = plt.colorbar(**kw)
+    # Return colorbar
+    return h
+
+
+# Colorbar remover
+def _colorbar_rm(ax=None):
+    r"""Remove any colorbars from a figure
+
+    :Call:
+        >>> _colorbar_rm(ax=None)
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+    :Versions:
+        * 2020-05-06 ``@ddalle``: First version
     """
     # Make sure pyplot loaded
     _import_pyplot()
@@ -1869,10 +1898,13 @@ def _colorbar(ax=None, **kw):
         if axk.get_label() == "<colorbar>":
             # If it's a colorbar already... remove it
             axk.remove()
-    # Create the new colorbar
-    h = plt.colorbar(**kw)
-    # Return colorbar
-    return h
+        elif int(mpl.__version__.split(".")[0]) < 3:
+            # No <colorbar> label; try checking size
+            if axk.get_position().bounds[0] > 0.87:
+                # Remove it...
+                axk.remove()
+                # Update figure
+                plt.draw()
 
 
 # Region plot
@@ -2350,6 +2382,8 @@ def _contour(xv, yv, zv, **kw):
     else:
         # Number of values of levels specified
         a = xv, yv, zv, levels
+    # Remove any existing colorbars
+    _colorbar_rm(kw.get("ax"))
     # Filter the contour type
     if ctyp == "tricontourf":
         # Filled contour
