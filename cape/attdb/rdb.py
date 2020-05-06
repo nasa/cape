@@ -9376,20 +9376,6 @@ class DataKit(ftypes.BaseData):
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
         # Number of output points
         nX = X[args[0]].size
-        # Save the lookup values
-        for arg in args:
-            # Translate column name
-            argreg = self._translate_colname(arg, *tr_args)
-            # Save values
-            self.save_col(argreg, X[arg])
-            # Check if new
-            if argreg != arg:
-                # Get previous definition
-                defn = self.get_defn(arg)
-                # Save a copy
-                self.defns[argreg] = self._defncls(**defn)
-                # Link break points
-                bkpts[argreg] = bkpts[arg]
        # --- Regularization ---
         # Perform interpolations
         for col in cols:
@@ -9461,7 +9447,8 @@ class DataKit(ftypes.BaseData):
                         V[:,I] = np.dot(Y, W.T)
                 # Clean up prompt
                 if kw.get("v"):
-                    print("")
+                    sys.stdout.write("%72s\r" % "")
+                    sys.stdout.flush()
             # Save the values
             self.save_col(colreg, V)
        # --- Co-mapped XAargs ---
@@ -9493,7 +9480,7 @@ class DataKit(ftypes.BaseData):
             T = []
             # Status update
             if kw.get("v"):
-                print("  Mapping key '%s'" % k)
+                print("  Mapping key '%s'" % col)
             # Loop through slice values
             for m in bkpts[maincol]:
                 # Find value of slice key matching that parameter
@@ -9510,6 +9497,21 @@ class DataKit(ftypes.BaseData):
             self.save_col(colreg, V)
             # Save break points
             bkpts[colreg] = np.array(T)
+       # --- Regularized Arg Values ---
+        # Save the lookup values
+        for arg in args:
+            # Translate column name
+            argreg = self._translate_colname(arg, *tr_args)
+            # Save values
+            self.save_col(argreg, X[arg])
+            # Check if new
+            if argreg != arg:
+                # Get previous definition
+                defn = self.get_defn(arg)
+                # Save a copy
+                self.defns[argreg] = self._defncls(**defn)
+                # Link break points
+                bkpts[argreg] = bkpts[arg]
   # >
 
 
