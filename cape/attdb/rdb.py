@@ -828,7 +828,7 @@ class DataKit(ftypes.BaseData):
             * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
         """
         # Don't use existing if *cols* is specified
-        if cols is None:
+        if cols is None and kw.get("attrs") is None:
             # Get the source
             dbf = self.get_source(ext, n=n)
             # Check if found
@@ -4994,12 +4994,12 @@ class DataKit(ftypes.BaseData):
   # <
    # --- Breakpoint Creation ---
     # Get automatic break points
-    def create_bkpts(self, cols, nmin=5, tol=1e-12):
+    def create_bkpts(self, cols, nmin=5, tol=1e-12, tols={}, mask=None):
         r"""Create automatic list of break points for interpolation
 
         :Call:
-            >>> db.create_bkpts(col, nmin=5, tol=1e-12)
-            >>> db.create_bkpts(cols, nmin=5, tol=1e-12)
+            >>> db.create_bkpts(col, nmin=5, tol=1e-12, **kw)
+            >>> db.create_bkpts(cols, nmin=5, tol=1e-12, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -5010,64 +5010,100 @@ class DataKit(ftypes.BaseData):
             *nmin*: {``5``} | :class:`int` > 0
                 Minimum number of data points at one value of a key
             *tol*: {``1e-12``} | :class:`float` >= 0
-                Tolerance cutoff
+                Tolerance for values considered to be equal
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float`]
+                Tolerances for specific *cols*
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask of which database indices to consider
         :Outputs:
-            *DBc.bkpts*: :class:`dict`
+            *db.bkpts*: :class:`dict`
                 Dictionary of 1D unique lookup values
-            *DBc.bkpts[key]*: :class:`np.ndarray` (:class:`float`)
-                Unique values of *DBc[key]* with at least *nmin* entries
+            *db.bkpts[col]*: :class:`np.ndarray` | :class:`list`
+                Unique values of *DBc[col]* with at least *nmin* entries
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
             * 2020-03-26 ``@ddalle``: Renamed, :func:`get_bkpts`
+            * 2020-05-06 ``@ddalle``: Moved much to :func:`genr8_bkpts`
         """
         # Check for single key list
         if not isinstance(cols, (list, tuple)):
             # Make list
             cols = [cols]
+        # Filter specific tolerances
+        if tols is None:
+            tols = {}
         # Initialize break points
         bkpts = self.__dict__.setdefault("bkpts", {})
         # Loop through keys
         for col in cols:
-            # Check type
-            if not isinstance(col, typeutils.strlike):
-                raise TypeError("Column name is not a string")
-            # Check if present
-            if col not in self.cols:
-                raise KeyError("Lookup column '%s' is not present" % col)
-            # Get all values
-            V = self[col]
-            # Get data type
-            dtype = self.get_col_dtype(col)
-            # Check dtype
-            if dtype == "str":
-                # Get unique values without converting to array
-                B = list(set(V))
-            elif dtype.startswith("int"):
-                # No need to apply tolerance
-                B = np.unique(V)
-            else:
-                # Get unique values of array
-                U = np.unique(V)
-                # Initialize filtered value
-                B = np.zeros_like(U)
-                n = 0
-                # Loop through entries
-                for v in U:
-                    # Check if too close to a previous entry
-                    if (n > 0) and np.min(np.abs(v - B[:n])) <= tol:
-                        # Close to previous "unique" value
-                        continue
-                    # Count entries
-                    if np.count_nonzero(np.abs(V - v) <= tol) >= nmin:
-                        # Save the value
-                        B[n] = v
-                        # Increase count
-                        n += 1
-                # Trim
-                B = B[:n]
+            # Get tolerance
+            ctol = tols.get(col, tol)
             # Save these break points
-            bkpts[col] = B
+            bkpts[col] = self.genr8_bkpts(col, nmin=nmin, tol=ctol, mask=mask)
+
+    # Get break points for specific col
+    def genr8_bkpts(self, col, nmin=5, tol=1e-12, mask=None):
+        r"""Generate list of unique values for one *col*
+
+        :Call:
+            >>> B = db.genr8_bkpts(col, nmin=5, tol=1e-12, mask=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *col*: :class:`str`
+                Individual lookup variable
+            *nmin*: {``5``} | :class:`int` > 0
+                Minimum number of data points at one value of a key
+            *tol*: {``1e-12``} | :class:`float` >= 0
+                Tolerance for values considered to be equal
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask of which database indices to consider
+        :Outputs:
+            *B*: :class:`np.ndarray` | :class:`list`
+                Unique values of *DBc[col]* with at least *nmin* entries
+        :Versions:
+            * 2020-05-06 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(col, typeutils.strlike):
+            raise TypeError("Column name is not a string")
+        # Check if present
+        if col not in self.cols:
+            raise KeyError("Lookup column '%s' is not present" % col)
+        # Get all values
+        V = self.get_values(col, mask)
+        # Get data type
+        dtype = self.get_col_dtype(col)
+        # Check dtype
+        if dtype == "str":
+            # Get unique values without converting to array
+            B = list(set(V))
+        elif dtype.startswith("int"):
+            # No need to apply tolerance
+            B = np.unique(V)
+        else:
+            # Get unique values of array
+            U = np.unique(V)
+            # Initialize filtered value
+            B = np.zeros_like(U)
+            n = 0
+            # Loop through entries
+            for v in U:
+                # Check if too close to a previous entry
+                if (n > 0) and np.min(np.abs(v - B[:n])) <= tol:
+                    # Close to previous "unique" value
+                    continue
+                # Count entries
+                if np.count_nonzero(np.abs(V - v) <= tol) >= nmin:
+                    # Save the value
+                    B[n] = v
+                    # Increase count
+                    n += 1
+            # Trim
+            B = B[:n]
+        # Output
+        return B
 
     # Map break points from other key
     def create_bkpts_map(self, cols, scol, tol=1e-12):
@@ -6010,6 +6046,178 @@ class DataKit(ftypes.BaseData):
   # >
 
   # ==================
+  # Filtering
+  # ==================
+  # <
+   # --- Repeats ---
+    # Remove repeats
+    def filter_repeats(self, args, cols=None, **kw):
+        r"""Remove duplicate points or close neighbors
+
+        :Call:
+            >>> db.filter_repeats(args, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *args*: :class:`list`\ [:class:`str`]
+                List of columns names to match
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                Columns to filter (default is all *db.cols* with correct
+                size and not in *args* and :class:`float` type)
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
+            *function*: {``"mean"``} | **callable**
+                Function to use for filtering
+            *translators*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
+            *kw*: :class:`dict`
+                Additional values to use for evaluation in :func:`find`
+        :Versions:
+            * 2020-05-05 ``@ddalle``: First version
+        """
+       # --- Column Lists ---
+        # Check types
+        if not isinstance(args, list):
+            raise TypeError(
+                "Invalid type '%s' for args, must be 'list'" % type(args))
+        elif len(args) < 1:
+            raise ValueError("Arg list is empty")
+        # Check types of *args* entries
+        for j, arg in enumerate(args):
+            # Make sure it's a string
+            if not typeutils.isstr(arg):
+                raise TypeError(
+                    "Arg %i has invalid type '%s', must be 'str'"
+                    % (j, type(arg)))
+        # Get first arg
+        arg0 = args[0]
+        # Get count
+        n0 = len(self.get_all_values(arg0))
+        # Process columns
+        if cols is None:
+            # Initialize list
+            cols = []
+            # Loop through columns
+            for col in self.cols:
+                # Check if an *arg*
+                if col in args:
+                    continue
+                # Get data type
+                dtype = self.get_col_dtype(col)
+                # Check datatype
+                if dtype is None or not dtype.startswith("float"):
+                    continue
+                # Get dimension
+                ndim = self.get_col_prop(col, "Dimension")
+                # Filter it
+                if ndim is None or ndim != 1:
+                    continue
+                # Check size
+                if self.get_all_values(col).size != n0:
+                    continue
+                # Otherwise, use this column
+                cols.append(col)
+       # --- Filtering Function ---
+        # Get filtering function
+        func = kw.get("func", "mean")
+        # Filter it
+        if func == "mean":
+            # Take mean of data points
+            fn = np.mean
+        elif callable(func):
+            # Function specified directly
+            fn = func
+        else:
+            # Bad type
+            raise TypeError("Filtering function not callable")
+       # --- Options ---
+        # Get translators
+        trans = kw.pop("translators", {})
+        prefix = kw.pop("prefix", None)
+        suffix = kw.pop("suffix", None)
+        # Overall mask
+        mask = kw.get("mask")
+        # Translator args
+        tr_args = (trans, prefix, suffix)
+        # Get overall tolerances
+        tol = kw.get("tol", 1e-8)
+        # Get tolerances for specific *args*
+        tols = kw.get("tols", {})
+       # --- Data ---
+        # Divide into sweeps
+        sweeps = self.genr8_sweeps(args, **kw)
+        # Number of output points
+        nx = len(sweeps)
+        # Check for trivial filtering
+        nmaxsweep = np.max(np.array([sweep.size for sweep in sweeps]))
+        # Loop through *cols* first b/c original *arg* values
+        # may affect filtering of *cols*
+        for col in cols:
+            # Translate column name
+            colreg = self._translate_colname(col, *tr_args)
+            # Check for trivial case
+            if nmaxsweep == 1:
+                # Get existing data
+                V = self.get_values(col, mask)
+            else:
+                # Get data type
+                dtype = self.get_col_dtype(col)
+                # Initialize data
+                V = np.zeros(nx, dtype=dtype)
+                # Loop through sweeps
+                for j, sweep in enumerate(sweeps):
+                    # Get values for these points
+                    v = self.get_values(col, sweep)
+                    # Filter
+                    V[j] = fn(v)
+            # Check if new column
+            if col != colreg:
+                # Save new column
+                self.save_col(colreg, V)
+                # Get previous definition
+                defn = self.get_defn(col)
+                # Save a copy
+                self.defns[colreg] = self._defncls(_warnmode=0, **defn)
+            else:
+                # Save new data in place of old data
+                self[col] = V
+        # Loop through *args*
+        for arg in args:
+            # Translate column name
+            argreg = self._translate_colname(arg, *tr_args)
+            # Check for trivial case
+            if nmaxsweep == 1:
+                # Get existing data
+                V = self.get_values(arg, mask)
+            else:
+                # Get data type
+                dtype = self.get_col_dtype(arg)
+                # Initialize data
+                V = np.zeros(nx, dtype=dtype)
+                # Loop through sweeps
+                for j, sweep in enumerate(sweeps):
+                    # Get values for these points
+                    v = self.get_values(arg, sweep)
+                    # Filter
+                    V[j] = fn(v)
+            # Check if new column
+            if arg != argreg:
+                # Save new column
+                self.save_col(argreg, V)
+                # Get previous definition
+                defn = self.get_defn(arg)
+                # Save a copy
+                self.defns[argreg] = self._defncls(_warnmode=0, **defn)
+            else:
+                # Save new data in place of old data
+                self[arg] = V
+  # >
+
+  # ==================
   # Data
   # ==================
   # <
@@ -6622,7 +6830,81 @@ class DataKit(ftypes.BaseData):
         else:
             # Invalid data type
             raise TypeError("Invalid mask data type '%s'" % dtype)
-        
+
+   # --- Sweeps ---
+    # Divide into sweeps
+    def genr8_sweeps(self, args, **kw):
+        r"""Divide data into sweeps with constant values of some *cols*
+
+        :Call:
+            >>> sweeps = db.genr8_sweeps(args, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *args*: :class:`list`\ [:class:`str`]
+                List of columns names to match
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+            *kw*: :class:`dict`
+                Additional values to use during evaluation
+        :Outputs:
+            *sweeps*: :class:`list`\ [:class:`np.ndarray`]
+                Indices of entries with constant (within *tol*) values
+                of each *arg*
+        :Versions:
+            * 2020-05-06 ``@ddalle``: First version
+        """
+       # --- Column Lists ---
+        # Check arg list
+        if not isinstance(args, list):
+            raise TypeError(
+                "Invalid type '%s' for args, must be 'list'" % type(args))
+        elif len(args) < 1:
+            raise ValueError("Arg list is empty")
+        # Check types of *args* entries
+        for j, arg in enumerate(args):
+            # Make sure it's a string
+            if not typeutils.isstr(arg):
+                raise TypeError(
+                    "Arg %i has invalid type '%s', must be 'str'"
+                    % (j, type(arg)))
+       # --- Options ---
+        # Tolerances
+        tol = kw.pop("tol", 1e-8)
+        tols = kw.pop("tols", {})
+       # --- Mask Prep ---
+        # Initialize sweeps
+        mask = kw.pop("mask", kw.pop("I", None))
+        # Translate into indices
+        mask_index = self.prep_mask(mask, args[0])
+       # --- Search ---
+        # Initialize sweeps [array[int]]
+        sweeps_parent = [mask_index]
+        # Loop through args
+        for k, arg in enumerate(args):
+            # Get tolerance
+            ktol = tols.get(arg, tol)
+            # Initialize new sweeps
+            sweeps = []
+            # Options to :func:`find`
+            kw_k = dict(tol=ktol, mapped=True, **kw)
+            # Loop through sweeps from previous level
+            for j, J in enumerate(sweeps_parent):
+                # Get unique values for this arg (within tolerance)
+                V = self.genr8_bkpts(arg, nmin=0, mask=J, tol=ktol)
+                # Divide into sweeps
+                sweeps_j, _ = self.find([arg], V, mask=J, **kw_k)
+                # Save these sweeps
+                sweeps.extend(sweeps_j)
+            # Save current sweeps
+            sweeps_parent = sweeps
+        # Output
+        return sweeps
+    
    # --- Search ---
     # Find matches
     def find(self, args, *a, **kw):
@@ -8683,12 +8965,18 @@ class DataKit(ftypes.BaseData):
                 Optional name of slicing col(s) for matrix
             *cocols*: {``None``} | :class:`list`\ [:class:`str`]
                 Other dependent input cols; default from *db.bkpts*
-            *function*: {``"cubic"``} | ``"multiquadric"`` | ``"linear"``
+            *function*: {``"cubic"``} | :class:`str`
                 Basis function for :class:`scipy.interpolate.Rbf`
             *tol*: {``1e-4``}  | :class:`float`
                 Default tolerance to use in combination with *slices*
             *tols*: {``{}``} | :class:`dict`
-                Dictionary of specific tolerances for single keys in *slices*
+                Dictionary of specific tolerances for *cols**
+            *translators*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
             * 2020-02-24 ``@ddalle``: Version 2.0
@@ -8965,7 +9253,13 @@ class DataKit(ftypes.BaseData):
             *tol*: {``1e-4``}  | :class:`float`
                 Default tolerance to use in combination with *slices*
             *tols*: {``{}``} | :class:`dict`
-                Dictionary of specific tolerances for single keys in *slices*
+                Dictionary of specific tolerances for single *cols*
+            *translators*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
         :Versions:
             * 2020-03-10 ``@ddalle``: Version 1.0
         """
