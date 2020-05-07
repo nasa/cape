@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2020-03-26 at 09:06 PDT
+   on 2020-05-07 at 07:49 PDT
 
 Test ``07_dbfm_regularize``
 =============================
@@ -36,8 +36,8 @@ Command 1: Regularize using griddata: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.475306 seconds
-    * Cumulative time: 0.475306 seconds
+    * Command took 1.16271 seconds
+    * Cumulative time: 1.16271 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -68,8 +68,8 @@ Command 2: Regularize using griddata: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.10313 seconds
-    * Cumulative time: 1.57843 seconds
+    * Command took 2.7301 seconds
+    * Cumulative time: 3.89282 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -100,8 +100,8 @@ Command 3: Regularize using RBF: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.274116 seconds
-    * Cumulative time: 1.85255 seconds
+    * Command took 0.29221 seconds
+    * Cumulative time: 4.18503 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -132,8 +132,8 @@ Command 4: Regularize using RBF: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.546057 seconds
-    * Cumulative time: 2.39861 seconds
+    * Command took 0.550773 seconds
+    * Cumulative time: 4.7358 seconds
 :STDOUT:
     * **PASS**
     * Target:
