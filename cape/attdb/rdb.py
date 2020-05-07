@@ -7254,10 +7254,12 @@ class DataKit(ftypes.BaseData):
         """
         # Process search kwargs
         kw_find = {
-            "mask": "mask",
+            "mask": mask,
             "maskt": kw.pop("maskt", None),
             "once": True,
             "cols": kw.pop("searchcols", None),
+            "tol": kw.get("tol", 1e-8),
+            "tols": kw.get("tols", {}),
         }
         # Find indices of matches
         I, J = self.match(dbt, **kw_find)
@@ -7321,10 +7323,12 @@ class DataKit(ftypes.BaseData):
         """
         # Process search kwargs
         kw_find = {
-            "mask": "mask",
+            "mask": mask,
             "maskt": kw.pop("maskt", None),
             "once": True,
             "cols": kw.pop("searchcols", None),
+            "tol": kw.get("tol", 1e-8),
+            "tols": kw.get("tols", {}),
         }
         # Find indices of matches
         I, J = self.match(dbt, **kw_find)
