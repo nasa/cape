@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2020-04-24 at 15:34 PDT
+   on 2020-04-29 at 08:36 PDT
 
-Test ``03_contour``
+Test ``04_axlabel``
 =====================
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/pycart/test/tnakit/03_contour/``
+    ``/home/dalle/usr/pycart/test/tnakit/04_axlabel/``
 
 and the working folder for the test is
 
@@ -17,16 +17,16 @@ The commands executed by this test are
 
     .. code-block:: console
 
-        $ python2 test01_contourplot.py
-        $ python3 test01_contourplot.py
+        $ python2 test01_axlabel.py
+        $ python3 test01_axlabel.py
 
-Command 1: Contour plot: Python 2
-----------------------------------
+Command 1: Axes labels: Python 2
+---------------------------------
 
 :Command:
     .. code-block:: console
 
-        $ python2 test01_contourplot.py
+        $ python2 test01_axlabel.py
 
 :Return Code:
     * **PASS**
@@ -34,8 +34,8 @@ Command 1: Contour plot: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.761818 seconds
-    * Cumulative time: 0.761818 seconds
+    * Command took 0.685492 seconds
+    * Cumulative time: 0.685492 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -49,13 +49,13 @@ Command 1: Contour plot: Python 2
         .. image:: PNG-target-00-00.png
             :width: 4.5in
 
-Command 2: Contour plot: Python 3
-----------------------------------
+Command 2: Axes labels: Python 3
+---------------------------------
 
 :Command:
     .. code-block:: console
 
-        $ python3 test01_contourplot.py
+        $ python3 test01_axlabel.py
 
 :Return Code:
     * **PASS**
@@ -63,8 +63,8 @@ Command 2: Contour plot: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.18024 seconds
-    * Cumulative time: 1.94206 seconds
+    * Command took 1.07347 seconds
+    * Cumulative time: 1.75896 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

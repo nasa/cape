@@ -1795,8 +1795,21 @@ class KwargHandler(dict):
             optmap,
             indent=indent,
             strict=False)
+        # Formatting dict
+        fmt = {fmt_key: rst_keys}
         # Apply text to the docstring
-        return doc % {fmt_key: rst_keys}
+        for _ in range(10):
+            try:
+                # Attempt replacement
+                doc = doc % fmt
+                # If successful, done
+                break
+            except KeyError as e:
+                # Name of missing key
+                k = e.args[0]
+                # Tell *fmt* to just leave it as is
+                fmt[k] = "%%(%s)s" % k
+        return doc
   # >
 
 

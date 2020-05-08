@@ -317,6 +317,48 @@ class Options(cape.cfdx.options.Options):
         eval(n1).__doc__ = getattr(RunControl, n1).__doc__
         eval(n2).__doc__ = getattr(RunControl, n2).__doc__
    # >
+    
+   # =================
+   # us3d
+   # =================
+   # <
+    # Option for input file
+    def get_us3d_input(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_us3d_input(i)
+
+    # Option for input file
+    def set_us3d_input(self, finp=rc0("us3d_input"), i=None):
+        self._RunControl()
+        self["RunControl"].set_us3d_input(finp, i=i)
+
+    # Option for grid file
+    def get_us3d_grid(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_us3d_grid(i)
+
+    # Option for grid file
+    def set_us3d_grid(self, grid=rc0("us3d_grid"), i=None):
+        self._RunControl()
+        self["RunControl"].set_us3d_grid(grid, i=i)
+
+    # Option for gas file
+    def get_us3d_gas(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_us3d_gas(i)
+
+    # Option for gas file
+    def set_us3d_gas(self, gas=rc0("us3d_gas"), i=None):
+        self._RunControl()
+        self["RunControl"].set_us3d_gas(gas, i=i)
+
+    # Copy documentation     
+    for k in ["input", "grid", "gas"]:
+        n1 = "get_us3d_" + k
+        n2 = "set_us3d_" + k
+        eval(n1).__doc__ = getattr(RunControl, n1).__doc__
+        eval(n2).__doc__ = getattr(RunControl, n2).__doc__
+   # >
 
    # ===================
    # input.inp settings

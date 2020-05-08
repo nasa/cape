@@ -41,13 +41,13 @@ from . import rdbaero
 
 
 # Sets of common variable names
-_alpha_cols = rdbaero.AeroDataKit._tagcols["alpha"]
-_aoap_cols  = rdbaero.AeroDataKit._tagcols["aoap"]
-_aoav_cols  = rdbaero.AeroDataKit._tagcols["aoav"]
-_beta_cols  = rdbaero.AeroDataKit._tagcols["beta"]
-_phip_cols  = rdbaero.AeroDataKit._tagcols["phip"]
-_phiv_cols  = rdbaero.AeroDataKit._tagcols["phiv"]
-        
+_alph_cols = rdbaero.AeroDataKit._tagcols["alpha"]
+_aoap_cols = rdbaero.AeroDataKit._tagcols["aoap"]
+_aoav_cols = rdbaero.AeroDataKit._tagcols["aoav"]
+_beta_cols = rdbaero.AeroDataKit._tagcols["beta"]
+_phip_cols = rdbaero.AeroDataKit._tagcols["phip"]
+_phiv_cols = rdbaero.AeroDataKit._tagcols["phiv"]
+
     
 # Standard converters: alpha
 def convert_alpha(*a, **kw):
@@ -63,7 +63,7 @@ def convert_alpha(*a, **kw):
         *a*: :class:`tuple`
             Positional args; discarded here
         *alpha*: :class:`float` | :class:`np.ndarray`
-            Direct alias from *_alpha_cols*
+            Direct alias from *_alph_cols*
         *aoap*: :class:`float` | :class:`np.ndarray`
             Total angle of attack [deg]
         *phip*: {``0.0``} | :class:`float` | :class:`np.ndarray`
@@ -81,7 +81,7 @@ def convert_alpha(*a, **kw):
     """
    # --- Direct ---
     # Check for alias
-    for col in _alpha_cols:
+    for col in _alph_cols:
         # Check if present
         if col in kw:
             # Return that
@@ -150,7 +150,7 @@ def convert_beta(*a, **kw):
         *a*: :class:`tuple`
             Positional args; discarded here
         *beta*: :class:`float` | :class:`np.ndarray`
-            Direct alias from *_alpha_cols*
+            Direct alias from *_alph_cols*
         *aoap*: :class:`float` | :class:`np.ndarray`
             Total angle of attack [deg]
         *phip*: {``0.0``} | :class:`float` | :class:`np.ndarray`
@@ -241,7 +241,7 @@ def convert_aoap(*a, **kw):
         *alpha*: :class:`float` | :class:`np.ndarray`
             Angle of attack [deg]
         *beta*: :class:`float` | :class:`np.ndarray`
-            Direct alias from *_alpha_cols*
+            Direct alias from *_alph_cols*
         *aoav*: :class:`float` | :class:`np.ndarray`
             Missile-axis angle of attack [deg]
         *phiv*: {``0.0``} | :class:`float` | :class:`np.ndarray`
@@ -262,7 +262,7 @@ def convert_aoap(*a, **kw):
             return kw[col]
    # --- alpha, beta ---
     # Get angle of attack
-    for col in _alpha_cols:
+    for col in _alph_cols:
         # Get total angle of attack
         a = kw.get(col)
         # Check
@@ -328,7 +328,7 @@ def convert_phip(*a, **kw):
         *alpha*: :class:`float` | :class:`np.ndarray`
             Angle of attack [deg]
         *beta*: :class:`float` | :class:`np.ndarray`
-            Direct alias from *_alpha_cols*
+            Direct alias from *_alph_cols*
         *aoav*: :class:`float` | :class:`np.ndarray`
             Missile-axis angle of attack [deg]
         *phiv*: {``0.0``} | :class:`float` | :class:`np.ndarray`
@@ -349,7 +349,7 @@ def convert_phip(*a, **kw):
             return kw[col]
    # --- alpha, beta ---
     # Get angle of attack
-    for col in _alpha_cols:
+    for col in _alph_cols:
         # Get total angle of attack
         a = kw.get(col)
         # Check
@@ -668,10 +668,10 @@ def genr8_fUCLMX(col1="UCLM", col2="UCN", col3="xCLM"):
 
 # Create evaluator for *UCLNX*
 def genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN"):
-    r"""Generate an evaluator for *UCLMX* with specified *cols*
+    r"""Generate an evaluator for *UCLNX* with specified *cols*
 
     :Call:
-        >>> func = genr8_fUCLMX(col1="UCLN", col2="UCY", col3="xCLN")
+        >>> func = genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN")
     :Inputs:
         *col1*: ``"UCLN"`` | :class:`str`
             Name of yawing moment uncertainty column
@@ -699,6 +699,74 @@ def genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN"):
         return eval_UCLNX(db, col1, col2, col3, *a, **kw)
     # Return the function
     return func
+
+
+# Estimate *xCLM*
+def estimate_xCLM(self, DCLM, DCN):
+    r"""Estimate reference *x* for *UCLM* calculations
+    
+    :Call:
+        >>> xCLM = estimate_xCLM(self, DCLM, DCN)
+    :Inputs:
+        *self*: :class:`DBFM`
+            Force & moment database with *self.xMRP* and *self.Lref*
+        *DCLM*: :class:`np.ndarray` (:class:`float`)
+            Deltas between two databases' *CLM* values
+        *DCN*: :class:`np.ndarray` (:class:`float`)
+            Deltas between two databases' *CN* values
+    :Outputs:
+        *xCLM*: :class:`float`
+            Reference *x* that minimizes *UCLM*
+    :Versions:
+        * 2019-02-20 ``@ddalle``: First version
+        * 2020-05-04 ``@ddalle``: Copied from :mod:`attdb.fm`
+    """
+    # Original MRP in nondimensional coordinates
+    xMRP = self.xMRP / self.Lref
+    # Calculate mean deltas
+    muDCN = np.mean(DCN)
+    muDCLM = np.mean(DCLM)
+    # Reduced deltas
+    DCN1  = DCN  - muDCN
+    DCLM1 = DCLM - muDCLM
+    # Calculate reference *xCLM* for *UCLM*
+    xCLM = xMRP - np.sum(DCLM1*DCN1)/np.sum(DCN1*DCN1)
+    # Output
+    return xCLM
+
+
+# Estimate *xCLN*
+def estimate_xCLN(self, DCLN, DCY):
+    r"""Estimate reference *x* for *UCLN* calculations
+    
+    :Call:
+        >>> xCLN = estimate_xCLN(self, DCLN, DCY)
+    :Inputs:
+        *self*: :class:`DBFM`
+            Force & moment database with *self.xMRP* and *self.Lref*
+        *DCLN*: :class:`np.ndarray` (:class:`float`)
+            Deltas between two databases' *CLN* values
+        *DCY*: :class:`np.ndarray` (:class:`float`)
+            Deltas between two databases' *CY* values
+    :Outputs:
+        *xCLN*: :class:`float`
+            Reference *x* that minimizes *UCLN*
+    :Versions:
+        * 2019-02-20 ``@ddalle``: First version
+        * 2020-05-04 ``@ddalle``: Copied from :mod:`attdb.fm`
+    """
+    # Original MRP in nondimensional coordinates
+    xMRP = self.xMRP / self.Lref
+    # Calculate mean deltas
+    muDCY = np.mean(DCY)
+    muDCLN = np.mean(DCLN)
+    # Reduced deltas
+    DCY1  = DCY  - muDCY
+    DCLN1 = DCLN - muDCLN
+    # Calculate reference *xCLM* for *UCLM*
+    xCLN = xMRP - np.sum(DCLN1*DCY1)/np.sum(DCY1*DCY1)
+    # Output
+    return xCLN
 
 
 # DBFM options
@@ -899,6 +967,13 @@ class DBFM(rdbaero.AeroDataKit):
                 ecol = self.substitute_prefix(col, "U", "x")
                 # Set it
                 self.set_uq_ecol(ucol, ecol)
+                # Set function
+                if tag == "CLM":
+                    # Set efunc
+                    self.set_uq_efunc(ecol, estimate_xCLM)
+                elif tag == "CLN":
+                    # Set efunc
+                    self.set_uq_efunc(ecol, estimate_xCLN)
 
     # Set UQ aux cols for moment cols
     def _make_uq_acols_FM(self):
@@ -1013,6 +1088,114 @@ class DBFM(rdbaero.AeroDataKit):
             func = genr8_fCLNX(col, acol)
             # Save it
             self.make_response(scol, "function", args, func=func)
+
+    # Make *UCLMX* evaluators
+    def make_UCLMX(self):
+        r"""Build and save evaluators for *UCLMX* cols
+
+        :Call:
+            >>> db.make_UCLMX()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-05-04 ``@ddalle``: First version
+        """
+        # Loop through *CLM* cols
+        for col in self.get_cols_by_tag("CLM"):
+            # Uncertainty column
+            ucol0 = self.get_uq_col(col)
+            # Check if set
+            if ucol0 is None:
+                continue
+            # Args
+            args = self.get_response_args(ucol0)
+            # Check if set
+            if args is None:
+                continue
+            # Append MRP location
+            args += ["xMRP"]
+            # Get aux column name
+            acol = self._getcol_CN_from_CLM(col)
+            # Check it
+            if acol is None:
+                continue
+            # UQ col for *CN*
+            ucol1 = self.get_uq_col(acol)
+            # Check it
+            if ucol1 is None:
+                continue
+            # Name of col for UQ at shifted location
+            ucol = self.append_colname(ucol0, "X")
+            # Test if *scol* is already present
+            if self.get_response_method(ucol):
+                continue
+            # Name for UQ reference MRP
+            ecols = self.get_uq_ecol(ucol0)
+            # Check it
+            if len(ecols) != 1:
+                continue
+            else:
+                # Unpack
+                ucol2, = ecols
+            # Generate *CLMX* function
+            func = genr8_fUCLMX(ucol0, ucol1, ucol2)
+            # Save it
+            self.make_response(ucol, "function", args, func=func)
+
+    # Make *UCLNX* evaluators
+    def make_UCLNX(self):
+        r"""Build and save evaluators for *UCLNX* cols
+
+        :Call:
+            >>> db.make_UCLNX()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-05-04 ``@ddalle``: First version
+        """
+        # Loop through *CLM* cols
+        for col in self.get_cols_by_tag("CLN"):
+            # Uncertainty column
+            ucol0 = self.get_uq_col(col)
+            # Check if set
+            if ucol0 is None:
+                continue
+            # Args
+            args = self.get_response_args(ucol0)
+            # Check if set
+            if args is None:
+                continue
+            # Append MRP location
+            args += ["xMRP"]
+            # Get aux column name
+            acol = self._getcol_CY_from_CLN(col)
+            # Check it
+            if acol is None:
+                continue
+            # UQ col for *CN*
+            ucol1 = self.get_uq_col(acol)
+            # Check it
+            if ucol1 is None:
+                continue
+            # Name of col for UQ at shifted location
+            ucol = self.append_colname(ucol0, "X")
+            # Test if *scol* is already present
+            if self.get_response_method(ucol):
+                continue
+            # Name for UQ reference MRP
+            ecols = self.get_uq_ecol(ucol0)
+            # Check it
+            if len(ecols) != 1:
+                continue
+            else:
+                # Unpack
+                ucol2, = ecols
+            # Generate *CLNX* function
+            func = genr8_fUCLNX(ucol0, ucol1, ucol2)
+            # Save it
+            self.make_response(ucol, "function", args, func=func)
 
     # Get *CN* col name from *CLM*
     def _getcol_CN_from_CLM(self, col):

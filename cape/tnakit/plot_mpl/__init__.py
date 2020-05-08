@@ -33,7 +33,7 @@ from . import mpl
 from .mplopts import MPLOpts
 from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
-    auto_xlim, auto_ylim, get_figure,
+    axlabel, auto_xlim, auto_ylim, get_figure,
     figure, grid, imshow, spine, spines)
 
 
@@ -287,9 +287,10 @@ def _part_contour(opts, h):
     yv = opts.get_option("y")
     zv = opts.get_option("z")
     # Contour plot call
-    contour = mpl._contour(xv, yv, zv, **kw)
-    # Save contour
+    contour, lines = mpl._contour(xv, yv, zv, **kw)
+    # Save contour and lines
     h.save("contour", contour)
+    h.save("lines", lines)
 
 
 # Partial function: contour()
@@ -1048,4 +1049,3 @@ class MPLHandle(object):
                 # Check if *vi* is already present
                 if vi not in v0:
                     v0.append(vi)
-        

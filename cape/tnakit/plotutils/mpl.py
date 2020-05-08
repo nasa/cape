@@ -1033,9 +1033,9 @@ def histlab_part(lbl, pos1, pos2, ax, **kw):
             Label title (i.e. coefficient)
         *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
-        *pos1*: :class: `float`
+        *pos1*: :class:`float`
             label locations (left to right alignment)
-        *pos2*: :class: `boolean'
+        *pos2*: :class:`bool`
             above(True) below(False) top spine alignment
     :Keyword Arguments:
         * "*Options" : :dict: of `LabelOptions`

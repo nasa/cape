@@ -1,4 +1,7 @@
 
 .. automodule:: cape.attdb.rdb
-    :members: 
+
+    .. autoclass:: cape.attdb.rdb.DataKit
+        :members:
+        :special-members:
 

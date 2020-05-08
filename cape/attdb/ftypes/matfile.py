@@ -407,6 +407,8 @@ class MATFile(BaseFile):
                 MAT file interface
             *fname*: :class:`str`
                 Name of ``.mat`` file to write
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                List of additional attributes to save in *dbmat*
         :See Also:
             * :func:`genr8_mat`
         :Versions:
@@ -518,8 +520,8 @@ class MATFile(BaseFile):
                     raise TypeError("Extra attr '%s' must be a string" % attr)
                 elif attr not in self.__dict__:
                     raise AttributeError("No attribute '%s' to copy" % attr)
-                # Add a suffix
-                key = attr + "_"
+                # Add a suffix?
+                key = attr
                 # Save the value
                 dbmat[key] = to_matlab(self.__dict__[attr])
         # Output

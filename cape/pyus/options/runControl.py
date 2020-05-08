@@ -50,7 +50,116 @@ from .Archive import Archive
 
 # Class for inputs to the US3D executable
 class US3D(odict):
-    pass
+    # Option for input file
+    def get_us3d_input(self, i=None):
+        r"""Get name of input file for US3D
+
+        :Call:
+            >>> finp = opts.get_us3d_input(i=None)
+        :Inputs:
+            *opts*: :class:`cape.pyus.options.Options`
+                Options interface
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *finp*: :class:`str`
+                Name of input file (usually ``"input.inp"``)
+        :Versions:
+            * 2020-04-29 ``@ddalle``: First version
+        """
+        return self.get_key("input", i, rck="us3d_input")
+
+    # Option to set input file
+    def set_us3d_input(self, finp=rc0("us3d_input"), i=None):
+        r"""Set name of input file for US3D
+
+        :Call:
+            >>> opts.get_us3d_input(finp, i=None)
+        :Inputs:
+            *opts*: :class:`cape.pyus.options.Options`
+                Options interface
+            *finp*: :class:`str`
+                Name of input file (usually ``"input.inp"``)
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2020-04-29 ``@ddalle``: First version
+        """
+        self.set_key("input", finp, i)
+
+    # Get grid name for US3D
+    def get_us3d_grid(self, i=None):
+        r"""Get name of grid file for US3D
+
+        :Call:
+            >>> grid = opts.get_us3d_grid(i=None)
+        :Inputs:
+            *opts*: :class:`cape.pyus.options.Options`
+                Options interface
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *grid*: :class:`str`
+                Name of grid file (usually ``"grid.h5"``)
+        :Versions:
+            * 2020-04-29 ``@ddalle``: First version
+        """
+        return self.get_key("input", i, rck="us3d_input")
+
+    # Set grid name for US3D
+    def set_us3d_grid(self, grid=rc0("us3d_grid"), i=None):
+        r"""Set name of grid file for US3D
+
+        :Call:
+            >>> opts.set_us3d_grid(grid, i=None)
+        :Inputs:
+            *opts*: :class:`cape.pyus.options.Options`
+                Options interface
+            *grid*: :class:`str`
+                Name of grid file (usually ``"grid.h5"``)
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2020-04-29 ``@ddalle``: First version
+        """
+        self.set_key("grid", grid, i)
+
+    # Get gas to use for US3D
+    def get_us3d_gas(self, i=None):
+        r"""Get name of gas model to use for US3D
+
+        :Call:
+            >>> gas = opts.get_us3d_gas(i=None)
+        :Inputs:
+            *opts*: :class:`cape.pyus.options.Options`
+                Options interface
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *gas*: ``None`` | :class:`str`
+                Name of gas model
+        :Versions:
+            * 2020-04-29 ``@ddalle``: First version
+        """
+        return self.get_key("gas", i, rck="us3d_gas")
+
+    # Set gas model for US3D
+    def set_us3d_gas(self, gas=rc0("us3d_gas"), i=None):
+        r"""Set name of gas model to use for US3D
+
+        :Call:
+            >>> opts.set_us3d_gas(gas, i=None)
+        :Inputs:
+            *opts*: :class:`cape.pyus.options.Options`
+                Options interface
+            *gas*: ``None`` | :class:`str`
+                Name of gas model
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2020-04-29 ``@ddalle``: First version
+        """
+        self.set_key("gas", gas, i)
 
 
 # Class for inputs to the ``us3d-prepar`` executable
@@ -249,7 +358,20 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
             self["us3d-prepar"] = US3DPrepar(run=False)
 
     # Initialization and confirmation for options to US3D executable
-
+    def _US3D(self):
+        """Initialize ``us3d`` options if necessary"""
+        # Get object
+        opts = self.get("us3d", {})
+        # Check types
+        if isinstance(opts, US3D):
+            # Nothing to do
+            pass
+        elif isinstance(opts, dict):
+            # Convert to special class
+            self["us3d"] = US3D(**opts)
+        else:
+            # Empty
+            self["us3d"] = US3D()
 
     # Initialization method for folder management options
     def _Archive(self):
@@ -327,10 +449,45 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
    # >
     
    # =================
-   # Folder management
+   # us3d
    # =================
    # <
+    # Option for input file
+    def get_us3d_input(self, i=None):
+        self._US3D()
+        return self["us3d"].get_us3d_input(i)
 
+    # Option for input file
+    def set_us3d_input(self, finp=rc0("us3d_input"), i=None):
+        self._US3D()
+        self["us3d"].set_us3d_input(finp, i=i)
+
+    # Option for grid file
+    def get_us3d_grid(self, i=None):
+        self._US3D()
+        return self["us3d"].get_us3d_grid(i)
+
+    # Option for grid file
+    def set_us3d_grid(self, grid=rc0("us3d_grid"), i=None):
+        self._US3D()
+        self["us3d"].set_us3d_grid(grid, i=i)
+
+    # Option for gas file
+    def get_us3d_gas(self, i=None):
+        self._US3D()
+        return self["us3d"].get_us3d_gas(i)
+
+    # Option for gas file
+    def set_us3d_gas(self, gas=rc0("us3d_gas"), i=None):
+        self._US3D()
+        self["us3d"].set_us3d_gas(gas, i=i)
+
+    # Copy documentation     
+    for k in ["input", "grid", "gas"]:
+        n1 = "get_us3d_" + k
+        n2 = "set_us3d_" + k
+        eval(n1).__doc__ = getattr(US3D, n1).__doc__
+        eval(n2).__doc__ = getattr(US3D, n2).__doc__
    # >
 # class RunControl
 

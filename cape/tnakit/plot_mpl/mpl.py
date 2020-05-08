@@ -160,6 +160,52 @@ def axes(**kw):
     return _axes(**kw_ax)
 
 
+# Label axes in one of 12 special positions
+def axlabel(lbl, pos=None, **kw):
+    r"""Create a label for an axes object
+
+    The *pos* integer implies positions represented by the following
+    text diagram::
+
+          0            6            1
+        +-----------------------------+
+        | 2            7            3 | 10
+        |                             |
+        | 17           9           16 | 15
+        |                             |
+        | 4            8            5 | 11
+        +-----------------------------+
+          12          14           13
+
+    :Call:
+        >>> h = axlabel(lbl, pos=None, **kw):
+    :Inputs:
+        *lbl*: :class:`str`
+            Text of label to add
+        *pos*: :class:`int`
+            Index for label position
+    :Keyword Arguments:
+        %(keys)s
+    :Outputs:
+        *h*: :class:`matplotlib.text.Text`
+            Matplotlib ``Text`` instance
+        *h._label*: :class:`str`
+            Set to ``"<axlabel>"`` for automatic detection
+    :Versions:
+        * 2020-04-29 ``@ddalle``: First version
+    """
+    # Process options
+    opts = MPLOpts(_section="axlabel", **kw)
+    # Get axlabel options
+    kw_lbl = opts.get_option("AxesLabelOptions")
+    # Set default position
+    kw_lbl.setdefault("pos", pos)
+    # Remove it
+    ax = kw_lbl.pop("ax", None)
+    # Call root function
+    return _axlabel(ax, lbl, **kw_lbl)
+
+
 # Plot function with options check
 def plot(xv, yv, fmt=None, **kw):
     r"""Call the :func:`plot` function with cycling options
@@ -196,7 +242,7 @@ def contour(xv, yv, zv, **kw):
     r"""Call the :func:`contour` function with cycling options
 
     :Call:
-        >>> h = contour(xv, yv, zv, **kw)
+        >>> hc, hl = contour(xv, yv, zv, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of *x*-coordinates
@@ -207,7 +253,9 @@ def contour(xv, yv, zv, **kw):
     :Keyword Arguments:
         %(keys)s
     :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.tri.tricontour`)
+        *hc*: :class:`matplotlib.tri.tricontour.TriContourSet`
+            Unstructured contour handles
+        *hl*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
         * 2020-03-26 ``@jmeeroff``: First version
@@ -1374,6 +1422,296 @@ def _axes_format(ax, **kw):
     return xl, yl
 
 
+# Label axes in one of 12 special positions
+def _axlabel(ax, lbl, pos=None, **kw):
+    r"""Create a label for an axes object
+
+    The *pos* integer implies positions represented by the following
+    text diagram::
+
+          0            6            1
+        +-----------------------------+
+        | 2            7            3 | 10
+        |                             |
+        | 17           9           16 | 15
+        |                             |
+        | 4            8            5 | 11
+        +-----------------------------+
+          12          14           13
+
+    :Call:
+        >>> h = _axlabel(ax, lbl, pos=None, **kw):
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+        *lbl*: :class:`str`
+            Text of label to add
+        *pos*: :class:`int`
+            Index for label position
+        *xgap*: {``0.05``} | :class:`float`
+            Horizontal spacing in inches
+        *ygap*: {``0.05``} | :class:`float`
+            Vertical spacing in inches
+        *x*: {``None``} | :class:`float`
+            Override default *x*-coordinate in *ax.transAxes* scale
+        *y*: {``None``} | :class:`float`
+            Override default *y*-coordinate in *ax.transAxes* scale
+    :Outputs:
+        *h*: :class:`matplotlib.text.Text`
+            Matplotlib ``Text`` instance
+        *h._label*: :class:`str`
+            Set to ``"<axlabel>"`` for automatic detection
+    :Versions:
+        * 2020-04-29 ``@ddalle``: First version
+    """
+    # Import module
+    _import_pyplot()
+    # Default axes
+    if ax is None:
+        ax = plt.gca()
+    # Get figure
+    fig = ax.figure
+    # Options for spacing as figure fraction [inches]
+    xgap = 0.05
+    ygap = 0.05
+    # Dimensions of figure [inches]
+    wfig = fig.get_figwidth()
+    hfig = fig.get_figheight()
+    # Get axes-relative positions
+    xa, ya, wa, ha = ax.get_position().bounds
+    # Convert gap to axes units
+    dx = (xgap / wfig) * (1 / wa)
+    dy = (ygap / hfig) * (1 / ha)
+    # Default position
+    if pos is None:
+        # Create mask of which positions are available
+        mask = np.ones(18, dtype="bool")
+        # Loop through children
+        for hi in ax.get_children():
+            # Check if it's a :class:`Text` object
+            if hi.__class__.__name__ != "Text":
+                continue
+            # Check its labe
+            if hi.get_label() != "<axlabel>":
+                continue
+            # Get position
+            xi, yi = hi.get_position()
+            # Filter position
+            if 0.0 <= xi < 0.1 and 1.0 <= yi < 1.1:
+                # Upper left (above)
+                mask[0] = False
+            elif 0.9 < xi < 1.0 and 1.0 <= yi < 1.1:
+                # Upper right (above)
+                mask[1] = False
+            elif 0.0 < xi < 0.1 and 0.9 < yi < 1.0:
+                # Upper left (below)
+                mask[2] = False
+            elif 0.9 < xi < 1.0 and 0.9 < yi < 1.0:
+                # Upper right (below)
+                mask[3] = False
+            elif 0.0 <= xi < 0.1 and 0.0 <= yi < 0.1:
+                # Lower left (above)
+                mask[4] = False
+            elif 0.9 < xi < 1.0 and 0.0 <= yi < 0.1:
+                # Lower right (above)
+                mask[5] = False
+            elif 0.38 < xi < 0.55 and 1.0 <= yi < 1.1:
+                # Upper center (above)
+                mask[6] = False
+            elif 0.38 < xi < 0.55 and 0.9 < yi < 1.0:
+                # Upper center (below)
+                mask[7] = False
+            elif 0.38 < xi < 0.55 and 0.0 <= yi < 0.1:
+                # Lower center (above)
+                mask[8] = False
+            elif 0.38 < xi < 0.55 and 0.38 < yi < 0.6:
+                # Center
+                mask[9] = False
+            elif 1.0 <= xi < 1.1 and 0.9 < yi < 1.0:
+                # Upper right (outside)
+                mask[10] = False
+            elif 1.0 <= xi < 1.1 and 0.0 <= yi < 0.1:
+                # Lower right (outside)
+                mask[11] = False
+            elif 0.0 <= xi < 0.1 and -0.1 < yi < 0.0:
+                # Lower left (below)
+                mask[12] = False
+            elif 0.9 < xi < 1.0 and -0.1 < yi < 0.0:
+                # Lower right (below)
+                mask[13] = False
+            elif 0.38 < xi < 0.55 and -0.1 < yi < 0.0:
+                # Lower center (below)
+                mask[14] = False
+            elif 1.0 <= xi < 1.1 and 0.38 < yi < 0.6:
+                # Center right (outside)
+                mask[15] = False
+            elif 0.9 < xi < 1.0 and 0.38 < yi < 0.6:
+                # Center right (inside)
+                mask[16] = False
+            elif 0.0 <= xi < 0.1 and 0.38 < yi < 0.6:
+                # Center left (inside)
+                mask[17] = False
+        # Get available positions
+        pos_avail = np.where(mask)[0]
+        # Check for any available positions
+        if len(pos_avail) == 0:
+            # Just go to the beginning
+            pos = 0
+        else:
+            # Use first available position
+            pos = int(pos_avail[0])
+    # Filter position
+    if not isinstance(pos, int):
+        # Bad type
+        raise TypeError("*pos* parameter must be 'int'; got '%s'" % type(pos))
+    elif pos == 0:
+        # Upper left (above)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = dx
+        y = 1 + 0.65*dy
+    elif pos == 1:
+        # Upper right (above)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 1 - dx
+        y = 1 + 0.65*dy
+    elif pos == 2:
+        # Upper left (below)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = dx
+        y = 1 - dy
+    elif pos == 3:
+        # Upper right (below)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 1 - dx
+        y = 1 - dy
+    elif pos == 4:
+        # Lower left (above)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = dx
+        y = 0.65*dy
+    elif pos == 5:
+        # Lower right (above)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 1 - dx
+        y = 0.65*dy
+    elif pos == 6:
+        # Top middle (above)
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 0.5
+        y = 1 + 0.65*dy
+    elif pos == 7:
+        # Top middle (below)
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 0.5
+        y = 1 - dy
+    elif pos == 8:
+        # Bottom middle (above)
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 0.5
+        y = 0.65*dy
+    elif pos == 9:
+        # Center
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "center")
+        # Default positions
+        x = 0.5
+        y = 0.5
+    elif pos == 10:
+        # Top right (right)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 1 + dx
+        y = 1 - dy
+    elif pos == 11:
+        # Bottom right (right)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "bottom")
+        # Default positions
+        x = 1 + dx
+        y = 0.65*dy
+    elif pos == 12:
+        # Bottom left (below)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = dx
+        y = -dy
+    elif pos == 13:
+        # Bottom right (below)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 1 - dx
+        y = -dy
+    elif pos == 14:
+        # Bottom center (below)
+        kw.setdefault("horizontalalignment", "center")
+        kw.setdefault("verticalalignment", "top")
+        # Default positions
+        x = 0.5
+        y = -dy
+    elif pos == 15:
+        # Center right (outside)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "center")
+        # Default rotation
+        kw.setdefault("rotation", -90)
+        # Default positions
+        x = 1 + dx
+        y = 0.5
+    elif pos == 16:
+        # Center right (inside)
+        kw.setdefault("horizontalalignment", "right")
+        kw.setdefault("verticalalignment", "center")
+        # Default rotation
+        kw.setdefault("rotation", -90)
+        # Default positions
+        x = 1 - dx
+        y = 0.5
+    elif pos == 17:
+        # Center left (inside)
+        kw.setdefault("horizontalalignment", "left")
+        kw.setdefault("verticalalignment", "center")
+        # Default rotation
+        kw.setdefault("rotation", 90)
+        # Default positions
+        x = dx
+        y = 0.5
+    else:
+        # Unrecognized
+        raise ValueError("Unrecognized *pos*; must be in range [0, 17]")
+    # Override coordinates
+    x = kw.pop("x", x)
+    y = kw.pop("y", y)
+    # Set transformation unless overridden
+    kw.setdefault("transform", ax.transAxes)
+    # Create label
+    h = plt.text(x, y, lbl, **kw)
+    # Set a special label (used for automatic *pos*)
+    h.set_label("<axlabel>")
+    # Output
+    return h
+
+
 # Error bar plot
 def _errorbar(xv, yv, yerr=None, xerr=None, **kw):
     r"""Call the :func:`errorbar` function
@@ -1516,6 +1854,35 @@ def _colorbar(ax=None, **kw):
     :Versions:
         * 2020-03-27 ``@jmeeroff``: First version
         * 2020-04-23 ``@ddalle``: Add checks for previous colorbars
+        * 2020-05-06 ``@ddalle``: Forked :func:`_colorbar_rm`
+    """
+    # Make sure pyplot loaded
+    _import_pyplot()
+    # Gte axes
+    if ax is None:
+        # Assume current figure can be used
+        ax = plt.gca()
+    # Get figure handle
+    fig = ax.figure
+    # Remove any existing colorbars
+    _colorbar_rm(ax)
+    # Create the new colorbar
+    h = plt.colorbar(**kw)
+    # Return colorbar
+    return h
+
+
+# Colorbar remover
+def _colorbar_rm(ax=None):
+    r"""Remove any colorbars from a figure
+
+    :Call:
+        >>> _colorbar_rm(ax=None)
+    :Inputs:
+        *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+            Axes handle
+    :Versions:
+        * 2020-05-06 ``@ddalle``: First version
     """
     # Make sure pyplot loaded
     _import_pyplot()
@@ -1531,10 +1898,13 @@ def _colorbar(ax=None, **kw):
         if axk.get_label() == "<colorbar>":
             # If it's a colorbar already... remove it
             axk.remove()
-    # Create the new colorbar
-    h = plt.colorbar(**kw)
-    # Return colorbar
-    return h
+        elif int(mpl.__version__.split(".")[0]) < 3:
+            # No <colorbar> label; try checking size
+            if axk.get_position().bounds[0] > 0.87:
+                # Remove it...
+                axk.remove()
+                # Update figure
+                plt.draw()
 
 
 # Region plot
@@ -1929,7 +2299,7 @@ def _plot(xv, yv, fmt=None, **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.plot`
     :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+        *h*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
@@ -1956,12 +2326,13 @@ def _plot(xv, yv, fmt=None, **kw):
     # Output
     return h
 
+
 # contour part
 def _contour(xv, yv, zv, **kw):
     r"""Call the :func:`contour` function with cycling options
 
     :Call:
-        >>> h = _plot(xv, yv, zv, **kw)
+        >>> hc, hl = _plot(xv, yv, zv, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of *x*-coordinates
@@ -1976,7 +2347,9 @@ def _contour(xv, yv, zv, **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.tricontourf`
     :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.tri.tricontour`)
+        *hc*: :class:`matplotlib.tri.tricontour.TriContourSet`
+            Unstructured contour handles
+        *hl*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
@@ -1991,25 +2364,50 @@ def _contour(xv, yv, zv, **kw):
     i = kw.pop("Index", kw.pop("i", 0))
     # Get rotation option
     r = kw.pop("Rotate", kw.pop("rotate", False))
+    # Options for marker
+    kw_p = kw.pop("MarkerOptions", {})
     # Flip inputs
     if r:
         yv, xv = xv, yv
     # Initialize plot options
-    kw_p = MPLOpts.select_phase(kw, i)
+    kw_c = MPLOpts.select_phase(kw, i)
+    # Option to mark the data points
+    mark = kw_c.pop("MarkPoints", kw_c.pop("mark", True))
+    # Get levels
+    levels = kw_c.pop("levels", None)
+    # Put together args
+    if levels is None:
+        # No specified levels
+        a = xv, yv, zv
+    else:
+        # Number of values of levels specified
+        a = xv, yv, zv, levels
+    # Remove any existing colorbars
+    _colorbar_rm(kw.get("ax"))
+    # Filter the contour type
     if ctyp == "tricontourf":
         # Filled contour
-        h = plt.tricontourf(xv, yv, zv, **kw_p)
+        h = plt.tricontourf(*a, **kw_c)
     elif ctyp == "tricontour":
         # Contour lines
-        h = plt.tricontour(xv, yv, zv, **kw_p)
+        h = plt.tricontour(*a, **kw_c)
     elif ctyp == "tripcolor":
         # Triangulated 
-        h = plt.tripcolor(xv, yv, zv, **kw_p)
+        h = plt.tripcolor(*a, **kw_c)
     else:
          # Unrecognized
         raise ValueError("Unrecognized ContourType '%s'" % ctyp)
+    # Check for marker options
+    if mark:
+        # Select phase for markers
+        kw_p = MPLOpts.select_phase(kw_p, i)
+        # Plot
+        hline = plt.plot(xv, yv, **kw_p)
+    else:
+        # No lines
+        hline = []
     # Output
-    return h
+    return h, hline
 
 
 # Scatter part
@@ -2940,6 +3338,30 @@ def _get_axes_full_extents(ax):
             ib = max(ib, ib_t)
             ja = min(ja, ja_t)
             jb = max(jb, jb_t)
+    # Deal with children
+    for h in ax.get_children():
+        # Only process certain types
+        typ = h.__class__.__name__
+        # Check if it's an object we want to consider
+        if typ == "Text":
+            # Check for text
+            if h.get_text().strip() == "":
+                continue
+        else:
+            # Don't process this kind of Matplotlib object
+            continue
+        # Get window extents
+        ia_t, ja_t, iw_t, jw_t = h.get_window_extent().bounds
+        # Check for null window
+        if iw_t*jw_t > 0.0:
+            # Translate to actual bounds
+            ib_t = ia_t + iw_t
+            jb_t = ja_t + jw_t
+            # Update bounds
+            ia = min(ia, ia_t)
+            ib = max(ib, ib_t)
+            ja = min(ja, ja_t)
+            jb = max(jb, jb_t)
     # Output
     return ia, ja, ib, jb
 
@@ -2994,6 +3416,7 @@ MPLOpts._doc_keys_fn(spines, "spines")
 MPLOpts._doc_keys_fn(errorbar, ["ErrorBarOptions"])
 MPLOpts._doc_keys_fn(fill_between, ["FillBetweenOptions"])
 MPLOpts._doc_keys_fn(plot, ["PlotOptions"])
+MPLOpts._doc_keys_fn(axlabel, ["AxesLabelOptions"])
 
 # Document private functions
 MPLOpts._doc_keys_fn(_axes_adjust, "axadjust", submap=False)

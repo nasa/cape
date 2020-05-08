@@ -81,6 +81,40 @@ def run_us3d():
     #RestartCase(i)
 
 
+# Function to call script or submit.
+def StartCase():
+    r"""Start a case by either submitting it or calling locally
+    
+    :Call:
+        >>> case.StartCase()
+    :Versions:
+        * 2014-10-06 ``@ddalle``: First version
+        * 2015-10-19 ``@ddalle``: Copied from :mod:`cape.pycart`
+        * 2020-04-27 ``@ddalle``: Copied from :mod:`cape.pyus`
+    """
+    # Get the config.
+    rc = ReadCaseJSON()
+    # Determine the run index.
+    i = 0
+    #i = GetPhaseNumber(rc)
+    # Check qsub status.
+    if rc.get_sbatch(i):
+        # Get the name of the PBS file
+        fpbs = GetPBSScript(i)
+        # Submit the Slurm case
+        pbs = queue.psbatch(fpbs)
+        return pbs
+    elif rc.get_qsub(i):
+        # Get the name of the PBS file.
+        fpbs = GetPBSScript(i)
+        # Submit the case.
+        pbs = queue.pqsub(fpbs)
+        return pbs
+    else:
+        # Simply run the case. Don't reset modules either.
+        run_us3d()
+
+
 # Function to read the local settings file.
 def ReadCaseJSON():
     """Read `RunControl` settings for local case
@@ -225,70 +259,27 @@ def RunPhase(rc, i):
             if n is None:
                 n = 0
             # Create an output file to make phase number programs work
-            os.system('touch run.%02i.%i' % (i, n))
+            fphase = "run.%02i.%i" % (i, n)
+            # Create empty phase file
+            with open(fphase, "w") as f:
+                pass
             return
     # Prepare for restart if that's appropriate.
     #SetRestartIter(rc)
-    return
     # Check if the primal solution has already been run
-    if n < ntarg or nprev == 0:
+    if 0 < ntarg or nprev == 0:
         # Get the ``us3d``
         cmdi = cmd.us3d(rc, i=i)
         # Call the command.
-        bin.callf(cmdi, f='fun3d.out')
-        # Get new iteration number
-        n1 = GetCurrentIter()
-        # Check for lack of progress
-        if n1 <= n:
-            raise SystemError("Running phase did not advance iteration count.")
+        bin.callf(cmdi, f='us3d.out')
+        ## Get new iteration number
+        #n1 = GetCurrentIter()
+        ## Check for lack of progress
+        #if n1 <= n:
+        #    raise SystemError("Running phase did not advance iteration count.")
     else:
-        # No new iteratoins
+        # No new iterations
         n1 = n
-    # Go back up a folder if we're in the "Flow" folder
-    if rc.get_Dual(): os.chdir('..')
-    # Check current iteration count.
-    if (i >= rc.get_PhaseSequence(-1)) and (n >= rc.get_LastIter()):
-        return
-    # Check for adaptive solves
-    if n1 < np: return
-    # Check for adjoint solver
-    if rc.get_Dual() and rc.get_DualPhase(i):
-        # Copy the correct namelist
-        os.chdir('Flow')
-        # Delete ``fun3d.nml`` if appropriate
-        if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-            os.remove('fun3d.nml')
-        # Copy the correct one into place
-        os.symlink('fun3d.dual.%02i.nml' % i, 'fun3d.nml')
-        # Enter the 'Adjoint/' folder
-        os.chdir('..')
-        os.chdir('Adjoint')
-        # Create the command to calculate the adjoint
-        cmdi = cmd.dual(rc, i=i, rad=False, adapt=False)
-        # Run the adjoint analysis
-        bin.callf(cmdi, f='dual.out')
-        # Create the command to adapt
-        cmdi = cmd.dual(rc, i=i, adapt=True)
-        # Estimate error and adapt
-        bin.callf(cmdi, f='dual.out')
-        # Rename output file after completing that command
-        os.rename('dual.out', 'dual.%02i.out' % i)
-        # Return
-        os.chdir('..')
-    elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
-        # Check if this is a weird mixed case with Dual and Adaptive
-        if rc.get_Dual(): os.chdir('Flow')
-        # Run the feature-based adaptive mesher
-        cmdi = cmd.nodet(rc, adapt=True, i=i)
-        # Make sure "restart_read" is set to .true.
-        nml.SetRestart(True)
-        nml.Write('fun3d.%02i.nml' % i)
-        # Call the command.
-        bin.callf(cmdi, f='adapt.out')
-        # Rename output file after completing that command
-        os.rename('adapt.out', 'adapt.%02i.out' % i)
-        # Return home if appropriate
-        if rc.get_Dual(): os.chdir('..')
 
 
 # Run ``us3d-prepar``
@@ -311,6 +302,28 @@ def RunUS3DPrepar(rc, i):
         return
     # Execute command
     return bin.us3d_prepar(rc, i)
+
+
+# Run ``us3d-prepar``
+def RunUS3DGenBC(rc, i):
+    r"""Execute ``us3d-genbc``
+
+    :Call:
+        >>> RunUS3DPrepar(rc, i)
+    :Inputs:
+        *rc*: :class:`cape.pyus.options.runControl.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number, does nothing if *i* is not ``0``
+    :Versions:
+        * 2020-04-16 ``@ddalle``: First version
+    """
+    # Get phase number
+    if i != 0:
+        # Do nothing
+        return
+    # Execute command
+    ierr = bin.us3d_genbc(rc, i)
 
 
 # Write start time
@@ -360,4 +373,39 @@ def WriteUserTime(tic, rc, i, fname="pyus_time.dat"):
     """
     # Call the function from :mod:`cape.case`
     cc.WriteUserTimeProg(tic, rc, i, fname, 'run_us3d.py')
+
+
+# Function to determine which PBS script to call
+def GetPBSScript(i=None):
+    r"""Determine the file name of the PBS script to call
+    
+    This is a compatibility function for cases that do or do not have
+    multiple PBS scripts in a single run directory
+    
+    :Call:
+        >>> fpbs = case.GetPBSScript(i=None)
+    :Inputs:
+        *i*: :class:`int`
+            Run index
+    :Outputs:
+        *fpbs*: :class:`str`
+            Name of PBS script to call
+    :Versions:
+        * 2014-12-01 ``@ddalle``: First version
+        * 2020-04-27 ``@ddalle``: US3D version
+    """
+    # Form the full file name, e.g. run_cart3d.00.pbs
+    if i is not None:
+        # Create the name.
+        fpbs = 'run_us3d.%02i.pbs' % i
+        # Check for the file.
+        if os.path.isfile(fpbs):
+            # This is the preferred option if it exists.
+            return fpbs
+        else:
+            # File not found; use basic file name
+            return 'run_us3d.pbs'
+    else:
+        # Do not search for numbered PBS script if *i* is None
+        return 'run_us3d.pbs'
 

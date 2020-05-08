@@ -28,6 +28,7 @@ interfaces to several different file types.
 
 # Standard library modules
 import os
+import sys
 import copy
 
 # Third-party modules
@@ -156,7 +157,10 @@ class DataKit(ftypes.BaseData):
     # Class for definitions
     _defncls = DataKitDefn
 
-   # --- Method Names ---
+   # --- Special Columns ---
+    _tagsubmap = {}
+
+   # --- Response Method Names ---
     # Primary names
     _method_names = [
         "exact",
@@ -233,6 +237,7 @@ class DataKit(ftypes.BaseData):
         self.bkpts = {}
         self.sources = {}
         # Evaluation attributes
+        self.response_arg_alternates = {}
         self.response_arg_converters = {}
         self.response_arg_aliases = {}
         self.response_arg_defaults = {}
@@ -794,12 +799,12 @@ class DataKit(ftypes.BaseData):
             return srcs.get(name)
 
     # Get source, creating if necessary
-    def make_source(self, ext, cls, n=None, cols=None, save=True):
+    def make_source(self, ext, cls, n=None, cols=None, save=True, **kw):
         r"""Get or create a source by category (and number)
 
         :Call:
             >>> dbf = db.make_source(ext, cls)
-            >>> dbf = db.make_source(ext, cls, n=None, cols=None)
+            >>> dbf = db.make_source(ext, cls, n=None, cols=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Generic database
@@ -813,6 +818,8 @@ class DataKit(ftypes.BaseData):
                 List of data columns to include in *dbf*
             *save*: {``True``} | ``False``
                 Option to save *dbf* in *db.sources*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
         :Outputs:
             *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -821,7 +828,7 @@ class DataKit(ftypes.BaseData):
             * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
         """
         # Don't use existing if *cols* is specified
-        if cols is None:
+        if cols is None and kw.get("attrs") is None:
             # Get the source
             dbf = self.get_source(ext, n=n)
             # Check if found
@@ -829,7 +836,7 @@ class DataKit(ftypes.BaseData):
                 # Done
                 return dbf
         # Create a new one
-        dbf = self.genr8_source(ext, cls, cols=cols)
+        dbf = self.genr8_source(ext, cls, cols=cols, **kw)
         # Save the file interface if needed
         if save:
             # Name for this source
@@ -840,12 +847,12 @@ class DataKit(ftypes.BaseData):
         return dbf
 
     # Build new source, creating if necessary
-    def genr8_source(self, ext, cls, cols=None):
+    def genr8_source(self, ext, cls, cols=None, **kw):
         r"""Create a new source file interface
 
         :Call:
             >>> dbf = db.genr8_source(ext, cls)
-            >>> dbf = db.genr8_source(ext, cls, cols=None)
+            >>> dbf = db.genr8_source(ext, cls, cols=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Generic database
@@ -855,6 +862,8 @@ class DataKit(ftypes.BaseData):
                 Subclass of :class:`BaseFile` to create (if needed)
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of data columns to include in *dbf*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
         :Outputs:
             *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
@@ -866,17 +875,63 @@ class DataKit(ftypes.BaseData):
             # Use listed columns
             cols = self.cols
         # Get relevant options
-        kw = {"_warnmode": 0}
+        kwcls = {"_warnmode": 0}
         # Set values
-        kw["Values"] = {col: self[col] for col in cols}
+        kwcls["Values"] = {col: self[col] for col in cols}
         # Explicit column list
-        kw["cols"] = cols
+        kwcls["cols"] = cols
         # Copy definitions
-        kw["Definitions"] = self.defns
+        kwcls["Definitions"] = self.defns
         # Create from class
-        dbf = cls(**kw)
+        dbf = cls(**kwcls)
+        # Get attributes to copy
+        attrs = kw.get("attrs")
+        # Copy them
+        self._copy_attrs(dbf, attrs)
         # Output
         return dbf
+
+    # Copy attributes
+    def _copy_attrs(self, dbf, attrs):
+        r"""Copy additional attributes to new "source" database
+
+        :Call:
+            >>> db._copy_attrs(dbf, attrs)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Generic database
+            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *attrs*: ``None`` | :class:`list`\ [:class:`str`]
+                List of *db* attributes to copy
+        :Versions:
+            * 2020-04-30 ``@ddalle``: First version
+        """
+        # Check for null option
+        if attrs is None:
+            return
+        # Loop through attributes
+        for attr in attrs:
+            # Get current value
+            v = self.__dict__.get(attr)
+            # Check for :class:`dict`
+            if not isinstance(v, dict):
+                # Copy attribute and move to next attribute
+                setattr(dbf, attr, copy.copy(v))
+                continue
+            # Check if this is a dict of information by column
+            if not any([col in v for col in dbf]):
+                # Just some other :class:`dict`; copy whole hting
+                setattr(dbf, attr, copy.copy(v))
+            # Initialize dict to save
+            v1 = {}
+            # Loop through cols
+            for col, vi in v.items():
+                # Check if it's a *col* in *dbf*
+                if col in dbf:
+                    v1[col] = copy.copy(vi)
+            # Save new :class:`dict`
+            setattr(dbf, attr, v1)
   # >
 
   # ==================
@@ -1230,7 +1285,7 @@ class DataKit(ftypes.BaseData):
             self.sources[name] = dbf
 
     # Write MAT file
-    def write_mat(self, fname, cols=None):
+    def write_mat(self, fname, cols=None, **kw):
         r""""Write a MAT file
 
         If *db.sources* has a MAT file, the database will be written
@@ -1250,10 +1305,12 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
+        # Attributes
+        attrs = kw.get("attrs", ["bkpts"])
         # Get/create MAT file interface
-        dbmat = self.make_source("mat", ftypes.MATFile, cols=cols)
+        dbmat = self.make_source("mat", ftypes.MATFile, cols=cols, attrs=attrs)
         # Write it
-        dbmat.write_mat(fname, cols=cols)
+        dbmat.write_mat(fname, cols=cols, attrs=attrs)
   # >
 
   # ===============
@@ -1298,39 +1355,23 @@ class DataKit(ftypes.BaseData):
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
-        # Number of args specified (roughly)
-        na = len(a)
-        nkw = len(kw)
-        # Check for empty inputs
-        if na + nkw == 0:
-            # Just return entire column
+        # Determine call mode
+        mode = self._check_callmode(col, *a, **kw)
+        # Filter mode
+        if mode == 0:
+            # Return entire column
             return self.get_all_values(col)
-        # Get response definition
-        method = self.get_response_method(col)
-        arg_list = self.get_response_args(col)
-        # Check for empty response
-        if (method is None) or (not arg_list):
-            # Check for a mask
-            if na > 0:
-                # At least one arg specified
-                mask = kw.get("mask", a[0])
-            else:
-                # No args specified
-                mask = kw.get("mask")
-            # If no response, then use indexing
-            return self.get_values(col, mask)
-        # Check for indexing in more ambiguous case
-        if na == 1:
-            # Process first arg as a mask
-            if self.check_mask(a[0]):
-                # Look up using indices
-                return self.get_values(col, a[0])
-            else:
-                # Call response surface
-                return self.rcall(col, *a, **kw)
-        else:
-            # If not exactly one arg, use the response
+        elif mode == 1:
+            # Use a mask
+            return self.get_values(col, a[0])
+        elif mode == 2:
+            # Use defined response
             return self.rcall(col, *a, **kw)
+        elif mode == 3:
+            # Use exact; args defined but no method
+            args = self.get_response_args(col)
+            # Get exact matches
+            return self.rcall_exact(col, args, *a, **kw)
 
     # Evaluate response
     def rcall(self, *a, **kw):
@@ -1431,7 +1472,7 @@ class DataKit(ftypes.BaseData):
         # Calls
         if nd == 0:
             # Scalar call
-            v = f(col, args_col, x, **kw_fn)
+            v = f(col, args_col, *x, **kw_fn)
             # Output
             return v
         else:
@@ -1442,95 +1483,127 @@ class DataKit(ftypes.BaseData):
                 # Construct inputs
                 xj = [Xi[j] for Xi in X]
                 # Call scalar function
-                V[j] = f(col, args_col, xj, **kw_fn)
+                V[j] = f(col, args_col, *xj, **kw_fn)
             # Reshape
             V = V.reshape(dims)
             # Output
             return V
 
    # --- Alternative Evaluation ---
-    # Evaluate only exact matches
-    def rcall_exact(self, *a, **kw):
-        r"""Evaluate a column but only at points with exact matches
+    # Find exact match
+    def rcall_exact(self, col, args, *a, **kw):
+        r"""Evaluate a coefficient by looking up exact matches
 
         :Call:
-            >>> V, I, J, X = db.rcall_exact(*a, **kw)
-            >>> V, I, J, X = db.rcall_exact(col, x0, X1, ...)
-            >>> V, I, J, X = db.rcall_exact(col, k0=x0, k1=X1, ...)
+            >>> v = db.rcall_exact(col, args, *a, **kw)
+            >>> V = db.rcall_exact(col, args, *a, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of column to evaluate
-            *x0*: :class:`float` | :class:`int`
-                Value[s] for first argument to *col* evaluator
-            *x1*: :class:`float` | :class:`int`
-                Value[s] for second argument to *col* evaluator
-            *X1*: :class:`np.ndarray`\ [:class:`float`]
-                Array of *x1* values
-            *k0*: :class:`str`
-                Name of first argument to *col* evaluator
-            *k1*: :class:`str`
-                Name of second argument to *col* evaluator
+            *args*: :class:`list` | :class:`tuple`
+                List of explanatory col names (numeric)
+            *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+                Tuple of values for each argument in *args*
+            *tol*: {``1.0e-4``} | :class:`float` > 0
+                Default tolerance for exact match
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` > 0]
+                Dictionary of key-specific tolerances
+            *kw*: :class:`dict`\ [:class:`float` | :class:`np.ndarray`]
+                Alternate keyword arguments
         :Outputs:
+            *v*: ``None`` | :class:`float`
+                Value of *db[col]* exactly matching conditions *a*
             *V*: :class:`np.ndarray`\ [:class:`float`]
-                Array of function outputs
-            *I*: :class:`np.ndarray`\ [:class:`int`]
-                Indices of cases matching inputs (see :func:`find`)
-            *J*: :class:`np.ndarray`\ [:class:`int`]
-                Indices of matches within input arrays
-            *X*: :class:`tuple`\ [:class:`np.ndarray`]
-                Values of arguments at exact matches
+                Multiple values matching exactly
         :Versions:
-            * 2019-03-11 ``@ddalle``: First version
-            * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
         """
-       # --- Get coefficient name ---
-        # Process coefficient name and remaining coeffs
-        col, a, kw = self._prep_args_colname(*a, **kw)
-       # --- Matching values
-        # Get list of arguments for this coefficient
-        args = self.get_response_args(coeff)
-        # Possibility of fallback values
-        arg_defaults = getattr(self, "response_arg_defaults", {})
-        # Find exact matches
-        I, J = self.find(args, *a, **kw)
-        # Initialize values
-        x = []
-        # Loop through coefficients
+        # Check for column
+        if (col not in self.cols) or (col not in self):
+            # Missing col
+            raise KeyError("Col '%s' is not present" % col)
+        # Get values
+        V = self[col]
+        # Create mask
+        I = np.arange(len(V))
+        # Tolerance dictionary
+        tols = kw.get("tols", {})
+        # Default tolerance
+        tol = 1.0e-4
+        # Loop through keys
         for (i, k) in enumerate(args):
-            # Get values
-            V = self.get_all_values(k)
-            # Check for mismatch
-            if V is None:
-                # Attempt to get value from inputs
-                xi = self.get_arg_value(i, k, *a, **kw)
-                # Check for scalar
-                if xi is None:
-                    raise ValueError(
-                        ("Could not generate array of possible values ") +
-                        ("for argument '%s'" % k))
-                elif typeutils.isarray(xi):
-                    raise ValueError(
-                        ("Could not generate fixed scalar for test values ") +
-                        ("of argument '%s'" % k))
-                # Save the scalar value
-                x.append(xi)
-            else:
-                # Save array of varying test values
-                x.append(V[I])
-        # Normalize
-        X, dims = self.normalize_args(x)
-       # --- Evaluation ---
-        # Evaluate coefficient at matching points
-        if col in self:
-            # Use direct indexing
-            V = self[col][I]
+            # Get value
+            xi = a[i]
+            # Get tolerance
+            toli = tols.get(k, kw.get("tol", tol))
+            # Apply test
+            qi = np.abs(self[k][I] - xi) <= toli
+            # Combine constraints
+            I = I[qi]
+            # Break if no matches
+            if len(I) == 0:
+                return None
+        # Test number of outputs
+        if len(I) == 1:
+            # Single output
+            return V[I[0]]
         else:
-            # Use evaluator (necessary for coeffs like *CLMX*)
-            V = self.__call__(col, *X, **kw)
-        # Output
-        return V, I, J, X
+            # Multiple outputs
+            return V[I]
+
+    # Lookup nearest value
+    def rcall_nearest(self, col, args, *a, **kw):
+        r"""Evaluate a coefficient by looking up nearest match
+
+        :Call:
+            >>> v = db.rcall_nearest(col, args, *a, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of (numeric) column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of explanatory col names (numeric)
+            *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+                Tuple of values for each argument in *args*
+            *weights*: {``{}``} | :class:`dict` (:class:`float` > 0)
+                Dictionary of arg-specific distance weights
+        :Outputs:
+            *y*: :class:`float` | *db[col].__class__*
+                Value of *db[col]* at point closest to *a*
+        :Versions:
+            * 2018-12-30 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
+            * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
+        """
+        # Check for column
+        if (col not in self.cols) or (col not in self):
+            # Missing col
+            raise KeyError("Col '%s' is not present" % col)
+        # Get values
+        V = self[col]
+        # Array length
+        n = len(V)
+        # Initialize distances
+        d = np.zeros(n, dtype="float")
+        # Dictionary of distance weights
+        W = kw.get("weights", {})
+        # Loop through keys
+        for (i, k) in enumerate(args):
+            # Get value
+            xi = a[i]
+            # Get weight
+            wi = W.get(k, 1.0)
+            # Distance
+            d += wi*(self[k] - xi)**2
+        # Find minimum distance
+        j = np.argmin(d)
+        # Use that value
+        return V[j]
 
     # Evaluate UQ from coefficient
     def rcall_uq(self, *a, **kw):
@@ -1854,12 +1927,15 @@ class DataKit(ftypes.BaseData):
                 interpolation, ``0.0`` for exact interpolation
             *func*: **callable**
                 Function to use for ``"function"`` *method*
+            *extracols*: {``None``} | :class:`set` | :class:`list`
+                Additional col names that might be used as kwargs
         :Versions:
             * 2019-01-07 ``@ddalle``: First version
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-30 ``@ddalle``: Version 2.0; map of methods
             * 2020-02-18 ``@ddalle``: Name from :func:`_set_method1`
             * 2020-03-06 ``@ddalle``: Name from :func:`set_response`
+            * 2020-04-24 ``@ddalle``: Add *response_arg_alternates*
         """
        # --- Input checks ---
         # Check inputs
@@ -1917,6 +1993,8 @@ class DataKit(ftypes.BaseData):
         self.set_response_method(col, method)
         # Argument list is the same for all methods
         self.set_response_args(col, args)
+        # Construct list (set actually) of kwargs for this key
+        self.create_arg_alternates(col, extracols=kw.get("extracols"))
 
    # --- Constructors ---
     # Explicit function
@@ -2655,6 +2733,211 @@ class DataKit(ftypes.BaseData):
         # Set it
         response_acols[col] = acols
 
+   # --- Aliases and Tagcols ---
+    # Create set of kwargs that might be used as alternates
+    def create_arg_alternates(self, col, extracols=None):
+        r"""Create set of keys that might be used as kwargs to *col*
+
+        :Call:
+            >>> db.create_arg_alternates(col, extracols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column with response method
+            *extracols*: {``None``} | :class:`set` | :class:`list`
+                Additional col names that might be used as kwargs
+        :Effects:
+            *db.respone_arg_alternates[col]*: :class:`set`
+                Cols that are used by response for *col*
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+        # Handle to class
+        cls = self.__class__
+        # Class attributes
+        _tagcols = cls.__dict__.get("_tagcols", {})
+        _tagsubs = cls.__dict__.get("_tagsubmap", {})
+        # Initialize set
+        args_alt = set(cls._tagsubcols.get(col, set()))
+        # Use extra columns provided by user
+        if extracols:
+            args_alt.update(set(extracols))
+        # Get list of args for *col*
+        args = self.get_response_args(col)
+        # Get aliases
+        arg_aliases = self.get_response_arg_aliases(col)
+        # Add any aliases
+        if arg_aliases:
+            # Loop through aliases
+            for k1, k2 in arg_aliases.items():
+                # Check if *k2* is an arg
+                if k2 in args:
+                    args.append(k1)
+        # Loop through the response args
+        for arg in args:
+            # Get tag for this argument
+            tag = self.get_col_prop(arg, "Tag", arg)
+            # Get suggested cols for main arg
+            cols = _tagcols.get(tag)
+            # Join cols if possible
+            if cols:
+                args_alt.update(cols)
+            # Other tags that might be used to compute this tag
+            subtags = _tagsubs.get(tag)
+            # Move on if no subtags
+            if subtags is None:
+                continue
+            # Loop through them
+            for tag in subtags:
+                # Get cols that could be used to compute this tag
+                cols = _tagcols.get(tag)
+                # Join if possible
+                if cols:
+                    args_alt.update(cols)
+        # Save them
+        self.response_arg_alternates[col] = args_alt
+
+    # Get alternate args
+    def get_arg_alternates(self, col):
+        r"""Get :class:`set` of usable keyword args for *col*
+
+        :Call:
+            >>> altcols = db.get_arg_alternates(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column with response method
+        :Outputs:
+            *altcols*: :class:`set`\ [:class:`str`\
+                Cols that are used by response for *col*
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+        # Get dictionary
+        arg_alts = self.__dict__.get("response_arg_alternates", {})
+        # Return values for *col*
+        return arg_alts.get(col, set())
+
+    # Check mode for __call__ (either by index or response)
+    def _check_callmode(self, col, *a, **kw):
+        r"""Determine call mode
+
+        :Call:
+            >>> mode = db._check_callmode(col, *a, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to look up or calculate
+            *a*: :class:`tuple`
+                Positional args to :func:`__call__`
+            *kw*: :class:`dict`
+                Keyword args to :func:`__call__` or other methods
+        :Outputs:
+            *mod*: ``0`` | ``1`` | ``2``
+                Lookup method:
+                    * ``0``: return all values
+                    * ``1``: lookup by index
+                    * ``2``: use declared response method
+                    * ``3``: use :func:`rcall_exact`
+
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+        # Get method, if any
+        method = self.get_response_method(col)
+        # Get args
+        args = self.get_response_args(col)
+        # Number of expected args
+        if args:
+            narg = len(args)
+        else:
+            narg = 0
+        # Number of positional args given
+        na = len(a)
+        nx = na
+        # Check for all args specified
+        if na >= narg > 1:
+            # Sufficient args for response
+            if method:
+                # Use declared response
+                return 2
+            else:
+                # Args declared but no method
+                return 3
+        # Otherwise, check for kwargs
+        altargs = self.get_arg_alternates(col)
+        # Loop through keywords
+        for k in kw:
+            # Check if it's a usable keyword arg
+            if k in altargs:
+                # Increase number of args
+                nx += 1
+        # Recheck
+        if nx == 0:
+            # No args at all
+            return 0
+        elif (na == 1) and self.check_mask(a[0]):
+            # Given indices/mask in first arg
+            return 1
+        elif method:
+            # Use declared response
+            return 2
+        elif narg > 0:
+            # Args declared but no method
+            return 3
+
+    # Separate rcall keywords and other kwargs
+    def sep_response_kwargs(self, col, **kw):
+        r"""Separate kwargs used for response and other options
+
+        :Call:
+            >>> kwr, kwo = db.sep_response_kwargs(col, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column to look up or calculate
+            *kw*: :class:`dict`
+                Keyword args to :func:`__call__` or other methods
+        :Outputs:
+            *kwr*: :class:`dict`
+                Keyword args to :func:`__call__` or other methods
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+        # Check for trivial case
+        if not kw:
+            # No kwargs to separate
+            return {}, {}
+        # Otherwise, check for kwargs
+        altargs = self.get_arg_alternates(col)
+        # Get nominal args
+        args = self.get_response_args(col)
+        # Check if any defined
+        if (not args) and (not altargs):
+            # All kwargs are "other"
+            return {}, kw
+        # Initialize groups
+        kwr = {}
+        kwo = {}
+        # Loop through input kwargs
+        for k, v in kw.items():
+            # Check if it's an arg or possible arg
+            if args and (k in args):
+                # Main rcall() arg
+                kwr[k] = v
+            elif altargs and (k in altargs):
+                # Alternate rcall arg
+                kwr[k] = v
+            else:
+                # Other kwarg
+                kwo[k] = v
+        # Output
+        return kwr, kwo
+
    # --- Arguments ---
     # Get argument value
     def get_arg_value(self, i, k, *a, **kw):
@@ -2728,9 +3011,9 @@ class DataKit(ftypes.BaseData):
     def get_arg_value_dict(self, *a, **kw):
         r"""Return a dictionary of normalized argument variables
 
-        Specifically, he dictionary contains a key for every argument used to
-        evaluate the coefficient that is either the first argument or uses the
-        keyword argument *col*.
+        Specifically, the dictionary contains a key for every argument
+        used to evaluate the coefficient that is either the first
+        argument or uses the keyword argument *col*.
 
         :Call:
             >>> X = db.get_arg_value_dict(*a, **kw)
@@ -3101,121 +3384,9 @@ class DataKit(ftypes.BaseData):
         # Output
         return i0, i1, f, x0, x1
 
-   # --- Nearest/Exact ---
-    # Find exact match
-    def rcall_exact(self, col, args, x, **kw):
-        r"""Evaluate a coefficient by looking up exact matches
-
-        :Call:
-            >>> y = db.rcall_exact(col, args, x, **kw)
-            >>> Y = db.rcall_exact(col, args, x, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *col*: :class:`str`
-                Name of column to evaluate
-            *args*: :class:`list` | :class:`tuple`
-                List of explanatory col names (numeric)
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
-            *tol*: {``1.0e-4``} | :class:`float` > 0
-                Default tolerance for exact match
-            *tols*: {``{}``} | :class:`dict`\ [:class:`float` > 0]
-                Dictionary of key-specific tolerances
-        :Outputs:
-            *y*: ``None`` | :class:`float` | *db[col].__class__*
-                Value of ``db[col]`` exactly matching conditions *x*
-            *Y*: :class:`np.ndarray`
-                Multiple values matching exactly
-        :Versions:
-            * 2018-12-30 ``@ddalle``: First version
-            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
-        """
-        # Check for column
-        if (col not in self.cols) or (col not in self):
-            # Missing col
-            raise KeyError("Col '%s' is not present" % col)
-        # Get values
-        V = self[col]
-        # Create mask
-        I = np.arange(len(V))
-        # Tolerance dictionary
-        tols = kw.get("tols", {})
-        # Default tolerance
-        tol = 1.0e-4
-        # Loop through keys
-        for (i, k) in enumerate(args):
-            # Get value
-            xi = x[i]
-            # Get tolerance
-            toli = tols.get(k, kw.get("tol", tol))
-            # Apply test
-            qi = np.abs(self[k][I] - xi) <= toli
-            # Combine constraints
-            I = I[qi]
-            # Break if no matches
-            if len(I) == 0:
-                return None
-        # Test number of outputs
-        if len(I) == 1:
-            # Single output
-            return V[I[0]]
-        else:
-            # Multiple outputs
-            return V[I]
-
-    # Lookup nearest value
-    def rcall_nearest(self, col, args, x, **kw):
-        r"""Evaluate a coefficient by looking up nearest match
-
-        :Call:
-            >>> y = db.rcall_nearest(col, args, x, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *col*: :class:`str`
-                Name of (numeric) column to evaluate
-            *args*: :class:`list` | :class:`tuple`
-                List of explanatory col names (numeric)
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
-            *weights*: {``{}``} | :class:`dict` (:class:`float` > 0)
-                Dictionary of key-specific distance weights
-        :Outputs:
-            *y*: :class:`float` | *db[col].__class__*
-                Value of *db[col]* at point closest to *x*
-        :Versions:
-            * 2018-12-30 ``@ddalle``: First version
-            * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
-        """
-        # Check for column
-        if (col not in self.cols) or (col not in self):
-            # Missing col
-            raise KeyError("Col '%s' is not present" % col)
-        # Get values
-        V = self[col]
-        # Array length
-        n = len(V)
-        # Initialize distances
-        d = np.zeros(n, dtype="float")
-        # Dictionary of distance weights
-        W = kw.get("weights", {})
-        # Loop through keys
-        for (i, k) in enumerate(args):
-            # Get value
-            xi = x[i]
-            # Get weight
-            wi = W.get(k, 1.0)
-            # Distance
-            d += wi*(self[k] - xi)**2
-        # Find minimum distance
-        j = np.argmin(d)
-        # Use that value
-        return V[j]
-
    # --- Linear ---
     # Multilinear lookup
-    def rcall_multilinear(self, col, args, x, **kw):
+    def rcall_multilinear(self, col, args, *x, **kw):
         r"""Perform linear interpolation in *n* dimensions
 
         This assumes the database is ordered with the first entry of
@@ -3223,7 +3394,7 @@ class DataKit(ftypes.BaseData):
         regular.
 
         :Call:
-            >>> y = db.rcall_multilinear(col, args, x)
+            >>> y = db.rcall_multilinear(col, args, *x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3254,7 +3425,7 @@ class DataKit(ftypes.BaseData):
         regular.
 
         :Call:
-            >>> y = db._rcall_multilinear(col, args, x, I=None, j=None)
+            >>> y = db._rcall_multilinear(col, args, *x, I=None, j=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3390,7 +3561,7 @@ class DataKit(ftypes.BaseData):
 
    # --- Multilinear-schedule ---
     # Multilinear lookup at each value of arg
-    def rcall_multilinear_schedule(self, col, args, x, **kw):
+    def rcall_multilinear_schedule(self, col, args, *x, **kw):
         r"""Perform "scheduled" linear interpolation in *n* dimensions
 
         This assumes the database is ordered with the first entry of
@@ -3411,8 +3582,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
             *tol*: {``1e-6``} | :class:`float` >= 0
                 Tolerance for matching slice key
         :Outputs:
@@ -3442,11 +3613,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Radial Basis Functions ---
     # RBF lookup
-    def rcall_rbf(self, col, args, x, **kw):
+    def rcall_rbf(self, col, args, *x, **kw):
         """Evaluate a single radial basis function
 
         :Call:
-            >>> y = DBc.rcall_rbf(col, args, x)
+            >>> y = DBc.rcall_rbf(col, args, *x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3454,8 +3625,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
         :Outputs:
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
@@ -3527,7 +3698,7 @@ class DataKit(ftypes.BaseData):
 
    # --- RBF-linear ---
     # Multiple RBF lookup
-    def rcall_rbf_linear(self, col, args, x, **kw):
+    def rcall_rbf_linear(self, col, args, *x, **kw):
         r"""Evaluate two RBFs at slices of first *arg* and interpolate
 
         :Call:
@@ -3539,8 +3710,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
         :Outputs:
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
@@ -3563,11 +3734,11 @@ class DataKit(ftypes.BaseData):
 
    # --- RBF-schedule ---
     # Multiple RBF lookup, curvilinear
-    def rcall_rbf_schedule(self, col, args, x, **kw):
+    def rcall_rbf_schedule(self, col, args, *x, **kw):
         r"""Evaluate two RBFs at slices of first *arg* and interpolate
 
         :Call:
-            >>> y = db.rcall_rbf_schedule(col, args, x)
+            >>> y = db.rcall_rbf_schedule(col, args, *x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3575,8 +3746,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
         :Outputs:
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
@@ -3600,11 +3771,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Generic Function ---
     # Generic function
-    def rcall_function(self, col, args, x, **kw):
+    def rcall_function(self, col, args, *x, **kw):
         r"""Evaluate a single user-saved function
 
         :Call:
-            >>> y = db.rcall_function(col, args, x)
+            >>> y = db.rcall_function(col, args, *x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -3612,8 +3783,8 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
             *args*: :class:`list` | :class:`tuple`
                 List of lookup key names
-            *x*: :class:`list` | :class:`tuple` | :class:`np.ndarray`
-                Vector of values for each argument in *args*
+            *x*: :class:`tuple`
+                Values for each argument in *args*
         :Outputs:
             *y*: ``None`` | :class:`float` | ``DBc[coeff].__class__``
                 Interpolated value from ``DBc[coeff]``
@@ -3950,12 +4121,16 @@ class DataKit(ftypes.BaseData):
         nmin = kw.get("nmin", 30)
        # --- Coefficient Loop ---
         # Loop through data coefficients
-        for col in self:
+        for col in list(self.keys()):
             # Get UQ col list
             ucols = self.get_uq_col(col)
             # Skip if no UQ cols
             if not ucols:
                 continue
+            # Enlist
+            if typeutils.isstr(ucols):
+                # Make single list
+                ucols = [ucols]
             # Loop through them
             for ucol in ucols:
                 # Status update
@@ -4066,8 +4241,8 @@ class DataKit(ftypes.BaseData):
         # Degrees of freedom
         df = DV.size
         # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
-        ksig = student.ppf(0.5+0.5*cdf, df)
-        kcov = student.ppf(0.5+0.5*cov, df)
+        ksig = statutils.student.ppf(0.5+0.5*cdf, df)
+        kcov = statutils.student.ppf(0.5+0.5*cov, df)
         # Outlier cutoff
         if osig_kw is None:
             # Default
@@ -4076,11 +4251,11 @@ class DataKit(ftypes.BaseData):
             # User-supplied value
             osig = osig_kw
         # Check outliers on main deltas
-        J = stats.check_outliers(DV, cov, cdf=cdf, osig=osig)
+        J = statutils.check_outliers(DV, cov, cdf=cdf, osig=osig)
         # Loop through shift keys; points must be non-outlier in all keys
         for DVk in DV0_aux:
             # Check outliers in these deltas
-            Jk = stats.check_outliers(DVk, cov, cdf=cdf, osig=osig)
+            Jk = statutils.check_outliers(DVk, cov, cdf=cdf, osig=osig)
             # Combine constraints
             J = np.logical_and(J, Jk)
         # Downselect original deltas
@@ -4093,8 +4268,8 @@ class DataKit(ftypes.BaseData):
         # New degrees of freedom
         df = DV.size
         # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
-        ksig = student.ppf(0.5+0.5*cdf, df)
-        kcov = student.ppf(0.5+0.5*cov, df)
+        ksig = statutils.student.ppf(0.5+0.5*cdf, df)
+        kcov = statutils.student.ppf(0.5+0.5*cov, df)
         # Outlier cutoff
         if osig_kw is None:
             # Default
@@ -4115,7 +4290,7 @@ class DataKit(ftypes.BaseData):
             if fn is None:
                 raise ValueError("No function for extra UQ col '%s'" % ecol)
             # Evaluate
-            a_extra.apend(fn(self, DV, *DV_aux))
+            a_extra.append(fn(self, DV, *DV_aux))
        # --- Delta shifting (aux functions) ---
         # Function to perform any shifts
         afunc = self.get_uq_afunc(ucol)
@@ -4127,12 +4302,12 @@ class DataKit(ftypes.BaseData):
             DV = afunc(self, DV, *a_aux)
        # --- Statistics ---
         # Calculate coverage interval
-        vmin, vmax = stats.get_cov_interval(DV, cov, cdf=cdf, osig=osig)
+        vmin, vmax = statutils.get_cov_interval(DV, cov, cdf=cdf, osig=osig)
         # Max value
         u = max(abs(vmin), abs(vmax))
        # --- Output ---
         # Return all extra values
-        return (u,) + a_extra
+        return (u,) + tuple(a_extra)
 
     # Estimate UQ at a single *ucol* condition
     def est_uq_point(self, db2, col, ucol, *a, **kw):
@@ -4260,7 +4435,7 @@ class DataKit(ftypes.BaseData):
         # Additional information
         uq_ecols = self.get_uq_ecol(ucol)
         # Check length
-        if uq_acols is None:
+        if uq_ecols is None:
             # No extra ecols
             nu = 1
         else:
@@ -4323,7 +4498,7 @@ class DataKit(ftypes.BaseData):
        # --- Check bounds ---
         def check_bounds(vmin, vmax, vals):
             # Loop through parameters
-            for i,k in enumerate(arg_list):
+            for i,k in enumerate(args):
                 # Get values
                 Vk = vals[k]
                 # Check bounds
@@ -4367,7 +4542,7 @@ class DataKit(ftypes.BaseData):
         vmin = {}
         vmax = {}
         # Loop through parameters
-        for i,k in enumerate(arg_list):
+        for i, k in enumerate(args):
             # Get value
             v = a[i]
             # Get tolerance
@@ -4606,7 +4781,7 @@ class DataKit(ftypes.BaseData):
 
     # Get aux columns needed to compute UQ of a col
     def get_uq_acol(self, ucol):
-        r"""Get name of extra data cols needed to compute UQ col
+        r"""Get name of aux data cols needed to compute UQ col
 
         :Call:
             >>> acols = db.get_uq_acol(ucol)
@@ -4629,10 +4804,10 @@ class DataKit(ftypes.BaseData):
         if typeutils.isstr(acols):
             # Create single list
             acols = [acols]
-        elif ecols is None:
+        elif acols is None:
             # Empty result should be empty list
             acols = []
-        elif not isinstance(ecols, list):
+        elif not isinstance(acols, list):
             # Invalid type
             raise TypeError(
                 "uq_acols for col '%s' should be list; got '%s'"
@@ -4819,12 +4994,12 @@ class DataKit(ftypes.BaseData):
   # <
    # --- Breakpoint Creation ---
     # Get automatic break points
-    def create_bkpts(self, cols, nmin=5, tol=1e-12):
+    def create_bkpts(self, cols, nmin=5, tol=1e-12, tols={}, mask=None):
         r"""Create automatic list of break points for interpolation
 
         :Call:
-            >>> db.create_bkpts(col, nmin=5, tol=1e-12)
-            >>> db.create_bkpts(cols, nmin=5, tol=1e-12)
+            >>> db.create_bkpts(col, nmin=5, tol=1e-12, **kw)
+            >>> db.create_bkpts(cols, nmin=5, tol=1e-12, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -4835,64 +5010,100 @@ class DataKit(ftypes.BaseData):
             *nmin*: {``5``} | :class:`int` > 0
                 Minimum number of data points at one value of a key
             *tol*: {``1e-12``} | :class:`float` >= 0
-                Tolerance cutoff
+                Tolerance for values considered to be equal
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float`]
+                Tolerances for specific *cols*
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask of which database indices to consider
         :Outputs:
-            *DBc.bkpts*: :class:`dict`
+            *db.bkpts*: :class:`dict`
                 Dictionary of 1D unique lookup values
-            *DBc.bkpts[key]*: :class:`np.ndarray` (:class:`float`)
-                Unique values of *DBc[key]* with at least *nmin* entries
+            *db.bkpts[col]*: :class:`np.ndarray` | :class:`list`
+                Unique values of *DBc[col]* with at least *nmin* entries
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
             * 2020-03-26 ``@ddalle``: Renamed, :func:`get_bkpts`
+            * 2020-05-06 ``@ddalle``: Moved much to :func:`genr8_bkpts`
         """
         # Check for single key list
         if not isinstance(cols, (list, tuple)):
             # Make list
             cols = [cols]
+        # Filter specific tolerances
+        if tols is None:
+            tols = {}
         # Initialize break points
         bkpts = self.__dict__.setdefault("bkpts", {})
         # Loop through keys
         for col in cols:
-            # Check type
-            if not isinstance(col, typeutils.strlike):
-                raise TypeError("Column name is not a string")
-            # Check if present
-            if col not in self.cols:
-                raise KeyError("Lookup column '%s' is not present" % col)
-            # Get all values
-            V = self[col]
-            # Get data type
-            dtype = self.get_col_dtype(col)
-            # Check dtype
-            if dtype == "str":
-                # Get unique values without converting to array
-                B = list(set(V))
-            elif dtype.startswith("int"):
-                # No need to apply tolerance
-                B = np.unique(V)
-            else:
-                # Get unique values of array
-                U = np.unique(V)
-                # Initialize filtered value
-                B = np.zeros_like(U)
-                n = 0
-                # Loop through entries
-                for v in U:
-                    # Check if too close to a previous entry
-                    if (n > 0) and np.min(np.abs(v - B[:n])) <= tol:
-                        # Close to previous "unique" value
-                        continue
-                    # Count entries
-                    if np.count_nonzero(np.abs(V - v) <= tol) >= nmin:
-                        # Save the value
-                        B[n] = v
-                        # Increase count
-                        n += 1
-                # Trim
-                B = B[:n]
+            # Get tolerance
+            ctol = tols.get(col, tol)
             # Save these break points
-            bkpts[col] = B
+            bkpts[col] = self.genr8_bkpts(col, nmin=nmin, tol=ctol, mask=mask)
+
+    # Get break points for specific col
+    def genr8_bkpts(self, col, nmin=5, tol=1e-12, mask=None):
+        r"""Generate list of unique values for one *col*
+
+        :Call:
+            >>> B = db.genr8_bkpts(col, nmin=5, tol=1e-12, mask=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *col*: :class:`str`
+                Individual lookup variable
+            *nmin*: {``5``} | :class:`int` > 0
+                Minimum number of data points at one value of a key
+            *tol*: {``1e-12``} | :class:`float` >= 0
+                Tolerance for values considered to be equal
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask of which database indices to consider
+        :Outputs:
+            *B*: :class:`np.ndarray` | :class:`list`
+                Unique values of *DBc[col]* with at least *nmin* entries
+        :Versions:
+            * 2020-05-06 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(col, typeutils.strlike):
+            raise TypeError("Column name is not a string")
+        # Check if present
+        if col not in self.cols:
+            raise KeyError("Lookup column '%s' is not present" % col)
+        # Get all values
+        V = self.get_values(col, mask)
+        # Get data type
+        dtype = self.get_col_dtype(col)
+        # Check dtype
+        if dtype == "str":
+            # Get unique values without converting to array
+            B = list(set(V))
+        elif dtype.startswith("int"):
+            # No need to apply tolerance
+            B = np.unique(V)
+        else:
+            # Get unique values of array
+            U = np.unique(V)
+            # Initialize filtered value
+            B = np.zeros_like(U)
+            n = 0
+            # Loop through entries
+            for v in U:
+                # Check if too close to a previous entry
+                if (n > 0) and np.min(np.abs(v - B[:n])) <= tol:
+                    # Close to previous "unique" value
+                    continue
+                # Count entries
+                if np.count_nonzero(np.abs(V - v) <= tol) >= nmin:
+                    # Save the value
+                    B[n] = v
+                    # Increase count
+                    n += 1
+            # Trim
+            B = B[:n]
+        # Output
+        return B
 
     # Map break points from other key
     def create_bkpts_map(self, cols, scol, tol=1e-12):
@@ -5835,6 +6046,178 @@ class DataKit(ftypes.BaseData):
   # >
 
   # ==================
+  # Filtering
+  # ==================
+  # <
+   # --- Repeats ---
+    # Remove repeats
+    def filter_repeats(self, args, cols=None, **kw):
+        r"""Remove duplicate points or close neighbors
+
+        :Call:
+            >>> db.filter_repeats(args, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *args*: :class:`list`\ [:class:`str`]
+                List of columns names to match
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                Columns to filter (default is all *db.cols* with correct
+                size and not in *args* and :class:`float` type)
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
+            *function*: {``"mean"``} | **callable**
+                Function to use for filtering
+            *translators*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
+            *kw*: :class:`dict`
+                Additional values to use for evaluation in :func:`find`
+        :Versions:
+            * 2020-05-05 ``@ddalle``: First version
+        """
+       # --- Column Lists ---
+        # Check types
+        if not isinstance(args, list):
+            raise TypeError(
+                "Invalid type '%s' for args, must be 'list'" % type(args))
+        elif len(args) < 1:
+            raise ValueError("Arg list is empty")
+        # Check types of *args* entries
+        for j, arg in enumerate(args):
+            # Make sure it's a string
+            if not typeutils.isstr(arg):
+                raise TypeError(
+                    "Arg %i has invalid type '%s', must be 'str'"
+                    % (j, type(arg)))
+        # Get first arg
+        arg0 = args[0]
+        # Get count
+        n0 = len(self.get_all_values(arg0))
+        # Process columns
+        if cols is None:
+            # Initialize list
+            cols = []
+            # Loop through columns
+            for col in self.cols:
+                # Check if an *arg*
+                if col in args:
+                    continue
+                # Get data type
+                dtype = self.get_col_dtype(col)
+                # Check datatype
+                if dtype is None or not dtype.startswith("float"):
+                    continue
+                # Get dimension
+                ndim = self.get_col_prop(col, "Dimension")
+                # Filter it
+                if ndim is None or ndim != 1:
+                    continue
+                # Check size
+                if self.get_all_values(col).size != n0:
+                    continue
+                # Otherwise, use this column
+                cols.append(col)
+       # --- Filtering Function ---
+        # Get filtering function
+        func = kw.get("func", "mean")
+        # Filter it
+        if func == "mean":
+            # Take mean of data points
+            fn = np.mean
+        elif callable(func):
+            # Function specified directly
+            fn = func
+        else:
+            # Bad type
+            raise TypeError("Filtering function not callable")
+       # --- Options ---
+        # Get translators
+        trans = kw.pop("translators", {})
+        prefix = kw.pop("prefix", None)
+        suffix = kw.pop("suffix", None)
+        # Overall mask
+        mask = kw.get("mask")
+        # Translator args
+        tr_args = (trans, prefix, suffix)
+        # Get overall tolerances
+        tol = kw.get("tol", 1e-8)
+        # Get tolerances for specific *args*
+        tols = kw.get("tols", {})
+       # --- Data ---
+        # Divide into sweeps
+        sweeps = self.genr8_sweeps(args, **kw)
+        # Number of output points
+        nx = len(sweeps)
+        # Check for trivial filtering
+        nmaxsweep = np.max(np.array([sweep.size for sweep in sweeps]))
+        # Loop through *cols* first b/c original *arg* values
+        # may affect filtering of *cols*
+        for col in cols:
+            # Translate column name
+            colreg = self._translate_colname(col, *tr_args)
+            # Check for trivial case
+            if nmaxsweep == 1:
+                # Get existing data
+                V = self.get_values(col, mask)
+            else:
+                # Get data type
+                dtype = self.get_col_dtype(col)
+                # Initialize data
+                V = np.zeros(nx, dtype=dtype)
+                # Loop through sweeps
+                for j, sweep in enumerate(sweeps):
+                    # Get values for these points
+                    v = self.get_values(col, sweep)
+                    # Filter
+                    V[j] = fn(v)
+            # Check if new column
+            if col != colreg:
+                # Save new column
+                self.save_col(colreg, V)
+                # Get previous definition
+                defn = self.get_defn(col)
+                # Save a copy
+                self.defns[colreg] = self._defncls(_warnmode=0, **defn)
+            else:
+                # Save new data in place of old data
+                self[col] = V
+        # Loop through *args*
+        for arg in args:
+            # Translate column name
+            argreg = self._translate_colname(arg, *tr_args)
+            # Check for trivial case
+            if nmaxsweep == 1:
+                # Get existing data
+                V = self.get_values(arg, mask)
+            else:
+                # Get data type
+                dtype = self.get_col_dtype(arg)
+                # Initialize data
+                V = np.zeros(nx, dtype=dtype)
+                # Loop through sweeps
+                for j, sweep in enumerate(sweeps):
+                    # Get values for these points
+                    v = self.get_values(arg, sweep)
+                    # Filter
+                    V[j] = fn(v)
+            # Check if new column
+            if arg != argreg:
+                # Save new column
+                self.save_col(argreg, V)
+                # Get previous definition
+                defn = self.get_defn(arg)
+                # Save a copy
+                self.defns[argreg] = self._defncls(_warnmode=0, **defn)
+            else:
+                # Save new data in place of old data
+                self[arg] = V
+  # >
+
+  # ==================
   # Data
   # ==================
   # <
@@ -6447,7 +6830,81 @@ class DataKit(ftypes.BaseData):
         else:
             # Invalid data type
             raise TypeError("Invalid mask data type '%s'" % dtype)
-        
+
+   # --- Sweeps ---
+    # Divide into sweeps
+    def genr8_sweeps(self, args, **kw):
+        r"""Divide data into sweeps with constant values of some *cols*
+
+        :Call:
+            >>> sweeps = db.genr8_sweeps(args, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *args*: :class:`list`\ [:class:`str`]
+                List of columns names to match
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+            *kw*: :class:`dict`
+                Additional values to use during evaluation
+        :Outputs:
+            *sweeps*: :class:`list`\ [:class:`np.ndarray`]
+                Indices of entries with constant (within *tol*) values
+                of each *arg*
+        :Versions:
+            * 2020-05-06 ``@ddalle``: First version
+        """
+       # --- Column Lists ---
+        # Check arg list
+        if not isinstance(args, list):
+            raise TypeError(
+                "Invalid type '%s' for args, must be 'list'" % type(args))
+        elif len(args) < 1:
+            raise ValueError("Arg list is empty")
+        # Check types of *args* entries
+        for j, arg in enumerate(args):
+            # Make sure it's a string
+            if not typeutils.isstr(arg):
+                raise TypeError(
+                    "Arg %i has invalid type '%s', must be 'str'"
+                    % (j, type(arg)))
+       # --- Options ---
+        # Tolerances
+        tol = kw.pop("tol", 1e-8)
+        tols = kw.pop("tols", {})
+       # --- Mask Prep ---
+        # Initialize sweeps
+        mask = kw.pop("mask", kw.pop("I", None))
+        # Translate into indices
+        mask_index = self.prep_mask(mask, args[0])
+       # --- Search ---
+        # Initialize sweeps [array[int]]
+        sweeps_parent = [mask_index]
+        # Loop through args
+        for k, arg in enumerate(args):
+            # Get tolerance
+            ktol = tols.get(arg, tol)
+            # Initialize new sweeps
+            sweeps = []
+            # Options to :func:`find`
+            kw_k = dict(tol=ktol, mapped=True, **kw)
+            # Loop through sweeps from previous level
+            for j, J in enumerate(sweeps_parent):
+                # Get unique values for this arg (within tolerance)
+                V = self.genr8_bkpts(arg, nmin=0, mask=J, tol=ktol)
+                # Divide into sweeps
+                sweeps_j, _ = self.find([arg], V, mask=J, **kw_k)
+                # Save these sweeps
+                sweeps.extend(sweeps_j)
+            # Save current sweeps
+            sweeps_parent = sweeps
+        # Output
+        return sweeps
+    
    # --- Search ---
     # Find matches
     def find(self, args, *a, **kw):
@@ -6791,16 +7248,18 @@ class DataKit(ftypes.BaseData):
                 Lower bound of coverage interval
             *b*: :class:`float`
                 Upper bound of coverage intervalregion
-        :Versins:
+        :Versions:
             * 2018-09-28 ``@ddalle``: First version
             * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
         """
         # Process search kwargs
         kw_find = {
-            "mask": "mask",
+            "mask": mask,
             "maskt": kw.pop("maskt", None),
             "once": True,
             "cols": kw.pop("searchcols", None),
+            "tol": kw.get("tol", 1e-8),
+            "tols": kw.get("tols", {}),
         }
         # Find indices of matches
         I, J = self.match(dbt, **kw_find)
@@ -6864,10 +7323,12 @@ class DataKit(ftypes.BaseData):
         """
         # Process search kwargs
         kw_find = {
-            "mask": "mask",
+            "mask": mask,
             "maskt": kw.pop("maskt", None),
             "once": True,
             "cols": kw.pop("searchcols", None),
+            "tol": kw.get("tol", 1e-8),
+            "tols": kw.get("tols", {}),
         }
         # Find indices of matches
         I, J = self.match(dbt, **kw_find)
@@ -7319,6 +7780,10 @@ class DataKit(ftypes.BaseData):
                 Array of values for arguments to evaluator for *col*
             *I*: :class:`np.ndarray` (:class:`int`)
                 Indices of exact entries to plot
+            *xcol*, *xk*: :class:`str`
+                Key/column name for *x* axis
+        :Keyword Arguments:
+            %(keys)s
         :Outputs:
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
@@ -7364,7 +7829,6 @@ class DataKit(ftypes.BaseData):
                 Array of values for arguments to evaluator for *col*
             *I*: :class:`np.ndarray` (:class:`int`)
                 Indices of exact entries to plot
-        :Keyword Arguments:
             *xcol*, *xk*: {``None``} | :class:`str`
                 Key/column name for *x* axis
             *PlotExact*: ``True`` | ``False``
@@ -7375,19 +7839,8 @@ class DataKit(ftypes.BaseData):
             *MarkExact*: ``True`` | ``False``
                 Mark interpolated curves with markers where actual data
                 points are present
-        :Plot Options:
-            *ShowLegend*: {``None``} | ``True`` | ``False``
-                Whether or not to use a legend
-            *LegendFontSize*: {``9``} | :class:`int` | :class:`float`
-                Font size for use in legends
-            *Grid*: {``None``} | ``True`` | ``False``
-                Turn on/off major grid lines, or leave as is if ``None``
-            *GridStyle*: {``{}``} | :class:`dict`
-                Dictionary of major grid line line style options
-            *MinorGrid*: {``None``} | ``True`` | ``False``
-                Turn on/off minor grid lines, or leave as is if ``None``
-            *MinorGridStyle*: {``{}``} | :class:`dict`
-                Dictionary of minor grid line line style options
+        :Keyword Arguments:
+            %(keys)s
         :Outputs:
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
@@ -7575,24 +8028,12 @@ class DataKit(ftypes.BaseData):
                 Data column (or derived column) to evaluate
             *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
                 Array of values for arguments to evaluator for *col*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
-        :Keyword Arguments:
             *xcol*, *xk*: {*db.response_xargs[col][0]*} | :class:`str`
                 Key/column name for *x* axis
-        :Plot Options:
-            *ShowLegend*: {``None``} | ``True`` | ``False``
-                Whether or not to use a legend
-            *LegendFontSize*: {``9``} | :class:`int` > 0 | :class:`float`
-                Font size for use in legends
-            *Grid*: {``None``} | ``True`` | ``False``
-                Turn on/off major grid lines, or leave as is if ``None``
-            *GridStyle*: {``{}``} | :class:`dict`
-                Dictionary of major grid line line style options
-            *MinorGrid*: {``None``} | ``True`` | ``False``
-                Turn on/off minor grid lines, or leave as is if ``None``
-            *MinorGridStyle*: {``{}``} | :class:`dict`
-                Dictionary of minor grid line line style options
+        :Keyword Arguments:
+            %(keys)s
         :Outputs:
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
@@ -7636,6 +8077,114 @@ class DataKit(ftypes.BaseData):
         # Return plot handle
         return h
        # ---
+
+   # --- Contour ---
+    # Plot contour
+    def plot_contour(self, *a, **kw):
+        r"""Create a contour plot of one *col* vs two others
+
+        :Call:
+            >>> h = db.plot_contour(col, *a, **kw)
+            >>> h = db.plot_contour(col, mask, **kw)
+            >>> h = db.plot_contour(col, mask_index, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Data column (or derived column) to evaluate
+            *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
+                Array of values for arguments to evaluator for *col*
+            *mask*: :class:`np.ndarray`\ [:class:`bool`]
+                Mask of which points to include in plot
+            *mask_index*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of points to include in plot
+            *xcol*, *xk*: :class:`str`
+                Name of column to use for *x* axis
+            *ycol*, *yk*: :class:`str`
+                Name of column to use for *y* axis
+        :Keyword Arguments:
+            %(keys)s
+            %(axkeys)s
+        :Outputs:
+            *h*: :class:`plot_mpl.MPLHandle`
+                Object of :mod:`matplotlib` handles
+        :Versions:
+            * 2020-04-24 ``@ddalle``: First version
+        """
+       # --- Argument Types ---
+        # Process coefficient name and remaining coeffs
+        col, a, kw = self._prep_args_colname(*a, **kw)
+        # Separate out rcall() and plot() kwargs
+        kwr, kwo = self.sep_response_kwargs(col, **kw)
+       # --- Value Lookup ---
+        # Check call mode
+        mode = self._check_callmode(col, *a, **kw)
+        # Response args
+        args = self.get_response_args(col)
+        # Number of args
+        if args:
+            # Nontrivial response args set
+            narg = len(args)
+        else:
+            # No args
+            narg = 0
+        # Default cols for axes
+        if narg > 0:
+            xk = args[0]
+        else:
+            xk = None
+        if narg > 1:
+            yk = args[1]
+        else:
+            yk = None
+        # Get cols to use for axes
+        xk = kwo.pop("xcol", kwo.pop("xk", xk))
+        yk = kwo.pop("ycol", kwo.pop("yk", xk))
+        # These are required
+        if xk is None:
+            raise ValueError("No required 'xcol' option specified")
+        if yk is None:
+            raise ValueError("No required 'ycol' option specified")
+        # Get main values
+        v = self(col, *a, **kwr)
+        # Lookup main args
+        if mode == 0:
+            # All values
+            x = self.get_all_values(xk)
+            y = self.get_all_values(yk)
+        elif mode == 1:
+            # Indices/mask
+            x = self.get_values(xk, a[0])
+            y = self.get_values(yk, a[0])
+        elif mode in [2, 3]:
+            # Check if this is an arg
+            if xk not in args:
+                raise ValueError(
+                    "Cannot determine values of '%s' from args to '%s'"
+                    % (xk, col))
+            if yk not in args:
+                raise ValueError(
+                    "Cannot determine values of '%s' from args to '%s'"
+                    % (xk, col))
+            # Evaluation args
+            x = self.get_arg_value(args.index(xk), xk, *a, **kwr)
+            y = self.get_arg_value(args.index(yk), yk, *a, **kwr)
+        else:
+            # Couldn't figure out *x* and *y*
+            raise ValueError("Could not determine lookup mode for '%s'" % col)
+       # --- Plot ---
+        # Default labels
+        kwo.setdefault("XLabel", xk)
+        kwo.setdefault("YLabel", yk)
+        # Set default for *MarkPoints*
+        if mode < 2:
+            # Plotting exact points
+            kwo.setdefault("MarkPoints", True)
+        else:
+            # Plotting output from response
+            kwo.setdefault("MarkPoints", False)
+        # Call contour function
+        return pmpl.contour(x, y, v, **kwo)
 
    # --- PNG ---
     # Plot PNG
@@ -8381,6 +8930,15 @@ class DataKit(ftypes.BaseData):
         figs = seam_figs.get(seam, set())
         # Check for figure
         return fig in figs
+
+   # --- Docstrings ---
+    # Document functions
+    pmpl.MPLOpts._doc_keys_fn(plot, "plot", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(plot_contour, "contour", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(plot_linear, "plot", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(plot_scalar, "plot", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(
+        plot_contour, "axformat", fmt_key="axkeys", indent=12)
   # >
 
   # ===================
@@ -8411,12 +8969,18 @@ class DataKit(ftypes.BaseData):
                 Optional name of slicing col(s) for matrix
             *cocols*: {``None``} | :class:`list`\ [:class:`str`]
                 Other dependent input cols; default from *db.bkpts*
-            *function*: {``"cubic"``} | ``"multiquadric"`` | ``"linear"``
+            *function*: {``"cubic"``} | :class:`str`
                 Basis function for :class:`scipy.interpolate.Rbf`
             *tol*: {``1e-4``}  | :class:`float`
                 Default tolerance to use in combination with *slices*
             *tols*: {``{}``} | :class:`dict`
-                Dictionary of specific tolerances for single keys in *slices*
+                Dictionary of specific tolerances for *cols**
+            *translators*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
             * 2020-02-24 ``@ddalle``: Version 2.0
@@ -8532,22 +9096,10 @@ class DataKit(ftypes.BaseData):
        # --- Full-Factorial Matrix ---
         # Get full-factorial matrix at the current slice value
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
+        # Original values retained for creating masks during slices
+        X0 = {}
         # Number of output points
         nX = X[args[0]].size
-        # Save the lookup values
-        for arg in args:
-            # Translate column name
-            argreg = self._translate_colname(arg, *tr_args)
-            # Save values
-            self.save_col(argreg, X[arg])
-            # Check if new
-            if argreg != arg:
-                # Get previous definition
-                defn = self.get_defn(arg)
-                # Save a copy
-                self.defns[argreg] = self._defncls(**defn)
-                # Link break points
-                bkpts[argreg] = bkpts[arg]
        # --- Regularization ---
         # Perform interpolations
         for col in cols:
@@ -8581,7 +9133,7 @@ class DataKit(ftypes.BaseData):
                         sv = ("%6g" % m)[:6]
                         # In-place status update
                         sys.stdout.write("    Slice %s=%s (%i/%i)\r"
-                            % (mainkey, sv, i+1, nslice))
+                            % (maincol, sv, i+1, nslice))
                         sys.stdout.flush()
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
@@ -8599,11 +9151,34 @@ class DataKit(ftypes.BaseData):
                     x = tuple(X[k][I] for k in iargs)
                     # Evaluate coefficient
                     V[I] = f(*x)
-                # Clean up prompt
+                # Status update
                 if kw.get("v"):
-                    print("")
+                    # Get main key value
+                    m = slices[maincol][i]
+                    # Get value in fixed number of characters
+                    sv = ("%6g" % m)[:6]
+                    # In-place status update
+                    sys.stdout.write("%72s\r" % "")
+                    sys.stdout.flush()
             # Save the values
             self.save_col(colreg, V)
+       # --- New Arg Values ---
+        # Save the lookup values
+        for arg in args:
+            # Translate column name
+            argreg = self._translate_colname(arg, *tr_args)
+            # Save original values
+            #X0[arg] = self.get_all_values(arg)
+            # Save values
+            self.save_col(argreg, X[arg])
+            # Check if new
+            if argreg != arg:
+                # Get previous definition
+                defn = self.get_defn(arg)
+                # Save a copy
+                self.defns[argreg] = self._defncls(**defn)
+                # Link break points
+                bkpts[argreg] = bkpts[arg]
        # --- Co-mapped XAargs ---
         # Trajectory co-keys
         cocols = kw.get("cocols", list(bkpts.keys()))
@@ -8633,7 +9208,7 @@ class DataKit(ftypes.BaseData):
             T = []
             # Status update
             if kw.get("v"):
-                print("  Mapping key '%s'" % k)
+                print("  Mapping key '%s'" % col)
             # Loop through slice values
             for m in bkpts[maincol]:
                 # Find value of slice key matching that parameter
@@ -8682,7 +9257,13 @@ class DataKit(ftypes.BaseData):
             *tol*: {``1e-4``}  | :class:`float`
                 Default tolerance to use in combination with *slices*
             *tols*: {``{}``} | :class:`dict`
-                Dictionary of specific tolerances for single keys in *slices*
+                Dictionary of specific tolerances for single *cols*
+            *translators*: :class:`dict`\ [:class:`str`]
+                Alternate names; *col* -> *trans[col]*
+            *prefix*: :class:`str` | :class:`dict`
+                Universal prefix or *col*-specific prefixes
+            *suffix*: :class:`str` | :class:`dict`
+                Universal suffix or *col*-specific suffixes
         :Versions:
             * 2020-03-10 ``@ddalle``: Version 1.0
         """
@@ -8799,20 +9380,6 @@ class DataKit(ftypes.BaseData):
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
         # Number of output points
         nX = X[args[0]].size
-        # Save the lookup values
-        for arg in args:
-            # Translate column name
-            argreg = self._translate_colname(arg, *tr_args)
-            # Save values
-            self.save_col(argreg, X[arg])
-            # Check if new
-            if argreg != arg:
-                # Get previous definition
-                defn = self.get_defn(arg)
-                # Save a copy
-                self.defns[argreg] = self._defncls(**defn)
-                # Link break points
-                bkpts[argreg] = bkpts[arg]
        # --- Regularization ---
         # Perform interpolations
         for col in cols:
@@ -8856,7 +9423,7 @@ class DataKit(ftypes.BaseData):
                         sv = ("%6g" % m)[:6]
                         # In-place status update
                         sys.stdout.write("    Slice %s=%s (%i/%i)\r"
-                            % (mainkey, sv, i+1, nslice))
+                            % (maincol, sv, i+1, nslice))
                         sys.stdout.flush()
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
@@ -8884,7 +9451,8 @@ class DataKit(ftypes.BaseData):
                         V[:,I] = np.dot(Y, W.T)
                 # Clean up prompt
                 if kw.get("v"):
-                    print("")
+                    sys.stdout.write("%72s\r" % "")
+                    sys.stdout.flush()
             # Save the values
             self.save_col(colreg, V)
        # --- Co-mapped XAargs ---
@@ -8916,7 +9484,7 @@ class DataKit(ftypes.BaseData):
             T = []
             # Status update
             if kw.get("v"):
-                print("  Mapping key '%s'" % k)
+                print("  Mapping key '%s'" % col)
             # Loop through slice values
             for m in bkpts[maincol]:
                 # Find value of slice key matching that parameter
@@ -8933,4 +9501,23 @@ class DataKit(ftypes.BaseData):
             self.save_col(colreg, V)
             # Save break points
             bkpts[colreg] = np.array(T)
+       # --- Regularized Arg Values ---
+        # Save the lookup values
+        for arg in args:
+            # Translate column name
+            argreg = self._translate_colname(arg, *tr_args)
+            # Save values
+            self.save_col(argreg, X[arg])
+            # Check if new
+            if argreg != arg:
+                # Get previous definition
+                defn = self.get_defn(arg)
+                # Save a copy
+                self.defns[argreg] = self._defncls(**defn)
+                # Link break points
+                bkpts[argreg] = bkpts[arg]
   # >
+
+
+# Combine options
+kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)

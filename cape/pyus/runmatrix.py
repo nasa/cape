@@ -54,12 +54,11 @@ import cape.runmatrix
 
 # RunMatrix class
 class RunMatrix(cape.runmatrix.RunMatrix):
-    """
-    Read a simple list of configuration variables
+    r"""Interface to US3D run matrix
     
     :Call:
-        >>> x = pyUS.RunMatrix(**traj)
-        >>> x = pyUS.RunMatrix(File=fname, Keys=keys)
+        >>> x = runmatrix.RunMatrix(**traj)
+        >>> x = runmatrix.RunMatrix(File=fname, Keys=keys)
     :Inputs:
         *traj*: :class:`dict`
             Dictionary of options from ``fun3d.Options["RunMatrix"]``

@@ -160,7 +160,7 @@ def RunPhase(rc, i):
     # Get the last iteration number
     n = GetCurrentIter()
     # Number of requested iters for the end of this phase
-    np = rc.get_PhaseIters(i)
+    nj = rc.get_PhaseIters(i)
     # Number of iterations to run this phase
     ni = rc.get_nIter(i)
     # Mesh generation and verification actions
@@ -171,7 +171,7 @@ def RunPhase(rc, i):
         # Create volume mesh if necessary
         cc.CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
         # Check for mesh-only phase
-        if np is None or ni is None or ni <= 0 or np < 0:
+        if nj is None or ni is None or ni <= 0 or nj < 0:
             # Name of next phase
             fproj_adapt = GetProjectRootname(rc, i=i+1, nml=nml)
             # AFLR3 output format
@@ -184,14 +184,15 @@ def RunPhase(rc, i):
             # Make sure *n* is not ``None``
             if n is None: n = 0
             # Exit appropriately
-            if rc.get_Dual(): os.chdir('..')
+            if rc.get_Dual():
+                os.chdir('..')
             # Create an output file to make phase number programs work
             os.system('touch run.%02i.%i' % (i, n))
             return
     # Prepare for restart if that's appropriate.
     SetRestartIter(rc)
     # Check if the primal solution has already been run
-    if n < np or nprev == 0:
+    if n < nj or nprev == 0:
         # Get the `nodet` or `nodet_mpi` command
         cmdi = cmd.nodet(rc, i=i)
         # Call the command.
@@ -205,12 +206,14 @@ def RunPhase(rc, i):
         # No new iteratoins
         n1 = n
     # Go back up a folder if we're in the "Flow" folder
-    if rc.get_Dual(): os.chdir('..')
+    if rc.get_Dual():
+        os.chdir('..')
     # Check current iteration count.
     if (i >= rc.get_PhaseSequence(-1)) and (n >= rc.get_LastIter()):
         return
     # Check for adaptive solves
-    if n1 < np: return
+    if n1 < nj:
+        return
     # Check for adjoint solver
     if rc.get_Dual() and rc.get_DualPhase(i):
         # Copy the correct namelist
@@ -237,7 +240,8 @@ def RunPhase(rc, i):
         os.chdir('..')
     elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
         # Check if this is a weird mixed case with Dual and Adaptive
-        if rc.get_Dual(): os.chdir('Flow')
+        if rc.get_Dual():
+            os.chdir('Flow')
         # Run the feature-based adaptive mesher
         cmdi = cmd.nodet(rc, adapt=True, i=i)
         # Make sure "restart_read" is set to .true.
@@ -351,7 +355,7 @@ def StartCase():
         >>> case.StartCase()
     :Versions:
         * 2014-10-06 ``@ddalle``: First version
-        * 2015-10-19 ``@ddalle``: Copied from pyCart
+        * 2015-10-19 ``@ddalle``: Copied from :mod:`cape.pycart`
     """
     # Get the config.
     rc = ReadCaseJSON()

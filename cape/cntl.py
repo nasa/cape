@@ -1019,10 +1019,16 @@ class Cntl(object):
                 "Attempting to mark %i ERRORs; that's too many!" % len(I))
         # Process flag option
         flag = kw.get("flag", "E")
+        # Get deletion options
+        qrm = kw.get("rm", False)
+        qprompt = kw.get("prompt", True)
         # Loop through cases
         for i in I:
             # Mark case
             self.x.MarkERROR(i, flag=flag)
+            # Delete folder (?)
+            if qrm:
+                self.DeleteCase(i, prompt=qprompt)
         # Write the trajectory
         self.x.WriteRunMatrixFile()
         
