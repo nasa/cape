@@ -4076,16 +4076,19 @@ class DataKit(ftypes.BaseData):
   # <
    # --- Estimators ---
     # Entire database UQ generation
-    def est_uq_db(self, db2, **kw):
+    def est_uq_db(self, db2, cols=None, **kw):
         r"""Quantify uncertainty for all *col*, *ucol* pairings in DB
 
         :Call:
-            >>> db1.est_uq_db(db2, **kw)
+            >>> db1.est_uq_db(db2, cols=None, **kw)
         :Inputs:
             *db1*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
             *db2*: :class:`cape.attdb.rdb.DataKit`
                 Target database (UQ based on difference)
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                Data columns to estimate UQ (default is all *db1.cols*
+                that have a *ucol* defined)
         :Keyword Arguments:
             *nmin*: {``30``} | :class:`int` > 0
                 Minimum number of points in window
@@ -4119,9 +4122,20 @@ class DataKit(ftypes.BaseData):
        # --- Inputs ---
         # Get minimum number of points in statistical window
         nmin = kw.get("nmin", 30)
-       # --- Coefficient Loop ---
+        # Get columns
+        if cols is None:
+            # Initialize (use any col with a *ucol*)
+            cols = []
+            # Loop through columns
+            for col in self.cols:
+                # Get UQ col
+                ucols = self.get_uq_col(col)
+                # Include this *col* if a UQ col is defined
+                if ucols:
+                    cols.append(col)
+       # --- Column Loop ---
         # Loop through data coefficients
-        for col in list(self.keys()):
+        for col in cols:
             # Get UQ col list
             ucols = self.get_uq_col(col)
             # Skip if no UQ cols
@@ -4151,6 +4165,89 @@ class DataKit(ftypes.BaseData):
                     self.make_defn(acol, U[:,j+1])
         # Clean up prompt
         sys.stdout.write("%60s\r" % "")
+
+    # UQ estimates for each condition in a col
+    def est_uq_col(self, db2, col, ucol, **kw):
+        r"""Quantify uncertainty interval for all points of one *ucol*
+
+        :Call:
+            >>> A, U  = db1.est_uq_col(db2, col, ucol, **kw)
+        :Inputs:
+            *db1*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *db2*: :class:`cape.attdb.rdb.DataKit`
+                Target database (UQ based on difference)
+            *col*: :class:`str`
+                Name of data column to analyze
+            *ucol*: :class:`str`
+                Name of UQ column to estimate
+        :Keyword Arguments:
+            *nmin*: {``30``} | :class:`int` > 0
+                Minimum number of points in window
+            *cov*, *Coverage*: {``0.99865``} | 0 < :class:`float` < 1
+                Fraction of data that must be covered by UQ term
+            *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
+                Coverage fraction assuming perfect distribution
+            *test_values*: {``{}``} | :class:`dict`
+                Candidate values of each *response_arg* for comparison
+            *test_bkpts*: {``{}``} | :class:`dict`
+                Candidate break points (1D unique) for *response_args*
+        :Required Attributes:
+            *db1.response_args[col]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *col*
+            *db1.response_args[ucol]*: :class:`list`\ [:class:`str`]
+                List of args to evaluate *ucol*
+            *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
+                List of extra UQ cols related to *ucol*
+            *db1.uq_acols[ucol]*: {``[]``} | :class:`list`
+                Aux cols whose deltas are used to estimate *ucol*
+            *db1.uq_efuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to calculate any *uq_ecols*
+            *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
+                Function to use aux cols when estimating *ucol*
+        :Outputs:
+            *A*: :class:`np.ndarray` size=(*nx*\ ,*na*\ )
+                Conditions for each *ucol* window, for *nx* windows,
+                each with *na* values (length of
+                *db1.response_args[ucol]*)
+            *U*: :class:`np.ndarray` size=(*nx*\ ,*nu*\ +1)
+                Values of *ucol* and any *nu* "extra" *uq_ecols* for
+                each window
+        :Versions:
+            * 2019-02-15 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: v2.0, from ``EstimateUQ_coeff()``
+        """
+       # --- Inputs ---
+        # Get eval arguments for input coeff and UQ coeff
+        uargs = self.get_response_args(ucol)
+        # Get minimum number of points in statistical window
+        nmin = kw.get("nmin", 30)
+        # Additional information
+        uq_ecols = self.get_uq_ecol(ucol)
+        # Check length
+        if uq_ecols is None:
+            # No extra ecols
+            nu = 1
+        else:
+            # Total number of cols
+            nu = 1 + len(uq_ecols)
+       # --- Windowing ---
+        # Break up possible run matrix into window centers
+        A = self._genr8_uq_conditions(uargs, **kw)
+        # Number of windows
+        nx = len(A)
+        # Initialize output
+        U = np.zeros((nx, nu))
+       # --- Evaluation ---
+        # Loop through conditions
+        for (i, a) in enumerate(A):
+            # Get window
+            I = self.genr8_window(nmin, uargs, *a, **kw)
+            # Estimate UQ for this window
+            U[i] = self._est_uq_point(db2, col, ucol, I, **kw)
+       # --- Output ---
+        # Return conditions and values
+        return A, U
 
     # Estimate UQ at a single *ucol* condition
     def est_uq_point(self, db2, col, ucol, *a, **kw):
@@ -4375,89 +4472,6 @@ class DataKit(ftypes.BaseData):
        # --- Output ---
         # Return all extra values
         return (u,) + tuple(a_extra)
-
-    # UQ estimates for each condition in a col
-    def est_uq_col(self, db2, col, ucol, **kw):
-        r"""Quantify uncertainty interval for all points of one *ucol*
-
-        :Call:
-            >>> A, U  = db1.est_uq_col(db2, col, ucol, **kw)
-        :Inputs:
-            *db1*: :class:`cape.attdb.rdb.DataKit`
-                Database with scalar output functions
-            *db2*: :class:`cape.attdb.rdb.DataKit`
-                Target database (UQ based on difference)
-            *col*: :class:`str`
-                Name of data column to analyze
-            *ucol*: :class:`str`
-                Name of UQ column to estimate
-        :Keyword Arguments:
-            *nmin*: {``30``} | :class:`int` > 0
-                Minimum number of points in window
-            *cov*, *Coverage*: {``0.99865``} | 0 < :class:`float` < 1
-                Fraction of data that must be covered by UQ term
-            *cdf*, *CoverageCDF*: {*cov*} | 0 < :class:`float` < 1
-                Coverage fraction assuming perfect distribution
-            *test_values*: {``{}``} | :class:`dict`
-                Candidate values of each *response_arg* for comparison
-            *test_bkpts*: {``{}``} | :class:`dict`
-                Candidate break points (1D unique) for *response_args*
-        :Required Attributes:
-            *db1.response_args[col]*: :class:`list`\ [:class:`str`]
-                List of args to evaluate *col*
-            *db1.response_args[ucol]*: :class:`list`\ [:class:`str`]
-                List of args to evaluate *ucol*
-            *db1.uq_ecols[ucol]*: {``[]``} | :class:`list`
-                List of extra UQ cols related to *ucol*
-            *db1.uq_acols[ucol]*: {``[]``} | :class:`list`
-                Aux cols whose deltas are used to estimate *ucol*
-            *db1.uq_efuncs*: {``{}``} | :class:`dict`\ [**callable**]
-                Function to calculate any *uq_ecols*
-            *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
-                Function to use aux cols when estimating *ucol*
-        :Outputs:
-            *A*: :class:`np.ndarray` size=(*nx*\ ,*na*\ )
-                Conditions for each *ucol* window, for *nx* windows,
-                each with *na* values (length of
-                *db1.response_args[ucol]*)
-            *U*: :class:`np.ndarray` size=(*nx*\ ,*nu*\ +1)
-                Values of *ucol* and any *nu* "extra" *uq_ecols* for
-                each window
-        :Versions:
-            * 2019-02-15 ``@ddalle``: First version
-            * 2020-04-02 ``@ddalle``: v2.0, from ``EstimateUQ_coeff()``
-        """
-       # --- Inputs ---
-        # Get eval arguments for input coeff and UQ coeff
-        uargs = self.get_response_args(ucol)
-        # Get minimum number of points in statistical window
-        nmin = kw.get("nmin", 30)
-        # Additional information
-        uq_ecols = self.get_uq_ecol(ucol)
-        # Check length
-        if uq_ecols is None:
-            # No extra ecols
-            nu = 1
-        else:
-            # Total number of cols
-            nu = 1 + len(uq_ecols)
-       # --- Windowing ---
-        # Break up possible run matrix into window centers
-        A = self._genr8_uq_conditions(uargs, **kw)
-        # Number of windows
-        nx = len(A)
-        # Initialize output
-        U = np.zeros((nx, nu))
-       # --- Evaluation ---
-        # Loop through conditions
-        for (i, a) in enumerate(A):
-            # Get window
-            I = self.genr8_window(nmin, uargs, *a, **kw)
-            # Estimate UQ for this window
-            U[i] = self._est_uq_point(db2, col, ucol, I, **kw)
-       # --- Output ---
-        # Return conditions and values
-        return A, U
 
    # --- Grouping ---
     # Find *N* neighbors based on list of args
@@ -4994,35 +5008,18 @@ class DataKit(ftypes.BaseData):
   # <
    # --- Increment ---
     # Create increment and UQ estimate for one column
-    def genr8_udiff_by_rbf(self, db2, col, scol=None, **kw):
+    def genr8_udiff_by_rbf(self, db2, cols, scol=None, **kw):
         r"""Generate increment and UQ estimate between two responses
 
         :Call:
-            >>> dv, u = db.genr8_udiff_by_rbf(db2, col, scol=None, **kw)
-        :Versions:
-            * 2020-05-08 ``@ddalle``: First version
-        """
-        # Create primary (smoothed) deltas
-        dv = self.genr8_rdiff_by_rbf(db2, col, scol=scol, **kw)
-        # Create raw deltas
-        dv0 = self.genr8_rdiff(db2, col, **kw)
-        
-        pass
-
-   # --- Pairwise Deltas ---
-    # Generate deltas by smoothed response
-    def genr8_rdiff_by_rbf(self, db2, col, scol=None, **kw):
-        r"""Generate smoothed deltas between two responses
-
-        :Call:
-            >>> x, dv = db.genr8_rdiff_by_rbf(db2, col, scol, **kw)
+            >>> ddb = db.genr8_udiff_by_rbf(db2, cols, scol=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
             *db2*: :class:`cape.attdb.rdb.DataKit`
                 Second data container
-            *col*: :class:`str`
-                Data column to analyze
+            *cols*: :class:`list`\ [:class:`str`]
+                Data columns to analyze
             *scol*: {``None``} | :class:`str` | :class:`list`
                 List of arguments to define slices on which to smooth
             *smooth*: {``0``} | :class:`float` >= 0
@@ -5039,13 +5036,69 @@ class DataKit(ftypes.BaseData):
             *tols*: {``{}``} | :class:`dict` (:class:`float` >= 0)
                 Specific tolerance for particular slice keys
         :Outputs:
-            *x*: :class:`tuple`\ [:class:`np.ndarray`]
-                Test conditions used to evaluate differences
-            *dv*: :class:`np.ndarray`\ [:class:`float`]
-                RBF of ``db2(col, *x) - db(col, *x)``
+            *ddb*: *db.__class__*
+                New database with filtered *db* and *db2* diffs
+            *ddb[arg]*: :class:`np.ndarray`
+                Test values for each *arg* in *col* response args
+            *ddb[col]*: :class:`np.ndarray`
+                Smoothed difference between *db2* and *db*
+            *ddb._slices*: :class:`list`\ [:class:`np.ndarray`]
+                Saved lists of indices on which smoothing is performed
+        :Versions:
+            * 2020-05-08 ``@ddalle``: First version
+        """
+        # Create primary (smoothed) deltas
+        ddb = self.genr8_rdiff_by_rbf(db2, cols, scol=scol, **kw)
+        # Create raw deltas
+        ddb0 = self.genr8_rdiff(db2, cols, **kw)
+        # Estimate UQ
+        ddb.est_uq_db(ddb0, cols, **kw)
+        # Output
+        return ddb
+
+   # --- Pairwise Deltas ---
+    # Generate deltas by smoothed response
+    def genr8_rdiff_by_rbf(self, db2, cols, scol=None, **kw):
+        r"""Generate smoothed deltas between two responses
+
+        :Call:
+            >>> ddb = db.genr8_rdiff_by_rbf(db2, cols, scol, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *db2*: :class:`cape.attdb.rdb.DataKit`
+                Second data container
+            *cols*: :class:`list`\ [:class:`str`]
+                Data columns to analyze
+            *scol*: {``None``} | :class:`str` | :class:`list`
+                List of arguments to define slices on which to smooth
+            *smooth*: {``0``} | :class:`float` >= 0
+                Smoothing parameter for interpolation on slices
+            *function*: {``"multiquadric"``} | :class:`str`
+                RBF basis function type, see :func:`scirbf.Rbf`
+            *test_values*: {``db``} | :class:`dict`
+                Candidate values of each *arg* for differencing
+            *test_bkpts*: {``None``} | :class:`dict`
+                Candidate break points (1D unique values) to override
+                *test_values*. Used to create full-factorial matrix.
+            *tol*: {``1e-4``} | :class:`float` > 0
+                Default tolerance for matching slice constraints
+            *tols*: {``{}``} | :class:`dict` (:class:`float` >= 0)
+                Specific tolerance for particular slice keys
+        :Outputs:
+            *ddb*: *db.__class__*
+                New database with filtered *db* and *db2* diffs
+            *ddb[arg]*: :class:`np.ndarray`
+                Test values for each *arg* in *col* response args
+            *ddb[col]*: :class:`np.ndarray`
+                Smoothed difference between *db2* and *db*
+            *ddb._slices*: :class:`list`\ [:class:`np.ndarray`]
+                Saved lists of indices on which smoothing is performed
         :Versions:
             * 2020-05-08 ``@ddalle``: Fork from :func:`DBCoeff.DiffDB`
         """
+        # Create new instance
+        ddb = self.__class__()
         # Verbosity option
         v = kw.get("verbose", kw.get("v", False))
         # Keyword args to pass to evaluation
@@ -5056,6 +5109,8 @@ class DataKit(ftypes.BaseData):
         func = kw.get("function", "cubic")
         # Label format
         fmt = "Differencing %-40s\r" % ("%s slice %i/%i")
+        # Reference column
+        col = cols[0]
         # Evaluation arguments
         args = self.get_response_args(col)
         # Ensure that there are some
@@ -5099,68 +5154,91 @@ class DataKit(ftypes.BaseData):
         nargi = len(rbf_args)
         # Number of slices
         ns = len(slices)
-        # Initialize deltas
-        dv = np.zeros(nx, dtype=dtype)
-        # Loop through slices
-        for j, J in enumerate(slices):
-            # Status update
-            if v:
-                sys.stdout.write(fmt % (col, j+1, ns))
-                sys.stdout.flush()
-            # Number of points in slice
-            nxj = J.size
-            # Initialize matrix of evaluation points
-            A = np.zeros((narg, nxj))
-            # Initialize inputs to RBF
-            X = []
-            # Loop through args
-            for k, arg in enumerate(args):
-                # Save data to row of *A*
-                A[k] = vals[arg][J]
-                # Save RBF inputs
-                if arg not in scol:
-                    X.append(A[k])
-            # Evaluate both databases
-            v1 = self(col, *A, **kw_response)
-            v2 = db2(col, *A, **kw_response)
-            # Deltas
-            dvj = v2 - v1
-            # Check for valid smoothing
-            if (nargi > 0) and (smooth > 0):
-                # Get inputs for RBF
-                R = X + [dvj]
-                # Create RBF
-                fn = scirbf.Rbf(*R, function=func, smooth=smooth)
-                # Save evaluated (smoothed) deltas
-                dv[J] = fn(*X)
-            else:
-                # Raw deltas if no smoothing (or all args in *scols*)
-                dv[J] = dvj
-        # Convert test values to tuple
-        x = tuple(a for a in A)
+        # Loop through columns
+        for col in cols:
+            # Initialize deltas
+            dv = np.zeros(nx, dtype=dtype)
+            # Loop through slices
+            for j, J in enumerate(slices):
+                # Status update
+                if v:
+                    sys.stdout.write(fmt % (col, j+1, ns))
+                    sys.stdout.flush()
+                # Number of points in slice
+                nxj = J.size
+                # Initialize matrix of evaluation points
+                A = np.zeros((narg, nxj))
+                # Initialize inputs to RBF
+                X = []
+                # Loop through args
+                for k, arg in enumerate(args):
+                    # Save data to row of *A*
+                    A[k] = vals[arg][J]
+                    # Save RBF inputs
+                    if arg not in scol:
+                        X.append(A[k])
+                # Evaluate both databases
+                v1 = self(col, *A, **kw_response)
+                v2 = db2(col, *A, **kw_response)
+                # Deltas
+                dvj = v2 - v1
+                # Check for valid smoothing
+                if (nargi > 0) and (smooth > 0):
+                    # Get inputs for RBF
+                    R = X + [dvj]
+                    # Create RBF
+                    fn = scirbf.Rbf(*R, function=func, smooth=smooth)
+                    # Save evaluated (smoothed) deltas
+                    dv[J] = fn(*X)
+                else:
+                    # Raw deltas if no smoothing (or all args in *scols*)
+                    dv[J] = dvj
+            # Save definition for *col*
+            ddb.set_defn(col, self.get_defn(col))
+            # Save values
+            ddb.save_col(col, dv)
+        # Save test values
+        for k, arg in enumerate(args):
+            # Save definition
+            ddb.set_defn(arg, self.get_defn(arg))
+            # Save values
+            ddb.save_col(arg, A[k])
+        # Save slices
+        ddb._slices = slices
         # Output
-        return x, dv
+        return ddb
 
     # Generate deltas by response
-    def genr8_rdiff(self, db2, col, **kw):
+    def genr8_rdiff(self, db2, cols, **kw):
         r"""Generate deltas between responses of two databases
 
         :Call:
-            >>> dv = db.genr8_rdiff(db2, col, **kw)
+            >>> ddb = db.genr8_rdiff(db2, col, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
             *db2*: :class:`cape.attdb.rdb.DataKit`
                 Second data container
-            *col*: :class:`str`
-                Data column to analyze
-            *test_values*: {``{}``} | :class:`dict` (:class:`np.ndarray`)
-                Candidate values of each *eval_arg* for comparison
+            *cols*: :class:`list`\ [:class:`str`]
+                Data columns to difference
+            *test_values*: {``db``} | :class:`dict`
+                Candidate values of each *arg* for differencing
+        :Outputs:
+            *ddb*: *db.__class__*
+                New database with filtered *db* and *db2* diffs
+            *ddb[arg]*: :class:`np.ndarray`
+                Test values for each *arg* in *col* response args
+            *ddb[col]*: :class:`np.ndarray`
+                Smoothed difference between *db2* and *db*
         :Versions:
             * 2020-05-08 ``@ddalle``: First version
         """
+        # Create new instance
+        ddb = self.__class__()
         # Keyword args to pass to evaluation
         kw_response = kw.get("response_kwargs", {})
+        # Reference column
+        col = cols[0]
         # Evaluation arguments
         args = self.get_response_args(col)
         # Ensure that there are some
@@ -5180,11 +5258,21 @@ class DataKit(ftypes.BaseData):
         for k, arg in enumerate(args):
             # Save data to row of *A*
             A[k] = vals[arg]
-        # Evaluate both databases
-        v1 = self(col, *A, **kw_response)
-        v2 = db2(col, *A, **kw_response)
+            # Save arg
+            ddb.save_col(arg, vals[arg])
+            # Copy definition
+            ddb.set_defn(arg, self.get_defn(arg))
+        # Loop through columns
+        for col in cols:
+            # Evaluate both databases
+            v1 = self(col, *A, **kw_response)
+            v2 = db2(col, *A, **kw_response)
+            # Save difference
+            ddb.save_col(col, v2 - v1)
+            # Link definition
+            ddb.set_defn(col, self.get_defn(col))
         # Output
-        return v2 - v1
+        return ddb
 
    # --- Conditions and Slices ---
     # Generate slices for interpolation
