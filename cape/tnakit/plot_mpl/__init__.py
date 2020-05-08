@@ -159,10 +159,9 @@ def hist(v, *a, **kw):
     # Plot, then others
     _part_hist(opts, h)
    # --- Axis formatting ---
-    # Format grid, spines, extents, and window
+    # Format grid, spines, and window
     _part_axes_grid(opts, h)
     _part_axes_spines(opts, h)
-    #_part_axes_format(opts, h)
     _part_axes_adjust(opts, h)
    # --- Labeling ---
     # Output

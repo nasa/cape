@@ -282,6 +282,7 @@ class MPLOpts(kwutils.KwargHandler):
         "i": "Index",
         "label": "Label",
         "lbl": "Label",
+        "normed": "density",
         "nfig": "FigNumber",
         "numfig": "FigNumber",
         "rotate": "Rotate",
