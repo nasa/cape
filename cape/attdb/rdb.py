@@ -5097,10 +5097,11 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-05-08 ``@ddalle``: Fork from :func:`DBCoeff.DiffDB`
         """
+       # --- Options and Init ---
         # Create new instance
         ddb = self.__class__()
         # Verbosity option
-        v = kw.get("verbose", kw.get("v", False))
+        verbose = kw.get("verbose", kw.get("v", False))
         # Keyword args to pass to evaluation
         kw_response = kw.get("response_kwargs", {})
         # Get smoothing parameter
@@ -5116,6 +5117,8 @@ class DataKit(ftypes.BaseData):
         # Ensure that there are some
         if args is None:
             raise ValueError("No response args set for '%s'" % col)
+        # Arg count
+        narg = len(args)
         # Ensure list for *scol*
         if not scol:
             # Use empty list for empty slicing
@@ -5129,6 +5132,7 @@ class DataKit(ftypes.BaseData):
         else:
             # Already list
             scols = scol
+       # --- Test Points ---
         # Data type for output col
         dtype = self.get_col_dtype(col)
         # Get test values and slices
@@ -5152,6 +5156,7 @@ class DataKit(ftypes.BaseData):
                 rbf_args.append(arg)
         # Number of interp args
         nargi = len(rbf_args)
+       # --- Compute Diffs ---
         # Number of slices
         ns = len(slices)
         # Loop through columns
@@ -5161,7 +5166,7 @@ class DataKit(ftypes.BaseData):
             # Loop through slices
             for j, J in enumerate(slices):
                 # Status update
-                if v:
+                if verbose:
                     sys.stdout.write(fmt % (col, j+1, ns))
                     sys.stdout.flush()
                 # Number of points in slice
@@ -5197,12 +5202,74 @@ class DataKit(ftypes.BaseData):
             ddb.set_defn(col, self.get_defn(col))
             # Save values
             ddb.save_col(col, dv)
+       # --- Cleanup ---
+        # Clean up prompt
+        if verbose:
+            sys.stdout.write("%72s\r" % "")
+            sys.stdout.flush()
         # Save test values
         for k, arg in enumerate(args):
             # Save definition
             ddb.set_defn(arg, self.get_defn(arg))
             # Save values
             ddb.save_col(arg, A[k])
+       # --- Co-mapped XAargs ---
+        # Trajectory co-keys
+        cocols = kw.get("cocols", list(self.bkpts.keys()))
+        # Check for a mapping column
+        if len(scols) > 0:
+            # Map on first slice *col*
+            maincol = scols[0]
+            # Get original values
+            mainvals = self.get_all_values(maincol)
+            # Unique values
+            mainbkpts = self.get_bkpt(maincol)
+        # Map other breakpoint keys
+        for col in cocols:
+            # Skip if already present
+            if col in args:
+                continue
+            elif col in cols:
+                continue
+            # Check for slices
+            if maincol is None:
+                break
+            # Get values for this column
+            v0 = self.get_all_values(col)
+            # Check if present
+            if v0 is None:
+                raise KeyError("No *cocol* called '%s' found" % col)
+            # Check size
+            if mainvals.size != v0.size:
+                # Original sizes do not match; no map applicable
+                continue
+            # Output values of slice key
+            x0 = ddb[maincol]
+            # Initialize data
+            v = np.zeros_like(x0)
+            # Status update
+            if verbose:
+                sys.stdout.write("Mapping key '%s'\r" % col)
+                sys.stdout.flush()
+            # Loop through slice values
+            for xi in mainbkpts:
+                # Find value of slice key matching that parameter
+                i = np.where(mainvals == xi)[0][0]
+                # Output value
+                vi = v0[i]
+                # Get the indices of break points with that value
+                J = np.where(x0 == xi)[0]
+                # Evaluate coefficient
+                v[J] = vi
+            # Save the values
+            ddb.save_col(col, v)
+            # Copy definition
+            ddb.set_defn(col, self.get_defn(col))
+        # Clean up prompt
+        if verbose:
+            sys.stdout.write("%72s\r" % "")
+            sys.stdout.flush()
+       # --- Output ---
         # Save slices
         ddb._slices = slices
         # Output
@@ -5244,6 +5311,8 @@ class DataKit(ftypes.BaseData):
         # Ensure that there are some
         if args is None:
             raise ValueError("No response args set for '%s'" % col)
+        # Arg count
+        narg = len(args)
         # Data type for output col
         dtype = self.get_col_dtype(col)
         # Get test values and slices
@@ -5355,7 +5424,7 @@ class DataKit(ftypes.BaseData):
             if I.size == 0:
                 continue
             # Save slice
-            J.append(I)
+            slices.append(I)
         # Output
         return vals, slices
   # >
@@ -9568,6 +9637,9 @@ class DataKit(ftypes.BaseData):
             colreg = self._translate_colname(col, *tr_args)
             # Get values for this column
             V0 = self.get_all_values(col)
+            # Check if present
+            if V0 is None:
+                raise KeyError("No *cocol* called '%s' found" % col)
             # Check size
             if mainvals.size != V0.size:
                 # Original sizes do not match; no map applicable
