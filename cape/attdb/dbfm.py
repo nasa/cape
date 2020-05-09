@@ -861,9 +861,25 @@ class DBFM(rdbaero.AeroDataKit):
 
         :Versions:
             * 2020-03-20 ``@ddalle``: First version
+            * 2020-05-08 ``@ddalle``: Split :func:`_make_dbfm`
         """
         # Call parent's init method
         rdbaero.AeroDataKit.__init__(self, fname, **kw)
+        # Initialize special aspects for DBFM
+        self._make_dbfm()
+
+    # Do special init methods for FM databases
+    def _make_dbfm(self):
+        r"""Perform special aspects of :class:`DBFM` init
+
+        :Call:
+            >>> db._make_dbfm()
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+        :Versions:
+            * 2020-05-08 ``@ddalle``: Forked from :func:`__init__`
+        """
         # Set default arg converters
         self._make_arg_converters_aero()
         # Set UQ cols

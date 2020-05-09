@@ -391,7 +391,6 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-12-04 ``@ddalle``: First version
         """
-        
         # Check *skip*
         if not isinstance(skip, (list, tuple)):
             raise TypeError("Attributes to skip during copy must be list")
@@ -4863,12 +4862,25 @@ class DataKit(ftypes.BaseData):
                 Database with scalar output functions
             *col*: :class:`str`
                 Name of data column
+            *ucol*: ``None`` | :class:`str`
+                Name of column for UQ of *col* (remove if ``None``)
         :Effects:
             *db.uq_cols*: :class:`dict`
                 Entry for *col* set to *ucol*
         :Versions:
             * 2020-03-20 ``@ddalle``: First version
+            * 2020-05-08 ``@ddalle``: Remove if *ucol* is ``None``
         """
+        # Get handle to attribute
+        uq_cols = self.__dict__.setdefault("uq_cols", {})
+        # Check type
+        if not isinstance(uq_cols, dict):
+            raise TypeError("uq_cols attribute is not a dict")
+        # Check trivial
+        if ucol is None:
+            # Remove it
+            uq_cols.pop(col, None)
+            return
         # Check types
         if not typeutils.isstr(col):
             raise TypeError(
@@ -4876,11 +4888,6 @@ class DataKit(ftypes.BaseData):
         if not typeutils.isstr(ucol):
             raise TypeError(
                 "UQ column name must be str (got %s)" % type(ucol))
-        # Get handle to attribute
-        uq_cols = self.__dict__.setdefault("uq_cols", {})
-        # Check type
-        if not isinstance(uq_cols, dict):
-            raise TypeError("uq_cols attribute is not a dict")
         # Set parameter
         uq_cols[col] = ucol
 
@@ -4902,7 +4909,15 @@ class DataKit(ftypes.BaseData):
                 Name of extra columns required for *ucol*
         :Versions:
             * 2020-03-21 ``@ddalle``: First version
+            * 2020-05-08 ``@ddalle``: Remove if *ecols* is ``None``
         """
+        # Get dictionary of ecols
+        uq_ecols = self.__dict__.setdefault("uq_ecols", {})
+        # Check for trivial case
+        if ecols is None:
+            # Remove it
+            uq_ecols.pop(ucol, None)
+            return
         # Check type
         if typeutils.isstr(ecols):
             # Create single list
@@ -4915,8 +4930,6 @@ class DataKit(ftypes.BaseData):
             raise TypeError(
                 "uq_ecols for col '%s' should be list; got '%s'"
                 % (ucol, type(ecols)))
-        # Get dictionary of ecols
-        uq_ecols = self.__dict__.setdefault("uq_ecols", {})
         # Set it
         uq_ecols[ucol] = ecols
 
@@ -4931,16 +4944,22 @@ class DataKit(ftypes.BaseData):
                 Database with scalar output functions
             *ecol*: :class:`str`
                 Name of (correlated) UQ column to evaluate
-            *efunc*: **callable**
+            *efunc*: ``None`` | **callable**
                 Function to evaluate *ecol*
         :Versions:
             * 2020-03-21 ``@ddalle``: First version
+            * 2020-05-08 ``@ddalle``: Remove if *efunc* is ``None``
         """
-        # Check input
-        if not callable(efunc):
-            raise TypeError("Function is not callable")
         # Get dictionary of extra UQ funcs
         uq_efuncs = self.__dict__.setdefault("uq_efuncs", {})
+        # Check input
+        if efunc is None:
+            # Remove it
+            uq_efuncs.pop(ecol, None)
+            return
+        elif not callable(efunc):
+            # Bad function
+            raise TypeError("Function is not callable")
         # Get entry for *col*
         uq_efuncs[ecol] = efunc
 
@@ -4955,11 +4974,18 @@ class DataKit(ftypes.BaseData):
                 Database with scalar output functions
             *ucol*: :class:`str`
                 Name of UQ column to evaluate
-            *acols*: :class:`list`\ [:class:`str`]
+            *acols*: ``None`` | :class:`list`\ [:class:`str`]
                 Name of extra columns required for estimate *ucol*
         :Versions:
             * 2020-03-23 ``@ddalle``: First version
+            * 2020-05-08 ``@ddalle``: Remove if *acols* is ``None``
         """
+        # Get dictionary of ecols
+        uq_acols = self.__dict__.setdefault("uq_acols", {})
+        # Check for trivial input
+        if acols is None:
+            uq_acols.pop(ucol, None)
+            return
         # Check type
         if typeutils.isstr(acols):
             # Create single list
@@ -4972,8 +4998,6 @@ class DataKit(ftypes.BaseData):
             raise TypeError(
                 "uq_acols for col '%s' should be list; got '%s'"
                 % (ucol, type(acols)))
-        # Get dictionary of ecols
-        uq_acols = self.__dict__.setdefault("uq_acols", {})
         # Set it
         uq_acols[ucol] = acols
 
@@ -4992,12 +5016,17 @@ class DataKit(ftypes.BaseData):
                 Function to estimate *ucol*
         :Versions:
             * 2020-03-23 ``@ddalle``: First version
+            * 2020-05-08 ``@ddalle``: Remove if *afunc* is ``None``
         """
-        # Check input
-        if not callable(afunc):
-            raise TypeError("Function is not callable")
         # Get dictionary of aux UQ funcs
         uq_afuncs = self.__dict__.setdefault("uq_afuncs", {})
+        # Check for ``None``
+        if afunc is None:
+            uq_afuncs.pop(ucol, None)
+            return
+        # Check input type
+        if not callable(afunc):
+            raise TypeError("Function is not callable")
         # Get entry for *col*
         uq_afuncs[ucol] = afunc
   # >
@@ -5051,6 +5080,49 @@ class DataKit(ftypes.BaseData):
         ddb = self.genr8_rdiff_by_rbf(db2, cols, scol=scol, **kw)
         # Create raw deltas
         ddb0 = self.genr8_rdiff(db2, cols, **kw)
+        # Copy any UQ cols
+        for col in cols:
+            # Get response args (guaranteed to be here)
+            args = self.get_response_args(col)
+            # Copy them, but set eval method to 'nearest' b/c
+            # the differencing probably broke the orig response.
+            # We need this to calculate UQ, but *ddb* and *ddb0*
+            # have the same points
+            ddb.make_response(col, "nearest", args)
+            ddb0.make_response(col, "nearest", args)
+            # Name of UQ column (if any)
+            ucol = self.get_uq_col(col)
+            # Check if any
+            if ucol is None:
+                continue
+            # Copy it
+            ddb.set_uq_col(col, ucol)
+            # Get response for *ucol*
+            uargs = self.get_response_args(ucol)
+            umeth = self.get_response_method(ucol)
+            # Copy them
+            if uargs:
+                ddb.set_response_args(ucol, uargs)
+            if umeth:
+                ddb.set_response_method(ucol, umeth)
+            # Get aux cols to compute *ucol*
+            acols = self.get_uq_acol(ucol)
+            # Get extra cols related to *ucol*
+            ecols = self.get_uq_ecol(ucol)
+            # Check for *acols*
+            if acols:
+                # Set them
+                ddb.set_uq_acol(ucol, acols)
+                # Copy function
+                ddb.set_uq_afunc(ucol, self.get_uq_afunc(ucol))
+            # Check for *ecols*
+            if ecols:
+                # Set them
+                ddb.set_uq_ecol(ucol, ecols)
+                # Loop through extra cols
+                for ecol in ecols:
+                    # Copy function
+                    ddb.set_uq_efunc(ecol, self.get_uq_efunc(ecol))
         # Estimate UQ
         ddb.est_uq_db(ddb0, cols, **kw)
         # Output
@@ -5085,6 +5157,8 @@ class DataKit(ftypes.BaseData):
                 Default tolerance for matching slice constraints
             *tols*: {``{}``} | :class:`dict` (:class:`float` >= 0)
                 Specific tolerance for particular slice keys
+            *v*, *verbose*: ``True`` | {``False``}
+                Verbose STDOUT flag
         :Outputs:
             *ddb*: *db.__class__*
                 New database with filtered *db* and *db2* diffs
@@ -5107,7 +5181,7 @@ class DataKit(ftypes.BaseData):
         # Get smoothing parameter
         smooth = kw.get("smooth", 0.0)
         # RBF basis function
-        func = kw.get("function", "cubic")
+        func = kw.get("function", "multiquadric")
         # Label format
         fmt = "Differencing %-40s\r" % ("%s slice %i/%i")
         # Reference column
@@ -5208,11 +5282,11 @@ class DataKit(ftypes.BaseData):
             sys.stdout.write("%72s\r" % "")
             sys.stdout.flush()
         # Save test values
-        for k, arg in enumerate(args):
+        for arg in args:
             # Save definition
             ddb.set_defn(arg, self.get_defn(arg))
             # Save values
-            ddb.save_col(arg, A[k])
+            ddb.save_col(arg, vals[arg])
        # --- Co-mapped XAargs ---
         # Trajectory co-keys
         cocols = kw.get("cocols", list(self.bkpts.keys()))
@@ -5290,6 +5364,8 @@ class DataKit(ftypes.BaseData):
                 Data columns to difference
             *test_values*: {``db``} | :class:`dict`
                 Candidate values of each *arg* for differencing
+            *v*, *verbose*: ``True`` | {``False``}
+                Verbose STDOUT flag
         :Outputs:
             *ddb*: *db.__class__*
                 New database with filtered *db* and *db2* diffs
@@ -5304,6 +5380,10 @@ class DataKit(ftypes.BaseData):
         ddb = self.__class__()
         # Keyword args to pass to evaluation
         kw_response = kw.get("response_kwargs", {})
+        # Verbosity option
+        verbose = kw.get("verbose", kw.get("v", False))
+        # Label format
+        fmt = "Differencing %-40s\r" % ("%s")
         # Reference column
         col = cols[0]
         # Evaluation arguments
@@ -5333,6 +5413,10 @@ class DataKit(ftypes.BaseData):
             ddb.set_defn(arg, self.get_defn(arg))
         # Loop through columns
         for col in cols:
+            # Status update
+            if verbose:
+                sys.stdout.write(fmt % col)
+                sys.stdout.flush()
             # Evaluate both databases
             v1 = self(col, *A, **kw_response)
             v2 = db2(col, *A, **kw_response)
@@ -5340,6 +5424,10 @@ class DataKit(ftypes.BaseData):
             ddb.save_col(col, v2 - v1)
             # Link definition
             ddb.set_defn(col, self.get_defn(col))
+        # Clean up prompt
+        if verbose:
+            sys.stdout.write("%72s\r" % "")
+            sys.stdout.flush()
         # Output
         return ddb
 
