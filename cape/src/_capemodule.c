@@ -28,22 +28,29 @@ static PyMethodDef CapeMethods[] = {
 #if PY_MAJOR_VERSION >= 3
     static struct PyModuleDef capemodule = {
         PyModuleDef_HEAD_INIT,
-        "_cape",                          // Name of module
+        "_cape3",                         // Name of module
         "Extensions for cape module\n",   // Module documentation
         -1,                               // -1 if module keeps state in globals
         CapeMethods
     };
-#endif
 
-PyMODINIT_FUNC
-init_cape(void)
-{
-    // This must be called before using the NumPy API.
-    import_array();
-    // Initialization command
-    #if PY_MAJOR_VERSION >= 3
+    PyMODINIT_FUNC
+    init_cape3(void)
+    {
+        // This must be called before using the NumPy API.
+        import_array();
+        // Initialization command
         return PyModule_Create(&capemodule);
-    #else
-        (void) Py_InitModule("_cape", CapeMethods);
-    #endif
-}
+    }
+
+#else
+    PyMODINIT_FUNC
+    init_cape2(void)
+    {
+        // This must be called before using the NumPy API.
+        import_array();
+        // Initialization command
+        (void) Py_InitModule("_cape2", CapeMethods);
+    }
+
+#endif
