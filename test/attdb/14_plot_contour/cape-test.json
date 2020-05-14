@@ -1,0 +1,37 @@
+{
+    "CopyFiles": [
+        "bullet-fm-mab.mat",
+        "test01_mask.py",
+        "test02_levels.py",
+        "test03_response.py"
+    ],
+    "Commands": [
+        "python2 test01_mask.py",
+        "python3 test01_mask.py",
+        "python2 test02_levels.py",
+        "python3 test02_levels.py",
+        "python2 test03_response.py",
+        "python3 test03_response.py"
+    ],
+    "CommandTitles": [
+        "Contours from indices: Python 2",
+        "Contours from indices: Python 3",
+        "Contours levels: Python 2",
+        "Contours levels: Python 3",
+        "Contours from response: Python 2",
+        "Contours from response: Python 3"
+    ],
+    "TargetPNG": [
+        "python2-CN-mask.png",
+        "python3-CN-mask.png",
+        "python2-CN-levels.png",
+        "python3-CN-levels.png",
+        "python2-CN-response.png",
+        "python3-CN-response.png"
+    ],
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/attdb",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}

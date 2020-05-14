@@ -8602,6 +8602,9 @@ class DataKit(ftypes.BaseData):
        # --- PNG ---
         # Plot the png image if appropriate
         h = self.plot_png(col, fig=h.fig, h=h)
+       # --- Seam Curve ---
+        # Plot the seam curve if appropriate
+        h = self.plot_seam(col, fig=h.fig, h=h)
        # --- Output ---
         # Return plot handle
         return h
@@ -8783,7 +8786,7 @@ class DataKit(ftypes.BaseData):
         # Tie horizontal limits
         ax_png.set_xlim(h.ax.get_xlim())
         # Label the axes
-        ax_png.set_label("img")
+        ax_png.set_label("<img>")
         # Save parameters
         h.fig = fig
         h.img = img
@@ -8796,6 +8799,31 @@ class DataKit(ftypes.BaseData):
    # --- Seam ---
     # Plot seam curve
     def plot_seam(self, col, fig=None, h=None, **kw):
+        r"""Show tagged seam curve in new axes
+
+        :Call:
+            >>> h = db.plot_seam(col, fig=None, h=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of data column being plotted
+            *png*: {*db.cols_png[col]*} | :class:`str`
+                Name used to tag this PNG image
+            *fig*: {``None``} | :class:`Figure` | :class:`int`
+                Name or number of figure in which to plot image
+            *h*: {``None``} | :class:`cape.tnakit.plot_mpl.MPLHandle`
+                Optional existing handle to various plot objects
+        :Outputs:
+            *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+                Plot object container
+            *h.lines_seam*: :class:`list`\ [:class:`matplotlib.Line2D`]
+                Seam curve handle
+            *h.ax_seam*: :class:`AxesSubplot`
+                Axes handle in wich *h.seam* is shown
+        :Versions:
+            * 2020-04-02 ``@ddalle``: First version
+        """
         # Get name of seam curve to add
         seam = self.get_col_seam(col)
         # Check for override from *kw*
@@ -8819,7 +8847,7 @@ class DataKit(ftypes.BaseData):
         # Get axes
         ax_seam = fig.add_subplot(212)
         # Get col names for seam
-        xcol, ycol = self.get_col_seam(seam)
+        xcol, ycol = self.get_seam_col(seam)
         # Get plot kwargs
         kw_seam = self.get_seam_kwargs(seam)
         # Plot the image
@@ -8834,9 +8862,9 @@ class DataKit(ftypes.BaseData):
         # Format extents nicely
         pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
         # Tie horizontal limits
-        ax_png.set_xlim(h.ax.get_xlim())
+        ax_seam.set_xlim(h.ax.get_xlim())
         # Label the axes
-        ax_seam.set_label("seam")
+        ax_seam.set_label("<seam>")
         # Save parameters
         h.fig = fig
         h.lines_seam = hseam.lines
@@ -8845,7 +8873,6 @@ class DataKit(ftypes.BaseData):
         self.add_seam_fig(seam, fig)
         # Output
         return h
-        
 
    # --- PNG Options: Get ---
     # Get PNG file name
@@ -9231,6 +9258,34 @@ class DataKit(ftypes.BaseData):
         # Get PNG name
         return col_seams.get(col)
 
+    # Get pair of columns used for seam curve
+    def get_seam_col(self, seam):
+        r"""Get column names that define named seam curve
+
+        :Call:
+            >>> xcol, ycol = db.get_seam_col(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *seam*: :class:`str`
+                Name used to tag this seam curve
+        :Outputs:
+            *xcol*: :class:`str`
+                Name of *col* for seam curve *x* coords
+            *ycol*: :class:`str`
+                Name of *col* for seam curve *y* coords
+        :Versions:
+            * 2020-03-31 ``@ddalle``: First version
+        """
+        # Check types
+        if not typeutils.isstr(seam):
+            raise TypeError(
+                "Seam name must be str (got %s)" % type(seam))
+        # Get handle to attribute
+        seam_cols = self.__dict__.setdefault("seam_cols", {})
+        # Get pair of columns
+        return seam_cols.get(seam, (None, None))
+
    # --- Seam Curve: Set ---
     # Read seam curves
     def make_seam(self, seam, fseam, xcol, ycol, cols, **kw):
@@ -9260,7 +9315,7 @@ class DataKit(ftypes.BaseData):
         """
         # Read a text file
         self.read_textdata(
-            fname, NanDivider=False, cols=[xcol, ycol], save=False)
+            fseam, NanDivider=True, cols=[xcol, ycol], save=False)
         # Save col names
         self.set_seam_col(seam, xcol, ycol)
         # Save the keyword args
