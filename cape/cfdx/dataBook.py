@@ -1,43 +1,45 @@
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.cfdx.dataBook`: CFD Data book nodule 
 =================================================
 
-This module contains functions for reading and processing forces, moments, and
-other entities from cases in a trajectory.  This module forms the core for all
-database post-processing in Cape, but several other database modules exist for
-more specific applications:
+This module contains functions for reading and processing forces,
+moments, and other entities from cases in a trajectory.  This module
+forms the core for all database post-processing in Cape, but several
+other database modules exist for more specific applications:
 
     * :mod:`cape.cfdx.lineLoad`
     * :mod:`cape.cfdx.pointSensor`
     
-This module provides three basic classes upon which more specific data classes
-are developed:
+This module provides three basic classes upon which more specific data
+classes are developed:
 
     * :class:`DataBook`: Overall databook container
     * :class:`DBBase`: Template databook for an individual component
     * :class:`CaseData`: Template class for one case's iterative history
     
-The first two of these are subclassed from :class:`dict`, so that generic data
-can be accessed with syntax such as ``DB[coeff]`` for an appropriately named
-coefficient.  An outline of derived classes for these three templates is shown
-below.
+The first two of these are subclassed from :class:`dict`, so that
+generic data can be accessed with syntax such as ``DB[coeff]`` for an
+appropriately named coefficient.  An outline of derived classes for
+these three templates is shown below.
 
     * :class:`DataBook`
-        - :class:`cape.cfdx.dataBook.DBTriqFM`: post-processed forces & moments
+        - :class:`DBTriqFM`: post-processed forces & moments
         
     * :class:`DBBase`
-        - :class:`cape.cfdx.dataBook.DBComp`: force & moment data, one comp
-        - :class:`cape.cfdx.dataBook.DBTarget`: target data
-        - :class:`cape.cfdx.dataBook.DBTriqFMComp`: surface CP FM for one comp
-        - :class:`cape.cfdx.lineLoad.DBLineLoad`: sectional load databook
-        - :class:`cape.cfdx.pointSensor.DBPointSensorGroup`: group of points
-        - :class:`cape.cfdx.pointSensor.DBTriqPointGroup`: group of surface points
-        - :class:`cape.cfdx.pointSensor.DBPointSensor`: one point sensor
-        - :class:`cape.cfdx.pointSensor.DBTriqPoint`: one surface point sensor
+        - :class:`DBComp`: force & moment data, one comp
+        - :class:`DBTarget`: target data
+        - :class:`DBTriqFMComp`: surface CP FM for one comp
+        - :class:`DBLineLoad`: sectional load databook
+        - :class:`DBPointSensorGroup`: group of points
+        - :class:`DBTriqPointGroup`: group of surface points
+        - :class:`DBPointSensor`: one point sensor
+        - :class:`DBTriqPoint`: one surface point sensor
         
     * :class:`CaseData`
-        - :class:`cape.cfdx.dataBook.CaseFM`: iterative force & moment history
-        - :class:`cape.cfdx.dataBook.CaseResid`: iterative residual history
+        - :class:`CaseFM`: iterative force & moment history
+        - :class:`CaseResid`: iterative residual history
     
 In addition, each solver has its own version of this module:
 
@@ -45,36 +47,40 @@ In addition, each solver has its own version of this module:
     * :mod:`cape.pyfun.dataBook`
     * :mod:`cape.pyover.dataBook`
 
-The parent class :class:`cape.cfdx.dataBook.DataBook` provides a common interface to
-all of the requested force, moment, point sensor, etc. quantities that have
-been saved in the data book. Informing :mod:`cape` which quantities to track,
-and how to statistically process them, is done using the ``"DataBook"`` section
-of the JSON file, and the various data book options are handled within the API
-using the :mod:`cape.cfdx.options.DataBook` module.
+The parent class :class:`cape.cfdx.dataBook.DataBook` provides a common
+interface to all of the requested force, moment, point sensor, etc.
+quantities that have been saved in the data book. Informing :mod:`cape`
+which quantities to track, and how to statistically process them, is
+done using the ``"DataBook"`` section of the JSON file, and the various
+data book options are handled within the API using the
+:mod:`cape.cfdx.options.DataBook` module.
 
-The master data book class :class:`cape.cfdx.dataBook.DataBook` is based on the
-built-in :class:`dict` class with keys pointing to force and moment data books
-for individual components. For example, if the JSON file tells Cape to track
-the forces and/or moments on a component called ``"body"``, and the data book
-is the variable *DB*, then the forces and moment data book is ``DB["body"]``.
-This force and moment data book contains statistically averaged forces and
-moments and other statistical quantities for every case in the run matrix. The
-class of the force and moment data book is :class:`cape.cfdx.dataBook.DBComp`.
+The master data book class :class:`cape.cfdx.dataBook.DataBook` is based
+on the built-in :class:`dict` class with keys pointing to force and
+moment data books for individual components. For example, if the JSON
+file tells Cape to track the forces and/or moments on a component called
+``"body"``, and the data book is the variable *DB*, then the forces and
+moment data book is ``DB["body"]``.  This force and moment data book
+contains statistically averaged forces and moments and other statistical
+quantities for every case in the run matrix. The class of the force and
+moment data book is :class:`cape.cfdx.dataBook.DBComp`.
 
-The data book also has the capability to store "target" data books so that the
-user can compare results of the current CFD solutions to previous results or
-experimental data. These are stored in ``DB["Targets"]`` and use the
-:class:`cape.cfdx.dataBook.DBTarget` class. Other types of data books can also be
-created, such as the :class:`cape.cfdx.pointSensor.DBPointSensor` class for tracking
-statistical properties at individual points in the solution field. Data books
-for tracking results of groups of cases are built off of the
-:class:`cape.cfdx.dataBook.DBBase` class, which contains many common tools such as
-plotting.
+The data book also has the capability to store "target" data books so
+that the user can compare results of the current CFD solutions to
+previous results or experimental data. These are stored in
+``DB["Targets"]`` and use the :class:`cape.cfdx.dataBook.DBTarget`
+class. Other types of data books can also be created, such as the
+:class:`cape.cfdx.pointSensor.DBPointSensor` class for tracking
+statistical properties at individual points in the solution field. Data
+books for tracking results of groups of cases are built off of the
+:class:`cape.cfdx.dataBook.DBBase` class, which contains many common
+tools such as plotting.
 
-The :mod:`cape.cfdx.dataBook` module also contains modules for processing results
-within individual case folders. This includes the :class:`cape.cfdx.dataBook.CaseFM`
-module for reading iterative force/moment histories and the
-:class:`cape.cfdx.dataBook.CaseResid` for iterative histories of residuals.
+The :mod:`cape.cfdx.dataBook` module also contains modules for
+processing results within individual case folders. This includes the
+:class:`cape.cfdx.dataBook.CaseFM` module for reading iterative
+force/moment histories and the :class:`cape.cfdx.dataBook.CaseResid`
+for iterative histories of residuals.
 
 """
 
@@ -101,6 +107,7 @@ from .. import util
 from .options import odict
 from . import case
 
+
 # Placeholder variables for plotting functions.
 plt = 0
 
@@ -109,10 +116,10 @@ deg = np.pi / 180.0
 
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
-    """Import :mod:`matplotlib.pyplot` if not already loaded
+    r"""Import :mod:`matplotlib.pyplot` if not already loaded
     
     :Call:
-        >>> pyCart.dataBook.ImportPyPlot()
+        >>> ImportPyPlot()
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
@@ -134,17 +141,14 @@ def ImportPyPlot():
         # Other modules
         import matplotlib.transforms as tform
         from matplotlib.text import Text
-# def ImportPyPlot
 
 
 # Aerodynamic history class
 class DataBook(dict):
-    """
-    This class provides an interface to the data book for a given CFD run
-    matrix.
+    r"""Interface to the data book for a given CFD run matrix
     
     :Call:
-        >>> DB = cape.cfdx.dataBook.DataBook(x, opts, RootDir=None, targ=None)
+        >>> DB = cape.cfdx.dataBook.DataBook(x, opts, **kw)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             The current Cape trajectory (i.e. run matrix)
@@ -153,18 +157,18 @@ class DataBook(dict):
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
         *targ*: {``None``} | :class:`str`
-            If used, read a duplicate data book as a target named *targ*
+            Option to read duplicate data book as a target named *targ*
     :Outputs:
         *DB*: :class:`cape.cfdx.dataBook.DataBook`
             Instance of the Cape data book class
         *DB.x*: :class:`cape.runmatrix.RunMatrix`
-            Run matrix of rows saved in the data book (differs from input *x*)
+            Run matrix of rows saved in the data book
         *DB[comp]*: :class:`cape.cfdx.dataBook.DBComp`
             Component data book for component *comp*
-        *DB.Components*: :class:`list` (:class:`str`)
+        *DB.Components*: :class:`list`\ [:class:`str`]
             List of force/moment components
         *DB.Targets*: :class:`dict`
-            Dictionary of :class:`cape.cfdx.dataBook.DBTarget` target data books
+            Dictionary of :class:`DBTarget` target data books
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: First version
@@ -175,7 +179,7 @@ class DataBook(dict):
   # <                           
     # Initialization method
     def __init__(self, x, opts, RootDir=None, targ=None, **kw):
-        """Initialization method
+        r"""Initialization method
         
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
@@ -250,7 +254,7 @@ class DataBook(dict):
         
     # Command-line representation
     def __repr__(self):
-        """Representation method
+        r"""Representation method
         
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
@@ -268,7 +272,7 @@ class DataBook(dict):
     
     # Directory creation using appropriate settings
     def mkdir(self, fdir):
-        """Create a directory using settings from *DataBook>umask*
+        r"""Create a directory using settings from *DataBook>umask*
         
         :Call:
             >>> DB.mkdir(fdir)
@@ -290,7 +294,7 @@ class DataBook(dict):
   # <
     # Write the data book
     def Write(self, unlock=True):
-        """Write the current data book in Python memory to file
+        r"""Write the current data book in Python memory to file
         
         :Call:
             >>> DB.Write(unlock=True)
@@ -320,12 +324,12 @@ class DataBook(dict):
     
     # Initialize a DBComp object
     def ReadDBComp(self, comp, check=False, lock=False):
-        """Initialize data book for one component
+        r"""Initialize data book for one component
         
         :Call:
             >>> DB.InitDBComp(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -342,19 +346,19 @@ class DataBook(dict):
     
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
-        """Read a line load data book target if it is not already present
+        r"""Read a line load data
         
         :Call:
             >>> DB.ReadLineLoad(comp)
         :Inputs:
-            *DB*: :class:`pycart.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pycart data book class
             *comp*: :class:`str`
                 Line load component group
-            *conf*: {``"None"``} | :class:`cape.config.Config`
+            *conf*: {``None``} | :class:`cape.config.Config`
                 Surface configuration interface
-            *targ*: {``"None"``} | :class:`str`
-                Sets alternate directory to read from, defaults to *DB.targ*
+            *targ*: {``None``} | :class:`str`
+                Alternate directory to read from, else *DB.targ*
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Added *targ*
@@ -385,7 +389,7 @@ class DataBook(dict):
             
     # Local line load data book read
     def _DBLineLoad(self, comp, conf=None, targ=None):
-        """Versions-specific line load reader
+        r"""Versions-specific line load reader
         
         :Versions:
             * 2017-04-18 ``@ddalle``: First version
@@ -394,7 +398,7 @@ class DataBook(dict):
     
     # Read TrqiFM components
     def ReadTriqFM(self, comp, check=False, lock=False):
-        """Read a TriqFM data book if not already present
+        r"""Read a TriqFM data book if not already present
         
         :Call:
             >>> DB.ReadTriqFM(comp, check=False, lock=False)
@@ -434,7 +438,7 @@ class DataBook(dict):
 
     # Find first force/moment component
     def GetRefComponent(self):
-        """Get the first component with type 'FM', 'Force', or 'Moment'
+        r"""Get first component with type 'FM', 'Force', or 'Moment'
 
         :Call:
             >>> DBc = DB.GetRefComponent()
@@ -458,7 +462,7 @@ class DataBook(dict):
         
     # Function to read targets if necessary
     def ReadTarget(self, targ):
-        """Read a data book target if it is not already present
+        r"""Read a data book target if it is not already present
         
         :Call:
             >>> DB.ReadTarget(targ)
@@ -507,7 +511,7 @@ class DataBook(dict):
   # <
     # Current iteration status
     def GetCurrentIter(self):
-        """Determine iteration number of current folder
+        r"""Determine iteration number of current folder
         
         :Call:
             >>> n = DB.GetCurrentIter()
@@ -527,7 +531,7 @@ class DataBook(dict):
             
     # Read case residual
     def ReadCaseResid(self):
-        """Read a :class:`CaseResid` object
+        r"""Read a :class:`CaseResid` object
         
         :Call:
             >>> H = DB.ReadCaseResid()
@@ -546,7 +550,7 @@ class DataBook(dict):
         
     # Read case FM history
     def ReadCaseFM(self, comp):
-        """Read a :class:`CaseFM` object
+        r"""Read a :class:`CaseFM` object
         
         :Call:
             >>> FM = DB.ReadCaseFM(comp)
@@ -575,7 +579,7 @@ class DataBook(dict):
    # [
     # Process list of components
     def ProcessComps(self, comp=None, **kw):
-        """Process list of components
+        r"""Process list of components
         
         This performs several conversions:
         
@@ -592,7 +596,7 @@ class DataBook(dict):
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
+            *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
             * 2017-04-13 ``@ddalle``: First version
@@ -620,16 +624,16 @@ class DataBook(dict):
    # [
     # Update data book
     def UpdateDataBook(self, I=None, comp=None):
-        """Update the data book for a list of cases from the run matrix
+        r"""Update the data book for a list of cases from the run matrix
         
         :Call:
             >>> DB.UpdateDataBook(I=None, comp=None)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
-            *I*: :class:`list` (:class:`int`) | ``None``
-                List of trajectory indices or update all cases in trajectory
-            *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
+            *I*: :class:`list`\ [:class:`int`] | ``None``
+                List of trajectory indices to update
+            *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
@@ -681,16 +685,16 @@ class DataBook(dict):
         
     # Function to delete entries by index
     def DeleteCases(self, I, comp=None):
-        """Delete list of cases from data book
+        r"""Delete list of cases from data book
         
         :Call:
             >>> DB.Delete(I)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
-            *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
+            *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
             * 2015-03-13 ``@ddalle``: First version
@@ -718,15 +722,15 @@ class DataBook(dict):
         
     # Function to delete entries by index
     def DeleteCasesComp(self, I, comp):
-        """Delete list of cases from data book
+        r"""Delete list of cases from data book
         
         :Call:
             >>> n = DB.Delete(I)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
         :Outputs:
             *n*: :class:`int`
                 Number of deleted entries
@@ -778,20 +782,22 @@ class DataBook(dict):
 
     # Update or add an entry for one component
     def UpdateCaseComp(self, i, comp):
-        """Update or add a case to a data book
-        
-        The history of a run directory is processed if either one of three
-        criteria are met.
-        
+        r"""Update or add a case to a data book
+
+        The history of a run directory is processed if either one of
+        three criteria are met.
+
             1. The case is not already in the data book
-            2. The most recent iteration is greater than the data book value
-            3. The number of iterations used to create statistics has changed
-        
+            2. The most recent iteration is greater than the data book
+               value
+            3. The number of iterations used to create statistics has
+               changed
+
         :Call:
             >>> n = DB.UpdateCaseComp(i, comp)
         :Inputs:
             *DB*: :class:`pyFun.dataBook.DataBook`
-                Instance of the pyCart data book class
+                Instance of the data book class
             *i*: :class:`int`
                 RunMatrix index
             *comp*: :class:`str`
@@ -944,15 +950,15 @@ class DataBook(dict):
    # [
     # Update line load data book
     def UpdateLineLoad(self, I, comp=None, conf=None):
-        """Update a line load data book for a list of cases
+        r"""Update a line load data book for a list of cases
         
         :Call:
             >>> n = DB.UpdateLineLoad(I, comp=None, conf=None)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
             *comp*: {``None``} | :class:`str`
                 Line load DataBook component or wild card
         :Outputs:
@@ -980,7 +986,7 @@ class DataBook(dict):
         
     # Update line load data book
     def UpdateLineLoadComp(self, comp, I=None, conf=None):
-        """Update a line load data book for a list of cases
+        r"""Update a line load data book for a list of cases
         
         :Call:
             >>> n = DB.UpdateLineLoadComp(comp, conf=None, I=None)
@@ -989,8 +995,8 @@ class DataBook(dict):
                 Instance of data book class
             *comp*: :class:`str`
                 Name of line load DataBook component
-            *I*: :class:`list` (:class:`int`) or ``None``
-                List of trajectory indices or update all cases in trajectory
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List of trajectory indices
             *qpbs*: ``True`` | {``False``}
                 Whether or not to submit as a script
         :Outputs:
@@ -1016,15 +1022,15 @@ class DataBook(dict):
         
     # Function to delete entries from triqfm data book
     def DeleteLineLoad(self, I, comp=None):
-        """Delete list of cases from several LineLoad component data books
+        r"""Delete list of cases from LineLoad component data books
         
         :Call:
             >>> DB.DeleteLineLoad(I, comp=None)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
@@ -1045,7 +1051,7 @@ class DataBook(dict):
     
     # Function to delete line load entries
     def DeleteLineLoadComp(self, comp, I=None):
-        """Delete list of cases from a LineLoad component data book
+        r"""Delete list of cases from a LineLoad component data book
         
         :Call:
             >>> n = DB.DeleteLineLoadComp(comp, I=None)
@@ -1054,8 +1060,8 @@ class DataBook(dict):
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
         :Outputs:
             *n*: :class:`list`
                 Number of deletions made
@@ -1111,7 +1117,7 @@ class DataBook(dict):
    # [
     # Update TriqFM data book
     def UpdateTriqFM(self, I, comp=None):
-        """Update a TriqFM triangulation-extracted F&M data book
+        r"""Update a TriqFM triangulation-extracted F&M data book
         
         :Call:
             >>> DB.UpdateTriqFM(I, comp=None)
@@ -1119,9 +1125,9 @@ class DataBook(dict):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *comp*: {``None``} | :class:`str`
-                Name of TriqFM data book component or all if ``None``
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+                Name of TriqFM data book component (default is all)
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
         """
@@ -1145,7 +1151,7 @@ class DataBook(dict):
     
     # Update TriqFM data book for one component
     def UpdateTriqFMComp(self, comp, I=None):
-        """Update a TriqFM triangulation-extracted F&M data book
+        r"""Update a TriqFM triangulation-extracted F&M data book
         
         :Call:
             >>> DB.UpdateTriqFMComp(comp, I=None)
@@ -1154,8 +1160,8 @@ class DataBook(dict):
                 Instance of data book class
             *comp*: :class:`str`
                 Name of TriqFM data book component
-            *I*: :class:`list` (:class:`int`) or ``None``
-                List of trajectory indices or update all cases in trajectory
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
         """
@@ -1180,15 +1186,15 @@ class DataBook(dict):
         
     # Function to delete entries from triqfm data book
     def DeleteTriqFM(self, I, comp=None):
-        """Delete list of cases from several TriqFM component data books
+        r"""Delete list of cases from TriqFM component data books
         
         :Call:
             >>> DB.DeleteTriqFM(I, comp=None)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
@@ -1212,7 +1218,7 @@ class DataBook(dict):
     
     # Function to delete triqfm entries
     def DeleteTriqFMComp(self, comp, I=None):
-        """Delete list of cases from a TriqFM component data book
+        r"""Delete list of cases from a TriqFM component data book
         
         :Call:
             >>> n = DB.DeleteTriqFMComp(comp, I=None)
@@ -1221,8 +1227,8 @@ class DataBook(dict):
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
         :Outputs:
             *n*: :class:`list`
                 Number of deletions made
@@ -1283,15 +1289,15 @@ class DataBook(dict):
    # [
     # Update the TriqPoint data book
     def UpdateTriqPoint(self, I, comp=None):
-        """Update a TriqPoint triangulation-extracted point sensor data book
+        r"""Update a TriqPoint triangulation-extracted point sensor data book
         
         :Call:
             >>> DB.UpdateTriqPoint(I, comp=None)
         :Inputs:
            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                Instance of data book class
-           *I*: :class:`list` (:class:`int`)
-               List of trajectory indices
+            *I*: :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
            *comp*: {``None``} | :class:`str`
                Name of TriqPoint group or all if ``None``
         :Versions:
@@ -1305,17 +1311,10 @@ class DataBook(dict):
             print("Updating TriqPoint group '%s' ..." % comp)
             # Perform aupdate and get number of additions
             n = self.UpdateTriqPointComp(comp, I)
-            ## Check for updates
-            #if n == 0:
-            #    continue  
-            ## Status update
-            #print("Added or updated %s entries" % n)
-            ## Write the updated results
-            #self.TriqPoint[comp].Write(merge=True, unlock=True)
     
     # Update TriqPoint data book for one component
     def UpdateTriqPointComp(self, comp, I=None):
-        """Update a TriqPoint triangulation-extracted point sensor data book
+        r"""Update a TriqPoint triangulation-extracted data book
         
         :Call:
             >>> n = DB.UpdateTriqPointComp(comp, I=None)
@@ -1324,8 +1323,8 @@ class DataBook(dict):
                 Instance of data book class
             *comp*: {``None``} | :class:`str`
                 Name of TriqPoint group or all if ``None``
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
         :Outputs:
             *n*: :class:`int`
                 Number of updates made
@@ -1354,18 +1353,18 @@ class DataBook(dict):
             self.TriqPoint[comp].Write(merge=True, unlock=True)
         # Output
         return n
-        
+
     # Delete entries from TriqPoint data book
     def DeleteTriqPoint(self, I, comp=None):
-        """Delete list of cases from several TriqPoint component data books
+        r"""Delete list of cases from TriqPoint component data books
         
         :Call:
             >>> DB.DeleteTriqPoint(I, comp=None)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the data book class
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
@@ -1384,10 +1383,10 @@ class DataBook(dict):
             print("%s: deleted %s TriqPoint entries" % (comp, n))
             # Write the updated component (no merge)
             self.TriqPoint[comp].Write(unlock=True)
-        
+
     # Delete TriqPoint individual entries
     def DeleteTriqPointComp(self, comp, I=None):
-        """Delete list of cases from a TriqPoint component data book
+        r"""Delete list of cases from a TriqPoint component data book
         
         :Call:
             >>> n = DB.DeleteTriqPointComp(comp, I=None)
@@ -1396,8 +1395,8 @@ class DataBook(dict):
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
         :Outputs:
             *n*: :class:`list`
                 Number of deletions made
@@ -1454,18 +1453,16 @@ class DataBook(dict):
             n += nj
         # Output
         return n
-            
-    
    # ]
   # >
-    
+
   # ==========
   # RunMatrix
   # ==========
   # <
     # Find an entry by trajectory variables.
     def FindMatch(self, i):
-        """Find an entry by run matrix (trajectory) variables
+        r"""Find an entry by run matrix (trajectory) variables
         
         It is assumed that exact matches can be found.
         
@@ -1477,8 +1474,8 @@ class DataBook(dict):
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
         :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
-                Array of index that matches the trajectory case or ``NaN``
+            *j*: :class:`numpy.ndarray`\ [:class:`int`]
+                Array of index(es) that match case *i* or ``NaN``
         :Versions:
             * 2016-02-27 ``@ddalle``: Added as a pointer to first component
         """
@@ -1489,12 +1486,13 @@ class DataBook(dict):
             
     # Find an entry using specified tolerance options
     def FindTargetMatch(self, DBT, i, topts, keylist='tol', **kw):
-        """Find a target entry by run matrix (trajectory) variables
+        r"""Find a target entry by run matrix (trajectory) variables
         
-        Cases will be considered matches by comparing variables specified in the
-        *topts* variable, which shares some of the options from the
-        ``"Targets"`` subsection of the ``"DataBook"`` section of
-        :file:`cape.json`.  Suppose that *topts* contains the following
+        Cases will be considered matches by comparing variables
+        specified in the *topts* variable, which shares some of the
+        options from the  ``"Targets"`` subsection of the ``"DataBook"``
+        section of :file:`cape.json`.  Suppose that *topts* contains the
+        following:
         
         .. code-block:: python
         
@@ -1507,34 +1505,36 @@ class DataBook(dict):
                 "Keys": ["alpha", "Mach", "beta"]
             }
         
-        Then any entry in the data book target that matches the Mach number
-        within 0.01 (using a column labeled ``"MACH"``) and alpha to within 0.05
-        is considered a match.  Because the *Keys* parameter contains
-        ``"beta"``, the search will also look for exact matches in ``"beta"``.
-        
-        If the *Keys* parameter is not set, the search will use either all the
-        keys in the trajectory, *x.cols*, or just the keys specified in the
-        ``"Tolerances"`` section of *topts*.  Which of these two default lists
-        to use is determined by the *keylist* input.
-        
+        Then any entry in the data book target that matches the Mach
+        number within 0.01 (using a column labeled ``"MACH"``) and alpha
+        to within 0.05 is considered a match.  Because the *Keys*
+        parameter contains ``"beta"``, the search will also look for
+        exact matches in ``"beta"``.
+
+        If the *Keys* parameter is not set, the search will use either
+        all the keys in the trajectory, *x.cols*, or just the keys
+        specified in the ``"Tolerances"`` section of *topts*.  Which of
+        these two default lists to use is determined by the *keylist*
+        input.
+
         :Call:
-            >>> j = DB.FindTargetMatch(DBT, i, topts, keylist='tol', **kw)
+            >>> j = DB.FindTargetMatch(DBT, i, topts, **kw)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
-            *DBT*: :class:`cape.cfdx.dataBook.DBBase` | :class:`DBTarget`
+            *DBT*: :class:`DBBase` | :class:`DBTarget`
                 Target component databook
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
-            *topts*: :class:`dict` | :class:`cape.cfdx.options.DataBook.DBTarget`
+            *topts*: :class:`dict` | :class:`DBTarget`
                 Criteria used to determine a match
             *keylist*: ``"x"`` | {``"tol"``}
                 Source for default list of keys
             *source*: {``"self"``} | ``"target"``
                 Match *DB* case *i* or *DBT* case *i*
         :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
-                Array of indices that match the trajectory within tolerances
+            *j*: :class:`numpy.ndarray`\ [:class:`int`]
+                Array of indices that match the trajectory
         :See also:
             * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
             * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
@@ -1546,12 +1546,10 @@ class DataBook(dict):
         DBc = self.GetRefComponent()
         # Use its finder
         return DBc.FindTargetMatch(DBT, i, topts, keylist=keylist, **kw)
-            
-    
-        
+
     # Match the databook copy of the trajectory
     def UpdateRunMatrix(self):
-        """Match the trajectory to the cases in the data book
+        r"""Match the trajectory to the cases in the data book
         
         :Call:
             >>> DB.UpdateRunMatrix()
@@ -1571,10 +1569,10 @@ class DataBook(dict):
             self.x.text[k] = [str(xk) for xk in DBc[k]]
         # Set the number of cases.
         self.x.nCase = DBc.n
-        
+
     # Restrict the data book object to points in the trajectory.
     def MatchRunMatrix(self):
-        """Restrict the data book object to points in the trajectory
+        r"""Restrict the data book object to points in the trajectory
         
         :Call:
             >>> DB.MatchRunMatrix()
@@ -1608,10 +1606,10 @@ class DataBook(dict):
             for k in DBc.keys():
                 # Restrict to matched cases.
                 self[comp][k] = self[comp][k][J]
-    
+
     # Get lists of indices of matches
     def GetTargetMatches(self, ftarg, tol=0.0, tols={}):
-        """Get vectors of indices matching targets
+        r"""Get vectors of indices matching targets
         
         :Call:
             >>> I, J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
@@ -1621,13 +1619,13 @@ class DataBook(dict):
             *ftarg*: :class:`str`
                 Name of the target and column
             *tol*: :class:`float`
-                Tolerance for matching all keys (``0.0`` enforces equality)
+                Tolerance for matching all keys
             *tols*: :class:`dict`
                 Dictionary of specific tolerances for each key
         :Outputs:
-            *I*: :class:`numpy.ndarray`
+            *I*: :class:`np.ndarray`
                 Array of data book indices with matches
-            *J*: :class:`numpy.ndarray`
+            *J*: :class:`np.ndarray`
                 Array of target indices for each data book index
         :Versions:
             * 2015-08-30 ``@ddalle``: First version
@@ -1651,10 +1649,10 @@ class DataBook(dict):
         J = np.array(J)
         # Output
         return I, J
-    
+
     # Get match for a single index
     def GetTargetMatch(self, i, ftarg, tol=0.0, tols={}):
-        """Get index of a target match (if any) for one data book entry
+        r"""Get index of a target match for one data book entry
         
         :Call:
             >>> j = DB.GetTargetMatch(i, ftarg, tol=0.0, tols={})
@@ -1666,11 +1664,11 @@ class DataBook(dict):
             *ftarg*: :class:`str`
                 Name of the target and column
             *tol*: :class:`float`
-                Tolerance for matching all keys (``0.0`` enforces equality)
+                Tolerance for matching all keys
             *tols*: :class:`dict`
                 Dictionary of specific tolerances for each key
         :Outputs:
-            *j*: :class:`int` or ``np.nan``
+            *j*: :class:`int` | ``np.nan``
                 Data book target index
         :Versions:
             * 2015-08-30 ``@ddalle``: First version
@@ -1717,17 +1715,17 @@ class DataBook(dict):
             if len(m) == 0: return np.nan
         # Return the first match.
         return m[0]
-    
+
     # Get match for a single index
     def GetDBMatch(self, h, ftarg, tol=0.0, tols={}):
-        """Get index of a target match (if any) for one data book entry
+        r"""Get index of a target match (if any) for one data book entry
         
         :Call:
             >>> i = DB.GetDBMatch(j, ftarg, tol=0.0, tols={})
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of a data book class
-            *j*: :class:`int` or ``np.nan``
+            *j*: :class:`int` | ``np.nan``
                 Data book target index
             *ftarg*: :class:`str`
                 Name of the target and column
@@ -1791,13 +1789,13 @@ class DataBook(dict):
   # <
     # Get target to use based on target name
     def GetTargetByName(self, targ):
-        """Get a target handle by name of the target
+        r"""Get a target handle by name of the target
         
         :Call:
             >>> DBT = DB.GetTargetByName(targ)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
-                Instance of the pyCart data book class
+                Instance of the data book class
             *targ*: :class:`str`
                 Name of target to find
         :Outputs:
@@ -1822,7 +1820,7 @@ class DataBook(dict):
             
     # Function to sort data book
     def Sort(self, key=None, I=None):
-        """Sort a data book according to either a key or an index
+        r"""Sort a data book according to either a key or an index
         
         :Call:
             >>> DB.Sort()
@@ -1831,14 +1829,14 @@ class DataBook(dict):
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
-            *key*: :class:`str` | :class:`list` (:class:`str`)
+            *key*: :class:`str` | :class:`list`\ [:class:`str`]
                 Name of trajectory key or list of keys on which to sort
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
             * 2015-06-19 ``@ddalle``: New multi-key sort
-            * 2016-01-13 ``@ddalle``: Added checks to allow incomplete comps
+            * 2016-01-13 ``@ddalle``: Checks to allow incomplete comps
         """
         # Process inputs.
         if I is None:
@@ -1855,14 +1853,14 @@ class DataBook(dict):
             # Apply the DBComp.Sort() method.
             self[comp].Sort(I=I)
   # >
-            
+
   # ========
   # Plotting
   # ========
   # <
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, comp, coeff, I, **kw):
-        """Plot a sweep of one coefficients over several cases
+        r"""Plot a sweep of one coefficients over several cases
         
         :Call:
             >>> h = DB.PlotCoeff(comp, coeff, I, **kw)
@@ -1873,38 +1871,38 @@ class DataBook(dict):
                 Component whose coefficient is being plotted
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: [ {None} | :class:`str` ]
-                RunMatrix key for *x* axis (or plot against index if ``None``)
-            *Label*: [ {*comp*} | :class:`str` ]
+                RunMatrix key for *x* axis (else plot against index)
+            *Label*: {*comp*} | :class:`str`
                 Manually specified label
-            *Legend*: [ {True} | False ]
+            *Legend*: {``True``} | ``False``
                 Whether or not to use a legend
-            *StDev*: [ {None} | :class:`float` ]
+            *StDev*: {``None``} | :class:`float`
                 Multiple of iterative history standard deviation to plot
-            *MinMax*: [ {False} | True ]
-                Whether to plot minimum and maximum over iterative history
-            *Uncertainty*: [ {False} | True ]
+            *MinMax*: ``True`` | {``False``}
+                Option to plot min and max from iterative history
+            *Uncertainty*: ``True`` | {``False``}
                 Whether to plot direct uncertainty
             *LineOptions*: :class:`dict`
                 Plot options for the primary line(s)
             *StDevOptions*: :class:`dict`
-                Dictionary of plot options for the standard deviation plot
+                Plot options for the standard deviation plot
             *MinMaxOptions*: :class:`dict`
-                Dictionary of plot options for the min/max plot
+                Plot options for the min/max plot
             *UncertaintyOptions*: :class:`dict`
                 Dictionary of plot options for the uncertainty plot
             *FigWidth*: :class:`float`
                 Width of figure in inches
             *FigHeight*: :class:`float`
                 Height of figure in inches
-            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
+            *PlotTypeStDev*: {``"FillBetween"``} | ``"ErrorBar"``
                 Plot function to use for standard deviation plot
-            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
+            *PlotTypeMinMax*: {``"FillBetween"``} | ``"ErrorBar"``
                 Plot function to use for min/max plot
-            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
+            *PlotTypeUncertainty*: ``"FillBetween"`` | {``"ErrorBar"``}
                 Plot function to use for uncertainty plot
         :Outputs:
             *h*: :class:`dict`
@@ -1923,7 +1921,7 @@ class DataBook(dict):
         
     # Plot a sweep of one or more coefficients
     def PlotContour(self, comp, coeff, I, **kw):
-        """Create a contour plot of one coefficient over several cases
+        r"""Create a contour plot of one coefficient over several cases
         
         :Call:
             >>> h = DB.PlotContour(comp, coeff, I, **kw)
@@ -5478,7 +5476,7 @@ class DBComp(DBBase):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBi*: :class:`pyCart.dataBook.DBComp`
+        *DBi*: :class:`cape.cfdx.dataBook.DBComp`
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
@@ -9379,7 +9377,7 @@ class CaseResid(object):
         :Call:
             >>> nOrders = hist.GetNOrders(nStats=1)
         :Inputs:
-            *hist*: :class:`pyCart.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *nStats*: :class:`int`
                 Number of iterations to use for averaging the final residual
@@ -9407,7 +9405,7 @@ class CaseResid(object):
         :Call:
             >>> nOrders = hist.GetNOrders(n=1)
         :Inputs:
-            *hist*: :class:`pyCart.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Number of iterations to analyze
