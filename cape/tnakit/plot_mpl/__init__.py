@@ -131,7 +131,7 @@ def contour(xv, yv, zv, *a, **kw):
     return h
 
 
-# Contour plotter
+# Histogram plotter
 def hist(v, *a, **kw):
     r"""Plot histogram with many options
 
@@ -149,15 +149,44 @@ def hist(v, *a, **kw):
    # --- Prep ---
     # Process options
     opts, h = _preprocess_kwargs(**kw)
+   # --- Statistics ---
+    # Filter out non-numeric entries
+    v = v[np.logical_not(np.isnan(v))]
+    # Calculate the mean
+    vmu = np.mean(v)
+    # Calculate StdDev
+    vstd = np.std(v)
+    # Coverage Intervals
+    cov = kw.pop("Coverage", kw.pop("cov", 0.99))
+    cdf = kw.pop("CoverageCDF", kw.pop("cdf", cov))
+    # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
+    kcdf = statutils.student.ppf(0.5+0.5*cdf, v.size)
+    # Check for outliers ...
+    fstd = kw.pop('FilterSigma', 2.0*kcdf)
+    # Remove values from histogram
+    if fstd:
+        # Find indices of cases that are within outlier range
+        j = np.abs(v-vmu)/vstd <= fstd
+        # Filter values
+        v = v[j]
+    # Calculate interval
+    acov, bcov = statutils.get_cov_interval(v, cov, cdf=cdf, **kw)
     # Save values
     opts.set_option("v", v)
+    # Save stats
+    opts.set_option("mu", vmu)
+    opts.set_option("std", vstd)
+   # --- Control Options ---
+    opts.setdefault_option("ShowGauss", False) 
    # --- Axes Setup ---
     # Figure, then axes
     _part_init_figure(opts, h)
     _part_init_axes(opts, h)
    # --- Primary Plot ---
-    # Plot, then others
+    # Histogram, then others
     _part_hist(opts, h)
+    # Gaussian
+    _part_gauss(opts, h)
    # --- Axis formatting ---
     # Format grid, spines, and window
     _part_axes_grid(opts, h)
@@ -305,6 +334,41 @@ def _part_hist(opts, h):
     # Save histogram
     h.save("hist", hist)
 
+# Partial function: gaussian()
+def _part_gauss(opts, h):
+    if opts.get_option("ShowGauss"):
+        # Process min/max options
+        opts_gauss = opts.gauss_options()
+        # Get mu and std
+        vmu = opts.get_option('vmu')
+        vstd = opts.get_option('vstd')
+        # Get orientation
+        orient = opts_gauss.get_options('orientation')
+        # Options for the plot function
+        kw = opts_gauss.get("GaussOptions", {})
+        # Number of points to plot
+        ngauss = kw.pop("NGauss", 151)
+        # Get axis limits
+        if orient == "vertical":
+            # Get existing horizontal limits
+            xmin, xmax = ax.get_xlim()
+        else:
+            # Get existing
+            xmin, xmax = ax.get_ylim()
+        # Create points at which to plot
+        xval = np.linspace(xmin, xmax, ngauss)
+        # Compute Gaussian distribution
+        yval = 1/(vstd*np.sqrt(2*np.pi))*np.exp(-0.5*((xval-vmu)/vstd)**2)
+        # Plot
+        if orient == "vertical":
+            # Plot vertical dist with bump pointing to the right
+            gauss = mpl.plot(xval, yval, **kw)
+        else:
+            # Plot horizontal dist with vertical bump
+            gauss = mpl.plot(yval, xval, **kw)
+        # Save
+        h.save("gauss", gauss)
+            
 
 # Partial function: minmax()
 def _part_minmax(opts, h):

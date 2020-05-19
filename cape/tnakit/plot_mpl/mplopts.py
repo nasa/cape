@@ -174,6 +174,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinMaxPlotType",
         "MinorGrid",
         "MinorGridOptions",
+        "NGauss"
        # P-T
         "Pad",
         "PlotColor",
@@ -307,6 +308,7 @@ class MPLOpts(kwutils.KwargHandler):
         "lbl": "Label",
         "normed": "density",
         "nfig": "FigNumber",
+        "ngauss" : "NGauss",
         "numfig": "FigNumber",
         "rotate": "Rotate",
         "subplot": "Subplot",
@@ -452,6 +454,9 @@ class MPLOpts(kwutils.KwargHandler):
             "FontStyle",
             "FontVariant",
             "FontWeight"
+        ],
+        "gauss" : [
+            "NGauss"
         ],
         "grid": [
             "Grid",
@@ -684,6 +689,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinorGridOptions": dict,
         "MinMaxOptions": dict,
         "MinMaxPlotType": typeutils.strlike,
+        "NGauss" : int,
        # P-T
         "Pad": float,
         "PlotColor": (tuple, typeutils.strlike),
@@ -822,6 +828,11 @@ class MPLOpts(kwutils.KwargHandler):
             "FontVariant": "variant",
             "FontWeight": "weight",
         },
+        "GaussOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "PlotOptions.color": "color",
+        },
         "GridOptions": {
             "GridColor": "color",
         },
@@ -911,6 +922,11 @@ class MPLOpts(kwutils.KwargHandler):
             "ms": "markersize",
         },
         "FillBetweenOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
+        "GaussOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
             "c": "color",
@@ -1038,6 +1054,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinMaxOptions": _rst_dict,
         "MinorGrid": _rst_boolf,
         "MinorGridOptions": _rst_dict,
+        "NGauss": """{``151``} | :class:`int`""",
        # P-T
         "Pad": _rst_float,
         "PlotColor": """{``None``} | :class:`str` | :class:`tuple`""",
@@ -1652,6 +1669,29 @@ class MPLOpts(kwutils.KwargHandler):
         # Use the "font" section and only return "FontOptions"
         return self.section_options("font", "FontOptions")
 
+    # Primary options
+    def gauss_options(self):
+        r"""Process options to gaussian plot curve
+
+        :Call:
+            >>> kw = opts.gauss_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Use the "gauss" section
+        kw = self.section_options("gauss")
+        return kw
+
     # Grid options
     def grid_options(self):
         r"""Process options to axes :func:`grid` command
@@ -1924,6 +1964,7 @@ MPLOpts._doc_keys("axes_options", "axes")
 MPLOpts._doc_keys("contour_options", "contour")
 MPLOpts._doc_keys("error_options", "error")
 MPLOpts._doc_keys("figure_options", "fig")
+MPLOpts._doc_keys("gauss_options", "gauss")
 MPLOpts._doc_keys("grid_options", "grid")
 MPLOpts._doc_keys("imshow_options", "imshow")
 MPLOpts._doc_keys("minmax_options", "minmax")
