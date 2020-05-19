@@ -30,8 +30,8 @@ cols = ["bullet.dCN"]
 db.make_seam(seam, fseam, xcol, ycol, cols)
 
 # Initial plot of a column
-#h = db.plot("bullet.dCN", 1, XLabel="x/Lref", YLabel="dCN/d(x/Lref)")
+h = db.plot("bullet.dCN", 1, XLabel="x/Lref", YLabel="dCN/d(x/Lref)")
 
 # Save figure
-#h.fig.savefig("python%i-bullet-ll.png" % sys.version_info.major)
+h.fig.savefig("python%i-bullet-ll.png" % sys.version_info.major)
 
