@@ -193,6 +193,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterSize",
         "ScatterOptions",
         "ShowError",
+        "ShowGauss",
         "ShowLegend",
         "ShowLine",
         "ShowMinMax",
@@ -251,6 +252,8 @@ class MPLOpts(kwutils.KwargHandler):
        # a-z
         "ax",
         "fig",
+        "mu",
+        "std",
         "ux",
         "uy",
         "v",
@@ -700,6 +703,7 @@ class MPLOpts(kwutils.KwargHandler):
         "Rotate": bool,
         "ScatterOptions": dict,
         "ShowError": bool,
+        "ShowGauss": bool,
         "ShowLine": bool,
         "ShowMinMax":bool,
         "ShowUncertainty": bool,
@@ -758,6 +762,8 @@ class MPLOpts(kwutils.KwargHandler):
        # a-z
         "ax": object,
         "fig": object,
+        "mu": float,
+        "std": float,
         "ux": typeutils.arraylike,
         "uy": typeutils.arraylike,
         "v": typeutils.arraylike,
@@ -1074,6 +1080,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterOptions": _rst_dict,
         "ScatterSize": "{``None``} | :class:`np.ndarray` | :class:`float`",
         "ShowError": _rst_booln,
+        "ShowGauss": _rst_booln,
         "ShowMinMax": _rst_booln,
         "ShowUncertainty": _rst_booln,
         "SpineOptions": _rst_dict,
@@ -1104,6 +1111,9 @@ class MPLOpts(kwutils.KwargHandler):
        # a-z
         "ax": """{``None``} | :class:`matplotlib.axes._subplots.Axes`""",
         "fig": """{``None``} | :class:`matplotlib.figure.Figure`""",
+        "mu": r""":class:`float`""",
+        "std": r""":class:`float`""",
+        "uy": r""":class:`np.ndarray`\ [:class:`float`]""",
         "ux": r""":class:`np.ndarray`\ [:class:`float`]""",
         "uy": r""":class:`np.ndarray`\ [:class:`float`]""",
         "v": r""":class:`np.ndarray`""",
@@ -1219,6 +1229,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MinMaxPlotType": """Plot type for min/max plot""",
         "MinorGrid": """Turn on/off grid at minor ticks""",
         "MinorGridOptions": """Plot options for minor grid""",
+        "NGauss": """Number of points to sample Gaussian plot""",
        # P-T
         "Pad": "Padding to add to both axes, *ax.set_xlim* and *ax.set_ylim*",
         "PlotColor": """Color option to :func:`plt.plot` for primary curve""",
@@ -1239,6 +1250,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterOptions": """Options to :func:`plt.scatter`""",
         "ScatterSize": "Size [pt^2] of marker for each data point",
         "ShowError": """Show "error" plot using *xerr*""",
+        "ShowGauss": """Show Gaussian plot on histogram""",
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
         "ShowUncertainty": """Plot uncertainty bounds""",
         "SpineOptions": """Options for all spines""",
@@ -1269,6 +1281,8 @@ class MPLOpts(kwutils.KwargHandler):
        # a-z
         "ax": """Handle to existing axes""",
         "fig": """Handle to existing figure""",
+        "mu": """Sample mean""",
+        "std": "Sample standard deviation""",
         "ux": """UQ *x* magintudes""",
         "uy": """UQ magnitudes""",
         "v": """Values for histogram plot""",
@@ -1286,6 +1300,7 @@ class MPLOpts(kwutils.KwargHandler):
     _rc = {
         "ShowLine": True,
         "ShowError": False,
+        "ShowGauss" : False,
         "Index": 0,
         "Rotate": False,
         "AxesLabelOptions": {},
@@ -1320,7 +1335,7 @@ class MPLOpts(kwutils.KwargHandler):
             "zorder" : 2,
             "edgecolor" : "k",
             "lw" : 1, 
-            "density" : True
+            "density" : True,
         },
         "LegendFontOptions": {},
         "LegendOptions": {

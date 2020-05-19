@@ -267,29 +267,6 @@ def contour(xv, yv, zv, **kw):
     # Call root function
     return _contour(xv, yv, zv, **kw_p)
 
-# Histogram function with options check
-def hist(v, **kw):
-    r"""Call the :func:`hist` function with cycling options
-
-    :Call:
-        >>> h = contour(v, **kw)
-    :Inputs:
-        *v*: :class:`np.ndarray`
-            Array of values
-    :Keyword Arguments:
-        %(keys)s
-    :Outputs:
-        *h*: :class:`tuple` 
-            Tuple of values, bins, patches
-    :Versions:
-        * 2020-04-23 ``@jmeeroff``: First version
-    """
-    # Process options
-    opts = MPLOpts(_section="hist", **kw)
-    # Get hist options
-    kw_p = opts.hist_options()
-    # Call root function
-    return _hist(v, **kw_p)
 
 # Error bar plot
 def errorbar(xv, yv, yerr=None, xerr=None, **kw):
@@ -356,6 +333,32 @@ def fill_between(xv, ymin, ymax, **kw):
     # Call root function
     return _fill_between(xv, ymin, ymax, **kw_fb)
 
+
+
+
+# Histogram function with options check
+def hist(v, **kw):
+    r"""Call the :func:`hist` function with cycling options
+
+    :Call:
+        >>> h = contour(v, **kw)
+    :Inputs:
+        *v*: :class:`np.ndarray`
+            Array of values
+    :Keyword Arguments:
+        %(keys)s
+    :Outputs:
+        *h*: :class:`tuple` 
+            Tuple of values, bins, patches
+    :Versions:
+        * 2020-04-23 ``@jmeeroff``: First version
+    """
+    # Process options
+    opts = MPLOpts(_section="hist", **kw)
+    # Get hist options
+    kw_p = opts.hist_options()
+    # Call root function
+    return _hist(v, **kw_p)
 
 # Show an image
 def imshow(png, **kw):

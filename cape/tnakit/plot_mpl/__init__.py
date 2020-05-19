@@ -337,18 +337,23 @@ def _part_hist(opts, h):
 # Partial function: gaussian()
 def _part_gauss(opts, h):
     if opts.get_option("ShowGauss"):
-        # Process min/max options
+        # Process gaussian options
         opts_gauss = opts.gauss_options()
         # Get mu and std
-        vmu = opts.get_option('vmu')
-        vstd = opts.get_option('vstd')
+        vmu = opts.get_option('mu')
+        vstd = opts.get_option('std')
         # Get orientation
-        orient = opts_gauss.get_options('orientation')
+        rotate = opts.get_option('Rotate')
+        if rotate:
+            orient = "horizontal"
+        else:
+            orient = "vertical"
         # Options for the plot function
         kw = opts_gauss.get("GaussOptions", {})
         # Number of points to plot
         ngauss = kw.pop("NGauss", 151)
         # Get axis limits
+        ax = h.ax
         if orient == "vertical":
             # Get existing horizontal limits
             xmin, xmax = ax.get_xlim()
