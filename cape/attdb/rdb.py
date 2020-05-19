@@ -1520,6 +1520,7 @@ class DataKit(ftypes.BaseData):
             * 2018-12-30 ``@ddalle``: First version
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
+            * 2020-05-19 ``@ddalle``: Support for 2D cols
         """
         # Check for column
         if (col not in self.cols) or (col not in self):
@@ -1527,6 +1528,17 @@ class DataKit(ftypes.BaseData):
             raise KeyError("Col '%s' is not present" % col)
         # Get values
         V = self[col]
+        # Array length
+        if isinstance(V, np.ndarray):
+            # Use the last dimension
+            n = V.shape[-1]
+            # Get dimensionality
+            ndim = V.ndim
+        else:
+            # Use a a simple length
+            n = len(V)
+            # Always 1D
+            ndim = 1
         # Create mask
         I = np.arange(len(V))
         # Tolerance dictionary
@@ -1549,10 +1561,25 @@ class DataKit(ftypes.BaseData):
         # Test number of outputs
         if len(I) == 1:
             # Single output
-            return V[I[0]]
+            if ndim == 1:
+                # Scalar value
+                return V[I[0]]
+            elif ndim == 2:
+                # Single column
+                return V[:, I[0]]
         else:
             # Multiple outputs
-            return V[I]
+            if ndim == 1:
+                # Array of scalar values
+                if isinstance(V, np.ndarray):
+                    # Actual array
+                    return V[I]
+                else:
+                    # Reconstruct list
+                    return [V[i] for i in I]
+            elif ndim == 2:
+                # Several columns
+                return V[:, I]
 
     # Lookup nearest value
     def rcall_nearest(self, col, args, *a, **kw):
@@ -1578,15 +1605,25 @@ class DataKit(ftypes.BaseData):
             * 2018-12-30 ``@ddalle``: First version
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
+            * 2020-05-19 ``@ddalle``: Support for 2D cols
         """
         # Check for column
         if (col not in self.cols) or (col not in self):
             # Missing col
             raise KeyError("Col '%s' is not present" % col)
         # Get values
-        V = self[col]
+        V = self.get_all_values(col)
         # Array length
-        n = len(V)
+        if isinstance(V, np.ndarray):
+            # Use the last dimension
+            n = V.shape[-1]
+            # Get dimensionality
+            ndim = V.ndim
+        else:
+            # Use a a simple length
+            n = len(V)
+            # Always 1D
+            ndim = 1
         # Initialize distances
         d = np.zeros(n, dtype="float")
         # Dictionary of distance weights
@@ -1601,8 +1638,13 @@ class DataKit(ftypes.BaseData):
             d += wi*(self[k] - xi)**2
         # Find minimum distance
         j = np.argmin(d)
-        # Use that value
-        return V[j]
+        # Perform interpolation
+        if ndim == 1:
+            # Single value
+            return V[j]
+        elif ndim == 2:
+            # Use column *j*
+            return V[:,j]
 
     # Evaluate UQ from coefficient
     def rcall_uq(self, *a, **kw):
