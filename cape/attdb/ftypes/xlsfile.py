@@ -1116,3 +1116,118 @@ class XLSFile(BaseFile):
             # Save
             self.save_col(col, V)
   # >
+
+  # ================
+  # Write
+  # ================
+  # <
+   # --- Write Drivers ---
+    # Write a workbook
+    def write_xls(self, fname, cols=None, **kw):
+        # Get file handle based on input type
+        if fname is None:
+            # Use *db.fname*
+            wb = xlsxwriter.Workbook(self.fname)
+        elif typeutils.isstr(fname):
+            # Open new workbook
+            wb = xlsxwriter.Workbook(fname)
+        elif isinstance(fname, xlsxwriter.Workbook):
+            # Already a workbook
+            wb = fname
+        else:
+            # Not a recognized type
+            raise TypeError(
+                "Unrecognized type %s for XLS output file" % type(fname))
+        # Run the primary writer
+        self._write_xls(wb, cols=cols, **kw)
+
+    # Write a workbook
+    def _write_xls(wb, cols=None, **kw):
+        # Get default list of columns
+        if cols is None:
+            # Use all columns
+            cols = self.cols
+        # Check input type
+        if isinstance(wb, xlsxwriter.worksheet.Worksheet):
+            # Already a worksheet
+            ws = wb
+            wb = None
+        elif isinstance(wb, xlsxwriter.Workbook):
+            # Workbook given (normal case)
+            ws = None
+        else:
+            # Bad type
+            raise TypeError(
+                "Unrecognized type %s for XLS output file" % type(wb))
+        # Get worksheet
+        sheets = kw.get("sheet", kw.get("sheets", ["Sheet1"]))
+        # Ensure list
+        if typeutils.isstr(sheets):
+            # Singleton list
+            sheets = [sheets]
+        elif not isinstance(sheets, list):
+            # Bad type
+            raise TypeError("Worksheet list 'sheets' must be list")
+        # Ensure strings
+        for j, sheet in enumerate(sheets):
+            if not typeutils.isstr(sheet):
+                raise TypeError("Worksheet %i is not a str" % sheet)
+        # Check for single worksheet
+        if ws is not None:
+            # Write that worksheet
+            self._write_xls_worksheet(ws, cols, **kw)
+            # Done
+            return
+        # Worksheet columns
+        sheetcols = kw.get("sheetcols")
+        # Replace ``None`` with empty :class:`dict`
+        if sheetcols is None:
+            sheetcols = {}
+        # Additional worksheet writers
+        sheetwriters = kw.get("sheetwriters")
+        sheetwritersself = kw.get("sheetwritersself")
+        sheetwritersplus = kw.get("sheetwritersadd")
+        # Replace ``None`` with empty :class:`dict`
+        if sheetwriters is None:
+            sheetwriters = {}
+        if sheetwritersself is None:
+            sheetwritersself = {}
+        if sheetwritersheader is None:
+            sheetwritersheader = {}
+        # Loop through worksheets
+        for sheet in sheets:
+            # Check if the worksheet is already present
+            ws = wb.sheetnames.get(sheet)
+            # Create new worksheet if needed
+            if ws is None:
+                ws = wb.add_worksheet(sheet)
+            # Check for writer
+            if sheet in sheetwriters:
+                # Get self option
+                qself = sheetwriterself.get(sheet, False)
+                # Get writer
+                fn = sheetwriters[sheet]
+                # Write the special worksheet
+                if qself:
+                    # Include database as an argument
+                    fn(self, ws)
+                else:
+                    # Just give the worksheet handle
+                    fn(ws)
+                # Don't try to write data unless given flag
+                if not sheetwritersheader.get(sheet, False):
+                    continue
+            # Get columns
+            wscols = sheetcols.get(sheet, cols)
+            # Write those columns to this sheet
+            self._write_xls_worksheet(ws, wscols, **kw)
+
+   # --- Worksheet Writers ---
+
+    # Write worksheet
+    def _write_xls_worksheet(ws, cols, **kw):
+        pass
+
+
+   # --- Column Writers ---
+  # >

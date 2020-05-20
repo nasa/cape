@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
 :mod:`cape.attdb.ftypes.csv`: Comma-separated value read/write
 ===============================================================
 
