@@ -133,6 +133,65 @@ class XLSFileDefn(BaseFileDefn):
         ColWidth=int)
 
 
+# Options for CSVFile.write_csv()
+class _WriteXLSOpts(XLSSheetOpts):
+  # ===================
+  # Class Attributes
+  # ===================
+  # <
+   # --- Global Options ---
+    # List of options
+    _optlist = {
+        "ColMasks",
+        "SheetCols",
+        "SheetNames",
+        "SheetPostWriters",
+        "SheetPreWriters",
+        "SheetWriters",
+        "SheetWritersSelfArg",
+        "SheetWritersWorksheetArg",
+        "TransposeCols"
+    }
+
+    # Alternate names
+    _optmap = {
+        "colmasks": "ColMasks",
+        "sheets": "SheetNames",
+        "sheetcols": "SheetCols",
+        "sheetpostwriters": "SheetPostWriters",
+        "sheetprewriters": "SheetPreWriters",
+        "sheetwriters": "SheetWriters",
+        "sheetwriterspost": "SheetPostWriters",
+        "sheetwriterspre": "SheetPreWriters",
+        "sheetwritersself": "SheetWritersSelf",
+        "sheetwritersworksheet": "SheetWritersWorksheetArg",
+        "transposecols": "TransposeCols",
+    }
+
+   # --- Types ---
+    # Types allowed
+    _opttypes = {
+        "ColMasks": dict,
+        "SheetCols": dict,
+        "SheetNames": list,
+        "SheetWriters": dict,
+        "SheetPreWriters": dict,
+        "SheetPostWriters": dict,
+        "SheetWritersSelfArg": (list, set),
+        "SheetWritersWorksheetArg": (list, set),
+        "TransposeCols": (list, set),
+    }
+
+   # --- Defaults ---
+    _rc = {
+        "SheetNames": ["Sheet1"],
+        "TransposeCols": set(),
+    }
+  # >
+
+
+# Combine options
+_WriteXLSOpts.combine_optdefs()
 # Add definition support to option
 XLSFileOpts.set_defncls(XLSFileDefn)
 
@@ -1152,6 +1211,26 @@ class XLSFile(BaseFile):
 
     # Write a workbook
     def _write_xls(self, wb, cols=None, **kw):
+       # --- Special Functions ---
+        def _writer(self, sheet, fn, wb, ws):
+            # Write the special worksheet
+            if sheet in sheetwritersself:
+                # Include database as an argument
+                if sheet in sheetwritersws:
+                    # Use database and worksheet handle
+                    fn(self, ws)
+                else:
+                    # Use database and workbook handle
+                    fn(self, wb)
+            else:
+                # Include database as an argument
+                if sheet in sheetwritersws:
+                    # USe worksheet handle alone
+                    fn(ws)
+                else:
+                    # Just give the worksheet handle
+                    fn(wb)
+       # --- Column List ---
         # Get default list of columns
         if cols is None:
             # Use all columns
@@ -1168,42 +1247,35 @@ class XLSFile(BaseFile):
             # Bad type
             raise TypeError(
                 "Unrecognized type %s for XLS output file" % type(wb))
-        # Get worksheet
-        sheets = kw.get("sheet", kw.get("sheets", ["Sheet1"]))
-        # Ensure list
-        if typeutils.isstr(sheets):
-            # Singleton list
-            sheets = [sheets]
-        elif not isinstance(sheets, list):
-            # Bad type
-            raise TypeError("Worksheet list 'sheets' must be list")
-        # Ensure strings
-        for j, sheet in enumerate(sheets):
-            if not typeutils.isstr(sheet):
-                raise TypeError("Worksheet %i is not a str" % sheet)
+       # --- Options ---
+        # Options handle
+        opts = self.opts
+        # Process kwargs
+        kw = _WriteXLSOpts(**kw)
+        # Dictionary of translators
+        trans = opts.get_option("Translators", {})
+        kw.setdefault("Translators", trans)
         # Check for single worksheet
         if ws is not None:
             # Write that worksheet
             self._write_xls_worksheet(ws, cols, **kw)
             # Done
             return
-        # Worksheet columns
-        sheetcols = kw.get("sheetcols")
-        # Replace ``None`` with empty :class:`dict`
-        if sheetcols is None:
-            sheetcols = {}
+        # Get worksheet list
+        sheets = kw.get_option("SheetNames")
         # Additional worksheet writers
-        sheetwriters = kw.get("sheetwriters")
-        sheetwritersself = kw.get("sheetwritersself")
-        sheetwritersplus = kw.get("sheetwritersadd")
-        sheetwritersheader = kw.get("sheetwritersheader")
-        # Replace ``None`` with empty :class:`dict`
-        if sheetwriters is None:
-            sheetwriters = {}
-        if sheetwritersself is None:
-            sheetwritersself = {}
-        if sheetwritersheader is None:
-            sheetwritersheader = {}
+        sheetwriters = kw.get_option("SheetWriters", {})
+        sheetwriterspre = kw.get_option("SheetPreWriters", {})
+        sheetwriterspost = kw.get_option("SheetPostWriters", {})
+        # Ensure strings
+        for j, sheet in enumerate(sheets):
+            if not typeutils.isstr(sheet):
+                raise TypeError("Worksheet %i is not a str" % sheet)
+        # Worksheet columns
+        sheetcols = kw.get_option("SheetCols", {})
+        # Additional worksheet writers
+        sheetwritersself = kw.get_option("SheetWritersSelfArg", set())
+        sheetwritersws = kw.get_option("SheetWritersWorksheetArg", set())
         # Loop through worksheets
         for sheet in sheets:
             # Check if the worksheet is already present
@@ -1213,40 +1285,51 @@ class XLSFile(BaseFile):
                 ws = wb.add_worksheet(sheet)
             # Check for writer
             if sheet in sheetwriters:
-                # Get self option
-                qself = sheetwriterself.get(sheet, False)
                 # Get writer
                 fn = sheetwriters[sheet]
-                # Write the special worksheet
-                if qself:
-                    # Include database as an argument
-                    fn(self, ws)
-                else:
-                    # Just give the worksheet handle
-                    fn(ws)
-                # Don't try to write data unless given flag
-                if not sheetwritersheader.get(sheet, False):
-                    continue
+                # Write stand-alone worksheet
+                _writer(self, sheet, fn, wb, ws)
+                # Move to next sheet
+                continue
+            elif sheet in sheetwriterspre:
+                # Get writer
+                fn = sheetwriterspre[sheet]
+                # Prepare sheet but also write data
+                _writer(self, sheet, fn, wb, ws)
             # Get columns
             wscols = sheetcols.get(sheet, cols)
             # Write those columns to this sheet
             self._write_xls_worksheet(ws, wscols, **kw)
+            # Check for a posteriori writer
+            if sheet in sheetwriterspost:
+                # Get writer
+                fn = sheetwriterspost[sheet]
+                # Prepare sheet but also write data
+                _writer(self, sheet, fn, wb, ws)
 
    # --- Worksheet Writers ---
     # Write worksheet
     def _write_xls_worksheet(self, ws, cols, **kw):
+        # Process kwargs
+        kw = _WriteXLSOpts(**kw)
         # Get column and row to start on
-        startcol = kw.get("startcol", 0)
-        skiprows = kw.get("skiprows", 0)
+        startcol = kw.get("SkipCols", 0)
+        skiprows = kw.get("SkipRows", 0)
+        subrows = kw.get("SubRows", 0)
         # Current col and row to write at
-        irow = skiprows
+        irow = skiprows + subrows + 1
         jcol = startcol
         # Other options
-        colmasks = kw.get("colmasks", {})
-        transposecols = kw.get("transposecols", [])
-        trans = kw.get("translators", {})
-        prefix = kw.get("prefix")
-        suffix = kw.get("suffix")
+        colmasks = kw.get_option("ColMasks", {})
+        transposecols = kw.get_option("TransposeCols")
+        # Instance column name translation
+        trans = self.opts.get_option("Translators")
+        prefix = self.opts.get_option("Prefix")
+        suffix = self.opts.get_option("Suffix")
+        # Check for overrides
+        trans = kw.get_option("Translators", trans)
+        prefix = kw.get_option("Prefix", prefix)
+        suffix = kw.get_option("Suffix", suffix)
         # Loop through columns
         for col in cols:
             # Get formatting options...
@@ -1254,7 +1337,7 @@ class XLSFile(BaseFile):
             # Translate column names
             ocol = self._translate_colname_reverse(col, trans, prefix, suffix)
             # Write header
-            ws.write(irow, jcol, ocol)
+            ws.write(skiprows, jcol, ocol)
             # Check for subset option
             mask = colmasks.get(col)
             # Get values
@@ -1266,12 +1349,12 @@ class XLSFile(BaseFile):
             # Check type
             if isinstance(v, list):
                 # Simply write column
-                ws.write_column(irow + 1, jcol, v)
+                ws.write_column(irow, jcol, v)
                 # Increment column counter
                 jcol += 1
             elif v.ndim == 1:
                 # Write array to column
-                ws.write_column(irow + 1, jcol, v)
+                ws.write_column(irow, jcol, v)
                 # Increment column counter
                 jcol += 1
             elif v.ndim == 2:
@@ -1280,14 +1363,14 @@ class XLSFile(BaseFile):
                     # Write rows instead of columns
                     for i in range(v.shape[0]):
                         # Write row *i* as a column
-                        ws.write_column(irow + 1, jcol + i, v[i])
+                        ws.write_column(irow, jcol + i, v[i])
                     # Increment column counter
                     jcol += v.shape[0]
                 else:
                     # Write columns as columns
                     for j in range(v.shape[1]):
                         # Write col *j* as a column
-                        ws.write_column(irow + 1, jcol + j, v[:,j])
+                        ws.write_column(irow, jcol + j, v[:,j])
                     # Increment column counter
                     jcol += v.shape[1]
   # >

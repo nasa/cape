@@ -1229,8 +1229,20 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-05-21 ``@ddalle``: First version
         """
+        # Get column names per sheet
+        sheetcols = kw.get("sheetcols", {})
+        # Full set of such cols
+        if cols is None:
+            # Initialize
+            allcols = set()
+        else:
+            # Initialize with specified cols
+            allcols = set(cols)
+        # Combine all columns from *sheetcols*
+        for _cols in sheetcols.values():
+            allcols.update(_cols)
         # Get XLS file interface
-        dbxls = self.make_source("xls", ftypes.XLSFile, cols=cols)
+        dbxls = self.make_source("xls", ftypes.XLSFile, cols=allcols)
         # Write it
         dbxls.write_xls(fname, cols=cols, **kw)
 
