@@ -1128,21 +1128,30 @@ class XLSFile(BaseFile):
         if fname is None:
             # Use *db.fname*
             wb = xlsxwriter.Workbook(self.fname)
+            # Close it upon completion
+            qclose = True
         elif typeutils.isstr(fname):
             # Open new workbook
             wb = xlsxwriter.Workbook(fname)
+            # Close it upon completion
+            qclose = True
         elif isinstance(fname, xlsxwriter.Workbook):
             # Already a workbook
             wb = fname
+            # Don't close it upon completion
+            qclose = False
         else:
             # Not a recognized type
             raise TypeError(
                 "Unrecognized type %s for XLS output file" % type(fname))
         # Run the primary writer
-        self._write_xls(wb, cols=cols, **kw)
+        self._write_xls(wb, cols, **kw)
+        # Close the workbook
+        if qclose:
+            wb.close()
 
     # Write a workbook
-    def _write_xls(wb, cols=None, **kw):
+    def _write_xls(self, wb, cols=None, **kw):
         # Get default list of columns
         if cols is None:
             # Use all columns
@@ -1187,6 +1196,7 @@ class XLSFile(BaseFile):
         sheetwriters = kw.get("sheetwriters")
         sheetwritersself = kw.get("sheetwritersself")
         sheetwritersplus = kw.get("sheetwritersadd")
+        sheetwritersheader = kw.get("sheetwritersheader")
         # Replace ``None`` with empty :class:`dict`
         if sheetwriters is None:
             sheetwriters = {}
@@ -1223,11 +1233,61 @@ class XLSFile(BaseFile):
             self._write_xls_worksheet(ws, wscols, **kw)
 
    # --- Worksheet Writers ---
-
     # Write worksheet
-    def _write_xls_worksheet(ws, cols, **kw):
-        pass
-
-
-   # --- Column Writers ---
+    def _write_xls_worksheet(self, ws, cols, **kw):
+        # Get column and row to start on
+        startcol = kw.get("startcol", 0)
+        skiprows = kw.get("skiprows", 0)
+        # Current col and row to write at
+        irow = skiprows
+        jcol = startcol
+        # Other options
+        colmasks = kw.get("colmasks", {})
+        transposecols = kw.get("transposecols", [])
+        trans = kw.get("translators", {})
+        prefix = kw.get("prefix")
+        suffix = kw.get("suffix")
+        # Loop through columns
+        for col in cols:
+            # Get formatting options...
+            
+            # Translate column names
+            ocol = self._translate_colname_reverse(col, trans, prefix, suffix)
+            # Write header
+            ws.write(irow, jcol, ocol)
+            # Check for subset option
+            mask = colmasks.get(col)
+            # Get values
+            v = self[col]
+            # Check for a mask
+            if mask:
+                # Apply it
+                v = v[mask]
+            # Check type
+            if isinstance(v, list):
+                # Simply write column
+                ws.write_column(irow + 1, jcol, v)
+                # Increment column counter
+                jcol += 1
+            elif v.ndim == 1:
+                # Write array to column
+                ws.write_column(irow + 1, jcol, v)
+                # Increment column counter
+                jcol += 1
+            elif v.ndim == 2:
+                # Check for transpose option
+                if col in transposecols:
+                    # Write rows instead of columns
+                    for i in range(v.shape[0]):
+                        # Write row *i* as a column
+                        ws.write_column(irow + 1, jcol + i, v[i])
+                    # Increment column counter
+                    jcol += v.shape[0]
+                else:
+                    # Write columns as columns
+                    for j in range(v.shape[1]):
+                        # Write col *j* as a column
+                        ws.write_column(irow + 1, jcol + j, v[:,j])
+                    # Increment column counter
+                    jcol += v.shape[1]
   # >

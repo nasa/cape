@@ -1022,8 +1022,8 @@ class DataKit(ftypes.BaseData):
         from that object.  Otherwise, :func:`make_source` is called.
 
         :Call:
-            >>> db.write_csv_dense(fname, cols=None, **kw)
-            >>> db.write_csv_dense(f, cols=None, **kw)
+            >>> db.write_csv(fname, cols=None, **kw)
+            >>> db.write_csv(f, cols=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
@@ -1205,6 +1205,34 @@ class DataKit(ftypes.BaseData):
             # Save it
             self.sources[name] = dbf
 
+    # Write XLSX file
+    def write_xls(self, fname, cols=None, **kw):
+        r""""Write XLS file with full options
+
+        If *db.sources* has a XLS file, the database will be written
+        from that object.  Otherwise, :func:`make_source` is called.
+
+        :Call:
+            >>> db.write_xls(fname, cols=None, **kw)
+            >>> db.write_xls(wb, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *fname*: :class:`str`
+                Name of file to write
+            *wb*: :class:`xlsxwriter.Workbook`
+                Opened XLS workbook
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of columns to write
+            *kw*: :class:`dict`
+                Keyword args to :func:`CSVFile.write_csv`
+        :Versions:
+            * 2020-05-21 ``@ddalle``: First version
+        """
+        # Get XLS file interface
+        dbxls = self.make_source("xls", ftypes.XLSFile, cols=cols)
+        # Write it
+        dbxls.write_xls(fname, cols=cols, **kw)
 
    # --- MAT ---
     # Read MAT file
