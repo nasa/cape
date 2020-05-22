@@ -9396,8 +9396,9 @@ class DataKit(ftypes.BaseData):
             * 2020-04-03 ``@ddalle``: First version
         """
         # Read a text file
-        self.read_textdata(
-            fseam, NanDivider=True, cols=[xcol, ycol], save=False)
+        if fseam is not None:
+            self.read_textdata(
+                fseam, NanDivider=True, cols=[xcol, ycol], save=False)
         # Save col names
         self.set_seam_col(seam, xcol, ycol)
         # Save the keyword args
