@@ -61,9 +61,11 @@ class XLSFileOpts(BaseFileOpts):
         "MaxRows",
         "SkipCols",
         "SkipRows",
+        "SkipSheets",
         "SubCols",
         "SubRows",
         "WorksheetOptions",
+        "WorksheetPrefix",
         "sheet"
     }
 
@@ -76,8 +78,13 @@ class XLSFileOpts(BaseFileOpts):
         "sheetopts": "WorksheetOptions",
         "skipcols": "SkipCols",
         "skiprows": "SkipRows",
+        "skipsheets": "SkipSheets",
         "subcols": "SubCols",
         "subrows": "SubRows",
+        "wsprefix": "WorksheetPrefix",
+        "wsprefixes": "WorksheetPrefixes",
+        "worksheetprefix": "WorksheetPrefix",
+        "worksheetprefixes": "WorksheetPrefixes",
     }
 
    # --- Types ---
@@ -90,7 +97,10 @@ class XLSFileOpts(BaseFileOpts):
         "SubRows": int,
         "SkipCols": int,
         "SkipRows": int,
+        "SkipSheets": (set, list),
         "WorksheetOptions": dict,
+        "WorksheetPrefix": bool,
+        "WorksheetPrefixes": dict,
     }
 
 
@@ -105,6 +115,7 @@ class XLSSheetOpts(XLSFileOpts):
     _optrm = {
         "ExpandScalars",
         "Definitions",
+        "SkipSheets",
         "Values",
         "WorksheetOptions",
         "sheet"
@@ -424,6 +435,11 @@ class XLSFile(BaseFile):
         """
         # Combine options if needed
         self.opts.update(**kw)
+        # Get sheets to skip
+        skipsheets = self.opts.get_option("SkipSheets", set())
+        # Option for automatic prefix
+        wsprefix = self.opts.get_option("WorksheetPrefix", True)
+        wsprefixes = self.opts.get_option("WorksheetPrefixes", {})
         # Check number of sheets
         if wb.nsheets == 1:
             # Get the first (only) worksheet
@@ -431,18 +447,39 @@ class XLSFile(BaseFile):
             # Read it without prefixing column names
             self.read_xls_worksheet(ws)
         else:
+            # Save original prefix
+            _prefix = self.opts.get("Prefix")
             # Loop through worksheets
             for wsname in wb.sheet_names():
+                # Check for explicit instruction to skip
+                if wsname in skipsheets:
+                    continue
                 # Try to read worsheet; do nothing if fails
                 try:
-                    # Use worksheet name as prefix to avoid name clash
-                    self.opts['Prefix'] = wsname + '.'
+                    # Check for prefix option
+                    if wsprefix:
+                        # Use worksheet name as prefix to avoid name clash
+                        prefix = wsname + "."
+                    else:
+                        # Default to no prefix
+                        prefix = ""
+                    # Check for explicit prefix
+                    prefix = wsprefixes.get(wsname, prefix)
+                    # Apply prefix
+                    self.opts['Prefix'] = prefix
                     # Get the worksheet handle
                     ws = wb.sheet_by_name(wsname)
                     # Read it
                     self.read_xls_worksheet(ws)
                 except Exception:
                     pass
+            # Reset original prefix
+            if _prefix is None:
+                # Remove any that was added
+                self.opts.pop("Prefix", None)
+            else:
+                # Reset original
+                self.opts["Prefix"] = _prefix
 
     # Read a worksheet
     def read_xls_worksheet(self, ws, **kw):
