@@ -483,7 +483,7 @@ class DataKit(ftypes.BaseData):
             # Shallow copy
             return copy.copy(v)
   # >
-        
+
   # ==================
   # Options
   # ==================
@@ -632,7 +632,7 @@ class DataKit(ftypes.BaseData):
         # Get column definition
         defn = self.get_defn(col)
         # Get dimensionality
-        ndim = defn.get("Dimension", 1)
+        ndim = defn.get("Dimension")
         # Check valid result
         if isinstance(ndim, int):
             return ndim
@@ -8255,7 +8255,7 @@ class DataKit(ftypes.BaseData):
         # Output
         return col, I, J, a, kw
 
-    # Process arguments to plot_scalar()
+    # Process arguments to plot_linear()
     def _prep_args_plot2(self, *a, **kw):
         r"""Process arguments to :func:`plot_linear`
 
