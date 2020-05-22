@@ -1183,6 +1183,51 @@ class XLSFile(BaseFile):
    # --- Write Drivers ---
     # Write a workbook
     def write_xls(self, fname, cols=None, **kw):
+        r"""Write data to one or more worksheets
+
+        :Call:
+            >>> db.write_xls(fname, cols=None, **kw)
+            >>> db.write_xls(wb, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+                XLS file interface
+            *fname*: {*db.fname*} | :class:`str`
+                Name of XLS file to create
+            *wb*: :class:`xlsxwriter.workbook.Workbook`
+                Workbook (write) interface
+            *cols*: :class:`list`\ [:class:`str`]
+                List of data columns to write
+            *SheetNames* | *sheets*: :class:`list`\ [:class:`str`]
+                List of worksheets to write
+            *SheetCols* | *sheetcols*: :class:`dict`\ [:class:`list`]
+                List of columns to write to each worksheet
+            *SheetWriters*: :class:`dict`\ [**callable**]
+                Handles to standalone writers for some worksheets
+            *SheetPreWriters*: :class:`dict`\ [**callable**]
+                Functions to write some things to worksheet before also
+                writing data columns
+            *SheetPostWriters*: :class:`dict`\ [**callable**]
+                Functions to write to worksheet after writing data
+            *SheetWritersSelfArg*: :class:`list` | :class:`set`
+                List/set of sheets whose *Writers* take *db* as an arg
+            *SheetWritersWorksheetArg*: :class:`list` | :class:`set`
+                List/set of sheets whose *Writers* take worksheet
+                instead of workbook as arg
+            *SkipCols*: {``0``} | :class:`int` > 0
+                Number of columns to skip before writing
+            *SkipRows*: {``0``} | :class:`int` > 0
+                Number of rows to skip before writing
+            *ColMasks*: {``{}``} | :class:`dict`
+                Masks (subset indices) for some *cols*
+            *Translators*: {``{}``} | :class:`dict`
+                Column name translators (applied in reverse)
+            *Prefix*: {``None``} | :class:`dict` | :class:`str`
+                Prefix (applied in reverse)
+            *Suffix*: {``None``} | :class:`dict` | :class:`str`
+                Suffix (applied in reverse)
+        :Versions:
+            * 2020-05-21 ``@ddalle``: First version
+        """
         # Get file handle based on input type
         if fname is None:
             # Use *db.fname*
@@ -1211,6 +1256,48 @@ class XLSFile(BaseFile):
 
     # Write a workbook
     def _write_xls(self, wb, cols=None, **kw):
+        r"""Write data to one or more worksheets
+
+        :Call:
+            >>> db._write_xls(wb, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+                XLS file interface
+            *wb*: :class:`xlsxwriter.workbook.Workbook`
+                Workbook (write) interface
+            *cols*: :class:`list`\ [:class:`str`]
+                List of data columns to write
+            *SheetNames* | *sheets*: :class:`list`\ [:class:`str`]
+                List of worksheets to write
+            *SheetCols* | *sheetcols*: :class:`dict`\ [:class:`list`]
+                List of columns to write to each worksheet
+            *SheetWriters*: :class:`dict`\ [**callable**]
+                Handles to standalone writers for some worksheets
+            *SheetPreWriters*: :class:`dict`\ [**callable**]
+                Functions to write some things to worksheet before also
+                writing data columns
+            *SheetPostWriters*: :class:`dict`\ [**callable**]
+                Functions to write to worksheet after writing data
+            *SheetWritersSelfArg*: :class:`list` | :class:`set`
+                List/set of sheets whose *Writers* take *db* as an arg
+            *SheetWritersWorksheetArg*: :class:`list` | :class:`set`
+                List/set of sheets whose *Writers* take worksheet
+                instead of workbook as arg
+            *SkipCols*: {``0``} | :class:`int` > 0
+                Number of columns to skip before writing
+            *SkipRows*: {``0``} | :class:`int` > 0
+                Number of rows to skip before writing
+            *ColMasks*: {``{}``} | :class:`dict`
+                Masks (subset indices) for some *cols*
+            *Translators*: {``{}``} | :class:`dict`
+                Column name translators (applied in reverse)
+            *Prefix*: {``None``} | :class:`dict` | :class:`str`
+                Prefix (applied in reverse)
+            *Suffix*: {``None``} | :class:`dict` | :class:`str`
+                Suffix (applied in reverse)
+        :Versions:
+            * 2020-05-21 ``@ddalle``: First version
+        """
        # --- Special Functions ---
         def _writer(self, sheet, fn, wb, ws):
             # Write the special worksheet
@@ -1310,6 +1397,32 @@ class XLSFile(BaseFile):
    # --- Worksheet Writers ---
     # Write worksheet
     def _write_xls_worksheet(self, ws, cols, **kw):
+        r"""Write data to one worksheet
+
+        :Call:
+            >>> db._write_xls_worksheet(ws, cols, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+                XLS file interface
+            *ws*: :class:`xlsxwriter.worksheet.Worksheet`
+                Worksheet interface
+            *cols*: :class:`list`\ [:class:`str`]
+                List of data columns to write
+            *SkipCols*: {``0``} | :class:`int` > 0
+                Number of columns to skip before writing
+            *SkipRows*: {``0``} | :class:`int` > 0
+                Number of rows to skip before writing
+            *ColMasks*: {``{}``} | :class:`dict`
+                Masks (subset indices) for some *cols*
+            *Translators*: {``{}``} | :class:`dict`
+                Column name translators (applied in reverse)
+            *Prefix*: {``None``} | :class:`dict` | :class:`str`
+                Prefix (applied in reverse)
+            *Suffix*: {``None``} | :class:`dict` | :class:`str`
+                Suffix (applied in reverse)
+        :Versions:
+            * 2020-05-21 ``@ddalle``: First version
+        """
         # Process kwargs
         kw = _WriteXLSOpts(**kw)
         # Get column and row to start on
