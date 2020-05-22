@@ -8928,12 +8928,16 @@ class DataKit(ftypes.BaseData):
             return h
         # Get axes
         ax_seam = fig.add_subplot(212)
+        # Turn on auto-scaled axes
+        
         # Get col names for seam
         xcol, ycol = self.get_seam_col(seam)
         # Get plot kwargs
         kw_seam = self.get_seam_kwargs(seam)
         # Plot the image
         hseam = pmpl.plot(self[xcol], self[ycol], **kw_seam)
+        # Rescale
+        pmpl.axes_autoscale_height(ax_seam)
         # Steal the x-axis label
         xlbl = h.ax.get_xlabel()
         # Shift it from main plot to seam plot

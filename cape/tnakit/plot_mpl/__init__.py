@@ -33,6 +33,7 @@ from . import mpl
 from .mplopts import MPLOpts
 from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
+    axes_autoscale_height,
     axlabel, auto_xlim, auto_ylim, get_figure,
     figure, grid, imshow, spine, spines)
 
