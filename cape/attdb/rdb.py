@@ -8928,8 +8928,6 @@ class DataKit(ftypes.BaseData):
             return h
         # Get axes
         ax_seam = fig.add_subplot(212)
-        # Turn on auto-scaled axes
-        
         # Get col names for seam
         xcol, ycol = self.get_seam_col(seam)
         # Get plot kwargs
@@ -9225,6 +9223,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-04-01 ``@jmeeroff``: First version
             * 2020-04-02 ``@ddalle``: Use :class:`MPLOpts`
+            * 2020-05-26 ``@ddalle``: Combine existing *png_kwargs*
         """
         # Get handle to kw 
         png_kwargs = self.__dict__.setdefault("png_kwargs", {})
@@ -9234,8 +9233,12 @@ class DataKit(ftypes.BaseData):
                 "PNG name must be str (got %s)" % type(png))
         elif not isinstance(png_kwargs, dict):
             raise TypeError("png_kwargs attribute is not a dict")
+        # Get existing options
+        kw_png = png_kwargs.get(png, {})
+        # Combine options
+        kw_png.update(**kw)
         # Convert to options and check
-        kw = pmpl.MPLOpts(_section="imshow", **kw)
+        kw = pmpl.MPLOpts(_sections=["imshow", "axformat"], **kw_png)
         # Save it
         png_kwargs[png] = kw
 
@@ -9538,6 +9541,7 @@ class DataKit(ftypes.BaseData):
                 Options to use when showing seam curve
         :Versions:
             * 2020-04-02 ``@jmeeroff``: First version
+            * 2020-05-26 ``@ddalle``: Combine existing *png_kwargs*
         """
         # Get handle to kw 
         seam_kwargs = self.__dict__.setdefault("seam_kwargs", {})
@@ -9547,8 +9551,12 @@ class DataKit(ftypes.BaseData):
                 "seam name must be str (got %s)" % type(seam))
         elif not isinstance(seam_kwargs, dict):
             raise TypeError("seam_kwargs attribute is not a dict")
+        # Check for existing *kwargs*
+        kw_seam = seam_kwargs.get(seam, {})
+        # Update them
+        kw_seam.update(**kw)
         # Convert to options and check
-        kw = pmpl.MPLOpts(_section="plot", **kw)
+        kw = pmpl.MPLOpts(_sections=["plot", "axformat"], **kw_seam)
         # Save it
         seam_kwargs[seam] = kw
 
