@@ -307,7 +307,7 @@ def py2rst(v, **kw):
             kw_str["markup"] = markups["str"]
         # Convert string
         return py2rst_str(v, **kw_str)
-    elif isinstance(v, (list, tuple)):
+    elif isinstance(v, (list, tuple, set)):
         # Convert list
         return py2rst_list(v, **kw)
     elif isinstance(v, dict):
@@ -606,7 +606,7 @@ def py2rst_list(V, **kw):
         * 2019-04-25 ``@ddalle``: First version
     """
     # Check input types
-    if not isinstance(V, (list, tuple)):
+    if not isinstance(V, (list, tuple, set)):
         raise TypeError(
             "Cannot convert type '%s' to list" % V.__class__.__name__)
     # Length to consider a single string
