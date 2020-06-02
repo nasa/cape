@@ -7966,7 +7966,7 @@ class DataKit(ftypes.BaseData):
         r"""Integrate the columns of a 2D data col
 
         :Call:
-            >>> y = db.genr8_integral(col, xcol=None, **kw)
+            >>> y = db.create_integral(col, xcol=None, icol=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with analysis tools
@@ -7974,17 +7974,26 @@ class DataKit(ftypes.BaseData):
                 Name of data column to integrate
             *xcol*: {``None``} | :class:`str`
                 Name of column to use as *x*-coords for integration
+            *icol*: {``col[1:]``} | :class:`str`
+                Name of col to store result in
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate 
             *x*: {``None``} | :class:`np.ndarray`
                 Optional 1D or 2D *x*-coordinates directly specified
             *dx*: {``1.0``} | :class:`float`
                 Uniform spacing to use if *xcol* and *x* are not used
-            *method*: {``"trapz"``} | ``"left"`` | ``"right"``
-                Integration method
+            *method*: |intmethods|
+                Integration method or callable function taking two args
+                like :func:`np.trapz`
         :Outputs:
             *y*: :class:`np.ndarray`
                 1D array of integral of each column of *db[col]*
         :Versions:
             * 2020-03-24 ``@ddalle``: First version
+            * 2020-06-02 ``@ddalle``: Added *mask*, callable *method*
+
+        .. |intmethods| replace::
+            {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
         """
         # Default column name
         if icol is None:
@@ -8012,17 +8021,24 @@ class DataKit(ftypes.BaseData):
                 Name of data column to integrate
             *xcol*: {``None``} | :class:`str`
                 Name of column to use as *x*-coords for integration
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate 
             *x*: {``None``} | :class:`np.ndarray`
                 Optional 1D or 2D *x*-coordinates directly specified
             *dx*: {``1.0``} | :class:`float`
                 Uniform spacing to use if *xcol* and *x* are not used
-            *method*: {``"trapz"``} | ``"left"`` | ``"right"``
-                Integration method
+            *method*: |intmethods|
+                Integration method or callable function taking two args
+                like :func:`np.trapz`
         :Outputs:
             *y*: :class:`np.ndarray`
                 1D array of integral of each column of *db[col]*
         :Versions:
             * 2020-03-24 ``@ddalle``: First version
+            * 2020-06-02 ``@ddalle``: Added *mask*, callable *method*
+
+        .. |intmethods| replace::
+            {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
         """
         # Select method
         method = kw.get("method")
@@ -8030,21 +8046,24 @@ class DataKit(ftypes.BaseData):
         if method is None:
             method = "trapz"
         # Check it
-        if not typeutils.isstr(method):
+        if not (callable(method) or typeutils.isstr(method)):
             # Method must be string
-            raise TypeError("'method' must be 'str', got '%s'" % type(method))
+            raise TypeError(
+                "'method' must be 'str' or callable, got '%s'" % type(method))
         if method not in {"trapz", "left", "right"}:
             # Invalid name
             raise ValueError(
                 ("method '%s' not supported; " % method) +
                 ("options are 'trapz', 'left', 'right'"))
+        # Get mask
+        mask = kw.get("mask")
         # Get dimension of *col*
         ndim = self.get_col_prop(col, "Dimension")
         # Ensure 2D column
         if ndim != 2:
             raise ValueError("Col '%s' is not 2D" % col)
         # Get values
-        Y = self.get_all_values(col)
+        Y = self.get_values(col, mask)
         # Number of conditions
         nx, ny = Y.shape
         # Process *x*
@@ -8105,6 +8124,12 @@ class DataKit(ftypes.BaseData):
             elif method == "right":
                 # Upper rectangular sum
                 y[i] = np.sum(dx * Y[:,i][1:])
+            elif ndx == 1:
+                # Callable with common *x*
+                y[i] = method(Y[:,i], x)
+            else:
+                # Callable with custom *x*
+                y[i] = method(Y[:,i], x[:,i])
         # Output
         return y
   # >
