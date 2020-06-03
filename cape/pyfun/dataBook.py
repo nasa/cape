@@ -508,7 +508,7 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
         # Output format
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Read the plt information
-        pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+        cape.pyfun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
 # class DBTriqFM
     
 
