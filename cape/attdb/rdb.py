@@ -7962,11 +7962,11 @@ class DataKit(ftypes.BaseData):
 
    # --- Integration ---
     # Integrate a 2D field
-    def create_integral(self, col, xcol=None, icol=None, **kw):
+    def create_integral(self, col, xcol=None, ocol=None, **kw):
         r"""Integrate the columns of a 2D data col
 
         :Call:
-            >>> y = db.create_integral(col, xcol=None, icol=None, **kw)
+            >>> y = db.create_integral(col, xcol=None, ocol=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with analysis tools
@@ -7974,7 +7974,7 @@ class DataKit(ftypes.BaseData):
                 Name of data column to integrate
             *xcol*: {``None``} | :class:`str`
                 Name of column to use as *x*-coords for integration
-            *icol*: {``col[1:]``} | :class:`str`
+            *ocol*: {``col[1:]``} | :class:`str`
                 Name of col to store result in
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
                 Mask or indices of which cases to integrate 
@@ -7996,15 +7996,15 @@ class DataKit(ftypes.BaseData):
             {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
         """
         # Default column name
-        if icol is None:
+        if ocol is None:
             # Try to remove a "d" from *col* ("dCN" -> "CN")
-            icol = self.lstrip_colname(col, "d")
+            ocol = self.lstrip_colname(col, "d")
         # Perform the integration
         y = self.genr8_integral(col, xcol, **kw)
         # Save column
-        self.save_col(icol, y)
+        self.save_col(ocol, y)
         # Save definition
-        self.make_defn(icol, y)
+        self.make_defn(ocol, y)
         # Output
         return y
 

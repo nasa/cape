@@ -1308,6 +1308,90 @@ class DBFM(rdbaero.AeroDataKit):
         parts[-1] = acoeff
         # Output
         return ".".join(parts)
+
+    # Get *CLM* col name from *CN*
+    def _getcol_CLM_from_CN(self, col):
+        r"""Form *CLM* col name from *CN* col name
+
+        :Call:
+            >>> acol = db._getcol_CLM_from_CN(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+            *col*: ``"CN"`` | :class:`str`
+                Name of *CN* column
+        :Outputs:
+            *acol*: ``"CLM"`` | :class:`str`
+                Name of *CLM* column
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Split component and coeff
+        parts = col.split(".")
+        # Get coeff
+        coeff = parts[-1]
+        # Get aux column name
+        if coeff.endswith("N"):
+            # CN -> CLM
+            acoeff = coeff[:-1] + "LM"
+        elif coeff.startswith("CN"):
+            # CNF -> CLMF
+            acoeff = "CLM" + coeff[2:]
+        elif coeff.startswith("FN"):
+            # FN -> MLM
+            acoeff = "MLM" + acoeff[2:]
+        elif coeff.startswith("Fz"):
+            # My -> Fz
+            acoeff = "My" + coeff[2:]
+        else:
+            # Just add LM
+            acoeff = coeff + "LM"
+        # Save updated coeff
+        parts[-1] = acoeff
+        # Output
+        return ".".join(parts)
+
+    # Get *CY* col name from *CLN*
+    def _getcol_CLN_from_CY(self, col):
+        r"""Form *CLN* col name from *CY* col name
+
+        :Call:
+            >>> acol = db._getcol_CLN_from_CY(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+            *col*: ``"CY"`` | :class:`str`
+                Name of *CY* column
+        :Outputs:
+            *acol*: ``"CLN"`` | :class:`str`
+                Name of *CLN* column
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Split component and coeff
+        parts = col.split(".")
+        # Get coeff
+        coeff = parts[-1]
+        # Get aux column name
+        if coeff.endswith("Y"):
+            # CY -> CLN
+            acoeff = coeff[:-1] + "LM"
+        elif coeff.startswith("CY"):
+            # CYF -> CLNF
+            acoeff = "CLN" + coeff[2:]
+        elif coeff.startswith("FY"):
+            # FY -> MLN
+            acoeff = "MLN" + acoeff[2:]
+        elif coeff.startswith("Fy"):
+            # Mz -> Fy
+            acoeff = "Mz" + coeff[2:]
+        else:
+            # Just add LN
+            acoeff = coeff + "LN"
+        # Save updated coeff
+        parts[-1] = acoeff
+        # Output
+        return ".".join(parts)
   # >
 
 

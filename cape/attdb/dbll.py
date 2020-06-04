@@ -40,6 +40,9 @@ the non-dimensional *x*-coordinate.
 import os
 import sys
 
+# Third-party modules
+import numpy as np
+
 # CAPE modules
 import cape.attdb.convert as convert
 import cape.tnakit.kwutils as kwutils
@@ -149,6 +152,578 @@ class DBLL(dbfm.DBFM):
   # >
 
   # ==================
+  # Moments
+  # ==================
+  # <
+   # --- Moment Line Loads ---
+    # Calculate and store moments if needed
+    def make_ll_moment(self, col, ax1, ax2, ocol=None, **kw):
+        r"""Make a moment line load based on a force line load
+
+        :Call:
+            >>> v = db.make_ll_moment(col, ax1, ax2, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *ax1*: ``0`` | ``1`` | ``2`` | ``"x"`` | ``"y"`` | ``"z"``
+                Force axis direction
+            *ax2*: ``0`` | ``1`` | ``2`` | ``"x"`` | ``"y"`` | ``"z"``
+                Moment axis direction
+            *ocol*: {``None``} | :class:`str`
+                Name of col in which to store output; default is *col*
+                plus ``"_M%s_d%s" % (ax2, ax1)``
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *ycol*: {``None``} | :class:`str`
+                Name of column to use as *y*-coords for moment arm
+            *zcol*: {``None``} | :class:`str`
+                Name of column to use as *z*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *y*: {``None``} | :class:`np.ndarray`
+                Explicit *y*-coords for moment arm
+            *z*: {``None``} | :class:`np.ndarray`
+                Explicit *z*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate 
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *yMRP*: {``DB.yMRP``} | :class:`float`
+                Moment reference point *y*-coordinate
+            *zMRP*: {``DB.yMRP``} | :class:`float`
+                Moment reference point *z*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Default column to save
+        if ocol is None:
+            # Add axes to *col*
+            ocol = col + ("_M%s_d%s" % (ax2, ax1))
+        # Check if already present
+        if ocol in self:
+            return self.get_values(ocol, mask=kw.get("mask"))
+        # Otherwise, create it
+        return self.create_ll_moment(col, ax1, ax2, ocol=ocol, **kw)
+
+    # Calculate pitching moment
+    def make_dclm(self, col, xcol=None, ocol=None, **kw):
+        r"""Create a *dCLM* line load from *dCN* if not present
+
+        :Call:
+            >>> v = db.make_dclm(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Default column to save
+        if ocol is None:
+            # Try to convert name
+            ocol = self._get_CLM_from_CN(col)
+        # Check if present
+        if ocol in self:
+            return self.get_values(ocol, mask=kw.get("mask"))
+        # Calculate moment
+        v = self.genr8_dclm(col, xcol, **kw)
+        # Save them
+        self.save_col(ocol, v)
+        # Create definition
+        self.make_defn(ocol, v)
+        # Output
+        return v
+
+    # Calculate yawing moment
+    def make_dcln(self, col, xcol=None, ocol=None, **kw):
+        r"""Create a *dCLN* line load from *dCY* if not present
+
+        :Call:
+            >>> v = db.make_dcln(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Default column to save
+        if ocol is None:
+            # Try to convert name
+            ocol = self._get_CLM_from_CN(col)
+        # Check if present
+        if ocol in self:
+            return self.get_values(ocol, mask=kw.get("mask"))
+        # Calculate moment
+        v = self.genr8_dclm(col, xcol, **kw)
+        # Save them
+        self.save_col(ocol, v)
+        # Create definition
+        self.make_defn(ocol, v)
+        # Output
+        return v
+        
+    # Calculate and store moments
+    def create_ll_moment(self, col, ax1, ax2, ocol=None, **kw):
+        r"""Create a moment line load based on a force line load
+
+        :Call:
+            >>> v = db.create_ll_moment(col, ax1, ax2, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *ax1*: ``0`` | ``1`` | ``2`` | ``"x"`` | ``"y"`` | ``"z"``
+                Force axis direction
+            *ax2*: ``0`` | ``1`` | ``2`` | ``"x"`` | ``"y"`` | ``"z"``
+                Moment axis direction
+            *ocol*: {``None``} | :class:`str`
+                Name of col in which to store output; default is *col*
+                plus ``"_M%s_d%s" % (ax2, ax1)``
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *ycol*: {``None``} | :class:`str`
+                Name of column to use as *y*-coords for moment arm
+            *zcol*: {``None``} | :class:`str`
+                Name of column to use as *z*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *y*: {``None``} | :class:`np.ndarray`
+                Explicit *y*-coords for moment arm
+            *z*: {``None``} | :class:`np.ndarray`
+                Explicit *z*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate 
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *yMRP*: {``DB.yMRP``} | :class:`float`
+                Moment reference point *y*-coordinate
+            *zMRP*: {``DB.yMRP``} | :class:`float`
+                Moment reference point *z*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Calculate the moments
+        v = self.genr8_ll_moment(col, ax1, ax2, **kw)
+        # Default column to save
+        if ocol is None:
+            # Add axes to *col*
+            ocol = col + ("_M%s_d%s" % (ax2, ax1))
+        # Save them
+        self.save_col(ocol, v)
+        # Create definition
+        self.make_defn(ocol, v)
+        # Output
+        return v
+
+    # Calculate pitching moment
+    def create_dclm(self, col, xcol=None, ocol=None, **kw):
+        r"""Create a *dCLM* line load based on *dCN* line load
+
+        :Call:
+            >>> v = db.create_dclm(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Calculate moment
+        v = self.genr8_dclm(col, xcol, **kw)
+        # Default column to save
+        if ocol is None:
+            # Try to convert name
+            ocol = self._get_CLM_from_CN(col)
+        # Save them
+        self.save_col(ocol, v)
+        # Create definition
+        self.make_defn(ocol, v)
+        # Output
+        return v
+
+    # Calculate yawing moment
+    def create_dcln(self, col, xcol=None, ocol=None, **kw):
+        r"""Create a *dCLN* line load based on *dCY* line load
+
+        :Call:
+            >>> v = db.create_dcln(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Calculate moment
+        v = self.genr8_dclm(col, xcol, **kw)
+        # Default column to save
+        if ocol is None:
+            # Try to convert name
+            ocol = self._get_CLM_from_CN(col)
+        # Save them
+        self.save_col(ocol, v)
+        # Create definition
+        self.make_defn(ocol, v)
+        # Output
+        return v
+
+    # Calculate moments
+    def genr8_ll_moment(self, col, ax1, ax2, **kw):
+        r"""Create a moment line load based on a force line load
+
+        :Call:
+            >>> v = db.genr8_ll_moment(col, ax1, ax2, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *ax1*: ``0`` | ``1`` | ``2`` | ``"x"`` | ``"y"`` | ``"z"``
+                Force axis direction
+            *ax2*: ``0`` | ``1`` | ``2`` | ``"x"`` | ``"y"`` | ``"z"``
+                Moment axis direction
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *ycol*: {``None``} | :class:`str`
+                Name of column to use as *y*-coords for moment arm
+            *zcol*: {``None``} | :class:`str`
+                Name of column to use as *z*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *y*: {``None``} | :class:`np.ndarray`
+                Explicit *y*-coords for moment arm
+            *z*: {``None``} | :class:`np.ndarray`
+                Explicit *z*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate 
+            *x*: {``None``} | :class:`np.ndarray`
+                Optional 1D or 2D *x*-coordinates directly specified
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+       # --- Reference Quantities ---
+        # Get reference coordinates and scales
+        xMRP = kw.get("xMPR", self.__dict__.get("xMRP", 0.0))
+        yMRP = kw.get("yMPR", self.__dict__.get("yMRP", 0.0))
+        zMRP = kw.get("zMPR", self.__dict__.get("zMRP", 0.0))
+        Lref = kw.get("Lref", self.__dict__.get("Lref", 1.0))
+        # Nondimensionalize
+        xmrp = xMRP / Lref
+        ymrp = yMRP / Lref
+        zmrp = zMRP / Lref
+       # --- Axes ---
+        # Check *ax1*
+        if ax1 not in {0, 1, 2, "x", "y", "z"}:
+            raise ValueError("Unrecognized value for moment axis (*ax1*)")
+        # Check *ax2*
+        if ax2 not in {0, 1, 2, "x", "y", "z"}:
+            raise ValueError("Unrecognized value for moment axis (*ax2*)")
+       # --- Slice Coordinates ---
+        # Get mask
+        mask = kw.get("mask")
+        # Get dimension of *col*
+        ndim = self.get_col_prop(col, "Dimension")
+        # Ensure 2D column
+        if ndim != 2:
+            raise ValueError("Col '%s' is not 2D" % col)
+        # Get values
+        V = self.get_values(col, mask)
+        # Number of conditions
+        ncut, nv = V.shape
+        # Process *x*-coordinates
+        xcol = kw.get("xcol")
+        ycol = kw.get("ycol")
+        zcol = kw.get("zcol")
+        # Process *x*
+        if xcol is None:
+            # Use 0, 1, 2, ... as *x* coords
+            x = kw.get("x", 0.0)
+        else:
+            # Get values
+            x = self.get_all_values(xcol)
+        # Check *x*
+        if isinstance(x, float):
+            # Constant is allowed
+            ndimx = 0
+        elif not isinstance(x, np.ndarray):
+            # Bad type
+            raise TypeError("x-coords for integration must be float or array")
+        else:
+            # Number of dimensions
+            ndimx = x.ndim
+            # Check it
+            if ndimx > 2:
+                raise IndexError("Cannot process %-D x-coords" % ndimx)
+            # Apply *mask* if necessary
+            if (xcol is not None) and (ndimx == 2):
+                x = self.get_values(xcol, mask)
+        # Process *y*
+        if ycol is None:
+            # Use 0, 1, 2, ... as *x* coords
+            y = kw.get("y", 0.0)
+        else:
+            # Get values
+            y = self.get_all_values(ycol)
+        # Check *y*
+        if isinstance(y, float):
+            # Constant is allowed
+            ndimy = 0
+        elif not isinstance(y, np.ndarray):
+            # Bad type
+            raise TypeError("y-coords for integration must be float or array")
+        else:
+            # Number of dimensions
+            ndimy = y.ndim
+            # Check it
+            if ndimy > 2:
+                raise IndexError("Cannot process %-D y-coords" % ndimy)
+            # Apply *mask* if necessary
+            if (ycol is not None) and (ndimy == 2):
+                y = self.get_values(ycol, mask)
+        # Process *z*
+        if zcol is None:
+            # Use 0, 1, 2, ... as *x* coords
+            z = kw.get("z", 0.0)
+        else:
+            # Get values
+            z = self.get_all_values(zcol)
+        # Check *z*
+        if isinstance(z, float):
+            # Constant is allowed
+            ndimz = 0
+        elif not isinstance(z, np.ndarray):
+            # Bad type
+            raise TypeError("z-coords for integration must be float or array")
+        else:
+            # Number of dimensions
+            ndimz = z.ndim
+            # Check it
+            if ndimz > 2:
+                raise IndexError("Cannot process %-D x-coords" % ndimz)
+            # Apply *mask* if necessary
+            if (zcol is not None) and (ndimz == 2):
+                z = self.get_values(zcol, mask)
+       # --- Calculations ---
+        # Check which axes are involved
+        if ax1 in ["x", 0]:
+            # Integrate *dCA*
+            if ax2 in ["x", 0]:
+                # No possibility of *dCA* creating rolling moment
+                r = 0.0
+            elif ax2 in ["y", 1]:
+                # Calculate *dCLM* (pitching moment) from *dCA*
+                r = zmrp - z
+                # Tile if 1D
+                if ndimz == 1:
+                    r = np.tile(r, (nv, 1)).T
+            elif ax2 in ["z", 2]:
+                # Calculate *dCLN* (yawing moment) from *dCA*
+                r = y - ymrp
+                # Tile if 1D
+                if ndimy == 1:
+                    r = np.tile(r, (nv, 1)).T
+        elif ax1 in ["y", 1]:
+            # Integrate *dCY*
+            if ax2 in ["x", 0]:
+                # Calculate *dCLL* (rolling moment) from *dCY*
+                r = zmrp - z
+                # Tile if 1D
+                if ndimz == 1:
+                    r = np.tile(r, (nv, 1)).T
+            elif ax2 in ["y", 1]:
+                # No possibility of *dCLM* (pitching moment) from *dCY*
+                r = 0.0
+            elif ax2 in ["z", 2]:
+                # Calculate *dCLN* (yawing moment) from *dCY*
+                r = xmrp - x
+                # Tile if 1D
+                if ndimx == 1:
+                    r = np.tile(r, (nv, 1)).T
+        elif ax1 in ["z", 2]:
+            # Integrate *dCN*
+            if ax2 in ["x", 0]:
+                # Calculate *dCLL* (rolling moment) from *dCN*
+                r = ymrp - y
+                # Tile if 1D
+                if ndimy == 1:
+                    r = np.tile(r, (nv, 1)).T
+            elif ax2 in ["y", 0]:
+                # Calculate *dCLM* (pitching moment) from *dCN*
+                r = xmrp - x
+                # Tile if 1D
+                if ndimx == 1:
+                    r = np.tile(r, (nv, 1)).T
+            elif ax2 in ["z", 0]:
+                # No possibility of *dCLN*) (yawing moment) from *dCN*
+                r = 0.0
+       # --- Output ---
+        # Multiply moment arm times load
+        return r * V
+
+    # Calculate pitching moment
+    def genr8_dclm(self, col, xcol=None, **kw):
+        r"""Create a *dCLM* line load based on *dCN* line load
+
+        :Call:
+            >>> v = db.genr8_dclm(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Default *xcol*
+        if (xcol is None) and ("x" not in kw):
+            # Try to get the output *xarg*
+            xargs = self.get_output_xargs(col)
+            # Check if list
+            if isinstance(xargs, (list, tuple)) and len(xargs) > 0:
+                # Default
+                xcol = xargs[0]
+        # Calculate the moment
+        return self.genr8_ll_moment(col, 2, 1, xcol=xcol, **kw)
+
+    # Calculate yawing moment
+    def genr8_dcln(self, col, xcol=None, **kw):
+        r"""Create a *dCLN* line load based on *dCY* line load
+
+        :Call:
+            >>> v = db.genr8_dcln(col, xcol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for moment arm
+            *x*: {``None``} | :class:`np.ndarray`
+                Explicit *x*-coords for moment arm
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate
+            *xMRP*: {``DB.xMRP``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *Lref*: {``DB.Lref``} | :class:`float`
+                Reference length for scaling moment (use ``1.0`` for
+                dimensional moment loads)
+        :Outputs:
+            *v*: :class:`np.ndarray`
+                2D array of moments derived from *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Default *xcol*
+        if (xcol is None) and ("x" not in kw):
+            # Try to get the output *xarg*
+            xargs = self.get_output_xargs(col)
+            # Check if list
+            if isinstance(xargs, (list, tuple)) and len(xargs) > 0:
+                # Default
+                xcol = xargs[0]
+        # Calculate the moment
+        return self.genr8_ll_moment(col, 1, 2, xcol=xcol, **kw)
+  # >
+
+  # ==================
   # Adjustment
   # ==================
   # <
@@ -176,8 +751,11 @@ class DBLL(dbfm.DBFM):
         basis = {}
         # Get *CA* loads
         dCA = self.get_values(col1, mask)
+        # Dimensions
+        nx, ny = dCA.shape
         # Calculate SVD
         UCA, sCA, VCA = svd(dCA)
+        
   # >
 
 
