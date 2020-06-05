@@ -177,8 +177,12 @@ def hist(v, *a, **kw):
     # Save stats
     opts.set_option("mu", vmu)
     opts.set_option("std", vstd)
+    # Save Interval
+    opts.set_option('acov', acov)
+    opts.set_option('bcov', bcov)
    # --- Control Options ---
     opts.setdefault_option("ShowGauss", False) 
+    opts.setdefault_option("ShowInterval", False) 
    # --- Axes Setup ---
     # Figure, then axes
     _part_init_figure(opts, h)
@@ -188,6 +192,8 @@ def hist(v, *a, **kw):
     _part_hist(opts, h)
     # Gaussian
     _part_gauss(opts, h)
+    # Interval
+    _part_interval(opts,h)
    # --- Axis formatting ---
     # Format grid, spines, and window
     _part_axes_grid(opts, h)
@@ -374,7 +380,39 @@ def _part_gauss(opts, h):
             gauss = mpl.plot(yval, xval, **kw)
         # Save
         h.save("gauss", gauss)
-            
+
+# Partial function: intervale()
+def _part_interval(opts, h):
+    if opts.get_option("ShowInterval"):
+        # Process interval options
+        opts_int = opts.fillbetween_options()
+        # Get interval 
+        acov = opts.get_option('acov')
+        bcov = opts.get_option('bcov')
+        # Get orientation
+        rotate = opts.get_option('Rotate')
+        if rotate:
+            orient = "horizontal"
+        else:
+            orient = "vertical"
+        # Options for the plot function
+        kw = opts_int.get("FillBetweenOptions", {})
+        # Get axis limits
+        ax = h.ax
+        if orient == 'vertical':
+            # Vertical: get vertical limits of axes window
+            pmin, pmax = ax.get_ylim()
+            # Plot a vertical range bar
+            interval = mpl.fill_between([pmin, pmax], acov, bcov, Rotate=True, **kw)
+
+        else:
+            # Horizontal: get horizontal limits of axes window
+            pmin, pmax = ax.get_xlim()
+            # Plot a horizontal range bar
+            interval = mpl.fill_between([pmin, pmax], acov, bcov, Rotate=True, **kw)
+        # Return
+        h.save("interval", interval)
+
 
 # Partial function: minmax()
 def _part_minmax(opts, h):
