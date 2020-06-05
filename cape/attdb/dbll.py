@@ -778,6 +778,111 @@ class DBLL(dbfm.DBFM):
   # >
 
   # ==================
+  # Combination
+  # ==================
+  # <
+   # --- Components ---
+    # Combine the loads
+    def genr8_ll_combo(self, cols, x, **kw):
+        # Check *x*
+        if not isinstance(x, np.ndarray):
+            raise TypeError(
+                "Combo load x-coords must be 'np.ndarray', got '%s'" % type(x))
+        # Get *x* dimension
+        ndimx = x.ndim
+        # Check dimension
+        if ndimx == 0:
+            raise IndexError("Cannot calculate combo load on 0-D x-coord")
+        elif ndimx > 2:
+            raise IndexError(
+                "Cannot calculate combo load on %i-D x-coords" % ndimx)
+        # Get mask
+        mask = kw.pop("mask", None)
+        # Option for specific *x* values
+        xcols = kw.get("xcols", {})
+        # Initialize load data and x coords
+        vdata = {}
+        xdata = {}
+        # Dimensions for both
+        ndimvdata = {}
+        ndimxdata = {}
+        # Loop through *cols* to be combined
+        for j, col in enumerate(cols):
+            # Check type
+            if not typeutils.isstr(col):
+                raise TypeError("Combo col %i is not a 'str'" % j)
+            # Get values
+            vj = self.get_values(col, mask)
+            # Check for manual *x*
+            xoptj = xcols.get(col)
+            # If ``None``, try to use named *x* var
+            if xoptj is None:
+                # Get *x* vars for line load
+                xvarsj = self.get_output_xargs(col)
+                # Check for singleton list
+                if isinstance(xvarsj, list) and len(xvarsj) == 1:
+                    # Use it
+                    xoptj = xvarsj[0]
+                # Otherwise we have a problem
+                raise ValueError(
+                    "Could not determine x-coords for combo col '%s'" % col)
+            # Check for valid manual coordinates
+            if isinstance(xoptj, np.ndarray):
+                # Use data directly
+                xj = xoptj
+                # Dimensions from array
+                ndimxj = xj.ndim
+            elif isinstance(xoptj, float):
+                # Use data directly
+                xj = xoptj
+                # Scalar *x*-coordinate
+                ndimxj = 0
+            elif typeutils.isstr(xoptj):
+                # Get dimension for named *col*
+                ndimxj = self.get_ndim(xoptj)
+                # Check for validity
+                if ndimxj is None:
+                     raise ValueError(
+                         "Could not find x-coords '%s'" % xoptj)
+                 # Apply mask if 2D
+                 if ndimxj == 2:
+                     # Get masked x-coords
+                     xj = self.get_values(xoptj, mask)
+                 else:
+                     # Get all values
+                     xj = self.get_all_values(xoptj)
+             else:
+                 # Bad type
+                 raise TypeError(
+                     "Cannot use x-coord data of type '%s'" % type(xoptj))
+             # Dimension of data for col *col*
+             ndimvj = self.get_ndim(col)
+             # Check consistency
+             if ndimvj < 2:
+                 # Must have scalar *x* if scalar *v*
+                 if ndimxj > 1:
+                     raise IndexError(
+                         "Cannot combine 2D x-coords with scalar load '%s'"
+                         % col)
+             elif ndimvj == 2:
+                 # Ensure 1D or 2D
+                 if ndimxj == 0:
+                     raise IndexError(
+                         "Cannot use scalar *x* with 2D load '%s'" % col)
+                 elif ndimxj > 2:
+                     raise IndexError("Cannot use %i-D x-coords" % ndimxj)
+             else:
+                 # Cannot use 3D+ loads
+                 raise IndexError("Cannot combine %i-D loads" % ndimvj)
+             # Save data
+             xdata[col] = xj
+             vdata[col] = vj
+             ndimxdata[col] = ndimxj
+             ndimvdata[col] = ndimvj
+            
+  # >
+
+  # ==================
   # Adjustment
   # ==================
   # <
