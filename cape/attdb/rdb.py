@@ -8036,25 +8036,11 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-03-24 ``@ddalle``: First version
             * 2020-06-02 ``@ddalle``: Added *mask*, callable *method*
+            * 2020-06-04 ``@ddalle``: Split :func:`_genr8_integral`
 
         .. |intmethods| replace::
             {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
         """
-        # Select method
-        method = kw.get("method")
-        # Default method
-        if method is None:
-            method = "trapz"
-        # Check it
-        if not (callable(method) or typeutils.isstr(method)):
-            # Method must be string
-            raise TypeError(
-                "'method' must be 'str' or callable, got '%s'" % type(method))
-        if method not in {"trapz", "left", "right"}:
-            # Invalid name
-            raise ValueError(
-                ("method '%s' not supported; " % method) +
-                ("options are 'trapz', 'left', 'right'"))
         # Get mask
         mask = kw.get("mask")
         # Get dimension of *col*
@@ -8063,9 +8049,7 @@ class DataKit(ftypes.BaseData):
         if ndim != 2:
             raise ValueError("Col '%s' is not 2D" % col)
         # Get values
-        Y = self.get_values(col, mask)
-        # Number of conditions
-        nx, ny = Y.shape
+        v = self.get_values(col, mask)
         # Process *x*
         if xcol is None:
             # Use 0, 1, 2, ... as *x* coords
@@ -8082,10 +8066,51 @@ class DataKit(ftypes.BaseData):
                 dx = 1.0
             # Create default
             x = dx * np.arange(nx)
-        else:
-            # Ensure array
-            if not isinstance(x, np.ndarray):
-                raise TypeError("x-coords for integration must be array")
+        # Calculate integral
+        return self._genr8_integral(v, x, **kw)
+
+    # Integrate a 2D field
+    def _genr8_integral(self, v, x, method="trapz", **kw):
+        r"""Integrate the columns of a 2D data col
+
+        :Call:
+            >>> y = db._genr8_integral(v, x, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *v*: :class:`np.ndarray`
+                2D array of values to be integrated
+            *x*: :class:`np.ndarray`
+                1D or 2D *x*-coordinates directly specified
+            *method*: |intmethods|
+                Integration method or callable function taking two args
+                like :func:`np.trapz`
+        :Outputs:
+            *y*: :class:`np.ndarray`
+                1D array of integral of each column of *db[col]*
+        :Versions:
+            * 2020-06-04 ``@ddalle``: Forked from :func:`genr8_integral`
+
+        .. |intmethods| replace::
+            {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
+        """
+        # Check it
+        if not (callable(method) or typeutils.isstr(method)):
+            # Method must be string
+            raise TypeError(
+                "'method' must be 'str' or callable, got '%s'" % type(method))
+        if method not in {"trapz", "left", "right"}:
+            # Invalid name
+            raise ValueError(
+                ("method '%s' not supported; " % method) +
+                ("options are 'trapz', 'left', 'right'"))
+        # Number of conditions
+        nx, ny = v.shape
+        # Ensure array
+        if not isinstance(x, np.ndarray):
+            raise TypeError("x-coords for integration must be array")
+        elif not isinstance(v, np.ndarray):
+            raise TypeError("1D loads values must be an array")
         # Determine from *x*
         ndx = x.ndim
         # Ensure 1 or 2
@@ -8099,7 +8124,7 @@ class DataKit(ftypes.BaseData):
             raise ValueError(
                 "Integration does not support %i-D x coords" % ndx)
         # Initialize output
-        y = np.zeros(ny, dtype=self.get_col_dtype(col))
+        y = np.zeros(ny, dtype=v.dtype)
         # Loop through conditions
         for i in range(ny):
             # Check method
@@ -8107,10 +8132,10 @@ class DataKit(ftypes.BaseData):
                 # Trapezoidal integration
                 if ndx == 1:
                     # Common *x* coords
-                    y[i] = np.trapz(Y[:,i], x)
+                    y[i] = np.trapz(v[:,i], x)
                 else:
                     # Select *x* column
-                    y[i] = np.trapz(Y[:,i], x[:,i])
+                    y[i] = np.trapz(v[:,i], x[:,i])
                 # Go to next interval
                 continue
             # Check *x* dimension
@@ -8120,16 +8145,16 @@ class DataKit(ftypes.BaseData):
             # Check L/R
             if method == "left":
                 # Lower rectangular sum
-                y[i] = np.sum(dx * Y[:,i][:-1])
+                y[i] = np.sum(dx * v[:,i][:-1])
             elif method == "right":
                 # Upper rectangular sum
-                y[i] = np.sum(dx * Y[:,i][1:])
+                y[i] = np.sum(dx * v[:,i][1:])
             elif ndx == 1:
                 # Callable with common *x*
-                y[i] = method(Y[:,i], x)
+                y[i] = method(v[:,i], x)
             else:
                 # Callable with custom *x*
-                y[i] = method(Y[:,i], x[:,i])
+                y[i] = method(v[:,i], x[:,i])
         # Output
         return y
   # >
