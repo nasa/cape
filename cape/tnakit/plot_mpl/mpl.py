@@ -2482,10 +2482,16 @@ def _hist(v, **kw):
     _import_pyplot()
     # Get index
     i = kw.pop("Index", kw.pop("i", 0))
+    # Get rotation option
+    r = kw.pop("Rotate", kw.pop("rotate", False))
     # Initialize plot options
     kw_p = MPLOpts.select_phase(kw, i)
-    # Call scatter
-    h = plt.hist(v, **kw_p)
+    # Flip inputs
+    if r:
+        # Call scatter
+        h = plt.hist(v, orientation="horizontal", **kw_p)
+    else:
+        h = plt.hist(v, **kw_p)
     # Output
     return h
 

@@ -197,6 +197,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowInterval",
         "ShowLegend",
         "ShowLine",
+        "ShowMean",
         "ShowMinMax",
         "ShowUncertainty",
         "SpineOptions",
@@ -473,7 +474,8 @@ class MPLOpts(kwutils.KwargHandler):
         "hist" : [
             "HistBins",
             "HistColor",
-            "HistOptions"
+            "HistOptions",
+            "Rotate"
         ],
         "imshow": [
             "ImageXMin",
@@ -709,7 +711,8 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowGauss": bool,
         "ShowInterval": bool,
         "ShowLine": bool,
-        "ShowMinMax":bool,
+        "ShowMinMax": bool,
+        "ShowMean": bool,
         "ShowUncertainty": bool,
         "SpineOptions": dict,
         "Spines": bool,
@@ -849,8 +852,9 @@ class MPLOpts(kwutils.KwargHandler):
             "GridColor": "color",
         },
         "HistOptions": {
-            "HistBins" : "bins",
-            "HistColor" : "color"
+            "HistBins": "bins",
+            "HistColor": "color",
+            "Rotate": "Rotate"
         },
         "LegendOptions": {
             "LegendAnchor": "bbox_to_anchor",
@@ -1089,6 +1093,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowGauss": _rst_booln,
         "ShowInterval": _rst_booln,
         "ShowMinMax": _rst_booln,
+        "ShowMean": _rst_booln,
         "ShowUncertainty": _rst_booln,
         "SpineOptions": _rst_dict,
         "Subplot": """{``None``} | :class:`Axes` | :class:`int`""",
@@ -1262,6 +1267,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowGauss": """Show Gaussian plot on histogram""",
         "ShowInterval": """Show interval plot on histogram""",
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
+        "ShowMean" : """Plot *mu* on histogram""",
         "ShowUncertainty": """Plot uncertainty bounds""",
         "SpineOptions": """Options for all spines""",
         "Subplot": "Subplot index (1-based)",
@@ -1314,6 +1320,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowError": False,
         "ShowGauss" : False,
         "ShowInterval": False,
+        "ShowMean": False,
         "Index": 0,
         "Rotate": False,
         "AxesLabelOptions": {},
@@ -1697,7 +1704,7 @@ class MPLOpts(kwutils.KwargHandler):
         # Use the "font" section and only return "FontOptions"
         return self.section_options("font", "FontOptions")
 
-    # Primary options
+    # Gauss options
     def gauss_options(self):
         r"""Process options to gaussian plot curve
 
@@ -1740,6 +1747,29 @@ class MPLOpts(kwutils.KwargHandler):
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         return self.section_options("grid")
+
+    # Histogram label options
+    def histlabel_options(self):
+        r"""Process options to gaussian plot curve
+
+        :Call:
+            >>> kw = opts.gauss_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Use the "gauss" section
+        kw = self.section_options("histlbl")
+        return kw
 
     # Process imshow() options
     def imshow_options(self):
@@ -1814,6 +1844,29 @@ class MPLOpts(kwutils.KwargHandler):
             # Bounding box location on bottom spine
             kw.setdefault("bbox_to_anchor", (0.5, -0.05))
         # Output
+        return kw
+
+    # Mean options
+    def mean_options(self):
+        r"""Process options to gaussian plot curve
+
+        :Call:
+            >>> kw = opts.mean_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Use the "gauss" section
+        kw = self.section_options("mu")
         return kw
 
     # Primary options
