@@ -183,6 +183,7 @@ def hist(v, *a, **kw):
    # --- Control Options ---
     opts.setdefault_option("ShowGauss", False) 
     opts.setdefault_option("ShowInterval", False) 
+    opts.setdefault_option("ShowMean", False) 
    # --- Axes Setup ---
     # Figure, then axes
     _part_init_figure(opts, h)
@@ -193,13 +194,21 @@ def hist(v, *a, **kw):
     # Gaussian
     _part_gauss(opts, h)
     # Interval
-    _part_interval(opts,h)
+    _part_interval(opts, h)
+    # Mean
+    _part_mean(opts, h)
    # --- Axis formatting ---
     # Format grid, spines, and window
     _part_axes_grid(opts, h)
     _part_axes_spines(opts, h)
+    _part_axes_format(opts, h)
     _part_axes_adjust(opts, h)
    # --- Labeling ---
+    # --- Mean labels ---
+    # Process mean labeling options
+    _part_mean_label(opts, h)
+    # Readjust axes
+    _part_axes_adjust(opts, h)
     # Output
     return h
 
@@ -409,9 +418,62 @@ def _part_interval(opts, h):
             # Horizontal: get horizontal limits of axes window
             pmin, pmax = ax.get_xlim()
             # Plot a horizontal range bar
-            interval = mpl.fill_between([pmin, pmax], acov, bcov, Rotate=True, **kw)
+            interval = mpl.fill_between([pmin, pmax], acov, bcov, **kw)
         # Return
         h.save("interval", interval)
+
+# Partial function: mean()
+def _part_mean(opts, h):
+    if opts.get_option("ShowMean"):
+        # Get mu
+        vmu = opts.get_option('mu')
+        # Get orientation
+        rotate = opts.get_option('Rotate')
+        if rotate:
+            orient = "horizontal"
+        else:
+            orient = "vertical"
+        # Process mean options
+        opts_mean = opts.mean_options()
+        # Options for the plot function
+        kw = {}
+        kw['PlotOptions'] = opts_mean
+        # Get axis limits
+        ax = h.ax
+        if orient == 'vertical':
+            # Vertical: get vertical limits of axes window
+            pmin, pmax = ax.get_ylim()
+            # Plot a vertical mean line
+            mean = mpl.plot([vmu, vmu], [pmin, pmax], **kw)
+        else:
+            # Horizontal: get horizontal limits of axes window
+            pmin, pmax = ax.get_xlim()
+            # Plot a horizontal range bar
+            mean = mpl.plot([pmin, pmax], [vmu, vmu], **kw)
+        # Return
+        h.save('mean', mean)
+    
+# Partial function: mean_label()
+def _part_mean_label(opts, h):
+    if opts.get_option("ShowMean"):
+        # Process mean labeling options
+        kw = opts.histlabel_options()
+        # Get mu
+        vmu = opts.get_option('mu')
+        # Do the label
+        # Formulate the label
+        c = 'mu'
+        # Format code
+        flbl = kw.pop("MuFormat", "%.4f")
+        # First part
+        klbl = (u'%s' % c)
+        # Get axis limits
+        ax = h.ax
+        # Insert value
+        lbl = ('%s = %s' % (klbl, flbl)) % vmu
+        meanlabel = histlab_part(lbl, 0.99, True, ax, **kw)
+        # Return
+        h.save('meanlabel', meanlabel)    
 
 
 # Partial function: minmax()
@@ -653,142 +715,6 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
     xmin, ymin, w, h = ax.get_position().bounds
     # Set new position
     ax.set_position([xmin + dx, ymin + dy, w, h])
-
-
-# Mean plotting part
-def plot_mean(ax, vmu, **kw):
-    """Plot the mean on the histogram
-
-    :Call:
-        >>> h = plot_mean(V, ax **kw))
-    :Inputs:
-        *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
-            Axes handle
-        *vmu*: :class: 'float'
-            Desired mean of distribution (`np.meam()`)
-    :Keyword Arguments:
-        *orientation*: {``"horizontal"``} | ``"vertical"``
-            Option to flip *x* and *y* axes
-    :Outputs:
-        *h*: :class:`matplotlib.lines.Line2D`
-            Handle to options for simple line
-    :Versions:
-        * 2019-03-11 ``@jmeeroff``: First version
-    """
-    # Ensure pyplot loaded
-    mpl._import_pyplot()
-    # Get horizontal/vertical option
-    orient = kw.pop('orientation', "")
-    # Check orientation
-    if orient == 'vertical':
-        # Vertical: get vertical limits of axes window
-        pmin, pmax = ax.get_ylim()
-        # Plot a vertical mean line
-        h = mpl.plt.plot([vmu, vmu], [pmin, pmax], **kw)
-
-    else:
-        # Horizontal: get horizontal limits of axes window
-        pmin, pmax = ax.get_xlim()
-        # Plot a horizontal range bar
-        h = mpl.plt.plot([pmin, pmax], [vmu, vmu], **kw)
-    # Return
-    return h[0]
-
-
-# Show an interval on a histogram
-def plot_interval(ax, vmin, vmax, **kw):
-    """Plot the mean on the histogram
-
-    :Call:
-        >>> h = plot_interval(ax, vmin, vmax, **kw))
-    :Inputs:
-        *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
-            Axes handle
-        *vmin*: :class:`float`
-            Minimum value of interval to plot
-        *vmax*: :class:`float`
-            Maximum value of interval to plot
-    :Keyword Arguments:
-        *orientation*: {``"horizontal"``} | ``"vertical"``
-            Option to flip *x* and *y* axes
-    :Outputs:
-        *h*: :class:`matplotlib.collections.PolyCollection`
-            Handle to interval plot
-    :Versions:
-        * 2019-03-11 ``@jmeeroff``: First version
-        * 2019-08-22 ``@ddalle``: Added *vmin*, *vmax* inputs
-    """
-    # Ensure pyplot loaded
-    mpl._import_pyplot()
-    # Get horizontal/vertical option
-    orient = kw.pop('orientation', "")
-    # Check orientation
-    if orient == 'vertical':
-        # Vertical: get vertical limits of axes window
-        pmin, pmax = ax.get_ylim()
-        # Plot a vertical range bar
-        h = mpl.plt.fill_betweenx([pmin, pmax], vmin, vmax, **kw)
-
-    else:
-        # Horizontal: get horizontal limits of axes window
-        pmin, pmax = ax.get_xlim()
-        # Plot a horizontal range bar
-        h = mpl.plt.fill_between([pmin, pmax], vmin, vmax, **kw)
-    # Return
-    return h
-
-
-# Gaussian plotting part
-def plot_gaussian(ax, vmu, vstd, **kw):
-    """Plot a Gaussian distribution (on a histogram)
-
-    :Call:
-        >>> h = plot_gaussian(ax, vmu, vstd, **kw))
-    :Inputs:
-        *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
-            Axes handle
-        *vmu*: :class: 'float'
-            Mean of distribution
-        *vstd*: :class: `float`
-            Standard deviation of distribution
-    :Keyword Arguments:
-        *orientation*: {``"horizontal"``} | ``"vertical"``
-            Option to flip *x* and *y* axes
-        *ngauss*: {``151``} | :class:`int` > 2
-            Number of points to use in Gaussian curve
-    :Outputs:
-        *h*: :class:`matplotlib.lines.Line2D`
-            Handle to options for Gaussian curve
-    :Versions:
-        * 2019-03-11 ``@jmeeroff``: First version
-        * 2019-08-22 ``@ddalle``: Added *ngauss*
-    """
-    # Ensure pyplot loaded
-    mpl._import_pyplot()
-    # Get horizontal/vertical option
-    orient = kw.pop('orientation', "")
-    # Get axis limits
-    if orient == "vertical":
-        # Get existing horizontal limits
-        xmin, xmax = ax.get_xlim()
-    else:
-        # Get existing
-        xmin, xmax = ax.get_ylim()
-    # Number of points to plot
-    ngauss = kw.pop("ngauss", 151)
-    # Create points at which to plot
-    xval = np.linspace(xmin, xmax, ngauss)
-    # Compute Gaussian distribution
-    yval = 1/(vstd*np.sqrt(2*np.pi))*np.exp(-0.5*((xval-vmu)/vstd)**2)
-    # Plot
-    if orient == "vertical":
-        # Plot vertical dist with bump pointing to the right
-        h = mpl.plt.plot(xval, yval, **kw)
-    else:
-        # Plot horizontal dist with vertical bump
-        h = mpl.plt.plot(yval, xval, **kw)
-    # Return
-    return h[0]
 
 
 # Interval using two lines
