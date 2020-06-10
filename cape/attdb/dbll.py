@@ -782,9 +782,129 @@ class DBLL(dbfm.DBFM):
   # ==================
   # <
    # --- Components ---
-    # Combine the loads
+    # Combine and save the combined loads
+    def make_ll_combo(self, col, cols, x, **kw):
+        r"""Combine line loads from several components
+
+        This method can be used to combine several line loads with
+        disparate *x*-coordinates, and point loads can also be
+        injected into the combined line load.  All *cols* must have an
+        *xcol* specified.  For existing line loads, a suitable default
+        is often available via :func:`get_output_xargs`, but injected
+        point loads must have an *xcol* specified.  The user may
+        specify *xcol* as either a column name or a directly defined
+        value.  For point loads, this *xcol* may be just a number.
+
+        This method does not combine the loads if *col* is already
+        present in the database.
+
+        :Call:
+            >>> v = db.make_ll_combo(col, cols, x, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name with which to save result
+            *cols*: :class:`list`\ [:class:`str`]
+                List of load columns to combine
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 1 | 2
+                * *shape*: (*nx*,) | (*nx*, *ncase*)
+
+                Array of *x*-coordinates for output
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of which cases to include
+            *xcols*: :class:`dict`\ [:class:`str` | :class:`np.ndarray`]
+                Descriptor for what *x* coordinates to use for each
+                *col* in *cols*; if :class:`str`, use it as a *col*
+                name; if :class:`np.ndarray`, use as directly defined
+                coords; defaults to ``db.get_output_xargs(col)``
+        :Outputs:
+            *v*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 2
+                * *shape*: (*nx*, *ncase*)
+
+                Combined loads
+        :Versions:
+            * 2020-06-10 ``@ddalle``: First version
+        """
+        # Check if column present
+        if col in self.cols:
+            # Output it
+            return self.get_all_values(col)
+        # Calculate combined loads
+        v = self.genr8_ll_combo(cols, x, **kw)
+        # Save it
+        self.save_col(col, v)
+        # Update definition if necessary
+        self.make_defn(col, v)
+        # Output
+        return v
+
+    # Combine and save the combined loads
+    def create_ll_combo(self, col, cols, x, **kw):
+        r"""Combine line loads from several components
+
+        This method can be used to combine several line loads with
+        disparate *x*-coordinates, and point loads can also be
+        injected into the combined line load.  All *cols* must have an
+        *xcol* specified.  For existing line loads, a suitable default
+        is often available via :func:`get_output_xargs`, but injected
+        point loads must have an *xcol* specified.  The user may
+        specify *xcol* as either a column name or a directly defined
+        value.  For point loads, this *xcol* may be just a number.
+
+        :Call:
+            >>> v = db.create_ll_combo(col, cols, x, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name with which to save result
+            *cols*: :class:`list`\ [:class:`str`]
+                List of load columns to combine
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 1 | 2
+                * *shape*: (*nx*,) | (*nx*, *ncase*)
+
+                Array of *x*-coordinates for output
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of which cases to include
+            *xcols*: :class:`dict`\ [:class:`str` | :class:`np.ndarray`]
+                Descriptor for what *x* coordinates to use for each
+                *col* in *cols*; if :class:`str`, use it as a *col*
+                name; if :class:`np.ndarray`, use as directly defined
+                coords; defaults to ``db.get_output_xargs(col)``
+        :Outputs:
+            *v*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 2
+                * *shape*: (*nx*, *ncase*)
+
+                Combined loads
+        :Versions:
+            * 2020-06-10 ``@ddalle``: First version
+        """
+        # Calculate combined loads
+        v = self.genr8_ll_combo(cols, x, **kw)
+        # Save it
+        self.save_col(col, v)
+        # Update definition if necessary
+        self.make_defn(col, v)
+        # Output
+        return v
+
+    # Combine line loads
     def genr8_ll_combo(self, cols, x, **kw):
         r"""Combine line loads from several components
+
+        This method can be used to combine several line loads with
+        disparate *x*-coordinates, and point loads can also be
+        injected into the combined line load.  All *cols* must have an
+        *xcol* specified.  For existing line loads, a suitable default
+        is often available via :func:`get_output_xargs`, but injected
+        point loads must have an *xcol* specified.  The user may
+        specify *xcol* as either a column name or a directly defined
+        value.  For point loads, this *xcol* may be just a number.
 
         :Call:
             >>> v = db.genr8_ll_combo(cols, x, **kw)
@@ -805,8 +925,14 @@ class DBLL(dbfm.DBFM):
                 *col* in *cols*; if :class:`str`, use it as a *col*
                 name; if :class:`np.ndarray`, use as directly defined
                 coords; defaults to ``db.get_output_xargs(col)``
+        :Outputs:
+            *v*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 2
+                * *shape*: (*nx*, *ncase*)
+
+                Combined loads
         :Versions:
-            * 2020-06-08 ``@ddalle``: First version
+            * 2020-06-09 ``@ddalle``: First version
         """
         # Check *x*
         if not isinstance(x, np.ndarray):
@@ -919,7 +1045,6 @@ class DBLL(dbfm.DBFM):
         # Tolerance for *x* intervals
         xtol = kw.get("xtol", 1e-5 * (np.max(x) - np.min(x)))
         # Loop through columns
-        Aout = {}
         for j, col in enumerate(cols):
             # Dimension for this col
             ndimxj = ndimxdata[col]
@@ -1035,8 +1160,6 @@ class DBLL(dbfm.DBFM):
                             # Fractions for start and and chunks
                             A[ka, kcut] = 1.0 - fa
                             A[kb, kcut] = fb
-                        # Save the matrix
-                        Aout[col] = A
                     # Special case: fixed mapping
                     if (ndimx == 1) and (ndimxj == 1):
                         # Multiply all cases at once
@@ -1046,8 +1169,7 @@ class DBLL(dbfm.DBFM):
                 # Multiply *A* to transform load for case *i* col *j*
                 v[:, i] += np.dot(A, vdataj)
         # Output
-        return v, Aout
-        
+        return v
   # >
 
   # ==================
