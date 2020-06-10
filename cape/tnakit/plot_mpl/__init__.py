@@ -354,7 +354,7 @@ def _part_hist(opts, h):
 def _part_gauss(opts, h):
     if opts.get_option("ShowGauss"):
         # Process gaussian options
-        opts_gauss = opts.gauss_options()
+        kw = opts.gauss_options()
         # Get mu and std
         vmu = opts.get_option('mu')
         vstd = opts.get_option('std')
@@ -364,8 +364,6 @@ def _part_gauss(opts, h):
             orient = "horizontal"
         else:
             orient = "vertical"
-        # Options for the plot function
-        kw = opts_gauss.get("GaussOptions", {})
         # Number of points to plot
         ngauss = kw.pop("NGauss", 151)
         # Get axis limits
@@ -383,10 +381,10 @@ def _part_gauss(opts, h):
         # Plot
         if orient == "vertical":
             # Plot vertical dist with bump pointing to the right
-            gauss = mpl.plot(xval, yval, **kw)
+            gauss = mpl._plot(xval, yval, **kw)
         else:
             # Plot horizontal dist with vertical bump
-            gauss = mpl.plot(yval, xval, **kw)
+            gauss = mpl._plot(yval, xval, **kw)
         # Save
         h.save("gauss", gauss)
 
@@ -394,31 +392,31 @@ def _part_gauss(opts, h):
 def _part_interval(opts, h):
     if opts.get_option("ShowInterval"):
         # Process interval options
-        opts_int = opts.fillbetween_options()
+        kw = opts.interval_options()
         # Get interval 
         acov = opts.get_option('acov')
         bcov = opts.get_option('bcov')
         # Get orientation
         rotate = opts.get_option('Rotate')
+        # Pop out rotate keyword
+        r2 = kw.pop('Rotate', None)
         if rotate:
             orient = "horizontal"
         else:
             orient = "vertical"
-        # Options for the plot function
-        kw = opts_int.get("FillBetweenOptions", {})
         # Get axis limits
         ax = h.ax
         if orient == 'vertical':
             # Vertical: get vertical limits of axes window
             pmin, pmax = ax.get_ylim()
             # Plot a vertical range bar
-            interval = mpl.fill_between([pmin, pmax], acov, bcov, Rotate=True, **kw)
+            interval = mpl._fill_between([pmin, pmax], acov, bcov, Rotate=True, **kw)
 
         else:
             # Horizontal: get horizontal limits of axes window
             pmin, pmax = ax.get_xlim()
             # Plot a horizontal range bar
-            interval = mpl.fill_between([pmin, pmax], acov, bcov, **kw)
+            interval = mpl._fill_between([pmin, pmax], acov, bcov, **kw)
         # Return
         h.save("interval", interval)
 

@@ -127,6 +127,7 @@ class MPLOpts(kwutils.KwargHandler):
         "FontStyle",
         "FontVariant",
         "FontWeight",
+        "GaussOptions",
         "Grid",
         "GridColor",
         "GridOptions",
@@ -141,6 +142,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ImageYMax",
         "ImageYMin",
         "Index",
+        "IntervalOptions",
        # K-O
         "KeepAspect",
         "Label",
@@ -292,6 +294,7 @@ class MPLOpts(kwutils.KwargHandler):
         "Font": "FontName",
         "FontFamily": "FontName",
         "GridOpts": "GridOptions",
+        "IntOpts" : "IntervalOptions",
         "LeftTicks": "LeftSpineTicks",
         "MajorGridOpts": "GridOptions",
         "MajorGridOptions": "GridOptions",
@@ -463,7 +466,8 @@ class MPLOpts(kwutils.KwargHandler):
             "FontWeight"
         ],
         "gauss" : [
-            "NGauss"
+            "NGauss",
+            "GaussOptions",
         ],
         "grid": [
             "Grid",
@@ -485,6 +489,11 @@ class MPLOpts(kwutils.KwargHandler):
             "ImageYMax",
             "ImageYCenter",
             "ImageExtent"
+        ],
+        "interval": [
+            "Index",
+            "Rotate",
+            "IntervalOptions"
         ],
         "legend": [
             "Legend",
@@ -649,6 +658,7 @@ class MPLOpts(kwutils.KwargHandler):
         "FontStyle": typeutils.strlike,
         "FontVariant": typeutils.strlike,
         "FontWeight": (float, int, typeutils.strlike),
+        "GaussOptions": dict,
         "Grid": int,
         "GridOptions": dict,
         "HistBins": int,
@@ -662,6 +672,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ImageYMax": float,
         "ImageYMin": float,
         "Index": int,
+        "IntervalOptions" : dict,
        # K-O
         "KeepAspect": bool,
         "Label": typeutils.strlike,
@@ -856,6 +867,11 @@ class MPLOpts(kwutils.KwargHandler):
             "HistColor": "color",
             "Rotate": "Rotate"
         },
+        "IntervalOptions": {
+            "Index" : "Index",
+            "Rotate" : "Rotate",
+            "PlotOptions.color": "color"
+        },
         "LegendOptions": {
             "LegendAnchor": "bbox_to_anchor",
             "LegendFontOptions": "prop",
@@ -957,6 +973,11 @@ class MPLOpts(kwutils.KwargHandler):
             "linestyle": "ls",
             "c": "color",
         },
+        "IntervalOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
         "PlotOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
@@ -1020,6 +1041,7 @@ class MPLOpts(kwutils.KwargHandler):
             """``"italic"`` | ``"oblique"``"""),
         "FontVariant": """{``None``} | ``"normal"`` | ``"small-caps"``""",
         "FontWeight": _rst_strnum,
+        "GaussOptions": _rst_dict,
         "Grid": _rst_boolt,
         "GridColor": """{``None``} | :class:`str` | :class:`tuple`""",
         "GridOptions": _rst_dict,
@@ -1034,6 +1056,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ImageYMax": _rst_float,
         "ImageYMin": _rst_float,
         "Index": """{``0``} | :class:`int` >=0""",
+        "IntervalOptions": _rst_dict,
        # K-O
         "KeepAspect": _rst_booln,
         "Label": _rst_str,
@@ -1190,6 +1213,7 @@ class MPLOpts(kwutils.KwargHandler):
         "FontWeight": ("""Numeric font weight 0-1000 or ``"normal"``, """ +
             """``"bold"``, etc."""),
         "Grid": """Option to turn on/off axes grid""",
+        "GaussOptions": """Plot options for gaussian plot on histogram""",
         "GridColor": """Color passed to *GridOptions*""",
         "GridOptions": """Plot options for major grid""",
         "HistBins" : """Number of histogram bins passed to *HistOptions*""",
@@ -1204,6 +1228,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ImageExtent": ("Spec for *ImageXMin*, *ImageXMax*, " +
             "*ImageYMin*, *ImageYMax*"),
         "Index": """Index to select specific option from lists""",
+        "IntervalOptions": """Options for interval plotting on histograms""",
        # K-O
         "KeepAspect": ("""Keep aspect ratio; default is ``True`` unless""" +
             """``ax.get_aspect()`` is ``"auto"``"""),
@@ -1344,6 +1369,12 @@ class MPLOpts(kwutils.KwargHandler):
         "FontOptions": {
             "family": "DejaVu Sans",
         },
+        "GaussOptions": {
+            "color": "navy",
+            "lw": 1.5,
+            "zorder": 7,
+            "label": "Normal Distribution",
+        },
         "GridOptions": {
             "ls": ":",
             "lw": 0.9,
@@ -1356,6 +1387,11 @@ class MPLOpts(kwutils.KwargHandler):
             "edgecolor" : "k",
             "lw" : 1, 
             "density" : True,
+        },
+        "IntervalOptions": {
+            "lw": 0,
+            "zorder": 1,
+            "alpha": 0.2,
         },
         "LegendFontOptions": {},
         "LegendOptions": {
@@ -1442,12 +1478,9 @@ class MPLOpts(kwutils.KwargHandler):
             "label": "Normal Distribution",
         },
         "interval": {
-            "color": "b",
             "lw": 0,
             "zorder": 1,
             "alpha": 0.2,
-            "imin": 0.,
-            "imax": 5.,
         },
         "std": {
             'color': 'navy',
@@ -1724,7 +1757,7 @@ class MPLOpts(kwutils.KwargHandler):
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Use the "gauss" section
-        kw = self.section_options("gauss")
+        kw = self.section_options("gauss", "GaussOptions")
         return kw
 
     # Grid options
@@ -1790,6 +1823,30 @@ class MPLOpts(kwutils.KwargHandler):
             * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
         return self.section_options("imshow")
+
+    # Options for intervals on historgram plots
+    def interval_options(self):
+        r"""Process options for :func:`interval` calls
+
+        :Call:
+            >>> kw = opts.interval_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`fill_between`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Specific options
+        kw = self.get_option("IntervalOptions")
+        return kw
+
 
     # Options for font in legend
     def legend_font_options(self):

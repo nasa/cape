@@ -388,7 +388,6 @@ def imshow(png, **kw):
     # Use basic function
     return _imshow(png, **kw)
 
-
 # Scatter function with options check
 def scatter(xv, yv, s=None, c=None, **kw):
     r"""Call the :func:`scatter` function with cycling options
