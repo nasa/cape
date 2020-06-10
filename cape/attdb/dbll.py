@@ -784,6 +784,30 @@ class DBLL(dbfm.DBFM):
    # --- Components ---
     # Combine the loads
     def genr8_ll_combo(self, cols, x, **kw):
+        r"""Combine line loads from several components
+
+        :Call:
+            >>> v = db.genr8_ll_combo(cols, x, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                List of load columns to combine
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 1 | 2
+                * *shape*: (*nx*,) | (*nx*, *ncase*)
+
+                Array of *x*-coordinates for output
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of which cases to include
+            *xcols*: :class:`dict`\ [:class:`str` | :class:`np.ndarray`]
+                Descriptor for what *x* coordinates to use for each
+                *col* in *cols*; if :class:`str`, use it as a *col*
+                name; if :class:`np.ndarray`, use as directly defined
+                coords; defaults to ``db.get_output_xargs(col)``
+        :Versions:
+            * 2020-06-08 ``@ddalle``: First version
+        """
         # Check *x*
         if not isinstance(x, np.ndarray):
             raise TypeError(
@@ -823,9 +847,11 @@ class DBLL(dbfm.DBFM):
                 if isinstance(xvarsj, list) and len(xvarsj) == 1:
                     # Use it
                     xoptj = xvarsj[0]
-                # Otherwise we have a problem
-                raise ValueError(
-                    "Could not determine x-coords for combo col '%s'" % col)
+                else:
+                    # Otherwise we have a problem
+                    raise ValueError(
+                        "Could not determine x-coords for combo col '%s'"
+                        % col)
             # Check for valid manual coordinates
             if isinstance(xoptj, np.ndarray):
                 # Use data directly
@@ -842,44 +868,186 @@ class DBLL(dbfm.DBFM):
                 ndimxj = self.get_ndim(xoptj)
                 # Check for validity
                 if ndimxj is None:
-                     raise ValueError(
-                         "Could not find x-coords '%s'" % xoptj)
-                 # Apply mask if 2D
-                 if ndimxj == 2:
-                     # Get masked x-coords
-                     xj = self.get_values(xoptj, mask)
-                 else:
-                     # Get all values
-                     xj = self.get_all_values(xoptj)
-             else:
-                 # Bad type
-                 raise TypeError(
-                     "Cannot use x-coord data of type '%s'" % type(xoptj))
-             # Dimension of data for col *col*
-             ndimvj = self.get_ndim(col)
-             # Check consistency
-             if ndimvj < 2:
-                 # Must have scalar *x* if scalar *v*
-                 if ndimxj > 1:
-                     raise IndexError(
-                         "Cannot combine 2D x-coords with scalar load '%s'"
-                         % col)
-             elif ndimvj == 2:
-                 # Ensure 1D or 2D
-                 if ndimxj == 0:
-                     raise IndexError(
-                         "Cannot use scalar *x* with 2D load '%s'" % col)
-                 elif ndimxj > 2:
-                     raise IndexError("Cannot use %i-D x-coords" % ndimxj)
-             else:
-                 # Cannot use 3D+ loads
-                 raise IndexError("Cannot combine %i-D loads" % ndimvj)
-             # Save data
-             xdata[col] = xj
-             vdata[col] = vj
-             ndimxdata[col] = ndimxj
-             ndimvdata[col] = ndimvj
-            
+                    raise ValueError(
+                        "Could not find x-coords '%s'" % xoptj)
+                # Apply mask if 2D
+                if ndimxj == 2:
+                    # Get masked x-coords
+                    xj = self.get_values(xoptj, mask)
+                else:
+                    # Get all values
+                    xj = self.get_all_values(xoptj)
+            else:
+                # Bad type
+                raise TypeError(
+                    "Cannot use x-coord data of type '%s'" % type(xoptj))
+            # Dimension of data for col *col*
+            ndimvj = self.get_ndim(col)
+            # Check consistency
+            if ndimvj < 2:
+                # Must have scalar *x* if scalar *v*
+                if ndimxj > 1:
+                    raise IndexError(
+                        "Cannot combine 2D x-coords with scalar load '%s'"
+                        % col)
+            elif ndimvj == 2:
+                # Ensure 1D or 2D
+                if ndimxj == 0:
+                    raise IndexError(
+                        "Cannot use scalar *x* with 2D load '%s'" % col)
+                elif ndimxj > 2:
+                    raise IndexError("Cannot use %i-D x-coords" % ndimxj)
+            else:
+                # Cannot use 3D+ loads
+                raise IndexError("Cannot combine %i-D loads" % ndimvj)
+            # Check size
+            if j == 0:
+                # Save the number of cases
+                ncase = vj.shape[-1]
+            elif vj.shape[-1] != ncase:
+                # Mismatch
+                raise IndexError(
+                    "Col %i (%s) has %i cases; expecting %i"
+                    % (j, col, vj.shape[-1], ncase))
+            # Save data
+            xdata[col] = xj
+            vdata[col] = vj
+            ndimxdata[col] = ndimxj
+            ndimvdata[col] = ndimvj
+        # Initialize output load
+        v = np.zeros((x.size, ncase), dtype=x.dtype)
+        # Tolerance for *x* intervals
+        xtol = kw.get("xtol", 1e-5 * (np.max(x) - np.min(x)))
+        # Loop through columns
+        Aout = {}
+        for j, col in enumerate(cols):
+            # Dimension for this col
+            ndimxj = ndimxdata[col]
+            ndimvj = ndimvdata[col]
+            # Loop through cases
+            for i in range(ncase):
+                # Get x-coordinates for this case
+                if ndimx == 1:
+                    # Always the same for 1D
+                    xi = x
+                else:
+                    # Select column
+                    xi = x[:,i]
+                # Check it
+                if ndimvj == 0:
+                    # Scalar, constant load for all case
+                    xdataj = xdata[col]
+                    vdataj = vdata[col]
+                elif ndimvj == 1:
+                    # Scalar, varies by case
+                    xdataj = xdata[col]
+                    vdataj = vdata[col][i]
+                else:
+                    # Line load
+                    vdataj = vdata[col][:,i]
+                    # Check *x* dimension
+                    if ndimxj == 1:
+                        # Common *x* for all line loads
+                        xdataj = xdata[col]
+                    else:
+                        # Select *x* for this case
+                        xdataj = xdata[col][:,i]
+                # Combine *x* coordinates
+                if ndimvj < 2:
+                    # Find point *xj* position w.r.t. *xi*
+                    if xdataj + xtol < xi[0] or xdataj - xtol > xi[-1]:
+                        # Can't inject outside point load
+                        raise ValueError(
+                            ("Point-like load '%s' is outside " % col) +
+                            ("x boundaries [%.2e, %.2e]" % (xi[0], xi[-1])))
+                    elif xdataj < xi[0]:
+                        # Nudge to the right
+                        xdataj += xtol
+                    elif xdataj > xi[-1]:
+                        # Nudge to the left
+                        xdataj -= xtol
+                    # Find index of segment with *xdataj* inside
+                    kcut = np.where(xdataj >= x)[0][0]
+                    # Width of this interval
+                    dxj = xdataj[kcut+1] - xdataj[kcut]
+                    # Update the load on that segment
+                    v[kcut, i] += vdataj / dxj
+                    # Move on so we can dedent the ndimvj==2 code
+                    continue
+                # Check for fixed *x*
+                if (i == 0) or (ndimxj == 2) or (ndimx == 2):
+                    # Refilter *x* mapping
+                    # Check limits
+                    if xdataj[0] + xtol < xi[0]:
+                        raise ValueError(
+                            ("Line load '%s' start x-coord " % col) +
+                            ("for case %i is outside bounds" % i))
+                    elif xdataj[-1] - xtol > 2*xi[-1] - xi[-2]:
+                        raise ValueError(
+                            ("Line load '%s' end x-coord " % col) +
+                            ("for case %i is outside bounds" % i))
+                    elif xdataj[0] + xtol < xi[0]:
+                        # Nudge start right
+                        xdataj[0] += xtol
+                    elif xdataj[-1] - xtol > 2*xi[-1] - xi[-2]:
+                        # Nudge end left
+                        xdataj[-1] -= xtol
+                    # Number of cuts in input (*col*) and output
+                    ncutj = xdataj.size
+                    ncuti = xi.size
+                    # Initialize matrix
+                    A = np.zeros((ncuti, ncutj))
+                    # Loop through cuts
+                    for kcut, xa in enumerate(xdataj):
+                        # End of segment
+                        if kcut + 1 == ncutj:
+                            # Extrapolate
+                            xb = 2*xa - xdataj[-2]
+                        else:
+                            # Start of next segment
+                            xb = xdataj[kcut+1]
+                        # Find segment
+                        ka = np.count_nonzero(xa >= xi) - 1
+                        kb = np.count_nonzero(xb > xi) - 1
+                        # Output x-coords
+                        xia0 = xi[ka]
+                        xib0 = xi[kb]
+                        # Check for extrapolated segment
+                        if ka + 1 == ncuti:
+                            xia1 = 2*xi[-1] - xi[-2]
+                        else:
+                            xia1 = xi[ka+1]
+                        # Check for extrapolated segment
+                        if kb + 1 == ncuti:
+                            xib1 = 2*xi[-1] - xi[-2]
+                        else:
+                            xib1 = xi[kb+1]
+                        # Full segments
+                        A[ka+1:kb, kcut] = 1.0
+                        # Progress fractions
+                        fa = (xa - xia0) / (xia1 - xia0)
+                        fb = (xb - xib0) / (xib1 - xib0)
+                        # Check for single segment
+                        if ka == kb:
+                            # Single fraction
+                            A[ka, kcut] = fb - fa
+                        else:
+                            # Fractions for start and and chunks
+                            A[ka, kcut] = 1.0 - fa
+                            A[kb, kcut] = fb
+                        # Save the matrix
+                        Aout[col] = A
+                    # Special case: fixed mapping
+                    if (ndimx == 1) and (ndimxj == 1):
+                        # Multiply all cases at once
+                        v += np.dot(A, vdata[col])
+                        # Don't do the case loop
+                        break
+                # Multiply *A* to transform load for case *i* col *j*
+                v[:, i] += np.dot(A, vdataj)
+        # Output
+        return v, Aout
+        
   # >
 
   # ==================
