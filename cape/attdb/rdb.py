@@ -7962,6 +7962,53 @@ class DataKit(ftypes.BaseData):
 
    # --- Integration ---
     # Integrate a 2D field
+    def make_integral(self, col, xcol=None, ocol=None, **kw):
+        r"""Integrate the columns of a 2D data col
+
+        This method will not perform integration if *ocol* is already
+        present in the database.
+
+        :Call:
+            >>> y = db.make_integral(col, xcol=None, ocol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name of data column to integrate
+            *xcol*: {``None``} | :class:`str`
+                Name of column to use as *x*-coords for integration
+            *ocol*: {``col[1:]``} | :class:`str`
+                Name of col to store result in
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask or indices of which cases to integrate 
+            *x*: {``None``} | :class:`np.ndarray`
+                Optional 1D or 2D *x*-coordinates directly specified
+            *dx*: {``1.0``} | :class:`float`
+                Uniform spacing to use if *xcol* and *x* are not used
+            *method*: |intmethods|
+                Integration method or callable function taking two args
+                like :func:`np.trapz`
+        :Outputs:
+            *y*: :class:`np.ndarray`
+                1D array of integral of each column of *db[col]*
+        :Versions:
+            * 2020-06-10 ``@ddalle``: First version
+
+        .. |intmethods| replace::
+            {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
+        """
+        # Default column name
+        if ocol is None:
+            # Try to remove a "d" from *col* ("dCN" -> "CN")
+            ocol = self.lstrip_colname(col, "d")
+        # Check for name
+        if ocol in self:
+            # Return it
+            return self[ocol]
+        # Otherwise use *create*
+        return self.create_integral(col, xcol, ocol, **kw)
+
+    # Integrate a 2D field
     def create_integral(self, col, xcol=None, ocol=None, **kw):
         r"""Integrate the columns of a 2D data col
 
@@ -8050,6 +8097,8 @@ class DataKit(ftypes.BaseData):
             raise ValueError("Col '%s' is not 2D" % col)
         # Get values
         v = self.get_values(col, mask)
+        # Number of conditions
+        nx = v.shape[0]
         # Process *x*
         if xcol is None:
             # Use 0, 1, 2, ... as *x* coords

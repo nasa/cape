@@ -1309,6 +1309,90 @@ class DBFM(rdbaero.AeroDataKit):
         # Output
         return ".".join(parts)
 
+    # Get *CLL* col name from *CN*
+    def _getcol_CLL_from_CN(self, col):
+        r"""Form *CLL* col name from *CN* col name
+
+        :Call:
+            >>> acol = db._getcol_CLL_from_CN(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+            *col*: ``"CN"`` | :class:`str`
+                Name of *CN* column
+        :Outputs:
+            *acol*: ``"CLL"`` | :class:`str`
+                Name of *CLM* column
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Split component and coeff
+        parts = col.split(".")
+        # Get coeff
+        coeff = parts[-1]
+        # Get aux column name
+        if coeff.endswith("N"):
+            # CN -> CLL
+            acoeff = coeff[:-1] + "LL"
+        elif coeff.startswith("CN"):
+            # CNF -> CLLF
+            acoeff = "CLL" + coeff[2:]
+        elif coeff.startswith("FN"):
+            # FN -> MLL
+            acoeff = "MLL" + acoeff[2:]
+        elif coeff.startswith("Fz"):
+            # Fz -> Mx
+            acoeff = "Mx" + coeff[2:]
+        else:
+            # Just add LL
+            acoeff = coeff + "LL"
+        # Save updated coeff
+        parts[-1] = acoeff
+        # Output
+        return ".".join(parts)
+
+    # Get *CLL* col name from *CY*
+    def _getcol_CLL_from_CY(self, col):
+        r"""Form *CLL* col name from *CY* col name
+
+        :Call:
+            >>> acol = db._getcol_CLL_from_CY(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+            *col*: ``"CY"`` | :class:`str`
+                Name of *CY* column
+        :Outputs:
+            *acol*: ``"CLL"`` | :class:`str`
+                Name of *CLN* column
+        :Versions:
+            * 2020-06-04 ``@ddalle``: First version
+        """
+        # Split component and coeff
+        parts = col.split(".")
+        # Get coeff
+        coeff = parts[-1]
+        # Get aux column name
+        if coeff.endswith("Y"):
+            # CY -> CLN
+            acoeff = coeff[:-1] + "LL"
+        elif coeff.startswith("CY"):
+            # CYF -> CLLF
+            acoeff = "CLL" + coeff[2:]
+        elif coeff.startswith("FY"):
+            # FY -> MLL
+            acoeff = "MLL" + acoeff[2:]
+        elif coeff.startswith("Fy"):
+            # Fy -> Mx
+            acoeff = "Mx" + coeff[2:]
+        else:
+            # Just add LN
+            acoeff = coeff + "LL"
+        # Save updated coeff
+        parts[-1] = acoeff
+        # Output
+        return ".".join(parts)
+
     # Get *CLM* col name from *CN*
     def _getcol_CLM_from_CN(self, col):
         r"""Form *CLM* col name from *CN* col name
@@ -1388,6 +1472,42 @@ class DBFM(rdbaero.AeroDataKit):
         else:
             # Just add LN
             acoeff = coeff + "LN"
+        # Save updated coeff
+        parts[-1] = acoeff
+        # Output
+        return ".".join(parts)
+
+    # Get *CN* col name from *dCN*
+    def _getcol_CX_from_dCX(self, col):
+        r"""Form *CN* col name from *dCN* col name
+
+        :Call:
+            >>> acol = db._getcol_CX_from_dCX(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                LV force & moment database
+            *col*: ``"dCN"`` | :class:`str`
+                Name of *CY* column
+        :Outputs:
+            *acol*: ``"CN"`` | :class:`str`
+                Name of *CLN* column
+        :Versions:
+            * 2020-06-11 ``@ddalle``: First version
+        """
+        # Split component and coeff
+        parts = col.split(".")
+        # Get coeff
+        coeff = parts[-1]
+        # Get aux column name
+        if coeff.startswith("d"):
+            # dCN -> CN
+            acoeff = coeff[1:]
+        elif coeff.startswith("D"):
+            # DCN -> CN
+            acoeff = coeff[1:]
+        else:
+            # Just add *F* for integral
+            acoeff = coeff + "F"
         # Save updated coeff
         parts[-1] = acoeff
         # Output

@@ -52,6 +52,81 @@ import cape.tnakit.typeutils as typeutils
 from . import dbfm
 
 
+# Options class for adjustments
+class _LL3XOpts(kwutils.KwargHandler):
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Lists ---
+    # All options
+    _optlist = {
+        "FMCols",
+        "IntegralCols",
+        "MomentCols",
+        "fm",
+        "mask",
+        "method",
+        "nPOD",
+        "x",
+        "xMRP",
+        "xcol",
+        "y",
+        "yMRP",
+        "z",
+        "zMRP"
+    }
+
+    # Alternate names
+    _optmap = {
+        "Method": "method",
+        "NPOD": "nPOD",
+        "XMRP": "xMRP",
+        "YMRP": "yMRP",
+        "ZMRP": "zMRP",
+        "fmcols": "FMCols",
+        "icols": "IntegralCols",
+        "mcols": "MomentCols",
+        "npod": "nPOD",
+        "xmrp": "xMRP",
+        "ymrp": "yMRP",
+        "zmrp": "zMRP",
+    }
+
+    # Sections
+    _optlists = {
+        "integrals": {
+            "Lref",
+            "method",
+            "xMRP",
+            "yMRP",
+            "y",
+            "zMRP",
+            "z"
+        }
+    }
+
+   # --- Type ---
+    # Required types
+    _optytpes = {
+        "FMCols": (list, tuple),
+        "IntegralCols": (list, tuple),
+        "MomentCols": (list, tuple),
+        "mask": np.ndarray,
+        "method": typeutils.strlike,
+        "nPOD": int,
+        "xcol": typeutils.strlike,
+    }
+
+   # --- Defaults ---
+    # Default values
+    _rc = {
+        "method": "left",
+        "nPOD": 10,
+    }
+  # >
+
+
 # Improvised SVD with fallback for too-dense data
 def svd(C):
     r"""Calculate an SVD with a fallback to skipping every other column
@@ -245,18 +320,12 @@ class DBLL(dbfm.DBFM):
         # Default column to save
         if ocol is None:
             # Try to convert name
-            ocol = self._get_CLM_from_CN(col)
+            ocol = self._getcol_CLM_from_CN(col)
         # Check if present
         if ocol in self:
             return self.get_values(ocol, mask=kw.get("mask"))
-        # Calculate moment
-        v = self.genr8_dclm(col, xcol, **kw)
-        # Save them
-        self.save_col(ocol, v)
-        # Create definition
-        self.make_defn(ocol, v)
-        # Output
-        return v
+        # Call creation method
+        return self.create_dclm(col, ocol=ocol, **kw)
 
     # Calculate yawing moment
     def make_dcln(self, col, xcol=None, ocol=None, **kw):
@@ -289,18 +358,12 @@ class DBLL(dbfm.DBFM):
         # Default column to save
         if ocol is None:
             # Try to convert name
-            ocol = self._get_CLM_from_CN(col)
+            ocol = self._getcol_CLN_from_CY(col)
         # Check if present
         if ocol in self:
             return self.get_values(ocol, mask=kw.get("mask"))
-        # Calculate moment
-        v = self.genr8_dclm(col, xcol, **kw)
-        # Save them
-        self.save_col(ocol, v)
-        # Create definition
-        self.make_defn(ocol, v)
-        # Output
-        return v
+        # Call creation method
+        return self.create_dclm(col, ocol=ocol, **kw)
         
     # Calculate and store moments
     def create_ll_moment(self, col, ax1, ax2, ocol=None, **kw):
@@ -359,6 +422,8 @@ class DBLL(dbfm.DBFM):
         self.save_col(ocol, v)
         # Create definition
         self.make_defn(ocol, v)
+        # Copy definitions
+        self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
         return v
 
@@ -395,11 +460,13 @@ class DBLL(dbfm.DBFM):
         # Default column to save
         if ocol is None:
             # Try to convert name
-            ocol = self._get_CLM_from_CN(col)
+            ocol = self._getcol_CLM_from_CN(col)
         # Save them
         self.save_col(ocol, v)
         # Create definition
         self.make_defn(ocol, v)
+        # Copy definitions
+        self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
         return v
 
@@ -436,11 +503,13 @@ class DBLL(dbfm.DBFM):
         # Default column to save
         if ocol is None:
             # Try to convert name
-            ocol = self._get_CLM_from_CN(col)
+            ocol = self._getcol_CLN_from_CY(col)
         # Save them
         self.save_col(ocol, v)
         # Create definition
         self.make_defn(ocol, v)
+        # Copy definitions
+        self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
         return v
 
@@ -1176,6 +1245,175 @@ class DBLL(dbfm.DBFM):
   # Adjustment
   # ==================
   # <
+   # --- Adjustment ---
+    # Calculate adjusted loads
+    def genr8_ll3x_adjust(self, cols, fm, scol=None, **kw):
+        # Form options
+        opts = _LL3XOpts(**kw)
+        # Create basis
+        basis = self.create_ll3x_basis(cols, scol, **kw)
+        # Get names of columns to use for delta
+        fmcols = kw.get("fmcols", ["CA", "CY", "CN", "CLL", "CLM", "CLN"])
+        intcols = kw.get("intcols")
+
+   # --- Integration ---
+    # Generate integrals and save
+    def create_ll3x_integrals(self, cols, **kw):
+        # Generate the integrals
+        fm = self.genr8_ll3x_integrals(cols, **kw)
+        # Get column names
+        colCA = self._getcol_CX_from_dCX(cols[0])
+        colCY = self._getcol_CX_from_dCX(cols[1])
+        colCN = self._getcol_CX_from_dCX(cols[2])
+        # Get moment line load cols
+        coldCLL = self._getcol_CLL_from_CN(cols[2])
+        coldCLM = self._getcol_CLM_from_CN(cols[2])
+        coldCLN = self._getcol_CLN_from_CY(cols[1])
+        # Get output column names
+        colCl = self._getcol_CX_from_dCX(coldCLL)
+        colCm = self._getcol_CX_from_dCX(coldCLM)
+        colCn = self._getcol_CX_from_dCX(coldCLN)
+        # Save the integrated columns
+        self.save_col(colCA, fm["CA"])
+        self.save_col(colCY, fm["CY"])
+        self.save_col(colCN, fm["CN"])
+        self.save_col(colCl, fm["CLL"])
+        self.save_col(colCm, fm["CLM"])
+        self.save_col(colCn, fm["CLN"])
+        # Make definitions
+        self.make_defn(colCA, fm["CA"])
+        self.make_defn(colCY, fm["CY"])
+        self.make_defn(colCN, fm["CN"])
+        self.make_defn(colCl, fm["CLL"])
+        self.make_defn(colCm, fm["CLM"])
+        self.make_defn(colCn, fm["CLN"])
+        
+    # Generate integrals
+    def genr8_ll3x_integrals(self, cols, **kw):
+        r"""Integrate 3 or 6 line load columns
+
+        :Call:
+            >>> fm = db.genr8_ll3x_integrals(cols, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm["CA"]*: :class:`np.ndarray`
+                Integrated *cols[0]*
+            *fm["CY"]*: :class:`np.ndarray`
+                Integrated *cols[1]*
+            *fm["CN"]*: :class:`np.ndarray`
+                Integrated *cols[2]*
+            *fm["CLL"]*: :class:`np.ndarray`
+                Integrated *cols[3]* or rolling moment induced by
+                *CY* and *CN*
+            *fm["CLM"]*: :class:`np.ndarray`
+                Integrated *cols[4]* or pitching moment integrated
+                from *cols[2]* plus what's induced by *CA*
+            *fm["CLN"]*: :class:`np.ndarray`
+                Integrated *cols54]* or pitching moment integrated
+                from *cols[1]* plus what's induced by *CA*
+        :Versions:
+            * 2020-06-11 ``@ddalle``: First version
+        """
+        # Check options
+        opts = _LL3XOpts(**kw)
+        # Check column list
+        self._check_ll3x_cols(cols)
+        # Reference length
+        Lref = opts.get_option("Lref", self.__dict__.get("Lref", 1.0))
+        # Get MRP
+        xMRP = opts.get_option("xMRP", self.__dict__.get("xMRP", 0.0))
+        yMRP = opts.get_option("yMRP", self.__dict__.get("yMRP", 0.0))
+        zMRP = opts.get_option("zMRP", self.__dict__.get("zMRP", 0.0))
+        # Get coordinates
+        y = opts.get_option("y", yMRP)
+        z = opts.get_option("z", zMRP)
+        # Integrate forces
+        CA = self.genr8_integral(cols[0], **opts)
+        CY = self.genr8_integral(cols[1], **opts)
+        CN = self.genr8_integral(cols[2], **opts)
+        # Check for moment loads
+        if len(cols) == 6:
+            # Integrate moment loads
+            CLL = self.genr8_integral(cols[3], **opts)
+            CLM = self.genr8_integral(cols[4], **opts)
+            CLN = self.genr8_integral(cols[5], **opts)
+        else:
+            # Create moment columns
+            self.create_dclm(cols[2], **opts)
+            self.create_dcln(cols[1], **opts)
+            # Column names used for those integrals
+            colCLM = self._getcol_CLM_from_CN(cols[2])
+            colCLN = self._getcol_CLN_from_CY(cols[1])
+            # Integrate moments
+            CLL = np.zeros_like(CA)
+            CLM = self.genr8_integral(colCLM, **opts)
+            CLN = self.genr8_integral(colCLN, **opts)
+            # Moments due to MRP offset from line load center
+            CLM += CA * (z - zMRP) / Lref
+            CLN += CA * (y - yMRP) / Lref
+            CLL += CY * (z - zMRP) / Lref
+            CLL -= CN * (y - yMRP) / Lref
+        # Output
+        return {
+            "CA": CA,
+            "CY": CY,
+            "CN": CN,
+            "CLL": CLL,
+            "CLM": CLM,
+            "CLN": CLN,
+        }
+        
+
+   # --- Checkers ---
+    # Check LL3X column list
+    def _check_ll3x_cols(self, cols):
+        # Check the columns
+        if not isinstance(cols, (list, tuple)):
+            # Wrong type
+            raise TypeError("LL3X cols must be list (got '%s')" % type(cols))
+        elif len(cols) not in {3, 6}:
+            # Wrong length
+            raise IndexError(
+                "LL3X cols must have length 3 or 6 (got %i)" % len(cols))
+        # Check column presence
+        for j, col in enumerate(cols):
+            # Check type
+            if not typeutils.isstr(col):
+                # Wrong type
+                raise TypeError("LL3X col %i is not a 'str'" % j)
+            elif col not in self:
+                # Not present
+                raise KeyError("LL3X col %i '%s' not in database" % (j, col))
+            # Get data type and dimension
+            ndim = self.get_ndim(col)
+            dtype = self.get_col_dtype(col)
+            # Ensure type and dimension
+            if not (dtype.startswith("float") or dtype.startswith("comp")):
+                # Not data type
+                raise TypeError(
+                    ("Data type for col '%s' is '%s'; " % (col, dtype)) +
+                    ("must be float or complex"))
+            elif ndim != 2:
+                # Line load must be 2D
+                raise IndexError("Col '%s' is %iD, must be 2D" % (col, ndim))
+        
+
    # --- Basis ---
     # Create basis for line load of one component by slice
     def create_ll3x_basis(self, cols, scol=None, **kw):
