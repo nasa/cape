@@ -1459,7 +1459,7 @@ class DBFM(rdbaero.AeroDataKit):
         # Get aux column name
         if coeff.endswith("Y"):
             # CY -> CLN
-            acoeff = coeff[:-1] + "LM"
+            acoeff = coeff[:-1] + "LN"
         elif coeff.startswith("CY"):
             # CYF -> CLNF
             acoeff = "CLN" + coeff[2:]

@@ -7227,7 +7227,7 @@ class DataKit(ftypes.BaseData):
 
         :Call:
             >>> I = db.prep_mask(mask, col=None, V=None)
-            >>> I = db.prep_mask(mask_index, col=None, V=Nne)
+            >>> I = db.prep_mask(mask_index, col=None, V=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
