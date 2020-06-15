@@ -108,6 +108,11 @@ class MPLOpts(kwutils.KwargHandler):
         "ContourLevels",
         "ContourOptions",
         "ContourType",
+        "Coverage",
+        "CoverageCDF",
+        "CoverageOptions",
+        "Delta",
+        "DeltaOptions",
         "Density",
         "ErrorBarOptions",
         "ErrorBarMarker",
@@ -120,6 +125,7 @@ class MPLOpts(kwutils.KwargHandler):
         "FigOptions",
         "FigWidth",
         "FillBetweenOptions",
+        "FilterSigma",
         "FontOptions",
         "FontName",
         "FontSize",
@@ -172,11 +178,12 @@ class MPLOpts(kwutils.KwargHandler):
         "MarkerColor",
         "MarkerOptions",
         "MarkerSize",
+        "MeanOptions",
         "MinMaxOptions",
         "MinMaxPlotType",
         "MinorGrid",
         "MinorGridOptions",
-        "NGauss"
+        "NGauss",
        # P-T
         "Pad",
         "PlotColor",
@@ -194,6 +201,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterColor",
         "ScatterSize",
         "ScatterOptions",
+        "ShowDelta",
         "ShowError",
         "ShowGauss",
         "ShowInterval",
@@ -201,9 +209,12 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowLine",
         "ShowMean",
         "ShowMinMax",
+        "ShowSigma",
         "ShowUncertainty",
+        "SigmaOptions",
         "SpineOptions",
         "Spines",
+        "StDev",
         "Subplot",
         "SubplotCols",
         "SubplotList",
@@ -308,6 +319,8 @@ class MPLOpts(kwutils.KwargHandler):
         "UncertaintyOpts": "UncertaintyOptions",
         "UQPlotType": "UncertaintyPlotType",
         "axlabelopts": "AxesLabelOptions",
+        "cdf": "CoverageCDF",
+        "cov": "Coverage",
         "density": "Density",
         "fmt": "PlotFormat",
         "grid": "Grid",
@@ -428,6 +441,15 @@ class MPLOpts(kwutils.KwargHandler):
             "MarkerOptions",
             "MarkerSize"
         ],
+        "coverage":[
+            "Coverage",
+            "CoverageCDF",
+            "FilterSigma"
+        ],
+        "delta": [
+            "Delta",
+            "DeltaOptions"
+        ],
         "error": [
             "Index",
             "Rotate",
@@ -516,6 +538,10 @@ class MPLOpts(kwutils.KwargHandler):
             "PlotOptions",
             "PlotFormat"
         ],
+        "mean": [
+            "MeanOptions",
+            "Rotate"
+        ],
         "minmax": [
             "Index",
             "Rotate",
@@ -531,6 +557,10 @@ class MPLOpts(kwutils.KwargHandler):
             "ScatterOptions",
             "ScatterColor",
             "ScatterSize"
+        ],
+        "sigma" : [
+            "SigmaOptions",
+            "StDev"
         ],
         "spines": [
             "Spines",
@@ -639,6 +669,11 @@ class MPLOpts(kwutils.KwargHandler):
         "ContourType": typeutils.strlike,
         "ContourLevels": (typeutils.intlike, list),
         "ContourOptions": dict,
+        "Coverage": float,
+        "CoverageCDF": float,
+        "CoverageOptions": dict,
+        "Delta": float,
+        "DeltaOptions": dict,
         "Density": bool,
         "ErrorBarMarker": typeutils.strlike,
         "ErrorBarOptions": dict,
@@ -651,6 +686,7 @@ class MPLOpts(kwutils.KwargHandler):
         "FigOptions": dict,
         "FigWidth": float,
         "FillBetweenOptions": dict,
+        "FilterSigma" : float,
         "FontName": typeutils.strlike,
         "FontOptions": dict,
         "FontSize": (int, float, typeutils.strlike),
@@ -704,6 +740,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MarkerColor": (tuple, typeutils.strlike),
         "MarkerOptions": dict,
         "MarkerSize": (int, float),
+        "MeanOptions": dict,
         "MinorGrid": bool,
         "MinorGridOptions": dict,
         "MinMaxOptions": dict,
@@ -718,15 +755,19 @@ class MPLOpts(kwutils.KwargHandler):
         "PlotOptions": dict,
         "Rotate": bool,
         "ScatterOptions": dict,
+        "ShowDelta": bool,
         "ShowError": bool,
         "ShowGauss": bool,
         "ShowInterval": bool,
         "ShowLine": bool,
         "ShowMinMax": bool,
         "ShowMean": bool,
+        "ShowSigma": bool,
         "ShowUncertainty": bool,
+        "SigmaOptions": dict,
         "SpineOptions": dict,
         "Spines": bool,
+        "StDev": (int, float, list, tuple, typeutils.arraylike),
         "SubplotCols": int,
         "SubplotList": list,
         "SubplotRows": int,
@@ -828,6 +869,11 @@ class MPLOpts(kwutils.KwargHandler):
             "MarkPoints": "MarkPoints",
             "MarkerOptions": "MarkerOptions",
         },
+        "CoverageOptions": {},
+        "DeltaOptions":{
+            "Index": "Index",
+            "Rotate": "Rotate"
+        },
         "ErrorOptions": {},
         "FigOptions": {
             "FigNumber": "num",
@@ -858,6 +904,7 @@ class MPLOpts(kwutils.KwargHandler):
             "Index": "Index",
             "Rotate": "Rotate",
             "PlotOptions.color": "color",
+            "NGauss": "NGauss",
         },
         "GridOptions": {
             "GridColor": "color",
@@ -870,7 +917,6 @@ class MPLOpts(kwutils.KwargHandler):
         "IntervalOptions": {
             "Index" : "Index",
             "Rotate" : "Rotate",
-            "PlotOptions.color": "color"
         },
         "LegendOptions": {
             "LegendAnchor": "bbox_to_anchor",
@@ -897,6 +943,12 @@ class MPLOpts(kwutils.KwargHandler):
             "MarkerColor": "color",
             "MarkerSize": "markersize",
         },
+        "MeanOptions" : {
+            "Rotate": "Rotate",
+            "PlotOptions.color": "color",
+            "PlotOptions.lw": "lw",
+            "PlotOptions.ls": "ls",
+        },
         "MinMaxOptions": {},
         "PlotOptions": {
             "Index": "Index",
@@ -911,6 +963,12 @@ class MPLOpts(kwutils.KwargHandler):
             "Rotate": "Rotate",
             "ScatterColor": "c",
             "ScatterSize": "s",
+        },
+        "SigmaOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "PlotOptions.color": "color",
+            "StDev": "StDev",
         },
         "TickOptions": {
             "TickFontSize": "labelsize",
@@ -953,6 +1011,11 @@ class MPLOpts(kwutils.KwargHandler):
             "mfc": "markerfacecolor",
             "ms": "markersize",
         },
+        "DeltaOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
         "FillBetweenOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
@@ -989,6 +1052,16 @@ class MPLOpts(kwutils.KwargHandler):
             "linestyle": "ls",
             "c": "color",
         },
+        "MeanOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
+        "SigmaOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
     }
 
    # --- Documentation Data ---
@@ -1019,8 +1092,13 @@ class MPLOpts(kwutils.KwargHandler):
         "BottomTickLabels": _rst_booln,
         "ContourColorMap": _rst_str,
         "ContourLevels": "{``None``} | :class:`int` | :class:`np.ndarray`",
-        "ContourOptions" : _rst_dict,
-        "ContourType" : "{``tricontourf``} | ``tricontour`` | ``tripcolor``",
+        "ContourOptions": _rst_dict,
+        "ContourType": "{``tricontourf``} | ``tricontour`` | ``tripcolor``",
+        "Coverage": _rst_float,
+        "CoverageCDF": _rst_float,
+        "CoverageOptions": _rst_dict,
+        "Delta": _rst_float,
+        "Delta_Options": _rst_dict,
         "Density": _rst_boolt,
         "ErrorBarMarker": _rst_str,
         "ErrorBarOptions": _rst_dict,
@@ -1033,6 +1111,7 @@ class MPLOpts(kwutils.KwargHandler):
         "FigOptions": _rst_dict,
         "FigWidth": _rst_floatpos,
         "FillBetweenOptions": _rst_dict,
+        "FilterSigma": _rst_float,
         "FontName": _rst_str,
         "FontOptions": _rst_dict,
         "FontSize": _rst_strnum,
@@ -1089,6 +1168,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MarkerColor": """{``None``} | :class:`str` | :class:`tuple`""",
         "MarkerOptions": _rst_dict,
         "MarkerSize": """{``None``} | :class:`int` | :class:`float`""",
+        "MeanOptions": _rst_dict,
         "MinMaxPlotType": """{``"FillBetween"``} | ``"ErrorBar"``""",
         "MinMaxOptions": _rst_dict,
         "MinorGrid": _rst_boolf,
@@ -1113,12 +1193,16 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterOptions": _rst_dict,
         "ScatterSize": "{``None``} | :class:`np.ndarray` | :class:`float`",
         "ShowError": _rst_booln,
+        "ShowDelta": _rst_booln,
         "ShowGauss": _rst_booln,
         "ShowInterval": _rst_booln,
         "ShowMinMax": _rst_booln,
         "ShowMean": _rst_booln,
+        "ShowSigma": _rst_booln,
         "ShowUncertainty": _rst_booln,
+        "SigmaOptions": _rst_dict,
         "SpineOptions": _rst_dict,
+        "StDev":  "{``None``} | :class:`np.ndarray` | :class:`float` | :class:`list` | :class:`tuple`",
         "Subplot": """{``None``} | :class:`Axes` | :class:`int`""",
         "SubplotCols": _rst_intpos,
         "SubplotList": r"""{``None``} | :class:`list`\ [:class:`int`]""",
@@ -1190,6 +1274,11 @@ class MPLOpts(kwutils.KwargHandler):
         "ContourLevels": """Number or list of levels for contour plots""",
         "ContourOptions": """Options to :func:`plt.tricontour` and variants""",
         "ContourType": """Contour type specifier""",
+        "Coverage": """Coverage interval""",
+        "CoverageCDF": """Coverage interval cumulative density function""",
+        "CoverageOptions": """Coverage interval options""",
+        "Delta": """Reference delta for histogram delta plot""",
+        "DeltaOptions": """Options for histogram delta plot""",
         "Density": """Option to scale histogram plots""",
         "ErrorBarMarker": """Marker for :func:`errorbar` plots""",
         "ErrorBarOptions": """Options for :func:`errorbar` plots""",
@@ -1202,6 +1291,7 @@ class MPLOpts(kwutils.KwargHandler):
         "FigOptions": """Options to :class:`matplotlib.figure.Figure`""",
         "FigWidth": "Figure width [inches]",
         "FillBetweenOptions": """Options for :func:`fill_between` plots""",
+        "FilterSigma": """Sigma multiplier for outlier sigma""",
         "FontName": """Font name (categories like ``sans-serif`` allowed)""",
         "FontOptions": """Options to :class:`FontProperties`""",
         "FontSize": """Font size (options like ``"small"`` allowed)""",
@@ -1264,6 +1354,7 @@ class MPLOpts(kwutils.KwargHandler):
         "MarkerColor": "Color for markers in *MarkerOptions*",
         "MarkerOptions": "Options for markers on non-plot() functions",
         "MarkerSize": "*markersize* passed to *MarkerOptions*",
+        "MeanOptions": "Options for plotting mean on histogram plots",
         "MinMaxOptions": "Options for error-bar or fill-between min/max plot",
         "MinMaxPlotType": """Plot type for min/max plot""",
         "MinorGrid": """Turn on/off grid at minor ticks""",
@@ -1288,13 +1379,17 @@ class MPLOpts(kwutils.KwargHandler):
             "usually an array of floats that maps into color map"),
         "ScatterOptions": """Options to :func:`plt.scatter`""",
         "ScatterSize": "Size [pt^2] of marker for each data point",
+        "ShowDelta": """"Show delta bounds on histrogram plot""",
         "ShowError": """Show "error" plot using *xerr*""",
         "ShowGauss": """Show Gaussian plot on histogram""",
         "ShowInterval": """Show interval plot on histogram""",
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
-        "ShowMean" : """Plot *mu* on histogram""",
+        "ShowMean": """Plot *mu* on histogram""",
+        "ShowSigma": """Plot *sigma* bounds on histogram""",
         "ShowUncertainty": """Plot uncertainty bounds""",
+        "SigmaOptions": """Options for sigma bounds""",
         "SpineOptions": """Options for all spines""",
+        "StDev": """*sigma* multipliers for sigma bounds""",
         "Subplot": "Subplot index (1-based)",
         "SubplotCols": "Expected number of subplot columns",
         "SubplotList": "List of subplots to put in row/column",
@@ -1346,6 +1441,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowGauss" : False,
         "ShowInterval": False,
         "ShowMean": False,
+        "ShowSigma": False,
         "Index": 0,
         "Rotate": False,
         "AxesLabelOptions": {},
@@ -1354,6 +1450,16 @@ class MPLOpts(kwutils.KwargHandler):
         "ContourOptions": {
             "cmap": "viridis",
             "alpha": 1,
+        },
+        "CoverageOptions":{
+            "Coverage":.99,
+        },
+        "DeltaOptions":{
+            "Delta": 0.0,
+            'color': "r",
+            'ls': "--",
+            'lw': 1.0,
+            'zorder': 3,
         },
         "ErrorBarOptions": {},
         "ErrorOptions": {},
@@ -1414,10 +1520,23 @@ class MPLOpts(kwutils.KwargHandler):
             "lw": 0.5,
             "color": "#b0b0b0",
         },
+        "MeanOptions": {
+            "color": 'k',
+            "lw": 2,
+            "zorder": 6,
+            "label": "Mean value",
+        },
         "PlotOptions": {
             "color": ["b", "k", "darkorange", "g"],
             "ls": "-",
             "zorder": 8,
+        },
+        "SigmaOptions": {
+            'color': 'navy',
+            'lw': 2,
+            'zorder': 5,
+            "dashes": [4, 2],
+            'StDev': 3,
         },
         "TickOptions": {},
         "XTickOptions": {},
@@ -1465,36 +1584,36 @@ class MPLOpts(kwutils.KwargHandler):
             "RightSpine": False,
             "TopSpine": False,
         },
-        "mu": {
-            "color": 'k',
-            "lw": 2,
-            "zorder": 6,
-            "label": "Mean value",
-        },
+        # "mu": {
+        #     "color": 'k',
+        #     "lw": 2,
+        #     "zorder": 6,
+        #     "label": "Mean value",
+        #},
         "gauss": {
             "color": "navy",
             "lw": 1.5,
             "zorder": 7,
             "label": "Normal Distribution",
         },
-        "interval": {
-            "lw": 0,
-            "zorder": 1,
-            "alpha": 0.2,
-        },
-        "std": {
-            'color': 'navy',
-            'lw': 2,
-            'zorder': 5,
-            "dashes": [4, 2],
-            'StDev': 3,
-        },
-        "delta": {
-            'color': "r",
-            'ls': "--",
-            'lw': 1.0,
-            'zorder': 3,
-        },
+        # "interval": {
+        #     "lw": 0,
+        #     "zorder": 1,
+        #     "alpha": 0.2,
+        # },
+        # "std": {
+        #     'color': 'navy',
+        #     'lw': 2,
+        #     'zorder': 5,
+        #     "dashes": [4, 2],
+        #     'StDev': 3,
+        # },
+        # "delta": {
+        #     'color': "r",
+        #     'ls': "--",
+        #     'lw': 1.0,
+        #     'zorder': 3,
+        # },
         "histlbl": {
             'color': 'k',
             'horizontalalignment': 'right',
@@ -1558,10 +1677,7 @@ class MPLOpts(kwutils.KwargHandler):
                 Options interface
         :Keys:
             %(keys)s
-        :Outputs:
-            *kw*: :class:`dict`
-                Dictionary of options to :func:`axes_adjust`
-        :Versions:
+        :Outputs:            "CoverageCDF": CoverageOptions.Coverage,
             * 2020-01-08 ``@ddalle``: First version
             * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
@@ -1608,6 +1724,50 @@ class MPLOpts(kwutils.KwargHandler):
             * 2020-01-18 ``@ddalle``: Using :class:`KwargHandler`
         """
         return self.section_options("axformat")
+
+    # Options for coverage intervals
+    def coverage_options(self):
+        r"""Process options for coverage intervals
+
+        :Call:
+            >>> kw = opts.coverage_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options for coverage intervals
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Specific options
+        return self.get_option("CoverageOptions")
+
+    # Options for delta plots
+    def delta_options(self):
+        r"""Process options for delta plots
+
+        :Call:
+            >>> kw = opts.delta_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options for mpl._plot
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Specific options
+        return self.get_option("DeltaOptions")
 
     # Process options for "error" plot
     def error_options(self):
@@ -1824,7 +1984,7 @@ class MPLOpts(kwutils.KwargHandler):
         """
         return self.section_options("imshow")
 
-    # Options for intervals on historgram plots
+    # Options for intervals on histogram plots
     def interval_options(self):
         r"""Process options for :func:`interval` calls
 
@@ -1923,7 +2083,7 @@ class MPLOpts(kwutils.KwargHandler):
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
         # Use the "gauss" section
-        kw = self.section_options("mu")
+        kw = self.get_option("MeanOptions")
         return kw
 
     # Primary options
@@ -2067,6 +2227,29 @@ class MPLOpts(kwutils.KwargHandler):
             # Combine FillBetween options into main options
             kw[mainopt] = dict(kw_fb, **kw_mm)
         # Output
+        return kw
+
+    # Options for sigma bounds on histogram plots
+    def sigma_options(self):
+        r"""Process options for :func:`sigma` calls
+
+        :Call:
+            >>> kw = opts.sigma_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`_plot`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Specific options
+        kw = self.get_option("SigmaOptions")
         return kw
 
     # Spine options

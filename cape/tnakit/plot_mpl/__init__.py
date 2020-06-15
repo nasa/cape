@@ -153,37 +153,22 @@ def hist(v, *a, **kw):
    # --- Statistics ---
     # Filter out non-numeric entries
     v = v[np.logical_not(np.isnan(v))]
+    # Save values
+    opts.set_option("v", v)
     # Calculate the mean
     vmu = np.mean(v)
     # Calculate StdDev
     vstd = np.std(v)
-    # Coverage Intervals
-    cov = kw.pop("Coverage", kw.pop("cov", 0.99))
-    cdf = kw.pop("CoverageCDF", kw.pop("cdf", cov))
-    # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
-    kcdf = statutils.student.ppf(0.5+0.5*cdf, v.size)
-    # Check for outliers ...
-    fstd = kw.pop('FilterSigma', 2.0*kcdf)
-    # Remove values from histogram
-    if fstd:
-        # Find indices of cases that are within outlier range
-        j = np.abs(v-vmu)/vstd <= fstd
-        # Filter values
-        v = v[j]
-    # Calculate interval
-    acov, bcov = statutils.get_cov_interval(v, cov, cdf=cdf, **kw)
-    # Save values
-    opts.set_option("v", v)
     # Save stats
     opts.set_option("mu", vmu)
     opts.set_option("std", vstd)
-    # Save Interval
-    opts.set_option('acov', acov)
-    opts.set_option('bcov', bcov)
+    # Coverage Intervals
+    _part_coverage(opts, h)
    # --- Control Options ---
     opts.setdefault_option("ShowGauss", False) 
     opts.setdefault_option("ShowInterval", False) 
-    opts.setdefault_option("ShowMean", False) 
+    opts.setdefault_option("ShowMean", False)
+    opts.setdefault_option("ShowSigma", False) 
    # --- Axes Setup ---
     # Figure, then axes
     _part_init_figure(opts, h)
@@ -197,6 +182,10 @@ def hist(v, *a, **kw):
     _part_interval(opts, h)
     # Mean
     _part_mean(opts, h)
+    # Sigma
+    _part_sigma(opts,h)
+    # Delta
+    _part_delta(opts,h)
    # --- Axis formatting ---
     # Format grid, spines, and window
     _part_axes_grid(opts, h)
@@ -397,9 +386,7 @@ def _part_interval(opts, h):
         acov = opts.get_option('acov')
         bcov = opts.get_option('bcov')
         # Get orientation
-        rotate = opts.get_option('Rotate')
-        # Pop out rotate keyword
-        r2 = kw.pop('Rotate', None)
+        rotate = kw.pop('Rotate', None)
         if rotate:
             orient = "horizontal"
         else:
@@ -432,22 +419,19 @@ def _part_mean(opts, h):
         else:
             orient = "vertical"
         # Process mean options
-        opts_mean = opts.mean_options()
-        # Options for the plot function
-        kw = {}
-        kw['PlotOptions'] = opts_mean
+        kw = opts.mean_options()
         # Get axis limits
         ax = h.ax
         if orient == 'vertical':
             # Vertical: get vertical limits of axes window
             pmin, pmax = ax.get_ylim()
             # Plot a vertical mean line
-            mean = mpl.plot([vmu, vmu], [pmin, pmax], **kw)
+            mean = mpl._plot([vmu, vmu], [pmin, pmax], **kw)
         else:
             # Horizontal: get horizontal limits of axes window
             pmin, pmax = ax.get_xlim()
             # Plot a horizontal range bar
-            mean = mpl.plot([pmin, pmax], [vmu, vmu], **kw)
+            mean = mpl._plot([pmin, pmax], [vmu, vmu], **kw)
         # Return
         h.save('mean', mean)
     
@@ -613,6 +597,77 @@ def _part_colorbar(opts, h):
     # Save
     h.save("colorbar", cbar)
 
+# Partial function: coverage()
+def _part_coverage(opts, h):
+    # Process coverage options
+    covopts = opts.coverage_options()
+    cov = covopts.pop("Coverage")
+    cdf = covopts.pop("CoverageCDF", cov)
+    # Get basic stats
+    vmu = opts.get_option("mu")
+    vstd = opts.get_option('std')
+    v = opts.get_option('v')
+    # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
+    kcdf = statutils.student.ppf(0.5+0.5*cdf, v.size)
+    # Check for outliers ...
+    fstd = covopts.pop('FilterSigma', 2.0*kcdf)
+    # Remove values from histogram
+    if fstd:
+        # Find indices of cases that are within outlier range
+        j = np.abs(v-vmu)/vstd <= fstd
+        # Filter values
+        v = v[j]
+    # Calculate interval
+    acov, bcov = statutils.get_cov_interval(v, cov, cdf=cdf)
+    # Save values
+    opts.set_option("v", v)
+    # Save Interval
+    opts.set_option('acov', acov)
+    opts.set_option('bcov', bcov)
+
+# Partial function: Delta()
+def _part_delta(opts, h):
+    if opts.get_option("ShowDelta"):
+        # Process sigma options
+        kw = opts.delta_options()
+        # Get mu and sigma
+        vmu = opts.get_option('mu')
+        # Get orientation
+        rotate = opts.get_option('Rotate')
+        if rotate:
+            orient = "horizontal"
+        else:
+            orient = "vertical"
+        # Get axis limits
+        ax = h.ax
+        # Get Reference Delta
+        dc = kw.pop('Delta')
+        # Plot lines
+        if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
+            # Separate lower and upper limits
+            cmin = vmu - dc[0]
+            cmax = vmu + dc[1]
+        else:
+            # Use as a single number
+            cmin = vmu - dc
+            cmax = vmu + dc
+        # Check orientation
+        if orient == 'vertical':
+            # Get vertical limits
+            pmin, pmax = ax.get_ylim()
+            # Plot a vertical line for the min and max
+            delta = (
+                mpl._plot([cmin, cmin], [pmin, pmax], **kw) +
+                mpl._plot([cmax, cmax], [pmin, pmax], **kw))
+        else:
+            # Get horizontal limits
+            pmin, pmax = ax.get_xlim()
+            # Plot a horizontal line for the min and max
+            delta = (
+                mpl._plot([pmin, pmax], [cmin, cmin], **kw) +
+                mpl._plot([pmin, pmax], [cmax, cmax], **kw))
+        # Return
+        h.save('delta', delta)
 
 # Move axes all the way to one side
 def move_axes(ax, loc, margin=0.0):
@@ -714,65 +769,53 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
     # Set new position
     ax.set_position([xmin + dx, ymin + dy, w, h])
 
-
-# Interval using two lines
-def _plots_std(ax, vmu, vstd, **kw):
-    """Use two lines to show standard deviation window
-
-    :Call:
-        >>> h = _plots_std(ax, vmu, vstd, **kw))
-    :Inputs:
-        *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
-            Axes handle
-        *vmu*: :class: 'float'
-            Desired mean of distribution (`np.meam()`)
-        *vstd*: :class: `float`
-            Desired standard deviation of distribution( `np.std()`)
-    :Keyword Arguments:
-        * "StdOptions" : :dict: of line `LineOptions`
-    :Outputs:
-        *h*: ``None`` | :class:`list`| [:class:`matplotlib.Line2D`]
-            List of line instances
-    :Versions:
-        * 2019-03-14 ``@jmeeroff``: First version
-        * 2019-08-22 ``@ddalle``: From :func:`Part.std_part`
-    """
-    # Ensure pyplot loaded
-    mpl._import_pyplot()
-    # Get orientation option
-    orient = kw.pop('orientation', None)
-    # Check multiplier
-    ksig = kw.pop('StDev', None)
-    # Exit if no standard deviation to show
-    if not ksig:
-        return
-    # Plot lines
-    if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
-        # Separate lower and upper limits
-        vmin = vmu - ksig[0]*vstd
-        vmax = vmu + ksig[1]*vstd
-    else:
-        # Use as a single number
-        vmin = vmu - ksig*vstd
-        vmax = vmu + ksig*vstd
-    # Check orientation
-    if orient == 'vertical':
-        # Get vertical limits
-        pmin, pmax = ax.get_ylim()
-        # Plot a vertical line for the min and max
-        h = (
-            mpl.plt.plot([vmin, vmin], [pmin, pmax], **kw) +
-            mpl.plt.plot([vmax, vmax], [pmin, pmax], **kw))
-    else:
-        # Get horizontal limits
-        pmin, pmax = ax.get_xlim()
-        # Plot a horizontal line for the min and max
-        h = (
-            mpl.plt.plot([pmin, pmax], [vmin, vmin], **kw) +
-            mpl.plt.plot([pmin, pmax], [vmax, vmax], **kw))
-    # Return
-    return h
-
+# Partial function: sigma()
+def _part_sigma(opts, h):
+    if opts.get_option("ShowSigma"):
+        # Process sigma options
+        kw = opts.sigma_options()
+        # Get mu and sigma
+        vmu = opts.get_option('mu')
+        vstd = opts.get_option('std')
+        # Get orientation
+        rotate = opts.get_option('Rotate')
+        if rotate:
+            orient = "horizontal"
+        else:
+            orient = "vertical"
+        # Get axis limits
+        ax = h.ax
+        # Get Multipliers
+        ksig = kw.pop('StDev', None)
+        # Exit if no standard deviation to show
+        if not ksig:
+            return
+        # Plot lines
+        if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
+            # Separate lower and upper limits
+            vmin = vmu - ksig[0]*vstd
+            vmax = vmu + ksig[1]*vstd
+        else:
+            # Use as a single number
+            vmin = vmu - ksig*vstd
+            vmax = vmu + ksig*vstd
+        # Check orientation
+        if orient == 'vertical':
+            # Get vertical limits
+            pmin, pmax = ax.get_ylim()
+            # Plot a vertical line for the min and max
+            sigma = (
+                mpl._plot([vmin, vmin], [pmin, pmax], **kw) +
+                mpl._plot([vmax, vmax], [pmin, pmax], **kw))
+        else:
+            # Get horizontal limits
+            pmin, pmax = ax.get_xlim()
+            # Plot a horizontal line for the min and max
+            sigma = (
+                mpl._plot([pmin, pmax], [vmin, vmin], **kw) +
+                mpl._plot([pmin, pmax], [vmax, vmax], **kw))
+        # Return
+        h.save('sigma', sigma)
 
 # Delta Plotting
 def plot_delta(ax, vmu, **kw):
