@@ -49,7 +49,145 @@ import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
 
 # Local modules
+from . import rdb
 from . import dbfm
+
+
+# Basic coefficient list
+_coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+
+# Options class for adjustments
+class _LL3XOpts(kwutils.KwargHandler):
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Lists ---
+    # All options
+    _optlist = {
+        "CompAdjustedCols",
+        "CompFMCols",
+        "CompFMFracCols",
+        "CompLLCols",
+        "CompSourceCols",
+        "CompY",
+        "CompZ",
+        "FMCols",
+        "LLCols",
+        "SourceCols",
+        "TargetCols",
+        "TargetSaveCols",
+        "Translators",
+        "fm",
+        "mask",
+        "method",
+        "nPOD",
+        "x",
+        "xMRP",
+        "xcol",
+        "y",
+        "yMRP",
+        "z",
+        "zMRP"
+    }
+
+    # Alternate names
+    _optmap = {
+        "Method": "method",
+        "NPOD": "nPOD",
+        "XMRP": "xMRP",
+        "YMRP": "yMRP",
+        "ZMRP": "zMRP",
+        "fmcols": "CompFMCols",
+        "icols": "IntegralCols",
+        "mcols": "MomentCols",
+        "npod": "nPOD",
+        "xmrp": "xMRP",
+        "ymrp": "yMRP",
+        "zmrp": "zMRP",
+    }
+
+    # Sections
+    _optlists = {
+        "integrals": {
+            "CompLLCols",
+            "CompY",
+            "CompZ",
+            "Lref",
+            "method",
+            "xMRP",
+            "yMRP",
+            "zMRP"
+        },
+        "integrals_make": {
+            "CompFMCols",
+            "CompLLCols",
+            "CompY",
+            "CompZ",
+            "Lref",
+            "method",
+            "xMRP",
+            "yMRP",
+            "zMRP"
+        },
+        "integrals_comp": {
+            "LLCols",
+            "Lref",
+            "method",
+            "xMRP",
+            "yMRP",
+            "y",
+            "zMRP",
+            "z"
+        },
+        "integrals_comp_make": {
+            "FMCols",
+            "LLCols",
+            "Lref",
+            "method",
+            "xMRP",
+            "yMRP",
+            "y",
+            "zMRP",
+            "z"
+        },
+        "target": {
+            "TargetCols",
+            "Translators",
+            "mask"
+        },
+        "target_mask": {
+            "TargetCols",
+            "TargetSaveCols",
+            "Translators",
+            "mask"
+        },
+    }
+
+   # --- Type ---
+    # Required types
+    _optytpes = {
+        "CompFMCols": dict,
+        "CompLLCols": dict,
+        "CompY": dict,
+        "CompZ": dict,
+        "FMCols": dict,
+        "LLCols": dict,
+        "TargetCols": dict,
+        "Translators": dict,
+        "mask": np.ndarray,
+        "method": typeutils.strlike,
+        "nPOD": int,
+        "xcol": typeutils.strlike,
+    }
+
+   # --- Defaults ---
+    # Default values
+    _rc = {
+        "method": "left",
+        "nPOD": 10,
+    }
+  # >
 
 
 # Improvised SVD with fallback for too-dense data
@@ -245,18 +383,12 @@ class DBLL(dbfm.DBFM):
         # Default column to save
         if ocol is None:
             # Try to convert name
-            ocol = self._get_CLM_from_CN(col)
+            ocol = self._getcol_CLM_from_CN(col)
         # Check if present
         if ocol in self:
             return self.get_values(ocol, mask=kw.get("mask"))
-        # Calculate moment
-        v = self.genr8_dclm(col, xcol, **kw)
-        # Save them
-        self.save_col(ocol, v)
-        # Create definition
-        self.make_defn(ocol, v)
-        # Output
-        return v
+        # Call creation method
+        return self.create_dclm(col, ocol=ocol, **kw)
 
     # Calculate yawing moment
     def make_dcln(self, col, xcol=None, ocol=None, **kw):
@@ -289,18 +421,12 @@ class DBLL(dbfm.DBFM):
         # Default column to save
         if ocol is None:
             # Try to convert name
-            ocol = self._get_CLM_from_CN(col)
+            ocol = self._getcol_CLN_from_CY(col)
         # Check if present
         if ocol in self:
             return self.get_values(ocol, mask=kw.get("mask"))
-        # Calculate moment
-        v = self.genr8_dclm(col, xcol, **kw)
-        # Save them
-        self.save_col(ocol, v)
-        # Create definition
-        self.make_defn(ocol, v)
-        # Output
-        return v
+        # Call creation method
+        return self.create_dcln(col, ocol=ocol, **kw)
         
     # Calculate and store moments
     def create_ll_moment(self, col, ax1, ax2, ocol=None, **kw):
@@ -359,6 +485,8 @@ class DBLL(dbfm.DBFM):
         self.save_col(ocol, v)
         # Create definition
         self.make_defn(ocol, v)
+        # Copy definitions
+        self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
         return v
 
@@ -395,11 +523,13 @@ class DBLL(dbfm.DBFM):
         # Default column to save
         if ocol is None:
             # Try to convert name
-            ocol = self._get_CLM_from_CN(col)
+            ocol = self._getcol_CLM_from_CN(col)
         # Save them
         self.save_col(ocol, v)
         # Create definition
         self.make_defn(ocol, v)
+        # Copy definitions
+        self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
         return v
 
@@ -432,15 +562,17 @@ class DBLL(dbfm.DBFM):
             * 2020-06-04 ``@ddalle``: First version
         """
         # Calculate moment
-        v = self.genr8_dclm(col, xcol, **kw)
+        v = self.genr8_dcln(col, xcol, **kw)
         # Default column to save
         if ocol is None:
             # Try to convert name
-            ocol = self._get_CLM_from_CN(col)
+            ocol = self._getcol_CLN_from_CY(col)
         # Save them
         self.save_col(ocol, v)
         # Create definition
         self.make_defn(ocol, v)
+        # Copy definitions
+        self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
         return v
 
@@ -782,9 +914,129 @@ class DBLL(dbfm.DBFM):
   # ==================
   # <
    # --- Components ---
-    # Combine the loads
+    # Combine and save the combined loads
+    def make_ll_combo(self, col, cols, x, **kw):
+        r"""Combine line loads from several components
+
+        This method can be used to combine several line loads with
+        disparate *x*-coordinates, and point loads can also be
+        injected into the combined line load.  All *cols* must have an
+        *xcol* specified.  For existing line loads, a suitable default
+        is often available via :func:`get_output_xargs`, but injected
+        point loads must have an *xcol* specified.  The user may
+        specify *xcol* as either a column name or a directly defined
+        value.  For point loads, this *xcol* may be just a number.
+
+        This method does not combine the loads if *col* is already
+        present in the database.
+
+        :Call:
+            >>> v = db.make_ll_combo(col, cols, x, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name with which to save result
+            *cols*: :class:`list`\ [:class:`str`]
+                List of load columns to combine
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 1 | 2
+                * *shape*: (*nx*,) | (*nx*, *ncase*)
+
+                Array of *x*-coordinates for output
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of which cases to include
+            *xcols*: :class:`dict`\ [:class:`str` | :class:`np.ndarray`]
+                Descriptor for what *x* coordinates to use for each
+                *col* in *cols*; if :class:`str`, use it as a *col*
+                name; if :class:`np.ndarray`, use as directly defined
+                coords; defaults to ``db.get_output_xargs(col)``
+        :Outputs:
+            *v*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 2
+                * *shape*: (*nx*, *ncase*)
+
+                Combined loads
+        :Versions:
+            * 2020-06-10 ``@ddalle``: First version
+        """
+        # Check if column present
+        if col in self.cols:
+            # Output it
+            return self.get_all_values(col)
+        # Calculate combined loads
+        v = self.genr8_ll_combo(cols, x, **kw)
+        # Save it
+        self.save_col(col, v)
+        # Update definition if necessary
+        self.make_defn(col, v)
+        # Output
+        return v
+
+    # Combine and save the combined loads
+    def create_ll_combo(self, col, cols, x, **kw):
+        r"""Combine line loads from several components
+
+        This method can be used to combine several line loads with
+        disparate *x*-coordinates, and point loads can also be
+        injected into the combined line load.  All *cols* must have an
+        *xcol* specified.  For existing line loads, a suitable default
+        is often available via :func:`get_output_xargs`, but injected
+        point loads must have an *xcol* specified.  The user may
+        specify *xcol* as either a column name or a directly defined
+        value.  For point loads, this *xcol* may be just a number.
+
+        :Call:
+            >>> v = db.create_ll_combo(col, cols, x, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *col*: :class:`str`
+                Name with which to save result
+            *cols*: :class:`list`\ [:class:`str`]
+                List of load columns to combine
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 1 | 2
+                * *shape*: (*nx*,) | (*nx*, *ncase*)
+
+                Array of *x*-coordinates for output
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of which cases to include
+            *xcols*: :class:`dict`\ [:class:`str` | :class:`np.ndarray`]
+                Descriptor for what *x* coordinates to use for each
+                *col* in *cols*; if :class:`str`, use it as a *col*
+                name; if :class:`np.ndarray`, use as directly defined
+                coords; defaults to ``db.get_output_xargs(col)``
+        :Outputs:
+            *v*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 2
+                * *shape*: (*nx*, *ncase*)
+
+                Combined loads
+        :Versions:
+            * 2020-06-10 ``@ddalle``: First version
+        """
+        # Calculate combined loads
+        v = self.genr8_ll_combo(cols, x, **kw)
+        # Save it
+        self.save_col(col, v)
+        # Update definition if necessary
+        self.make_defn(col, v)
+        # Output
+        return v
+
+    # Combine line loads
     def genr8_ll_combo(self, cols, x, **kw):
         r"""Combine line loads from several components
+
+        This method can be used to combine several line loads with
+        disparate *x*-coordinates, and point loads can also be
+        injected into the combined line load.  All *cols* must have an
+        *xcol* specified.  For existing line loads, a suitable default
+        is often available via :func:`get_output_xargs`, but injected
+        point loads must have an *xcol* specified.  The user may
+        specify *xcol* as either a column name or a directly defined
+        value.  For point loads, this *xcol* may be just a number.
 
         :Call:
             >>> v = db.genr8_ll_combo(cols, x, **kw)
@@ -805,8 +1057,14 @@ class DBLL(dbfm.DBFM):
                 *col* in *cols*; if :class:`str`, use it as a *col*
                 name; if :class:`np.ndarray`, use as directly defined
                 coords; defaults to ``db.get_output_xargs(col)``
+        :Outputs:
+            *v*: :class:`np.ndarray`\ [:class:`float`]
+                * *ndim*: 2
+                * *shape*: (*nx*, *ncase*)
+
+                Combined loads
         :Versions:
-            * 2020-06-08 ``@ddalle``: First version
+            * 2020-06-09 ``@ddalle``: First version
         """
         # Check *x*
         if not isinstance(x, np.ndarray):
@@ -919,7 +1177,6 @@ class DBLL(dbfm.DBFM):
         # Tolerance for *x* intervals
         xtol = kw.get("xtol", 1e-5 * (np.max(x) - np.min(x)))
         # Loop through columns
-        Aout = {}
         for j, col in enumerate(cols):
             # Dimension for this col
             ndimxj = ndimxdata[col]
@@ -1035,8 +1292,6 @@ class DBLL(dbfm.DBFM):
                             # Fractions for start and and chunks
                             A[ka, kcut] = 1.0 - fa
                             A[kb, kcut] = fb
-                        # Save the matrix
-                        Aout[col] = A
                     # Special case: fixed mapping
                     if (ndimx == 1) and (ndimxj == 1):
                         # Multiply all cases at once
@@ -1046,14 +1301,1072 @@ class DBLL(dbfm.DBFM):
                 # Multiply *A* to transform load for case *i* col *j*
                 v[:, i] += np.dot(A, vdataj)
         # Output
-        return v, Aout
-        
+        return v
   # >
 
   # ==================
   # Adjustment
   # ==================
   # <
+   # --- Adjustment ---
+    # Calculate adjusted loads
+    def genr8_ll3x_adjust(self, comps, fm, scol=None, **kw):
+       # --- Checks ---
+        # Check and process component list
+        comps = self._check_ll3x_comps(comps)
+        # Form options
+        opts = _LL3XOpts(**kw)
+       # --- Fractions ---
+        # Calculate adjustment fractions
+        f = self.genr8_ll3x_fractions(comps, scol, **opts)
+       # --- Conditions/Mask ---
+        # Get reference column
+        col = self._getcols_fm_comp(None, comp, **kw)["CA"]
+        # Check if present
+        if col not in self:
+            raise KeyError("Missing 'CA' integral for comp '%s'" % comp)
+        # Get conditions
+        mask = opts.get_option("mask")
+        # Get conditions
+        I = self.prep_mask(mask, col=col)
+       # --- Targets ---
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetCols")
+        # Check possible types
+        if fmcols is None:
+            # Default
+            fmcols = {col: col for col in _coeffs}
+        elif isinstance(fmcols, list):
+            # Must be six cols
+            if len(fmcols) != 6:
+                raise IndexError("'TargetCols' list must have length 6")
+            # Unpack
+            fmcols = {col: fmcols[j] for j, col in enumerate(_coeffs)}
+       # --- Division of Deltas ---
+        # Get integral columns
+        compcols = opts.get_option("CompFMCols", {})
+        # Loop through columns
+       # --- Adjustment Basis ---
+        # Create basis
+        basis = self.create_ll3x_basis(cols, scol, **kw)
+
+   # --- Target FM Eval ---
+        
+    # Evaluate target database
+    def make_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate and save a target force and moment database
+
+        :Call:
+            >>> fm = db.makee_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbll.DBLL`
+                Database with line load adjustment tools
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(db2, dbfm.DBFM):
+            raise TypeError(
+                "Target database is not an instance of 'dbfm.DBFM'")
+        # Get options
+        opts = _LL3XOpts(_section="target_make", **kw)
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetSaveCols", {})
+        # Initialize output from existing data
+        fm = {}
+        # Loop through coefficients to save them
+        for coeff in _coeffs:
+            # Name of output
+            col = fmcols.get(coeff, "%s.target" % coeff)
+            # Check if present
+            if col not in self:
+                # Go below to (re)calculate
+                break
+            else:
+                # Save the data
+                fm[coeff] = self[col]
+        else:
+            # All columns present if no ``break``  encountered
+            return fm
+        # Not all cols present; use :func:`create`
+        return self.create_target_fm(db2, mask=mask, **kw)
+
+    # Evaluate target database
+    def create_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate and save a target force and moment database
+
+        :Call:
+            >>> fm = db.create_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbll.DBLL`
+                Database with line load adjustment tools
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Get options
+        opts = _LL3XOpts(_section="target_make", **kw)
+        # Options without save names
+        kw_targ = opts.section_options("target")
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetSaveCols", {})
+        # Perform response evaluations
+        fm = self.genr8_target_fm(db2, mask=mask, **kw_targ)
+        # Loop through coefficients to save them
+        for coeff in _coeffs:
+            # Name of output
+            col = fmcols.get(coeff, "%s.target" % coeff)
+            # Save it
+            self.save_col(col, fm[coeff])
+            # Create definition
+            self.make_defn(col, fm[coeff])
+        # Output
+        return fm
+
+    # Evaluate target database
+    def genr8_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate a target force and moment database
+
+        :Call:
+            >>> fm = db.genr8_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbll.DBLL`
+                Database with line load adjustment tools
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(db2, dbfm.DBFM):
+            raise TypeError(
+                "Target database is not an instance of 'dbfm.DBFM'")
+        # Get options
+        opts = _LL3XOpts(_section="target", **kw)
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetCols", {})
+        # Translators in case *db2* has different name for Mach number,
+        # AoA, etc. than *self*
+        trans = opts.get_option("Translators", {})
+        # Initialize output
+        fm = {}
+        # Number of points
+        n = None
+        # Loop through coefficients
+        for k, coeff in enumerate(_coeffs):
+            # Get name of col to evaluate
+            col = fmcols.get(coeff, coeff)
+            # Get args for response
+            args = db2.get_response_args(col)
+            # Check
+            if args is None:
+                raise KeyError(
+                    "No response defined for target col %i '%s'" % (k, col))
+            # Create list of args
+            xk = []
+            # Loop through args
+            for j, arg in enumerate(args):
+                # Translate arg
+                dbarg = trans.get(arg, arg)
+                # Get conditions
+                xj = self.get_values(dbarg, mask)
+                # Check validity
+                if xj is None:
+                    raise KeyError(
+                        ("Response arg %i ('%s') " % (j, arg)) +
+                        ("for col '%s' not found in source database" % col))
+                # Save to response inputs
+                xk.append(xj)
+            # Evaluate response
+            fm[coeff] = db2(col, *xk)
+        # Output
+        return fm
+
+   # --- Adjustment Fraction ---
+    # Calculate each component's contribution to adjusted loads
+    def genr8_ll3x_fractions(self, comps, scol=None, **kw):
+        r"""Calculate each component's contribution to integral forces
+
+        :Call:
+            >>> f = db.genr8_ll3x_fractions(comp, scol=None, **kw)
+            >>> f = db.genr8_ll3x_fractions(comps, scol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *comp*: :class:`str`
+                Single component (trivial output)
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to divide integral F&M
+            *scol*: {``None``} | :class:`str`
+                Column used to slice database; output will be constant
+                on each slice
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                Columns to use as integral of force and moment on each
+                *comp*. Defaults filled in by *comp*\ .*coeff* for
+                *coeff* in ``["CA", "CY", "CN", "CLL", "CLM", "CLN"]``
+        :Outputs:
+            *f*: :class:`dict`\ [:class:`dict`\ [:class:`np.ndarray`]]
+                Fraction for each *comp* and each *coeff*
+        :Versions:
+            * 2020-06-12 ``@ddalle``: First version
+        """
+       # --- Checks ---
+        # Check and process component list
+        comps = self._check_ll3x_comps(comps)
+        # Form options
+        opts = _LL3XOpts(**kw)
+       # --- FM Cols ---
+        # Get columns that determine deltas for each component
+        fmcols = opts.get_option("CompFMCols", {})
+        # Loop through components
+        for comp in comps:
+            # Get integral col names for this componet
+            cols = self._getcols_fm_comp(None, comp, CompFMCols=fmcols)
+            # Save completed list
+            fmcols[comp] = cols
+            # Reference column
+            col = cols["CA"]
+       # --- Mask & Slicing ---
+        # Get mask option
+        mask = opts.get_option("mask")
+        # Get indices
+        mask_index = self.prep_mask(mask, col=col)
+        # Slice column
+        if scol is None:
+            # Single slice with all cases in *mask*
+            masks = [self.prep_mask(mask, col=col)]
+            # No slice values
+            s = None
+        else:
+            # Get unique values
+            s = np.unique(self.get_values(scol, mask))
+            # Divide those values into slices
+            masks, _ = self.find([scol], s, mapped=True)
+       # --- Fractions ---
+        # Initialize fractions
+        f = {comp: {} for comp in comps}
+        # Loop through coefficients
+        for coeff in _coeffs:
+            # Initialize total
+            FT = 0.0
+            # Initialize dict per *comp*
+            Fcomp = {}
+            # Loop through components
+            for comp in comps:
+                # Component column
+                col = fmcols[comp][coeff]
+                # Get values
+                F = np.abs(self[col])
+                # Increment total
+                FT += F
+                # Save it
+                Fcomp[comp] = F
+            # Component again
+            for comp in comps:
+                # Get fraction
+                fcomp = Fcomp[comp] / FT
+                # Column name
+                col = fmcols[comp][coeff]
+                # Initialize output
+                fcc = np.zeros_like(self[col])
+                # Slices
+                for maskj in masks:
+                    # Get mean
+                    fj = np.mean(fcomp[maskj])
+                    # Save it
+                    fcc[maskj] = fj
+                # Save fraction
+                f[comp][coeff] = fcc
+       # --- Output ---
+        # Output
+        return f
+
+   # --- Integration ---
+    # # Generate integrals and save
+    def make_ll3x_integrals(self, comps, **kw):
+        r"""Integrate line loads for several columns
+
+        For each *comp*, new loads are only integrated if any one of
+        the six coefficients are missing for that component.
+
+        :Call:
+            >>> fm = db.make_ll3x_integrals(comps, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm[comp][coeff]*: :class:`np.ndarray`
+                Integrated *coeff* from line load for comp *comp*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check the component list
+        comps = self._check_ll3x_comps(comps)
+        # Transfer options
+        opts = _LL3XOpts(_section="integrals_make", **kw)
+        # Options to integrator
+        kw_int = opts.section_options("integrals")
+        # Initialize output
+        fm = {}
+        # Loop through the components
+        for comp in comps:
+            # Get column names
+            fmcols = self._getcols_fm_comp(None, comp=comp, **opts)
+            # Unpack
+            colCA = fmcols["CA"]
+            colCY = fmcols["CY"]
+            colCN = fmcols["CN"]
+            colCl = fmcols["CLL"]
+            colCm = fmcols["CLM"]
+            colCn = fmcols["CLN"]
+            # Check if all are present
+            if colCA not in self:
+                pass
+            elif colCY not in self:
+                pass
+            elif colCN not in self:
+                pass
+            elif colCl not in self:
+                pass
+            elif colCm not in self:
+                pass
+            elif colCn not in self:
+                pass
+            else:
+                # Everything already present
+                fm[comp] = {
+                    "CA": colCA,
+                    "CY": colCY,
+                    "CN": colCN,
+                    "CLL": colCl,
+                    "CLM": colCm,
+                    "CLN": colCn,
+                }
+                # Move to next component
+                continue
+            # Generate the integrals
+            fmcomp = self.genr8_ll3x_integrals([comp], **kw_int)
+            # Select the one column
+            fmcomp = fmcomp[comp]
+            # Save the integrated columns
+            self.save_col(colCA, fmcomp["CA"])
+            self.save_col(colCY, fmcomp["CY"])
+            self.save_col(colCN, fmcomp["CN"])
+            self.save_col(colCl, fmcomp["CLL"])
+            self.save_col(colCm, fmcomp["CLM"])
+            self.save_col(colCn, fmcomp["CLN"])
+            # Make definitions
+            self.make_defn(colCA, fmcomp["CA"])
+            self.make_defn(colCY, fmcomp["CY"])
+            self.make_defn(colCN, fmcomp["CN"])
+            self.make_defn(colCl, fmcomp["CLL"])
+            self.make_defn(colCm, fmcomp["CLM"])
+            self.make_defn(colCn, fmcomp["CLN"])
+            # Save
+            fm[comp] = fmcomp
+        # Output
+        return fm
+
+    # Generate integrals and save
+    def create_ll3x_integrals(self, comps, **kw):
+        r"""Integrate line loads for several columns
+
+        :Call:
+            >>> fm = db.create_ll3x_integrals(comps, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm[comp][coeff]*: :class:`np.ndarray`
+                Integrated *coeff* from line load for comp *comp*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check the component list
+        comps = self._check_ll3x_comps(comps)
+        # Transfer options
+        opts = _LL3XOpts(_section="integrals_make", **kw)
+        # Options to integrator
+        kw_int = opts.section_options("integrals")
+        # Generate the integrals
+        fm = self.genr8_ll3x_integrals(comps, **kw_int)
+        # Loop through the components
+        for comp in comps:
+            # Get column names
+            fmcols = self._getcols_fm_comp(None, comp=comp, **opts)
+            # Unpack
+            colCA = fmcols["CA"]
+            colCY = fmcols["CY"]
+            colCN = fmcols["CN"]
+            colCl = fmcols["CLL"]
+            colCm = fmcols["CLM"]
+            colCn = fmcols["CLN"]
+            # Save the integrated columns
+            self.save_col(colCA, fm["CA"])
+            self.save_col(colCY, fm["CY"])
+            self.save_col(colCN, fm["CN"])
+            self.save_col(colCl, fm["CLL"])
+            self.save_col(colCm, fm["CLM"])
+            self.save_col(colCn, fm["CLN"])
+            # Make definitions
+            self.make_defn(colCA, fm["CA"])
+            self.make_defn(colCY, fm["CY"])
+            self.make_defn(colCN, fm["CN"])
+            self.make_defn(colCl, fm["CLL"])
+            self.make_defn(colCm, fm["CLM"])
+            self.make_defn(colCn, fm["CLN"])
+        # Output
+        return fm
+
+    # Generate integrals
+    def genr8_ll3x_integrals(self, comps, **kw):
+        r"""Integrate line load columns for several components
+
+        :Call:
+            >>> fm = db.genr8_ll3x_integrals(comps, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to integrate
+            *CompLLCols*: :class:`dict`\ [:class:`list`]
+                Optional lists of line load *cols* for each *comp*
+                in *comps*; default is ``"<comp>.d<coeff>"``
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm[comp][coeff]*: :class:`np.ndarray`
+                Integrated *coeff* from line load for comp *comp*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check *comps*
+        comps = self._check_ll3x_comps(comps)
+        # Check options
+        opts = _LL3XOpts(**kw)
+        # Initialize output
+        fm = {}
+        # Get component cols
+        compcols = opts.get_option("CompLLCols", {})
+        # Coordinate shifts
+        compy = opts.get_option("CompY", {})
+        compz = opts.get_option("CompZ", {})
+        # Loop through components
+        for comp in comps:
+            # Get columns
+            cols = compcols.get(comp, [])
+            # Ensure list
+            if not isinstance(cols, list):
+                raise TypeError("LL cols for comp '%s' is not a list" % comp)
+            # Number of columns specified
+            ncol = len(cols)
+            # Default cols
+            coldefs = ["%s.d%s" % (comp, col) for col in ["CA", "CY", "CN"]]
+            # Add default columns
+            if ncol < 3:
+                cols += coldefs[ncol:]
+            # Get coordinate positions
+            kwcomp = opts.section_options("integrals_comp")
+            # Set *y* and *z*
+            kwcomp["y"] = compy.get(comp, 0.0)
+            kwcomp["z"] = compz.get(comp, 0.0)
+            # Generate line loads
+            fm[comp] = self.genr8_ll3x_comp_integrals(cols, **kwcomp)
+        # Output
+        return fm
+
+    # Generate integrals and save
+    def make_ll3x_comp_integrals(self, cols, **kw):
+        r"""Integrate 3 or 6 line load columns
+
+        :Call:
+            >>> fm = db.make_ll3x_comp_integrals(cols, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm["CA"]*: :class:`np.ndarray`
+                Integrated *cols[0]*
+            *fm["CY"]*: :class:`np.ndarray`
+                Integrated *cols[1]*
+            *fm["CN"]*: :class:`np.ndarray`
+                Integrated *cols[2]*
+            *fm["CLL"]*: :class:`np.ndarray`
+                Integrated *cols[3]* or rolling moment induced by
+                *CY* and *CN*
+            *fm["CLM"]*: :class:`np.ndarray`
+                Integrated *cols[4]* or pitching moment integrated
+                from *cols[2]* plus what's induced by *CA*
+            *fm["CLN"]*: :class:`np.ndarray`
+                Integrated *cols54]* or pitching moment integrated
+                from *cols[1]* plus what's induced by *CA*
+        :Versions:
+            * 2020-06-12 ``@ddalle``: First version
+        """
+        # Transfer options
+        opts = _LL3XOpts(_section="integrals_comp_make", **kw)
+        # Check the columns
+        self._check_ll3x_cols(cols)
+        # Options to integrator
+        kw_int = opts.section_options("integrals_comp")
+        # Get column names
+        fmcols = self._getcols_fm_comp(cols, **opts)
+        # Unpack
+        colCA = fmcols["CA"]
+        colCY = fmcols["CY"]
+        colCN = fmcols["CN"]
+        colCl = fmcols["CLL"]
+        colCm = fmcols["CLM"]
+        colCn = fmcols["CLN"]
+        # Check if present
+        if colCA not in self:
+            pass
+        elif colCY not in self:
+            pass
+        elif colCN not in self:
+            pass
+        elif colCl not in self:
+            pass
+        elif colCm not in self:
+            pass
+        elif colCn not in self:
+            pass
+        else:
+            # All present!
+            return {
+                "CA": self[colCA],
+                "CY": self[colCY],
+                "CN": self[colCN],
+                "CLL": self[colCl],
+                "CLM": self[colCm],
+                "CLN": self[colCn],
+            }
+        # Generate the integrals
+        fm = self.genr8_ll3x_comp_integrals(cols, **kw_int)
+        # Save the integrated columns
+        self.save_col(colCA, fm["CA"])
+        self.save_col(colCY, fm["CY"])
+        self.save_col(colCN, fm["CN"])
+        self.save_col(colCl, fm["CLL"])
+        self.save_col(colCm, fm["CLM"])
+        self.save_col(colCn, fm["CLN"])
+        # Make definitions
+        self.make_defn(colCA, fm["CA"])
+        self.make_defn(colCY, fm["CY"])
+        self.make_defn(colCN, fm["CN"])
+        self.make_defn(colCl, fm["CLL"])
+        self.make_defn(colCm, fm["CLM"])
+        self.make_defn(colCn, fm["CLN"])
+        # Output
+        return fm
+
+    # Generate integrals and save
+    def create_ll3x_comp_integrals(self, cols, **kw):
+        r"""Integrate 3 or 6 line load columns
+
+        :Call:
+            >>> fm = db.create_ll3x_comp_integrals(cols, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm["CA"]*: :class:`np.ndarray`
+                Integrated *cols[0]*
+            *fm["CY"]*: :class:`np.ndarray`
+                Integrated *cols[1]*
+            *fm["CN"]*: :class:`np.ndarray`
+                Integrated *cols[2]*
+            *fm["CLL"]*: :class:`np.ndarray`
+                Integrated *cols[3]* or rolling moment induced by
+                *CY* and *CN*
+            *fm["CLM"]*: :class:`np.ndarray`
+                Integrated *cols[4]* or pitching moment integrated
+                from *cols[2]* plus what's induced by *CA*
+            *fm["CLN"]*: :class:`np.ndarray`
+                Integrated *cols54]* or pitching moment integrated
+                from *cols[1]* plus what's induced by *CA*
+        :Versions:
+            * 2020-06-12 ``@ddalle``: First version
+        """
+        # Transfer options
+        opts = _LL3XOpts(_section="integrals_comp_make", **kw)
+        # Check the columns
+        self._check_ll3x_cols(cols)
+        # Options to integrator
+        kw_int = opts.section_options("integrals_comp")
+        # Get column names
+        fmcols = self._getcols_fm_comp(cols, **opts)
+        # Unpack
+        colCA = fmcols["CA"]
+        colCY = fmcols["CY"]
+        colCN = fmcols["CN"]
+        colCl = fmcols["CLL"]
+        colCm = fmcols["CLM"]
+        colCn = fmcols["CLN"]
+        # Generate the integrals
+        fm = self.genr8_ll3x_comp_integrals(cols, **kw_int)
+        # Save the integrated columns
+        self.save_col(colCA, fm["CA"])
+        self.save_col(colCY, fm["CY"])
+        self.save_col(colCN, fm["CN"])
+        self.save_col(colCl, fm["CLL"])
+        self.save_col(colCm, fm["CLM"])
+        self.save_col(colCn, fm["CLN"])
+        # Make definitions
+        self.make_defn(colCA, fm["CA"])
+        self.make_defn(colCY, fm["CY"])
+        self.make_defn(colCN, fm["CN"])
+        self.make_defn(colCl, fm["CLL"])
+        self.make_defn(colCm, fm["CLM"])
+        self.make_defn(colCn, fm["CLN"])
+        # Output
+        return fm
+
+    # Generate integrals
+    def genr8_ll3x_comp_integrals(self, cols, **kw):
+        r"""Integrate 3 or 6 line load columns
+
+        :Call:
+            >>> fm = db.genr8_ll3x_comp_integrals(cols, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm["CA"]*: :class:`np.ndarray`
+                Integrated *cols[0]*
+            *fm["CY"]*: :class:`np.ndarray`
+                Integrated *cols[1]*
+            *fm["CN"]*: :class:`np.ndarray`
+                Integrated *cols[2]*
+            *fm["CLL"]*: :class:`np.ndarray`
+                Integrated *cols[3]* or rolling moment induced by
+                *CY* and *CN*
+            *fm["CLM"]*: :class:`np.ndarray`
+                Integrated *cols[4]* or pitching moment integrated
+                from *cols[2]* plus what's induced by *CA*
+            *fm["CLN"]*: :class:`np.ndarray`
+                Integrated *cols54]* or pitching moment integrated
+                from *cols[1]* plus what's induced by *CA*
+        :Versions:
+            * 2020-06-11 ``@ddalle``: First version
+        """
+        # Check options
+        opts = _LL3XOpts(**kw)
+        # Check column list
+        self._check_ll3x_cols(cols)
+        # Get line load columns
+        llcols = self._getcols_ll_comp(cols, **opts)
+        # Unpack
+        colCA = llcols["CA"]
+        colCY = llcols["CY"]
+        colCN = llcols["CN"]
+        colCLL = llcols["CLL"]
+        colCLM = llcols["CLM"]
+        colCLN = llcols["CLN"]
+        # Reference length
+        Lref = opts.get_option("Lref", self.__dict__.get("Lref", 1.0))
+        # Get MRP
+        xMRP = opts.get_option("xMRP", self.__dict__.get("xMRP", 0.0))
+        yMRP = opts.get_option("yMRP", self.__dict__.get("yMRP", 0.0))
+        zMRP = opts.get_option("zMRP", self.__dict__.get("zMRP", 0.0))
+        # Get coordinates
+        y = opts.get_option("y", yMRP)
+        z = opts.get_option("z", zMRP)
+        # Integrate forces
+        CA = self.genr8_integral(colCA, **opts)
+        CY = self.genr8_integral(colCY, **opts)
+        CN = self.genr8_integral(colCN, **opts)
+        # Check for moment loads
+        if colCLL in self and colCLM in self and colCLN in self:
+            # Integrate moment loads
+            CLL = self.genr8_integral(colCLL, **opts)
+            CLM = self.genr8_integral(colCLM, **opts)
+            CLN = self.genr8_integral(colCLN, **opts)
+        else:
+            # Create moment columns
+            self.create_dclm(colCN, **opts)
+            self.create_dcln(colCY, **opts)
+            # Integrate moments
+            CLL = np.zeros_like(CA)
+            CLM = self.genr8_integral(colCLM, **opts)
+            CLN = self.genr8_integral(colCLN, **opts)
+            # Moments due to MRP offset from line load center
+            CLM += CA * (z - zMRP) / Lref
+            CLN += CA * (y - yMRP) / Lref
+            CLL += CY * (z - zMRP) / Lref
+            CLL -= CN * (y - yMRP) / Lref
+        # Output
+        return {
+            "CA": CA,
+            "CY": CY,
+            "CN": CN,
+            "CLL": CLL,
+            "CLM": CLM,
+            "CLN": CLN,
+        }
+
+   # --- Checkers ---
+    # Check LL3X column list
+    def _check_ll3x_cols(self, cols):
+        r"""Check a list of three line load column names
+
+        :Call:
+            >>> db._check_ll3x_cols(cols)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+        :Versions:
+            * 2020-06-12 ``@ddalle``: First version
+        """
+        # Check the columns
+        if cols is None:
+            # Ok; rely on defaults
+            return
+        elif not isinstance(cols, (list, tuple)):
+            # Wrong type
+            raise TypeError("LL3X cols must be list (got '%s')" % type(cols))
+        elif len(cols) not in {3, 6}:
+            # Wrong length
+            raise IndexError(
+                "LL3X cols must have length 3 or 6 (got %i)" % len(cols))
+        # Check column presence
+        for j, col in enumerate(cols):
+            # Check type
+            if not typeutils.isstr(col):
+                # Wrong type
+                raise TypeError("LL3X col %i is not a 'str'" % j)
+            elif col not in self:
+                # Not present
+                raise KeyError("LL3X col %i '%s' not in database" % (j, col))
+            # Get data type and dimension
+            ndim = self.get_ndim(col)
+            dtype = self.get_col_dtype(col)
+            # Ensure type and dimension
+            if not (dtype.startswith("float") or dtype.startswith("comp")):
+                # Not data type
+                raise TypeError(
+                    ("Data type for col '%s' is '%s'; " % (col, dtype)) +
+                    ("must be float or complex"))
+            elif ndim != 2:
+                # Line load must be 2D
+                raise IndexError("Col '%s' is %iD, must be 2D" % (col, ndim))
+
+    # Check component list
+    def _check_ll3x_comps(self, comps):
+        r"""Check types of a list of components
+
+        :Call:
+            >>> comps = db._check_ll3x_comps(comp)
+            >>> comps = db._check_ll3x_comps(comps)
+        :Inputs:
+            *comp*: :class:`str`
+                Single component name
+            *comps*: :class:`list`\ [:class:`str`]
+                List of component names
+        :Versions:
+            *comps*: :class:`list`\ [:class:`str`]
+                List of component names
+        :Outputs:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Ensure list of components
+        if typeutils.isstr(comps):
+            # Single component; convert to list
+            comps = [comps]
+        elif not isinstance(comps, list):
+            # Wrong type
+            raise TypeError(
+                "LL3X comps must be 'list' (got '%s')" % type(comps))
+        # Check strings
+        for j, comp in enumerate(comps):
+            # Ensure string
+            if not typeutils.isstr(comp):
+                raise TypeError("LL3X comp %i is not a string" % j)
+        # Return it in case it's converted
+        return comps
+        
+    # Output column names for ll cols
+    def _getcols_ll_comp(self, cols, comp=None, **kw):
+        r"""Create :class:`dict` of line load cols
+
+        :Call:
+            >>> llcols = db._getcols_ll_comp(cols, comp, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *LLCols*: :class:`dict`\ [:class:`str`]
+                Columns to use for each integral coefficient
+            *CompLLCols*: :class:`dict`\ [:class:`dict`]
+                *LLCols* for one or more components
+        :Outputs:
+            *llcols*: :class:`dict`\ [:class:`str`]
+                Columns to use for six line loads
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Get moment line load cols
+        if cols is None:
+            # Defaults
+            if comp is None:
+                # Just use base names
+                colCA = "dCA"
+                colCY = "dCY"
+                colCN = "dCN"
+                colCLL = "dCLL"
+                colCLM = "dCLM"
+                colCLN = "dCLN"
+            else:
+                # Combine component name
+                colCA = "%s.dCA" % comp
+                colCY = "%s.dCY" % comp
+                colCN = "%s.dCN" % comp
+                colCl = "%s.dCLL" % comp
+                colCm = "%s.dCLM" % comp
+                colCn = "%s.dCLN" % comp
+        else:
+            # Get column names for forces
+            colCA = cols[0]
+            colCY = cols[1]
+            colCN = cols[2]
+            if len(cols) == 3:
+                # Default conversions from force col names
+                colCl = self._getcol_CLL_from_CN(colCN)
+                colCm = self._getcol_CLM_from_CN(colCN)
+                colCn = self._getcol_CLN_from_CY(colCY)
+            else:
+                # Directly specified
+                colCl = cols[3]
+                colCm = cols[4]
+                colCn = cols[5]
+        # Check for *comp*
+        if comp is not None:
+            # Get option
+            llcols = kw.get("CompLLCols", {}).get(comp, {})
+            # Check for overrides
+            colCA = llcols.get("CA", colCA)
+            colCY = llcols.get("CY", colCY)
+            colCN = llcols.get("CN", colCN)
+            colCl = llcols.get("CLL", colCl)
+            colCm = llcols.get("CLM", colCm)
+            colCn = llcols.get("CLN", colCn)
+        # Check for manual names for this *comp*
+        llcols = kw.get("LLCols", {})
+        # Check for overrides
+        colCA = llcols.get("CA", colCA)
+        colCY = llcols.get("CY", colCY)
+        colCN = llcols.get("CN", colCN)
+        colCl = llcols.get("CLL", colCl)
+        colCm = llcols.get("CLM", colCm)
+        colCn = llcols.get("CLN", colCn)
+        # Output
+        return {
+            "CA": colCA,
+            "CY": colCY,
+            "CN": colCN,
+            "CLL": colCl,
+            "CLM": colCm,
+            "CLN": colCn,
+        }
+
+    # Output column names for integrals from ll cols
+    def _getcols_fm_comp(self, cols, comp=None, **kw):
+        r"""Create :class:`dict` of FM cols based on line load *cols*
+
+        :Call:
+            >>> fmcols = db._getcols_fm_comp(cols, comp=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *comp*: :class:`str`
+                Name of component
+            *FMCols*: :class:`dict`\ [:class:`str`]
+                Columns to use for each integral coefficient
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                *FMCols* for one or more *comps*
+        :Outputs:
+            *fmcols*: :class:`dict`\ [:class:`str`]
+                Columns to use for six integrated forces and moments
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Line load column names
+        llcols = self._getcols_ll_comp(cols, comp=comp, **kw)
+        # Get column names
+        colCA = self._getcol_CX_from_dCX(llcols["CA"])
+        colCY = self._getcol_CX_from_dCX(llcols["CY"])
+        colCN = self._getcol_CX_from_dCX(llcols["CN"])
+        colCl = self._getcol_CX_from_dCX(llcols["CLL"])
+        colCm = self._getcol_CX_from_dCX(llcols["CLM"])
+        colCn = self._getcol_CX_from_dCX(llcols["CLN"])
+        # Check for *comp*
+        if comp is not None:
+            # Get option
+            fmcols = kw.get("CompFMCols", {}).get(comp, {})
+            # Check for overrides
+            colCA = fmcols.get("CA", colCA)
+            colCY = fmcols.get("CY", colCY)
+            colCN = fmcols.get("CN", colCN)
+            colCl = fmcols.get("CLL", colCl)
+            colCm = fmcols.get("CLM", colCm)
+            colCn = fmcols.get("CLN", colCn)
+        # Check for manual names for this *comp*
+        fmcols = kw.get("FMCols", {})
+        # Check for overrides
+        colCA = fmcols.get("CA", colCA)
+        colCY = fmcols.get("CY", colCY)
+        colCN = fmcols.get("CN", colCN)
+        colCl = fmcols.get("CLL", colCl)
+        colCm = fmcols.get("CLM", colCm)
+        colCn = fmcols.get("CLN", colCn)
+        # Output
+        return {
+            "CA": colCA,
+            "CY": colCY,
+            "CN": colCN,
+            "CLL": colCl,
+            "CLM": colCm,
+            "CLN": colCn,
+        }
+
    # --- Basis ---
     # Create basis for line load of one component by slice
     def create_ll3x_basis(self, cols, scol=None, **kw):
