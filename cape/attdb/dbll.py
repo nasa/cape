@@ -57,7 +57,7 @@ from . import dbfm
 _coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
 
 # Options class for adjustments
-class _LL3XOpts(kwutils.KwargHandler):
+class _LL3XOpts(dbfm._FMEvalOpts):
   # ==================
   # Class Attributes
   # ==================
@@ -65,19 +65,15 @@ class _LL3XOpts(kwutils.KwargHandler):
    # --- Lists ---
     # All options
     _optlist = {
-        "CompAdjustedCols",
+        "CompLLAdjustedCols",
         "CompFMCols",
         "CompFMFracCols",
         "CompLLCols",
-        "CompSourceCols",
         "CompY",
         "CompZ",
         "FMCols",
+        "LLAdjustedCols"
         "LLCols",
-        "SourceCols",
-        "TargetCols",
-        "TargetSaveCols",
-        "Translators",
         "fm",
         "mask",
         "method",
@@ -95,16 +91,11 @@ class _LL3XOpts(kwutils.KwargHandler):
     _optmap = {
         "Method": "method",
         "NPOD": "nPOD",
-        "XMRP": "xMRP",
-        "YMRP": "yMRP",
-        "ZMRP": "zMRP",
+        "acols": "CompLLAdjustedCols",
         "fmcols": "CompFMCols",
-        "icols": "IntegralCols",
-        "mcols": "MomentCols",
+        "icols": "FMCols",
+        "llcols": "CompLLCols",
         "npod": "nPOD",
-        "xmrp": "xMRP",
-        "ymrp": "yMRP",
-        "zmrp": "zMRP",
     }
 
     # Sections
@@ -176,31 +167,19 @@ class _LL3XOpts(kwutils.KwargHandler):
             "zMRP",
             "z"
         },
-        "target": {
-            "TargetCols",
-            "Translators",
-            "mask"
-        },
-        "target_mask": {
-            "TargetCols",
-            "TargetSaveCols",
-            "Translators",
-            "mask"
-        },
     }
 
    # --- Type ---
     # Required types
     _optytpes = {
         "CompFMCols": dict,
+        "CompFMFracCols"
         "CompLLCols": dict,
+        "CompLLAdjustedCols": dict,
         "CompY": dict,
         "CompZ": dict,
         "FMCols": dict,
         "LLCols": dict,
-        "TargetCols": dict,
-        "Translators": dict,
-        "mask": np.ndarray,
         "method": typeutils.strlike,
         "nPOD": int,
         "xcol": typeutils.strlike,
@@ -213,6 +192,10 @@ class _LL3XOpts(kwutils.KwargHandler):
         "nPOD": 10,
     }
   # >
+
+
+# Combine options
+_LL3XOpts.combine_optdefs()
 
 
 # Improvised SVD with fallback for too-dense data
@@ -1335,8 +1318,8 @@ class DBLL(dbfm.DBFM):
   # <
    # --- Adjustment ---
     # Calculate adjusted loads
-    def genr8_ll3x_adjust(self, comps, fm, scol=None, **kw):
-       # --- Checks ---
+    def make_ll3x_adjust(self, comps, db2, scol=None, **kw):
+       # --- Options ---
         # Check and process component list
         comps = self._check_ll3x_comps(comps)
         # Form options
@@ -1344,9 +1327,18 @@ class DBLL(dbfm.DBFM):
         # Sections
         kw_int = opts.section_options("integrals_make")
         kw_frc = opts.section_options("fractions_make")
-       # --- Fractions ---
+        kw_trg = opts.section_options("target_make")
+       # --- Integrals FM ---
+        # Calculate integral forces
+        fm = self.make_ll3x_integrals(comps, **kw_int)
         # Calculate adjustment fractions
-        f = self.genr8_ll3x_fractions(comps, scol, **opts)
+        f = self.make_ll3x_fractions(comps, scol, **kw_frc)
+        # Evaluate target database
+        fmtarg = self.make_target_fm(db2, **kw_trg)
+       # --- Basis ---
+        # Loop through components
+        for comp in comps:
+            pass
        # --- Conditions/Mask ---
         # Get reference column
         col = self._getcols_fm_comp(None, comp, **kw)["CA"]
@@ -2241,6 +2233,69 @@ class DBLL(dbfm.DBFM):
         # Return it in case it's converted
         return comps
         
+    # Output column names for adjusted ll cols
+    def _getcols_lla_comp(self, cols, comp=None, **kw):
+        r"""Create :class:`dict` of line load cols
+
+        :Call:
+            >>> llacols = db._getcols_lla_comp(cols, comp, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *LLAdjustedCols*: :class:`dict`\ [:class:`str`]
+                Columns to use for adjusted line load
+            *CompLLAdjustedCols*: :class:`dict`\ [:class:`dict`]
+                *LLAdjustedCols* for one or more components
+        :Outputs:
+            *llacols*: :class:`dict`\ [:class:`str`]
+                Columns to use for six adjusted line loads
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Line load column names
+        llcols = self._getcols_ll_comp(cols, comp=comp, **kw)
+        # Get column names
+        colCA = "%s.adjusted" % llcols["CA"]
+        colCY = "%s.adjusted" % llcols["CA"]
+        colCN = "%s.adjusted" % llcols["CA"]
+        colCl = "%s.adjusted" % llcols["CLL"]
+        colCm = "%s.adjusted" % llcols["CLM"]
+        colCn = "%s.adjusted" % llcols["CLN"]
+        # Check for *comp*
+        if comp is not None:
+            # Get option
+            acols = kw.get("CompLLAdjustedCols", {}).get(comp, {})
+            # Check for overrides
+            colCA = acols.get("CA", colCA)
+            colCY = acols.get("CY", colCY)
+            colCN = acols.get("CN", colCN)
+            colCl = acols.get("CLL", colCl)
+            colCm = acols.get("CLM", colCm)
+            colCn = acols.get("CLN", colCn)
+        # Check for manual names for this *comp*
+        acols = kw.get("LLAdjustedCols", {})
+        # Check for overrides
+        colCA = acols.get("CA", colCA)
+        colCY = acols.get("CY", colCY)
+        colCN = acols.get("CN", colCN)
+        colCl = acols.get("CLL", colCl)
+        colCm = acols.get("CLM", colCm)
+        colCn = acols.get("CLN", colCn)
+        # Output
+        return {
+            "CA": colCA,
+            "CY": colCY,
+            "CN": colCN,
+            "CLL": colCl,
+            "CLM": colCm,
+            "CLN": colCn,
+        }
+
     # Output column names for ll cols
     def _getcols_ll_comp(self, cols, comp=None, **kw):
         r"""Create :class:`dict` of line load cols
