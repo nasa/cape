@@ -1352,9 +1352,9 @@ class DataKit(ftypes.BaseData):
         dbmat.write_mat(fname, cols=cols, attrs=attrs)
   # >
 
-  # ===============
+  # ==================
   # Eval/Call
-  # ===============
+  # ==================
   # <
    # --- Evaluation ---
     # Evaluate interpolation
@@ -5117,6 +5117,179 @@ class DataKit(ftypes.BaseData):
   # Increment & Deltas
   # ===================
   # <
+   # --- Evaluate Target ---
+    # Evaluate target database
+    def make_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate and save a target force and moment database
+
+        :Call:
+            >>> fm = db.makee_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(db2, dbfm.DBFM):
+            raise TypeError(
+                "Target database is not an instance of 'dbfm.DBFM'")
+        # Get options
+        opts = _LL3XOpts(_section="target_make", **kw)
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetSaveCols", {})
+        # Initialize output from existing data
+        fm = {}
+        # Loop through coefficients to save them
+        for coeff in _coeffs:
+            # Name of output
+            col = fmcols.get(coeff, "%s.target" % coeff)
+            # Check if present
+            if col not in self:
+                # Go below to (re)calculate
+                break
+            else:
+                # Save the data
+                fm[coeff] = self[col]
+        else:
+            # All columns present if no ``break``  encountered
+            return fm
+        # Not all cols present; use :func:`create`
+        return self.create_target_fm(db2, mask=mask, **kw)
+
+    # Evaluate target database
+    def create_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate and save a target force and moment database
+
+        :Call:
+            >>> fm = db.create_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Get options
+        opts = _LL3XOpts(_section="target_make", **kw)
+        # Options without save names
+        kw_targ = opts.section_options("target")
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetSaveCols", {})
+        # Perform response evaluations
+        fm = self.genr8_target_fm(db2, mask=mask, **kw_targ)
+        # Loop through coefficients to save them
+        for coeff in _coeffs:
+            # Name of output
+            col = fmcols.get(coeff, "%s.target" % coeff)
+            # Save it
+            self.save_col(col, fm[coeff])
+            # Create definition
+            self.make_defn(col, fm[coeff])
+        # Output
+        return fm
+
+    # Evaluate target database
+    def genr8_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate a target force and moment database
+
+        :Call:
+            >>> fm = db.genr8_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(db2, dbfm.DBFM):
+            raise TypeError(
+                "Target database is not an instance of 'dbfm.DBFM'")
+        # Get options
+        opts = _LL3XOpts(_section="target", **kw)
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetCols", {})
+        # Translators in case *db2* has different name for Mach number,
+        # AoA, etc. than *self*
+        trans = opts.get_option("Translators", {})
+        # Initialize output
+        fm = {}
+        # Number of points
+        n = None
+        # Loop through coefficients
+        for k, coeff in enumerate(_coeffs):
+            # Get name of col to evaluate
+            col = fmcols.get(coeff, coeff)
+            # Get args for response
+            args = db2.get_response_args(col)
+            # Check
+            if args is None:
+                raise KeyError(
+                    "No response defined for target col %i '%s'" % (k, col))
+            # Create list of args
+            xk = []
+            # Loop through args
+            for j, arg in enumerate(args):
+                # Translate arg
+                dbarg = trans.get(arg, arg)
+                # Get conditions
+                xj = self.get_values(dbarg, mask)
+                # Check validity
+                if xj is None:
+                    raise KeyError(
+                        ("Response arg %i ('%s') " % (j, arg)) +
+                        ("for col '%s' not found in source database" % col))
+                # Save to response inputs
+                xk.append(xj)
+            # Evaluate response
+            fm[coeff] = db2(col, *xk)
+        # Output
+        return fm
+
    # --- Increment ---
     # Create increment and UQ estimate for one column
     def genr8_udiff_by_rbf(self, db2, cols, scol=None, **kw):
@@ -8278,7 +8451,7 @@ class DataKit(ftypes.BaseData):
         # Check for integer
         if qmask:
             # Turn it into indices
-            I = self.prep_mask(mask)
+            I = self.prep_mask(mask, col=col)
             # Request for exact values
             qexact  = True
             qinterp = False
