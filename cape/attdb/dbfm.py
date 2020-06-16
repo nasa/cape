@@ -48,6 +48,90 @@ _beta_cols = rdbaero.AeroDataKit._tagcols["beta"]
 _phip_cols = rdbaero.AeroDataKit._tagcols["phip"]
 _phiv_cols = rdbaero.AeroDataKit._tagcols["phiv"]
 
+
+# Basic coefficient list
+_coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+
+# Options class for adjustments
+class _FMEvalOpts(kwutils.KwargHandler):
+  # ==================
+  # Class Attributes
+  # ==================
+  # <
+   # --- Lists ---
+    # All options
+    _optlist = {
+        "DeltaCols",
+        "SourceCols",
+        "TargetCols",
+        "TargetSaveCols",
+        "Translators",
+        "mask",
+        "xMRP",
+        "yMRP",
+        "zMRP"
+    }
+
+    # Alternate names
+    _optmap = {
+        "XMRP": "xMRP",
+        "YMRP": "yMRP",
+        "ZMRP": "zMRP",
+        "dcols": "DeltaCols",
+        "targcols": "TargetCols",
+        "trans": "Translators",
+        "translators": "Translators",
+        "xmrp": "xMRP",
+        "ymrp": "yMRP",
+        "zmrp": "zMRP",
+    }
+
+    # Sections
+    _optlists = {
+        "fmdelta": {
+            "SourceCols",
+            "TargetCols",
+            "Translators",
+            "mask"
+        },
+        "fmdelta_make": {
+            "DeltaCols",
+            "SourceCols",
+            "TargetCols",
+            "TargetSaveCols",
+            "Translators",
+            "mask"
+        },
+        "target": {
+            "TargetCols",
+            "Translators",
+            "mask"
+        },
+        "target_make": {
+            "TargetCols",
+            "TargetSaveCols",
+            "Translators",
+            "mask"
+        },
+    }
+
+   # --- Type ---
+    # Required types
+    _optytpes = {
+        "DeltaCols": dict,
+        "SourceCols": dict,
+        "TargetCols": dict,
+        "TargetSaveCols": dict,
+        "Translators": dict,
+        "mask": np.ndarray,
+        "xMRP": float,
+        "yMRP": float,
+        "zMRP": float,
+    }
+
+   # --- Defaults ---
+  # >
+
     
 # Standard converters: alpha
 def convert_alpha(*a, **kw):
@@ -1512,6 +1596,347 @@ class DBFM(rdbaero.AeroDataKit):
         parts[-1] = acoeff
         # Output
         return ".".join(parts)
+  # >
+
+  # ==================
+  # Target DB
+  # ==================
+  # <
+   # --- Evaluate Target ---
+    # Evaluate target database
+    def make_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate and save a target force and moment database
+
+        :Call:
+            >>> fm = db.make_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *TargetSaveCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Names to use when saving evaluated forces; default is
+                ``"CA.target"``, etc.
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(db2, dbfm.DBFM):
+            raise TypeError(
+                "Target database is not an instance of 'dbfm.DBFM'")
+        # Get options
+        opts = _FMEvalOpts(_section="target_make", **kw)
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetSaveCols", {})
+        # Initialize output from existing data
+        fm = {}
+        # Loop through coefficients to save them
+        for coeff in _coeffs:
+            # Name of output
+            col = fmcols.get(coeff, "%s.target" % coeff)
+            # Check if present
+            if col not in self:
+                # Go below to (re)calculate
+                break
+            else:
+                # Save the data
+                fm[coeff] = self[col]
+        else:
+            # All columns present if no ``break``  encountered
+            return fm
+        # Not all cols present; use :func:`create`
+        return self.create_target_fm(db2, mask=mask, **kw)
+
+    # Evaluate target database
+    def create_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate and save a target force and moment database
+
+        :Call:
+            >>> fm = db.create_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *TargetSaveCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Names to use when saving evaluated forces; default is
+                ``"CA.target"``, etc.
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Get options
+        opts = _FMEvalOpts(_section="target_make", **kw)
+        # Options without save names
+        kw_targ = opts.section_options("target")
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetSaveCols", {})
+        # Perform response evaluations
+        fm = self.genr8_target_fm(db2, mask=mask, **kw_targ)
+        # Loop through coefficients to save them
+        for coeff in _coeffs:
+            # Name of output
+            col = fmcols.get(coeff, "%s.target" % coeff)
+            # Save it
+            self.save_col(col, fm[coeff])
+            # Create definition
+            self.make_defn(col, fm[coeff])
+        # Output
+        return fm
+
+    # Evaluate target database
+    def genr8_target_fm(self, db2, mask=None, **kw):
+        r"""Evaluate a target force and moment database
+
+        :Call:
+            >>> fm = db.genr8_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Evaluated force & moment coefficients from *db2* at
+                conditions described by *db* and *I*
+        :Versions:
+            * 2020-06-15 ``@ddalle``: First version
+        """
+        # Check type
+        if not isinstance(db2, dbfm.DBFM):
+            raise TypeError(
+                "Target database is not an instance of 'dbfm.DBFM'")
+        # Get options
+        opts = _FMEvalOpts(_section="target", mask=mask, **kw)
+        # Get target columns for *fm*
+        fmcols = opts.get_option("TargetCols", {})
+        # Translators in case *db2* has different name for Mach number,
+        # AoA, etc. than *self*
+        trans = opts.get_option("Translators", {})
+        # Initialize output
+        fm = {}
+        # Number of points
+        n = None
+        # Loop through coefficients
+        for k, coeff in enumerate(_coeffs):
+            # Get name of col to evaluate
+            col = fmcols.get(coeff, coeff)
+            # Get args for response
+            args = db2.get_response_args(col)
+            # Check
+            if args is None:
+                raise KeyError(
+                    "No response defined for target col %i '%s'" % (k, col))
+            # Create list of args
+            xk = []
+            # Loop through args
+            for j, arg in enumerate(args):
+                # Translate arg
+                dbarg = trans.get(arg, arg)
+                # Get conditions
+                xj = self.get_values(dbarg, mask)
+                # Check validity
+                if xj is None:
+                    raise KeyError(
+                        ("Response arg %i ('%s') " % (j, arg)) +
+                        ("for col '%s' not found in source database" % col))
+                # Save to response inputs
+                xk.append(xj)
+            # Evaluate response
+            fm[coeff] = db2(col, *xk)
+        # Output
+        return fm
+
+   # --- Differences ---
+    # Evaluate differences
+    def make_target_deltafm(self, db2, **kw):
+        r"""Evaluate a target force and moment database
+
+        :Call:
+            >>> dfm = db.make_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *DeltaCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Names of columns to save deltas as; default takes form
+                of ``"CA.delta"``, etc.
+            *SourceCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Columns in *db* to compare to target
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *dfm*: :class:`dict`\ [:class:`np.ndarray`]
+                Differences between evaluated *TargetCols* in *db2*
+                minus *SourceCols* looked up from *db*
+        :Versions:
+            * 2020-06-16 ``@ddalle``: First version
+        """
+        # Get options
+        opts = _FMEvalOpts(_section="deltafm_make", **kw)
+        # Get source columns
+        dcols = opts.get_option("DeltaCols", {})
+        # Initialize output
+        dfm = {}
+        # Check if all are present
+        for coeff in _coeffs:
+            # Get source column name
+            col = dcols.get(coeff, "%s.delta" % coeff)
+            # Check if present
+            if col in self:
+                # Get the data
+                dfm[coeff] = self[col]
+            else:
+                # Not present
+                break
+        else:
+            # If no ``break`` encountered, return existing data
+            return dfm
+        # Call create() function
+        return self.create_target_deltafm(db2, **kw)
+
+    # Evaluate differences
+    def create_target_deltafm(self, db2, **kw):
+        r"""Evaluate a target force and moment database
+
+        :Call:
+            >>> dfm = db.create_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *DeltaCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Names of columns to save deltas as; default takes form
+                of ``"CA.delta"``, etc.
+            *SourceCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Columns in *db* to compare to target
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *dfm*: :class:`dict`\ [:class:`np.ndarray`]
+                Differences between evaluated *TargetCols* in *db2*
+                minus *SourceCols* looked up from *db*
+        :Versions:
+            * 2020-06-16 ``@ddalle``: First version
+        """
+        # Get options
+        opts = _FMEvalOpts(_section="deltafm_make", **kw)
+        # Options to calculator
+        kw_delta = opts.section_options("deltafm")
+        # Calculate
+        dfm = self.genr8_target_deltafm(db2, **kw_delta)
+        # Get source columns
+        dcols = opts.get_option("DeltaCols", {})
+        # Loop through coefficients
+        for coeff in _coeffs:
+            # Get source column name
+            col = dcols.get(coeff, "%s.delta" % coeff)
+            # Save delta
+            self.save_col(col, dfm[coeff])
+            # Save definition
+            self.make_defn(col, dfm[coeff])
+        # Output
+        return dfm
+
+    # Evaluate differences
+    def genr8_target_deltafm(self, db2, **kw):
+        r"""Evaluate a target force and moment database
+
+        :Call:
+            >>> dfm = db.genr8_target_fm(db2, mask, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *db2*: :class:`cape.attdb.dbfm.DBFM`
+                Database with force & moment responses
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask of :class:`bool` or indices of which cases in *db*
+                to evaluate; conditions in *db* used to evaluate *db2*
+            *SourceCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Columns in *db* to compare to target
+            *TargetCols*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Name of *db2* col for *CA*, *CY*, ..., *CLN*
+            *Translators*: {``{}``} | :class:`dict`\ [:class:`str`]
+                Alternate names of response arg columns; e.g. if
+                ``Translators["MACH"] == "mach"``, that means
+                ``db2["MACH"]`` is analogous to ``db["mach"]``
+        :Outputs:
+            *dfm*: :class:`dict`\ [:class:`np.ndarray`]
+                Differences between evaluated *TargetCols* in *db2*
+                minus *SourceCols* looked up from *db*
+        :Versions:
+            * 2020-06-16 ``@ddalle``: First version
+        """
+        # Get options
+        opts = _FMEvalOpts(_section="deltafm", **kw)
+        # Co-evaluator options
+        kw_fm = opts.section_options("target")
+        # Generate deltas
+        fm = self.genr8_target_fm(db2, **kw_fm)
+        # Initialize output
+        dfm = {}
+        # Get source columns
+        fmcols = opts.get_option("SourceCols", {})
+        # Loop through coefficients
+        for coeff in _coeffs:
+            # Get source column name
+            col = fmcols.get(coeff, coeff)
+            # Extract values
+            v = self.get_values(col, mask)
+            # Save delta
+            dfm[col] = fmcols[coeff] - v
+        # Output
+        return dfm
   # >
 
 

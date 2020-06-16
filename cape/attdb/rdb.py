@@ -1352,9 +1352,9 @@ class DataKit(ftypes.BaseData):
         dbmat.write_mat(fname, cols=cols, attrs=attrs)
   # >
 
-  # ===============
+  # ==================
   # Eval/Call
-  # ===============
+  # ==================
   # <
    # --- Evaluation ---
     # Evaluate interpolation
@@ -8278,7 +8278,7 @@ class DataKit(ftypes.BaseData):
         # Check for integer
         if qmask:
             # Turn it into indices
-            I = self.prep_mask(mask)
+            I = self.prep_mask(mask, col=col)
             # Request for exact values
             qexact  = True
             qinterp = False
