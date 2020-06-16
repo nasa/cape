@@ -150,6 +150,9 @@ def hist(v, *a, **kw):
    # --- Prep ---
     # Process options
     opts, h = _preprocess_kwargs(**kw)
+    # Set Spine Options
+    opts.setdefault_option("RightSpine", True)
+    opts.setdefault_option("TopSpine", True)
    # --- Statistics ---
     # Filter out non-numeric entries
     v = v[np.logical_not(np.isnan(v))]
@@ -169,6 +172,7 @@ def hist(v, *a, **kw):
     opts.setdefault_option("ShowInterval", False) 
     opts.setdefault_option("ShowMean", False)
     opts.setdefault_option("ShowSigma", False) 
+    opts.setdefault_option("ShowDelta", False) 
    # --- Axes Setup ---
     # Figure, then axes
     _part_init_figure(opts, h)
@@ -192,10 +196,11 @@ def hist(v, *a, **kw):
     _part_axes_spines(opts, h)
     _part_axes_format(opts, h)
     _part_axes_adjust(opts, h)
-   # --- Labeling ---
-    # --- Mean labels ---
-    # Process mean labeling options
+   # --- Labeling ---  
     _part_mean_label(opts, h)
+    _part_sigma_label(opts, h)
+    _part_interval_label(opts, h)
+    _part_delta_label(opts, h)
     # Readjust axes
     _part_axes_adjust(opts, h)
     # Output
@@ -407,6 +412,23 @@ def _part_interval(opts, h):
         # Return
         h.save("interval", interval)
 
+def _part_interval_label(opts, h):
+    if opts.get_option("ShowInterval"):
+        # Get Coverage
+        c = opts.get_option('Coverage')
+        # Interval format
+        flbl = "%.4f"
+        # Form
+        klbl = "I(%.1f%%%%)" % (100*c)
+        # Get interval values
+        a = opts.get_option('acov')
+        b = opts.get_option('bcov')
+        # Insert value
+        lbl = ('%s = [%s,%s]' % (klbl, flbl, flbl)) % (a, b)
+        intervallabel = axlabel(lbl)
+        # Return
+        h.save('intervallabel', intervallabel)    
+
 # Partial function: mean()
 def _part_mean(opts, h):
     if opts.get_option("ShowMean"):
@@ -438,22 +460,18 @@ def _part_mean(opts, h):
 # Partial function: mean_label()
 def _part_mean_label(opts, h):
     if opts.get_option("ShowMean"):
-        # Process mean labeling options
-        kw = opts.histlabel_options()
         # Get mu
         vmu = opts.get_option('mu')
         # Do the label
         # Formulate the label
-        c = 'mu'
+        c = u'μ'
         # Format code
-        flbl = kw.pop("MuFormat", "%.4f")
+        flbl = "%.4f"
         # First part
-        klbl = (u'%s' % c)
-        # Get axis limits
-        ax = h.ax
+        klbl = ('%s' % c)      
         # Insert value
-        lbl = ('%s = %s' % (klbl, flbl)) % vmu
-        meanlabel = histlab_part(lbl, 0.99, True, ax, **kw)
+        lbl = (u'%s = %s' % (klbl, flbl)) % vmu
+        meanlabel = axlabel(lbl)
         # Return
         h.save('meanlabel', meanlabel)    
 
@@ -622,6 +640,7 @@ def _part_coverage(opts, h):
     # Save values
     opts.set_option("v", v)
     # Save Interval
+    opts.set_option('cov', cov)
     opts.set_option('acov', acov)
     opts.set_option('bcov', bcov)
 
@@ -642,6 +661,8 @@ def _part_delta(opts, h):
         ax = h.ax
         # Get Reference Delta
         dc = kw.pop('Delta')
+        # Save it
+        opts.set_option('Delta', dc)
         # Plot lines
         if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
             # Separate lower and upper limits
@@ -668,6 +689,23 @@ def _part_delta(opts, h):
                 mpl._plot([pmin, pmax], [cmax, cmax], **kw))
         # Return
         h.save('delta', delta)
+
+def _part_delta_label(opts, h):
+    if opts.get_option("ShowDelta"):
+        # Get Delta
+        dc = opts.get_option('Delta')
+        # Get label
+        c = "coeff"
+        # Interval format
+        flbl = "%.4f"
+        # Insert value
+        if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
+            lbl = (u'\u0394%s = (%s, %s)' % (c, flbl, flbl)) % (dc[0], dc[1])
+        else:
+            lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
+        deltalabel = axlabel(lbl)
+        # Return
+        h.save('deltalabel', deltalabel)    
 
 # Move axes all the way to one side
 def move_axes(ax, loc, margin=0.0):
@@ -816,6 +854,24 @@ def _part_sigma(opts, h):
                 mpl._plot([pmin, pmax], [vmax, vmax], **kw))
         # Return
         h.save('sigma', sigma)
+
+# Partial function: sigma_label()
+def _part_sigma_label(opts, h):
+    if opts.get_option("ShowSigma"):
+        # Get std
+        vstd = opts.get_option('std')
+        # Do the label
+        # Formulate the label
+        c = u'σ'
+        # Format code
+        flbl = "%.4f"
+        # First part
+        klbl = ('%s' % c)      
+        # Insert value
+        lbl = (u'%s = %s' % (klbl, flbl)) % vstd
+        sigmalabel = axlabel(lbl)
+        # Return
+        h.save('sigmalabel', sigmalabel)  
 
 # Delta Plotting
 def plot_delta(ax, vmu, **kw):
