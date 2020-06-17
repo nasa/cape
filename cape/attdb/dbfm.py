@@ -78,6 +78,7 @@ class _FMEvalOpts(kwutils.KwargHandler):
         "YMRP": "yMRP",
         "ZMRP": "zMRP",
         "dcols": "DeltaCols",
+        "srccols": "SourceCols",
         "targcols": "TargetCols",
         "trans": "Translators",
         "translators": "Translators",
@@ -1634,7 +1635,7 @@ class DBFM(rdbaero.AeroDataKit):
             * 2020-06-15 ``@ddalle``: First version
         """
         # Check type
-        if not isinstance(db2, dbfm.DBFM):
+        if not isinstance(db2, DBFM):
             raise TypeError(
                 "Target database is not an instance of 'dbfm.DBFM'")
         # Get options
@@ -1737,7 +1738,7 @@ class DBFM(rdbaero.AeroDataKit):
             * 2020-06-15 ``@ddalle``: First version
         """
         # Check type
-        if not isinstance(db2, dbfm.DBFM):
+        if not isinstance(db2, DBFM):
             raise TypeError(
                 "Target database is not an instance of 'dbfm.DBFM'")
         # Get options
@@ -1815,7 +1816,7 @@ class DBFM(rdbaero.AeroDataKit):
             * 2020-06-16 ``@ddalle``: First version
         """
         # Get options
-        opts = _FMEvalOpts(_section="deltafm_make", **kw)
+        opts = _FMEvalOpts(_section="fmdelta_make", **kw)
         # Get source columns
         dcols = opts.get_option("DeltaCols", {})
         # Initialize output
@@ -1870,9 +1871,9 @@ class DBFM(rdbaero.AeroDataKit):
             * 2020-06-16 ``@ddalle``: First version
         """
         # Get options
-        opts = _FMEvalOpts(_section="deltafm_make", **kw)
+        opts = _FMEvalOpts(_section="fmdelta_make", **kw)
         # Options to calculator
-        kw_delta = opts.section_options("deltafm")
+        kw_delta = opts.section_options("fmdelta")
         # Calculate
         dfm = self.genr8_target_deltafm(db2, **kw_delta)
         # Get source columns
@@ -1918,7 +1919,9 @@ class DBFM(rdbaero.AeroDataKit):
             * 2020-06-16 ``@ddalle``: First version
         """
         # Get options
-        opts = _FMEvalOpts(_section="deltafm", **kw)
+        opts = _FMEvalOpts(_section="fmdelta", **kw)
+        # Get the *mask* option
+        mask = opts.get_option("mask")
         # Co-evaluator options
         kw_fm = opts.section_options("target")
         # Generate deltas
@@ -1934,7 +1937,7 @@ class DBFM(rdbaero.AeroDataKit):
             # Extract values
             v = self.get_values(col, mask)
             # Save delta
-            dfm[col] = fmcols[coeff] - v
+            dfm[coeff] = fm[coeff] - v
         # Output
         return dfm
   # >
