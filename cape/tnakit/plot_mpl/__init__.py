@@ -431,31 +431,35 @@ def _part_interval_label(opts, h):
 
 # Partial function: mean()
 def _part_mean(opts, h):
-    if opts.get_option("ShowMean"):
-        # Get mu
-        vmu = opts.get_option('mu')
-        # Get orientation
-        rotate = opts.get_option('Rotate')
-        if rotate:
-            orient = "horizontal"
-        else:
-            orient = "vertical"
-        # Process mean options
-        kw = opts.mean_options()
-        # Get axis limits
-        ax = h.ax
-        if orient == 'vertical':
-            # Vertical: get vertical limits of axes window
-            pmin, pmax = ax.get_ylim()
-            # Plot a vertical mean line
-            mean = mpl._plot([vmu, vmu], [pmin, pmax], **kw)
-        else:
-            # Horizontal: get horizontal limits of axes window
-            pmin, pmax = ax.get_xlim()
-            # Plot a horizontal range bar
-            mean = mpl._plot([pmin, pmax], [vmu, vmu], **kw)
-        # Return
-        h.save('mean', mean)
+    # Check for option to plot mean
+    if not opts.get_option("ShowMean"):
+        return
+    # Turn off any Y padding
+    opts.setdefault("YPad", 0.0)
+    # Get mu
+    vmu = opts.get_option('mu')
+    # Get orientation
+    rotate = opts.get_option('Rotate')
+    if rotate:
+        orient = "horizontal"
+    else:
+        orient = "vertical"
+    # Process mean options
+    kw = opts.mean_options()
+    # Get axis limits
+    ax = h.ax
+    if orient == 'vertical':
+        # Vertical: get vertical limits of axes window
+        pmin, pmax = ax.get_ylim()
+        # Plot a vertical mean line
+        mean = mpl._plot([vmu, vmu], [pmin, pmax], **kw)
+    else:
+        # Horizontal: get horizontal limits of axes window
+        pmin, pmax = ax.get_xlim()
+        # Plot a horizontal range bar
+        mean = mpl._plot([pmin, pmax], [vmu, vmu], **kw)
+    # Return
+    h.save('mean', mean)
     
 # Partial function: mean_label()
 def _part_mean_label(opts, h):

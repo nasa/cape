@@ -211,6 +211,10 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowMinMax",
         "ShowSigma",
         "ShowUncertainty",
+        "ShowValueMean",
+        "MeanLabelColor",
+        "MeanLabelOptions",
+        "MeanLabelPosition",
         "SigmaOptions",
         "SpineOptions",
         "Spines",
@@ -444,6 +448,7 @@ class MPLOpts(kwutils.KwargHandler):
         "coverage":[
             "Coverage",
             "CoverageCDF",
+            "CoverageOptions",
             "FilterSigma"
         ],
         "delta": [
@@ -869,7 +874,10 @@ class MPLOpts(kwutils.KwargHandler):
             "MarkPoints": "MarkPoints",
             "MarkerOptions": "MarkerOptions",
         },
-        "CoverageOptions": {},
+        "CoverageOptions": {
+            "Coverage": "Coverage",
+            "CoverageCDF": "CoverageCDF",
+        },
         "DeltaOptions":{
             "Delta": "Delta",
             "Index": "Index",
@@ -943,6 +951,11 @@ class MPLOpts(kwutils.KwargHandler):
         "MarkerOptions": {
             "MarkerColor": "color",
             "MarkerSize": "markersize",
+        },
+        "MeanLabelOptions": {
+            "AxesLabelFontOptions": "fontdict",
+            "MeanLabelColor": "color",
+            "MeanLabelPosition": "pos",
         },
         "MeanOptions" : {
             "Rotate": "Rotate",
