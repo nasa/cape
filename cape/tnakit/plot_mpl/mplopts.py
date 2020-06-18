@@ -871,6 +871,7 @@ class MPLOpts(kwutils.KwargHandler):
         },
         "CoverageOptions": {},
         "DeltaOptions":{
+            "Delta": "Delta",
             "Index": "Index",
             "Rotate": "Rotate"
         },
@@ -1584,36 +1585,12 @@ class MPLOpts(kwutils.KwargHandler):
             "RightSpine": False,
             "TopSpine": False,
         },
-        # "mu": {
-        #     "color": 'k',
-        #     "lw": 2,
-        #     "zorder": 6,
-        #     "label": "Mean value",
-        #},
         "gauss": {
             "color": "navy",
             "lw": 1.5,
             "zorder": 7,
             "label": "Normal Distribution",
         },
-        # "interval": {
-        #     "lw": 0,
-        #     "zorder": 1,
-        #     "alpha": 0.2,
-        # },
-        # "std": {
-        #     'color': 'navy',
-        #     'lw': 2,
-        #     'zorder': 5,
-        #     "dashes": [4, 2],
-        #     'StDev': 3,
-        # },
-        # "delta": {
-        #     'color': "r",
-        #     'ls': "--",
-        #     'lw': 1.0,
-        #     'zorder': 3,
-        # },
         "histlbl": {
             'color': 'k',
             'horizontalalignment': 'right',
