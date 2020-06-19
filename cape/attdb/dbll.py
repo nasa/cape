@@ -100,7 +100,19 @@ class _LL3XOpts(dbfm._FMEvalOpts):
 
     # Sections
     _optlists = {
-        "fractions_make": {
+        "aweights": {
+            "CompFMCols",
+            "CompLLCols",
+            "CompY",
+            "CompZ",
+            "Lref",
+            "TargetCols",
+            "method",
+            "xMRP",
+            "yMRP",
+            "zMRP"
+        },
+        "aweights_make": {
             "CompFMCols",
             "CompFMFracCols",
             "CompLLCols",
@@ -115,6 +127,19 @@ class _LL3XOpts(dbfm._FMEvalOpts):
         },
         "fractions": {
             "CompFMCols",
+            "CompLLCols",
+            "CompY",
+            "CompZ",
+            "Lref",
+            "TargetCols",
+            "method",
+            "xMRP",
+            "yMRP",
+            "zMRP"
+        },
+        "fractions_make": {
+            "CompFMCols",
+            "CompFMFracCols",
             "CompLLCols",
             "CompY",
             "CompZ",
@@ -1372,6 +1397,397 @@ class DBLL(dbfm.DBFM):
 
    # --- Adjustment Fraction ---
     # Calculate each component's contribution to adjusted loads
+    def make_ll3x_aweights(self, comps, scol=None, **kw):
+        r"""Retrieve [and calculate] each component's adjustment weight
+
+        :Call:
+            >>> w = db.make_ll3x_aweights(comps, scol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *comp*: :class:`str`
+                Single component (trivial output)
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to divide integral F&M
+            *scol*: {``None``} | :class:`str`
+                Column used to slice database; output will be constant
+                on each slice
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                Columns to use as integral of force and moment on each
+                *comp*. Defaults filled in by *comp*\ .*coeff* for
+                *coeff* in ``["CA", "CY", "CN", "CLL", "CLM", "CLN"]``
+        :Outputs:
+            *w*: :class:`dict`\ [:class:`dict`\ [:class:`np.ndarray`]]
+                Adjustment weight for each *comp* and each *coeff*
+                caused by integral *coeff* change; for example
+                ``"wCN.CLL"`` is shift to a comp's *CN* as a result of
+                overall *CLL* shift
+        :Versions:
+            * 2020-06-19 ``@ddalle``: First version
+        """
+        # Check the component list
+        comps = self._check_ll3x_comps(comps)
+        # Transfer options
+        opts = _LL3XOpts(_section="aweights_make", **kw)
+        # Initialize output if all cols present
+        w = {}
+        # Loop through the components
+        for comp in comps:
+            # Get column names
+            wcols = self._getcols_fmweight_comp(None, comp=comp, **opts)
+            # Unpack
+            colCA = wcols["wCA.CA"]
+            colCY = wcols["wCY.CY"]
+            colCN = wcols["wCN.CN"]
+            colCl = wcols["wCY.CLL"]
+            colC2 = wcols["wCN.CLL"]
+            colCm = wcols["wCLM.CLM"]
+            colCn = wcols["wCLN.CLN"]
+            # Check if all are present
+            if colCA not in self:
+                break
+            elif colCY not in self:
+                break
+            elif colCN not in self:
+                break
+            elif colC1 not in self:
+                break
+            elif colC2 not in self:
+                break
+            elif colCm not in self:
+                break
+            elif colCn not in self:
+                break
+            else:
+                # Everything already present
+                w[comp] = {
+                    "wCA.CA": self[colCA],
+                    "wCY.CY": self[colCY],
+                    "wCN.CN": self[colCN],
+                    "wCY.CLL": self[colC1],
+                    "wCN.CLL": self[colC2],
+                    "wCLM.CLM": self[colCm],
+                    "wCLN.CLN": self[colCn],
+                }
+        else:
+            # If no ``break`` encountered, return output
+            return w
+        # Generate the weights and return them
+        return self.create_ll3x_aweights(comps, scol, **opts)
+
+    # Calculate each component's contribution to adjusted loads
+    def create_ll3x_aweights(self, comps, scol=None, **kw):
+        r"""Calculate and save each component's adjustment weight
+
+        :Call:
+            >>> w = db.create_ll3x_aweights(comps, scol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *comp*: :class:`str`
+                Single component (trivial output)
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to divide integral F&M
+            *scol*: {``None``} | :class:`str`
+                Column used to slice database; output will be constant
+                on each slice
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                Columns to use as integral of force and moment on each
+                *comp*. Defaults filled in by *comp*\ .*coeff* for
+                *coeff* in ``["CA", "CY", "CN", "CLL", "CLM", "CLN"]``
+        :Outputs:
+            *w*: :class:`dict`\ [:class:`dict`\ [:class:`np.ndarray`]]
+                Adjustment weight for each *comp* and each *coeff*
+                caused by integral *coeff* change; for example
+                ``"wCN.CLL"`` is shift to a comp's *CN* as a result of
+                overall *CLL* shift
+        :Versions:
+            * 2020-06-18 ``@ddalle``: First version
+        """
+        # Check and process component list
+        comps = self._check_ll3x_comps(comps)
+        # Form options
+        opts = _LL3XOpts(_section="aweights_make", **kw)
+        # Get options for genr8 function
+        kwf = opts.section_options("aweights")
+        # Calculate fractions
+        w = self.genr8_ll3x_aweights(comps, scol, **kwf)
+        # Loop through the components
+        for comp in comps:
+            # Get column names
+            wcols = self._getcols_fmweight_comp(None, comp=comp, **opts)
+            # Data for this component
+            wcomp = w[comp]
+            # Unpack
+            colCA = wcols["wCA.CA"]
+            colCY = wcols["wCY.CY"]
+            colCN = wcols["wCN.CN"]
+            colC1 = wcols["wCY.CLL"]
+            colC2 = wcols["wCN.CLL"]
+            colCm = wcols["wCLM.CLM"]
+            colCn = wcols["wCLN.CLN"]
+            # Save the integrated columns
+            self.save_col(colCA, wcomp["wCA.CA"])
+            self.save_col(colCY, wcomp["wCY.CY"])
+            self.save_col(colCN, wcomp["wCN.CN"])
+            self.save_col(colC1, wcomp["wCY.CLL"])
+            self.save_col(colC2, wcomp["wCN.CLL"])
+            self.save_col(colCm, wcomp["wCLM.CLM"])
+            self.save_col(colCn, wcomp["wCLN.CLN"])
+            # Make definitions
+            self.make_defn(colCA, wcomp["wCA.CA"])
+            self.make_defn(colCY, wcomp["wCY.CY"])
+            self.make_defn(colCN, wcomp["wCN.CN"])
+            self.make_defn(colC1, wcomp["wCY.CLL"])
+            self.make_defn(colC2, wcomp["wCN.CLL"])
+            self.make_defn(colCm, wcomp["wCLM.CLM"])
+            self.make_defn(colCn, wcomp["wCLN.CLN"])
+        # Output
+        return w
+
+    # Calculate each component's contribution to adjusted loads
+    def genr8_ll3x_aweights(self, comps, scol=None, **kw):
+        r"""Calculate each component's adjustment weight
+
+        :Call:
+            >>> w = db.genr8_ll3x_aweights(comps, scol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to divide integral F&M
+            *scol*: {``None``} | :class:`str`
+                Column used to slice database; output will be constant
+                on each slice
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                Columns to use as integral of force and moment on each
+                *comp*. Defaults filled in by *comp*\ .*coeff* for
+                *coeff* in ``["CA", "CY", "CN", "CLL", "CLM", "CLN"]``
+            *CompY*: :class:`dict`\ [:class:`float`]
+                *y*-coordinate at which *comp* loads are applied
+            *CompZ*: :class:`dict`\ [:class:`float`]
+                *z*-coordinate at which *comp* loads are applied
+        :Outputs:
+            *w*: :class:`dict`\ [:class:`dict`\ [:class:`np.ndarray`]]
+                Adjustment weight for each *comp* and each *coeff*
+                caused by integral *coeff* change; for example
+                ``"wCN.CLL"`` is shift to a comp's *CN* as a result of
+                overall *CLL* shift
+        :Versions:
+            * 2020-06-18 ``@ddalle``: First version
+        """
+       # --- Checks ---
+        # Check and process component list
+        comps = self._check_ll3x_comps(comps)
+        # Form options
+        opts = _LL3XOpts(_section="aweights", **kw)
+        # Number of components
+        ncomp = len(comps)
+       # --- FM Cols ---
+        # Get columns that determine deltas for each component
+        fmcols = opts.get_option("CompFMCols", {})
+        # Coordinate options
+        ycomp = opts.get_option("CompY", {})
+        zcomp = opts.get_option("CompZ", {})
+        # Reference length
+        Lref = opts.get_option("Lref", self.__dict__.get("Lref", 1.0))
+        # Coordinates
+        Y = np.zeros(ncomp)
+        Z = np.zeros(ncomp)
+        # Loop through components
+        for j, comp in enumerate(comps):
+            # Get integral col names for this componet
+            cols = self._getcols_fm_comp(None, comp, CompFMCols=fmcols)
+            # Check presence
+            for coeff, col in cols.items():
+                if col not in self:
+                    raise KeyError(
+                        "%s col '%s' for comp '%s' not present"
+                        % (coeff, col, comp))
+            # Save completed list
+            fmcols[comp] = cols
+            # Get reference coordinates
+            Y[j] = ycomp.get(comp, 0.0) / Lref
+            Z[j] = zcomp.get(comp, 0.0) / Lref
+            # Reference column
+            if j == 0:
+                # Get reference column for *mask* application
+                col = cols["CA"]
+                # Get size of column
+                nv = self.get_all_values(col).size
+        # Save maximum *dy* and *dz* as flags for which constraints apply
+        qdy = np.max(np.abs(Y - np.mean(Y))) > 1e-6
+        qdz = np.max(np.abs(Z - np.mean(Z))) > 1e-6
+       # --- Mask & Slicing ---
+        # Get mask option
+        mask = opts.get_option("mask")
+        # Get indices
+        mask_index = self.prep_mask(mask, col=col)
+        # Slice column
+        if scol is None:
+            # Single slice with all cases in *mask*
+            masks = [self.prep_mask(mask, col=col)]
+            # No slice values
+            s = None
+        else:
+            # Get unique values
+            s = np.unique(self.get_values(scol, mask))
+            # Divide those values into slices
+            masks, _ = self.find([scol], s, mapped=True)
+       # --- Weights ---
+        # Initialize weights
+        w = {}
+        # Loop through components to initialize
+        for comp in comps:
+            # Init all needed weights
+            w[comp] = {
+                "wCA.CA": np.zeros(nv),
+                "wCY.CY": np.zeros(nv),
+                "wCN.CN": np.zeros(nv),
+                "wCY.CLL": np.zeros(nv),
+                "wCN.CLL": np.zeros(nv),
+                "wCLM.CLM": np.zeros(nv),
+                "wCLN.CLN": np.zeros(nv),
+            }
+        # Loop through coefficients
+        for coeff in _coeffs:
+            # Initialize total
+            FT = 0.0
+            # Initialize dict per *comp*
+            Fcomp = {}
+            # Loop through components
+            for comp in comps:
+                # Component column
+                col = fmcols[comp][coeff]
+                # Get values
+                F = np.abs(self[col])
+                # Increment total
+                FT += F
+                # Save it
+                Fcomp[comp] = F
+            # Loop through masks
+            for maskj in masks:
+                # Initialize weights with ideal fractions
+                fj = np.zeros(ncomp)
+                # Loop through components
+                for k, comp in enumerate(comps):
+                    # Get fraction
+                    fj[k] = np.mean(Fcomp[comp][maskj] / FT[maskj])
+                    # Save fraction as initial weight
+                    if coeff == "CLL":
+                        # Special case; no nominal *CLL* to shift
+                        continue
+                    # Weight name
+                    wcol = "w%s.%s" % (coeff, coeff)
+                    # Save it
+                    w[comp][wcol][maskj] = fj[k]
+                # Handle trivial cases first
+                if not (qdy or qdz):
+                    # Now moments shifted by forces
+                    continue
+                elif (coeff == "CY") and (not qdz):
+                    # No *CLL* shifted by *CY*
+                    continue
+                elif (coeff == "CN") and (not qdy):
+                    # No *CLL* shifted by *CN*
+                    continue
+                # Check which coefficient is under study
+                if coeff == "CA":
+                    # Calculate unintentional impact to *CLM*
+                    d1 = np.dot(Z, fj)
+                    # Calculate unintentional impact to *CLN*
+                    d2 = np.dot(Y, fj)
+                    # Create matrix
+                    A = np.vstack((
+                        np.ones((1, ncomp)),
+                        [Z],
+                        [Y]))
+                    # Create constraints
+                    b = np.array([0.0, -d1, -d2])
+                    # Check trivial constraints
+                    A = A[[True, qdz, qdy], :]
+                    b = b[[True, qdz, qdy]]
+                    # Solve least squares system
+                    x, _, _, _ = np.linalg.lstsq(A, b)
+                    # Apply *x* to fix any unintentional shifts
+                    wj = fj + x
+                    # Save the shifted weights
+                    for k, comp in enumerate(comps):
+                        # Weight name
+                        w[comp]["wCA.CA"][maskj] = wj[k]
+                elif coeff == "CY":
+                    # Calculate unintentional impact to *CLL*
+                    d1 = np.dot(Z, fj)
+                    # Create matrix
+                    A = np.vstack((
+                        np.ones((1, ncomp)),
+                        [Z]))
+                    # Create constraints
+                    b = np.array([0.0, -d1])
+                    # Solve least squares system
+                    x, _, _, _ = np.linalg.lstsq(A, b)
+                    # Apply *x* to fix any unintentional shifts
+                    wj = fj + x
+                    # Save the shifted weights
+                    for k, comp in enumerate(comps):
+                        # Weight name
+                        w[comp]["wCY.CY"][maskj] = wj[k]
+                elif coeff == "CN":
+                    # Calculate unintentional impact to *CLL*
+                    d1 = -np.dot(Y, fj)
+                    # Create matrix
+                    A = np.vstack((
+                        np.ones((1, ncomp)),
+                        [-Y]))
+                    # Create constraints
+                    b = np.array([0.0, -d1])
+                    # Solve least squares system
+                    x, _, _, _ = np.linalg.lstsq(A, b)
+                    # Apply *x* to fix any unintentional shifts
+                    wj = fj + x
+                    # Save the shifted weights
+                    for k, comp in enumerate(comps):
+                        # Weight name
+                        w[comp]["wCN.CN"][maskj] = wj[k]
+                elif coeff == "CLL":
+                    # Calculate total offset radii
+                    R2 = Y*Y + Z*Z
+                    # Which are nonzero?
+                    qr = (R2 > 0)
+                    # Initialize *CLL* divider weights
+                    fY = np.zeros(ncomp)
+                    fN = np.zeros(ncomp)
+                    # Divide up *CLL* weight to
+                    fY[qr] = Z[qr] / R2[qr] * fj[qr]
+                    fN[qr] = -Y[qr] / R2[qr] * fj[qr]
+                    # Calculate unintentional impact to *CY* and *CN*
+                    d1 = np.sum(fY)
+                    d2 = np.sum(fN)
+                    # Create matrix
+                    A = np.vstack((
+                        [np.hstack((Z, -Y))],
+                        np.array([1.0, 1.0, 1.0, 0.0, 0.0, 0.0]),
+                        np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0])))
+                    # Create constraints
+                    b = np.array([0, -d1, -d2])
+                    # Solve least squares system
+                    x, _, _, _ = np.linalg.lstsq(A, b)
+                    # Apply *x* to fix any unintentional shifts
+                    wY = fY + x[:3]
+                    wN = fN + x[3:]
+                    # Save the shifted weights
+                    for k, comp in enumerate(comps):
+                        # Weight name
+                        w[comp]["wCY.CLL"][maskj] = wY[k]
+                        w[comp]["wCN.CLL"][maskj] = wN[k]
+                elif coeff in ["CLM", "CLN"]:
+                    # Already handled by desired fraction
+                    pass
+       # --- Output ---
+        # Output
+        return w
+
+    # Calculate each component's contribution to adjusted loads
     def make_ll3x_fractions(self, comps, scol=None, **kw):
         r"""Calculate each component's contribution to integral forces
 
@@ -1514,6 +1930,8 @@ class DBLL(dbfm.DBFM):
         for comp in comps:
             # Get column names
             fcols = self._getcols_fmfrac_comp(None, comp=comp, **opts)
+            # Data for this component
+            fcomp = f[comp]
             # Unpack
             colCA = fcols["CA"]
             colCY = fcols["CY"]
@@ -1522,19 +1940,19 @@ class DBLL(dbfm.DBFM):
             colCm = fcols["CLM"]
             colCn = fcols["CLN"]
             # Save the integrated columns
-            self.save_col(colCA, fm["CA"])
-            self.save_col(colCY, fm["CY"])
-            self.save_col(colCN, fm["CN"])
-            self.save_col(colCl, fm["CLL"])
-            self.save_col(colCm, fm["CLM"])
-            self.save_col(colCn, fm["CLN"])
+            self.save_col(colCA, fcomp["CA"])
+            self.save_col(colCY, fcomp["CY"])
+            self.save_col(colCN, fcomp["CN"])
+            self.save_col(colCl, fcomp["CLL"])
+            self.save_col(colCm, fcomp["CLM"])
+            self.save_col(colCn, fcomp["CLN"])
             # Make definitions
-            self.make_defn(colCA, fm["CA"])
-            self.make_defn(colCY, fm["CY"])
-            self.make_defn(colCN, fm["CN"])
-            self.make_defn(colCl, fm["CLL"])
-            self.make_defn(colCm, fm["CLM"])
-            self.make_defn(colCn, fm["CLN"])
+            self.make_defn(colCA, fcomp["CA"])
+            self.make_defn(colCY, fcomp["CY"])
+            self.make_defn(colCN, fcomp["CN"])
+            self.make_defn(colCl, fcomp["CLL"])
+            self.make_defn(colCm, fcomp["CLM"])
+            self.make_defn(colCn, fcomp["CLN"])
         # Output
         return f
 
@@ -2481,7 +2899,7 @@ class DBLL(dbfm.DBFM):
         colCN = "%s.fraction" % fmcols["CN"]
         colCl = "%s.fraction" % fmcols["CLL"]
         colCm = "%s.fraction" % fmcols["CLM"]
-        colCn = "%s.fraction" % fmcols["CN"]
+        colCn = "%s.fraction" % fmcols["CLN"]
         # Check for *comp*
         if comp is not None:
             # Get option
@@ -2510,6 +2928,61 @@ class DBLL(dbfm.DBFM):
             "CLL": colCl,
             "CLM": colCm,
             "CLN": colCn,
+        }
+
+    # Output column names for integral fractions
+    def _getcols_fmweight_comp(self, cols, comp=None, **kw):
+        r"""Create :class:`dict` of FM adjustment weights
+
+        :Call:
+            >>> wcols = db._getcols_fmweight_comp(cols, comp=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *comp*: :class:`str`
+                Name of component
+            *CompFMWeightCols*: :class:`dict`\ [:class:`dict`]
+                Output column names for adjustment weights
+        :Outputs:
+            *wcols*: :class:`dict`\ [:class:`str`]
+                Columns to use for six integrated forces and moments
+        :Versions:
+            * 2020-06-16 ``@ddalle``: First version
+        """
+        # Get column names
+        colCA = "%s.wCA.CA"   % comp
+        colCY = "%s.wCY.CY"   % comp
+        colCN = "%s.wCN.CN"   % comp
+        colC1 = "%s.wCY.CLL"  % comp
+        colC2 = "%s.wCN.CLL"  % comp
+        colCm = "%s.wCLM.CLM" % comp
+        colCn = "%s.wCLN.CLN" % comp
+        # Check for *comp*
+        if comp is not None:
+            # Get option
+            fcols = kw.get("CompFMWeightCols", {}).get(comp, {})
+            # Check for overrides
+            colCA = fcols.get("wCA.CA", colCA)
+            colCY = fcols.get("wCY.CY", colCY)
+            colCN = fcols.get("wCN.CN", colCN)
+            colC1 = fcols.get("wCY.CLL", colC1)
+            colC2 = fcols.get("wCN.CLL", colC2)
+            colCm = fcols.get("wCLM.CLM", colCm)
+            colCn = fcols.get("wCLN.CLN", colCn)
+        # Output
+        return {
+            "wCA.CA": colCA,
+            "wCY.CY": colCY,
+            "wCN.CN": colCN,
+            "wCY.CLL": colC1,
+            "wCN.CLL": colC2,
+            "wCLM.CLM": colCm,
+            "wCLN.CLN": colCn,
         }
 
    # --- Basis ---
