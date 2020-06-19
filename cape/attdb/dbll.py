@@ -66,12 +66,8 @@ class _LL3XOpts(dbfm._FMEvalOpts):
     # All options
     _optlist = {
         "CompLLAdjustedCols",
-        "CompFMCols",
         "CompFMFracCols",
         "CompLLCols",
-        "CompY",
-        "CompZ",
-        "FMCols",
         "LLAdjustedCols"
         "LLCols",
         "SliceColSave",
@@ -79,13 +75,7 @@ class _LL3XOpts(dbfm._FMEvalOpts):
         "mask",
         "method",
         "nPOD",
-        "x",
-        "xMRP",
-        "xcol",
-        "y",
-        "yMRP",
-        "z",
-        "zMRP"
+        "xcol"
     }
 
     # Alternate names
@@ -95,7 +85,6 @@ class _LL3XOpts(dbfm._FMEvalOpts):
         "NPOD": "nPOD",
         "acols": "CompLLAdjustedCols",
         "bcols": "CompLLBasisCols",
-        "fmcols": "CompFMCols",
         "icols": "FMCols",
         "llcols": "CompLLCols",
         "npod": "nPOD",
@@ -226,9 +215,6 @@ class _LL3XOpts(dbfm._FMEvalOpts):
         "CompFMFracCols"
         "CompLLCols": dict,
         "CompLLAdjustedCols": dict,
-        "CompY": dict,
-        "CompZ": dict,
-        "FMCols": dict,
         "LLCols": dict,
         "SliceColSave": typeutils.strlike,
         "method": typeutils.strlike,
@@ -447,7 +433,7 @@ class DBLL(dbfm.DBFM):
         if ocol in self:
             return self.get_values(ocol, mask=kw.get("mask"))
         # Call creation method
-        return self.create_dclm(col, ocol=ocol, **kw)
+        return self.create_dclm(col, xcol=xcol, ocol=ocol, **kw)
 
     # Calculate yawing moment
     def make_dcln(self, col, xcol=None, ocol=None, **kw):
@@ -485,7 +471,7 @@ class DBLL(dbfm.DBFM):
         if ocol in self:
             return self.get_values(ocol, mask=kw.get("mask"))
         # Call creation method
-        return self.create_dcln(col, ocol=ocol, **kw)
+        return self.create_dcln(col, xcol=xcol, ocol=ocol, **kw)
         
     # Calculate and store moments
     def create_ll_moment(self, col, ax1, ax2, ocol=None, **kw):
@@ -1387,12 +1373,19 @@ class DBLL(dbfm.DBFM):
         w = self.make_ll3x_aweights(comps, scol, **kw_frc)
         # Evaluate target database
         dfm = self.make_target_deltafm(db2, **kw_trg)
+        # Unpack differences
+        dCA = dfm["CA"]
+        dCY = dfm["CY"]
+        dCN = dfm["CN"]
+        dCLL = dfm["CLL"]
+        dCLM = dfm["CLM"]
+        dCLN = dfm["CLN"]
        # --- Basis ---
         # Get adjustment basis
         basis = self.make_ll3x_basis(comps, scol, **kw_bas)
        # --- Conditions/Mask ---
         # Get reference column
-        col = self._getcols_fm_comp(None, comp, **kw)["CA"]
+        col = self._getcols_ll3x_fmcomp(None, comp, **kw)["CA"]
         # Check if present
         if col not in self:
             raise KeyError("Missing 'CA' integral for comp '%s'" % comp)
@@ -1402,6 +1395,42 @@ class DBLL(dbfm.DBFM):
         I = self.prep_mask(mask, col=col)
         # Slice values
         s = w.get("s")
+       # --- FM Breakout ---
+        # Initialize
+        dfmcomp = {}
+        # Loop through components
+        for comp in comps:
+            # Get weights
+            wcomp = w[comp]
+            # Expand
+            if scol is None:
+                # Scalarize
+                wAA = wcomp["wCA.CA"][0]
+                wYY = wcomp["wCY.CY"][0]
+                wNN = wcomp["wCN.CN"][0]
+                wYLL = wcomp["wCY.CLL"][0]
+                wNLL = wcomp["wCN.CLL"][0]
+                wmm = wcomp["wCLM.CLM"][0]
+                wnn = wcomp["wCLN.CLN"][0]
+            else:
+                # Get values of *scol* for all *mask* cases
+                vs = self.get_values(scol, mask)
+                # Interpolate
+                wAA = np.interp(vs, s, wcomp["wCA.CA"])
+                wYY = np.interp(vs, s, wcomp["wCY.CY"])
+                wNN = np.interp(vs, s, wcomp["wCN.CN"])
+                wYLL = np.interp(vs, s, wcomp["wCY.CLL"])
+                wNLL = np.interp(vs, s, wcomp["wCN.CLL"])
+                wmm = np.interp(vs, s, wcomp["wCLM.CLM"])
+                wnn = np.interp(vs, s, wcomp["wCLN.CLN"])
+            # Apply the weights
+            dfmcomp[comp] = {
+                "CA": wAA*dCA
+                "CY": wYY*dCY + wYLL*dCLL,
+                "CN": wNN*dCN + wNLL*dCLL,
+                "CLM": wmm*dCLM,
+                "CLN": wnn*dCLN,
+            }
        # --- Adjustment ---
         
 
@@ -1628,7 +1657,7 @@ class DBLL(dbfm.DBFM):
         # Loop through components
         for j, comp in enumerate(comps):
             # Get integral col names for this componet
-            cols = self._getcols_fm_comp(None, comp, CompFMCols=fmcols)
+            cols = self._getcols_ll3x_fmcomp(None, comp, CompFMCols=fmcols)
             # Check presence
             for coeff, col in cols.items():
                 if col not in self:
@@ -2025,7 +2054,7 @@ class DBLL(dbfm.DBFM):
         # Loop through components
         for comp in comps:
             # Get integral col names for this componet
-            cols = self._getcols_fm_comp(None, comp, CompFMCols=fmcols)
+            cols = self._getcols_ll3x_fmcomp(None, comp, CompFMCols=fmcols)
             # Check presence
             for coeff, col in cols.items():
                 if col not in self:
@@ -2141,7 +2170,7 @@ class DBLL(dbfm.DBFM):
         # Loop through the components
         for comp in comps:
             # Get column names
-            fmcols = self._getcols_fm_comp(None, comp=comp, **opts)
+            fmcols = self._getcols_ll3x_fmcomp(None, comp=comp, **opts)
             # Unpack
             colCA = fmcols["CA"]
             colCY = fmcols["CY"]
@@ -2237,7 +2266,7 @@ class DBLL(dbfm.DBFM):
         # Loop through the components
         for comp in comps:
             # Get column names
-            fmcols = self._getcols_fm_comp(None, comp=comp, **opts)
+            fmcols = self._getcols_ll3x_fmcomp(None, comp=comp, **opts)
             # Unpack
             colCA = fmcols["CA"]
             colCY = fmcols["CY"]
@@ -2283,8 +2312,6 @@ class DBLL(dbfm.DBFM):
 
                 List/tuple of column names for *CA*, *CY*, and *CN*
                 [, *CLL*, *CLM*, *CLN*] line loads
-            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
-                Number of POD/SVD modes to use during optimization
             *mask*: {``None``} | :class:`np.ndarray`
                 Mask or indices of which cases to include in POD
                 calculation
@@ -2382,7 +2409,7 @@ class DBLL(dbfm.DBFM):
         # Options to integrator
         kw_int = opts.section_options("integrals_comp")
         # Get column names
-        fmcols = self._getcols_fm_comp(cols, **opts)
+        fmcols = self._getcols_ll3x_fmcomp(cols, **opts)
         # Unpack
         colCA = fmcols["CA"]
         colCY = fmcols["CY"]
@@ -2481,7 +2508,7 @@ class DBLL(dbfm.DBFM):
         # Options to integrator
         kw_int = opts.section_options("integrals_comp")
         # Get column names
-        fmcols = self._getcols_fm_comp(cols, **opts)
+        fmcols = self._getcols_ll3x_fmcomp(cols, **opts)
         # Unpack
         colCA = fmcols["CA"]
         colCY = fmcols["CY"]
@@ -2522,8 +2549,6 @@ class DBLL(dbfm.DBFM):
 
                 List/tuple of column names for *CA*, *CY*, and *CN*
                 [, *CLL*, *CLM*, *CLN*] line loads
-            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
-                Number of POD/SVD modes to use during optimization
             *mask*: {``None``} | :class:`np.ndarray`
                 Mask or indices of which cases to include in POD
                 calculation
@@ -2551,7 +2576,7 @@ class DBLL(dbfm.DBFM):
             * 2020-06-11 ``@ddalle``: First version
         """
         # Check options
-        opts = _LL3XOpts(**kw)
+        opts = _LL3XOpts(_section="integrals_comp", **kw)
         # Check column list
         self._check_ll3x_cols(cols)
         # Get line load columns
@@ -2563,6 +2588,15 @@ class DBLL(dbfm.DBFM):
         colCLL = llcols["CLL"]
         colCLM = llcols["CLM"]
         colCLN = llcols["CLN"]
+        # Get *xcols*
+        xcolCA = self._getcol_ll_xcol(colCA, **opts)
+        xcolCY = self._getcol_ll_xcol(colCA, **opts)
+        xcolCN = self._getcol_ll_xcol(colCA, **opts)
+        xcolCLL = self._getcol_ll_xcol(colCA, **opts)
+        xcolCLM = self._getcol_ll_xcol(colCA, **opts)
+        xcolCLN = self._getcol_ll_xcol(colCA, **opts)
+        # Remove *xcol* from *opts* if specified
+        opts.pop("xcol", None)
         # Reference length
         Lref = opts.get_option("Lref", self.__dict__.get("Lref", 1.0))
         # Get MRP
@@ -2573,23 +2607,23 @@ class DBLL(dbfm.DBFM):
         y = opts.get_option("y", yMRP)
         z = opts.get_option("z", zMRP)
         # Integrate forces
-        CA = self.genr8_integral(colCA, **opts)
-        CY = self.genr8_integral(colCY, **opts)
-        CN = self.genr8_integral(colCN, **opts)
+        CA = self.genr8_integral(colCA, xcol=xcolCA, **opts)
+        CY = self.genr8_integral(colCY, xcol=xcolCY, **opts)
+        CN = self.genr8_integral(colCN, xcol=xcolCN, **opts)
         # Check for moment loads
         if colCLL in self and colCLM in self and colCLN in self:
             # Integrate moment loads
-            CLL = self.genr8_integral(colCLL, **opts)
-            CLM = self.genr8_integral(colCLM, **opts)
-            CLN = self.genr8_integral(colCLN, **opts)
+            CLL = self.genr8_integral(colCLL, xcol=xcolCLL, **opts)
+            CLM = self.genr8_integral(colCLM, xcol=xcolCLM, **opts)
+            CLN = self.genr8_integral(colCLN, xcol=xcolCLN, **opts)
         else:
             # Create moment columns
             self.create_dclm(colCN, **opts)
             self.create_dcln(colCY, **opts)
             # Integrate moments
             CLL = np.zeros_like(CA)
-            CLM = self.genr8_integral(colCLM, **opts)
-            CLN = self.genr8_integral(colCLN, **opts)
+            CLM = self.genr8_integral(colCLM, xcol=xcolCLM, **opts)
+            CLN = self.genr8_integral(colCLN, xcol=xcolCLN, **opts)
             # Moments due to MRP offset from line load center
             CLM += CA * (z - zMRP) / Lref
             CLN += CA * (y - yMRP) / Lref
@@ -3553,11 +3587,11 @@ class DBLL(dbfm.DBFM):
         }
 
     # Output column names for integrals from ll cols
-    def _getcols_fm_comp(self, cols, comp=None, **kw):
+    def _getcols_ll3x_fmcomp(self, cols, comp=None, **kw):
         r"""Create :class:`dict` of FM cols based on line load *cols*
 
         :Call:
-            >>> fmcols = db._getcols_fm_comp(cols, comp=None, **kw)
+            >>> fmcols = db._getcols_ll3x_fmcomp(cols, comp=None, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with analysis tools
@@ -3617,6 +3651,52 @@ class DBLL(dbfm.DBFM):
             "CLN": colCn,
         }
 
+    # Output column names for integrals from ll cols
+    def _getcol_ll_xcol(self, col, comp=None, **kw):
+        r"""Create :class:`dict` of FM cols based on line load *cols*
+
+        :Call:
+            >>> xcol = db._getcol_ll_xcol(col, comp **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *comp*: {``None``} | :class:`str`
+                Name of component
+            *FMCols*: :class:`dict`\ [:class:`str`]
+                Columns to use for each integral coefficient
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                *FMCols* for one or more *comps*
+        :Outputs:
+            *xcol*: :class:`str`
+                Name of column to use for *x*-coordinates of *col*
+        :Versions:
+            * 2020-06-19 ``@ddalle``: First version
+        """
+        # Default
+        if comp is None:
+            # Just use "x"
+            xcol = "x"
+        else:
+            # Combine component name
+            xcol = "%s.x" % comp
+        # Check for *col*
+        if col is None:
+            return xcol
+        # Get *xargs* from line load response definition
+        xargs = self.get_output_xargs(col)
+        # If it's a list with one entry, use that
+        if isinstance(xargs, list) and len(xargs) == 1:
+            # This is the usual case
+            xcol = xargs[0]
+        # Get explicit option
+        xcol = kw.get("xcol", xcol)
+        # Check for component-wise options
+        xcols = kw.get("CompXCol", {})
+        # Check for this *comp*
+        xcol = xcols.get(comp, xcol)
+        # Output
+        return xcol
+
     # Output column names for integral fractions
     def _getcols_fmfrac_comp(self, cols, comp=None, **kw):
         r"""Create :class:`dict` of FM adjustment fractions
@@ -3642,7 +3722,7 @@ class DBLL(dbfm.DBFM):
             * 2020-06-16 ``@ddalle``: First version
         """
         # Line load column names
-        fmcols = self._getcols_fm_comp(cols, comp=comp, **kw)
+        fmcols = self._getcols_ll3x_fmcomp(cols, comp=comp, **kw)
         # Get column names
         colCA = "%s.fraction" % fmcols["CA"]
         colCY = "%s.fraction" % fmcols["CY"]
