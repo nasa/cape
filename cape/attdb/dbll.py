@@ -1361,6 +1361,37 @@ class DBLL(dbfm.DBFM):
         comps = self._check_ll3x_comps(comps)
         # Form options
         opts = _LL3XOpts(**kw)
+       # --- Retrieval ---
+        # Initialize output if already present
+        lla = {}
+        # Loop through components
+        for comp in comps:
+            # Get names of adjusted line load columns
+            llacols = self._getcols_lla_comp(None, comp)
+            # Unpack
+            colCA = llacols["CA"]
+            colCY = llacols["CY"]
+            colCN = llacols["CN"]
+            # Check for primary loads
+            if colCA not in self:
+                # Not present
+                break
+            elif colCY not in self:
+                # Not present
+                break
+            elif colCN not in self:
+                # Not present
+                break
+            # Otherwise get those loads
+            lla[comp] = {
+                "CA": self[colCA],
+                "CY": self[colCY],
+                "CN": self[colCN],
+            }
+        else:
+            # No ``break`` encountered
+            return lla
+       # --- Suboptions ---
         # Sections
         kw_int = opts.section_options("integrals_make")
         kw_frc = opts.section_options("fractions_make")
@@ -1374,12 +1405,12 @@ class DBLL(dbfm.DBFM):
         # Evaluate target database
         dfm = self.make_target_deltafm(db2, **kw_trg)
         # Unpack differences
-        dCA = dfm["CA"]
-        dCY = dfm["CY"]
-        dCN = dfm["CN"]
-        dCLL = dfm["CLL"]
-        dCLM = dfm["CLM"]
-        dCLN = dfm["CLN"]
+        deltaCA = dfm["CA"]
+        deltaCY = dfm["CY"]
+        deltaCN = dfm["CN"]
+        deltaCLL = dfm["CLL"]
+        deltaCLM = dfm["CLM"]
+        deltaCLN = dfm["CLN"]
        # --- Basis ---
         # Get adjustment basis
         basis = self.make_ll3x_basis(comps, scol, **kw_bas)
@@ -1395,11 +1426,13 @@ class DBLL(dbfm.DBFM):
         I = self.prep_mask(mask, col=col)
         # Slice values
         s = w.get("s")
-       # --- FM Breakout ---
+       # --- Adjustment ---
         # Initialize
         dfmcomp = {}
         # Loop through components
         for comp in comps:
+            # Get names for LL cols
+            llcols = self._getcols_ll_comp(comp)
             # Get weights
             wcomp = w[comp]
             # Expand
@@ -1424,14 +1457,16 @@ class DBLL(dbfm.DBFM):
                 wmm = np.interp(vs, s, wcomp["wCLM.CLM"])
                 wnn = np.interp(vs, s, wcomp["wCLN.CLN"])
             # Apply the weights
-            dfmcomp[comp] = {
-                "CA": wAA*dCA
-                "CY": wYY*dCY + wYLL*dCLL,
-                "CN": wNN*dCN + wNLL*dCLL,
-                "CLM": wmm*dCLM,
-                "CLN": wnn*dCLN,
-            }
-       # --- Adjustment ---
+            dfCAk = wAA*deltaCA
+            dfCYk = wYY*deltaCY + wYLL*deltaCLL
+            dfCNk = wNN*deltaCN + wNLL*deltaCLL
+            dfCLMk = wmm*deltaCLM
+            dfCLNk = wnn*deltaCLN
+            # Get existing load
+            dCA = self.get_values(llcols["CA"], mask)
+            dCY = self.get_values(llcols["CY"], mask)
+            dCN = self.get_values(llcols["CN"], mask)
+            
         
 
    # --- Adjustment Fraction ---
