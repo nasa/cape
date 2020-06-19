@@ -74,6 +74,7 @@ class _LL3XOpts(dbfm._FMEvalOpts):
         "FMCols",
         "LLAdjustedCols"
         "LLCols",
+        "SliceColSave",
         "fm",
         "mask",
         "method",
@@ -89,9 +90,11 @@ class _LL3XOpts(dbfm._FMEvalOpts):
 
     # Alternate names
     _optmap = {
+        "CompBasisCols": "CompLLBasisCols",
         "Method": "method",
         "NPOD": "nPOD",
         "acols": "CompLLAdjustedCols",
+        "bcols": "CompLLBasisCols",
         "fmcols": "CompFMCols",
         "icols": "FMCols",
         "llcols": "CompLLCols",
@@ -106,6 +109,7 @@ class _LL3XOpts(dbfm._FMEvalOpts):
             "CompY",
             "CompZ",
             "Lref",
+            "SliceColSave",
             "TargetCols",
             "method",
             "xMRP",
@@ -125,7 +129,27 @@ class _LL3XOpts(dbfm._FMEvalOpts):
             "yMRP",
             "zMRP"
         },
+        "basis": {
+            "SliceColSave",
+            "mask",
+            "method",
+            "nPOD",
+            "xcol"
+        },
+        "basis_": {
+            "method",
+            "nPOD",
+            "xcol"
+        },
+        "basis_make": {
+            "CompLLBasisCols",
+            "mask",
+            "method",
+            "nPOD",
+            "xcol"
+        },
         "fractions": {
+            "SliceColSave",
             "CompFMCols",
             "CompLLCols",
             "CompY",
@@ -155,6 +179,7 @@ class _LL3XOpts(dbfm._FMEvalOpts):
             "CompY",
             "CompZ",
             "Lref",
+            "SliceColSave",
             "method",
             "xMRP",
             "yMRP",
@@ -205,6 +230,7 @@ class _LL3XOpts(dbfm._FMEvalOpts):
         "CompZ": dict,
         "FMCols": dict,
         "LLCols": dict,
+        "SliceColSave": typeutils.strlike,
         "method": typeutils.strlike,
         "nPOD": int,
         "xcol": typeutils.strlike,
@@ -1352,18 +1378,18 @@ class DBLL(dbfm.DBFM):
         # Sections
         kw_int = opts.section_options("integrals_make")
         kw_frc = opts.section_options("fractions_make")
-        kw_trg = opts.section_options("target_make")
+        kw_trg = opts.section_options("fmdelta_make")
+        kw_bas = opts.section_options("basis_make")
        # --- Integrals FM ---
         # Calculate integral forces
         fm = self.make_ll3x_integrals(comps, **kw_int)
         # Calculate adjustment fractions
-        f = self.make_ll3x_fractions(comps, scol, **kw_frc)
+        w = self.make_ll3x_aweights(comps, scol, **kw_frc)
         # Evaluate target database
-        fmtarg = self.make_target_fm(db2, **kw_trg)
+        dfm = self.make_target_deltafm(db2, **kw_trg)
        # --- Basis ---
-        # Loop through components
-        for comp in comps:
-            pass
+        # Get adjustment basis
+        basis = self.make_ll3x_basis(comps, scol, **kw_bas)
        # --- Conditions/Mask ---
         # Get reference column
         col = self._getcols_fm_comp(None, comp, **kw)["CA"]
@@ -1374,26 +1400,10 @@ class DBLL(dbfm.DBFM):
         mask = opts.get_option("mask")
         # Get conditions
         I = self.prep_mask(mask, col=col)
-       # --- Targets ---
-        # Get target columns for *fm*
-        fmcols = opts.get_option("TargetCols")
-        # Check possible types
-        if fmcols is None:
-            # Default
-            fmcols = {col: col for col in _coeffs}
-        elif isinstance(fmcols, list):
-            # Must be six cols
-            if len(fmcols) != 6:
-                raise IndexError("'TargetCols' list must have length 6")
-            # Unpack
-            fmcols = {col: fmcols[j] for j, col in enumerate(_coeffs)}
-       # --- Division of Deltas ---
-        # Get integral columns
-        compcols = opts.get_option("CompFMCols", {})
-        # Loop through columns
-       # --- Adjustment Basis ---
-        # Create basis
-        basis = self.create_ll3x_basis(cols, scol, **kw)
+        # Slice values
+        s = w.get("s")
+       # --- Adjustment ---
+        
 
    # --- Adjustment Fraction ---
     # Calculate each component's contribution to adjusted loads
@@ -1429,8 +1439,17 @@ class DBLL(dbfm.DBFM):
         comps = self._check_ll3x_comps(comps)
         # Transfer options
         opts = _LL3XOpts(_section="aweights_make", **kw)
+        # Name of slice field
+        ocol = opts.get_option("SliceColSave", "adjust.%s" % scol)
         # Initialize output if all cols present
         w = {}
+        # Check fir slice values
+        if ocol in self:
+            # Save it to *f*
+            w["s"] = self[ocol]
+            qmake = False
+        else:
+            qmake = True
         # Loop through the components
         for comp in comps:
             # Get column names
@@ -1471,7 +1490,8 @@ class DBLL(dbfm.DBFM):
                 }
         else:
             # If no ``break`` encountered, return output
-            return w
+            if not qmake:
+                return w
         # Generate the weights and return them
         return self.create_ll3x_aweights(comps, scol, **opts)
 
@@ -1503,6 +1523,7 @@ class DBLL(dbfm.DBFM):
                 overall *CLL* shift
         :Versions:
             * 2020-06-18 ``@ddalle``: First version
+            * 2020-06-19 ``@ddalle``: Weights same size of bkpts
         """
         # Check and process component list
         comps = self._check_ll3x_comps(comps)
@@ -1512,6 +1533,15 @@ class DBLL(dbfm.DBFM):
         kwf = opts.section_options("aweights")
         # Calculate fractions
         w = self.genr8_ll3x_aweights(comps, scol, **kwf)
+        # Get slice values
+        s = w.get("s")
+        # Save slice values
+        if s is not None:
+            # Name of slice field
+            ocol = opts.get_option("SliceColSave", "adjust.%s" % scol)
+            # Save values
+            self.save_col(ocol, s)
+            self.make_defn(ocol, s)
         # Loop through the components
         for comp in comps:
             # Get column names
@@ -1575,6 +1605,7 @@ class DBLL(dbfm.DBFM):
                 overall *CLL* shift
         :Versions:
             * 2020-06-18 ``@ddalle``: First version
+            * 2020-06-19 ``@ddalle``: Weights same size of bkpts
         """
        # --- Checks ---
         # Check and process component list
@@ -1629,25 +1660,29 @@ class DBLL(dbfm.DBFM):
             masks = [self.prep_mask(mask, col=col)]
             # No slice values
             s = None
+            # Single mask
+            nmask = 1
         else:
             # Get unique values
-            s = np.unique(self.get_values(scol, mask))
+            s = self.genr8_bkpts(scol, nmin=5, tol=1e-8, mask=mask)
             # Divide those values into slices
             masks, _ = self.find([scol], s, mapped=True)
+            # Number of slice values
+            nmask = s.size
        # --- Weights ---
         # Initialize weights
-        w = {}
+        w = {"s": s}
         # Loop through components to initialize
         for comp in comps:
             # Init all needed weights
             w[comp] = {
-                "wCA.CA": np.zeros(nv),
-                "wCY.CY": np.zeros(nv),
-                "wCN.CN": np.zeros(nv),
-                "wCY.CLL": np.zeros(nv),
-                "wCN.CLL": np.zeros(nv),
-                "wCLM.CLM": np.zeros(nv),
-                "wCLN.CLN": np.zeros(nv),
+                "wCA.CA": np.zeros(nmask),
+                "wCY.CY": np.zeros(nmask),
+                "wCN.CN": np.zeros(nmask),
+                "wCY.CLL": np.zeros(nmask),
+                "wCN.CLL": np.zeros(nmask),
+                "wCLM.CLM": np.zeros(nmask),
+                "wCLN.CLN": np.zeros(nmask),
             }
         # Loop through coefficients
         for coeff in _coeffs:
@@ -1666,7 +1701,7 @@ class DBLL(dbfm.DBFM):
                 # Save it
                 Fcomp[comp] = F
             # Loop through masks
-            for maskj in masks:
+            for j, maskj in enumerate(masks):
                 # Initialize weights with ideal fractions
                 fj = np.zeros(ncomp)
                 # Loop through components
@@ -1680,7 +1715,7 @@ class DBLL(dbfm.DBFM):
                     # Weight name
                     wcol = "w%s.%s" % (coeff, coeff)
                     # Save it
-                    w[comp][wcol][maskj] = fj[k]
+                    w[comp][wcol][j] = fj[k]
                 # Handle trivial cases first
                 if not (qdy or qdz):
                     # Now moments shifted by forces
@@ -1714,7 +1749,7 @@ class DBLL(dbfm.DBFM):
                     # Save the shifted weights
                     for k, comp in enumerate(comps):
                         # Weight name
-                        w[comp]["wCA.CA"][maskj] = wj[k]
+                        w[comp]["wCA.CA"][j] = wj[k]
                 elif coeff == "CY":
                     # Calculate unintentional impact to *CLL*
                     d1 = np.dot(Z, fj)
@@ -1730,8 +1765,8 @@ class DBLL(dbfm.DBFM):
                     wj = fj + x
                     # Save the shifted weights
                     for k, comp in enumerate(comps):
-                        # Weight name
-                        w[comp]["wCY.CY"][maskj] = wj[k]
+                        # Weight name       
+                        w[comp]["wCY.CY"][j] = wj[k]
                 elif coeff == "CN":
                     # Calculate unintentional impact to *CLL*
                     d1 = -np.dot(Y, fj)
@@ -1748,7 +1783,7 @@ class DBLL(dbfm.DBFM):
                     # Save the shifted weights
                     for k, comp in enumerate(comps):
                         # Weight name
-                        w[comp]["wCN.CN"][maskj] = wj[k]
+                        w[comp]["wCN.CN"][j] = wj[k]
                 elif coeff == "CLL":
                     # Calculate total offset radii
                     R2 = Y*Y + Z*Z
@@ -1778,8 +1813,8 @@ class DBLL(dbfm.DBFM):
                     # Save the shifted weights
                     for k, comp in enumerate(comps):
                         # Weight name
-                        w[comp]["wCY.CLL"][maskj] = wY[k]
-                        w[comp]["wCN.CLL"][maskj] = wN[k]
+                        w[comp]["wCY.CLL"][j] = wY[k]
+                        w[comp]["wCN.CLL"][j] = wN[k]
                 elif coeff in ["CLM", "CLN"]:
                     # Already handled by desired fraction
                     pass
@@ -1812,6 +1847,7 @@ class DBLL(dbfm.DBFM):
                 Fraction for each *comp* and each *coeff*
         :Versions:
             * 2020-06-16 ``@ddalle``: First version
+            * 2020-06-19 ``@ddalle``: Weights same size of bkpts
         """
         # Check the component list
         comps = self._check_ll3x_comps(comps)
@@ -1819,10 +1855,17 @@ class DBLL(dbfm.DBFM):
         opts = _LL3XOpts(_section="fractions_make", **kw)
         # Options to integrator
         kw_frac = opts.section_options("fractions")
+        # Name of slice field
+        ocol = opts.get_option("SliceColSave", "adjust.%s" % scol)
         # Initialize output if all cols present
         f = {}
-        # Flag for all cols present
-        qmake = True
+        # Check fir slice values
+        if ocol in self:
+            # Save it to *f*
+            f["s"] = self[ocol]
+            qmake = False
+        else:
+            qmake = True
         # Loop through the components
         for comp in comps:
             # Get column names
@@ -1859,38 +1902,10 @@ class DBLL(dbfm.DBFM):
                 }
         else:
             # If no ``break`` encountered, return output
-            return f
-        # Generate the integrals
-        f = self.genr8_ll3x_fractions(comps, scol, **kw_frac)
-        # Save data by looping through comps
-        for comp in comps:
-            # Select the one column
-            fcomp = f[comp]
-            # Get column names
-            fcols = self._getcols_fmfrac_comp(None, comp=comp, **opts)
-            # Unpack
-            colCA = fcols["CA"]
-            colCY = fcols["CY"]
-            colCN = fcols["CN"]
-            colCl = fcols["CLL"]
-            colCm = fcols["CLM"]
-            colCn = fcols["CLN"]
-            # Save the integrated columns
-            self.save_col(colCA, fcomp["CA"])
-            self.save_col(colCY, fcomp["CY"])
-            self.save_col(colCN, fcomp["CN"])
-            self.save_col(colCl, fcomp["CLL"])
-            self.save_col(colCm, fcomp["CLM"])
-            self.save_col(colCn, fcomp["CLN"])
-            # Make definitions
-            self.make_defn(colCA, fcomp["CA"])
-            self.make_defn(colCY, fcomp["CY"])
-            self.make_defn(colCN, fcomp["CN"])
-            self.make_defn(colCl, fcomp["CLL"])
-            self.make_defn(colCm, fcomp["CLM"])
-            self.make_defn(colCn, fcomp["CLN"])
-        # Output
-        return f
+            if not qmake:
+                return f
+        # Generate the fractions
+        return self.create_ll3x_fractions(comps, scol, **kw_frac)
 
     # Calculate each component's contribution to adjusted loads
     def create_ll3x_fractions(self, comps, scol=None, **kw):
@@ -1917,6 +1932,7 @@ class DBLL(dbfm.DBFM):
                 Fraction for each *comp* and each *coeff*
         :Versions:
             * 2020-06-16 ``@ddalle``: First version
+            * 2020-06-19 ``@ddalle``: Weights same size of bkpts
         """
         # Check and process component list
         comps = self._check_ll3x_comps(comps)
@@ -1926,6 +1942,15 @@ class DBLL(dbfm.DBFM):
         kwf = opts.section_options("fractions")
         # Calculate fractions
         f = self.genr8_ll3x_fractions(comps, scol, **kwf)
+        # Get slice values
+        s = f.get("s")
+        # Save slice values
+        if s is not None:
+            # Name of slice field
+            col = opts.get_option("SliceColSave", "adjust.%s" % scol)
+            # Save values
+            self.save_col(col, s)
+            self.make_defn(col, s)
         # Loop through the components
         for comp in comps:
             # Get column names
@@ -1980,8 +2005,14 @@ class DBLL(dbfm.DBFM):
         :Outputs:
             *f*: :class:`dict`\ [:class:`dict`\ [:class:`np.ndarray`]]
                 Fraction for each *comp* and each *coeff*
+            *f[comp][coeff]*: :class:`float` | :class:`np.ndarray`
+                Average contribution of *comp* to *coeff* for each value
+                of *scol*
+            *f["s"]*: ``None`` | :class:`np.ndarray`
+                Unique values of *scol*
         :Versions:
             * 2020-06-12 ``@ddalle``: First version
+            * 2020-06-19 ``@ddalle``: Weights same size of bkpts
         """
        # --- Checks ---
         # Check and process component list
@@ -2016,14 +2047,20 @@ class DBLL(dbfm.DBFM):
             masks = [self.prep_mask(mask, col=col)]
             # No slice values
             s = None
+            # One mask
+            nmask = 1
         else:
             # Get unique values
-            s = np.unique(self.get_values(scol, mask))
+            s = self.genr8_bkpts(scol, nmin=5, tol=1e-8, mask=mask)
             # Divide those values into slices
             masks, _ = self.find([scol], s, mapped=True)
+            # Number of masks
+            nmask = s.size
        # --- Fractions ---
         # Initialize fractions
         f = {comp: {} for comp in comps}
+        # Save the slice values
+        f["s"] = s
         # Loop through coefficients
         for coeff in _coeffs:
             # Initialize total
@@ -2047,13 +2084,13 @@ class DBLL(dbfm.DBFM):
                 # Column name
                 col = fmcols[comp][coeff]
                 # Initialize output
-                fcc = np.zeros_like(self[col])
+                fcc = np.zeros(nmask)
                 # Slices
-                for maskj in masks:
+                for j, maskj in enumerate(masks):
                     # Get mean
                     fj = np.mean(fcomp[maskj])
                     # Save it
-                    fcc[maskj] = fj
+                    fcc[j] = fj
                 # Save fraction
                 f[comp][coeff] = fcc
        # --- Output ---
@@ -2208,20 +2245,22 @@ class DBLL(dbfm.DBFM):
             colCl = fmcols["CLL"]
             colCm = fmcols["CLM"]
             colCn = fmcols["CLN"]
+            # Component data
+            fmcomp = fm[comp]
             # Save the integrated columns
-            self.save_col(colCA, fm["CA"])
-            self.save_col(colCY, fm["CY"])
-            self.save_col(colCN, fm["CN"])
-            self.save_col(colCl, fm["CLL"])
-            self.save_col(colCm, fm["CLM"])
-            self.save_col(colCn, fm["CLN"])
+            self.save_col(colCA, fmcomp["CA"])
+            self.save_col(colCY, fmcomp["CY"])
+            self.save_col(colCN, fmcomp["CN"])
+            self.save_col(colCl, fmcomp["CLL"])
+            self.save_col(colCm, fmcomp["CLM"])
+            self.save_col(colCn, fmcomp["CLN"])
             # Make definitions
-            self.make_defn(colCA, fm["CA"])
-            self.make_defn(colCY, fm["CY"])
-            self.make_defn(colCN, fm["CN"])
-            self.make_defn(colCl, fm["CLL"])
-            self.make_defn(colCm, fm["CLM"])
-            self.make_defn(colCn, fm["CLN"])
+            self.make_defn(colCA, fmcomp["CA"])
+            self.make_defn(colCY, fmcomp["CY"])
+            self.make_defn(colCN, fmcomp["CN"])
+            self.make_defn(colCl, fmcomp["CLL"])
+            self.make_defn(colCm, fmcomp["CLM"])
+            self.make_defn(colCn, fmcomp["CLN"])
         # Output
         return fm
 
@@ -2566,6 +2605,658 @@ class DBLL(dbfm.DBFM):
             "CLN": CLN,
         }
 
+   # --- Basis ---
+    # Create basis for line load of one component by slice
+    def make_ll3x_basis(self, comps, scol=None, **kw):
+        r"""Get [and calculate] SVD-based basis for LL3X adjustments
+
+        This is a highly customized function (hence the somewhat
+        obscure name) that adjusts three line load force cols that
+        are a function of *x*.  It adjusts for five scenarios:
+
+            * Adjust the *dCA* load such that integrated *CA* is
+              increased by ``1.0``
+            * Adjust *dCY* such that *CY* increases ``1.0`` and *CLN*
+              is unchanged
+            * Adjust *dCY* such that *CY* is unchanged and *CLN*
+              increases ``1.0``
+            * Adjust *dCN* such that *CN* increases ``1.0`` and *CLM*
+              is unchanged
+            * Adjust *dCN* such that *CN* is unchanged and *CLM*
+              increases ``1.0``
+
+        :Call:
+            >>> basis = db.make_ll3x_basis(comps, scol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3
+                * (*col1*, *col2*, *col3*)
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                line loads
+            *scol*: {``None``} | :class:`str`
+                Name of slice col; calculate basis for each value in
+                *db.bkpts[scol]*
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+            *CompLLCols*: :class:`dict`\ [:class:`dict`]
+                Line load column names to use for each *comp*
+            *CompLLBasisCols*: :class:`dict`\ [:class:`dict`]
+                Names to use when saving adjustment bases
+        :Outputs:
+            *basis*: :class:`dict`
+                Basis adjustment loads for five scenarios
+            *basis["s"]*: :class:`np.ndarray` | ``None``
+                Unique values of *scol*
+            *basis[comp]["dCA.CA"]*: :class:`np.ndarray`
+                Delta *dCA* load to adjust *CA* by ``1.0``
+            *basis[comp]["dCY.CY"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CY* by ``1.0``
+            *basis[comp]["dCY.CLN"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CLN* by ``1.0``
+            *basis[comp]["dCN.CN"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CN* by ``1.0``
+            *basis[comp]["dCN.CLM"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CLM* by ``1.0``
+        :Versions:
+            * 2020-06-19 ``@ddalle``: Version 1.0
+        """
+        # Check the component list
+        comps = self._check_ll3x_comps(comps)
+        # Transfer options
+        opts = _LL3XOpts(_section="basis_make", **kw)
+        # Name of slice field
+        ocol = opts.get_option("SliceColSave", "adjust.%s" % scol)
+        # Initialize output if all cols present
+        basis = {}
+        # Check fir slice values
+        if ocol in self:
+            # Save it to *f*
+            basis["s"] = self[ocol]
+            # No reason to make
+            qmake = False
+        else:
+            # Need to make if *ocol* expected
+            qmake = scol is not None
+        # Loop through the components
+        for comp in comps:
+            # Don't bother if *qmake* already triggered
+            if qmake:
+                break
+            # Get column names
+            bcols = self._getcols_llb_comp(None, comp=comp, **opts)
+            # Unpack
+            colCAA = bcols["dCA.CA"]
+            colCYY = bcols["dCY.CY"]
+            colCNN = bcols["dCN.CN"]
+            colCNm = bcols["dCN.CLM"]
+            colCYn = bcols["dCY.CLN"]
+            # Check if all are present
+            if colCAA not in self:
+                break
+            elif colCYY not in self:
+                break
+            elif colCNN not in self:
+                break
+            elif colCNm not in self:
+                break
+            elif colCYn not in self:
+                break
+            else:
+                # Everything already present
+                basis[comp] = {
+                    "dCA.CA": self[colCAA],
+                    "dCY.CY": self[colCYY],
+                    "dCN.CN": self[colCNN],
+                    "dCY.CLN": self[colCYn],
+                    "dCN.CLM": self[colCNm],
+                }
+        else:
+            # If no ``break`` encountered, return output
+            return basis
+        # Generate the weights and return them
+        return self.create_ll3x_basis(comps, scol, **opts)
+
+    # Create basis for line load of one component by slice
+    def create_ll3x_basis(self, comps, scol=None, **kw):
+        r"""Calculate and save SVD-based basis for LL3X adjustments
+
+        This is a highly customized function (hence the somewhat
+        obscure name) that adjusts three line load force cols that
+        are a function of *x*.  It adjusts for five scenarios:
+
+            * Adjust the *dCA* load such that integrated *CA* is
+              increased by ``1.0``
+            * Adjust *dCY* such that *CY* increases ``1.0`` and *CLN*
+              is unchanged
+            * Adjust *dCY* such that *CY* is unchanged and *CLN*
+              increases ``1.0``
+            * Adjust *dCN* such that *CN* increases ``1.0`` and *CLM*
+              is unchanged
+            * Adjust *dCN* such that *CN* is unchanged and *CLM*
+              increases ``1.0``
+
+        :Call:
+            >>> basis = db.create_ll3x_basis(comps, scol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3
+                * (*col1*, *col2*, *col3*)
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                line loads
+            *scol*: {``None``} | :class:`str`
+                Name of slice col; calculate basis for each value in
+                *db.bkpts[scol]*
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+            *CompLLCols*: :class:`dict`\ [:class:`dict`]
+                Line load column names to use for each *comp*
+            *CompLLBasisCols*: :class:`dict`\ [:class:`dict`]
+                Names to use when saving adjustment bases
+        :Outputs:
+            *basis*: :class:`dict`
+                Basis adjustment loads for five scenarios
+            *basis["s"]*: :class:`np.ndarray` | ``None``
+                Unique values of *scol*
+            *basis[comp]["dCA.CA"]*: :class:`np.ndarray`
+                Delta *dCA* load to adjust *CA* by ``1.0``
+            *basis[comp]["dCY.CY"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CY* by ``1.0``
+            *basis[comp]["dCY.CLN"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CLN* by ``1.0``
+            *basis[comp]["dCN.CN"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CN* by ``1.0``
+            *basis[comp]["dCN.CLM"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CLM* by ``1.0``
+        :Versions:
+            * 2020-06-19 ``@ddalle``: Version 1.0
+        """
+        # Check the component list
+        comps = self._check_ll3x_comps(comps)
+        # Transfer options
+        opts = _LL3XOpts(_section="basis_make", **kw)
+        # Options to integrator
+        kw_b = opts.section_options("basis")
+        # Generate the bases
+        bases = self.genr8_ll3x_basis(comps, scol, **kw_b)
+        # Name of slice field
+        ocol = opts.get_option("SliceColSave", "adjust.%s" % scol)
+        # Save the slice column
+        if scol is not None:
+            # Save it
+            self.save_col(ocol, bases.get("s"))
+            # Save definition
+            self.make_defn(ocol, bases.get("s"))
+        # Loop through the components
+        for comp in comps:
+            # Get column names
+            bcols = self._getcols_llb_comp(None, comp=comp, **opts)
+            # Unpack
+            colCAA = bcols["dCA.CA"]
+            colCYY = bcols["dCY.CY"]
+            colCNN = bcols["dCN.CN"]
+            colCNm = bcols["dCN.CLM"]
+            colCYn = bcols["dCY.CLN"]
+            # Component data
+            basis = bases[comp]
+            # Save the basis cols
+            self.save_col(colCAA, basis["dCA.CA"])
+            self.save_col(colCYY, basis["dCY.CY"])
+            self.save_col(colCNN, basis["dCN.CN"])
+            self.save_col(colCNm, basis["dCN.CLM"])
+            self.save_col(colCYn, basis["dCY.CLN"])
+            # Make definitions
+            self.make_defn(colCAA, basis["dCA.CA"])
+            self.make_defn(colCYY, basis["dCY.CY"])
+            self.make_defn(colCNN, basis["dCN.CN"])
+            self.make_defn(colCNm, basis["dCN.CLM"])
+            self.make_defn(colCYn, basis["dCY.CLN"])
+        # Output
+        return bases
+
+    # Create basis for line load of one component by slice
+    def genr8_ll3x_basis(self, comps, scol=None, **kw):
+        r"""Calculate SVD-based basis for adjusting line loads
+
+        This is a highly customized function (hence the somewhat
+        obscure name) that adjusts three line load force cols that
+        are a function of *x*.  It adjusts for five scenarios:
+
+            * Adjust the *dCA* load such that integrated *CA* is
+              increased by ``1.0``
+            * Adjust *dCY* such that *CY* increases ``1.0`` and *CLN*
+              is unchanged
+            * Adjust *dCY* such that *CY* is unchanged and *CLN*
+              increases ``1.0``
+            * Adjust *dCN* such that *CN* increases ``1.0`` and *CLM*
+              is unchanged
+            * Adjust *dCN* such that *CN* is unchanged and *CLM*
+              increases ``1.0``
+
+        :Call:
+            >>> basis = db.genr8_ll3x_basis(comps, scol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3
+                * (*col1*, *col2*, *col3*)
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                line loads
+            *scol*: {``None``} | :class:`str`
+                Name of slice col; calculate basis for each value in
+                *db.bkpts[scol]*
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+            *CompLLCols*: :class:`dict`\ [:class:`dict`]
+                Line load column names to use for each *comp*
+        :Outputs:
+            *basis*: :class:`dict`
+                Basis adjustment loads for five scenarios
+            *basis["s"]*: :class:`np.ndarray` | ``None``
+                Unique values of *scol*
+            *basis[comp]["dCA.CA"]*: :class:`np.ndarray`
+                Delta *dCA* load to adjust *CA* by ``1.0``
+            *basis[comp]["dCY.CY"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CY* by ``1.0``
+            *basis[comp]["dCY.CLN"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CLN* by ``1.0``
+            *basis[comp]["dCN.CN"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CN* by ``1.0``
+            *basis[comp]["dCN.CLM"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CLM* by ``1.0``
+        :Versions:
+            * 2020-06-04 ``@ddalle``: Version 1.0
+            * 2020-06-19 ``@ddalle``: Version 2.0
+        """
+        # Check *comps*
+        comps = self._check_ll3x_comps(comps)
+        # Check options
+        opts = _LL3XOpts(_section="basis", **kw)
+        # Initialize output
+        basis = {}
+        # Get component cols
+        compcols = opts.get_option("CompLLCols", {})
+        # Coordinate shifts
+        compy = opts.get_option("CompY", {})
+        compz = opts.get_option("CompZ", {})
+        # Loop through components
+        for j, comp in enumerate(comps):
+            # Get columns
+            cols = compcols.get(comp)
+            # Ensure list
+            if (cols is not None) and not isinstance(cols, list):
+                raise TypeError("LL cols for comp '%s' is not a list" % comp)
+            # Get final component line load cols
+            ccols = self._getcols_ll_comp(cols, comp, **opts)
+            # Get the force line loads
+            cols = [ccols["CA"], ccols["CY"], ccols["CN"]]
+            # Generate basis loads
+            basis[comp] = self.genr8_ll3x_comp_basis(cols, scol, **opts)
+            # Save slice values
+            if (j == 0) and (scol is not None):
+                basis["s"] = basis[comp]["s"]
+        # Output
+        return basis
+
+    # Create basis for line load of one component by slice
+    def genr8_ll3x_comp_basis(self, cols, scol=None, **kw):
+        r"""Calculate SVD-based basis for adjusting line loads
+
+        This is a highly customized function (hence the somewhat
+        obscure name) that adjusts three line load force cols that
+        are a function of *x*.  It adjusts for five scenarios:
+
+            * Adjust the *dCA* load such that integrated *CA* is
+              increased by ``1.0``
+            * Adjust *dCY* such that *CY* increases ``1.0`` and *CLN*
+              is unchanged
+            * Adjust *dCY* such that *CY* is unchanged and *CLN*
+              increases ``1.0``
+            * Adjust *dCN* such that *CN* increases ``1.0`` and *CLM*
+              is unchanged
+            * Adjust *dCN* such that *CN* is unchanged and *CLM*
+              increases ``1.0``
+
+        :Call:
+            >>> basis = db.genr8_ll3x_comp_basis(cols, scol=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3
+                * (*col1*, *col2*, *col3*)
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                line loads
+            *scol*: {``None``} | :class:`str`
+                Name of slice col; calculate basis for each value in
+                *db.bkpts[scol]*
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *basis*: :class:`dict`
+                Basis adjustment loads for five scenarios
+            *basis["s"]*: :class:`np.ndarray` | ``None``
+                Unique values of *scol*
+            *basis["dCA.CA"]*: :class:`np.ndarray`
+                Delta *dCA* load to adjust *CA* by ``1.0``
+            *basis["dCY.CY"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CY* by ``1.0``
+            *basis["dCY.CLN"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CLN* by ``1.0``
+            *basis["dCN.CN"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CN* by ``1.0``
+            *basis["dCN.CLM"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CLM* by ``1.0``
+        :Versions:
+            * 2020-06-04 ``@ddalle``: Version 1.0
+            * 2020-06-19 ``@ddalle``: Version 2.0
+        """
+       # --- Options ---
+        # Check columns
+        self._check_ll3x_cols(cols)
+        # Convert options
+        opts = _LL3XOpts(_section="basis", **kw)
+        # Options for point genr8or
+        kw_ = opts.section_options("basis_")
+       # --- Special Case: No Slices ---
+        # Slice
+        if scol is None:
+            # Simply calculate basis on one area
+            basis = self._genr8_ll3x_basis(cols, **kw_)
+            # Unpack cols (func call above ensures this will work)
+            col1, col2, col3 = cols
+            # Unpack basis loads and make 2D
+            dCA_CA = np.ndarray([basis["dCA.CA"]])
+            dCY_CY = np.ndarray([basis["dCY.CY"]])
+            dCY_Cn = np.ndarray([basis["dCY.CLN"]])
+            dCN_CN = np.ndarray([basis["dCN.CN"]])
+            dCN_Cm = np.ndarray([basis["dCN.CLM"]])
+            # Output
+            return {
+                "s": None,
+                "dCA.CA": dCA_CA,
+                "dCY.CY": dCY_CY,
+                "dCY.CLN": dCY_Cn,
+                "dCN.CN": dCN_CN,
+                "dCN.CLM": dCN_Cm,
+            }
+       # --- Slices ---
+        # Get mask for entire portion of run matrix to consider
+        # (*mask* removed from *kw* because it's reused as kwarg below)
+        mask = opts.get_option("mask")
+        # Get indices
+        mask_index = self.prep_mask(mask, col=scol)
+        # Get slice values
+        X_scol = self.get_values(scol, mask)
+        # Cutoff for "equality" in slice col
+        tol = 1e-5 * np.max(np.abs(X_scol))
+        # Get slice values
+        x_scol = self.genr8_bkpts(scol, tol=tol, nmin=5, mask=mask)
+        # Number of slices
+        nslice = x_scol.size
+        # Mask of which slice values to keep
+        mask_scol = np.ones(nslice, dtype="bool")
+       # --- Basis Calculations ---
+        # Loop through slices
+        for j, xj in enumerate(x_scol):
+            # Get subset in this slice
+            maskx = np.where(np.abs(X_scol - xj) <= tol)[0]
+            # Combine masks
+            maskj = mask_index[maskx]
+            # Calculate basis
+            basisj = self._genr8_ll3x_basis(cols, mask=maskj, **kw)
+            # Initialize if first slice
+            if j == 0:
+                # Get number of cuts
+                ncut = basisj["dCA.CA"].size
+                # Get data type
+                dtype = basisj["dCA.CA"].dtype.name
+                # Initialize bases
+                dCA_CA = np.zeros((ncut, nslice), dtype=dtype)
+                dCY_CY = np.zeros((ncut, nslice), dtype=dtype)
+                dCY_Cn = np.zeros((ncut, nslice), dtype=dtype)
+                dCN_CN = np.zeros((ncut, nslice), dtype=dtype)
+                dCN_Cm = np.zeros((ncut, nslice), dtype=dtype)
+            # Save entries
+            dCA_CA[:,j] = basisj["dCA.CA"]
+            dCY_CY[:,j] = basisj["dCY.CY"]
+            dCY_Cn[:,j] = basisj["dCY.CLN"]
+            dCN_CN[:,j] = basisj["dCN.CN"]
+            dCN_Cm[:,j] = basisj["dCN.CLM"]
+       # --- Cleanup ---
+        # Output
+        return {
+            "s": x_scol,
+            "dCA.CA": dCA_CA,
+            "dCY.CY": dCY_CY,
+            "dCY.CLN": dCY_Cn,
+            "dCN.CN": dCN_CN,
+            "dCN.CLM": dCN_Cm,
+        }
+
+    # Create basis for line load of one component
+    def _genr8_ll3x_basis(self, cols, nPOD=10, mask=None, **kw):
+        r"""Calculate SVD-based basis for adjusting line loads
+
+        This is a highly customized function (hence the somewhat
+        obscure name) that adjusts three line load force cols that
+        are a function of *x*.  It adjusts for five scenarios:
+
+            * Adjust the *dCA* load such that integrated *CA* is
+              increased by ``1.0``
+            * Adjust *dCY* such that *CY* increases ``1.0`` and *CLN*
+              is unchanged
+            * Adjust *dCY* such that *CY* is unchanged and *CLN*
+              increases ``1.0``
+            * Adjust *dCN* such that *CN* increases ``1.0`` and *CLM*
+              is unchanged
+            * Adjust *dCN* such that *CN* is unchanged and *CLM*
+              increases ``1.0``
+
+        :Call:
+            >>> basis = db._genr8_ll3x_basis(cols, nPOD=10, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                line loads
+            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
+                Number of POD/SVD modes to use during optimization
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *basis*: :class:`dict`
+                Basis adjustment loads for five scenarios
+            *basis["dCA.CA"]*: :class:`np.ndarray`
+                Delta *dCA* load to adjust *CA* by ``1.0``
+            *basis["dCY.CY"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CY* by ``1.0``
+            *basis["dCY.CLN"]*: :class:`np.ndarray`
+                Delta *dCY* load to adjust *CLN* by ``1.0``
+            *basis["dCN.CN"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CN* by ``1.0``
+            *basis["dCN.CLM"]*: :class:`np.ndarray`
+                Delta *dCN* load to adjust *CLM* by ``1.0``
+        :Versions:
+            * 2020-06-04 ``@ddalle``: Version 1.0
+        """
+        # Check types
+        if not isinstance(cols, (list, tuple)):
+            # Wrong type
+            raise TypeError("Adjusted col list must be list")
+        elif len(cols) != 3:
+            # Wrong size
+            raise ValueError(
+                "Adjusted col list has len=%i; must be 3" % len(cols))
+        # Check membership of cols
+        for j, col in enumerate(cols):
+            # Check type
+            if not typeutils.isstr(col):
+                raise TypeError("Adjust col %i is not a 'str'" % j)
+            elif col not in self:
+                raise KeyError("Adjust col '%s' not in database" % col)
+        # Other options
+        method = kw.get("method", "trapz")
+        # Get *xcol*
+        xcol = kw.get("xcol")
+        # Default *xcol*
+        if (xcol is None):
+            # Try to get the output *xarg*
+            xargs = self.get_output_xargs(col)
+            # Check if list
+            if isinstance(xargs, (list, tuple)) and len(xargs) > 0:
+                # Default
+                xcol = xargs[0]
+        # Confirm *xcol*
+        if not typeutils.isstr(xcol):
+            raise TypeError("Did not find a column for *x*-coords")
+        # Get values
+        x = self.get_all_values(xcol)
+        # Check if present
+        if x is None:
+            # No coordinates found
+            raise KeyError("No x-coords from col '%s'" % xcol)
+        elif not isinstance(x, np.ndarray):
+            # Bad type
+            raise TypeError("X-coord col '%s' is not an array" % xcol)
+        # Get dimension of *x*-coords
+        ndimx = x.ndim
+        # Confirm
+        if ndimx == 0:
+            # Cannot use scalar *x* here
+            raise IndexError("Cannot use scalar *x* coords")
+        elif ndimx == 2:
+            # Apply *mask*
+            x = self.get_values(xcol, mask)
+        elif ndimx > 2:
+            # Cannot use ND *x*
+            raise IndexError("Cannot use %i-D *x* coords" % ndimx)
+        # Unpack
+        col1, col2, col3 = cols
+        # Initialize output
+        basis = {}
+        # Get *CA* loads
+        dCA = self.get_values(col1, mask)
+        dCY = self.get_values(col2, mask)
+        dCN = self.get_values(col3, mask)
+        # Dimensions
+        nx, ny = dCA.shape
+        # Calculate SVD
+        UCA, sCA, VCA = svd(dCA)
+        UCY, sCY, VCY = svd(dCY)
+        UCN, sCN, VCN = svd(dCN)
+        # Downselect
+        if nPOD is not None:
+            # Select first *nPOD* mode shapes
+            UCA = UCA[:, :nPOD]
+            UCY = UCY[:, :nPOD]
+            UCN = UCN[:, :nPOD]
+            # Select the first *nPOD* singular values
+            sCA = sCA[:nPOD]
+            sCY = sCY[:nPOD]
+            sCN = sCN[:nPOD]
+        # Number of modes
+        nmode = sCA.size
+        # Calculate *L2* norm of each basis vector
+        L2CA = np.sqrt(np.sum(UCA**2, axis=0))
+        L2CY = np.sqrt(np.sum(UCY**2, axis=0))
+        L2CN = np.sqrt(np.sum(UCN**2, axis=0))
+        # Normalize basis functions
+        psiCA = UCA / np.tile(L2CA, (nx, 1))
+        psiCY = UCY / np.tile(L2CY, (nx, 1))
+        psiCN = UCN / np.tile(L2CN, (nx, 1))
+        # Max loads on any cut
+        mxCA = np.max(np.abs(psiCA), axis=0)
+        mxCY = np.max(np.abs(psiCY), axis=0)
+        mxCN = np.max(np.abs(psiCN), axis=0)
+        # Weights
+        wCA = mxCA / sCA
+        wCY = mxCY / sCY
+        wCN = mxCN / sCN
+        # Moments from normalized mode shapes
+        psiCLM = self._genr8_ll_moment(psiCN, 2, 1, x=x)
+        psiCLN = self._genr8_ll_moment(psiCY, 1, 2, x=x)
+        # Integrate normalized mode shapes
+        CAF = self._genr8_integral(psiCA, x, method)
+        CYF = self._genr8_integral(psiCY, x, method)
+        CNF = self._genr8_integral(psiCN, x, method)
+        CLMF = self._genr8_integral(psiCLM, x, method)
+        CLNF = self._genr8_integral(psiCLN, x, method)
+        # Form matrix for linear system of constraints
+        dCA = np.array([CAF])
+        dCY = np.array([CYF, CLNF])
+        dCN = np.array([CNF, CLMF])
+        # First two equations: equality constraints on *CN* and *CLM*
+        A1CA = np.hstack((dCA, np.zeros((1, 1))))
+        A1CY = np.hstack((dCY, np.zeros((2, 2))))
+        A1CN = np.hstack((dCN, np.zeros((2, 2))))
+        # Last *n* equations: derivatives of the Lagrangian
+        A2CA = np.hstack((np.diag(2*wCA), -dCA.T))
+        A2CY = np.hstack((np.diag(2*wCY), -dCY.T))
+        A2CN = np.hstack((np.diag(2*wCN), -dCN.T))
+        # Assemble matrices
+        ACA = np.vstack((A1CA, A2CA))
+        ACY = np.vstack((A1CY, A2CY))
+        ACN = np.vstack((A1CN, A2CN))
+        # Right-hand sides of equations
+        bCA = np.hstack(([1.0], np.zeros(nmode)))
+        bCF = np.hstack(([1.0, 0.0], np.zeros(nmode)))
+        bCM = np.hstack(([1.0, 0.0], np.zeros(nmode)))
+        # Solve linear systems
+        xCA = np.linalg.solve(ACA, bCA)
+        xCY = np.linalg.solve(ACY, bCF)
+        xCN = np.linalg.solve(ACN, bCF)
+        xCm = np.linalg.solve(ACN, bCM)
+        xCn = np.linalg.solve(ACY, bCM)
+        # Calculate linear combination of SVD modes
+        phiCA = np.dot(UCA, xCA[:nmode])
+        phiCY = np.dot(UCY, xCY[:nmode])
+        phiCN = np.dot(UCN, xCN[:nmode])
+        phiCm = np.dot(UCN, xCm[:nmode])
+        phiCn = np.dot(UCY, xCn[:nmode])
+        # Basis
+        return {
+            "dCA.CA": phiCA,
+            "dCY.CY": phiCY,
+            "dCN.CN": phiCN,
+            "dCN.CLM": phiCm,
+            "dCY.CLN": phiCn,
+        }
+
    # --- Checkers and Col Names ---
     # Check LL3X column list
     def _check_ll3x_cols(self, cols):
@@ -2679,8 +3370,8 @@ class DBLL(dbfm.DBFM):
         llcols = self._getcols_ll_comp(cols, comp=comp, **kw)
         # Get column names
         colCA = "%s.adjusted" % llcols["CA"]
-        colCY = "%s.adjusted" % llcols["CA"]
-        colCN = "%s.adjusted" % llcols["CA"]
+        colCY = "%s.adjusted" % llcols["CY"]
+        colCN = "%s.adjusted" % llcols["CN"]
         colCl = "%s.adjusted" % llcols["CLL"]
         colCm = "%s.adjusted" % llcols["CLM"]
         colCn = "%s.adjusted" % llcols["CLN"]
@@ -2712,6 +3403,65 @@ class DBLL(dbfm.DBFM):
             "CLL": colCl,
             "CLM": colCm,
             "CLN": colCn,
+        }
+
+    # Output column names for ll adjustment basis cols
+    def _getcols_llb_comp(self, cols, comp=None, **kw):
+        r"""Create :class:`dict` of line load adjustment basis names
+
+        :Call:
+            >>> llbcols = db._getcols_llb_comp(cols, comp, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3 | 6
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+                [, *CLL*, *CLM*, *CLN*] line loads
+            *LLBasisCols*: :class:`dict`\ [:class:`str`]
+                Columns to use for adjusted line load
+            *CompLLBasisCols*: :class:`dict`\ [:class:`dict`]
+                *LLBasisCols* for one or more components
+        :Outputs:
+            *llbcols*: :class:`dict`\ [:class:`str`]
+                Columns to use for LL adjustment basis
+        :Versions:
+            * 2020-06-19 ``@ddalle``: First version
+        """
+        # Line load column names
+        llcols = self._getcols_ll_comp(cols, comp=comp, **kw)
+        # Get column names
+        colCAA = "%s.dCA.CA" % llcols["CA"]
+        colCYY = "%s.dCY.CY" % llcols["CY"]
+        colCNN = "%s.dCN.CN" % llcols["CN"]
+        colCNm = "%s.dCN.CLM" % llcols["CN"]
+        colCYn = "%s.dCY.CLN" % llcols["CY"]
+        # Check for *comp*
+        if comp is not None:
+            # Get option
+            bcols = kw.get("CompLLBasisCols", {}).get(comp, {})
+            # Check for overrides
+            colCAA = bcols.get("dCA.CA", colCAA)
+            colCYY = bcols.get("dCY.CY", colCYY)
+            colCNN = bcols.get("dCN.CN", colCNN)
+            colCNm = bcols.get("dCN.CLM", colCNm)
+            colCYn = bcols.get("dCY.CLN", colCYn)
+        # Check for manual names for this *comp*
+        bcols = kw.get("LLBasisCols", {})
+        # Check for overrides
+        colCAA = bcols.get("dCA.CA", colCAA)
+        colCYY = bcols.get("dCY.CY", colCYY)
+        colCNN = bcols.get("dCN.CN", colCNN)
+        colCNm = bcols.get("dCN.CLM", colCNm)
+        colCYn = bcols.get("dCY.CLN", colCYn)
+        # Output
+        return {
+            "dCA.CA": colCAA,
+            "dCY.CY": colCYY,
+            "dCN.CN": colCNN,
+            "dCN.CLM": colCNm,
+            "dCY.CLN": colCYn,
         }
 
     # Output column names for ll cols
@@ -2983,417 +3733,6 @@ class DBLL(dbfm.DBFM):
             "wCN.CLL": colC2,
             "wCLM.CLM": colCm,
             "wCLN.CLN": colCn,
-        }
-
-   # --- Basis ---
-    # Create basis for line load of one component by slice
-    def create_ll3x_basis(self, cols, scol=None, **kw):
-        r"""Calculate SVD-based basis for adjusting line loads
-
-        This is a highly customized function (hence the somewhat
-        obscure name) that adjusts three line load force cols that
-        are a function of *x*.  It adjusts for five scenarios:
-
-            * Adjust the *dCA* load such that integrated *CA* is
-              increased by ``1.0``
-            * Adjust *dCY* such that *CY* increases ``1.0`` and *CLN*
-              is unchanged
-            * Adjust *dCY* such that *CY* is unchanged and *CLN*
-              increases ``1.0``
-            * Adjust *dCN* such that *CN* increases ``1.0`` and *CLM*
-              is unchanged
-            * Adjust *dCN* such that *CN* is unchanged and *CLM*
-              increases ``1.0``
-
-        :Call:
-            >>> basis = db.create_ll3x_basis(cols, scol=None, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with analysis tools
-            *cols*: :class:`list`\ [:class:`str`]
-                * *len*: 3
-                * (*col1*, *col2*, *col3*)
-
-                List/tuple of column names for *CA*, *CY*, and *CN*
-                line loads
-            *scol*: {``None``} | :class:`str`
-                Name of slice col; calculate basis for each value in
-                *db.bkpts[scol]*
-            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
-                Number of POD/SVD modes to use during optimization
-            *mask*: {``None``} | :class:`np.ndarray`
-                Mask or indices of which cases to include in POD
-                calculation
-            *method*: {``"trapz"``} | ``"left"`` | **callable**
-                Integration method used to integrate columns
-            *ocol*: {``None``} | :class:`str`
-                Name of col to save values of *scol*
-            *ocols*: {``None``} | :class:`list`\ [:class:`str`]
-                Manual names of basis *cols*, defaults are
-                ``col1 + ".deltaCA"``, ``col2 + ".deltaCY"``,
-                ``col2 + ".deltaCLN"``, ``col3 + ".deltaCN"``, and
-                ``col3 + ".deltaCLM"``
-        :Outputs:
-            *basis*: :class:`dict`
-                Basis adjustment loads for five scenarios
-            *basis["dCA_CA"]*: :class:`np.ndarray`
-                Delta *dCA* load to adjust *CA* by ``1.0``
-            *basis["dCY_CY"]*: :class:`np.ndarray`
-                Delta *dCY* load to adjust *CY* by ``1.0``
-            *basis["dCY_CLN"]*: :class:`np.ndarray`
-                Delta *dCY* load to adjust *CLN* by ``1.0``
-            *basis["dCN_CN"]*: :class:`np.ndarray`
-                Delta *dCN* load to adjust *CN* by ``1.0``
-            *basis["dCN_CLM"]*: :class:`np.ndarray`
-                Delta *dCN* load to adjust *CLM* by ``1.0``
-        :Versions:
-            * 2020-06-04 ``@ddalle``: Version 1.0
-        """
-       # --- Special Case: No Slices ---
-        # Slice
-        if scol is None:
-            # Simply calculate basis on one area
-            basis = self.genr8_ll3x_basis(cols, nPOD=nPOD, **kw)
-            # Unpack cols (func call above ensures this will work)
-            col1, col2, col3 = cols
-            # Unpack basis loads and make 2D
-            dCA_CA = np.ndarray([basis["dCA_CA"]])
-            dCY_CY = np.ndarray([basis["dCY_CY"]])
-            dCY_Cn = np.ndarray([basis["dCY_CLN"]])
-            dCN_CN = np.ndarray([basis["dCN_CN"]])
-            dCN_Cm = np.ndarray([basis["dCN_CLM"]])
-            # Output column names
-            colAA = col1 + ".deltaCA"
-            colYY = col2 + ".deltaCY"
-            colYn = col2 + ".deltaCLN"
-            colNN = col3 + ".deltaCN"
-            colNm = col3 + ".deltaCLM"
-            # Save columns
-            self.save_col(colAA, dCA_CA)
-            self.save_col(colYY, dCY_CY)
-            self.save_col(colYn, dCY_Cn)
-            self.save_col(colNN, dCN_CN)
-            self.save_col(colNm, dCN_Cm)
-            # Save definitions
-            self.make_defn(colAA, dCA_CA)
-            self.make_defn(colYY, dCY_CY)
-            self.make_defn(colYn, dCY_Cn)
-            self.make_defn(colNN, dCN_CN)
-            self.make_defn(colNm, dCN_Cm)
-            # Output
-            return {
-                "dCA_CA": dCA_CA,
-                "dCY_CY": dCY_CY,
-                "dCY_CLN": dCY_Cn,
-                "dCN_CN": dCN_CN,
-                "dCN_CLM": dCN_Cm,
-            }
-       # --- Slices ---
-        # Get mask for entire portion of run matrix to consider
-        # (*mask* removed from *kw* because it's reused as kwarg below)
-        mask = kw.pop("mask", None)
-        # Get indices
-        mask_index = self.prep_mask(mask, col=scol)
-        # Get slice values
-        X_scol = self.get_values(scol, mask)
-        # Get candidate slice coordinates
-        x_scol = self.bkpts.get(scol)
-        # Check if empty
-        if x_scol is None:
-            # Get all values
-            x_scol = np.unique(X_scol)
-        # Mask of which slice values to keep
-        mask_scol = np.ones(x_scol.size, dtype="bool")
-        # Cutoff for "equality" in slice col
-        tol = 1e-5 * np.max(np.abs(x_scol))
-        # Make sure all candidate values are in the candidate space
-        for j, xj in enumerate(x_scol):
-            # Count how many entries are in *X_scol*
-            nj = np.count_nonzero(np.abs(xj - X_scol) <= tol)
-            # Check if there are at least 5 entries
-            if nj < 5:
-                # Don't consider this slice; calculations will fail
-                mask_scol[j] = False
-        # Apply mask to candidate slice coordinates
-        x_scol = x_scol[mask_scol]
-        # Number of slices
-        nslice = x_scol.size
-       # --- Basis Calculations ---
-        # Loop through slices
-        for j, xj in enumerate(x_scol):
-            # Get subset in this slice
-            maskx = np.where(np.abs(X_scol - xj) <= tol)[0]
-            # Combine masks
-            maskj = mask_index[maskx]
-            # Calculate basis
-            basisj = self.genr8_ll3x_basis(cols, mask=maskj, **kw)
-            # Initialize if first slice
-            if j == 0:
-                # Get number of cuts
-                ncut = basisj["dCA_CA"].size
-                # Get data type
-                dtype = basisj["dCA_CA"].dtype.name
-                # Initialize bases
-                dCA_CA = np.zeros((ncut, nslice), dtype=dtype)
-                dCY_CY = np.zeros((ncut, nslice), dtype=dtype)
-                dCY_Cn = np.zeros((ncut, nslice), dtype=dtype)
-                dCN_CN = np.zeros((ncut, nslice), dtype=dtype)
-                dCN_Cm = np.zeros((ncut, nslice), dtype=dtype)
-            # Save entries
-            dCA_CA[:,j] = basisj["dCA_CA"]
-            dCY_CY[:,j] = basisj["dCY_CY"]
-            dCY_Cn[:,j] = basisj["dCY_CLN"]
-            dCN_CN[:,j] = basisj["dCN_CN"]
-            dCN_Cm[:,j] = basisj["dCN_CLM"]
-       # --- Cleanup ---
-        # Column names (ensured to work b/c of gnr8_ll3x_basis() call)
-        col1, col2, col3 = cols
-        # Check for manual names of output columns
-        ocols = kw.get("ocols")
-        # Ensure list
-        if not isinstance(ocols, (list, tuple)):
-            ocols = []
-        # Number of manual columns
-        n_ocol = len(ocols)
-        # Output column names
-        colAA = col1 + ".deltaCA"
-        colYY = col2 + ".deltaCY"
-        colYn = col2 + ".deltaCLN"
-        colNN = col3 + ".deltaCN"
-        colNm = col3 + ".deltaCLM"
-        # Check for overrides
-        if n_ocol > 0:
-            colAA = ocols[0]
-        if n_ocol > 1:
-            colYY = ocols[1]
-        if n_ocol > 2:
-            colYn = ocols[2]
-        if n_ocol > 3:
-            colNN = ocols[3]
-        if n_ocol > 4:
-            colNm = ocols[4]
-        # Save columns
-        self.save_col(colAA, dCA_CA)
-        self.save_col(colYY, dCY_CY)
-        self.save_col(colYn, dCY_Cn)
-        self.save_col(colNN, dCN_CN)
-        self.save_col(colNm, dCN_Cm)
-        # Save definitions
-        self.make_defn(colAA, dCA_CA)
-        self.make_defn(colYY, dCY_CY)
-        self.make_defn(colYn, dCY_Cn)
-        self.make_defn(colNN, dCN_CN)
-        self.make_defn(colNm, dCN_Cm)
-        # Check for output column
-        ocol = kw.get("ocol")
-        # Option to save it
-        if ocol is not None:
-            # Save the slice values
-            self.save_col(ocol, x_scol)
-            # Make a defintion
-            self.make_defn(ocol, x_scol)
-        # Output
-        return {
-            "dCA_CA": dCA_CA,
-            "dCY_CY": dCY_CY,
-            "dCY_CLN": dCY_Cn,
-            "dCN_CN": dCN_CN,
-            "dCN_CLM": dCN_Cm,
-        }
-
-    # Create basis for line load of one component
-    def genr8_ll3x_basis(self, cols, nPOD=10, mask=None, **kw):
-        r"""Calculate SVD-based basis for adjusting line loads
-
-        This is a highly customized function (hence the somewhat
-        obscure name) that adjusts three line load force cols that
-        are a function of *x*.  It adjusts for five scenarios:
-
-            * Adjust the *dCA* load such that integrated *CA* is
-              increased by ``1.0``
-            * Adjust *dCY* such that *CY* increases ``1.0`` and *CLN*
-              is unchanged
-            * Adjust *dCY* such that *CY* is unchanged and *CLN*
-              increases ``1.0``
-            * Adjust *dCN* such that *CN* increases ``1.0`` and *CLM*
-              is unchanged
-            * Adjust *dCN* such that *CN* is unchanged and *CLM*
-              increases ``1.0``
-
-        :Call:
-            >>> basis = db.genr8_ll3x_basis(cols, nPOD=10, **kw)
-        :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
-                Database with analysis tools
-            *cols*: :class:`list`\ [:class:`str`]
-                * *len*: 3
-
-                List/tuple of column names for *CA*, *CY*, and *CN*
-                line loads
-            *nPOD*: {``10``} | ``None`` | :class:`int` > 0
-                Number of POD/SVD modes to use during optimization
-            *mask*: {``None``} | :class:`np.ndarray`
-                Mask or indices of which cases to include in POD
-                calculation
-            *method*: {``"trapz"``} | ``"left"`` | **callable**
-                Integration method used to integrate columns
-        :Outputs:
-            *basis*: :class:`dict`
-                Basis adjustment loads for five scenarios
-            *basis["dCA_CA"]*: :class:`np.ndarray`
-                Delta *dCA* load to adjust *CA* by ``1.0``
-            *basis["dCY_CY"]*: :class:`np.ndarray`
-                Delta *dCY* load to adjust *CY* by ``1.0``
-            *basis["dCY_CLN"]*: :class:`np.ndarray`
-                Delta *dCY* load to adjust *CLN* by ``1.0``
-            *basis["dCN_CN"]*: :class:`np.ndarray`
-                Delta *dCN* load to adjust *CN* by ``1.0``
-            *basis["dCN_CLM"]*: :class:`np.ndarray`
-                Delta *dCN* load to adjust *CLM* by ``1.0``
-        :Versions:
-            * 2020-06-04 ``@ddalle``: Version 1.0
-        """
-        # Check types
-        if not isinstance(cols, (list, tuple)):
-            # Wrong type
-            raise TypeError("Adjusted col list must be list")
-        elif len(cols) != 3:
-            # Wrong size
-            raise ValueError(
-                "Adjusted col list has len=%i; must be 3" % len(cols))
-        # Check membership of cols
-        for j, col in enumerate(cols):
-            # Check type
-            if not typeutils.isstr(col):
-                raise TypeError("Adjust col %i is not a 'str'" % j)
-            elif col not in self:
-                raise KeyError("Adjust col '%s' not in database" % col)
-        # Other options
-        method = kw.get("method", "trapz")
-        # Get *xcol*
-        xcol = kw.get("xcol")
-        # Default *xcol*
-        if (xcol is None):
-            # Try to get the output *xarg*
-            xargs = self.get_output_xargs(col)
-            # Check if list
-            if isinstance(xargs, (list, tuple)) and len(xargs) > 0:
-                # Default
-                xcol = xargs[0]
-        # Confirm *xcol*
-        if not typeutils.isstr(xcol):
-            raise TypeError("Did not find a column for *x*-coords")
-        # Get values
-        x = self.get_all_values(xcol)
-        # Check if present
-        if x is None:
-            # No coordinates found
-            raise KeyError("No x-coords from col '%s'" % xcol)
-        elif not isinstance(x, np.ndarray):
-            # Bad type
-            raise TypeError("X-coord col '%s' is not an array" % xcol)
-        # Get dimension of *x*-coords
-        ndimx = x.ndim
-        # Confirm
-        if ndimx == 0:
-            # Cannot use scalar *x* here
-            raise IndexError("Cannot use scalar *x* coords")
-        elif ndimx == 2:
-            # Apply *mask*
-            x = self.get_values(xcol, mask)
-        elif ndimx > 2:
-            # Cannot use ND *x*
-            raise IndexError("Cannot use %i-D *x* coords" % ndimx)
-        # Unpack
-        col1, col2, col3 = cols
-        # Initialize output
-        basis = {}
-        # Get *CA* loads
-        dCA = self.get_values(col1, mask)
-        dCY = self.get_values(col2, mask)
-        dCN = self.get_values(col3, mask)
-        # Dimensions
-        nx, ny = dCA.shape
-        # Calculate SVD
-        UCA, sCA, VCA = svd(dCA)
-        UCY, sCY, VCY = svd(dCY)
-        UCN, sCN, VCN = svd(dCN)
-        # Downselect
-        if nPOD is not None:
-            # Select first *nPOD* mode shapes
-            UCA = UCA[:, :nPOD]
-            UCY = UCY[:, :nPOD]
-            UCN = UCN[:, :nPOD]
-            # Select the first *nPOD* singular values
-            sCA = sCA[:nPOD]
-            sCY = sCY[:nPOD]
-            sCN = sCN[:nPOD]
-        # Number of modes
-        nmode = sCA.size
-        # Calculate *L2* norm of each basis vector
-        L2CA = np.sqrt(np.sum(UCA**2, axis=0))
-        L2CY = np.sqrt(np.sum(UCY**2, axis=0))
-        L2CN = np.sqrt(np.sum(UCN**2, axis=0))
-        # Normalize basis functions
-        psiCA = UCA / np.tile(L2CA, (nx, 1))
-        psiCY = UCY / np.tile(L2CY, (nx, 1))
-        psiCN = UCN / np.tile(L2CN, (nx, 1))
-        # Max loads on any cut
-        mxCA = np.max(np.abs(psiCA), axis=0)
-        mxCY = np.max(np.abs(psiCY), axis=0)
-        mxCN = np.max(np.abs(psiCN), axis=0)
-        # Weights
-        wCA = mxCA / sCA
-        wCY = mxCY / sCY
-        wCN = mxCN / sCN
-        # Moments from normalized mode shapes
-        psiCLM = self._genr8_ll_moment(psiCN, 2, 1, x=x)
-        psiCLN = self._genr8_ll_moment(psiCY, 1, 2, x=x)
-        # Integrate normalized mode shapes
-        CAF = self._genr8_integral(psiCA, x, method)
-        CYF = self._genr8_integral(psiCY, x, method)
-        CNF = self._genr8_integral(psiCN, x, method)
-        CLMF = self._genr8_integral(psiCLM, x, method)
-        CLNF = self._genr8_integral(psiCLN, x, method)
-        # Form matrix for linear system of constraints
-        dCA = np.array([CAF])
-        dCY = np.array([CYF, CLNF])
-        dCN = np.array([CNF, CLMF])
-        # First two equations: equality constraints on *CN* and *CLM*
-        A1CA = np.hstack((dCA, np.zeros((1, 1))))
-        A1CY = np.hstack((dCY, np.zeros((2, 2))))
-        A1CN = np.hstack((dCN, np.zeros((2, 2))))
-        # Last *n* equations: derivatives of the Lagrangian
-        A2CA = np.hstack((np.diag(2*wCA), -dCA.T))
-        A2CY = np.hstack((np.diag(2*wCY), -dCY.T))
-        A2CN = np.hstack((np.diag(2*wCN), -dCN.T))
-        # Assemble matrices
-        ACA = np.vstack((A1CA, A2CA))
-        ACY = np.vstack((A1CY, A2CY))
-        ACN = np.vstack((A1CN, A2CN))
-        # Right-hand sides of equations
-        bCA = np.hstack(([1.0], np.zeros(nmode)))
-        bCF = np.hstack(([1.0, 0.0], np.zeros(nmode)))
-        bCM = np.hstack(([1.0, 0.0], np.zeros(nmode)))
-        # Solve linear systems
-        xCA = np.linalg.solve(ACA, bCA)
-        xCY = np.linalg.solve(ACY, bCF)
-        xCN = np.linalg.solve(ACN, bCF)
-        xCm = np.linalg.solve(ACN, bCM)
-        xCn = np.linalg.solve(ACY, bCM)
-        # Calculate linear combination of SVD modes
-        phiCA = np.dot(UCA, xCA[:nmode])
-        phiCY = np.dot(UCY, xCY[:nmode])
-        phiCN = np.dot(UCN, xCN[:nmode])
-        phiCm = np.dot(UCN, xCm[:nmode])
-        phiCn = np.dot(UCY, xCn[:nmode])
-        # Basis
-        return {
-            "dCA_CA": phiCA,
-            "dCY_CY": phiCY,
-            "dCN_CN": phiCN,
-            "dCN_CLM": phiCm,
-            "dCY_CLN": phiCn,
         }
         
   # >
