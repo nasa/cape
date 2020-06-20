@@ -1355,7 +1355,7 @@ class DBLL(dbfm.DBFM):
   # <
    # --- Adjustment ---
     # Calculate adjusted loads
-    def make_ll3x_adjust(self, comps, db2, scol=None, **kw):
+    def make_ll3x_adjustments(self, comps, db2, scol=None, **kw):
        # --- Options ---
         # Check and process component list
         comps = self._check_ll3x_comps(comps)
@@ -1435,37 +1435,68 @@ class DBLL(dbfm.DBFM):
             llcols = self._getcols_ll_comp(comp)
             # Get weights
             wcomp = w[comp]
-            # Expand
-            if scol is None:
-                # Scalarize
-                wAA = wcomp["wCA.CA"][0]
-                wYY = wcomp["wCY.CY"][0]
-                wNN = wcomp["wCN.CN"][0]
-                wYLL = wcomp["wCY.CLL"][0]
-                wNLL = wcomp["wCN.CLL"][0]
-                wmm = wcomp["wCLM.CLM"][0]
-                wnn = wcomp["wCLN.CLN"][0]
-            else:
-                # Get values of *scol* for all *mask* cases
-                vs = self.get_values(scol, mask)
-                # Interpolate
-                wAA = np.interp(vs, s, wcomp["wCA.CA"])
-                wYY = np.interp(vs, s, wcomp["wCY.CY"])
-                wNN = np.interp(vs, s, wcomp["wCN.CN"])
-                wYLL = np.interp(vs, s, wcomp["wCY.CLL"])
-                wNLL = np.interp(vs, s, wcomp["wCN.CLL"])
-                wmm = np.interp(vs, s, wcomp["wCLM.CLM"])
-                wnn = np.interp(vs, s, wcomp["wCLN.CLN"])
-            # Apply the weights
-            dfCAk = wAA*deltaCA
-            dfCYk = wYY*deltaCY + wYLL*deltaCLL
-            dfCNk = wNN*deltaCN + wNLL*deltaCLL
-            dfCLMk = wmm*deltaCLM
-            dfCLNk = wnn*deltaCLN
+            # Bases
+            bcomp = basis[comp]
             # Get existing load
             dCA = self.get_values(llcols["CA"], mask)
             dCY = self.get_values(llcols["CY"], mask)
             dCN = self.get_values(llcols["CN"], mask)
+            # Copies for adjusted loads
+            dCAa = dCA.copy()
+            dCYa = dCY.copy()
+            dCNa = dCN.copy()
+            # Loop through cases
+            for i in I:
+                # Check for slicing
+                if scol is None:
+                    # Only one basis
+                    j = 0
+                else:
+                    #Get slice col value
+                    si = self.get_values(scol, i)
+                    # Find index
+                    j = np.argmin(np.abs(si - s))
+                # Get weights
+                wAA = wcomp["wCA.CA"][j]
+                wYY = wcomp["wCY.CY"][j]
+                wNN = wcomp["wCN.CN"][j]
+                wYLL = wcomp["wCY.CLL"][j]
+                wNLL = wcomp["wCN.CLL"][j]
+                wmm = wcomp["wCLM.CLM"][j]
+                wnn = wcomp["wCLN.CLN"][j]
+                # Apply the weights
+                dfCAi = wAA*deltaCA[i]
+                dfCYi = wYY*deltaCY[i] + wYLL*deltaCLL[i]
+                dfCNi = wNN*deltaCN[i] + wNLL*deltaCLL[i]
+                dfCLMi = wmm*deltaCLM[i]
+                dfCLNi = wnn*deltaCLN[i]
+                # Apply corrections for forces
+                dCAa[:,i] += dfCAi*bcomp["dCA.CA"][:,j]
+                dCYa[:,i] += dfCYi*bcomp["dCY.CY"][:,j]
+                dCNa[:,i] += dfCNi*bcomp["dCN.CN"][:,j]
+                # Apply forces for moments
+                dCYa[:,i] += dfCLNi*bcomp["dCY.CLN"][:,j]
+                dCNa[:,i] += dfCLMi*bcomp["dCN.CLM"][:,j]
+            # Save values for output
+            lla[comp] = {
+                "CA": dCAa,
+                "CY": dCYa,
+                "CN": dCNa,
+            }
+            # Column names to save
+            llacols = self._getcols_lla_comp(None, comp)
+            # Save the cols
+            self.save_col(llacols["CA"], dCAa)
+            self.save_col(llacols["CY"], dCYa)
+            self.save_col(llacols["CN"], dCNa)
+            # Make definitions
+            self.make_defn(llacols["CA"], dCAa)
+            self.make_defn(llacols["CY"], dCYa)
+            self.make_defn(llacols["CN"], dCNa)
+            # Copy responses ...
+       # --- Cleanup ---
+        # Output
+        return lla
             
         
 
