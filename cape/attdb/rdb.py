@@ -955,6 +955,8 @@ class DataKit(ftypes.BaseData):
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
+            *append*: ``True`` | {``False``}
+                Option to combine cols with same name
             *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
@@ -974,7 +976,7 @@ class DataKit(ftypes.BaseData):
             # Create an instance
             dbf = ftypes.CSVFile(fname, **kw)
         # Link the data
-        self.link_data(dbf)
+        self.link_data(dbf, append=kw.get("append", False))
         # Copy the options
         self.clone_defns(dbf.defns)
         # Apply default
@@ -3655,7 +3657,7 @@ class DataKit(ftypes.BaseData):
         single 1D array for *mach*.
 
         :Call:
-            >>> y = db.rcall_multilinear(col, args, x)
+            >>> y = db.rcall_multilinear_schedule(col, args, x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -6835,7 +6837,7 @@ class DataKit(ftypes.BaseData):
    # --- Save/Add ---
    # --- Copy/Link ---
     # Link data
-    def link_data(self, dbsrc, cols=None):
+    def link_data(self, dbsrc, cols=None, **kw):
         r"""Save a column to database
         
         :Call:
@@ -6845,6 +6847,8 @@ class DataKit(ftypes.BaseData):
                 Data container
             *cols*: {``None``} | :class:`list`\ [:class:`str`]
                 List of columns to link (or *dbsrc.cols*)
+            *append*: ``True`` | {``False``}
+                Option to append data (or replace it)
         :Effects:
             *db.cols*: :class:`list`\ [:class:`str`]
                 Appends each *col* in *cols* where not present
@@ -6872,6 +6876,8 @@ class DataKit(ftypes.BaseData):
             raise TypeError(
                 "Column list must be a list, got '%s'"
                 % cols.__class__.__name__)
+        # Append option
+        append = kw.get("append", False)
         # Loop through columns
         for col in cols:
             # Check type
@@ -6880,8 +6886,62 @@ class DataKit(ftypes.BaseData):
             # Check if data is present
             if col not in dbsrc:
                 raise KeyError("No column '%s'" % col)
-            # Save the data
-            self.save_col(col, dbsrc[col])
+            # Candidate data
+            v = dbsrc[col]
+            # Get data to save
+            if append and col in self:
+                # Get current values
+                v0 = self[col]
+                # Check consistent types and combine values
+                if (
+                    isinstance(v, float)
+                    and isinstance(v0, np.ndarray) and v0.ndim == 1
+                ):
+                    # Special case of mismatching types
+                    v = np.append(v0, v)
+                elif not (isinstance(v0, type(v)) or isinstance(v, type(v0))):
+                    # No way to combine
+                    sys.stderr.write(
+                        "Cannot combine old and new values for col '%s'\n"
+                        % col)
+                    sys.stderr.flush()
+                elif isinstance(v, list):
+                    # Combine lists
+                    v = v0 + v
+                elif isinstance(v, float):
+                    # Make an array
+                    v = np.array([v0, v])
+                elif isinstance(v, np.ndarray):
+                    # Check dimensions
+                    if v0.ndim == 1 and v.ndim == 0:
+                        # Append scalar
+                        v = np.append(v0, v)
+                    elif v0.ndim != v.ndim:
+                        # Mismatching sizes
+                        sys.stderr.write(
+                            "Cannot combine %iD and %iD arrays for '%s'\n"
+                            % (v0.ndim, v.ndim, col))
+                        sys.stderr.flush()
+                    elif v0.ndim == 1:
+                        # Stack
+                        v = np.hstack((v0, v))
+                    elif v0.ndim == 2:
+                        # Stack vertically
+                        v = np.vstack((v0, v))
+                    else:
+                        # No way to combine 3D matrices
+                        sys.stderr.write(
+                            "Cannot combine %iD arrays for '%s'\n"
+                            % (v.ndim, col))
+                        sys.stderr.flush()
+                else:
+                    # No general fallback combination
+                    sys.stderr.write(
+                        "Cannot combine old and new values for col '%s'\n"
+                        % col)
+                    sys.stderr.flush()
+            # Save the data    
+            self.save_col(col, v)
 
    # --- Access ---
     # Look up a generic key

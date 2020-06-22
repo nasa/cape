@@ -313,6 +313,7 @@ class BaseDataDefn(kwutils.KwargHandler):
             "int16",
             "int32",
             "int64",
+            "object",
             "str",
             "uint8",
             "uint16",
