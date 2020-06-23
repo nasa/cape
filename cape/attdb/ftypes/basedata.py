@@ -287,6 +287,7 @@ class BaseDataDefn(kwutils.KwargHandler):
             "int": "int32",
             "long": "int32",
             "long long": "int64",
+            "o": "object",
             "short": "i16",
             "s": "str",
             "single": "float32",

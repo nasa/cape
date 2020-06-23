@@ -1356,6 +1356,41 @@ class DBLL(dbfm.DBFM):
    # --- Adjustment ---
     # Calculate adjusted loads
     def make_ll3x_adjustments(self, comps, db2, scol=None, **kw):
+        r"""Retrieve [and calculate] adjusted line loads
+
+        :Call:
+            >>> lla = db.make_ll3x_adjustments(comps, db2, scol, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *db2*: :class:`cape.attdb.rdb.DataKit`
+                Target database with analysis tools
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to divide integral F&M
+            *scol*: {``None``} | :class:`str`
+                Column used to slice database; output will be constant
+                on each slice
+            *SourceCols*: :class:`dict`\ [:class:`str`]
+                Cols in *db* to use as comparison to *db2* for ``"CA"``,
+                ``"CY"``, etc.
+            *TargetCols*: :class:`dict`\ [:class:`str`]
+                Cols in *db2* to use as targets for ``"CA"``, etc.
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                Columns to use as integral of force and moment on each
+                *comp*. Defaults filled in by *comp*\ .*coeff* for
+                *coeff* in ``["CA", "CY", "CN", "CLL", "CLM", "CLN"]``
+            *CompLLCols*: :clas:`dict`\ [:class:`dict`]
+                Cols to use as line loads for ``"CA"``, ``"CY"``,
+                ``"CN"`` for each *comp*
+        :Outputs:
+            *lla*: :class:`dict`\ [:class:`dict`\ [:class:`np.ndarray`]]
+                Adjustment weight for each *comp* and each *coeff*
+                caused by integral *coeff* change; for example
+                ``"wCN.CLL"`` is shift to a comp's *CN* as a result of
+                overall *CLL* shift
+        :Versions:
+            * 2020-06-23 ``@ddalle``: Version 1.0
+        """
        # --- Options ---
         # Check and process component list
         comps = self._check_ll3x_comps(comps)
