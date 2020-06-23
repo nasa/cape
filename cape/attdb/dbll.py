@@ -1467,7 +1467,7 @@ class DBLL(dbfm.DBFM):
         # Loop through components
         for comp in comps:
             # Get names for LL cols
-            llcols = self._getcols_ll_comp(comp)
+            llcols = self._getcols_ll_comp(None, comp)
             # Get weights
             wcomp = w[comp]
             # Bases
