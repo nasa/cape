@@ -1768,10 +1768,8 @@ class DBFM(rdbaero.AeroDataKit):
         fm = self.genr8_fm_combo(comps, **kw_comp)
         # Save
         for coeff in _coeffs:
-            # Save values
+            # Save values and definition
             self.save_col(fmcols[coeff], fm[coeff])
-            # Save definition
-            self.make_defn(fmcols[coeff], fm[coeff])
         # Output
         return fm
 
@@ -2084,10 +2082,8 @@ class DBFM(rdbaero.AeroDataKit):
         for coeff in _coeffs:
             # Name of output
             col = fmcols.get(coeff, "%s.target" % coeff)
-            # Save it
+            # Save values and definition
             self.save_col(col, fm[coeff])
-            # Create definition
-            self.make_defn(col, fm[coeff])
         # Output
         return fm
 
@@ -2263,10 +2259,8 @@ class DBFM(rdbaero.AeroDataKit):
         for coeff in _coeffs:
             # Get source column name
             col = dcols.get(coeff, "%s.delta" % coeff)
-            # Save delta
+            # Save delta and a definition
             self.save_col(col, dfm[coeff])
-            # Save definition
-            self.make_defn(col, dfm[coeff])
         # Output
         return dfm
 

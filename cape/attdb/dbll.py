@@ -526,10 +526,8 @@ class DBLL(dbfm.DBFM):
         if ocol is None:
             # Add axes to *col*
             ocol = col + ("_M%s_d%s" % (ax2, ax1))
-        # Save them
+        # Save values and create definition
         self.save_col(ocol, v)
-        # Create definition
-        self.make_defn(ocol, v)
         # Copy definitions
         self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
@@ -569,10 +567,8 @@ class DBLL(dbfm.DBFM):
         if ocol is None:
             # Try to convert name
             ocol = self._getcol_CLM_from_CN(col)
-        # Save them
+        # Save values and create definition
         self.save_col(ocol, v)
-        # Create definition
-        self.make_defn(ocol, v)
         # Copy definitions
         self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
@@ -612,10 +608,8 @@ class DBLL(dbfm.DBFM):
         if ocol is None:
             # Try to convert name
             ocol = self._getcol_CLN_from_CY(col)
-        # Save them
+        # Save values and create definition
         self.save_col(ocol, v)
-        # Create definition
-        self.make_defn(ocol, v)
         # Copy definitions
         self.set_output_xargs(ocol, self.get_output_xargs(col))
         # Output
@@ -1011,10 +1005,8 @@ class DBLL(dbfm.DBFM):
             return self.get_all_values(col)
         # Calculate combined loads
         v = self.genr8_ll_combo(cols, x, **kw)
-        # Save it
+        # Save values and create definition
         self.save_col(col, v)
-        # Update definition if necessary
-        self.make_defn(col, v)
         # Output
         return v
 
@@ -1063,10 +1055,8 @@ class DBLL(dbfm.DBFM):
         """
         # Calculate combined loads
         v = self.genr8_ll_combo(cols, x, **kw)
-        # Save it
+        # Save values and create definition
         self.save_col(col, v)
-        # Update definition if necessary
-        self.make_defn(col, v)
         # Output
         return v
 
@@ -1531,10 +1521,6 @@ class DBLL(dbfm.DBFM):
             self.save_col(acolCA, dCAa)
             self.save_col(acolCY, dCYa)
             self.save_col(acolCN, dCNa)
-            # Make definitions
-            self.make_defn(acolCA, dCAa)
-            self.make_defn(acolCY, dCYa)
-            self.make_defn(acolCN, dCNa)
             # Copy responses ...
             self.set_output_xargs(acolCA, self.get_output_xargs(lcolCA))
             self.set_output_xargs(acolCY, self.get_output_xargs(lcolCY))
@@ -1679,9 +1665,8 @@ class DBLL(dbfm.DBFM):
         if s is not None:
             # Name of slice field
             ocol = opts.get_option("SliceColSave", "adjust.%s" % scol)
-            # Save values
+            # Save values and definition
             self.save_col(ocol, s)
-            self.make_defn(ocol, s)
         # Loop through the components
         for comp in comps:
             # Get column names
@@ -1704,14 +1689,6 @@ class DBLL(dbfm.DBFM):
             self.save_col(colC2, wcomp["wCN.CLL"])
             self.save_col(colCm, wcomp["wCLM.CLM"])
             self.save_col(colCn, wcomp["wCLN.CLN"])
-            # Make definitions
-            self.make_defn(colCA, wcomp["wCA.CA"])
-            self.make_defn(colCY, wcomp["wCY.CY"])
-            self.make_defn(colCN, wcomp["wCN.CN"])
-            self.make_defn(colC1, wcomp["wCY.CLL"])
-            self.make_defn(colC2, wcomp["wCN.CLL"])
-            self.make_defn(colCm, wcomp["wCLM.CLM"])
-            self.make_defn(colCn, wcomp["wCLN.CLN"])
         # Output
         return w
 
@@ -2088,9 +2065,8 @@ class DBLL(dbfm.DBFM):
         if s is not None:
             # Name of slice field
             col = opts.get_option("SliceColSave", "adjust.%s" % scol)
-            # Save values
+            # Save values and definition
             self.save_col(col, s)
-            self.make_defn(col, s)
         # Loop through the components
         for comp in comps:
             # Get column names
@@ -2111,13 +2087,6 @@ class DBLL(dbfm.DBFM):
             self.save_col(colCl, fcomp["CLL"])
             self.save_col(colCm, fcomp["CLM"])
             self.save_col(colCn, fcomp["CLN"])
-            # Make definitions
-            self.make_defn(colCA, fcomp["CA"])
-            self.make_defn(colCY, fcomp["CY"])
-            self.make_defn(colCN, fcomp["CN"])
-            self.make_defn(colCl, fcomp["CLL"])
-            self.make_defn(colCm, fcomp["CLM"])
-            self.make_defn(colCn, fcomp["CLN"])
         # Output
         return f
 
@@ -2325,13 +2294,6 @@ class DBLL(dbfm.DBFM):
             self.save_col(colCl, fmcomp["CLL"])
             self.save_col(colCm, fmcomp["CLM"])
             self.save_col(colCn, fmcomp["CLN"])
-            # Make definitions
-            self.make_defn(colCA, fmcomp["CA"])
-            self.make_defn(colCY, fmcomp["CY"])
-            self.make_defn(colCN, fmcomp["CN"])
-            self.make_defn(colCl, fmcomp["CLL"])
-            self.make_defn(colCm, fmcomp["CLM"])
-            self.make_defn(colCn, fmcomp["CLN"])
             # Save
             fm[comp] = fmcomp
         # Output
@@ -2394,13 +2356,6 @@ class DBLL(dbfm.DBFM):
             self.save_col(colCl, fmcomp["CLL"])
             self.save_col(colCm, fmcomp["CLM"])
             self.save_col(colCn, fmcomp["CLN"])
-            # Make definitions
-            self.make_defn(colCA, fmcomp["CA"])
-            self.make_defn(colCY, fmcomp["CY"])
-            self.make_defn(colCN, fmcomp["CN"])
-            self.make_defn(colCl, fmcomp["CLL"])
-            self.make_defn(colCm, fmcomp["CLM"])
-            self.make_defn(colCn, fmcomp["CLN"])
         # Output
         return fm
 
@@ -2560,13 +2515,6 @@ class DBLL(dbfm.DBFM):
         self.save_col(colCl, fm["CLL"])
         self.save_col(colCm, fm["CLM"])
         self.save_col(colCn, fm["CLN"])
-        # Make definitions
-        self.make_defn(colCA, fm["CA"])
-        self.make_defn(colCY, fm["CY"])
-        self.make_defn(colCN, fm["CN"])
-        self.make_defn(colCl, fm["CLL"])
-        self.make_defn(colCm, fm["CLM"])
-        self.make_defn(colCn, fm["CLN"])
         # Output
         return fm
 
@@ -2636,13 +2584,6 @@ class DBLL(dbfm.DBFM):
         self.save_col(colCl, fm["CLL"])
         self.save_col(colCm, fm["CLM"])
         self.save_col(colCn, fm["CLN"])
-        # Make definitions
-        self.make_defn(colCA, fm["CA"])
-        self.make_defn(colCY, fm["CY"])
-        self.make_defn(colCN, fm["CN"])
-        self.make_defn(colCl, fm["CLL"])
-        self.make_defn(colCm, fm["CLM"])
-        self.make_defn(colCn, fm["CLN"])
         # Output
         return fm
 
@@ -2943,10 +2884,8 @@ class DBLL(dbfm.DBFM):
         ocol = opts.get_option("SliceColSave", "adjust.%s" % scol)
         # Save the slice column
         if scol is not None:
-            # Save it
+            # Save values and definition
             self.save_col(ocol, bases.get("s"))
-            # Save definition
-            self.make_defn(ocol, bases.get("s"))
         # Loop through the components
         for comp in comps:
             # Get column names
@@ -2965,12 +2904,6 @@ class DBLL(dbfm.DBFM):
             self.save_col(colCNN, basis["dCN.CN"])
             self.save_col(colCNm, basis["dCN.CLM"])
             self.save_col(colCYn, basis["dCY.CLN"])
-            # Make definitions
-            self.make_defn(colCAA, basis["dCA.CA"])
-            self.make_defn(colCYY, basis["dCY.CY"])
-            self.make_defn(colCNN, basis["dCN.CN"])
-            self.make_defn(colCNm, basis["dCN.CLM"])
-            self.make_defn(colCYn, basis["dCY.CLN"])
         # Output
         return bases
 

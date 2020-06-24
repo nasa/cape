@@ -728,7 +728,8 @@ class BaseData(dict):
         :Effects:
             *db[col]*: *defn*
         :Versions:
-            * 2020-03-19 ``@ddalle``: First version
+            * 2020-03-19 ``@ddalle``: Version 1.0
+            * 2020-06-24 ``@ddalle``: Version 1.1; merge defns
         """
         # Attempt to get definition
         defns = self.get_defns()
@@ -1226,6 +1227,8 @@ class BaseData(dict):
         else:
             # Nonstandard value; don't convert
             self[col] = v
+        # Basic defintion
+        self.make_defn(col, v)
 
    # --- Remove Data ---
     # Remove a column and its parameters

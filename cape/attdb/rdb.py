@@ -4240,12 +4240,10 @@ class DataKit(ftypes.BaseData):
                 A, U = self.est_uq_col(db2, col, ucol, **kw)
                 # Save primary key
                 self.save_col(ucol, U[:,0])
-                self.make_defn(ucol, U[:,0])
                 # Save additional keys
                 for (j, acol) in enumerate(uq_ecols):
                     # Save additional key values
                     self.save_col(acol, U[:,j+1])
-                    self.make_defn(acol, U[:,j+1])
         # Clean up prompt
         sys.stdout.write("%60s\r" % "")
 
@@ -8108,10 +8106,8 @@ class DataKit(ftypes.BaseData):
             ocol = self.lstrip_colname(col, "d")
         # Perform the integration
         y = self.genr8_integral(col, xcol, **kw)
-        # Save column
+        # Save column and definition
         self.save_col(ocol, y)
-        # Save definition
-        self.make_defn(ocol, y)
         # Output
         return y
 
