@@ -9087,6 +9087,8 @@ class DataKit(ftypes.BaseData):
         xcol, ycol = self.get_seam_col(seam)
         # Get plot kwargs
         kw_seam = self.get_seam_kwargs(seam)
+        # Get seam offset kwarg
+        dy = kw_seam.pop("DY", 0.0)
         # Plot the image
         hseam = pmpl.plot(self[xcol], self[ycol], **kw_seam)
         # Rescale
@@ -9100,8 +9102,20 @@ class DataKit(ftypes.BaseData):
         h.ax.set_xticklabels([])
         # Format extents nicely
         pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
+        # Get current limits and output limits
+        xmin0, xmax0 = ax_seam.get_xlim()
+        ymin0, ymax0 = ax_seam.get_ylim()
+        # Data *x* lims
+        xmin, xmax = h.ax.get_xlim()
+        # Scale *y* lims
+        hy = (ymax0 - ymin0) * (xmax - xmin) / (xmax0 - xmin0)
+        # Spread out
+        ymin = dy + 0.5*(ymin0 + ymax0 - hy)
+        ymax = dy + 0.5*(ymin0 + ymax0 + hy)
         # Tie horizontal limits
-        ax_seam.set_xlim(h.ax.get_xlim())
+        ax_seam.set_xlim(xmin, xmax)
+        # Update horizontal limits
+        ax_seam.set_ylim(ymin, ymax)
         # Label the axes
         ax_seam.set_label("<seam>")
         # Save parameters

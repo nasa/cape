@@ -436,6 +436,8 @@ class BaseData(dict):
    # --- Options ---
     # Class for options
     _optscls = BaseDataOpts
+    # Definition class
+    _defncls = BaseDataDefn
 
    # --- Class Functions ---
     # Invert the _tagmap

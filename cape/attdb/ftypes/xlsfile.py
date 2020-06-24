@@ -243,6 +243,8 @@ class XLSFile(BaseFile):
    # --- Options ---
     # Class for options
     _optscls = XLSFileOpts
+    # Definition class
+    _defncls = XLSFileDefn
   # >
 
   # =============
