@@ -732,13 +732,21 @@ class BaseData(dict):
         """
         # Attempt to get definition
         defns = self.get_defns()
+        # Generate a new definition based on values
+        defn0 = self.genr8_defn(col, V, **kw)
         # Return it if any
         if col in defns:
-            return defns[col]
-        # Create the definition
-        defn = self.genr8_defn(col, V, **kw)
-        # Save it
-        self.defns[col] = defn
+            # Get the definition
+            defn = defns[col]
+            # Merge columns
+            for k, v in defn0.items():
+                # Apply but don't overwrite
+                defn.setdefault(k, v)
+        else:
+            # Save it
+            self.defns[col] = defn0
+            # Transfer it
+            defn = defn0
         # Output
         return defn
 
