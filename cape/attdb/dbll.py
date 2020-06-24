@@ -1520,15 +1520,25 @@ class DBLL(dbfm.DBFM):
             }
             # Column names to save
             llacols = self._getcols_lla_comp(None, comp)
+            # Unpack columns
+            lcolCA = llcols["CA"]
+            lcolCY = llcols["CY"]
+            lcolCN = llcols["CN"]
+            acolCA = llacols["CA"]
+            acolCY = llacols["CY"]
+            acolCN = llacols["CN"]
             # Save the cols
-            self.save_col(llacols["CA"], dCAa)
-            self.save_col(llacols["CY"], dCYa)
-            self.save_col(llacols["CN"], dCNa)
+            self.save_col(acolCA, dCAa)
+            self.save_col(acolCY, dCYa)
+            self.save_col(acolCN, dCNa)
             # Make definitions
-            self.make_defn(llacols["CA"], dCAa)
-            self.make_defn(llacols["CY"], dCYa)
-            self.make_defn(llacols["CN"], dCNa)
+            self.make_defn(acolCA, dCAa)
+            self.make_defn(acolCY, dCYa)
+            self.make_defn(acolCN, dCNa)
             # Copy responses ...
+            self.set_output_xargs(acolCA, self.get_output_xargs(lcolCA))
+            self.set_output_xargs(acolCY, self.get_output_xargs(lcolCY))
+            self.set_output_xargs(acolCN, self.get_output_xargs(lcolCN))
        # --- Cleanup ---
         # Output
         return lla
@@ -3370,7 +3380,7 @@ class DBLL(dbfm.DBFM):
         # Right-hand sides of equations
         bCA = np.hstack(([1.0], np.zeros(nmode)))
         bCF = np.hstack(([1.0, 0.0], np.zeros(nmode)))
-        bCM = np.hstack(([1.0, 0.0], np.zeros(nmode)))
+        bCM = np.hstack(([0.0, 1.0], np.zeros(nmode)))
         # Solve linear systems
         xCA = np.linalg.solve(ACA, bCA)
         xCY = np.linalg.solve(ACY, bCF)
@@ -3567,11 +3577,11 @@ class DBLL(dbfm.DBFM):
         # Line load column names
         llcols = self._getcols_ll_comp(cols, comp=comp, **kw)
         # Get column names
-        colCAA = "%s.dCA.CA" % llcols["CA"]
-        colCYY = "%s.dCY.CY" % llcols["CY"]
-        colCNN = "%s.dCN.CN" % llcols["CN"]
-        colCNm = "%s.dCN.CLM" % llcols["CN"]
-        colCYn = "%s.dCY.CLN" % llcols["CY"]
+        colCAA = "%s.deltaCA" % llcols["CA"]
+        colCYY = "%s.deltaCY" % llcols["CY"]
+        colCNN = "%s.deltaCN" % llcols["CN"]
+        colCNm = "%s.deltaCLM" % llcols["CN"]
+        colCYn = "%s.deltaCLN" % llcols["CY"]
         # Check for *comp*
         if comp is not None:
             # Get option
