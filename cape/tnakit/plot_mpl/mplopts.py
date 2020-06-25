@@ -133,13 +133,18 @@ class MPLOpts(kwutils.KwargHandler):
         "FontStyle",
         "FontVariant",
         "FontWeight",
-        "GaussOptions",
         "Grid",
         "GridColor",
         "GridOptions",
         "GridStyle",
         "HistBins",
         "HistColor",
+        "HistGaussianOptions",
+        "HistMeanLabelColor",
+        "HistMeanLabelOptions",
+        "HistMeanLabelPosition",
+        "HistMeanOptions",
+        "HistOptions",
         "ImageExtent",
         "ImageXCenter",
         "ImageXMax",
@@ -203,18 +208,15 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterOptions",
         "ShowDelta",
         "ShowError",
-        "ShowGauss",
+        "ShowHistGaussian",
+        "ShowHistMean",
+        "ShowHistMeanLabel",
         "ShowInterval",
         "ShowLegend",
         "ShowLine",
-        "ShowMean",
         "ShowMinMax",
         "ShowSigma",
         "ShowUncertainty",
-        "ShowValueMean",
-        "MeanLabelColor",
-        "MeanLabelOptions",
-        "MeanLabelPosition",
         "SigmaOptions",
         "SpineOptions",
         "Spines",
@@ -508,6 +510,13 @@ class MPLOpts(kwutils.KwargHandler):
             "HistOptions",
             "Rotate"
         ],
+        "histmean": [
+            "HistMeanOptions",
+            "Rotate"
+        ],
+        "histmeanlabel": [
+            "HistMeanLabelOptions"
+        ],
         "imshow": [
             "ImageXMin",
             "ImageXMax",
@@ -542,10 +551,6 @@ class MPLOpts(kwutils.KwargHandler):
             "Rotate",
             "PlotOptions",
             "PlotFormat"
-        ],
-        "mean": [
-            "MeanOptions",
-            "Rotate"
         ],
         "minmax": [
             "Index",
@@ -699,11 +704,15 @@ class MPLOpts(kwutils.KwargHandler):
         "FontStyle": typeutils.strlike,
         "FontVariant": typeutils.strlike,
         "FontWeight": (float, int, typeutils.strlike),
-        "GaussOptions": dict,
         "Grid": int,
         "GridOptions": dict,
         "HistBins": int,
         "HistColor": (tuple, typeutils.strlike),
+        "HistGaussianOptions": dict,
+        "HistMeanOptions": dict,
+        "HistMeanLabelOptions": dict,
+        "HistMeanLabelColor": typeutils.strlike,
+        "HistMeanLabelPosition": int,
         "HistOptions" : dict,
         "ImageExtent": (tuple, dict),
         "ImageXCenter": float,
@@ -745,7 +754,6 @@ class MPLOpts(kwutils.KwargHandler):
         "MarkerColor": (tuple, typeutils.strlike),
         "MarkerOptions": dict,
         "MarkerSize": (int, float),
-        "MeanOptions": dict,
         "MinorGrid": bool,
         "MinorGridOptions": dict,
         "MinMaxOptions": dict,
@@ -762,11 +770,12 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterOptions": dict,
         "ShowDelta": bool,
         "ShowError": bool,
-        "ShowGauss": bool,
         "ShowInterval": bool,
         "ShowLine": bool,
         "ShowMinMax": bool,
-        "ShowMean": bool,
+        "ShowHistGaussian": bool,
+        "ShowHistMean": bool,
+        "ShowHistMeanLabel": bool,
         "ShowSigma": bool,
         "ShowUncertainty": bool,
         "SigmaOptions": dict,
@@ -909,12 +918,6 @@ class MPLOpts(kwutils.KwargHandler):
             "FontVariant": "variant",
             "FontWeight": "weight",
         },
-        "GaussOptions": {
-            "Index": "Index",
-            "Rotate": "Rotate",
-            "PlotOptions.color": "color",
-            "NGauss": "NGauss",
-        },
         "GridOptions": {
             "GridColor": "color",
         },
@@ -922,6 +925,23 @@ class MPLOpts(kwutils.KwargHandler):
             "HistBins": "bins",
             "HistColor": "color",
             "Rotate": "Rotate"
+        },
+        "HistGaussianOptions": {
+            "Index": "Index",
+            "Rotate": "Rotate",
+            "PlotOptions.color": "color",
+            "NGauss": "NGauss",
+        },
+        "HistMeanOptions" : {
+            "Rotate": "Rotate",
+            "PlotOptions.color": "color",
+            "PlotOptions.lw": "lw",
+            "PlotOptions.ls": "ls",
+        },
+        "HistMeanLabelOptions": {
+            "AxesLabelFontOptions": "fontdict",
+            "HistMeanLabelColor": "color",
+            "HistMeanLabelPosition": "pos",
         },
         "IntervalOptions": {
             "Index" : "Index",
@@ -951,17 +971,6 @@ class MPLOpts(kwutils.KwargHandler):
         "MarkerOptions": {
             "MarkerColor": "color",
             "MarkerSize": "markersize",
-        },
-        "MeanLabelOptions": {
-            "AxesLabelFontOptions": "fontdict",
-            "MeanLabelColor": "color",
-            "MeanLabelPosition": "pos",
-        },
-        "MeanOptions" : {
-            "Rotate": "Rotate",
-            "PlotOptions.color": "color",
-            "PlotOptions.lw": "lw",
-            "PlotOptions.ls": "ls",
         },
         "MinMaxOptions": {},
         "PlotOptions": {
@@ -1035,17 +1044,22 @@ class MPLOpts(kwutils.KwargHandler):
             "linestyle": "ls",
             "c": "color",
         },
-        "GaussOptions": {
-            "linewidth": "lw",
-            "linestyle": "ls",
-            "c": "color",
-        },
         "GridOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
             "c": "color",
         },
+        "HistGaussianOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
         "HistOptions": {
+            "linewidth": "lw",
+            "linestyle": "ls",
+            "c": "color",
+        },
+        "HistMeanOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
             "c": "color",
@@ -1062,11 +1076,6 @@ class MPLOpts(kwutils.KwargHandler):
         },
         "MarkerOptions": {
             "ms": "markersize",
-            "linewidth": "lw",
-            "linestyle": "ls",
-            "c": "color",
-        },
-        "MeanOptions": {
             "linewidth": "lw",
             "linestyle": "ls",
             "c": "color",
@@ -1134,13 +1143,17 @@ class MPLOpts(kwutils.KwargHandler):
             """``"italic"`` | ``"oblique"``"""),
         "FontVariant": """{``None``} | ``"normal"`` | ``"small-caps"``""",
         "FontWeight": _rst_strnum,
-        "GaussOptions": _rst_dict,
         "Grid": _rst_boolt,
         "GridColor": """{``None``} | :class:`str` | :class:`tuple`""",
         "GridOptions": _rst_dict,
-        "HistBins" : _rst_intpos,
-        "HistColor" : """{``None``} | :class:`str` | :class:`tuple`""",
-        "HistOptions" : _rst_dict,     
+        "HistBins": _rst_intpos,
+        "HistColor": """{``None``} | :class:`str` | :class:`tuple`""",
+        "HistGaussianOptions": _rst_dict,
+        "HistMeanOptions": _rst_dict,
+        "HistMeanLabelOptions": _rst_dict,
+        "HistMeanLabelColor": """{``None``} | :class:`str` | :class:`tuple`""",     
+        "HistMeanLabelPosition":_rst_strnum,
+        "HistOptions": _rst_dict,
         "ImageExtent": """{``None``} | :class:`tuple` | :class:`list`""",
         "ImageXCenter": _rst_float,
         "ImageXMax": _rst_float,
@@ -1211,7 +1224,8 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowGauss": _rst_booln,
         "ShowInterval": _rst_booln,
         "ShowMinMax": _rst_booln,
-        "ShowMean": _rst_booln,
+        "ShowHistMean": _rst_booln,
+        "ShowHistMeanLabel": _rst_booln,
         "ShowSigma": _rst_booln,
         "ShowUncertainty": _rst_booln,
         "SigmaOptions": _rst_dict,
@@ -1317,11 +1331,15 @@ class MPLOpts(kwutils.KwargHandler):
         "FontWeight": ("""Numeric font weight 0-1000 or ``"normal"``, """ +
             """``"bold"``, etc."""),
         "Grid": """Option to turn on/off axes grid""",
-        "GaussOptions": """Plot options for gaussian plot on histogram""",
         "GridColor": """Color passed to *GridOptions*""",
         "GridOptions": """Plot options for major grid""",
         "HistBins" : """Number of histogram bins passed to *HistOptions*""",
         "HistColor": """Histogram passed to *HistOptions*""",
+        "HistGaussianOptions": """Plot options for gaussian plot on histogram""",
+        "HistMeanOptions": """Options for mean plotting on histrograms""",
+        "HistMeanLabelOptions": """Options for mean labeling on histrograms""",
+        "HistMeanLabelColor": """Color for histrogram mean label""",
+        "HistMeanLabelPosition": """Position for histrogram mean label""",
         "HistOptions": """Plot options for histograms""",
         "ImageXMin": "Coordinate for left edge of image",
         "ImageXMax": "Coordinate for right edge of image",
@@ -1398,7 +1416,8 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowGauss": """Show Gaussian plot on histogram""",
         "ShowInterval": """Show interval plot on histogram""",
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
-        "ShowMean": """Plot *mu* on histogram""",
+        "ShowHistMean": """Plot *mu* on histogram""",
+        "ShowHistMeanLabel": """Show *mu* mabel on histogram""",
         "ShowSigma": """Plot *sigma* bounds on histogram""",
         "ShowUncertainty": """Plot uncertainty bounds""",
         "SigmaOptions": """Options for sigma bounds""",
@@ -1452,9 +1471,10 @@ class MPLOpts(kwutils.KwargHandler):
     _rc = {
         "ShowLine": True,
         "ShowError": False,
-        "ShowGauss" : False,
         "ShowInterval": False,
-        "ShowMean": False,
+        "ShowHistGaussian" : False,
+        "ShowHistMean": False,
+        "ShowHistMeanLabel": False,
         "ShowSigma": False,
         "Index": 0,
         "Rotate": False,
@@ -1489,16 +1509,16 @@ class MPLOpts(kwutils.KwargHandler):
         "FontOptions": {
             "family": "DejaVu Sans",
         },
-        "GaussOptions": {
-            "color": "navy",
-            "lw": 1.5,
-            "zorder": 7,
-            "label": "Normal Distribution",
-        },
         "GridOptions": {
             "ls": ":",
             "lw": 0.9,
             "color": "#a0a0a0",
+        },
+        "HistGaussianOptions": {
+            "color": "navy",
+            "lw": 1.5,
+            "zorder": 7,
+            "label": "Normal Distribution",
         },
         "HistOptions": {
             "bins" : 20,
@@ -1507,6 +1527,15 @@ class MPLOpts(kwutils.KwargHandler):
             "edgecolor" : "k",
             "lw" : 1, 
             "density" : True,
+        },
+        "HistMeanOptions": {
+            "color": 'k',
+            "lw": 2,
+            "zorder": 6,
+            "label": "Mean value",
+        },
+        "HistMeanLabelOptions": {
+            "HistMeanLabelColor": 'k'
         },
         "IntervalOptions": {
             "lw": 0,
@@ -1533,12 +1562,6 @@ class MPLOpts(kwutils.KwargHandler):
             "ls": ":",
             "lw": 0.5,
             "color": "#b0b0b0",
-        },
-        "MeanOptions": {
-            "color": 'k',
-            "lw": 2,
-            "zorder": 6,
-            "label": "Mean value",
         },
         "PlotOptions": {
             "color": ["b", "k", "darkorange", "g"],
@@ -1597,12 +1620,6 @@ class MPLOpts(kwutils.KwargHandler):
             "TopSpineTicks": False,
             "RightSpine": False,
             "TopSpine": False,
-        },
-        "gauss": {
-            "color": "navy",
-            "lw": 1.5,
-            "zorder": 7,
-            "label": "Normal Distribution",
         },
         "histlbl": {
             'color': 'k',
@@ -1906,8 +1923,8 @@ class MPLOpts(kwutils.KwargHandler):
             * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Use the "gauss" section
-        kw = self.section_options("gauss", "GaussOptions")
+        # Get default options for HistGaussianOptions
+        kw = self.get_option("HistGaussianOptions")
         return kw
 
     # Grid options
@@ -1946,9 +1963,12 @@ class MPLOpts(kwutils.KwargHandler):
             *kw*: :class:`dict`
                 Dictionary of options to :func:`plot`
         :Versions:
-            * 2019-03-07 ``@ddalle``: First version
-            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
-            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+            * 2019-03-07 ``@ddalle``: First ver        "gauss": {
+            "color": "navy",
+            "lw": 1.5,
+            "zorder": 7,
+            "label": "Normal Distribution",
+        },:class:`KwargHandler`
         """
         # Use the "gauss" section
         kw = self.section_options("histlbl")
@@ -2055,7 +2075,7 @@ class MPLOpts(kwutils.KwargHandler):
 
     # Mean options
     def mean_options(self):
-        r"""Process options to gaussian plot curve
+        r"""Process options plot mean on histogram
 
         :Call:
             >>> kw = opts.mean_options()
@@ -2072,8 +2092,30 @@ class MPLOpts(kwutils.KwargHandler):
             * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
+        # Use mean options section
+        kw = self.get_option("HistMeanOptions")
+        return kw
+
+    def meanlabel_options(self):
+        r"""Process options to histogram mean labels
+
+        :Call:
+            >>> kw = opts.meanlabe;_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`plot`
+        :Versions:
+            * 2019-03-07 ``@ddalle``: First version
+            * 2019-12-19 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
         # Use the "gauss" section
-        kw = self.get_option("MeanOptions")
+        kw = self.get_option("HistMeanLabelOptions")
         return kw
 
     # Primary options

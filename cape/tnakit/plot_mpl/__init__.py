@@ -168,9 +168,10 @@ def hist(v, *a, **kw):
     # Coverage Intervals
     _part_coverage(opts, h)
    # --- Control Options ---
-    opts.setdefault_option("ShowGauss", False) 
+    opts.setdefault_option("ShowHistGaussian", False) 
     opts.setdefault_option("ShowInterval", False) 
-    opts.setdefault_option("ShowMean", False)
+    opts.setdefault_option("ShowHistMean", False)
+    opts.setdefault_option("ShowHistMeanLabel", False)
     opts.setdefault_option("ShowSigma", False) 
     opts.setdefault_option("ShowDelta", False) 
    # --- Axes Setup ---
@@ -184,10 +185,10 @@ def hist(v, *a, **kw):
     _part_gauss(opts, h)
     # Interval
     _part_interval(opts, h)
-    # Mean
-    _part_mean(opts, h)
     # Sigma
     _part_sigma(opts,h)
+    # Mean
+    _part_mean(opts, h)
     # Delta
     _part_delta(opts,h)
    # --- Axis formatting ---
@@ -346,7 +347,7 @@ def _part_hist(opts, h):
 
 # Partial function: gaussian()
 def _part_gauss(opts, h):
-    if opts.get_option("ShowGauss"):
+    if opts.get_option("ShowHistGaussian"):
         # Process gaussian options
         kw = opts.gauss_options()
         # Get mu and std
@@ -380,7 +381,7 @@ def _part_gauss(opts, h):
             # Plot horizontal dist with vertical bump
             gauss = mpl._plot(yval, xval, **kw)
         # Save
-        h.save("gauss", gauss)
+        h.save("gaussian", gauss)
 
 # Partial function: intervale()
 def _part_interval(opts, h):
@@ -432,7 +433,7 @@ def _part_interval_label(opts, h):
 # Partial function: mean()
 def _part_mean(opts, h):
     # Check for option to plot mean
-    if not opts.get_option("ShowMean"):
+    if not opts.get_option("ShowHistMean"):
         return
     # Turn off any Y padding
     opts.setdefault("YPad", 0.0)
@@ -463,21 +464,29 @@ def _part_mean(opts, h):
     
 # Partial function: mean_label()
 def _part_mean_label(opts, h):
-    if opts.get_option("ShowMean"):
-        # Get mu
-        vmu = opts.get_option('mu')
-        # Do the label
-        # Formulate the label
-        c = u'μ'
-        # Format code
-        flbl = "%.4f"
-        # First part
-        klbl = ('%s' % c)      
-        # Insert value
-        lbl = (u'%s = %s' % (klbl, flbl)) % vmu
-        meanlabel = axlabel(lbl)
-        # Return
-        h.save('meanlabel', meanlabel)    
+    # Check for option to show mean label
+    if not opts.get_option("ShowHistMeanLabel"):
+        return    
+    # Get mu
+    vmu = opts.get_option('mu')
+    # Get MeanLabelOptions
+    labelopts = opts.meanlabel_options()
+    # Get Color
+    labelcolor = labelopts.get("HistMeanLabelColor")
+    # Get Position
+    labelpos = labelopts.get("HistMeanLabelPosition", None)
+    # Do the label
+    # Formulate the label
+    c = u'μ'
+    # Format code
+    flbl = "%.4f"
+    # First part
+    klbl = ('%s' % c)      
+    # Insert value
+    lbl = (u'%s = %s' % (klbl, flbl)) % vmu
+    meanlabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
+    # Return
+    h.save('meanlabel', meanlabel)    
 
 
 # Partial function: minmax()
@@ -623,8 +632,8 @@ def _part_colorbar(opts, h):
 def _part_coverage(opts, h):
     # Process coverage options
     covopts = opts.coverage_options()
-    cov = covopts.pop("Coverage")
-    cdf = covopts.pop("CoverageCDF", cov)
+    cov = covopts.get("Coverage")
+    cdf = covopts.get("CoverageCDF", cov)
     # Get basic stats
     vmu = opts.get_option("mu")
     vstd = opts.get_option('std')
@@ -632,7 +641,7 @@ def _part_coverage(opts, h):
     # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
     kcdf = statutils.student.ppf(0.5+0.5*cdf, v.size)
     # Check for outliers ...
-    fstd = covopts.pop('FilterSigma', 2.0*kcdf)
+    fstd = covopts.get('FilterSigma', 2.0*kcdf)
     # Remove values from histogram
     if fstd:
         # Find indices of cases that are within outlier range
@@ -653,6 +662,8 @@ def _part_delta(opts, h):
     if opts.get_option("ShowDelta"):
         # Process sigma options
         kw = opts.delta_options()
+        # Turn off any Y padding
+        opts.setdefault("YPad", 0.0)
         # Get mu and sigma
         vmu = opts.get_option('mu')
         # Get orientation
@@ -816,6 +827,8 @@ def _part_sigma(opts, h):
     if opts.get_option("ShowSigma"):
         # Process sigma options
         kw = opts.sigma_options()
+        # Turn off any Y padding
+        opts.setdefault("YPad", 0.0)
         # Get mu and sigma
         vmu = opts.get_option('mu')
         vstd = opts.get_option('std')
@@ -901,7 +914,7 @@ def plot_delta(ax, vmu, **kw):
     # Check orientation
     orient = kw.pop('orientation', None)
     # Reference delta
-    dc = kw.pop('Delta', 0.0)
+    dc = kw.get('Delta', 0.0)
     # Check for single number or list
     if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
         # Separate lower and upper limits
