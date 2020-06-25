@@ -217,6 +217,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowMinMax",
         "ShowSigma",
         "ShowUncertainty",
+        "SeamDY",
         "SigmaOptions",
         "SpineOptions",
         "Spines",
@@ -328,6 +329,7 @@ class MPLOpts(kwutils.KwargHandler):
         "cdf": "CoverageCDF",
         "cov": "Coverage",
         "density": "Density",
+        "dy": "SeamDY",
         "fmt": "PlotFormat",
         "grid": "Grid",
         "hfig": "FigHeight",
@@ -568,6 +570,9 @@ class MPLOpts(kwutils.KwargHandler):
             "ScatterColor",
             "ScatterSize"
         ],
+        "seam": [
+            "SeamDY"
+        ],
         "sigma" : [
             "SigmaOptions",
             "StDev"
@@ -768,6 +773,7 @@ class MPLOpts(kwutils.KwargHandler):
         "PlotOptions": dict,
         "Rotate": bool,
         "ScatterOptions": dict,
+        "SeamDY": (float, int),
         "ShowDelta": bool,
         "ShowError": bool,
         "ShowInterval": bool,
@@ -1219,6 +1225,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterColor": "{``None``} | :class:`np.ndarray` | :class:`list`",
         "ScatterOptions": _rst_dict,
         "ScatterSize": "{``None``} | :class:`np.ndarray` | :class:`float`",
+        "SeamDY": _rst_float,
         "ShowError": _rst_booln,
         "ShowDelta": _rst_booln,
         "ShowGauss": _rst_booln,
@@ -1411,6 +1418,7 @@ class MPLOpts(kwutils.KwargHandler):
             "usually an array of floats that maps into color map"),
         "ScatterOptions": """Options to :func:`plt.scatter`""",
         "ScatterSize": "Size [pt^2] of marker for each data point",
+        "SeamDY": "Vertical offset for seam plots",
         "ShowDelta": """"Show delta bounds on histrogram plot""",
         "ShowError": """Show "error" plot using *xerr*""",
         "ShowGauss": """Show Gaussian plot on histogram""",

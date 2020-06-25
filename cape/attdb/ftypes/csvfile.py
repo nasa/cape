@@ -170,6 +170,8 @@ class CSVFile(BaseFile, TextInterpreter):
    # --- Options ---
     # Class for options
     _optscls = CSVFileOpts
+    # Definition class
+    _defncls = CSVFileDefn
   # >
 
   # ======

@@ -1853,9 +1853,6 @@ def _combine_dict(v1, v2):
         raise TypeError("Arg 2 must be 'dict', got '%s'" % v1.__class__)
     # Loop through second dict
     for (k, v) in v2.items():
-        #if k == "Type":
-        #    import pdb
-        #    pdb.set_trace()
         # Check presence in first dict
         if k in v1:
             # Recurse
