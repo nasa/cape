@@ -1428,7 +1428,7 @@ class DBLL(dbfm.DBFM):
         # Calculate adjustment fractions
         w = self.make_ll3x_aweights(comps, scol, **kw_frc)
         # Evaluate target database
-        dfm = self.make_target_deltafm(db2, **kw_trg)
+        dfm = self.genr8_target_deltafm(db2, **kw_trg)
         # Unpack differences
         deltaCA = dfm["CA"]
         deltaCY = dfm["CY"]
@@ -3574,9 +3574,9 @@ class DBLL(dbfm.DBFM):
                 colCA = "dCA"
                 colCY = "dCY"
                 colCN = "dCN"
-                colCLL = "dCLL"
-                colCLM = "dCLM"
-                colCLN = "dCLN"
+                colCl = "dCLL"
+                colCm = "dCLM"
+                colCn = "dCLN"
             else:
                 # Combine component name
                 colCA = "%s.dCA" % comp
@@ -3629,6 +3629,64 @@ class DBLL(dbfm.DBFM):
             "CLM": colCm,
             "CLN": colCn,
         }
+
+    # Output column names for ll cols
+    def _getcols_ll3_comp(self, cols=None, comp=None, **kw):
+        r"""Create :class:`dict` of line load cols
+
+        :Call:
+            >>> llcols = db._getcols_ll3_comp(cols, comp, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *cols*: :class:`list`\ [:class:`str`]
+                * *len*: 3
+
+                List/tuple of column names for *CA*, *CY*, and *CN*
+            *LLCols*: :class:`dict`\ [:class:`str`]
+                Columns to use for each integral coefficient
+            *CompLLCols*: :class:`dict`\ [:class:`dict`]
+                *LLCols* for one or more components
+        :Outputs:
+            *llcols*: :class:`list`\ [:class:`str`]
+                Columns to use for *CA*, *CY*, and *CN*
+        :Versions:
+            * 2020-06-25 ``@ddalle``: First version
+        """
+        # Get moment line load cols
+        if cols is None:
+            # Defaults
+            if comp is None:
+                # Just use base names
+                colCA = "dCA"
+                colCY = "dCY"
+                colCN = "dCN"
+            else:
+                # Combine component name
+                colCA = "%s.dCA" % comp
+                colCY = "%s.dCY" % comp
+                colCN = "%s.dCN" % comp
+        else:
+            # Get column names for forces
+            colCA = cols[0]
+            colCY = cols[1]
+            colCN = cols[2]
+        # Check for *comp*
+        if comp is not None:
+            # Get option
+            llcols = kw.get("CompLLCols", {}).get(comp, {})
+            # Check for overrides
+            colCA = llcols.get("CA", colCA)
+            colCY = llcols.get("CY", colCY)
+            colCN = llcols.get("CN", colCN)
+        # Check for manual names for this *comp*
+        llcols = kw.get("LLCols", {})
+        # Check for overrides
+        colCA = llcols.get("CA", colCA)
+        colCY = llcols.get("CY", colCY)
+        colCN = llcols.get("CN", colCN)
+        # Output
+        return colCA, colCY, colCN
 
     # Output column names for integrals from ll cols
     def _getcols_ll3x_fmcomp(self, cols, comp=None, **kw):

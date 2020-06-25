@@ -9088,7 +9088,7 @@ class DataKit(ftypes.BaseData):
         # Get plot kwargs
         kw_seam = self.get_seam_kwargs(seam)
         # Get seam offset kwarg
-        dy = kw_seam.pop("DY", 0.0)
+        dy = kw_seam.pop("SeamDY", 0.0)
         # Plot the image
         hseam = pmpl.plot(self[xcol], self[ycol], **kw_seam)
         # Rescale
@@ -9289,7 +9289,7 @@ class DataKit(ftypes.BaseData):
             * 2020-04-01 ``@ddalle``: First version
         """
         # Check input
-        if not isinstance(cols, list):
+        if not isinstance(cols, (tuple, list)):
             raise TypeError(
                 "List of cols must be 'list' (got '%s')" % type(cols))
         # Check each col
@@ -9602,7 +9602,7 @@ class DataKit(ftypes.BaseData):
             * 2020-04-02 ``@jmeeroff``: First version
         """
         # Check input
-        if not isinstance(cols, list):
+        if not isinstance(cols, (list, tuple)):
             raise TypeError(
                 "List of cols must be 'list' (got '%s')" % type(cols))
         # Check each col
@@ -9725,7 +9725,7 @@ class DataKit(ftypes.BaseData):
         # Update them
         kw_seam.update(**kw)
         # Convert to options and check
-        kw = pmpl.MPLOpts(_sections=["plot", "axformat"], **kw_seam)
+        kw = pmpl.MPLOpts(_sections=["plot", "axformat", "seam"], **kw_seam)
         # Save it
         seam_kwargs[seam] = kw
 

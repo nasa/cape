@@ -470,7 +470,7 @@ class MATFile(BaseFile):
             # Should really be a list of strings
             raise TypeError("Extra attribute list 'attrs' must be a list")
         # Loop through columns
-        for col in cols:
+        for col in sorted(cols):
             # Check column
             if col not in self.cols:
                 raise KeyError("No data column '%s'" % col)
@@ -492,9 +492,6 @@ class MATFile(BaseFile):
                 else:
                     # Attribute "get"
                     dbnext = dbpart.__dict__.get(part)
-                    # Update field list
-                    if part not in dbpart._fieldnames:
-                        dbpart._fieldnames.append(part)
                 # Create it if needed
                 if isinstance(dbnext, siom.mat_struct):
                     # Pass along handle
@@ -504,7 +501,37 @@ class MATFile(BaseFile):
                     dbnext = siom.mat_struct()
                     dbnext._fieldnames = []
                     # Save it
-                    dbpart[part] = dbnext
+                    if isinstance(dbpart, dict):
+                        # Assign key
+                        dbpart[part] = dbnext
+                    elif isinstance(dbpart, siom.mat_struct):
+                        # Check for name conflict
+                        # For example, "CORE.dCY" already exists but trying
+                        # to save "CORE.dCY.deltaCY"
+                        while part in dbpart._fieldnames:
+                            # Get that object
+                            try:
+                                dbconflict = dbpart.__dict__[part]
+                            except KeyError:
+                                import pdb
+                                pdb.set_trace()
+                            # If it's already a 'mat_struct', no problem
+                            if isinstance(dbconflict, siom.mat_struct):
+                                # Get that in place of the new one
+                                dbnext = dbconflict
+                                break
+                            # Add an underscore
+                            part = part + "_"
+                        # Assign field
+                        dbpart.__dict__[part] = dbnext
+                        # Save field
+                        dbpart._fieldnames.append(part)
+                    else:
+                        # Unknown type
+                        raise TypeError(
+                            ("Could not nest col '%s' at at depth " % col) +
+                            ("%i with type '%s'" % (depth, type(dbpart))))
+                    # Handoff
                     dbpart = dbnext
             # Name of last depth level
             fld = colparts[-1]
