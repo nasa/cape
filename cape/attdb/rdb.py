@@ -7368,7 +7368,7 @@ class DataKit(ftypes.BaseData):
         """
         # Check for empty mask
         if mask is None:
-            return
+            return True
         # Get values
         if (V is None) and (col is not None):
             # Use all values
@@ -8326,9 +8326,11 @@ class DataKit(ftypes.BaseData):
             xlbl = xk
         # Check for indices
         if len(a) == 0:
-            raise ValueError("At least 2 inputs required; received 1")
-        # Process first second arg as a mask
-        mask = a[0]
+            # Plot all values
+            mask = None
+        else:
+            # Process first second arg as a mask
+            mask = a[0]
         # Check if it looks like a mask
         qmask = self.check_mask(mask)
         # Check for integer
