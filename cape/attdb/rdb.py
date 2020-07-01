@@ -702,6 +702,10 @@ class DataKit(ftypes.BaseData):
         """
         # Get column definition
         defn = self.get_defn(col)
+        # Default
+        if ndim is None:
+            # Assume scalar
+            ndim = 1
         # Check type
         if not isinstance(ndim, int):
             raise TypeError(
@@ -729,6 +733,10 @@ class DataKit(ftypes.BaseData):
         """
         # Get column definition
         defn = self.get_defn(col)
+        # Default
+        if ndim is None:
+            # Assume scalar output
+            ndim = 0
         # Check type
         if not isinstance(ndim, int):
             raise TypeError(
