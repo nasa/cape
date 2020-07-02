@@ -3568,6 +3568,8 @@ class DataKit(ftypes.BaseData):
         """
         # Check for break-point evaluation flag
         bkpt = kw.get("bkpt", kw.get("breakpoint", False))
+        # Extrapolation option
+        extrap = kw.get("extrap", "hold")
         # Possible values
         try:
             # Extract coefficient
@@ -3627,13 +3629,33 @@ class DataKit(ftypes.BaseData):
             # Check for problems
             if i0 is None:
                 # Below
-                raise ValueError(
-                    ("Value %s=%.4e " % (k, xi)) +
-                    ("below lower bound (%.4e)" % Vk[0]))
+                # Above bounds
+                if extrap in ["hold", "holdlast", "last"]:
+                    # Hold last value
+                    i0, i1 = i1, i1 + 1
+                    f = 0.0
+                elif extrap in ["linear"]:
+                    # Just use last interval (*f* already computed)
+                    i0, i1 = i1, i1 + 1
+                else:
+                    # No extrapolation
+                    raise ValueError(
+                        ("Value %s=%.4e " % (k, xi)) +
+                        ("below lower bound (%.4e)" % Vk[0]))
             elif i1 is None:
-                raise ValueError(
-                    ("Value %s=%.4e " % (k, xi)) +
-                    ("above upper bound (%.4e)" % Vk[-1]))
+                # Above bounds
+                if extrap in ["hold", "holdlast", "last"]:
+                    # Hold last value
+                    i0, i1 = i0 - 1, i0
+                    f = 1.0
+                elif extrap in ["linear"]:
+                    # Just use last interval (*f* already computed)
+                    i0, i1 = i0 - 1, i0
+                else:
+                    # No extrapolation
+                    raise ValueError(
+                        ("Value %s=%.4e " % (k, xi)) +
+                        ("above upper bound (%.4e)" % Vk[-1]))
             # Save values
             I0.append(i0)
             I1.append(i1)
@@ -6044,7 +6066,7 @@ class DataKit(ftypes.BaseData):
         return self._bkpt(V, v)
 
     # Get break point from vector
-    def _bkpt_index(self, V, v, tol=1e-8, col=None):
+    def _bkpt_index(self, V, v, tol=1e-5, col=None):
         r"""Get interpolation weights for 1D interpolation
 
         This function tries to find *i0* and *i1* such that *v* is
@@ -6085,7 +6107,7 @@ class DataKit(ftypes.BaseData):
             return None, 0, (v-V[0])/(V[1]-V[0])
         elif v > vmax + tol*(vmax-vmin):
             # Extrapolation right
-            return n-1, None, (v-V[-1])/(V[-1]-V[-2])
+            return n-1, None, (v-V[-2])/(V[-1]-V[-2])
         # Otherwise, count up values below
         i0 = np.sum(V[:-1] <= v) - 1
         i1 = i0 + 1

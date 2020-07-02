@@ -1918,8 +1918,8 @@ class DBLL(dbfm.DBFM):
                     # Create matrix
                     A = np.vstack((
                         [np.hstack((Z, -Y))],
-                        np.array([1.0, 1.0, 1.0, 0.0, 0.0, 0.0]),
-                        np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0])))
+                        np.hstack((np.ones(ncomp), np.zeros(ncomp))),
+                        np.hstack((np.zeros(ncomp), np.ones(ncomp)))))
                     # Create constraints
                     b = np.array([0, -d1, -d2])
                     # Solve least squares system
