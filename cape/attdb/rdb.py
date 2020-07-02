@@ -1501,6 +1501,8 @@ class DataKit(ftypes.BaseData):
         method_col = method_col.lower().replace("_", "-")
         # Get proper method name (default to same)
         method_col = cls._method_map.get(method_col, method_col)
+        # Args
+        method_args = self.get_response_args(col)
         # Output dimensionality
         ndim_col = self.get_output_ndim(col)
         # Get maps from function name to function callable
@@ -1531,8 +1533,31 @@ class DataKit(ftypes.BaseData):
             for j in range(nx):
                 # Construct inputs
                 xj = [Xi[j] for Xi in X]
-                # Call scalar function
-                V[j] = f(col, args_col, *xj, **kw_fn)
+                # Construct kwargs
+                kwj = dict()
+                # Loop through keywords
+                for kj, vj in kw_fn.items():
+                    # Check if it's a recognized arg
+                    if kj in method_args:
+                        # Check type
+                        if isinstance(vj, (list, np.ndarray)):
+                            # Save item
+                            kwj[kj] = vj[j]
+                        else:
+                            # Save whole
+                            kwj[kj] = vj
+                    else:
+                        # Save whole, even if array
+                        kwj = vj
+                # Call scalar (hopefully) function
+                Vj = f(col, args_col, *xj, **kwj)
+                # Check if scalar
+                if isinstance(Vj, np.ndarray):
+                    # Something allowed an array arg in; try item
+                    V[j] = Vj[j]
+                else:
+                    # It should be a scalar, so this is the normal sit
+                    V[j] = Vj
             # Reshape
             V = V.reshape(dims)
             # Output
