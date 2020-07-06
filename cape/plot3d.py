@@ -14,14 +14,16 @@ create the solution file.
 
 """
 
-# System interface
+# Standard library
 import os
-# Numerics
+
+# Third-party modules
 import numpy as np
 
 # Local modules
 from . import io
 from . import util
+from . import tri
 from .filecntl import namelist2
 
 # Default tolerances for mapping triangulations
@@ -2106,6 +2108,49 @@ class Q(X):
             io.write_record_r8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
+  # >
+
+  # ===================
+  # Triangulation
+  # ===================
+  # <
+   # --- Creators ---
+    # Divide mesh into simple triangulation
+    def make_tri(self):
+        r"""Divide a surface grid into a triangulation
+
+        :Call:
+            >>> tri = x.make_tri()
+        :Versions:
+            * 2020-07-06 ``@ddalle``: Version 1.0
+        """
+        # Select dimensions
+        dims = self.dims
+        # Get min dimension for each grid
+        ndimmin = np.min(dims, axis=1)
+        # Get max min dimension
+        if np.max(ndimmin) > 1:
+            # Find index of first offending grid
+            ig = np.where(ndimmin > 1)[0][0]
+            # Found at least one volume mesh
+            raise IndexError(
+                ("Cannot process non-surface grid %i " % ig) +
+                ("dimensions %i x %i x %i" % tuple(dims[ig])))
+        # Get nodes
+        nodes = self.X.copy()
+        # Triangle counter along each dimension
+        tridims = np.fmax(1, dims - 1)
+        # Number of triangles
+        ntri = 2 * np.sum(np.prod(tridims, axis=1))
+        # Current triangle counter
+        itri = 0
+        # Current node counter
+        inode = 0
+        # Loop through meshes
+        for i in range(self.NG):
+            # Get 
+            pass
+
   # >
 # class X
 
