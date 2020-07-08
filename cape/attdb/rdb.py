@@ -1548,7 +1548,7 @@ class DataKit(ftypes.BaseData):
                             kwj[kj] = vj
                     else:
                         # Save whole, even if array
-                        kwj = vj
+                        kwj[kj] = vj
                 # Call scalar (hopefully) function
                 Vj = f(col, args_col, *xj, **kwj)
                 # Check if scalar
