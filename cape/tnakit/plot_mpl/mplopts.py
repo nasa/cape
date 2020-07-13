@@ -1043,7 +1043,6 @@ class MPLOpts(kwutils.KwargHandler):
             "PlotLineStyle": "ls",
         },
         "ScatterOptions": {
-            "Index": "Index",
             "Rotate": "Rotate",
             "ScatterColor": "c",
             "ScatterSize": "s",
@@ -1668,6 +1667,10 @@ class MPLOpts(kwutils.KwargHandler):
             "ls": ":",
             "lw": 0.5,
             "color": "#b0b0b0",
+        },
+        "ScatterOptions": {
+            "marker": "d",
+            "zorder": 7,
         },
         "PlotOptions": {
             "color": ["b", "k", "darkorange", "g"],
@@ -2401,6 +2404,29 @@ class MPLOpts(kwutils.KwargHandler):
             # Combine FillBetween options into main options
             kw[mainopt] = dict(kw_fb, **kw_mm)
         # Output
+        return kw
+
+   # Options for scatter plots
+    def scatter_options(self):
+        r"""Process options for :func:`scatter` calls
+
+        :Call:
+            >>> kw = opts.scatter_options()
+        :Inputs:
+            *opts*: :class:`MPLOpts`
+                Options interface
+        :Keys:
+            %(keys)s
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of options to :func:`scatter`
+        :Versions:
+            * 2019-03-05 ``@ddalle``: First version
+            * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
+            * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
+        """
+        # Specific options
+        kw = self.get_option("ScatterOptions")
         return kw
 
     # Options for sigma bounds on histogram plots

@@ -282,6 +282,51 @@ def plot(xv, yv, *a, **kw):
     return h
 
 
+# Scatter plotter
+def scatter(xv, yv,  *a, **kw):
+    r"""Scatter plots with many options
+
+    :Call:
+        >>> h, kw = scatter(xv, yv, *a, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for *x*-axis
+        *yv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for *y*-axis
+    :Outputs:
+        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+            Dictionary of plot handles
+    :Versions:
+        * 2020-07-13 ``@jmeeroff``: First version
+    """
+   # --- Prep ---
+    # Process options
+    opts, h = _preprocess_kwargs(**kw)
+    # Save values
+    opts.set_option("x", xv)
+    opts.set_option("y", yv)
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
+   # --- Primary Plot ---
+    # Plot, then others
+    _part_scatter(opts, h)
+    # --- Axis formatting ---
+     # Format grid, spines, extents, and window
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    _part_axes_adjust(opts, h)
+    _part_axes_format(opts, h)
+    # --- Labeling ---
+    # Colorbar
+    _part_colorbar(opts, h)
+    # --- Cleanup ---
+     # Final margin adjustment
+    _part_axes_adjust(opts, h)
+    # Output
+    return h
+
 # Partial function: prepare figure
 def _part_init_figure(opts, h):
     # Process figure options
@@ -335,8 +380,20 @@ def _part_contour(opts, h):
     h.save("contour", contour)
     h.save("lines", lines)
 
+# Partial function: scatter()
+def _part_scatter(opts, h):
+    # Call scatter plot method
+    # Process scatter options
+    kw = opts.scatter_options()
+    # Get values
+    xv = opts.get_option("x")
+    yv = opts.get_option("y")
+    # Contour plot call
+    scatter = mpl._scatter(xv, yv, **kw)
+    # Save contour and lines
+    h.save("scatter", scatter)
 
-# Partial function: contour()
+# Partial function: hist()
 def _part_hist(opts, h):
     # Call histogram method
     # Process histogram options
