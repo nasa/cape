@@ -2435,6 +2435,8 @@ def _scatter(xv, yv, **kw):
     """
     # Ensure plot() is available
     _import_pyplot()
+    # Get index
+    i = kw.pop("Index", kw.pop("i", 0))
     # Get rotation option
     r = kw.pop("Rotate", kw.pop("rotate", False))
     # Flip inputs
@@ -2443,8 +2445,10 @@ def _scatter(xv, yv, **kw):
     # Get Color and Size options
     color = kw.pop('c', None)
     size = kw.pop('s', None)
+    # Initialize plot options
+    kw_p = MPLOpts.select_phase(kw, i)
     # Call scatter
-    h = plt.scatter(xv, yv, s=size, c=color, **kw)
+    h = plt.scatter(xv, yv, s=size, c=color, **kw_p)
     # Output
     return h
 

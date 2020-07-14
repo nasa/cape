@@ -1043,6 +1043,7 @@ class MPLOpts(kwutils.KwargHandler):
             "PlotLineStyle": "ls",
         },
         "ScatterOptions": {
+            "Index": "Index",
             "Rotate": "Rotate",
             "ScatterColor": "c",
             "ScatterSize": "s",
