@@ -1080,6 +1080,129 @@ class X(object):
         # Close the file
         f.close()
   # >
+
+  # ===================
+  # Triangulation
+  # ===================
+  # <
+   # --- Creators ---
+    # Divide mesh into simple triangulation
+    def make_tri(self):
+        r"""Divide a surface grid into a triangulation
+
+        :Call:
+            >>> tri = x.make_tri()
+        :Versions:
+            * 2020-07-06 ``@ddalle``: Version 1.0
+        """
+        # Select dimensions
+        dims = self.dims
+        # Get min dimension for each grid
+        ndimmin = np.min(dims, axis=1)
+        # Get max min dimension
+        if np.max(ndimmin) > 1:
+            # Find index of first offending grid
+            ig = np.where(ndimmin > 1)[0][0]
+            # Found at least one volume mesh
+            raise IndexError(
+                ("Cannot process non-surface grid %i " % ig) +
+                ("dimensions %i x %i x %i" % tuple(dims[ig])))
+        # Get nodes
+        nodes = self.X.copy().T
+        # Triangle counter along each dimension
+        tridims = np.fmax(1, dims - 1)
+        # Number of triangles
+        Ntri = 2 * np.prod(tridims, axis=1)
+        ntri = 2 * np.sum(Ntri)
+        # Initialize tris and component numbers
+        tris = np.zeros((ntri, 3), dtype="int")
+        compid = np.zeros(ntri, dtype="int")
+        # Current triangle counter
+        mtri = 0
+        # Current node counter
+        mnode = 0
+        # Loop through meshes
+        for i in range(self.NG):
+            # Get number of triangles in this grid
+            itri = Ntri[i]
+            # Dimensions for this triangle
+            idims = dims[i]
+            # Get minor dimensions
+            if idims[2] == 1:
+                # Use J and K
+                nj = idims[0]
+                nk = idims[1]
+            elif dims[i][1] == 1:
+                # Use J and L
+                nj = idims[0]
+                nk = idims[2]
+            else:
+                # Use K and L
+                nj = idims[1]
+                nk = idims[2]
+            # Number of nodes in this grid
+            inode = nj * nk
+            # Range of nodes
+            ia = mnode
+            ib = mnode + inode
+            # Downselect nodes
+            inodes = nodes[ia:ib, :]
+            # Boolean maps to select corners
+            q1 = np.ones(inode, dtype="bool")
+            q2 = np.ones(inode, dtype="bool")
+            q3 = np.ones(inode, dtype="bool")
+            q4 = np.ones(inode, dtype="bool")
+            # Adjust the map for top left corner
+            q1[nj-1::nj] = False
+            q1[nj*(nk-1):] = False
+            # Adjust the map for top right corner
+            q2[::nj] = False
+            q2[nj*(nk-1):] = False
+            # Adjust the map for bottom left corner
+            q3[nj-1::nj] = False
+            q3[:nj] = False
+            # Adjust the map for bottom right corner
+            q4[::nj] = False
+            q4[:nj] = False
+            # Get corners of each each quad
+            x1 = inodes[q1, :]
+            x2 = inodes[q2, :]
+            x3 = inodes[q3, :]
+            x4 = inodes[q4, :]
+            # Calculate lengths of diagonals
+            d14 = np.sqrt(np.sum((x1 - x4)**2, axis=1))
+            d23 = np.sqrt(np.sum((x2 - x3)**2, axis=1))
+            # Find shorter diagonal
+            q14 = (d14 < d23 + 2e-2*d14)
+            q23 = np.logical_not(q14)
+            # Node numbers
+            i1 = np.where(q1)[0]
+            i2 = np.where(q2)[0]
+            i3 = np.where(q3)[0]
+            i4 = np.where(q4)[0]
+            # Initialize tris
+            itris = np.zeros((itri, 3), dtype="int")
+            # Assume 2 -> 3 connection at first
+            itris1 = np.stack((i2, i3, i4), axis=1)
+            itris2 = np.stack((i1, i3, i2), axis=1)
+            # Save 1 -> 4 where appropriate
+            itris1[q14, :] = np.stack((i1[q14], i4[q14], i2[q14]), axis=1)
+            itris2[q14, :] = np.stack((i1[q14], i3[q14], i4[q14]), axis=1)
+            # Save to overall tris
+            itris[::2, :] = itris1
+            itris[1::2, :] = itris2
+            # Save tris (1-based indexing)
+            tris[mtri:mtri + itri, :] = itris + mnode + 1
+            # Save components
+            compid[mtri:mtri + itri] = i + 1
+            # Update counters
+            mtri += itri
+            mnode += inode
+        # Create triangulation
+        T = tri.Tri(Nodes=nodes, Tris=tris, CompID=compid)
+        # Output
+        return T
+  # >
   
   # ======
   # MIXSUR
@@ -2109,50 +2232,7 @@ class Q(X):
         # Close the file
         f.close()
   # >
-
-  # ===================
-  # Triangulation
-  # ===================
-  # <
-   # --- Creators ---
-    # Divide mesh into simple triangulation
-    def make_tri(self):
-        r"""Divide a surface grid into a triangulation
-
-        :Call:
-            >>> tri = x.make_tri()
-        :Versions:
-            * 2020-07-06 ``@ddalle``: Version 1.0
-        """
-        # Select dimensions
-        dims = self.dims
-        # Get min dimension for each grid
-        ndimmin = np.min(dims, axis=1)
-        # Get max min dimension
-        if np.max(ndimmin) > 1:
-            # Find index of first offending grid
-            ig = np.where(ndimmin > 1)[0][0]
-            # Found at least one volume mesh
-            raise IndexError(
-                ("Cannot process non-surface grid %i " % ig) +
-                ("dimensions %i x %i x %i" % tuple(dims[ig])))
-        # Get nodes
-        nodes = self.X.copy()
-        # Triangle counter along each dimension
-        tridims = np.fmax(1, dims - 1)
-        # Number of triangles
-        ntri = 2 * np.sum(np.prod(tridims, axis=1))
-        # Current triangle counter
-        itri = 0
-        # Current node counter
-        inode = 0
-        # Loop through meshes
-        for i in range(self.NG):
-            # Get 
-            pass
-
-  # >
-# class X
+# class Q
 
 
 # Map surface grid points to TRI file components
