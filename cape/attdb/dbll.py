@@ -3110,7 +3110,7 @@ class DBLL(dbfm.DBFM):
             # Combine masks
             maskj = mask_index[maskx]
             # Calculate basis
-            basisj = self._genr8_ll3x_basis(cols, mask=maskj, **kw)
+            basisj = self._genr8_ll3x_basis(cols, mask=maskj, **kw_)
             # Initialize if first slice
             if j == 0:
                 # Get number of cuts

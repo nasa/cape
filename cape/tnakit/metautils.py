@@ -236,7 +236,7 @@ class ModulePropDB(dict):
         # Get existing :class:`dict` for this module
         opts = self[mod]
         # Get key order from *.settings*
-        keys = self.settings["Keys"]
+        keys = self.settings["Keys"] + sorted(opts.keys())
         # Sort keys of *opts* according to order specified in *.settings*
         for k in sorted(opts.keys(), key=keys.index):
             # Save the property to :class:`OrderedDict`
