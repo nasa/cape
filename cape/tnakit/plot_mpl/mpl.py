@@ -2803,6 +2803,8 @@ def auto_ylim(ax, pad=0.05):
     # Initialize limits
     ymin = np.inf
     ymax = -np.inf
+    # Not a log plot at first 
+    islog = 0
     # Loop through all children of the input axes.
     for h in ax.get_children():
         # Get the type.
@@ -2816,8 +2818,6 @@ def auto_ylim(ax, pad=0.05):
             # Check if log scale
             if h.axes.get_yscale() == "log":
                 islog = 1
-            else: 
-                islog = 0
             # Check the min and max data
             if len(ydata) > 0:
                 ymin = min(ymin, np.min(ydata))
