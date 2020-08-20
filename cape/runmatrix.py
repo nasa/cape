@@ -1942,7 +1942,10 @@ class RunMatrix(dict):
             *i*: :class:`numpy.ndarray` (:class:`int`)
                 List of indices that match constraints
         :Versions:
-            * 2014-12-09 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Version 1.0
+            * 2019-12-09 ``@ddalle``: Version 2.0
+                - Discontinue attributes, i.e. *x.mach*
+                - Use :mod:`re` to process constraints
         """
         # Initialize the conditions.
         if I is None:

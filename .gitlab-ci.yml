@@ -1,0 +1,14 @@
+
+before_script:
+    - export PATH=$PATH:~/.local/bin
+
+pages:
+    stage: deploy
+    script:
+    - make html
+    - cp -r _build/html public
+    artifacts:
+        paths:
+        - public
+    only:
+    - master
