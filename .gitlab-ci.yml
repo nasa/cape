@@ -5,6 +5,7 @@ before_script:
 pages:
     stage: deploy
     script:
+    - cd doc
     - make html
     - cp -r _build/html public
     artifacts:
