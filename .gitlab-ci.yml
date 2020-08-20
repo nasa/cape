@@ -7,7 +7,7 @@ pages:
     script:
     - cd doc
     - make html
-    - cp -r _build/html public
+    - cp -r _build/html ../public
     artifacts:
         paths:
         - public
