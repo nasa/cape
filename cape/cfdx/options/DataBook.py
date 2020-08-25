@@ -62,7 +62,7 @@ class DataBook(odict):
         # Read the targets
         targs = self['Targets']
         # Check the type.
-        if type(targs).__name__ not in 'dict':
+        if not isinstance(targs, dict):
             # Invalid type
             raise TypeError('Data book targets must be a dictionary')
         # Initialize final state.
