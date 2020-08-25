@@ -7735,6 +7735,9 @@ class CaseData(object):
         # Process inputs.
         nLast = kw.get('nLast')
         nFirst = kw.get('nFirst', 1)
+        # De-None
+        if nFirst is None:
+            nFirst = 1
         # Check if *nFirst* is negative
         if nFirst < 0:
             nFirst = self.i[-1] + nFirst
@@ -7780,7 +7783,8 @@ class CaseData(object):
        # First Iter
        # ----------
         # Don't cut off the entire history
-        if nFirst >= iB: nFirst = 1
+        if nFirst >= iB:
+            nFirst = 1
         # Default number of iterations: all
         if n is None: n = len(self.i)
         j0 = max(0, jB-n)

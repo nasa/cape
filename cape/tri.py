@@ -603,7 +603,7 @@ class TriBase(object):
         # Read the first record marker
         R = np.fromfile(fid, count=1, dtype=fi)
         # Number of integers in first line
-        r = R[0] / ni
+        r = R[0] // ni
         # Read header line; also read
         H = np.array(np.fromfile(fid, count=r+2, dtype=fi), dtype='int')
         # Set number of nodes and tris
@@ -718,7 +718,7 @@ class TriBase(object):
         # Open the file; attempt a binary read
         fid = open(fname, 'rb')
         # Read the first entry as a double-precision little-endian int
-        r = np.fromfile(fid, count=1, dtype='<i4')
+        r, = np.fromfile(fid, count=1, dtype='<i4')
         # Check for success
         if r >= 8 and r <= 12:
             # Little-endian success
@@ -727,7 +727,7 @@ class TriBase(object):
             # Read the number of nodes (comma unpacks the 1-element array)
             nNode, = np.fromfile(fid, count=1, dtype='<i4')
             # Finish the record
-            np.fromfile(fid, count=r/4, dtype='<i4')
+            np.fromfile(fid, count=r//4, dtype='<i4')
             # Read the record marker for the nodes
             nb, = np.fromfile(fid, count=1, dtype='<i4')
             # Check how many bytes are there
@@ -754,7 +754,7 @@ class TriBase(object):
             # Read the number of nodes (comma unpacks the 1-element array)
             nNode, = np.fromfile(fid, count=1, dtype='>i4')
             # Finish the record
-            np.fromfile(fid, count=r/4, dtype='>i4')
+            np.fromfile(fid, count=r//4, dtype='>i4')
             # Read the record marker for the nodes
             nb, = np.fromfile(fid, count=1, dtype='>i4')
             # Check how many bytes are there
@@ -2151,16 +2151,15 @@ class TriBase(object):
         :Versions:
             * 2018-02-23 ``@ddalle``: Split from :func:`ReadUH3D`
         """
-        # Check input
-        qfile = (type(fname).__name__ == "file")
         # Open file if necessary
-        if qfile:
+        if hasattr(fname, "read"):
             # File handle
             fid = fname
+            qfile = True
         else:
             # Open the file
             fid = open(fname, 'r')
-
+            qfile = False
         # Initialize components.
         Conf = {}
         # Initialize check for end of file

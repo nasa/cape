@@ -605,7 +605,7 @@ class Report(odict):
         # Get figures dictionary.
         sfigs = self.get('Subfigures', {})
         # Output the keys.
-        return sfigs.keys()
+        return list(sfigs.keys())
         
     # Get the report options.
     def get_Report(self, rep):
@@ -700,18 +700,29 @@ class Report(odict):
             * 2015-03-08 ``@ddalle``: First version
         """
         # get the subfigure options
-        S = self.get_Subfigure(sfig)
+        S = dict(self.get_Subfigure(sfig))
         # Get the type
         typ = S.get("Type")
+        # Exit if not cascading
+        if typ == sfig:
+            # Self-referenced type
+            return S
         # Get list of subfigures
         sfigs = self.get_SubfigList()
         # Check if that type is a template
-        if typ in sfigs:
-            # Get the options from that subfigure; recurse
-            T = self.get_SubfigCascade(typ)
-            # Apply template options but do not overwrite
-            for k in T.keys():
-                S.setdefault(k, T[k])
+        if typ not in sfigs:
+            # No cascading style
+            return S
+        # Get the options from that subfigure; recurse
+        T = self.get_SubfigCascade(typ)
+        # Get new type
+        typ = T.get("Type")
+        # Overwrite type
+        if typ is not None:
+            S["Type"] = typ
+        # Apply template options but do not overwrite
+        for k, v in T.items():
+            S.setdefault(k, v)
         # Output
         return S
             
