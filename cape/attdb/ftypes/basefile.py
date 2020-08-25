@@ -122,6 +122,8 @@ class BaseFile(BaseData):
    # --- Options ---
     # Class for options
     _optscls = BaseFileOpts
+    # Definition class
+    _defncls = BaseFileDefn
   # >
 
   # ==========

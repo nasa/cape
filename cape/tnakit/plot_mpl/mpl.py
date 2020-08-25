@@ -416,7 +416,7 @@ def scatter(xv, yv, s=None, c=None, **kw):
     # Apply optional positional arguments
     if s:
         kw["ScatterSize"] = s
-    if c:
+    if c.any():
         kw["ScatterColor"] = c
     # Process options
     opts = MPLOpts(_section="scatter", **kw)
@@ -2413,24 +2413,16 @@ def _contour(xv, yv, zv, **kw):
 
 
 # Scatter part
-def _scatter(xv, yv, s=None, c=None, **kw):
+def _scatter(xv, yv, **kw):
     r"""Call the :func:`plot` function with cycling options
 
     :Call:
         >>> h = _scatter(xv, yv, **kw)
-        >>> h = _scatter(xv, yv, s=None, c=None, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`
             Array of *x*-coordinates
         *yv*: :class:`np.ndarray`
             Array of *y*-coordinates
-        *s*: :class:`np.ndarray` | :class:`float`
-            Size of marker for each data point, in points^2
-        *c*: :class:`np.ndarray` | :class:`list`
-            Color or color indicator to use for each data point; usually
-            an array of floats that maps into color map
-        *i*, *Index*: {``0``} | :class:`int`
-            Phase number to cycle through plot options
         *rotate*, *Rotate*: ``True`` | {``False``}
             Plot independent variable on vertical axis
     :Keyword Arguments:
@@ -2450,10 +2442,13 @@ def _scatter(xv, yv, s=None, c=None, **kw):
     # Flip inputs
     if r:
         yv, xv = xv, yv
+    # Get Color and Size options
+    color = kw.pop('c', None)
+    size = kw.pop('s', None)
     # Initialize plot options
     kw_p = MPLOpts.select_phase(kw, i)
     # Call scatter
-    h = plt.scatter(xv, yv, s=None, c=None, **kw_p)
+    h = plt.scatter(xv, yv, s=size, c=color, **kw_p)
     # Output
     return h
 
@@ -2744,7 +2739,13 @@ def auto_xlim(ax, pad=0.05):
             if len(xdata) > 0:
                 xmin = min(xmin, np.min(xdata))
                 xmax = max(xmax, np.max(xdata))
-        elif t in ['PathCollection', 'PolyCollection', 'LineCollection']:
+        elif t in ['PathCollection']:
+            # Get bounds
+            bbox = h.get_datalim(ax.transData).extents
+            # Update limits
+            xmin = min(xmin, min(bbox[0], bbox[2]))
+            xmax = max(xmax, max(bbox[0], bbox[2]))
+        elif t in ['PolyCollection', 'LineCollection']:
             # Loop through paths
             for P in h.get_paths():
                 # Get the coordinates
@@ -2802,6 +2803,8 @@ def auto_ylim(ax, pad=0.05):
     # Initialize limits
     ymin = np.inf
     ymax = -np.inf
+    # Not a log plot at first 
+    islog = 0
     # Loop through all children of the input axes.
     for h in ax.get_children():
         # Get the type.
@@ -2812,11 +2815,20 @@ def auto_ylim(ax, pad=0.05):
             ydata = h.get_ydata()
             # Filter Nans
             ydata = ydata[np.isfinite(ydata)]
+            # Check if log scale
+            if h.axes.get_yscale() == "log":
+                islog = 1
             # Check the min and max data
             if len(ydata) > 0:
                 ymin = min(ymin, np.min(ydata))
                 ymax = max(ymax, np.max(ydata))
-        elif t in ['PathCollection', 'PolyCollection', 'LineCollection']:
+        elif t in ['PathCollection']:
+            # Get bounds
+            bbox = h.get_datalim(ax.transData).extents
+            # Update limits
+            ymin = min(ymin, min(bbox[1], bbox[3]))
+            ymax = max(ymax, max(bbox[1], bbox[3]))
+        elif t in ['PolyCollection', 'LineCollection']:
             # Loop through paths
             for P in h.get_paths():
                 # Get the coordinates
@@ -2843,8 +2855,13 @@ def auto_ylim(ax, pad=0.05):
         ymax += pad*abs(ymax)
         ymin -= pad*abs(ymin)
     # Add padding
-    yminv = (1+pad)*ymin - pad*ymax
-    ymaxv = (1+pad)*ymax - pad*ymin
+    # Modify for log scale - only pad max
+    if islog == 1:
+        ymaxv = (1+pad)*ymax - pad*ymin
+        yminv = ymin    
+    else:
+        yminv = (1+pad)*ymin - pad*ymax
+        ymaxv = (1+pad)*ymax - pad*ymin
     # Output
     return yminv, ymaxv
 

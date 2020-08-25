@@ -702,6 +702,10 @@ class DataKit(ftypes.BaseData):
         """
         # Get column definition
         defn = self.get_defn(col)
+        # Default
+        if ndim is None:
+            # Assume scalar
+            ndim = 1
         # Check type
         if not isinstance(ndim, int):
             raise TypeError(
@@ -729,6 +733,10 @@ class DataKit(ftypes.BaseData):
         """
         # Get column definition
         defn = self.get_defn(col)
+        # Default
+        if ndim is None:
+            # Assume scalar output
+            ndim = 0
         # Check type
         if not isinstance(ndim, int):
             raise TypeError(
@@ -955,6 +963,8 @@ class DataKit(ftypes.BaseData):
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
+            *append*: ``True`` | {``False``}
+                Option to combine cols with same name
             *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
@@ -974,7 +984,7 @@ class DataKit(ftypes.BaseData):
             # Create an instance
             dbf = ftypes.CSVFile(fname, **kw)
         # Link the data
-        self.link_data(dbf)
+        self.link_data(dbf, append=kw.get("append", False))
         # Copy the options
         self.clone_defns(dbf.defns)
         # Apply default
@@ -1491,6 +1501,8 @@ class DataKit(ftypes.BaseData):
         method_col = method_col.lower().replace("_", "-")
         # Get proper method name (default to same)
         method_col = cls._method_map.get(method_col, method_col)
+        # Args
+        method_args = self.get_response_args(col)
         # Output dimensionality
         ndim_col = self.get_output_ndim(col)
         # Get maps from function name to function callable
@@ -1521,8 +1533,31 @@ class DataKit(ftypes.BaseData):
             for j in range(nx):
                 # Construct inputs
                 xj = [Xi[j] for Xi in X]
-                # Call scalar function
-                V[j] = f(col, args_col, *xj, **kw_fn)
+                # Construct kwargs
+                kwj = dict()
+                # Loop through keywords
+                for kj, vj in kw_fn.items():
+                    # Check if it's a recognized arg
+                    if kj in method_args:
+                        # Check type
+                        if isinstance(vj, (list, np.ndarray)):
+                            # Save item
+                            kwj[kj] = vj[j]
+                        else:
+                            # Save whole
+                            kwj[kj] = vj
+                    else:
+                        # Save whole, even if array
+                        kwj[kj] = vj
+                # Call scalar (hopefully) function
+                Vj = f(col, args_col, *xj, **kwj)
+                # Check if scalar
+                if isinstance(Vj, np.ndarray):
+                    # Something allowed an array arg in; try item
+                    V[j] = Vj[j]
+                else:
+                    # It should be a scalar, so this is the normal sit
+                    V[j] = Vj
             # Reshape
             V = V.reshape(dims)
             # Output
@@ -3533,6 +3568,8 @@ class DataKit(ftypes.BaseData):
         """
         # Check for break-point evaluation flag
         bkpt = kw.get("bkpt", kw.get("breakpoint", False))
+        # Extrapolation option
+        extrap = kw.get("extrap", "hold")
         # Possible values
         try:
             # Extract coefficient
@@ -3592,13 +3629,33 @@ class DataKit(ftypes.BaseData):
             # Check for problems
             if i0 is None:
                 # Below
-                raise ValueError(
-                    ("Value %s=%.4e " % (k, xi)) +
-                    ("below lower bound (%.4e)" % Vk[0]))
+                # Above bounds
+                if extrap in ["hold", "holdlast", "last"]:
+                    # Hold last value
+                    i0, i1 = i1, i1 + 1
+                    f = 0.0
+                elif extrap in ["linear"]:
+                    # Just use last interval (*f* already computed)
+                    i0, i1 = i1, i1 + 1
+                else:
+                    # No extrapolation
+                    raise ValueError(
+                        ("Value %s=%.4e " % (k, xi)) +
+                        ("below lower bound (%.4e)" % Vk[0]))
             elif i1 is None:
-                raise ValueError(
-                    ("Value %s=%.4e " % (k, xi)) +
-                    ("above upper bound (%.4e)" % Vk[-1]))
+                # Above bounds
+                if extrap in ["hold", "holdlast", "last"]:
+                    # Hold last value
+                    i0, i1 = i0 - 1, i0
+                    f = 1.0
+                elif extrap in ["linear"]:
+                    # Just use last interval (*f* already computed)
+                    i0, i1 = i0 - 1, i0
+                else:
+                    # No extrapolation
+                    raise ValueError(
+                        ("Value %s=%.4e " % (k, xi)) +
+                        ("above upper bound (%.4e)" % Vk[-1]))
             # Save values
             I0.append(i0)
             I1.append(i1)
@@ -3655,7 +3712,7 @@ class DataKit(ftypes.BaseData):
         single 1D array for *mach*.
 
         :Call:
-            >>> y = db.rcall_multilinear(col, args, x)
+            >>> y = db.rcall_multilinear_schedule(col, args, x)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -4238,12 +4295,10 @@ class DataKit(ftypes.BaseData):
                 A, U = self.est_uq_col(db2, col, ucol, **kw)
                 # Save primary key
                 self.save_col(ucol, U[:,0])
-                self.make_defn(ucol, U[:,0])
                 # Save additional keys
                 for (j, acol) in enumerate(uq_ecols):
                     # Save additional key values
                     self.save_col(acol, U[:,j+1])
-                    self.make_defn(acol, U[:,j+1])
         # Clean up prompt
         sys.stdout.write("%60s\r" % "")
 
@@ -6011,7 +6066,7 @@ class DataKit(ftypes.BaseData):
         return self._bkpt(V, v)
 
     # Get break point from vector
-    def _bkpt_index(self, V, v, tol=1e-8, col=None):
+    def _bkpt_index(self, V, v, tol=1e-5, col=None):
         r"""Get interpolation weights for 1D interpolation
 
         This function tries to find *i0* and *i1* such that *v* is
@@ -6052,7 +6107,7 @@ class DataKit(ftypes.BaseData):
             return None, 0, (v-V[0])/(V[1]-V[0])
         elif v > vmax + tol*(vmax-vmin):
             # Extrapolation right
-            return n-1, None, (v-V[-1])/(V[-1]-V[-2])
+            return n-1, None, (v-V[-2])/(V[-1]-V[-2])
         # Otherwise, count up values below
         i0 = np.sum(V[:-1] <= v) - 1
         i1 = i0 + 1
@@ -6835,7 +6890,7 @@ class DataKit(ftypes.BaseData):
    # --- Save/Add ---
    # --- Copy/Link ---
     # Link data
-    def link_data(self, dbsrc, cols=None):
+    def link_data(self, dbsrc, cols=None, **kw):
         r"""Save a column to database
         
         :Call:
@@ -6845,6 +6900,8 @@ class DataKit(ftypes.BaseData):
                 Data container
             *cols*: {``None``} | :class:`list`\ [:class:`str`]
                 List of columns to link (or *dbsrc.cols*)
+            *append*: ``True`` | {``False``}
+                Option to append data (or replace it)
         :Effects:
             *db.cols*: :class:`list`\ [:class:`str`]
                 Appends each *col* in *cols* where not present
@@ -6872,6 +6929,8 @@ class DataKit(ftypes.BaseData):
             raise TypeError(
                 "Column list must be a list, got '%s'"
                 % cols.__class__.__name__)
+        # Append option
+        append = kw.get("append", False)
         # Loop through columns
         for col in cols:
             # Check type
@@ -6880,8 +6939,62 @@ class DataKit(ftypes.BaseData):
             # Check if data is present
             if col not in dbsrc:
                 raise KeyError("No column '%s'" % col)
-            # Save the data
-            self.save_col(col, dbsrc[col])
+            # Candidate data
+            v = dbsrc[col]
+            # Get data to save
+            if append and col in self:
+                # Get current values
+                v0 = self[col]
+                # Check consistent types and combine values
+                if (
+                    isinstance(v, float)
+                    and isinstance(v0, np.ndarray) and v0.ndim == 1
+                ):
+                    # Special case of mismatching types
+                    v = np.append(v0, v)
+                elif not (isinstance(v0, type(v)) or isinstance(v, type(v0))):
+                    # No way to combine
+                    sys.stderr.write(
+                        "Cannot combine old and new values for col '%s'\n"
+                        % col)
+                    sys.stderr.flush()
+                elif isinstance(v, list):
+                    # Combine lists
+                    v = v0 + v
+                elif isinstance(v, float):
+                    # Make an array
+                    v = np.array([v0, v])
+                elif isinstance(v, np.ndarray):
+                    # Check dimensions
+                    if v0.ndim == 1 and v.ndim == 0:
+                        # Append scalar
+                        v = np.append(v0, v)
+                    elif v0.ndim != v.ndim:
+                        # Mismatching sizes
+                        sys.stderr.write(
+                            "Cannot combine %iD and %iD arrays for '%s'\n"
+                            % (v0.ndim, v.ndim, col))
+                        sys.stderr.flush()
+                    elif v0.ndim == 1:
+                        # Stack
+                        v = np.hstack((v0, v))
+                    elif v0.ndim == 2:
+                        # Stack vertically
+                        v = np.vstack((v0, v))
+                    else:
+                        # No way to combine 3D matrices
+                        sys.stderr.write(
+                            "Cannot combine %iD arrays for '%s'\n"
+                            % (v.ndim, col))
+                        sys.stderr.flush()
+                else:
+                    # No general fallback combination
+                    sys.stderr.write(
+                        "Cannot combine old and new values for col '%s'\n"
+                        % col)
+                    sys.stderr.flush()
+            # Save the data    
+            self.save_col(col, v)
 
    # --- Access ---
     # Look up a generic key
@@ -7310,7 +7423,7 @@ class DataKit(ftypes.BaseData):
         """
         # Check for empty mask
         if mask is None:
-            return
+            return True
         # Get values
         if (V is None) and (col is not None):
             # Use all values
@@ -8048,10 +8161,8 @@ class DataKit(ftypes.BaseData):
             ocol = self.lstrip_colname(col, "d")
         # Perform the integration
         y = self.genr8_integral(col, xcol, **kw)
-        # Save column
+        # Save column and definition
         self.save_col(ocol, y)
-        # Save definition
-        self.make_defn(ocol, y)
         # Output
         return y
 
@@ -8270,9 +8381,11 @@ class DataKit(ftypes.BaseData):
             xlbl = xk
         # Check for indices
         if len(a) == 0:
-            raise ValueError("At least 2 inputs required; received 1")
-        # Process first second arg as a mask
-        mask = a[0]
+            # Plot all values
+            mask = None
+        else:
+            # Process first second arg as a mask
+            mask = a[0]
         # Check if it looks like a mask
         qmask = self.check_mask(mask)
         # Check for integer
@@ -9031,6 +9144,8 @@ class DataKit(ftypes.BaseData):
         xcol, ycol = self.get_seam_col(seam)
         # Get plot kwargs
         kw_seam = self.get_seam_kwargs(seam)
+        # Get seam offset kwarg
+        dy = kw_seam.pop("SeamDY", 0.0)
         # Plot the image
         hseam = pmpl.plot(self[xcol], self[ycol], **kw_seam)
         # Rescale
@@ -9044,8 +9159,20 @@ class DataKit(ftypes.BaseData):
         h.ax.set_xticklabels([])
         # Format extents nicely
         pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
+        # Get current limits and output limits
+        xmin0, xmax0 = ax_seam.get_xlim()
+        ymin0, ymax0 = ax_seam.get_ylim()
+        # Data *x* lims
+        xmin, xmax = h.ax.get_xlim()
+        # Scale *y* lims
+        hy = (ymax0 - ymin0) * (xmax - xmin) / (xmax0 - xmin0)
+        # Spread out
+        ymin = dy + 0.5*(ymin0 + ymax0 - hy)
+        ymax = dy + 0.5*(ymin0 + ymax0 + hy)
         # Tie horizontal limits
-        ax_seam.set_xlim(h.ax.get_xlim())
+        ax_seam.set_xlim(xmin, xmax)
+        # Update horizontal limits
+        ax_seam.set_ylim(ymin, ymax)
         # Label the axes
         ax_seam.set_label("<seam>")
         # Save parameters
@@ -9219,7 +9346,7 @@ class DataKit(ftypes.BaseData):
             * 2020-04-01 ``@ddalle``: First version
         """
         # Check input
-        if not isinstance(cols, list):
+        if not isinstance(cols, (tuple, list)):
             raise TypeError(
                 "List of cols must be 'list' (got '%s')" % type(cols))
         # Check each col
@@ -9532,7 +9659,7 @@ class DataKit(ftypes.BaseData):
             * 2020-04-02 ``@jmeeroff``: First version
         """
         # Check input
-        if not isinstance(cols, list):
+        if not isinstance(cols, (list, tuple)):
             raise TypeError(
                 "List of cols must be 'list' (got '%s')" % type(cols))
         # Check each col
@@ -9655,7 +9782,7 @@ class DataKit(ftypes.BaseData):
         # Update them
         kw_seam.update(**kw)
         # Convert to options and check
-        kw = pmpl.MPLOpts(_sections=["plot", "axformat"], **kw_seam)
+        kw = pmpl.MPLOpts(_sections=["plot", "axformat", "seam"], **kw_seam)
         # Save it
         seam_kwargs[seam] = kw
 

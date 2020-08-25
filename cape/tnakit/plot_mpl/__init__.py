@@ -168,11 +168,15 @@ def hist(v, *a, **kw):
     # Coverage Intervals
     _part_coverage(opts, h)
    # --- Control Options ---
-    opts.setdefault_option("ShowGauss", False) 
-    opts.setdefault_option("ShowInterval", False) 
-    opts.setdefault_option("ShowMean", False)
-    opts.setdefault_option("ShowSigma", False) 
-    opts.setdefault_option("ShowDelta", False) 
+    opts.setdefault_option("ShowHistGaussian", False) 
+    opts.setdefault_option("ShowHistInterval", False) 
+    opts.setdefault_option("ShowHistIntervalLabel", False) 
+    opts.setdefault_option("ShowHistMean", False)
+    opts.setdefault_option("ShowHistMeanLabel", False)
+    opts.setdefault_option("ShowHistSigma", False) 
+    opts.setdefault_option("ShowHistSigmaLabel", False) 
+    opts.setdefault_option("ShowHistDelta", False) 
+    opts.setdefault_option("ShowHistDeltaLabel", False) 
    # --- Axes Setup ---
     # Figure, then axes
     _part_init_figure(opts, h)
@@ -184,10 +188,10 @@ def hist(v, *a, **kw):
     _part_gauss(opts, h)
     # Interval
     _part_interval(opts, h)
-    # Mean
-    _part_mean(opts, h)
     # Sigma
     _part_sigma(opts,h)
+    # Mean
+    _part_mean(opts, h)
     # Delta
     _part_delta(opts,h)
    # --- Axis formatting ---
@@ -277,6 +281,125 @@ def plot(xv, yv, *a, **kw):
     # Output
     return h
 
+# Primary plotter
+def semilogy(xv, yv, *a, **kw):
+    r"""Plot connected points with many options
+
+    :Call:
+        >>> h, kw = semilogy(xv, yv, *a, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for *x*-axis
+        *yv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for *y*-axis
+    :Outputs:
+        *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
+            Dictionary of plot handles
+    :Versions:
+        * 2019-03-01 ``@ddalle``: First (independent) version
+        * 2019-12-23 ``@ddalle``: Object-oriented options and output
+    """
+   # --- Prep ---
+    # Process options
+    opts, h = _preprocess_kwargs(**kw)
+    # Process plot format
+    if len(a) == 0:
+        # No primary plot specifier
+        pass
+    elif len(a) == 1:
+        # Check one arg for type
+        if not typeutils.isstr(a[0]):
+            raise TypeError(
+                "Extra plot arg must be string (got %s)" % type(a[0]))
+        # Use format from user
+        opts.set_option("fmt", a[0])
+    else:
+        # Too many args
+        raise TypeError(
+            "plot() takes at most 3 args (%i given)" % (len(a) + 2))
+    # Check yvalues to ensure all positive
+    if any(V < 0 for V in yv):
+        raise TypeError(
+            "semilogy() plot requires positive y-values only")
+    # Save values
+    opts.set_option("x", xv)
+    opts.set_option("y", yv)
+   # --- Control Options ---
+    # Defaults to plot different parts
+    opts.setdefault_option("ShowLine", True)
+    opts.setdefault_option("ShowMinMax", ("ymin" in opts) and ("ymax" in opts))
+    opts.setdefault_option("ShowError", ("yerr" in opts))
+    opts.setdefault_option("ShowUncertainty", ("uy" in opts))
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
+   # --- Primary Plot ---
+    # Plot, then others
+    _part_plot(opts, h)
+    _part_semilogy(opts, h)
+    _part_minmax(opts, h)
+    _part_error(opts, h)
+    _part_uq(opts, h)
+   # --- Axis formatting ---
+    # Format grid, spines, extents, and window
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    _part_axes_format(opts, h)
+    _part_axes_adjust(opts, h)
+   # --- Labeling ---
+    # Legend
+    _part_legend(opts, h)
+   # --- Cleanup ---
+    # Final margin adjustment
+    _part_axes_adjust(opts, h)
+    # Output
+    return h
+
+# Scatter plotter
+def scatter(xv, yv,  *a, **kw):
+    r"""Scatter plots with many options
+
+    :Call:
+        >>> h, kw = scatter(xv, yv, *a, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for *x*-axis
+        *yv*: :class:`np.ndarray` (:class:`float`)
+            Array of values for *y*-axis
+    :Outputs:
+        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+            Dictionary of plot handles
+    :Versions:
+        * 2020-07-13 ``@jmeeroff``: First version
+    """
+   # --- Prep ---
+    # Process options
+    opts, h = _preprocess_kwargs(**kw)
+    # Save values
+    opts.set_option("x", xv)
+    opts.set_option("y", yv)
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
+   # --- Primary Plot ---
+    # Plot, then others
+    _part_scatter(opts, h)
+    # --- Axis formatting ---
+     # Format grid, spines, extents, and window
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    _part_axes_adjust(opts, h)
+    _part_axes_format(opts, h)
+    # --- Labeling ---
+    # Colorbar
+    _part_colorbar(opts, h)
+    # --- Cleanup ---
+     # Final margin adjustment
+    _part_axes_adjust(opts, h)
+    # Output
+    return h
 
 # Partial function: prepare figure
 def _part_init_figure(opts, h):
@@ -315,6 +438,14 @@ def _part_plot(opts, h):
         # Save lines
         h.save("lines", lines)
 
+def _part_semilogy(opts, h):
+    # Get axes
+    ax = h.ax
+    # Use empty kewyword dict for now
+    kw = {}
+    # Change to semilogy scale
+    ax.set_yscale("log", **kw)
+
 
 # Partial function: contour()
 def _part_contour(opts, h):
@@ -331,8 +462,20 @@ def _part_contour(opts, h):
     h.save("contour", contour)
     h.save("lines", lines)
 
+# Partial function: scatter()
+def _part_scatter(opts, h):
+    # Call scatter plot method
+    # Process scatter options
+    kw = opts.scatter_options()
+    # Get values
+    xv = opts.get_option("x")
+    yv = opts.get_option("y")
+    # Contour plot call
+    scatter = mpl._scatter(xv, yv, **kw)
+    # Save contour and lines
+    h.save("scatter", scatter)
 
-# Partial function: contour()
+# Partial function: hist()
 def _part_hist(opts, h):
     # Call histogram method
     # Process histogram options
@@ -346,7 +489,7 @@ def _part_hist(opts, h):
 
 # Partial function: gaussian()
 def _part_gauss(opts, h):
-    if opts.get_option("ShowGauss"):
+    if opts.get_option("ShowHistGaussian"):
         # Process gaussian options
         kw = opts.gauss_options()
         # Get mu and std
@@ -380,100 +523,122 @@ def _part_gauss(opts, h):
             # Plot horizontal dist with vertical bump
             gauss = mpl._plot(yval, xval, **kw)
         # Save
-        h.save("gauss", gauss)
+        h.save("gaussian", gauss)
 
 # Partial function: intervale()
 def _part_interval(opts, h):
-    if opts.get_option("ShowInterval"):
-        # Process interval options
-        kw = opts.interval_options()
-        # Get interval 
-        acov = opts.get_option('acov')
-        bcov = opts.get_option('bcov')
-        # Get orientation
-        rotate = kw.pop('Rotate', None)
-        if rotate:
-            orient = "horizontal"
-        else:
-            orient = "vertical"
-        # Get axis limits
-        ax = h.ax
-        if orient == 'vertical':
-            # Vertical: get vertical limits of axes window
-            pmin, pmax = ax.get_ylim()
-            # Plot a vertical range bar
-            interval = mpl._fill_between([pmin, pmax], acov, bcov, Rotate=True, **kw)
+   # Check for option to plot interval
+    if not opts.get_option("ShowHistInterval"):
+        return
+    # Process interval options
+    kw = opts.interval_options()
+    # Get interval 
+    acov = opts.get_option('acov')
+    bcov = opts.get_option('bcov')
+    # Get orientation
+    rotate = kw.pop('Rotate', None)
+    if rotate:
+        orient = "horizontal"
+    else:
+        orient = "vertical"
+    # Get axis limits
+    ax = h.ax
+    if orient == 'vertical':
+        # Vertical: get vertical limits of axes window
+        pmin, pmax = ax.get_ylim()
+        # Plot a vertical range bar
+        interval = mpl._fill_between([pmin, pmax], acov, bcov, Rotate=True, **kw)
 
-        else:
-            # Horizontal: get horizontal limits of axes window
-            pmin, pmax = ax.get_xlim()
-            # Plot a horizontal range bar
-            interval = mpl._fill_between([pmin, pmax], acov, bcov, **kw)
-        # Return
-        h.save("interval", interval)
+    else:
+        # Horizontal: get horizontal limits of axes window
+        pmin, pmax = ax.get_xlim()
+        # Plot a horizontal range bar
+        interval = mpl._fill_between([pmin, pmax], acov, bcov, **kw)
+    # Return
+    h.save("histinterval", interval)
 
 def _part_interval_label(opts, h):
-    if opts.get_option("ShowInterval"):
-        # Get Coverage
-        c = opts.get_option('Coverage')
-        # Interval format
-        flbl = "%.4f"
-        # Form
-        klbl = "I(%.1f%%%%)" % (100*c)
-        # Get interval values
-        a = opts.get_option('acov')
-        b = opts.get_option('bcov')
-        # Insert value
-        lbl = ('%s = [%s,%s]' % (klbl, flbl, flbl)) % (a, b)
-        intervallabel = axlabel(lbl)
-        # Return
-        h.save('intervallabel', intervallabel)    
+   # Check for option to show interval label
+    if not opts.get_option("ShowHistIntervalLabel"):
+        return
+    # Get coverage value
+    c = opts.get_option('Coverage')
+    # Get LabelOptions
+    labelopts = opts.intervallabel_options()
+    # Get Color
+    labelcolor = labelopts.get("HistIntervalLabelColor")
+    # Get Position
+    labelpos = labelopts.get("HistIntervalLabelPosition", None)
+    # Interval format
+    flbl = "%.4f"
+    # Form
+    klbl = "I(%.1f%%%%)" % (100*c)
+    # Get interval values
+    a = opts.get_option('acov')
+    b = opts.get_option('bcov')
+    # Insert value
+    lbl = ('%s = [%s,%s]' % (klbl, flbl, flbl)) % (a, b)
+    intervallabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
+    # Return
+    h.save('histintervallabel', intervallabel)    
 
 # Partial function: mean()
 def _part_mean(opts, h):
-    if opts.get_option("ShowMean"):
-        # Get mu
-        vmu = opts.get_option('mu')
-        # Get orientation
-        rotate = opts.get_option('Rotate')
-        if rotate:
-            orient = "horizontal"
-        else:
-            orient = "vertical"
-        # Process mean options
-        kw = opts.mean_options()
-        # Get axis limits
-        ax = h.ax
-        if orient == 'vertical':
-            # Vertical: get vertical limits of axes window
-            pmin, pmax = ax.get_ylim()
-            # Plot a vertical mean line
-            mean = mpl._plot([vmu, vmu], [pmin, pmax], **kw)
-        else:
-            # Horizontal: get horizontal limits of axes window
-            pmin, pmax = ax.get_xlim()
-            # Plot a horizontal range bar
-            mean = mpl._plot([pmin, pmax], [vmu, vmu], **kw)
-        # Return
-        h.save('mean', mean)
+    # Check for option to plot mean
+    if not opts.get_option("ShowHistMean"):
+        return
+    # Turn off any Y padding
+    opts.setdefault("YPad", 0.0)
+    # Get mu
+    vmu = opts.get_option('mu')
+    # Get orientation
+    rotate = opts.get_option('Rotate')
+    if rotate:
+        orient = "horizontal"
+    else:
+        orient = "vertical"
+    # Process mean options
+    kw = opts.mean_options()
+    # Get axis limits
+    ax = h.ax
+    if orient == 'vertical':
+        # Vertical: get vertical limits of axes window
+        pmin, pmax = ax.get_ylim()
+        # Plot a vertical mean line
+        mean = mpl._plot([vmu, vmu], [pmin, pmax], **kw)
+    else:
+        # Horizontal: get horizontal limits of axes window
+        pmin, pmax = ax.get_xlim()
+        # Plot a horizontal range bar
+        mean = mpl._plot([pmin, pmax], [vmu, vmu], **kw)
+    # Return
+    h.save('mean', mean)
     
 # Partial function: mean_label()
 def _part_mean_label(opts, h):
-    if opts.get_option("ShowMean"):
-        # Get mu
-        vmu = opts.get_option('mu')
-        # Do the label
-        # Formulate the label
-        c = u'μ'
-        # Format code
-        flbl = "%.4f"
-        # First part
-        klbl = ('%s' % c)      
-        # Insert value
-        lbl = (u'%s = %s' % (klbl, flbl)) % vmu
-        meanlabel = axlabel(lbl)
-        # Return
-        h.save('meanlabel', meanlabel)    
+    # Check for option to show mean label
+    if not opts.get_option("ShowHistMeanLabel"):
+        return    
+    # Get mu
+    vmu = opts.get_option('mu')
+    # Get MeanLabelOptions
+    labelopts = opts.meanlabel_options()
+    # Get Color
+    labelcolor = labelopts.get("HistMeanLabelColor")
+    # Get Position
+    labelpos = labelopts.get("HistMeanLabelPosition", None)
+    # Do the label
+    # Formulate the label
+    c = u'μ'
+    # Format code
+    flbl = "%.4f"
+    # First part
+    klbl = ('%s' % c)      
+    # Insert value
+    lbl = (u'%s = %s' % (klbl, flbl)) % vmu
+    meanlabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
+    # Return
+    h.save('meanlabel', meanlabel)    
 
 
 # Partial function: minmax()
@@ -619,8 +784,8 @@ def _part_colorbar(opts, h):
 def _part_coverage(opts, h):
     # Process coverage options
     covopts = opts.coverage_options()
-    cov = covopts.pop("Coverage")
-    cdf = covopts.pop("CoverageCDF", cov)
+    cov = covopts.get("Coverage")
+    cdf = covopts.get("CoverageCDF", cov)
     # Get basic stats
     vmu = opts.get_option("mu")
     vstd = opts.get_option('std')
@@ -628,7 +793,7 @@ def _part_coverage(opts, h):
     # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
     kcdf = statutils.student.ppf(0.5+0.5*cdf, v.size)
     # Check for outliers ...
-    fstd = covopts.pop('FilterSigma', 2.0*kcdf)
+    fstd = covopts.get('FilterSigma', 2.0*kcdf)
     # Remove values from histogram
     if fstd:
         # Find indices of cases that are within outlier range
@@ -646,66 +811,77 @@ def _part_coverage(opts, h):
 
 # Partial function: Delta()
 def _part_delta(opts, h):
-    if opts.get_option("ShowDelta"):
-        # Process sigma options
-        kw = opts.delta_options()
-        # Get mu and sigma
-        vmu = opts.get_option('mu')
-        # Get orientation
-        rotate = opts.get_option('Rotate')
-        if rotate:
-            orient = "horizontal"
-        else:
-            orient = "vertical"
-        # Get axis limits
-        ax = h.ax
-        # Get Reference Delta
-        dc = kw.pop('Delta')
-        # Save it
-        opts.set_option('Delta', dc)
-        # Plot lines
-        if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
-            # Separate lower and upper limits
-            cmin = vmu - dc[0]
-            cmax = vmu + dc[1]
-        else:
-            # Use as a single number
-            cmin = vmu - dc
-            cmax = vmu + dc
-        # Check orientation
-        if orient == 'vertical':
-            # Get vertical limits
-            pmin, pmax = ax.get_ylim()
-            # Plot a vertical line for the min and max
-            delta = (
-                mpl._plot([cmin, cmin], [pmin, pmax], **kw) +
-                mpl._plot([cmax, cmax], [pmin, pmax], **kw))
-        else:
-            # Get horizontal limits
-            pmin, pmax = ax.get_xlim()
-            # Plot a horizontal line for the min and max
-            delta = (
-                mpl._plot([pmin, pmax], [cmin, cmin], **kw) +
-                mpl._plot([pmin, pmax], [cmax, cmax], **kw))
-        # Return
-        h.save('delta', delta)
+    if not opts.get_option("ShowHistDelta"):
+        return
+    # Process hist options
+    kw = opts.delta_options()
+    # Turn off any Y padding
+    opts.setdefault("YPad", 0.0)
+    # Get mu and sigma
+    vmu = opts.get_option('mu')
+    # Get orientation
+    rotate = opts.get_option('Rotate')
+    if rotate:
+        orient = "horizontal"
+    else:
+        orient = "vertical"
+    # Get axis limits
+    ax = h.ax
+    # Get Reference Delta
+    dc = kw.pop('Delta')
+    # Save it
+    opts.set_option('Delta', dc)
+    # Plot lines
+    if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
+        # Separate lower and upper limits
+        cmin = vmu - dc[0]
+        cmax = vmu + dc[1]
+    else:
+        # Use as a single number
+        cmin = vmu - dc
+        cmax = vmu + dc
+    # Check orientation
+    if orient == 'vertical':
+        # Get vertical limits
+        pmin, pmax = ax.get_ylim()
+        # Plot a vertical line for the min and max
+        delta = (
+            mpl._plot([cmin, cmin], [pmin, pmax], **kw) +
+            mpl._plot([cmax, cmax], [pmin, pmax], **kw))
+    else:
+        # Get horizontal limits
+        pmin, pmax = ax.get_xlim()
+        # Plot a horizontal line for the min and max
+        delta = (
+            mpl._plot([pmin, pmax], [cmin, cmin], **kw) +
+            mpl._plot([pmin, pmax], [cmax, cmax], **kw))
+    # Return
+    h.save('histdelta', delta)
 
 def _part_delta_label(opts, h):
-    if opts.get_option("ShowDelta"):
-        # Get Delta
-        dc = opts.get_option('Delta')
-        # Get label
-        c = "coeff"
-        # Interval format
-        flbl = "%.4f"
-        # Insert value
-        if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
-            lbl = (u'\u0394%s = (%s, %s)' % (c, flbl, flbl)) % (dc[0], dc[1])
-        else:
-            lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
-        deltalabel = axlabel(lbl)
-        # Return
-        h.save('deltalabel', deltalabel)    
+    if not opts.get_option("ShowHistDeltaLabel"):
+        return
+    # Get Delta
+    dc = opts.get_option('Delta', 0)
+    # Get LabelOptions
+    labelopts = opts.deltalabel_options()
+    # Get Color
+    labelcolor = labelopts.get("HistDeltaLabelColor")
+    # Get Position
+    labelpos = labelopts.get("HistDeltaLabelPosition", None)
+    # Get label
+    labelname = labelopts.get("HistDeltaLabelName")
+    # Interval format
+    flbl = "%.4f"
+    # Insert value
+    if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
+        lbl = (u'\u0394%s = (%s, %s)' % 
+               (labelname, flbl, flbl)) % (dc[0], dc[1])
+    else:
+        lbl = (u'\u0394%s = %s' % (labelname, flbl)) % dc
+    deltalabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
+    # Return
+    h.save('histdeltalabel', deltalabel)    
 
 # Move axes all the way to one side
 def move_axes(ax, loc, margin=0.0):
@@ -809,69 +985,79 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
 
 # Partial function: sigma()
 def _part_sigma(opts, h):
-    if opts.get_option("ShowSigma"):
-        # Process sigma options
-        kw = opts.sigma_options()
-        # Get mu and sigma
-        vmu = opts.get_option('mu')
-        vstd = opts.get_option('std')
-        # Get orientation
-        rotate = opts.get_option('Rotate')
-        if rotate:
-            orient = "horizontal"
-        else:
-            orient = "vertical"
-        # Get axis limits
-        ax = h.ax
-        # Get Multipliers
-        ksig = kw.pop('StDev', None)
-        # Exit if no standard deviation to show
-        if not ksig:
-            return
-        # Plot lines
-        if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
-            # Separate lower and upper limits
-            vmin = vmu - ksig[0]*vstd
-            vmax = vmu + ksig[1]*vstd
-        else:
-            # Use as a single number
-            vmin = vmu - ksig*vstd
-            vmax = vmu + ksig*vstd
-        # Check orientation
-        if orient == 'vertical':
-            # Get vertical limits
-            pmin, pmax = ax.get_ylim()
-            # Plot a vertical line for the min and max
-            sigma = (
-                mpl._plot([vmin, vmin], [pmin, pmax], **kw) +
-                mpl._plot([vmax, vmax], [pmin, pmax], **kw))
-        else:
-            # Get horizontal limits
-            pmin, pmax = ax.get_xlim()
-            # Plot a horizontal line for the min and max
-            sigma = (
-                mpl._plot([pmin, pmax], [vmin, vmin], **kw) +
-                mpl._plot([pmin, pmax], [vmax, vmax], **kw))
-        # Return
-        h.save('sigma', sigma)
+    if not opts.get_option("ShowHistSigma"):
+        return
+    # Process sigma options
+    kw = opts.sigma_options()
+    # Turn off any Y padding
+    opts.setdefault("YPad", 0.0)
+    # Get mu and sigma
+    vmu = opts.get_option('mu')
+    vstd = opts.get_option('std')
+    # Get orientation
+    rotate = opts.get_option('Rotate')
+    if rotate:
+        orient = "horizontal"
+    else:
+        orient = "vertical"
+    # Get axis limits
+    ax = h.ax
+    # Get Multipliers
+    ksig = kw.pop('StDev', None)
+    # Exit if no standard deviation to show
+    if not ksig:
+        return
+    # Plot lines
+    if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
+        # Separate lower and upper limits
+        vmin = vmu - ksig[0]*vstd
+        vmax = vmu + ksig[1]*vstd
+    else:
+        # Use as a single number
+        vmin = vmu - ksig*vstd
+        vmax = vmu + ksig*vstd
+    # Check orientation
+    if orient == 'vertical':
+        # Get vertical limits
+        pmin, pmax = ax.get_ylim()
+        # Plot a vertical line for the min and max
+        sigma = (
+            mpl._plot([vmin, vmin], [pmin, pmax], **kw) +
+            mpl._plot([vmax, vmax], [pmin, pmax], **kw))
+    else:
+        # Get horizontal limits
+        pmin, pmax = ax.get_xlim()
+        # Plot a horizontal line for the min and max
+        sigma = (
+            mpl._plot([pmin, pmax], [vmin, vmin], **kw) +
+            mpl._plot([pmin, pmax], [vmax, vmax], **kw))
+    # Return
+    h.save('histsigma', sigma)
 
 # Partial function: sigma_label()
 def _part_sigma_label(opts, h):
-    if opts.get_option("ShowSigma"):
-        # Get std
-        vstd = opts.get_option('std')
-        # Do the label
-        # Formulate the label
-        c = u'σ'
-        # Format code
-        flbl = "%.4f"
-        # First part
-        klbl = ('%s' % c)      
-        # Insert value
-        lbl = (u'%s = %s' % (klbl, flbl)) % vstd
-        sigmalabel = axlabel(lbl)
-        # Return
-        h.save('sigmalabel', sigmalabel)  
+    if not opts.get_option("ShowHistSigmaLabel"):
+        return
+    # Get std
+    vstd = opts.get_option('std')
+    # Get LabelOptions
+    labelopts = opts.sigmalabel_options()
+    # Get Color
+    labelcolor = labelopts.get("HistSigmaLabelColor")
+    # Get Position
+    labelpos = labelopts.get("HistSigmaLabelPosition", None)
+    # Do the label
+    # Formulate the label
+    c = u'σ'
+    # Format code
+    flbl = "%.4f"
+    # First part
+    klbl = ('%s' % c)      
+    # Insert value
+    lbl = (u'%s = %s' % (klbl, flbl)) % vstd
+    sigmalabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
+    # Return
+    h.save('histsigmalabel', sigmalabel)  
 
 # Delta Plotting
 def plot_delta(ax, vmu, **kw):
@@ -897,7 +1083,7 @@ def plot_delta(ax, vmu, **kw):
     # Check orientation
     orient = kw.pop('orientation', None)
     # Reference delta
-    dc = kw.pop('Delta', 0.0)
+    dc = kw.get('Delta', 0.0)
     # Check for single number or list
     if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
         # Separate lower and upper limits
@@ -921,52 +1107,6 @@ def plot_delta(ax, vmu, **kw):
             mpl.plt.plot([pmin, pmax], [cmin, cmin], **kw) +
             mpl.plt.plot([pmin, pmax], [cmax, cmax], **kw))
     # Return
-    return h
-
-
-# Histogram Labels Plotting
-def histlab_part(lbl, pos1, pos2, ax, **kw):
-    """Plot the mean on the histogram
-
-    :Call:
-        >>> h = histlab_part(lbl, pos, ax, **kw))
-    :Inputs:
-        *lbl*: :class:`string`
-            Label title (i.e. coefficient)
-        *ax*: ``None`` | :class:`matplotlib.axes._subplots.AxesSubplot`
-            Axes handle
-        *pos1*: :class: `float`
-            label locations (left to right alignment)
-        *pos2*: :class: `boolean'
-            above(True) below(False) top spine alignment
-    :Keyword Arguments:
-        * "*Options" : :dict: of `LabelOptions`
-    :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
-            List of label instances
-    :Versions:
-        * 2019-03-14 ``@jmeeroff``: First version
-    """
-    # Ensure pyplot loaded
-    mpl._import_pyplot()
-    # Remove orientation orientation
-    kw.pop('orientation', None)
-    # get figure handdle
-    f = mpl.plt.gcf()
-    # Y-coordinates of the current axes w.r.t. figure scale
-    ya = ax.get_position().get_points()
-    ha = ya[1, 1] - ya[0, 1]
-    # Y-coordinates above and below the box
-    yf = 2.5 / ha / f.get_figheight()
-    yu = 1.0 + 0.065*yf
-    yl = 1.0 - 0.04*yf
-    # Above/Below Spine location
-    if pos2:
-        y = yu
-    else:
-        y = yl
-    # plot the label
-    h = mpl.plt.text(pos1, y, lbl, transform=ax.transAxes, **kw)
     return h
 
 

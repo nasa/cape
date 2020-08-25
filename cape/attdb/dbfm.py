@@ -61,14 +61,22 @@ class _FMEvalOpts(kwutils.KwargHandler):
    # --- Lists ---
     # All options
     _optlist = {
+        "CompFMCols",
+        "CompX",
+        "CompY",
+        "CompZ",
         "DeltaCols",
+        "FMCols",
         "SourceCols",
         "TargetCols",
         "TargetSaveCols",
         "Translators",
         "mask",
+        "x",
         "xMRP",
+        "y",
         "yMRP",
+        "z",
         "zMRP"
     }
 
@@ -78,6 +86,7 @@ class _FMEvalOpts(kwutils.KwargHandler):
         "YMRP": "yMRP",
         "ZMRP": "zMRP",
         "dcols": "DeltaCols",
+        "fmcols": "CompFMCols",
         "srccols": "SourceCols",
         "targcols": "TargetCols",
         "trans": "Translators",
@@ -89,6 +98,35 @@ class _FMEvalOpts(kwutils.KwargHandler):
 
     # Sections
     _optlists = {
+        "fmcombo_make": {
+            "CompFMCols",
+            "CompX",
+            "CompY",
+            "CompZ",
+            "FMCols",
+            "Lref",
+            "mask",
+            "x",
+            "xMRP",
+            "y",
+            "yMRP",
+            "z",
+            "zMRP"
+        },
+        "fmcombo": {
+            "CompFMCols",
+            "CompX",
+            "CompY",
+            "CompZ",
+            "Lref",
+            "mask",
+            "x",
+            "xMRP",
+            "y",
+            "yMRP",
+            "z",
+            "zMRP"
+        },
         "fmdelta": {
             "SourceCols",
             "TargetCols",
@@ -119,7 +157,12 @@ class _FMEvalOpts(kwutils.KwargHandler):
    # --- Type ---
     # Required types
     _optytpes = {
+        "CompFMCols": dict,
+        "CompX": dict,
+        "CompY": dict,
+        "CompZ": dict,
         "DeltaCols": dict,
+        "FMCols": dict,
         "SourceCols": dict,
         "TargetCols": dict,
         "TargetSaveCols": dict,
@@ -1600,6 +1643,342 @@ class DBFM(rdbaero.AeroDataKit):
   # >
 
   # ==================
+  # FM Manipulation
+  # ==================
+  # <
+   # --- Combination/Assembly ---
+    # Combine F&M of several components
+    def make_fm_combo(self, comps, comp=None, **kw):
+        r"""Get [and calculate] combined F & M on several components
+
+        :Call:
+            >>> fm = db.make_fm_combo(comps, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with analysis tools
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to combine
+            *comp*: {``None``} | :class:`str`
+                Optional name of output assembled component
+            *Lref*: {``1.0``} | :class:`float`
+                Reference length
+            *xMRP*: {``0.0``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *yMRP*: {``0.0``} | :class:`float`
+                Moment reference point *y*-coordinate
+            *zMRP*: {``0.0``} | :class:`float`
+                Moment reference point *z*-coordinate
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                Names for *CA*, *CY*, etc. for each *comp* (defaults
+                to ``"<comp>.CA"``, etc.)
+            *CompX*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *CompY*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *Compz*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *FMCols*: :class:`dict`\ [:class:`str`]
+                Names of force & moment columns for output
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm[coeff]*: :class:`np.ndarray`
+                Combined *coeff* for each *coeff*
+        :Versions:
+            * 2020-06-19 ``@ddalle``: First version
+        """
+        # Process options
+        opts = _FMEvalOpts(_section="fmcombo_make", **kw)
+        # Get col names for this *comp*
+        fmcols = self._getcols_fmcomp(comp, **opts)
+        # Initialize output if all present
+        fm = {}
+        # Loop through expected *cols*
+        for coeff, col in fmcols.items():
+            # Check if present
+            if col not in self:
+                # Not present; trigger create()
+                break
+            else:
+                # Save values
+                fm[coeff] = self[col]
+        else:
+            # All *coeffs* already present
+            return fm
+        # Use create() function
+        return self.create_fm_combo(comps, comp, **opts)
+
+    # Combine F&M of several components
+    def create_fm_combo(self, comps, comp=None, **kw):
+        r"""Calculate and save combined F & M on several components
+
+        :Call:
+            >>> fm = db.create_fm_combo(comps, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with analysis tools
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to combine
+            *comp*: {``None``} | :class:`str`
+                Optional name of output assembled component
+            *Lref*: {``1.0``} | :class:`float`
+                Reference length
+            *xMRP*: {``0.0``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *yMRP*: {``0.0``} | :class:`float`
+                Moment reference point *y*-coordinate
+            *zMRP*: {``0.0``} | :class:`float`
+                Moment reference point *z*-coordinate
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                Names for *CA*, *CY*, etc. for each *comp* (defaults
+                to ``"<comp>.CA"``, etc.)
+            *CompX*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *CompY*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *Compz*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *FMCols*: :class:`dict`\ [:class:`str`]
+                Names of force & moment columns for output
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm[coeff]*: :class:`np.ndarray`
+                Combined *coeff* for each *coeff*
+        :Versions:
+            * 2020-06-19 ``@ddalle``: First version
+        """
+        # Process options
+        opts = _FMEvalOpts(_section="fmcombo_make", **kw)
+        # Downselect options
+        kw_comp = opts.section_options("fmcombo")
+        # Get col names for this *comp*
+        fmcols = self._getcols_fmcomp(comp, **opts)
+        # Calculate combo
+        fm = self.genr8_fm_combo(comps, **kw_comp)
+        # Save
+        for coeff in _coeffs:
+            # Save values and definition
+            self.save_col(fmcols[coeff], fm[coeff])
+        # Output
+        return fm
+
+    # Combine F&M of several components
+    def genr8_fm_combo(self, comps, **kw):
+        r"""Calculate combined force & moment on several components
+
+        :Call:
+            >>> fm = db.genr8_fm_combo(comps, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.dbfm.DBFM`
+                Database with analysis tools
+            *comps*: :class:`list`\ [:class:`str`]
+                List of components to combine
+            *Lref*: {``1.0``} | :class:`float`
+                Reference length
+            *xMRP*: {``0.0``} | :class:`float`
+                Moment reference point *x*-coordinate
+            *yMRP*: {``0.0``} | :class:`float`
+                Moment reference point *y*-coordinate
+            *zMRP*: {``0.0``} | :class:`float`
+                Moment reference point *z*-coordinate
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                Names for *CA*, *CY*, etc. for each *comp* (defaults
+                to ``"<comp>.CA"``, etc.)
+            *CompX*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *CompY*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *Compz*: :class:`dict`\ [:class:`float`]
+                Force application point for each *comp*
+            *mask*: {``None``} | :class:`np.ndarray`
+                Mask or indices of which cases to include in POD
+                calculation
+            *method*: {``"trapz"``} | ``"left"`` | **callable**
+                Integration method used to integrate columns
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`np.ndarray`]
+                Integrated force/moment for each coefficient
+            *fm[coeff]*: :class:`np.ndarray`
+                Combined *coeff* for each *coeff*
+        :Versions:
+            * 2020-06-19 ``@ddalle``: First version
+        """
+        # Process options
+        opts = _FMEvalOpts(_section="fmcombo", **kw)
+        # Get mask option
+        mask = opts.get_option("mask")
+        # Get reference coordinates and scales
+        xMRP = opts.get_option("xMPR", self.__dict__.get("xMRP", 0.0))
+        yMRP = opts.get_option("yMPR", self.__dict__.get("yMRP", 0.0))
+        zMRP = opts.get_option("zMPR", self.__dict__.get("zMRP", 0.0))
+        Lref = opts.get_option("Lref", self.__dict__.get("Lref", 1.0))
+        # Nondimensionalize
+        xmrp = xMRP / Lref
+        ymrp = yMRP / Lref
+        zmrp = zMRP / Lref
+        # Component coordinates
+        compx = opts.get_option("CompX", {})
+        compy = opts.get_option("CompY", {})
+        compz = opts.get_option("CompZ", {})
+        # Loop through components
+        for k, comp in enumerate(comps):
+            # Get col names for this *comp*
+            fmcols = self._getcols_fmcomp(comp, **opts)
+            # Check for presence
+            for coeff, col in fmcols.items():
+                # Check
+                if col not in self:
+                    raise KeyError(
+                        ("No '%s' col named '%s' found " % (coeff, col)) +
+                        ("for comp '%s'" % comp))
+            # Coordinate offsets
+            x = compx.get(comp, xMRP) / Lref
+            y = compy.get(comp, yMRP) / Lref
+            z = compz.get(comp, zMRP) / Lref
+            # Get values
+            CA = self.get_values(fmcols["CA"], mask)
+            CY = self.get_values(fmcols["CY"], mask)
+            CN = self.get_values(fmcols["CN"], mask)
+            CLL = self.get_values(fmcols["CLL"], mask)
+            CLM = self.get_values(fmcols["CLM"], mask)
+            CLN = self.get_values(fmcols["CLN"], mask)
+            # Apply shifters
+            CLL += (z-zmrp)*CY - (y-ymrp)*CN
+            CLM += (z-zmrp)*CA - (x-xmrp)*CN
+            CLN += (y-ymrp)*CA - (x-xmrp)*CY
+            # If the first component, initialize
+            if k == 0:
+                # Initialize
+                fm = {
+                    "CA": CA,
+                    "CY": CY,
+                    "CN": CN,
+                    "CLL": CLL,
+                    "CLM": CLM,
+                    "CLN": CLN,
+                }
+            else:
+                # Increment
+                fm["CA"] += CA
+                fm["CY"] += CY
+                fm["CN"] += CN
+                fm["CLL"] += CLL
+                fm["CLM"] += CLM
+                fm["CLN"] += CLN
+        # Output
+        return fm
+                
+        
+
+   # --- Checkers ---
+    # Check component list
+    def _check_fm_comps(self, comps):
+        r"""Check types of a list of components
+
+        :Call:
+            >>> comps = db._check_fm_comps(comps)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *comps*: :class:`list`\ [:class:`str`]
+                List of component names
+        :Outputs:
+            * 2020-06-19 ``@ddalle``: First version
+        """
+        # Ensure list of components
+        if not isinstance(comps, list):
+            # Wrong type
+            raise TypeError(
+                "FM comps must be 'list' (got '%s')" % type(comps))
+        # Check strings
+        for j, comp in enumerate(comps):
+            # Ensure string
+            if not typeutils.isstr(comp):
+                raise TypeError("FM comp %i is not a string" % j)
+        # Return it in case it's converted
+        return comps
+
+    # Column names for F&M of one component
+    def _getcols_fmcomp(self, comp=None, **kw):
+        r"""Create :class:`dict` of FM cols for a component
+
+        :Call:
+            >>> fmcols = db._getcols_fmcomp(comp=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with analysis tools
+            *comp*: {``None``} | :class:`str`
+                Name of component
+            *FMCols*: :class:`dict`\ [:class:`str`]
+                Columns to use for each integral coefficient
+            *CompFMCols*: :class:`dict`\ [:class:`dict`]
+                *FMCols* for one or more *comps*
+        :Outputs:
+            *fmcols*: :class:`dict`\ [:class:`str`]
+                Columns to use for six integrated forces and moments
+        :Versions:
+            * 2020-06-19 ``@ddalle``: First version
+        """
+        # Defaults
+        if comp is None:
+            # Just the coeff names
+            colCA = "CA"
+            colCY = "CY"
+            colCN = "CN"
+            colCl = "CLL"
+            colCm = "CLM"
+            colCn = "CLN"
+        else:
+            # Combine
+            colCA = "%s.CA" % comp
+            colCY = "%s.CY" % comp
+            colCN = "%s.CN" % comp
+            colCl = "%s.CLL" % comp
+            colCm = "%s.CLM" % comp
+            colCn = "%s.CLN" % comp
+        # Check for *comp*
+        if comp is not None:
+            # Get option
+            fmcols = kw.get("CompFMCols", {}).get(comp, {})
+            # Check for overrides
+            colCA = fmcols.get("CA", colCA)
+            colCY = fmcols.get("CY", colCY)
+            colCN = fmcols.get("CN", colCN)
+            colCl = fmcols.get("CLL", colCl)
+            colCm = fmcols.get("CLM", colCm)
+            colCn = fmcols.get("CLN", colCn)
+        # Check for manual names for this *comp*
+        fmcols = kw.get("FMCols", {})
+        # Check for overrides
+        colCA = fmcols.get("CA", colCA)
+        colCY = fmcols.get("CY", colCY)
+        colCN = fmcols.get("CN", colCN)
+        colCl = fmcols.get("CLL", colCl)
+        colCm = fmcols.get("CLM", colCm)
+        colCn = fmcols.get("CLN", colCn)
+        # Output
+        return {
+            "CA": colCA,
+            "CY": colCY,
+            "CN": colCN,
+            "CLL": colCl,
+            "CLM": colCm,
+            "CLN": colCn,
+        }
+  # >
+
+  # ==================
   # Target DB
   # ==================
   # <
@@ -1703,10 +2082,8 @@ class DBFM(rdbaero.AeroDataKit):
         for coeff in _coeffs:
             # Name of output
             col = fmcols.get(coeff, "%s.target" % coeff)
-            # Save it
+            # Save values and definition
             self.save_col(col, fm[coeff])
-            # Create definition
-            self.make_defn(col, fm[coeff])
         # Output
         return fm
 
@@ -1882,10 +2259,8 @@ class DBFM(rdbaero.AeroDataKit):
         for coeff in _coeffs:
             # Get source column name
             col = dcols.get(coeff, "%s.delta" % coeff)
-            # Save delta
+            # Save delta and a definition
             self.save_col(col, dfm[coeff])
-            # Save definition
-            self.make_defn(col, dfm[coeff])
         # Output
         return dfm
 

@@ -167,6 +167,8 @@ class TextDataFile(BaseFile, TextInterpreter):
    # --- Options ---
     # Class for options
     _optscls = TextDataOpts
+    # Definition class
+    _defncls = TextDataDefn
   # >
 
   # ======

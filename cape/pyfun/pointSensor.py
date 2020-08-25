@@ -257,7 +257,8 @@ class DBTriqPoint(cape.cfdx.pointSensor.DBTriqPoint):
     r"""TriQ point sensor data book
 
     Plotting methods are inherited from 
-    :class:`cape.cfdx.dataBook.DBBase`, including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams
+    :class:`cape.cfdx.dataBook.DBBase`, including
+    :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams
     of point sensor results in particular.
 
     :Call:

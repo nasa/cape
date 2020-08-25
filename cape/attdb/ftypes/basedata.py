@@ -287,6 +287,7 @@ class BaseDataDefn(kwutils.KwargHandler):
             "int": "int32",
             "long": "int32",
             "long long": "int64",
+            "o": "object",
             "short": "i16",
             "s": "str",
             "single": "float32",
@@ -313,6 +314,7 @@ class BaseDataDefn(kwutils.KwargHandler):
             "int16",
             "int32",
             "int64",
+            "object",
             "str",
             "uint8",
             "uint16",
@@ -434,6 +436,8 @@ class BaseData(dict):
    # --- Options ---
     # Class for options
     _optscls = BaseDataOpts
+    # Definition class
+    _defncls = BaseDataDefn
 
    # --- Class Functions ---
     # Invert the _tagmap
@@ -726,17 +730,26 @@ class BaseData(dict):
         :Effects:
             *db[col]*: *defn*
         :Versions:
-            * 2020-03-19 ``@ddalle``: First version
+            * 2020-03-19 ``@ddalle``: Version 1.0
+            * 2020-06-24 ``@ddalle``: Version 1.1; merge defns
         """
         # Attempt to get definition
         defns = self.get_defns()
+        # Generate a new definition based on values
+        defn0 = self.genr8_defn(col, V, **kw)
         # Return it if any
         if col in defns:
-            return defns[col]
-        # Create the definition
-        defn = self.genr8_defn(col, V, **kw)
-        # Save it
-        self.defns[col] = defn
+            # Get the definition
+            defn = defns[col]
+            # Merge columns
+            for k, v in defn0.items():
+                # Apply but don't overwrite
+                defn.setdefault(k, v)
+        else:
+            # Save it
+            self.defns[col] = defn0
+            # Transfer it
+            defn = defn0
         # Output
         return defn
 
@@ -1216,6 +1229,8 @@ class BaseData(dict):
         else:
             # Nonstandard value; don't convert
             self[col] = v
+        # Basic defintion
+        self.make_defn(col, v)
 
    # --- Remove Data ---
     # Remove a column and its parameters

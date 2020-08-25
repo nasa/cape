@@ -129,19 +129,27 @@ class XLSSheetOpts(XLSFileOpts):
 class XLSFileDefn(BaseFileDefn):
    # --- Global Options ---
     # Option list
-    _optlist = set.union(BaseFileDefn._optlist,
-        {
-            "ColWidth"
-        })
+    _optlist = {
+        "ColWidth",
+        "Dimension",
+        "Shape"
+    }
 
     # Alternate names
-    _optmap = dict(BaseFileDefn._optmap,
-        colwidth="ColWidth")
+    _optmap = {
+        "colwidth": "ColWidth",
+        "dim": "Dimension",
+        "ndim": "Dimension",
+        "shape": "Shape",
+    }
 
    # --- Types ---
     # Allowed types
-    _opttypes = dict(BaseFileDefn._opttypes,
-        ColWidth=int)
+    _opttypes = {
+        "ColWidth": int,
+        "Dimension": int,
+        "Shape": tuple,
+    }
 
 
 # Options for CSVFile.write_csv()
@@ -203,6 +211,9 @@ class _WriteXLSOpts(XLSSheetOpts):
 
 # Combine options
 _WriteXLSOpts.combine_optdefs()
+XLSFileOpts.combine_optdefs()
+XLSFileDefn.combine_optdefs()
+
 # Add definition support to option
 XLSFileOpts.set_defncls(XLSFileDefn)
 
@@ -243,6 +254,8 @@ class XLSFile(BaseFile):
    # --- Options ---
     # Class for options
     _optscls = XLSFileOpts
+    # Definition class
+    _defncls = XLSFileDefn
   # >
 
   # =============
