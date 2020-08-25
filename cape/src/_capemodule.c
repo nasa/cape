@@ -1,3 +1,4 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
 // Need this to start NumPy C-API
@@ -35,7 +36,7 @@ static PyMethodDef CapeMethods[] = {
     };
 
     PyMODINIT_FUNC
-    init_cape3(void)
+    PyInit__cape3(void)
     {
         // This must be called before using the NumPy API.
         import_array();
