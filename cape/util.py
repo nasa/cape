@@ -478,7 +478,7 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     # It's either *nMin* specified by user or *nMax* back from end
     i_first = max(nMin, i_last - nMax)
     # Number of possible windows
-    n_windows = int((nMax - nAvg) // dn) + 1
+    n_windows = max(1, int((nMax - nAvg) // dn) + 1)
     # Create an array of allowed cutoff iterations
     i_start = i_last - dn * (1 + np.arange(n_windows))
     # Create array of minimum window sizes
