@@ -2147,10 +2147,15 @@ class Cntl(object):
             # Go to root folder
             os.chdir(self.RootDir)
             # Get folder name
+            fgrp = self.x.GetGroupFolderNames(i)
             frun = self.x.GetFullFolderNames(i)
             fdir = self.x.GetFolderNames(i)
             # Status update
             print(frun)
+            # Check if the group folder exists
+            if not os.path.isdir(fgrp):
+                # Greate folder
+                self.mkdir(fgrp)
             # Check if the case is ready to archive
             if not os.path.isdir(frun):
                 # Create folder temporarily
