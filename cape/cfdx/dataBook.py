@@ -861,9 +861,17 @@ class DataBook(dict):
             print("  Databook up to date.")
             q = False
         # Check for an update
-        if (not q): return 0
-        # Maximum number of iterations allowed.
-        nMax = min(nIter-nMin, self.opts.get_nMaxStats())
+        if (not q):
+            return 0
+        # Maximum number of iterations allowed
+        nMaxStats = self.opts.get_nMaxStats()
+        # Limit max stats if instructed to do so
+        if nMaxStats is None:
+            # No max
+            nMax = None
+        else:
+            # Specified max, but don't use data before *nMin*
+            nMax = min(nIter - nMin, nMaxStats)
         # Read residual
         H = self.ReadCaseResid()
        # --- Read Iterative History ---

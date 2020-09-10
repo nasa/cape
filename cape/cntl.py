@@ -1446,7 +1446,7 @@ class Cntl(object):
             * 2017-02-22 ``@ddalle``: Added verbose flag
         """
         # Check input.
-        if not isinstance(i, int):
+        if not isinstance(i, (int, np.int_)):
             raise TypeError(
                 "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
         # Get the group name.
