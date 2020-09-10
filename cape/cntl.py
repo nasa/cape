@@ -431,7 +431,7 @@ class Cntl(object):
         
     # Read configuration (without tri file if necessary)
     @run_rootdir
-    def ReadConfig(self):
+    def ReadConfig(self, f=False):
         """Read ``Config.xml`` or ``Config.json`` file if not already present
         
         :Call:
@@ -440,21 +440,23 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Versions:
-            * 2016-06-10 ``@ddalle``: First version
-            * 2016-10-21 ``@ddalle``: Added ``Config.json``
+            * 2016-06-10 ``@ddalle``: Version 1.0
+            * 2016-10-21 ``@ddalle``: Version 2.0, added ``Config.json``
+            * 2020-09-01 ``@ddalle``: Version 2.1, add *f* kwarg
         """
         # Check for config
-        try:
-            self.config
-            return
-        except AttributeError:
-            pass
-        # Try to read from the triangulation
-        try:
-            self.config = self.tri.config
-            return
-        except AttributeError:
-            pass
+        if not f:
+            try:
+                self.config
+                return
+            except AttributeError:
+                pass
+            # Try to read from the triangulation
+            try:
+                self.config = self.tri.config
+                return
+            except AttributeError:
+                pass
         # Name of config file
         fxml = self.opts.get_ConfigFile()
         # Split based on '.'
@@ -2145,10 +2147,15 @@ class Cntl(object):
             # Go to root folder
             os.chdir(self.RootDir)
             # Get folder name
+            fgrp = self.x.GetGroupFolderNames(i)
             frun = self.x.GetFullFolderNames(i)
             fdir = self.x.GetFolderNames(i)
             # Status update
             print(frun)
+            # Check if the group folder exists
+            if not os.path.isdir(fgrp):
+                # Greate folder
+                self.mkdir(fgrp)
             # Check if the case is ready to archive
             if not os.path.isdir(frun):
                 # Create folder temporarily
