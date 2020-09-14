@@ -5,30 +5,35 @@
 import sys
 
 # CAPE modules
-import cape.pyover
 import cape.argread
 import cape.text
 
-# Import docstring (makes the docstring available to module import)
-import po_doc
-__doc__ = po_doc.__doc__
-    
+# Primary modules
+import cape.pyover as main
+import cape.pyover.cli_doc as doc
+
+
+# Get docstring
+__doc__ = doc.__doc__
+
 # Check if run as a script.
 if __name__ == "__main__":
     # Parse inputs.
     a, kw = cape.argread.readflagstar(sys.argv)
-    
+
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
+        # Print marked-down docstring
         print(cape.text.markdown(__doc__))
+        # Exit
         sys.exit()
-        
+
     # Get file name.
-    fname = kw.get('f', 'pyOver.json')
-    
+    fname = kw.get('f', "%s.json" % doc.TITLE)
+
     # Try to read it.
-    cntl = cape.pyover.Cntl(fname)
-    
+    cntl = main.Cntl(fname)
+
     # Call the command-line interface
     cntl.cli(*a, **kw)
-    
+

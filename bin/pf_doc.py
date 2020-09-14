@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""
+# -*- coding: utf-8 -*-
+r"""
 Python interface for FUN3D: **pyfun**
 =====================================
 
@@ -137,8 +138,8 @@ relatively simple commands.
         When submitting new jobs, only submit new cases (status '---')
 
 :Versions:
-    * 2014-10-06 ``@ddalle``: First version
-    * 2015-10-16 ``@ddalle``: Copied from ``pycart``
+    * 2014-10-06 ``@ddalle``: Version 1.0 (of ``pycart``)
+    * 2015-10-16 ``@ddalle``: Version 1.0
 """
 
 # Print help if appropriate.

@@ -21,3 +21,4 @@
     report
     volcomp
     options/index
+    cli_doc
