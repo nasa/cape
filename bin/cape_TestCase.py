@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
 CAPE single-case test driver
+=============================
 
 The test driver executes a test in the current folder.  This consists
 of several steps that run the test in a subfolder (which is called
@@ -9,6 +10,7 @@ work/ by default).  If that subfolder exists, it is deleted at the
 beginning of the test.
 
 :Usage:
+
     .. code-block:: console
         
         $ pc_TestCase.py [OPTIONS]
@@ -18,7 +20,7 @@ beginning of the test.
         Read settings from file *FNAME* {cape-test.json}
 
 :Versions:
-    * 2019-07-06 ``@ddalle``: First version
+    * 2019-07-06 ``@ddalle``: Version 1.0
 """
 
 # Standard library modules

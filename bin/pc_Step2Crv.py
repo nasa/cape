@@ -1,19 +1,20 @@
 #!/usr/bin/env python
-"""
+# -*- coding: utf-8 -*-
+r"""
 Convert STEP File to Plot3D Multiple Curve File: ``pc_Step2Crv.py``
 ===================================================================
 
-Create a Plot3D discretized curve file from a STEP file using various maximum
-spacing command-line options.
+Create a Plot3D discretized curve file from a STEP file using various
+maximum spacing command-line options.
 
-:Call:
-
+:Usage:
     .. code-block:: console
     
         $ pc_Step2Crv.py STP CRV [OPTIONS]
 
 :Inputs:
     * *STP*: Name of input ``'.stp`` or ``.step`` file
+
     * *CRV*: Name of output Plot3D file
     
 :Options:
@@ -57,24 +58,21 @@ spacing command-line options.
     -ztol ZTOL
         Truncate nodal coordinates within *ZTOL* of z=0 plane to zero
     
-If the name of the output file is not specified, it will just add '.tri' as the
-extension to the input (deleting '.uh3d' if possible).
-
 :Versions:
-    * 2016-05-10 ``@ddalle``: First version
+    * 2016-05-10 ``@ddalle``: Version 1.0
 """
 
-# Get the pyCart module.
-import cape.step
-# Module to handle inputs and os interface
+# Standard library
 import sys
-# Command-line input parser
-import cape.argread as argr
+
+# CAPE modules
+import cape.argread
+import cape.step
+
 
 # Main function
 def Step2Crv(*a, **kw):
-    """
-    Read the curves from a STEP file and write to a Plot3D multiple curve file
+    r"""Write the curves from a STEP file to Plot3D multiple curve file
     
     :Call:
         >>> Step2Crv(fstp, fcrv, **kw)
@@ -83,8 +81,8 @@ def Step2Crv(*a, **kw):
         *fstp*: :class:`str`
             Name of input file
         *fcrv*: :class:`str`
-            Name of output file (defaults to value of *fstp* but with ``.crv``
-            as the extension in the place of ``.stp`` or ``.step``)
+            Name of output file (defaults to value of *fstp* but with
+            ``.crv`` in the place of ``.stp`` or ``.step``)
         *n*: :class:`int`
             Number of intervals to use
         *ds*: :class:`float`
@@ -94,7 +92,8 @@ def Step2Crv(*a, **kw):
         *da*: :class:`float` | {``None``}
             Maximum allowed length-weighted turning angle
         *link*: {``True``} | ``False`` | ``"x"`` | ``"-x"``
-            Whether or not to link curves and if so using which axis to sort
+            Whether or not to link curves and if so using which axis to
+            use for sorting
         *xtol*: :class:`float` | :class:`str`
             Tolerance for *x*-coordinates to be truncated to zero
         *ytol*: :class:`float` | :class:`str`
@@ -102,7 +101,7 @@ def Step2Crv(*a, **kw):
         *ztol*: :class:`float` | :class:`str`
             Tolerance for *z*-coordinates to be truncated to zero
     :Versions:
-        * 2016-05-10 ``@ddalle``: First version
+        * 2016-05-10 ``@ddalle``: Version 1.0
     """
     # Get the file pyCart settings file name.
     if len(a) == 0:
@@ -117,7 +116,7 @@ def Step2Crv(*a, **kw):
     if fstp is None:
         # Required input.
         print(__doc__)
-        raise IOError("Input file not specified.")
+        raise IOError("Input STEP file not specified")
     
     # Get the file pyCart settings file name.
     if len(a) <= 2:
@@ -140,11 +139,16 @@ def Step2Crv(*a, **kw):
     da  = kw.get('da')
     tol = kw.get('tol', 1.0)
     # Convert as necessary
-    if n   is not None: n   = int(n)
-    if ds  is not None: ds  = float(ds)
-    if dth is not None: dth = float(dth)
-    if da  is not None: da  = float(da)
-    if tol is not None: tol = float(tol)
+    if n is not None:
+        n = int(n)
+    if ds is not None:
+        ds  = float(ds)
+    if dth is not None:
+        dth = float(dth)
+    if da is not None:
+        da = float(da)
+    if tol is not None:
+        tol = float(tol)
     
     # Sample curves
     stp.SampleCurves(n=n, ds=ds, dth=dth, da=da)
@@ -183,12 +187,12 @@ def Step2Crv(*a, **kw):
         sp = kw.get('sp', False)
         # Write binary file
         stp.WritePlot3DCurvesBin(fcrv, endian=bo, single=sp)
-    
+
 
 # Only process inputs if called as a script
 if __name__ == "__main__":
     # Process the command-line interface inputs.
-    (a, kw) = argr.readkeys(sys.argv)
+    (a, kw) = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
         import cape.text
@@ -196,4 +200,4 @@ if __name__ == "__main__":
         sys.exit()
     # Run the main function.
     Step2Crv(*a, **kw)
-    
+

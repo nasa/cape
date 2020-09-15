@@ -1,11 +1,11 @@
 .. Documentation for the pyCart scripts
 
-**************
-Script Library
-**************
+******************
+CAPE Executables
+******************
         
-    The following lists the CAPE scripts, which are the main interface to
-    Cape directly from the system command line.
+The following lists the CAPE executables, which are the main interface to CAPE
+directly from the system command line.
     
     .. toctree::
     

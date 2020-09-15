@@ -1,14 +1,16 @@
 #!/usr/bin/env python
-"""
-Run OVERFLOW for one squence of one case: :file:`run_overflow.py`
-=================================================================
+# -*- coding: utf-8 -*-
+r"""
+Run OVERFLOW for one phase of one case: ``run_overflow.py``
+=============================================================
 
-This script determines the appropriate index to run for an individual case (e.g.
-if a restart is appropriate, etc.), sets that case up, and runs it.
+This script determines the appropriate index to run for an individual
+case (e.g. if a restart is appropriate, etc.), sets that case up, and
+runs it.
 
 :Call:
     
-    .. code-block:: bash
+    .. code-block:: console
     
         $ run_overflow.py [OPTIONS]
         
@@ -18,27 +20,30 @@ if a restart is appropriate, etc.), sets that case up, and runs it.
         Display this help message and quit
 
 :Versions:
-    * 2014-10-02 ``@ddalle``: First version
-    * 2016-02-02 ``@ddalle``: OVERFLOW fork
+    * 2014-10-02 ``@ddalle``: Version 1.0 (pycart)
+    * 2016-02-02 ``@ddalle``: Version 1.0
 """
 
-# Import the module specifically for this task.
+# Standard library
+import sys
+
+# CAPE modules
+import cape.argread
 import cape.pyover.case
-# Argument parsing
-import sys, cape.argread
+
 
 # Simple function to call the main function of that module.
 def run_overflow():
-    """Calls :func:`pyOver.case.run_overflow`
+    """Calls :func:`cape.pyover.case.run_overflow`
     
     :Call:
         >>> run_overflow()
     :Versions:
-        * 2014-10-02 ``@ddalle``: First version
-        * 2015-02-14 ``@ddalle``: Added `verify` and `intersect` checks
+        * 2016-02-02 ``@ddalle``: Version 1.0
     """
     cape.pyover.case.run_overflow()
-    
+
+
 # Check if run as a script.
 if __name__ == "__main__":
     # Parse arguments

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""
+# -*- coding: utf-8 -*-
+r"""
 Expand one or more JSON files: ``pc_ExpandJSON.py``
 ===================================================
 
@@ -8,23 +9,24 @@ This function performs two tasks:
     * Removes comments starting with either ``'//'`` or ``'#'``
     * Replaces ``JSONFile(fname)`` with the contents of *fname*
 
-The comments are removed recursively, so comments within children files are
-allowed.  If no output file is specified, the suffix ``.old`` is added to
-the original file, and the expanded contents are written to a new file with
-the same name as the input file.
+The comments are removed recursively, so comments within children files
+are allowed.  If no output file is specified, the suffix ``.old`` is
+added to the original file, and the expanded contents are written to a
+new file with the same name as the input file.
 
-:Call:
-    
-    .. code-block:: bash
-    
-        pc_ExpandJSON.py IFILE1 IFILE2 [OPTIONS]
-        pc_ExpandJSON.py -i IFILE1 -o OFILE1 [OPTIONS]
-        
+:Usage:
+    .. code-block:: console
+
+        $ pc_ExpandJSON.py IFILE1 IFILE2 [OPTIONS]
+        $ pc_ExpandJSON.py -i IFILE1 -o OFILE1 [OPTIONS]
+
 :Inputs:
     *IFILE1*: name of first input file
+
     *IFILE2*: name of second input file
+
     *OFILE1*: output file for *IFILE1*
-    
+
 :OPTIONS:
     -h, --help
         Display this help message and exit
@@ -36,7 +38,7 @@ the same name as the input file.
         Use *OFILE* as output file for ``-i IFILE``
 
 :Versions:
-    * 2015-10-27 ``@ddalle``: First version
+    * 2015-10-27 ``@ddalle``: Version 1.0
 """
 
 # Standard library modules
@@ -51,17 +53,17 @@ import cape.cfdx.options.util
 
 # Interpreter function
 def ExpandJSON(*a, **kw):
-    """Expand one or more JSON files
+    r"""Expand one or more JSON files
     
     This function performs two tasks:
     
         * Removes comments starting with either ``'//'`` or ``'#'``
         * Replaces ``JSONFile(fname)`` with the contents of *fname*
     
-    The comments are removed recursively, so comments within children files are
-    allowed.  If no output file is specified, the suffix ``.old`` is added to
-    the original file, and the expanded contents are written to a new file with
-    the same name as the input file.
+    The comments are removed recursively, so comments within children
+    files are allowed.  If no output file is specified, the suffix
+    ``.old`` is added to the original file, and the expanded contents
+    are written to a new file with the same name as the input file.
     
     :Call:
         >>> main(f1, f2, ...)
@@ -76,7 +78,7 @@ def ExpandJSON(*a, **kw):
         *o*: :class:`str`
             Name of output file for input *i* (defaluts to *i*) 
     :Versions:
-        * 2015-10-27 ``@ddalle``: First version
+        * 2015-10-27 ``@ddalle``: Version 1.0
     """
     # Initialize list of input files
     ifile = a
@@ -88,7 +90,7 @@ def ExpandJSON(*a, **kw):
         ifile.append(kw['i'])
         # Check for output file name
         ofile.append(kw.get('o', kw['i']))
-        
+
     # Loop through files.
     for i in range(len(ifile)):
         # Extract names
@@ -106,6 +108,7 @@ def ExpandJSON(*a, **kw):
         f = open(fo, 'w')
         f.write(lines)
         f.close()
+
 
 # Check for script
 if __name__ == "__main__":

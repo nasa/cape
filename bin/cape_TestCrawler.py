@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 CAPE test crawler
+===================
 
 The test crawler completes a simple task, namely that enters zero or
 more folders and runs the main CAPE test utility.  This list of
@@ -18,7 +19,7 @@ is to run a test in each subfolder that exists.
         Read settings from file *FNAME* {cape-test.json}
 
 :Versions:
-    * 2019-07-03 ``@ddalle``: First version
+    * 2019-07-03 ``@ddalle``: Version 1.0
 """
 
 # Standard library modules

@@ -122,19 +122,19 @@ functionality from this script is also accessible from the
     --exec, -e CMD
         Execute command *CMD* in each folder
 
-    --aero, --fm [GLOB]
+    --aero, --fm, --fm GLOB
         Loop through cases and extract force and moment coefficients and
         statistics for force & moment components described in the
         "DataBook" section of *FJSON*; only process components whose
         names wildcard *GLOB* if used
 
-    --ll [GLOB]
+    --ll, --ll GLOB
         Loop through cases and extract force and moment coefficients and
         statistics for LineLoad components described in the "DataBook"
         section of *FJSON*; only process components whose names match
         wildcard *GLOB* if used
 
-    --triqfm [GLOB]
+    --triqfm, --triqfm GLOB
         Loop through cases and extract force and moment coefficients and
         statistics for TriqFM components described in the "DataBook"
         section of *FJSON*; only process components whose names match

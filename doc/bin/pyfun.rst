@@ -1,4 +1,3 @@
 
-.. automodule:: pf_doc
-
+.. automodule:: cape.pyfun.cli_doc
 

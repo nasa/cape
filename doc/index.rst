@@ -156,7 +156,7 @@ defined.  In general the required files are the following.
     pycart/index
     pyfun/index
     pyover/index
-    script/index
+    bin/index
 
 
 .. only:: html

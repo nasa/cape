@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-"""
-Expand tarred ``adapt??.tar`` archives: :file:`pc_ExpandAdapt.py`
-=================================================================
+# -*- coding: utf-8 -*-
+r"""
+Expand tarred Cart3D ``adapt??.tar`` archives: `pc_ExpandAdapt.py``
+====================================================================
 
-Expand all :file:`adapt??.tar` files and delete the tar balls.
+Expand all ``adapt??.tar`` files and delete the tar balls.
 
     * :file:`adapt00.tar` --> ``adapt00/``
     * :file:`adapt01.tar` --> ``adapt01/``
     * ``adapt02/`` --> ``adapt02/`
 
-:Call:
-
+:Usage:
     .. code-block:: console
     
         $ pc_ExpandAdapt.py [OPTIONS]
@@ -23,11 +23,12 @@ Expand all :file:`adapt??.tar` files and delete the tar balls.
     * 2014-12-30 ``@ddalle``: First version
 """
 
-# Modules
+# Standard library
+import sys
+
+# CAPE Modules
 import cape.argread
 import cape.pycart.manage
-# System interface.
-import sys
         
     
 # Check for running as a script.

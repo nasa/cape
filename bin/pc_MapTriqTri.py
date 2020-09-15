@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Extract Mapped Components of TRIQ: ``pc_MapTriqTri.py``
 =======================================================
@@ -94,7 +95,7 @@ that does not have that panel labeled as a separate face.
         Projection tol for secondary family relative to comp scale {_cnftol_}
 
 :Versions:
-    * 2017-02-10 ``@ddalle``: First version
+    * 2017-02-10 ``@ddalle``: Version 1.0
 """
 
 # Standard libraries
@@ -108,6 +109,7 @@ import cape.text
 
 # CAPE modules: direct import
 from cape.cfdx.options.util import loadJSONFile
+
 
 # Edit docstring with actual default tolerances
 __doc__ = cape.text.setdocvals(__doc__, {
@@ -125,14 +127,15 @@ __doc__ = cape.text.setdocvals(__doc__, {
     "cnftol": cape.plot3d.cnftoldef
 })
 
+
 # Main function
 def MapTriqTri(*a, **kw):
-    """Use a UH3D file to determine the family of each surface grid point
+    r"""Determine the family of each surface grid point from UH3D file
     
     :Call:
         >>> MapTriqTri(fjson, **kw)
         >>> MapTriqTri(**kw)
-    :Sequential Inputs:
+    :Positional Inputs:
         *fjson*: :class:`str`
             Name of JSON file from which to read settings
     :Keyword Inputs:
@@ -147,11 +150,11 @@ def MapTriqTri(*a, **kw):
         *fmt*: {``None``} | ascii | b4 | b8 | lb4 | lb8
             File format; by default copy from *triq*
         *c*: :class:`str`
-            (Optional) name of configuration file for labeling *tri* faces
+            Name of configuration file for labeling *tri* faces
         *v*: ``True`` | {``False``}
             Verbosity option
     :Versions:
-        * 2017-02-10 ``@ddalle``: First version
+        * 2017-02-10 ``@ddalle``: Version 1.0
     """
     # -----------------
     # Sequential Inputs
@@ -252,7 +255,7 @@ def MapTriqTri(*a, **kw):
                 fo = '%s.%s.%s' % (comp, lbl, ext)
             # Write the file
             tris[comp].Write(fo, **kw)
-    
+
 
 # Only process inputs if called as a script!
 if __name__ == "__main__":
@@ -264,4 +267,4 @@ if __name__ == "__main__":
         sys.exit()
     # Run the main function.
     MapTriqTri(*a, **kw)
-    
+

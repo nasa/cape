@@ -35,5 +35,5 @@ release/*.gz
 release/*.zip
 
 # Documentation outputs
-doc/_*
+doc/_build
 

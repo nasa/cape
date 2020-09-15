@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-"""
-Extract TRI file nodes on STEP curves:: ``pc_StepTri2Crv.py``
+# -*- coding: utf-8 -*-
+r"""
+Extract TRI file nodes on STEP curves: ``pc_StepTri2Crv.py``
 ===============================================================
 
-Convert a STEP file to a Plot3D multiple curve file by sampling curves from the
-STEP file at nodes from a surface triangulation.
+Convert a STEP file to a Plot3D multiple curve file by sampling curves
+from the STEP file at nodes from a surface triangulation.
 
-:Call:
-    
+:Usage:
     .. code-block:: console
     
         $ pc_StepTri2Crv.py [OPTIONS]
@@ -70,24 +70,25 @@ STEP file at nodes from a surface triangulation.
         Write single-precision curve file (default is double)
         
 :Versions:
-    * 2016-09-29 ``@ddalle``: First version
+    * 2016-09-29 ``@ddalle``: Version 1.0
 """
 
-# System interface
+# Standard library
 import sys
-# pyCart geometry modules
+
+# CAPE modules
+import cape.argread
 import cape.step
 import cape.tri
-# Command-line input parser
-import cape.argread as argr
 
 # Main function
 def StepTri2Crv(*a, **kw):
-    """
-    Read curves from a STEP file and use these to subset nodes from a surface
-    triangulation.  Each curve is written as a series of points, and the
-    combined output is written to a Plot3D multiple curve file
-    
+    r"""Write Plot3D curves of ``.tri`` nodes near ``.stp`` curves
+
+    Read curves from a STEP file and use these to subset nodes from a
+    surface triangulation.  Each curve is written as a series of points,
+    and the combined output is written to a Plot3D multiple curve file.
+
     :Call:
         >>> StepTri2Crv(fpre, stp=fstp, tri=ftri, o=fcrv, **kw)
     :Inputs:
@@ -115,7 +116,7 @@ def StepTri2Crv(*a, **kw):
         *lr8*, *lb8*: ``True`` | {``False``}
             Write double-precision little-endian
     :Versions:
-        * 2016-09-29 ``@ddalle``: First version
+        * 2016-09-29 ``@ddalle``: Version 1.0
     """
     # Get the prefix
     if len(a) == 0:
@@ -191,13 +192,12 @@ def StepTri2Crv(*a, **kw):
         sp = kw.get('sp', False)
         # Write binary file
         stp.WritePlot3DCurvesBin(fcrv, endian=bo, single=sp)
-    
-    
+
 
 # Only process inputs if called as a script
 if __name__ == "__main__":
     # Process the command-line interface inputs.
-    (a, kw) = argr.readkeys(sys.argv)
+    (a, kw) = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
         import cape.text
