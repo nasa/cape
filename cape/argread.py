@@ -1,95 +1,101 @@
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.argread`: Command-Line Argument Processor
 ====================================================
 
-Parse command-line inputs based on one of two methods.  The first method counts
-both "-" and "--" as prefixes for keyword names; this is common among many
-advanced programs.  For example, the two following examples would be treated as
-equivalent (assuming it is called by some script :file:`myScript.py`.
+Parse command-line inputs based on one of two methods.  The first method
+counts both "-" and "--" as prefixes for keyword names; this is common
+among many advanced programs.  For example, the two following examples
+would be treated as equivalent (assuming it is called by some script
+```myScript.py``.
 
     .. code-block:: console
-    
+
         $ myScript.py --v --i test.txt
         $ myScript.py -v -i test.txt
 
-The second method assumes single-hyphen options are single-character flags that
-can be combined.  This is common in many built-in Unix/Linux utilities.
-Consider how ``ls -lh`` is interpreted.  The following two examples would be
-interpreted equivalently.
+The second method assumes single-hyphen options are single-character
+flags that can be combined.  This is common in many built-in Unix/Linux
+utilities. Consider how ``ls -lh`` is interpreted.  The following two
+examples would be interpreted equivalently.
 
     .. code-block:: console
-    
+
         $ myScript.py -v -i
         $ myScript.py -vi
 
-A third method is provided to have similar behavior to the Unix ``tar`` command.
-In this case, the following two commands will be different.
+A third method is provided to have similar behavior to the Unix ``tar``
+command. In this case, the following two commands will be different.
 
     .. code-block:: console
-    
+
         $ myScript.py -cf mytar.tar
         $ myScript.py --cf mytar.tar
-        
-The first example sets *c* to ``True`` and *f* to ``"mytar.tar"``; the second
-command sets *cf* to ``"mytar.tar"``.
+
+The first example sets *c* to ``True`` and *f* to ``"mytar.tar"``; the
+second command sets *cf* to ``"mytar.tar"``.
 """
 
 # Process options using any dash as keyword
 def readkeys(argv):
-    """
-    Read list of strings from ``sys.argv`` with any hyphen or double-hyphen as
-    an indicator of a keyword.
-    
+    r"""Read options from ``sys.argv``
+
+    Read list of strings from ``sys.argv`` with any hyphen or
+    double-hyphen as an indicator of a keyword.
+
     :Call:
         >>> args, kwargs = argread.readkeys(argv)
     :Inputs:
-        *argv*: :class:`list` (:class:`str`)
-            List of string inputs; first entry is ignored (from ``sys.argv``)
+        *argv*: :class:`list`\ [:class:`str`]
+            List of string inputs; first entry is ignored
     :Outputs:
         *args*: :class:`list`
             List of general inputs with no keyword names
         *kwargs*: :class:`dict`
             Dictionary of inputs specified with option flags
-        *kwargs['_old']*: :class:`list` (:class:`dict`)
-            List of single-argument dictionaries that were overwritten
+        *kwargs['_old']*: :class:`list`\ [:class:`dict`]
+            List of single-argument dicts that were overwritten
     :Examples:
-        The following shows an example with only general inputs and no options
-        
+        The following shows an example with only general inputs and no
+        options
+
             >>> a, kw = readkeys(['ex.sh', 'a.1', '1'])
             >>> a
             ['a.1', '1']
             >>> kw
             {}
-            
-        This example shows one general input followed by two options.  One of
-        the options has an argument associated with it, and the other does not.
-            
+
+        This example shows one general input followed by two options.
+        One of the options has an argument associated with it, and the
+        other does not.
+
             >>> a, kw = readkeys(['ex.sh', 'a.1', '-i', 'in.tri', '-v'])
             >>> a
             ['a.1']
             >>> kw
             {'i': 'in.tri', 'v': True}
-            
+
         Double-hyphens are interpreted as hyphens.
-        
-            >>> a, kw = readkeys(['ex.sh', '--h', '--i', 'in.tri', 'a.1'])
+
+            >>> a, kw = readkeys(['ex.sh', '--h', '--i', 'in.tri', 'a'])
             >>> a
-            ['a.1']
+            ['a']
             >>> kw
             {'h': True, 'i': 'in.tri'}
-            
+
         Overwritten settings are saved in ``kw['_old']``.
-        
+
             >>> a, kw = readkeys(['ex.sh', '-f', 'in.1', '-f', 'in.2'])
             >>> kw
-            {'_old': [{'a': 'in.1'}], 'f': 'in.2'}
-            
+            {'_old': [{'f': 'in.1'}], 'f': 'in.2'}
+
     :Versions:
-        * 2014-06-10 ``@ddalle``: First version
-        * 2017-04-10 ``@ddalle``: Added ``--no-v`` --> ``v=False``
+        * 2014-06-10 ``@ddalle``: Version 1.0
+        * 2017-04-10 ``@ddalle``: Version 1.1: ``--no-v`` -> v=False
     """
     # Check the input.
-    if type(argv) is not list:
+    if not isinstance(argv, list):
         raise TypeError('Input must be a list of strings.')
     # Initialize outputs.
     args = []
@@ -102,7 +108,8 @@ def readkeys(argv):
     # Loop until the last argument has been reached.
     for i in range(argc):
         # Check for last input.
-        if iarg >= argc: break
+        if iarg >= argc:
+            break
         # Read the argument. (convert to str if needed)
         a = str(argv[iarg])
         # Check for hyphens.
@@ -153,19 +160,21 @@ def readkeys(argv):
     kwargs["_old"] = old
     # Return the args and kwargs
     return args, kwargs
-    
-    
+
+
 # Process options using any dash as keyword
 def readflags(argv):
-    """
-    Read list of strings from ``sys.argv`` with double-hyphen as an indicator 
-    of a keyword and a single-hyphen as a list of stackable flags
-    
+    r"""Read options from ``sys.argv``
+
+    Read list of strings from ``sys.argv`` with double-hyphen as an
+    indicator of a keyword and a single-hyphen as a list of stackable
+    flags.
+
     :Call:
         >>> args, kwargs = argread.readflags(argv)
     :Inputs:
-        *argv*: :class:`list` (:class:`str`)
-            List of string inputs; first entry is ignored (from ``sys.argv``)
+        *argv*: :class:`list`\ [:class:`str`]
+            List of string inputs; first entry is ignored
     :Outputs:
         *args*: :class:`list`
             List of general inputs with no keyword names
@@ -173,32 +182,33 @@ def readflags(argv):
             Dictionary of inputs specified with option flags
     :Examples:
         The following shows an example with a stacked flag.
-        
+
             >>> (a, kw) = readflags(['ex.sh', 'arg.file', '-lvi']
             >>> a
             ['arg.file']
             >>> kw
             {'l': True, 'v': True, 'i': True}
-            
-        This example shows the difference between single- and double-hyphens.
-            
+
+        This example shows the difference between single- and
+        double-hyphens.
+
             >>> (a, kw) = readflags(['ex.sh', '-lv', '--in', 'i.tri'])
             >>> a
             []
             >>> kw
             {'l': True, 'v': True, 'in': 'i.tri'}
-            
+
         The following shows a stacked flag followed by a raw input.
-        
+
             >>> a, kw = readflagstar(['ex.sh', '-tvf', 'fname.dat'])
             >>> a
             ['fname.dat']
             >>> kw
             {'t': True, 'v': True, 'f': True}
-            
+
     :Versions:
-        * 2014-06-10 ``@ddalle``: First version
-        * 2017-04-10 ``@ddalle``: Added ``--no-v`` --> ``v=False``
+        * 2014-06-10 ``@ddalle``: Version 1.0
+        * 2017-04-10 ``@ddalle``: Version 1.1: ``--no-v`` -> v=False
     """
     # Check the input.
     if type(argv) is not list:
@@ -214,7 +224,8 @@ def readflags(argv):
     # Loop until the last argument has been reached.
     for i in range(argc):
         # Check for last input.
-        if iarg >= argc: break
+        if iarg >= argc:
+            break
         # Read the argument. (convert to str if needed)
         a = str(argv[iarg])
         # Check for hyphens.
@@ -281,19 +292,21 @@ def readflags(argv):
     # Return the args and kwargs
     return (args, kwargs)
 
+
 # Process options using any dash as keyword
 def readflagstar(argv):
-    """
-    Read list of strings from ``sys.argv`` with double-hyphen as an indicator 
-    of a keyword and a single-hyphen as a list of stackable flags.  This version
-    behaves like `tar` in that the last flag in a group can be used with a
-    following value.
-    
+    r"""Read options from ``sys.argv``
+
+    Read list of strings from ``sys.argv`` with double-hyphen as an
+    indicator of a keyword and a single-hyphen as a list of stackable
+    flags.  This version behaves like ``tar`` in that the last flag in a
+    group can be used with a following value.
+
     :Call:
         >>> args, kwargs = argread.readflagstar(argv)
     :Inputs:
-        *argv*: :class:`list` (:class:`str`)
-            List of string inputs; first entry is ignored (from ``sys.argv``)
+        *argv*: :class:`list`\ [:class:`str`]
+            List of string inputs; first entry is ignored
     :Outputs:
         *args*: :class:`list`
             List of general inputs with no keyword names
@@ -301,32 +314,34 @@ def readflagstar(argv):
             Dictionary of inputs specified with option flags
     :Examples:
         The following shows an example with a stacked flag.
-        
+
             >>> (a, kw) = readflagstar(['ex.sh', 'arg.file', '-lvi']
             >>> a
             ['arg.file']
             >>> kw
             {'l': True, 'v': True, 'i': True}
-            
-        This example shows the difference between single- and double-hyphens.
-            
+
+        This example shows the difference between single- and
+        double-hyphens.
+
             >>> (a, kw) = readflagstar(['ex.sh', '-lv', '--in', 'i.tri'])
             >>> a
             []
             >>> kw
             {'l': True, 'v': True, 'in': 'i.tri'}
-            
-        The following shows a stacked flag with a value for the last option
-        
+
+        The following shows a stacked flag with a value for the last
+        option.
+
             >>> a, kw = readflagstar(['ex.sh', '-tvf', 'fname.dat'])
             >>> a
             []
             >>> kw
             {'t': True, 'v': True, 'f': 'fname.dat'}
-            
+
     :Versions:
-        * 2014-10-10 ``@ddalle``: First version
-        * 2017-04-10 ``@ddalle``: Added ``--no-v`` --> ``v=False``
+        * 2014-10-10 ``@ddalle``: Version 1.0
+        * 2017-04-10 ``@ddalle``: Version 1.1: ``--no-v`` -> v=False
     """
     # Check the input.
     if type(argv) is not list:
@@ -342,7 +357,8 @@ def readflagstar(argv):
     # Loop until the last argument has been reached.
     for i in range(argc):
         # Check for last input.
-        if iarg >= argc: break
+        if iarg >= argc:
+            break
         # Read the argument. (convert to str if needed)
         a = str(argv[iarg])
         # Check for hyphens.
@@ -400,7 +416,7 @@ def readflagstar(argv):
                     # Empty flag.
                     kwargs[''] = a
                 else:
-                    
+
                     #  Example: "tar -xf f.tar"
                     #      ==>   {"x":True, "f":'f.tar'}
                     # Save the last flag with a value

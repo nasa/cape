@@ -1,4 +1,6 @@
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.atm` Atmosphere Models
 ==================================
 
@@ -10,7 +12,7 @@ conditions.
 At present it only contains the 1976 U.S. Standard Atmosphere:
 
     * https://en.wikipedia.org/wiki/U.S._Standard_Atmosphere#1976_version
-    
+
 For detailed trajectory modeling, a more general atmosphere model is suggested.
 Furthermore, this model is only considered to be valid up to 85 km of altitude
 even though :func:`cape.atm.atm76` will return an atmospheric state for higher
@@ -76,17 +78,18 @@ href_h = np.array([
     3.6070e+07
 ])
 href_T = np.arange(0, 8000, 250)
-    
+
+
 # Sutherland's law (MKS)
 def SutherlandMKS(T, mu0=None, T0=None, C=None):
-    """Calculate viscosity using Sutherland's law using SI units
-    
+    r"""Calculate viscosity using Sutherland's law using SI units
+
     This returns
-    
+
         .. math::
-        
-            \\mu = \\mu_0 \\frac{T_0+C}{T+C}\\left(\\frac{T}{T_0}\\right)^{3/2}
-    
+
+            \mu = \mu_0\frac{T_0+C}{T+C}\left(\frac{T}{T_0}\right)^{3/2}
+
     :Call:
         >>> mu = SutherlandMKS(T)
         >>> mu = SutherlandMKS(T, mu0=None, T0=None, C=None)
@@ -103,23 +106,26 @@ def SutherlandMKS(T, mu0=None, T0=None, C=None):
         *mu*: :class:`float`
             Dynamic viscosity [kg/m*s]
     :Versions:
-        * 2016-03-23 ``@ddalle``: First version
+        * 2016-03-23 ``@ddalle``: Version 1.0
     """
     # Reference viscosity
-    if mu0 is None: mu0 = 1.716e-5
+    if mu0 is None:
+        mu0 = 1.716e-5
     # Reference temperatures
-    if T0 is None: T0 = 273.15
-    if C  is None: C = 110.33333
+    if T0 is None:
+        T0 = 273.15
+    if C  is None:
+        C = 110.33333
     # Sutherland's law
     return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
 
 
 # Get atmosphere.
 def atm76(h):
-    """Return 1976 standard atmosphere parameters
-    
-        * https://en.wikipedia.org/wiki/International_Standard_Atmosphere
-    
+    r"""Return 1976 standard atmosphere parameters
+
+        https://en.wikipedia.org/wiki/International_Standard_Atmosphere
+
     :Call:
         >>> S = atm76(h)
     :Inputs:
@@ -137,7 +143,7 @@ def atm76(h):
         *S.M*: :class:`float`
             Mach number
     :Versions:
-        * 2015-07-04 ``@ddalle``: First version
+        * 2015-07-04 ``@ddalle``: Version 1.0
     """
     # Geodetic altitude
     H = h / (1+h/RE)
@@ -193,7 +199,7 @@ def atm76(h):
         p0 = 0.373384
         H0 = 85.0
         a = 0.0
-        
+
     # Calculate state values
     if a == 0.0:
         # Temperature
@@ -205,18 +211,18 @@ def atm76(h):
         T = T0 + a*(H-H0)
         # Pressure
         p = p0*(T/T0) ** (-1000.0*c/a)
-        
+
     # Density
     rho = p / (R*T)
-    
+
     # Output
     return State(p=p, rho=rho, T=T)
 
 
 # Enthalpy
 def get_h(T):
-    """Get air specific enthalpy using a lookup table
-    
+    r"""Get air specific enthalpy using a lookup table
+
     :Call:
         >>> h = get_h(T)
     :Inputs:
@@ -226,7 +232,7 @@ def get_h(T):
         *h*: :class:`float`
             Specific enthalpy [J/kg*K]
     :Versions:
-        * 2016-03-03 ``@ddalle``: First version
+        * 2016-03-03 ``@ddalle``: Version 1.0
     """
     # Interpolate
     return np.interp(T, href_T, href_h)
@@ -234,8 +240,8 @@ def get_h(T):
 
 # Get temperature from enthalpy
 def get_T(h):
-    """Get temperature from specific enthalpy
-    
+    r"""Get temperature from specific enthalpy
+
     :Call:
         >>> T = get_T(h)
     :Inputs:
@@ -245,7 +251,7 @@ def get_T(h):
         *T*: :Class:`float`
             Temperature [K]
     :Versions:
-        * 2016-03-03 ``@ddalle``: First version
+        * 2016-03-03 ``@ddalle``: Version 1.0
     """
     # Interpolate
     return np.interp(h, href_h, href_T)
@@ -253,8 +259,8 @@ def get_T(h):
 
 # Atmospheric state
 class State(object):
-    """Atmospheric state
-    
+    r"""Atmospheric state
+
     :Call:
         >>> S = atm.State(p=None, rho=None, T=None, V=0, gamma=1.4)
     :Inputs:
@@ -288,10 +294,15 @@ class State(object):
         *a*: :class:`float`
             Sound speed [m/s]
     :Versions:
-        * 2015-07-05 ``@ddalle``: First version
+        * 2015-07-05 ``@ddalle``: Version 1.0
     """
     # Initialization method
     def __init__(self, p=None, rho=None, T=None, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2015-07-05 ``@ddalle``: Version 1.0
+        """
         # Check required values.
         if p is None:
             raise ValueError("Static pressure 'p' is required.")
@@ -321,11 +332,11 @@ class State(object):
         self.M = M
         self.mu = mu
         self.gamma = gamma
-        
+
     # Convert to FPS
     def ConvertToFPS(self):
-        """Convert state quantities to foot-pound-second units
-        
+        r"""Convert state quantities to foot-pound-second units
+
         :Call:
             >>> S.ConvertToFPS()
         :Outputs:
@@ -348,5 +359,4 @@ class State(object):
         self.T   *= (1.8)
         self.a   /= (ft/s)
         self.V   /= (ft/s)
-# class State
 

@@ -1,18 +1,18 @@
 #!/usr/bin/env python
-"""
-Tar time-accurate visualization files: :file:`pc_TarViz.py`
-===========================================================
+# -*- coding: utf-8 -*-
+r"""
+Tar Cart3D time-accurate visualization files: ``pc_TarViz.py``
+===============================================================
 
-Archive all ``adapt??`` folders into (uncompressed) tar balls except for the
-folder pointed to by ``BEST/``.  For instance if there are 2 adaptation cycles,
-the following changes are made.
+Archive all ``adapt??`` folders into (uncompressed) tar balls except for
+the folder pointed to by ``BEST/``.  For instance if there are 2
+Cart3D adaptation cycles, the following changes are made.
 
-    * ``Components.i.*.stats.{plt,dat}`` --> :file:`Components.i.stats.tar`
-    * ``Components.i.*.{plt,dat}`` --> :file:`Components.i.tar`
-    * ``cutPlanes.*.{plt,dat}`` --> :file:`cutPlanes.tar`
+    * ``Components.i.*.stats.{plt,dat}`` --> ``Components.i.stats.tar``
+    * ``Components.i.*.{plt,dat}`` --> ``Components.i.tar``
+    * ``cutPlanes.*.{plt,dat}`` --> ``cutPlanes.tar``
 
-:Call:
-
+:Usage:
     .. code-block:: console
     
         $ pc_TarViz.py [OPTIONS]
@@ -22,14 +22,15 @@ the following changes are made.
         Display this help message and exit
         
 :Versions:
-    * 2014-12-18 ``@ddalle``: First version
+    * 2014-12-18 ``@ddalle``: Version 1.0
 """
 
-# Modules
+# Standard library
+import sys
+
+# CAPE modules
 import cape.argread
 import cape.pycart.manage
-# System interface.
-import sys
         
     
 # Check for running as a script.
@@ -43,5 +44,5 @@ if __name__ == "__main__":
         print(cape.text.markdown(__doc__))
         sys.exit()
     # Do the plotting.
-    pyCart.manage.TarViz()
+    cape.pycart.manage.TarViz()
     

@@ -14,7 +14,7 @@ from the STEP file at nodes from a surface triangulation.
         $ pc_StepTri2Crv.py PRE [OPTIONS]
 
 :Inputs:
-    *PRE*: Use ``$PRE.stp`` and ``$PRE.i.tri`` as input files
+    * *PRE*: Use ``$PRE.stp`` and ``$PRE.i.tri`` as input files
     
 :Options:
     -h, --help

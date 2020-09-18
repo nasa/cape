@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-"""
-Convert Cart3D Triangulation to UH3D Format: :file:`pc_Tri2UH3D.py`
+# -*- coding: utf-8 -*-
+r"""
+Convert Cart3D Triangulation to UH3D Format: ``pc_Tri2UH3D.py``
 ===================================================================
 
-Convert a Cart3D triangulation :file:`.tri` file to a UH3D file.  The most
-common purpose for this task is to inspect triangulations with moving bodies
-with alternative software such as ANSA.
+Convert a Cart3D triangulation ``.tri`` file to a UH3D file.  The most
+common purpose for this task is to inspect triangulations with moving
+bodies with alternative software such as ANSA.
 
-:Call:
-
+:Usage:
     .. code-block:: console
     
         $ pc_Tri2UH3D.py TRI [OPTIONS]
@@ -20,44 +20,46 @@ with alternative software such as ANSA.
     * *TRI*: Name of output ``.tri`` file
     * *UH3D*: Name of input ``.uh3d`` file
     * *CFG*: Name of configuration file: XML, JSON, or MIXSUR
-    
+
 :Options:
     -h, --help
         Display this help message and exit
-        
+
     --tri TRI
         Use *TRI* as name of created output file
-        
+
     -c CFG
         Use *CFG* as configuration file (defaults to :file:`Config.xml`)
-        
+
     --uh3d UH3D
         Use *UH3D* as input file
-    
-If the name of the output file is not specified, the script will just add
-``.uh3d`` as the extension to the input (deleting ``.tri`` if possible).
+
+If the name of the output file is not specified, the script will just
+add ``.uh3d`` as the extension to the input (deleting ``.tri`` if
+possible).
 
 :Versions:
-    * 2015-04-17 ``@ddalle``: First version
-    * 2017-04-06 ``@ddalle``: Support for JSON and MIXSUR config files
+    * 2015-04-17 ``@ddalle``: Version 1.0
+    * 2017-04-06 ``@ddalle``: Version 1.1: JSON and MIXSUR config files
 """
 
-# Module to handle inputs and os interface
-import sys, os.path
-# Get the pyCart module.
-import cape.tri
-import cape.config
-# Command-line input parser
+# Standard library
+import os.path
+import sys
+
+# CAPE modules
 import cape.argread
+import cape.config
+import cape.tri
+
 
 # Main function
 def Tri2UH3D(*a, **kw):
-    """
-    Convert a UH3D triangulation file to Cart3D tri format
+    r"""Convert a UH3D triangulation file to Cart3D tri format
     
     :Call:
         >>> Tri2UH3D(tri, uh3d, c='Config.xml', h=False)
-        >>> Tri2UH3D(tri=tri, uh3d=uh3d, c='Config.xml', h=False)
+        >>> Tri2UH3D(**kw)
     :Inputs:
         *tri*: :class:`str`
             Name of input file
@@ -65,10 +67,10 @@ def Tri2UH3D(*a, **kw):
             Name of output file
         *c*: :class:`str`
             Name of configuration 
-        *h*: :class:`bool`
+        *h*: ``True`` | {``False``}
             Display help and exit if ``True``
     :Versions:
-        * 2015-04-17 ``@ddalle``: First version
+        * 2015-04-17 ``@ddalle``: Version 1.0
     """
     # Get the file pyCart settings file name.
     if len(a) == 0:
@@ -108,7 +110,7 @@ def Tri2UH3D(*a, **kw):
     
     # Write it.
     tri.WriteUH3D(fuh3d)
-    
+
 
 # Only process inputs if called as a script!
 if __name__ == "__main__":
@@ -121,4 +123,4 @@ if __name__ == "__main__":
         sys.exit()
     # Run the main function.
     Tri2UH3D(*a, **kw)
-    
+

@@ -21,11 +21,9 @@ new file with the same name as the input file.
         $ pc_ExpandJSON.py -i IFILE1 -o OFILE1 [OPTIONS]
 
 :Inputs:
-    *IFILE1*: name of first input file
-
-    *IFILE2*: name of second input file
-
-    *OFILE1*: output file for *IFILE1*
+    * *IFILE1*: name of first input file
+    * *IFILE2*: name of second input file
+    * *OFILE1*: output file for *IFILE1*
 
 :OPTIONS:
     -h, --help

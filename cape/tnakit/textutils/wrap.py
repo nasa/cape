@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
 :mod:`cape.tnakit.textutils.wrap`: Text wrapping and indenting toolkit
 =======================================================================
 
@@ -11,7 +11,7 @@ limited-length lines
 
 # Wrap text
 def wrap_text(txt, cwidth=79, indent=4, cwidth1=None, indent1=None):
-    """Convert a long string into multiple lines of text
+    r"""Convert a long string into multiple lines of text
     
     :Call:
         >>> lines = wrap_text(txt, cwidth=79, indent=4, **kw)
@@ -31,7 +31,7 @@ def wrap_text(txt, cwidth=79, indent=4, cwidth1=None, indent1=None):
             List of lines, each less than *cwidth* chars unless there
             is a word that is longer than *cwidth* chars
     :Versions:
-        * 2018-03-07 ``@ddalle``: First version
+        * 2018-03-07 ``@ddalle``: Version 1.0
     """
     # Check max width
     if not isinstance(cwidth, int):
@@ -78,12 +78,11 @@ def wrap_text(txt, cwidth=79, indent=4, cwidth1=None, indent1=None):
             lines[j] = tab0 + line
     # Output
     return lines
-    
 
 
 # Wrap text
 def _wrap_text(txt, cwidth=79, cwidth1=None):
-    """Convert a long string into multiple lines of text
+    r"""Convert a long string into multiple lines of text
     
     :Call:
         >>> lines = wrap_text(txt, cwidth=79)
@@ -99,7 +98,7 @@ def _wrap_text(txt, cwidth=79, cwidth1=None):
             List of lines, each less than *cwidth* chars unless there
             is a word that is longer than *cwidth* chars
     :Versions:
-        * 2018-03-07 ``@ddalle``: First version
+        * 2018-03-07 ``@ddalle``: Version 1.0
     """
     # Divide into words
     W = txt.split()

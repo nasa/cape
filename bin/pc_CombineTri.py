@@ -13,11 +13,9 @@ Combine ``.tri`` files without changing component numbers.
         $ pc_CombineTri.py -h
 
 :Inputs:
-    *TRI1*: Name of first Cart3D triangulation file
-
-    *TRI2*: Name of second Cart3D triangulation file
-
-    *TRIn*: Name of triangulation *n*
+    * *TRI1*: Name of first Cart3D triangulation file
+    * *TRI2*: Name of second Cart3D triangulation file
+    * *TRIn*: Name of triangulation *n*
     
 :Options:
     -h, --help

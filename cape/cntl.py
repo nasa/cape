@@ -1,5 +1,5 @@
 """
-:mod:`cape.cntl`: Base module for CFD operations and processing 
+:mod:`cape.cntl`: Base module for CFD operations and processing
 =================================================================
 
 This module provides tools and templates for tools to interact with
@@ -21,7 +21,7 @@ individualized modules are below.
     * :mod:`cape.pycart.cntl`
     * :mod:`cape.pyfun.cntl`
     * :mod:`cape.pyover.cntl`
-    
+
 :See also:
     * :mod:`cape.cfdx.case`
     * :mod:`cape.cfdx.options`
@@ -67,7 +67,7 @@ from .geom import RotatePoints
 # Decorator for moving directories
 def run_rootdir(func):
     r"""Decorator to run a function within a specified folder
-    
+
     :Call:
         >>> func = run_rootdir(func)
     :Wrapper Signature:
@@ -116,9 +116,8 @@ def run_rootdir(func):
 
 # Class to read input files
 class Cntl(object):
-    """
-    Class for handling global options, setup, and execution of CFD codes
-    
+    r"""Class to handle options, setup, and execution of CFD codes
+
     :Call:
         >>> cntl = cape.Cntl(fname="cape.json")
     :Inputs:
@@ -149,32 +148,32 @@ class Cntl(object):
             # Raise error but suppress traceback
             os.sys.tracebacklimit = 0
             raise ValueError("No cape control file '%s' found" % fname)
-        
+
         # Read settings
         self.opts = options.Options(fname=fname)
-        
+
         #Save the current directory as the root
         self.RootDir = os.getcwd()
-        
+
         # Import modules
         self.ImportModules()
-        
+
         # Process the trajectory.
         self.x = RunMatrix(**self.opts['RunMatrix'])
 
         # Job list
         self.jobs = {}
-        
+
         # Set umask
         os.umask(self.opts.get_umask())
-        
+
         # Run any initialization functions
         self.InitFunction()
 
     # Output representation
     def __repr__(self):
         """Output representation method for Cntl class
-        
+
         :Versions:
             * 2015-09-20 ``@ddalle``: First version
         """
@@ -184,25 +183,25 @@ class Cntl(object):
     # Function to import user-specified modules
     def ImportModules(self):
         """Import user-defined modules, if any specified in the options
-        
+
         All modules from the ``"Modules"`` global option of the JSON file
         (``cntl.opts['Modules']``) will be imported and saved as attributes of
         *cntl*.  For example, if the user wants to use a module called
         :mod:`dac3`, it will be imported as *cntl.dac3*.  A list of disallowed
         module names is below.
-        
+
             *DataBook*, *RootDir*, *jobs*, *opts*, *tri*, *x*
-            
+
         The name of any method of this class is also disallowed.  However, if
         the user wishes to import a module whose name is disallowed, he/she can
         use a dictionary to specify a different name to import the module as.
         For example, the user may import a module called :mod:`tri` as
         :mod:`mytri` using the following JSON syntax.
-        
+
             .. code-block:: javascript
-            
+
                 "Modules": [{"tri": "mytri"}]
-        
+
         :Call:
             >>> cntl.ImportModules()
         :Inputs:
@@ -242,20 +241,20 @@ class Cntl(object):
     # Function to apply initialization function
     def InitFunction(self):
         """Run one or more "initialization functions"
-        
+
         This calls the function(s) in the global ``"InitFunction"`` option from
         the JSON file.  These functions must take *cntl* as an input, and they
         are usually from a module imported via the ``"Modules"`` option.  See
         the following example:
-        
+
             .. code-block:: javascript
-            
+
                 "Modules": ["testmod"],
                 "InitFunction": ["testmod.testfunc"]
-                
+
         This leads pyCart to call ``testmod.testfunc(cntl)``.  For pyFun, this
         becomes ``testmod.testfunc(fun3d)``, etc.
-        
+
         :Call:
             >>> cntl.InitFunction()
         :Inputs:
@@ -279,25 +278,25 @@ class Cntl(object):
     # Call function to apply settings for case *i*
     def CaseFunction(self, i):
         """Apply a function at the beginning of :func:`PrepareCase(i)`
-        
+
         This is meant to serve as a filter if a user wants to change the
         settings for some subset of the cases.  Using this function can change
         any setting, which can be dependent on the case number *i*.
-        
+
         This calls the function(s) in the global ``"CaseFunction"`` option from
         the JSON file. These functions must take *cntl* as an input and the
         case number *i*. The function(s) are usually from a module imported via
         the ``"Modules"`` option. See the following example:
-        
+
             .. code-block:: javascript
-            
+
                 "Modules": ["testmod"],
                 "CaseFunction": ["testmod.testfunc"]
-                
+
         This leads pyCart to call ``testmod.testfunc(cntl, i)`` at the
         beginning of :func:`PrepareCase` for each case *i* in the run matrix.
         The function is also called at the beginning of :func:`ApplyCase`
-        
+
         :Call:
             >>> cntl.CaseFunction(i)
         :Inputs:
@@ -332,7 +331,7 @@ class Cntl(object):
     # Make a directory
     def mkdir(self, fdir):
         """Make a directory with the correct permissions
-        
+
         :Call:
             >>> cntl.mkdir(fdir)
         :Inputs:
@@ -359,7 +358,7 @@ class Cntl(object):
     @run_rootdir
     def ReadTri(self):
         """Read initial triangulation file(s)
-        
+
         :Call:
             >>> cntl.ReadTri()
         :Inputs:
@@ -429,12 +428,12 @@ class Cntl(object):
             self.tri.ReadBCs_AFLR3(fbc)
         # Make a copy of the original to revert to after rotations, etc.
         self.tri0 = self.tri.Copy()
-        
+
     # Read configuration (without tri file if necessary)
     @run_rootdir
     def ReadConfig(self, f=False):
         """Read ``Config.xml`` or ``Config.json`` file if not already present
-        
+
         :Call:
             >>> cntl.ReadConfig()
         :Inputs:
@@ -479,9 +478,9 @@ class Cntl(object):
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)
-    
+
    # >
-    
+
    # ======================
    # Command-Line Interface
    # ======================
@@ -489,7 +488,7 @@ class Cntl(object):
     # Baseline function
     def cli_preprocess(self, *a, **kw):
         """Preprocess command-line arguments and flags/keywords
-        
+
         :Call:
             >>> a, kw = cntl.cli_preprocess(*a, **kw)
         :Inputs:
@@ -510,12 +509,12 @@ class Cntl(object):
         cons += kw.get('constraints', '').split(',')
         # Set the constraints back into the keywords.
         kw['cons'] = [con.strip() for con in cons]
-    
+
         # Process index list.
         if 'I' in kw:
             # Turn into a single list
             kw['I'] = self.x.ExpandIndices(kw['I'])
-    
+
         # Get list of scripts in the "_old" section
         kwx = [ki['x'] for ki in kw.get('_old', {}) if 'x' in ki]
         # Append the last "-x" input
@@ -532,15 +531,15 @@ class Cntl(object):
 
         # Output
         return a, kw
-        
+
     # Baseline function
     def cli_cape(self, *a, **kw):
         """Command-line interface
-        
+
         This function is applied after the command-line arguments are parsed
         using :func:`cape.argread.readflagstar` and the control interface has
         already been read according to the ``-f`` flag.
-        
+
         :Call:
             >>> cmd = cntl.cli_cape(*a, **kw)
         :Inputs:
@@ -656,11 +655,11 @@ class Cntl(object):
             # Update according to other options
             R.UpdateReport(**kw)
             return 'report'
-            
+
     # Baseline function
     def cli(self, *a, **kw):
         """Command-line interface
-        
+
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
@@ -683,15 +682,15 @@ class Cntl(object):
             return
         # Submit jobs as fallback
         self.SubmitJobs(**kw)
-        
+
     # Function to display current status
     def DisplayStatus(self, **kw):
         """Display current status for all cases
-        
+
         This prints case names, current iteration numbers, and so on.  This is
         the function that is called when the user issues a system command like
         ``cape -c``.
-        
+
         :Call:
             >>> cntl.DisplayStatus(j=False)
         :Inputs:
@@ -709,11 +708,11 @@ class Cntl(object):
         kw['c'] = True
         # Call the job submitter but don't allow submitting.
         self.SubmitJobs(**kw)
-        
+
     # Master interface function
     def SubmitJobs(self, **kw):
         """Check jobs and prepare or submit jobs if necessary
-        
+
         :Call:
             >>> cntl.SubmitJobs(**kw)
         :Inputs:
@@ -826,7 +825,7 @@ class Cntl(object):
             # Print status with job numbers.
             stncl = ('%%-%is ' * 7) % (4, lrun, 7, 11, 3, 8, 7)
             # Print header row.
-            print(stncl % ("Case", "Config/Run Directory", "Status", 
+            print(stncl % ("Case", "Config/Run Directory", "Status",
                 "Iterations", "Que", "CPU Time", "Job ID"))
             # Print "---- --------" etc.
             print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s
@@ -835,7 +834,7 @@ class Cntl(object):
             # Print status without job numbers.
             stncl = ('%%-%is ' * 6) % (4, lrun, 7, 11, 3, 8)
             # Print header row.
-            print(stncl % ("Case", "Config/Run Directory", "Status", 
+            print(stncl % ("Case", "Config/Run Directory", "Status",
                 "Iterations", "Que", "CPU Time"))
             # Print "---- --------" etc.
             print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*8)
@@ -965,12 +964,12 @@ class Cntl(object):
                 fline += ("%s=%i, " % (key,total[key]))
         # Print the line.
         if fline: print(fline)
-        
+
     # Mark a case as PASS
     @run_rootdir
     def MarkPASS(self, **kw):
         """Mark one or more cases as **PASS** and rewrite matrix
-        
+
         :Call:
             >>> cntl.MarkPASS(**kw)
         :Inputs:
@@ -999,12 +998,12 @@ class Cntl(object):
             self.x.MarkPASS(i, flag=flag)
         # Write the trajectory
         self.x.WriteRunMatrixFile()
-        
+
     # Mark a case as PASS
     @run_rootdir
     def MarkERROR(self, **kw):
         """Mark one or more cases as **ERROR** and rewrite matrix
-        
+
         :Call:
             >>> cntl.MarkERROR(**kw)
         :Inputs:
@@ -1039,12 +1038,12 @@ class Cntl(object):
                 self.DeleteCase(i, prompt=qprompt)
         # Write the trajectory
         self.x.WriteRunMatrixFile()
-        
+
     # Remove PASS and ERROR markers
     @run_rootdir
     def UnmarkCase(self, **kw):
         """Mark one or more cases as **ERROR** and rewrite matrix
-        
+
         :Call:
             >>> cntl.UnmarkCase(**kw)
         :Inputs:
@@ -1065,15 +1064,15 @@ class Cntl(object):
             self.x.UnmarkCase(i)
         # Write the trajectory
         self.x.WriteRunMatrixFile()
-    
+
     # Execute script
     @run_rootdir
     def ExecScript(self, i, cmd):
         """Execute a script in a given case folder
-        
+
         This function is the interface to command-line calls using the ``-e``
         flag, such as ``pycart -e 'ls -lh'``.
-        
+
         :Call:
             >>> ierr = cntl.ExecScript(i, cmd)
         :Inputs:
@@ -1125,9 +1124,9 @@ class Cntl(object):
         # Output
         print("    exit(%s)" % ierr)
         return ierr
-    
+
    # >
-    
+
    # =============
    # Run Interface
    # =============
@@ -1161,23 +1160,23 @@ class Cntl(object):
         else:
             # Wrong user!
             return False
-        
-            
+
+
     # Function to start a case: submit or run
     @run_rootdir
     def StartCase(self, i):
-        """Start a case by either submitting it 
-        
+        """Start a case by either submitting it
+
         This function checks whether or not a case is submittable.  If
         so, the case is submitted via :func:`cape.cfdx.queue.pqsub`,
         and otherwise the case is started using a system call.
-        
+
         Before starting case, this function checks the folder using
         :func:`cape.cntl.CheckCase`; if this function returns ``None``,
         the case is not started.  Actual starting of the case is done
         using :func:`CaseStartCase`, which has a specific version for
         each CFD solver.
-        
+
         :Call:
             >>> pbs = cntl.StartCase(i)
         :Inputs:
@@ -1215,16 +1214,16 @@ class Cntl(object):
             print("     Submitted job: %i" % pbs)
         # Output
         return pbs
-    
-    
+
+
     # Call the correct module to start the case
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
-        
+
         This function relies on :mod:`cape.cfdx.case`, and so it is
         customized for the correct solver only in that it calls the
         correct *case* module.
-        
+
         :Call:
             >>> pbs = cntl.CaseStartCase()
         :Inputs:
@@ -1237,15 +1236,15 @@ class Cntl(object):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.StartCase()
-        
+
     # Function to terminate a case: qdel and remove RUNNING file
     @run_rootdir
     def StopCase(self, i):
         """Stop a case if running
-        
+
         This function deletes a case's PBS job and removes the :file:`RUNNING`
         file if it exists.
-        
+
         :Call:
             >>> cntl.StopCase(i)
         :Inputs:
@@ -1265,9 +1264,9 @@ class Cntl(object):
         os.chdir(frun)
         # Stop the job if possible.
         case.StopCase()
-        
+
    # >
-        
+
    # ===========
    # Case Status
    # ===========
@@ -1275,10 +1274,10 @@ class Cntl(object):
     # Get expected actual breaks of phase iters.
     def GetPhaseBreaks(self):
         """Get expected iteration numbers at phase breaks
-        
+
         This fills in ``0`` entries in *RunControl>PhaseIters* and returns the
         filled-out list
-        
+
         :Call:
             >>> PI = cntl.GetPhaseBreaks()
         :Inputs:
@@ -1305,11 +1304,11 @@ class Cntl(object):
             PI[i] = max(PI[i], PI[i-1]+NI[i])
         # Output
         return PI
-    
+
     # Get last iter
     def GetLastIter(self, i):
         """Get minimum required iteration for a given run to be completed
-        
+
         :Call:
             >>> nIter = cntl.GetLastIter(i)
         :Inputs:
@@ -1332,11 +1331,11 @@ class Cntl(object):
         N = rc.get('PhaseIters', 0)
         # Output the last entry (if list)
         return options.getel(N, -1)
-    
+
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):
         """Determine the current status of a case
-        
+
         :Call:
             >>> sts = cntl.CheckCaseStatus(i, jobs=None, auto=False, u=None)
         :Inputs:
@@ -1423,18 +1422,18 @@ class Cntl(object):
                 sts = "PASS*"
         # Output
         return sts
-        
+
     # Check a case.
     @run_rootdir
     def CheckCase(self, i, v=False):
         """Check current status of run *i*
-        
+
         Because the file structure is different for each solver, some
         of this method may need customization.  This customization,
         however, can be kept to the functions
         :func:`cape.cfdx.case.GetCurrentIter` and
         :func:`cape.cntl.Cntl.CheckNone`.
-        
+
         :Call:
             >>> n = cntl.CheckCase(i, v=False)
         :Inputs:
@@ -1486,11 +1485,11 @@ class Cntl(object):
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
         """Get the current iteration number from the appropriate module
-        
+
         This function utilizes the :mod:`cape.cfdx.case` module, and so
         it must be copied to the definition for each solver's control
         class.
-        
+
         :Call:
             >>> n = cntl.CaseGetCurrentIter()
         :Inputs:
@@ -1505,12 +1504,12 @@ class Cntl(object):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.GetCurrentIter()
-        
+
     # Check a case's phase output files
     @run_rootdir
     def CheckUsedPhase(self, i, v=False):
         """Check maximum phase number run at least once
-        
+
         :Call:
             >>> j, n = cntl.CheckUsedPhase(i, v=False)
         :Inputs:
@@ -1565,12 +1564,12 @@ class Cntl(object):
                     break
         # Output.
         return j, phases[-1]
-        
+
     # Check a case's phase number
     @run_rootdir
     def CheckPhase(self, i, v=False):
         """Check current phase number of run *i*
-        
+
         :Call:
             >>> n = cntl.CheckPhase(i, v=False)
         :Inputs:
@@ -1611,15 +1610,15 @@ class Cntl(object):
                 n = 0
         # Output.
         return n
-        
+
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentPhase(self):
         """Get the current phase number from the appropriate module
-        
+
         This function utilizes the :mod:`cape.cfdx.case` module, and so
         it must be copied to the definition for each solver's control
         class.
-        
+
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
@@ -1641,15 +1640,15 @@ class Cntl(object):
             return case.GetPhaseNumber(rc)
         except:
             return 0
-        
-        
+
+
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         """Check if the present working directory has the necessary files to run
-        
+
         This function needs to be customized for each CFD solver so that it
         checks for the appropriate files.
-        
+
         :Call:
             >>> q = cntl.CheckNone(v=False)
         :Inputs:
@@ -1664,13 +1663,13 @@ class Cntl(object):
             * 2015-09-27 ``@ddalle``: First version
             * 2017-02-22 ``@ddalle``: Added verbose flag
         """
-        return False 
-    
+        return False
+
     # Check if a case is running.
     @run_rootdir
     def CheckRunning(self, i):
         """Check if a case is currently running
-        
+
         :Call:
             >>> q = cntl.CheckRunning(i)
         :Inputs:
@@ -1690,12 +1689,12 @@ class Cntl(object):
         q = os.path.isfile(os.path.join(frun, 'RUNNING'))
         # Output
         return q
-            
+
     # Check for a failure
     @run_rootdir
     def CheckError(self, i):
         """Check if a case has a failure
-        
+
         :Call:
             >>> q = cntl.CheckError(i)
         :Inputs:
@@ -1717,17 +1716,17 @@ class Cntl(object):
         q = q or self.x.ERROR[i]
         # Output
         return q
-        
+
     # Check for no unchanged files
     @run_rootdir
     def CheckZombie(self, i):
         """Check a case for ``ZOMBIE`` status
-        
+
         A running case is declared a zombie if none of the listed files (by
         default ``*.out``) have been modified in the last 30 minutes.  However,
         a case cannot be a zombie unless it contains a ``RUNNING`` file and
         returns ``True`` from :func:`CheckRunning`.
-        
+
         :Call:
             >>> q = cntl.CheckZombie(i)
         :Inputs:
@@ -1775,7 +1774,7 @@ class Cntl(object):
         # Output
         return (t >= tmax)
    # >
-   
+
    # =================
    # Case Modification
    # =================
@@ -1783,12 +1782,12 @@ class Cntl(object):
     # Function to extend one or more cases
     def ExtendCases(self, **kw):
         """Extend one or more case by a number of iterations
-        
+
         By default, this applies to the final phase, but the phase number *j*
         can also be specified as input. The number of additional iterations is
         generally the nominal number of iterations that phase *j* would
         normally run.
-        
+
         :Call:
             >>> cntl.ExtendCases(cons=[], j=None, extend=1, **kw)
         :Inputs:
@@ -1838,16 +1837,16 @@ class Cntl(object):
                     jsub += 1
                 # Check submission limit
                 if jsub >= nsub: return
-    
+
     # Function to extend one or more cases
     def ApplyCases(self, **kw):
         """Extend one or more case by a number of iterations
-        
+
         By default, this applies to the final phase, but the phase number *j*
         can also be specified as input. The number of additional iterations is
         generally the nominal number of iterations that phase *j* would
         normally run.
-        
+
         :Call:
             >>> cntl.Applycases(cons=[], j=None, extend=1, **kw)
         :Inputs:
@@ -1897,16 +1896,16 @@ class Cntl(object):
                     jsub += 1
                 # Check submission limit
                 if jsub >= nsub: return
-                
+
     # Function to delete a case folder: qdel and rm
     @run_rootdir
     def DeleteCase(self, i, **kw):
         """Delete a case
-        
+
         This function deletes a case's PBS job and removes the entire
         directory.  By default, the method prompts for user's confirmation
         before deleting; set *prompt* to ``False`` to delete without prompt.
-        
+
         :Call:
             >>> n = cntl.DeleteCase(i)
         :Inputs:
@@ -1955,7 +1954,7 @@ class Cntl(object):
         # Output
         return n
    # >
-    
+
    # =========
    # Archiving
    # =========
@@ -1964,7 +1963,7 @@ class Cntl(object):
     @run_rootdir
     def ArchiveCases(self, **kw):
         """Archive completed cases and clean them up if specified
-        
+
         :Call:
             >>> cntl.ArchiveCases()
             >>> cntl.ArchiveCases(cons=[], **kw)
@@ -2006,11 +2005,11 @@ class Cntl(object):
                 continue
             # Archive
             self.ArchivePWD(phantom=kw.get("phantom",False))
-    
+
     # Individual case archive function
     def ArchivePWD(self, phantom=False):
         """Archive a single case in the current folder ($PWD)
-        
+
         :Call:
             >>> cntl.ArchivePWD(phantom=False)
         :Inputs:
@@ -2023,12 +2022,12 @@ class Cntl(object):
         """
         # Archive using the local module
         manage.ArchiveFolder(self.opts, phantom=False)
-    
+
     # Function to archive results and remove files
     @run_rootdir
     def SkeletonCases(self, **kw):
         """Archive completed cases and delete all but a few files
-        
+
         :Call:
             >>> cntl.SkeletonCases()
             >>> cntl.SkeletonCases(cons=[], **kw)
@@ -2070,11 +2069,11 @@ class Cntl(object):
                 continue
             # Archive
             self.SkeletonPWD(phantom=kw.get("phantom",False))
-    
+
     # Individual case archive function
     def SkeletonPWD(self, phantom=False):
         """Delete most files in current folder, leaving only a skeleton
-        
+
         :Call:
             >>> cntl.SkeletonPWD(phantom=False)
         :Inputs:
@@ -2087,12 +2086,12 @@ class Cntl(object):
         """
         # Archive using the local module
         manage.SkeletonFolder(self.opts, phantom=phantom)
-        
+
     # Clean a set of cases
     @run_rootdir
     def CleanCases(self, **kw):
         """Clean a list of cases using *Progress* archive options only
-        
+
         :Call:
             >>> cntl.CleanCases(**kw)
         :Inputs:
@@ -2116,11 +2115,11 @@ class Cntl(object):
             os.chdir(frun)
             # Perform cleanup
             self.CleanPWD(phantom=kw.get("phantom",False))
-    
+
     # Individual case archive function
     def CleanPWD(self, phantom=False):
         """Archive a single case in the current folder ($PWD)
-        
+
         :Call:
             >>> cntl.CleanPWD(phantom=False)
         :Inputs:
@@ -2134,12 +2133,12 @@ class Cntl(object):
         """
         # Archive using the local module
         manage.CleanFolder(self.opts, phantom=phantom)
-        
+
     # Unarchive cases
     @run_rootdir
     def UnarchiveCases(self, **kw):
         """Unarchive a list of cases
-        
+
         :Call:
             >>> cntl.UnarchiveCases(**kw)
         :Inputs:
@@ -2179,7 +2178,7 @@ class Cntl(object):
                 # Delete the folder
                 os.rmdir(fdir)
    # >
-    
+
    # =========
    # CPU Stats
    # =========
@@ -2188,7 +2187,7 @@ class Cntl(object):
     @run_rootdir
     def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
         """Read a Cape-style core-hour file
-        
+
         :Call:
             >>> CPUt = cntl.GetCPUTimeFromFile(i, fname)
         :Inputs:
@@ -2223,12 +2222,12 @@ class Cntl(object):
         except Exception:
             # Could not read file
             return None
-            
+
     # Get CPU hours currently running
     @run_rootdir
     def GetCPUTimeFromStartFile(self, i, fname='cape_start.dat'):
         """Read a Cape-style start time file and compare to current time
-        
+
         :Call:
             >>> CPUt = cntl.GetCPUTimeFromStartFile(i, fname)
         :Inputs:
@@ -2269,17 +2268,17 @@ class Cntl(object):
             return CPUt
         except Exception:
             return 0.0
-            
+
     # Get total CPU hours (core hours) with file names as inputs
     def GetCPUTimeBoth(self, i, fname, fstart, running=False):
         """Read Cape-style core-hour files from a case
-        
+
         This function needs to be customized for each solver because it needs to
         know the name of the file in which timing data is saved.  It defaults to
         :file:`cape_time.dat`.  Modifying this command is a one-line fix with a
         call to :func:`cape.cntl.Cntl.GetCPUTimeFromFile` with the correct file
         name.
-        
+
         :Call:
             >>> CPUt = cntl.GetCPUTimeBoth(i, fname, fstart, running=False)
         :Inputs:
@@ -2313,17 +2312,17 @@ class Cntl(object):
         else:
             # Just the time of finished jobs
             return CPUf
-            
+
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i, running=False):
         """Read a Cape-style core-hour file from a case
-        
+
         This function needs to be customized for each solver because it needs to
         know the name of the file in which timing data is saved.  It defaults to
         :file:`cape_time.dat`.  Modifying this command is a one-line fix with a
         call to :func:`cape.cntl.Cntl.GetCPUTimeFromFile` with the correct file
         name.
-        
+
         :Call:
             >>> CPUt = cntl.GetCPUTime(i)
         :Inputs:
@@ -2344,9 +2343,9 @@ class Cntl(object):
         fstrt = 'cape_start.dat'
         # Call with base file names
         return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
-    
+
    # >
-    
+
    # ========
    # PBS Jobs
    # ========
@@ -2354,7 +2353,7 @@ class Cntl(object):
     # Get PBS name
     def GetPBSName(self, i, pre=None):
         """Get PBS name for a given case
-        
+
         :Call:
             >>> lbl = cntl.GetPBSName(i, pre=None)
         :Inputs:
@@ -2373,12 +2372,12 @@ class Cntl(object):
         """
         # Call from trajectory
         return self.x.GetPBSName(i, pre=pre)
-    
+
     # Get PBS job ID if possible
     @run_rootdir
     def GetPBSJobID(self, i):
         """Get PBS job number if one exists
-        
+
         :Call:
             >>> pbs = cntl.GetPBSJobID(i)
         :Inputs:
@@ -2414,11 +2413,11 @@ class Cntl(object):
             pbs = None
         # Output
         return pbs
-        
+
     # Write a PBS header
     def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None, pre=None):
         """Write common part of PBS or Slurm script
-        
+
         :Call:
             >>> cntl.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
         :Inputs:
@@ -2457,12 +2456,12 @@ class Cntl(object):
         else:
             # Call the function from *opts*
             self.opts.WritePBSHeader(f, lbl, j=j, typ=typ, wd=wd)
-            
+
     # Write batch PBS job
     @run_rootdir
     def SubmitBatchPBS(self, argv):
         """Write a PBS script for a batch run
-        
+
         :Call:
             >>> cntl.SubmitBatchPBS(argv)
         :Inputs:
@@ -2588,7 +2587,7 @@ class Cntl(object):
             # Submit PBS job
             pbs = queue.pqsub(fpbs)
    # >
-    
+
    # ================
    # Case Preparation
    # ================
@@ -2597,12 +2596,12 @@ class Cntl(object):
     @run_rootdir
     def PrepareCase(self, i):
         """Prepare case for running if necessary
-        
+
         This function creates the folder, copies mesh files, and saves settings
         and input files.  All of these tasks are completed only if they have not
         already been completed, and it needs to be customized for each CFD
         solver.
-        
+
         :Call:
             >>> cntl.PrepareCase(i)
         :Inputs:
@@ -2630,11 +2629,11 @@ class Cntl(object):
         self.x.WriteConditionsJSON(i)
         # Write a JSON files with contents of "RunControl" section
         self.WriteCaseJSON(i)
-            
+
     # Function to apply transformations to config
     def PrepareConfig(self, i):
         """Apply rotations, translations, or other features to ``Config.xml``
-        
+
         :Call:
             >>> cntl.PrepareConfig(i)
         :Inputs:
@@ -2667,12 +2666,12 @@ class Cntl(object):
                 self.PrepareConfigRotation(key, i)
         # Write the configuration file
         self.WriteConfig(i)
-    
+
     # Write run control options to JSON file
     @run_rootdir
     def WriteCaseJSON(self, i, rc=None):
         """Write JSON file with run control and related settings for case *i*
-        
+
         :Call:
             >>> cntl.WriteCaseJSON(i, rc=None)
         :Inputs:
@@ -2704,12 +2703,12 @@ class Cntl(object):
             json.dump(rc, f, indent=1)
         # Close the file.
         f.close()
-        
+
     # Read run control options from case JSON file
     @run_rootdir
     def ReadCaseJSON(self, i):
         """Read ``case.json`` file from case *i* if possible
-        
+
         :Call:
             >>> rc = cntl.ReadCaseJSON(i)
         :Inputs:
@@ -2740,9 +2739,9 @@ class Cntl(object):
             rc = case.ReadCaseJSON()
         # Output
         return rc
-        
+
    # >
-    
+
    # =============
    # Geometry Prep
    # =============
@@ -2750,7 +2749,7 @@ class Cntl(object):
     # Function to apply special triangulation modification keys
     def PrepareTri(self, i):
         """Rotate/translate/etc. triangulation for given case
-        
+
         :Call:
             >>> cntl.PrepareTri(i)
         :Inputs:
@@ -2780,11 +2779,11 @@ class Cntl(object):
             elif kt.lower() == "rotation":
                 # Component(s) rotation
                 self.PrepareTriRotation(key, i)
-    
+
     # Apply a special triangulation function
     def PrepareTriFunction(self, key, i):
         """Apply special triangulation modification function for a case
-        
+
         :Call:
             >>> cntl.PrepareTriFunction(key, i)
         :Inputs:
@@ -2802,11 +2801,11 @@ class Cntl(object):
         func = self.x.defns[key]['Function']
         # Apply it.
         exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
-    
+
     # Apply a special configuration function
     def PrepareConfigFunction(self, key, i):
         """Apply special configuration modification function for a case
-        
+
         :Call:
             >>> cntl.PrepareConfigFunction(key, i)
         :Inputs:
@@ -2823,11 +2822,11 @@ class Cntl(object):
         func = self.x.defns[key]['Function']
         # Apply it.
         exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
-        
+
     # Apply a triangulation translation
     def PrepareTriTranslation(self, key, i):
         """Apply a translation to a component or components
-        
+
         :Call:
             >>> cntl.PrepareTriTranslation(key, i)
         :Inputs:
@@ -2882,11 +2881,11 @@ class Cntl(object):
             x = self.opts.get_Point(pt)
             # Apply transformation.
             self.opts.set_Point(x-v, pt)
-            
+
     # Apply a triangulation translation
     def PrepareConfigTranslation(self, key, i):
         """Apply a translation to a component or components
-        
+
         :Call:
             >>> cntl.PrepareConfigTranslation(key, i)
         :Inputs:
@@ -2958,11 +2957,11 @@ class Cntl(object):
             x = self.opts.get_Point(pt)
             # Apply transformation.
             self.opts.set_Point(x-v, pt)
-            
+
     # Apply a triangulation rotation
     def PrepareTriRotation(self, key, i):
         """Apply a rotation to a component or components
-        
+
         :Call:
             >>> cntl.PrepareTriRotation(key, i)
         :Inputs:
@@ -3074,7 +3073,7 @@ class Cntl(object):
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
         # Reference points to be rotated
         XT  = np.array([xT[comp] for comp in compsT])
-        XTR = np.array([xT[comp] for comp in compsTR]) 
+        XTR = np.array([xT[comp] for comp in compsTR])
         # Apply transformation
         Y   = RotatePoints(X,   v0,  v1,  theta)
         YT  = RotatePoints(XT,  v0,  v1,  theta)
@@ -3097,12 +3096,12 @@ class Cntl(object):
         for j in range(len(ptsR)):
             # Set the new value.
             self.opts.set_Point(YR[j], ptsR[j])
-    
-            
+
+
     # Apply a configuration rotation
     def PrepareConfigRotation(self, key, i):
         """Apply a rotation to a component or components
-        
+
         :Call:
             >>> cntl.PrepareConfigRotation(key, i)
         :Inputs:
@@ -3236,7 +3235,7 @@ class Cntl(object):
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
         # Reference points to be rotated
         XT  = np.array([xT[comp] for comp in compsT])
-        XTR = np.array([xT[comp] for comp in compsTR]) 
+        XTR = np.array([xT[comp] for comp in compsTR])
         # Apply transformation
         Y   = RotatePoints(X,   v0,  v1,  theta)
         YT  = RotatePoints(XT,  v0,  v1,  theta)
@@ -3264,9 +3263,9 @@ class Cntl(object):
         for j in range(len(ptsR)):
             # Set the new value.
             self.opts.set_Point(YR[j], ptsR[j])
-    
+
    # >
-    
+
    # ==================
    # Thrust Preparation
    # ==================
@@ -3274,20 +3273,20 @@ class Cntl(object):
     # Get exit area for SurfCT boundary condition
     def GetSurfCT_ExitArea(self, key, i, comp=None):
         """Get exit area for a *CT* trajectory key
-        
+
         This can use either the area ratio (if available) or calculate from the
         exit Mach number.  The input area is determined from the component ID.
         If using the exit Mach number *M2*, the input Mach number *M1* is also
         needed.  The relationship between area ratio and exit Mach is given
         below.
-        
+
             .. math::
-                
+
                 \\frac{A_2}{A_1} = \\frac{M_1}{M_2}\\left(
                     \\frac{1+\\frac{\\gamma-1}{2}M_2^2}{
                     1+\\frac{\\gamma-1}{2}M_1^2}
                 \\right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
-        
+
         :Call:
             >>> A2 = cntl.GetSurfCT_ExitArea(key, i)
         :Inputs:
@@ -3335,23 +3334,23 @@ class Cntl(object):
             AR = M1/M2 * ((1+g2*M2*M2) / (1+g2*M1*M1))**g1
         # Return exit areas
         return A1*AR
-        
+
     # Get exit Mach number for SurfCT boundary condition
     def GetSurfCT_ExitMach(self, key, i, comp=None):
         """Get exit Mach number for a *CT* trajectory key
-        
+
         This can use either the ``"ExitMach"`` parameter (if available) or
         calculate from the area ratio.  If using the area ratio, the input Mach
         number is also needed.  The relationship between area ratio and exit
         Mach is given below.
-        
+
             .. math::
-                
+
                 \\frac{A_2}{A_1} = \\frac{M_1}{M_2}\\left(
                     \\frac{1+\\frac{\\gamma-1}{2}M_2^2}{
                     1+\\frac{\\gamma-1}{2}M_1^2}
                 \\right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
-        
+
         :Call:
             >>> M2 = cntl.GetSurfCT_ExitMach(key, i)
         :Inputs:
@@ -3383,19 +3382,19 @@ class Cntl(object):
             M2 = convert.ExitMachFromAreaRatio(AR, M1, gam)
         # Output
         return M2
-        
+
     # Reference area
     def GetSurfCT_RefArea(self, key, i):
         """Get reference area for surface *CT* trajectory key
-        
+
         This references the ``"RefArea"`` parameter of the definition for the
         run matrix variable *key*.  The user should set this parameter to
         ``1.0`` if thrust inputs are given as dimensional values.
-        
+
         If this is ``None``, it returns the global reference area; if it is a
         string the reference area comes from the reference area for that
         component using ``cntl.opts.get_RefArea(comp)``.
-        
+
         :Call:
             >>> Aref = cntl.GetSurfCT_RefArea(key, i)
         :Inputs:
@@ -3425,9 +3424,9 @@ class Cntl(object):
         else:
             # Assume it's already given as the correct type
             return Aref
-        
+
    # >
-    
+
    # =================
    # DataBook Updaters
    # =================
@@ -3436,7 +3435,7 @@ class Cntl(object):
     @run_rootdir
     def UpdateFM(self, **kw):
         """Collect force and moment data
-        
+
         :Call:
             >>> cntl.UpdateFM(cons=[], **kw)
         :Inputs:
@@ -3474,12 +3473,12 @@ class Cntl(object):
             self.ReadDataBook(comp=[])
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
-    
+
     # Update line loads
     @run_rootdir
     def UpdateLineLoad(self, **kw):
         """Update one or more line load data books
-        
+
         :Call:
             >>> cntl.UpdateLineLoad(ll=None, **kw)
         :Inputs:
@@ -3512,12 +3511,12 @@ class Cntl(object):
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.config)
-    
+
     # Update TriqFM data book
     @run_rootdir
     def UpdateTriqFM(self, **kw):
         """Update one or more TriqFM data books
-        
+
         :Call:
             >>> cntl.UpdateTriqFM(comp=None, **kw)
         :Inputs:
@@ -3545,12 +3544,12 @@ class Cntl(object):
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateTriqFM(I, comp=comp)
-    
+
     # Update TriqPointGroup data book
     @run_rootdir
     def UpdateTriqPoint(self, **kw):
         """Update one or more TriqPoint extracted point sensor data books
-        
+
         :Call:
             >>> cntl.UpdateTriqPoint(comp=None, **kw)
         :Inputs:
@@ -3579,7 +3578,7 @@ class Cntl(object):
             # Read the results and update as necessary.
             self.DataBook.UpdateTriqPoint(I, comp=comp)
    # >
-   
+
    # =================
    # DataBook Checkers
    # =================
@@ -3587,7 +3586,7 @@ class Cntl(object):
     # Function to check FM component status
     def CheckFM(self, **kw):
         """Display missing force & moment components
-        
+
         :Call:
             >>> cntl.CheckFM(**kw)
         :Inputs:
@@ -3721,11 +3720,11 @@ class Cntl(object):
                 # Header
                 print("Checking component '%s'" % comp)
                 print(txt[:-1])
-            
+
     # Function to check LL component status
     def CheckLL(self, **kw):
         """Display missing line load components
-        
+
         :Call:
             >>> cntl.CheckLL(**kw)
         :Inputs:
@@ -3857,11 +3856,11 @@ class Cntl(object):
                 # Header
                 print("Checking component '%s'" % comp)
                 print(txt[:-1])
-            
+
     # Function to check TriqFM component status
     def CheckTriqFM(self, **kw):
         """Display missing TriqFM components
-        
+
         :Call:
             >>> cntl.CheckTriqFM(**kw)
         :Inputs:
@@ -3993,11 +3992,11 @@ class Cntl(object):
                 # Header
                 print("Checking component '%s'" % comp)
                 print(txt[:-1])
-                
+
     # Function to check TriqFM component status
     def CheckTriqPoint(self, **kw):
         """Display missing TriqPoint components
-        
+
         :Call:
             >>> cntl.CheckTriqPoint(**kw)
         :Inputs:
@@ -4046,7 +4045,7 @@ class Cntl(object):
                 DBG[pt].UpdateRunMatrix()
                 # Add to the list
                 complist.append("%s/%s" % (comp, pt))
-                
+
         # Longest component name (plus room for the '/' char)
         maxcomp = max(map(len, complist)) + 1
         # Format to include user and format to display iteration number
@@ -4148,4 +4147,4 @@ class Cntl(object):
                     print(txt[:-1])
    # >
 # class Cntl
-    
+

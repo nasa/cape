@@ -12,9 +12,8 @@ image with specified image size.
         $ pc_ExportLayout.py $LAY [$PNG] [OPTIONS]
         
 :Inputs:
-    
-    *LAY*: Name of the Tecplot layout file
-    *PNG*: Name of output file 
+    * *LAY*: Name of the Tecplot layout file
+    * *PNG*: Name of output file 
     
 :Options:
 

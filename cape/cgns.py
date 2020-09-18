@@ -1,14 +1,16 @@
 #!/usr/bin/env python
-"""
-:mod:`cape.cgns`: CGNS File Interface 
+# -*- coding: utf-8 -*-
+r"""
+:mod:`cape.cgns`: CGNS File Interface
 ======================================
 
-This module provides a class for reading CGNS files of certain types that have
-been implemented.  The main purpose is to read surface triangulations with
-quads and convert it into a :class:`cape.tri.Tri` object.  However, the class
-provided in this module, :mod:`cape.cgns.CGNS`, must be converted into a
-:class:`cape.tri.Tri` or other object externally.  This module merely reads the
-file, reads the data from each node, and constructs a sub-node table.
+This module provides a class for reading CGNS files of certain types
+that have been implemented.  The main purpose is to read surface
+triangulations with quads and convert it into a :class:`cape.tri.Tri`
+object.  However, the class provided in this module,
+:mod:`cape.cgns.CGNS`, must be converted into a :class:`cape.tri.Tri`
+or other object externally.  This module merely reads the file, reads
+the data from each node, and constructs a sub-node table.
 
 In order to create a triangulation interface from a CGNS file, see
 :class:`cape.tri.Tri`, and use the *cgns* keyword argument.
@@ -20,10 +22,10 @@ import numpy as np
 
 # Convert a 12-byte ADF string into and address
 def ADFAddress2Pos(addr):
-    """Convert ADF 12-byte code into position index
-    
+    r"""Convert ADF 12-byte code into position index
+
     This is a hex code with but skipping the 8th character
-    
+
     :Call:
         >>> pos = ADFAddress2Pos(addr)
     :Inputs:
@@ -33,41 +35,40 @@ def ADFAddress2Pos(addr):
         *pos*: :class:`int`
             Position in file in bytes
     :Versions:
-        * 2018-03-02 ``@ddalle``: First version
+        * 2018-03-02 ``@ddalle``: Version 1.0
     """
     # Use '0x' to signify hex and convert to integer
     return eval('0x' + addr[:8] + addr[9:])
-            
+
 
 # CGNS class
 class CGNS(object):
-    """
-    Interface to CGNS files
-    
+    r"""Interface to CGNS files
+
     :Call:
         >>> cgns = cape.cgns.CGNS(fname)
     :Inputs:
-        *fname*: :class:`str` | :class:`unicode`
+        *fname*: :class:`str`
             Name of CGNS file
     :Outputs:
         *cgns*: :class:`cape.cgns.CGNS`
             CGNS file interface
         *cgns.nNode*: :class:`int`
             Number of nodes read
-        *cgns.NodeNames*: :class:`np.ndarray` (:class:`str`)
+        *cgns.NodeNames*: :class:`np.ndarray`\ [:class:`str`]
             Names of each node
-        *cgns.NodeLabels*: :class:`np.ndarray` (:class:`str`)
+        *cgns.NodeLabels*: :class:`np.ndarray`\ [:class:`str`]
             Labels for each node (often a data type holder)
-        *cgns.NodeAddresses*: :class:`np.ndarray` (:class:`int`)
+        *cgns.NodeAddresses*: :class:`np.ndarray`\ [:class:`int`]
             File position of the beginning of each node
         *cgns.DataTypes*: :class:`list` (:class:`str`)
             Data type for each node
-        *cgns.Data*: :class:`list` (:class:`np.ndarray` | :class:`str`)
+        *cgns.Data*: :class:`list`\ [:class:`np.ndarray` | :class:`str`]
             Data set for each node
-        *cgns.SubNodeTables*: :class:`list` (:class:`list` | ``None``)
+        *cgns.SubNodeTables*: :class:`list`\ [:class:`list` | ``None``]
             List of any child nodes for each node
     :Versions:
-        * 2018-03-02 ``@ddalle``: First version
+        * 2018-03-02 ``@ddalle``: Version 1.0
     """
   # ========
   # Config
@@ -75,21 +76,21 @@ class CGNS(object):
   # <
     # Initialization method
     def __init__(self, fname):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         # Open the file for binary reading
         try:
             f = open(fname, 'rb')
         except Exception:
-            raise IOError("Unable to open CGNS file '%s' for binary reading"
-                % fname)
+            raise IOError(
+                "Unable to open CGNS file '%s' for binary reading" % fname)
         # Save the file name
         self.fname = fname
         # Initialize fields
-        self.NodeNames = [] 
+        self.NodeNames = []
         self.NodeLabels = []
         self.NodeAddresses = []
         self.SubNodeTables = []
@@ -97,41 +98,41 @@ class CGNS(object):
         self.Data = []
         # Node count
         self.nNode = 0
-        
+
         # Call readers
         try:
             # ADF format
             self.ReadADF(f)
             # Cleanup
             f.close()
-        except Exception as e:
+        except Exception:
             # Close the file
             f.close()
             # Not implemented or failed
             print("Unimplemented file format or " +
                 "failed to read ADF file")
             # Return original error
-            raise e
-    
+            raise
+
     # String command
     def __repr__(self):
-        """Representation method
-        
+        r"""Representation method
+
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         return "<CGNS '%s', nNode=%i>" % (self.fname, self.nNode)
-        
+
     # String command
     def __str__(self):
         """String method
-        
+
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         return "<CGNS '%s', nNode=%i>" % (self.fname, self.nNode)
   # >
-  
+
   # =========
   # Readers
   # =========
@@ -139,11 +140,11 @@ class CGNS(object):
    # -------
    # ADF
    # -------
-   # [  
+   # [
     # Read ADF file
     def ReadADF(self, f):
-        """Read open CGNS/ADF file, currently at position 0
-        
+        r"""Read open CGNS/ADF file, currently at position 0
+
         :Call:
             >>> cgns.ReadADF(f)
         :Inputs:
@@ -152,7 +153,7 @@ class CGNS(object):
             *f*: :class:`file`
                 Open file currently at the beginning of *NoDe* field
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
        # --- Header ---
         # Go to beginning of file, but skip first four characters
@@ -234,11 +235,11 @@ class CGNS(object):
                 [self.NodeNames[k], self.NodeAddresses[k]],
                 [self.NodeNames[j], self.NodeAddresses[j]]
             ]
-        
+
     # Read node
     def ReadADFNode(self, f):
-        """Read a (new) node from an open CGNS/ADF file
-        
+        r"""Read a (new) node from an open CGNS/ADF file
+
         :Call:
             >>> cgns.ReadADFNode(f)
         :Inputs:
@@ -247,7 +248,7 @@ class CGNS(object):
             *f*: :class:`file`
                 Open file currently at the beginning of *NoDe* field
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         # Save current location to store if valid node
         ia = f.tell()
@@ -294,11 +295,11 @@ class CGNS(object):
         self.nNode += 1
         # Output successful read
         return 1
-        
+
     # Read annoying "z"s
     def ReadADFZs(self, f):
-        """Read strings like "zzzzzzzzzzzz" until reaching a relevant char
-        
+        r"""Read strings like "zzzzzzzzzzzz" until a relevant char
+
         :Call:
             >>> cgns.ReadADFZs(f)
         :Inputs:
@@ -307,7 +308,7 @@ class CGNS(object):
             *f*: :class:`file`
                 Open file currently at the beginning of *DaTa* field
         :Versions:
-            * 2018-03-05 ``@ddalle``: First version
+            * 2018-03-05 ``@ddalle``: Version 1.0
         """
         # Read the next four bytes
         s = f.read(4)
@@ -321,15 +322,15 @@ class CGNS(object):
         else:
             # Go back to original position by seeking backward 4 chars
             f.seek(-4, 1)
-        
+
     # Read annoying "FreE" block
     def ReadADFFree(self, f):
-        """Read one *FreE* entry from an open CGNS/ADF file
-        
-        The next 4 bytes must be the string ``"FreE"``, and the following 12
-        bytes must give the address of the end of the field as a hex code
-        string.
-        
+        r"""Read one *FreE* entry from an open CGNS/ADF file
+
+        The next 4 bytes must be the string ``"FreE"``, and the
+        following 12 bytes must give the address of the end of the field
+        as a hex code string.
+
         :Call:
             >>> cgns.ReadADFFreE(f)
         :Inputs:
@@ -338,7 +339,7 @@ class CGNS(object):
             *f*: :class:`file`
                 Open file currently at the beginning of *DaTa* field
         :Versions:
-            * 2018-03-05 ``@ddalle``: First version
+            * 2018-03-05 ``@ddalle``: Version 1.0
         """
         # Save current location
         ja = f.tell()
@@ -371,15 +372,15 @@ class CGNS(object):
         if s.lower() != "endc":
             raise ValueError("FreE field must end with string 'EndC'; " +
                 ("file contains '%s'" % s))
-    
+
     # Read data
     def ReadADFSubNodeTable(self, f):
-        """Read one *SNTb* entry from an open CGNS/ADF file
-        
-        The next four bytes must be the string ``"SNTb"``, and the following 12
-        bytes must give the address of the end of the field as a hex code
-        string.
-        
+        r"""Read one *SNTb* entry from an open CGNS/ADF file
+
+        The next four bytes must be the string ``"SNTb"``, and the
+        following 12 bytes must give the address of the end of the field
+        as a hex code string.
+
         :Call:
             >>> sntb = cgns.ReadADFSubNodeTable(f)
         :Inputs:
@@ -388,10 +389,10 @@ class CGNS(object):
             *f*: :class:`file`
                 Open file currently at the beginning of *DaTa* field
         :Outputs:
-            *sntb*: :class:`np.array` ([:class:`str`, :class:`int`])
+            *sntb*: :class:`np.array`\ [[:class:`str`, :class:`int`]]
                 List of name and begin addresses of any subnodes
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         # Save current location
         ja = f.tell()
@@ -436,15 +437,15 @@ class CGNS(object):
                 ("file contains '%s'" % s))
         # Output
         return sntb
-    
+
     # Read data
     def ReadADFData(self, f, dt):
-        """Read one *DaTa* entry from an open CGNS/ADF file
-        
-        The next four bytes must be the string ``"DaTa"``, and the following 12
-        bytes must give the address of the end of the field as a hex code
-        string.
-        
+        r"""Read one *DaTa* entry from an open CGNS/ADF file
+
+        The next four bytes must be the string ``"DaTa"``, and the
+        following 12 bytes must give the address of the end of the field
+        as a hex code string.
+
         :Call:
             >>> data = cgns.ReadADFData(f, dt)
         :Inputs:
@@ -458,7 +459,7 @@ class CGNS(object):
             *data*: :class:`np.ndarray` | :class:`str`
                 Data read from file
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         # Read the next four bytes
         s = f.read(4)
@@ -535,15 +536,15 @@ class CGNS(object):
         return data
    # ]
   # >
-  
+
   # ===============
   # Node Interface
   # ===============
   # <
     # Get node index
     def GetNodeIndex(self, name=None, label=None, addr=None):
-        """Get index of a node by name and label or address
-        
+        r"""Get index of a node by name and label or address
+
         :Call:
             >>> K = cgns.GetNodeIndex(name=None, label=None, addr=None)
             >>> K = cgns.GetNodeIndex(name)
@@ -559,10 +560,10 @@ class CGNS(object):
             *addr*: {``None``} | :class:`int`
                 Address of the beginning of the node
         :Outputs:
-            *k*: :class:`np.ndarray` (:class:`int`)
+            *k*: :class:`np.ndarray`\ [:class:`int`]
                 Node index list
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         # Process inputs
         if name is not None:
@@ -590,11 +591,11 @@ class CGNS(object):
         K = np.where(M)[0]
         # Output
         return K
-            
+
     # Get node by address only
     def GetNodeByAddress(self, addr):
-        """Get index of node by explicit address (only unique identifier)
-        
+        r"""Get index of node by explicit address (unique identifier)
+
         :Call:
             >>> k = cgns.GetNodeByAddress(addr)
         :Inputs:
@@ -606,7 +607,7 @@ class CGNS(object):
             *k*: :class:`int`
                 Node index
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         # Find matching address
         k = np.where(self.NodeAddresses == addr)[0]
@@ -615,11 +616,11 @@ class CGNS(object):
             raise ValueError("No match for address '%s'" % addr)
         # Output
         return k[0]
-        
+
     # Get *IndexRange_t* node index for a named zone
     def GetCompIDInfo(self, comp):
-        """Get the info for a named zone with type *Elements_t*
-        
+        r"""Get the info for a named zone with type *Elements_t*
+
         :Call:
             >>> ka, kb, Elems = cgns.GetCompIDInfo(comp)
             >>> ka, kb, Elems = cgns.GetCompIDInfo(addr)
@@ -635,10 +636,13 @@ class CGNS(object):
                 Element index of the first element in *comp* (1-based)
             *kb*: :class:`int`
                 Element index of the last element in *comp* (1-based)
-            *Elems*: :class:`np.ndarray` shape=(*nElem*, *nVert*)
+            *Elems*: :class:`np.ndarray`
+                * *shape*: (*nElem*, *nVert*)
+
                 Array of vertex indices for each element
+
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
        # --- Find *Elements_t* node ---
         # If given an address, use that
@@ -703,11 +707,11 @@ class CGNS(object):
         Elems = np.reshape(self.Data[kEC], (nElem, nVert))
         # Output
         return ka, kb, Elems
-        
+
     # Get a node's subnode given a desired type
     def GetSubNodeByName(self, k, name):
-        """Get subnode by desired name
-        
+        r"""Get subnode by desired name
+
         :Call:
             >>> J = cgns.GetSubNodeByName(k, name)
         :Inputs:
@@ -718,10 +722,10 @@ class CGNS(object):
             *name*: :class:`str`
                 Desired name
         :Outputs:
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 List of such subnodes
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         # Get SubNodeTable
         sntb = self.SubNodeTables[k]
@@ -741,11 +745,11 @@ class CGNS(object):
         else:
             # Back-index to *I*
             return I[K]
-        
+
     # Get a node's subnode given a desired type
     def GetSubNodeByLabel(self, k, label):
-        """Get subnode by desired type
-        
+        r"""Get subnode by desired type
+
         :Call:
             >>> J = cgns.GetSubNodeByLabel(k, label)
         :Inputs:
@@ -756,10 +760,10 @@ class CGNS(object):
             *label*: :class:`str`
                 Desired label
         :Outputs:
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 List of such subnodes
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
         # Get SubNodeTable
         sntb = self.SubNodeTables[k]

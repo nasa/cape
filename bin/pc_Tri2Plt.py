@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-"""
+# -*- coding: utf-8 -*-
+r"""
 Convert Triangulation to Tecplot PLT Format: ``pc_Tri2Plt.py``
 ==================================================================
 
-Convert a Cart3D triangulation ``.tri`` or ``.triq`` file to a Tecplot PLT
-file.  Each component of the triangulation is written as a separate zone.
+Convert a Cart3D triangulation ``.tri`` or ``.triq`` file to a Tecplot
+PLT file.  Each component of the triangulation is written as a separate
+zone.
 
-:Call:
-
+:Usage:
     .. code-block:: console
     
         $ pc_Tri2Plt.py TRI [CFG --plt PLT --dat DAT]
@@ -40,33 +41,34 @@ file.  Each component of the triangulation is written as a separate zone.
         Create ASCII Tecplot file *DAT*; this suppresses *PLT* output
 
 :Versions:
-    * 2014-04-05 ``@ddalle``: First version
+    * 2014-04-05 ``@ddalle``: Version 1.0
 """
 
-# Get the geometry file format modules
-import cape.tri
-import cape.plt
-# Module to handle inputs and os interface
-import sys, os.path
-# Command-line input parser
+# Standard library
+import os.path
+import sys
+
+# CAPE modules
 import cape.argread
+import cape.plt
+import cape.tri
+
 
 # Main function
 def Tri2Plt(*a, **kw):
-    """
-    Convert a UH3D triangulation file to Cart3D tri format
+    r"""Convert a UH3D triangulation file to Cart3D ``.tri`` format
     
     :Call:
         >>> Tri2Plt(tri, c, plt=None, dat=None, h=False)
-        >>> Tri2Plt(tri=None, c='Config.xml', plt=None, dat=None, h=False)
+        >>> Tri2Plt(**kw)
     :Inputs:
         *tri*: :class:`str`
             Name of input file; can be any readable TRI or TRIQ format
         *plt*: {``None``} | :class:`str`
-            Name of PLT file to create; defaults to name of TRI file with the
+            Name of PLT file to create; defaults to *tri* with the
             ``.tri`` replaced by ``.plt``
         *dat*: {``None``} | :class:`str`
-            If not ``None``, write this file as Tecplot ASCII; suppresses PLT
+            Write this file as Tecplot ASCII; suppresses *plt*
         *c*: :class:`str`
             Name of configuration file (XML, JSON, or MIXSUR format)
         *h*, *help*: ``True`` | {``False``}
@@ -74,7 +76,7 @@ def Tri2Plt(*a, **kw):
         *v*: ``True`` | {``False``}
             Verbose output while creating PLT interface
     :Versions:
-        * 2016-04-05 ``@ddalle``: First version
+        * 2016-04-05 ``@ddalle``: Version 1.0
     """
     # Get the file pyCart settings file name.
     if len(a) == 0:
@@ -130,7 +132,7 @@ def Tri2Plt(*a, **kw):
     else:
         # Write ASCII Tecplot DAT file
         plt.WriteDat(fdat)
-        
+
 
 # Only process inputs if called as a script!
 if __name__ == "__main__":
@@ -143,4 +145,4 @@ if __name__ == "__main__":
         sys.exit()
     # Run the main function.
     Tri2Plt(*a, **kw)
-    
+

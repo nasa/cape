@@ -1,17 +1,17 @@
 #!/usr/bin/env python
-"""
+# -*- coding: utf-8 -*-
+r"""
 Calculate Forces and Moments on a TRIQ File: ``pc_TriqFM.py``
 =============================================================
 
 Calculate the integrated forces and moments on a triangulated surface
 
-:Call:
-
+:Usage:
     .. code-block:: console
     
-        $ pc_TriqFM.py $TRIQ $COMP1 $COMP2 [...] [OPTIONS]
+        $ pc_TriqFM.py TRIQ COMP1 COMP2 [...] [OPTIONS]
         $ pc_TriqFM.py -h
-        $ triqfm $TRIQ $COMP1 $COMP2 [...] [OPTIONS]
+        $ triqfm TRIQ COMP1 COMP2 [...] [OPTIONS]
         $ triqfm -h
 
 :Inputs:
@@ -21,10 +21,10 @@ Calculate the integrated forces and moments on a triangulated surface
     
 :Examples:
     
-    Calculate the forces and moments on the full geometry in ``"grid.i.triq"``,
-    which is a solution calculated at Mach 0.75.
+    Calculate the forces and moments on the full geometry in
+    ``"grid.i.triq"``, which is a solution calculated at Mach 0.75.
     
-        .. code-block:: bash
+        .. code-block:: console
         
             $ triqfm grid.i.triq --mach 0.75
             $ triqfm -m 0.75
@@ -43,9 +43,10 @@ Calculate the integrated forces and moments on a triangulated surface
         List of components to analyze separated by commas
         
     --tri TRI, --map TRI
-        Use a separate triangulation (Cart3D tri, UH3D, AFLR3 surf, IDEAS unv,
-        or other TRIQ format) as a map for which triangles to extract; if used,
-        the component list *COMPS* and config file *CONFIG* apply to this file
+        Use a separate triangulation (Cart3D tri, UH3D, AFLR3 surf,
+        IDEAS unv, or other TRIQ format) as a map for which triangles to
+        extract; if used, the component list *COMPS* and config file
+        *CONFIG* apply to this file
         
     --momentum
         Include momentum forces in total
@@ -78,12 +79,12 @@ Calculate the integrated forces and moments on a triangulated surface
         Moment reference point {"*XMRP*, *YMRP*, *ZMRP*"} 
         
 :Versions:
-    * 2017-02-17 ``@ddalle``: First version
+    * 2017-02-17 ``@ddalle``: Version 1.0
 """
 
 # Standard library
-import sys
 import json
+import sys
 
 # CAPE modules
 import cape.tri
@@ -92,12 +93,13 @@ import cape.argread
 # CAPE modules: direct import
 from cape.cfdx.options.util import loadJSONFile
 
+
 # Main function
 def TriqFM(*a, **kw):
-    """Extract forces and moments on one or more subsets of a TRIQ file
+    r"""Extract forces and moments from a TRIQ file
     
-    Note that both *triq* and *comps* can be overwritten by keyword arguments
-    even if specified using sequential arguments.
+    Note that both *triq* and *comps* can be overwritten by keyword
+    arguments even if specified using positional arguments.
     
     :Call:
         >>> C = TriqFM(triq, *comps, **kw)

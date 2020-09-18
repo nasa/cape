@@ -1,24 +1,24 @@
 #!/usr/bin/env python
-"""
+# -*- coding: utf-8 -*-
+r"""
 Convert Cart3D TRI file to AFLR3 Surf format: ``pc_Tri2Surf.py``
 ==================================================================
 
 Convert a ``.tri`` file to a AFLR3 surface format.
 
-:Call:
-
+:Usage:
     .. code-block:: console
     
-        $ pc_Tri2Surf.py $tri
-        $ pc_Tri2Surf.py -i $tri
-        $ pc_Tri2Surf.py $uh3d $surf
-        $ pc_Tri2Surf.py -i $tri -o $surf -c $xml
+        $ pc_Tri2Surf.py TRI
+        $ pc_Tri2Surf.py -i TRI
+        $ pc_Tri2Surf.py UH3D SURF
+        $ pc_Tri2Surf.py -i TRI -o SURF -c XML
         $ pc_Tri2Surf.py -h
 
 :Inputs:
-    * *tri*: Name of input ``.tri`` file
-    * *surf*: Name of output ``.surf`` file
-    * *xml*: Name of ``Config.xml`` file
+    * *TRI*: Name of input ``.tri`` file
+    * *SURF*: Name of output ``.surf`` file
+    * *XML*: Name of ``Config.xml`` file
     
 :Options:
     -h, --help
@@ -36,25 +36,25 @@ Convert a ``.tri`` file to a AFLR3 surface format.
     -bc MAPBC
         Use *MAPBC* as boundary condition map file (not implemented)
     
-If the name of the output file is not specified, it will just add ``.surf`` as
-the extension to the input (deleting ``.tri`` if possible).
+If the name of the output file is not specified, it will just add
+``.surf`` as the extension to the input (deleting ``.tri`` if possible).
 
 :Versions:
-    * 2014-06-12 ``@ddalle``: First version
-    * 2015-10-09 ``@ddalle``: Added tolerances and Config.xml processing
+    * 2014-06-12 ``@ddalle``: Version 1.0
+    * 2015-10-09 ``@ddalle``: Version 1.1: tols and Config.xml
 """
 
-# Get the pyCart module.
-import cape.pycart
-# Module to handle inputs and os interface
+# Standard library
 import sys
-# Command-line input parser
-import cape.argread as argr
+
+# CAPE modules
+import cape.argread
+import cape.pycart
+
 
 # Main function
 def Tri2Surf(*a, **kw):
-    """
-    Convert a UH3D triangulation file to Cart3D tri format
+    r"""Convert a triangulated surface to AFLR3 ``.surf`` format
     
     :Call:
         >>> Tri2Surf(tri, surf, bc=None)
@@ -63,12 +63,12 @@ def Tri2Surf(*a, **kw):
         *tri*: :class:`str`
             Name of input file
         *surf*: :class:`str`
-            Name of outpu file (defaults to value of tri but with ``.surf`` as
-            the extension in the place of ``.tri``
+            Name of output file (defaults to *tri* with ``.surf`` as
+            the extension in the place of ``.tri``)
         *bc*: :class:`str`
             (Optional) name of boundary condition file to apply
     :Versions:
-        * 2015-11-19 ``@ddalle``: First version
+        * 2015-11-19 ``@ddalle``: Version 1.0
     """
     # Get the file pyCart settings file name.
     if len(a) == 0:
@@ -118,12 +118,12 @@ def Tri2Surf(*a, **kw):
     
     # Write it.
     tri.WriteSurf(fsurf)
-    
+
 
 # Only process inputs if called as a script!
 if __name__ == "__main__":
     # Process the command-line interface inputs.
-    (a, kw) = argr.readkeys(sys.argv)
+    (a, kw) = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
         import cape.text
@@ -131,4 +131,4 @@ if __name__ == "__main__":
         sys.exit()
     # Run the main function.
     Tri2Surf(*a, **kw)
-    
+

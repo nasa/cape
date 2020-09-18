@@ -14,7 +14,6 @@ maximum spacing command-line options.
 
 :Inputs:
     * *STP*: Name of input ``'.stp`` or ``.step`` file
-
     * *CRV*: Name of output Plot3D file
     
 :Options:
