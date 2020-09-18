@@ -31,6 +31,7 @@ individualized modules are below.
 
 # Standard library modules
 import os
+import sys
 import shutil
 import glob
 import json
@@ -522,8 +523,13 @@ class Cntl(object):
             kwx.append(kw['x'])
         # Apply all scripts
         for fx in kwx:
-            execfile(fx)
-            
+            if sys.version_info.major == 2:
+                # Built-in function
+                execfile(fx)
+            else:
+                # Open file and execute it
+                exec(open(fx).read())
+
         # Output
         return a, kw
         
