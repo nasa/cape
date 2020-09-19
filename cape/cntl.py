@@ -31,6 +31,7 @@ individualized modules are below.
 
 # Standard library modules
 import functools
+import getpass
 import glob
 import importlib
 import json
@@ -245,20 +246,19 @@ class Cntl(object):
 
     # Function to apply initialization function
     def InitFunction(self):
-        """Run one or more "initialization functions"
+        r"""Run one or more functions a "initialization" hook
 
-        This calls the function(s) in the global ``"InitFunction"`` option from
-        the JSON file.  These functions must take *cntl* as an input, and they
-        are usually from a module imported via the ``"Modules"`` option.  See
-        the following example:
+        This calls the function(s) in the global ``"InitFunction"``
+        option from the JSON file.  These functions must take *cntl* as
+        an input, and they are usually from a module imported via the
+        ``"Modules"`` option.  See the following example:
 
             .. code-block:: javascript
 
                 "Modules": ["testmod"],
                 "InitFunction": ["testmod.testfunc"]
 
-        This leads pyCart to call ``testmod.testfunc(cntl)``.  For pyFun, this
-        becomes ``testmod.testfunc(fun3d)``, etc.
+        This leads CAPE to call ``testmod.testfunc(cntl)``.
 
         :Call:
             >>> cntl.InitFunction()
@@ -279,28 +279,32 @@ class Cntl(object):
             # Run the function
             exec("self.%s(self)" % func)
 
-
     # Call function to apply settings for case *i*
     def CaseFunction(self, i):
-        """Apply a function at the beginning of :func:`PrepareCase(i)`
+        r"""Run one or more functions at "prepare-case" hook
+
+        This function is executed at the beginning of
+        :func:`PrepareCase(i)`.
 
         This is meant to serve as a filter if a user wants to change the
-        settings for some subset of the cases.  Using this function can change
-        any setting, which can be dependent on the case number *i*.
+        settings for some subset of the cases.  Using this function can
+        change any setting, which can be dependent on the case *i*.
 
-        This calls the function(s) in the global ``"CaseFunction"`` option from
-        the JSON file. These functions must take *cntl* as an input and the
-        case number *i*. The function(s) are usually from a module imported via
-        the ``"Modules"`` option. See the following example:
+        This calls the function(s) in the global ``"CaseFunction"``
+        option from the JSON file. These functions must take *cntl* as
+        an input and the case number *i*. The function(s) are usually
+        from a module imported via the ``"Modules"`` option. See the
+        following example:
 
             .. code-block:: javascript
 
                 "Modules": ["testmod"],
                 "CaseFunction": ["testmod.testfunc"]
 
-        This leads pyCart to call ``testmod.testfunc(cntl, i)`` at the
-        beginning of :func:`PrepareCase` for each case *i* in the run matrix.
-        The function is also called at the beginning of :func:`ApplyCase`
+        This leads CAPE to call ``testmod.testfunc(cntl, i)`` at the
+        beginning of :func:`PrepareCase` for each case *i* in the run
+        matrix.  The function is also called at the beginning of
+        :func:`ApplyCase` if ``pyfun --apply`` or similar is issued.
 
         :Call:
             >>> cntl.CaseFunction(i)
@@ -332,16 +336,15 @@ class Cntl(object):
             # Run the function
             exec("self.%s(self, %s)" % (func, i))
 
-
     # Make a directory
     def mkdir(self, fdir):
-        """Make a directory with the correct permissions
+        r"""Make a directory with the correct permissions
 
         :Call:
             >>> cntl.mkdir(fdir)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *fdir*: :class:`str`
                 Directory to create
         :Versions:
@@ -362,13 +365,13 @@ class Cntl(object):
     # Function to prepare the triangulation for each grid folder
     @run_rootdir
     def ReadTri(self):
-        """Read initial triangulation file(s)
+        r"""Read initial triangulation file(s)
 
         :Call:
             >>> cntl.ReadTri()
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
         :Versions:
             * 2014-08-30 ``@ddalle``: Version 1.0
         """
@@ -392,7 +395,8 @@ class Cntl(object):
             # Read config file
             cfg = ConfigXML(fxml)
         # Ensure list
-        if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
+        if not isinstance(ftri, (list, np.ndarray)):
+            ftri = [ftri]
         # Read first file
         tri = ReadTriFile(ftri[0])
         # Apply configuration
@@ -437,13 +441,15 @@ class Cntl(object):
     # Read configuration (without tri file if necessary)
     @run_rootdir
     def ReadConfig(self, f=False):
-        """Read ``Config.xml`` or ``Config.json`` file if not already present
+        r"""Read ``Config.xml`` or other surf configuration format
 
         :Call:
-            >>> cntl.ReadConfig()
+            >>> cntl.ReadConfig(f=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
+            *f*: ``True`` | {``False``}
+                Option to reread existing *cntl.config*
         :Versions:
             * 2016-06-10 ``@ddalle``: Version 1.0
             * 2016-10-21 ``@ddalle``: Version 2.0, added ``Config.json``
@@ -483,7 +489,6 @@ class Cntl(object):
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)
-
    # >
 
    # ======================
@@ -492,22 +497,22 @@ class Cntl(object):
    # <
     # Baseline function
     def cli_preprocess(self, *a, **kw):
-        """Preprocess command-line arguments and flags/keywords
+        r"""Preprocess command-line arguments and flags/keywords
 
         :Call:
             >>> a, kw = cntl.cli_preprocess(*a, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
+                Overall CAPE control instance
+            *kw*: :class:`dict`\ [``True`` | ``False`` | :class:`str`]
                 Command-line keyword arguments and flags
         :Outputs:
             *a*: :class:`tuple`
-                List of non-flag arguments with any additional preprocessing
+                List of sequential command-line parameters
             *kw*: :class:`dict`
                 Flags with any additional preprocessing performed
         :Versions:
-            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+            * 2018-10-19 ``@ddalle``: Version 1.0
         """
         # Get constraints and convert text to list
         cons  = kw.get('cons',        '').split(',')
@@ -539,24 +544,24 @@ class Cntl(object):
 
     # Baseline function
     def cli_cape(self, *a, **kw):
-        """Command-line interface
+        r"""Common command-line interface
 
-        This function is applied after the command-line arguments are parsed
-        using :func:`cape.argread.readflagstar` and the control interface has
-        already been read according to the ``-f`` flag.
+        This function is applied after the command-line arguments are
+        parsed using :func:`cape.argread.readflagstar` and the control
+        interface has already been read according to the ``-f`` flag.
 
         :Call:
             >>> cmd = cntl.cli_cape(*a, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *kw*: :class:`dict`
                 Preprocessed command-line keyword arguments
         :Outputs:
             *cmd*: ``None`` | :class:`str`
                 Name of command that was processed, if any
         :Versions:
-            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+            * 2018-10-19 ``@ddalle``: Version 1.0
         """
         # Check for recognized command
         if kw.get('c'):
@@ -663,20 +668,20 @@ class Cntl(object):
 
     # Baseline function
     def cli(self, *a, **kw):
-        """Command-line interface
+        r"""Command-line interface to ``cape``
 
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
+                Overall CAPE control instance
+            *kw*: :class:`dict`\ [``True`` | ``False`` | :class:`str`]
                 Unprocessed keyword arguments
         :Outputs:
             *cmd*: ``None`` | :class:`str`
                 Name of command that was processed, if any
         :Versions:
-            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+            * 2018-10-19 ``@ddalle``: Version 1.0
         """
         # Preprocess command-line inputs
         a, kw = self.cli_preprocess(*a, **kw)
@@ -690,24 +695,24 @@ class Cntl(object):
 
     # Function to display current status
     def DisplayStatus(self, **kw):
-        """Display current status for all cases
+        r"""Display current status for all cases
 
-        This prints case names, current iteration numbers, and so on.  This is
-        the function that is called when the user issues a system command like
-        ``cape -c``.
+        This prints case names, current iteration numbers, and so on.
+        This is the function that is called when the user issues a
+        system command like ``cape -c``.
 
         :Call:
             >>> cntl.DisplayStatus(j=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *j*: :class:`bool`
                 Whether or not to display job ID numbers
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2014-10-04 ``@ddalle``: Version 1.0
-            * 2014-12-09 ``@ddalle``: Added constraints
+            * 2014-12-09 ``@ddalle``: Version 2.0, ``--cons``
         """
         # Force the "check" option to true.
         kw['c'] = True
@@ -716,26 +721,26 @@ class Cntl(object):
 
     # Master interface function
     def SubmitJobs(self, **kw):
-        """Check jobs and prepare or submit jobs if necessary
+        r"""Check jobs and prepare or submit jobs if necessary
 
         :Call:
             >>> cntl.SubmitJobs(**kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *c*: :class:`bool`
+                Overall CAPE control instance
+            *c*: :``True`` | {``False``
                 If ``True``, only display status; do not submit new jobs
             *j*: :class:`bool`
                 Whether or not to display job ID numbers
             *n*: :class:`int`
                 Maximum number of jobs to submit
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2014-10-05 ``@ddalle``: Version 1.0
-            * 2014-12-09 ``@ddalle``: Added constraints
+            * 2014-12-09 ``@ddalle``: Version 2.0, ``--cons``
         """
        # -----------------------
        # Command Determination
@@ -973,16 +978,16 @@ class Cntl(object):
     # Mark a case as PASS
     @run_rootdir
     def MarkPASS(self, **kw):
-        """Mark one or more cases as **PASS** and rewrite matrix
+        r"""Mark one or more cases as **PASS** and rewrite matrix
 
         :Call:
             >>> cntl.MarkPASS(**kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *I*: :class:`list` (:class:`int`)
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
             *flag*: {``"p"``} | ``"P"`` | ``"PASS"`` | ``"$p"``
                 Marker to use to denote status
@@ -1007,16 +1012,16 @@ class Cntl(object):
     # Mark a case as PASS
     @run_rootdir
     def MarkERROR(self, **kw):
-        """Mark one or more cases as **ERROR** and rewrite matrix
+        r"""Mark one or more cases as **ERROR** and rewrite matrix
 
         :Call:
             >>> cntl.MarkERROR(**kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *I*: :class:`list` (:class:`int`)
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
             *flag*: {``"E"``} | ``"e"`` | ``"ERROR"`` | ``"$E"``
                 Marker to use to denote status
@@ -1047,16 +1052,16 @@ class Cntl(object):
     # Remove PASS and ERROR markers
     @run_rootdir
     def UnmarkCase(self, **kw):
-        """Mark one or more cases as **ERROR** and rewrite matrix
+        """Remove **PASS** or **ERROR** marking from one or more cases
 
         :Call:
             >>> cntl.UnmarkCase(**kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *I*: :class:`list` (:class:`int`)
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2019-06-14 ``@ddalle``: Version 1.0
@@ -1073,16 +1078,16 @@ class Cntl(object):
     # Execute script
     @run_rootdir
     def ExecScript(self, i, cmd):
-        """Execute a script in a given case folder
+        r"""Execute a script in a given case folder
 
-        This function is the interface to command-line calls using the ``-e``
-        flag, such as ``pycart -e 'ls -lh'``.
+        This function is the interface to command-line calls using the 
+        ``-e`` flag, such as ``pycart -e 'ls -lh'``.
 
         :Call:
             >>> ierr = cntl.ExecScript(i, cmd)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Case index (0-based)
         :Outputs:
@@ -1101,9 +1106,7 @@ class Cntl(object):
         # Status update
         print("  Executing system command:")
         # Check the input type
-        typ = type(cmd).__name__
-        # Execute based on type
-        if typ == 'list':
+        if isinstance(cmd, list):
             # Pass to safer subprocess command
             print("  %s" % cmd)
             ierr = sp.call(cmd)
@@ -1138,6 +1141,21 @@ class Cntl(object):
    # <
     # Apply user filter
     def FilterUser(self, i, **kw):
+        r"""Determine if case *i* is assigned to current user
+
+        :Call:
+            >>> q = cntl.FilterUser(i, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *u*, *user*: :class:`str`
+                User name (default: executing process's username) for
+                comparing to run matrix
+        :Versions:
+            2017-07-10 ``@ddalle``: Version 1.0
+        """
         # Get any 'user' trajectory keys
         ku = self.x.GetKeysByType('user')
         # Check if there's a user variable
@@ -1151,7 +1169,10 @@ class Cntl(object):
         # Select the user key
         k = ku[0]
         # Get target user
-        uid = kw.get('u', kw.get('user', os.environ['USER']))
+        uid = kw.get('u', kw.get('user'))
+        # Default
+        if uid is None:
+            uid = getpass.getuser()
         # Get the value of the user from the run matrix
         # Also, remove leading '@' character if present
         ui = self.x[k][i].lstrip('@').lower()
@@ -1170,7 +1191,7 @@ class Cntl(object):
     # Function to start a case: submit or run
     @run_rootdir
     def StartCase(self, i):
-        """Start a case by either submitting it
+        r"""Start a case by either submitting it or running it
 
         This function checks whether or not a case is submittable.  If
         so, the case is submitted via :func:`cape.cfdx.queue.pqsub`,
@@ -1186,11 +1207,11 @@ class Cntl(object):
             >>> pbs = cntl.StartCase(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Outputs:
-            *pbs*: :class:`int` or ``None``
+            *pbs*: :class:`int` | ``None``
                 PBS job ID if submitted successfully
         :Versions:
             * 2014-10-06 ``@ddalle``: Version 1.0
@@ -1220,10 +1241,9 @@ class Cntl(object):
         # Output
         return pbs
 
-
     # Call the correct module to start the case
     def CaseStartCase(self):
-        """Start a case by either submitting it or running it
+        r"""Start a case by either submitting it or running it
 
         This function relies on :mod:`cape.cfdx.case`, and so it is
         customized for the correct solver only in that it calls the
@@ -1245,9 +1265,9 @@ class Cntl(object):
     # Function to terminate a case: qdel and remove RUNNING file
     @run_rootdir
     def StopCase(self, i):
-        """Stop a case if running
+        r"""Stop a case if running
 
-        This function deletes a case's PBS job and removes the :file:`RUNNING`
+        This function deletes a case's PBS job and removes the ``RUNNING``
         file if it exists.
 
         :Call:
@@ -1269,7 +1289,6 @@ class Cntl(object):
         os.chdir(frun)
         # Stop the job if possible.
         case.StopCase()
-
    # >
 
    # ===========
@@ -1278,10 +1297,10 @@ class Cntl(object):
    # <
     # Get expected actual breaks of phase iters.
     def GetPhaseBreaks(self):
-        """Get expected iteration numbers at phase breaks
+        r"""Get expected iteration numbers at phase breaks
 
-        This fills in ``0`` entries in *RunControl>PhaseIters* and returns the
-        filled-out list
+        This fills in ``0`` entries in *RunControl* |>| *PhaseIters* and
+        returns the filled-out list.
 
         :Call:
             >>> PI = cntl.GetPhaseBreaks()
@@ -1289,7 +1308,8 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Cape control interface
         :Outputs:
-            *PI*: :class:`list` (:class:`int`)
+            *PI*: :class:`list`\ [:class:`int`]
+                Min iteration counts for each phase
         :Versions:
             * 2017-04-12 ``@ddalle``: Version 1.0
         """
@@ -1345,7 +1365,7 @@ class Cntl(object):
             >>> sts = cntl.CheckCaseStatus(i, jobs=None, auto=False, u=None)
         :Inputs:
             *cart3d*: :class:`cape.pycart.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
             *jobs*: :class:`dict`
@@ -1443,7 +1463,7 @@ class Cntl(object):
             >>> n = cntl.CheckCase(i, v=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
             *v*: ``True`` | {``False``}
@@ -1499,7 +1519,7 @@ class Cntl(object):
             >>> n = cntl.CaseGetCurrentIter()
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Outputs:
@@ -1519,7 +1539,7 @@ class Cntl(object):
             >>> j, n = cntl.CheckUsedPhase(i, v=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
             *v*: ``True`` | {``False``}
@@ -1579,7 +1599,7 @@ class Cntl(object):
             >>> n = cntl.CheckPhase(i, v=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
             *v*: ``True`` | {``False``}
@@ -1628,7 +1648,7 @@ class Cntl(object):
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Outputs:
@@ -1679,7 +1699,7 @@ class Cntl(object):
             >>> q = cntl.CheckRunning(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Run index
         :Outputs:
@@ -1704,7 +1724,7 @@ class Cntl(object):
             >>> q = cntl.CheckError(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Run index
         :Outputs:
@@ -1736,7 +1756,7 @@ class Cntl(object):
             >>> q = cntl.CheckZombie(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Run index
         :Outputs:
@@ -1804,9 +1824,9 @@ class Cntl(object):
                 Phase number
             *imax*: {``None``} | :class:`int`
                 Do not increase iteration number beyond *imax*
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
             * 2016-12-12 ``@ddalle``: Version 1.0
@@ -1861,9 +1881,9 @@ class Cntl(object):
                 Extend phase *j* by *extend* nominal runs
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
             * 2016-12-12 ``@ddalle``: Version 1.0
@@ -1975,9 +1995,9 @@ class Cntl(object):
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of overall control interface
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
             * 2016-12-09 ``@ddalle``: Version 1.0
@@ -2039,9 +2059,9 @@ class Cntl(object):
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of overall control interface
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
             * 2016-12-14 ``@ddalle``: Version 1.0
@@ -2363,7 +2383,7 @@ class Cntl(object):
             >>> lbl = cntl.GetPBSName(i, pre=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Run index
             *pre*: {``None``} | :class:`str`
@@ -2387,7 +2407,7 @@ class Cntl(object):
             >>> pbs = cntl.GetPBSJobID(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Run index
         :Outputs:
@@ -2427,7 +2447,7 @@ class Cntl(object):
             >>> cntl.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *f*: :class:`file`
                 Open file handle
             *i*: {``None``} | :class:`int`
@@ -2470,7 +2490,7 @@ class Cntl(object):
         :Call:
             >>> cntl.SubmitBatchPBS(argv)
         :Inputs:
-            *argv*: :class:`list` (:class:`str`)
+            *argv*: :class:`list`\ [:class:`str`]
                 List of command-line inputs
         :Versions:
             * 2016-09-25 ``@ddalle``: Version 1.0
@@ -2611,7 +2631,7 @@ class Cntl(object):
             >>> cntl.PrepareCase(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
@@ -2643,7 +2663,7 @@ class Cntl(object):
             >>> cntl.PrepareConfig(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Case index
         :Versions:
@@ -2759,7 +2779,7 @@ class Cntl(object):
             >>> cntl.PrepareTri(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
@@ -2793,7 +2813,7 @@ class Cntl(object):
             >>> cntl.PrepareTriFunction(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *key*: :class:`str`
                 Name of key
             *i*: :class:`int`
@@ -2815,7 +2835,7 @@ class Cntl(object):
             >>> cntl.PrepareConfigFunction(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *key*: :class:`str`
                 Name of key
             *i*: :class:`int`
@@ -2836,7 +2856,7 @@ class Cntl(object):
             >>> cntl.PrepareTriTranslation(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
@@ -2895,7 +2915,7 @@ class Cntl(object):
             >>> cntl.PrepareConfigTranslation(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *key*: :class:`str`
                 Name of variable from which to get value
             *i*: :class:`int`
@@ -2971,7 +2991,7 @@ class Cntl(object):
             >>> cntl.PrepareTriRotation(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
@@ -3111,7 +3131,7 @@ class Cntl(object):
             >>> cntl.PrepareConfigRotation(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *key*: :class:`str`
                 Name of the trajectory key
             *i*: :class:`int`
@@ -3296,7 +3316,7 @@ class Cntl(object):
             >>> A2 = cntl.GetSurfCT_ExitArea(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *key*: :class:`str`
                 Name of trajectory key to check
             *i*: :class:`int`
@@ -3360,7 +3380,7 @@ class Cntl(object):
             >>> M2 = cntl.GetSurfCT_ExitMach(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *key*: :class:`str`
                 Name of trajectory key to check
             *i*: :class:`int`
@@ -3404,7 +3424,7 @@ class Cntl(object):
             >>> Aref = cntl.GetSurfCT_RefArea(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *key*: :class:`str`
                 Name of trajectory key to check
             *i*: :class:`int`
@@ -3445,12 +3465,12 @@ class Cntl(object):
             >>> cntl.UpdateFM(cons=[], **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Outputs:
             *d*: :class:`dict` (:class:`numpy.ndarray` (:class:`float`))
@@ -3488,12 +3508,12 @@ class Cntl(object):
             >>> cntl.UpdateLineLoad(ll=None, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *ll*: :class:`str`
                 Optional name of line load component to update
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
             *pbs*: ``True`` | {``False``}
                 Whether or not to calculate line loads with PBS scripts
@@ -3529,9 +3549,9 @@ class Cntl(object):
                 Control class
             *comp*: {``None``} | :class:`str`
                 Name of TriqFM component
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2017-03-29 ``@ddalle``: Version 1.0
@@ -3562,9 +3582,9 @@ class Cntl(object):
                 Control class
             *comp*: {``None``} | :class:`str`
                 Name of TriqFM component
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2017-03-29 ``@ddalle``: Version 1.0
@@ -3596,12 +3616,12 @@ class Cntl(object):
             >>> cntl.CheckFM(**kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2018-10-19 ``@ddalle``: Version 1.0
@@ -3734,12 +3754,12 @@ class Cntl(object):
             >>> cntl.CheckLL(**kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2018-10-19 ``@ddalle``: Version 1.0
@@ -3870,12 +3890,12 @@ class Cntl(object):
             >>> cntl.CheckTriqFM(**kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2018-10-19 ``@ddalle``: Version 1.0
@@ -4006,12 +4026,12 @@ class Cntl(object):
             >>> cntl.CheckTriqPoint(**kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2018-10-19 ``@ddalle``: Version 1.0
