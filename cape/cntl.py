@@ -32,6 +32,7 @@ individualized modules are below.
 # Standard library modules
 import functools
 import glob
+import importlib
 import json
 import os
 import re
@@ -187,19 +188,20 @@ class Cntl(object):
     def ImportModules(self):
         r"""Import user-defined modules if specified in the options
 
-        All modules from the ``"Modules"`` global option of the JSON file
-        (``cntl.opts['Modules']``) will be imported and saved as attributes of
-        *cntl*.  For example, if the user wants to use a module called
-        :mod:`dac3`, it will be imported as *cntl.dac3*.  A list of disallowed
-        module names is below.
+        All modules from the ``"Modules"`` global option of the JSON
+        file (``cntl.opts["Modules"]``) will be imported and saved as
+        attributes of *cntl*.  For example, if the user wants to use a
+        module called :mod:`dac3`, it will be imported as *cntl.dac3*.
+        A noncomprehensive list of disallowed module names is below.
 
             *DataBook*, *RootDir*, *jobs*, *opts*, *tri*, *x*
 
-        The name of any method of this class is also disallowed.  However, if
-        the user wishes to import a module whose name is disallowed, he/she can
-        use a dictionary to specify a different name to import the module as.
-        For example, the user may import a module called :mod:`tri` as
-        :mod:`mytri` using the following JSON syntax.
+        The name of any method of this class is also disallowed.
+        However, if the user wishes to import a module whose name is
+        disallowed, he/she can use a dictionary to specify a different
+        name to import the module as. For example, the user may import a
+        module called :mod:`tri` as :mod:`mytri` using the following
+        JSON syntax.
 
             .. code-block:: javascript
 
@@ -211,8 +213,8 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of Cape control interface
         :Versions:
-            * 2014-10-08 ``@ddalle``: Version 1.0 (pyCart)
-            * 2015-09-20 ``@ddalle``: Moved to parent class
+            * 2014-10-08 ``@ddalle``: Version 1.0 (:mod:`pycart`)
+            * 2015-09-20 ``@ddalle``: Version 1.0
         """
         # Get Modules.
         lmod = self.opts.get("Modules", [])
@@ -220,13 +222,13 @@ class Cntl(object):
         if not lmod:
             # Empty --> empty list
             lmod = []
-        elif type(lmod).__name__ != "list":
+        elif not isinstance(lmod, list):
             # Single string
             lmod = [lmod]
         # Loop through modules.
         for imod in lmod:
             # Check for dictionary
-            if type(imod).__name__ in ['dict', 'odict']:
+            if isinstance(imod, dict):
                 # Get the file name and import name separately
                 fmod = imod.keys()[0]
                 nmod = imod[fmod]
@@ -239,7 +241,7 @@ class Cntl(object):
                 # Status update
                 print("Importing module '%s'" % imod)
             # Load the module by its name
-            exec('self.%s = __import__("%s")' % (fmod, nmod))
+            self.__dict__[fmod] = importlib.import_module(nmod)
 
     # Function to apply initialization function
     def InitFunction(self):
