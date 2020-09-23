@@ -3597,7 +3597,7 @@ class Cntl(object):
     # Update TriqPointGroup data book
     @run_rootdir
     def UpdateTriqPoint(self, **kw):
-        r"""Update one or more TriqPoint extracted point sensor data books
+        r"""Update one or more TriqPoint point sensor data books
 
         :Call:
             >>> cntl.UpdateTriqPoint(comp=None, **kw)
@@ -3634,7 +3634,7 @@ class Cntl(object):
    # <
     # Function to check FM component status
     def CheckFM(self, **kw):
-        """Display missing force & moment components
+        r"""Display missing force & moment components
 
         :Call:
             >>> cntl.CheckFM(**kw)
@@ -3772,7 +3772,7 @@ class Cntl(object):
 
     # Function to check LL component status
     def CheckLL(self, **kw):
-        """Display missing line load components
+        r"""Display missing line load components
 
         :Call:
             >>> cntl.CheckLL(**kw)
@@ -3908,7 +3908,7 @@ class Cntl(object):
 
     # Function to check TriqFM component status
     def CheckTriqFM(self, **kw):
-        """Display missing TriqFM components
+        r"""Display missing TriqFM components
 
         :Call:
             >>> cntl.CheckTriqFM(**kw)
@@ -4044,7 +4044,7 @@ class Cntl(object):
 
     # Function to check TriqFM component status
     def CheckTriqPoint(self, **kw):
-        """Display missing TriqPoint components
+        r"""Display missing TriqPoint components
 
         :Call:
             >>> cntl.CheckTriqPoint(**kw)
