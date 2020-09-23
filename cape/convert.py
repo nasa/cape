@@ -1,26 +1,31 @@
-"""
-:mod:`cape.convert`: Cape conversion utilities
-===============================================
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
+:mod:`cape.convert`: Unit and angle conversion utilities
+=========================================================
 
-Perform conversions such as (alpha total, phi) to (alpha, beta).  It also
-contains various utilities such as calculating Sutherland's law for estimating
-viscosity with the standard parameters, which are commonly needed tools for CFD
-solvers.
+Perform conversions such as (alpha total, phi) to (alpha, beta).  It
+also contains various utilities such as calculating Sutherland's law for
+estimating viscosity with the standard parameters, which are commonly
+needed tools for CFD solvers.
+
 """
 
-# Need NumPy for trig.
+# Third-party modules
 import numpy as np
 
-# Conversions
+
+# Selected unit conversion constatns
 slug = 14.593903
 inch = 0.0254
 ft = 12*inch
 deg = np.pi/180.0
 
+
 # Step function
 def fstep(x):
-    """Return -1 for negative numbers and +1 for nonnegative inputs
-    
+    r"""Return -1 for negative numbers and +1 for nonnegative numbers
+
     :Call:
         >>> y = fstep(x)
     :Inputs:
@@ -30,16 +35,17 @@ def fstep(x):
         *y*: ``-1.0`` | ``1.0`` | :class:`np.ndarray`
             Output step function or array of outputs
     :Versions:
-        * 2017-06-27 ``@ddalle``: First version
+        * 2017-06-27 ``@ddalle``: Version 1.0
     """
     return -1 + 2*np.ceil(0.5+0.5*np.sign(x))
 
+
 # Floor Step function
 def fstep1(x):
-    """Return -1 for nonpositive numbers and +1 for negative inputs
-    
+    r"""Return -1 for nonpositive numbers and +1 for positive inputs
+
     :Call:
-        >>> y = fstep(x)
+        >>> y = fstep1(x)
     :Inputs:
         *x*: :class:`float` | :class:`np.ndarray`
             Input or array of inputs
@@ -47,16 +53,15 @@ def fstep1(x):
         *y*: ``-1.0`` | ``1.0`` | :class:`np.ndarray`
             Output step function or array of outputs
     :Versions:
-        * 2017-06-27 ``@ddalle``: First version
+        * 2017-06-27 ``@ddalle``: Version 1.0
     """
     return -1 + 2*np.floor(0.5+0.5*np.sign(x))
 
+
 # Convert (total angle of attack, total roll angle) to (aoa, aos)
 def AlphaTPhi2AlphaBeta(alpha_t, phi):
-    """
-    Convert total angle of attack and total roll angle to angle of attack and
-    sideslip angle.
-    
+    r"""Convert total angle of attack and roll to alpha, beta
+
     :Call:
         >>> alpha, beta = cape.AlphaTPhi2AlphaBeta(alpha_t, beta)
     :Inputs:
@@ -70,7 +75,7 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
         *beta*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Versions:
-        * 2014-06-02 ``@ddalle``: First version
+        * 2014-06-02 ``@ddalle``: Version 1.0
     """
     # Trig functions.
     ca = np.cos(alpha_t*deg); cp = np.cos(phi*deg)
@@ -84,12 +89,12 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
     beta = np.arcsin(v) / deg
     # Output
     return alpha, beta
-    
-    
+
+
 # Convert (aoa, aos) to (total angle of attack, total roll angle)
 def AlphaBeta2AlphaTPhi(alpha, beta):
-    """Convert angle of attack and sideslip to total angle of attack and roll
-    
+    r"""Convert angle of attack and sideslip to missile axis angles
+
     :Call:
         >>> alpha_t, phi = cape.AlphaBeta2AlphaTPhi(alpha, beta)
     :Inputs:
@@ -103,8 +108,8 @@ def AlphaBeta2AlphaTPhi(alpha, beta):
         *phi*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2014-06-02 ``@ddalle``: First version
-        * 2014-11-05 ``@ddalle``: Transposed alpha and beta in *w* formula
+        * 2014-06-02 ``@ddalle``: Version 1.0
+        * 2014-11-05 ``@ddalle``: Version 1.1, transpose *w* formula
     """
     # Trig functions.
     ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
@@ -119,10 +124,11 @@ def AlphaBeta2AlphaTPhi(alpha, beta):
     # Output
     return alpha_t, phi
 
+
 # Convert (aoa, aos) to (u, v, w)
 def AlphaBeta2DirectionCosines(alpha, beta):
-    """Convert angle of attack and sideslip to direction cosines
-    
+    r"""Convert angle of attack and sideslip to direction cosines
+
     :Call:
         >>> u, v, w = cape.AlphaBeta2DirectionCosines(alpha, beta)
     :Inputs:
@@ -138,7 +144,7 @@ def AlphaBeta2DirectionCosines(alpha, beta):
         *w*: :class:`float` | :class:`numpy.array`
             *z*-component of body-frame velocity unit vector
     :Versions:
-        * 2019-06-19 ``@ddalle``: First version
+        * 2019-06-19 ``@ddalle``: Version 1.0
     """
     # Trig functions.
     ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
@@ -150,10 +156,11 @@ def AlphaBeta2DirectionCosines(alpha, beta):
     # Output
     return u, v, w
 
+
 # Convert (u, v, w) to (aoa, aos)
 def DirectionCosines2AlphaBeta(u, v, w):
-    """Convert direction cosines to angle of attack and sideslip
-    
+    r"""Convert direction cosines to angle of attack and sideslip
+
     :Call:
         >>> alpha, beta = cape.DirectionCosines2AlphaBeta(u, v, w)
     :Inputs:
@@ -169,7 +176,7 @@ def DirectionCosines2AlphaBeta(u, v, w):
         *beta*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Versions:
-        * 2019-06-19 ``@ddalle``: First version
+        * 2019-06-19 ``@ddalle``: Version 1.0
     """
     # 2-norm
     V = np.sqrt(u*u + v*v + w*w)
@@ -186,8 +193,8 @@ def DirectionCosines2AlphaBeta(u, v, w):
 
 # Convert (aoa, aos) to (u, v, w)
 def AlphaTPhi2DirectionCosines(aoap, phip):
-    """Convert total angle of attack and roll to direction cosines
-    
+    r"""Convert total angle of attack and roll to direction cosines
+
     :Call:
         >>> u, v, w = cape.AlphaTPhi2DirectionCosines(aoap, phip)
     :Inputs:
@@ -203,7 +210,7 @@ def AlphaTPhi2DirectionCosines(aoap, phip):
         *w*: :class:`float` | :class:`numpy.array`
             *z*-component of body-frame velocity unit vector
     :Versions:
-        * 2019-06-19 ``@ddalle``: First version
+        * 2019-06-19 ``@ddalle``: Version 1.0
     """
     # Trig functions.
     ca = np.cos(aoap*deg); cp = np.cos(phip*deg)
@@ -215,10 +222,11 @@ def AlphaTPhi2DirectionCosines(aoap, phip):
     # Output
     return u, v, w
 
+
 # Convert (u, v, w) to (aoap, phip)
 def DirectionCosines2AlphaTPhi(u, v, w):
-    """Convert direction cosines to total angle of attack and roll
-    
+    r"""Convert direction cosines to total angle of attack and roll
+
     :Call:
         >>> aoap, phip = cape.DirectionCosines2AlphaBeta(u, v, w)
     :Inputs:
@@ -234,7 +242,7 @@ def DirectionCosines2AlphaTPhi(u, v, w):
         *phip*: :class:`float` | :class:`numpy.array`
             Missile-axis to body-z roll angle
     :Versions:
-        * 2019-06-19 ``@ddalle``: First version
+        * 2019-06-19 ``@ddalle``: Version 1.0
     """
     # 2-norm
     V = np.sqrt(u*u + v*v + w*w)
@@ -247,12 +255,12 @@ def DirectionCosines2AlphaTPhi(u, v, w):
     aoap = np.arccos(u) / deg
     # Output
     return aoap, phip
-    
-    
+
+
 # Convert (aoa, aos) to (maneuver angle of attack, maneuver roll angle)
 def AlphaBeta2AlphaMPhi(alpha, beta):
-    """Convert angle of attack and sideslip to maneuver axis
-    
+    r"""Convert angle of attack and sideslip to maneuver axis
+
     :Call:
         >>> alpha_m, phi_m = cape.AlphaBeta2AlphaMPhi(alpha, beta)
     :Inputs:
@@ -266,7 +274,7 @@ def AlphaBeta2AlphaMPhi(alpha, beta):
         *phi_m*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2017-06-26 ``@ddalle``: First version
+        * 2017-06-26 ``@ddalle``: Version 1.0
     """
     # Trig functions.
     ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
@@ -285,13 +293,12 @@ def AlphaBeta2AlphaMPhi(alpha, beta):
     phi_m *= np.sign(np.abs(alpha_m))
     # Output
     return alpha_m, phi_m
-    
+
+
 # Convert (total angle of attack, total roll angle) to (aoam, phim)
 def AlphaTPhi2AlphaMPhi(alpha_t, phi):
-    """
-    Convert total angle of attack and total roll angle to angle of attack and
-    sideslip angle.
-    
+    r"""Convert missile-axis to maneuver-axis angles
+
     :Call:
         >>> alpha_m, phi_m = cape.AlphaTPhi2AlphaMPhi(alpha_t, phi)
     :Inputs:
@@ -305,7 +312,7 @@ def AlphaTPhi2AlphaMPhi(alpha_t, phi):
         *phi_m*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2017-06-27 ``@ddalle``: First version
+        * 2017-06-27 ``@ddalle``: Version 1.0
     """
     # Trig functions.
     ca = np.cos(alpha_t*deg); cp = np.cos(phi*deg)
@@ -324,13 +331,12 @@ def AlphaTPhi2AlphaMPhi(alpha_t, phi):
     phi_m *= np.sign(np.abs(alpha_m))
     # Output
     return alpha_m, phi_m
-    
+
+
 # Convert (aoam, phim) to (aoav, phiv)
 def AlphaMPhi2AlphaTPhi(alpha_m, phi_m):
-    """
-    Convert total angle of attack and total roll angle to angle of attack and
-    sideslip angle.
-    
+    """Convert maneuver axis to missile axis angles
+
     :Call:
         >>> alpha_t, phi = cape.AlphaTPhi2AlphaMPhi(alpha_m, phi_m)
     :Inputs:
@@ -344,7 +350,7 @@ def AlphaMPhi2AlphaTPhi(alpha_m, phi_m):
         *phi*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2017-06-27 ``@ddalle``: First version
+        * 2017-06-27 ``@ddalle``: Version 1.0
     """
     # Trig functions.
     ca = np.cos(alpha_m*deg); cp = np.cos(phi_m*deg)
@@ -358,14 +364,14 @@ def AlphaMPhi2AlphaTPhi(alpha_m, phi_m):
     alpha_t = np.arccos(u) / deg
     # Output
     return alpha_t, phi
-    
-    
+
+
 # Get exit Mach number from area ratio
 def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
-    """Calculate 1D nozzle Mach number from input Mach number and area ratio
-    
+    r"""Calculate 1D nozzle Mach number from input Mach and area ratio
+
     :Call:
-        >>> M2 = ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False)
+        >>> M2 = ExitMachFromAreaRatio(AR,M1, gamma=1.4, subsonic=False)
     :Inputs:
         *AR*: :class:`float`
             Nozzle area ratio
@@ -379,7 +385,7 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
         *M2*: :class:`float`
             Exit Mach number
     :Versions:
-        * 2016-04-13 ``@ddalle``: First version
+        * 2016-04-13 ``@ddalle``: Version 1.0
     """
     # Get critical quantities
     AR_star = CriticalAreaRatio(M1, gamma)
@@ -449,11 +455,12 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
         k += 1
     # Output
     return M2
-    
+
+
 # Critical area ratio
 def CriticalAreaRatio(M, gamma=1.4):
-    """Get the area ratio to a Mach 1 area
-    
+    r"""Get the area ratio to a Mach 1 area
+
     :Call:
         >>> AR = CriticalAreaRatio(M, gamma=1.4)
     :Inputs:
@@ -465,7 +472,7 @@ def CriticalAreaRatio(M, gamma=1.4):
         *AR*: :class:`float`
             Nozzle area ratio
     :Versions:
-        * 2016-04-13 ``@ddalle``: First version
+        * 2016-04-13 ``@ddalle``: Version 1.0
     """
     # Gas constants
     g1 = 0.5 * (gamma+1)
@@ -473,19 +480,19 @@ def CriticalAreaRatio(M, gamma=1.4):
     g3 = 0.5 * g1/g2
     # Area ratio
     return 1/M * ((1+g2*M*M)/g1) ** g3
-    
-    
+
 
 # Sutherland's law (FPS)
 def SutherlandFPS(T, mu0=None, T0=None, C=None):
-    """Calculate viscosity using Sutherland's law using imperial units
-    
+    r"""Calculate viscosity using Sutherland's law using imperial units
+
     This returns
-    
+
         .. math::
-        
-            \\mu = \\mu_0 \\frac{T_0+C}{T+C}\\left(\\frac{T}{T_0}\\right)^{3/2}
-    
+
+            \mu = \mu_0 \frac{T_0+C}{T+C}
+                \left(\frac{T}{T_0}\right)^{3/2}
+
     :Call:
         >>> mu = SutherlandFPS(T)
         >>> mu = SutherlandFPS(T, mu0=None, T0=None, C=None)
@@ -502,7 +509,7 @@ def SutherlandFPS(T, mu0=None, T0=None, C=None):
         *mu*: :class:`float`
             Dynamic viscosity [slug/ft*s]
     :Versions:
-        * 2016-03-23 ``@ddalle``: First version
+        * 2016-03-23 ``@ddalle``: Version 1.0
     """
     # Reference viscosity
     if mu0 is None: mu0 = 3.58394e-7
@@ -511,17 +518,19 @@ def SutherlandFPS(T, mu0=None, T0=None, C=None):
     if C  is None: C = 198.6
     # Sutherland's law
     return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
-    
+
+
 # Sutherland's law (MKS)
 def SutherlandMKS(T, mu0=None, T0=None, C=None):
-    """Calculate viscosity using Sutherland's law using SI units
-    
+    r"""Calculate viscosity using Sutherland's law using SI units
+
     This returns
-    
+
         .. math::
-        
-            \\mu = \\mu_0 \\frac{T_0+C}{T+C}\\left(\\frac{T}{T_0}\\right)^{3/2}
-    
+
+            \mu = \mu_0 \\frac{T_0+C}{T+C}
+                \left(\frac{T}{T_0}\right)^{3/2}
+
     :Call:
         >>> mu = SutherlandMKS(T)
         >>> mu = SutherlandMKS(T, mu0=None, T0=None, C=None)
@@ -538,7 +547,7 @@ def SutherlandMKS(T, mu0=None, T0=None, C=None):
         *mu*: :class:`float`
             Dynamic viscosity [kg/m*s]
     :Versions:
-        * 2016-03-23 ``@ddalle``: First version
+        * 2016-03-23 ``@ddalle``: Version 1.0
     """
     # Reference viscosity
     if mu0 is None: mu0 = 1.716e-5
@@ -547,15 +556,15 @@ def SutherlandMKS(T, mu0=None, T0=None, C=None):
     if C  is None: C = 110.33333
     # Sutherland's law
     return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
-    
+
 
 # Get Reynolds number
 def ReynoldsPerFoot(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
-    """Calculate Reynolds number per foot using Sutherland's Law
-    
+    r"""Calculate Reynolds number per foot using Sutherland's Law
+
     :Call:
         >>> Re = ReynoldsPerFoot(p, T, M)
-        >>> Re = ReynoldsPerFoot(p, T, M, gam=None, R=None, T0=None, C=None)
+        >>> Re = ReynoldsPerFoot(p, T, M, **kw)
     :Inputs:
         *p*: :class:`float`
             Static pressure [psf]
@@ -580,7 +589,7 @@ def ReynoldsPerFoot(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * :func:`cape.convert.SutherlandFPS`
         * :func:`cape.convert.PressureFPSFromRe`
     :Versions:
-        * 2016-03-23 ``@ddalle``: First version
+        * 2016-03-23 ``@ddalle``: Version 1.0
     """
     # Gas constant
     if R is None: R = 1716.0
@@ -596,14 +605,15 @@ def ReynoldsPerFoot(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
     # Reynolds number per foot
     return rho*U/mu
-    
+
+
 # Get Reynolds number
 def ReynoldsPerMeter(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
-    """Calculate Reynolds number per meter using Sutherland's Law
-    
+    r"""Calculate Reynolds number per meter using Sutherland's Law
+
     :Call:
         >>> Re = ReynoldsPerMeter(p, T, M)
-        >>> Re = ReynoldsPerMeter(p, T, M, gam=None, R=None, T0=None, C=None)
+        >>> Re = ReynoldsPerMeter(p, T, M, **kw)
     :Inputs:
         *p*: :class:`float`
             Static pressure [Pa]
@@ -628,7 +638,7 @@ def ReynoldsPerMeter(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * :func:`cape.convert.SutherlandMKS`
         * :func:`cape.convert.PressureMKSFromRe`
     :Versions:
-        * 2016-03-24 ``@ddalle``: First version
+        * 2016-03-24 ``@ddalle``: Version 1.0
     """
     # Gas constant
     if R is None: R = 287.0
@@ -645,10 +655,11 @@ def ReynoldsPerMeter(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     # Reynolds number per foot
     return rho*U/mu
 
+
 # Calculate pressure from Reynolds number
 def PressureFPSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
-    """Calculate pressure from Reynolds number
-    
+    r"""Calculate pressure from Reynolds number
+
     :Call:
         >>> p = PressureFPSFromRe(Re, T, M)
         >>> p = PressureFPSFromRe(Re, T, M, R=None, gam=None, **kw)
@@ -676,7 +687,7 @@ def PressureFPSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * :func:`cape.convert.SutherlandFPS`
         * :func:`cape.convert.ReynoldsPerFoot`
     :Versions:
-        * 2016-03-24 ``@ddalle``: First version
+        * 2016-03-24 ``@ddalle``: Version 1.0
     """
     # Gas constant
     if R is None: R = 1716.0
@@ -691,10 +702,11 @@ def PressureFPSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     # Pressure
     return Re*mu*R*T/U
 
+
 # Calculate pressure from Reynolds number
 def PressureMKSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
-    """Calculate pressure from Reynolds number
-    
+    r"""Calculate pressure from Reynolds number
+
     :Call:
         >>> p = PressureMKSFromRe(Re, T, M)
         >>> p = PressureMKSFromRe(Re, T, M, R=None, gam=None, **kw)
@@ -722,7 +734,7 @@ def PressureMKSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * :func:`cape.convert.SutherlandMKS`
         * :func:`cape.convert.ReynoldsPerMeter`
     :Versions:
-        * 2016-03-24 ``@ddalle``: First version
+        * 2016-03-24 ``@ddalle``: Version 1.0
     """
     # Gas constant
     if R is None: R = 287.0
@@ -736,5 +748,4 @@ def PressureMKSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
     # Pressure
     return Re*mu*R*T/U
-# def Pressure MKSFromRe
 

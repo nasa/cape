@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
 :mod:`cape.console`: Console and Prompt Tools
 ==============================================
 
 This module provides tools to interact with user prompts.  In contains a
 function :func:`prompt_color` that handles the Python version dependence
-(:func:`input` vs :func:`raw_input`) and also provides a colorful prompt.
+(:func:`input` vs :func:`raw_input`) and also provides a colorful
+prompt.
 """
 
-# System utilities
+# Standard library
 import os
+
 
 # Console colors and attributes
 con = {
@@ -38,9 +40,10 @@ con = {
     'yellow':    '\x1b[33;01m',
 }
 
+
 # Function to get user input using a colored prompt
 def prompt_color(txt, vdef=None, color="green"):
-    """Get user input using a colorized prompt
+    r"""Get user input using a colorized prompt
     
     :Call:
         >>> v = prompt_color(txt, vdef=None)
@@ -55,7 +58,7 @@ def prompt_color(txt, vdef=None, color="green"):
         *v*: :class:`str`
             Raw (unevaluated) input from :func:`input` function
     :Versions:
-        * 2018-08-23 ``@ddalle``: First version
+        * 2018-08-23 ``@ddalle``: Version 1.0
     """
     # Check for default value
     if vdef:
@@ -80,4 +83,4 @@ def prompt_color(txt, vdef=None, color="green"):
     else:
         # Return the user's value, even if empty
         return v
-# def prompt_color
+

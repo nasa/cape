@@ -1,40 +1,44 @@
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.geom`: Generic geometry utilities
 ==============================================
 
-This module provides several methods for modifying points or performing other
-geometric manipulations in a way accessible to each of the subclasses.
+This module provides several methods for modifying points or performing
+other geometric manipulations in a way accessible to each of the
+subclasses.
 
 The main categories are:
 
     * performing manipulations on sets of points, such as rotations
     * checking for intersections, polygon membership, etc.
-    
+
 """
 
-# Numerics
+# Third-party modules
 import numpy as np
+s
 
 # Function to rotate a triangulation about an arbitrary vector
 def RotatePoints(X, v1, v2, theta):
-    """Rotate a list of points
-    
+    r"""Rotate a list of points
+
     :Call:
         >>> Y = RotatePoints(X, v1, v2, theta)
     :Inputs:
-        *X*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
-            List of node coordinates
-        *v1*: :class:`numpy.ndarray`, *shape* = (3,)
-            Start point of rotation vector
-        *v2*: :class:`numpy.ndarray`, *shape* = (3,)
-            End point of rotation vector
+        *X*: :class:`numpy.ndarray`\ [:class:`float`]
+            Array of node coordinates, *shape*: (N, 3)
+        *v1*: :class:`numpy.ndarray`\ [:class:`float`]
+            Start point of rotation vector, *shape*: (3,)
+        *v2*: :class:`numpy.ndarray`\ [:class:`float`]
+            End point of rotation vector, *shape*: (3,)
         *theta*: :class:`float`
             Rotation angle in degrees
     :Outputs:
         *Y*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
             List of rotated node coordinates
     :Versions:
-        * 2014-10-07 ``@ddalle``: Copied from previous TriBase.Rotate()
+        * 2014-10-07 ``@ddalle``: Version 1.0, from :class:`TriBase`
     """
     # Convert points to NumPy.
     v1 = np.array(v1)
@@ -67,31 +71,32 @@ def RotatePoints(X, v1, v2, theta):
     Y[:,2] = z*c_th+(v[0]*y-v[1]*x)*s_th+v[2]*k1*(1-c_th)+v1[2]
     # Output
     return Y
-    
+
+
 # Function to rotate a triangulation about an arbitrary vector
 def TranslatePoints(X, dR):
-    """Translate the nodes of a triangulation object.
-        
+    r"""Translate the nodes of a triangulation object.
+
     The offset coordinates may be specified as individual inputs or a
     single vector of three coordinates.
-    
+
     :Call:
         >>> TranslatePoints(X, dR)
     :Inputs:
-        *X*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
-            List of node coordinates
-        *dR*: :class:`numpy.ndarray` or :class:`list`
+        *X*: :class:`numpy.ndarray`\ [:class:`float`]
+            List of node coordinates, *shape*: (N,3)
+        *dR*: :class:`numpy.ndarray` | :class:`list`
             List of three coordinates to use for translation
     :Outputs:
-        *Y*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
-            List of translated node coordinates
+        *Y*: :class:`numpy.ndarray`\ [:class:`float`]
+            List of translated node coordinates, *shape*: (N,3)
     :Versions:
-        * 2014-10-08 ``@ddalle``: Copied from previous TriBase.Translate()
+        * 2014-10-08 ``@ddalle``: Version 1.0
     """
     # Convert points to NumPy.
     dR = np.array(dR)
     # Ensure array.
-    if type(X).__name__ != 'ndarray':
+    if not isinstance(X, np.ndarray):
         X = np.array(X)
     # Ensure list of points.
     if len(X.shape) == 1:
@@ -104,25 +109,26 @@ def TranslatePoints(X, dR):
     Y[:,2] += dR[2]
     # Output
     return Y
-    
+
+
 # Distance from a point to a line segment
 def DistancePointToLine(x, x1, x2):
-    """Get distance from a point to a line segment
-    
+    r"""Get distance from a point to a line segment
+
     :Call:
         >>> d = DistancePointToLine(x, x1, x2)
     :Inputs:
-        *x*: :class:`np.ndarray` shape=(3,)
-            Test point
-        *x1*: :class:`np.ndarray` shape=(3,)
-            Segment start point
-        *x2*: :class:`np.ndarray` shape=(3,)
-            Segment end point
+        *x*: :class:`np.ndarray`\ [:class:`float`]
+            Test point, *shape*: (3,)
+        *x1*: :class:`np.ndarray`\ [:class:`float`]
+            Segment start point, *shape*: (3,)
+        *x2*: :class:`np.ndarray`\ [:class:`float`]
+            Segment end point, *shape*: (3,)
     :Outputs:
         *d*: :class:`float`
             Distance from segment to point
     :Versions:
-        * 2016-09-29 ``@ddalle``: First version
+        * 2016-09-29 ``@ddalle``: Version 1.0
     """
     # Vector of the segment
     dx = x2 - x1
@@ -149,23 +155,24 @@ def DistancePointToLine(x, x1, x2):
         A2 = dx[0]*d1[1] - dx[1]*d1[0]
         # Distance = (Area of parallelogram) / (Length of base)
         return np.sqrt(A0*A0+A1*A1+A2*A2) / ds
-    
+
+
 # Distance from a point to a group of line segments
 def DistancePointToCurve(x, X):
-    """Get distance from a point to each segment of a piecewise linear curve
-    
+    r"""Get distance from point to segments of a piecewise linear curve
+
     :Call:
         >>> D = DistancePointToCurve(x, X)
     :Inputs:
-        *x*: :class:`np.ndarray` shape=(3,)
-            Test point
-        *X*: :class:`np.ndarray` shape=(n,3)
-            Array of curve break points
+        *x*: :class:`np.ndarray`\ [:class:`float`]
+            Test point, *shape*: (3,)
+        *X*: :class:`np.ndarray`\ [:class:`float`]
+            Array of curve break points, *shape*: (n,3)
     :Outputs:
-        *D*: :class:`np.ndarray` shape=(n-1,)
-            Distance from *x* to each segment
+        *D*: :class:`np.ndarray`\ [:class:`float`]
+            Distance from *x* to each segment, *shape*: (n-1,)
     :Versions:
-        * 2016-09-29 ``@ddalle``: First version
+        * 2016-09-29 ``@ddalle``: Version 1.0
     """
     # Vector segments
     dX = X[1:,:] - X[:-1,:]
@@ -196,19 +203,19 @@ def DistancePointToCurve(x, X):
 
 # Check for intersection between lines
 def lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
-    """Check if a set of line segments intersects another line segment
-    
+    r"""Check if a set of line segments intersects another line segment
+
     :Call:
         >>> Q = lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw)
     :Inputs:
-        *X1*: :class:`np.ndarray` (:class:`float`, any shape)
-            Matrix of *x*-coordinates of start points of several line segments
-        *Y1*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *y*-coordinates of start poitns of several line segments
-        *X2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *x*-coordinates of end points of several line segments
-        *Y2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *y*-coordinates of end points of several line segments
+        *X1*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of start points of several line segments
+        *Y1*: :class:`np.ndarray`\ [:class:`float`]
+            *y*-coords of start points of several line segments
+        *X2*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of end points of several line segments
+        *Y2*: :class:`np.ndarray`\ [:class:`float`]
+            *y*-coords of end points of several line segments
         *x1*: :class:`float` | :class:`np.ndarray`
             Start point *x*-coordinate of test segment
         *y1*: :class:`float` | :class:`np.ndarray`
@@ -218,17 +225,17 @@ def lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
         *y2*: :class:`float` | :class:`np.ndarray`
             End point *y*-coordinate of test segment
     :Outputs:
-        *Q*: :class:`np.ndarray` (:class:`bool`, shape=*X1.shape*)
-            Matrix of whether or not each segment intersects test segment
+        *Q*: :class:`np.ndarray`\ [:class:`bool`]
+            Whether or not each segment intersects test segment
     :Versions:
-        * 2017-02-06 ``@ddalle``: First version
+        * 2017-02-06 ``@ddalle``: Version 1.0
     """
     # Length of test segment
     L = np.sqrt((x2-x1)**2 + (y2-y1)**2)
     # Tangent vector
     tx = (x2 - x1) / L
     ty = (y2 - y1) / L
-    # Convert the list of segments into coordinates 
+    # Convert the list of segments into coordinates
     XI1 = (X1-x1)*tx + (Y1-y1)*ty
     XI2 = (X2-x1)*tx + (Y2-y1)*ty
     YI1 = (Y1-y1)*tx - (X1-x1)*ty
@@ -253,26 +260,27 @@ def lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
     # Output
     return Q
 
+
 # Check for intersection between lines
 def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
-    """Check if a set of edges intersects another line segment
-    
-    Intersections between the test segment and the start point of any edge are
-    not counted as an intersection.  The test point can either be a single
-    point or a collection of points with dimensions equal to the collection of
-    lines.
-    
+    r"""Check if a set of edges intersects another line segment
+
+    Intersections between the test segment and the start point of any
+    edge are not counted as an intersection.  The test point can either
+    be a single point or a collection of points with dimensions equal to
+    the collection of lines.
+
     :Call:
         >>> Q = edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw)
     :Inputs:
-        *X1*: :class:`np.ndarray` (:class:`float`, any shape)
-            Matrix of *x*-coordinates of start points of several line segments
-        *Y1*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *y*-coordinates of start poitns of several line segments
-        *X2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *x*-coordinates of end points of several line segments
-        *Y2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *y*-coordinates of end points of several line segments
+        *X1*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of start points of several line segments
+        *Y1*: :class:`np.ndarray`\ [:class:`float`]
+            *y*-coords of start points of several line segments
+        *X2*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of end points of several line segments
+        *Y2*: :class:`np.ndarray`\ [:class:`float`]
+            *y*-coords of end points of several line segments
         *x1*: :class:`float` | :class:`np.ndarray`
             Start point *x*-coordinate of test segment
         *y1*: :class:`float` | :class:`np.ndarray`
@@ -285,14 +293,14 @@ def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
         *Q*: :class:`np.ndarray` (:class:`bool`, shape=*X1.shape*)
             Matrix of whether or not each segment intersects test segment
     :Versions:
-        * 2017-02-06 ``@ddalle``: First version
+        * 2017-02-06 ``@ddalle``: Version 1.0
     """
     # Length of test segment
     L = np.sqrt((x2-x1)**2 + (y2-y1)**2)
     # Tangent vector
     tx = (x2 - x1) / L
     ty = (y2 - y1) / L
-    # Convert the list of segments into coordinates 
+    # Convert the list of segments into coordinates
     XI1 = (X1-x1)*tx + (Y1-y1)*ty
     XI2 = (X2-x1)*tx + (Y2-y1)*ty
     YI1 = (Y1-y1)*tx - (X1-x1)*ty
@@ -321,29 +329,28 @@ def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
         XI2[I0]*XI1[I0] <=0)
     # Output
     return Q
-    
+
+
 # Check if a triangle contains a point
 def tris_have_pt(X, Y, x, y, **kw):
-    """Check if each triangle in a list contains a specified point(s)
-    
-    The test point may be either a 
-    
+    r"""Check if each triangle in a list contains a specified point(s)
+
     :Call:
         >>> Q = tris_have_pt(X, Y, x, y, **kw)
     :Inputs:
-        *X*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
-            *x*-coordinates of vertices of *n* triangles
-        *Y*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
-            *y*-coordinates of vertices of *n* triangles
-        *x*: :class:`float` | :class:`np.ndarray` (shape=(n,))
-            *x*-coordinate of test point(s)
-        *y*: :class:`float` | :class:`np.ndarray` (shape=(n,))
-            *y*-coordinate of test point(s)
+        *X*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of vertices of *n* tris, *shape*: (n,3)
+        *Y*: :class:`np.ndarray`\ [:class:`float`]
+            *y*-coords of vertices of *n* tris, *shape*: (n,3)
+        *x*: :class:`float` | :class:`np.ndarray`
+            *x*-coord of test point(s), *shape*: (n,)
+        *y*: :class:`float` | :class:`np.ndarray`
+            *y*-coord of test point(s), *shape*: (n,)
     :Outputs:
-        *Q*: :class:`np.ndarray` (:class:`bool`, shape=(n,))
-            Whether or not each triangle contains the test point
+        *Q*: :class:`np.ndarray`\ [:class:`bool`]
+            Whether or not each tri contains the test point
     :Versions:
-        * 2017-02-06 ``@ddalle``: First version
+        * 2017-02-06 ``@ddalle``: Version 1.0
     """
     # Get types
     tX = type(X).__name__
@@ -412,34 +419,34 @@ def tris_have_pt(X, Y, x, y, **kw):
     Q = np.logical_and(n0%2==1, np.logical_and(n1%2==1, n2%2==1))
     # Output
     return Q
-    
+
 # Get distance from point to a line segment
 def dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
-    """Get distance from a point to a collection of line segments
-    
-    The test point can either be a single point or a collection of points with
-    dimensions equal to the collection of lines.
-    
+    r"""Get distance from a point to a collection of line segments
+
+    The test point can either be a single point or a collection of
+    points with dimensions equal to the collection of lines.
+
     :Call:
         >>> D = dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw)
     :Inputs:
-        *X1*: :class:`np.ndarray` (:class:`float`, any shape)
-            Matrix of *x*-coordinates of start points of several line segments
-        *Y1*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *y*-coordinates of start poitns of several line segments
-        *X2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *x*-coordinates of end points of several line segments
-        *Y2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of *y*-coordinates of end points of several line segments
+        *X1*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of start points of several line segments
+        *Y1*: :class:`np.ndarray`\ [:class:`float`]
+            *y*-coords of start points of several line segments
+        *X2*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of end points of several line segments
+        *Y2*: :class:`np.ndarray`\ [:class:`float`]
+            *y*-coords of end points of several line segments
         *x*: :class:`float` | :class:`np.ndarray`
-            *x*-coordinate of test point(s)
+            *x*-coord of test point(s)
         *y*: :class:`float` | :class:`np.ndarray`
-            *y*-coordinate of test point(s)
+            *y*-coord of test point(s)
     :Outputs:
-        *D*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of minimum distance from segments to point
+        *D*: :class:`np.ndarray`\ [:class:`float`]
+            Minimum distance from each segment to point
     :Versions:
-        * 2017-02-06 ``@ddalle``: First version
+        * 2017-02-06 ``@ddalle``: Version 1.0
     """
     # Calculate lengths of each segment
     L = np.sqrt((X2-X1)**2 + (Y2-Y1)**2)
@@ -473,29 +480,30 @@ def dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
     D[I] = np.fmin(W1, W2)
     # Output
     return D
-    
-# Get distance from a point 
+
+
+# Get distance from a point
 def dist_tris_to_pt(X, Y, x, y, **kw):
-    """Get distance from a point to a collection of triangles
-    
+    r"""Get distance from a point to a collection of triangles
+
     Points that are inside the triangle return a distance of 0.
-    
+
     :Call:
         >>> D = dist_tris_to_pt(X, Y, x, y)
     :Inputs:
-        *X*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
-            *x*-coordinates of vertices of *n* triangles
-        *Y*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
-            *y*-coordinates of vertices of *n* triangles
+        *X*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of vertices of *n* tris, *shape*: (n,3)
+        *Y*: :class:`np.ndarray`\ [:class:`float`], shape=(n,3))
+            *y*-coords of vertices of *n* tris, *shape*: (n,3)
         *x*: :class:`float`
             *x*-coordinate of test point
         *y*: :class:`float`
             *y*-coordinate of test point
     :Outputs:
-        *D*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
-            Matrix of minimum distance from segments to point
+        *D*: :class:`np.ndarray`\ [:class:`float`]
+            Matrix of minimum distance from each tri to point
     :Versions:
-        * 2017-02-06 ``@ddalle``: First version
+        * 2017-02-06 ``@ddalle``: Version 1.0
     """
     # Check for membership of each triangle
     Q = tris_have_pt(X, Y, x, y, **kw)
@@ -503,7 +511,7 @@ def dist_tris_to_pt(X, Y, x, y, **kw):
     Q0 = np.logical_not(Q)
     # Number of triangles
     n = Q.size
-    # Initialize distance 
+    # Initialize distance
     D = np.zeros(n)
     # For triangles that do not contain (x,y), get distance to each segment
     X1 = X[Q0,:]; X2 = X1[:,[1,2,0]]
@@ -525,10 +533,4 @@ def dist_tris_to_pt(X, Y, x, y, **kw):
     D[Q0] = np.min(D0, axis=1)
     # Output
     return D
-    
-
-
-
-
-
 
