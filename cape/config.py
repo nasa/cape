@@ -1,76 +1,84 @@
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.config`: Surface configuration module
 =================================================
 
-This is a module to interact with :file:`Config.xml` and related files. In
-general, it can be used to create groups of surfaces using an XML file format.
-This comes from the Cart3D/OVERFLOW convention, but it can be used with other
-modules as well.  Presently there are three classes, which each interface with
-a specific type of file:
+This is a module to interact with Cart3D's ``Config.xml`` or similar
+files whose primary purpose is to describe and label surface geometry.
+In general, it can be used to create groups of surfaces using an XML,
+JSON, or MIXSUR file format.  This originates from a Cart3D/OVERFLOW
+convention, but it can be used with other modules as well.  Presently
+there are three classes, which each interface with a specific type of
+file:
 
     ======================== ================= =============================
     Class                    Common File       Description
     ======================== ================= =============================
-    :class:`Config`          ``Config.xml``    GMP component XML file
+    :class:`ConfigXML`       ``Config.xml``    GMP component XML file
     :class:`ConfigJSON`      ``Config.json``   Cape JSON surf config file
     :class:`ConfigMIXSUR`    ``mixsur.i``      CGT input families stream
     ======================== ================= =============================
 
-It is typical for a surface definition, whether a triangulation, system of
-overset structured grids, or mixed quads and triangles, to have each surface
-polygon to have a numbered component ID.  This allows a user to group
-triangles and quads or other polygons together in some relevant way.  For
-example, the user may tag each polygon on the left wing with the component ID of
-``12``, and the entire surface is broken out in a similar fashion.
+It is typical for a surface definition, whether a triangulation, system
+of overset structured grids, or mixed quads and triangles, to have each
+surface polygon to have a numbered component ID.  This allows a user to
+group triangles and quads or other polygons together in some relevant
+way.  For example, the user may tag each polygon on the left wing with
+the component ID of ``12``, and the entire surface is broken out in a
+similar fashion.
 
-The :mod:`cape.config` module allows the user to do two main things: give
-meaningful names to these component IDs and group component IDs together. For
-example, it is usually much more convenient to refer to ``"left_wing"`` than
-remember to put ``"12"`` in all the data books, reports, etc. In addition, a
-user usually wants to know the integrated force on the entire airplane (or
-whatever other type of configuration is under investigation), so it is useful
-to make another component called ``"vehicle"`` that contains ``"left_wing"``,
-``"right_wing"``, and ``"fuselage"``. The user specifies this in the XML file
-using the following syntax.
+The :mod:`cape.config` module allows the user to do two main things:
+give meaningful names to these component IDs and group component IDs
+together. For example, it is usually much more convenient to refer to
+``"left_wing"`` than remember to put ``"12"`` in all the data books,
+reports, etc. In addition, a user usually wants to know the integrated
+force on the entire airplane (or whatever other type of configuration is
+under investigation), so it is useful to make another component called
+``"vehicle"`` that contains ``"left_wing"``, ``"right_wing"``, and
+``"fuselage"``. The user specifies this in the XML file using the
+following syntax.
 
     .. code-block:: xml
-    
+
         <?xml version="1.0" encoding="ISO-8859-1"?>
         <Configuration Name="airplane" Source="Components.i.tri">
-        
+
         <Component Name="vehicle" Type="container">
         </Component>
-        
+
         <Component Name="fuselage" Type="tri">
         <Data> Face Label=1 </Data> </Component>
-        
+
         <Component Name="right_wing" Type="tri">
         <Data> Face Label=11 </Data> </Component>
-        
+
         <Component Name="left_wing" Type="tri">
         <Data> Face Label=12 </Data> </Component>
-        
+
         </Configuration>
-        
-The *Source* attribute of the first tag is not that important; it's placed
-there based on a Cart3D template. The choice of encoding is not crucial but
-does affect the validity of the XML file, which some applications may check.
+
+The *Source* attribute of the first tag is not that important; it's
+placed there based on a Cart3D template. The choice of encoding is not
+crucial but does affect the validity of the XML file, which some
+applications may check.
 
 The major limitation of the XML format is that a component may not have
-multiple parents. A parent may have parent, allowing the user to subdivide
-groups into smaller groups, but the user may not, for example, split the
-vehicle into left half and right half and also create components for forward
-half and aft half.
+multiple parents. A parent may have parent, allowing the user to
+subdivide groups into smaller groups, but the user may not, for example,
+split the vehicle into left half and right half and also create
+components for forward half and aft half.
 
-An alternative version of the same is to use the JSON configuration format
-developed for Cape.  It allows mixed parents like the forward/aft, left/right
-example described above, and it also allows the users to specify boundary
-conditions within the config file, which can consolidate information about your
-surface that would otherwise require multiple files.  The version of the above
-configuration in JSON form is below.
+An alternative version of the same is to use the JSON configuration
+format developed for Cape.  It allows mixed parents like the
+forward/aft, left/right example described above, and it also allows the
+users to specify boundary conditions within the config file, which can
+consolidate information about your surface that would otherwise require
+multiple files.  The version of the above configuration in JSON form is
+below.
 
     .. code-block:: javascript
-    
+
         {
             "Tree": {
                 "vehicle": [
@@ -87,10 +95,11 @@ configuration in JSON form is below.
                 "left_wing": 12
             }
         }
-        
-The ``"Properties"`` section allows generic options, for example those in the
-table below.  If the *Properties* for a face is not a :class:`dict`, it must be
-an :class:`int`, which is assumed to be the *CompID* parameter for that face.
+
+The ``"Properties"`` section allows generic options, for example those
+in the table below.  If the *Properties* for a face is not a
+:class:`dict`, it must be an :class:`int`, which is assumed to be the
+*CompID* parameter for that face.
 
     ======================   ==========================================
     Component Property       Description
@@ -103,13 +112,14 @@ an :class:`int`, which is assumed to be the *CompID* parameter for that face.
     *bldel*                  Prism layer height, AFLR3
     ======================   ==========================================
 
-Finally, the :class:`ConfigMIXSUR` file interprets the streams that are often
-given as inputs to the Chimera Grid Tools executables ``mixsur`` or ``usurp``. 
-These functions are used to divide an overset structured grid system into
-surface components and can also be used to create unique surface
-triangulations.  These input streams are often saved as a file, by convention
-``mixsur.i``, and read into the CGT executable using a call such as
-``mixsur < mixsur.i``.
+Finally, the :class:`ConfigMIXSUR` file interprets the streams that are
+often given as inputs to the Chimera Grid Tools executables ``mixsur``
+or ``usurp``.  These functions are used to divide an overset structured
+grid system into surface components and can also be used to create
+unique surface triangulations.  These input streams are often saved as a
+file, by convention ``mixsur.i``, and read into the CGT executable using
+a call such as ``mixsur < mixsur.i``.
+
 """
 
 # Standard library
@@ -128,22 +138,26 @@ from .cfdx.options import util
 
 # Configuration class
 class ConfigXML(object):
-    """Configuration class for interfacing :file:`Config.xml` files
-    
+    r"""Interface to Cart3D ``Config.xml`` files
+
     :Call:
         >>> cfg = cape.ConfigXML(fname='Config.xml')
     :Inputs:
         *fname*: :class:`str`
             Name of configuration file to read
     :Outputs:
-        *cfg*: :class:`cape.config.Config`
-            Instance of configuration class
+        *cfg*: :class:`cape.config.ConfigXML`
+            XML surface config instance
     :Versions:
-        * 2014-10-12 ``@ddalle``: First version
+        * 2014-10-12 ``@ddalle``: Version 1.0
     """
     # Initialization method
     def __init__(self, fname="Config.xml"):
-        """Initialization method"""
+        r"""Initialization method
+
+        :Versions:
+            * 2014-10-12 ``@ddalle``: Version 1.0
+        """
         # Check for the file.
         if not os.path.isfile(fname):
             # Save an empty component dictionary.
@@ -167,8 +181,9 @@ class ConfigXML(object):
         self.transform = {}
         # Check for unnamed component.
         if None in self.Names:
-            raise ValueError("At least one component in "
-                + "'%s' is lacking a name." % self.fname)
+            raise ValueError(
+                "At least one component in "
+                + ("'%s' is lacking a name." % self.fname))
         # Loop through points to get the labeled faces.
         for c in self.Comps:
             # Check the type.
@@ -181,31 +196,32 @@ class ConfigXML(object):
                 # Structured grid list
                 self.ProcessStruc(c)
 
-
     # Function to display things
     def __repr__(self):
-        """
-        Return the string representation of a :file:`Config.xml` file.
-        
-        This looks like ``<cape.ConfigXML(nComp=N, faces=['Core', ...])>``
+        r"""Representation method
+
+        Form: ``<cape.ConfigXML(nComp=N, faces=['Core', ...])>``
+
+        :Versions:
+            * 2014-10-12 ``@ddalle``: Version 1.0
         """
         # Return a string.
         return '<cape.ConfigXML(nComp=%i, faces=%s)>' % (
             len(self.faces), self.faces.keys())
-        
+
     # Process a tri component
     def ProcessTri(self, c):
-        """Process a GMP component of type ``'tri'``
-        
+        r"""Process a GMP component of type ``"tri"``
+
         :Call:
             >>> cfg.ProcessTri(c)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *c*: :class:`xml.Element`
-                XML interface to element with tag ``'Component'``
+                XML interface to element with tag ``"Component"``
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Get the children
         D = c.getchildren()
@@ -226,20 +242,20 @@ class ConfigXML(object):
                     (x.tag, comp))
             # Process any parents.
             self.AppendParent(c, compID)
-        
+
     # Process a structured grid component
     def ProcessStruc(self, c):
-        """Process a GMP component of type ``'struc'``
-        
+        r"""Process a GMP component of type ``'struc'``
+
         :Call:
             >>> cfg.ProcessStruc(c)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *c*: :class:`xml.Element`
-                XML interface to element with tag ``'Component'``
+                XML interface to element with tag ``"Component"``
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Get the children
         D = c.getchildren()
@@ -260,16 +276,16 @@ class ConfigXML(object):
                     (x.tag, comp))
             # Process any parents.
             self.AppendParent(c, compID)
-            
+
     # Process face label data
     def ProcessTriData(self, comp, d):
-        """Process a GMP data element with text for "Face Label"
-        
+        r"""Process a GMP data element with text for "Face Label"
+
         :Call:
             >>> compID = cfg.ProcessTriData(comp, d)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *d*: :class:`xml.Element`
                 XML interface to element with tag ``'Data'``
         :Outputs:
@@ -279,7 +295,7 @@ class ConfigXML(object):
             *cfg.faces[comp]*: :class:`int`
                 Gets set to *compID*
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Get text
         txt = d.text
@@ -308,26 +324,26 @@ class ConfigXML(object):
         self.comps.append(comp)
         # Output
         return compID
-        
+
     # Process grid list data
     def ProcessStrucData(self, comp, d):
-        """Process a GMP data element with text for "Grid List"
-        
+        r"""Process a GMP data element with text for "Grid List"
+
         :Call:
             >>> compID = cfg.ProcessStrucData(comp, d)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *d*: :class:`xml.Element`
                 XML interface to element with tag ``'Data'``
         :Outputs:
-            *compID*: :class:`list` (:class:`int`)
+            *compID*: :class:`list`\ [:class:`int`]
                 Grid numbers "Grid List"
         :Attributes:
-            *cfg.faces[comp]*: :class:`list` (:class:`int`)
+            *cfg.faces[comp]*: :class:`list`\ [:class:`int`]
                 Gets set to *compID*
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Get text
         txt = d.text
@@ -367,21 +383,20 @@ class ConfigXML(object):
         self.faces[comp] = compID
         # Output
         return compID
-        
-            
+
     # Process transformation
     def ProcessTransform(self, comp, t):
-        """Process a GMP transformation
-        
+        r"""Process a GMP transformation
+
         :Call:
             >>> cfg.ProcessTransform(t)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *t*: :class:`xml.Element`
                 XML interface to element with tag ``'Transform'``
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Check the tag
         if t.tag != "Transform":
@@ -442,28 +457,25 @@ class ConfigXML(object):
                 # Unrecognized type
                 raise ValueError("Unrecognized transform tag '%s' for '%s'" %
                     (x.tag, comp))
-        
 
     # Function to recursively append components to parents and their parents
     def AppendParent(self, c, compID):
-        """Append a component ID to a parent container and its parents
-        
+        r"""Append a component ID to a parent container and its parents
+
         :Call:
             >>> cfg.AppendParent(c, compID)
         :Inputs:
-            *Comps*: :class:`list` (:class:`xml.etree.Element`)
-                List of XML tags with type 'Component'
-            *comp*: :class:`dict`
-                Dictionary of component ID numbers in each labeled component
-            *k*: :class:`int`
-                Index of XML tag to process
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
+            *c*: :class:`xml.Element`
+                XML interface to element with tag ``'Component'``
             *compID*: :class:`int`
                 Component ID number to add to parents' lists
         :Outputs:
             *comp*: :class:`dict`
                 Dictionary with *compID* appended in appropriate places
         :Versions:
-            * 2014-10-13 ``@ddalle``: First version
+            * 2014-10-13 ``@ddalle``: Version 1.0
         """
         # Check for a parent.
         parent = c.get("Parent")
@@ -494,26 +506,26 @@ class ConfigXML(object):
         p = self.Comps[k0]
         # Append *compID* to parent's parent, if any
         self.AppendParent(p, compID)
-        
+
     # Eliminate all CompID numbers not actually used
     def RestrictCompID(self, compIDs):
-        """Restrict component IDs in *cfg.faces* to those in a specified list
-        
+        r"""Restrict component IDs in *cfg.faces* to manual list
+
         :Call:
             >>> cfg.RestrictCompID(compIDs)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
+            *cfg*: :class:`cape.config.ConfigXML`
                 XML-based configuration interface
-            *compIDs*: :class:`list` (:class:`int`)
+            *compIDs*: :class:`list`\ [:class:`int`]
                 List of relevant component IDs
         :Versions:
-            * 2016-11-05 ``@ddalle``: First version
+            * 2016-11-05 ``@ddalle``: Version 1.0
         """
         # Check inputs
         t = type(compIDs).__name__
         if t not in ['list', 'ndarray']:
             raise TypeError(
-                ("List of relevant component ID numbers must have type ") + 
+                ("List of relevant component ID numbers must have type ") +
                 ("'int' or 'ndarray'; received '%s'" % t))
         # Check length
         if len(compIDs) < 1:
@@ -545,20 +557,21 @@ class ConfigXML(object):
                 else:
                     # Use the restricted subset
                     self.faces[face] = F
-                
-        
+
     # Set transformation
     def SetRotation(self, comp, i=None, **kw):
-        """Modify or add a rotation for component *comp*
-        
+        r"""Modify or add a rotation for component *comp*
+
         :Call:
             >>> cfg.SetRotation(comp, i=None, **kw)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
+            *comp*: :class:`str`
+                Name of component
             *i*: {``None``} | :class:`int`
                 Index of the rotation
-            *Center*: {``[0.0, 0.0, 0.0]``} | :class:`list` | :class:`str`
+            *Center*: {``[0.0,0.0,0.0]``} | :class:`list` | :class:`str`
                 Point about which to rotate
             *Axis*: {``[0.0, 1.0, 0.0]``} | :class:`list` | :class:`str`
                 Axis about which to rotate
@@ -567,7 +580,7 @@ class ConfigXML(object):
             *Frame*: {``"Body"``} | ``None``
                 Rotation type, body frame or Overflow frame
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Ensure there is a transformation for this component.
         self.transform.setdefault(comp, [])
@@ -611,22 +624,24 @@ class ConfigXML(object):
                 T[i].setdefault(k, R[k])
                 # Check if we should overwrite current settings
                 if k in kw: T[i][k] = R[k]
-        
+
     # Set transformation
     def SetTranslation(self, comp, i=None, **kw):
-        """Modify or add a translation for component *comp*
-        
+        r"""Modify or add a translation for component *comp*
+
         :Call:
             >>> cfg.SetTranslation(comp, i=0, **kw)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
+            *comp*: :class:`str`
+                Name of component
             *i*: {``0``} | :class:`int`
                 Index of the rotation
-            *Displacement*: {``[0.0, 0.0, 0.0]``} | :class:`list` | :class:`str`
+            *Displacement*: :class:`list` | :class:`str`
                 Vector to move component
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Ensure there is a transformation for this component.
         self.transform.setdefault(comp, [])
@@ -667,20 +682,20 @@ class ConfigXML(object):
                 T[i].setdefault(k, R[k])
                 # Check if we should overwrite current settings
                 if k in kw: T[i][k] = R[k]
-        
+
     # Write the file
     def Write(self, fname=None):
-        """Write the configuration to file
-        
+        r"""Write the configuration to file
+
         :Call:
             >>> cfg.Write(fname=None)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *fname*: {``None``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Default file name
         if fname is None:
@@ -707,42 +722,42 @@ class ConfigXML(object):
         f.write("</Configuration>\n")
         # Close the file.
         f.close()
-        
+
     # Copy the handle
     def WriteXML(self, fname=None):
-        """Write the configuration to file
-        
+        r"""Write the configuration to file
+
         :Call:
             >>> cfg.WriteXML(fname=None)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *fname*: {``None``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         self.Write(fname)
-        
+
     # Function to write a component
     def WriteComponent(self, f, comp):
-        """Write a "Component" element to file
-        
+        r"""Write a "Component" element to file
+
         Data (either "Face Label" or "Grid List") is written, and any
         transformations are also written.
-        
+
         :Call:
             >>> cfg.WriteComponent(f, comp)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *f*: :class:`file`
                 File handle open for writing
             *comp*: :class:`str`
                 Name of component to write
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
-            * 2017-08-25 ``@ddalle``: Don't write negative components
+            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2017-08-25 ``@ddalle``: Version 1.1, skip negative IDs
         """
         # Get the component index
         i = self.Names.index(comp)
@@ -775,22 +790,22 @@ class ConfigXML(object):
             self.WriteComponentTransform(f, comp)
         # Close the component element.
         f.write("  </Component>\n\n")
-        
+
     # Method to write data
     def WriteComponentData(self, f, comp, label=None):
-        """Write a "Data" element to file
-        
+        r"""Write a "Data" element to file
+
         :Call:
             >>> cfg.WriteComponentData(f, comp, label=None)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *comp*: :class:`str`
                 Name of component to write
             *label*: {``None``} | ``"Face Label"`` | ``"Grid List"``
                 Label used to specify data
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Write the data tag
         f.write("    <Data>")
@@ -823,22 +838,22 @@ class ConfigXML(object):
         f.write(RangeString(compID))
         # Close the element.
         f.write(" </Data>\n")
-            
+
     # Method to write transformation(s)
     def WriteComponentTransform(self, f, comp):
-        """Write a "Transform" element to file
-        
+        r"""Write a "Transform" element to file
+
         :Call:
             >>> cfg.WriteComponentData(f, comp, label=None)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *comp*: :class:`str`
                 Name of component to write
             *label*: {``None``} | ``"Face Label"`` | ``"Grid List"``
                 Label used to specify data
         :Versions:
-            * 2016-08-23 ``@ddalle``: First version
+            * 2016-08-23 ``@ddalle``: Version 1.0
         """
         # Check if component has one or more transformations
         if comp not in self.transform: return
@@ -857,7 +872,7 @@ class ConfigXML(object):
                 ax    = R.get("Axis",   [0.0, 1.0, 0.0])
                 ang   = R.get("Angle",  0.0)
                 frame = R.get("Frame")
-                # Convert center to string 
+                # Convert center to string
                 if type(cent).__name__ in ['list', 'ndarray']:
                     # Ensure doubles
                     cent = ", ".join(['%.12e'%v for v in cent])
@@ -877,7 +892,7 @@ class ConfigXML(object):
                 f.write("%6s<Translate" % "")
                 # Get the properties
                 dx = R.get("Displacement", [0.0, 0.0, 0.0])
-                # Convert center to string 
+                # Convert center to string
                 if type(dx).__name__ in ['list', 'ndarray']:
                     # Ensure doubles
                     dx = ", ".join(['%.12e'%v for v in dx])
@@ -887,24 +902,24 @@ class ConfigXML(object):
             f.write(" />\n")
         # Close the element
         f.write("    </Transform>\n")
-        
-        
+
+
     # Method to get CompIDs from generic input
     def GetCompID(self, face):
-        """Return a list of component IDs from generic input
-        
+        r"""Return a list of component IDs from generic input
+
         :Call:
             >>> compID = cfg.GetCompID(face)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
-                Component number, name, or list of component numbers and names
+                Component number, name, or list thereof
         :Outputs:
-            *compID*: :class:`list` (:class:`int`)
+            *compID*: :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
-            * 2014-10-12 ``@ddalle``: First version
+            * 2014-10-12 ``@ddalle``: Version 1.0
         """
         # Initialize the list.
         compID = []
@@ -934,63 +949,59 @@ class ConfigXML(object):
                 pass
         # Output
         return compID
-        
+
     # Get name of a compID
     def GetCompName(self, compID):
-        """Get the name of a component by its number
-        
+        r"""Get the name of a component by its number
+
         :Call:
             >>> face = cfg.GetCompName(compID)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *compID*: :class:`int`
                 Component ID number
         :Outputs:
             *face*: ``None`` | :class:`str`
                 Name of so-numbered component, if any
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
+            * 2017-03-30 ``@ddalle``: Version 1.0
         """
         # Make the list of current compIDs
         self.CompIDs = [self.faces[c] for c in self.comps if c in self.faces]
         # Check if CompID is present
-        if compID in self.CompIDs:
-            # Get an array of matches
-            CompIDs = np.array(self.CompIDs)
-            # Find matches
-            I = np.where(compID == CompIDs)[0]
-            # Loop through them to make sure it's *still* in *self.faces*
-            for i in I:
-                # Candidate
-                face = self.comps[i]
-                # Check if present
-                if face in self.faces:
-                    # Output
-                    return face
-            # If reached this point... no matches
-            return None
-        else:
-            # CompID not found
-            return None
-            
-    
+        if compID not in self.CompIDs:
+            # No match
+            return
+        # Get an array of matches
+        CompIDs = np.array(self.CompIDs)
+        # Find matches
+        I = np.where(compID == CompIDs)[0]
+        # Loop through them to make sure it's *still* in *self.faces*
+        for i in I:
+            # Candidate
+            face = self.comps[i]
+            # Check if present
+            if face in self.faces:
+                # Output
+                return face
+
     # Get a defining component ID from the *Properties* section
     def GetPropCompID(self, comp):
-        """Get a *CompID* from the "Properties" section without recursion
-        
+        r"""Get a *CompID* from the "Properties" section w/o recursion
+
         :Call:
             >>> compID = cfg.GetPropCompID(comp)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
+            *cfg*: :class:`cape.config.ConfigXML`
                 XML-based configuration interface
-            *c*: :class:`str`
-                Name of component in "Tree" section
+            *comp*: :class:`str`
+                Name of component
         :Outputs:
             *compID*: :class:`int`
                 Full list of component IDs in *c* and its children
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Get the properties for the component
         compID = self.GetCompID(comp)
@@ -1006,21 +1017,21 @@ class ConfigXML(object):
         else:
             # Missing or multiple components
             return None
-    
+
     # Method to copy a configuration
     def Copy(self):
-        """Copy a configuration interface
-        
+        r"""Copy a configuration interface
+
         :Call:
             >>> cfg2 = cfg.Copy()
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
         :Outputs:
-            *cfg2*: :class:`cape.config.Config`
+            *cfg2*: :class:`cape.config.ConfigXML`
                 Copy of input
         :Versions:
-            * 2014-11-24 ``@ddalle``: First version
+            * 2014-11-24 ``@ddalle``: Version 1.0
         """
         # Initialize object.
         cfg = ConfigXML()
@@ -1034,8 +1045,8 @@ class ConfigXML(object):
 
 # Config based on MIXSUR
 class ConfigMIXSUR(object):
-    """Class to build a triangulation configuration from a ``mixsur`` file
-    
+    r"""Class to build a surf configuration from a ``mixsur`` file
+
     :Call:
         >>> cfg = ConfigMIXSUR(fname="mixsur.i", usurp=True)
     :Inptus:
@@ -1053,17 +1064,17 @@ class ConfigMIXSUR(object):
             List of components with no children
         *cfg.parents*: :Class:`dict` (:class:`list` (:class:`str`))
             List of parent(s) by name for each component
-        *cfg.IDs*: :class:`list` (:class:`int`)
+        *cfg.IDs*: :class:`list`\ [:class:`int`]
             List of unique component ID numbers
     :Versions:
-        * 2016-12-29 ``@ddalle``: First version
+        * 2016-12-29 ``@ddalle``: Version 1.0
     """
     # Initialization method
     def __init__(self, fname="mixsur.i", usurp=True):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2016-12-29 ``@ddalle``: First version
+            * 2016-12-29 ``@ddalle``: Version 1.0
         """
         # Initialize the data products
         self.faces = {}
@@ -1182,7 +1193,7 @@ class ConfigMIXSUR(object):
             # Read the name of the component
             V = self.readline(f)
             face = V[0]
-            # Read the number of component IDs 
+            # Read the number of component IDs
             V = self.readline(f)
             ni = int(V[0])
             # Read the reference condition index
@@ -1216,11 +1227,11 @@ class ConfigMIXSUR(object):
         for face in self.faces:
             # Get parents
             self.FindParents(face)
-    
+
     # Check parent
     def FindParents(self, face):
-        """Find the parents of a single face
-        
+        r"""Find the parents of a single face
+
         :Call:
             >>> cfg.FindParents(face)
         :Inputs:
@@ -1229,7 +1240,7 @@ class ConfigMIXSUR(object):
             *face*: :class:`str`
                 Name of face to check
         :Versions:
-            * 2016-12-29 ``@ddalle``: First version
+            * 2016-12-29 ``@ddalle``: Version 1.0
         """
         # Component
         comp = self.faces[face]
@@ -1266,22 +1277,22 @@ class ConfigMIXSUR(object):
                     parents.append(par)
         # Save the parent list
         self.parents[face] = parents
-            
-    
+
+
     # Method to copy a configuration
     def Copy(self):
-        """Copy a configuration interface
-        
+        r"""Copy a configuration interface
+
         :Call:
             >>> cfg2 = cfg.Copy()
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
         :Outputs:
-            *cfg2*: :class:`cape.config.Config`
+            *cfg2*: :class:`cape.config.ConfigXML`
                 Copy of input
         :Versions:
-            * 2014-11-24 ``@ddalle``: First version
+            * 2014-11-24 ``@ddalle``: Version 1.0
         """
         # Initialize object.
         cfg = ConfigMIXSUR()
@@ -1292,11 +1303,11 @@ class ConfigMIXSUR(object):
         cfg.IDs = list(self.IDs)
         # Output
         return cfg
-            
+
     # Read a line of text
     def readline(self, f=None, n=100):
-        """Read a non-blank line from a CGT-like input file
-        
+        r"""Read a non-blank line from a CGT-like input file
+
         :Call:
             >>> V = cfg.readline(f=None, n=100)
         :Inputs:
@@ -1304,13 +1315,13 @@ class ConfigMIXSUR(object):
                 Configuration interface for ``mixsur``
             *f*: {``None``} | :class:`file`
                 File handle; defaults to *cfg.f*
-            *n*: {``100``} | positive :class:`int`
+            *n*: {``100``} | :class:`int` > 0
                 Maximum number of lines to check
         :Outputs:
             *V*: :class:`list` (:class:`str`)
                 List of substrings split by commas or spaces
         :Versions:
-            * 2016-12-29 ``@ddalle``: First version
+            * 2016-12-29 ``@ddalle``: Version 1.0
         """
         # Default file handle
         if f is None:
@@ -1334,24 +1345,24 @@ class ConfigMIXSUR(object):
             V = SplitLineGeneral(line)
         # Output
         return V
-    
+
     # Method to get CompIDs from generic input
     def GetCompID(self, face):
-        """Return a list of component IDs from generic input
-        
+        r"""Return a list of component IDs from generic input
+
         :Call:
             >>> compID = cfg.GetCompID(face)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigMIXSUR`
-                Instance of configuration class
+                XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
-                Component number, name, or list of component numbers and names
+                Component number, name, or list thereof
         :Outputs:
-            *compID*: :class:`list` (:class:`int`)
+            *compID*: :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
-            * 2014-10-12 ``@ddalle``: First version
-            * 2016-12-29 ``@ddalle``: Copied from ``Config.xml``
+            * 2014-10-12 ``@ddalle``: Version 1.0 (:class:`ConfigXML`)
+            * 2016-12-29 ``@ddalle``: Version 1.0
         """
         # Initialize the list.
         compID = []
@@ -1381,23 +1392,23 @@ class ConfigMIXSUR(object):
                 pass
         # Output
         return compID
-    
+
     # Get name of a compID
     def GetCompName(self, compID):
-        """Get the name of a component by its number
-        
+        r"""Get the name of a component by its number
+
         :Call:
             >>> face = cfg.GetCompName(compID)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *compID*: :class:`int`
                 Component ID number
         :Outputs:
             *face*: ``None`` | :class:`str`
                 Name of so-numbered component, if any
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
+            * 2017-03-30 ``@ddalle``: Version 1.0
         """
         # Make sure there is a list of CompIDs
         try:
@@ -1417,34 +1428,34 @@ class ConfigMIXSUR(object):
 
 # Alternate configuration
 class ConfigJSON(object):
-    """JSON-based surface configuration interface
-    
+    r"""JSON-based surface configuration interface
+
     :Call:
         >>> cfg = ConfigJSON(fname="Config.json")
     :Inputs:
         *fname*: {``"Config.json"``} | :class:`str`
-            Name of JSON file from which to read configuration tree and props
+            Name of JSON file from which to read tree and properties
     :Outputs:
         *cfg*: :class:`cape.config.ConfigJSON`
             JSON-based configuration interface
     :Attributes:
-        *cfg.faces*: :class:`dict` (:class:`list` | :class:`int`)
+        *cfg.faces*: :class:`dict`\ [:class:`list` | :class:`int`]
             Dict of the component ID or IDs in each named face
-        *cfg.comps*: :class:`list` (:class:`str`)
+        *cfg.comps*: :class:`list`\ [:class:`str`]
             List of components with no children
-        *cfg.parents*: :class:`dict` (:class:`list` (:class:`str`))
+        *cfg.parents*: :class:`dict`\ [:class:`list`\ [:class:`str`]]
             List of parent(s) by name for each component
-        *cfg.IDs*: :class:`list` (:class:`int`)
+        *cfg.IDs*: :class:`list`\ [:class:`int`]
             List of unique component ID numbers
     :Versions:
-        * 2016-10-21 ``@ddalle``: First version
+        * 2016-10-21 ``@ddalle``: Version 1.0
     """
     # Initialization method
     def __init__(self, fname="Config.json"):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Check for a file
         if fname is not None:
@@ -1476,35 +1487,34 @@ class ConfigJSON(object):
                 continue
             # Process the first component
             self.AppendChild(c)
-    
+
     # Function to display things
     def __repr__(self):
-        """
-        Return the string representation of a :file:`Config.xml` file.
-        
-        This looks like ``<cape.ConfigJSON(nComp=N, faces=['Core', ...])>``
+        r"""Representation method
+
+        Template: ``<cape.ConfigJSON(nComp=N, faces=['Core', ...])>``
         """
         # Return a string.
         return '<cape.ConfigJSON(nComp=%i, faces=%s)>' % (
             len(self.faces), self.faces.keys())
-    
+
     # Method to get CompIDs from generic input
     def GetCompID(self, face):
-        """Return a list of component IDs from generic input
-        
+        r"""Return a list of component IDs from generic input
+
         :Call:
             >>> compID = cfg.GetCompID(face)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
-                Instance of configuration class
+                XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
-                Component number, name, or list of component numbers and names
+                Component number, name, or list thereof
         :Outputs:
-            *compID*: :class:`list` (:class:`int`)
+            *compID*: :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
-            * 2014-10-12 ``@ddalle``: First version
-            * 2016-10-21 ``@ddalle``: Copied from ``Config.xml``
+            * 2014-10-12 ``@ddalle``: Version 1.0 (:class:`ConfigXML`)
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Initialize the list.
         compID = []
@@ -1534,23 +1544,23 @@ class ConfigJSON(object):
                 pass
         # Output
         return compID
-        
+
     # Get name of a compID
     def GetCompName(self, compID):
-        """Get the name of a component by its number
-        
+        r"""Get the name of a component by its number
+
         :Call:
             >>> face = cfg.GetCompName(compID)
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
             *compID*: :class:`int`
                 Component ID number
         :Outputs:
             *face*: ``None`` | :class:`str`
                 Name of so-numbered component, if any
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
+            * 2017-03-30 ``@ddalle``: Version 1.0
         """
         # Make sure there is a list of CompIDs
         try:
@@ -1565,21 +1575,21 @@ class ConfigJSON(object):
         else:
             # CompID not found
             return None
-    
+
     # Method to copy a configuration
     def Copy(self):
-        """Copy a configuration interface
-        
+        r"""Copy a configuration interface
+
         :Call:
             >>> cfg2 = cfg.Copy()
         :Inputs:
-            *cfg*: :class:`cape.config.Config`
-                Instance of configuration class
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
         :Outputs:
-            *cfg2*: :class:`cape.config.Config`
+            *cfg2*: :class:`cape.config.ConfigXML`
                 Copy of input
         :Versions:
-            * 2014-11-24 ``@ddalle``: First version
+            * 2014-11-24 ``@ddalle``: Version 1.0
         """
         # Initialize object.
         cfg = ConfigJSON(fname=None)
@@ -1592,11 +1602,11 @@ class ConfigJSON(object):
         cfg.IDs = list(self.IDs)
         # Output
         return cfg
-    
+
     # Process children
     def AppendChild(self, c, parent=None):
-        """Process one component of the tree and recurse into any children
-        
+        r"""Process one component of the tree and recurse
+
         :Call:
             >>> compID = cfg.AppendChild(c, parent=None)
         :Inputs:
@@ -1607,10 +1617,10 @@ class ConfigJSON(object):
             *parent*: {``None``} | :class:`str`
                 Name of parent component when called recursively
         :Outputs:
-            *compID*: :class:`list` (:class:`int`)
+            *compID*: :class:`list`\ [:class:`int`]
                 Full list of component IDs in *c* and its children
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Check for compID
         cID = self.GetPropCompID(c)
@@ -1671,26 +1681,26 @@ class ConfigJSON(object):
         self.faces[c] = compID
         # Output
         return compID
-        
+
     # Eliminate all CompID numbers not actually used
     def RestrictCompID(self, compIDs):
-        """Restrict component IDs in *cfg.faces* to those in a specified list
-        
+        r"""Restrict component IDs in *cfg.faces* to manual list
+
         :Call:
             >>> cfg.RestrictCompID(compIDs)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration interface
-            *compIDs*: :class:`list` (:class:`int`)
+            *compIDs*: :class:`list`\ [:class:`int`]
                 List of relevant component IDs
         :Versions:
-            * 2016-11-05 ``@ddalle``: First version
+            * 2016-11-05 ``@ddalle``: Version 1.0
         """
         # Check inputs
         t = type(compIDs).__name__
         if t not in ['list', 'ndarray']:
             raise TypeError(
-                ("List of relevant component ID numbers must have type ") + 
+                ("List of relevant component ID numbers must have type ") +
                 ("'int' or 'ndarray'; received '%s'" % t))
         # Check length
         if len(compIDs) < 1:
@@ -1726,21 +1736,21 @@ class ConfigJSON(object):
                 else:
                     # Use the restricted subset
                     self.faces[face] = F
-    
+
     # Get list of components that are not parents
     def GetTriFaces(self):
-        """Get the names of faces that are of type "tri" (not containers)
-        
+        r"""Get names of faces that are of type "tri" (not containers)
+
         :Call:
             >>> comps = cfg.GetTriFaces()
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration instance
         :Outputs:
-            *comps*: :class:`list` (:class:`str`)
+            *comps*: :class:`list`\ [:class:`str`]
                 List of lowest-level component names
         :Versions:
-            * 2016-11-07 ``@ddalle``: First version
+            * 2016-11-07 ``@ddalle``: Version 1.0
         """
         # Initialize
         comps = []
@@ -1772,12 +1782,11 @@ class ConfigJSON(object):
                     continue
         # Output
         return comps
-                
-            
+
     # Write configuration
     def WriteXML(self, fname="Config.xml", Name=None, Source=None):
-        """Write a GMP-type ``Config.xml`` file
-        
+        r"""Write a GMP-type ``Config.xml`` file
+
         :Call:
             >>> cfg.WriteXML(fname="Config.xml", Name=None, Source=None)
         :Inputs:
@@ -1788,9 +1797,9 @@ class ConfigJSON(object):
             *Name*: {``None``} | :class:`str`
                 Name of the configuration, defaults to *fname*
             *Source*: {``"Components.i.tri"``} | :class:`str`
-                Name of the "source" triangulation file, has no effect
+                Name of the "source" tri file, has no effect
         :Versions:
-            * 2016-11-06 ``@ddalle``: First version
+            * 2016-11-06 ``@ddalle``: Version 1.0
         """
         # Open the file.
         f = open(fname, 'w')
@@ -1850,7 +1859,7 @@ class ConfigJSON(object):
                     if ppar is None:
                         # Let's warn for now, verbose
                         print(
-                            ("  WARNING: Component '%s' has multiple " % face) +
+                            ("  WARNING: Comp '%s' has multiple " % face) +
                             ("parents (%s); using first entry" % parent))
                         parent = parent[0]
                     else:
@@ -1881,11 +1890,11 @@ class ConfigJSON(object):
         f.write("</Configuration>\n")
         # Close the file
         f.close()
-        
+
     # Write .aflr3bc file
     def WriteAFLR3BC(self, fname):
-        """Write a file that list AFLR3 boundary conditions for components
-        
+        r"""Write a file that list AFLR3 boundary conditions for components
+
         :Call:
             >>> cfg.WriteAFLR3BC(fname)
         :Inputs:
@@ -1894,7 +1903,7 @@ class ConfigJSON(object):
             *fname*: :class:`str`
                 Name of AFLR3 boundary condition file to write
         :Versions:
-            * 2017-05-05 ``@ddalle``: First version
+            * 2017-05-05 ``@ddalle``: Version 1.0
         """
         # Get maximum length of a component for nice formatting
         L = max([len(face) for face in self.faces])
@@ -1928,18 +1937,17 @@ class ConfigJSON(object):
                 # Write the initial spacing
                 f.write("  %-6s" % blds)
             # Check for the distance
-            if bldel is not None: 
+            if bldel is not None:
                 f.write("  %-6s" % bldel)
             # Go to next line
             f.write("\n")
         # Close the file
         f.close()
-        
-        
+
     # Write .mapbc file
     def WriteFun3DMapBC(self, fname):
-        """Write a Fun3D ".mapbc" file
-        
+        r"""Write a Fun3D ".mapbc" file
+
         :Call:
             >>> cfg.WriteFun3DMapBC(fname)
         :Inputs:
@@ -1948,7 +1956,7 @@ class ConfigJSON(object):
             *fname*: :class:`str`
                 Name of mapbc file to write
         :Versions:
-            * 2016-11-07 ``@ddalle``: First version
+            * 2016-11-07 ``@ddalle``: Version 1.0
         """
         # Get the list of tri faces
         faces = self.GetTriFaces()
@@ -2013,7 +2021,6 @@ class ConfigJSON(object):
         # Use this sorting order to reorder *comps*
         for i in I:
             comps.append(comps0[i])
-        
         # Open the .mapbc file
         f = open(fname, 'w')
         # Write the number of components
@@ -2024,14 +2031,14 @@ class ConfigJSON(object):
             f.write("%7i   %4i   %s\n" % (compIDs[comp], bcs[comp], comp))
         # Close the file
         f.close()
-        
+
     # Renumber a component
     def RenumberCompID(self, face, compID):
-        """Renumber the component ID number
-        
-        This affects *cfg.faces* for *face* and each of its parents, and it
-        also resets the component ID number in *cfg.props*.
-        
+        r"""Renumber the component ID number
+
+        This affects *cfg.faces* for *face* and each of its parents, and
+        it also resets the component ID number in *cfg.props*.
+
         :Call:
             >>> cfg.RenumberCompID(face, compID)
         :Inputs:
@@ -2040,7 +2047,7 @@ class ConfigJSON(object):
             *face*: :class:`str`
                 Name of component to rename
         :Versions:
-            * 2016-11-09 ``@ddalle``: First version
+            * 2016-11-09 ``@ddalle``: Version 1.0
         """
         # Get the current component number
         compi = self.faces[face]
@@ -2067,25 +2074,24 @@ class ConfigJSON(object):
             self.props[face] = compID
         # Loop through the parents
         self.RenumberCompIDParent(face, compi, compID)
-        
-        
+
     # Renumber the parents of one component.
     def RenumberCompIDParent(self, face, compi, compo):
-        """Recursively renumber the component ID numbers for parents of *face* 
-        
+        r"""Recursively renumber the parents of *face*
+
         :Call:
             >>> cfg.RenumberCompIDParent(face, compi, compo)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration
             *face*: :class:`str`
-                Name of component for which parents should be renumbered
+                Name of component whose parents should be renumbered
             *compi*: :class:`int`
                 Incoming component ID number
             *compo*: :class:`int`
                 Outgoing component ID number
         :Versions:
-            * 2016-11-09 ``@ddalle``: First version
+            * 2016-11-09 ``@ddalle``: Version 1.0
         """
         # Get parent
         parents = self.parents[face]
@@ -2110,18 +2116,18 @@ class ConfigJSON(object):
                 comp[I[0]] = compo
             # Recurse
             self.RenumberCompIDParent(parent, compi, compo)
-            
+
     # Reset component IDs
     def ResetCompIDs(self):
-        """Renumber component IDs 1 to *n*
-        
+        r"""Renumber component IDs 1 to *n*
+
         :Call:
             >>> comps = cfg.ResetCompIDs()
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration instance
         :Versions:
-            * 2016-11-09 ``@ddalle``: First version
+            * 2016-11-09 ``@ddalle``: Version 1.0
         """
         # Get the list of tri faces
         comps = self.SortCompIDs()
@@ -2131,21 +2137,21 @@ class ConfigJSON(object):
             face = comps[i]
             # Renumber
             self.RenumberCompID(face, i+1)
-        
+
     # Renumber Component IDs 1 to *n*
     def SortCompIDs(self):
-        """Get ordered list of components
-        
+        r"""Get ordered list of components
+
         :Call:
             >>> comps = cfg.SortCompIDs()
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration instance
         :Outputs:
-            *comps*: :class:`list` (:class:`str`)
+            *comps*: :class:`list`\ [:class:`str`]
                 List of components
         :Versions:
-            * 2016-11-09 ``@ddalle``: First version
+            * 2016-11-09 ``@ddalle``: Version 1.0
         """
         # Get the list of tri faces
         faces = self.GetTriFaces()
@@ -2206,11 +2212,11 @@ class ConfigJSON(object):
             comps.append(comps0[i])
         # Output
         return comps
-    
+
     # Get a defining component ID from the *Properties* section
     def GetPropCompID(self, comp):
-        """Get a *CompID* from the "Properties" section without recursion
-        
+        r"""Get a *CompID* from the "Properties" section
+
         :Call:
             >>> compID = cfg.GetPropCompID(comp)
         :Inputs:
@@ -2222,7 +2228,7 @@ class ConfigJSON(object):
             *compID*: :class:`int`
                 Full list of component IDs in *c* and its children
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Get the properties for the component
         prop = self.props.get(comp, {})
@@ -2245,11 +2251,11 @@ class ConfigJSON(object):
         else:
             # Get the component ID number from the property dict
             return prop["CompID"]
-    
+
     # Get a property
     def GetProperty(self, comp, k):
-        """Get a cascading property from a component or its parents
-        
+        r"""Get a cascading property from a component or its parents
+
         :Call:
             >>> v = cfg.GetProperty(comp, k)
         :Inputs:
@@ -2263,7 +2269,7 @@ class ConfigJSON(object):
             *v*: ``None`` | :class:`any`
                 Value of *k* from *comp* with fallback to parents
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Get component properties
         opts = self.props.get(comp, {})
@@ -2282,6 +2288,5 @@ class ConfigJSON(object):
                 return v
         # If this point is reached, could not find property in any parent
         return None
-    
 # class ConfigJSON
 

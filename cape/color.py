@@ -1,18 +1,20 @@
 #!/usr/bin/env python
-"""
-Color Conversion Tools
-======================
+# -*- coding: utf-8 -*-
+r"""
+:mod:`cape.color`: Color Conversion Tools
+===========================================
 
-This module contains tools to convert color strings to RGB values.  The primary
-tool is to get a variety of colors via name (instead of just ``'r'``, ``'g'``,
-``'b'``, ``'c'``, ``'m'``, ``'y'``, ``'k'``, and ``'w'``).  However, there
-additional tools to convert a hex code to RGB and vice-versa.
+This module contains tools to convert color strings to RGB values.  The
+primary tool is to get a variety of colors via name (instead of just
+``'r'``, ``'g'``, ``'b'``, ``'c'``, ``'m'``, ``'y'``, ``'k'``, and
+``'w'``).  However, there additional tools to convert a hex code to RGB
+and vice-versa.
 
 :Versions:
-    * 2017-01-05 ``@ddalle``: First version
+    * 2017-01-05 ``@ddalle``: Version 1.0
 """
 
-# Create a dictionary of named colors copied from matplotlib.colors.cnames
+# Create a dict of named colors copied from matplotlib.colors.cnames
 cnames = {
     'aliceblue': '#F0F8FF',
     'antiquewhite': '#FAEBD7',
@@ -172,8 +174,8 @@ cnames = {
 
 # Convert Hex to RGB
 def Hex2RGB(col):
-    """Convert hex-code color to RGB values
-    
+    r"""Convert hex-code color to RGB values
+
     :Call:
         >>> rgb = Hex2RGB(col)
         >>> r, g, b = Hex2RGB(col)
@@ -181,8 +183,11 @@ def Hex2RGB(col):
         *col*: :class:`str`
             Six-digit hex code including ``'#'`` character
     :Outputs:
-        *rgb*: :class:`list` (:class:`int`, size=3)
+        *rgb*: :class:`list`\ [:class:`int`]
+            * *len*: 3
+
             Vector of RGB values
+
         *r*: 0 <= :class:`int` <= 255
             Red value
         *g*: 0 <= :class:`int` <= 255
@@ -190,7 +195,7 @@ def Hex2RGB(col):
         *b*: 0 <= :class:`int` <= 255
             Blue value
     :Versions:
-        * 2017-01-05 ``@ddalle``: First version
+        * 2017-01-05 ``@ddalle``: Version 1.0
     """
     # Check first character
     if col[0] != '#':
@@ -203,11 +208,12 @@ def Hex2RGB(col):
     b = eval('0x' + col[5:7])
     # Output
     return [r, g, b]
-    
+
+
 # Convert RGB to Hex code
 def RGB2Hex(col):
-    """Convert RGB integer values to a hex code
-    
+    r"""Convert RGB integer values to a hex code
+
     :Call:
         >>> hx = RGB2Hex(col)
         >>> hx = RGB2Hex((r,g,b))
@@ -224,17 +230,18 @@ def RGB2Hex(col):
         *hx*: :class:`str`
             Six-digit hex code including ``'#'`` character
     :Versions:
-        * 2017-01-05 ``@ddalle``: First version
+        * 2017-01-05 ``@ddalle``: Version 1.0
     """
     # Create hex code
     hx = "#%02x%02x%02x" % (col[0], col[1], col[2])
     # Output
     return hx
-    
+
+
 # Convert generic type to RGB
 def ToRGB(col):
-    """Convert generic value to RGB
-    
+    r"""Convert generic value to RGB
+
     :Call:
         >>> rgb = ToRGB(col)
         >>> rgb = ToRGB(hx)
@@ -242,23 +249,23 @@ def ToRGB(col):
         >>> rgb = ToRGB(rgb)
         >>> rgb = ToRGB(RGB)
     :Inputs:
-        *col*: :class:`str` | :class:`list` (:class:`int` | :class:`float`)
+        *col*: :class:`str` | :class:`list`
             Generic color specification
         *hx*: :class:`str`
             Six-digit hex code starting with ``'#'`` character
-        *rgb*: :class:`list` (:class:`int`, size=3)
+        *rgb*: :class:`list`\ [:class:`int`]
             Vector of RGB values
         *cname*: :class:`str`
             Color by name, such as ``"orange"``
         *V*: 0 <= :class:`float` <= 1
             Grayscale value
-        *RGB*: :class:`list` (:class:`float`, size=3)
+        *RGB*: :class:`list`\ [:class:`float`]
             Vector of fractional RGB values, 0 to 1 (inclusive)
     :Outputs:
-        *rgb*: :class:`list` (:class:`int`, size=3)
+        *rgb*: :class:`list`\ [:class:`int`]
             Vector of RGB values
     :Versions:
-        * 2017-01-05 ``@ddalle``: First version
+        * 2017-01-05 ``@ddalle``: Version 1.0
     """
     # Get input type
     t = type(col).__name__
@@ -302,5 +309,4 @@ def ToRGB(col):
     b = max(0, min(255, b))
     # Output
     return [r, g, b]
-    
 
