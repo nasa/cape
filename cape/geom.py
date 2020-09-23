@@ -17,7 +17,7 @@ The main categories are:
 
 # Third-party modules
 import numpy as np
-s
+ 
 
 # Function to rotate a triangulation about an arbitrary vector
 def RotatePoints(X, v1, v2, theta):
