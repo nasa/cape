@@ -1,34 +1,29 @@
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.msh`: FLUENT mesh module 
 =====================================
 
-This module provides the utilities for interacting with Cart3D triangulations,
-including annotated triangulations (including ``.triq`` files).  Triangulations
-can also be read from the UH3D format.
+It provides a class :class:`Msh` whose primary goal is to read a FLUENT
+mesh and write an AFLR3 UGRID mesh.
 
-The module consists of individual classes that are built off of a base
-triangulation class :class:`cape.tri.TriBase`. Methods that are written for the
-:class:`cape.tri.TriBase` class apply to all other tri-type classes as well.
-
-It provides a class :class:`Msh` whose primary goal is to read a FLUENT mesh
-and write an AFLR3 UGRID mesh.
-
-The class provided in this module, :class:`cape.msh.Msh`, is only partially
-implemented, so extensive usage may run into limitations.
+The class provided in this module, :class:`cape.msh.Msh`, is only
+partially implemented, so extensive usage may run into limitations.
 
 """
 
-# Required modules
-# Numerics
-import numpy as np
-# Advanced text processing
+# Standard library
+import os
 import re
-# File system and operating system management
-import os, shutil
+import shutil
+
+# Third-party modules
+import numpy as np
+
 
 # MSH class
 class Msh(object):
-    """Interface for FUN3D meshes based on Fluent(R) file format
+    r"""Interface for FUN3D meshes based on Fluent(R) file format
     
     :Cell types:
     
@@ -38,10 +33,10 @@ class Msh(object):
     """
     # Initialization method
     def __init__(self, fname):
-        """Initialization method
+        r"""Initialization method
         
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Dimensionality
         self.nDim = 3
@@ -80,7 +75,7 @@ class Msh(object):
     
     # Read a Fluent mesh file
     def ReadFluentASCII(self, fname):
-        """Read ASCII Fluent(R) mesh file
+        r"""Read ASCII Fluent(R) mesh file
         
         :Call:
             >>> M.ReadFluentASCII(fname)
@@ -90,7 +85,7 @@ class Msh(object):
             *fname*: :class:`str`
                 Name of ``.msh`` file to read
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname)
@@ -170,7 +165,7 @@ class Msh(object):
         
     # Write an AFLR3 mesh file
     def WriteAFLR3ASCII(self, fname):
-        """Write AFLR3 mesh file
+        r"""Write AFLR3 mesh file
         
         :Call:
             >>> M.WriteAFLR3ASCII(fname)
@@ -180,7 +175,7 @@ class Msh(object):
             *fname*: :class:`str`
                 Name of ``.ugrid`` file to write
         :Versions:
-            * 2015-10-23 ``@ddalle``: First version
+            * 2015-10-23 ``@ddalle``: Version 1.0
         """
         # Status update.
         print("Writing ASCII AFLR2 file '%s'" % fname)
@@ -243,7 +238,7 @@ class Msh(object):
         
     # Function to process line
     def GetFluentLineType(self, line):
-        """Get the line type and whether or not the line ends
+        r"""Get the line type and whether or not the line ends
         
         Entity types are tabulated below.
         
@@ -267,9 +262,9 @@ class Msh(object):
             *vals*: :class:`str` | :class:`list` (:class:`int`)
                 List of specification indices or text if a comment
             *q*: :class:`bool`
-                Whether or not line ends with ')' and is therefore closed
+                Whether a line ends with ')' and is therefore closed
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Strip the line.
         line = line.strip()
@@ -327,7 +322,7 @@ class Msh(object):
     
     # Function to read nodes
     def ReadFluentNodesASCII(self, f, i0, i1):
-        """Read nodes from an ASCII Fluent mesh file
+        r"""Read nodes from an ASCII Fluent mesh file
         
         :Call:
             >>> M.ReadFluentNodesASCII(f, i0, i1)
@@ -341,7 +336,7 @@ class Msh(object):
             *i1*: :class:`int`
                 Index (1-based) of last node to read
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Number of nodes
         nnode = i1 - i0 + 1
@@ -361,7 +356,7 @@ class Msh(object):
 
     # Function to read tri faces
     def ReadFluentTrisASCII(self, f, k, i0, i1):
-        """Read a block of triangular faces from an ASCII Fluent mesh file
+        r"""Read a block of tri faces from an ASCII Fluent mesh file
         
         :Call:
             >>> M.ReadFluentTrisASCII(f, k, i0, i1)
@@ -377,7 +372,7 @@ class Msh(object):
             *i1*: :class:`int`
                 Index (1-based) of last node to read
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Number of lines
         ntri = i1 - i0 + 1
@@ -404,7 +399,7 @@ class Msh(object):
 
     # Function to read tri faces
     def ReadFluentQuadsASCII(self, f, k, i0, i1):
-        """Read a block of quad faces from an ASCII Fluent mesh file
+        r"""Read a block of quad faces from an ASCII Fluent mesh file
         
         :Call:
             >>> M.ReadFluentQuadsASCII(f, k, i0, i1)
@@ -420,7 +415,7 @@ class Msh(object):
             *i1*: :class:`int`
                 Index (1-based) of last node to read
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Number of lines
         nq = i1 - i0 + 1
@@ -447,7 +442,7 @@ class Msh(object):
     
     # Function to read quad faces
     def ReadFluentMixedFacesASCII(self, f, k, i0, i1):
-        """Read a block of mixed-type faces from an ASCII Fluent mesh file
+        r"""Read a block of mixed-type faces from ASCII Fluent mesh file
         
         :Call:
             >>> M.ReadFluentQuadsASCII(f, k, i0, i1)
@@ -463,7 +458,7 @@ class Msh(object):
             *i1*: :class:`int`
                 Index (1-based) of last node to read
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Number of lines
         n = i1 - i0 + 1
@@ -471,7 +466,7 @@ class Msh(object):
         print("    Reading %i mixed-type faces" % n)
         # Read the lines
         A = np.array([
-            # Split the line as a row of hex integers (ensure 7 nums per row)
+            # Split the line as row of hex ints (ensure 7 nums per row)
             ([int(v, 16) for v in f.readline().split()]+[0])[:7]
             # Loop through proper number of lines
             for i in range(n)
@@ -501,10 +496,10 @@ class Msh(object):
         
     # Get the prisms
     def GetCells(self):
-        """Get the volume cells from the face connectivity
+        r"""Get the volume cells from the face connectivity
         
-        The results are saved to the following :class:`np.ndarray` arrays of
-        :class:`int`\ s.
+        The results are saved to the following :class:`np.ndarray`
+        arrays of :class:`int`\ s.
         
             * *M.Cells*:  (*M.nCell*, 8)
             * *M.Tets*:   (*M.nTet*, 4)
@@ -518,7 +513,7 @@ class Msh(object):
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Initialize the cells.
         self.Cells = np.zeros((self.nCell,8), dtype=int)
@@ -532,7 +527,7 @@ class Msh(object):
         
     # Get the prisms
     def GetPrisms(self):
-        """Get the prism volume cells from the face connectivity
+        r"""Get the prism volume cells from the face connectivity
         
         The results are saved to *M.Prisms* as :class:`np.ndarray`
         ((*M.nPrism*, 6), :class:`int`)
@@ -543,7 +538,7 @@ class Msh(object):
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
         :Versions:
-            * 2015-10-23 ``@ddalle``: First version
+            * 2015-10-23 ``@ddalle``: Version 1.0
         """
         # Check if the cells have been initialized
         if self.Cells.shape[0] != self.nCell:
@@ -580,7 +575,7 @@ class Msh(object):
         
     # Get the tetrahedra cells
     def GetTets(self):
-        """Get the tetrahedron volume cells from the face connectivity
+        r"""Get the tetrahedron volume cells from the face connectivity
         
         The results are saved to *M.Tets* as :class:`np.ndarray`
         ((*M.nTet*, 4), :class:`int`)
@@ -591,7 +586,7 @@ class Msh(object):
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
         :Versions:
-            * 2015-10-23 ``@ddalle``: First version
+            * 2015-10-23 ``@ddalle``: Version 1.0
         """
         # Check if the cells have been initialized
         if self.Cells.shape[0] != self.nCell:
@@ -618,7 +613,7 @@ class Msh(object):
         
     # Get the pyramid cells
     def GetPyrs(self):
-        """Get the pyramid volume cells from the face connectivity
+        r"""Get the pyramid volume cells from the face connectivity
         
         The results are saved to *M.Pyrs* as :class:`np.ndarray`
         ((*M.nPyr*, 5), :class:`int`)
@@ -666,7 +661,7 @@ class Msh(object):
         
     # Get the pyramid cells
     def GetHexes(self):
-        """Get the hexahedron volume cells from the face connectivity
+        r"""Get the hexahedron volume cells from the face connectivity
         
         The results are saved to *M.Hexes* as :class:`np.ndarray`
         ((*M.nHex*, 8), :class:`int`)
@@ -694,30 +689,33 @@ class Msh(object):
     
     # Process quad face for pyramid
     def ProcessPyrsQuad(self, f, j, L):
-        """Process the pyramid cell information of one quad
+        r"""Process the pyramid cell information of one quad
         
         :Call:
             >>> M.ProcessPyrsQuad(f, j, L)
         :Inputs:
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
-            *f*: :class:`np.ndarray` ((4), :class:`int`)
+            *f*: :class:`np.ndarray`\ [:class:`int`] *shape*: 4,
                 List of vertex indices in a face (should be a quad)
             *j*: :class:`int`
                 Index of neighboring cell
             *L*: :class:`int`
                 Index for left (1) or right (0)
         :Versions:
-            * 2015-11-17 ``@ddalle``: First version
+            * 2015-11-17 ``@ddalle``: Version 1.0
         """
         # Check for boundary face (only one side)
-        if (j == 0): return
+        if (j == 0):
+            return
         # Check for tri; process these next
-        if (f[3] == 0): return
+        if (f[3] == 0):
+            return
         # Get the cell type.
         t = self.CellTypes[j-1]
         # Check for prisms.
-        if (t != 5): return
+        if (t != 5):
+            return
         # Extract vertices
         c = self.Cells[j-1]
         # Check for existing information
@@ -733,21 +731,21 @@ class Msh(object):
             
     # Process tri face for pyramid
     def ProcessPyrsTri(self, f, j, L):
-        """Process the pyramid cell information of one tri
+        r"""Process the pyramid cell information of one tri
         
         :Call:
             >>> M.ProcessPyrsTri(f, j, L)
         :Inputs:
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
-            *f*: :class:`np.ndarray` ((4), :class:`int`)
+            *f*: :class:`np.ndarray`\ [:class:`int`] *shape*: 4,
                 List of vertex indices in a face (should be a quad)
             *j*: :class:`int`
                 Index of neighboring cell
             *L*: :class:`int`
                 Index for left (1) or right (0)
         :Versions:
-            * 2015-11-17 ``@ddalle``: First version
+            * 2015-11-17 ``@ddalle``: Version 1.0
         """
         # Check for boundary face (only one side)
         if (j == 0): return
@@ -787,30 +785,33 @@ class Msh(object):
     
     # Process one face
     def ProcessPrismsTri(self, f, j, L):
-        """Process the prism cell information of one tri
+        r"""Process the prism cell information of one tri
         
         :Call:
             >>> M.ProcessPrismsTri(f, j, L)
         :Inputs:
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
-            *f*: :class:`np.ndarray` ((4), :class:`int`)
+            *f*: :class:`np.ndarray`\ [:class:`int`] *shape*: 4,
                 List of vertex indices in a face (should be a tri)
             *j*: :class:`int`
                 Index of neighboring cell
             *L*: :class:`int`
                 Index for left (1) or right (0)
         :Versions:
-            * 2015-10-22 ``@ddalle``: First version
+            * 2015-10-22 ``@ddalle``: Version 1.0
         """
         # Check for boundary face (only one side)
-        if (j == 0): return
+        if (j == 0):
+            return
         # Check for quad; process these in second step
-        if (f[3] > 0): return
+        if (f[3] > 0):
+            return
         # Get the cell type.
         t = self.CellTypes[j-1]
         # Check for prisms.
-        if (t != 6): return
+        if (t != 6):
+            return
         # Check for existing information.
         if (self.Cells[j-1,0] > 0):
             # Already processed; fill in during quad processing
@@ -824,32 +825,36 @@ class Msh(object):
     
     # Prepare quad contributions to prism cells
     def ProcessPrismsQuad(self, f, j):
-        """Process the prism cell information of one quad
+        r"""Process the prism cell information of one quad
         
         :Call:
             >>> M.ProcessPrismsQuad(f, j)
         :Inputs:
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
-            *f*: :class:`np.ndarray` ((4), :class:`int`)
+            *f*: :class:`np.ndarray`\ [:class:`int`] *shape*: 4,
                 List of vertex indices in a face (should be a tri)
             *j*: :class:`int`
                 Index of neighboring cell
         :Versions:
-            * 2015-10-23 ``@ddalle``: First version
+            * 2015-10-23 ``@ddalle``: Version 1.0
         """
         # Check for boundary face (only one side of the face in flow)
-        if (j == 0): return
+        if (j == 0):
+            return
         # Check for tri
-        if (f[3] == 0): return
+        if (f[3] == 0):
+            return
         # Get the cell type
         t = self.CellTypes[j-1]
         # Check type
-        if (t != 6): return
+        if (t != 6):
+            return
         # Process the cell
         c = self.Cells[j-1,0:6]
         # Check if it's already processed.
-        if np.all(c): return
+        if np.all(c):
+            return
         # Find which quad nodes are in *c* layer 0 and which are in layer 1
         # Process quad node 0
         if (f[0] == c[0]):
@@ -1011,30 +1016,33 @@ class Msh(object):
         
     # Prepare tri contributions to tet cells
     def ProcessTetsTri(self, f, j, L):
-        """Process the tetrahedron cell information of one tri
+        r"""Process the tetrahedron cell information of one tri
         
         :Call:
             >>> M.ProcessTetsTri(f, j, L)
         :Inputs:
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
-            *f*: :class:`np.ndarray` ((4), :class:`int`)
+            *f*: :class:`np.ndarray`\ [:class:`int`] *shape*: 4,
                 List of vertex indices in a face (should be a tri)
             *j*: :class:`int`
                 Index of neighboring cell
             *L*: :class:`int`
                 Index for left (1) or right (0)
         :Versions:
-            * 2015-10-23 ``@ddalle``: First version
+            * 2015-10-23 ``@ddalle``: Version 1.0
         """
         # Check for boundary face (cell on only one side of face)
-        if (j == 0): return
+        if (j == 0):
+            return
         # Check for quad.
-        if (f[3] > 0): return
+        if (f[3] > 0):
+            return
         # Get the cell type.
         t = self.CellTypes[j-1]
         # Check for tetrahedra
-        if (t != 2): return
+        if (t != 2):
+            return
         # Extract vertices
         c = self.Cells[j-1]
         # Check for existing information
@@ -1074,17 +1082,17 @@ class Msh(object):
         
     # Select zones by type
     def GetZoneIDsByType(self, typs):
-        """Select the zone IDs that match a list of names
+        r"""Select the zone IDs that match a list of names
         
         :Call:
             >>> K = M.GetZoneIDsByType(typs)
         :Inputs:
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
-            *typs*: :class:`list` (:class:`str`)
+            *typs*: :class:`list`\ [:class:`str`]
                 List of types
         :Outputs:
-            *K*: :class:`list` (:class:`int`)
+            *K*: :class:`list`\ [:class:`int`]
                 List of zone IDs
         :Versions:
             * 2015-10-23 ``@ddalle``: Placeholder
@@ -1094,23 +1102,22 @@ class Msh(object):
     
     # Get the list of boundary zones
     def GetBoundaryZoneIDs(self):
-        """Select the zone IDs that match a list of names
+        r"""Select the zone IDs that match a list of names
         
         :Call:
             >>> K = M.GetZoneIDsByType(typs)
         :Inputs:
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
-            *typs*: :class:`list` (:class:`str`)
+            *typs*: :class:`list`\ [:class:`str`]
                 List of types
         :Outputs:
-            *K*: :class:`list` (:class:`int`)
+            *K*: :class:`list`\ [:class:`int`]
                 List of zone IDs
         :Versions:
             * 2015-10-23 ``@ddalle``: Placeholder
         """
         # Process the zones
         return self.GetZoneIDsByType(['wall', 'symmetry'])
-        
 # class Mesh
 

@@ -1,70 +1,78 @@
 #!/usr/bin/env python
-"""
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.manage`: Manage CFD case folders
 =============================================
 
-This module provides methods to manage and archive files for run folders. It
-provides extensive tools for archiving results to other locations either as a
-tar ball, tar bomb, or zip archive of the entire folder or a folder of several
-smaller zip files.
+This module provides methods to manage and archive files for run
+folders. It provides extensive tools for archiving results to other
+locations either as a tar ball, tar bomb, or zip archive of the entire
+folder or a folder of several smaller zip files.
 
-It also provides tools for deleting files either before or after creating the
-archive.  In addition, there is an easy interface for keeping only the most
-recent *n* files of a certain glob.  For example, if there are solution files
-``flow.01``, ``flow.02``, ``flow.03``, and ``flow.04``, setting the
-*PostUpdateFiles* parameter to ``{"flow.??": 2}`` will delete only ``flow.01``
-and ``flow.02``.
+It also provides tools for deleting files either before or after
+creating the archive.  In addition, there is an easy interface for
+keeping only the most recent *n* files of a certain glob.  For example,
+if there are solution files ``flow.01``, ``flow.02``, ``flow.03``, and
+``flow.04``, setting the *PostUpdateFiles* parameter to
 
-The module provides methods to perform deletions, conditional deletions, and
-grouping files into tar or zip archives at multiple stages.  For example,
-:func:`PreDeleteFiles` deletes files after a case has been completed and before
-generating the archive of the case.  On the other hand, :func:`PostDeleteFiles`
-deletes files after creating the archive; the difference is whether or not the
-file in question is included in the archive before it is deleted.
+    .. code-block:: python
 
-A case cannot be archived until it has been granted the status of ``PASS``, by
-meeting the requested number of iterations and phases and by getting marked
-with a ``p`` in the run matrix file.  However, less aggressive pruning via the
-``--clean`` command can always be performed, even if the case is currently
-running.
+        {"flow.??": 2}
 
-The archiving process can be "reversed" (although this does not delete the
-archived copy) using :func:`UnarchiveFolder`, which copies files from the
-archive to the working folder.  This can be useful if you determine that a
-necessary file for post-processing was cleaned out or if the case needs to be
-extended (run for more iterations).
+will delete only ``flow.01`` and ``flow.02``.
 
-Functions such as :func:`ProgressDeleteFiles` deletes files between phases, and
-as such it is much more dangerous.  Other methods will only delete or archive
-once the case has been marked as PASS by the user.
+The module provides methods to perform deletions, conditional deletions,
+and grouping files into tar or zip archives at multiple stages.  For
+example, :func:`PreDeleteFiles` deletes files after a case has been
+completed and before generating the archive of the case.  On the other
+hand, :func:`PostDeleteFiles` deletes files after creating the archive;
+the difference is whether or not the file in question is included in the
+archive before it is deleted.
+
+A case cannot be archived until it has been granted the status of
+``PASS``, by meeting the requested number of iterations and phases and
+by getting marked with a ``p`` in the run matrix file.  However, less
+aggressive pruning via the ``--clean`` command can always be performed,
+even if the case is currently running.
+
+The archiving process can be "reversed" (although this does not delete
+the archived copy) using :func:`UnarchiveFolder`, which copies files
+from the archive to the working folder.  This can be useful if you
+determine that a necessary file for post-processing was cleaned out or
+if the case needs to be extended (run for more iterations).
+
+Functions such as :func:`ProgressDeleteFiles` deletes files between
+phases, and as such it is much more dangerous.  Other methods will only
+delete or archive once the case has been marked as PASS by the user.
 
 An even more aggressive action can be taken using the ``--skeleton``
-command-line option.  After creating or updating the archive, this deletes even
-more files from the working copy than ``--archive`` using the
-:func:`SkeletonFolder` function.  A common use of this dichotomy is to set up
-``--archive`` so that all post-processing can still be done, and once the
-post-processing ``--skeleton`` deletes everything but a minimal set of
-information about the case.  The ``--skeleton`` also has an extra capability to
-replace the working copy with the last few lines of that file, which might
-contain information on the most recent iteration run, for example.  In order to
-avoid catastrophe, the ``--skeleton`` command effectively calls ``--archive``
-as part of its normal procedure.
+command-line option.  After creating or updating the archive, this
+deletes even more files from the working copy than ``--archive`` using
+the :func:`SkeletonFolder` function.  A common use of this dichotomy is
+to set up ``--archive`` so that all post-processing can still be done,
+and once the post-processing ``--skeleton`` deletes everything but a
+minimal set of information about the case.  The ``--skeleton`` also has
+an extra capability to replace the working copy with the last few lines
+of that file, which might contain information on the most recent
+iteration run, for example.  In order to avoid catastrophe, the
+``--skeleton`` command effectively calls ``--archive`` as part of its
+normal procedure.
 
-This module contains many supporting methods to perform specific actions such
-as comparing modification dates on the working and archived copies.  The main
-functions that are called from the command line are:
+This module contains many supporting methods to perform specific actions
+such as comparing modification dates on the working and archived copies.
+The main functions that are called from the command line are:
 
-    * :func:`ManageFilesProgress`: delete files progressively, even if the case
-      is still running (can be used for example to keep only the two most
-      recent check point files); does not archive
-    * :func:`ManageFilesPre`: delete or tar files/folders immediately prior to
-      creating archive; reduces size or archive but not performed until case
-      has ``PASS`` status
+    * :func:`ManageFilesProgress`: delete files progressively, even if
+      the case is still running (can be used for example to keep only the
+      two most recent check point files); does not archive
+    * :func:`ManageFilesPre`: delete or tar files/folders immediately
+      prior to creating archive; reduces size or archive but not performed
+      until case has ``PASS`` status
     * :func:`ManageFilesPost`: deletes or tar files/folders after creating
       archive
-      
-Each of the four phases also has several contributing functions that perform a
-specific task at a specific phase, which are outlined below.
+
+Each of the four phases also has several contributing functions that
+perform a specific task at a specific phase, which are outlined below.
 
     * ``"Progress"``: delete files safely at any time
         - :func:`ProgressDeleteFiles`
@@ -72,34 +80,46 @@ specific task at a specific phase, which are outlined below.
         - :func:`ProgressDeleteDirs`
         - :func:`ProgressTarGroups`
         - :func:`ProgressTarDirs`
-        
+
     * ``"Pre"``: delete files from complete case before archiving
         - :func:`PreDeleteFiles`
         - :func:`PreUpdateFiles`
         - :func:`PreDeleteDirs`
         - :func:`PreTarGroups`
         - :func:`PreTarDirs`
-        
+
     * ``"Post"``: delete files after creating/updating archive
         - :func:`PostDeleteFiles`
         - :func:`PostUpdateFiles`
         - :func:`PostDeleteDirs`
         - :func:`PostTarGroups`
         - :func:`PostTarDirs`
-        
+
     * ``"Skeleton"``: delete files after post-processing
         - :func:`SkeletonTailFiles`
         - :func:`SkeletonDeleteFiles`
-        
-The difference between ``DeleteFiles`` and ``UpdateFiles`` is merely on what
-action is taken by default.  The user can manually specify how many most recent
-files matching a certain glob to keep using a :class:`dict` such as
-``{"flow[0-9][0-9]": 2}``, but if a glob is given without a :class:`dict`, such
-as simply ``"flow[0-9][0-9]"``, by default ``DeleteFiles()`` will delete all of
-them while ``UpdateFiles`` will keep the most recent.
 
-Finally, the main command-line folder management calls each interface directly
-with one function from this module.
+The difference between ``DeleteFiles`` and ``UpdateFiles`` is merely on
+what action is taken by default.  The user can manually specify how many
+most recent files matching a certain glob to keep using a :class:`dict`
+such as
+
+    .. code-block:: python
+
+        {"flow[0-9][0-9]": 2}
+
+but if a glob is given without a
+:class:`dict`, such as simply
+
+    .. code-block:: python
+
+        "flow[0-9][0-9]"
+
+by default ``DeleteFiles()`` will delete all of them while
+``UpdateFiles()`` will keep the most recent.
+
+Finally, the main command-line folder management calls each interface
+directly with one function from this module.
 
     * ``--clean``: :func:`CleanFolder`
     * ``--archive``: :func:`ArchiveFolder`
@@ -126,9 +146,10 @@ import numpy as np
 from .cfdx.options import Archive
 from .cfdx.bin     import check_output, tail
 
+
 # Write date to archive
 def write_log_date(fname='archive.log'):
-    """Write the date to the archive log
+    r"""Write the date to the archive log
 
     :Call:
         >>> cape.manage.write_log_date(fname='archive.log')
@@ -136,7 +157,7 @@ def write_log_date(fname='archive.log'):
         *fname*: {``"archive.log"``} | :class:`str`
             Name of acrhive log file
     :Versions:
-        * 2016-07-08 ``@ddalle``: First version
+        * 2016-07-08 ``@ddalle``: Version 1.0
     """
     # Open the file
     f = open(fname, 'a')
@@ -149,7 +170,7 @@ def write_log_date(fname='archive.log'):
 
 # Write an action to log
 def write_log(txt, fname='archive.log'):
-    """Write the date to the archive log
+    r"""Write the date to the archive log
 
     :Call:
         >>> cape.manage.write_log(txt, fname='archive.log')
@@ -157,7 +178,7 @@ def write_log(txt, fname='archive.log'):
         *fname*: {``"archive.log"``} | :class:`str`
             Name of acrhive log file
     :Versions:
-        * 2016-07-08 ``@ddalle``: First version
+        * 2016-07-08 ``@ddalle``: Version 1.0
     """
     # Open the file
     f = open(fname, 'a')
@@ -169,8 +190,8 @@ def write_log(txt, fname='archive.log'):
 
 # File tests
 def isfile(fname):
-    """Handle to test if file **or** link
-    
+    r"""Handle to test if file **or** link
+
     :Call:
         >>> q = cape.manage.isfile(fname)
     :Inputs:
@@ -180,19 +201,19 @@ def isfile(fname):
         *q*: :class:`bool`
             Whether or not file both exists and is either a file or link
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     return os.path.isfile(fname) or os.path.islink(fname)
 
 
 # Get modification time of a file
 def getmtime(fname):
-    """Get the modification time of a file, using ``ssh`` if necessary
-    
-    For local files, this function uses :func:`os.path.getmtime`.  If *fname*
-    contains a ``:``, this function issues an ``ssh`` command via
-    :func:`subprocess.Popen`.
-    
+    r"""Get the modification time of a file, using ``ssh`` if necessary
+
+    For local files, this function uses :func:`os.path.getmtime`.  If
+    *fname* contains a ``:``, this function issues an ``ssh`` command
+    via :func:`subprocess.Popen`.
+
     :Call:
         >>> t = getmtime(fname)
     :Inputs:
@@ -202,7 +223,7 @@ def getmtime(fname):
         *t*: :class:`float` | ``None``
             Modification time; ``None`` if file does not exist
     :Versions:
-        * 2017-03-17 ``@ddalle``: First version
+        * 2017-03-17 ``@ddalle``: Version 1.0
     """
     # Check if the path is remote
     if ':' in fname:
@@ -233,18 +254,18 @@ def getmtime(fname):
 
 # Get latest modification time of a glob
 def getmtime_glob(fglob):
-    """Get the modification time of a glob, using ``ssh`` if necessary
-    
+    r"""Get the modification time of a glob, using ``ssh`` if necessary
+
     :Call:
         >>> t = getmtime_glob(fglob)
     :Inputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List if names of files
     :Outputs:
         *t*: :class:`float` | ``None``
             Modification time of most recently modified file
     :Versions:
-        * 2017-03-13 ``@ddalle``: First version
+        * 2017-03-13 ``@ddalle``: Version 1.0
     """
     # Initialize output
     t = 0
@@ -265,7 +286,7 @@ def getmtime_glob(fglob):
 # File is broken link
 def isbrokenlink(fname):
     """Handle to test if a file is a broken link
-    
+
     :Call:
         >>> q = cape.manage.isbrokenlink(fname)
     :Inputs:
@@ -275,25 +296,25 @@ def isbrokenlink(fname):
         *q*: :class:`bool`
             Whether or not it is a link that is broken
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     return os.path.islink(fname) and not os.path.isfile(fname)
 
 
 # Sort files by time
 def sortfiles(fglob):
-    """Sort a glob of files based on the time of their last edit
-    
+    r"""Sort a glob of files based on the time of their last edit
+
     :Call:
         >>> fsort = sortfiles(fglob)
     :Inputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List of file names
     :Outputs:
-        *fsort*: :class:`list` (:class:`str`)
+        *fsort*: :class:`list`\ [:class:`str`]
             Above listed by :func:`os.path.getmtime`
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Time function
     ft = lambda f: os.path.getmtime(f) if os.path.exists(f) else 0.0
@@ -307,23 +328,23 @@ def sortfiles(fglob):
 
 # Archive group
 def process_ArchiveGroup(grp):
-    """Process an archive group, which has a precise format
-    
+    r"""Process an archive group, which has a precise format
+
     It must be a dictionary with one entry
-    
+
     :Call:
         >>> ftar, fpat = cape.manage.process_ArchiveGroup(grp)
         >>> ftar, fpat = cape.manage.process_Archivegroup({ftar: fpat})
     :Inputs:
-        *grp*: :class:`dict` len=1
+        *grp*: :class:`dict`, *len*: 1
             Single dictionary with name and pattern or list of patterns
     :Outputs:
         *ftar*: :class:`str`
             Name of archive to create without extension
-        *fpat*: :class:`str` | :class:`dict` | :class:`list` (:class:`str`)
+        *fpat*: :class:`str` | :class:`dict` | :class:`list`
             File name pattern or list of file name patterns
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-01 ``@ddalle``: Version 1.0
     """
     # Check type
     if (type(grp) != dict) or (len(grp) != 1):
@@ -342,11 +363,11 @@ def process_ArchiveGroup(grp):
 
 # File name count
 def process_ArchiveFile(f, n=1):
-    """Process a file glob description
-    
-    This can be either a file name, file name pattern, or dictionary of file
-    name pattern and number of files to keep
-    
+    r"""Process a file glob description
+
+    This can be either a file name, file name pattern, or dictionary of
+    file name pattern and number of files to keep
+
     :Call:
         >>> fname, nkeep = process_ArchiveFile(fname, n=1)
         >>> fname, nkeep = process_ArchiveFile(fdict, n=1)
@@ -364,7 +385,7 @@ def process_ArchiveFile(f, n=1):
         *nkeep*: :class:`int`
             Number of matching files to keep
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-01 ``@ddalle``: Version 1.0
     """
     # Input type
     tf = type(f).__name__
@@ -392,8 +413,8 @@ def process_ArchiveFile(f, n=1):
 
 # Get list of folders in which to search
 def GetSearchDirs(fsub=None, fsort=None):
-    """Get list of current folder and folders matching pattern
-    
+    r"""Get list of current folder and folders matching pattern
+
     :Call:
         >>> fdirs = GetSearchDirs()
         >>> fdirs = GetSearchDirs(fsub)
@@ -401,12 +422,12 @@ def GetSearchDirs(fsub=None, fsort=None):
     :Inputs:
         *fsub*: :class:`str`
             Folder name of folder name pattern
-        *fsubs*: :class:`list` (:class:`str`)
+        *fsubs*: :class:`list`\ [:class:`str`]
             List of folder names or folder name patterns
-        *fsort*: :class:`function`
+        *fsort*: **callable**
             Non-default sorting function
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-01 ``@ddalle``: Version 1.0
     """
     # Initialize
     fdirs = []
@@ -446,33 +467,33 @@ def GetSearchDirs(fsub=None, fsort=None):
 # Get list of matches, generic
 def GetMatches(fname,
     fsub=None, fkeep=None, ftest=None, n=0, fsort=None, qdel=False):
-    """Get matches based on arbitrary rules
-    
+    r"""Get matches based on arbitrary rules
+
     :Call:
         >>> fglob = GetMatches(fname, **kw)
     :Inputs:
         *fname*: :class:`str`
             File name or file name pattern
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Subfolder name of folder name patterns in which to search
-        *fkeep*: :class:`list` (:class:`str`)
+        *fkeep*: :class:`list`\ [:class:`str`]
             List of file names matching a negative file glob
         *ftest*: :class:`func`
             Function to test file type, e.g. :func:`os.path.isdir`
         *n*: :class:`int`
             Default number of files to ignore from the end of the glob or
             number of files to ignore from beginning of glob if negative
-        *fsort*: :class:`function`
+        *fsort*: **callable**
             Non-default sorting function
         *qdel*: ``True`` | {``False``}
             Interpret *n* as how many files to **keep** if ``True``; as how
             many files to **copy** if ``False``
     :Outputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List of files matching input pattern
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *qdel* option for interpreting *n*
+        * 2016-03-14 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *qdel* kwarg
     """
     # Process the input
     fname, nkeep = process_ArchiveFile(fname, n=n)
@@ -535,14 +556,14 @@ def GetMatches(fname,
 
 # Get list of matches to a list of globs, generic
 def GetMatchesList(flist, fsub=None, ftest=None, n=0, qdel=False):
-    """Get matches from a list of file glob descriptors
-    
+    r"""Get matches from a list of file glob descriptors
+
     :Call:
-        >>> fglob = GetMatchesList(flist,fsub=None,ftest=None,n=0,qdel=False)
+        >>> fglob = GetMatchesList(flist, **kw)
     :Inputs:
-        *flist*: :class:`list` (:class:`str` | :class:`dict`)
+        *flist*: :class:`list`\ [:class:`str` | :class:`dict`]
             List of file names or file name patterns
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Subfolder name of folder name patterns in which to search
         *ftest*: :class:`func`
             Function to test file type, e.g. :func:`os.path.isdir`
@@ -553,10 +574,10 @@ def GetMatchesList(flist, fsub=None, ftest=None, n=0, qdel=False):
             Interpret *n* as how many files to **keep** if ``True``; as how
             many files to **copy** if ``False``
     :Outputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List of files matching input pattern
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
         * 2017-03-06 ``@ddalle``: Added *qdel* option
     """
     # Ensure list
@@ -600,30 +621,30 @@ def GetMatchesList(flist, fsub=None, ftest=None, n=0, qdel=False):
 
 # Get file/link matches
 def GetFileMatches(fname, fsub=None, n=0, qdel=False):
-    """Get list of all files or links matching a list of patterns
-    
+    r"""Get list of all files or links matching a list of patterns
+
     :Call:
         >>> fglob = GetFileMatches(fname, fsub=None, n=0, qdel=False)
         >>> fglob = GetFileMatches(fname, fsubs)
     :Inputs:
-        *fname*: :class:`list` (:class:`dict` | :class:`str`)
+        *fname*: :class:`list`\ [:class:`dict` | :class:`str`]
             List of file name patterns
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Folder name of folder name pattern
         *n*: :class:`int`
             Default number of files to ignore at end of glob
         *qdel*: ``True`` | {``False``}
-            Interpret *n* as how many files to **keep** if ``True``; as how
-            many files to **copy** if ``False``
+            Interpret *n* as how many files to **keep** if ``True``; as
+            how many files to **copy** if ``False``
     :Outputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List of files matching input pattern
     :See also:
         * :func:`cape.manage.process_ArchiveFile`
         * :func:`cape.manage.GetMatchesList`
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *qdel* option
+        * 2016-03-01 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *qdel* kwarg
     """
     # Get matches from :func:`GetMatches`
     fglob = GetMatchesList(fname, fsub=fsub, ftest=isfile, n=n, qdel=qdel)
@@ -633,15 +654,15 @@ def GetFileMatches(fname, fsub=None, n=0, qdel=False):
 
 # Get link matches
 def GetLinkMatches(fname, fsub=None, n=0, qdel=False):
-    """Get list of all links matching a list of patterns
-    
+    r"""Get list of all links matching a list of patterns
+
     :Call:
         >>> fglob = GetLinkMatches(fname, fsub=None, n=0, qdel=False)
         >>> fglob = GetLinkMatches(fname, fsubs)
     :Inputs:
-        *fname*: :class:`list` (:class:`dict` | :class:`str`)
+        *fname*: :class:`list`\ [:class:`dict` | :class:`str`]
             List of file name patterns
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Folder name of folder name pattern
         *n*: :class:`int`
             Default number of files to ignore at end of glob
@@ -649,14 +670,14 @@ def GetLinkMatches(fname, fsub=None, n=0, qdel=False):
             Interpret *n* as how many files to **keep** if ``True``; as how
             many files to **copy** if ``False``
     :Outputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List of files matching input pattern
     :See also:
         * :func:`cape.manage.process_ArchiveFile`
         * :func:`cape.manage.GetMatchesList`
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *qdel* option
+        * 2016-03-01 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *qdel*
     """
     # Get matches from :func:`GetMatches`
     fglob = GetMatchesList(fname,
@@ -667,21 +688,21 @@ def GetLinkMatches(fname, fsub=None, n=0, qdel=False):
 
 # Expand any links in a glob
 def ExpandLinks(fglob):
-    """Expand any links in a full glob if linked to relative file
-    
-    If the link points to an absolute path, the entry is not replaced with the
-    target of the link.
-    
+    r"""Expand any links in a full glob if linked to relative file
+
+    If the link points to an absolute path, the entry is not replaced
+    with the target of the link.
+
     :Call:
         >>> flst = ExpandLinks(fglob)
     :Inputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List of file names, possibly including links
     :Outputs:
-        *flst*: :class:`list` (:class:`str`)
-            List of file names plus expanded versions of any relative links
+        *flst*: :class:`list`\ [:class:`str`]
+            List of file names plus expanded versions of any links
     :Versions:
-        * 2017-12-13 ``@ddalle``: First version
+        * 2017-12-13 ``@ddalle``: Version 1.0
     """
     # Initialize output
     flst = list(fglob)
@@ -702,18 +723,18 @@ def ExpandLinks(fglob):
     # Output
     return flst
 
-  
+
 # Get folder matches
 def GetDirMatches(fname, fsub=None, n=0, qdel=False):
-    """Get list of all folders matching a list of patterns
-    
+    r"""Get list of all folders matching a list of patterns
+
     :Call:
         >>> fglob = GetDirMatches(fname, fsub=None, n=0, qdel=False)
         >>> fglob = GetDirMatches(fname, fsubs)
     :Inputs:
-        *fname*: :class:`list` (:class:`dict` | :class:`str`)
+        *fname*: :class:`list`\ [:class:`dict` | :class:`str`]
             List of file name patterns
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Folder name of folder name pattern
         *n*: :class:`int`
             Default number of files to ignore at end of glob
@@ -721,14 +742,14 @@ def GetDirMatches(fname, fsub=None, n=0, qdel=False):
             Interpret *n* as how many files to **keep** if ``True``; as how
             many files to **copy** if ``False``
     :Outputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List of files matching input pattern
     :See also:
         * :func:`cape.manage.process_ArchiveFile`
         * :func:`cape.manage.GetMatchesList`
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *qdel* option
+        * 2016-03-01 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *qdel* kwarg
     """
     # Get matches from :func:`GetMatches`
     fglob = GetMatchesList(fname,
@@ -739,23 +760,23 @@ def GetDirMatches(fname, fsub=None, n=0, qdel=False):
 
 # List of folders implied by list of files
 def GetImpliedFolders(fglob, fdirs=[]):
-    """Check a list of files to get list of folders implied by that list
-    
-    For example, ``["case.json", "adapt00/input.nml"]`` implies the folder
-    ``adapt00``
-    
+    r"""Check a list of files to get implicit matching folders
+
+    For example, ``["case.json", "adapt00/input.nml"]`` implies the
+    folder ``adapt00/``
+
     :Call:
         >>> fsubs = GetImpliedFolders(fglob, fdirs=[])
     :Inputs:
-        *fglob*: :class:`list` (:class:`str`)
+        *fglob*: :class:`list`\ [:class:`str`]
             List of file names including any folder names
-        *fdirs*: {``[]``} | :class:`list` (:class:`str`)
+        *fdirs*: {``[]``} | :class:`list`\ [:class:`str`]
             List of folders to append to
     :Outputs:
-        *fsubs*: :class:`list` (:class:`str`)
+        *fsubs*: :class:`list`\ [:class:`str`]
             Unique list of folders including entries from *fdirs*
     :Versions:
-        * 2017-12-13 ``@ddalle``: First version
+        * 2017-12-13 ``@ddalle``: Version 1.0
     """
     # Initialize output
     fsubs = list(fdirs)
@@ -776,32 +797,33 @@ def GetImpliedFolders(fglob, fdirs=[]):
 
 # Function to delete files according to full descriptor
 def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
-    """Delete files that match a list of globs
-    
-    The function also searches in any folder matching the directory glob or
-    list of directory globs *fsub*.
-    
+    r"""Delete files that match a list of globs
+
+    The function also searches in any folder matching the directory glob
+    or list of directory globs *fsub*.
+
     :Call:
         >>> cape.manage.DeleteFiles(fdel, fsub=None, n=1, phantom=False)
     :Inputs:
         *fdel*: :class:`str`
             File name or glob of files to delete
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Folder, list of folders, or glob of folders to also search
         *n*: :class:`int`
             Number of files to keep
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *phantom* option
+        * 2016-03-01 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Get list of matches
     fglob = GetFileMatches(fdel, fsub=fsub, n=n, qdel=True)
     # Loop through matches
     for fn in fglob:
         # Triple-check for existence
-        if not isfile(fn): continue
+        if not isfile(fn):
+            continue
         # Write to log
         write_log('  rm %s' % fn)
         # Check if not actually deleting
@@ -812,24 +834,24 @@ def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
 
 # Function to delete all files *except* specified list
 def DeleteFilesExcept(fskel, dskel=[], fsub=None, n=0, phantom=False):
-    """Delete all files except those that match a list of globs
-    
+    r"""Delete all files except those that match a list of globs
+
     :Call:
         >>> cape.manage.DeleteFilesExcept(fskel, **kw)
     :Inputs:
-        *fskel*: :class:`list` (:class:`str` | :class:`dict` (:class:`int`))
+        *fskel*: :class:`list`\ [:class:`str` | :class:`dict`]
             List of file names or globs of files to delete
-        *dskel*: {``[]``} | :class:`list` (:class:`str` | :class:`dict`)
+        *dskel*: {``[]``} | :class:`list`
             List of folder names of globs of folder names to delete
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Folder, list of folders, or glob of folders to also search
         *n*: {``0``} | :class:`int`
-            Number of files to keep if not set by dictionary options for each
-            file; if ``0``, keep all by default
+            Number of files to keep if not set by dictionary options for
+            each file; if ``0``, keep all by default
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2017-12-13 ``@ddalle``: Forked from :func:`DeleteFiles`
+        * 2017-12-13 ``@ddalle``: Version 1.0, fork :func:`DeleteFiles`
     """
     # Get list of matches
     fglob = GetFileMatches(fskel, fsub=fsub, n=n, qdel=False)
@@ -846,7 +868,8 @@ def DeleteFilesExcept(fskel, dskel=[], fsub=None, n=0, phantom=False):
         # Loop through implied dirs
         for fi in fimp:
             # Check if folder exists
-            if not os.path.isdir(fi): continue
+            if not os.path.isdir(fi):
+                continue
             # Otherwise, get the files in that folder
             flsi = os.listdir(fi)
             # Append to list
@@ -870,7 +893,8 @@ def DeleteFilesExcept(fskel, dskel=[], fsub=None, n=0, phantom=False):
                 # Otherwise, delete the directory
                 write_log("rm -r %s" % fn)
                 # Check for simulation option
-                if phantom: continue
+                if phantom:
+                    continue
                 # Delete it
                 shutil.rmtree(fn, ignore_errors=True)
                 continue
@@ -879,33 +903,34 @@ def DeleteFilesExcept(fskel, dskel=[], fsub=None, n=0, phantom=False):
             # Otherwise, delete it
             write_log("rm %s" % fn)
             # Check if not actually deleting files
-            if phantom: continue
+            if phantom:
+                continue
             # Delete it
             os.remove(fn)
 
 
 # Function to delete all files *except* specified list
 def TailFiles(ftail, fsub=None, n=1, phantom=False):
-    """Tail a list of files
-    
-    An example input is ``[{"run.resid": [2, "run.tail.resid"]}]``; this tells
-    the function to *tail* the last ``2`` files from ``run.resid`` and put them
-    in a file called ``run.tail.resid``.
-    
+    r"""Tail a list of files
+
+    An example input is ``[{"run.resid": [2, "run.tail.resid"]}]``;
+    this tells the function to *tail* the last ``2`` files from
+    ``run.resid`` and put them in a file called ``run.tail.resid``.
+
     :Call:
         >>> cape.manage.TailFiles(ftail, fsub=None, n=1, phantom=False)
     :Inputs:
-        *ftail*: :class:`list` (:class:`dict` ([:class:`int`, :class:`str`]))
+        *ftail*: :class:`list`\ [:class:`dict`]
             List of dictionaries of files to tail
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Folder, list of folders, or glob of folders to also search
         *n*: :class:`int`
             Number of files to keep
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *phantom* option
+        * 2016-03-01 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Loop through instructions
     for ft in ftail:
@@ -927,7 +952,8 @@ def TailFiles(ftail, fsub=None, n=1, phantom=False):
         # Loop through matches
         for fn in fglob:
             # Triple-check for existence
-            if not isfile(fn): continue
+            if not isfile(fn):
+                continue
             # Process folder if possible
             fdir, fi = os.path.split(fn)
             # Full output file
@@ -938,7 +964,8 @@ def TailFiles(ftail, fsub=None, n=1, phantom=False):
             if fsrc != fout:
                 write_log('  rm %s' % fn)
             # Check if not actually doing anything
-            if phantom: continue
+            if phantom:
+                continue
             # Tail the text
             txt = tail(fn, n=nf)
             # Open the output file
@@ -946,27 +973,27 @@ def TailFiles(ftail, fsub=None, n=1, phantom=False):
                 f.write(txt)
             # Delete input file
             if os.path.isfile(fn): os.remove(fn)
-    
+
 
 # ----------------------------------------------------------------------------
 # PHASE ACTIONS
 # ----------------------------------------------------------------------------
 # Perform in-progress file management after each run
 def ManageFilesProgress(opts=None, fsub=None, phantom=False):
-    """Delete or group files and folders at end of each run
-    
+    r"""Delete or group files and folders at end of each run
+
     :Call:
-        >>> cape.manage.ManageFilesProgress(opts=None,fsub=None,phantom=False)
+        >>> cape.manage.ManageFilesProgress(opts=None, **kw)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options` | :class:`dict`
             Options interface for archiving
-        *fsub*: :class:`list` (:class:`str`)
+        *fsub*: :class:`list`\ [:class:`str`]
             List of globs of subdirectories that are adaptive run folders
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *phantom* option
+        * 2016-03-14 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
@@ -980,20 +1007,20 @@ def ManageFilesProgress(opts=None, fsub=None, phantom=False):
 
 # Perform pre-archive management
 def ManageFilesPre(opts=None, fsub=None, phantom=False):
-    """Delete or group files and folders before creating archive
-    
+    r"""Delete or group files and folders before creating archive
+
     :Call:
         >>> cape.manage.ManageFilesPre(opts=None, fsub=None)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options` | :class:`dict`
             Options interface for archiving
-        *fsub*: :class:`list` (:class:`str`)
+        *fsub*: :class:`list`\ [:class:`str`]
             Number of files to keep
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *phantom* option
+        * 2016-03-14 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
@@ -1007,20 +1034,20 @@ def ManageFilesPre(opts=None, fsub=None, phantom=False):
 
 # Perform post-archive management
 def ManageFilesPost(opts=None, fsub=None, phantom=False):
-    """Delete or group files and folders after creating archive
-    
+    r"""Delete or group files and folders after creating archive
+
     :Call:
-        >>> cape.manage.ManageFilesPost(opts=None, fsub=None, phantom=False)
+        >>> cape.manage.ManageFilesPost(opts=None, **kw)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options` | :class:`dict`
             Options interface for archiving
-        *fsub*: :class:`list` (:class:`str`)
-            List of globs of subdirectories that are adaptive run folders
+        *fsub*: :class:`list`\ [:class:`str`]
+            Globs of subdirectories that are adaptive run folders
         *phantom*: ``True`` | {``False``}
-            Write actions to ``archive.log``; only delete files if ``False``
+            Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *phantom* option
+        * 2016-03-14 ``@ddalle``: Version 1.0
+        * 2017-03-06 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
@@ -1038,19 +1065,19 @@ def ManageFilesPost(opts=None, fsub=None, phantom=False):
 # ----------------------------------------------------------------------------
 # Clear folder
 def CleanFolder(opts, fsub=[], phantom=False):
-    """Delete files before archiving and regardless of status
-    
+    r"""Delete files before archiving and regardless of status
+
     :Call:
         >>> cape.manage.CleanFolder(opts, fsub=[], phantom=False)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface including management/archive interface
-        *fsub*: :class:`list` (:class:`str`)
-            List of globs of subdirectories that are adaptive run folders
+        *fsub*: :class:`list`\ [:class:`str`]
+            Globs of subdirectories that are adaptive run folders
         *phantom*: ``True`` | {``False``}
-            Write actions to ``archive.log``; only delete files if ``False``
+            Only delete files if ``False``
     :Versions:
-        * 2017-03-10 ``@ddalle``: First version
+        * 2017-03-10 ``@ddalle``: Version 1.0
         * 2017-12-15 ``@ddalle``: Added *phantom* option
     """
     # Restrict options to correct class
@@ -1061,20 +1088,20 @@ def CleanFolder(opts, fsub=[], phantom=False):
 
 # Archive folder
 def ArchiveFolder(opts, fsub=[], phantom=False):
-    """Archive a folder to a backup location and clean up nonessential files
-    
+    r"""Archive a folder and clean up nonessential files
+
     :Call:
         >>> cape.manage.ArchiveFolder(opts, fsub=[], phantom=False)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface including management/archive interface
-        *fsub*: :class:`list` (:class:`str`)
-            List of globs of subdirectories that are adaptive run folders
+        *fsub*: :class:`list`\ [:class:`str`]
+            Globs of subdirectories that are adaptive run folders
         *phantom*: ``True`` | {``False``}
-            Write actions to ``archive.log``; only delete files if ``False``
+            Only delete files if ``False``
     :Versions:
-        * 2016-12-09 ``@ddalle``: First version
-        * 2017-12-15 ``@ddalle``: Added *phantom* option
+        * 2016-12-09 ``@ddalle``: Version 1.0
+        * 2017-12-15 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Restrict options to correct class
     opts = Archive.auto_Archive(opts)
@@ -1085,8 +1112,9 @@ def ArchiveFolder(opts, fsub=[], phantom=False):
     # Get the remote copy command
     fscp = opts.get_RemoteCopy()
     # If no action, do nothing
-    if not ftyp or not flfe: return
-    
+    if not ftyp or not flfe:
+        return
+
     # Get the current folder
     fdir = os.path.split(os.getcwd())[-1]
     # Go up one folder to the group directory
@@ -1097,11 +1125,11 @@ def ArchiveFolder(opts, fsub=[], phantom=False):
     frun = os.path.join(fgrp, fdir)
     # Reenter case folder
     os.chdir(fdir)
-    
+
     # Ensure folder exists
     CreateArchiveFolder(opts)
     CreateArchiveCaseFolder(opts)
-    
+
     # Get the archive format, extension, and command
     fmt  = opts.get_ArchiveFormat()
     cmdu = opts.get_ArchiveCmd()
@@ -1135,15 +1163,15 @@ def ArchiveFolder(opts, fsub=[], phantom=False):
 
 # Unarchive folder
 def UnarchiveFolder(opts):
-    """Unarchive a case archived as a single tar ball or multiple files
-    
+    r"""Unarchive a case archived as one or more compressed files
+
     :Call:
         >>> cape.manage.UnarchiveFolder(opts)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
-        * 2017-03-13 ``@ddalle``: First version
+        * 2017-03-13 ``@ddalle``: Version 1.0
     """
     # Restrict options to correct (sub)class
     opts = Archive.auto_Archive(opts)
@@ -1154,8 +1182,9 @@ def UnarchiveFolder(opts):
     # Get the remote copy command
     fscp = opts.get_RemoteCopy()
     # If not action, do nothing
-    if not ftyp or not flfe: return
-    
+    if not ftyp or not flfe:
+        return
+
     # Get the current fodler
     fdir = os.path.split(os.getcwd())[-1]
     # Go up one folder to the group directory
@@ -1166,7 +1195,7 @@ def UnarchiveFolder(opts):
     frun = os.path.join(fgrp, fdir)
     # Reenter case folder
     os.chdir(fdir)
-    
+
     # Get the archive format, extension, and command
     fmt  = opts.get_ArchiveFormat()
     cmdu = opts.get_UnarchiveCmd()
@@ -1203,12 +1232,14 @@ def UnarchiveFolder(opts):
                 print("  ARCHIVE/%s --> %s" % (fname, fname))
                 # Copy the file (too much work to check dates)
                 ierr = sp.call([fscp, fsrc, fname])
-                if ierr: raise SystemError("Remote copy failed.")
+                if ierr:
+                    raise SystemError("Remote copy failed.")
                 # Status update
                 print("  %s %s" % (' '.join(cmdu), fname))
                 # Untar
                 ierr = sp.call([cmdu, fname])
-                if ierr: raise SystemError("Untar command failed.")
+                if ierr:
+                    raise SystemError("Untar command failed.")
             else:
                 # Single file
                 # Check dates
@@ -1219,7 +1250,8 @@ def UnarchiveFolder(opts):
                 print("  ARCHIVE/%s --> %s" % (fname, fname))
                 # Copy the file
                 ierr = sp.call([fscp, fsrc, fname])
-                if ierr: raise SystemError("Remote copy failed.")
+                if ierr:
+                    raise SystemError("Remote copy failed.")
     else:
         # Local
         fremote = False
@@ -1256,24 +1288,23 @@ def UnarchiveFolder(opts):
 
 # Clean out folder afterward
 def SkeletonFolder(opts, fsub=[], phantom=False):
-    """Perform post-archiving clean-out actions; create a "skeleton"
-    
+    r"""Perform post-archiving clean-out actions; create a "skeleton"
+
     :Call:
         >>> cape.manage.SkeletonFolder(opts, fsub=[], phantom=False)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
-            Options interface including management/archive itnerface
-        *fsub*: :class:`list` (:class:`str`)
-            List of globs of subdirectories that are adaptive run folders
+            Options interface including management/archive
+        *fsub*: :class:`list`\ [:class:`str`]
+            Globs of subdirectories that are adaptive run folders
         *phantom*: ``True`` | {``False``}
-            Write actions to ``archive.log``; only delete files if ``False``
+            Only delete files if ``False``
     :Versions:
-        * 2017-12-13 ``@ddalle``: First version
-        * 2017-12-15 ``@ddalle``: Added *phantom* option
+        * 2017-12-13 ``@ddalle``: Version 1.0
+        * 2017-12-15 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Run the archive command to ensure the archive is up-to-date
     ArchiveFolder(opts, fsub=[])
-    
     # Run the skeleton commands
     SkeletonTailFiles(opts, fsub=fsub, phantom=phantom)
     SkeletonDeleteFiles(opts, fsub=fsub, phantom=phantom)
@@ -1285,28 +1316,24 @@ def SkeletonFolder(opts, fsub=[], phantom=False):
 # ----------------------------------------------------------------------------
 # Function to copy files to archive for one glob
 def ArchiveFiles(opts, fsub=None, phantom=False):
-    """Delete files that match a list of glob
-    
-    The function also searches in any folder matching the directory glob or list
-    of directory globs *fsub*.
-    
+    r"""Delete files that match a list of glob
+
+    The function also searches in any folder matching the directory glob
+    or list of directory globs *fsub*.
+
     :Call:
-        >>> manage.ArchiveFiles(opts, fname, fsub=None, n=1, archive=False)
+        >>> manage.ArchiveFiles(opts, fsub=None, phantom=False)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
-        *fname*: :class:`str`
-            File name or glob of files to delete
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Folder, list of folders, or glob of folders to also search
-        *n*: :class:`int`
-            Default number of files to archive
         *phantom*: ``True`` | {``False``}
             Only copy files if ``True``
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-        * 2016-12-09 ``@ddalle``: Now depends on ``"ArchiveFiles"`` option
-        * 2017-03-06 ``@ddalle``: Added *phantom* option
+        * 2016-03-01 ``@ddalle``: Version 1.0
+        * 2016-12-09 ``@ddalle``: Version 1.1, use *ArchiveFiles* option
+        * 2017-03-06 ``@ddalle``: Version 1.2, add *phantom* option
     """
     # Archive all tar balls
     opts.add_ArchiveArchiveFiles(["*.tar", "*.gz", "*.zip", "*.bz"])
@@ -1314,7 +1341,7 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
     farch = opts.get_ArchiveArchiveFiles()
     # Get list of matches
     fglob = GetFileMatches(farch, fsub=fsub, n=0)
-    
+
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
     # Archive type
@@ -1324,11 +1351,12 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
     # If no action, do not backup
     if not flfe: return
     # If not full, do not continue
-    if ftyp.lower() == "full": return
-    
+    if ftyp.lower() == "full":
+        return
+
     # Write flag
     write_log('<ArchiveFiles>')
-    
+
     # Get the current folder.
     fdir = os.path.split(os.getcwd())[-1]
     # Go up a folder.
@@ -1339,21 +1367,24 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
     frun = os.path.join(fgrp, fdir)
     # Reenter case folder
     os.chdir(fdir)
-    
+
     # Loop through matches
     for fsrc in fglob:
         # Make sure file still exists
-        if not os.path.isfile(fsrc): continue
+        if not os.path.isfile(fsrc):
+            continue
         # Destination file
         fto = os.path.join(flfe, frun, fsrc)
         # Get mod time on target file if it exists
         tto = getmtime(fto)
         # Check mod time compared to local file
-        if (tto) and (tto >= os.path.getmtime(fsrc)): continue
+        if (tto) and (tto >= os.path.getmtime(fsrc)):
+            continue
         # Status update
         print("  %s --> ARCHIVE/%s" % (fsrc, fsrc))
         # Check archive option
-        if phantom: continue
+        if phantom:
+            continue
         # Check copy type
         if ':' in flfe:
             # Status update
@@ -1361,28 +1392,30 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
             if phantom: continue
             # Remote copy the file
             ierr = sp.call([fscp, fsrc, fto])
-            if ierr: raise SystemError("Remote copy failed.")
+            if ierr:
+                raise SystemError("Remote copy failed.")
         else:
             # Status update
             write_log("  cp %s %s" % (fsrc, fto))
-            if phantom: continue
+            if phantom:
+                continue
             # Local copy
             shutil.copy(fsrc, fto)
 
 
 # Archive an entire case as a single tar ball
 def ArchiveCaseWhole(opts):
-    """Archive an entire run folder
-    
+    r"""Archive an entire run folder
+
     This function must be run from the case folder to be archived
-    
+
     :Call:
         >>> ArchiveCaseWhole(opts)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
@@ -1395,21 +1428,23 @@ def ArchiveCaseWhole(opts):
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
     # If no action, do not backup
-    if not flfe: return
+    if not flfe:
+        return
     # If not full, do not continue
-    if ftyp.lower() != "full": return
-    
+    if ftyp.lower() != "full":
+        return
+
     # Get the current folder.
     fdir = os.path.split(os.getcwd())[-1]
     # Go up a folder.
     os.chdir('..')
     # Get the group folder
     fgrp = os.path.split(os.getcwd())[-1]
-    
+
     # Setup archive
     CreateArchiveFolder(opts)
     CreateArchiveGroupFolder(opts)
-    
+
     # Check if it's remote
     if ':' in flfe:
         # Name of tar file
@@ -1428,7 +1463,8 @@ def ArchiveCaseWhole(opts):
         print("  %s --> %s" % (fdir, ftar))
         # Tar the folder locally.
         ierr = sp.call(cmdu + [ftar, fdir])
-        if ierr: raise SystemError("Archiving failed.")
+        if ierr:
+            raise SystemError("Archiving failed.")
         # Status update
         print("  %s --> %s" % (ftar, frtar))
         # Remote copy
@@ -1445,23 +1481,24 @@ def ArchiveCaseWhole(opts):
         print("  %s --> %s" % (fdir, ftar))
         # Tar the folder.
         ierr = sp.call(cmdu + [ftar, fdir])
-        if ierr: raise SystemError("Archiving failed.")
-        
+        if ierr:
+            raise SystemError("Archiving failed.")
+
     # Return to folder
     os.chdir(fdir)
 
 
 # Restore an archive
 def UnarchiveCaseWhole(opts):
-    """Unarchive a tar ball that stores results for an entire folder
-    
+    r"""Unarchive a tar ball that stores results for an entire folder
+
     :Call:
         >>> UnarchiveCaseWhole(opts)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
-        * 2017-03-13 ``@ddalle``: First version
+        * 2017-03-13 ``@ddalle``: Version 1.0
     """
     # Get the archive root directory
     flfe = opts.get_ArchiveFolder()
@@ -1474,17 +1511,19 @@ def UnarchiveCaseWhole(opts):
     cmdu = opts.get_UnarchiveCmd()
     ext  = opts.get_ArchiveExtension()
     # If no action, do not unarchive
-    if not flfe: return
+    if not flfe:
+        return
     # If not a full archive, do not continue
-    if ftyp.lower() != "full": return
-    
+    if ftyp.lower() != "full":
+        return
+
     # Get the current folder
     fdir = os.path.split(os.getcwd())[-1]
     # Go up a folder.
     os.chdir('..')
     # Get the group folder
     fgrp = os.path.split(os.getcwd())[-1]
-    
+
     # Check if the archive is remote
     if ':' in flfe:
         # Name of tar file
@@ -1506,7 +1545,8 @@ def UnarchiveCaseWhole(opts):
         print("  %s --> %s" % (ftar, fdir))
         # Unarchive
         ierr = sp.call(cmdu + [ftar])
-        if ierr: raise SystemError("Unarchiving failed.")
+        if ierr:
+            raise SystemError("Unarchiving failed.")
     else:
         # Name of archive
         ftar = os.path.join(flfe, fgrp, '%s.%s'%(fdir, ext))
@@ -1518,32 +1558,33 @@ def UnarchiveCaseWhole(opts):
         print("  %s --> %s" % (ftar, fdir))
         # Untar the folder
         ierr = sp.call(cmdu + [ftar])
-        if ierr: raise SystemError("Unarchiving failed.")
-        
+        if ierr:
+            raise SystemError("Unarchiving failed.")
+
     # Return to folder
     os.chdir(fdir)
 
 
 # Function to delete folders according to full descriptor
 def DeleteDirs(fdel, fsub=None, n=1, phantom=False):
-    """Delete folders that match a glob
-    
-    The function also searches in any folder matching the directory glob or
-    list of directory globs *fsub*.
-    
+    r"""Delete folders that match a glob
+
+    The function also searches in any folder matching the directory glob
+    or list of directory globs *fsub*.
+
     :Call:
-        >>> cape.manage.DeleteDirs_SubDir(fdel, n=1, fsub=None, phantom=False)
+        >>> DeleteDirs_SubDir(fdel, n=1, fsub=None, phantom=False)
     :Inputs:
         *fdel*: :class:`str`
             File name or glob of files to delete
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+        *fsub*: :class:`str` | :class:`list`\ [:class:`str`]
             Folder, list of folders, or glob of folders to also search
         *n*: :class:`int`
             Number of folders to keep at end of glob
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-01 ``@ddalle``: Version 1.0
     """
     # Get list of matches
     fglob = GetDirMatches(fdel, fsub=fsub, n=n, qdel=True)
@@ -1561,27 +1602,27 @@ def DeleteDirs(fdel, fsub=None, n=1, phantom=False):
 
 # Archive groups
 def TarGroup(cmd, ftar, fname, n=0, clean=False):
-    """Archive a group of files and delete the files
-    
+    r"""Archive a group of files and delete the files
+
     Only the present folder will searched for file name matches
-    
+
     :Call:
         >>> TarGroup(cmd, ftar, fname, clean=False)
     :Inputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmd*: :class:`list`\ [:class:`str`]
             List of archiving/compression commands
         *ftar*: :class:`str`
             Name of file to create
-        *fname*: :class:`list` (:class:`dict` | :class:`str`)
+        *fname*: :class:`list`\ [:class:`dict` | :class:`str`]
             File name pattern or list thereof to combine into archive
         *clean*: :class:`bool`
             Whether or not to clean up after archiving
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-        * 2016-03-14 ``@ddalle``: Generic version
+        * 2016-03-01 ``@ddalle``: Version 1.0
+        * 2016-03-14 ``@ddalle``: Version 2.0; generalized
     """
     # Check input
-    if type(cmd).__name__ != 'list':
+    if not isinstance(cmd, list):
         raise TypeError("Input command must be a list of one or two strings")
     # Get list of files
     fglob = GetFileMatches(fname, n=n)
@@ -1622,19 +1663,19 @@ def TarGroup(cmd, ftar, fname, n=0, clean=False):
 
 # Tar all links
 def TarLinks(cmd, ext, clean=True):
-    """Tar all links existing in the current folder
-    
+    r"""Tar all links existing in the current folder
+
     :Call:
         >>> TarLinks(cmd, ext, clean=True)
     :Inputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmd*: :class:`list`\ [:class:`str`]
             List of archiving/compression commands
         *ftar*: :class:`str`
             Name of file to create
         *clean*: :class:`bool`
             Whether or not to clean up after archiving
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-01 ``@ddalle``: Version 1.0
     """
     # Get all files
     flist = os.listdir('.')
@@ -1667,12 +1708,12 @@ def TarLinks(cmd, ext, clean=True):
 
 # Tar a folder
 def TarDir(cmd, ftar, fdir, clean=True):
-    """Archive a folder and delete the folder
-    
+    r"""Archive a folder and delete the folder
+
     :Call:
         >>> TarDir(cmd, ftar, fdir)
     :Inputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmd*: :class:`list`\ [:class:`str`]
             List of archiving/compression commands
         *ftar*: :class:`str`
             Name of file to create
@@ -1681,7 +1722,7 @@ def TarDir(cmd, ftar, fdir, clean=True):
         *clean*: :class:`bool`
             Whether or not to delete folder afterwards
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-01 ``@ddalle``: Version 1.0
     """
     # Check if the folder exists
     if not os.path.isdir(fdir): return
@@ -1721,19 +1762,19 @@ def TarDir(cmd, ftar, fdir, clean=True):
 
 # Untar a folder
 def Untar(cmd, ftar):
-    """Unarchive a tar ball and then delete it
-    
+    r"""Unarchive a tar ball and then delete it
+
     :Call:
         >>> cape.manage.Untar(cmd, ftar)
     :Inputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmd*: :class:`list`\ [:class:`str`]
             List of archiving/compression commands
         *ftar*: :class:`str`
             Name of file to create
         *fname*: :class:`str`
             File name pattern or list thereof to combine into archive
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-01 ``@ddalle``: Version 1.0
     """
     # Create command
     cmdc = cmd + [ftar]
@@ -1747,8 +1788,6 @@ def Untar(cmd, ftar):
     if os.path.isfile(ftar):
         write_log('  rm %s' % ftar)
         os.remove(ftar)
-
-
 # ----------------------------
 
 
@@ -1757,24 +1796,24 @@ def Untar(cmd, ftar):
 # ----------------------------
 # Function to pre-delete files
 def PreDeleteFiles(opts, fsub=None, aa=None, phantom=False):
-    """Delete files that match a list of file name patterns
-    
+    r"""Delete files that match a list of file name patterns
+
     :Call:
         >>> PreDeleteFiles(opts, fsub=None, aa=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchivePreDeleteFiles()
@@ -1788,29 +1827,30 @@ def PreDeleteFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function to pre-delete dirs
 def PreDeleteDirs(opts, fsub=None, aa=None, phantom=False):
-    """Delete folders that match a list of file name patterns before archiving
-    
+    r"""Delete folders that match a list of patterns before archiving
+
     :Call:
         >>> PreDeleteDirs(opts, fsub=None, aa=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchivePreDeleteDirs()
     # Exit if necessary
-    if fdel is None: return
+    if fdel is None:
+        return
     # Write flag
     write_log('<PreDeleteDirs>')
     # Delete
@@ -1819,29 +1859,30 @@ def PreDeleteDirs(opts, fsub=None, aa=None, phantom=False):
 
 # Function to pre-update files
 def PreUpdateFiles(opts, fsub=None, aa=None, phantom=False):
-    """Delete files that match a list, keeping the most recent file by default
-    
+    r"""Delete files that match list, keeping the most recent by default
+
     :Call:
         >>> PreUpdateFiles(opts, fsub=None, aa=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchivePreUpdateFiles()
     # Exit if necessary
-    if fdel is None: return
+    if fdel is None:
+        return
     # Write flag
     write_log('<PreUpdateFiles>')
     # Delete
@@ -1850,24 +1891,24 @@ def PreUpdateFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function to pre-tar files
 def PreTarGroups(opts, fsub=None, aa=None):
-    """Tar file/folder groups
-    
-    The files are deleted after the tar ball is created 
-    
+    r"""Tar file/folder groups
+
+    The files are deleted after the tar ball is created
+
     :Call:
         >>> PreTarGroups(opts, fsub=None, aa=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fgrps = opts.get_ArchivePreTarGroups()
@@ -1890,24 +1931,24 @@ def PreTarGroups(opts, fsub=None, aa=None):
 
 # Function to pre-tar dirs
 def PreTarDirs(opts, fsub=None, aa=None):
-    """Tar folders before archiving
-    
+    r"""Tar folders before archiving
+
     The folders are deleted after the tar ball is created
-    
+
     :Call:
         >>> PreTarDirs(opts, fsub=None, aa=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fopt = opts.get_ArchivePreTarDirs()
@@ -1926,8 +1967,6 @@ def PreTarDirs(opts, fsub=None, aa=None):
         ftar = '%s.%s' % (fdir, ext)
         # Command t
         TarDir(cmdu, ftar, fdir, clean=True)
-
-
 # ----------------------------
 
 
@@ -1936,24 +1975,24 @@ def PreTarDirs(opts, fsub=None, aa=None):
 # -----------------------------
 # Function to post-delete files
 def PostDeleteFiles(opts, fsub=None, aa=None, phantom=False):
-    """Delete files that match a list of file name patterns
-    
+    r"""Delete appropriate files after completing archive
+
     :Call:
         >>> PostDeleteFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchivePostDeleteFiles()
@@ -1967,24 +2006,24 @@ def PostDeleteFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function to post-delete dirs
 def PostDeleteDirs(opts, fsub=None, aa=None, phantom=False):
-    """Delete folders that match a list of file name patterns before archiving
-    
+    r"""Delete appropriate folders after completing archive
+
     :Call:
         >>> PostDeleteDirs(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchivePostDeleteDirs()
@@ -1998,24 +2037,24 @@ def PostDeleteDirs(opts, fsub=None, aa=None, phantom=False):
 
 # Function to post-update files
 def PostUpdateFiles(opts, fsub=None, aa=None, phantom=False):
-    """Delete files that match a list, keeping the most recent file by default
-    
+    r"""Delete files after archiving, by default keeping most recent
+
     :Call:
         >>> PreUpdateFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchivePostUpdateFiles()
@@ -2029,31 +2068,32 @@ def PostUpdateFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function to post-tar files
 def PostTarGroups(opts, fsub=None, aa=None, frun=None):
-    """Tar file/folder groups
-    
-    The files are not deleted after the tar ball is created 
-    
+    r"""Tar file/folder groups
+
+    The files are not deleted after the tar ball is created
+
     :Call:
         >>> PostTarGroups(opts, fsub=None, aa=None, frun=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *frun*: :class:`str`
             Case folder name
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fgrps = opts.get_ArchivePostTarGroups()
     # Exit if necessary
-    if fgrps is None: return
+    if fgrps is None:
+        return
     # Write flag
     write_log('<PostTarGroups>')
     # Get format, command, and extension
@@ -2078,26 +2118,26 @@ def PostTarGroups(opts, fsub=None, aa=None, frun=None):
 
 # Function to post-tar dirs
 def PostTarDirs(opts, fsub=None, aa=None, frun=None):
-    """Tar folders after archiving
-    
+    r"""Tar folders after archiving
+
     The folders are not deleted after the tar ball is created
-    
+
     :Call:
         >>> PostTarDirs(opts, fsub=None, aa=None, frun=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *frun*: :class:`str`
             Name of case folder
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get remote copy destination
     flfe = opts.get_ArchiveFolder()
@@ -2106,7 +2146,8 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
     # Get options
     fopt = opts.get_ArchivePostTarDirs()
     # Exit if necessary
-    if fopt is None: return
+    if fopt is None:
+        return
     # Write flag
     write_log('<PostTarGroups>')
     # Get format, command, and extension
@@ -2125,8 +2166,6 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
             ftar = '%s.%s' % (fdir, ext)
         # Perform grouping/compression
         TarDir(cmdu, ftar, fdir, clean=False)
-
-
 # ----------------------------
 
 
@@ -2135,29 +2174,30 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
 # -------------------------
 # Function for in-progress file deletion
 def ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False):
-    """Delete files that match a list of file name patterns
-    
+    r"""Delete appropriate files from active (in progress) case folder
+
     :Call:
         >>> ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchiveProgressDeleteFiles()
     # Exit if necessary
-    if fdel is None: return
+    if fdel is None:
+        return
     # Write flag
     write_log('<ProgressDeleteFiles>')
     # Delete
@@ -2166,29 +2206,30 @@ def ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function for in-progress file archiving
 def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
-    """Archive files that match a list of file name patterns in progress
-    
+    """Archive files of active (in progress) case folder
+
     :Call:
-        >>> ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False)
+        >>> ProgressArchiveFiles(opts, fsub=None, **kw)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fglob = opts.get_ArchiveProgressArchiveFiles()
     # Exit if necessary
-    if fglob is None: return
+    if fglob is None:
+        return
     # Write flag
     write_log('<ProgressArchiveFiles>')
     # Copy
@@ -2197,29 +2238,30 @@ def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function for in-progress folder deletion
 def ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False):
-    """Delete folders that match a list of file name patterns before archiving
-    
+    """Delete appropriate folders of active (in progress) case
+
     :Call:
         >>> ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchiveProgressDeleteDirs()
     # Exit if necessary
-    if fdel is None: return
+    if fdel is None:
+        return
     # Write flag
     write_log('<ProgressDeleteDirs>')
     # Delete
@@ -2228,29 +2270,30 @@ def ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False):
 
 # Function for in-progress file updates
 def ProgressUpdateFiles(opts, fsub=None, aa=None, phantom=False):
-    """Delete files that match a list, keeping the most recent file by default
-    
+    r"""Delete files in active folder, by default keeping most recent
+
     :Call:
         >>> ProgressUpdateFiles(opts, fsub=None, aa=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fdel = opts.get_ArchiveProgressUpdateFiles()
     # Exit if necessary
-    if fdel is None: return
+    if fdel is None:
+        return
     # Write flag
     write_log('<ProgressUpdateFiles>')
     # Delete
@@ -2259,29 +2302,30 @@ def ProgressUpdateFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function to tar groups in progress
 def ProgressTarGroups(opts, fsub=None, aa=None):
-    """Tar file/folder groups after each run
-    
-    The files are deleted after the tar ball is created 
-    
+    r"""Tar file/folder groups after each run
+
+    The files are deleted after the tar ball is created
+
     :Call:
         >>> ProgressTarGroups(opts, fsub=None, aa=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fgrps = opts.get_ArchiveProgressTarGroups()
     # Exit if necessary
-    if fgrps is None: return
+    if fgrps is None:
+        return
     # Write flag
     write_log('<ProgressTarGroups>')
     # Get format, command, and extension
@@ -2304,24 +2348,24 @@ def ProgressTarGroups(opts, fsub=None, aa=None):
 
 # Function for in-progress folder compression
 def ProgressTarDirs(opts, fsub=None, aa=None):
-    """Tar folders after each run
-    
+    r"""Tar folders of active (in progress) case
+
     The folders are deleted after the tar ball is created
-    
+
     :Call:
         >>> ProgressTarDirs(opts, fsub=None, aa=None)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options
     fopt = opts.get_ArchiveProgressTarDirs()
@@ -2348,24 +2392,24 @@ def ProgressTarDirs(opts, fsub=None, aa=None):
 # -------------------------
 # Function for deleting skeleton files
 def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
-    """Delete all files except those matching file name patterns
-    
+    r"""Delete all files except those matching file name patterns
+
     :Call:
         >>> SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2017-12-14 ``@ddalle``: First version
+        * 2017-12-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options for files to keep
     fskel = opts.get_ArchiveSkeletonFiles()
@@ -2374,7 +2418,8 @@ def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     # Get options for files to tail
     ftail = opts.get_ArchiveSkeletonTailFiles()
     # Exit if necessary
-    if fskel is None: return
+    if fskel is None:
+        return
     # Append tail files
     if ftail is not None:
         # Loop through tail files
@@ -2397,29 +2442,30 @@ def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function for tailing files during skeleton action
 def SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False):
-    """Replace some files with their last few lines, possibly in a new file
-    
+    r"""Replace files with their last few lines, possibly in a new file
+
     :Call:
         >>> SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
-        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+        *fsub*: :class:`list`\ [:class:`str`] | :class:`str`
             List of sub-directory globs in which to search
-        *aa*: :class:`function`
+        *aa*: **callable**
             Conversion function applied to *opts*
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2017-12-14 ``@ddalle``: First version
+        * 2017-12-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    if type(aa).__name__ == "function":
+    if callable(aa):
         opts = aa(opts)
     # Get options for files to tail
     ftail = opts.get_ArchiveSkeletonTailFiles()
     # Exit if necessary
-    if ftail is None: return
+    if ftail is None:
+        return
     # Write flag
     write_log('<SkeletonTailFiles>')
     # Delete the files
@@ -2432,21 +2478,21 @@ def SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False):
 # -------------
 # Function to ensure the destination folder exists
 def CreateArchiveFolder(opts):
-    """Create the folder that will contain the archive, if necessary
-    
+    r"""Create the folder that will contain the archive, if necessary
+
     :Call:
         >>> CreateArchiveFolder(opts)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
     # If no action, do not backup
-    if not flfe: return
-    
+    if not flfe:
+        return
     # Ensure folder exists.
     if ':' in flfe:
         # Split off host name
@@ -2464,24 +2510,25 @@ def CreateArchiveFolder(opts):
 
 # Create archive group folders
 def CreateArchiveCaseFolder(opts):
-    """Create the group and run folders in the archive, as appropriate
-    
-    This function must be run from within the folder that is to be archived
-    
+    r"""Create the group and run folders in the archive, as appropriate
+
+    This function must be run within the folder that is to be archived.
+
     :Call:
         >>> CreateArchiveCaseFolder(opts)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
     # Archive type
     ftyp = opts.get_ArchiveType()
     # If no action, do not backup
-    if not flfe: return
+    if not flfe:
+        return
     # Get the current folder.
     fdir = os.path.split(os.getcwd())[-1]
     # Go up a folder.
@@ -2523,24 +2570,25 @@ def CreateArchiveCaseFolder(opts):
 
 # Create archive group folders
 def CreateArchiveGroupFolder(opts):
-    """Create the group folder in the archive, as appropriate
-    
-    This function must be run from within the folder that is to be archived
-    
+    r"""Create the group folder in the archive, as appropriate
+
+    This function must be run from within the folder getting archived.
+
     :Call:
         >>> CreateArchiveGroupFolder(opts)
     :Inputs:
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
     # Archive type
     ftyp = opts.get_ArchiveType()
     # If no action, do not backup
-    if not flfe: return
+    if not flfe:
+        return
     # Get the current folder.
     fdir = os.path.split(os.getcwd())[-1]
     # Go up a folder.
@@ -2549,7 +2597,6 @@ def CreateArchiveGroupFolder(opts):
     fgrp = os.path.split(os.getcwd())[-1]
     # Return to current folder
     os.chdir(fdir)
-    
     # Ensure group folder exists.
     if ':' in flfe:
         # Split off host name

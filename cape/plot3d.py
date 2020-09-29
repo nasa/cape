@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-"""
+# -*- coding: utf-8 -*-
+r"""
 :class:`cape.plot3d`: Python interface to Plot3D files
 ========================================================
 
-This module provides a generic Plot3D file interface for reading Plot3D grid
-files using the class :class:`cape.plot3d.X`.  This class automatically detects
-endianness of the grid and can handle IBLANKS in addition to single-grid or
-multiple-grid formats.
+This module provides a generic Plot3D file interface for reading Plot3D
+grid files using the class :class:`cape.plot3d.X`.  This class
+automatically detects endianness of the grid and can handle IBLANKS in
+addition to single-grid or multiple-grid formats.
 
-The :class:`cape.plot3d.Q` interface to solution files also exists, but it is
-not reliable since Plot3D solution files are dependent on the solver used to
-create the solution file.
+The :class:`cape.plot3d.Q` interface to solution files also exists, but
+it is not reliable since Plot3D solution files are dependent on the
+solver used to create the solution file.
 
 """
 
@@ -26,6 +27,7 @@ from . import util
 from . import tri
 from .filecntl import namelist2
 
+
 # Default tolerances for mapping triangulations
 atoldef = 3e-2
 rtoldef = 1e-4
@@ -40,6 +42,7 @@ anftoldef = 1e-3
 rnftoldef = 1e-6
 cnftoldef = 1e-3
 
+
 # Plot3D Multiple-Grid file
 class X(object):
   # ========
@@ -48,7 +51,7 @@ class X(object):
   # <
     # Initialization method
     def __init__(self, fname=None):
-        """Initialization method
+        r"""Initialization method
         
         :Call:
             >>> x = X(fname=None)
@@ -56,7 +59,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D grid file to read
         :Versions:
-            * 2016-10-11 ``@ddalle``: First version
+            * 2016-10-11 ``@ddalle``: Version 1.0
         """
         # Check for a file to read
         if fname is not None:
@@ -64,19 +67,19 @@ class X(object):
     
     # Display method
     def __repr__(self):
-        """Representation method
+        r"""Representation method
         
         :Versions:
-            * 2018-01-11 ``@ddalle``: First version
+            * 2018-01-11 ``@ddalle``: Version 1.0
         """
         return "<plot3d.X NG=%s>" % self.NG
     
     # Display method
     def __str__(self):
-        """Representation method
+        r"""Representation method
         
         :Versions:
-            * 2018-01-11 ``@ddalle``: First version
+            * 2018-01-11 ``@ddalle``: Version 1.0
         """
         return "<plot3d.X NG=%s>" % self.NG
   # >
@@ -87,7 +90,7 @@ class X(object):
   # =======
   # <
     def Read(self, fname, **kw):
-        """Read a Plot3D grid file of any format
+        r"""Read a Plot3D grid file of any format
         
         :Call:
             >>> x.Read(fname)
@@ -99,15 +102,15 @@ class X(object):
                 Array of coordinates of all points in the grid
             *x.NG*: :class:`int`
                 Number of grids in the file
-            *x.NJ*: :class:`np.ndarray` (:class:`int`, shape=(*x.NG*,))
+            *x.NJ*: :class:`np.ndarray`\ [:class:`int`] *shape*: *x.nG*,
                 *J*-dimension of each grid
-            *x.NK*: :class:`np.ndarray` (:class:`int`, shape=(*x.NG*,))
+            *x.NK*: :class:`np.ndarray`\ [:class:`int`] *shape*: *x.nG*,
                 *K*-dimension of each grid
-            *x.NL*: :class:`np.ndarray` (:class:`int`, shape=(*x.NG*,))
+            *x.NL*: :class:`np.ndarray`\ [:class:`int`] *shape*: *x.nG*,
                 *L*-dimension of each grid
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
-            * 2017-02-07 ``@ddalle``: Updated documentation
+            * 2016-10-15 ``@ddalle``: Version 1.0
+            * 2017-02-07 ``@ddalle``: Version 1.1, updated doc
         """
         # Check for keywords
         if kw.get('lb8'):
@@ -179,7 +182,7 @@ class X(object):
         
     # Determine file type blindly
     def GetFileType(self, fname):
-        """Get full file type of a Plot3D grid file
+        r"""Get full file type of a Plot3D grid file
         
         :Call:
             >>> ext = x.GetBasicFileType(fname)
@@ -189,7 +192,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Outputs:
-            *ext*: {``ascii``} | ``lb8`` | ``lb4`` | ``b8`` | ``b4`` | ``lr4``
+            *ext*: {ascii} | lb8 | lb4 | b8 | b4 | lr4
                 File type in the form of a file extension code
         :Attributes:
             *x.byteorder*: ``"little"`` | ``"big"`` | {``None``}
@@ -199,7 +202,7 @@ class X(object):
             *x.p3dtype*: ``"multiple"`` | {``"single"``}
                 Plot3D zone type
         :Versions:
-            * 2016-10-14 ``@ddalle``: First version
+            * 2016-10-14 ``@ddalle``: Version 1.0
         """
         # Get basic file type
         self.GetBasicFileType(fname)
@@ -312,7 +315,7 @@ class X(object):
     
     # Determine basic aspects of file type (do not determine single/double)
     def GetBasicFileType(self, fname):
-        """Determine if a file is ASCII, little-endian, or big-endian
+        r"""Determine if a file is ASCII, little-endian, or big-endian
         
         Also determine if the file is single-zone or multiple-zone.  The
         function does not check for single-precision or double-precision
@@ -332,7 +335,7 @@ class X(object):
             *x.p3dtype*: {``"multiple"``} | ``"single"``
                 Plot3D zone type
         :Versions:
-            * 2016-10-14 ``@ddalle``: First version
+            * 2016-10-14 ``@ddalle``: Version 1.0
         """
         # Open file
         f = open(fname, 'rb');
@@ -424,7 +427,7 @@ class X(object):
     
     # Read big-endian double-precision
     def Read_b8(self, fname):
-        """Read a Plot3D grid as a big-endian double-precision file (stream)
+        r"""Read Plot3D grid big-endian double-precision file (stream)
         
         :Call:
             >>> x.Read_b8(fname)
@@ -434,7 +437,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -461,7 +464,7 @@ class X(object):
     
     # Read big-endian single-precision
     def Read_b4(self, fname):
-        """Read a Plot3D grid as a big-endian single-precision file
+        r"""Read a Plot3D grid as a big-endian single-precision file
         
         :Call:
             >>> x.Read_b4(fname)
@@ -471,7 +474,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -498,7 +501,7 @@ class X(object):
     
     # Read little-endian double-precision
     def Read_lb8(self, fname):
-        """Read a Plot3D grid as a little-endian double-precision file
+        r"""Read a Plot3D grid as a little-endian double-precision file
         
         :Call:
             >>> x.Read_lb8(fname)
@@ -508,7 +511,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -535,7 +538,7 @@ class X(object):
     
     # Read little-endian single-precision
     def Read_lb4(self, fname):
-        """Read a Plot3D grid as a little-endian single-precision file
+        r"""Read a Plot3D grid as a little-endian single-precision file
         
         :Call:
             >>> x.Read_lb4(fname)
@@ -545,7 +548,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -572,7 +575,7 @@ class X(object):
     
     # Read big-endian double-precision
     def Read_r8(self, fname):
-        """Read a Plot3D grid as a big-endian double-precision file
+        r"""Read a Plot3D grid as a big-endian double-precision file
         
         :Call:
             >>> x.Read_r8(fname)
@@ -582,7 +585,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -636,7 +639,7 @@ class X(object):
     
     # Read big-endian single-precision
     def Read_r4(self, fname):
-        """Read a Plot3D grid as a big-endian single-precision file
+        r"""Read a Plot3D grid as a big-endian single-precision file
         
         :Call:
             >>> x.Read_r4(fname)
@@ -646,7 +649,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -700,7 +703,7 @@ class X(object):
     
     # Read little-endian double-precision
     def Read_lr8(self, fname):
-        """Read a Plot3D grid as a little-endian double-precision file
+        r"""Read a Plot3D grid as a little-endian double-precision file
         
         :Call:
             >>> x.Read_lr8(fname)
@@ -710,7 +713,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -764,7 +767,7 @@ class X(object):
     
     # Read little-endian single-precision
     def Read_lr4(self, fname):
-        """Read a Plot3D grid as a little-endian single-precision file
+        r"""Read a Plot3D grid as a little-endian single-precision file
         
         :Call:
             >>> x.Read_lr4(fname)
@@ -774,7 +777,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -828,7 +831,7 @@ class X(object):
     
     # Read as an ascii file
     def Read_ASCII(self, fname):
-        """Read a Plot3D grid as an ASCII file
+        r"""Read a Plot3D grid as an ASCII file
         
         :Call:
             >>> x.Read_ASCII(fname)
@@ -838,7 +841,7 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'r')
@@ -889,7 +892,7 @@ class X(object):
   # <
     # Write as an ASCII file
     def Write_ASCII(self, fname, single=False):
-        """Write a multiple-zone ASCII Plot3D file
+        r"""Write a multiple-zone ASCII Plot3D file
         
         :Call:
             >>> x.Write_ASCII(fname, single=False)
@@ -901,7 +904,7 @@ class X(object):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'w')
@@ -934,7 +937,7 @@ class X(object):
             
     # Write as a little-endian double-precision file
     def Write_lb8(self, fname, single=False):
-        """Write a multiple-zone little-endian, double-precision Plot3D file
+        r"""Write multi-zone little-endian, double-precision Plot3D file
         
         :Call:
             >>> x.Write_lb8(fname)
@@ -946,7 +949,7 @@ class X(object):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'wb')
@@ -971,7 +974,7 @@ class X(object):
             
     # Write as a little-endian single-precision file
     def Write_lb4(self, fname, single=False):
-        """Write a multiple-zone little-endian, single-precision Plot3D file
+        r"""Write multi-zone little-endian, single-precision Plot3D file
         
         :Call:
             >>> x.Write_lb4(fname)
@@ -983,7 +986,7 @@ class X(object):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'wb')
@@ -1008,7 +1011,7 @@ class X(object):
             
     # Write as a big-endian double-precision file
     def Write_b8(self, fname, single=False):
-        """Write a multiple-zone little-endian, double-precision Plot3D file
+        r"""Write multi-zone little-endian, double-precision Plot3D file
         
         :Call:
             >>> x.Write_b8(fname)
@@ -1020,7 +1023,7 @@ class X(object):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'wb')
@@ -1045,7 +1048,7 @@ class X(object):
             
     # Write as a big-endian single-precision file
     def Write_b4(self, fname, single=False):
-        """Write a multiple-zone little-endian, single-precision Plot3D file
+        r"""Write multi-zone little-endian, single-precision Plot3D file
         
         :Call:
             >>> x.Write_b4(fname)
@@ -1057,7 +1060,7 @@ class X(object):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'wb')
@@ -1210,7 +1213,7 @@ class X(object):
   # <
     # Map surface grid points to TRI file components
     def MapTriCompID(self, tri, n=1, **kw):
-        """Create a ``.ovfi`` file using the family names from a triangulation
+        r"""Create a ``.ovfi`` file using family names from a tri surf
         
         :Call:
             >>> C = x.MapTriOvfi(tri, n=1, **kw)
@@ -1222,10 +1225,13 @@ class X(object):
             *n*: {``1``} | positive :class:`int`
                 Grid number to process (1-based index)
         :Outputs:
-            *C*: :class:`np.ndarray` (:class:`int`, shape=(nj,nk,2))
-                Array of component IDs closest to each point in surf grid
+            *C*: :class:`np.ndarray`\ [:class:`int`]
+                * *shape*: (nj, nk, 2)
+
+                Array of component IDs closest to each point in 
+
         :Versions:
-            * 2017-02-08 ``@ddalle``: First version
+            * 2017-02-08 ``@ddalle``: Version 1.0
         """
         # Check grid number
         if n > self.NG:
@@ -1344,7 +1350,7 @@ class X(object):
         
     # Map surface grid points to TRI file components
     def MapTriBCs(self, tri, n=1, **kw):
-        """Find the BC blocks by projecting a mesh to a triangulation
+        r"""Find the BC blocks by projecting a mesh to a triangulation
         
         :Call:
             >>> x.MapTriBCs(tri, n=1, **kw)
@@ -1356,7 +1362,7 @@ class X(object):
             *n*: {``1``} | positive :class:`int`
                 Grid number to process (1-based index)
         :Versions:
-            * 2017-02-08 ``@ddalle``: First version
+            * 2017-02-08 ``@ddalle``: Version 1.0
         """
         # Get compIDs
         C = self.MapTriCompID(tri, n=n, **kw)
@@ -1365,7 +1371,7 @@ class X(object):
         
     # Function to edit an OVFI file
     def MapOvfi(self, fi, fo, tri, **kw):
-        """Edit a ``.ovfi`` file using a triangulation for family names
+        r"""Edit a ``.ovfi`` file using a triangulation for family names
         
         :Call:
             >>> x.MapOvfi(fi, fo, tri, **kw)
@@ -1381,19 +1387,19 @@ class X(object):
         :Keyword Arguments:
             *v*: ``True`` | {``False``}
                 Verbose
-            *atol*, *AbsTol*: {``_atol_``} | positive :class:`float`
+            *atol*, *AbsTol*: {``_atol_``} | :class:`float` > 0
                 Absolute tolerance for nearest-tri search
-            *rtol*, *RelTol*: {``_rtol_``} | nonnegative :class:`float`
+            *rtol*, *RelTol*: {``_rtol_``} | :class:`float` >= 0
                 Tolerance for nearest-tri relative to scale of triangulation
-            *ctol*, *CompTol*: {``_ctol_``} | nonnegative :class:`float`
+            *ctol*, *CompTol*: {``_ctol_``} | :class:`float` >= 0
                 Tolerance for nearest-tri relative to scale of component
-            *antol*, *AbsProjTol*: {``_antol_``} | positive :class:`float`
+            *antol*, *AbsProjTol*: {``_antol_``} | :class:`float` > 0
                 Absolute projection tolerance for near nearest-tri search
-            *rntol*, *RelProjTol*: {``_rntol_``} | nonnegative :class:`float`
+            *rntol*, *RelProjTol*: {``_rntol_``} | :class:`float` >= 0
                 Projection tolerance relative to scale of triangulation
-            *cntol*, *CompProjTol*: {``_cntol_``} | nonnegative :class:`float`
+            *cntol*, *CompProjTol*: {``_cntol_``} | :class:`float` >= 0
                 Projection tolerance relative to scale of component
-            *aftol*, *AbsFamilyTol*: {``_aftol_``} | positive :class:`float`
+            *aftol*, *AbsFamilyTol*: {``_aftol_``} | :class:`float` > 0
                 Absolute tolerance for secondary family search
             *rftol*, *RelFamilyTol*: {``_rftol_``} | :class:`float`
                 Secondary family search tol relative to tri scale
@@ -1408,7 +1414,7 @@ class X(object):
             *cnftol*, *CompProjFamilyTol*: {``_cnftol_``} | :class:`float`
                 Secondary family search projection tol relative to comp scale
         :Versions:
-            * 2017-02-09 ``@ddalle``: First version
+            * 2017-02-09 ``@ddalle``: Version 1.0
         """
         # Invert families (must be a UH3D for now)
         try:
@@ -1520,7 +1526,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D grid file to read
         :Versions:
-            * 2016-10-11 ``@ddalle``: First version
+            * 2016-10-11 ``@ddalle``: Version 1.0
         """
         # Check for a file to read
         if fname is not None:
@@ -1552,7 +1558,7 @@ class Q(X):
             *x.p3dtype*: ``"multiple"`` | {``"single"``}
                 Plot3D zone type
         :Versions:
-            * 2016-10-14 ``@ddalle``: First version
+            * 2016-10-14 ``@ddalle``: Version 1.0
         """
         # Get basic file type
         self.GetBasicFileType(fname)
@@ -1658,7 +1664,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -1697,7 +1703,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -1736,7 +1742,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -1775,7 +1781,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -1814,7 +1820,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -1858,7 +1864,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -1902,7 +1908,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -1946,7 +1952,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'rb')
@@ -1990,7 +1996,7 @@ class Q(X):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
-            * 2016-10-15 ``@ddalle``: First version
+            * 2016-10-15 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'r')
@@ -2053,7 +2059,7 @@ class Q(X):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'w')
@@ -2098,7 +2104,7 @@ class Q(X):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'wb')
@@ -2135,7 +2141,7 @@ class Q(X):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'wb')
@@ -2172,7 +2178,7 @@ class Q(X):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'wb')
@@ -2209,7 +2215,7 @@ class Q(X):
             *single*: ``True`` | {``False``}
                 If ``True``, write a single-zone file
         :Versions:
-            * 2016-10-16 ``@ddalle``: First version
+            * 2016-10-16 ``@ddalle``: Version 1.0
         """
         # Open the file
         f = open(fname, 'wb')
@@ -2249,7 +2255,7 @@ def MapTriMatchBCs(C):
         *n*: {``1``} | positive :class:`int`
             Grid number to process (1-based index)
     :Versions:
-        * 2017-02-08 ``@ddalle``: First version
+        * 2017-02-08 ``@ddalle``: Version 1.0
     """
     # Get list of component IDs included
     comps = np.unique(C[C>0])
