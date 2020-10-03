@@ -837,6 +837,8 @@ class BaseData(dict):
         """
         # Initialize definition
         defn = self._defncls()
+        # Set the warningmode
+        defn._warnmode = kw.get("_warnmode", self.opts._warnmode)
         # Check values
         if isinstance(V, list):
             # Assume string
@@ -1229,7 +1231,7 @@ class BaseData(dict):
         else:
             # Nonstandard value; don't convert
             self[col] = v
-        # Basic defintion
+        # Basic definition
         self.make_defn(col, v)
 
    # --- Remove Data ---
