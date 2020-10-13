@@ -837,8 +837,11 @@ class BaseData(dict):
         """
         # Initialize definition
         defn = self._defncls()
+        # Determine a default warning mode
+        opts = self.__dict__.get("opts", {})
+        _warnmode = getattr(opts, "_warnmode", 1)
         # Set the warningmode
-        defn._warnmode = kw.get("_warnmode", self.opts._warnmode)
+        defn._warnmode = kw.get("_warnmode", _warnmode)
         # Check values
         if isinstance(V, list):
             # Assume string
