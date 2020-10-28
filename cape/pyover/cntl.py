@@ -635,6 +635,12 @@ class Cntl(cape.cntl.Cntl):
         # Check for the FAIL file.
         q = os.path.isfile(os.path.join(frun, 'FAIL'))
         q = q or os.path.isfile(os.path.join(frun, 'q.bomb'))
+        # Check for 'nan_locations*.dat'
+        if not q:
+            # Get list of files
+            fglob = case.glob.glob(os.path.join(frun, "core.[0-9]*"))
+            # Check for any
+            q = (len(fglob) > 0)
         # Go home.
         os.chdir(fpwd)
         # Output

@@ -1516,15 +1516,23 @@ class X(object):
 
 # Plot3D Solution file
 class Q(X):
-    
+    r"""Interface to OVERFLOW-like ``q`` solution files
+
+    :Call:
+        >>> q = Q(fname=None)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            Name of OVERFLOW solution file to read
+    :Outputs:
+        *q*: :class:`cape.plot3d.Q`
+            Solution file interface
+    :Versions:
+        * 2016-10-11 ``@ddalle``: Version 1.0
+    """
+    # Initialization method
     def __init__(self, fname=None):
-        """Initialization method
+        r"""Initialization method
         
-        :Call:
-            >>> x = X(fname=None)
-        :Inputs:
-            *fname*: :class:`str`
-                Name of Plot3D grid file to read
         :Versions:
             * 2016-10-11 ``@ddalle``: Version 1.0
         """
@@ -1538,24 +1546,31 @@ class Q(X):
   # <
     # Determine file type blindly
     def GetFileType(self, fname):
-        """Get full file type of a Plot3D grid file
+        r"""Get full file type of a Plot3D grid file
         
         :Call:
-            >>> ext = x.GetBasicFileType(fname)
+            >>> ext = q.GetFileType(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Outputs:
-            *ext*: {``ascii``} | ``lb8`` | ``lb4`` | ``b8`` | ``b4`` | ``lr4``
+            *ext*: {``"ascii"``} | ``"l?[br][48]"``
                 File type in the form of a file extension code
+
+                * ``"lr4"``: little-endian single-precision records
+                * ``"lr8"``: little-endian double-precision records
+                * ``"r8"``: big-endian double-precision records
+                * ``"lb8"``: little-endian double-precision stream
+                * ``"b8"``: big-endian double-precision records
+
         :Attributes:
-            *x.byteorder*: ``"little"`` | ``"big"`` | {``None``}
+            *q.byteorder*: ``"little"`` | ``"big"`` | {``None``}
                 Endianness of binary file
-            *x.filetype*: ``"record"`` | ``"stream"`` | {``"ascii"``}
+            *q.filetype*: ``"record"`` | ``"stream"`` | {``"ascii"``}
                 Basic file type
-            *x.p3dtype*: ``"multiple"`` | {``"single"``}
+            *q.p3dtype*: ``"multiple"`` | {``"single"``}
                 Plot3D zone type
         :Versions:
             * 2016-10-14 ``@ddalle``: Version 1.0
@@ -1654,13 +1669,13 @@ class Q(X):
     
     # Read big-endian double-precision
     def Read_b8(self, fname):
-        """Read a Plot3D grid as a big-endian double-precision file (stream)
+        r"""Read a big-endian double-precision (stream) solution file
         
         :Call:
-            >>> x.Read_b8(fname)
+            >>> q.Read_b8(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -1693,13 +1708,13 @@ class Q(X):
     
     # Read big-endian single-precision
     def Read_b4(self, fname):
-        """Read a Plot3D grid as a big-endian single-precision file
+        r"""Read a big-endian single-precision (stream) solution file
         
         :Call:
-            >>> x.Read_b4(fname)
+            >>> q.Read_b4(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -1732,13 +1747,13 @@ class Q(X):
     
     # Read little-endian double-precision
     def Read_lb8(self, fname):
-        """Read a Plot3D grid as a little-endian double-precision file
+        r"""Read a little-endian double-precision (stream) solution file
         
         :Call:
-            >>> x.Read_lb8(fname)
+            >>> q.Read_lb8(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -1771,13 +1786,13 @@ class Q(X):
     
     # Read little-endian single-precision
     def Read_lb4(self, fname):
-        """Read a Plot3D grid as a little-endian single-precision file
+        r"""Read a little-endian single-precision (stream) solution file
         
         :Call:
-            >>> x.Read_lb4(fname)
+            >>> q.Read_lb4(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -1810,13 +1825,13 @@ class Q(X):
     
     # Read big-endian double-precision
     def Read_r8(self, fname):
-        """Read a Plot3D grid as a big-endian double-precision file
+        r"""Read a big-endian double-precision solution file
         
         :Call:
-            >>> x.Read_r8(fname)
+            >>> q.Read_r8(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -1854,13 +1869,13 @@ class Q(X):
     
     # Read big-endian single-precision
     def Read_r4(self, fname):
-        """Read a Plot3D grid as a big-endian single-precision file
+        r"""Read a big-endian single-precision solution file
         
         :Call:
-            >>> x.Read_r4(fname)
+            >>> q.Read_r4(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -1898,13 +1913,13 @@ class Q(X):
     
     # Read little-endian double-precision
     def Read_lr8(self, fname):
-        """Read a Plot3D grid as a little-endian double-precision file
+        r"""Read a little-endian double-precision (stream) solution file
         
         :Call:
-            >>> x.Read_lr8(fname)
+            >>> q.Read_lr8(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -1942,13 +1957,13 @@ class Q(X):
     
     # Read little-endian single-precision
     def Read_lr4(self, fname):
-        """Read a Plot3D grid as a little-endian single-precision file
+        r"""Read a little-endian single-precision (stream) solution file
         
         :Call:
-            >>> x.Read_lr4(fname)
+            >>> q.Read_lr4(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -1986,13 +2001,13 @@ class Q(X):
     
     # Read as an ascii file
     def Read_ASCII(self, fname):
-        """Read a Plot3D grid as an ASCII file
+        r"""Read an ASCII solution file
         
         :Call:
-            >>> x.Read_ASCII(fname)
+            >>> q.Read_ASCII(fname)
         :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
+            *q*: :class:`cape.plot3d.Q`
+                Solution file interface
             *fname*: :class:`str`
                 Name of Plot3D file
         :Versions:
@@ -2045,205 +2060,13 @@ class Q(X):
   # Writers
   # =======
   # <
-    # Write as an ASCII file
-    def Write_ASCII(self, fname, single=False):
-        """Write a multiple-zone ASCII Plot3D file
-        
-        :Call:
-            >>> x.Write_ASCII(fname, single=False)
-        :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
-            *fname*: :class:`str`
-                Name of Plot3D file
-            *single*: ``True`` | {``False``}
-                If ``True``, write a single-zone file
-        :Versions:
-            * 2016-10-16 ``@ddalle``: Version 1.0
-        """
-        # Open the file
-        f = open(fname, 'w')
-        # Check for single grid
-        if not (single and self.NG == 1):
-            # Write the number of zones
-            f.write('%s\n' % self.NG)
-        # Write the dimensions of each grid
-        for i in range(self.NG):
-            # Write NJ, NK, NL
-            self.dims[i].tofile(f, sep=' ')
-            f.write('\n')
-        # Point counts
-        npt = np.prod(self.dims, axis=1)
-        mpt = np.append([0], np.cumsum(npt))
-        # Loop through the grids to write the nodes
-        for i in range(self.NG):
-            # Point indices
-            ia = mpt[i]
-            ib = mpt[i+1]
-            # Write the coordinates of grid *i*
-            self.X[0,ia:ib].tofile(f, sep=' ')
-            f.write('\n')
-            self.X[1,ia:ib].tofile(f, sep=' ')
-            f.write('\n')
-            self.X[2,ia:ib].tofile(f, sep=' ')
-            f.write('\n')
-        # Close the file.
-        f.close()
-            
-    # Write as a little-endian double-precision file
-    def Write_lb8(self, fname, single=False):
-        """Write a multiple-zone little-endian, double-precision Plot3D file
-        
-        :Call:
-            >>> x.Write_lb8(fname)
-        :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
-            *fname*: :class:`str`
-                Name of Plot3D file
-            *single*: ``True`` | {``False``}
-                If ``True``, write a single-zone file
-        :Versions:
-            * 2016-10-16 ``@ddalle``: Version 1.0
-        """
-        # Open the file
-        f = open(fname, 'wb')
-        # Check for single grid
-        if not(single and self.NG == 1):
-            # Write the number of zones
-            io.write_record_lr4_i(f, self.NG)
-        # Write the dimensions
-        io.write_record_lr4_i(f, self.dims)
-        # Point counts
-        npt = np.prod(self.dims, axis=1)
-        mpt = np.append([0], np.cumsum(npt))
-        # Write the coordinates
-        for i in range(self.NG):
-            # Point indices
-            ia = mpt[i]
-            ib = mpt[i+1]
-            # Put all three coordinates 
-            io.write_record_lr8_f(f, self.X[:,ia:ib])
-        # Close the file
-        f.close()
-            
-    # Write as a little-endian single-precision file
-    def Write_lb4(self, fname, single=False):
-        """Write a multiple-zone little-endian, single-precision Plot3D file
-        
-        :Call:
-            >>> x.Write_lb4(fname)
-        :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
-            *fname*: :class:`str`
-                Name of Plot3D file
-            *single*: ``True`` | {``False``}
-                If ``True``, write a single-zone file
-        :Versions:
-            * 2016-10-16 ``@ddalle``: Version 1.0
-        """
-        # Open the file
-        f = open(fname, 'wb')
-        # Check for single grid
-        if not(single and self.NG == 1):
-            # Write the number of zones
-            io.write_record_lr4_i(f, self.NG)
-        # Write the dimensions
-        io.write_record_lr4_i(f, self.dims)
-        # Point counts
-        npt = np.prod(self.dims, axis=1)
-        mpt = np.append([0], np.cumsum(npt))
-        # Write the coordinates
-        for i in range(self.NG):
-            # Point indices
-            ia = mpt[i]
-            ib = mpt[i+1]
-            # Put all three coordinates 
-            io.write_record_lr8_f(f, self.X[:,ia:ib])
-        # Close the file
-        f.close()
-            
-    # Write as a big-endian double-precision file
-    def Write_b8(self, fname, single=False):
-        """Write a multiple-zone little-endian, double-precision Plot3D file
-        
-        :Call:
-            >>> x.Write_b8(fname)
-        :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
-            *fname*: :class:`str`
-                Name of Plot3D file
-            *single*: ``True`` | {``False``}
-                If ``True``, write a single-zone file
-        :Versions:
-            * 2016-10-16 ``@ddalle``: Version 1.0
-        """
-        # Open the file
-        f = open(fname, 'wb')
-        # Check for single grid
-        if not(single and self.NG == 1):
-            # Write the number of zones
-            io.write_record_r4_i(f, self.NG)
-        # Write the dimensions
-        io.write_record_r4_i(f, self.dims)
-        # Point counts
-        npt = np.prod(self.dims, axis=1)
-        mpt = np.append([0], np.cumsum(npt))
-        # Write the coordinates
-        for i in range(self.NG):
-            # Point indices
-            ia = mpt[i]
-            ib = mpt[i+1]
-            # Put all three coordinates 
-            io.write_record_r8_f(f, self.X[:,ia:ib])
-        # Close the file
-        f.close()
-            
-    # Write as a big-endian single-precision file
-    def Write_b4(self, fname, single=False):
-        """Write a multiple-zone little-endian, single-precision Plot3D file
-        
-        :Call:
-            >>> x.Write_b4(fname)
-        :Inputs:
-            *x*: :class:`cape.plot3d.X`
-                Plot3D grid interface
-            *fname*: :class:`str`
-                Name of Plot3D file
-            *single*: ``True`` | {``False``}
-                If ``True``, write a single-zone file
-        :Versions:
-            * 2016-10-16 ``@ddalle``: Version 1.0
-        """
-        # Open the file
-        f = open(fname, 'wb')
-        # Check for single grid
-        if not(single and self.NG == 1):
-            # Write the number of zones
-            io.write_record_r4_i(f, self.NG)
-        # Write the dimensions
-        io.write_record_r4_i(f, self.dims)
-        # Point counts
-        npt = np.prod(self.dims, axis=1)
-        mpt = np.append([0], np.cumsum(npt))
-        # Write the coordinates
-        for i in range(self.NG):
-            # Point indices
-            ia = mpt[i]
-            ib = mpt[i+1]
-            # Put all three coordinates 
-            io.write_record_r8_f(f, self.X[:,ia:ib])
-        # Close the file
-        f.close()
   # >
 # class Q
 
 
 # Map surface grid points to TRI file components
 def MapTriMatchBCs(C):
-    """Create a ``.ovfi`` file using the family names from a triangulation
+    r"""Create a ``.ovfi`` file using family names from a triangulation
     
     :Call:
         >>> BCs = MapTriMatchBCs(C)
@@ -2279,3 +2102,4 @@ def MapTriMatchBCs(C):
     # Output
     return BCs
 # end MapTriBCs
+

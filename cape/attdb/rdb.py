@@ -880,7 +880,7 @@ class DataKit(ftypes.BaseData):
         # Default columns
         if cols is None:
             # Use listed columns
-            cols = self.cols
+            cols = list(self.cols)
         # Get relevant options
         kwcls = {"_warnmode": 0}
         # Set values

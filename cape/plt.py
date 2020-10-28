@@ -25,6 +25,7 @@ See also:
 
 # Basic numerics
 import numpy as np
+
 # Useful tool for more complex binary I/O methods
 import cape.io
 import cape.tri

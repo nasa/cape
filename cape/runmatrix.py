@@ -459,14 +459,14 @@ class RunMatrix(dict):
                     self.text[k].append(str(v0))
         # Save line numbers
         self.linenos = np.asarray(linenos)
-        
+
     # Write trajectory file
     def WriteRunMatrixFile(self, fname=None):
         """Write run matrix values to file based on original text
 
         Differences between the text and the working values (created
         by specifying values in the trajectory) are preserved.
-        
+
         :Call:
             >>> x.WriteRunMatrixFile()
             >>> x.WriteRunMatrixFile(fname)
@@ -488,7 +488,7 @@ class RunMatrix(dict):
                 # Write each line
                 f.write(line)
    # ]
-   
+
    # ------------
    # JSON Output
    # ------------
@@ -544,7 +544,7 @@ class RunMatrix(dict):
         # Close the file.
         f.close()
    # ]
-   
+
    # -----------
    # Alteration
    # -----------
@@ -552,9 +552,9 @@ class RunMatrix(dict):
     # Set a value
     def SetValue(self, k, i, v, align="right"):
         """Set the value of one key for one case to *v*
-        
+
         Also write the value to the appropriate line of text
-        
+
         :Call:
             >>> x.SetValue(k, i, v, align="right")
         :Inputs:
@@ -591,14 +591,14 @@ class RunMatrix(dict):
                 self[k] = V
         # Save that value to the data
         V[i] = v
-        
+
     # Pass a case
     def MarkPASS(self, i, flag="p"):
         """Mark a case as **PASS**
-        
+
         This result in a status of ``PASS*`` if the case would is not
         otherwise ``DONE``.
-        
+
         :Call:
             >>> x.MarkPASS(i, flag="p")
         :Inputs:
@@ -652,11 +652,11 @@ class RunMatrix(dict):
         flagtxt = ("%%-%is " % nmcols) % flag
         # Reassemble line
         self.lines[nline] = flagtxt + line[nlspace:]
-        
+
     # Error a case
     def MarkERROR(self, i, flag="E"):
         """Mark a case as **ERROR**
-        
+
         :Call:
             >>> x.MarkERROR(i, flag="E")
         :Inputs:
@@ -705,11 +705,11 @@ class RunMatrix(dict):
         flagtxt = ("%%-%is " % nmcols) % flag
         # Reassemble line
         self.lines[nline] = flagtxt + line[nlspace:]
-        
+
     # Unmark a case
     def UnmarkCase(self, i):
         """Unmark a case's **PASS** or **ERROR** flag
-        
+
         :Call:
             >>> x.UnmarkCase(i)
         :Inputs:
@@ -749,11 +749,11 @@ class RunMatrix(dict):
         nspace = len(flagtxt)
         # Reassemble line
         self.lines[nline] = flagtxt + line[nspace:]
-        
+
     # Set a value in a line
     def _set_line_value(self, k, i, v, align="right"):
         """Write a value to the appropriate line of text
-        
+
         :Call:
             >>> x._set_line_value(k, i, v, align="right")
         :Inputs:
@@ -863,8 +863,8 @@ class RunMatrix(dict):
         parts[j] = prefix + otxt + suffix
         # Reset line
         self.lines[nline] = "".join(parts) + "\n"
-        
-            
+
+
    # ]
   # >
 
@@ -1405,7 +1405,7 @@ class RunMatrix(dict):
             return key
 
   # >
-  
+
   # ================
   # Value Extraction
   # ================
@@ -1413,7 +1413,7 @@ class RunMatrix(dict):
     # Find a value
     def GetValue(self, k, I=None):
         """Get value from a trajectory key, including specially named keys
-        
+
         :Call:
             >>> V = x.GetValue(k)
             >>> V = x.GetValue(k, I)
@@ -1485,11 +1485,11 @@ class RunMatrix(dict):
                 V = V[I]
         # Output
         return V
-        
+
     # Get value from matrix
     def GetValue_Derived(self, k, I=None):
         """Get value from a trajectory key, including specially named keys
-        
+
         :Call:
             >>> V = x.GetValue(k)
             >>> V = x.GetValue(k, I)
@@ -1542,12 +1542,12 @@ class RunMatrix(dict):
             # Convert value
             return v0 / (Aref * qref)
   # >
-  
+
   # ================
   # Value Alteration
   # ================
   # <
-   
+
   # >
 
   # ============
@@ -1966,7 +1966,7 @@ class RunMatrix(dict):
             if re.search('[\n]', con):
                 print("Constraint %s contains escape character; skipping")
                 continue
-            # Substitute '=' -> '==' while leaving '==', '<=', '>=', '!=' 
+            # Substitute '=' -> '==' while leaving '==', '<=', '>=', '!='
             con = re.sub("(?<![<>=!~])=(?!=)", "==", con)
             # Replace variable names with calls to GetValue()
             # But don't replace functions
@@ -2248,7 +2248,7 @@ class RunMatrix(dict):
         return I
 
   # >
-  
+
   # =========
   # Matching
   # =========
@@ -2256,7 +2256,7 @@ class RunMatrix(dict):
     # Find a match
     def FindMatches(self, y, i, keys=None, **kw):
         """Find index or indices of cases matching another trajectory case
-        
+
         :Call:
             >>> I = x.FindMatches(y, i, keys=None)
         :Inputs:
@@ -2325,11 +2325,11 @@ class RunMatrix(dict):
                 I = np.logical_and(I, V==v)
         # Output
         return np.where(I)[0]
-        
+
     # Find the first match
     def FindMatch(self, y, i, keys=None, **kw):
         """Find the first case index (if any) matching another trajectory case
-        
+
         :Call:
             >>> j = x.FindMatch(y, i, keys=None)
         :Inputs:
@@ -2447,7 +2447,7 @@ class RunMatrix(dict):
                 # Get the target value.
                 x0 = self[k][i0]
                 # Get the value
-                V = eval('self.%s' % c)
+                V = eval(c, self)
             elif k == "alpha":
                 # Get the target value.
                 x0 = self.GetAlpha(i0)
@@ -2502,7 +2502,7 @@ class RunMatrix(dict):
                 # Get the target value.
                 x0 = self[k][i0]
                 # Get the values
-                V = eval('self.%s' % c)
+                V = eval(c, self)
             elif k == "alpha":
                 # Get the target value.
                 x0 = self.GetAlpha(i0)
@@ -2657,7 +2657,7 @@ class RunMatrix(dict):
                 # Get the target value.
                 v0 = x0[k][i0]
                 # Get the value
-                V = eval('self.%s' % c)
+                V = eval(c, self)
             elif k == "alpha":
                 # Get the target value.
                 v0 = x0.GetAlpha(i0)
@@ -2704,7 +2704,7 @@ class RunMatrix(dict):
                 # Get the target value.
                 v0 = x0[k][i0]
                 # Evaluate the trajectory values
-                V = eval('self.%s' % c)
+                V = eval(c, self)
             elif k == "alpha":
                 # Get the target value.
                 v0 = x0.GetAlpha(i0)
@@ -3480,7 +3480,7 @@ class RunMatrix(dict):
     # Get freestream density
     def GetDensity(self, i=None, units=None):
         """Get freestream density
-        
+
         :Call:
             >>> rho = x.GetDensity(i)
         :Inputs:
@@ -3584,7 +3584,7 @@ class RunMatrix(dict):
     # Get velocity
     def GetVelocity(self, i=None, units=None):
         """Get velocity
-        
+
         :Call:
             >>> U = x.GetVelocity(i)
         :Inputs:

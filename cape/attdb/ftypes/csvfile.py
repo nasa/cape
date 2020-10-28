@@ -160,8 +160,8 @@ class CSVFile(BaseFile, TextInterpreter):
         * :class:`cape.attdb.ftypes.basefile.BaseFile`
         * :class:`cape.attdb.ftypes.basefile.TextInterpreter`
     :Versions:
-        * 2019-11-12 ``@ddalle``: First version
-        * 2019-11-26 ``@ddalle``: Generic version
+        * 2019-11-12 ``@ddalle``: Version 1.0
+        * 2019-11-26 ``@ddalle``: Version 2.0; generalized
     """
   # ==================
   # Class Attributes
@@ -180,10 +180,10 @@ class CSVFile(BaseFile, TextInterpreter):
   # <
     # Initialization method
     def __init__(self, fname=None, **kw):
-        """Initialization method
+        r"""Initialization method
         
         :Versions:
-            * 2019-11-12 ``@ddalle``: First version
+            * 2019-11-12 ``@ddalle``: Version 1.0
         """
         # Initialize common attributes
         self.cols = []
@@ -233,7 +233,7 @@ class CSVFile(BaseFile, TextInterpreter):
             * :func:`read_csv_header`
             * :func:`read_csv_data`
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Check type
         if typeutils.isfile(fname):
@@ -264,7 +264,7 @@ class CSVFile(BaseFile, TextInterpreter):
             * :func:`read_csv_header`
             * :func:`read_csv_data`
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
         """
         # Process column names
         self.read_csv_header(f)
@@ -288,7 +288,7 @@ class CSVFile(BaseFile, TextInterpreter):
             * :func:`read_csv_header`
             * :func:`read_csv_data`
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Open file
         with open(fname, 'r') as f:
@@ -314,7 +314,7 @@ class CSVFile(BaseFile, TextInterpreter):
             * :func:`read_csv_header`
             * :func:`read_csv_data`
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Open file
         with open(fname, 'r') as f:
@@ -341,7 +341,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-12 ``@ddalle``: First version
+            * 2019-11-12 ``@ddalle``: Version 1.0
         """
         # Set header flags
         self._csv_header_once = False
@@ -376,7 +376,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *db._csv_header_complete*: ``True`` | ``False``
                 Set to ``True`` if next line is expected to be data
         :Versions:
-            * 2019-11-22 ``@ddalle``: First version
+            * 2019-11-22 ``@ddalle``: Version 1.0
         """
         # Check if header has already been processed
         if self._csv_header_complete:
@@ -454,7 +454,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *DefaultType*: {``"float"``} | :class:`str`
                 Name of default class
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Get integer option
         odefcls = self.get_option("DefaultType", "float64")
@@ -535,7 +535,7 @@ class CSVFile(BaseFile, TextInterpreter):
                 ``["col1", "col2", ...]`` based on number of columns
                 in the first data row
         :Versions:
-            * 2019-11-27 ``@ddalle``: First version
+            * 2019-11-27 ``@ddalle``: Version 1.0
         """
         # Check if columns already determined
         if self.cols:
@@ -574,7 +574,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
             * 2019-11-29 ``@ddalle``: Tries C versionfirst
         """
         try:
@@ -597,7 +597,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Test module
         if _ftypes is None:
@@ -628,7 +628,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Initialize columns
         self.init_cols(self.cols)
@@ -663,7 +663,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *f*: :class:`file`
                 Open file handle
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Read line
         line = f.readline()
@@ -703,7 +703,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *db._c_dtypes*: :class:`list`\ [:class:`int`]
                 List of integer codes for each data type
         :Versions:
-            * 2019-11-29 ``@ddalle``: First version
+            * 2019-11-29 ``@ddalle``: Version 1.0
         """
         # Check if module is present
         if _ftypes is None:
@@ -733,7 +733,7 @@ class CSVFile(BaseFile, TextInterpreter):
    # --- Write Drivers ---
     # Write a CSV file
     def write_csv(self, fname, cols=None, **kw):
-        """Write a comma-separated file of some of the coefficients
+        r"""Write a comma-separated file of some of the coefficients
 
         :Call:
             >>> db.write_csv(fname, cols=None, **kw)
@@ -756,7 +756,7 @@ class CSVFile(BaseFile, TextInterpreter):
                 Dictionary of col name translations, e.g. *CAF* -> *CA*;
                 this dictionary is run in reverse
         :Versions:
-            * 2018-06-11 ``@ddalle``: First version
+            * 2018-06-11 ``@ddalle``: Version 1.0
             * 2020-01-15 ``@jmeeroff``: From :mod:`cape.attdb.db.db1`
             * 2020-04-01 ``@ddalle``: Full options, version 2.0
         """
@@ -798,7 +798,7 @@ class CSVFile(BaseFile, TextInterpreter):
                 Dictionary of col name translations, e.g. *CAF* -> *CA*;
                 this dictionary is run in reverse
         :Versions:
-            * 2018-06-11 ``@ddalle``: First version
+            * 2018-06-11 ``@ddalle``: Version 1.0
             * 2020-01-15 ``@jmeeroff``: From :mod:`cape.attdb.db.db1`
             * 2020-04-01 ``@ddalle``: Full options, version 2.0
         """
@@ -806,10 +806,8 @@ class CSVFile(BaseFile, TextInterpreter):
         # Process coefficient list
         if cols is None:
             cols = list(self.cols)
-        # Initialize col indices to remove
-        idel = []
         # Check individual column validity
-        for i, col in enumerate(cols):
+        for col in list(cols):
             # Check for presence
             if col not in self:
                 # Print a warning
@@ -817,7 +815,7 @@ class CSVFile(BaseFile, TextInterpreter):
                 sys.stderr.write("not in database\n")
                 sys.stderr.flush()
                 # Delete it
-                idel.append(i)
+                cols.remove(col)
             # Get dimension
             ndim = self.get_col_prop(col, "Dimension", 1)
             # Check dimension
@@ -827,14 +825,11 @@ class CSVFile(BaseFile, TextInterpreter):
                 sys.stderr.write("cannot write %iD data" % ndim)
                 sys.stderr.flush()
                 # Delete it
-                idel.append(i)
-        # Perform deletions
-        for i in idel:
-            cols.pop(i)
+                cols.remove(col)
         # Get the count of the first key
         n = len(self[cols[0]])
         # Loop through the keys
-        for i, col in enumerate(cols):
+        for col in list(cols):
             # Check length
             if len(self[col]) != n:
                 # Print a warning
@@ -842,10 +837,7 @@ class CSVFile(BaseFile, TextInterpreter):
                 sys.stderr.write("with mismatching length\n")
                 sys.stderr.flush()
                 # Delete it
-                idel.append(i)
-        # Perform deletions
-        for i in idel:
-            cols.pop(i)
+                cols.remove(col)
         # Options handle
         opts = self.opts
         # Process kwargs
@@ -931,7 +923,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
         :Versions:
-            * 2019-12-05 ``@ddalle``: First version
+            * 2019-12-05 ``@ddalle``: Version 1.0
         """
         # Get file handle
         if fname is None:
@@ -960,7 +952,7 @@ class CSVFile(BaseFile, TextInterpreter):
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
         :Versions:
-            * 2019-12-05 ``@ddalle``: First version
+            * 2019-12-05 ``@ddalle``: Version 1.0
         """
         # Default column list
         if cols is None:
@@ -1066,7 +1058,7 @@ class CSVSimple(BaseFile):
         """Initialization method
         
         :Versions:
-            * 2019-11-12 ``@ddalle``: First version
+            * 2019-11-12 ``@ddalle``: Version 1.0
         """
         # Initialize common attributes
         self.cols = []
@@ -1116,7 +1108,7 @@ class CSVSimple(BaseFile):
             * :func:`read_csvsimple_header`
             * :func:`read_csvsimple_data`
         :Versions:
-            * 2019-11-27 ``@ddalle``: First version
+            * 2019-11-27 ``@ddalle``: Version 1.0
         """
         # Open file
         with open(fname, 'r') as f:
@@ -1143,7 +1135,7 @@ class CSVSimple(BaseFile):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-12 ``@ddalle``: First version
+            * 2019-11-12 ``@ddalle``: Version 1.0
         """
         # Loop until a nonempty line is read
         while True:
@@ -1180,7 +1172,7 @@ class CSVSimple(BaseFile):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Set data count
         self.n = 0
@@ -1209,7 +1201,7 @@ class CSVSimple(BaseFile):
             *f*: :class:`file`
                 Open file handle
         :Versions:
-            * 2019-11-27 ``@ddalle``: First version
+            * 2019-11-27 ``@ddalle``: Version 1.0
         """
         # Read line
         line = f.readline()
@@ -1251,7 +1243,7 @@ class CSVSimple(BaseFile):
             *v*: :class:`float`
                 Converted value, if possible
         :Versions:
-            * 2019-11-27 ``@ddalle``: First version
+            * 2019-11-27 ``@ddalle``: Version 1.0
         """
         # Attempt conversion
         try:
