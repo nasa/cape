@@ -3720,22 +3720,12 @@ class TriBase(object):
         """
         # Get list of component IDs
         compIDs = np.unique(self.CompID)
+        compIDsQ = self.__dict__.get("CompIDQuad", None)
         # Attempt to add Quads
-        try:
+        if compIDsQ is not None:
             compIDs = np.union1d(compIDs, np.unique(self.CompIDQuad))
-        except AttributeError:
-            pass
         # Call the method from the *config* handle
-        try:
-            self.config.RestrictCompID(compIDs)
-        except Exception:
-            # Print a warning
-            try:
-                self.config
-                print("WARNING: " +
-                    "Attempt to restrict *config* component IDs failed")
-            except AttributeError:
-                pass
+        self.config.RestrictCompID(compIDs)
 
     # Renumber component IDs 1 to *n*
     def RenumberCompIDs(self):

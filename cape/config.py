@@ -537,7 +537,7 @@ class ConfigXML(object):
                 ("List of relevant component ID numbers must be made ") +
                 ("up of integers; received type '%s'" % t))
         # Loop through all keys
-        for face in self.faces.keys():
+        for face in list(self.faces.keys()):
             # Get the current parameters
             c = self.faces[face]
             t = type(c).__name__
@@ -705,7 +705,10 @@ class ConfigXML(object):
         # Write the header.
         f.write("<?xml version='1.0' encoding='utf-8'?>\n")
         # Get the Configuration properties
-        conf = self.XML.getroot().attrib
+        try:
+            conf = self.XML.getroot().attrib
+        except AttributeError:
+            conf = {"Name": fname, "Source": "cape.tri"}
         # Write the configuration tag
         f.write("<Configuration")
         # Loop through the keys
@@ -765,6 +768,9 @@ class ConfigXML(object):
         c = self.Comps[i]
         # Process the type
         if c.get("Type", "tri") == "tri":
+            # Exit if not in *faces*
+            if comp not in self.faces:
+                return
             # Get the list of components in the component.
             compID = self.GetCompID(comp)
             # Check if negative
@@ -1038,6 +1044,8 @@ class ConfigXML(object):
         # Copy the dictionaries.
         cfg.faces = self.faces.copy()
         cfg.transform = self.transform.copy()
+        cfg.Names = list(self.Names)
+        cfg.Comps = list(self.Comps)
         # Output
         return cfg
 # class Config
