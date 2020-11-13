@@ -37,6 +37,7 @@ import numpy as np
 # Absolute imports from this package
 import cape.cfdx.options
 import cape.cgns
+import cape.tnakit.plot_mpl.mpl as mpl
 
 # Input/output and geometry modules
 from . import io
@@ -5889,7 +5890,7 @@ class TriBase(object):
         # Get the length
         return np.sqrt(dx*dx + dy*dy + dz*dz)
 
-    def GetCompProjectedArea2(self, nhat, compID=None, ds=None, **kw):
+    def GetCompProjectedArea(self, nhat, compID=None, ds=None, **kw):
         r"""Get projected area of a component(s)
 
         :Call:
@@ -5909,6 +5910,7 @@ class TriBase(object):
                 Projected area 
         :Versions:
             * 2020-11-05 ``@dschauer``: First version
+            * 2020-11-13 ``@ddalle``: Updated projection algorithm
         """
         # Get default *ds* if necessary
         if ds is None:
@@ -5918,36 +5920,26 @@ class TriBase(object):
             L = np.sqrt(np.sum((bbox[1::2]-bbox[::2])**2))
             # Use .001 times that
             ds = 1e-3 * L
-        
-        # Define xyz unit vectors
+
+        # Define y and z unit vectors
         xhat = np.array([1.0, 0.0, 0.0])
         yhat = np.array([0.0, 1.0, 0.0])
         zhat = np.array([0.0, 0.0, 1.0])
-
-        # Find vectors on plane perpendicular to projection direction
-        compx = xhat == nhat
-        compy = yhat == nhat
-        compz = zhat == nhat
-        if compx.all(): 
-            e1 = yhat
-            e2 = zhat
-        elif compy.all(): 
-            e1 = xhat
-            e2 = zhat
-        elif compz.all(): 
-            e1 = xhat
-            e2 = yhat
-        else:
-            raise ValueError("nhat should be x, y, or z unit vector only")
-            sys.exit() 
+        zero = np.array([0.0, 0.0, 0.0])
+        # Get vectors of the projection plane
+        e1v = np.cross(yhat, nhat)
+        comp0 = e1v == zero
+        if comp0.all():
+            print('made it')
+            e1v = np.cross(zhat, nhat)
+        e2v = np.cross(e1v, nhat)
+        # Get unit vectors
+        e1 = e1v / (e1v**2).sum()**0.5
+        e2 = e2v / (e2v**2).sum()**0.5
 
         # Project nodes to the plane
         e1p = np.dot(self.Nodes, e1)
         e2p = np.dot(self.Nodes, e2)
-
-        out = open(r"foo2.dat", "w")
-        for i in range (len(e1p)):
-            out.write('%f %f\n' % (e1p[i], e2p[i]))
 
         # Find the bounds for the projection plane, add some pad
         pad = 2.0 * ds 
@@ -6030,241 +6022,20 @@ class TriBase(object):
             mask = np.logical_or(mask, maskj)
             
 
-        # Check the output
-        out = open(r"foo.dat", "w")
-        for j in range(e1p_np):
-            for k in range(e2p_np):
-                out.write("%f  %f  %f\n"
-                    % (e1p_dis[j], e2p_dis[k], mask[j*e2p_np+k]))
-
-        out.close() 
-
-        # Calculate the area
-        A = a * np.sum(mask)
-
-        return A
-
-    def GetCompProjectedArea(self, nhat, compID=None, ds=0.1, **kw):
-        """Get projected area of a component(s)
-
-        :Call:
-            >>> L = tri.GetCompProjectedArea(compID, **kw)
-        :Inputs:
-            *nhat*: :class:`list`
-                Directional vector of projection np.array([nx, ny, nz])
-            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
-                Component or list of components to use for area projection; if
-                ``None`` return projected area for entire triangulation
-            *ds*: :class:`float`
-                Resolution of projection plane 
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`GetCompProjectedArea`
-        :Outputs:
-            *A*: :class:`float`
-                Projected area 
-        :Versions:
-            * 2020-11-05 ``@dschauer``: First version
-        """
-        
-        # Define xyz unit vectors
-        xhat = np.array([1.0, 0.0, 0.0])
-        yhat = np.array([0.0, 1.0, 0.0])
-        zhat = np.array([0.0, 0.0, 1.0])
-
-        # Find vectors on plane perpendicular to projection direction
-        compx = xhat == nhat
-        compy = yhat == nhat
-        compz = zhat == nhat
-        if compx.all(): 
-            e1 = yhat
-            e2 = zhat
-        elif compy.all(): 
-            e1 = xhat
-            e2 = zhat
-        elif compz.all(): 
-            e1 = xhat
-            e2 = yhat
-        else:
-            raise ValueError("nhat should be x, y, or z unit vector only")
-            sys.exit() 
-
-        # Project nodes to the plane
-        e1p = np.dot(self.Nodes, e1)
-        e2p = np.dot(self.Nodes, e2)
-
-        out = open(r"foo2.dat", "w")
-        for i in range (len(e1p)):
-            out.write('%f %f\n' % (e1p[i], e2p[i]))
-
-        # Find the bounds for the projection plane, add some pad
-        pad = 2.0 * ds 
-        e1p_min = np.min(e1p) - pad
-        e1p_max = np.max(e1p) + pad
-        e2p_min = np.min(e2p) - pad
-        e2p_max = np.max(e2p) + pad
-
-        # Discretize the projection plane, use nodes not midpoints?
-        e1p_np = int(np.ceil((e1p_max - e1p_min)/ds))
-        e2p_np = int(np.ceil((e2p_max - e2p_min)/ds))
-        e1p_dis = np.linspace(e1p_min, e1p_max, e1p_np+1)
-        e2p_dis = np.linspace(e2p_min, e2p_max, e2p_np+1)
-        e1grid, e2grid = np.meshgrid(e1p_dis, e2p_dis, indexing='ij')
-        e1grid = e1grid.flatten()
-        e2grid = e2grid.flatten()
-
-        # Area of a single square on the projection plane
-        de1p = e1p_dis[1] - e1p_dis[0]
-        de2p = e2p_dis[1] - e2p_dis[0]
-        a = de1p * de2p
-
-        # Create a mask for the discretized projection plane
-        mask = np.zeros((e1p_np+1, e2p_np+1), dtype="int")
-
-        # Unpack the triangles using zero-based indexing
-        T = self.Tris - 1
-
-        # Loop through triangles
-        for t in T:
-
-            # Get triangle node e1 and e2 coordinates
-            edge_e1min = [] 
-            edge_e1max = [] 
-            edge_e2min = [] 
-            edge_e2max = [] 
-
-            edge_e1min.append(e1p[t[0]])
-            edge_e1max.append(e1p[t[1]])
-            edge_e1min.append(e1p[t[1]])
-            edge_e1max.append(e1p[t[2]])
-            edge_e1min.append(e1p[t[2]])
-            edge_e1max.append(e1p[t[0]])
-
-            edge_e2min.append(e2p[t[0]])
-            edge_e2max.append(e2p[t[1]])
-            edge_e2min.append(e2p[t[1]])
-            edge_e2max.append(e2p[t[2]])
-            edge_e2min.append(e2p[t[2]])
-            edge_e2max.append(e2p[t[0]])
-
-            # Loop through each edge
-            for edge in range(len(edge_e1min)):
-
-                # Loop through the projection plane
-                for j in range(e1p_np):
-                    e1_yes = self._edge_in(edge_e1min[edge], \
-                                           edge_e1max[edge], \
-                                           e1p_dis[j], \
-                                           e1p_dis[j+1])
-                    for k in range(e2p_np):
-                        #print(j, k)
-                        e2_yes = self._edge_in(edge_e2min[edge], \
-                                               edge_e2max[edge], \
-                                               e2p_dis[k], \
-                                               e2p_dis[k+1])
-                        if e1_yes and e2_yes:
-                            mask[j,k] = 1 
-
-        # Check the output
-        out = open(r"foo.dat", "w")
-        for j in range(e1p_np+1):
-            for k in range(e2p_np+1):
-                out.write("%f  %f  %f\n" % (e1p_dis[j], e2p_dis[k], mask[j,k]))
-
-        out.close() 
+        # Plot the output
+        mpl._import_pyplot()
+        plt = mpl.plt
+        mask_ = np.logical_not(mask)
+        fig = plt.figure()
+        plt.plot(e1grid[mask], e2grid[mask], 'ro', markersize=2)
+        plt.plot(e1grid[mask_], e2grid[mask_], 'bo', markersize=2)
+        plt.triplot(e1p, e2p, T, lw=0.2, color='k')
+        fig.savefig("projected_area.pdf")
 
         # Calculate the area
         A = a * np.sum(mask)
 
         return A
-
-    def _edge_in(self, lmin, lmax, bmin, bmax):
-        """Test if a line intersects a range
-
-        :Call:
-            >>> L = tri._edge_in(lmin, lmax, bmin, bmax, **kw)
-        :Inputs:
-            *lmin*: :class:`float`
-                line minimum coordinate 
-            *lmax*: :class:`float`
-                line maximum coordinate 
-            *bmin*: :class:`float`
-                range minimum coordinate 
-            *bmax*: :class:`float`
-                range maximum coordinate 
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`GetCompProjectedArea`
-        :Outputs:
-            *0/1*: :class:`integer`
-                0 = does not intersect, 1 = does intersect
-        :Versions:
-            * 2020-11-05 ``@dschauer``: First version
-        """
-
-        # Is the first point contained?
-        test1 = self._isbetween(lmin, bmin, bmax)
-
-        # Is the second point contained?
-        test2 = self._isbetween(lmax, bmin, bmax)
-
-        # Do the points span the box?
-        l_lower_bound = lmin
-        l_upper_bound = lmax
-        b_lower_bound = bmin
-        b_upper_bound = bmax
-
-        if lmax < lmin:
-            l_lower_bound = lmax
-            l_upper_bound = lmin
-
-        if bmax < bmin:
-            b_lower_bound = bmax
-            b_upper_bound = bmin
-
-        test3 = 0
-        if l_lower_bound < b_lower_bound and b_upper_bound < l_upper_bound:
-            test3 = 1
-
-        # Results of the tests
-        test = test1 + test2 + test3
-
-        # Return 0 for no, 1 for yes
-        if test > 0:
-            return 1
-        else:
-            return 0
-        
-
-    def _isbetween(self, value, bound1, bound2):
-        """Test if a point is inside a range 
-
-        :Call:
-            >>> L = tri._isbetween(value, bound1, bound2, **kw)
-        :Inputs:
-            *value*: :class:`float`
-                Point to test 
-            *bound1*: :class:`float`
-                A boundary of the range 
-            *bound2*: :class:`float`
-                Another boundary of the range 
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`GetCompProjectedArea`
-        :Outputs:
-            *0/1*: :class:`integer`
-                0 = No, value is not in range; 1 = Yes, value is in range 
-        :Versions:
-            * 2020-11-05 ``@dschauer``: First version
-        """
-
-        lower_bound = bound1
-        upper_bound = bound2
-        if bound2 < bound1:
-            lower_bound = bound2
-            upper_bound = bound1
-        
-        if lower_bound <= value and value <= upper_bound:
-            return 1
-        else:
-            return 0
 
 
    # }
