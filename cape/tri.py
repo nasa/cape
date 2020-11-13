@@ -5889,7 +5889,7 @@ class TriBase(object):
         # Get the length
         return np.sqrt(dx*dx + dy*dy + dz*dz)
 
-    def GetCompProjectedArea2(self, nhat, compID=None, ds=0.1, **kw):
+    def GetCompProjectedArea2(self, nhat, compID=None, ds=None, **kw):
         r"""Get projected area of a component(s)
 
         :Call:
@@ -5910,6 +5910,14 @@ class TriBase(object):
         :Versions:
             * 2020-11-05 ``@dschauer``: First version
         """
+        # Get default *ds* if necessary
+        if ds is None:
+            # Get the bounding box of the component
+            bbox = self.GetCompBBox(compID)
+            # Get the diagonal length
+            L = np.sqrt(np.sum((bbox[1::2]-bbox[::2])**2))
+            # Use .001 times that
+            ds = 1e-3 * L
         
         # Define xyz unit vectors
         xhat = np.array([1.0, 0.0, 0.0])
@@ -5970,8 +5978,10 @@ class TriBase(object):
         # Create a mask for the discretized projection plane
         mask = np.zeros(e1p_np*e2p_np, dtype="bool")
 
+        # Get the triangles in *compID*
+        K = self.GetTrisFromCompID(compID)
         # Unpack the triangles using zero-based indexing
-        T = self.Tris - 1
+        T = self.Tris[K] - 1
         # Get the edges of the triangles
         xt1 = e1p[T[:,1]] - e1p[T[:,0]]
         xt2 = e1p[T[:,2]] - e1p[T[:,1]]
