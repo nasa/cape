@@ -5889,6 +5889,151 @@ class TriBase(object):
         # Get the length
         return np.sqrt(dx*dx + dy*dy + dz*dz)
 
+    def GetCompProjectedArea2(self, nhat, compID=None, ds=0.1, **kw):
+        r"""Get projected area of a component(s)
+
+        :Call:
+            >>> L = tri.GetCompProjectedArea(compID, **kw)
+        :Inputs:
+            *nhat*: :class:`list`
+                Directional vector of projection np.array([nx, ny, nz])
+            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
+                Component or list of components to use for area projection; if
+                ``None`` return projected area for entire triangulation
+            *ds*: :class:`float`
+                Resolution of projection plane 
+            *kw*: :class:`dict`
+                Keyword arguments passed to :func:`GetCompProjectedArea`
+        :Outputs:
+            *A*: :class:`float`
+                Projected area 
+        :Versions:
+            * 2020-11-05 ``@dschauer``: First version
+        """
+        
+        # Define xyz unit vectors
+        xhat = np.array([1.0, 0.0, 0.0])
+        yhat = np.array([0.0, 1.0, 0.0])
+        zhat = np.array([0.0, 0.0, 1.0])
+
+        # Find vectors on plane perpendicular to projection direction
+        compx = xhat == nhat
+        compy = yhat == nhat
+        compz = zhat == nhat
+        if compx.all(): 
+            e1 = yhat
+            e2 = zhat
+        elif compy.all(): 
+            e1 = xhat
+            e2 = zhat
+        elif compz.all(): 
+            e1 = xhat
+            e2 = yhat
+        else:
+            raise ValueError("nhat should be x, y, or z unit vector only")
+            sys.exit() 
+
+        # Project nodes to the plane
+        e1p = np.dot(self.Nodes, e1)
+        e2p = np.dot(self.Nodes, e2)
+
+        out = open(r"foo2.dat", "w")
+        for i in range (len(e1p)):
+            out.write('%f %f\n' % (e1p[i], e2p[i]))
+
+        # Find the bounds for the projection plane, add some pad
+        pad = 2.0 * ds 
+        e1p_min = np.min(e1p) - pad
+        e1p_max = np.max(e1p) + pad
+        e2p_min = np.min(e2p) - pad
+        e2p_max = np.max(e2p) + pad
+
+        # Discretize the projection plane, use nodes not midpoints?
+        e1p_np = int(np.ceil((e1p_max - e1p_min)/ds))
+        e2p_np = int(np.ceil((e2p_max - e2p_min)/ds))
+        e1p_dis = np.linspace(e1p_min, e1p_max, e1p_np+1)
+        e2p_dis = np.linspace(e2p_min, e2p_max, e2p_np+1)
+        # Switch to midpoints
+        e1p_dis = 0.5*(e1p_dis[:-1] + e1p_dis[1:])
+        e2p_dis = 0.5*(e2p_dis[:-1] + e2p_dis[1:])
+        # Create a 2D mesh
+        e1grid, e2grid = np.meshgrid(e1p_dis, e2p_dis, indexing='ij')
+        # Flatten back into longer 1D arrays
+        e1grid = e1grid.flatten()
+        e2grid = e2grid.flatten()
+
+        # Area of a single square on the projection plane
+        de1p = e1p_dis[1] - e1p_dis[0]
+        de2p = e2p_dis[1] - e2p_dis[0]
+        a = de1p * de2p
+
+        # Create a mask for the discretized projection plane
+        mask = np.zeros(e1p_np*e2p_np, dtype="bool")
+
+        # Unpack the triangles using zero-based indexing
+        T = self.Tris - 1
+        # Get the edges of the triangles
+        xt1 = e1p[T[:,1]] - e1p[T[:,0]]
+        xt2 = e1p[T[:,2]] - e1p[T[:,1]]
+        xt3 = e1p[T[:,0]] - e1p[T[:,2]]
+        yt1 = e2p[T[:,1]] - e2p[T[:,0]]
+        yt2 = e2p[T[:,2]] - e2p[T[:,1]]
+        yt3 = e2p[T[:,0]] - e2p[T[:,2]]
+        # Assemble edge vectors?
+        # Get the normals
+        zt = xt1*yt2 - xt2*yt1
+        # Figure out which triangles need to be flipped
+        tmask = zt < 0
+        # Flip them
+        T[tmask,:] = T[tmask,::-1]
+
+        # Loop through triangles
+        for t in T:
+            # Calculate the vector from node 0 to the whole discr mesh
+            xj = e1grid - e1p[t[0]]
+            yj = e2grid - e2p[t[0]]
+            # Get the first tangent vector
+            xtj = e1p[t[1]] - e1p[t[0]]
+            ytj = e2p[t[1]] - e2p[t[0]]
+            # Calculate dot product and flag positive ones
+            # Here (xtj, ytj) is the vector along edge0
+            # And then (-ytj, xtj) is the vector that points left of it
+            # *maskj* marks points in the discretized plane left of edge
+            maskj = -ytj*xj + xtj*yj >= 0.0
+            # Calculate the vector from node 1 to mesh
+            xj = e1grid - e1p[t[1]]
+            yj = e2grid - e2p[t[1]]
+            # Tangent of edge 1
+            xtj = e1p[t[2]] - e1p[t[1]]
+            ytj = e2p[t[2]] - e2p[t[1]]
+            # Calculate points to the left of edge 1 (and edge 0)
+            maskj = np.logical_and(maskj, -ytj*xj + xtj*yj >= 0.0)
+            # Now node 2 to mesh
+            xj = e1grid - e1p[t[2]]
+            yj = e2grid - e2p[t[2]]
+            # Tangent of edge 2
+            xtj = e1p[t[0]] - e1p[t[2]]
+            ytj = e2p[t[0]] - e2p[t[2]]
+            # Calculate points to the left of edge 2 (and edges 0 and 1)
+            maskj = np.logical_and(maskj, -ytj*xj + xtj*yj >= 0.0)
+            # Update the global mask
+            mask = np.logical_or(mask, maskj)
+            
+
+        # Check the output
+        out = open(r"foo.dat", "w")
+        for j in range(e1p_np):
+            for k in range(e2p_np):
+                out.write("%f  %f  %f\n"
+                    % (e1p_dis[j], e2p_dis[k], mask[j*e2p_np+k]))
+
+        out.close() 
+
+        # Calculate the area
+        A = a * np.sum(mask)
+
+        return A
+
     def GetCompProjectedArea(self, nhat, compID=None, ds=0.1, **kw):
         """Get projected area of a component(s)
 
