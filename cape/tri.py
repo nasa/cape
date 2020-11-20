@@ -5896,22 +5896,40 @@ class TriBase(object):
         :Call:
             >>> L = tri.GetCompProjectedArea(compID, **kw)
         :Inputs:
-            *nhat*: :class:`list`
-                Directional vector of projection np.array([nx, ny, nz])
-            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
-                Component or list of components to use for area projection; if
-                ``None`` return projected area for entire triangulation
+            *nhat*: :class:`np.ndarray`\ [:class:`float`]
+                Projection vector [*nx*, *ny*, *nz*]
+            *compID*: {``None``} | :class:`int` | :class:`str`
+                Component or list of components to use for area
+                projection; if``None`` return projected area for entire
+                triangulation
             *ds*: :class:`float`
                 Resolution of projection plane 
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`GetCompProjectedArea`
+            *img*: {``None``} | :class:`str`
+                Optional file name for projection figure
         :Outputs:
             *A*: :class:`float`
                 Projected area 
         :Versions:
-            * 2020-11-05 ``@dschauer``: First version
-            * 2020-11-13 ``@ddalle``: Updated projection algorithm
+            * 2020-11-05 ``@dschauer``: Version 1.0
+            * 2020-11-13 ``@ddalle``: Version 2.0
+                - Vectorized masking of projected plane
+                - Driven by triangles instead of grid
+
+            * 2020-11-20 ``@ddalle``: Version 2.1
+                - Remove debug hooks
+                - Add *img* for output fig generation
+                - Clean up unit vectors and docstring
         """
+        # Check for trivial *nhat*
+        if not isinstance(nhat, np.ndarray):
+            raise ValueError(
+                "Projection vector must be ndarray, got '%s'" % type(nhat))
+        elif nhat.size !=3:
+            raise IndexError(
+                "Projection vector has length %i; expected 3" % nhat.size)
+        elif np.max(np.abs(nhat)) < 1e-8:
+            raise ValueError(
+                "Projection vector has zero or near-zero magnitude")
         # Get default *ds* if necessary
         if ds is None:
             # Get the bounding box of the component
@@ -5922,20 +5940,20 @@ class TriBase(object):
             ds = 1e-3 * L
 
         # Define y and z unit vectors
-        xhat = np.array([1.0, 0.0, 0.0])
         yhat = np.array([0.0, 1.0, 0.0])
         zhat = np.array([0.0, 0.0, 1.0])
         zero = np.array([0.0, 0.0, 0.0])
         # Get vectors of the projection plane
         e1v = np.cross(yhat, nhat)
-        comp0 = e1v == zero
-        if comp0.all():
-            print('made it')
+        # Check for trivial local *x* (*nhat* parallel to *yhat*)
+        if np.max(np.abs(e1v)) < min(ds, 0.001):
+            # Use *zhat* instead of *yhat*
             e1v = np.cross(zhat, nhat)
-        e2v = np.cross(e1v, nhat)
+        # Complete right-handed system
+        e2v = np.cross(nhat, e1v)
         # Get unit vectors
-        e1 = e1v / (e1v**2).sum()**0.5
-        e2 = e2v / (e2v**2).sum()**0.5
+        e1 = e1v / np.sqrt((e1v**2).sum())
+        e2 = e2v / np.sqrt((e2v**2).sum())
 
         # Project nodes to the plane
         e1p = np.dot(self.Nodes, e1)
@@ -6020,21 +6038,30 @@ class TriBase(object):
             maskj = np.logical_and(maskj, -ytj*xj + xtj*yj >= 0.0)
             # Update the global mask
             mask = np.logical_or(mask, maskj)
-            
 
-        # Plot the output
-        mpl._import_pyplot()
-        plt = mpl.plt
-        mask_ = np.logical_not(mask)
-        fig = plt.figure()
-        plt.plot(e1grid[mask], e2grid[mask], 'ro', markersize=2)
-        plt.plot(e1grid[mask_], e2grid[mask_], 'bo', markersize=2)
-        plt.triplot(e1p, e2p, T, lw=0.2, color='k')
-        fig.savefig("projected_area.pdf")
+        # Output file name
+        fimg = kw.get("img")
+        # Plot the results if requested
+        if img is not None:
+            # Just-in-time PyPlot import
+            mpl._import_pyplot()
+            # Handle to usual PyPlot module
+            plt = mpl.plt
+            # Reverse mask
+            mask_ = np.logical_not(mask)
+            # Get new figure
+            fig = plt.figure()
+            # Draw points inside and outside of projection
+            plt.plot(e1grid[mask], e2grid[mask], 'ro', markersize=2)
+            plt.plot(e1grid[mask_], e2grid[mask_], 'bo', markersize=2)
+            # Draw projected triangulation
+            plt.triplot(e1p, e2p, T, lw=0.2, color='k')
+            # Save figure
+            fig.savefig(img)
 
         # Calculate the area
         A = a * np.sum(mask)
-
+        # Output
         return A
 
 
