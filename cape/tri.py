@@ -5961,10 +5961,13 @@ class TriBase(object):
 
         # Find the bounds for the projection plane, add some pad
         pad = 2.0 * ds 
-        e1p_min = np.min(e1p) - pad
-        e1p_max = np.max(e1p) + pad
-        e2p_min = np.min(e2p) - pad
-        e2p_max = np.max(e2p) + pad
+        # Only count nodes in *compID*
+        I = self.GetNodesFromCompID(compID)
+        # Min/max of projected points
+        e1p_min = np.min(e1p[I]) - pad
+        e1p_max = np.max(e1p[I]) + pad
+        e2p_min = np.min(e2p[I]) - pad
+        e2p_max = np.max(e2p[I]) + pad
 
         # Discretize the projection plane, use nodes not midpoints?
         e1p_np = int(np.ceil((e1p_max - e1p_min)/ds))
@@ -6040,7 +6043,7 @@ class TriBase(object):
             mask = np.logical_or(mask, maskj)
 
         # Output file name
-        fimg = kw.get("img")
+        img = kw.get("img")
         # Plot the results if requested
         if img is not None:
             # Just-in-time PyPlot import
