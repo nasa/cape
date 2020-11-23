@@ -167,7 +167,7 @@ cnames = {
     'w': '#FFFFFF',
     'white': '#FFFFFF',
     'whitesmoke': '#F5F5F5',
-    'y': '$FFFF00',
+    'y': '#FFFF00',
     'yellow': '#FFFF00',
     'yellowgreen': '#9ACD32'
 }
