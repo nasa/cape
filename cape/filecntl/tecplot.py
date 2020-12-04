@@ -962,7 +962,7 @@ class Tecscript(FileCntl):
             # Try the next key
             k, val, m = self.ReadKey(i)
             # Test for a match
-            if k == key:
+            if k is not None and k.lower() == key.lower():
                 return val
             # Move *m* lines to read the next key
             i += m
@@ -995,7 +995,7 @@ class Tecscript(FileCntl):
         :Versions:
             * 2017-10-05 ``@ddalle``: First version
         """
-        # Check for a parameter value\
+        # Check for a parameter value
         if k is not None:
             # Search by key name
             ibeg, iend = self.GetCommandByKey(cmd, k, v)
@@ -1014,7 +1014,7 @@ class Tecscript(FileCntl):
             # Try the next key
             k, v, m = self.ReadKey(i)
             # Test for a match
-            if k == key:
+            if k is not None and k.lower() == key.lower():
                 break
             # Move *m* lines
             i += m
@@ -1082,7 +1082,7 @@ class Tecscript(FileCntl):
             * 2017-01-05 ``@ddalle``: First version
         """
         # Initialize command
-        cmd ="CREATECOLORMAP"
+        cmd = "CREATECOLORMAP"
         # Get cmap fraction keys
         V = cmap.keys()
         # Make sure all are floats
