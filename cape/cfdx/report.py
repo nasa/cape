@@ -2464,6 +2464,14 @@ class Report(object):
                 # Component label
                 # Read the Aero history.
                 FM = self.ReadCaseFM(comp)
+                # Check for trivial
+                if FM.i.size == 0:
+                    # Warning
+                    print("  No iterations for comp '%s'" % comp)
+                    # Save empty stats
+                    S[comp] = {}
+                    # Go to next component
+                    continue
                 # Loop through the transformations.
                 for topts in opts.get_DataBookTransformations(comp):
                     # Apply the transformation.
