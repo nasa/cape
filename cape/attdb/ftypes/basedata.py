@@ -1237,6 +1237,34 @@ class BaseData(dict):
         # Basic definition
         self.make_defn(col, v)
 
+   # --- Keep Only Some Data ---
+    # Remove all columns outside specified list
+    def keeponly_cols(self, cols):
+        r"""Remove all columns outside specified list
+
+        :Call:
+            >>> db.keeponly_cols(cols)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *cols*: :class:`list` | :class:`set`
+                Name of columns to **keep**
+        :Versions:
+            * 2020-12-21 ``@ddalle``: Version 1.0
+        """
+        # Ensure input types
+        if not isinstance(cols, (list, tuple, set)):
+            raise TypeError(
+                "Input 'cols' has type '%s' (required 'list')" % type(cols))
+        # Loop through existing cols
+        for col in self.cols:
+            # Check if it's worth keeping
+            if col in cols:
+                # Keep it
+                continue
+            # Otherwise, remove it and its settings/options
+            self.burst_col(col)
+
    # --- Remove Data ---
     # Remove a column and its parameters
     def burst_col(self, col):

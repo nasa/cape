@@ -1,44 +1,44 @@
 r"""
-:mod:`cape.pyfun.dataBook`: pyFun data book module 
+:mod:`cape.pyfun.dataBook`: pyFun data book module
 ===================================================
 
-This module contains functions for reading and processing forces, 
-moments, and other statistics from cases in a trajectory.  Data books 
-are usually created by using the 
+This module contains functions for reading and processing forces,
+moments, and other statistics from cases in a trajectory.  Data books
+are usually created by using the
 :func:`cape.pyfun.cntl.Cntl.ReadDataBook` function.
 
     .. code-block:: python
-    
+
         # Read FUN3D control instance
         cntl = pyFun.Cntl("pyFun.json")
         # Read the data book
         cntl.ReadDataBook()
         # Get a handle
         DB = cntl.DataBook
-        
+
         # Read a line load component
         DB.ReadLineLoad("CORE_LL")
         DBL = DB.LineLoads["CORE_LL"]
         # Read a target
         DB.ReadTarget("t97")
         DBT = DB.Targets["t97"]
-        
-Data books can be created without an overall control structure, but it 
-requires creating a run matrix object using 
+
+Data books can be created without an overall control structure, but it
+requires creating a run matrix object using
 :class:`pyFun.runmatrix.RunMatrix`, so it is a more involved process.
 
-Data book modules are also invoked during update and reporting 
+Data book modules are also invoked during update and reporting
 command-line calls.
 
     .. code-block:: console
-    
+
         $ pyfun --aero
         $ pyfun --ll
         $ pyfun --pt
         $ pyfun --triqfm
         $ pyfun --report
 
-The available components mirror those described on the template data 
+The available components mirror those described on the template data
 book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineLoad`, and
 :mod:`cape.cfdx.pointSensor`.  However, some data book types may not be implemented for all CFD solvers.
 
@@ -85,7 +85,7 @@ deg = np.pi / 180.0
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
     r"""Import :mod:`matplotlib.pyplot` if not loaded
-    
+
     :Call:
         >>> pyCart.dataBook.ImportPyPlot()
     :Versions:
@@ -112,9 +112,9 @@ def ImportPyPlot():
 
 # Aerodynamic history class
 class DataBook(cape.cfdx.dataBook.DataBook):
-    r"""This class provides an interface to the data book for a given 
+    r"""This class provides an interface to the data book for a given
     CFD run matrix.
-    
+
     :Call:
         >>> DB = pyFun.dataBook.DataBook(x, opts)
     :Inputs:
@@ -134,7 +134,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
     # Initialize a DBComp object
     def ReadDBComp(self, comp, check=False, lock=False):
         r"""Initialize data book for one component
-        
+
         :Call:
             >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
@@ -154,20 +154,20 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         # Read the data book
         self[comp] = DBComp(comp, self.x, self.opts,
             targ=self.targ, check=check, lock=lock)
-    
+
     # Local version of data book
     def _DataBook(self, targ):
         self.Targets[targ] = DataBook(
                     self.x, self.opts, RootDir=self.RootDir, targ=targ)
-        
+
     # Local version of target
     def _DBTarget(self, targ):
         self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
-            
+
     # Local line load data book read
     def _DBLineLoad(self, comp, conf=None, targ=None):
         r"""Version-specific line load reader
-        
+
         :Versions:
             * 2017-04-18 ``@ddalle``: First version
         """
@@ -186,11 +186,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             self.LineLoads[ttl] = lineLoad.DBLineLoad(
                 self.x, self.opts, comp, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
-    
+
     # Read TriqFM components
     def ReadTriqFM(self, comp, check=False, lock=False):
         r"""Read a TriqFM data book if not already present
-        
+
         :Call:
             >>> DB.ReadTriqFM(comp)
         :Inputs:
@@ -225,11 +225,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
-    
+
     # Read TriqPoint components
     def ReadTriqPoint(self, comp, check=False, lock=False, **kw):
         r"""Read a TriqPoint data book if not already present
-        
+
         :Call:
             >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
         :Inputs:
@@ -289,9 +289,9 @@ class DataBook(cape.cfdx.dataBook.DataBook):
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
-  
+
   # >
-  
+
   # ========
   # Case I/O
   # ========
@@ -299,7 +299,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
     # Current iteration status
     def GetCurrentIter(self):
         r"""Determine iteration number of current folder
-        
+
         :Call:
             >>> n = DB.GetCurrentIter()
         :Inputs:
@@ -315,11 +315,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             return case.GetCurrentIter()
         except Exception:
             return None
-    
+
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
-        
+
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
@@ -333,11 +333,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         """
         # Read CaseResid object from PWD
         return CaseResid(self.proj)
-        
+
     # Read case FM history
     def ReadCaseFM(self, comp):
         r"""Read a :class:`CaseFM` object
-        
+
         :Call:
             >>> FM = DB.ReadCaseFM(comp)
         :Inputs:
@@ -359,9 +359,9 @@ class DataBook(cape.cfdx.dataBook.DataBook):
 # Component data book
 class DBComp(cape.cfdx.dataBook.DBComp):
     r"""Individual component data book
-    
-    This class is derived from :class:`cape.cfdx.dataBook.DBBase`. 
-    
+
+    This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
+
     :Call:
         >>> DBc = DBComp(comp, x, opts)
     :Inputs:
@@ -372,7 +372,7 @@ class DBComp(cape.cfdx.dataBook.DBComp):
         *opts*: :class:`cape.options.Options`
             Global pyCart options instance
         *targ*: {``None``} | :class:`str`
-            If used, read a duplicate data book as a target named 
+            If used, read a duplicate data book as a target named
             *targ*
     :Outputs:
         *DBc*: :class:`pyOver.dataBook.DBComp`
@@ -387,11 +387,11 @@ class DBComp(cape.cfdx.dataBook.DBComp):
 # Data book target instance
 class DBTarget(cape.cfdx.dataBook.DBTarget):
     r"""Class to handle data from data book target files
-    
+
     There are more constraints on target files than the files that data
-    book creates, and raw data books created by pyCart are not valid 
+    book creates, and raw data books created by pyCart are not valid
     target files.
-    
+
     :Call:
         >>> DBT = DBTarget(targ, x, opts)
     :Inputs:
@@ -400,7 +400,7 @@ class DBTarget(cape.cfdx.dataBook.DBTarget):
         *x*: :class:`pyFun.runmatrix.RunMatrix`
             Run matrix interface
         *opts*: :class:`pyFun.options.Options`
-            Global pyCart options instance to determine which fields 
+            Global pyCart options instance to determine which fields
             are useful
     :Outputs:
         *DBT*: :class:`pyFun.dataBook.DBTarget`
@@ -408,14 +408,14 @@ class DBTarget(cape.cfdx.dataBook.DBTarget):
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
     """
-    
+
     pass
 # class DBTarget
 
 # TriqFM data book
 class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
     r"""Force and moment component extracted from surface triangulation
-    
+
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
     :Inputs:
@@ -436,7 +436,7 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
     # Get file
     def GetTriqFile(self):
         r"""Get most recent ``triq`` file and its associated iterations
-        
+
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
@@ -477,11 +477,11 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
             qtriq = True
         # Output
         return qtriq, ftriq, n, i0, i1
-    
+
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, ftriq, **kw):
         r"""Perform any necessary preprocessing to create ``triq`` file
-        
+
         :Call:
             >>> DBL.PreprocessTriq(ftriq, i=None)
         :Inputs:
@@ -510,19 +510,19 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
         # Read the plt information
         cape.pyfun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
 # class DBTriqFM
-    
+
 
 # Force/moment history
 class CaseFM(cape.cfdx.dataBook.CaseFM):
-    r"""Class to handle component force and moment data for an 
+    r"""Class to handle component force and moment data for an
     individual case
 
-    This class contains methods for reading data about an the history 
+    This class contains methods for reading data about an the history
     of an individual component for a single case.  It reads the Tecplot
     file :file:`$proj_fm_$comp.dat` where *proj* is the lower-case root
-    project name and *comp* is the name of the component.  From this 
+    project name and *comp* is the name of the component.  From this
     file it determines which coefficients are recorded automatically.
-    
+
     :Call:
         >>> FM = pyFun.dataBook.CaseFM(proj, comp)
     :Inputs:
@@ -553,7 +553,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
         * 2015-10-16 ``@ddalle``: Self-contained version
-        * 2016-05-05 ``@ddalle``: Handles adaptive; 
+        * 2016-05-05 ``@ddalle``: Handles adaptive;
                                   ``pyfun00,pyfun01,...``
         * 2016-10-28 ``@ddalle``: Catching iteration resets
     """
@@ -606,11 +606,11 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         # Return if necessary
         if qdual:
             os.chdir('..')
-            
+
     # Function to make empty one.
     def MakeEmpty(self):
         r"""Create empty *CaseFM* instance
-        
+
         :Call:
             >>> FM.MakeEmpty()
         :Inputs:
@@ -630,11 +630,11 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         # Save a default list of columns and components.
         self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
         self.cols = ['i'] + self.coeffs
-        
+
     # Read data from an initial file
     def ReadFileInit(self, fname=None):
         r"""Read data from a file and initialize columns
-        
+
         :Call:
             >>> FM.ReadFileInit(fname=None)
         :Inputs:
@@ -678,17 +678,17 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         for k in range(n):
             # Set the values from column *k* of *A*
             setattr(self,cols[k], A[:,k])
-            
+
     # Read data from a second or later file
     def ReadFileAppend(self, fname):
         r"""Read data from a file and append it to current history
-        
+
         :Call:
             >>> FM.ReadFileAppend(fname)
         :Inputs:
             *FM*: :class:`pyFun.dataBook.CaseFM`
                 Case force/moment history
-            *fname*: :class:`str`   
+            *fname*: :class:`str`
                 Name of file to read
         :Versions:
             * 2016-05-05 ``@ddalle``: First version
@@ -742,14 +742,14 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                 V += (self.i[-1] - V[0] + 1)
             # Append
             setattr(self,col, np.hstack((getattr(self,col), V)))
-                
-        
+
+
     # Process the column names
     def ProcessColumnNames(self, fname=None):
         r"""Determine column names
-        
+
         :Call:
-            >>> nhdr, cols, coeffs, inds = 
+            >>> nhdr, cols, coeffs, inds =
                         FM.ProcessColumnNames(fname=None)
         :Inputs:
             *FM*: :class:`pyFun.dataBook.CaseFM`
@@ -767,7 +767,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                 List of column indices for each entry of *cols*
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
-            * 2016-05-05 ``@ddalle``: Using outputs instead of saving 
+            * 2016-05-05 ``@ddalle``: Using outputs instead of saving
                                       to *FM*
         """
         # Initialize variables and read flag
@@ -958,17 +958,17 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             coeffs.append('mdot')
         # Output
         return nhdr, cols, coeffs, inds
-        
+
 # class CaseFM
 
 
 # Class to keep track of residuals
 class CaseResid(cape.cfdx.dataBook.CaseResid):
     r"""FUN3D iterative history class
-    
-    This class provides an interface to residuals, CPU time, and 
+
+    This class provides an interface to residuals, CPU time, and
     similar data for a given case
-    
+
     :Call:
         >>> hist = pyFun.dataBook.CaseResid(proj)
     :Inputs:
@@ -981,11 +981,11 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         * 2015-10-21 ``@ddalle``: First version
         * 2016-10-28 ``@ddalle``: Catching iteration resets
     """
-    
+
     # Initialization method
     def __init__(self, proj):
         r"""Initialization method
-        
+
         :Versions:
             * 2015-10-21 ``@ddalle``: First version
         """
@@ -1067,11 +1067,11 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         self.L2Resid0 = np.sqrt(L0)
         # Return if appropriate
         if qdual: os.chdir('..')
-        
+
     # Plot R_1
     def PlotR1(self, **kw):
         r"""Plot the density
-        
+
         :Call:
             >>> h = hist.PlotR1(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
@@ -1095,11 +1095,11 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         """
         # Plot "R_1"
         return self.PlotResid('R_1', YLabel='Density Residual', **kw)
-        
+
     # Plot turbulence residual
     def PlotTurbResid(self, **kw):
         r"""Plot the turbulence residual
-        
+
         :Call:
             >>> h = hist.PlotTurbResid(n=None, nFirst=None, nLast=None,
                     **kw)
@@ -1124,11 +1124,11 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         """
         # Plot "R_6"
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
-        
+
     # Function to make empty one.
     def MakeEmpty(self):
         r"""Create empty *CaseResid* instance
-        
+
         :Call:
             >>> hist.MakeEmpty()
         :Inputs:
@@ -1146,18 +1146,19 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         self.R_4 = np.array([])
         self.R_5 = np.array([])
         self.R_6 = np.array([])
+        self.R_7 = np.array([])
         # Residuals
         self.L2Resid = np.array([])
         self.L2Resid0 = np.array([])
         # Number of iterations
         self.nIter = 0
         # Save a default list of columns
-        self.cols = ['i', 'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6']
-        
+        self.cols = ['i', 'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6', 'R_7']
+
     # Process the column names
     def ProcessColumnNames(self, fname=None):
         r"""Determine column names
-        
+
         :Call:
             >>> nhdr, cols, inds = hist.ProcessColumnNames(fname=None)
         :Inputs:
@@ -1174,7 +1175,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 List of indices in columns
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
-            * 2016-05-05 ``@ddalle``: Use output instead of saving to 
+            * 2016-05-05 ``@ddalle``: Use output instead of saving to
                                       *FM*
         """
         # Default file name
@@ -1268,12 +1269,15 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             inds.append(keys.index("R_6"))
             cols.append('R_6')
         # Output
+        if "R_7" in keys:
+            inds.append(keys.index("R_7"))
+            cols.append('R_7')
         return nhdr, cols, inds
-    
+
     # Read initial data
     def ReadFileInit(self, fname=None):
         r"""Initialize history by reading a file
-        
+
         :Call:
             >>> hist.ReadFileInit(fname=None)
         :Inputs:
@@ -1327,17 +1331,17 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             setattr(self,c0, np.nan*np.ones_like(getattr(self,col)))
             # Append column list
             self.cols.append(c0)
-    
+
     # Read data from a second or later file
     def ReadFileAppend(self, fname):
         r"""Read data from a file and append it to current history
-        
+
         :Call:
             >>> hist.ReadFileAppend(fname)
         :Inputs:
             *hist*: :class:`pyFun.dataBook.CaseResid`
                 Case force/moment history
-            *fname*: :class:`str`   
+            *fname*: :class:`str`
                 Name of file to read
         :Versions:
             * 2016-05-05 ``@ddalle``: First version
@@ -1390,11 +1394,11 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             # Copy the shape of the residual
             setattr(self,c0, np.hstack(
                 (getattr(self,c0), np.nan*np.ones_like(V))))
-            
+
     # Read subiteration history
     def ReadSubhist(self, fname, iend=0):
         r"""Read subiteration history
-        
+
         :Call:
             >>> hist.ReadSubhist(fname)
         :Inputs:
@@ -1474,6 +1478,9 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         if "R_6" in keys:
             inds.append(keys.index("R_6"))
             cols.append('R_6')
+        if "R_7" in keys:
+            inds.append(keys.index("R_7"))
+            cols.append('R_7')
         # Loop through columns
         n = len(cols)
         for k in range(n):
@@ -1501,7 +1508,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 # Get expected iteration numbers
                 ni = len(v)
                 # Exit if no match
-                # This happens when the subhist iterations have been written 
+                # This happens when the subhist iterations have been written
                 # but the corresponding iterations haven't been flushed yet.
                 if ni == 0:
                     # No matches
@@ -1530,19 +1537,19 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 setattr(self,c0, v)
                 # Save column
                 self.cols.append(c0)
-        
+
     # Number of orders of magintude of residual drop
     def GetNOrders(self, nStats=1):
         r"""Get the number of orders of magnitude of residual drop
-        
+
         :Call:
             >>> nOrders = hist.GetNOrders(nStats=1)
-            
+
         :Inputs:
             *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *nStats*: :class:`int`
-                Number of iterations to use for averaging the final 
+                Number of iterations to use for averaging the final
                 residual
         :Outputs:
             *nOrders*: :class:`float`
@@ -1550,7 +1557,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         :Versions:
             * 2015-10-21 ``@ddalle``: First versoin
         """
-        
+
         # Process the number of usable iterations available.
         i = max(self.nIter-nStats, 0)
         # Get the maximum residual.
@@ -1559,7 +1566,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         L1End = np.log10(np.mean(self.R_1[i:]))
         # Return the drop
         return L1Max - L1End
-        
-    
+
+
 # class CaseResid
 

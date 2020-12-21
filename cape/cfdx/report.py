@@ -2464,6 +2464,14 @@ class Report(object):
                 # Component label
                 # Read the Aero history.
                 FM = self.ReadCaseFM(comp)
+                # Check for trivial
+                if FM.i.size == 0:
+                    # Warning
+                    print("  No iterations for comp '%s'" % comp)
+                    # Save empty stats
+                    S[comp] = {}
+                    # Go to next component
+                    continue
                 # Loop through the transformations.
                 for topts in opts.get_DataBookTransformations(comp):
                     # Apply the transformation.
@@ -4827,13 +4835,14 @@ class Report(object):
         # Get list of contour levels to alter
         clev = self.cntl.opts.get_SubfigOpt(sfig, "ContourLevels")
         # Exit if None
-        if clev is None: return
+        if clev is None:
+            return
         # Check if dictionary
-        if type(clev).__name__ == "dict":
+        if isinstance(clev, dict):
             # Create a singleton list
             clev = [clev]
         # Loop through color maps
-        for k in range(len(clev)):
+        for k, cl in enumerate(clev):
             # Get the options
             cl = clev[k]
             # Check type
@@ -4851,7 +4860,8 @@ class Report(object):
             I = self.cntl.x.GetIndices(cons=cons, I=icmp,
                 filter=fltr, re=regx, glob=fglb)
             # Check if this instruction is supposed to apply to this case
-            if i not in I: continue
+            if i not in I:
+                continue
             # Get the number
             ncontour = cl.get("NContour", k)
             # Get the min/max values
@@ -4866,8 +4876,8 @@ class Report(object):
             # Form the list
             if dv is not None:
                 # Make sure min/max are divisible by *dv*
-                vmin = dv * np.floor(vmin/dv)
-                vmax = dv * np.floor(vmax/dv)
+                vmin = dv * np.sign(vmin) * np.ceil(np.abs(vmin)/dv)
+                vmax = dv * np.sign(vmax) * np.ceil(np.abs(vmax)/dv)
                 # Override the number of levels using delta
                 nv = int(np.ceil((vmax-vmin)/dv)) + 1
             # Use the number of levels
