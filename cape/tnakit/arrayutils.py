@@ -67,7 +67,7 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
     # Get first value
     u = U[0]
     # Check format
-    if dt.starswith("int"):
+    if dt.startswith("int"):
         # Check sign
         if umin < 0:
             # Give appropriate number of integer digits
