@@ -5930,10 +5930,14 @@ class TriBase(object):
         elif np.max(np.abs(nhat)) < 1e-8:
             raise ValueError(
                 "Projection vector has zero or near-zero magnitude")
+        # Get the bounding box of the component
+        bbox = self.GetCompBBox(compID)
+        # Exit if *compID* not found
+        if bbox is None:
+            # Not possible
+            return
         # Get default *ds* if necessary
         if ds is None:
-            # Get the bounding box of the component
-            bbox = self.GetCompBBox(compID)
             # Get the diagonal length
             L = np.sqrt(np.sum((bbox[1::2]-bbox[::2])**2))
             # Use .001 times that

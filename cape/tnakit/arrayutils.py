@@ -51,7 +51,7 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
         raise TypeError(
             "Expected list or np.ndarray, got '%s'" % V.__class__.__name__)
     # Get data type
-    dt = U.dtype
+    dt = U.dtype.name
     # Get min and max values
     umin = np.min(U)
     umax = np.max(U)
@@ -67,7 +67,7 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
     # Get first value
     u = U[0]
     # Check format
-    if isinstance(u, int):
+    if dt.startswith("int"):
         # Check sign
         if umin < 0:
             # Give appropriate number of integer digits
