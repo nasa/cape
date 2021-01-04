@@ -8836,7 +8836,58 @@ class DataKit(ftypes.BaseData):
         # Output
         return h
        # ---
-    
+
+    # Plot raw data
+    def plot_raw(self, x, y, **kw):
+        r"""Plot 1D data sets directly, without response functions
+
+        :Call:
+            >>> h = db.plot_raw(xk, yk, **kw)
+            >>> h = db.plot_raw(xv, yv, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *xk*: :class:`str`
+                Name of *col* to use for x-axis
+            *yk*: :class:`str`
+                Name of *col* to use for y-axis
+            *xv*: :class:`np.ndarray`
+                Directly specified values for x-axis
+            *yv*: :class:`np.ndarray`
+                Directly specified values for y-axis
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask of which points to include in plot
+        :Outputs:
+            *h*: :class:`plot_mpl.MPLHandle`
+                Object of :mod:`matplotlib` handles
+        :Versions:
+            * 2020-12-31 ``@ddalle``: Version 1.0
+        """
+        # Get *mask* for plotting subset
+        mask = kw.pop("mask", None)
+        # Initialize plot options in order to reduce aliases, etc.
+        opts = pmpl.MPLOpts(**kw)
+        # Get *x* values to plot
+        if typeutils.isstr(x):
+            # Get values
+            xv = self.get_values(x, mask)
+            # Save default labels
+            opts.setdefault_option("XLabel", x)
+        else:
+            # Assume it already is an array of values
+            xv = x
+        # Get *y* values to plot
+        if typeutils.isstr(y):
+            # Get values
+            yv = self.get_values(y, mask)
+            # Save default labels
+            opts.setdefault_option("YLabel", y)
+        else:
+            # Assume it already is an array of values
+            yv = y
+        # Just plot it
+        return pmpl.plot(xv, yv, **opts)
+        
     # Plot single line load
     def plot_linear(self, *a, **kw):
         r"""Plot a 1D-output col for one or more cases or conditions
