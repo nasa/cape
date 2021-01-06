@@ -52,9 +52,11 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
             "Expected list or np.ndarray, got '%s'" % V.__class__.__name__)
     # Get data type
     dt = U.dtype.name
+    # Don't consider "NaN" entries
+    mask = np.logical_not(np.isnan(U))
     # Get min and max values
-    umin = np.min(U)
-    umax = np.max(U)
+    umin = np.min(U[mask])
+    umax = np.max(U[mask])
     # Maximum magnitude
     uabs = max(-umin, umax)
     # Logarithm
@@ -64,8 +66,8 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
     else:
         # Round down to nearest power of 10
         uexp = int(np.floor(np.log10(uabs))) + 1
-    # Get first value
-    u = U[0]
+    # Get first (non-NaN) value
+    u = U[mask][0]
     # Check format
     if dt.startswith("int"):
         # Check sign

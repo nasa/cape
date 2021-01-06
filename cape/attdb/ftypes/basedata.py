@@ -1214,7 +1214,7 @@ class BaseData(dict):
             * 2020-02-14 ``@ddalle``: Tweak rules for *cols* append
         """
         # Check if column is present
-        if col not in self:
+        if col not in self.cols:
             self.cols.append(col)
         # Check type
         if isinstance(v, np.ndarray):

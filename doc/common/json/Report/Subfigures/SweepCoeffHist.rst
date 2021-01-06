@@ -110,6 +110,6 @@ the absolute values of the deltas.
         *DeltaFormat*: {``"%.4f"``} | :class:`str`
             Format flag for value of mean printed via *ShowDelta*
             
-        *SigmaLabel*: {``"σ(%s)" % coeff``} | ``"σ(Δ%s)"`` | :class:`unicode`
+        *SigmaLabel*: :class:`str`
             Label for standard deviation printed using *ShowSigma*
 
