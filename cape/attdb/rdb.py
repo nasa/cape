@@ -8955,6 +8955,58 @@ class DataKit(ftypes.BaseData):
         return h
        # ---
 
+   # --- Semilogy ---
+    # Plot raw data on log-y scale
+    def semilogy_raw(self, x, y, **kw):
+        r"""Plot 1D data sets directly, without response functions
+
+        :Call:
+            >>> h = db.semilogy_raw(xk, yk, **kw)
+            >>> h = db.semilogy_raw(xv, yv, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *xk*: :class:`str`
+                Name of *col* to use for x-axis
+            *yk*: :class:`str`
+                Name of *col* to use for y-axis
+            *xv*: :class:`np.ndarray`
+                Directly specified values for x-axis
+            *yv*: :class:`np.ndarray`
+                Directly specified values for y-axis
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Mask of which points to include in plot
+        :Outputs:
+            *h*: :class:`plot_mpl.MPLHandle`
+                Object of :mod:`matplotlib` handles
+        :Versions:
+            * 2021-01-05 ``@ddalle``: Version 1.0; fork :func:`plot_raw`
+        """
+        # Get *mask* for plotting subset
+        mask = kw.pop("mask", None)
+        # Initialize plot options in order to reduce aliases, etc.
+        opts = pmpl.MPLOpts(**kw)
+        # Get *x* values to plot
+        if typeutils.isstr(x):
+            # Get values
+            xv = self.get_values(x, mask)
+            # Save default labels
+            opts.setdefault_option("XLabel", x)
+        else:
+            # Assume it already is an array of values
+            xv = x
+        # Get *y* values to plot
+        if typeutils.isstr(y):
+            # Get values
+            yv = self.get_values(y, mask)
+            # Save default labels
+            opts.setdefault_option("YLabel", y)
+        else:
+            # Assume it already is an array of values
+            yv = y
+        # Just plot it
+        return pmpl.semilogy(xv, yv, **opts)
+
    # --- Contour ---
     # Plot contour
     def plot_contour(self, *a, **kw):
