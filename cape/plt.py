@@ -211,51 +211,68 @@ class Plt(object):
         # This number should be 299.0
         marker, = np.fromfile(f, dtype='f4', count=1)
         # Read until no more zones
-        while marker == 299.0:
-            # Increase zone count
-            self.nZone += 1
-            # Read zone name
-            zone = cape.io.read_lb4_s(f).strip('"')
-            # Save it
-            self.Zones.append(zone)
-            # Parent zone
-            i, = np.fromfile(f, count=1, dtype='i4')
-            self.ParentZone.append(i)
-            # Strand ID
-            i, = np.fromfile(f, count=1, dtype='i4')
-            self.StrandID.append(i)
-            # Solution time
-            v, = np.fromfile(f, count=1, dtype='f8')
-            self.t.append(v)
-            # Read a -1 and then the zone type
-            i, zt = np.fromfile(f, count=2, dtype='i4')
-            self.ZoneType.append(zt)
-            # Check some other aspect about the zone
-            vl, = np.fromfile(f, count=1, dtype='i4')
-            # Check for var location
-            self.QVarLoc.append(vl)
-            if vl == 0:
-                # Nothing to specify
-                self.VarLocs.append([])
+        while True:
+            # Test the marker
+            if marker == 357.0:
+                # End of header
+                break
+            elif marker == 299.0:
+                # Increase zone count
+                self.nZone += 1
+                # Read zone name
+                zone = cape.io.read_lb4_s(f).strip('"')
+                # Save it
+                self.Zones.append(zone)
+                # Parent zone
+                i, = np.fromfile(f, count=1, dtype='i4')
+                self.ParentZone.append(i)
+                # Strand ID
+                i, = np.fromfile(f, count=1, dtype='i4')
+                self.StrandID.append(i)
+                # Solution time
+                v, = np.fromfile(f, count=1, dtype='f8')
+                self.t.append(v)
+                # Read a -1 and then the zone type
+                i, zt = np.fromfile(f, count=2, dtype='i4')
+                self.ZoneType.append(zt)
+                # Check some other aspect about the zone
+                vl, = np.fromfile(f, count=1, dtype='i4')
+                # Check for var location
+                self.QVarLoc.append(vl)
+                if vl == 0:
+                    # Nothing to specify
+                    self.VarLocs.append([])
+                else:
+                    # Read variable locations... {0: "node", 1: "cell"}
+                    self.VarLocs.append(
+                        np.fromfile(f, dtype='i4', count=self.nVar))
+                # Two miscellaneous options about user-defined face something
+                np.fromfile(f, dtype='i4', count=2)
+                # Number of points, elements
+                nPt, nElem = np.fromfile(f, count=2, dtype='i4')
+                self.nPt.append(nPt)
+                self.nElem.append(nElem)
+                # Read some zeros at the end.
+                np.fromfile(f, count=4, dtype='i4')
+            elif marker == 799.0:
+                # Auxiliary data
+                name = cape.io.read_lb4_s(f).strip('"')
+                # Read format
+                fmt, = np.fromfile(f, count=1, dtype='i4')
+                # Check value of *fmt*
+                if fmt != 0:
+                    raise ValueError(
+                        ("Dataset Auxiliary data value format is %i; " % fmt) +
+                        ("expected 0"))
+                # Read value
+                val = cape.io.read_lb4_s(f).strip('"')
             else:
-                # Read variable locations... {0: "node", 1: "cell"}
-                self.VarLocs.append(
-                    np.fromfile(f, dtype='i4', count=self.nVar))
-            # Two miscellaneous options about user-defined face something
-            np.fromfile(f, dtype='i4', count=2)
-            # Number of points, elements
-            nPt, nElem = np.fromfile(f, count=2, dtype='i4')
-            self.nPt.append(nPt)
-            self.nElem.append(nElem)
-            # Read some zeros at the end.
-            np.fromfile(f, count=4, dtype='i4')
+                # Unknown marker
+                raise ValueError(
+                    "Expecting end-of-header marker 357.0\n" +
+                    ("  Found: %s" % marker))
             # This number should be 299.0
             marker, = np.fromfile(f, dtype='f4', count=1)
-        # Check for end-of-header marker
-        if marker != 357.0:
-            raise ValueError(
-                "Expecting end-of-header marker 357.0\n" +
-                ("  Found: %s" % marker))
         # Convert arrays
         self.nPt = np.array(self.nPt)
         self.nElem = np.array(self.nElem)
@@ -300,7 +317,12 @@ class Plt(object):
             # Read the tris
             ii = np.fromfile(f, dtype='i4', count=(4*nelem))
             # Reshape and save
-            self.Tris.append(np.reshape(ii, (nelem,4)))
+            if ii.size == 3*nelem:
+                # Regular triangles
+                self.Tris.append(np.reshape(ii, (nelem, 3)))
+            else:
+                # Duplicate vertices
+                self.Tris.append(np.reshape(ii, (nelem, 4)))
             # Read the next marker
             i = np.fromfile(f, dtype='f4', count=1)
             # Check length
@@ -830,8 +852,7 @@ class Plt(object):
         # Process time step
         t = float(kw.get("t", 1.0))
         self.t = list(t*np.ones(self.nZone))
-                
-        
+
     # Create a triq file
     def CreateTriq(self, **kw):
         """Create a Cart3D annotated triangulation (``triq``) interface
@@ -1112,6 +1133,114 @@ class Plt(object):
         triq = cape.tri.Triq(Nodes=Nodes, Tris=Tris, q=q, CompID=CompID)
         # Output
         return triq
+
+    # Create a triq file
+    def CreateTri(self, **kw):
+        r"""Create a Cart3D triangulation (``.tri``) file
         
+        :Call:
+            >>> tri = plt.CreateTri(**kw)
+        :Inputs:
+            *plt*: :class:`pyFun.plt.Plt`
+                Tecplot PLT interface
+            *CompID*: {``range(len(plt.nZone))``} | :class:`list`
+                Optional list of zone numbers to use
+        :Outputs:
+            *tri*: :class:`cape.tri.Tri`
+                Cart3D triangulation interface
+        :Versions:
+            * 2016-12-19 ``@ddalle``: Version 1.0
+            * 2021-01-06 ``@ddalle``: Version 1.1; fork CreateTriq()
+        """
+        # Boundary number map?
+        mapbc = kw.get('mapbc', True)
+        # Total number of points (if no emissions)
+        nNode = np.sum(self.nPt)
+        # Rough number of tris
+        nElem = np.sum(self.nElem)
+        # Initialize
+        Nodes = np.zeros((nNode, 3))
+        Tris  = np.zeros((2*nElem, 3), dtype=int)
+        # Initialize component IDs
+        CompID = np.zeros(2*nElem, dtype=int)
+        # Counters
+        iNode = 0
+        iTri  = 0
+        # Error message for coordinates
+        msgx = ("  Warning: tri file conversion requires '%s'; " +
+            "not found in this PLT file")
+        # Check required states
+        for v in ['x', 'y', 'z']:
+            # Check for the state
+            if v not in self.Vars:
+                raise ValueError(msgx % v)
+        # Find the states in the variable list
+        jx = self.Vars.index('x')
+        jy = self.Vars.index('y')
+        jz = self.Vars.index('z')
+        # Reset node count
+        npt = 0
+        # Check for CompID list
+        IZone = kw.get("CompID", range(self.nZone))
+        # Loop through the components
+        for k in IZone:
+            # Extract tris
+            T = self.Tris[k]
+            # Number of points and elements
+            kNode = self.nPt[k]
+            kTri  = self.nElem[k]
+            # Increment node count
+            npt += kNode
+            # Check for quads
+            if T.shape[1] == 4:
+                # Check for duplicated index 
+                iQuad = np.where(T[:,-1] != T[:,-2])[0]
+                kQuad = len(iQuad)
+            else:
+                # Pure triangles
+                iQuad = np.zeros(0, dtype="int")
+                kQuad = 0
+            # Save the nodes
+            Nodes[iNode:iNode+kNode,0] = self.q[k][:,jx]
+            Nodes[iNode:iNode+kNode,1] = self.q[k][:,jy]
+            Nodes[iNode:iNode+kNode,2] = self.q[k][:,jz]
+            # Save the node numbers
+            Tris[iTri:iTri+kTri,:] = (T[:,:3] + iNode + 1)
+            # Save the quads
+            if kQuad > 0:
+                # Select the elements first; cannot combine operations
+                TQ = T[iQuad,:]
+                # Select nodes 1,3,4 to get second triangle
+                Tris[iTri+kTri:iTri+kTri+kQuad,:] = TQ[:,[0,2,3]]+iNode+1
+            # Increase the running node count
+            iNode += kNode
+            # Try to read the component ID
+            try:
+                # Name of the zone should be 'boundary 9 CORE_Body' or similar
+                comp = int(self.Zones[k].split()[1])
+            except Exception:
+                # Otherwise just number 1 to *n*
+                comp = np.max(CompID) + 1
+            # Check for converting the compID (e.g. FUN3D 'mapbc' file)
+            if mapbc is not None:
+                try:
+                    comp = mapbc.CompID[comp-1]
+                except Exception:
+                    pass
+            # Number of elements
+            kElem = kTri + kQuad
+            # Save the component IDs
+            CompID[iTri:iTri+kElem] = comp
+            # Increase the running tri count
+            iTri += kElem
+        # Downselect Tris and CompID
+        Tris = Tris[:iTri,:]
+        CompID = CompID[:iTri]
+        # Downselect nodes
+        Nodes = Nodes[:npt,:]
+        # Create the triangulation
+        tri = cape.tri.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
+        # Output
+        return tri
 # class Plt
 
