@@ -681,7 +681,7 @@ class TSVFile(BaseFile, TextInterpreter):
         if line.strip() == "":
             return
         # Split line
-        coltxts = line.strip()
+        coltxts = line.split()
         # List of types
         _types = self._types
         # Loop through columns
@@ -689,7 +689,11 @@ class TSVFile(BaseFile, TextInterpreter):
             # Get type
             clsname = _types[j]
             # Convert text
-            v = self.fromtext_val(coltxts[j], clsname)
+            try:
+                v = self.fromtext_val(coltxts[j], clsname)
+            except Exception:
+                import pdb
+                pdb.set_trace()
             # Save data
             self.append_colval(col, v)
     
