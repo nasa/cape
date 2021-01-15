@@ -278,6 +278,7 @@ class DataKit(ftypes.BaseData):
 
         # Initialize file name handles for each type
         fcsv  = None
+        ftsv  = None
         fcsvs = None
         ftdat = None
         fxls  = None
@@ -286,6 +287,9 @@ class DataKit(ftypes.BaseData):
         if ext == "csv":
             # Guess it's a mid-level CSV file
             fcsv = fname
+        elif ext == "tsv":
+            # Guess it's a mid-level TSV file
+            ftsv = fname
         elif ext == "xls":
             # Guess it's a spreadsheet
             fxls = fname
@@ -302,6 +306,7 @@ class DataKit(ftypes.BaseData):
 
         # Last-check file names
         fcsv  = kw.pop("csv", fcsv)
+        ftsv  = kw.pop("tsv", ftsv)
         fxls  = kw.pop("xls", fxls)
         fmat  = kw.pop("mat", fmat)
         fcsvs = kw.pop("simplecsv", fcsvs)
@@ -311,6 +316,9 @@ class DataKit(ftypes.BaseData):
         if fcsv is not None:
             # Read CSV file
             self.read_csv(fcsv, **kw)
+        elif ftsv is not None:
+            # Read TSV file
+            self.read_tsv(ftsv, **kw)
         elif fxls is not None:
             # Read XLS file
             self.read_xls(fxls, **kw)
@@ -959,7 +967,7 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVFile`
+            *dbcsv*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
@@ -968,7 +976,7 @@ class DataKit(ftypes.BaseData):
             *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
+            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
@@ -1067,14 +1075,14 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csv.CSVSimple`
+            *dbcsv*: :class:`cape.attdb.ftypes.csvfile.CSVSimple`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
             *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
+            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
@@ -1102,6 +1110,166 @@ class DataKit(ftypes.BaseData):
             # Save it
             self.sources[name] = dbf
 
+   # --- TSV ---
+    # Read TSV file
+    def read_tsv(self, fname, **kw):
+        r"""Read data from a space-separated file
+        
+        :Call:
+            >>> db.read_tsv(fname, **kw)
+            >>> db.read_tsv(dbtsv, **kw)
+            >>> db.read_tsv(f, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Generic database
+            *fname*: :class:`str`
+                Name of TSV file to read
+            *dbcsv*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+                Existing TSV file
+            *f*: :class:`file`
+                Open TSV file handle
+            *append*: ``True`` | {``False``}
+                Option to combine cols with same name
+            *save*, *SaveTSV*: ``True`` | {``False``}
+                Option to save the TSV interface to *db.sources*
+        :See Also:
+            * :class:`cape.attdb.ftypes.tsvfile.CSVFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: Version 1.0 (:func:`read_csv`)
+            * 2021-01-14 ``@ddalle``: Version 1.0
+        """
+        # Get option to save database
+        save = kw.pop("save", kw.pop("SaveTSV", True))
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
+        # Check input type
+        if isinstance(fname, ftypes.TSVFile):
+            # Already a CSV database
+            dbf = fname
+        else:
+            # Create an instance
+            dbf = ftypes.TSVFile(fname, **kw)
+        # Link the data
+        self.link_data(dbf, append=kw.get("append", False))
+        # Copy the options
+        self.clone_defns(dbf.defns)
+        # Apply default
+        self.finish_defns(dbf.cols)
+        # Save the file interface if needed
+        if save:
+            # Name for this source
+            name = "%02i-tsv" % len(self.sources)
+            # Save it
+            self.sources[name] = dbf
+
+    # Write dense TSV file
+    def write_tsv_dense(self, fname, cols=None):
+        r""""Write dense TSV file
+
+        If *db.sources* has a TSV file, the database will be written
+        from that object.  Otherwise, :func:`make_source` is called.
+
+        :Call:
+            >>> db.write_tsv_dense(fname, cols=None)
+            >>> db.write_tsv_dense(f, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *fname*: :class:`str`
+                Name of file to write
+            *f*: :class:`file`
+                File open for writing
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of columns to write
+        :Versions:
+            * 2019-12-06 ``@ddalle``: Version 1.0 (write_csv_dense)
+            * 2021-01-14 ``@ddalle``: Version 1.0
+        """
+        # Get TSV file interface
+        dbtsv = self.make_source("tsv", ftypes.TSVFile, cols=cols)
+        # Write it
+        dbtsv.write_tsv_dense(fname, cols=cols)
+
+    # Write (nice) TSV file
+    def write_tsv(self, fname, cols=None, **kw):
+        r""""Write TSV file with full options
+
+        If *db.sources* has a TSV file, the database will be written
+        from that object.  Otherwise, :func:`make_source` is called.
+
+        :Call:
+            >>> db.write_tsv(fname, cols=None, **kw)
+            >>> db.write_tsv(f, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *fname*: :class:`str`
+                Name of file to write
+            *f*: :class:`file`
+                File open for writing
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of columns to write
+            *kw*: :class:`dict`
+                Keyword args to :func:`TSVFile.write_tsv`
+        :Versions:
+            * 2020-04-01 ``@ddalle``: Version 1.0 (write_csv)
+            * 2021-01-14 ``@ddalle``: Version 1.0
+        """
+        # Get TSV file interface
+        dbtsv = self.make_source("tsv", ftypes.TSVFile, cols=cols)
+        # Write it
+        dbtsv.write_tsv(fname, cols=cols, **kw)
+
+   # --- Simple TSV ---
+    # Read simple TSV file
+    def read_tsvsimple(self, fname, **kw):
+        r"""Read data from a simple TSV file
+        
+        :Call:
+            >>> db.read_tsvsimple(fname, **kw)
+            >>> db.read_tsvsimple(dbcsv, **kw)
+            >>> db.read_tsvsimple(f, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Generic database
+            *fname*: :class:`str`
+                Name of TSV file to read
+            *dbtsv*: :class:`cape.attdb.ftypes.tsvfile.TSVSimple`
+                Existing TSV file
+            *f*: :class:`file`
+                Open TSV file interface
+            *save*, *SaveTSV*: ``True`` | {``False``}
+                Option to save the TSV interface to *db.sources*
+        :See Also:
+            * :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+        :Versions:
+            * 2019-12-06 ``@ddalle``: Version 1.0 (read_csvsimple)
+            * 2021-01-14 ``@ddalle``: Version 1.0
+        """
+        # Get option to save database
+        savecsv = kw.pop("save", kw.pop("SaveTSV", True))
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
+        # Check input type
+        if isinstance(fname, ftypes.TSVSimple):
+            # Already a CSV database
+            dbf = fname
+        else:
+            # Create an instance
+            dbf = ftypes.TSVSimple(fname, **kw)
+        # Link the data
+        self.link_data(dbf)
+        # Copy the definitions
+        self.clone_defns(dbf.defns)
+        # Apply default
+        self.finish_defns(dbf.cols)
+        # Save the file interface if needed
+        if save:
+            # Name for this source
+            name = "%02i-tsvsimple" % len(self.sources)
+            # Save it
+            self.sources[name] = dbf
+
    # --- Text Data ---
     # Read text data fiel
     def read_textdata(self, fname, **kw):
@@ -1123,7 +1291,7 @@ class DataKit(ftypes.BaseData):
             *save*: {``True``} | ``False``
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.attdb.ftypes.csv.CSVFile`
+            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """

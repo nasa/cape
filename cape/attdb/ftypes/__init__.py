@@ -17,6 +17,7 @@ directly to this module.
 from .basedata import BaseData, BaseDataDefn, BaseDataOpts
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
 from .csvfile import CSVFile, CSVSimple
+from .tsvfile import TSVFile, TSVSimple
 from .matfile import MATFile
 from .xlsfile import XLSFile
 from .textdata import TextDataFile

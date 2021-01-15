@@ -1418,7 +1418,7 @@ class TestDriver(object):
             # Nonsense target type
             status = 103
         elif not all(
-                [isinstance(fname, strlike) for fnamr in fnames_work]):
+                [isinstance(fname, strlike) for fname in fnames_work]):
             # Nonsense working file name type
             status = 104
         elif len(fnames_targ) != len(fnames_work):
