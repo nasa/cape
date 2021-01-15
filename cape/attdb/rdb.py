@@ -78,6 +78,7 @@ class DataKitOpts(ftypes.BaseFileOpts):
         "csv",
         "mat",
         "simplecsv",
+        "simpletsv",
         "textdata",
         "xls"
     }
@@ -136,6 +137,8 @@ class DataKit(ftypes.BaseData):
             Explicit file name for :class:`TextDataFile`
         *simplecsv*: {``None``} | :class:`str`
             Explicit file name for :class:`CSVSimple`
+        *simpletsv*: {``None``} | :class:`str`
+            Explicit file name for :class:`TSVSimple`
         *xls*: {``None``} | :class:`str`
             File name for :class:`XLSFile`
         *mat*: {``None``} | :class:`str`
@@ -280,6 +283,7 @@ class DataKit(ftypes.BaseData):
         fcsv  = None
         ftsv  = None
         fcsvs = None
+        ftsvs = None
         ftdat = None
         fxls  = None
         fmat  = None
@@ -310,6 +314,7 @@ class DataKit(ftypes.BaseData):
         fxls  = kw.pop("xls", fxls)
         fmat  = kw.pop("mat", fmat)
         fcsvs = kw.pop("simplecsv", fcsvs)
+        ftsvs = kw.pop("simpletsv", ftsvs)
         ftdat = kw.pop("textdata",  ftdat)
 
         # Read
@@ -325,6 +330,9 @@ class DataKit(ftypes.BaseData):
         elif fcsvs is not None:
             # Read simple CSV file
             self.read_csvsimple(fcsvs, **kw)
+        elif ftsvs is not None:
+            # Read simple TSV file
+            self.read_tsvsimple(ftsvs, **kw)
         elif ftdat is not None:
             # Read generic textual data file
             self.read_textdata(ftdat, **kw)
