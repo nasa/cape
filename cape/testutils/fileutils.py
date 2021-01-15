@@ -19,7 +19,7 @@ import re
 
 # Regular expression for finding numbers
 expr_float = "([+-]?[0-9]+(\.[0-9]+)?([edED][+-][0-9]+)?)"
-expr_interval = "(?P<c1>[[(])(?P<v1>%s),\s*(?P<v2>%s)(?P<c2>[)\]])" % (
+expr_interval = "(?P<c1>[\[(])(?P<v1>%s),\s*(?P<v2>%s)(?P<c2>[)\]])" % (
     expr_float, expr_float)
 
 # Compile float recognizer

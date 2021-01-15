@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
 :mod:`cape.attdb.ftypes.mat`: MATLAB data interface
 ===============================================================
 
@@ -222,12 +222,18 @@ class MATFile(BaseFile):
         """
         # Check type
         if not isinstance(V, (list, np.ndarray, float, int)):
-            raise TypeError(
-                "Database field '%s' must be list or array" % col)
+            if not typeutils.isstr(V):
+                raise TypeError(
+                    "Database field '%s' has disallowed type '%s'"
+                    % (col, type(V)))
         # Definition for this column
         defn = self.get_defn(col)
         # Process type
         if isinstance(V, (int, float)):
+            # Save as a scalar
+            self.__dict__[col] = V
+            return
+        elif typeutils.isstr(V):
             # Save as a scalar
             self.__dict__[col] = V
             return
