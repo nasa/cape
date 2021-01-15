@@ -408,7 +408,7 @@ class TSVFile(BaseFile, TextInterpreter):
                 # Return without setting any flags
                 return
             # Split line into columns without strip
-            cols = lin.split()
+            cols = line.split()
             # Marker that header has been read
             self._tsv_header_once = True
             # Check valid names of each column
