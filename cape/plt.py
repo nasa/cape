@@ -175,8 +175,15 @@ class Plt(object):
         f = open(fname, 'rb')
         # Read the opening string
         s = np.fromfile(f, count=1, dtype='|S8')
+        # Get string
+        if len(s) == 0:
+            # No string
+            header = None
+        else:
+            # Get and convert
+            header = s[0].decode("ascii")
         # Check it
-        if len(s)==0 or s[0]!='#!TDV112':
+        if header != '#!TDV112':
             f.close()
             raise ValueError("File '%s' must start with '#!TDV112'" % fname)
         # Throw away the next two integers
