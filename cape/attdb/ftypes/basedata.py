@@ -239,11 +239,13 @@ class BaseDataDefn(kwutils.KwargHandler):
         "Tag",
         "Type",
         "WriteFormat",
+        "Units",
     }
 
     # Alternate names
     _optmap = {
-        "Format": "LabelFormat"
+        "Format": "LabelFormat",
+        "units": "Units",
     }
 
    # --- Types ---
@@ -253,6 +255,7 @@ class BaseDataDefn(kwutils.KwargHandler):
         "LabelFormat": typeutils.strlike,
         "Type": typeutils.strlike,
         "WriteFormat": typeutils.strlike,
+        "Units": typeutils.strlike,
     }
 
    # --- Defaults ---
