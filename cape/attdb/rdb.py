@@ -96,7 +96,8 @@ class DataKitDefn(ftypes.BaseFileDefn):
     # Option list
     _optlist = {
         "Dimension",
-        "Shape"
+        "Shape",
+        "LongName"
     }
 
     # Alternate names
@@ -104,6 +105,7 @@ class DataKitDefn(ftypes.BaseFileDefn):
         "dim": "Dimension",
         "ndim": "Dimension",
         "shape": "Shape",
+        "longname": "LongName"
     }
 
    # --- Types ---
@@ -111,6 +113,7 @@ class DataKitDefn(ftypes.BaseFileDefn):
     _opttypes = {
         "Dimension": int,
         "Shape": tuple,
+        "LongName": str
     }
 
 
