@@ -49,6 +49,7 @@ class BaseDataOpts(kwutils.KwargHandler):
         "ExpandScalars",
         "Definitions",
         "DefaultDefinition",
+        "LongName",
         "Values"
     }
 
@@ -56,6 +57,7 @@ class BaseDataOpts(kwutils.KwargHandler):
     _optmap = {
         "cols": "Columns",
         "defns": "Definitions",
+        "longname": "LongName",
         "vals": "Values",
     }
 
@@ -66,6 +68,7 @@ class BaseDataOpts(kwutils.KwargHandler):
         "ExpandScalars": bool,
         "Definitions": dict,
         "DefaultDefinition": dict,
+        "LongName": typeutils.strlike,
         "Values": dict,
     }
 
