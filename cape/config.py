@@ -1488,6 +1488,7 @@ class ConfigJSON(object):
         self.IDs = []
         self.faces = {}
         self.parents = {}
+        self._skipped_faces = set()
         # Loop through the tree
         for c in self.tree:
             # Check if already processed
@@ -1630,6 +1631,9 @@ class ConfigJSON(object):
         :Versions:
             * 2016-10-21 ``@ddalle``: Version 1.0
         """
+        if c == "LAS_Frustum":
+            import pdb
+            pdb.set_trace()
         # Check for compID
         cID = self.GetPropCompID(c)
         # Initialize component
@@ -1653,10 +1657,23 @@ class ConfigJSON(object):
                 # Get the components to add from that child
                 f = self.faces[child]
                 # Check the type
-                if type(f).__name__.startswith('int'):
+                if f is None:
+                    # Do not append
+                    print(
+                        "Skipping '%s' child comp '%s'; no CompID" % (c, child))
+                    continue
+                elif isinstance(f, list):
+                    # Add two lists together
+                    compID += f
+                elif isinstance(f, int):
+                    # Append singleton face
                     compID.append(f)
                 else:
-                    compID += f
+                    # Invalid type
+                    print(
+                        "Skipping '%s' child '%s'; invalid type '%s'"
+                        % (c, child, type(f)))
+                    continue
                 # Update parent list
                 if c not in self.parents[child]:
                     self.parents[child].append(c)
@@ -1670,9 +1687,16 @@ class ConfigJSON(object):
             cID = self.GetPropCompID(child)
             # Check for component
             if cID is None:
+                # Check if skipped already
+                if child in self._skipped_faces:
+                    continue
                 # Missing property
-                print(("Skipping component '%s'; not a parent " % child) +
+                print(
+                    ("Skipping component '%s'; not a parent " % child) +
                     'and has no "CompID"')
+                # Save skipped face and get out of here
+                self._skipped_faces.add(child)
+                continue
             elif cID in self.IDs:
                 # Duplicate entry
                 raise ValueError(
