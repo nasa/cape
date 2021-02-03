@@ -96,7 +96,7 @@ class DataKitDefn(ftypes.BaseFileDefn):
     # Option list
     _optlist = {
         "Dimension",
-        "Shape"
+        "Shape",
     }
 
     # Alternate names

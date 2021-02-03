@@ -236,6 +236,7 @@ class BaseDataDefn(kwutils.KwargHandler):
     _optlist = {
         "Label",
         "LabelFormat",
+        "LongName",
         "Tag",
         "Type",
         "WriteFormat",
@@ -245,6 +246,7 @@ class BaseDataDefn(kwutils.KwargHandler):
     # Alternate names
     _optmap = {
         "Format": "LabelFormat",
+        "longname": "LongName",
         "units": "Units",
     }
 
@@ -253,6 +255,7 @@ class BaseDataDefn(kwutils.KwargHandler):
     _opttypes = {
         "Label": bool,
         "LabelFormat": typeutils.strlike,
+        "LongName": typeutils.strlike,
         "Type": typeutils.strlike,
         "WriteFormat": typeutils.strlike,
         "Units": typeutils.strlike,
@@ -888,6 +891,7 @@ class BaseData(dict):
                 "Could not generate definition for type '%s'" % type(V))
         # Set type
         defn["Type"] = dtype
+        
         # Loop through any kwargs
         for k, v in kw.items():
             # Attempt to set it (_warnmode is 1)
@@ -1123,6 +1127,30 @@ class BaseData(dict):
         return cols
 
    # --- Column Properties ---
+    # Set generic property from column
+    def set_col_prop(self, col, prop, v, vdef=None):
+        """Set property for specific column
+        :Call:
+            >>> v = db.set_col_prop(col, prop, v, vdef=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+                Data container
+            *col*: :class:`str`
+                Name of column
+            *prop*: :class:`str`
+                Name of property
+            *v*: :class:`any`
+                Value to set to ``defns[col][prop]
+            *vdef*: {``None``} | :class:`any`
+                Default value if not specified in *db.opts*
+        :Versions:
+            * 2021-01-22 ``@aburkhea``: First version
+        """
+        # Get definition
+        defn = self.get_defn(col)
+        # Set property
+        defn.set_option(prop,v)
+
     # Get generic property from column
     def get_col_prop(self, col, prop, vdef=None):
         """Get property for specific column
