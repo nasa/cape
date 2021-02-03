@@ -2,8 +2,11 @@
 *.py[co]
 __pychache__
 
-# Compile folders
-build
+# Compile/build folders
+/build
+/cape/build
+/cape/dist
+*.egg-info
 
 # Local settings
 .vscode
