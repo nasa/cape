@@ -1,0 +1,3 @@
+recursive-include tnakit/ * 
+recursive-include attdb/ * 
+global-exclude *.py[cod]
