@@ -516,11 +516,7 @@ class MATFile(BaseFile):
                         # to save "CORE.dCY.deltaCY"
                         while part in dbpart._fieldnames:
                             # Get that object
-                            try:
-                                dbconflict = dbpart.__dict__[part]
-                            except KeyError:
-                                import pdb
-                                pdb.set_trace()
+                            dbconflict = dbpart.__dict__[part]
                             # If it's already a 'mat_struct', no problem
                             if isinstance(dbconflict, siom.mat_struct):
                                 # Get that in place of the new one
