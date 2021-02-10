@@ -259,7 +259,7 @@ class Config(odict):
         # Get the specified value.
         RefL = self.get('RefLength')
         # Check the type.
-        if type(RefL).__name__ == 'dict':
+        if isinstance(RefL, dict):
             # Check the component input.
             if (comp in RefL):
                 # Return the specific component.
@@ -267,9 +267,9 @@ class Config(odict):
             else:
                 # Get the default.
                 L = RefL.get('default', 1.0)
-        elif type(RefL).__name__ == 'list':
+        elif isinstance(RefL, list):
             # Check the component input.
-            if comp and (comp < len(RefL)):
+            if isinstance(comp, int) and (comp < len(RefL)):
                 # Return the value by CompID.
                 L = RefL[comp]
             else:
