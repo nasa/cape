@@ -1,9 +1,7 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
 # Standard library modules
-import ConfigParser
-import glob
 import json
 import os
 import platform
@@ -15,11 +13,40 @@ import subprocess as sp
 from distutils import sysconfig
 
 
+# Python version infor
+PY_MAJOR_VERSION = sys.version_info.major
+PY_MINOR_VERSION = sys.version_info.minor
+
+# Version-dependent imports
+if PY_MAJOR_VERSION == 2:
+    # Standard library modules
+    from ConfigParser import SafeConfigParser
+
+    # Hack for getting suffix of build/lib.* folder
+    syssystem = platform.system().lower()
+    sysmachine = platform.machine()
+    sysplatform = "%s-%s" % (syssystem, sysmachine)
+    # File extension for the binary extension modules
+    if syssystem == "windows":
+        # Alternate extension
+        ext_suffix = ".pyd"
+    else:
+        # Normally it's a .so file
+        ext_suffix = ".so"
+else:
+    # Standard library modules
+    from configparser import SafeConfigParser
+
+    # Suffix for build/lib.* folder
+    sysplatform = sysconfig.get_platform()
+    # Extension binary file extension
+    ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
+
+
+# Config file
+fcfg = "config%i.cfg" % PY_MAJOR_VERSION
+
 # System configuration variables
-# sysplatform = sysconfig.get_platform()
-syssystem = platform.system().lower()
-sysmachine = platform.machine()
-sysplatform = "%s-%s" % (syssystem, sysmachine)
 syspyversion = sysconfig.get_python_version()
 # Suffix for build folders
 libext = "%s-%s" % (sysplatform, syspyversion)
@@ -38,9 +65,9 @@ extjson = os.path.join(fmod, "extensions.json")
 extopts = json.load(open(extjson))
 
 # Get a get/set type object
-config = ConfigParser.SafeConfigParser()
+config = SafeConfigParser()
 # Read the configuration options
-config.read(os.path.join(fmod, "config2.cfg"))
+config.read(os.path.join(fmod, fcfg))
 
 # Python command, in cases of potential ambiguity.
 pythonexec = config.get("python", "exec")
@@ -66,7 +93,7 @@ for (ext, opts) in extopts.items():
     # Destination folder
     fdest = opts["destination"].replace("/", os.sep)
     # File name for compiled module
-    fname = "%s2.so" % ext
+    fname = "%s%i%s" % (ext, int(PY_MAJOR_VERSION), ext_suffix)
     # Final location for module
     fout = os.path.join(fmod, fdest, fname)
     # Expected build location
@@ -79,7 +106,7 @@ for (ext, opts) in extopts.items():
     if os.path.isfile(fout):
         os.remove(fout)
     # Move the result to the destination folder
-    shutil.move(fbld, fout)
+    shutil.copy(fbld, fout)
 
 # Remove that "egg" thing
 print("Removing the egg-info folder")

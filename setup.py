@@ -2,19 +2,37 @@
 # -*- coding: utf-8 -*-
 
 # Standard library
-import os
 import json
-import configparser
-import distutils.core
+import os
+import sys
+
+# Standard library partial imports
+from setuptools import Extension, setup
+
+# Python version infor
+PY_MAJOR_VERSION = sys.version_info.major
+PY_MINOR_VERSION = sys.version_info.minor
+
+# Version-dependent imports
+if PY_MAJOR_VERSION == 2:
+    # Standard library modules
+    from ConfigParser import SafeConfigParser
+else:
+    # Standard library modules
+    from configparser import SafeConfigParser
+
+# Config file
+fcfg = "config%i.cfg" % PY_MAJOR_VERSION
 
 
 # Path to this file
-fpwd = os.path.dirname(os.path.realpath(__file__))
+fdir = os.path.dirname(os.path.realpath(__file__))
+fcape = os.path.join(fdir, "cape")
 
 # Get a get/set type object
-config = configparser.SafeConfigParser()
+config = SafeConfigParser()
 # Read the configuration options
-config.read(os.path.join(fpwd, "config3.cfg"))
+config.read(os.path.join(fcape, fcfg))
 
 # C compiler flags
 cflags = config.get("compiler", "extra_cflags").split()
@@ -26,7 +44,7 @@ ldflags = config.get("compiler", "extra_ldflags").split()
 include_dirs = config.get("compiler", "extra_include_dirs").split()
 
 # Extensions JSON file
-extjson = os.path.join(fpwd, "extensions.json")
+extjson = os.path.join(fcape, "extensions.json")
 # Read extension settings
 extopts = json.load(open(extjson))
 
@@ -37,8 +55,8 @@ for (ext, opts) in extopts.items():
     # Get sources
     extsources = [str(src) for src in opts["sources"]]
     # Create extension
-    _ext = distutils.core.Extension(
-        str(ext) + "3",
+    _ext = Extension(
+        str(ext) + str(PY_MAJOR_VERSION),
         include_dirs = include_dirs,
         extra_compile_args = cflags,
         extra_link_args = ldflags,
@@ -47,7 +65,7 @@ for (ext, opts) in extopts.items():
     exts.append(_ext)
 
 # Compile and link
-distutils.core.setup(
+setup(
     name="cape",
     packages=["cape"],
     package_dir={"cape": "."},
