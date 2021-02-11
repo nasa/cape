@@ -67,8 +67,10 @@ for (ext, opts) in extopts.items():
 # Compile and link
 setup(
     name="cape",
-    packages=["cape"],
-    package_dir={"cape": "."},
-    version="1.0",
+    packages=[
+        "cape",
+        "cape.attdb"
+    ],
+    version="1.0a1",
     description="CAPE computational aerosciences package",
     ext_modules=exts)

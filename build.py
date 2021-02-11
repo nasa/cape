@@ -43,6 +43,11 @@ else:
     ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
 
 
+# Path to this file
+fdir = os.path.dirname(os.path.realpath(__file__))
+# Module file
+fmod = os.path.join(fdir, "cape")
+
 # Config file
 fcfg = "config%i.cfg" % PY_MAJOR_VERSION
 
@@ -53,11 +58,6 @@ libext = "%s-%s" % (sysplatform, syspyversion)
 # Library folder
 flib = os.path.join("build", "lib.%s" % libext)
 ftmp = os.path.join("build", "temp.%s" % libext)
-
-# Path to this file
-fdir = os.path.dirname(os.path.realpath(__file__))
-# Module file
-fmod = os.path.join(fdir, "cape")
 
 # Extensions JSON file
 extjson = os.path.join(fmod, "extensions.json")
