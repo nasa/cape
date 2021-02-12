@@ -62,10 +62,10 @@ rztoldef = cape.cfdx.options.rc.get("rztoldef", 1e-5)
 try:
     if sys.version_info.major == 2:
         # Python 2 extension
-        from . import _cape2 as _cape
+        import _cape2 as _cape
     else:
         # Python 3 extension
-        from . import _cape3 as _cape
+        import _cape3 as _cape
 except ImportError:
     # No module
     _cape = None

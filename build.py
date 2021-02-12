@@ -90,12 +90,10 @@ sp.call([pythonexec, "setup.py", "bdist_wheel"])
 print("Moving the extensions into place...")
 # Loop through extensions
 for (ext, opts) in extopts.items():
-    # Destination folder
-    fdest = opts["destination"].replace("/", os.sep)
     # File name for compiled module
     fname = "%s%i%s" % (ext, int(PY_MAJOR_VERSION), ext_suffix)
     # Final location for module
-    fout = os.path.join(fmod, fdest, fname)
+    fout = os.path.join(fdir, fname)
     # Expected build location
     fbld = os.path.join(fdir, flib, fname)
     # Exit if no build
