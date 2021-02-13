@@ -825,7 +825,6 @@ class MPLOpts(kwutils.KwargHandler):
         "SubplotCols": int,
         "SubplotList": list,
         "SubplotRows": int,
-        "SubplotRubber": int,
         "RightSpine": (bool, typeutils.strlike),
         "RightSpineMax": float,
         "RightSpineMin": float,

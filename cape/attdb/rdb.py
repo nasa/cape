@@ -9355,9 +9355,20 @@ class DataKit(ftypes.BaseData):
         # Turn off x-coord labels too
         h.ax.set_xticklabels([])
         # Format extents nicely
-        pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
+        pmpl.axes_adjust_col(h.fig, SubplotRubber=h.ax)
+        # Turn off aspect ratio
+        ax_png.set_aspect("auto")
+        # Get current limits
+        xmina, xmaxa = h.ax.get_xlim()
+        xminb, xmaxb = ax_png.get_xlim()
+        yminb, ymaxb = ax_png.get_ylim()
+        # Reset *ylims* for PNG image
+        h2 = (ymaxb - yminb) / (xmaxb - xminb) * (xmaxa - xmina)
+        ymin2 = 0.5*(yminb + ymaxb - h2)
+        ymax2 = 0.5*(yminb + ymaxb + h2)
         # Tie horizontal limits
-        ax_png.set_xlim(h.ax.get_xlim())
+        ax_png.set_xlim(xmina, xmaxa)
+        ax_png.set_ylim(ymin2, ymax2)
         # Label the axes
         ax_png.set_label("<img>")
         # Save parameters

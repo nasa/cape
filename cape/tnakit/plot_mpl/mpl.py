@@ -1048,30 +1048,62 @@ def _axes_adjust_col(fig, **kw):
     # Process options
     opts = MPLOpts(**kw)
     # Get axes from figure
-    ax_list = fig.get_axes()
-    # Number of axes
-    nax = len(ax_list)
+    ax_all = fig.get_axes()
     # Get list of figures
     subplot_list = kw.get("SubplotList")
     # Default order
     if subplot_list is None:
         # Get current extents
-        extents = [ax_list[i].get_position().bounds for i in range(nax)]
+        extents = [ax.get_position().bounds for ax in ax_all]
         # Get middle *y* coordinate for sorting
         y0 = [extent[1] + 0.5*extent[3] for extent in extents]
-        # Sort
+        # Sort by descending *y0*
         subplot_list = list(np.argsort(y0) + 1)
+    # Get the list of axes
+    ax_list = [ax_all[i-1] for i in subplot_list]
     # Get index of ax to use for vertical rubber
-    subplot_rubber = kw.get("SubplotRubber", -1)
-    # Adjust for 1-based index
-    if subplot_rubber > 0:
-        subplot_rubber -= 1
-    # Get handle
-    ax_rubber = ax_list[subplot_rubber]
+    subplot_rubber = kw.get("SubplotRubber")
+    # Default flexible subplot
+    if subplot_rubber is None:
+        # Get the ones with ``axis("equal")`` turned on
+        ax_auto = [
+            j for (j, ax) in enumerate(ax_list)
+            if ax.get_aspect() == "auto"
+        ]
+        # Check for any such figures
+        if len(ax_auto) == 0:
+            # Nothing to work with; oh boy!
+            subplot_rubber = len(ax_list) - 1
+        else:
+            # Use the last one that's not ``axis("equal")``
+            subplot_rubber = ax_auto[-1]
+        # Get handle
+        ax_rubber = subplot_rubber
+    elif isinstance(subplot_rubber, type(ax_list[0])):
+        # Get handle
+        ax_rubber = subplot_rubber
+        # Check if it's in the list
+        if ax_rubber not in ax_list:
+            raise ValueError("Rubber subplot not in figure's subplot list")
+        # Use axis directly
+        subplot_rubber = ax_list.index(ax_rubber)
+    else:
+        # Use index from global list
+        if subplot_rubber > 0:
+            # Shift from 1-based to 0-based
+            ax_rubber = ax_all[subplot_rubber - 1]
+        else:
+            # Negative indexing from end of list
+            ax_rubber = ax_all[subplot_rubber]
+        # Check if it's in the list
+        if ax_rubber not in ax_list:
+            raise ValueError("Rubber subplot not in figure's subplot list")
+        # Use axis directly
+        subplot_rubber = ax_list.index(ax_rubber)
     # Number of axes in col
-    nrows = len(subplot_list)
+    nrows = len(ax_list)
     # Get the margins occupied by tick and axes labels
-    margins = [get_axes_label_margins(ax_list[i-1]) for i in subplot_list]
+    margins = [get_axes_label_margins(ax) for ax in ax_list]
     # Extract the sides
     margins_l = [margin[0] for margin in margins]
     margins_b = [margin[1] for margin in margins]
@@ -1099,11 +1131,9 @@ def _axes_adjust_col(fig, **kw):
     # Shared axes width
     w_all = adj_r - adj_l
     # Get current extents
-    extents = [ax_list[i-1].get_position().bounds for i in subplot_list]
+    extents = [ax.get_position().bounds for ax in ax_list]
     # Deal with any axis("equal") subplots
-    for (j, i) in enumerate(subplot_list):
-        # Get axes
-        ax = ax_list[i-1]
+    for (j, ax) in enumerate(ax_list):
         # Check for rubber axes
         if ax is ax_rubber:
             # Remember index
@@ -1132,9 +1162,7 @@ def _axes_adjust_col(fig, **kw):
     # Initialize cumulative vertical coordinate
     ymin = adj_b - margins_b[0]
     # Loop through axes
-    for (j, i) in enumerate(subplot_list):
-        # Get axes
-        ax = ax_list[i-1]
+    for (j, ax) in enumerate(ax_list):
         # Check if it's the rubber plot
         if ax is ax_rubber:
             # Use the previously calculated height
@@ -1202,7 +1230,7 @@ def _axes_adjust_row(fig, **kw):
     if subplot_rubber > 0:
         subplot_rubber -= 1
     # Get handle
-    ax_rubber = ax_list[subplot_rubber]
+    ax_rubber = ax_list[subplot_list[subplot_rubber]]
     # Number of axes in row
     ncols = len(subplot_list)
     # Get the margins occupied by tick and axes labels
