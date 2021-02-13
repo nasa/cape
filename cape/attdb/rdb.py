@@ -9369,6 +9369,8 @@ class DataKit(ftypes.BaseData):
         # Tie horizontal limits
         ax_png.set_xlim(xmina, xmaxa)
         ax_png.set_ylim(ymin2, ymax2)
+        # Turn aspect ratio back on?
+        ax_png.set_aspect("equal")
         # Label the axes
         ax_png.set_label("<img>")
         # Save parameters
