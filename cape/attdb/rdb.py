@@ -9096,8 +9096,12 @@ class DataKit(ftypes.BaseData):
         # Get key for *x* axis
         xk = kw.pop("xcol", kw.pop("xk", self.get_output_xargs(col)[0]))
        # --- Plot Values ---
+        # Check for existing handle
+        h = kw.get("h")
         # Initialize output
-        h = pmpl.MPLHandle()
+        if h is None:
+            # Create an empty one
+            h = pmpl.MPLHandle()
         # Initialize plot options in order to reduce aliases, etc.
         opts = pmpl.MPLOpts(_warnmode=0, **kw)
         # Check dimension of *V*
@@ -9111,13 +9115,13 @@ class DataKit(ftypes.BaseData):
             for i in range(V.shape[1]):
                 # Line plot for column of *V*
                 hi = pmpl.plot(X, V[:,i], Index=i, **opts)
-                # combine plot handles
+                # Combine plot handles
                 h.add(hi)
         else:
             # Multiple conditions with common *x*
             for i in range(V.shape[1]):
                 # Line plot for column of *V*
-                hi = pmpl.plot(X, V[:,i], Index=i, **opts)
+                hi = pmpl.plot(X[:, i], V[:,i], Index=i, **opts)
                 # combine plot handles
                 h.add(hi)
        # --- PNG ---
@@ -9379,6 +9383,8 @@ class DataKit(ftypes.BaseData):
         h.ax_img = ax_png
         # Save this image in list for PNG tag
         self.add_png_fig(png, fig)
+        # Reset current axes
+        pmpl.mpl.plt.sca(h.ax)
         # Output
         return h
 
@@ -9450,7 +9456,7 @@ class DataKit(ftypes.BaseData):
         # Turn off x-coord labels too
         h.ax.set_xticklabels([])
         # Format extents nicely
-        pmpl.axes_adjust_col(h.fig, SubplotRubber=1)
+        pmpl.axes_adjust_col(h.fig, SubplotRubber=ax_seam)
         # Get current limits and output limits
         xmin0, xmax0 = ax_seam.get_xlim()
         ymin0, ymax0 = ax_seam.get_ylim()
@@ -9473,6 +9479,8 @@ class DataKit(ftypes.BaseData):
         h.ax_seam = ax_seam
         # Save this image in list for seam tag
         self.add_seam_fig(seam, fig)
+        # Reset current axes
+        pmpl.mpl.plt.sca(h.ax)
         # Output
         return h
 

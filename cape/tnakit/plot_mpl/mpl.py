@@ -830,7 +830,7 @@ def _axes_adjust(fig=None, **kw):
     # Get axes from figure
     ax_list = fig.get_axes()
     # Minimum number of axes
-    nmin_ax = min(1, len(ax_list))
+    nmin_ax = max(1, len(ax_list))
     # Get "axes" option
     ax = kw.get("ax")
     # Get subplot number option
@@ -839,11 +839,11 @@ def _axes_adjust(fig=None, **kw):
     if subplot_i is None:
         # Use existing number of axes
         subplot_m = kw.get("SubplotRows", nmin_ax)
-        subplot_n = kw.get("SubplotCols", (nmin_ax+subplot_m-1) / subplot_m)
+        subplot_n = kw.get("SubplotCols", (nmin_ax+subplot_m-1) // subplot_m)
     else:
         # Allow for *Subplot* to be greater than current count
         subplot_m = kw.get("SubplotRows", max(nmin_ax, subplot_i))
-        subplot_n = kw.get("SubplotCols", (nmin_ax+subplot_m-1) / subplot_m)
+        subplot_n = kw.get("SubplotCols", (nmin_ax+subplot_m-1) // subplot_m)
     # Check for axes
     if ax is None:
         # Check for index
@@ -888,8 +888,8 @@ def _axes_adjust(fig=None, **kw):
     ax_w = 1.0 - label_wr - label_wl - axes_wr - axes_wl
     ax_h = 1.0 - label_ht - label_hb - axes_ht - axes_hb
     # Process row and column space available
-    ax_rowh = ax_h / float(subplot_m)
-    ax_colw = ax_w / float(subplot_n)
+    ax_rowh = ax_h
+    ax_colw = ax_w
     # Default margins (no tight_layout yet)
     adj_b = label_hb + subplot_j * ax_rowh
     adj_l = label_wl + subplot_k * ax_colw
@@ -912,6 +912,11 @@ def _axes_adjust(fig=None, **kw):
     adj_t = kw.get("AdjustTop", adj_t)
     # Get current position of axes
     x0, y0, w0, h0 = ax.get_position().bounds
+    # Check for multiple axes
+    if len(ax_list) > 1:
+        # Note that there is ample code for subplots below.
+        # It doesn't seem to be relevant but might be removed.
+        return
     # Keep same bottom edge if not specified
     if adj_b is None:
         adj_b = y0
@@ -1006,6 +1011,7 @@ def _axes_adjust(fig=None, **kw):
         # Check for horizontal linking
         if neighbor["xlink"]:
             # Copy horizontal from *ax*, shift vertical
+            print("XLINK")
             axk.set_position([x1, yk1, w1, hk])
         elif neighbor["ylink"]:
             # Copy vertical from *ax*, shift horizontal
@@ -2953,8 +2959,8 @@ def auto_ylim(ax, pad=0.05):
             # Get bounds
             bbox = h.get_extent()
             # Update limits
-            xmin = min(xmin, min(bbox[2], bbox[3]))
-            xmax = max(xmax, max(bbox[2], bbox[3]))
+            ymin = min(ymin, min(bbox[1], bbox[3]))
+            ymax = max(ymax, max(bbox[1], bbox[3]))
     # Check for identical values
     if ymax - ymin <= 0.1*pad:
         # Expand by manual amount
