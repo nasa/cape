@@ -9456,7 +9456,7 @@ class DataKit(ftypes.BaseData):
         # Turn off x-coord labels too
         h.ax.set_xticklabels([])
         # Format extents nicely
-        pmpl.axes_adjust_col(h.fig, SubplotRubber=ax_seam)
+        pmpl.axes_adjust_col(h.fig, SubplotRubber=h.ax)
         # Get current limits and output limits
         xmin0, xmax0 = ax_seam.get_xlim()
         ymin0, ymax0 = ax_seam.get_ylim()

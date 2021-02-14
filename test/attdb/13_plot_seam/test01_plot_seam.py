@@ -29,6 +29,10 @@ cols = ["bullet.dCN"]
 # Set up a seam curve
 db.make_seam(seam, fseam, xcol, ycol, cols)
 
+# Divide seam curves by two (what happened?)
+db["smy.x"] *= 0.5
+db["smy.z"] *= 0.5
+
 # Initial plot of a column
 h = db.plot("bullet.dCN", 1, XLabel="x/Lref", YLabel="dCN/d(x/Lref)")
 
