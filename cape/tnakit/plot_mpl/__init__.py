@@ -271,14 +271,12 @@ def plot(xv, yv, *a, **kw):
     _part_axes_grid(opts, h)
     _part_axes_spines(opts, h)
     _part_axes_format(opts, h)
-    h.fig.savefig("tmp6.pdf")
     _part_axes_adjust(opts, h)
    # --- Labeling ---
     # Legend
     _part_legend(opts, h)
    # --- Cleanup ---
     # Final margin adjustment
-    h.fig.savefig("tmp9.pdf")
     _part_axes_adjust(opts, h)
     # Output
     return h
