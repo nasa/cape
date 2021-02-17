@@ -9,5 +9,5 @@ tasks that may need to be repeated many times, creating a compiled version can
 save considerable time. However, Python versions of these methods are also
 included in the main modules.
 
-.. automodule:: cape._cape3
+.. automodule:: _cape3
     :members:

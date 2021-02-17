@@ -12,3 +12,5 @@
     ftypes/index
     rdb
     rdbaero
+    datakithub
+

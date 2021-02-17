@@ -491,7 +491,6 @@ def loadJSONFile(fname):
             raise e
     # Output
     return d
-# def loadJSONFile
 
 
 # Function to get the default settings.
