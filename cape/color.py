@@ -172,6 +172,7 @@ cnames = {
     'yellowgreen': '#9ACD32'
 }
 
+
 # Convert Hex to RGB
 def Hex2RGB(col):
     r"""Convert hex-code color to RGB values

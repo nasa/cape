@@ -433,6 +433,7 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
     :Versions:
         * 2017-03-28 ``@ddalle``: First version
     """
+
     # Get file
     def GetTriqFile(self):
         r"""Get most recent ``triq`` file and its associated iterations
