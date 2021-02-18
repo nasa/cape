@@ -83,6 +83,7 @@ Here is a description of the JSON parameters
 """
 
 # Standard library modules
+import importlib
 import os
 import re
 import sys
@@ -90,9 +91,19 @@ import sys
 # CAPE modules
 from cape.cfdx.options.util import loadJSONFile
 
+# Version-dependent standard library
+if sys.version_info.major > 2:
+    # Import the reload() function
+    from importlib import reload
+
+
+# Defaults
+DEFAULT_TYPE = "module"
+
 
 # DataKit hub class
 class DataKitHub(dict):
+   # --- DUNDER ---
     # Initialization method
     def __init__(self, fjson="datakithub.json"):
         r"""Initialization method
@@ -100,34 +111,361 @@ class DataKitHub(dict):
         :Versions:
             * 2021-02-17 ``@ddalle``: Version 1.0
         """
+        # Initialize fixed attributes
+        self.datakit_modules = {}
+        self.datakit_groupnames = {}
+        # Save folder containing *fjson*
+        self.dir_json = os.path.dirname(os.path.abspath(fjson))
+        self.dir_root = os.path.dirname(self.dir_json)
         # Read the JSON file
         opts = loadJSONFile(fjson)
         # Save it...
         self.update(opts)
 
+   # --- Options ---
     # Find best matching category
     def get_group(self, name):
         r"""Find the first group that matches a datakit *name*
 
         :Call:
-            grpname, grp = hub.get_group(name)
+            >>> grp, grpopts = hub.get_group(name)
         :Inputs:
             *hub*: :class:`DataKitHub`
                 Instance of datakit-reading hub
             *name*: :class:`str`
                 Name of datakit to read
         :Outputs:
-            *grpname*: :class:`str`
+            *grp*: :class:`str`
                 Title of datakit reading group
-            *grp*: :class:`dict`
+            *grpopts*: :class:`dict`
                 Options for that group
         :Versions:
             * 2021-02-17 ``@ddalle``: Version 1.0
         """
         # Loop through sections
-        for grpname, grp in self.items():
+        for grp, grpopts in self.items():
             # Check if *name* matches
-            if re.match(grpname, name):
+            if re.match(grpe, name):
                 # Found a match!
-                return grpname, grp
+                return grp, grpopts
 
+    # Find best matching category
+    def get_group_match(self, name, grp=None):
+        r"""Find the first group that matches a datakit *name*
+
+        :Call:
+            >>> grp = hub.get_group_match(name, grp=None)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *name*: :class:`str`
+                Name of datakit to read
+            *grp*: {``None``} | :class:`str`
+                Optional manual override
+        :Outputs:
+            *grp*: :class:`str`
+                Title of datakit reading group
+            *grpopts*: :class:`dict`
+                Options for that group
+        :Versions:
+            * 2021-02-18 ``@ddalle``: Version 1.0
+        """
+        # Loop through sections
+        for grp, grpopts in self.items():
+            # Check if *name* matches
+            if re.match(grp, name):
+                # Found a match!
+                return grp
+        # Error if no match
+        raise ValueError("No group options for datakit '%s'" % name)
+
+    # Find best matching group (if necessary)
+    def _get_group_match(self, name):
+        r"""Find the first group that matches a datakit *name*
+
+        :Call:
+            >>> grp = hub._get_group_match(name)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *name*: :class:`str`
+                Name of datakit to read
+        :Outputs:
+            *grp*: :class:`str`
+                Title of datakit reading group
+            *grpopts*: :class:`dict`
+                Options for that group
+        :Versions:
+            * 2021-02-18 ``@ddalle``: Version 1.0
+        """
+        # Loop through sections
+        for grp, grpopts in self.items():
+            # Check if *name* matches
+            if re.match(grp, name):
+                # Found a match!
+                return grp
+
+    # Get option from a specific group
+    def get_group_opt(self, grp, opt, vdef=None):
+        r"""Get the *type* of a given datakit group
+
+        :Call:
+            >>> v = hub.get_group_type(grp, opt, vdef=None)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *grp*: :class:`str`
+                Title of datakit reading group
+            *opt*: :class:`str`
+                Name of option to access
+            *vdef*: {``None``} | **any**
+                Default value for *opt*
+        :Outputs:
+            *v*: {*vdef*} | 
+                Value of *hub[grp][opt]* or *vdef*
+        :Versions:
+            * 2021-02-18 ``@ddalle``: Version 1.0
+        """
+        # Get group options
+        grpopts = self.get(grp)
+        # Check type
+        if not isinstance(grpopts, dict):
+            return vdef
+        # Get type
+        return grpopts.get(opt, vdef)
+
+    # Get *type*
+    def get_group_type(self, grp):
+        r"""Get the *type* of a given datakit group
+
+        :Call:
+            >>> typ = hub.get_group_type(grp)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *grp*: :class:`str`
+                Title of datakit reading group
+        :Outputs:
+            *typ*: {``"module"``} | :class:`str`
+                DataKit type
+        :Versions:
+            * 2021-02-17 ``@ddalle``: Version 1.0
+            * 2021-02-18 ``@ddalle``: Version 1.1; use ``get_group_opt``
+        """
+        # Use generic function
+        return self.get_group_opt(grp, "type", DEFAULT_TYPE)
+
+   # --- Read DB ---
+    # Get datakit by name
+    def read_db(self, name, grp=None):
+        r"""Read a datakit from its name
+
+        :Call:
+            >>> db = hub.load_module(name, grp=None)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *name*: :class:`str`
+                Name of datakit to read
+            *grp*: {``None``} | :class:`str`
+                Title of datakit reading group
+        :Outputs:
+            *db*: :class:`DataKit` | **any**
+                Database handle (hopefully a datakit) pointed to by
+                options for *grp*
+        :Versions:
+            * 2021-02-18 ``@ddalle``: Version 1.0
+        """
+        # Get group name if necessary
+        grp = self.get_group_match(name, grp=grp)
+        # Get type
+        typ = self.get_group_type(grp)
+        # Filter type
+        if typ == "module":
+            # Load the module
+            mod = self.load_module(name, grp=grp)
+            # Exit
+            if mod is None:
+                return
+            # Get attribute option
+            attr = self.get_group_opt(grp, "module_attribute")
+            # Try to get attribute
+            if attr:
+                # Get "mod.(attr)"
+                db = getattr(mod, attr, None)
+                # Check if we're done
+                if db is not None:
+                    # Exit
+                    return db
+            # Get a function
+            func = self.get_group_opt(grp, "module_function")
+            # Try to execute a function
+            if func:
+                # Get "mod.(func)"
+                fn = getattr(mod, func, None)
+                # Check if callable
+                if callable(fn):
+                    # Execute the function
+                    db = fn()
+                    # Use it if not ``None``
+                    if db is not None:
+                        return db
+            # Try alternate function(s)
+            funcs = self.get_group_opt(grp, "module_function_alt")
+            # Convert to list
+            if funcs is None:
+                # Replace with empty list
+                funcs = []
+            elif not isinstance(funcs, (list, tuple)):
+                # Replace string with singleton list
+                funcs = [funcs]
+            # Loop through alternates (may be 0 of them)
+            for func in funcs:
+                # Get "mod.(func)"
+                fn = getattr(mod, func, None)
+                # Check if callable
+                if callable(fn):
+                    # Execute the function
+                    db = fn()
+                    # Use it if not ``None``
+                    if db is not None:
+                        return db
+        else:
+            # Unrecognized
+            raise ValueError(
+                "Could not read database type '%s' for '%s'" % (typ, name))
+
+   # --- Module ---
+    # Load module
+    def load_module(self, name, grp=None):
+        r"""Import a ``"module"`` datakit
+
+        :Call:
+            >>> mod = hub.load_module(name, grp=None)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *name*: :class:`str`
+                Name of datakit to read
+            *grp*: {``None``} | :class:`str`
+                Title of datakit reading group
+        :Outputs:
+            *mod*: :class:`module`
+                Python module for *name* (if *grp* has valid *type*)
+        :Versions:
+            * 2021-02-18 ``@ddalle``: Version 1.0
+        """
+        # Check for a previous load
+        mod = self.datakit_modules.get(name)
+        # Check if it's a module
+        if mod is not None:
+            # Just return it
+            return mod
+        # Get group name if necessary
+        grp = self.get_group_match(name, grp=grp)
+        # Get type
+        typ = self.get_group_type(grp)
+        # Filter type
+        if typ == "module":
+            # Get *repo* for system path
+            fdir = self._get_module_dir(grp)
+        else:
+            # Unrecognized
+            raise ValueError("Cannot import module for group type '%s'" % typ)
+        # Append path if needed
+        if fdir and (fdir in sys.path):
+            # Note that no path mod needed
+            qpath = False
+        else:
+            # Note it
+            qpath = True
+            # Add to path
+            sys.path.insert(0, fdir)
+        # Get the module options
+        regex_dict = self.get_group_opt(grp, "module_regex", {})
+        # Get a name
+        modname = self._get_module_name(name, regex_dict)
+        # Check for a match
+        if modname is None:
+            raise ValueError(
+                "No module name found for datakit '%s' from group '%s'"
+                % (name, group))
+        # Load the module
+        try:
+            # Use :mod:`importlib` to load module by string
+            mod = importlib.import_module(modname)
+            # Save module
+            self.datakit_modules[name] = mod
+        except Exception:
+            # Note failure
+            mod = None
+            # Status update
+            print(
+                "Failed to import module '%s' for datakit '%s'"
+                % (modname, name))
+        # Unload path if needed
+        if qpath:
+            sys.path.remove(fdir)
+        # Output
+        return mod
+
+    # Get group path
+    def _get_module_dir(self, grp):
+        r"""Get absolute path to *repo* for a group
+
+        :Call:
+            >>> fabs = hub._get_module_dir(grp)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *grp*: :class:`str`
+                Title of datakit reading group
+        :Outputs:
+            *fabs*: :class:`str` | ``None``
+                Absolute path to *repo* option from *grp*
+        :Versions:
+            * 2021-02-18 ``@ddalle``: Version 1.0
+        """
+        # Get *repo* for system path
+        fdir = self.get_group_opt(grp, "repo")
+        # Check if it's absolute
+        if os.path.isabs(fdir):
+            # Already good
+            return fdir
+        else:
+            # Prepend with *dir_root*
+            return os.path.join(self.dir_root, fdir)
+
+    # Get module name
+    def _get_module_name(self, name, regex_dict):
+        r"""Get module name from datakit and regular expression dict
+
+        :Call:
+            >>> modname = hub._get_module_name(name, regex_dict)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *name*: :class:`str`
+                Name of datakit to read
+            *regex_dict*: :class:`dict`\ [:class:`str`]
+                Rules to replace
+        :Outputs:
+            *modname*: :class:`str` | ``None``
+                Full name of module to import (if *name* matches a
+                regular expression from the keys of *regex_dict*)
+        :Versions:
+            * 2021-02-18 ``@ddalle``: Version 1.0
+        """
+        # Check types
+        if not isinstance(regex_dict, dict):
+            raise TypeError(
+                "Regular expressions must be a 'dict' (got '%s')"
+                % type(regex_dict).__name__)
+        # Loop through regular expressions
+        for regex, pattern in regex_dict.items():
+            # Check for a match
+            if re.match(regex, name):
+                # Match found; use a substitution
+                return re.sub(regex, pattern, name)
+
+                
