@@ -389,7 +389,7 @@ class DataKitHub(dict):
         if modname is None:
             raise ValueError(
                 "No module name found for datakit '%s' from group '%s'"
-                % (name, group))
+                % (name, grp))
         # Load the module
         try:
             # Use :mod:`importlib` to load module by string
