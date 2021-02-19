@@ -288,30 +288,26 @@ class DataKitHub(dict):
             if mod is None:
                 return
             # Get attribute option
-            attr = self.get_group_opt(grp, "module_attribute")
-            # Try to get attribute
-            if attr:
-                # Get "mod.(attr)"
-                db = getattr(mod, attr, None)
-                # Check if we're done
-                if db is not None:
-                    # Exit
-                    return db
-            # Get a function
-            func = self.get_group_opt(grp, "module_function")
-            # Try to execute a function
-            if func:
-                # Get "mod.(func)"
-                fn = getattr(mod, func, None)
-                # Check if callable
-                if callable(fn):
-                    # Execute the function
-                    db = fn()
-                    # Use it if not ``None``
+            attrs = self.get_group_opt(grp, "module_attribute")
+            # Convert to list
+            if attrs is None:
+                # Replace with empty list
+                attrs = []
+            elif not isinstance(attrs, (list, tuple)):
+                # Replace string with singleton list
+                attrs = [attrs]
+            # Loop through alternates (may be 0 of them)
+            for attr in attrs:
+                # Try to get attribute
+                if attr:
+                    # Get "mod.(attr)"
+                    db = getattr(mod, attr, None)
+                    # Check if we're done
                     if db is not None:
+                        # Exit
                         return db
             # Try alternate function(s)
-            funcs = self.get_group_opt(grp, "module_function_alt")
+            funcs = self.get_group_opt(grp, "module_function")
             # Convert to list
             if funcs is None:
                 # Replace with empty list
