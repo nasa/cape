@@ -8977,7 +8977,7 @@ class DataKit(ftypes.BaseData):
             # Check for uncertainty
             if quq:
                 # Set values
-                opts["yerr"] = np.array([uyM, uyP])
+                opts["uy"] = np.array([uyM, uyP])
             # Call the main function
             hi = pmpl.plot(xv, yv, **opts)
             # Apply markers
