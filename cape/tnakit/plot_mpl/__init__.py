@@ -684,7 +684,10 @@ def _part_error(opts, h):
         xv = opts.get_option("x")
         yv = opts.get_option("y")
         # Error magnitudes
-        yerr = kw.get_option("yerr")
+        yerr = opts.get_option("yerr")
+        # Exit if None
+        if yerr is None:
+            return
         # Plot call
         if error_type == "FillBetween":
             # Convert to min/max values
@@ -713,6 +716,9 @@ def _part_uq(opts, h):
         yv = opts.get_option("y")
         # Uncertainty magnitudes
         uy = opts.get_option("uy")
+        # Exit if None
+        if uy is None:
+            return
         # Plot call
         if uq_type == "FillBetween":
             # Convert to min/max values
