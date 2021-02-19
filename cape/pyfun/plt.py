@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 r"""
 :mod:`cape.pyfun.plt`: Interface to FUN3D Tecplot PLT files
 ============================================================
