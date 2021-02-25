@@ -6,14 +6,30 @@ OVERFLOW Bullet Example
 ------------------------
 
 This pyOver example looks at the process from grid generation to execution and
-post-processing for a simple bullet geometry.  This example is located in 
+post-processing for a simple bullet geometry.  This example is located in a
+separate tarball called 
 
-    * ``$CAPE/examples/pyover/01_bullet/``
+    ``pyover01-bullet.tar.gz``
 
-and the folder is fairly empty before beginning this example. This section
-guides the user through generating a grid system using Chimera Grid Tools. The
-resulting surface grid system is shown in :numref:`tab-pyover-bullet-01`, and
-one view of the volume grid is shown in :numref:`fig-pyover-bullet-01`.
+After untarring this file and entering the resulting folder using
+
+    .. code-block:: console
+
+        $ tar -xzvf pyover01-bullet.tar.gz
+        $ cd pyover01-bullet
+
+the folder has the required input files, but it's recommended to copy them to a
+working folder so that it's easy to reset.  Just run the following command:
+
+    .. code-block:: console
+
+        $ ./copy_files.py
+        $ cd work/
+
+This section guides the user through generating a grid system using Chimera
+Grid Tools. The resulting surface grid system is shown in
+:numref:`tab-pyover-bullet-01`, and one view of the volume grid is shown in
+:numref:`fig-pyover-bullet-01`.
 
     .. _tab-pyover-bullet-01:
     .. table:: OVERFLOW surface grid for bullet example
