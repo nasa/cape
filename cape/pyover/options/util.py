@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pyover.options.util`: Utilities for pyOver options module
 =====================================================================
 
@@ -27,6 +27,12 @@ parameter should be is below.
 
 # Import CAPE options utilities
 from cape.cfdx.options.util import *
+
+
+# Local folders
+PYOVER_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+PYOVER_FOLDER = os.path.dirname(PYOVER_OPTS_FOLDER)
+
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -70,8 +76,7 @@ rc["CopyFilesPeg5"] = [[]]
 
 # Function to ensure scalar from above
 def rc0(p):
-    """
-    Return default setting from ``pyCart.options.rc``, but ensure a scalar
+    r"""Get default from *cape.pyover.options.rc*; ensure a scalar
     
     :Call:
         >>> v = rc0(s)
@@ -90,8 +95,7 @@ def rc0(p):
 
 # Function to get the defautl settings.
 def getPyOverDefaults():
-    """
-    Read :file:`pyOver.default.json` default settings configuration file
+    r"""Read ``pyOver.default.json`` default settings file
     
     :Call:
         >>> defs = getPyOverDefaults()
@@ -99,13 +103,11 @@ def getPyOverDefaults():
         *defs*: :class:`dict`
             Dictionary of settings read from JSON file
     :Versions:
-        * 2014-06-03 ``@ddalle``: First version
-        * 2014-07-28 ``@ddalle``: Moved to new options module
-        * 2015-12-29 ``@ddalle``: OVERFLOW version
+        * 2015-12-29 ``@ddalle``: Version 1.0 (OVERFLOW version)
+        * 2021-03-01 ``@ddalle``: Version 2.0; local settings
     """
     # Fixed default file
-    fname = os.path.join(PyOverFolder, 
-        "..", "..", "settings", "pyOver.default.json")
+    fname = os.path.join(PYOVER_OPTS_FOLDER, "pyOver.default.json")
     # Process the default input file
     return loadJSONFile(fname)
     

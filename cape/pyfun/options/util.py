@@ -76,6 +76,7 @@ def rc0(p):
     """
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
+
     
 # Function to get template
 def get_template(fname):
@@ -110,7 +111,7 @@ def getFun3DTemplate(fname):
             Name of file, such as :file:`input.cntl`
     :Outputs:
         *fabs*: :class:`str`
-            Full path to the file, :file:`$PYCART/templates/cart3d/$fname`
+            Full path to the template file
     :Versions:
         * 2016-04-27 ``@ddalle``: Version 1.0
         * 2021-03-01 ``@ddalle``: Version 2.0; see :func:`get_template`
@@ -137,5 +138,4 @@ def getPyFunDefaults():
     fname = os.path.join(PYFUN_OPTS_FOLDER, "pyFun.default.json")
     # Process the default input file.
     return loadJSONFile(fname)
-
 

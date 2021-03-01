@@ -29,11 +29,10 @@ parameter should be is below.
 from cape.cfdx.options.util import *
 
 
-# Get the root directory of the module.
-_fname = os.path.abspath(__file__)
+# Local folders
+PYUS_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+PYUS_FOLDER = os.path.dirname(PYUS_OPTS_FOLDER)
 
-# Saved folder names
-PyUSFolder = os.path.split(os.path.split(_fname)[0])[0]
 
 # Backup default settings
 rc["us3d_prepar_run"] = True
@@ -47,8 +46,7 @@ rc["us3d_gas"] = None
 
 # Function to ensure scalar from above
 def rc0(p):
-    """
-    Return default setting from ``pyCart.options.rc``, but ensure a scalar
+    r"""Return default from *cape.pyus.options.rc*; ensure a scalar
     
     :Call:
         >>> v = rc0(s)
@@ -63,10 +61,11 @@ def rc0(p):
     """
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
-    
+
+
 # Function to get a template file name
 def getUS3DTemplate(fname):
-    """Get full path to template with file name *fname*
+    r"""Get full path to template with file name *fname*
     
     :Call:
         >>> fabs = getUS3DTemplate(fname)
@@ -77,18 +76,35 @@ def getUS3DTemplate(fname):
         *fabs*: :class:`str`
             Full path to the file, :file:`$CAPE/templates/us3d/$fname`
     :Versions:
-        * 2016-04-27 ``@ddalle``: Copied from pyCart
+        * 2016-04-27 ``@ddalle``: Version 1.0
+        * 2021-03-01 ``@ddalle``: Version 2.0; local templates
     """
-    # Construct the path relative to the Cape template folder
-    ff3d = os.path.join('fun3d', fname)
     # Get the full path
-    return getTemplateFile(ff3d)
+    return get_template(fname)
+    
+
+# Function to get template
+def get_template(fname):
+    r"""Get the absolute path to a template file by name
+    
+    :Call:
+        >>> fabs = get_template(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file, such as :file:`input.cntl`
+    :Outputs:
+        *fabs*: :class:`str`
+            Full path to file
+    :Versions:
+        * 2021-03-01 ``@ddalle``: Version 1.0
+    """
+    # Join with BaseFolder and 'templates'
+    return os.path.join(PYUS_FOLDER, 'templates', fname)
 
 
 # Function to get the default settings.
 def getPyUSDefaults():
-    """
-    Read :file:`pyUS.default.json` default settings configuration file
+    r"""Read ``pyUS.default.json`` default settings file
     
     :Call:
         >>> defs = getPyUS()
@@ -96,14 +112,11 @@ def getPyUSDefaults():
         *defs*: :class:`dict`
             Dictionary of settings read from JSON file
     :Versions:
-        * 2014-06-03 ``@ddalle``: First version
-        * 2014-07-28 ``@ddalle``: Moved to new options module
-        * 2019-06-27 ``@ddalle``: US3D version
+        * 2019-06-27 ``@ddalle``: Version 1.0 (US3D)
+        * 2021-03-01 ``@ddalle``: Version 2.0; local JSON file
     """
     # Fixed default file
-    fname = os.path.join(PyUSFolder, 
-        "..", "..", "settings", "pyUS.default.json")
+    fname = os.path.join(PYUS_OPTS_FOLDER, "pyUS.default.json")
     # Process the default input file.
     return loadJSONFile(fname)
-
 

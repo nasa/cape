@@ -73,16 +73,15 @@ setup(
         "cape",
         "cape.attdb",
         "cape.pycart",
-        "cape.pycart.options"
+        "cape.pycart.options",
+        "cape.pyfun",
+        "cape.pyfun.options"
     ],
     package_data={
-        "cape.pycart": [
-            "templates/input.cntl",
-            "templates/aero.csh"
-        ],
-        "cape.pycart.options": [
-            "pyCart.default.json"
-        ],
+        "cape.pycart": ["templates/*"],
+        "cape.pycart.options": ["*.json"],
+        "cape.pyfun": ["templates/*"],
+        "cape.pyfun.options": ["*.json"],
     },
     version="1.0a1",
     description="CAPE computational aerosciences package",
