@@ -72,16 +72,33 @@ setup(
     packages=[
         "cape",
         "cape.attdb",
+        "cape.attdb.ftypes",
+        "cape.cfdx",
+        "cape.cfdx.options",
+        "cape.filecntl",
         "cape.pycart",
         "cape.pycart.options",
         "cape.pyfun",
-        "cape.pyfun.options"
+        "cape.pyfun.options",
+        "cape.pyover",
+        "cape.pyover.options",
+        "cape.tnakit",
+        "cape.tnakit.plot_mpl",
+        "cape.tnakit.textutils"
     ],
     package_data={
+        "cape": [
+            "templates/paraview/*",
+            "templates/tecplot/*"
+        ],
+        "cape.cfdx": ["templates/*"],
+        "cape.cfdx.options": ["*.json"],
         "cape.pycart": ["templates/*"],
         "cape.pycart.options": ["*.json"],
         "cape.pyfun": ["templates/*"],
         "cape.pyfun.options": ["*.json"],
+        "cape.pyover": ["templates/*"],
+        "cape.pyover.options": ["*.json"],
     },
     version="1.0a1",
     description="CAPE computational aerosciences package",

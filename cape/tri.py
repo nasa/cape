@@ -42,11 +42,12 @@ import cape.tnakit.plot_mpl.mpl as mpl
 # Input/output and geometry modules
 from . import io
 from . import geom
+from . import util
 from .cfdx import volcomp
 
 # Utilities
-from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
 from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
+
 
 # Default tolerances for mapping triangulations
 atoldef  = cape.cfdx.options.rc.get("atoldef", 1e-2)
@@ -57,6 +58,7 @@ antoldef = cape.cfdx.options.rc.get("antoldef", 2e-2)
 rntoldef = cape.cfdx.options.rc.get("rntoldef", 1e-4)
 cntoldef = cape.cfdx.options.rc.get("cntoldef", 1e-4)
 rztoldef = cape.cfdx.options.rc.get("rztoldef", 1e-5)
+
 
 # Attempt to load the compiled helper module.
 try:
@@ -69,6 +71,7 @@ try:
 except ImportError:
     # No module
     _cape = None
+
 
 # Function to get a non comment line
 def _readline(f, comment='#'):
@@ -114,7 +117,7 @@ def ReadTriFile(fname, fmt=None):
     :Inputs:
         *fname*: :class:`str`
             Name of Cart3D tri, IDEAS unv, UH3D, or AFLR3 surf file
-        *fmt*: {``None``} | ``"tri"`` | ``"uh3d"`` | ``"unv"`` | ``"surf"``
+        *fmt*: {``None``} | ``"tri"`` | ``"uh3d"`` | :class:`str`
             Format to use; by default determine from the file extension
     :Outputs:
         *tri*: :class:`cape.tri.Tri`
@@ -5064,7 +5067,7 @@ class TriBase(object):
         y = np.mean(self.Nodes[self.Tris-1, 1], axis=1)
         z = np.mean(self.Nodes[self.Tris-1, 2], axis=1)
         # Save the centers
-        self.Centers = stackcol((x,y,z))
+        self.Centers = util.stackcol((x,y,z))
 
     # Get normals and areas
     def GetNormals(self):
@@ -5095,8 +5098,8 @@ class TriBase(object):
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = util.stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = util.stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
         # Calculate the dimensioned normals
         n = np.cross(x01, x02)
         # Calculate the area of each triangle.
@@ -5139,8 +5142,8 @@ class TriBase(object):
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = util.stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = util.stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
         # Calculate the dimensioned normals
         n = np.cross(x01, x02)
         # Save the unit normals.
@@ -5178,8 +5181,8 @@ class TriBase(object):
         Y = self.Nodes[self.Tris-1, 1]
         Z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        X01 = stackcol((X[:,1]-X[:,0], Y[:,1]-Y[:,0], Z[:,1]-Z[:,0]))
-        X02 = stackcol((X[:,2]-X[:,0], Y[:,2]-Y[:,0], Z[:,2]-Z[:,0]))
+        X01 = util.stackcol((X[:,1]-X[:,0], Y[:,1]-Y[:,0], Z[:,1]-Z[:,0]))
+        X02 = util.stackcol((X[:,2]-X[:,0], Y[:,2]-Y[:,0], Z[:,2]-Z[:,0]))
         # Calculate the dimensioned normals
         n = np.cross(X01, X02)
         # Calculate the area of each triangle.
@@ -5233,7 +5236,7 @@ class TriBase(object):
         x12 = np.vstack((x[:,2]-x[:,1], y[:,2]-y[:,1], z[:,2]-z[:,1]))
         x20 = np.vstack((x[:,0]-x[:,2], y[:,0]-y[:,2], z[:,0]-z[:,2]))
         # Calculate lengths.
-        self.Lengths = stackcol((
+        self.Lengths = util.stackcol((
             np.sqrt(np.sum(x01**2, 0)),
             np.sqrt(np.sum(x12**2, 0)),
             np.sqrt(np.sum(x20**2, 0))))
@@ -6344,10 +6347,10 @@ class TriBase(object):
                 # Delete it.
                 os.remove(fi)
         # Copy the template layout file and macro.
-        copy(os.path.join(TecFolder, 'iso-comp.lay'), '.')
-        copy(os.path.join(TecFolder, 'iso-comp.mcr'), '.')
+        copy(os.path.join(util.TECPLOT_TEMPLATES, 'iso-comp.lay'), '.')
+        copy(os.path.join(util.TECPLOT_TEMPLATES, 'iso-comp.mcr'), '.')
         # Get the command for tecplot
-        t360 = GetTecplotCommand()
+        t360 = util.GetTecplotCommand()
         # Create the image.
         print("     Creating image '%s.png' using `%s`" % (fname, t360))
         sp.call([t360, '-b', '-p', 'iso-comp.mcr'], stdout=f)
@@ -6441,7 +6444,7 @@ class TriBase(object):
         for fi in ['cape_stl.py']:
             if os.path.isfile(fi): os.remove(fi)
         # Copy the template Paraview script
-        copy(os.path.join(ParaviewFolder, 'cape_stl.py'), '.')
+        copy(os.path.join(util.PARAVIEW_TEMPLATES, 'cape_stl.py'), '.')
         # Create the image.
         print("      Creating image '%s.png' using `pvpython`" % fname)
         sp.call(['pvpython', 'cape_stl.py', str(r), str(u)], stdout=f)
@@ -7109,8 +7112,8 @@ class Triq(TriBase):
         y = self.Nodes[T, 1]
         z = self.Nodes[T, 2]
         # Get the deltas from node 0->1 and 0->2
-        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = util.stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = util.stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
         # Calculate the dimensioned normals
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
@@ -7314,8 +7317,8 @@ class Triq(TriBase):
         y = self.Nodes[T, 1]
         z = self.Nodes[T, 2]
         # Get the deltas from node 0->1 and 0->2
-        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = util.stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = util.stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
         # Calculate the dimensioned normals
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
@@ -7354,7 +7357,7 @@ class Triq(TriBase):
             # Mass flux [kg/s]
             phi = -rho*(U*N[:,0] + V*N[:,1] + W*N[:,2])
             # Force components
-            Fm = stackcol((phi*U,phi*V,phi*W))
+            Fm = util.stackcol((phi*U,phi*V,phi*W))
         else:
             # Conventional: $\hat{u}=\frac{\rho u}{\rho_\infty a_\infty}$
             # Average density
@@ -7370,7 +7373,7 @@ class Triq(TriBase):
             # Average mass flux, done wrongly for consistency with `triload`
             phi = -(U*N[:,0] + V*N[:,1] + W*N[:,2])
             # Force components
-            Fm = stackcol((phi*rhoU,phi*rhoV,phi*rhoW))
+            Fm = util.stackcol((phi*rhoU,phi*rhoV,phi*rhoW))
        # --------------
        # Viscous Forces
        # --------------
@@ -7380,7 +7383,7 @@ class Triq(TriBase):
             FYV = np.mean(Q[T,7], axis=1) * A
             FZV = np.mean(Q[T,8], axis=1) * A
             # Force components
-            Fv = stackcol((FXV, FYV, FZV))
+            Fv = util.stackcol((FXV, FYV, FZV))
         elif self.nq >= 13:
             # Overset grid information
             # Inverted Reynolds number [in]
@@ -7469,10 +7472,10 @@ class Triq(TriBase):
         Mvy = ((zc-zMRP)*Fv[:,0] - (xc-xMRP)*Fv[:,2])/Lref
         Mvz = ((zc-xMRP)*Fv[:,1] - (yc-yMRP)*Fv[:,0])/bref
         # Assemble
-        Mp = stackcol((Mpx,Mpy,Mpz))
-        Mvac = stackcol((Mcx,Mcy,Mcz))
-        Mm = stackcol((Mmx,Mmy,Mmz))
-        Mv = stackcol((Mvx,Mvy,Mvz))
+        Mp = util.stackcol((Mpx,Mpy,Mpz))
+        Mvac = util.stackcol((Mcx,Mcy,Mcz))
+        Mm = util.stackcol((Mmx,Mmy,Mmz))
+        Mv = util.stackcol((Mvx,Mvy,Mvz))
         # Add up forces
         if gauge:
             # Use *pinf* as reference pressure

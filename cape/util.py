@@ -30,8 +30,14 @@ capeFolder = os.path.split(os.path.abspath(__file__))[0]
 rootFolder = os.path.split(capeFolder)[0]
 # Folder containing TecPlot templates
 TecFolder = os.path.join(rootFolder, "templates", "tecplot")
-# Folder containing Paraview templates
-ParaviewFolder = os.path.join(rootFolder, "templates", "paraview")
+
+
+# CAPE folder
+CAPE_FOLDER = os.path.dirname(os.path.abspath(__file__))
+# Template folders
+CAPE_TEMPLATES = os.path.join(CAPE_FOLDER, "templates")
+PARAVIEW_TEMPLATES = os.path.join(CAPE_TEMPLATES, "paraview")
+TECPLOT_TEMPLATES = os.path.join(CAPE_TEMPLATES, "tecplot")
 
 # Stack vectors
 def stackcol(cols):
