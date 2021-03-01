@@ -21,6 +21,11 @@ import io
 # Third-party modules
 import numpy as np
 
+
+# Local folders
+CAPE_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+CAPE_FOLDER = os.path.dirname(CAPE_OPTS_FOLDER)
+
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
 
@@ -523,10 +528,11 @@ def getCapeDefaults():
         *defs*: :class:`dict`
             Dictionary of settings read from JSON file
     :Versions:
-        * 2015-09-20 ``@ddalle``: First version
+        * 2015-09-20 ``@ddalle``: Version 1.0
+        * 2021-03-01 ``@ddalle``: Version 2.0; local JSON file
     """
     # File name
-    fname = os.path.join(BaseFolder, 'settings', 'cape.default.json')
+    fname = os.path.join(CAPE_OPTS_FOLDER, 'cape.default.json')
     # Read the settings.
     return getDefaults(fname)
     
