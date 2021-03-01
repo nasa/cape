@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pyfun.options.util`: Utilities for pyFun options module
 ===================================================================
 
@@ -29,11 +29,10 @@ what the value of a given parameter should be is below.
 # Import CAPE options utilities
 from cape.cfdx.options.util import *
 
-# Get the root directory of the module.
-_fname = os.path.abspath(__file__)
 
-# Saved folder names
-PyFunFolder = os.path.split(os.path.split(_fname)[0])[0]
+# Local folders
+PYFUN_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+PYFUN_FOLDER = os.path.dirname(PYFUN_OPTS_FOLDER)
 
 # Backup default settings
 rc["project_rootname"]     ="pyfun"
@@ -62,8 +61,7 @@ rc["namelist_dist_tolerance"] = 1.0e-3
 
 # Function to ensure scalar from above
 def rc0(p):
-    """
-    Return default setting from ``pyCart.options.rc``, but ensure a scalar
+    r"""Get default from *cape.pyfun.options.rc*; ensure a scalar
     
     :Call:
         >>> v = rc0(s)
@@ -74,14 +72,36 @@ def rc0(p):
         *v*: any
             Either ``rc[s]`` or ``rc[s][0]``, whichever is appropriate
     :Versions:
-        * 2014-08-01 ``@ddalle``: First version
+        * 2014-08-01 ``@ddalle``: Version 1.0
     """
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
     
+# Function to get template
+def get_template(fname):
+    r"""Get the absolute path to a template file by name
+    
+    :Call:
+        >>> fabs = get_template(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file, such as :file:`input.cntl`
+    :Outputs:
+        *fabs*: :class:`str`
+            Full path to file
+    :Versions:
+        * 2015-10-26 ``@ddalle``: Version 1.0; :func:`getTemplateFolder`
+        * 2021-03-01 ``@ddalle``: Version 2.0
+            - Moved to ``cape/pyfun/`` folder
+            - Compatible with :mod:`setuptools`
+    """
+    # Join with BaseFolder and 'templates'
+    return os.path.join(PYFUN_FOLDER, 'templates', fname)
+
+    
 # Function to get a template file name
 def getFun3DTemplate(fname):
-    """Get full path to template with file name *fname*
+    r"""Get full path to template with file name *fname*
     
     :Call:
         >>> fabs = getFun3DTemplate(fname)
@@ -92,18 +112,16 @@ def getFun3DTemplate(fname):
         *fabs*: :class:`str`
             Full path to the file, :file:`$PYCART/templates/cart3d/$fname`
     :Versions:
-        * 2016-04-27 ``@ddalle``: Copied from pyCart
+        * 2016-04-27 ``@ddalle``: Version 1.0
+        * 2021-03-01 ``@ddalle``: Version 2.0; see :func:`get_template`
     """
-    # Construct the path relative to the Cape template folder
-    ff3d = os.path.join('fun3d', fname)
     # Get the full path
-    return getTemplateFile(ff3d)
+    return get_template(fname)
 
 
 # Function to get the defautl settings.
 def getPyFunDefaults():
-    """
-    Read :file:`pyCart.default.json` default settings configuration file
+    r"""Read ``pyFun.default.json`` default JSON file
     
     :Call:
         >>> defs = getPyFunDefaults()
@@ -111,12 +129,12 @@ def getPyFunDefaults():
         *defs*: :class:`dict`
             Dictionary of settings read from JSON file
     :Versions:
-        * 2014-06-03 ``@ddalle``: First version
-        * 2014-07-28 ``@ddalle``: Moved to new options module
+        * 2014-06-03 ``@ddalle``: Version 1.0
+        * 2014-07-28 ``@ddalle``: Version 1.1; :mod:`options` module
+        * 2021-03-01 ``@ddalle``: Version 2.0; local JSON file
     """
     # Fixed default file
-    fname = os.path.join(PyFunFolder, 
-        "..", "..", "settings", "pyFun.default.json")
+    fname = os.path.join(PYFUN_OPTS_FOLDER, "pyFun.default.json")
     # Process the default input file.
     return loadJSONFile(fname)
 

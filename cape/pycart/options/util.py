@@ -29,15 +29,11 @@ parameter should be is below.
 # Import CAPE options utilities
 from cape.cfdx.options.util import *
 
+
 # Local folders
 PYCART_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PYCART_FOLDER = os.path.dirname(PYCART_OPTS_FOLDER)
 
-# This file absolute path
-_fname = os.path.abspath(__file__)
-
-# Saved folder names
-PyCartFolder = os.path.split(os.path.split(_fname)[0])[0]
 
 # Backup default settings (in case deleted from :file:`pyCart.defaults.json`)
 rc["InputCntl"] = "input.cntl"
@@ -137,8 +133,7 @@ rc["TarPBS"] = "tar"
 
 # Function to ensure scalar from above
 def rc0(p):
-    """
-    Return default setting from ``pyCart.options.rc``, but ensure a scalar
+    r"""Get setting from *cape.pycart.options.rc*, but ensure a scalar
     
     :Call:
         >>> v = rc0(s)
@@ -149,7 +144,7 @@ def rc0(p):
         *v*: any
             Either ``rc[s]`` or ``rc[s][0]``, whichever is appropriate
     :Versions:
-        * 2014-08-01 ``@ddalle``: First version
+        * 2014-08-01 ``@ddalle``: Version 1.0
     """
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
@@ -157,13 +152,14 @@ def rc0(p):
 
 # Function to get template
 def get_template(fname):
-    """Get the absolute path to a template file by name
+    r"""Get the absolute path to a template file by name
     
     :Call:
         >>> fabs = get_template(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file, such as :file:`input.cntl`
+    :Outputs:
         *fabs*: :class:`str`
             Full path to file
     :Versions:
