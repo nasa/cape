@@ -17,9 +17,11 @@ PY_MINOR_VERSION = sys.version_info.minor
 if PY_MAJOR_VERSION == 2:
     # Standard library modules
     from ConfigParser import SafeConfigParser
+    # Change name
+    ConfigParser = SafeConfigParser
 else:
     # Standard library modules
-    from configparser import SafeConfigParser
+    from configparser import ConfigParser
 
 # Config file
 fcfg = "config%i.cfg" % PY_MAJOR_VERSION
@@ -30,7 +32,7 @@ fdir = os.path.dirname(os.path.realpath(__file__))
 fcape = os.path.join(fdir, "cape")
 
 # Get a get/set type object
-config = SafeConfigParser()
+config = ConfigParser()
 # Read the configuration options
 config.read(os.path.join(fcape, fcfg))
 
@@ -69,8 +71,19 @@ setup(
     name="cape",
     packages=[
         "cape",
-        "cape.attdb"
+        "cape.attdb",
+        "cape.pycart",
+        "cape.pycart.options"
     ],
+    package_data={
+        "cape.pycart": [
+            "templates/input.cntl",
+            "templates/aero.csh"
+        ],
+        "cape.pycart.options": [
+            "pyCart.default.json"
+        ],
+    },
     version="1.0a1",
     description="CAPE computational aerosciences package",
     ext_modules=exts)

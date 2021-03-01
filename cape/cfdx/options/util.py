@@ -17,6 +17,8 @@ import re
 import json
 import copy
 import io
+
+# Third-party modules
 import numpy as np
 
 # Get the root directory of the module.
@@ -309,8 +311,6 @@ def rc0(p):
     """
     # Use the `getel` function to do this.
     return getel(rc.get(p), 0)
-    
-    
 
 
 # Regular expression for JSON file inclusion
@@ -318,6 +318,7 @@ regex = re.compile(
     r'(?P<before>.*)' +
     r'(?P<cmd>JSONFile\("(?P<json>[-\w.+= /\\]+)"\))' +
     r'(?P<after>.*)')
+
 
 # Function to expand CSV file inputs
 def expandJSONFile(fname):

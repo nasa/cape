@@ -93,7 +93,7 @@ class Options(cape.cfdx.options.Options):
             for k in d:
                 kw[k] = d[k]
         # Read the defaults.
-        defs = getPyCartDefaults()
+        defs = get_pycart_defaults()
         
         # Apply the defaults.
         kw = applyDefaults(kw, defs)
@@ -220,7 +220,7 @@ class Options(cape.cfdx.options.Options):
     
     # Method to get the input file
     def get_InputCntl(self):
-        """Return the name of the master :file:`input.cntl` file
+        r"""Return the name of the master ``input.cntl`` file
         
         :Call:
             >>> fname = opts.get_InputCntl()

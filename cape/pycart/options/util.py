@@ -29,7 +29,11 @@ parameter should be is below.
 # Import CAPE options utilities
 from cape.cfdx.options.util import *
 
-# Get the root directory of the module.
+# Local folders
+PYCART_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+PYCART_FOLDER = os.path.dirname(PYCART_OPTS_FOLDER)
+
+# This file absolute path
 _fname = os.path.abspath(__file__)
 
 # Saved folder names
@@ -149,28 +153,52 @@ def rc0(p):
     """
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
+    
+
+# Function to get template
+def get_template(fname):
+    """Get the absolute path to a template file by name
+    
+    :Call:
+        >>> fabs = get_template(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file, such as :file:`input.cntl`
+        *fabs*: :class:`str`
+            Full path to file
+    :Versions:
+        * 2015-10-26 ``@ddalle``: Version 1.0; :func:`getTemplateFolder`
+        * 2021-03-01 ``@ddalle``: Version 2.0
+            - Moved to ``cape/pycart/`` folder
+            - Compatible with :mod:`setuptools`
+    """
+    # Join with BaseFolder and 'templates'
+    return os.path.join(PYCART_FOLDER, 'templates', fname)
 
 
 # Function to get the default settings.
-def getPyCartDefaults():
-    """
-    Read :file:`pyCart.default.json` default settings configuration file
+def get_pycart_defaults():
+    r"""Read ``pyCart.default.json`` default settings file
     
     :Call:
-        >>> defs = getPyCartDefaults()
+        >>> defs = get_pycart_defaults()
     :Outputs:
         *defs*: :class:`dict`
             Dictionary of settings read from JSON file
     :Versions:
-        * 2014-06-03 ``@ddalle``: First version
-        * 2014-07-28 ``@ddalle``: Moved to new options module
+        * 2014-06-03 ``@ddalle``: Version 1.0
+        * 2014-07-28 ``@ddalle``: Version 1.1; :mod:`options` module
+        * 2021-03-01 ``@ddalle``: Version 1.2
+            - local JSON file
+            - :mod:`setuptools` compatible
+            - was :func:`getPyCartDefaults`
     """
     # Fixed default file
-    fname = os.path.join(PyCartFolder, 
-        "..", "..", "settings", "pyCart.default.json")
+    fname = os.path.join(PYCART_OPTS_FOLDER, "pyCart.default.json")
     # Process the default input file
     return loadJSONFile(fname)
-    
+
+
 # Function to get a template file name
 def getCart3DTemplate(fname):
     """Get full path to template with file name *fname*
@@ -184,10 +212,9 @@ def getCart3DTemplate(fname):
         *fabs*: :class:`str`
             Full path to the file, :file:`$PYCART/templates/cart3d/$fname`
     :Versions:
-        * 2015-10-26 ``@ddalle``: First version
+        * 2015-10-26 ``@ddalle``: Version 1.0
+        * 2021-03-01 ``@ddalle``: Version 2.0; see :func:`get_template`
     """
-    # Construct the path relative to the Cape template folder
-    fc3d = os.path.join('cart3d', fname)
     # Get the full path
-    return getTemplateFile(fc3d)
+    return get_template(fc3d)
         
