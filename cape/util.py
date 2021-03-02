@@ -748,12 +748,18 @@ def readline(f, comment='#'):
     # Return the line.
     return line
 
+
 # Function to get Tecplot command
 def GetTecplotCommand():
-    """Return the Tecplot 360 command on the current system
+    r"""Return the Tecplot 360 command on the current system
 
-    The preference is 'tec360EX', 'tec360', 'tecplot'.  An exception is raised
-    if none of these commands can be found.
+    The preference is 
+    
+        1. ``"tec360EX"`
+        2. ``"tec360"``
+        3. ``"tecplot"``.
+
+    An exception is raised if none of these commands can be found.
 
     :Call:
         >>> cmd = cape.util.GetTecplotCommand()
@@ -761,20 +767,21 @@ def GetTecplotCommand():
         *cmd*: :class:`str`
             Name of the command to the current 'tec360' command
     :Versions:
-        * 2015-03-02 ``@ddalle``: First version
+        * 2015-03-02 ``@ddalle``: Version 1.0
+        * 2021-03-01 ``@ddalle``: Version 1.1; avoid ``/dev/null``
     """
-    # Shut up about output.
-    f = open('/dev/null', 'w')
     # Loop through list of possible commands
     for cmd in ['tec360EX', 'tec360', 'tecplot']:
         # Use `which` to see where the command might be.
-        ierr = sp.call(['which', cmd], stdout=f, stderr=f)
-        # Check.
-        if ierr: continue
+        ierr = sp.call(['which', cmd], stdout=sp.PIPE, stderr=sp.PIPE)
+        # Check
+        if ierr:
+            continue
         # If this point is reached, we found the command.
         return cmd
     # If this point is reached, no command was found.
     raise SystemError('No Tecplot360 command found')
+
 
 # Function to fix "NoneType is not iterable" nonsense
 def denone(x):
