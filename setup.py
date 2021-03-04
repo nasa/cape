@@ -109,6 +109,12 @@ setup(
         "bin/pc_Tri2UH3D.py",
         "bin/pc_UH3D2Tri.py",
         "bin/pf_Plt2Triq.py",
+        "bin/pycart2",
+        "bin/pycart3",
+        "bin/pyfun2",
+        "bin/pyfun3",
+        "bin/pyover2",
+        "bin/pyover3",
         "bin/run_flowCart.py",
         "bin/run_fun3d.py",
         "bin/run_overflow.py"
