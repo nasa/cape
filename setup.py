@@ -100,6 +100,26 @@ setup(
         "cape.pyover": ["templates/*"],
         "cape.pyover.options": ["*.json"],
     },
+    scripts=[
+        "bin/cape-writell",
+        "bin/pc_Step2Crv.py",
+        "bin/pc_StepTri2Crv.py",
+        "bin/pc_Tri2Plt.py",
+        "bin/pc_Tri2Surf.py",
+        "bin/pc_Tri2UH3D.py",
+        "bin/pc_UH3D2Tri.py",
+        "bin/pf_Plt2Triq.py",
+        "bin/run_flowCart.py",
+        "bin/run_fun3d.py",
+        "bin/run_overflow.py"
+    ],
+    entry_points={
+        "console_scripts": [
+            "pycart=cape.pycart.cli:main",
+            "pyfun=cape.pyfun.cli:main",
+            "pyover=cape.pyover.cli:main"
+        ],
+    },
     version="1.0a1",
     description="CAPE computational aerosciences package",
     ext_modules=exts)

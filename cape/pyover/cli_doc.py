@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+r"""
+:mod:`cape.pyover.cli_doc`: Create help message for ``pyover``
+===============================================================
+
+This module formats the output of ``pyover -h`` by filling in some slots
+from :mod:`cape.cfdx.cli_doc`.
+
+"""
 
 # Standard library modules
 import os
@@ -65,7 +73,7 @@ _fmt = {
 _template = cape.cfdx.cli_doc.template
 
 # Create docstring for PYCART; add version info
-__doc__ = _template % _fmt + r"""
+PYOVER_HELP = _template % _fmt + r"""
     --stop, --stop STOP
         Stop one or more cases at iteration *STOP* (or immediately if
         iteration not specified) (currently broken)
@@ -73,9 +81,10 @@ __doc__ = _template % _fmt + r"""
 :Versions:
     * 2014-10-06 ``@ddalle``: Version 1.0 (of ``pycart``)
     * 2015-10-16 ``@ddalle``: Version 1.0
+    * 2021-03-04 ``@ddalle``: Version 1.1; use "entry_points"
 """
 
 
 # Print help if appropriate.
 if __name__ == "__main__":
-    print(__doc__)
+    print(PYOVER_HELP)

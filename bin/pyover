@@ -1,39 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-# System modules
+import re
 import sys
-
-# CAPE modules
-import cape.argread
-import cape.text
-
-# Primary modules
-import cape.pyover as main
-import cape.pyover.cli_doc as doc
-
-
-# Get docstring
-__doc__ = doc.__doc__
-
-# Check if run as a script.
+from cape.pyover.cli import main
 if __name__ == "__main__":
-    # Parse inputs.
-    a, kw = cape.argread.readflagstar(sys.argv)
-
-    # Check for a help flag.
-    if kw.get('h') or kw.get('help'):
-        # Print marked-down docstring
-        print(cape.text.markdown(__doc__))
-        # Exit
-        sys.exit()
-
-    # Get file name.
-    fname = kw.get('f', "%s.json" % doc.TITLE)
-
-    # Try to read it.
-    cntl = main.Cntl(fname)
-
-    # Call the command-line interface
-    cntl.cli(*a, **kw)
-
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
