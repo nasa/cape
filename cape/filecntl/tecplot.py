@@ -33,7 +33,7 @@ import numpy as np
 # CAPE modules
 from cape.cfdx.bin import tecmcr
 from cape.color    import ToRGB, Hex2RGB
-from cape.util     import TecFolder
+from cape.util     import TECPLOT_TEMPLATES
 
 # Local modules
 from .filecntl import FileCntl
@@ -59,7 +59,7 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):
     """
     # Macro file name
     fmcr = "export-lay.mcr"
-    fsrc = os.path.join(TecFolder, fmcr)
+    fsrc = os.path.join(TECPLOT_TEMPLATES, fmcr)
     # Open the macro interface.
     tec = TecMacro(fsrc)
     # Set the layout file name

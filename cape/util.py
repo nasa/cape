@@ -25,13 +25,6 @@ except ImportError:
     pass
 
 
-# cape base folder
-capeFolder = os.path.split(os.path.abspath(__file__))[0]
-rootFolder = os.path.split(capeFolder)[0]
-# Folder containing TecPlot templates
-TecFolder = os.path.join(rootFolder, "templates", "tecplot")
-
-
 # CAPE folder
 CAPE_FOLDER = os.path.dirname(os.path.abspath(__file__))
 # Template folders
