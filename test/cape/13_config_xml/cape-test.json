@@ -1,0 +1,22 @@
+{
+    "CopyFiles": [
+        "test01_config_xml.py"
+    ],
+    "Commands": [
+        "python2 test01_config_xml.py",
+        "python3 test01_config_xml.py"
+    ],
+    "CommandTitles": [
+        "XML Configuration: Python 2",
+        "XML Configuration: Python 3"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out"
+    ],
+    "DocFilesShow": "test01_config_xml.py",
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
