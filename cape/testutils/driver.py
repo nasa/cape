@@ -1506,7 +1506,7 @@ class TestDriver(object):
                     # Read file
                     lines = open(fsrc).readlines()
                     # Check for content
-                    if len(linnes) > 0:
+                    if len(lines) > 0:
                         # Write directive to show file
                         f.write("\n")
                         f.write(tab*2)
@@ -1550,7 +1550,7 @@ class TestDriver(object):
                     # Read file
                     lines = open(fsrc).readlines()
                     # Check for content
-                    if len(linnes) > 0:
+                    if len(lines) > 0:
                         # Write directive to show file
                         f.write("\n")
                         f.write(tab*2)

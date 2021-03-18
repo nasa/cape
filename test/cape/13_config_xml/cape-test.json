@@ -1,20 +1,58 @@
 {
     "CopyFiles": [
-        "test01_config_xml.py"
+        "arrow.json",
+        "arrow.xml",
+        "test01_config_xml.py",
+        "test02_config_xml.py",
+        "test03_config_xml.py"
     ],
     "Commands": [
         "python2 test01_config_xml.py",
-        "python3 test01_config_xml.py"
+        "python3 test01_config_xml.py",
+        "python2 test02_config_xml.py",
+        "python3 test02_config_xml.py",
+        "python2 test03_config_xml.py",
+        "python3 test03_config_xml.py"
     ],
     "CommandTitles": [
-        "XML Configuration: Python 2",
-        "XML Configuration: Python 3"
+        "Read JSON Configuration: Python 2",
+        "Read JSON Configuration: Python 3",
+        "Read XML Configuration: Python 2",
+        "Read XML Configuration: Python 3",
+        "Compare XML Configurations: Python 2",
+        "Compare XML Configurations: Python 3"
+    ],
+    "CompareFile":[
+        null,
+        null,
+        null,
+        null,
+        "arrow2.xml",
+        "arrow2.xml"
+    ],
+    "TargetFile":[
+        null,
+        null,
+        null,
+        null,
+        "arrow.xml",
+        "arrow.xml"
     ],
     "TargetSTDOUT": [
         "test.01.out",
-        "test.01.out"
+        "test.01.out",
+        "test.02.out",
+        "test.02.out",
+        "test.03.out",
+        "test.03.out"
     ],
-    "DocFilesShow": "test01_config_xml.py",
+    "ShowTargetFile": 1,
+    "ShowCompareFile": 1,
+    "DocFilesShow": [
+        "test01_config_xml.py",
+        "test02_config_xml.py",
+        "test03_config_xml.py"
+    ],
     "DocFilesLexer": "python",
     "DocFolder": "doc/test/cape",
     "RootLevel": -3,

@@ -5,4 +5,4 @@
 import cape.config
 
 # Read JSON config
-cfgj = cape.config.ConfigJSON("arrow.json")
+cfgx = cape.config.ConfigXML("arrow.xml")
