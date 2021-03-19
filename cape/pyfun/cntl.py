@@ -1401,6 +1401,8 @@ class Cntl(cape.cntl.Cntl):
         self.PrepareNamelistConfig()
         # Set up boundary point stuff
         self.PrepareNamelistBoundaryPoints()
+        # Set up boundary list
+        self.PrepareNamelistBoundaryList()
 
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
@@ -1795,6 +1797,49 @@ class Cntl(cape.cntl.Cntl):
                     PS[j-1], (":", ngeom, j))
         # Set number of geometries
         nml.SetVar('sampling_parameters', 'number_of_geometries', ngeom)
+
+    # Set boundary list
+    def PrepareNamelistBoundaryList(self):
+        r"""Write the correct boundary list in namelist
+
+        :Call:
+            >>> cntl.SetBoundaryList()
+        :Inputs:
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
+                FUN3D settings interface
+        :Versions:
+            * 2021-03-18 ``@jmeeroff``: First version
+        """
+        # Check for MapBC interface
+        try:
+            self.MapBC
+        except AttributeError:
+            raise AttributeError("Interface to FUN3D 'mapbc' file not found")
+
+        # Initialize
+        surf = []
+        # Namelist handle
+        nml = self.Namelist
+        # Fun3d reorders surfaces internally on 1-based system
+        for k in range(self.MapBC.n):
+            # Get the boundary type
+            BC = self.MapBC.BCs[k]
+            # Check for  wall
+            if BC in [3000, 4000, 4100, 4110]:
+                surf.append(k+1)
+            # Sort the surface IDs to prepare RangeString
+            surf.sort()
+            # Convert to string
+            if len(surf) > 0: inp = RangeString(surf)
+
+        # Check if boundary list appears in json
+        jinp = self.opts['Fun3D']['boundary_output_variables'].get('boundary_list')
+        # If it exists, use these values
+        if jinp:
+            inp = jinp
+        # Set namelist value
+        nml.SetVar('boundary_output_variables', 'boundary_list', inp)
+
    # ]
 
    # -----------
