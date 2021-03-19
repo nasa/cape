@@ -1,12 +1,12 @@
 ['run']
-{'filter': 'b2', 'c': True, '_old': []}
+{'c': True, 'filter': 'b2', '_old': []}
 ['run']
-{'filter': 'b2', 'c': True, '_old': []}
+{'c': True, 'filter': 'b2', '_old': []}
 []
-{'c': True, 'aero': 'fin', '_old': [{'aero': 'body'}, {'aero': 'base'}]}
+{'aero': 'fin', 'c': True, '_old': [{'aero': 'body'}, {'aero': 'base'}]}
 ['run']
-{'filter': 'b2', 'c': True, '_old': []}
+{'c': True, 'filter': 'b2', '_old': []}
 ['run', 'b2']
-{'c': True, 'r': True, '_old': [], 'f': True}
+{'c': True, 'f': True, 'r': True, '_old': []}
 ['run']
-{'c': True, 'r': 'b2', '_old': [], 'f': True}
+{'c': True, 'r': 'b2', 'f': True, '_old': []}

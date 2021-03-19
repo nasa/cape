@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2020-04-01 at 11:35 PDT
+   on 2021-03-19 at 09:49 PDT
 
 Test ``11_rdb_writecsv``
 ==========================
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/pycart/test/attdb/11_rdb_writecsv/``
+    ``/u/wk/ddalle/usr/pycart/test/attdb/11_rdb_writecsv/``
 
 and the working folder for the test is
 
@@ -36,8 +36,8 @@ Command 1: Simple dense CSV writer: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.246963 seconds
-    * Cumulative time: 0.246963 seconds
+    * Command took 0.396363 seconds
+    * Cumulative time: 0.396363 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -62,8 +62,8 @@ Command 2: Simple dense CSV writer: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.456976 seconds
-    * Cumulative time: 0.703939 seconds
+    * Command took 0.562531 seconds
+    * Cumulative time: 0.958894 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -88,8 +88,8 @@ Command 3: CSV writer with defaults: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.244973 seconds
-    * Cumulative time: 0.948912 seconds
+    * Command took 0.217212 seconds
+    * Cumulative time: 1.17611 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -114,8 +114,8 @@ Command 4: CSV writer with defaults: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.46403 seconds
-    * Cumulative time: 1.41294 seconds
+    * Command took 0.50906 seconds
+    * Cumulative time: 1.68517 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-01-14 at 23:14 PST
+   on 2021-03-19 at 09:50 PDT
 
 Test ``16_rdb_read_tsv``
 ==========================
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/cape/test/attdb/16_rdb_read_tsv/``
+    ``/u/wk/ddalle/usr/pycart/test/attdb/16_rdb_read_tsv/``
 
 and the working folder for the test is
 
@@ -36,8 +36,8 @@ Command 1: Simple dense TSV reader: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.180236 seconds
-    * Cumulative time: 0.180236 seconds
+    * Command took 0.214668 seconds
+    * Cumulative time: 0.214668 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -66,8 +66,8 @@ Command 2: Simple dense TSV reader: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.27769 seconds
-    * Cumulative time: 0.457926 seconds
+    * Command took 0.505351 seconds
+    * Cumulative time: 0.720019 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -96,8 +96,8 @@ Command 3: Main TSV reader: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.180847 seconds
-    * Cumulative time: 0.638773 seconds
+    * Command took 0.216767 seconds
+    * Cumulative time: 0.936786 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -126,8 +126,8 @@ Command 4: Main TSV reader: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.280217 seconds
-    * Cumulative time: 0.91899 seconds
+    * Command took 0.512178 seconds
+    * Cumulative time: 1.44896 seconds
 :STDOUT:
     * **PASS**
     * Target:

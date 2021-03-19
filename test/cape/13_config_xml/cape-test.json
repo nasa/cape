@@ -22,32 +22,14 @@
         "Compare XML Configurations: Python 2",
         "Compare XML Configurations: Python 3"
     ],
-    "CompareFile":[
-        null,
-        null,
-        null,
-        null,
-        "arrow2.xml",
-        "arrow2.xml"
-    ],
-    "TargetFile":[
-        null,
-        null,
-        null,
-        null,
-        "arrow.xml",
-        "arrow.xml"
-    ],
     "TargetSTDOUT": [
-        "test.01.out",
-        "test.01.out",
-        "test.02.out",
-        "test.02.out",
+        null,
+        null,
+        null,
+        null,
         "test.03.out",
         "test.03.out"
     ],
-    "ShowTargetFile": 1,
-    "ShowCompareFile": 1,
     "DocFilesShow": [
         "test01_config_xml.py",
         "test02_config_xml.py",
