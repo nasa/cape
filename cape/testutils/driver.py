@@ -1499,10 +1499,6 @@ class TestDriver(object):
                     continue
                 # Include instructions
                 if show_work:
-                    # Image directive
-                    f.write("\n")
-                    f.write(tab*2)
-                    f.write(".. code-block:: none\n\n")
                     # Read file
                     lines = open(fsrc).readlines()
                     # Check for content
@@ -1510,7 +1506,7 @@ class TestDriver(object):
                         # Write directive to show file
                         f.write("\n")
                         f.write(tab*2)
-                        f.write(tab + "  .. code-block:: none\n\n")
+                        f.write("  .. code-block:: none\n\n")
                         # Loop through lines
                         for line in lines:
                             # Indent it 12 spaces

@@ -2,12 +2,12 @@
 .. This documentation written by TestDriver()
    on 2021-03-19 at 09:48 PDT
 
-Test ``07_dbfm_regularize``
-=============================
+Test ``04_rdb_regularize``
+============================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/07_dbfm_regularize/``
+    ``/u/wk/ddalle/usr/pycart/test/attdb/04_rdb_regularize/``
 
 and the working folder for the test is
 
@@ -36,19 +36,17 @@ Command 1: Regularize using griddata: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.508141 seconds
-    * Cumulative time: 0.508141 seconds
+    * Command took 0.482347 seconds
+    * Cumulative time: 0.482347 seconds
 :STDOUT:
     * **PASS**
     * Target:
 
       .. code-block:: none
 
-        regularized cols:
-            reg.alpha     : 578  reg.beta      : 578  reg.bullet.CA : 578
-            reg.bullet.CY : 578  reg.bullet.CN : 578  reg.bullet.CLL: 578
-            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.q         : 578
-            reg.T         : 578  reg.mach      : 578
+        max error(regalpha) = 0.00
+        max error(regbeta)  = 0.00
+        monotonic(regCN): True
         
 
 :STDERR:
@@ -58,10 +56,10 @@ Command 1: Regularize using griddata: Python 2
       .. code-block:: pytb
 
         Traceback (most recent call last):
-          File "test01_griddata.py", line 38, in <module>
-            fmcols, ["alpha", "beta"], prefix="reg.", scol="mach")
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 10650, in regularize_by_griddata
-            iargs, *x, I=masks[i], **kw)
+          File "test01_griddata.py", line 25, in <module>
+            db.regularize_by_griddata("CN", ["alpha", "beta"], prefix="reg")
+          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 10604, in regularize_by_griddata
+            W = self.genr8_griddata_weights(args, *x, **kw)
           File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 6878, in genr8_griddata_weights
             W1 = sciint.griddata(x, kmode, y, method, rescale=rescale)
         TypeError: griddata() got an unexpected keyword argument 'rescale'

@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2020-03-27 at 11:08 PDT
+   on 2021-03-19 at 09:48 PDT
 
 Test ``09_rdb_lleval``
 ========================
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/pycart/test/attdb/09_rdb_lleval/``
+    ``/u/wk/ddalle/usr/pycart/test/attdb/09_rdb_lleval/``
 
 and the working folder for the test is
 
@@ -34,8 +34,8 @@ Command 1: Interpolate line loads: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.513976 seconds
-    * Cumulative time: 0.513976 seconds
+    * Command took 13.7837 seconds
+    * Cumulative time: 13.7837 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -46,6 +46,7 @@ Command 1: Interpolate line loads: Python 2
         alpha: 1.50
         beta: 0.50
         bullet.dCN.size: 51
+        bullet.dCN.xargs: ['bullet.x']
         
 
 :STDERR:
@@ -65,8 +66,8 @@ Command 2: Interpolate line loads: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.85598 seconds
-    * Cumulative time: 1.36996 seconds
+    * Command took 5.00335 seconds
+    * Cumulative time: 18.7871 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -77,6 +78,7 @@ Command 2: Interpolate line loads: Python 3
         alpha: 1.50
         beta: 0.50
         bullet.dCN.size: 51
+        bullet.dCN.xargs: ['bullet.x']
         
 
 :STDERR:

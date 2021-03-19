@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-17 at 13:19 PST
+   on 2021-03-19 at 09:48 PDT
 
 Test ``01_import``
 ====================
@@ -29,6 +29,7 @@ The commands executed by this test are
         
         # Import ftypes module(s)
         import cape.attdb.rdbnull
+        import cape.attdb.rdbscalar
         
 
 Command 1: Import :mod:`cape.attdb.rdbnull`: Python2
@@ -40,36 +41,25 @@ Command 1: Import :mod:`cape.attdb.rdbnull`: Python2
         $ python2 test01_import.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.395871 seconds
-    * Cumulative time: 0.395871 seconds
+    * Command took 0.476219 seconds
+    * Cumulative time: 0.476219 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Import :mod:`cape.attdb.rdbnull`: Python3
------------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
+        Traceback (most recent call last):
+          File "test01_import.py", line 5, in <module>
+            import cape.attdb.rdbnull
+        ImportError: No module named rdbnull
+        
 
-        $ python3 test01_import.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.712087 seconds
-    * Cumulative time: 1.10796 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
 
