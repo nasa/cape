@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2020-03-27 at 10:22 PDT
+   on 2021-03-19 at 09:48 PDT
 
 Test ``08_dbfm_eval``
 =======================
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/pycart/test/attdb/08_dbfm_eval/``
+    ``/u/wk/ddalle/usr/pycart/test/attdb/08_dbfm_eval/``
 
 and the working folder for the test is
 
@@ -40,8 +40,8 @@ Command 1: Evaluate FM cols: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.878742 seconds
-    * Cumulative time: 0.878742 seconds
+    * Command took 0.398279 seconds
+    * Cumulative time: 0.398279 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -76,8 +76,8 @@ Command 2: Evaluate FM cols: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.466389 seconds
-    * Cumulative time: 1.34513 seconds
+    * Command took 0.561863 seconds
+    * Cumulative time: 0.960142 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -112,8 +112,8 @@ Command 3: Evaluate *CLMX* and *CLNX*: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.251039 seconds
-    * Cumulative time: 1.59617 seconds
+    * Command took 0.226174 seconds
+    * Cumulative time: 1.18632 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -147,8 +147,8 @@ Command 4: Evaluate *CLMX* and *CLNX*: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.465641 seconds
-    * Cumulative time: 2.06181 seconds
+    * Command took 0.520876 seconds
+    * Cumulative time: 1.70719 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -177,13 +177,13 @@ Command 5: Evaluate *q* and *T*: Python 2
         $ python2 test03_q.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.24992 seconds
-    * Cumulative time: 2.31173 seconds
+    * Command took 0.319079 seconds
+    * Cumulative time: 2.02627 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -196,115 +196,23 @@ Command 5: Evaluate *q* and *T*: Python 2
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 6: Evaluate *q* and *T*: Python 3
-------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_q.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.470897 seconds
-    * Cumulative time: 2.78263 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        q: 1250.00
-        T: 475.33
+        Traceback (most recent call last):
+          File "test03_q.py", line 34, in <module>
+            print("%s: %.2f" % (col, db(col, mach)))
+          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 1594, in __call__
+            return self.rcall(col, *a, **kw)
+          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 1702, in rcall
+            v = f(col, args_col, *x, **kw_fn)
+          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 3709, in rcall_multilinear
+            return self._rcall_multilinear(col, args, x, **kw)
+          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 3792, in _rcall_multilinear
+            ("but total size of args %s is %i." % (args, np.prod(N))))
+        ValueError: ("Column 'q' has size 578, ", "but total size of args ['mach'] is 2.")
         
 
-:STDERR:
-    * **PASS**
-
-Command 7: Process *aoap* and *phip*: Python 2
------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test04_aoap.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.255492 seconds
-    * Cumulative time: 3.03812 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        aoa : 1.50
-        beta: 0.50
-        aoap: 1.5811
-        phip: 18.4373
-        bullet.CA : 0.241 0.241 0.241
-        bullet.CY : 0.022 0.022 0.022
-        bullet.CN : 0.067 0.067 0.067
-        bullet.CLL: 0.000 0.000 0.000
-        bullet.CLM: 0.218 0.218 0.218
-        bullet.CLN: 0.073 0.073 0.073
-        aoap: size=578, dtype=float64
-        phip: size=578, dtype=float64
-        
-
-:STDERR:
-    * **PASS**
-
-Command 8: Process *aoap* and *phip*: Python 3
------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test04_aoap.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.472202 seconds
-    * Cumulative time: 3.51032 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        aoa : 1.50
-        beta: 0.50
-        aoap: 1.5811
-        phip: 18.4373
-        bullet.CA : 0.241 0.241 0.241
-        bullet.CY : 0.022 0.022 0.022
-        bullet.CN : 0.067 0.067 0.067
-        bullet.CLL: 0.000 0.000 0.000
-        bullet.CLM: 0.218 0.218 0.218
-        bullet.CLN: 0.073 0.073 0.073
-        aoap: size=578, dtype=float64
-        phip: size=578, dtype=float64
-        
-
-:STDERR:
-    * **PASS**
 

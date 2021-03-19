@@ -2,12 +2,12 @@
 .. This documentation written by TestDriver()
    on 2021-03-19 at 09:48 PDT
 
-Test ``06_rdb_integrate``
-===========================
+Test ``02_rdb_io``
+====================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/06_rdb_integrate/``
+    ``/u/wk/ddalle/usr/pycart/test/attdb/02_rdb_io/``
 
 and the working folder for the test is
 
@@ -17,16 +17,16 @@ The commands executed by this test are
 
     .. code-block:: console
 
-        $ python2 test01_trapz.py
-        $ python3 test01_trapz.py
+        $ python2 test01_csv_to_mat.py
+        $ python3 test01_csv_to_mat.py
 
-Command 1: Trapezoidal line load integration: Python 2
--------------------------------------------------------
+Command 1: CSV read; MAT write/read: Python 2
+----------------------------------------------
 
 :Command:
     .. code-block:: console
 
-        $ python2 test01_trapz.py
+        $ python2 test01_csv_to_mat.py
 
 :Return Code:
     * **FAIL**
@@ -34,26 +34,16 @@ Command 1: Trapezoidal line load integration: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.514338 seconds
-    * Cumulative time: 0.514338 seconds
+    * Command took 0.627647 seconds
+    * Cumulative time: 0.627647 seconds
 :STDOUT:
     * **PASS**
     * Target:
 
       .. code-block:: none
 
-        cols:
-            aoap        bullet.x    bullet.dCA  bullet.dCY 
-            bullet.dCN  q           beta        T          
-            phip        alpha       mach        bullet.dCLL
-            bullet.dCLM bullet.dCLN bullet.CA   bullet.CY  
-            bullet.CN   bullet.CLL  bullet.CLM  bullet.CLN 
-        values:
-               mach: 0.80
-              alpha: 2.00
-               beta: 0.00
-          bullet.CN: 0.09
-         bullet.CLM: 0.29
+        Case 13: m0.95a5.00 CA=0.526
+        Case 13: m0.95a5.00 CA=0.526
         
 
 :STDERR:
@@ -63,8 +53,8 @@ Command 1: Trapezoidal line load integration: Python 2
       .. code-block:: pytb
 
         Traceback (most recent call last):
-          File "test01_trapz.py", line 54, in <module>
-            db.write_mat("bullet-FM-LL.mat")
+          File "test01_csv_to_mat.py", line 22, in <module>
+            db.write_mat("aero_arrow_no_base.mat")
           File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 1538, in write_mat
             dbmat.write_mat(fname, cols=cols, attrs=attrs)
           File "/u/wk/ddalle/usr/pycart/cape/attdb/ftypes/matfile.py", line 428, in write_mat
@@ -77,7 +67,7 @@ Command 1: Trapezoidal line load integration: Python 2
             self.write(arr)
           File "/usr/lib64/python2.7/site-packages/scipy/io/matlab/mio5.py", line 638, in write
             % (arr, type(arr)))
-        TypeError: Could not convert <scipy.io.matlab.mio5_params.mat_struct object at 0x7fa3aaecbfd0> (type <class 'scipy.io.matlab.mio5_params.mat_struct'>) to array
+        TypeError: Could not convert <scipy.io.matlab.mio5_params.mat_struct object at 0x7f504a365390> (type <class 'scipy.io.matlab.mio5_params.mat_struct'>) to array
         
 
 

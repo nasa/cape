@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-01-14 at 23:01 PST
+   on 2021-03-19 at 09:50 PDT
 
 Test ``15_rdb_write_tsv``
 ===========================
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/cape/test/attdb/15_rdb_write_tsv/``
+    ``/u/wk/ddalle/usr/pycart/test/attdb/15_rdb_write_tsv/``
 
 and the working folder for the test is
 
@@ -36,8 +36,8 @@ Command 1: Simple dense TSV writer: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.18098 seconds
-    * Cumulative time: 0.18098 seconds
+    * Command took 0.39943 seconds
+    * Cumulative time: 0.39943 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -62,8 +62,8 @@ Command 2: Simple dense TSV writer: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.27871 seconds
-    * Cumulative time: 0.45969 seconds
+    * Command took 0.564907 seconds
+    * Cumulative time: 0.964337 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -88,8 +88,8 @@ Command 3: TSV writer with defaults: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.179882 seconds
-    * Cumulative time: 0.639571 seconds
+    * Command took 0.221204 seconds
+    * Cumulative time: 1.18554 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -114,8 +114,8 @@ Command 4: TSV writer with defaults: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.277621 seconds
-    * Cumulative time: 0.917192 seconds
+    * Command took 0.512081 seconds
+    * Cumulative time: 1.69762 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

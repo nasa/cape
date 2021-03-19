@@ -2,12 +2,12 @@
 .. This documentation written by TestDriver()
    on 2021-03-19 at 09:48 PDT
 
-Test ``07_dbfm_regularize``
-=============================
+Test ``05_rdb_llreg``
+=======================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/07_dbfm_regularize/``
+    ``/u/wk/ddalle/usr/pycart/test/attdb/05_rdb_llreg/``
 
 and the working folder for the test is
 
@@ -19,11 +19,9 @@ The commands executed by this test are
 
         $ python2 test01_griddata.py
         $ python3 test01_griddata.py
-        $ python2 test02_rbf.py
-        $ python3 test02_rbf.py
 
-Command 1: Regularize using griddata: Python 2
------------------------------------------------
+Command 1: Regularize line load using griddata: Python 2
+---------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -36,19 +34,15 @@ Command 1: Regularize using griddata: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.508141 seconds
-    * Cumulative time: 0.508141 seconds
+    * Command took 0.48794 seconds
+    * Cumulative time: 0.48794 seconds
 :STDOUT:
     * **PASS**
     * Target:
 
       .. code-block:: none
 
-        regularized cols:
-            reg.alpha     : 578  reg.beta      : 578  reg.bullet.CA : 578
-            reg.bullet.CY : 578  reg.bullet.CN : 578  reg.bullet.CLL: 578
-            reg.bullet.CLM: 578  reg.bullet.CLN: 578  reg.q         : 578
-            reg.T         : 578  reg.mach      : 578
+        reg.bullet.dCN.shape = [51, 578]
         
 
 :STDERR:
@@ -58,8 +52,8 @@ Command 1: Regularize using griddata: Python 2
       .. code-block:: pytb
 
         Traceback (most recent call last):
-          File "test01_griddata.py", line 38, in <module>
-            fmcols, ["alpha", "beta"], prefix="reg.", scol="mach")
+          File "test01_griddata.py", line 29, in <module>
+            prefix="reg.")
           File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 10650, in regularize_by_griddata
             iargs, *x, I=masks[i], **kw)
           File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 6878, in genr8_griddata_weights
