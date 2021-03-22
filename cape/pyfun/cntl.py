@@ -1425,6 +1425,8 @@ class Cntl(cape.cntl.Cntl):
             # Main folder
             fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
 
+        # Prepare Adiabatic walls
+        self.PrepareNamelistAdiabaticWalls()
         # Prepare internal boundary conditions
         self.PrepareNamelistBoundaryConditions()
         # Write the BC file
@@ -1740,6 +1742,36 @@ class Cntl(cape.cntl.Cntl):
                 # Set the temperature
                 if temp is None:
                     # Use adiabatic wall
+                    nml.SetVar(bcs, wtk, -1, k+1)
+
+    # Set adiabatic boundary condition flags
+    def PrepareNamelistAdiabaticWalls(self):
+        r"""Prepare any boundary condition flags if needed
+
+        :Call:
+            >>> cntl.PrepareNamelistAdiabaitcWalls()
+        :Inputs:
+            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
+                FUN3D settings interface
+        :Versions:
+            * 2021-03-22 ``@jmeeroff``: First version
+        """
+        # Namelist handle
+        nml = self.Namelist
+        # Save some labels
+        bcs = "boundary_conditions"
+        wtf = "wall_temp_flag"
+        wtk = "wall_temperature"
+        # Check for adiabatic flag
+        if self.opts.get_Adiabatic():
+            print("  Setting namelist options for adiabatic walls...")
+            # Set the wall temperature flag for adiabatic wall
+            for k in range(self.MapBC.n):
+                # Get the boundary type
+                BC = self.MapBC.BCs[k]
+                # Check for viscous wall
+                if BC in [4000, 4100, 4110]:
+                    nml.SetVar(bcs, wtf, True, k+1)
                     nml.SetVar(bcs, wtk, -1, k+1)
 
     # Set boundary points

@@ -341,6 +341,43 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         """
         self.set_key('Adaptive', ac, i)
         
+    # Get adiabatic wall status
+    def get_Adiabatic(self, i=None):
+        """Return whether or not to run with adiabatic walls
+        
+        :Call:
+            >>> ac = opts.get_Adiabatic(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *ac*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not to use `aero.csh`
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        return self.get_key('Adiabatic', i)
+        
+    # Set adiabatic wall status
+    def set_Adiabatic(self, ac=rc0('Adiabatic'), i=None):
+        """Return whether or not to run adaptively
+        
+        :Call:
+            >>> opts.set_Adiabatic(ac, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *ac*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not to use `aero.csh`
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        self.set_key('Adiabatic', ac, i)
+
     # Get Dual status
     def get_Dual(self, i=None):
         """Return whether or not to run in dual-mode with an adjoint
