@@ -76,6 +76,16 @@ _fname = os.path.abspath(__file__)
 # Saved folder names
 PyFunFolder = os.path.split(_fname)[0]
 
+# Adiabatic wall set
+ADIABATIC_WALLBCS = {4000, 4100, 4110}
+
+# boundary_list wall set
+BLIST_WALLBCS = {
+    3000, 4000, 4100, 4110,
+    5051, 5052, 7011, 7012,
+    7021, 7031, 7036, 7100, 
+    7101, 7103, 7104, 7105
+    }
 
 # Class to read input files
 class Cntl(cape.cntl.Cntl):
@@ -1403,6 +1413,8 @@ class Cntl(cape.cntl.Cntl):
         self.PrepareNamelistBoundaryPoints()
         # Set up boundary list
         self.PrepareNamelistBoundaryList()
+        # Prepare Adiabatic walls
+        self.PrepareNamelistAdiabaticWalls()
 
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
@@ -1425,8 +1437,7 @@ class Cntl(cape.cntl.Cntl):
             # Main folder
             fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
 
-        # Prepare Adiabatic walls
-        self.PrepareNamelistAdiabaticWalls()
+
         # Prepare internal boundary conditions
         self.PrepareNamelistBoundaryConditions()
         # Write the BC file
@@ -1749,7 +1760,7 @@ class Cntl(cape.cntl.Cntl):
         r"""Prepare any boundary condition flags if needed
 
         :Call:
-            >>> cntl.PrepareNamelistAdiabaitcWalls()
+            >>> cntl.PrepareNamelistAdiabiticWalls()
         :Inputs:
             *fun3d*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D settings interface
@@ -1760,19 +1771,43 @@ class Cntl(cape.cntl.Cntl):
         nml = self.Namelist
         # Save some labels
         bcs = "boundary_conditions"
+        adi = "adiabatic_wall"
         wtf = "wall_temp_flag"
         wtk = "wall_temperature"
+        # Get Namelist adiabatic walls entry
+        wallbc = self.opts['Fun3D'][bcs].pop(adi, None)
         # Check for adiabatic flag
-        if self.opts.get_Adiabatic():
+        if wallbc:
             print("  Setting namelist options for adiabatic walls...")
-            # Set the wall temperature flag for adiabatic wall
-            for k in range(self.MapBC.n):
-                # Get the boundary type
-                BC = self.MapBC.BCs[k]
-                # Check for viscous wall
-                if BC in [4000, 4100, 4110]:
-                    nml.SetVar(bcs, wtf, True, k+1)
-                    nml.SetVar(bcs, wtk, -1, k+1)
+            # If 'true' set all walls to adiabatic
+            if type(wallbc) == bool:
+                for k in range(self.MapBC.n):
+                    # Get the boundary type
+                    BC = self.MapBC.BCs[k]
+                    # Check for viscous wall
+                    if BC in ADIABATIC_WALLBCS:
+                        # Set the wall temperature flag for adiabatic wall
+                        nml.SetVar(bcs, wtf, True, k+1)
+                        nml.SetVar(bcs, wtk, -1, k+1)
+            else:
+                # Ensure list
+                if type(wallbc).__name__ not in ['list', 'ndarray']:
+                    wallbc = [wallbc]
+                for j in wallbc:
+                    if type(j) == str:
+                        k = self.MapBC.GetSurfIndex(self.config.GetCompID(j))
+                    else:
+                        k = self.MapBC.GetSurfIndex(j)
+                    # Get the boundary type
+                    BC = self.MapBC.BCs[k]
+                    # Check for viscous wall
+                    if BC in ADIABATIC_WALLBCS:
+                        # Set the wall temperature flag for adiabatic wall
+                        nml.SetVar(bcs, wtf, True, k+1)
+                        nml.SetVar(bcs, wtk, -1, k+1)
+                    else:
+                        raise ValueError("WARNING: Trying to set non-viscous "
+                        "boundaries to adiabatic, check input files...")
 
     # Set boundary points
     def PrepareNamelistBoundaryPoints(self):
@@ -1852,23 +1887,24 @@ class Cntl(cape.cntl.Cntl):
         surf = []
         # Namelist handle
         nml = self.Namelist
-        # Fun3d reorders surfaces internally on 1-based system
-        for k in range(self.MapBC.n):
-            # Get the boundary type
-            BC = self.MapBC.BCs[k]
-            # Check for  wall
-            if BC in [3000, 4000, 4100, 4110]:
-                surf.append(k+1)
-            # Sort the surface IDs to prepare RangeString
-            surf.sort()
-            # Convert to string
-            if len(surf) > 0: inp = RangeString(surf)
-
         # Check if boundary list appears in json
-        jinp = self.opts['Fun3D']['boundary_output_variables'].get('boundary_list')
+        blist = self.opts['Fun3D']['boundary_output_variables'].get('boundary_list')
         # If it exists, use these values
-        if jinp:
-            inp = jinp
+        if blist:
+            inp = blist
+        else:
+            # Read from mapbc file
+            # Fun3d reorders surfaces internally on 1-based system
+            for k in range(self.MapBC.n):
+                # Get the boundary type
+                BC = self.MapBC.BCs[k]
+                # Check for  wall
+                if BC in BLIST_WALLBCS:
+                    surf.append(k+1)
+                # Sort the surface IDs to prepare RangeString
+                surf.sort()
+                # Convert to string
+                if len(surf) > 0: inp = RangeString(surf)
         # Set namelist value
         nml.SetVar('boundary_output_variables', 'boundary_list', inp)
 
