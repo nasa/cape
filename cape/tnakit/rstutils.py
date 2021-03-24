@@ -602,8 +602,11 @@ def py2rst_list(V, **kw):
             ``"None"``, ``"str"``, ``"__repr__"``, and ``"__str__"``
         *fmts*: :class:`dict`\ [:class:`str`]
             Specific *fmt* for types ``"int"`` and/or ``"float"``
+        *strlist*: ``True`` | {``False``}
+            Option to always use list for lists of strings
     :Versions:
-        * 2019-04-25 ``@ddalle``: First version
+        * 2019-04-25 ``@ddalle``: Versopm 1.0
+        * 2021-03-24 ``@ddalle``: Version 1.1; *strlist* option
     """
     # Check input types
     if not isinstance(V, (list, tuple, set)):
@@ -626,7 +629,7 @@ def py2rst_list(V, **kw):
         if L < minstrlen:
             qstr = False
     # Check for string conversion
-    if qstr:
+    if qstr and not kw.get("strlist", False):
         return py2rst_str("\n".join(V), **kw)
     # Otherwise begin actual list
     # Get remaining options
