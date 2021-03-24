@@ -375,16 +375,6 @@ class Options(cape.cfdx.options.Options):
    # Namelist settings
    # =================
    # <
-    # Adiabatic setting
-    def get_Adiabatic(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_Adiabatic(i)
-    
-    # Adiabatic setting
-    def set_Adiabatic(self, ac=rc0('Adiabatic'), i=None):
-        self._RunControl()            
-        self['RunControl'].set_Adiabatic(ac, i)
-
     # Project settings
     def get_project(self, i=None):
         self._Fun3D()
@@ -435,7 +425,6 @@ class Options(cape.cfdx.options.Options):
         self._MovingBodyInput()
         return self['MovingBodyInput'].set_namelist_var(sec, key, val, i)
         
-    
     # Downselect
     def select_namelist(self, i=None):
         self._Fun3D()

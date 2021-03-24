@@ -185,7 +185,7 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
                     fmt["meta"] = meta
                 elif isinstance(meta, dict):
                     # Convert to :class:`dict` to reST text
-                    curtxt = rstutils.py2rst(meta, indent=indent)
+                    curtxt = rstutils.py2rst(meta, indent=indent, strlist=True)
                     # Save to dictionary
                     fmt["meta"] = curtxt.lstrip()
                 else:
