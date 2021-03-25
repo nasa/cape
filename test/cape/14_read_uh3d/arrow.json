@@ -17,6 +17,11 @@
         ]
     },
     "Properties": {
+        "bullet_total": {
+            "aflr3_bc": -1,
+            "blds": 5.0e-5,
+            "fun3d_bc": 3000
+        },
         "cap": 1,
         "body": 2,
         "base": 3,
