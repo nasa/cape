@@ -1,0 +1,12 @@
+Reading source triangulation
+Writing ConfigXML file
+  arrow.xml
+  No parent for component 'bullet_total'
+Mapping AFLR3 boundary conditions
+Writing AFLR3 boundary conditions summary
+Mapping FUN3D boundary conditions
+Writing surface TRI file
+ Writing arrow-tri10k.lr4.tri
+Writing combined surface PLT file
+  Creating PLT interface
+  Writing arrow-tri10k.plt

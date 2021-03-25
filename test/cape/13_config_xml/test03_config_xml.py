@@ -14,4 +14,8 @@ cfgj.WriteXML("arrow2.xml", Name="bullet sample", Source="bullet.tri")
 with open("arrow2.xml", "r") as f:
     # Print lines of f
     for line in f:
-        print(line)
+        # Skip comments
+        if line.startswith(" <!--"):
+            continue
+        else:
+            print(line)
