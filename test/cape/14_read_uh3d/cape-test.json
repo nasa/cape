@@ -1,0 +1,26 @@
+{
+    "CopyFiles": [
+        "arrow.uh3d",
+        "arrow.json",
+        "test01_read_uh3d.py"
+    ],
+    "Commands": [
+        "python2 test01_read_uh3d.py",
+        "python3 test01_read_uh3d.py"
+    ],
+    "CommandTitles": [
+        "Read UH3D: Python 2",
+        "Read UH3D: Python 3"
+    ],
+    "TargetSTDOUT": [
+        "test.01.out",
+        "test.01.out"
+    ],
+    "DocFilesShow": [
+        "test01_read_uh3d.py"
+    ],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/cape",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
