@@ -77,7 +77,7 @@ _fname = os.path.abspath(__file__)
 PyFunFolder = os.path.split(_fname)[0]
 
 # Adiabatic wall set
-ADIABATIC_WALLBCS = {4000, 4100, 4110}
+ADIABATIC_WALLBCS = {3000, 4000, 4100, 4110}
 
 # boundary_list wall set
 BLIST_WALLBCS = {
@@ -1775,39 +1775,40 @@ class Cntl(cape.cntl.Cntl):
         wtf = "wall_temp_flag"
         wtk = "wall_temperature"
         # Get Namelist adiabatic walls entry
-        wallbc = self.opts['Fun3D'][bcs].pop(adi, None)
-        # Check for adiabatic flag
-        if wallbc:
-            print("  Setting namelist options for adiabatic walls...")
-            # If 'true' set all walls to adiabatic
-            if type(wallbc) == bool:
-                for k in range(self.MapBC.n):
-                    # Get the boundary type
-                    BC = self.MapBC.BCs[k]
-                    # Check for viscous wall
-                    if BC in ADIABATIC_WALLBCS:
-                        # Set the wall temperature flag for adiabatic wall
-                        nml.SetVar(bcs, wtf, True, k+1)
-                        nml.SetVar(bcs, wtk, -1, k+1)
-            else:
-                # Ensure list
-                if type(wallbc).__name__ not in ['list', 'ndarray']:
-                    wallbc = [wallbc]
-                for j in wallbc:
-                    if type(j) == str:
-                        k = self.MapBC.GetSurfIndex(self.config.GetCompID(j))
-                    else:
-                        k = self.MapBC.GetSurfIndex(j)
-                    # Get the boundary type
-                    BC = self.MapBC.BCs[k]
-                    # Check for viscous wall
-                    if BC in ADIABATIC_WALLBCS:
-                        # Set the wall temperature flag for adiabatic wall
-                        nml.SetVar(bcs, wtf, True, k+1)
-                        nml.SetVar(bcs, wtk, -1, k+1)
-                    else:
-                        raise ValueError("WARNING: Trying to set non-viscous "
-                        "boundaries to adiabatic, check input files...")
+        if bcs in self.opts['Fun3D']:
+            wallbc = self.opts['Fun3D'][bcs].pop(adi, False)
+            # Check for adiabatic flag
+            if wallbc:
+                print("  Setting namelist options for adiabatic walls...")
+                # If 'true' set all walls to adiabatic
+                if type(wallbc) == bool:
+                    for k in range(self.MapBC.n):
+                        # Get the boundary type
+                        BC = self.MapBC.BCs[k]
+                        # Check for viscous wall
+                        if BC in ADIABATIC_WALLBCS:
+                            # Set the wall temperature flag for adiabatic wall
+                            nml.SetVar(bcs, wtf, True, k+1)
+                            nml.SetVar(bcs, wtk, -1, k+1)
+                else:
+                    # Ensure list
+                    if type(wallbc).__name__ not in ['list', 'ndarray']:
+                        wallbc = [wallbc]
+                    for j in wallbc:
+                        if type(j) == str:
+                            k = self.MapBC.GetSurfIndex(self.config.GetCompID(j))
+                        else:
+                            k = self.MapBC.GetSurfIndex(j)
+                        # Get the boundary type
+                        BC = self.MapBC.BCs[k]
+                        # Check for viscous wall
+                        if BC in ADIABATIC_WALLBCS:
+                            # Set the wall temperature flag for adiabatic wall
+                            nml.SetVar(bcs, wtf, True, k+1)
+                            nml.SetVar(bcs, wtk, -1, k+1)
+                        else:
+                            raise ValueError("WARNING: Trying to set non-viscous "
+                            "boundaries to adiabatic, check input files...")
 
     # Set boundary points
     def PrepareNamelistBoundaryPoints(self):
