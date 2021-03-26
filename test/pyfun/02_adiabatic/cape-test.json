@@ -1,0 +1,34 @@
+{
+    "CopyFiles": [
+        "pyFun.json",
+        "fun3d.nml",
+        "matrix.csv",
+        "bullet-far.tri",
+        "bullet-inviscid.ugrid",
+        "bullet-inviscid.mapbc",
+        "bullet.xml",
+        "matrix.csv"
+    ],
+    "Commands": [
+        "pyfun -I 0 --no-start",
+        "cat bullet/m0.80a0.0b0.0/fun3d.00.nml" 
+    ],
+    "CommandTitles": [
+        "Create Input Files",
+        "Check Adiabatic BC Setting"
+    ],
+    "TargetSTDOUT": [
+        null,
+        "out.nml"
+    ],
+    "ShowSTDOUT": [
+        false,
+        false
+    ],
+    "ShowTargetFile": false,
+    "DocFilesShow": [],
+    "DocFilesLexer": "python",
+    "DocFolder": "doc/test/pyfun",
+    "RootLevel": -3,
+    "LexerSTDERR": "pytb"
+}
