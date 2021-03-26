@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Import standard libraries
-import sys
-
 # Import third-party libraries
 import numpy as np
 
