@@ -1,0 +1,10 @@
+          9
+     21      5050      farfield_front
+     22      5050      farfield_top
+     23      5050      farfield_left
+     24      5050      farfield_bottom
+     25      5050      farfield_right
+     26      5050      farfield_back
+      1      3000      cap
+      2      3000      body
+      3      3000      base

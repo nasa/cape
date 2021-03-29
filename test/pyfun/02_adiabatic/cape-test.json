@@ -1,6 +1,8 @@
 {
     "CopyFiles": [
-        "pyFun.json",
+        "pyFun01.json",
+        "pyFun02.json",
+        "pyFun03.json",
         "fun3d.nml",
         "matrix.csv",
         "bullet-far.tri",
@@ -10,18 +12,34 @@
         "matrix.csv"
     ],
     "Commands": [
-        "pyfun -I 0 --no-start",
-        "cat bullet/m0.80a0.0b0.0/fun3d.00.nml" 
+        "pyfun -f pyFun01.json -I 0 --no-start",
+        "cat bullet/m0.80a0.0b0.0/fun3d.00.nml",
+        "pyfun -f pyFun02.json -I 1 --no-start",
+        "cat bullet/m0.80a4.0b0.0/fun3d.00.nml",
+        "pyfun -f pyFun03.json -I 2 --no-start",
+        "cat bullet/m0.80a10.0b0.0/fun3d.00.nml" 
     ],
     "CommandTitles": [
         "Create Input Files",
-        "Check Adiabatic BC Setting"
+        "Check Adiabatic BC Setting : all boundaries",
+        "Create Input Files",
+        "Check Adiabatic BC Setting : specified wall selection",
+        "Create Input Files",
+        "Check Adiabatic BC Setting : no boundaries"
     ],
     "TargetSTDOUT": [
         null,
-        "out.nml"
+        "out01.nml",
+        null,
+        "out02.nml",
+        null,
+        "out03.nml"
     ],
     "ShowSTDOUT": [
+        false,
+        false,
+        false,
+        false,
         false,
         false
     ],

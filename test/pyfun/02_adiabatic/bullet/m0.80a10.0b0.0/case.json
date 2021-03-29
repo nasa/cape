@@ -1,0 +1,121 @@
+{
+ "nIter": [
+  100, 
+  100
+ ], 
+ "PhaseIters": [
+  0, 
+  200
+ ], 
+ "dual": {}, 
+ "Archive": {
+  "PostTarDirs": [
+   "fomo", 
+   "lineload", 
+   "aero"
+  ], 
+  "PreUpdateFiles": [], 
+  "PreDeleteFiles": [
+   "*.bomb", 
+   "core.*", 
+   "nan_locations*"
+  ], 
+  "SkeletonFiles": [
+   "case.json", 
+   "conditions.json", 
+   "archive.log", 
+   "run.[0-9]*.[0-9]*", 
+   "*hist.dat", 
+   "*hist.[0-9]*.dat", 
+   "fun3d.out", 
+   "fun3d.[0-9]*.nml", 
+   {
+    "*_tec_boundary_timestep*.plt": 1
+   }, 
+   {
+    "*_tec_boundary_timestep*.triq": 1
+   }
+  ], 
+  "PostDeleteDirs": [], 
+  "PreTarGroups": [], 
+  "PostDeleteFiles": [], 
+  "PreTarDirs": [], 
+  "ArchiveFiles": [
+   {
+    "*_volume.tec": 1
+   }, 
+   {
+    "*.grid_info": 1
+   }, 
+   {
+    "*.flow": 1
+   }, 
+   {
+    "*.ugrid": 1
+   }, 
+   {
+    "*.cgns": 1
+   }
+  ], 
+  "PostTarGroups": [
+   {
+    "pyfun": [
+     "case.json", 
+     "conditions.json", 
+     "run.[0-9]*.[0-9]*", 
+     "run_fun3d.*pbs"
+    ]
+   }, 
+   {
+    "fun3d": [
+     "fun3d.*", 
+     "*.freeze", 
+     "*.mapbc", 
+     "faux_input", 
+     "rubber.data"
+    ]
+   }, 
+   {
+    "fm": [
+     "*_fm_*.dat", 
+     "*hist.dat", 
+     "*hist.??.dat"
+    ]
+   }, 
+   {
+    "pyfun_tec": [
+     "*.plt", 
+     "*_tec_*.dat", 
+     "*.szplt"
+    ]
+   }
+  ]
+ }, 
+ "PhaseSequence": [
+  0, 
+  1
+ ], 
+ "ulimit": {
+  "s": 4194304
+ }, 
+ "InputSeq": [
+  0
+ ], 
+ "mpicmd": "mpiexec", 
+ "aflr3": {}, 
+ "qsub": false, 
+ "MPI": false, 
+ "IterSeq": [
+  200
+ ], 
+ "Continue": true, 
+ "Environ": {}, 
+ "verify": {}, 
+ "intersect": {}, 
+ "nProc": 8, 
+ "Resubmit": false, 
+ "Adaptive": false, 
+ "nodet": {
+  "animation_freq": 100
+ }
+}
