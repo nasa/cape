@@ -144,8 +144,8 @@ To see of the options from the command line, just run ``pycart
 The help messages are printed as raw text on the command line in such a format
 that is interpreted as 
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_  at
-:mod:`pc_doc` (for ``pycart``), :mod:`pf_doc` (for ``pyfun``), and
-:mod:`po_doc` (for ``pyover``).
+:mod:`cape.pycart.cli_doc` (for ``pycart``), :mod:`cape.pyfun.cli_doc` (for
+``pyfun``), and :mod:`cape.pyover.cli-doc` (for ``pyover``).
         
 
 .. _cli-c:
