@@ -4588,14 +4588,16 @@ class Report(object):
             # Read the Mach number option
             omach = opts.get_SubfigOpt(sfig, "Mach")
             # Read the zone numbers for each FIELDMAP command
-            grps = opts.get_SubfigOpt(sfig, "FieldMap") 
+            grps = opts.get_SubfigOpt(sfig, "FieldMap")
             # Read the Tecplot layout
             tec = self.ReadTecscript(fsrc)
+            # Execute  case function
+            self.SubfigFunction(sfig, i)
             # Parse fieldmaps
             # If its a list, just use those values
             if type(grps) == list:
                 fieldmaps = grps
-            elif type(grps) == dict:    
+            elif type(grps) == dict:
                 if grps.get('auto'):
                     # Init fieldmap list
                     fieldmaps = []
@@ -4603,7 +4605,7 @@ class Report(object):
                     fplt =  tec.ReadKey(1)[1].strip("'\'\"")
                     # Now we have to read the plt file to get field map
                     tecplt = plt.Plt(fplt)
-                    # Append last zone to 
+                    # Append last zone to
                     fieldmaps.append(tecplt.nZone)
                     # Parse slices, just adds the n+1 zone
                     if grps.get('slice') > 0:
