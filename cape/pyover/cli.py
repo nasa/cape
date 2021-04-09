@@ -45,7 +45,7 @@ def main():
     fname = kw.get('f', "pyOver.json")
     
     # Try to read it
-    cntl = cape.pyfun.Cntl(fname)
+    cntl = cape.pyover.Cntl(fname)
     
     # Call the command-line interface
     cntl.cli(*a, **kw)
