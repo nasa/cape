@@ -52,6 +52,12 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
             "Expected list or np.ndarray, got '%s'" % V.__class__.__name__)
     # Get data type
     dt = U.dtype.name
+    # Test for a string
+    if dt.startswith("str"):
+        # Determine maximum length
+        maxlen = max([len(u) for u in U])
+        # Create string format
+        return "%%-%is" % maxlen
     # Don't consider "NaN" entries
     mask = np.logical_not(np.isnan(U))
     # Get min and max values
