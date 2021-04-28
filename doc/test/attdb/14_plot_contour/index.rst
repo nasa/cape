@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:49 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``14_plot_contour``
 ==========================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/14_plot_contour/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/14_plot_contour/``
 
 and the working folder for the test is
 
@@ -38,8 +38,8 @@ Command 1: Contours from indices: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 7.68875 seconds
-    * Cumulative time: 7.68875 seconds
+    * Command took 1.02975 seconds
+    * Cumulative time: 1.02975 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -47,7 +47,7 @@ Command 1: Contours from indices: Python 2
 
 :PNG:
     * **FAIL**
-    * Difference fraction: 0.2943
+    * Difference fraction: 0.2942
     * Actual:
 
         .. image:: PNG-00-00.png

@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:49 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``10_rdb_plot``
 ======================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/10_rdb_plot/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/10_rdb_plot/``
 
 and the working folder for the test is
 
@@ -36,8 +36,8 @@ Command 1: Prep plot args: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.4032 seconds
-    * Cumulative time: 0.4032 seconds
+    * Command took 0.560805 seconds
+    * Cumulative time: 0.560805 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -81,8 +81,8 @@ Command 2: Prep plot args: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.553229 seconds
-    * Cumulative time: 0.956429 seconds
+    * Command took 0.622255 seconds
+    * Cumulative time: 1.18306 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -126,8 +126,8 @@ Command 3: Plot line load: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 9.8187 seconds
-    * Cumulative time: 10.7751 seconds
+    * Command took 0.788593 seconds
+    * Cumulative time: 1.97165 seconds
 :STDOUT:
     * **PASS**
     * Target:

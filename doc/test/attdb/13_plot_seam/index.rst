@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:49 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``13_plot_seam``
 =======================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/13_plot_seam/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/13_plot_seam/``
 
 and the working folder for the test is
 
@@ -34,8 +34,8 @@ Command 1: Line load plot with seam curve: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 8.61445 seconds
-    * Cumulative time: 8.61445 seconds
+    * Command took 1.53767 seconds
+    * Cumulative time: 1.53767 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -63,8 +63,8 @@ Command 2: Line load plot with seam curve: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 5.57788 seconds
-    * Cumulative time: 14.1923 seconds
+    * Command took 1.78941 seconds
+    * Cumulative time: 3.32707 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

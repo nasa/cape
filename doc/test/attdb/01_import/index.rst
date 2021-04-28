@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:48 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``01_import``
 ====================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/01_import/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/01_import/``
 
 and the working folder for the test is
 
@@ -28,12 +28,12 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import ftypes module(s)
-        import cape.attdb.rdbnull
-        import cape.attdb.rdbscalar
+        import cape.attdb
+        import cape.attdb.rdb
         
 
-Command 1: Import :mod:`cape.attdb.rdbnull`: Python2
------------------------------------------------------
+Command 1: Import :mod:`cape.attdb.rdb`: Python2
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -41,25 +41,36 @@ Command 1: Import :mod:`cape.attdb.rdbnull`: Python2
         $ python2 test01_import.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.476219 seconds
-    * Cumulative time: 0.476219 seconds
+    * Command took 0.593408 seconds
+    * Cumulative time: 0.593408 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Import :mod:`cape.attdb.rdb`: Python3
+-------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_import.py", line 5, in <module>
-            import cape.attdb.rdbnull
-        ImportError: No module named rdbnull
-        
+:Command:
+    .. code-block:: console
 
+        $ python3 test01_import.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.800439 seconds
+    * Cumulative time: 1.39385 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
 

@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:48 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``05_rdb_llreg``
 =======================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/05_rdb_llreg/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/05_rdb_llreg/``
 
 and the working folder for the test is
 
@@ -29,13 +29,13 @@ Command 1: Regularize line load using griddata: Python 2
         $ python2 test01_griddata.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48794 seconds
-    * Cumulative time: 0.48794 seconds
+    * Command took 0.660245 seconds
+    * Cumulative time: 0.660245 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -46,19 +46,33 @@ Command 1: Regularize line load using griddata: Python 2
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Regularize line load using griddata: Python 3
+---------------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_griddata.py", line 29, in <module>
-            prefix="reg.")
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 10650, in regularize_by_griddata
-            iargs, *x, I=masks[i], **kw)
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 6878, in genr8_griddata_weights
-            W1 = sciint.griddata(x, kmode, y, method, rescale=rescale)
-        TypeError: griddata() got an unexpected keyword argument 'rescale'
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_griddata.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.614989 seconds
+    * Cumulative time: 1.27523 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        reg.bullet.dCN.shape = [51, 578]
         
 
+:STDERR:
+    * **PASS**
 

@@ -239,7 +239,10 @@ class TestCrawler(object):
                 testd = driver.TestDriver()
             except Exception as e:
                 # Get the message
-                fmt = "%s: %s\n" % (e.__class__.__name__, e.message)
+                if sys.version_info.major == 2:
+                    fmt = "%s: %s\n" % (e.__class__.__name__, e.message)
+                else:
+                    fmt = "%s: %s\n" % (e.__class__.__name__, e)
                 # Indent it
                 fmt = "".join(
                     ["    " + line + "\n" for line in fmt.split("\n")])

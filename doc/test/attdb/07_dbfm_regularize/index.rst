@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:48 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``07_dbfm_regularize``
 =============================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/07_dbfm_regularize/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/07_dbfm_regularize/``
 
 and the working folder for the test is
 
@@ -31,15 +31,26 @@ Command 1: Regularize using griddata: Python 2
         $ python2 test01_griddata.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.508141 seconds
-    * Cumulative time: 0.508141 seconds
+    * Command took 1.24511 seconds
+    * Cumulative time: 1.24511 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: none
+
+        regularized cols:
+            reg.bullet.CA : 578  reg.bullet.CY : 578  reg.bullet.CN : 578
+            reg.bullet.CLL: 578  reg.bullet.CLM: 578  reg.bullet.CLN: 578
+            reg.q         : 578  reg.T         : 578  reg.mach      : 578
+            reg.alpha     : 578  reg.beta      : 578
+        
+
     * Target:
 
       .. code-block:: none
@@ -52,19 +63,5 @@ Command 1: Regularize using griddata: Python 2
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
-
-      .. code-block:: pytb
-
-        Traceback (most recent call last):
-          File "test01_griddata.py", line 38, in <module>
-            fmcols, ["alpha", "beta"], prefix="reg.", scol="mach")
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 10650, in regularize_by_griddata
-            iargs, *x, I=masks[i], **kw)
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 6878, in genr8_griddata_weights
-            W1 = sciint.griddata(x, kmode, y, method, rescale=rescale)
-        TypeError: griddata() got an unexpected keyword argument 'rescale'
-        
-
+    * **PASS**
 

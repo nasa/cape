@@ -7,8 +7,8 @@
         "python3 test01_import.py"
     ],
     "CommandTitles": [
-        "Import :mod:`cape.attdb.rdbnull`: Python2",
-        "Import :mod:`cape.attdb.rdbnull`: Python3"
+        "Import :mod:`cape.attdb.rdb`: Python2",
+        "Import :mod:`cape.attdb.rdb`: Python3"
     ],
     "DocFilesShow": "test01_import.py",
     "DocFilesLexer": "python",

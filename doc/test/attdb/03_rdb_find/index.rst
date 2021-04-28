@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:48 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``03_rdb_find``
 ======================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/03_rdb_find/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/03_rdb_find/``
 
 and the working folder for the test is
 
@@ -36,8 +36,8 @@ Command 1: Basic DataKit search: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.406391 seconds
-    * Cumulative time: 0.406391 seconds
+    * Command took 0.585332 seconds
+    * Cumulative time: 0.585332 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -66,8 +66,8 @@ Command 2: Basic DataKit search: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.544709 seconds
-    * Cumulative time: 0.9511 seconds
+    * Command took 0.791461 seconds
+    * Cumulative time: 1.37679 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -96,8 +96,8 @@ Command 3: Multiple-condition search: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.218758 seconds
-    * Cumulative time: 1.16986 seconds
+    * Command took 0.411621 seconds
+    * Cumulative time: 1.78841 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -141,8 +141,8 @@ Command 4: Multiple-condition search: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.506066 seconds
-    * Cumulative time: 1.67592 seconds
+    * Command took 0.512474 seconds
+    * Cumulative time: 2.30089 seconds
 :STDOUT:
     * **PASS**
     * Target:

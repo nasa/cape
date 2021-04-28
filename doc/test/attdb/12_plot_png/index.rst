@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:49 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``12_plot_png``
 ======================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/12_plot_png/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/12_plot_png/``
 
 and the working folder for the test is
 
@@ -34,8 +34,8 @@ Command 1: Line load plot with PNG: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 8.53635 seconds
-    * Cumulative time: 8.53635 seconds
+    * Command took 0.892725 seconds
+    * Cumulative time: 0.892725 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

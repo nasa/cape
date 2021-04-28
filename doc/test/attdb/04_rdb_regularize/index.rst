@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:48 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``04_rdb_regularize``
 ============================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/04_rdb_regularize/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/04_rdb_regularize/``
 
 and the working folder for the test is
 
@@ -31,13 +31,13 @@ Command 1: Regularize using griddata: Python 2
         $ python2 test01_griddata.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.482347 seconds
-    * Cumulative time: 0.482347 seconds
+    * Command took 0.606113 seconds
+    * Cumulative time: 0.606113 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -50,19 +50,95 @@ Command 1: Regularize using griddata: Python 2
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Regularize using griddata: Python 3
+-----------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_griddata.py", line 25, in <module>
-            db.regularize_by_griddata("CN", ["alpha", "beta"], prefix="reg")
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 10604, in regularize_by_griddata
-            W = self.genr8_griddata_weights(args, *x, **kw)
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 6878, in genr8_griddata_weights
-            W1 = sciint.griddata(x, kmode, y, method, rescale=rescale)
-        TypeError: griddata() got an unexpected keyword argument 'rescale'
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_griddata.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.638409 seconds
+    * Cumulative time: 1.24452 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        max error(regalpha) = 0.00
+        max error(regbeta)  = 0.00
+        monotonic(regCN): True
         
 
+:STDERR:
+    * **PASS**
+
+Command 3: Regularize using RBF: Python 2
+------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_rbf.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.443447 seconds
+    * Cumulative time: 1.68797 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        max error(regalpha) = 0.00
+        max error(regbeta)  = 0.00
+        monotonic(regCN): True
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: Regularize using RBF: Python 3
+------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_rbf.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.557588 seconds
+    * Cumulative time: 2.24556 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        max error(regalpha) = 0.00
+        max error(regbeta)  = 0.00
+        monotonic(regCN): True
+        
+
+:STDERR:
+    * **PASS**
 

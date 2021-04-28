@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:48 PDT
+   on 2021-04-28 at 13:25 PDT
 
 Test ``06_rdb_integrate``
 ===========================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/attdb/06_rdb_integrate/``
+    ``/u/wk/ddalle/usr/cape/test/attdb/06_rdb_integrate/``
 
 and the working folder for the test is
 
@@ -29,13 +29,13 @@ Command 1: Trapezoidal line load integration: Python 2
         $ python2 test01_trapz.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.514338 seconds
-    * Cumulative time: 0.514338 seconds
+    * Command took 0.543048 seconds
+    * Cumulative time: 0.543048 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -57,27 +57,62 @@ Command 1: Trapezoidal line load integration: Python 2
         
 
 :STDERR:
+    * **PASS**
+
+Command 2: Trapezoidal line load integration: Python 3
+-------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_trapz.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.54167 seconds
+    * Cumulative time: 1.08472 seconds
+:STDOUT:
     * **FAIL**
     * Actual:
 
-      .. code-block:: pytb
+      .. code-block:: none
 
-        Traceback (most recent call last):
-          File "test01_trapz.py", line 54, in <module>
-            db.write_mat("bullet-FM-LL.mat")
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/rdb.py", line 1538, in write_mat
-            dbmat.write_mat(fname, cols=cols, attrs=attrs)
-          File "/u/wk/ddalle/usr/pycart/cape/attdb/ftypes/matfile.py", line 428, in write_mat
-            sio.savemat(fname, dbmat, oned_as="column")
-          File "/usr/lib64/python2.7/site-packages/scipy/io/matlab/mio.py", line 270, in savemat
-            MW.put_variables(mdict)
-          File "/usr/lib64/python2.7/site-packages/scipy/io/matlab/mio5.py", line 866, in put_variables
-            self._matrix_writer.write_top(var, asbytes(name), is_global)
-          File "/usr/lib64/python2.7/site-packages/scipy/io/matlab/mio5.py", line 617, in write_top
-            self.write(arr)
-          File "/usr/lib64/python2.7/site-packages/scipy/io/matlab/mio5.py", line 638, in write
-            % (arr, type(arr)))
-        TypeError: Could not convert <scipy.io.matlab.mio5_params.mat_struct object at 0x7fa3aaecbfd0> (type <class 'scipy.io.matlab.mio5_params.mat_struct'>) to array
+        cols:
+            mach        alpha       beta        aoap       
+            phip        q           T           bullet.x   
+            bullet.dCA  bullet.dCY  bullet.dCN  bullet.dCLL
+            bullet.dCLM bullet.dCLN bullet.CA   bullet.CY  
+            bullet.CN   bullet.CLL  bullet.CLM  bullet.CLN 
+        values:
+               mach: 0.80
+              alpha: 2.00
+               beta: 0.00
+          bullet.CN: 0.09
+         bullet.CLM: 0.29
         
 
+    * Target:
+
+      .. code-block:: none
+
+        cols:
+            aoap        bullet.x    bullet.dCA  bullet.dCY 
+            bullet.dCN  q           beta        T          
+            phip        alpha       mach        bullet.dCLL
+            bullet.dCLM bullet.dCLN bullet.CA   bullet.CY  
+            bullet.CN   bullet.CLL  bullet.CLM  bullet.CLN 
+        values:
+               mach: 0.80
+              alpha: 2.00
+               beta: 0.00
+          bullet.CN: 0.09
+         bullet.CLM: 0.29
+        
+
+:STDERR:
+    * **PASS**
 
