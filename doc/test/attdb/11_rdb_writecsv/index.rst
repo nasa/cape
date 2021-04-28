@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``11_rdb_writecsv``
 ==========================
@@ -36,8 +36,8 @@ Command 1: Simple dense CSV writer: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.548811 seconds
-    * Cumulative time: 0.548811 seconds
+    * Command took 0.60882 seconds
+    * Cumulative time: 0.60882 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -62,8 +62,8 @@ Command 2: Simple dense CSV writer: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.764456 seconds
-    * Cumulative time: 1.31327 seconds
+    * Command took 0.763645 seconds
+    * Cumulative time: 1.37247 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -88,8 +88,8 @@ Command 3: CSV writer with defaults: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.488855 seconds
-    * Cumulative time: 1.80212 seconds
+    * Command took 0.512052 seconds
+    * Cumulative time: 1.88452 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -114,8 +114,8 @@ Command 4: CSV writer with defaults: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57547 seconds
-    * Cumulative time: 2.37759 seconds
+    * Command took 0.579717 seconds
+    * Cumulative time: 2.46423 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

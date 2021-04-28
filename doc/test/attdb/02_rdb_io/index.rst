@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``02_rdb_io``
 ====================
@@ -34,8 +34,8 @@ Command 1: CSV read; MAT write/read: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.423028 seconds
-    * Cumulative time: 0.423028 seconds
+    * Command took 0.581909 seconds
+    * Cumulative time: 0.581909 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -63,8 +63,8 @@ Command 2: CSV read; MAT write/read: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.526146 seconds
-    * Cumulative time: 0.949174 seconds
+    * Command took 0.616326 seconds
+    * Cumulative time: 1.19824 seconds
 :STDOUT:
     * **PASS**
     * Target:

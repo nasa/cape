@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``15_rdb_write_tsv``
 ===========================
@@ -36,8 +36,8 @@ Command 1: Simple dense TSV writer: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.417503 seconds
-    * Cumulative time: 0.417503 seconds
+    * Command took 0.502562 seconds
+    * Cumulative time: 0.502562 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -62,8 +62,8 @@ Command 2: Simple dense TSV writer: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.786703 seconds
-    * Cumulative time: 1.20421 seconds
+    * Command took 0.784196 seconds
+    * Cumulative time: 1.28676 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -88,8 +88,8 @@ Command 3: TSV writer with defaults: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.444002 seconds
-    * Cumulative time: 1.64821 seconds
+    * Command took 0.411685 seconds
+    * Cumulative time: 1.69844 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -114,8 +114,8 @@ Command 4: TSV writer with defaults: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.514642 seconds
-    * Cumulative time: 2.16285 seconds
+    * Command took 0.513966 seconds
+    * Cumulative time: 2.21241 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

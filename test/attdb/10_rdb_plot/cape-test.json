@@ -12,9 +12,9 @@
     ],
     "TargetSTDOUT": [
         "test.01.out",
-        "test.01.out",
         "test.02.out",
-        "test.02.out"
+        "test.03.out",
+        "test.03.out"
     ],
     "CommandTitles": [
         "Prep plot args: Python 2",

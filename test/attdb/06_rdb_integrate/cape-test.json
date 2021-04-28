@@ -9,7 +9,7 @@
     ],
     "TargetSTDOUT": [
         "test.01.out",
-        "test.01.out"
+        "test.02.out"
     ],
     "CommandTitles": [
         "Trapezoidal line load integration: Python 2",

@@ -70,7 +70,7 @@ rc = {
     "LexerSTDOUT": "none",
     "LexerSTDERR": "none",
     "PNG": [],
-    "PNGTol": 0.99,
+    "PNGTol": 0.95,
     "ShowCompareFile": False,
     "ShowDiffPNG": False,
     "ShowPNG": True,

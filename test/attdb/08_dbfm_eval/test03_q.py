@@ -21,7 +21,7 @@ db.create_bkpts(args)
 db.create_bkpts_map(qcols, "mach")
 
 # Set evaluation
-db.make_responses(qcols, "linear", args, eval_kwargs={"bkpt": True})
+db.make_responses(qcols, "linear", args, response_kwargs={"bkpt": True})
 
 # Pick some conditions
 mach = 0.90

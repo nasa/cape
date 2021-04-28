@@ -469,6 +469,7 @@ class MATFile(BaseFile):
         # Check type
         if not isinstance(cols, (tuple, list)):
             raise TypeError("Column list 'cols' must be a list")
+        # Save column list
         # Get list of attributes
         attrs = kw.get("attrs")
         # Check type
@@ -476,7 +477,7 @@ class MATFile(BaseFile):
             # Should really be a list of strings
             raise TypeError("Extra attribute list 'attrs' must be a list")
         # Loop through columns
-        for col in sorted(cols):
+        for col in cols:
             # Check column
             if col not in self.cols:
                 raise KeyError("No data column '%s'" % col)

@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``09_rdb_lleval``
 ========================
@@ -34,8 +34,8 @@ Command 1: Interpolate line loads: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.941287 seconds
-    * Cumulative time: 0.941287 seconds
+    * Command took 0.928535 seconds
+    * Cumulative time: 0.928535 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -66,8 +66,8 @@ Command 2: Interpolate line loads: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.28929 seconds
-    * Cumulative time: 2.23057 seconds
+    * Command took 0.94114 seconds
+    * Cumulative time: 1.86967 seconds
 :STDOUT:
     * **PASS**
     * Target:

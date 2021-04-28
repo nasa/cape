@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``06_rdb_integrate``
 ===========================
@@ -34,8 +34,8 @@ Command 1: Trapezoidal line load integration: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.543048 seconds
-    * Cumulative time: 0.543048 seconds
+    * Command took 0.589775 seconds
+    * Cumulative time: 0.589775 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -73,11 +73,11 @@ Command 2: Trapezoidal line load integration: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54167 seconds
-    * Cumulative time: 1.08472 seconds
+    * Command took 0.810239 seconds
+    * Cumulative time: 1.40001 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual:
+    * **PASS**
+    * Target:
 
       .. code-block:: none
 
@@ -85,24 +85,6 @@ Command 2: Trapezoidal line load integration: Python 3
             mach        alpha       beta        aoap       
             phip        q           T           bullet.x   
             bullet.dCA  bullet.dCY  bullet.dCN  bullet.dCLL
-            bullet.dCLM bullet.dCLN bullet.CA   bullet.CY  
-            bullet.CN   bullet.CLL  bullet.CLM  bullet.CLN 
-        values:
-               mach: 0.80
-              alpha: 2.00
-               beta: 0.00
-          bullet.CN: 0.09
-         bullet.CLM: 0.29
-        
-
-    * Target:
-
-      .. code-block:: none
-
-        cols:
-            aoap        bullet.x    bullet.dCA  bullet.dCY 
-            bullet.dCN  q           beta        T          
-            phip        alpha       mach        bullet.dCLL
             bullet.dCLM bullet.dCLN bullet.CA   bullet.CY  
             bullet.CN   bullet.CLL  bullet.CLM  bullet.CLN 
         values:

@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``01_import``
 ====================
@@ -46,8 +46,8 @@ Command 1: Import :mod:`cape.attdb.rdb`: Python2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.593408 seconds
-    * Cumulative time: 0.593408 seconds
+    * Command took 0.587881 seconds
+    * Cumulative time: 0.587881 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -67,8 +67,8 @@ Command 2: Import :mod:`cape.attdb.rdb`: Python3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.800439 seconds
-    * Cumulative time: 1.39385 seconds
+    * Command took 0.641435 seconds
+    * Cumulative time: 1.22932 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``05_rdb_llreg``
 =======================
@@ -34,8 +34,8 @@ Command 1: Regularize line load using griddata: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.660245 seconds
-    * Cumulative time: 0.660245 seconds
+    * Command took 0.653805 seconds
+    * Cumulative time: 0.653805 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -62,8 +62,8 @@ Command 2: Regularize line load using griddata: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.614989 seconds
-    * Cumulative time: 1.27523 seconds
+    * Command took 0.857231 seconds
+    * Cumulative time: 1.51104 seconds
 :STDOUT:
     * **PASS**
     * Target:

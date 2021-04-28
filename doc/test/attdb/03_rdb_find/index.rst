@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``03_rdb_find``
 ======================
@@ -36,8 +36,8 @@ Command 1: Basic DataKit search: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.585332 seconds
-    * Cumulative time: 0.585332 seconds
+    * Command took 0.438374 seconds
+    * Cumulative time: 0.438374 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -66,8 +66,8 @@ Command 2: Basic DataKit search: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.791461 seconds
-    * Cumulative time: 1.37679 seconds
+    * Command took 0.511946 seconds
+    * Cumulative time: 0.95032 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -96,8 +96,8 @@ Command 3: Multiple-condition search: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.411621 seconds
-    * Cumulative time: 1.78841 seconds
+    * Command took 0.487851 seconds
+    * Cumulative time: 1.43817 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -141,8 +141,8 @@ Command 4: Multiple-condition search: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.512474 seconds
-    * Cumulative time: 2.30089 seconds
+    * Command took 0.566599 seconds
+    * Cumulative time: 2.00477 seconds
 :STDOUT:
     * **PASS**
     * Target:

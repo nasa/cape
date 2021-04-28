@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``10_rdb_plot``
 ======================
@@ -36,8 +36,8 @@ Command 1: Prep plot args: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.560805 seconds
-    * Cumulative time: 0.560805 seconds
+    * Command took 0.52102 seconds
+    * Cumulative time: 0.52102 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -81,8 +81,8 @@ Command 2: Prep plot args: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.622255 seconds
-    * Cumulative time: 1.18306 seconds
+    * Command took 0.738072 seconds
+    * Cumulative time: 1.25909 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -126,8 +126,8 @@ Command 3: Plot line load: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.788593 seconds
-    * Cumulative time: 1.97165 seconds
+    * Command took 1.11656 seconds
+    * Cumulative time: 2.37565 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -141,15 +141,46 @@ Command 3: Plot line load: Python 2
     * **PASS**
 
 :PNG:
-    * **FAIL**
+    * **PASS**
     * Difference fraction: 0.0105
-    * Actual:
-
-        .. image:: PNG-02-00.png
-            :width: 4.5in
-
     * Target:
 
         .. image:: PNG-target-02-00.png
+            :width: 4.5in
+
+Command 4: Plot line load: Python 3
+------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_ll.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 1.30534 seconds
+    * Cumulative time: 3.68099 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        Index: 535
+        
+
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0101
+    * Target:
+
+        .. image:: PNG-target-03-00.png
             :width: 4.5in
 

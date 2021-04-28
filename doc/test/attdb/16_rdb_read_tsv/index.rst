@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``16_rdb_read_tsv``
 ==========================
@@ -36,8 +36,8 @@ Command 1: Simple dense TSV reader: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.605356 seconds
-    * Cumulative time: 0.605356 seconds
+    * Command took 0.527736 seconds
+    * Cumulative time: 0.527736 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -66,8 +66,8 @@ Command 2: Simple dense TSV reader: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.572166 seconds
-    * Cumulative time: 1.17752 seconds
+    * Command took 0.57686 seconds
+    * Cumulative time: 1.1046 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -96,8 +96,8 @@ Command 3: Main TSV reader: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.591782 seconds
-    * Cumulative time: 1.7693 seconds
+    * Command took 0.42507 seconds
+    * Cumulative time: 1.52967 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -126,8 +126,8 @@ Command 4: Main TSV reader: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.804888 seconds
-    * Cumulative time: 2.57419 seconds
+    * Command took 0.510298 seconds
+    * Cumulative time: 2.03996 seconds
 :STDOUT:
     * **PASS**
     * Target:

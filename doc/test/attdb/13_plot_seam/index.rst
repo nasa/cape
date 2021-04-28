@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``13_plot_seam``
 =======================
@@ -34,8 +34,8 @@ Command 1: Line load plot with seam curve: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.53767 seconds
-    * Cumulative time: 1.53767 seconds
+    * Command took 1.61928 seconds
+    * Cumulative time: 1.61928 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -63,8 +63,8 @@ Command 2: Line load plot with seam curve: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.78941 seconds
-    * Cumulative time: 3.32707 seconds
+    * Command took 2.01018 seconds
+    * Cumulative time: 3.62945 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

@@ -1,6 +1,6 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:25 PDT
+   on 2021-04-28 at 13:51 PDT
 
 Test ``04_rdb_regularize``
 ============================
@@ -36,8 +36,8 @@ Command 1: Regularize using griddata: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.606113 seconds
-    * Cumulative time: 0.606113 seconds
+    * Command took 0.52003 seconds
+    * Cumulative time: 0.52003 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -66,8 +66,8 @@ Command 2: Regularize using griddata: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.638409 seconds
-    * Cumulative time: 1.24452 seconds
+    * Command took 0.586897 seconds
+    * Cumulative time: 1.10693 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -96,8 +96,8 @@ Command 3: Regularize using RBF: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.443447 seconds
-    * Cumulative time: 1.68797 seconds
+    * Command took 0.441445 seconds
+    * Cumulative time: 1.54837 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -126,8 +126,8 @@ Command 4: Regularize using RBF: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.557588 seconds
-    * Cumulative time: 2.24556 seconds
+    * Command took 0.56048 seconds
+    * Cumulative time: 2.10885 seconds
 :STDOUT:
     * **PASS**
     * Target:
