@@ -401,7 +401,7 @@ def tris_have_pt(X, Y, x, y, **kw):
     x2 = x
     y2 = np.max(Y) + 1.0
     # Construct list of segments that consists of each triangle edge
-    # Use the inputs as the start points; rotate vertices to get end points
+    # Use inputs as start points; rotate vertices to get end points
     X2 = np.transpose([X[:,1], X[:,2], X[:,0]])
     Y2 = np.transpose([Y[:,1], Y[:,2], Y[:,0]])
     # Draw three lines starting with (x,y)
@@ -464,12 +464,12 @@ def dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
     # Pick any old direction if L==0
     TX[L==0] = 1.0
     TY[L==0] = 0.0
-    # Translate the test point (x,y) into tangent/normal coords for each line
+    # Convert test point (x,y) into tangent/normal coords for each line
     T = (x-X1)*TX + (y-Y1)*TY
     N = (y-Y1)*TX - (x-X1)*TY
     # If the normal going through the point intersects the segment, the
-    # shortest distance is the point-to-line distance.  Initialize distance as
-    # this smallest-possible-distance
+    # shortest distance is the point-to-line distance.  Initialize
+    # distance as this smallest-possible-distance
     D = np.abs(N)
     # Check for segments where that nearest point is outside the segment
     I = np.logical_or(T < 0, T > L)
@@ -513,7 +513,7 @@ def dist_tris_to_pt(X, Y, x, y, **kw):
     n = Q.size
     # Initialize distance
     D = np.zeros(n)
-    # For triangles that do not contain (x,y), get distance to each segment
+    # For tris that do not contain (x,y), get distance to each segment
     X1 = X[Q0,:]; X2 = X1[:,[1,2,0]]
     Y1 = Y[Q0,:]; Y2 = Y1[:,[1,2,0]]
     # Check for list of points
@@ -527,7 +527,7 @@ def dist_tris_to_pt(X, Y, x, y, **kw):
         y = np.transpose(np.vstack((y,y,y)))
         # Deselect points inside triangles
         y = y[Q0,:]
-    # Get distances to each segment of each tri that does not contain the pt
+    # Get dist to each segment of each tri that does not contain the pt
     D0 = dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw)
     # Save the minimum pt-to-edge distance
     D[Q0] = np.min(D0, axis=1)
