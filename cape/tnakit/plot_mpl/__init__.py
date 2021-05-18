@@ -394,7 +394,10 @@ def scatter(xv, yv,  *a, **kw):
     _part_axes_format(opts, h)
     # --- Labeling ---
     # Colorbar
-    _part_colorbar(opts, h)
+    if opts.get("ScatterColorBar"):
+        _part_colorbar(opts, h)
+    # Legend
+    _part_legend(opts, h)
     # --- Cleanup ---
      # Final margin adjustment
     _part_axes_adjust(opts, h)

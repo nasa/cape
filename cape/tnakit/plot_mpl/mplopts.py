@@ -215,6 +215,7 @@ class MPLOpts(kwutils.KwargHandler):
         "RightTickLabels",
         "Rotate",
         "ScatterColor",
+        "ScatterColorBar",
         "ScatterSize",
         "ScatterOptions",
         "ShowError",
@@ -1044,6 +1045,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterOptions": {
             "Index": "Index",
             "Rotate": "Rotate",
+            "ScatterColorBar": False,
             "ScatterColor": "c",
             "ScatterSize": "s",
         },
@@ -1282,6 +1284,7 @@ class MPLOpts(kwutils.KwargHandler):
         "RightTickLabels": _rst_booln,
         "Rotate": _rst_boolt,
         "ScatterColor": "{``None``} | :class:`np.ndarray` | :class:`list`",
+        "ScatterColorBar": _rst_booln,
         "ScatterOptions": _rst_dict,
         "ScatterSize": "{``None``} | :class:`np.ndarray` | :class:`float`",
         "SeamDY": _rst_float,
@@ -1490,6 +1493,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ScatterColor": (
             "Color or color description to use for each data point; " +
             "usually an array of floats that maps into color map"),
+        "ScatterColorBar": """ Show color bar on scatter plot""",
         "ScatterOptions": """Options to :func:`plt.scatter`""",
         "ScatterSize": "Size [pt^2] of marker for each data point",
         "SeamDY": "Vertical offset for seam plots",
