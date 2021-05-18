@@ -1,11 +1,13 @@
-"""
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.filecntl.namelist`: Fortran namelists module 
 ========================================================
 
 This is a module built off of the :mod:`cape.filecntl.FileCntl` module
-customized for manipulating Fortran namelists.  Such files are split into
-sections which are called "name lists."  Each name list has syntax similar to
-the following.
+customized for manipulating Fortran namelists.  Such files are split
+into sections which are called "name lists."  Each name list has syntax
+similar to the following.
 
     .. code-block:: none
     
@@ -14,21 +16,22 @@ the following.
             case_title = "Test case"
         /
     
-and this module is designed to recognize such sections.  The main feature of
-this module is methods to set specific properties of a namelist file, for
-example the Mach number or CFL number.
+and this module is designed to recognize such sections.  The main
+feature of this module is methods to set specific properties of a
+namelist file, for example the Mach number or CFL number.
 
-This function provides a class :class:`cape.filecntl.namelist.Namelist` that can both
-read and set values in the namelist.  The key functions are
+This function provides a class :class:`Namelist` that can both read and
+set values in the namelist.  The key functions are
 
     * :func:`Namelist.SetVar`
     * :func:`Namelist.GetVar`
     
 The conversion from namelist text to Python is handled by
 :func:`Namelist.ConvertToText`, and the reverse is handled by
-:func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed just by
-the Python functions :func:`print` and :func:`eval` because delimiters are not
-used in the same fashion.  Some of the conversions are tabulated below.
+:func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed
+just by the Python functions :func:`print` and :func:`eval` because
+delimiters are not used in the same fashion.  Some of the conversions
+are tabulated below.
 
     +----------------------+------------------------+
     | Namelist             | Python                 |
@@ -60,15 +63,16 @@ used in the same fashion.  Some of the conversions are tabulated below.
     | ``val = _mach_``     | ``val = "_mach_"``     |
     +----------------------+------------------------+
 
-In most cases, the :class:`Namelist` will try to interpret invalid values for
-any namelist entry as a string with missing quotes.  The reason for this is
-that users often create template namelist with entries like ``_mach_`` that can
-be safely replaced with appropriate values using ``sed`` commands or something
-similar.
+In most cases, the :class:`Namelist` will try to interpret invalid
+values for any namelist entry as a string with missing quotes.  The
+reason for this is that users often create template namelist with
+entries like ``_mach_`` that can be safely replaced with appropriate
+values using ``sed`` commands or something similar.
 
-There is also a function :func:`Namelist.ReturnDict` to access the entire
-namelist as a :class:`dict`.  Similarly, :func:`Namelist.ApplyDict` can be used
-to apply multiple settings using a :class:`dict` as input.
+There is also a function :func:`Namelist.ReturnDict` to access the
+entire namelist as a :class:`dict`.  Similarly,
+:func:`Namelist.ApplyDict` can be used to apply multiple settings using
+a :class:`dict` as input.
 
 See also:
 
@@ -84,14 +88,14 @@ See also:
 # Import the base file control class.
 from .filecntl import FileCntl
 
+
 # Base this class off of the main file control class.
 class Namelist(FileCntl):
-    """
-    File control class for Fortran namelists
+    r"""File control class for Fortran namelists
     
-    This class is derived from the :class:`cape.filecntl.FileCntl` class, so
-    all methods applicable to that class can also be used for instances of this
-    class.
+    This class is derived from the :class:`cape.filecntl.FileCntl`
+    class, so all methods applicable to that class can also be used for
+    instances of this class.
     
     :Call:
         >>> nml = cape.Namelist()
@@ -100,19 +104,24 @@ class Namelist(FileCntl):
         *fname*: :class:`str`
             Name of namelist file to read, defaults to ``'fun3d.nml'``
     :Outputs:
-        *nml*: :class:`cape.filecntl.namelist.Namelist`
+        *nml*: :class:`Namelist`
             Namelist file control instance
-        *nml.Sections*: :class:`dict` (:class:`list` (:class:`str`))
+        *nml.Sections*: :class:`dict`\ [:class:`list`\ [:class:`str`]]
             Dictionary of sections containing contents of each namelist
-        *nml.SectionNames*: :class:`list` (:class:`str`)
+        *nml.SectionNames*: :class:`list`\ [:class:`str`]
             List of section names
     :Version:
-        * 2015-10-15 ``@ddalle``: Started
+        * 2015-10-15 ``@ddalle``: Version 0.1; started
+        * 2015-10-20 ``@ddalle``: Version 1.0
     """
     
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="fun3d.nml"):
-        """Initialization method"""
+        r"""Initialization method
+
+        :Versions:
+            * 2015-10-15 ``@ddalle``: Version 1.0
+        """
         # Read the file.
         self.Read(fname)
         # Save the file name.
@@ -122,15 +131,15 @@ class Namelist(FileCntl):
         
     # Copy the file
     def Copy(self, fname):
-        """Copy a file interface
+        r"""Copy a file interface
         
         :Call:
             >>> nml2 = nml.Copy()
         :Inputs:
-            *nml*: :class:`cape.filecntl.namelist.Namelist`
+            *nml*: :class:`Namelist`
                 Namelist file control instance
         :Outputs:
-            *nml2*: :class:`cape.filecntl.namelist.Namelist`
+            *nml2*: :class:`Namelist`
                 Duplicate file control instance for :file:`fun3d.nml`
         :Versions:
             * 2015-06-12 ``@ddalle``: First version
@@ -151,13 +160,13 @@ class Namelist(FileCntl):
         
     # Function to set generic values, since they have the same format.
     def SetVar(self, sec, name, val, k=None, **kw):
-        """Set generic :file:`fun3d.nml` variable value
+        r"""Set generic :file:`fun3d.nml` variable value
         
         :Call:
             >>> nml.SetVar(sec, name, val)
             >>> nml.SetVar(sec, name, val, k)
         :Inputs:
-            *nml*: :class:`cape.filecntl.namelist.Namelist`
+            *nml*: :class:`Namelist`
                 Namelist file control instance
             *sec*: :class:`str`
                 Name of section in which to set variable
@@ -233,7 +242,7 @@ class Namelist(FileCntl):
             >>> val = nml.GetVar(sec, name)
             >>> val = nml.GetVar(sec, name, k)
         :Inputs:
-            *nml*: :class:`cape.filecntl.namelist.Namelist`
+            *nml*: :class:`Namelist`
                 Namelist file control instance
             *sec*: :class:`str`
                 Name of section in which to set variable
@@ -288,7 +297,7 @@ class Namelist(FileCntl):
         :Call:
             >>> opts = nml.ReturnDict()
         :Inputs:
-            *nml*: :class:`cape.filecntl.namelist.Namelist`
+            *nml*: :class:`Namelist`
                 Namelist file control instance
         :Outputs:
             *opts*: :class:`dict`
@@ -325,7 +334,7 @@ class Namelist(FileCntl):
         :Call:
             >>> nml.ApplyDict(opts)
         :Inputs:
-            *nml*: :class:`cape.filecntl.namelist.Namelist`
+            *nml*: :class:`Namelist`
                 Namelist file control instance
             *opts*: :class:`dict`
                 Dictionary of namelist options
@@ -369,7 +378,7 @@ class Namelist(FileCntl):
         :Call:
             >>> v = nml.ConvertToVal(val)
         :Inputs:
-            *nml*: :class:`cape.filecntl.namelist.Namelist`
+            *nml*: :class:`Namelist`
                 Namelist file control instance
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
@@ -420,7 +429,7 @@ class Namelist(FileCntl):
         :Call:
             >>> val = nml.ConvertToText(v)
         :Inputs:
-            *nml*: :class:`cape.filecntl.namelist.Namelist`
+            *nml*: :class:`Namelist`
                 Namelist file control instance
             *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
                 Evaluated value of the text
@@ -449,8 +458,4 @@ class Namelist(FileCntl):
         else:
             # Use the built-in string converter
             return str(v)
-        
-        
-# class Namelist
-
         
