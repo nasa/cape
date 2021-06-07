@@ -1538,6 +1538,29 @@ class DataKit(ftypes.BaseData):
         dbmat.write_mat(fname, cols=cols, attrs=attrs)
 
    # --- RBF specials ---
+    # Read RBF directly from CSV file
+    def read_rbf_csv(self, fname, **kw):
+        r"""Read RBF directly from a CSV file
+        
+        :Call:
+            >>> db.read_rbf_csv(fname, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Generic database
+            *fname*: :class:`str`
+                Name of CSV file to read
+        :See Also:
+            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
+        :Versions:
+            * 2021-06-17 ``@ddalle``: Version 1.0
+        """
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
+        # Read the data
+        dbf = ftypes.CSVFile(fname, **kw)
+        # Create RBF from data
+        self.create_rbf_from_db(dbf)
+
     # Convert data object to RBF
     def create_rbf_from_db(self, dbf):
         r"""Create RBF response from data object
