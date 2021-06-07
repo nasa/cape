@@ -1536,6 +1536,168 @@ class DataKit(ftypes.BaseData):
         dbmat = self.make_source("mat", ftypes.MATFile, cols=cols, attrs=attrs)
         # Write it
         dbmat.write_mat(fname, cols=cols, attrs=attrs)
+
+   # --- RBF specials ---
+    # Convert data object to RBF
+    def create_rbf_from_db(self, dbf):
+        r"""Create RBF response from data object
+
+        :Call:
+            >>> db.create_rbf_from_db(dbf)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container with responses
+            *dbf*: :class:`dict` | :class:`BaseData`
+                Raw data container
+        :Versions:
+            * 2019-07-24 ``@ddalle``: Version 1.0; :func:`ReadRBFCSV`
+            * 2021-06-07 ``@ddalle``: Version 2.0
+        """
+        # Test that it's a **dict**
+        if not isinstance(dbf, dict):
+            raise TypeError(
+                "Data object is not a dict or subclass, got '%s'" % type(dbf))
+        # Test for column named "eval_method"
+        if "eval_method" not in dbf:
+            raise KeyError("Data object has not column named 'eval_method'")
+        # Get list of columns
+        try:
+            # Use attribute from DataKit (preserves order)
+            cols = dbf.cols
+        except AttributeError:
+            # Copy the keys (this will not work in Python 2.x)
+            cols = list(dbf.keys())
+        # Number of args determined by # of cols before *eval_method*
+        narg = cols.index("eval_method")
+        # Get that column
+        imeth = dbf["eval_method"]
+        # Check for valid method
+        if np.any(imeth != imeth[0]):
+            raise ValueError("Column 'eval_method' must have uniform values")
+        # Get first entry
+        imeth = int(imeth[0])
+        # Check validity
+        if (imeth < 0) or (imeth >= len(RBF_METHODS)):
+            raise ValueError("Invalid 'eval_method' %s" % imeth)
+        # Store first columns as evaluation args
+        arg_cols = cols[:narg]
+        # Store names of output coefficients
+        coeff_cols = cols[narg+1::5]
+        # Initialize prefixed/suffixed names
+        args = []
+        coeffs = []
+       # --- Save values ---
+        # Loop through arg columns
+        for (j, col) in enumerate(arg_cols + coeff_cols):
+            # True column number
+            if j < narg:
+                # First *narg* columns are lookup variables
+                i = j
+            else:
+                # After *eval_method*,
+                i = narg + 1 + (j-narg)*5
+            # Save name
+            if j < narg:
+                # Save independent variable name
+                args.append(col)
+            else:
+                # Save dependent variable name
+                coeffs.append(col)
+            # Check for duplication
+            if coeff in self.cols:
+                raise ValueError(
+                    "RBF output col '%s' is already present." % coeff)
+            # Save the data
+            self.save_col(col, dbf[col])
+       # --- Create RBFs ---
+        # Dereference evaluation method list
+        eval_meth = RBF_METHODS[imeth]
+        # Get values of first arg
+        X0 = dbf[args[0]] 
+        # Get number of test points
+        nx = X0.size
+        # Create matrix of input conditions
+        X = np.zeros((nx, narg))
+        # Get slice locations if appropriate
+        if eval_meth == "rbf":
+            # Create dummy inputs for blank RBF
+            Z = ([0.0, 1.0],) * narg
+        else:
+            # Create dummy inputs for blank RBF
+            Z = ([0.0, 1.0],) * (narg - 1)
+            # Get unique values of first *arg*
+            xs = np.unique(dbf[args[0]])
+        # Loop through coefficients
+        for j, coeff in enumerate(coeffs):
+            # Save evaluation arguments
+            self.set_response_args(coeff, args)
+            # Save evaluation method
+            self.set_response_method(coeff, eval_meth)
+            # Check for slices
+            if eval_meth == "rbf":
+                # %%% Global RBF %%%
+                # Read function type
+                func = RBF_FUNCS[int(dbf[col + "_func"][0])]
+                # Create RBF
+                rbf = scipy.interpolate.rbf.Rbf(*Z, function=func)
+                # Save not-too-important actual values
+                rbf.di = dbf[coeff]
+                # Use all conditions
+                rbf.xi = X.T
+                # Get RBF weights
+                rbf.nodes = dbf[coeff + "_rbf"]
+                # Get function type
+                rbf.function = func
+                # Get scale factor
+                rbf.epsilon = dbf[coeff + "_eps"][0]
+                # Smoothing parameter
+                rbf.smooth = dbf[coeff + "_smooth"][0]
+                # Save count
+                rbf.N = nx
+                # Save RBF
+                self.rbf[coeff] = rbf
+            else:
+                # Initialize RBF list
+                self.rbf[coeff] = []
+                # Cumulative row index
+                i0 = 0
+                # Slice RBFs
+                for i, xi in enumerate(xs):
+                    # Get function type
+                    func = RBF_FUNCS[int(dbf[col + "_func"][0])]
+                    # Initialize slice RBF
+                    rbf = scipy.interpolate.rbf.Rbf(*Z, function=func)
+                    # Number of points in this slice
+                    ni = np.count_nonzero(X0 == xi)
+                    # End of range
+                    i1 = i0 + ni
+                    # Use subset of conditions
+                    rbf.xi = X[i0:i1, :].T
+                    # Save not-too-important original values
+                    rbf.di = dbf[coeff][i0:i1]
+                    # Get RBF weights
+                    rbf.nodes = dbf[coeff + "_rbf"][i0:i1]
+                    # Get function type
+                    rbf.function = func
+                    # Get scale factor
+                    rbf.epsilon = dbf[coeff + "_eps"][i0]
+                    # Smoothing parameter
+                    rbf.smooth = dbf[coeff + "_smooth"][i0]
+                    # Save count
+                    rbf.N = ni
+                    # Save RBF
+                    self.rbf[coeff].append(rbf)
+                    # Update indices
+                    i0 = i1
+        # Check for global RBFs or schedule
+        if eval_meth == "rbf":
+            # Break points for each independent variable
+            self.create_bkpts(args)
+        else:
+            # Break points for mapping variable
+            self.create_bkpts(args[0:1])
+            # Get break points at each slice
+            self.create_bkpts_schedule(args[1:], args[0])
   # >
 
   # ==================

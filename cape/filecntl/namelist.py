@@ -142,7 +142,7 @@ class Namelist(FileCntl):
             *nml2*: :class:`Namelist`
                 Duplicate file control instance for :file:`fun3d.nml`
         :Versions:
-            * 2015-06-12 ``@ddalle``: First version
+            * 2015-06-12 ``@ddalle``: Version 1.0
         """
         # Create empty instance.
         nml = Namelist(fname=None)
