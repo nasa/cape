@@ -1721,6 +1721,199 @@ class DataKit(ftypes.BaseData):
             self.create_bkpts(args[0:1])
             # Get break points at each slice
             self.create_bkpts_schedule(args[1:], args[0])
+
+    # Write a CSV file for radial basis functions
+    def write_rbf_csv(self, fcsv, coeffs, **kw):
+        r"""Write an ASCII file of radial basis func coefficients
+
+        :Call:
+            >>> db.WriteRBFCSV(fcsv, coeffs=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container with responses
+            *fcsv*: :class:`str`
+                Name of ASCII data file to write
+            *coeffs*: :class:`list`\ [:class:`str`]
+                List of output coefficients to write
+            *fmts*: :class:`dict` | :class:`str`
+                Dictionary of formats to use for each *coeff*
+            *comments*: {``"#"``} | :class:`str`
+                Comment character, used as first character of file
+            *delim*: {``", "``} | :class:`str`
+                Delimiter
+            *translators*: {``{}``} | :class:`dict`
+                Dictionary of coefficient translations, e.g.
+                *CAF* -> *CA*
+        :Versions:
+            * 2019-07-24 ``@ddalle``: Version 1.0; :func:`WriteRBFCSV`
+            * 2021-06-09 ``@ddalle``: Version 2.0
+        """
+        # Check input type
+        if not isinstance(coeffs, (list, tuple)):
+            raise TypeError("Coefficient list must be a list of strings")
+        elif len(coeffs) < 1:
+            raise ValueError("Coefficient list must have at least one entry")
+        # Reference coefficient
+        k = coeffs[0]
+        # Check if present
+        if k not in self:
+            raise KeyError("No coeff '%s' in database" % k)
+        # Get length
+        n = len(self[k])
+        # Get arg list for first *coeff*
+        eval_args = self.get_response_args(k)
+        # Check for validity
+        if eval_args is None:
+            # No eval args for this coeff
+            raise KeyError("No 'response_args' for col '%s'" % k)
+        # Get evaluation type
+        eval_meth = self.get_response_method(k)
+        # Check it
+        if eval_meth is None:
+            raise KeyError("No 'response_method' for col '%s'" % k)
+        # Check for RBFs attribute
+        try:
+            self.rbf[k]
+        except AttributeError:
+            # No definitions at all
+            raise AttributeError("No RBFs defined for this database")
+        except KeyError:
+            # No RBFs saved for ref coeff
+            raise KeyError("No RBFs for coeff '%s'" % k)
+        # Check if the method is in our accepted list
+        if eval_meth not in RBF_METHODS:
+            raise ValueError(
+                "Eval method '%s' is not consistent with RBFs" % eval_meth)
+        # Loop through the keys
+        for k in coeffs[1:]:
+            # Check presence of required information
+            if k not in self.cols:
+                raise KeyError("No col '%s' in database" % k)
+            elif self.get_resposne_args(k) is None:
+                raise KeyError("No 'response_args' for col '%s'" % k)
+            elif self.get_response_method(k) is None:
+                raise KeyError("No 'response_method' for col '%s'" % k)
+            elif k not in self.rbf:
+                raise KeyError("No RBFs for coeff '%s'" % k)
+            # Check length
+            if len(self[k]) != n:
+                raise ValueError(
+                    "Col '%s' has length %i; expected %i"
+                    % (k, len(self[k]), n))
+            # Check values
+            if self.get_response_args(k) != eval_args:
+                raise ValueError("Mismatching response_args for col '%s'" % k)
+            elif self.get_response_args(k) != eval_meth:
+                raise ValueError("Mismatching response_method for col '%s" % k)
+
+        # Number of arguments
+        narg = len(eval_args)
+        # Get method index
+        imeth = RBF_METHODS.index(eval_meth)
+
+        # Initialize final column list
+        cols = eval_args + ["eval_method"]
+        # Initialize values
+        vals = {}
+
+        # Extra columns for each output coeff
+        COEFF_COLS = ["", "rbf", "func", "eps", "smooth"]
+        # Loop through coefficients
+        for k in coeffs:
+            # Loop through suffixes to initialize columns
+            for suf in COEFF_COLS:
+                # Append suffix
+                col = ("%s_%s" % (k, suf)).rstrip("_")
+                # Add actual value at that point
+                cols.append(col)
+                # Get RBF
+                if imeth == 0:
+                    # Get global rbf
+                    rbf = self.rbf[k]
+                    # No RBF list
+                    nrbf = 1
+                    # Fixed size
+                    nx = rbf.nodes.size
+                else:
+                    # Get first mapped/linear rbf slice+
+                    rbfs = self.rbf[k]
+                    rbf = self.rbf[k][0]
+                    # Number of RBF slices
+                    nrbf = len(rbfs)
+                    # Total number of nodes
+                    nx = np.sum([rbfj.nodes.size for rbfj in rbfs])
+                # Initialize data
+                vals[col] = np.zeros(nx)
+        # Loop through independent variables
+        for col in eval_args:
+            # Initialize the values
+            vals[col] = np.zeros(nx)
+        # Append type
+        for k in ["eval_method"]:
+            # Create values
+            vals[col] = np.full(nx, imeth) 
+
+        # Number of columns
+        ncol = len(cols)
+        # Total number of points so fart
+        ny = 0
+        # Loop through RBF slices (same for each *coeff*)
+        for j in range(nrbf):
+            # Reference coefficient
+            coeff = coeffs[0]
+            # Get RBF handle
+            if imeth == 0:
+                # Global RBF
+                rbf = self.rbf[coeff]
+            else:
+                # Slice RBF
+                rbf = self.rbf[coeff][j]
+            # Number of points in slice
+            nj = rbf.nodes.size
+            # Save the argument values
+            for i, col in enumerate(eval_args):
+                if imeth == 0:
+                    # Save all the position variables
+                    vals[col] = rbf.xi.T[:,i]
+                else:
+                    # Save the slice points
+                    if i == 0:
+                        # Scheduling parameter
+                        vals[col][ny:ny+nj] = self.bkpts[eval_args[0]][j]
+                    else:
+                        # Secondary arg
+                        vals[col][ny:ny+nj] = rbf.xi.T[:,i-1]
+            # Loop through coefficients
+            for i, coeff in enumerate(coeffs):
+                # Get the RBF
+                if imeth == 0:
+                    # Global RBF
+                    rbf = self.rbf[coeff]
+                else:
+                    # Slice RBF
+                    rbf = self.rbf[coeff][j]
+                # Derived columns
+                ccols = [
+                    ("%s_%s" % (col, suf)).rstrip("_") for suf in COEFF_COLS
+                ]
+                # Save values
+                vals[ccols[0]][ny:ny+nj] = rbf.di
+                # Save weights
+                vals[ccols[1]][ny:ny+nj] = rbf.nodes
+                # RBF type
+                vals[ccols[2]][ny:ny+nj] = RBF_FUNCS.index(rbf.function)
+                # Save spacing parameter
+                vals[ccols[3]][ny:ny+nj] = rbf.epsilon
+                # Save smoothing parameter
+                vals[ccols[4]][ny:ny+nj] = rbf.smooth
+                # Update counter
+                ny += nj
+        # Create CSV file
+        dbcsv = ftypes.CSVFile(vals=vals)
+        # Ensure proper order
+        dbcsv.cols = cols
+        # Write it
+        dbcsv.write_csv(fcsv, **kw)
   # >
 
   # ==================
