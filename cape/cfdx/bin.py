@@ -1,4 +1,6 @@
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.cfdx.bin`: CAPE executable operation
 ==================================================
 
@@ -28,18 +30,18 @@ from . import cmd
 
 # Imitate sp.check_output() for older versions
 def check_output(cmdi):
-    """Imitate the behavior of :func:`sp.check_output` using :func:`sp.Popen`
+    r"""Capture output from a system command
 
     :Call:
         >>> txt = check_output(cmdi)
     :Inputs:
-        *cmdi*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list`\ [:class:`str`]
             List of strings as for :func:`subprocess.call`
     :Outputs:
         *txt*: :class:`str`
             Contents of STDOUT while executing *cmdi*
     :Versions:
-        * 2017-03-13 ``@ddalle``: First version
+        * 2017-03-13 ``@ddalle``: Version 1.0
     """
     # Call sp.Popen
     out = sp.Popen(cmdi, stdout=sp.PIPE).communicate()
@@ -49,12 +51,12 @@ def check_output(cmdi):
 
 # Function to call commands with a different STDOUT
 def calli(cmdi, f=None, e=None, shell=None, v=True):
-    """Call a command with alternate STDOUT by filename
+    r"""Call a command with alternate STDOUT by filename
 
     :Call:
         >>> ierr = calli(cmdi, f=None, e=None, shell=None, v=True)
     :Inputs:
-        *cmdi*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list`\ [:class:`str`]
             List of strings as for :func:`subprocess.call`
         *f*: :class:`str`
             File name to which to store STDOUT
@@ -68,10 +70,10 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
         *ierr*: :class:`int`
             Return code, ``0`` for successful execution
     :Versions:
-        * 2014-08-30 ``@ddalle``: First version
-        * 2015-02-13 ``@ddalle``: Split into part with return code
-        * 2017-03-12 ``@ddalle``: Added *v* option
-        * 2019-06-10 ``@ddalle``: Added *e* option
+        * 2014-08-30 ``@ddalle``: Version 1.0
+        * 2015-02-13 ``@ddalle``: Version 2.0; return code
+        * 2017-03-12 ``@ddalle``: Version 2.1; Add *v* option
+        * 2019-06-10 ``@ddalle``: Version 2.2; Add *e* option
     """
     # Process the shell option
     shell = bool(shell)
@@ -110,7 +112,7 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
 
 # Function to call commands with a different STDOUT
 def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
-    """Call a command with alternate STDOUT by filename
+    r"""Call a command with alternate STDOUT by filename
 
     :Call:
         >>> callf(cmdi, f=None, e=None, shell=None, v=True, check=True)
@@ -126,10 +128,10 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
         *v*: {``True``} | :class:`False`
             Verbose option; display *PWD* and *STDOUT* values
     :Versions:
-        * 2014-08-30 ``@ddalle``: First version
-        * 2015-02-13 ``@ddalle``: Moved much to :func:`cape.bin.calli`
-        * 2017-03-12 ``@ddalle``: Added *v* option
-        * 2019-06-10 ``@ddalle``: Added *e* option
+        * 2014-08-30 ``@ddalle``: Version 1.0
+        * 2015-02-13 ``@ddalle``: Version 2.0; rely on :func:`calli`
+        * 2017-03-12 ``@ddalle``: Version 2.1; add *v* option
+        * 2019-06-10 ``@ddalle``: Version 2.2; add *e* option
     """
     # Call the command with output status
     ierr = calli(cmdi, f, e, shell, v=v)
@@ -145,10 +147,11 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
 
 # Call command with output (since sp.check_output is Python 2.7+)
 def callo(cmdi, shell=False):
-    """Call a command and get the output text
+    r"""Call a command and get the output text
 
-    This function is basically a substitute for :func:`subprocess.check_output`,
-    which is not available in Python 2.6.
+    This function is basically a substitute for
+    :func:`subprocess.check_output`, which was not available in
+    Python 2.6.
 
     :Call:
         >>> txt = callo(cmdi, shell=False)
@@ -161,7 +164,7 @@ def callo(cmdi, shell=False):
         *txt*: :class:`str`
             Output of running the command
     :Versions:
-        * 2016-04-01 ``@ddalle``: First version
+        * 2016-04-01 ``@ddalle``: Version 1.0
     """
     # Call command and get output
     txt = sp.Popen(cmdi, stdout=sp.PIPE, shell=shell).communicate()[0]
@@ -171,7 +174,7 @@ def callo(cmdi, shell=False):
 
 # Grep lines from a file
 def grep(regex, fname):
-    """Search for a regular expression in a file
+    r"""Search for a regular expression in a file
 
     :Call:
         >>> lines = grep(regex, fname)
@@ -184,7 +187,7 @@ def grep(regex, fname):
         *lines*: :class:`list` (:class:`str`)
             List of lines containing the sought regular expression
     :Versions:
-        * 2015-12-28 ``@ddalle``: First version
+        * 2015-12-28 ``@ddalle``: Version 1.0
     """
     # Safely call
     try:
@@ -198,7 +201,7 @@ def grep(regex, fname):
 
 # Function to get the first line of a file.
 def head(fname, n=1):
-    """Extract the first *n* lines of a file
+    r"""Extract the first *n* lines of a file
 
     :Call:
         >>> txt = head(fname, n=1)
@@ -211,7 +214,7 @@ def head(fname, n=1):
         *txt*: :class:`str`
             Output of built-in `tail` function
     :Versions:
-        * 2015-01-12 ``@ddalle``: First version
+        * 2015-01-12 ``@ddalle``: Version 1.0
     """
     # Create the command.
     cmdi = ['head', '-%i'%n, fname]
@@ -221,7 +224,7 @@ def head(fname, n=1):
 
 # Function to get the last line of a file.
 def tail(fname, n=1):
-    """Tail the last *n* lines of a file
+    r"""Tail the last *n* lines of a file
 
     :Call:
         >>> txt = tail(fname, n=1)
@@ -234,7 +237,7 @@ def tail(fname, n=1):
         *txt*: :class:`str`
             Output of built-in `tail` function
     :Versions:
-        * 2015-01-12 ``@ddalle``: First version
+        * 2015-01-12 ``@ddalle``: Version 1.0
     """
     # Create the command.
     cmdi = ['tail', '-%i'%n, fname]
@@ -244,8 +247,7 @@ def tail(fname, n=1):
 
 # Simple function to make sure a file is present
 def _assertfile(fname):
-    """
-    Assert that a given file exists and raise an exception otherwise
+    r"""Assert that a given file exists or raise an exception
 
     :Call:
         >>> _assertfile(fname)
@@ -253,7 +255,7 @@ def _assertfile(fname):
         *fname*: :class:`str`
             Name of file to test
     :Versions:
-        * 2014-06-30 ``@ddalle``: First version
+        * 2014-06-30 ``@ddalle``: Version 1.0
     """
     # Check for the file.
     if not os.path.isfile(fname):
@@ -262,7 +264,7 @@ def _assertfile(fname):
 
 # Function to automate minor changes to docstrings to make them pyCart.Cntl
 def _upgradeDocString(doccmd):
-    """Upgrade docstrings from the :mod:`cape.pycart.bin` class
+    r"""Upgrade docstrings from the :mod:`cape.pycart.bin` class
 
     :Call:
         >>> docbin = _upgradDocString(doccmd)
@@ -273,7 +275,7 @@ def _upgradeDocString(doccmd):
         *docbin*: :class:`str`
             Docstring for :mod:`cape.pycart.bin`
     :Versions:
-        * 2014-09-10 ``@ddalle``: First version
+        * 2014-09-10 ``@ddalle``: Version 1.0
     """
     # Replace module reference.
     txt = doccmd.replace(".cmd.", ".bin.")
@@ -309,7 +311,7 @@ tecmcr.__doc__ = _upgradeDocString(cmd.tecmcr.__doc__)
 
 # Stand-alone function to run a Paraview script
 def pvpython(lay, *args, **kw):
-    """Stand-alone function to execute a Paraview Python script
+    r"""Stand-alone function to execute a Paraview Python script
 
     :Call:
         >>> pvpython(lay, *args, cmd="pvpython")
@@ -322,7 +324,7 @@ def pvpython(lay, *args, **kw):
         *a1*: :class:`str`
             Command-line input to the script
     :Versions:
-        * 2015-11-22 ``@ddalle``: First version
+        * 2015-11-22 ``@ddalle``: Version 1.0
     """
     # Get name of executable
     fbin = kw.get('cmd', 'pvpython')
@@ -334,7 +336,7 @@ def pvpython(lay, *args, **kw):
 
 # Stand-alone aflr3 binary
 def aflr3(opts=None, j=0, **kw):
-    """Run AFLR3 with the appropriate options
+    r"""Run AFLR3 with the appropriate options
 
     :Call:
         >>> aflr3(opts=None, j=0, **kw)
@@ -348,7 +350,7 @@ def aflr3(opts=None, j=0, **kw):
     :See also:
         * :func:`cape.cmd.aflr3`
     :Versions:
-        * 2016-04-04 ``@ddalle``: First version
+        * 2016-04-04 ``@ddalle``: Version 1.0
     """
     # Get the command
     cmdi = cmd.aflr3(opts=opts, j=j, **kw)
@@ -358,7 +360,7 @@ def aflr3(opts=None, j=0, **kw):
 
 # Function to call verify
 def verify(opts=None, **kw):
-    """Run Cart3D binary ``verify`` to test a triangulation
+    r"""Run Cart3D binary ``verify`` to test a triangulation
 
     :Call:
         >>> verify(opts=None, **kw)
@@ -370,7 +372,7 @@ def verify(opts=None, **kw):
     :See also:
         * :func:`cape.cmd.verify`
     :Versions:
-        * 2016-04-05 ``@ddalle``: First version
+        * 2016-04-05 ``@ddalle``: Version 1.0
     """
     # If there is currently a 'tecplot.bad' file, move it.
     if os.path.isfile('tecplot.bad'):
@@ -394,7 +396,7 @@ def verify(opts=None, **kw):
 
 # Function to call intersect
 def intersect(opts=None, **kw):
-    """Run Cart3D binary ``intersect`` to combine overlapping triangulations
+    r"""Run Cart3D ``intersect`` to combine overlapping triangulations
 
     :Call:
         >>> intersect(opts=None, **kw)
@@ -406,7 +408,7 @@ def intersect(opts=None, **kw):
     :See also:
         * :func:`cape.cmd.intersect`
     :Versions:
-        * 2016-04-05 ``@ddalle``: First version
+        * 2016-04-05 ``@ddalle``: Version 1.0
     """
     # Get command.
     cmdi = cmd.intersect(opts=opts, **kw)

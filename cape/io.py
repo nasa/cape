@@ -124,7 +124,7 @@ def get_filetype(fname):
     :Versions:
         * 2016-09-04 ``@ddalle``: Version 1.0
     """
-    # Open the file as a binary file (yes, this will work even for ASCII).
+    # Open the file as a binary file (still works if ASCII)
     f = open(fname, 'rb')
     # ASCII check: '<i4' and '>i4' are the same!
     i4l = np.fromfile(f, count=1, dtype='<i4'); f.seek(0)
@@ -190,7 +190,7 @@ def get_filetype(fname):
 # def get_filetype
 
 
-# **********************************************************************
+# *********************************************************************
 # ====== string readers ===============================================
 
 # Read string
