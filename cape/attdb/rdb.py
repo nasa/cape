@@ -125,7 +125,7 @@ DataKitOpts.combine_optdefs()
 # Declare base class
 class DataKit(ftypes.BaseData):
     r"""Basic database template without responses
-    
+
     :Call:
         >>> db = DataKit(fname=None, **kw)
     :Inputs:
@@ -229,7 +229,7 @@ class DataKit(ftypes.BaseData):
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
-        
+
         :Versions:
             * 2019-12-06 ``@ddalle``: First version
         """
@@ -347,9 +347,9 @@ class DataKit(ftypes.BaseData):
     # Copy
     def copy(self):
         r"""Make a copy of a database class
-        
+
         Each database class may need its own version of this class
-        
+
         :Call:
             >>> dbcopy = db.copy()
         :Inputs:
@@ -371,7 +371,7 @@ class DataKit(ftypes.BaseData):
     # Copy attributes and data known to DataKit class
     def copy_DataKit(self, dbcopy):
         r"""Copy attributes and data relevant to null-response DB
-        
+
         :Call:
             >>> db.copy_DataKit(dbcopy)
         :Inputs:
@@ -391,7 +391,7 @@ class DataKit(ftypes.BaseData):
     # Copy any remaining items
     def copy__dict__(self, dbtarg, skip=[]):
         r"""Copy all attributes except for specified list
-        
+
         :Call:
             >>> db.copy__dict__(dbtarg, skip=[])
         :Inputs:
@@ -463,7 +463,7 @@ class DataKit(ftypes.BaseData):
     # Copy an item according to local rules
     def copyitem(self, v):
         r"""Return a copy of appropriate depth following class rules
-        
+
         :Call:
             >>> vcopy = db.copyitem(v)
         :Inputs:
@@ -965,7 +965,7 @@ class DataKit(ftypes.BaseData):
     # Read CSV file
     def read_csv(self, fname, **kw):
         r"""Read data from a CSV file
-        
+
         :Call:
             >>> db.read_csv(fname, **kw)
             >>> db.read_csv(dbcsv, **kw)
@@ -1073,7 +1073,7 @@ class DataKit(ftypes.BaseData):
     # Read simple CSV file
     def read_csvsimple(self, fname, **kw):
         r"""Read data from a simple CSV file
-        
+
         :Call:
             >>> db.read_csvsimple(fname, **kw)
             >>> db.read_csvsimple(dbcsv, **kw)
@@ -1122,7 +1122,7 @@ class DataKit(ftypes.BaseData):
     # Read TSV file
     def read_tsv(self, fname, **kw):
         r"""Read data from a space-separated file
-        
+
         :Call:
             >>> db.read_tsv(fname, **kw)
             >>> db.read_tsv(dbtsv, **kw)
@@ -1232,7 +1232,7 @@ class DataKit(ftypes.BaseData):
     # Read simple TSV file
     def read_tsvsimple(self, fname, **kw):
         r"""Read data from a simple TSV file
-        
+
         :Call:
             >>> db.read_tsvsimple(fname, **kw)
             >>> db.read_tsvsimple(dbcsv, **kw)
@@ -1282,7 +1282,7 @@ class DataKit(ftypes.BaseData):
     # Read text data fiel
     def read_textdata(self, fname, **kw):
         r"""Read data from a simple CSV file
-        
+
         :Call:
             >>> db.read_textdata(fname, **kw)
             >>> db.read_textdata(dbcsv, **kw)
@@ -1331,7 +1331,7 @@ class DataKit(ftypes.BaseData):
     # Read XLS file
     def read_xls(self, fname, **kw):
         r"""Read data from an ``.xls`` or ``.xlsx`` file
-        
+
         :Call:
             >>> db.read_xls(fname, **kw)
             >>> db.read_xls(dbxls, **kw)
@@ -1436,7 +1436,7 @@ class DataKit(ftypes.BaseData):
     # Read MAT file
     def read_mat(self, fname, **kw):
         r"""Read data from a version 5 ``.mat`` file
-        
+
         :Call:
             >>> db.read_mat(fname, **kw)
             >>> db.read_mat(dbmat, **kw)
@@ -1730,7 +1730,10 @@ class DataKit(ftypes.BaseData):
                 # Check if scalar
                 if isinstance(Vj, np.ndarray):
                     # Something allowed an array arg in; try item
-                    V[j] = Vj[j]
+                    try:
+                        V[j] = Vj[j]
+                    except IndexError:
+                        V[j] = float(Vj)
                 else:
                     # It should be a scalar, so this is the normal sit
                     V[j] = Vj
@@ -2146,7 +2149,7 @@ class DataKit(ftypes.BaseData):
             *cols*: :class:`list`\ [:class:`str`]
                 List of columns for which to declare evaluation rules
             *method*: ``"nearest"`` | ``"linear"`` | :class:`str`
-                Response (lookup/interpolation/evaluation) method name 
+                Response (lookup/interpolation/evaluation) method name
             *args*: :class:`list`\ [:class:`str`]
                 List of input arguments
             *a*: :class:`tuple`
@@ -2197,7 +2200,7 @@ class DataKit(ftypes.BaseData):
             *col*: :class:`str`
                 Name of column for which to declare evaluation rules
             *method*: ``"nearest"`` | ``"linear"`` | :class:`str`
-                Response (lookup/interpolation/evaluation) method name 
+                Response (lookup/interpolation/evaluation) method name
             *args*: :class:`list`\ [:class:`str`]
                 List of input arguments
             *a*: :class:`tuple`
@@ -2827,7 +2830,7 @@ class DataKit(ftypes.BaseData):
         else:
             # Set it
             response_funcs[col] = fn
-            
+
     # Set a default value for an argument
     def set_arg_default(self, k, v):
         r"""Set a default value for an evaluation argument
@@ -6403,11 +6406,11 @@ class DataKit(ftypes.BaseData):
     # Fill out a slice matrix
     def get_fullfactorial(self, scol=None, cols=None):
         r"""Create full-factorial matrix of values in break points
-        
+
         This allows some of the break points cols to be scheduled, i.e.
         there are different matrices of *cols* for each separate value
         of *scol*.
-        
+
         :Call:
             >>> X, slices = db.get_fullfactorial(scol=None, cols=None)
         :Inputs:
@@ -7068,7 +7071,7 @@ class DataKit(ftypes.BaseData):
     # Link data
     def link_data(self, dbsrc, cols=None, **kw):
         r"""Save a column to database
-        
+
         :Call:
             >>> db.link_data(dbsrc, cols=None)
         :Inputs:
@@ -7169,7 +7172,7 @@ class DataKit(ftypes.BaseData):
                         "Cannot combine old and new values for col '%s'\n"
                         % col)
                     sys.stderr.flush()
-            # Save the data    
+            # Save the data
             self.save_col(col, v)
 
    # --- Access ---
@@ -7191,7 +7194,7 @@ class DataKit(ftypes.BaseData):
             *error*: {``True``} | ``False``
                 Raise an exception if no col is found
         :Outputs:
-            *col*: *k* | *defnamess[0]* | *defnamess[1]* | ... 
+            *col*: *k* | *defnamess[0]* | *defnamess[1]* | ...
                 Name of lookup key in *db.cols*
         :Versions:
             * 2018-06-22 ``@ddalle``: First version
@@ -7213,7 +7216,7 @@ class DataKit(ftypes.BaseData):
             return k
         # Check list
         if not isinstance(defnames, list):
-            raise TypeError("Default col names must be list") 
+            raise TypeError("Default col names must be list")
         # Loop through defaults
         for col in defnames:
             # Check if it's present
@@ -7804,7 +7807,7 @@ class DataKit(ftypes.BaseData):
             sweeps_parent = sweeps
         # Output
         return sweeps
-    
+
    # --- Search ---
     # Find matches
     def find(self, args, *a, **kw):
@@ -8112,11 +8115,11 @@ class DataKit(ftypes.BaseData):
     # Get coverage
     def est_cov_interval(self, dbt, col, mask=None, cov=0.95, **kw):
         r"""Calculate Student's t-distribution confidence region
-        
+
         If the nominal application of the Student's t-distribution fails
         to cover a high enough fraction of the data, the bounds are
         extended until the data is covered.
-        
+
         :Call:
             >>> a, b = db.est_cov_interval(dbt, col, mask, cov, **kw)
         :Inputs:
@@ -8183,11 +8186,11 @@ class DataKit(ftypes.BaseData):
     # Get coverage
     def est_range(self, dbt, col, mask=None, cov=0.95, **kw):
         r"""Calculate Student's t-distribution confidence range
-        
+
         If the nominal application of the Student's t-distribution fails
         to cover a high enough fraction of the data, the bounds are
         extended until the data is covered.
-        
+
         :Call:
             >>> r = db.est_range(dbt, col, mask, cov, **kw)
         :Inputs:
@@ -8269,7 +8272,7 @@ class DataKit(ftypes.BaseData):
             *ocol*: {``col[1:]``} | :class:`str`
                 Name of col to store result in
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
-                Mask or indices of which cases to integrate 
+                Mask or indices of which cases to integrate
             *x*: {``None``} | :class:`np.ndarray`
                 Optional 1D or 2D *x*-coordinates directly specified
             *dx*: {``1.0``} | :class:`float`
@@ -8313,7 +8316,7 @@ class DataKit(ftypes.BaseData):
             *ocol*: {``col[1:]``} | :class:`str`
                 Name of col to store result in
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
-                Mask or indices of which cases to integrate 
+                Mask or indices of which cases to integrate
             *x*: {``None``} | :class:`np.ndarray`
                 Optional 1D or 2D *x*-coordinates directly specified
             *dx*: {``1.0``} | :class:`float`
@@ -8356,7 +8359,7 @@ class DataKit(ftypes.BaseData):
             *xcol*: {``None``} | :class:`str`
                 Name of column to use as *x*-coords for integration
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
-                Mask or indices of which cases to integrate 
+                Mask or indices of which cases to integrate
             *x*: {``None``} | :class:`np.ndarray`
                 Optional 1D or 2D *x*-coordinates directly specified
             *dx*: {``1.0``} | :class:`float`
@@ -9063,7 +9066,7 @@ class DataKit(ftypes.BaseData):
             yv = y
         # Just plot it
         return pmpl.plot(xv, yv, **opts)
-        
+
     # Plot single line load
     def plot_linear(self, *a, **kw):
         r"""Plot a 1D-output col for one or more cases or conditions
@@ -9528,7 +9531,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-04-02 ``@ddalle``: First version
         """
-        # Get handle to kw 
+        # Get handle to kw
         png_kwargs = self.__dict__.setdefault("png_kwargs", {})
         # Check types
         if not typeutils.isstr(png):
@@ -9751,7 +9754,7 @@ class DataKit(ftypes.BaseData):
             * 2020-04-02 ``@ddalle``: Use :class:`MPLOpts`
             * 2020-05-26 ``@ddalle``: Combine existing *png_kwargs*
         """
-        # Get handle to kw 
+        # Get handle to kw
         png_kwargs = self.__dict__.setdefault("png_kwargs", {})
         # Check types
         if not typeutils.isstr(png):
@@ -9836,7 +9839,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-04-03 ``@jmeeroff``: First version
         """
-        # Get handle to kw 
+        # Get handle to kw
         seam_kwargs = self.__dict__.setdefault("seam_kwargs", {})
         # Check types
         if not typeutils.isstr(seam):
@@ -10069,7 +10072,7 @@ class DataKit(ftypes.BaseData):
             * 2020-04-02 ``@jmeeroff``: First version
             * 2020-05-26 ``@ddalle``: Combine existing *png_kwargs*
         """
-        # Get handle to kw 
+        # Get handle to kw
         seam_kwargs = self.__dict__.setdefault("seam_kwargs", {})
         # Check types
         if not typeutils.isstr(seam):
@@ -10160,7 +10163,7 @@ class DataKit(ftypes.BaseData):
         :func:`get_bkpts`.  The values in *db.bkpts*, however, can be
         set manually in order to interpolate the data onto a specific
         matrix of points.
-        
+
         :Call:
             >>> db.regularize_by_rbf(cols=None, args=None, **kw)
         :Inputs:
@@ -10444,7 +10447,7 @@ class DataKit(ftypes.BaseData):
         :func:`get_bkpts`.  The values in *db.bkpts*, however, can be
         set manually in order to interpolate the data onto a specific
         matrix of points.
-        
+
         :Call:
             >>> db.regularize_by_griddata(cols=None, args=None, **kw)
         :Inputs:
