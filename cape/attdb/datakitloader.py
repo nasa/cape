@@ -16,66 +16,11 @@ import re
 
 # Local modules
 from .rdb import DataKit
-
-
-# Default options
-rc = {
-    "DATAKIT_CLS": DataKit,
-    "DB_DIR": "db",
-    "DB_DIRS_BY_TYPE": {},
-    "DB_NAME_FORMATS": ["datakit"],
-    "DB_NAME": None,
-    "MODULE_NAME_REGEX": [".+"],
-    "MODULE_NAME_REGEX_GROUPS": = {},
-    "RAWDATA_DIR": "rawdata",
-}
-
-
-# Get default value from *rc*
-def getrc(kw, key, mode=0):
-    r"""Get option from *kw*, using default value from *rc*
-
-    :Call:
-        >>> v = getrc(kw, key, mode=0)
-    :Inputs:
-        *kw*: :class:`dict`
-            Keyword arguments from some function
-        *key*: :class:`str`
-            Name of parameter to inspect
-        *mode*: {``0``} | ``1``
-            If ``0``, ignore ``kw[key]`` if it is ``None``
-    :Outputs:
-        *v*: **any**
-            Either *kw[key]* or *rc[key]*
-    :Versions:
-        * 2021-06-26 ``@ddalle``: Version 1.0
-    """
-    # Check mode
-    if mode == 0:
-        # Get value from *kw*
-        v1 = kw.get(key)
-        # Don't use ``None`` from *kw*
-        if v1 is not None:
-            # Use it
-            return v1
-    elif mode == 1:
-        # Use value from *kw* even if ``None``
-        if key in kw:
-            return kw[key]
-    else:
-        # Invalid mode
-        raise ValueError("Invalid mode '%s'; must be 0 or 1" % mode)
-    # Check for option
-    if key in rc:
-        # Return default
-        return rc[key]
-    else:
-        # No default value
-        raise KeyError("No default value for key '%s'" % key)
+from ..tnakit import kwutils
 
 
 # Create class
-class DataKitLoader(object):
+class DataKitLoader(kwutils.KwargHandler):
     r"""Tool for reading datakits based on module name and file
 
     :Call:
@@ -91,45 +36,83 @@ class DataKitLoader(object):
     :Versions:
         * 2021-06-25 ``@ddalle``: Version 0.1; Started
     """
+   # ==========
+    # List of options
+    _optlist = {
+        "DATAKIT_CLS",
+        "DB_DIR",
+        "DB_DIRS_BY_TYPE",
+        "DB_NAME",
+        "DB_NAME_TEMPLATES",
+        "MODULE_DIR",
+        "MODULE_FILE",
+        "MODULE_NAME",
+        "MODULE_NAME_REGEX_LIST",
+        "MODULE_NAME_REGEX_GROUPS"
+    }
+
+    # Types
+    _opttypes = {
+        "DATAKIT_CLS": type,
+        "DB_DIR": str,
+        "DB_DIRS_BY_TYPE": (list, tuple),
+        "DB_NAME": str,
+        "DB_NAME_TEMPLATES": (list, tuple),
+        "MODULE_DIR": str,
+        "MODULE_FILE": str,
+        "MODULE_NAME": str,
+        "MODULE_NAME_REGEX_LIST": (list, tuple),
+        "MODULE_NAME_REGEX_GROUPS": dict,
+    }
+
+    # Default values
+    _rc = {
+        "DATAKIT_CLS": DataKit,
+        "DB_DIR": "db",
+        "DB_DIRS_BY_TYPE": {},
+        "DB_NAME_FORMATS": ["datakit"],
+        "DB_NAME": None,
+        "MODULE_NAME_REGEX_LIST": [".+"],
+        "MODULE_NAME_REGEX_GROUPS": {},
+        "RAWDATA_DIR": "rawdata",
+    }
+
     def __init__(self, name, fname, **kw):
         r"""Initialization method
 
         :Versions:
             * 2021-06-25 ``@ddalle``: Version 1.0
         """
-        # Save module name and file
-        self.MODULE_NAME = name
-        self.MODULE_FILE = os.path.abspath(fname)
-        # Containing folder
-        self.MODULE_DIR = os.path.dirname(self.MODULE_FILE)
-        # Raw data folder
-        self.RAWDATA_DIR = getrc(kw, "RAWDATA_DIR")
-        # Processed data folder
-        self.DB_DIR = getrc(kw, "DB_DIR")
-        self.DB_DIRS_BY_TYPE = getrc(kw, "DB_DIRS_BY_TYPE")
-        # Datakit class (default)
-        self.DATAKIT_CLS = getrc(kw, "DATAKIT_CLS")
-        # Regular expression items
-        self.MODULE_NAME_REGEX = getrc(kw, "MODULE_NAME_REGEX")
-        self.MODULE_NAME_REGEX_GROUPS = getrc(kw, "MODULE_NAME_REGEX_GROUPS")
-        #
+        # Process keyword options
+        kwutils.KwargHandler.__init__(self, **kw)
+        # Use required inputs
+        self.setdefault_option("MODULE_NAME", name)
+        self.setdefault_option("MODULE_FILE", os.path.abspath(fname))
+        # Set name of folder containing data
+        self.set_option("MODULE_DIR", os.path.dirname(self["MODULE_FILE"]))
 
     def _genr8_modname_regexes(self):
         # Get the regular expressions for each "group"
-        grps = dict(self.MODULE_NAME_REGEX_GROUPS)
+        grps = self.get_option("MODULE_NAME_REGEX_GROUPS")
         # Add full formatting for regular expression group
         grps_re = {
             k: "(?P<%s>%s)" % (k, v)
             for k, v in grps.items()
         }
         # Get regular expression list
-        regex_list = self.MODULE_NAME_REGEX
+        name_list = self.get_option("MODULE_NAME_REGEX_LIST")
         # Check if it's a list
-        if not isinstance(regex_list, (list, tuple)):
+        if not isinstance(name_list, (list, tuple)):
             # Create a singleton
-            regex_list = [regex_list]
+            name_list = [name_list]
+        # Initialize list of expanded regexes
+        regex_list = []
+        # Loop through raw lists
+        for name in name_list:
+            # Expand it and append to regular expression list
+            regex_list.append(name % grps_re)
         # Output
-        return grps
+        return regex_list
         
     def read_rawdata(self, fname, ftype=None, cls=None, **kw):
         r"""Read a file from the RAW_DATA folder
@@ -151,13 +134,16 @@ class DataKitLoader(object):
         :Versions:
             * 2021-06-25 ``@ddalle``: Version 1.0
         """
-        # Get aw data folder
-        fdir = os.path.join(self.MODULE_DIR, self.RAWDATA_DIR)
+        # Get top-level and relative raw-data folder
+        moddir = self.get_option("MODULE_DIR")
+        rawdir = self.get_option("RAWDATA_DIR")
+        # Full path to raw data
+        fdir = os.path.join(moddir, rawdir)
         # File name
         fabs = os.path.join(fdir, fname)
         # Default class
         if cls is None:
-            cls = self.DATAKIT_CLS
+            cls = self.get_option("DATAKIT_CLS")
         # Check for user-specified file type
         if ftype is None:
             # Let *cls* determine the file type
