@@ -205,6 +205,8 @@ def hist(v, *a, **kw):
     _part_sigma_label(opts, h)
     _part_interval_label(opts, h)
     _part_delta_label(opts, h)
+    # Legend
+    _part_legend(opts, h)
     # Readjust axes
     _part_axes_adjust(opts, h)
     # Output
