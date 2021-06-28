@@ -51,6 +51,7 @@ class DataKitLoader(kwutils.KwargHandler):
         "DB_DIRS_BY_TYPE",
         "DB_NAME",
         "DB_NAME_TEMPLATE_LIST",
+        "DB_SUFFIXES_BY_TYPE",
         "MODULE_DIR",
         "MODULE_FILE",
         "MODULE_NAME",
@@ -67,6 +68,7 @@ class DataKitLoader(kwutils.KwargHandler):
         "DB_DIRS_BY_TYPE": (list, tuple),
         "DB_NAME": str,
         "DB_NAME_TEMPLATE_LIST": (list, tuple),
+        "DB_SUFFIXES_BY_TYPE": dict,
         "MODULE_DIR": str,
         "MODULE_FILE": str,
         "MODULE_NAME": str,
@@ -288,18 +290,48 @@ class DataKitLoader(kwutils.KwargHandler):
         typdir = typdirs.get(ext, ext)
         # Output
         return os.path.join(moddir, dbdir, typdir)
+
+    def get_db_suffixes_by_type(self, ext):
+        # Dictionary of db suffixes for each file format
+        suffixdict = self.get_option("DB_SUFFIXES_BY_TYPE", {})
+        # Get suffixes for this type
+        suffixes = suffixdict.get(ext)
+        # Check for any
+        if suffixes is None:
+            # Return list of just ``None``
+            return [None]
+        elif not suffixes:
+            # Use list of ``None`` for any empty suffixes
+            return [None]
+        elif isinstance(suffixes, (list, tuple)):
+            # Already a list
+            return suffixes
+        else:
+            # Convert single suffix to list
+            return [suffixes]
         
-    def get_db_filename_by_type(self, ext):
+    def get_db_files_by_type(self, ext):
         # Full path to raw data
         fdir = self.get_db_dir_by_type(ext)
         # Get database name
         dbname = self.make_db_name()
-        # File name
-        fname = dbname + "." + ext
-        # File name
-        fabs = os.path.join(fdir, fname)
+        # Get list of suffixes for database files
+        suffixes = self.get_db_suffixes_by_type(ext)
+        # Initialize list of files
+        fnames = []
+        # Loop through suffixes
+        for suffix in suffixes:
+            # Construct full file name
+            if suffix is None:
+                # No suffix
+                fname = "%s.%s" % (dbname, ext)
+            else:
+                # Add a suffix
+                fname = "%s-%s.%s" % (dbname, suffix, ext)
+            # Save absolute file name
+            fnames.append(os.path.join(fdir, fname))
         # Output
-        return fabs
+        return fnames
         
         
     def read_db_mat(self, ftype=None, cls=None, **kw):
