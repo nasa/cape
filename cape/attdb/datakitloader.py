@@ -17,6 +17,7 @@ import re
 # Local modules
 from .rdb import DataKit
 from ..tnakit import kwutils
+from ..tnakit import typeutls
 
 
 # Utility regular expressions
@@ -119,6 +120,7 @@ class DataKitLoader(kwutils.KwargHandler):
   # DATAKIT NAME
   # =================
   # <
+   # --- Create names ---
     def make_db_name(self):
         r"""Retrieve or create database name from module name
 
@@ -236,316 +238,8 @@ class DataKitLoader(kwutils.KwargHandler):
             dbname = "datakit"
         # Also output it
         return dbname
-  # >
-  
-  # ==================
-  # FILE/FOLDER
-  # ==================
-  # <
-    def _mkdirs(self, *fdirs):
-        r"""Ensure folders exist
 
-        :Call:
-            >>> dkl._mkdirs(fdir1, fdir2, ...)
-        :Inputs:
-            *fdir1*: :class:`str`
-                Ensure folder named *fdir1* exists in *MODULE_DIR*
-            *fdir2*: :class:`str`
-                Ensure folder ``os.path.join(fdir1, fdir2)`` exists
-        :Versions:
-            * 2021-06-28 ``@ddalle``: Version 1.0
-        """
-        # Get module dir
-        moddir = self.get_option("MODULE_DIR")
-        # Initialize dir name ad *moddir* level
-        fdir = moddir
-        # Loop through relative folder names (cumulatively)
-        for fdiri in fdirs:
-            # Combine path
-            fdir = os.path.join(fdir, fdiri)
-            # Test if folder exists
-            if os.path.isdir(fdir):
-                # Already exists; go to next one
-                continue
-            elif os.path.isfile(fdir):
-                # File with same name exists!
-                raise ValueError(
-                    "Cannot create folder '%s'; file with same name exists"
-                    % fdir)
-            else:
-                # Create folder
-                os.mkdir(fdir)
-  # >
-
-  # ==================
-  # DATAKIT MAIN
-  # ==================
-  # <
-   # --- Combined readers ---
-    def read_db_mat(self, cls=None, **kw):
-        r"""Read a datakit using ``.mat`` file type
-
-        :Call:
-            >>> db = dkl.read_rawdata(fname, cls=None)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *cls*: {``None``} | :class:`type`
-                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
-        :Outputs:
-            *db*: *dkl["DATAKIT_CLS"]* | *cls*
-                DataKit instance read from *fname*
-        :Versions:
-            * 2021-07-03 ``@ddalle``: Version 1.0
-        """
-        # Get full list of file names
-        fnames = self.get_db_filenames_by_type("mat")
-        # Combine option
-        kw["cls"] = cls
-        # Read those files
-        for j, fname in enumerate(fnames):
-            # Read with default options
-            if j == 0:
-                # Read initial database
-                db = self.read_dbfile_mat(fname, **kw)
-            else:
-                # Use existing database
-                db.read_mat(fname)
-        # Output
-        return db
-
-   # --- Combined writers ---
-    def write_db_mat(self, **kw):
-        r"""Write a datakit using ``.mat`` file type
-
-        """
-        pass
-
-   # --- Individual file readers ---
-    def read_dbfile_mat(self, fname, **kw):
-        r"""Read a ``.mat`` file from *DB_DIR*
-
-        :Call:
-            >>> db = dkl.read_dbfile_mat(fname, **kw)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *fname*: :class:`str`
-                Name of file to read from raw data folder
-            *ftype*: {``"mat"``} | ``None`` | :class:`str`
-                Optional specifier to predetermine file type
-            *cls*: {``None``} | :class:`type`
-                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
-            *kw*: :class:`dict`
-                Additional keyword arguments passed to *cls*
-        :Outputs:
-            *db*: *dkl["DATAKIT_CLS"]* | *cls*
-                DataKit instance read from *fname*
-        :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
-        """
-        # Set default file type
-        kw.setdefault("ftype", "mat")
-        # Read from db/ folder
-        return self.read_dbfile(fname, "mat", **kw)
-
-    def read_dbfile_csv(self, fname, **kw):
-        r"""Read a ``.mat`` file from *DB_DIR*
-
-        :Call:
-            >>> db = dkl.read_dbfile_mat(fname, **kw)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *fname*: :class:`str`
-                Name of file to read from raw data folder
-            *ftype*: {``"mat"``} | ``None`` | :class:`str`
-                Optional specifier to predetermine file type
-            *cls*: {``None``} | :class:`type`
-                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
-            *kw*: :class:`dict`
-                Additional keyword arguments passed to *cls*
-        :Outputs:
-            *db*: *dkl["DATAKIT_CLS"]* | *cls*
-                DataKit instance read from *fname*
-        :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
-        """
-        # Set default file descriptor
-        kw.setdefault("ftype", "csv")
-        # Read from db/ folder
-        return self.read_dbfile(fname, "csv", **kw)
-
-
-    def read_dbfile(self, fname, ext, **kw):
-        r"""Read a databook file from *DB_DIR*
-
-        :Call:
-            >>> db = dkl.read_dbfile_mat(self, ext, **kw)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *fname*: :class:`str`
-                Name of file to read from raw data folder
-            *ext*: :class:`str`
-                Database file type
-            *ftype*: {``"mat"``} | ``None`` | :class:`str`
-                Optional specifier to predetermine file type
-            *cls*: {``None``} | :class:`type`
-                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
-        :Keys:
-            * *MODULE_DIR*
-            * *DB_DIR*
-        :Outputs:
-            *db*: *dkl["DATAKIT_CLS"]* | *cls*
-                DataKit instance read from *fname*
-        :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
-        """
-        # Get top-level and relative raw-data folder
-        moddir = self.get_option("MODULE_DIR")
-        dbsdir = self.get_option("DB_DIR")
-        # Get folder for dbs of this type
-        dbtypedir = self.get_db_typedir(ext)
-        # Full path to raw data
-        fdir = os.path.join(moddir, dbsdir, dbtypedir)
-        # File name
-        fabs = os.path.join(fdir, fname)
-        # Read that file
-        return self._read_db(fabs, **kw)
-        
-    def read_rawdata(self, fname, ftype=None, cls=None, **kw):
-        r"""Read a file from the *RAW_DATA* folder
-
-        :Call:
-            >>> db = dkl.read_rawdata(fname, ftype=None, cls=None, **kw)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *fname*: :class:`str`
-                Name of file to read from raw data folder
-            *ftype*: {``None``} | :class:`str`
-                Optional specifier to predetermine file type
-            *cls*: {``None``} | :class:`type`
-                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
-            *kw*: :class:`dict`
-                Additional keyword arguments passed to *cls*
-        :Outputs:
-            *db*: *dkl["DATAKIT_CLS"]* | *cls*
-                DataKit instance read from *fname*
-        :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
-        """
-        # Get top-level and relative raw-data folder
-        moddir = self.get_option("MODULE_DIR")
-        rawdir = self.get_option("RAWDATA_DIR")
-        # Full path to raw data
-        fdir = os.path.join(moddir, rawdir)
-        # File name
-        fabs = os.path.join(fdir, fname)
-        # Read that file
-        return self._read_db(fabs, ftype=ftype, cls=cls, **kw)
-
-   # --- DataKit attributes ---
-    def get_db_typedir(self, ext):
-        r"""Get datakit directory for given file type
-
-        :Call:
-            >>> dkl.get_db_dir_by_type(ext)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *ext*: :class:`str`
-                File extension type
-        :Keys:
-            * *MODULE_DIR*
-            * *DB_DIR*
-            * *DB_DIRS_BY_TYPE*
-        :Outputs:
-            *fdir*: :class:`str`
-                Absolute path to *ext* datakit folder
-        :Versions:
-            * 2021-06-29 ``@ddalle``: Version 1.0
-        """
-        # Dictionary of db folders for each file format
-        dbtypedirs = self.get_option("DB_DIRS_BY_TYPE", {})
-        # Get option for specified file type
-        return dbtypedirs.get(ext, ext)
-
-    def get_db_suffixes_by_type(self, ext):
-        r"""Get list of suffixes for given data file type
-
-        :Call:
-            >>> suffixes = dkl.get_db_suffixes_by_type(ext)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *ext*: :class:`str`
-                File extension type
-        :Keys:
-            * *DB_SUFFIXES_BY_TYPE*
-        :Outputs:
-            *suffixes*: :class:`list`\ [:class:`str` | ``None``]
-                List of additional suffixes (if any) for *ext* type
-        :Versions:
-            * 2021-07-01 ``@ddalle``: Version 1.0
-        """
-        # Dictionary of db suffixes for each file format
-        suffixdict = self.get_option("DB_SUFFIXES_BY_TYPE", {})
-        # Get suffixes for this type
-        suffixes = suffixdict.get(ext)
-        # Check for any
-        if suffixes is None:
-            # Return list of just ``None``
-            return [None]
-        elif not suffixes:
-            # Use list of ``None`` for any empty suffixes
-            return [None]
-        elif isinstance(suffixes, (list, tuple)):
-            # Already a list
-            return suffixes
-        else:
-            # Convert single suffix to list
-            return [suffixes]
-        
-    def get_db_filenames_by_type(self, ext):
-        r"""Get list of file names for a given data file type
-
-        :Call:
-            >>> fnames = dkl.get_db_filenames_by_type(ext)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *ext*: :class:`str`
-                File extension type
-        :Outputs:
-            *fnames*: :class:`list`\ [:class:`str`]
-                List of datakit file names; one for each suffix
-        :Versions:
-            * 2021-07-01 ``@ddalle``: Version 1.0
-        """
-        # Full path to raw data
-        fdir = self.get_db_dir_by_type(ext)
-        # Get database name
-        dbname = self.make_db_name()
-        # Get list of suffixes for database files
-        suffixes = self.get_db_suffixes_by_type(ext)
-        # Initialize list of files
-        fnames = []
-        # Loop through suffixes
-        for suffix in suffixes:
-            # Construct full file name
-            if suffix is None:
-                # No suffix
-                fname = "%s.%s" % (dbname, ext)
-            else:
-                # Add a suffix
-                fname = "%s-%s.%s" % (dbname, suffix, ext)
-            # Save absolute file name
-            fnames.append(fname)
-        # Output
-        return fnames
-
+   # --- Supporting ---
     def _genr8_modname_match_groups(self, regex, modname):
         r"""Get the match groups if *modname* fully matches *regex*
 
@@ -651,12 +345,270 @@ class DataKitLoader(kwutils.KwargHandler):
             regex_list.append(name % grps_re)
         # Output
         return regex_list
+  # >
+  
+  # ==================
+  # FILE/FOLDER
+  # ==================
+  # <
+   # --- File names and prep ---
+    def genr8_abs_filename(self, frel):
+        r"""Generate full filename from path relative to *MODULE_DIR*
 
-    def _read_db(self, fabs, ftype=None, cls=None, **kw):
+        :Call:
+            >>> fabs = dkl.genr8_abs_filename(frel)
+            >>> fabs = dkl.genr8_abs_filename(fabs)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *frel*: :class:`str`
+                Name of file relative to *MODULE_DIR*
+            *fabs*: :class:`str`
+                Existing absolute path
+        :Keys:
+            * *MODULE_DIR*
+        :Outputs:
+            *fabs*: :class:`str`
+                Absolute path to file
+        :Versions:
+            * 2021-07-05 ``@ddalle``: Version 1.0
+        """
+        # Check file name
+        if not typeutils.isstr(frel):
+            raise TypeError(
+                "Relative file name *frel* must be 'str'; got '%s'"
+                % type(frel).__name__)
+        # Check for absolute file
+        if os.path.isabs(frel):
+            # Already absolute
+            return frel
+        # Get top-level and relative raw-data folder
+        moddir = self.get_option("MODULE_DIR")
+        # Return full path to file name
+        return os.path.join(fdir, frel)
+
+    def prep_module_filename(self, frel):
+        # Check file name
+        if not typeutils.isstr(frel):
+            raise TypeError(
+                "Relative file name *frel* must be 'str'; got '%s'"
+                % type(frel).__name__)
+        # Check for absolute file
+        if os.path.isabs(frel):
+            raise ValueError(
+                "Relative file name *frel* '%s' is absolute" % frel)
+        # Create list of individual dirs
+        fdirs = frel.split(os.sep)
+        # Create folders
+        self.mkdirs(fdirs)
+        # Return absolute file name
+        return self.genr8_abs_filename(frel)
+
+   # --- Supporting ---
+    def mkdirs(self, fdirs):
+        r"""Ensure folders exist
+
+        :Call:
+            >>> dkl.mkdirs(fdirs)
+        :Inputs:
+            *fdirs*: :class:`list`\ [:class:`str`]
+                List of folder names relative to *MODULE_DIR*
+        :Versions:
+            * 2021-06-28 ``@ddalle``: Version 1.0
+            * 2021-07-05 ``@ddalle``: Version 2.0; list of dirs
+        """
+        # Get module dir
+        moddir = self.get_option("MODULE_DIR")
+        # Initialize dir name ad *moddir* level
+        fdir = moddir
+        # Loop through relative folder names (cumulatively)
+        for fdiri in fdirs:
+            # Skip empty folders
+            if not fdiri:
+                continue
+            # Combine path cumulatively
+            fdir = os.path.join(fdir, fdiri)
+            # Test if folder exists
+            if os.path.isdir(fdir):
+                # Already exists; go to next one
+                continue
+            elif os.path.isfile(fdir):
+                # File with same name exists!
+                raise ValueError(
+                    "Cannot create folder '%s'; file with same name exists"
+                    % fdir)
+            else:
+                # Create folder
+                os.mkdir(fdir)
+  # >
+
+  # ==================
+  # DATAKIT MAIN
+  # ==================
+  # <
+   # --- Combined readers ---
+    def read_db_mat(self, cls=None, **kw):
+        r"""Read a datakit using ``.mat`` file type
+
+        :Call:
+            >>> db = dkl.read_rawdata(fname, cls=None)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-07-03 ``@ddalle``: Version 1.0
+        """
+        # Get full list of file names
+        fnames = self.get_db_filenames_by_type("mat")
+        # Combine option
+        kw["cls"] = cls
+        # Read those files
+        for j, fname in enumerate(fnames):
+            # Read with default options
+            if j == 0:
+                # Read initial database
+                db = self.read_dbfile_mat(fname, **kw)
+            else:
+                # Use existing database
+                db.read_mat(fname)
+        # Output
+        return db
+
+   # --- Individual file readers ---
+    def read_dbfile_mat(self, fname, **kw):
+        r"""Read a ``.mat`` file from *DB_DIR*
+
+        :Call:
+            >>> db = dkl.read_dbfile_mat(fname, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fname*: :class:`str`
+                Name of file to read from raw data folder
+            *ftype*: {``"mat"``} | ``None`` | :class:`str`
+                Optional specifier to predetermine file type
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+            *kw*: :class:`dict`
+                Additional keyword arguments passed to *cls*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-06-25 ``@ddalle``: Version 1.0
+        """
+        # Set default file type
+        kw.setdefault("ftype", "mat")
+        # Read from db/ folder
+        return self.read_dbfile(fname, "mat", **kw)
+
+    def read_dbfile_csv(self, fname, **kw):
+        r"""Read a ``.mat`` file from *DB_DIR*
+
+        :Call:
+            >>> db = dkl.read_dbfile_mat(fname, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fname*: :class:`str`
+                Name of file to read from raw data folder
+            *ftype*: {``"mat"``} | ``None`` | :class:`str`
+                Optional specifier to predetermine file type
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+            *kw*: :class:`dict`
+                Additional keyword arguments passed to *cls*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-06-25 ``@ddalle``: Version 1.0
+        """
+        # Set default file descriptor
+        kw.setdefault("ftype", "csv")
+        # Read from db/ folder
+        return self.read_dbfile(fname, "csv", **kw)
+
+
+    def read_dbfile(self, fname, ext, **kw):
+        r"""Read a databook file from *DB_DIR*
+
+        :Call:
+            >>> db = dkl.read_dbfile_mat(self, ext, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fname*: :class:`str`
+                Name of file to read from raw data folder
+            *ext*: :class:`str`
+                Database file type
+            *ftype*: {``"mat"``} | ``None`` | :class:`str`
+                Optional specifier to predetermine file type
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+        :Keys:
+            * *MODULE_DIR*
+            * *DB_DIR*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-06-25 ``@ddalle``: Version 1.0
+        """
+        # Get top-level and relative raw-data folder
+        moddir = self.get_option("MODULE_DIR")
+        dbsdir = self.get_option("DB_DIR")
+        # Get folder for dbs of this type
+        dbtypedir = self.get_db_typedir(ext)
+        # Full path to raw data
+        fdir = os.path.join(moddir, dbsdir, dbtypedir)
+        # File name
+        fabs = os.path.join(fdir, fname)
+        # Read that file
+        return self._read_dbfile(fabs, **kw)
+        
+    def read_rawdata(self, fname, ftype=None, cls=None, **kw):
+        r"""Read a file from the *RAW_DATA* folder
+
+        :Call:
+            >>> db = dkl.read_rawdata(fname, ftype=None, cls=None, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fname*: :class:`str`
+                Name of file to read from raw data folder
+            *ftype*: {``None``} | :class:`str`
+                Optional specifier to predetermine file type
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+            *kw*: :class:`dict`
+                Additional keyword arguments passed to *cls*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-06-25 ``@ddalle``: Version 1.0
+        """
+        # Get top-level and relative raw-data folder
+        moddir = self.get_option("MODULE_DIR")
+        rawdir = self.get_option("RAWDATA_DIR")
+        # Full path to raw data
+        fdir = os.path.join(moddir, rawdir)
+        # File name
+        fabs = os.path.join(fdir, fname)
+        # Read that file
+        return self._read_dbfile(fabs, ftype=ftype, cls=cls, **kw)
+
+    def _read_dbfile(self, fabs, ftype=None, cls=None, **kw):
         r"""Read a file using specified DataKit class
 
         :Call:
-            >>> db = dkl._read_db(fabs, ftype=None, cls=None, **kw)
+            >>> db = dkl._read_dbfile(fabs, ftype=None, cls=None, **kw)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
@@ -686,5 +638,182 @@ class DataKitLoader(kwutils.KwargHandler):
             kw[ftype] = fabs
             # Read the file using *ftype* kwarg
             return cls(**kw)
+
+   # --- Write individual files ---
+    def _write_dbfile(self, db, frel, ext=None, **kw):
+        r"""Write a datakit file to specified relative file name
+
+        :Call:
+            >>> dkl._write_dbfile(db, frel, ext=None, **kw)
+        :Inputs:
+            *frel*: :class:`str`
+                File name to write relative to *MODULE_DIR*
+            *db*: ``None`` | :class:`DataKit`
+                Instance of DataKit to write from
+            *ext*: {``None``} | :class:`str`
+                File type, or guess from *frel* extension
+            *func*: {``None``} | **callable**
+                Function/method to use for writing; overrides *ext*
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of columns to write
+        :Versions:
+            * 2021-07-05 ``@ddalle``: Version 1.0
+        """
+        # Get function option
+        fn = kw.get("func")
+        # Default extension
+        if ext is None:
+            # Get extension from file name
+            ext = frel.split(".")[-1]
+        # Check *ext* type
+        if not typeutils.isstr(ext):
+            raise ValueError(
+                "Input *ext* must be 'str'; got '%s'" % type(ext).__name__)
+        # Normalize *ext* variable
+        _ext = ext.lower().replace("_", "-")
+        # Get function
+        if fn is not None:
+            # Function already found
+            pass
+        elif _ext == "csv":
+            # Use CSV writer
+            fn = db.write_csv
+        elif _ext == "csv-dense":
+            # Use simple CSV writer
+            fn = db.write_csv_dense
+        elif _ext == "mat":
+            # Use MAT file
+            fn = db.write_mat
+        elif _ext == "rbf-csv":
+            # Write special RBF CSV file
+            fn = db.write_rbf_csv
+        elif _ext == "tsv":
+            # Write tab-separated values
+            fn = db.write_tsv
+        elif _ext == "tsv-dense":
+            # Write simple TSV
+            fn = db.write_tsv_dense
+        elif _ext in {"xls", "xlsx"}:
+            # Write Excel spreadsheet
+            fn = db.write_xls
+        else:
+            raise ValueError("Unknown file type '%s'" % ext)
+        # Normalize file name
+        if os.path.isabs(frel):
+            # Already absolute ... do nothing
+            fabs = frel
+        else:
+            # Get folder portion
+            fdir = os.path.dirname(frel)
+            # Base dir
+            moddir = self.get_option("MODULE_DIR")
+            # Absolutize
+            fabs = os.path(moddir, frel.replace("/", os.sep))
+            # Create folders as needed
+            fdirs = fdir.split(os.sep)
+            self._mkdirs(*fdirs)
+        # Write the file
+        fn(fabs, **kw)
+        
+
+   # --- Read/write attributes ---
+    def get_db_typedir(self, ext):
+        r"""Get datakit directory for given file type
+
+        :Call:
+            >>> dkl.get_db_dir_by_type(ext)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *ext*: :class:`str`
+                File extension type
+        :Keys:
+            * *MODULE_DIR*
+            * *DB_DIR*
+            * *DB_DIRS_BY_TYPE*
+        :Outputs:
+            *fdir*: :class:`str`
+                Absolute path to *ext* datakit folder
+        :Versions:
+            * 2021-06-29 ``@ddalle``: Version 1.0
+        """
+        # Dictionary of db folders for each file format
+        dbtypedirs = self.get_option("DB_DIRS_BY_TYPE", {})
+        # Get option for specified file type
+        return dbtypedirs.get(ext, ext)
+
+    def get_db_suffixes_by_type(self, ext):
+        r"""Get list of suffixes for given data file type
+
+        :Call:
+            >>> suffixes = dkl.get_db_suffixes_by_type(ext)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *ext*: :class:`str`
+                File extension type
+        :Keys:
+            * *DB_SUFFIXES_BY_TYPE*
+        :Outputs:
+            *suffixes*: :class:`list`\ [:class:`str` | ``None``]
+                List of additional suffixes (if any) for *ext* type
+        :Versions:
+            * 2021-07-01 ``@ddalle``: Version 1.0
+        """
+        # Dictionary of db suffixes for each file format
+        suffixdict = self.get_option("DB_SUFFIXES_BY_TYPE", {})
+        # Get suffixes for this type
+        suffixes = suffixdict.get(ext)
+        # Check for any
+        if suffixes is None:
+            # Return list of just ``None``
+            return [None]
+        elif not suffixes:
+            # Use list of ``None`` for any empty suffixes
+            return [None]
+        elif isinstance(suffixes, (list, tuple)):
+            # Already a list
+            return suffixes
+        else:
+            # Convert single suffix to list
+            return [suffixes]
+        
+    def get_db_filenames_by_type(self, ext):
+        r"""Get list of file names for a given data file type
+
+        :Call:
+            >>> fnames = dkl.get_db_filenames_by_type(ext)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *ext*: :class:`str`
+                File extension type
+        :Outputs:
+            *fnames*: :class:`list`\ [:class:`str`]
+                List of datakit file names; one for each suffix
+        :Versions:
+            * 2021-07-01 ``@ddalle``: Version 1.0
+        """
+        # Full path to raw data
+        fdir = self.get_db_dir_by_type(ext)
+        # Get database name
+        dbname = self.make_db_name()
+        # Get list of suffixes for database files
+        suffixes = self.get_db_suffixes_by_type(ext)
+        # Initialize list of files
+        fnames = []
+        # Loop through suffixes
+        for suffix in suffixes:
+            # Construct full file name
+            if suffix is None:
+                # No suffix
+                fname = "%s.%s" % (dbname, ext)
+            else:
+                # Add a suffix
+                fname = "%s-%s.%s" % (dbname, suffix, ext)
+            # Save absolute file name
+            fnames.append(fname)
+        # Output
+        return fnames
   # >
 
