@@ -9637,6 +9637,9 @@ class DataKit(ftypes.BaseData):
             raise ValueError("No required 'ycol' option specified")
         # Get main values
         v = self(col, *a, **kwr)
+        # Check for errors
+        if v is None:
+            raise ValueError("Unable to evaluate col '%s'" % col)
         # Lookup main args
         if mode == 0:
             # All values
