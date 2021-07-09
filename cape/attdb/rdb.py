@@ -989,7 +989,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        save = kw.pop("save", kw.pop("SaveCSV", True))
+        save = kw.pop("save", kw.pop("SaveCSV", False))
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
@@ -1095,7 +1095,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        savecsv = kw.pop("save", kw.pop("SaveCSV", True))
+        savecsv = kw.pop("save", kw.pop("SaveCSV", False))
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
@@ -1147,7 +1147,7 @@ class DataKit(ftypes.BaseData):
             * 2021-01-14 ``@ddalle``: Version 1.0
         """
         # Get option to save database
-        save = kw.pop("save", kw.pop("SaveTSV", True))
+        save = kw.pop("save", kw.pop("SaveTSV", False))
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
@@ -1255,7 +1255,7 @@ class DataKit(ftypes.BaseData):
             * 2021-01-14 ``@ddalle``: Version 1.0
         """
         # Get option to save database
-        savecsv = kw.pop("save", kw.pop("SaveTSV", True))
+        save = kw.pop("save", kw.pop("SaveTSV", False))
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
@@ -1304,7 +1304,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        savedat = kw.pop("save", True)
+        savedat = kw.pop("save", False)
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
@@ -1368,7 +1368,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-06 ``@ddalle``: First version
         """
         # Get option to save database
-        save = kw.pop("save", kw.pop("SaveXLS", True))
+        save = kw.pop("save", kw.pop("SaveXLS", False))
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
@@ -1455,7 +1455,7 @@ class DataKit(ftypes.BaseData):
             * 2019-12-17 ``@ddalle``: First version
         """
         # Get option to save database
-        save = kw.pop("save", kw.pop("SaveMAT", True))
+        save = kw.pop("save", kw.pop("SaveMAT", False))
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
