@@ -1334,6 +1334,51 @@ class BaseData(dict):
         return V
 
    # --- Name Translation ---
+    # Rename a column
+    def rename_col(self, col1, col2):
+        r"""Rename a column *col1* to *col2*
+
+        :Call:
+            >>> db.rename_col(col1, col2)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+                Data file interface
+            *col1*: :class:`str`
+                Existing column name
+            *col2*: :class:`str`
+                New column name
+        :Versions:
+            * 2021-07-09 ``@ddalle``: Version 1.0
+        """
+        # Get definitions
+        defns = self.get_defns()
+        # Check if present
+        if col1 in defns:
+            # Remove it and save it with new name
+            defns[col2] = defns.pop(col1)
+        # Check if column is present
+        if col1 in self:
+            # Get values
+            v = self.pop(col1)
+            # Save the new column (creates defn if needed)
+            self.save_col(col2, v)
+            # Get new definition for customization
+            defn = defns[col2]
+            # Set value for *LongName* (but don't overwrite)
+            defn.setdefault_option("LongName", col1)
+        else:
+            # No values
+            v = None
+        # Check if in list
+        if col1 in self.cols:
+            # Get index
+            i = self.cols.index(col1)
+            # Overwrite
+            self.cols[i] = col2
+        else:
+            # Just add new column
+            self.cols.append(col2)
+
     # Translate column names
     def _translate_colnames(self, cols, trans, prefix, suffix):
         r"""Translate column names
