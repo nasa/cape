@@ -689,11 +689,7 @@ class TSVFile(BaseFile, TextInterpreter):
             # Get type
             clsname = _types[j]
             # Convert text
-            try:
-                v = self.fromtext_val(coltxts[j], clsname)
-            except Exception:
-                import pdb
-                pdb.set_trace()
+            v = self.fromtext_val(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
     
