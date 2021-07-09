@@ -19,6 +19,9 @@ final comment before the beginning of data.
 import re
 import sys
 
+# Third-party modules
+import numpy as np
+
 # CAPE modules
 import cape.tnakit.typeutils as typeutils
 import cape.tnakit.arrayutils as arrayutils
@@ -1295,88 +1298,18 @@ class TSVSimple(BaseFile):
                 List of column names
         :Versions:
             * 2019-11-25 ``@ddalle``: Version 1.0
+            * 2021-07-09 ``@ddalle``: Version 2.0; :func:`np.fromfile`
         """
-        # Set data count
-        self.n = 0
-        # Read data lines
-        while True:
-            # Process next line
-            eof = self.read_tsvsimple_dataline(f)
-            # Check for end of file
-            if eof == -1:
-                break
-            # Increase count
-            self.n += 1
-        # Trim each column
-        for col in self.cols:
-            self.trim_colarray(col)
-
-    # Read data line
-    def read_tsvsimple_dataline(self, f):
-        r"""Read one data line of a simple TSV file
-        
-        :Call:
-            >>> db.read_tsvsimple_dataline(f)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVSimple`
-                TSV file interface
-            *f*: :class:`file`
-                Open file handle
-        :Versions:
-            * 2019-11-27 ``@ddalle``: Version 1.0 (CSVSimple)
-            * 2021-01-14 ``@ddalle``: Version 1.0
-        """
-        # Read line
-        line = f.readline()
-        # Check for end of file
-        if line == "":
-            return -1
-        # Check for comment
-        if line.startswith("#"):
-            return
-        # Check for empty line
-        if line.strip() == "":
-            return
-        # Split line
-        coltxts = line.split()
+        # Number of columns
+        ncol = len(self.cols)
+        # Read all remaining data with minimal fuss
+        # (This doesn't keep track of newlines, so we have to reshape)
+        A = np.fromfile(f, sep=" ")
         # Loop through columns
-        for (j, col) in enumerate(self.cols):
-            # Convert text
-            v = self.translate_simplefloat(coltxts[j])
-            # Save data
-            self.append_colval(col, v)
-
-    # Convert text to float
-    def translate_simplefloat(self, txt):
-        r"""Convert a string to default float
-        
-        This conversion allows for the format ``"2.40D+00"`` if the
-        built-in :func:`float` converter fails.  Python expects the
-        exponent character to be ``E`` or ``e``, but ``D`` and ``d``
-        are allowed here.  Other exceptions are not handled.
-        
-        :Call:
-            >>> v = db.translate_simplefloat(txt)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
-                TSV file interface
-            *txt*: :class:`str`
-                Text to be converted to :class:`float`
-        :Outputs:
-            *v*: :class:`float`
-                Converted value, if possible
-        :Versions:
-            * 2019-11-27 ``@ddalle``: Version 1.0
-        """
-        # Attempt conversion
-        try:
-            # Basic conversion
-            return float(txt)
-        except ValueError:
-            # Substitute "E" for "D" and "e" for "d"
-            txt = txt.replace("D", "E")
-            txt = txt.replace("d", "e")
-        # Second attempt
-        return float(txt)
+        for j, col in enumerate(self.cols):
+            # Get the data by getting every *ncol*th entry
+            v = A[j::ncol]
+            # Save the data
+            self.save_col(col, v)
   # >
 # class TSVSimple
