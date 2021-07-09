@@ -1278,43 +1278,6 @@ class TSVSimple(BaseFile):
         # Apply translations
         self.cols = self.translate_colnames(cols)
 
-    # Read initial comments
-    def read_tsvsimple_header(self, f):
-        r"""Read column names from beginning of open file
-        
-        :Call:
-            >>> db.read_tsv_header(f)
-        :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVSimple`
-                TSV file interface
-            *f*: :class:`file`
-                Open file handle
-        :Effects:
-            *db.cols*: :class:`list`\ [:class:`str`]
-                List of column names
-        :Versions:
-            * 2019-11-12 ``@ddalle``: Version 1.0 (:class:`CSVSimple`)
-            * 2021-01-14 ``@ddalle``: Version 1.0
-        """
-        # Loop until a nonempty line is read
-        while True:
-            # Read the next line
-            line = f.readline()
-            # Check contents of line
-            if line == "":
-                raise ValueError("File '%s' has no header" % self.fname)
-            # Strip comment and white space
-            line = line.lstrip("#").strip()
-            # Check for empty line
-            if line == "":
-                continue
-            # Process header line, strip white space from each col
-            cols = line.split()
-            # Apply translations
-            self.cols = self.translate_colnames(cols)
-            # Once this is done, task completed
-            return
-
    # --- Data ---
     # Rad data
     def read_tsvsimple_data(self, f):

@@ -307,7 +307,6 @@ class DataKit(ftypes.BaseData):
             # Unable to guess
             raise ValueError(
                 "Unable to guess file type of file name '%s'" % fname)
-
         # Last-check file names
         fcsv  = kw.pop("csv", fcsv)
         ftsv  = kw.pop("tsv", ftsv)
