@@ -1125,6 +1125,159 @@ class TSVSimple(BaseFile):
             self.read_tsvsimple_data(f)
    
    # --- Header ---
+   # Read initial comments
+    def read_tsvsimple_header(self, f):
+        r"""Read column names from beginning of open file
+        
+        :Call:
+            >>> db.read_tsvsimple_header(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+                TSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                List of column names
+        :Versions:
+            * 2019-11-12 ``@ddalle``: Version 1.0 (:class:`CSVSimple`)
+            * 2021-01-14 ``@ddalle``: Version 1.0
+            * 2021-07-09 ``@ddalle``: Version 2.0
+                - Allow multiple comments
+                - Allow no header
+        """
+        # Set header flags
+        self._tsv_header_once = False
+        self._tsv_header_complete = False
+        # Read until header_complete flag set
+        while not self._tsv_header_complete:
+            self.read_tsvsimple_headerline(f)
+        # Remove flags
+        del self._tsv_header_once
+        del self._tsv_header_complete
+        # Get default column names if necessary
+        self.read_tsvsimple_headerdefaultcols(f)
+
+    # Read a line as if it were a header
+    def read_tsvsimple_headerline(self, f):
+        r"""Read line and process column names if possible
+        
+        :Call:
+            >>> db.read_tsvsimple_headerline(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+                TSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: ``None`` | :class:`list`\ [:class:`str`]
+                List of column names if read
+            *db._tsv_header_once*: ``True`` | ``False``
+                Set to ``True`` if column names are read at all
+            *db._tsv_header_complete*: ``True`` | ``False``
+                Set to ``True`` if next line is expected to be data
+        :Versions:
+            * 2019-11-22 ``@ddalle``: Version 1.0 (:class:`CSVFile`)
+            * 2021-07-09 ``@ddalle``: Version 1.0
+        """
+        # Check if header has already been processed
+        if self._tsv_header_complete:
+            return
+        # Save current position
+        pos = f.tell()
+        # Read line
+        line = f.readline()
+        # Check if it starts with a comment
+        if line == "":
+            # End of file
+            self._tsv_header_complete = True
+            return
+        elif line.startswith("#"):
+            # Remove comment
+            line = line.lstrip("#")
+            # Check for empty comment
+            if line.strip() == "":
+                # Don't process and don't set any flags
+                return
+            # Strip comment char and split line into columns
+            cols = line.split()
+            # Marker that header has been read
+            self._tsv_header_once = True
+        elif not self._tsv_header_once:
+            # Check for empty line
+            if line.strip() == "":
+                # Return without setting any flags
+                return
+            # Split line into columns without strip
+            cols = line.split()
+            # Marker that header has been read
+            self._tsv_header_once = True
+            # Check valid names of each column
+            for col in cols:
+                # If it begins with a number, it's probably a data row
+                if not regex_alpha.match(col):
+                    # Marker for no header
+                    self._tsv_header_complete = True
+                    # Return file to previous position
+                    f.seek(pos)
+                    # Exit
+                    return
+        else:
+            # If row is empty; allow this
+            if line.strip() == "":
+                return
+            # Non-comment row following comment: data
+            f.seek(pos)
+            # Mark completion of header
+            self._tsv_header_complete = True
+            # Exit
+            return
+        # Save column names if reaching this point
+        self.cols = self.translate_colnames(cols)
+        # Output column names for kicks
+        return cols
+
+    # Read first data line to count columns if necessary
+    def read_tsvsimple_headerdefaultcols(self, f):
+        r"""Create column names "col1", "col2", etc. if needed
+        
+        :Call:
+            >>> db.read_tsvsimple_headerdefaultcols(f)
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+                TSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                If not previously determined, this becomes
+                ``["col1", "col2", ...]`` based on number of columns
+                in the first data row
+        :Versions:
+            * 2019-11-27 ``@ddalle``: Version 1.0 (:class:`TSVFile`)
+            * 2021-07-09 ``@ddalle``: Version 1.0
+        """
+        # Check if columns already determined
+        if self.cols:
+            return
+        # Save position
+        pos = f.tell()
+        # Read line
+        line = f.readline()
+        # Check for empty data
+        if line == "":
+            return
+        # Return to original location so first data row can be read
+        f.seek(pos)
+        # Otherwise, split into data
+        coltxts = line.split()
+        # Count the number of columns
+        ncol = len(coltxts)
+        # Create default column names
+        cols = ["col%i" % (i+1) for i in range(ncol)]
+        # Apply translations
+        self.cols = self.translate_colnames(cols)
+
     # Read initial comments
     def read_tsvsimple_header(self, f):
         r"""Read column names from beginning of open file
@@ -1140,7 +1293,7 @@ class TSVSimple(BaseFile):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-12 ``@ddalle``: Version 1.0 (CSVSimple)
+            * 2019-11-12 ``@ddalle``: Version 1.0 (:class:`CSVSimple`)
             * 2021-01-14 ``@ddalle``: Version 1.0
         """
         # Loop until a nonempty line is read
