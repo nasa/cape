@@ -1356,6 +1356,15 @@ class BaseData(dict):
         if col1 in defns:
             # Remove it and save it with new name
             defns[col2] = defns.pop(col1)
+        # Check if in list
+        if col1 in self.cols:
+            # Get index
+            i = self.cols.index(col1)
+            # Overwrite
+            self.cols[i] = col2
+        else:
+            # Just add new column
+            self.cols.append(col2)
         # Check if column is present
         if col1 in self:
             # Get values
@@ -1369,15 +1378,6 @@ class BaseData(dict):
         else:
             # No values
             v = None
-        # Check if in list
-        if col1 in self.cols:
-            # Get index
-            i = self.cols.index(col1)
-            # Overwrite
-            self.cols[i] = col2
-        else:
-            # Just add new column
-            self.cols.append(col2)
 
     # Translate column names
     def _translate_colnames(self, cols, trans, prefix, suffix):
