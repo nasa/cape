@@ -59,7 +59,7 @@ class DataKitLoader(kwutils.KwargHandler):
         "DB_DIR",
         "DB_DIRS_BY_TYPE",
         "DB_NAME",
-        "DB_NAME_REGEX",
+        "DB_NAME_REGEX_LIST",
         "DB_NAME_REGEX_GROUPS",
         "DB_NAME_REGEX_INT_GROUPS",
         "DB_NAME_REGEX_STR_GROUPS",
@@ -81,8 +81,10 @@ class DataKitLoader(kwutils.KwargHandler):
         "DB_DIR": str,
         "DB_DIRS_BY_TYPE": (list, tuple),
         "DB_NAME": str,
-        "DB_NAME_REGEX": str,
+        "DB_NAME_REGEX_LIST": (list, tuple),
         "DB_NAME_REGEX_GROUPS": dict,
+        "DB_NAME_REGEX_INT_GROUPS": (list, tuple, set),
+        "DB_NAME_REGEX_STR_GROUPS": (list, tuple, set),
         "DB_NAME_TEMPLATE_LIST": (list, tuple),
         "DB_SUFFIXES_BY_TYPE": dict,
         "MODULE_DIR": str,
@@ -136,9 +138,9 @@ class DataKitLoader(kwutils.KwargHandler):
         self.create_db_name()
   # >
 
-  # =================
-  # DATAKIT NAME
-  # =================
+  # ==========================
+  # MODULE_NAME --> DB_NAME
+  # ==========================
   # <
    # --- Create names ---
     def make_db_name(self):
@@ -148,7 +150,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
         * *MODULE_NAME_REGEX_LIST*
         * *MODULE_NAME_REGEX_GROUPS*
-        * *DB_NAME_FORMATS*
+        * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
             >>> dbname = dkl.make_db_name()
@@ -177,7 +179,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
         * *MODULE_NAME_REGEX_LIST*
         * *MODULE_NAME_REGEX_GROUPS*
-        * *DB_NAME_FORMATS*
+        * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
             >>> dbname = dkl.create_db_name()
@@ -195,32 +197,38 @@ class DataKitLoader(kwutils.KwargHandler):
         # Save it
         self.set_option("DB_NAME", dbname)
 
-    def genr8_db_name(self):
+    def genr8_db_name(self, modname=None):
         r"""Get database name based on first matching regular expression
 
         This utilizes the following parameters:
 
+        * *MODULE_NAME*
         * *MODULE_NAME_REGEX_LIST*
         * *MODULE_NAME_REGEX_GROUPS*
-        * *DB_NAME_FORMATS*
+        * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> dbname = dkl.genr8_db_name()
+            >>> dbname = dkl.genr8_db_name(modname=None)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
+            *modname*: {``None``} | :class:`str`
+                Name of module to parse (default: *MODULE_NAME*)
         :Outputs:
             *dbname*: :class:`str`
                 Prescribed datakit name
         :Versions:
             * 2021-06-28 ``@ddalle``: Version 1.0
+            * 2021-07-15 ``@ddalle``: Version 1.1; add *modname* arg
         """
         # Get list of regexes
         modname_regexes = self._genr8_modname_regexes()
         # Get format lists
         dbname_templates = self.get_option("DB_NAME_TEMPLATE_LIST")
         # Module name
-        modname = self.get_option("MODULE_NAME")
+        if modname is None:
+            # Use default; this module
+            modname = self.get_option("MODULE_NAME")
         # Loop through regular expressions
         for i, regex in enumerate(modname_regexes):
             # Check for match
@@ -330,7 +338,7 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Expand regular expression strings for module name
 
         This expands things like ``%(group1)s`` to something
-        like ``?P<group1>[1-9][0-9]``.
+        like ``(?P<group1>[1-9][0-9])`` if *group1* is ``"[1-9][0-9]"``.
 
         :Call:
             >>> regex_list = dkl._genr8_modname_regexes()
@@ -353,6 +361,196 @@ class DataKitLoader(kwutils.KwargHandler):
         }
         # Get regular expression list
         name_list = self.get_option("MODULE_NAME_REGEX_LIST")
+        # Check if it's a list
+        if not isinstance(name_list, (list, tuple)):
+            # Create a singleton
+            name_list = [name_list]
+        # Initialize list of expanded regexes
+        regex_list = []
+        # Loop through raw lists
+        for name in name_list:
+            # Expand it and append to regular expression list
+            regex_list.append(name % grps_re)
+        # Output
+        return regex_list
+  # >
+
+  # ==========================
+  # DB_NAME --> MODULE_NAME
+  # ==========================
+  # <
+   # --- Create names ---
+    def genr8_modname(self, dbname=None):
+        r"""Get database name based on first matching regular expression
+
+        This utilizes the following parameters:
+
+        * *DB_NAME*
+        * *DB_NAME_REGEX_LIST*
+        * *DB_NAME_REGEX_GROUPS*
+        * *MODULE_NAME_TEMPLATE_LIST*
+
+        :Call:
+            >>> dbname = dkl.genr8_modname(dbname=None)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *dbame*: {``None``} | :class:`str`
+                Database name parse (default: *DB_NAME*)
+        :Outputs:
+            *dbname*: :class:`str`
+                Prescribed datakit name
+        :Versions:
+            * 2021-06-28 ``@ddalle``: Version 1.0
+            * 2021-07-15 ``@ddalle``: Version 1.1; add *modname* arg
+        """
+        # Get list of regexes
+        dbname_regexes = self._genr8_dbname_regexes()
+        # Get format lists (list[list[str]])
+        modname_templates = self.get_option("MODULE_NAME_TEMPLATE_LIST")
+        # Module name
+        if dbname is None:
+            # Use default; this datakit
+            dbname = self.make_db_name()
+        # Loop through regular expressions
+        for i, regex in enumerate(dbname_regexes):
+            # Check for match
+            grps = self._genr8_dbname_match_groups(regex, dbname)
+            # Check for match
+            if grps is None:
+                continue
+            # Get the template
+            if i >= len(modname_templates):
+                # Not enough templates!
+                raise IndexError(
+                    ("DB name matched regex %i, but only " % (i+1)) + 
+                    ("%i templates specified" % len(modname_templates)))
+            # Get templates for this regex
+            modname_template = modname_templates[i]
+            # Ensure list
+            if not isinstance(modname_templates, (list, tuple)):
+                modname_templates = [modname_templates]
+            # Initialize list of possible modules names
+            modnames = []
+            # Loop through templates
+            for modname_template in modname_templates:
+                # Expand all groups
+                try:
+                    # Apply formatting substitutions
+                    dbname = dbname_template % grps
+                except Exception:
+                    # Missing group or something
+                    print("Failed to expand DB_NAME_TEPLATE_LIST %i:" % (i+1))
+                    print("  template: %s" % dbname_template)
+                    print("  groups:")
+                    # Print all groups
+                    for k, v in grps.items():
+                        print("%12s: %s [%s]" % (k, v, type(v).__name__))
+                    # Raise an exception
+                    raise KeyError(
+                        "Failed to expand DB_NAME_TEPLATE_LIST %i" % (i+1))
+                # Exit loop
+                break
+        else:
+            # No match found; use global default
+            dbname = "datakit"
+        # Also output it
+        return dbname
+
+   # --- Supporting ---
+    def _genr8_dbname_match_groups(self, regex, dbname):
+        r"""Get the match groups if *modname* fully matches *regex*
+
+        :Call:
+            >>> groups = dkl._genr8_dbname_match_groups(regex, dbname)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *regex*: :class:`str`
+                Regular expression string
+            *dbname*: :class:`str`
+                Full database name
+        :Outputs:
+            *groups*: ``None`` | :class:`dict`
+                List of regex strings, converted to :class:`int` if
+                possible.
+
+                Upper-case and lower-case groups are also added.  For
+                example if there's a match group called ``name``, then
+                ``u-name`` is the upper-case version and ``l-name`` is
+                the lower-case version.
+        :Keys:
+            * *DB_NAME_REGEX_INT_GROUPS*
+            * *DB_NAME_REGEX_STR_GROUPS*
+        """
+        # Attempt to match regex (all of *dbname*)
+        match = re.fullmatch(regex, dbname)
+        # Check for no match
+        if match is None:
+            return None
+        # Get dictionary from matches
+        groupdict = match.groupdict()
+        # Names of groups that should always be integers or strings
+        igroups = self.get_option("DB_NAME_REGEX_INT_GROUPS")
+        sgroups = self.get_option("DB_NAME_REGEX_STR_GROUPS")
+        # Initialize finale groups
+        groups = dict(groupdict)
+        # Loop through groups that were present
+        for grp, val in groupdict.items():
+            # Save upper-case and lower-case
+            groups["l-" + grp] = val.lower()
+            groups["u-" + grp] = val.upper()
+            # Check for direct instruction
+            if grp in sgroups:
+                # Always keep as string
+                pass
+            elif grp in igroups:
+                # Always convert to integer
+                try:
+                    ival = int(val)
+                except Exception:
+                    raise ValueError(
+                        ("Failed to convert group '%s' with " % grp) +
+                        ("with value '%s' to integer" % val))
+                # Save integer group
+                groups[grp] = ival
+                # Save raw value
+                groups["s-" + grp] = val
+            elif REGEX_INT.fullmatch(val):
+                # Convertible to integer
+                groups[grp] = int(val)
+                # Resave raw value
+                groups["s-" + grp] = val
+        # Output
+        return groups
+
+    def _genr8_dbname_regexes(self):
+        r"""Expand regular expression strings for database names
+
+        This expands things like ``%(group1)s`` to something
+        like ``(?P<group1>[1-9][0-9])`` if *group1* is ``"[1-9][0-9]"``.
+
+        :Call:
+            >>> regex_list = dkl._genr8_dbname_regexes()
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *regex_list*: :class:`list`\ [:class:`str`]
+                Regular expressions to parse database name
+        :Keys:
+            * *DB_NAME_REGEX_LIST*
+            * *DB_NAME_REGEX_GROUPS*
+        """
+        # Get the regular expressions for each "group"
+        grps = self.get_option("DB_NAME_REGEX_GROUPS")
+        # Add full formatting for regular expression group
+        grps_re = {
+            k: "(?P<%s>%s)" % (k, v)
+            for k, v in grps.items()
+        }
+        # Get regular expression list
+        name_list = self.get_option("DB_NAME_REGEX_LIST")
         # Check if it's a list
         if not isinstance(name_list, (list, tuple)):
             # Create a singleton
