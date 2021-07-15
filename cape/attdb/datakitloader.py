@@ -59,6 +59,10 @@ class DataKitLoader(kwutils.KwargHandler):
         "DB_DIR",
         "DB_DIRS_BY_TYPE",
         "DB_NAME",
+        "DB_NAME_REGEX",
+        "DB_NAME_REGEX_GROUPS",
+        "DB_NAME_REGEX_INT_GROUPS",
+        "DB_NAME_REGEX_STR_GROUPS",
         "DB_NAME_TEMPLATE_LIST",
         "DB_SUFFIXES_BY_TYPE",
         "MODULE_DIR",
@@ -67,7 +71,8 @@ class DataKitLoader(kwutils.KwargHandler):
         "MODULE_NAME_REGEX_LIST",
         "MODULE_NAME_REGEX_GROUPS",
         "MODULE_NAME_REGEX_INT_GROUPS",
-        "MODULE_NAME_REGEX_STR_GROUPS"
+        "MODULE_NAME_REGEX_STR_GROUPS",
+        "MODULE_NAME_TEMPLATE_LIST",
     }
 
     # Types
@@ -76,6 +81,8 @@ class DataKitLoader(kwutils.KwargHandler):
         "DB_DIR": str,
         "DB_DIRS_BY_TYPE": (list, tuple),
         "DB_NAME": str,
+        "DB_NAME_REGEX": str,
+        "DB_NAME_REGEX_GROUPS": dict,
         "DB_NAME_TEMPLATE_LIST": (list, tuple),
         "DB_SUFFIXES_BY_TYPE": dict,
         "MODULE_DIR": str,
@@ -85,6 +92,7 @@ class DataKitLoader(kwutils.KwargHandler):
         "MODULE_NAME_REGEX_GROUPS": dict,
         "MODULE_NAME_REGEX_INT_GROUPS": (list, tuple, set),
         "MODULE_NAME_REGEX_STR_GROUPS": (list, tuple, set),
+        "MODULE_NAME_TEMPLATE_LIST": (list, tuple),
     }
 
     # Default values
@@ -92,7 +100,11 @@ class DataKitLoader(kwutils.KwargHandler):
         "DATAKIT_CLS": DataKit,
         "DB_DIR": "db",
         "DB_DIRS_BY_TYPE": {},
-        "DB_NAME_FORMATS": ["datakit"],
+        "DB_NAME_REGEX": ".+",
+        "DB_NAME_REGEX_GROUPS": {},
+        "DB_NAME_REGEX_INT_GROUPS": set(),
+        "DB_NAME_REGEX_STR_GROUPS": set(),
+        "DB_NAME_TEMPLATE_LIST": ["datakit"],
         "DB_NAME": None,
         "MODULE_NAME_REGEX_LIST": [".+"],
         "MODULE_NAME_REGEX_GROUPS": {},
