@@ -903,7 +903,7 @@ class DataKitLoader(kwutils.KwargHandler):
         if not dvc:
             return False
         # Check if it exists
-        if self._check_dvcfile(fabs)
+        if self._check_dvcfile(fabs):
             return True
         # No versions of file exist
         return False
@@ -929,7 +929,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get absolute path
         fabs  = self.get_abspath(fname)
         # Check if it exists
-        return self._check_modfile(fabs):
+        return self._check_modfile(fabs)
 
     def check_dvcfile(self, fname, f=False):
         r"""Check if a file exists with appended``.dvc`` extension
@@ -952,7 +952,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get absolute path
         fabs  = self.get_abspath(fname)
         # Check if it exists
-        return self._check_dvcile(fabs):
+        return self._check_dvcile(fabs)
 
     def _check_modfile(self, fabs):
         # Check if it exists
