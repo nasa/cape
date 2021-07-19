@@ -775,6 +775,55 @@ class DataKitLoader(kwutils.KwargHandler):
         
 
    # --- Generic file names ---
+    def check_file(self, fname, f=False):
+        r"""Check if a file exists OR a ``.dvc`` version
+
+        * If *f* is ``True``, this returns ``False`` always
+        * If *fabs* exists, this returns ``True``
+        * If *fabs* plus ``.dvc`` exists, it also returns ``True``
+
+        :Call:
+            >>> q = dkl.check_file(fname, f=False)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fname*: :class:`str`
+                Name of file [optionally relative to *MODULE_DIR*]
+            *f*: ``True`` | {``False``}
+                Force-overwrite option; always returns ``False``
+        :Keys:
+            * *MODULE_DIR*
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not *fname* or DVC file exists
+        :Versions:
+            * 2021-07-19 ``@ddalle``: Version 1.0
+        """
+        # Check for force-overwrite option
+        if f:
+            # File does "not" exist (even if it does)
+            return False
+        # Get absolute path
+        fabs  = self.get_abspath(fname)
+        # Check if it exists
+        if os.path.isfile(fabs):
+            # File exists
+            return True
+        elif os.path.isdir(fabs):
+            # Problem!
+            raise SystemError("Requested file '%s' is a folder!" % fname)
+        # Add the DVC suffix
+        fdvc = fabs + ".dvc"
+        # Check if it exists
+        if os.path.isfile(fdvc):
+            # File exists
+            return True
+        elif os.path.isdir(fdvc):
+            # Problem!
+            raise SystemError("Requested file '%s' is a folder!" % fdvc)
+        # No versions of file exist
+        return False
+
     def get_abspath(self, frel):
         r"""Get the full filename from path relative to *MODULE_DIR*
 
