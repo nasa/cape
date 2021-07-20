@@ -19,6 +19,7 @@ import sys
 # Local modules
 from .rdb import DataKit
 from ..tnakit import kwutils
+from ..tnakit import gitutils
 
 
 # Utility regular expressions
@@ -126,7 +127,7 @@ class DataKitLoader(kwutils.KwargHandler):
   # >
 
   # ===============
-  # DUNDER METHOD
+  # DUNDER METHODS
   # ===============
   # <
     # Initialization method
@@ -777,7 +778,62 @@ class DataKitLoader(kwutils.KwargHandler):
     def get_dbdir_csv(self):
         return self.get_dbdir("csv")
         
+   # --- DVC files ---
+    def dvc_pull(self, frel, **kw):
+        r"""Pull a DVC file
 
+        :Call:
+            >>> ierr = dkl.dvc_pull(frel, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *frel*: :class:`str`
+                Name of file relative to *MODULE_DIR*
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+
+                * 0: success
+                * 256: no DVC file
+                * 512: not a git repo
+
+        :Versions:
+            * 2021-07-19 ``@ddalle``: Version 1.0
+        """
+        # Get absolute path
+        fabs = self.get_abspath(frel)
+        # Check for DVC flag
+        if fabs.endswith(".dvc"):
+            # Already a DVC file
+            fdvc = fabs
+        else:
+            # Append .dvc
+            fdvc = fabs + ".dvc"
+            # Check DVC flag
+            if not os.path.isfile(fdvc):
+                return 256
+        # Get the folder name
+        fdir = os.path.dirname(fdvc)
+        # Get the gitdir
+        gitdir = gitutils.get_gitdir(fdir)
+        # Check for a valid git repo
+        if gitdir is None:
+            return 512
+        # Strip the *gitdir*
+        fpull = fdvc[len(gitdir):]
+        # Initialize command
+        cmd = ["dvc", "pull", fpull]
+        # Ohter DVC settings
+        jobs = kw.get("jobs", kw.get("j", 1))
+        remote = kw.get("remote", kw.get("r"))
+        # Add other settings
+        if jobs:
+            cmd += ["-j", str(jobs)]
+        if remote:
+            cmd += ["-r", str(remote)]
+        # (Try to) execute the pull
+        _ ,_, ierr = shellutils.call_o(cmd, cwd=gitdir)
+        
    # --- Generic file names ---
     def get_abspath(self, frel):
         r"""Get the full filename from path relative to *MODULE_DIR*
@@ -1201,6 +1257,8 @@ class DataKitLoader(kwutils.KwargHandler):
                 Optional specifier to predetermine file type
             *cls*: {``None``} | :class:`type`
                 Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+            *dvc*: {``True``} | ``False``
+                Option to pull DVC file where *fabs* doesn't exist
             *kw*: :class:`dict`
                 Additional keyword arguments passed to *cls*
         :Outputs:
@@ -1212,13 +1270,18 @@ class DataKitLoader(kwutils.KwargHandler):
         # Default class
         if cls is None:
             cls = self.get_option("DATAKIT_CLS")
+        # DVC stats
+        dvc = kw.get("dvc", True)
         # Check if file exists
         if self._check_modfile(fabs):
             # Nominal situation; file exists
             pass
-        elif self._check_dvcfile(fabs):
+        elif dvc and self._check_dvcfile(fabs):
             # Pull the DVC file?
-            raise NotImplementedError
+            ierr = self.dvc_pull(fabs, **kw)
+            # Check success
+            if ierr:
+                raise SystemError("Failed to pull DVC file '%s.dvc'" % fabs)
         else:
             # No such file
             raise NOFILE_ERROR("No file '%s' found")

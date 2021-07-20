@@ -56,6 +56,75 @@ def check_o(cmd, **kw):
     return stdout, stderr
 
 
+# Call a command without default captures
+def call(cmd, **kw):
+    r"""Run a system command and ignore STDOUT and STDERR
+
+    :Call:
+        >>> ierr = call(cmd, **kw)
+    :Inputs:
+        *cmd*: :class:`list`\ [:class:`str`]
+            System command to run, broken into parts as for
+            :func:`subprocess.call`
+        *stdout*: {``None``} | *PIPE* | :class:`file`
+            Destination for standard output
+        *stderr*: {``None``} | *PIPE* | :class:`file`
+            Destination for standard error messages
+        *encoding*: {``"utf-8"``} | :class:`str`
+            Name of encoding to use for converting strings to bytes
+        *host*: {*repo.host*} | ``None`` | :class:`str`
+            Name of remote host (if not ``None``) on which to run
+        *executable*: {``"sh"``} | :class:`str`
+            Name of shell to use if on remote host
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code from executing command
+    :Versions:
+        * 2020-12-24 ``@ddalle``: Version 1.0
+    """
+    # Call basis command
+    _, _, ierr = _call(cmd, **kw)
+    # Only return return code
+    return ierr
+
+
+# Call a command and capture output
+def call_oe(cmd, **kw):
+    r"""Run a system command and capture STDOUT
+
+    :Call:
+        >>> out, err, ierr = call_oe(cmd, **kw)
+    :Inputs:
+        *cmd*: :class:`list`\ [:class:`str`]
+            System command to run, broken into parts as for
+            :func:`subprocess.call`
+        *stdout*: ``None`` | {*PIPE*} | :class:`file`
+            Destination for standard output
+        *stderr*: ``None`` | {*PIPE*} | :class:`file`
+            Destination for standard error messages
+        *encoding*: {``"utf-8"``} | :class:`str`
+            Name of encoding to use for converting strings to bytes
+        *host*: {*repo.host*} | ``None`` | :class:`str`
+            Name of remote host (if not ``None``) on which to run
+        *executable*: {``"sh"``} | :class:`str`
+            Name of shell to use if on remote host
+    :Outputs:
+        *out*: :class:`str`
+            Captured STDOUT decoded as a :class:`str`
+        *err*: ``None`` | :class:`str`
+            Captured STDERR if *stdout* is *subprocess.PIPE*
+        *ierr*: :class:`int`
+            Return code from executing command
+    :Versions:
+        * 2021-07-19 ``@ddalle``: Version 1.0
+    """
+    # Default STDOUT
+    kw.setdefault("stdout", PIPE)
+    kw.setdefault("stderr", PIPE)
+    # Call basis command
+    return _call(cmd, **kw)
+
+
 # Call a command and capture output
 def call_o(cmd, **kw):
     r"""Run a system command and capture STDOUT
@@ -90,38 +159,6 @@ def call_o(cmd, **kw):
     kw.setdefault("stdout", PIPE)
     # Call basis command
     return _call(cmd, **kw)
-
-
-# Call a command without default captures
-def call(cmd, **kw):
-    r"""Run a system command and ignore STDOUT and STDERR
-
-    :Call:
-        >>> ierr = call(cmd, **kw)
-    :Inputs:
-        *cmd*: :class:`list`\ [:class:`str`]
-            System command to run, broken into parts as for
-            :func:`subprocess.call`
-        *stdout*: {``None``} | *PIPE* | :class:`file`
-            Destination for standard output
-        *stderr*: {``None``} | *PIPE* | :class:`file`
-            Destination for standard error messages
-        *encoding*: {``"utf-8"``} | :class:`str`
-            Name of encoding to use for converting strings to bytes
-        *host*: {*repo.host*} | ``None`` | :class:`str`
-            Name of remote host (if not ``None``) on which to run
-        *executable*: {``"sh"``} | :class:`str`
-            Name of shell to use if on remote host
-    :Outputs:
-        *ierr*: :class:`int`
-            Return code from executing command
-    :Versions:
-        * 2020-12-24 ``@ddalle``: Version 1.0
-    """
-    # Call basis command
-    _, _, ierr = _call(cmd, **kw)
-    # Only return return code
-    return ierr
 
 
 # Call a command and suppress STDOUT and STDERR
