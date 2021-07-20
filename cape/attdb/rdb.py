@@ -76,6 +76,7 @@ class DataKitOpts(ftypes.BaseFileOpts):
     # List of options
     _optlist = {
         "csv",
+        "db"
         "mat",
         "simplecsv",
         "simpletsv",
@@ -85,6 +86,7 @@ class DataKitOpts(ftypes.BaseFileOpts):
 
     # Alternate names
     _optmap = {
+        "tsvsimple": "simpletsv",
         "csvsimple": "simplecsv",
         "xlsx": "xlsx",
     }
@@ -128,9 +130,12 @@ class DataKit(ftypes.BaseData):
 
     :Call:
         >>> db = DataKit(fname=None, **kw)
+        >>> db = DataKit(db)
     :Inputs:
         *fname*: {``None``} | :class:`str`
             File name; extension is used to guess data format
+        *db*: :class:`DataKit`
+            DataKit from which to link data and defns
         *csv*: {``None``} | :class:`str`
             Explicit file name for :class:`CSVFile` read
         *textdata*: {``None``} | :class:`str`
@@ -147,8 +152,8 @@ class DataKit(ftypes.BaseData):
         *db*: :class:`cape.attdb.rdb.DataKit`
             Generic database
     :Versions:
-        * 2019-12-04 ``@ddalle``: First version
-        * 2020-02-19 ``@ddalle``: Rename from :class:`DBResponseNull`
+        * 2019-12-04 ``@ddalle``: Version 1.0
+        * 2020-02-19 ``@ddalle``: Version 1.1; was ``DBResponseNull``
     """
   # =====================
   # Class Attributes
@@ -268,10 +273,18 @@ class DataKit(ftypes.BaseData):
         if (fname is None) and (not kw):
             return
 
+        # Check for *db* option
+        db = kw.get("db", fname)
+
         # Get file name extension
         if typeutils.isstr(fname):
             # Get extension
             ext = fname.split(".")[-1]
+        elif isinstance(db, DataKit):
+            # Link data from another datakit
+            self.link_db(db)
+            # Stop
+            return
         elif fname is not None:
             # Too confusing
             raise TypeError("Non-keyword input must be ``None`` or a string")
@@ -366,6 +379,41 @@ class DataKit(ftypes.BaseData):
         self.copy_DataKit(dbcopy)
         # Output
         return dbcopy
+
+    # Link data from another DataKit
+    def link_db(self, dbsrc, init=True):
+        r"""Link attributes from another DataKit
+
+        :Call:
+            >>> qdb = db.link_db(dbsrc, init=True)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *dbsrc*: :class:`DataKit`
+                Source database from which to link data
+            *init*: {``True``} | ``False``
+                Flag if this is used to create initial DataKit
+        :Outputs:
+            *qdb*: ``True`` | ``False``
+                Whether or not *dbsrc* was linked
+        :Versions:
+            * 2021-07-20 ``@ddalle``: Version 1.0
+        """
+        # Check *dbsrc* type
+        if not isinstance(dbsrc, DataKit):
+            # Copy/link unsuccessful
+            return False
+        # Initialize empty DataKit
+        if init:
+            DataKit.__init__(self)
+        # Loop through cols
+        for col in dbsrc.cols:
+            # Copy definition first
+            self.set_defn(col, dbsrc.get_defn(col))
+            # Save values
+            self.save_col(col, dbsrc.get_values(col))
+        # Copy/link successful
+        return True
 
     # Copy attributes and data known to DataKit class
     def copy_DataKit(self, dbcopy):
