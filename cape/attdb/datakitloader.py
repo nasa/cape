@@ -18,8 +18,9 @@ import sys
 
 # Local modules
 from .rdb import DataKit
-from ..tnakit import kwutils
 from ..tnakit import gitutils
+from ..tnakit import kwutils
+from ..tnakit import shellutils
 
 
 # Utility regular expressions
@@ -820,7 +821,7 @@ class DataKitLoader(kwutils.KwargHandler):
         if gitdir is None:
             return 512
         # Strip the *gitdir*
-        fpull = fdvc[len(gitdir):]
+        fpull = fdvc[len(gitdir):].lstrip(os.sep)
         # Initialize command
         cmd = ["dvc", "pull", fpull]
         # Ohter DVC settings
@@ -831,8 +832,12 @@ class DataKitLoader(kwutils.KwargHandler):
             cmd += ["-j", str(jobs)]
         if remote:
             cmd += ["-r", str(remote)]
+        # Status update
+        print("> " + " ".join(cmd))
         # (Try to) execute the pull
-        _ ,_, ierr = shellutils.call_o(cmd, cwd=gitdir)
+        ierr = shellutils.call(cmd, cwd=gitdir)
+        # Return error code
+        return ierr
         
    # --- Generic file names ---
     def get_abspath(self, frel):
@@ -1017,7 +1022,7 @@ class DataKitLoader(kwutils.KwargHandler):
             return True
         elif os.path.isdir(fabs):
             # Problem!
-            raise SystemError("Requested file '%s' is a folder!" % fname)
+            raise SystemError("Requested file '%s' is a folder!" % fabs)
         else:
             # File does not exist
             return False
@@ -1026,12 +1031,12 @@ class DataKitLoader(kwutils.KwargHandler):
         # Add the DVC suffix
         fdvc = fabs + ".dvc"
         # Check if it exists
-        if os.path.isfile(fabs):
+        if os.path.isfile(fdvc):
             # File exists
             return True
-        elif os.path.isdir(fabs):
+        elif os.path.isdir(fdvc):
             # Problem!
-            raise SystemError("Requested file '%s' is a folder!" % fname)
+            raise SystemError("Requested file '%s' is a folder!" % fdvc)
         else:
             # File does not exist
             return False
@@ -1284,7 +1289,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 raise SystemError("Failed to pull DVC file '%s.dvc'" % fabs)
         else:
             # No such file
-            raise NOFILE_ERROR("No file '%s' found")
+            raise NOFILE_ERROR("No file '%s' found" % fabs)
         # Check for user-specified file type
         if ftype is None:
             # Let *cls* determine the file type
