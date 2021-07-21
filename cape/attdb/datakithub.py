@@ -101,26 +101,111 @@ if sys.version_info.major > 2:
 DEFAULT_TYPE = "module"
 
 
+# JSON files
+_DEFAULT_JSON = "data/datakithub/datakithub.json"
+
+
 # DataKit hub class
 class DataKitHub(dict):
+    r"""Load datakits using only the database name
+
+    :Call:
+        >>> hub = DataKitHub(fjson)
+    :Inputs:
+        *fjson*: {``None``} | :class:`str`
+            Path to JSON file with import rules for one or more db names
+        *cwd*: {``None``} | :class:`str`
+            Path from which to begin search
+    :Outputs:
+        *hub*: :class:`DataKitHub`
+            Instance that implements import rules by name
+    :Versions:
+        * 2019-02-17 ``@ddalle``: Version 1.0
+    """
    # --- DUNDER ---
     # Initialization method
-    def __init__(self, fjson="datakithub.json"):
+    def __init__(self, fjson=None, cwd=None):
         r"""Initialization method
 
         :Versions:
             * 2021-02-17 ``@ddalle``: Version 1.0
         """
+        # Find best JSON file
+        fabs = self._find_dkhubjson(fjson=fjson, cwd=cwd)
         # Initialize fixed attributes
         self.datakit_modules = {}
         self.datakit_groupnames = {}
         # Save folder containing *fjson*
-        self.dir_json = os.path.dirname(os.path.abspath(fjson))
+        self.file_json = os.path.basename(fabs)
+        self.dir_json = os.path.dirname(fabs)
         self.dir_root = os.path.dirname(self.dir_json)
         # Read the JSON file
-        opts = loadJSONFile(fjson)
+        opts = loadJSONFile(fabs)
         # Save it...
         self.update(opts)
+
+    # Locate the best JSON file
+    def _find_dkhubjson(self, fjson=None, cwd=None):
+        r"""Find the best ``datakithub.json`` file automatically
+
+        :Call:
+            >>> fabs = hub._find_dkhubjson(fjson=None, cwd=None)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance that implements import rules by name
+            *fjson*: {``None``} | :class:`str`
+                Path to JSON file with import rules
+            *cwd*: {``None``} | :class:`str`
+                Path from which to begin search
+        :Outputs:
+            *fabs*: :class:`str`
+                Absolute path to such a 
+        :Versions:
+            * 2021-07-21 ``@ddalle``: Version 1.0
+        """
+        # Default JSON file pattern
+        if fjson is None:
+            fjson = _DEFAULT_JSON
+        # Use backslashes if necessary
+        if os.name == "nt":
+            fname = fjson.replace("/", os.sep)
+        else:
+            # Don't modify on POSIX systems
+            fname = fjson
+        # Check for absolute path
+        if os.path.isabs(fname):
+            # Check if it exists
+            if os.path.isfile(fname):
+                # Found the file!
+                return
+            # Could not find file
+            raise SystemError("Could not find file '%s'" % fjson)
+        # Absolutize *cwd*
+        if cwd is None:
+            # Use current path
+            path = os.getcwd()
+        else:
+            # Absolutize *cwd*
+            path = os.path.abspath(cwd)
+        # Search *path* (and all parents) for *fname*
+        while os.path.basename(path):
+            # Combine *path* and *fname*
+            fabs = os.path.join(path, fname)
+            # Check if file exists
+            if os.path.isfile(fabs):
+                # Found a JSON file!
+                return fabs
+            elif os.path.isdir(fabs):
+                # Found a folder instead ... add "datakithub.json"
+                fabs = os.path.join(fabs, "datakithub.json")
+                # Check again
+                if os.path.isfile(fabs):
+                    return fabs
+            # Otherwise, move up one level
+            path = os.path.dirname(path)
+        # If none found, raise an exception
+        raise SystemError(
+            "File '%s' not found in working directory or any parent" % fname)
 
    # --- Options ---
     # Find best matching category
