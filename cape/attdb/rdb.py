@@ -1466,11 +1466,10 @@ class DataKit(ftypes.BaseData):
         sheetcols = kw.get("sheetcols", {})
         # Full set of such cols
         if cols is None:
-            # Initialize
-            allcols = set()
-        else:
-            # Initialize with specified cols
-            allcols = set(cols)
+            # Default: all columns
+            cols = self.cols
+        # Initialize with specified cols
+        allcols = list(cols)
         # Combine all columns from *sheetcols*
         for _cols in sheetcols.values():
             allcols.update(_cols)

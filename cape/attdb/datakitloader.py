@@ -709,16 +709,18 @@ class DataKitLoader(kwutils.KwargHandler):
         return os.path.join(moddir, dbsdir, dbtypedir)
 
    # --- Raw data files ---
-    def get_rawdatafilename(self, fname):
+    def get_rawdatafilename(self, fname, dvc=False):
         r"""Get a file name relative to the datakit folder
 
         :Call:
-            >>> fabs = dkl.get_rawdatafilename(fname)
+            >>> fabs = dkl.get_rawdatafilename(fname, dvc=False)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
             *fname*: ``None`` | :class:`str`
                 Name of file relative to *DB_DIRS_BY_TYPE* for *ext*
+            *dvc*: ``True`` | {``False``}
+                Option to pull DVC file where *fabs* doesn't exist
         :Outputs:
             *fabs*: :class:`str`
                 Absolute path to raw data file
@@ -734,7 +736,23 @@ class DataKitLoader(kwutils.KwargHandler):
         # Full path to raw data
         fdir = os.path.join(moddir, rawdir)
         # Return absolute
-        return os.path.join(fdir, fname)
+        fabs = os.path.join(fdir, fname)
+        # Option: whether or not to check for DVC files
+        if not dvc:
+            # Just output in the general case
+            return fabs
+        # Check if file exists
+        if self._check_modfile(fabs):
+            # Nominal situation; file exists
+            pass
+        elif self._check_dvcfile(fabs):
+            # Pull the DVC file?
+            ierr = self.dvc_pull(fabs, **kw)
+            # Check success
+            if ierr:
+                raise SystemError("Failed to pull DVC file '%s.dvc'" % fabs)
+        # Return name of original file regardless
+        return fabs
 
     def get_rawdatadir(self):
         r"""Get absolute path to module's raw data folder
@@ -942,7 +960,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *f*: ``True`` | {``False``}
                 Force-overwrite option; always returns ``False``
             *dvc*: {``True``} | ``False``
-                Whether or not to check for ``.dvc`` extension
+                Option to check for ``.dvc`` extension
         :Keys:
             * *MODULE_DIR*
         :Outputs:
@@ -1103,7 +1121,7 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Read a datakit using ``.mat`` file type
 
         :Call:
-            >>> db = dkl.read_rawdata(fname, cls=None)
+            >>> db = dkl.read_db_mat(fname, cls=None)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
@@ -1128,6 +1146,38 @@ class DataKitLoader(kwutils.KwargHandler):
             else:
                 # Use existing database
                 db.read_mat(fname)
+        # Output
+        return db
+
+    def read_db_csv(self, cls=None, **kw):
+        r"""Read a datakit using ``.csv`` file type
+
+        :Call:
+            >>> db = dkl.read_db_csv(fname, cls=None)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-07-03 ``@ddalle``: Version 1.0
+        """
+        # Get full list of file names
+        fnames = self.get_db_filenames_by_type("csv")
+        # Combine option
+        kw["cls"] = cls
+        # Read those files
+        for j, fname in enumerate(fnames):
+            # Read with default options
+            if j == 0:
+                # Read initial database
+                db = self.read_dbfile_csv(fname, **kw)
+            else:
+                # Use existing database
+                db.read_csv(fname)
         # Output
         return db
 
@@ -1275,7 +1325,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Default class
         if cls is None:
             cls = self.get_option("DATAKIT_CLS")
-        # DVC stats
+        # Option: whether or not to check for DVC files
         dvc = kw.get("dvc", True)
         # Check if file exists
         if self._check_modfile(fabs):
