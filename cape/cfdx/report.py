@@ -4697,13 +4697,11 @@ class Report(object):
         :Versions:
             * 2016-10-31 ``@ddalle``: First version
         """
-        # Get type
-        t = type(v).__name__
         # Check numeric
-        if t in ['float', 'int', 'NoneType']:
+        if v is None or isinstance(v, (float, int)):
             # Do not convert
             return str(v)
-        elif t in ['dict', 'odict']:
+        elif isinstance(v, dict):
             # Loop through dictionary
             V = {}
             for k in v:
@@ -4727,8 +4725,12 @@ class Report(object):
                 vi = str(self.cntl.x[ki][i])
                 # Do the string replacement
                 v = v.replace(fi, vi)
-        # Output
-        return v
+        # Attempt to evaluate
+        try:
+            return str(eval(v))
+        except Exception:
+            # raw output
+            return v
 
     # Function to prepare variables in Tecplot layout
     def PrepTecplotLayoutVars(self, tec, sfig, i):
@@ -4778,18 +4780,14 @@ class Report(object):
         # Get list of options
         kopts = self.cntl.opts.get_SubfigOpt(sfig, "Keys")
         # Exit if nothing to do
-        if kopts is None: return
+        if kopts is None:
+            return
         # Loop through the variables to set; each is a command
-        for cmd in kopts:
-            # Get the options for this command
-            copts = kopts[cmd]
+        for cmd, copts in kopts.items():
             # Loop through keys
-            for key in copts:
-                # Get value
-                o = copts[key]
-                t = type(o).__name__
+            for key, o in copts.items():
                 # Check type
-                if t.endswith('dict') and "Value" in o:
+                if isinstance(o, dict) and "Value" in o:
                     # Read value and target specifiers from dictionary
                     val = o.get("Value")
                     k = o.get("TargetKey")
@@ -4804,10 +4802,14 @@ class Report(object):
                     n = 0
                     p = None
                 # Perform replacement while expanding trajectory vals
-                if val is not None: val = eval(self.EvalVar(val, i))
-                if v is not None: v = eval(self.EvalVar(v, i))
-                if n is not None: n = eval(self.EvalVar(n, i))
-                if p is not None: p = eval(self.EvalVar(p, i))
+                if val is not None:
+                    val = eval(self.EvalVar(val, i))
+                if v is not None:
+                    v = eval(self.EvalVar(v, i))
+                if n is not None:
+                    n = eval(self.EvalVar(n, i))
+                if p is not None:
+                    p = eval(self.EvalVar(p, i))
                 # Set the variable value
                 tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
 
