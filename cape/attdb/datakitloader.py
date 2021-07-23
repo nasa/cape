@@ -747,10 +747,7 @@ class DataKitLoader(kwutils.KwargHandler):
             pass
         elif self._check_dvcfile(fabs):
             # Pull the DVC file?
-            ierr = self.dvc_pull(fabs, **kw)
-            # Check success
-            if ierr:
-                raise SystemError("Failed to pull DVC file '%s.dvc'" % fabs)
+            self.dvc_pull(fabs)
         # Return name of original file regardless
         return fabs
 
