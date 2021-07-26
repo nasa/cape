@@ -177,7 +177,7 @@ class DataKitHub(dict):
             # Check if it exists
             if os.path.isfile(fname):
                 # Found the file!
-                return
+                return fname
             # Could not find file
             raise SystemError("Could not find file '%s'" % fjson)
         # Absolutize *cwd*
