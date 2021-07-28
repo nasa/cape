@@ -39,5 +39,6 @@ release/*.gz
 release/*.zip
 
 # Documentation outputs
-doc/_build
+/doc/_build
+/doc/cape.pdf
 
