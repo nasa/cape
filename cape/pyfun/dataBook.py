@@ -515,8 +515,7 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
 
 # Force/moment history
 class CaseFM(cape.cfdx.dataBook.CaseFM):
-    r"""Class to handle component force and moment data for an
-    individual case
+    r"""Iterative force & moment histories for one case, one component
 
     This class contains methods for reading data about an the history
     of an individual component for a single case.  It reads the Tecplot
@@ -577,21 +576,50 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             # Single folder
             qdual = False
         # Expected name of the component history file(s)
-        self.fname = '%s_fm_%s.dat' % (projl, compl)
-        # Full list
-        if os.path.isfile(self.fname):
-            # Single project; check for history resets
-            fglob1 = glob.glob('%s_fm_%s.[0-9][0-9].dat' % (projl, compl))
-            fglob1.sort()
+        fname = "%s_fm_%s.dat" % (proj, comp)
+        fnamel = fname.lower()
+        # Patters for multiple-file scenarios
+        fglob1 = "%s_fm_%s.[0-9][0-9].dat" % (proj, comp)
+        fglob2 = "%s[0-9]_fm_%s.dat" % (proj, comp)
+        fglob3 = "%s[0-9][0-9]_fm_%s.[0-9][0-9].dat" % (proj, comp)
+        # Lower-case versions
+        fglob1l = fglob1.lower()
+        fglob2l = fglob2.lower()
+        fglob3l = fglob3.lower()
+        # Check which scenario we're in
+        if os.path.isfile(fname):
+            # Save original version
+            self.fname = fname
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1)
+            glob1.sort()
             # Add in main file name
-            self.fglob = fglob1 + [self.fname]
+            self.fglob = glob1 + [fname]
+        if os.path.isfile(fnamel):
+            # Save lower-case version
+            self.fname = fnamel
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1l)
+            glob1.sort()
+            # Add in main file name
+            self.fglob = glob1 + [fname]
         else:
-            # Multiple projects
-            fglob2 = glob.glob('%s[0-9][0-9]_fm_%s.dat' % (projl, compl))
-            fglob3 = glob.glob('%s[0-9][0-9]_fm_%s.[0-9][0-9].dat' \
-                % (projl, compl))
-            # Combine them
-            self.fglob = fglob2 + fglob3
+            # Multiple projects; try original case first
+            glob2 = glob.glob(fglob2)
+            glob3 = glob.glob(fglob3)
+            # Check for at least one match
+            if len(glob2 + glob3) > 0:
+                # Save original case
+                self.fglob = glob2 + glob3
+                self.fname = fname
+            else:
+                # Find lower-case matches
+                glob2 = glob.glob(fglob2l)
+                glob3 = glob.glob(fglob3l)
+                # Save lower-case versions
+                self.fglob = glob2 + glob3
+                self.fname = fnamel
+            # Sort whatever list we've god
             self.fglob.sort()
         # Check for available files.
         if len(self.fglob) > 0:
