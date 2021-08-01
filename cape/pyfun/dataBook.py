@@ -580,7 +580,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         fnamel = fname.lower()
         # Patters for multiple-file scenarios
         fglob1 = "%s_fm_%s.[0-9][0-9].dat" % (proj, comp)
-        fglob2 = "%s[0-9]_fm_%s.dat" % (proj, comp)
+        fglob2 = "%s[0-9][0-9]_fm_%s.dat" % (proj, comp)
         fglob3 = "%s[0-9][0-9]_fm_%s.[0-9][0-9].dat" % (proj, comp)
         # Lower-case versions
         fglob1l = fglob1.lower()
