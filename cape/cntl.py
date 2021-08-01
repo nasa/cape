@@ -30,6 +30,7 @@ individualized modules are below.
 """
 
 # Standard library modules
+import copy
 import functools
 import getpass
 import glob
@@ -489,6 +490,48 @@ class Cntl(object):
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)
+   # >
+
+   # ==============
+   # Options
+   # ==============
+   # <
+    # Copy all options
+    def CloneOptions(self):
+        r"""Copy *cntl.opts* and store it as *cntl.opts0*
+
+        :Call:
+            >>> cntl.CloneOptions()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE solver control interface
+        :Versions:
+            * 2021-07-31 ``@ddalle``: Version 1.0
+        """
+        # Copy the options
+        self.opts0 = copy.deepcopy(self.opts)
+
+    # Reset options to last "save"
+    def ResetOptions(self):
+        r"""Revert to *cntl.opts0* as working options
+
+        :Call:
+            >>> cntl.ResetOptions()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE solver control interface
+        :Versions:
+            * 2021-07-31 ``@ddalle``: Version 1.0
+        """
+        # Get the saved options
+        try:
+            opts0 = self.opts0
+        except AttributeError:
+            opts0 = None
+        # Check for null options
+        if opts0 is None:
+            raise AttributeError("No *cntl.opts0* options archived")
+        
    # >
 
    # ======================
