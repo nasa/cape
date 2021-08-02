@@ -497,11 +497,11 @@ class Cntl(object):
    # ==============
    # <
     # Copy all options
-    def CloneOptions(self):
+    def SaveOptions(self):
         r"""Copy *cntl.opts* and store it as *cntl.opts0*
 
         :Call:
-            >>> cntl.CloneOptions()
+            >>> cntl.SaveOptions()
         :Inputs:
             *cntl*: :class:`Cntl`
                 CAPE solver control interface
@@ -509,10 +509,10 @@ class Cntl(object):
             * 2021-07-31 ``@ddalle``: Version 1.0
         """
         # Copy the options
-        self.opts0 = copy.deepcopy(self.opts)
+        self._opts0 = copy.deepcopy(self.opts)
 
     # Reset options to last "save"
-    def ResetOptions(self):
+    def RevertOptions(self):
         r"""Revert to *cntl.opts0* as working options
 
         :Call:
@@ -525,12 +525,14 @@ class Cntl(object):
         """
         # Get the saved options
         try:
-            opts0 = self.opts0
+            opts0 = self._opts0
         except AttributeError:
             opts0 = None
         # Check for null options
         if opts0 is None:
-            raise AttributeError("No *cntl.opts0* options archived")
+            raise AttributeError("No *cntl._opts0* options archived")
+        # Revert options
+        self.opts = opts0
         
    # >
 
