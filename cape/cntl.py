@@ -786,6 +786,7 @@ class Cntl(object):
         :Versions:
             * 2014-10-05 ``@ddalle``: Version 1.0
             * 2014-12-09 ``@ddalle``: Version 2.0, ``--cons``
+            * 2021-08-01 ``@ddalle``: Version 2.1, save/revert options
         """
        # -----------------------
        # Command Determination
@@ -905,6 +906,9 @@ class Cntl(object):
         # Initialize dictionary of statuses.3
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
             'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0, 'ZOMBIE':0}
+        # Save current options
+        if not qCheck:
+            self.SaveOptions()
         # Loop through the runs.
         for j in range(len(I)):
            # --- Case ID ---
@@ -982,7 +986,8 @@ class Cntl(object):
                 # Delete but forcing prompt
                 nDel += self.DeleteCase(i, prompt=True)
             # Check status.
-            if qCheck: continue
+            if qCheck:
+                continue
             # If submitting is allowed, check the job status.
             if (sts in stat_submit) and self.FilterUser(i, **kw):
                 # Prepare the job.
@@ -992,8 +997,11 @@ class Cntl(object):
                     self.StartCase(i)
                 # Increase job number
                 nSub += 1
+            # Revert to original optons
+            self.RevertOptions()
             # Don't continue checking if maximum submissions reached.
-            if nSub >= nSubMax: break
+            if nSub >= nSubMax:
+                break
        # ---------
        # Summary
        # ---------
@@ -1919,7 +1927,7 @@ class Cntl(object):
         r"""Reapply settings to one or more cases
 
         :Call:
-            >>> cntl.ApplycCses(cons=[], j=None, extend=1, **kw)
+            >>> cntl.ApplyCases(cons=[], j=None, extend=1, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of overall control interface
@@ -1948,6 +1956,8 @@ class Cntl(object):
         qsub = kw.get("restart", kw.get("qsub", False))
         nsub = kw.get("n", 150)
         jsub = 0
+        # Save current copy of options
+        self.SaveOptions()
         # Loop through folders
         for i in self.x.GetIndices(**kw):
             # Status update
@@ -1967,6 +1977,8 @@ class Cntl(object):
                     jsub += 1
                 # Check submission limit
                 if jsub >= nsub: return
+            # Revert options
+            self.RevertOptions()
 
     # Function to delete a case folder: qdel and rm
     @run_rootdir
