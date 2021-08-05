@@ -2168,8 +2168,7 @@ class Cntl(cape.cntl.Cntl):
   # <
     # Prepare surface BC
     def SetSurfBC(self, key, i, CT=False):
-        r"""Set all surface BCs and flow initialization volumes for one
-        key
+        r"""Set all surface BCs and flow initialization for one key
 
         This uses the 7011 boundary condition and sets the values of BC
         stagnation pressure to freestream pressure and stagnation
@@ -2215,16 +2214,16 @@ class Cntl(cape.cntl.Cntl):
         # Boundary condition section
         sec = 'boundary_conditions'
         # Loop through the components
-        for compID in compIDs:
+        for face in compIDs:
             # Increase volume number
             n += 1
-            # Get the BC inputs
-            p0, T0 = fp0(key, i, comp=compID)
-            # Get the flow initialization volume state
-            rho, U, a = self.GetSurfBCFlowInitState(key, i, CT=CT, comp=compID)
             # Convert to ID (if needed) and get the BC number to set
-            compID = self.MapBC.GetCompID(compID)
+            compID = self.MapBC.GetCompID(face)
             surfID = self.MapBC.GetSurfID(compID)
+            # Get the BC inputs
+            p0, T0 = fp0(key, i, comp=face)
+            # Get the flow initialization volume state
+            rho, U, a = self.GetSurfBCFlowInitState(key, i, CT=CT, comp=face)
             # Check equation type
             if eqn_type.lower() == "generic":
                 # Set the BC to the "rcs_jet"
@@ -2242,7 +2241,12 @@ class Cntl(cape.cntl.Cntl):
                 nml.SetVar(sec, 'total_pressure_ratio',    p0, surfID)
                 nml.SetVar(sec, 'total_temperature_ratio', T0, surfID)
             # Get the flow initialization volume
-            x1, x2, r = self.GetSurfBCVolume(key, compID)
+            try:
+                x1, x2, r = self.GetSurfBCVolume(key, compID)
+            except Exception:
+                raise ValueError(
+                    "Flow init vol failed for key='%s', face='%s', compID=%i" %
+                    (key, face, compID))
             # Get the surface normal
             N = self.tri.GetCompNormal(compID)
             # Velocity
