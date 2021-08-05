@@ -130,6 +130,9 @@ class Cntl(cape.cntl.Cntl):
     # Initialization method
     def __init__(self, fname="pyFun.json"):
         r"""Initialization method for :mod:`cape.cntl.Cntl`"""
+        # Force default
+        if fname is None:
+            fname = "pyFun.json"
         # Check if file exists
         if not os.path.isfile(fname):
             # Raise error but suppress traceback
