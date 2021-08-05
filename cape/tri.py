@@ -5757,6 +5757,9 @@ class TriBase(object):
             self.GetNormals()
         # Get tris
         k = self.GetTrisFromCompID(compID)
+        # Check for no triangles
+        if k.size == 0:
+            raise ValueError("Found no tris for comp '%s'" % compID)
         # Get corresponding nodes
         i = self.Tris[k,:] - 1
         # Get areas of those components
