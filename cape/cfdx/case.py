@@ -93,11 +93,13 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     # Check for phase number
     j = GetPhaseNumber(rc, n, fpre=fpre)
     # Exit if not phase zero
-    if j > 0: return
+    if j > 0:
+        return
     # Check for intersect status.
-    if not rc.get_intersect(): return
+    if not rc.get_intersect():
+        return
     # Check for initial run
-    if n > 0:
+    if n:
         return
     # Triangulation file names
     ftri  = "%s.tri" % proj
@@ -215,11 +217,14 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     # Check for phase number
     j = GetPhaseNumber(rc, n, fpre=fpre)
     # Exit if not phase zero
-    if j > 0: return
+    if j > 0:
+        return
     # Check for verify
-    if not rc.get_verify(): return
+    if not rc.get_verify():
+        return
     # Check for initial run
-    if n > 0: return
+    if n:
+        return
     # Set file name
     rc.set_verify_i('%s.i.tri' % proj)
     # Run it.
@@ -262,9 +267,11 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
         * 2016-04-05 ``@ddalle``: First version
     """
     # Check for option to run AFLR3
-    if not rc.get_aflr3(): return
+    if not rc.get_aflr3():
+        return
     # Check for initial run
-    if n > 0: return
+    if n:
+        return
     # File names
     ftri  = '%s.i.tri'   % proj
     fsurf = '%s.surf'    % proj
