@@ -773,7 +773,7 @@ class Cntl(object):
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
-            *c*: :``True`` | {``False``
+            *c*: :``True`` | {``False``}
                 If ``True``, only display status; do not submit new jobs
             *j*: :class:`bool`
                 Whether or not to display job ID numbers

@@ -280,7 +280,7 @@ class RunMatrix(dict):
                 self[key] = np.array([eval('0b'+v) for v in self.text[key]])
             else:
                 # Assume string
-                self[key] = np.array(self.text[key])
+                self[key] = np.array(self.text[key], dtype="str")
         # Process the groups (conditions in a group can use same grid).
         self.ProcessGroups()
 
@@ -586,7 +586,7 @@ class RunMatrix(dict):
             # Create bigger array if necessary
             if nv > dt.itemsize:
                 # Create new array
-                V = np.asarray(V, dtype="|S%i" % nv)
+                V = np.asarray(V, dtype="|U%i" % nv)
                 # Save it
                 self[k] = V
         # Save that value to the data
