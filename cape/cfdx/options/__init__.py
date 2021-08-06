@@ -535,6 +535,47 @@ class Options(odict):
    # Global Options
    # ==============
    # <
+
+    # Get Python version to execute cases
+    def get_PythonExec(self, j=0):
+        r"""Get specific Python executable to use for jobs
+
+        :Call:
+            >>> pyexec = opts.get_PythonExec(j=0)
+        :Inputs:
+            *opts*: :class:`Options`
+                CAPE options interface
+            *j*: {``0``} | ``None`` | :class:`int`
+                Phase number
+        :Outputs:
+            *pyexec*: ``None`` | :class:`str`
+                Name of specific Python executable, if any
+        :Versions:
+            * 2021-08-05 ``@ddalle``: Version 1.0
+        """
+        return getel(self.get("PythonExec"), j)
+
+
+    # Set specific python executable
+    def set_PythonExec(self, pyexec, j=None):
+        r"""Set specific Python executable to use for jobs
+
+        :Call:
+            >>> opts.set_PythonExec(pyexec, j=0)
+        :Inputs:
+            *opts*: :class:`Options`
+                CAPE options interface
+            *pyexec*: ``None`` | :class:`str`
+                Name of specific Python executable, if any
+            *j*: {``0``} | ``None`` | :class:`int`
+                Phase number
+        :Versions:
+            * 2021-08-05 ``@ddalle``: Version 1.0
+        """
+        # Name of key
+        key = "PythonExec"
+        # Set the value by run sequence.
+        self[key] = setel(self.get(key), pyexec, j)
    
     # Function to get the shell commands
     def get_ShellCmds(self, typ=None):

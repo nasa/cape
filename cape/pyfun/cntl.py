@@ -2894,7 +2894,8 @@ class Cntl(cape.cntl.Cntl):
         # Go to the root directory.
         os.chdir(self.RootDir)
         # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Go to the folder.
         os.chdir(frun)
         # Determine number of unique PBS scripts.
@@ -2922,9 +2923,21 @@ class Cntl(cape.cntl.Cntl):
             # Initialize options to `run_FUN3D.py`
             flgs = ''
 
+            # Get specific python version
+            pyexec = self.opts.get_PythonExec(j)
+
             # Simply call the advanced interface.
             f.write('\n# Call the FUN3D interface.\n')
-            f.write('run_fun3d.py' + flgs + '\n')
+            if pyexec:
+                # Use specific version
+                f.write("%s run_fun3d.py %s\n" % (pyexec, flgs))
+                # Create a local script
+                with open("run_fun3d.py", "w") as fpy:
+                    fpy.write("import cape.pyfun.case\n\n")
+                    fpy.write("cape.pyfun.case.run_fun3d()\n")
+            else:
+                # Use CAPE-provided script
+                f.write('run_fun3d.py' + flgs + '\n')
 
             # Close the file.
             f.close()
