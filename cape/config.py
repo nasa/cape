@@ -1631,9 +1631,6 @@ class ConfigJSON(object):
         :Versions:
             * 2016-10-21 ``@ddalle``: Version 1.0
         """
-        if c == "LAS_Frustum":
-            import pdb
-            pdb.set_trace()
         # Check for compID
         cID = self.GetPropCompID(c)
         # Initialize component

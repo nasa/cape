@@ -730,11 +730,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Get type
             clsname = _types[j]
             # Convert text
-            try:
-                v = self.fromtext_val(coltxts[j], clsname, col)
-            except Exception:
-                import pdb
-                pdb.set_trace()
+            v = self.fromtext_val(coltxts[j], clsname, col)
             # Save data
             if isinstance(v, tuple):
                 # Got text and a map
