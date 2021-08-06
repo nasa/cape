@@ -570,12 +570,10 @@ class Options(odict):
             *j*: {``0``} | ``None`` | :class:`int`
                 Phase number
         :Versions:
-            * 2021-08-05 ``@ddalle``: Version 1.0
+            * 2021-08-06 ``@ddalle``: Version 1.0
         """
-        # Name of key
-        key = "PythonExec"
         # Set the value by run sequence.
-        self[key] = setel(self.get(key), pyexec, j)
+        self.set_key("PythonExec", pyexec, i=j)
    
     # Function to get the shell commands
     def get_ShellCmds(self, typ=None):
