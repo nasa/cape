@@ -182,7 +182,8 @@ def RunPhase(rc, i):
                 os.symlink('%s.%s' % (fproj, fmt),
                            '%s.%s' % (fproj_adapt, fmt))
             # Make sure *n* is not ``None``
-            if n is None: n = 0
+            if n is None:
+                n = 0
             # Exit appropriately
             if rc.get_Dual():
                 os.chdir('..')
@@ -405,7 +406,7 @@ def RestartCase(i0=None):
     qpbs = rc.get_qsub(i)
     qslr = rc.get_sbatch(i)
     # Check for exit
-    if n >= rc.get_LastIter():
+    if n and n >= rc.get_LastIter():
         return
     # Check qsub status.
     if not (qpbs or qslr):
@@ -546,15 +547,21 @@ def GetPhaseNumber(rc):
         if len(glob.glob('run.%02i.*' % i)) == 0:
             # This run has not been completed yet.
             return i
-        # Check the iteration number.
-        if n < rc.get_PhaseIters(j):
+        # Check the iteration numbers
+        if rc.get_PhaseIters(j) is None:
+            # Don't check null phases
+            pass
+        elif n is None:
+            # No iters yet
+            return i
+        elif n < rc.get_PhaseIters(j):
             # This case has been run, but hasn't reached the min iter cutoff
             return i
         # Check for dual
         if qdual and rc.get_DualPhase(i):
             # Check for the dual output file
-            if not os.path.isfile(os.path.join('Adjoint',
-                                               'dual.%02i.out' % i)):
+            if not os.path.isfile(os.path.join(
+                    'Adjoint', 'dual.%02i.out' % i)):
                 return i
         # Check for dual
         if qadpt and rc.get_AdaptPhase(i):
