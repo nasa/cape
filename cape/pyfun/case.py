@@ -192,8 +192,13 @@ def RunPhase(rc, i):
             return
     # Prepare for restart if that's appropriate.
     SetRestartIter(rc)
+    # Get *n* but ``0`` instead of ``None``
+    if n is None:
+        n0 = 0
+    else:
+        n0 = n
     # Check if the primal solution has already been run
-    if n < nj or nprev == 0:
+    if nprev == 0 or n0 < nj:
         # Get the `nodet` or `nodet_mpi` command
         cmdi = cmd.nodet(rc, i=i)
         # Call the command.
@@ -201,7 +206,7 @@ def RunPhase(rc, i):
         # Get new iteration number
         n1 = GetCurrentIter()
         # Check for lack of progress
-        if n1 <= n:
+        if n1 <= n0:
             raise SystemError("Running phase did not advance iteration count.")
     else:
         # No new iteratoins
