@@ -1912,7 +1912,8 @@ class Cntl(object):
                 # Check status
                 sts = self.CheckCaseStatus(i)
                 # Check if it's a submittable/restartable status
-                if sts not in ['---', 'INCOMP']: continue
+                if sts not in ['---', 'INCOMP']:
+                    continue
                 # Try to start the case
                 pbs = self.StartCase(i)
                 # Check for a submission
@@ -2792,11 +2793,7 @@ class Cntl(object):
         # Dump the Overflow and other run settings.
         if rc is None:
             # Write settings from the present options
-            try:
-                json.dump(self.opts['RunControl'], f, indent=1)
-            except Exception:
-                import pdb
-                pdb.set_trace()
+            json.dump(self.opts['RunControl'], f, indent=1)
         else:
             # Write the settings given as input
             json.dump(rc, f, indent=1)

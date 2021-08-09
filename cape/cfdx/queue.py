@@ -30,18 +30,27 @@ def qsub(fname):
         *pbs*: :class:`int` or ``None``
             PBS job ID number if submission was successful
     :Versions:
-        * 2014-10-05 ``@ddalle``: First version
+        * 2014-10-05 ``@ddalle``: Version 1.0
+        * 2021-08-09 ``@ddalle``: Version 2.0
+            - Support Python 3
+            - Use full job ID (not just :class:`int`) as a backup
     """
     # Call the command with safety
     try:
         # Call `qsub` with output
         stdout, _ = sp.Popen(['qsub', fname], stdout=sp.PIPE).communicate()
-        # Get the integer job number.
-        return int(str(stdout).split('.')[0])
+        # Get the job ID
+        try:
+            # Get the integer job number
+            return int(stdout.decode("utf-8").split('.')[0])
+        except Exception:
+            # Use the full name
+            return stdout.decode("utf-8").strip()
     except Exception:
         # Print a message, but don't fail.
         print("Submitting PBS script failed:\n  '%s/%s'"
             % (os.getcwd(), fname)) 
+        print("  Recevied STDOUT: %si (%s)" % (stdout, type(stdout)))
         # Failed; return None
         return None
 
@@ -64,7 +73,9 @@ def sbatch(fname):
     # Call the command with safety
     try:
         # Call `qsub` with output
-        txt = sp.Popen(['sbatch', fname], stdout=sp.PIPE).communicate()[0]
+        stdout, _ = sp.Popen(['sbatch', fname], stdout=sp.PIPE).communicate()
+        # Decode
+        txt = stdout.decode("utf-8")
         # Get the integer job number.
         return int(txt.split()[-1].strip())
     except Exception:
@@ -94,7 +105,7 @@ def qdel(jobID):
     for jobI in jobID:
         try:
             # Call `qdel`
-            sp.Popen(['qdel', str(jobI)], stdout=sp.PIPE).communicate()[0]
+            sp.Popen(['qdel', str(jobI)], stdout=sp.PIPE).communicate()
             # Status update.
             print("     Deleted PBS job %i" % jobI)
         except Exception:
@@ -120,7 +131,7 @@ def scancel(jobID):
     for jobI in jobID:
         try:
             # Call `qdel`
-            sp.Popen(['scancel', str(jobI)], stdout=sp.PIPE).communicate()[0]
+            sp.Popen(['scancel', str(jobI)], stdout=sp.PIPE).communicate()
             # Status update.
             print("     Deleted Slurm job %i" % jobI)
         except Exception:
@@ -141,7 +152,8 @@ def pqsub(fname, fout="jobID.dat"):
         *pbs*: :class:`int` or ``None``
             PBS job ID number if submission was successful
     :Versions:
-        * 2014-10-06 ``@ddalle``: First version
+        * 2014-10-06 ``@ddalle``: Version 1.0
+        * 2021-08-09 ``@ddalle``: Version 1.1; allow non-int PBS IDs
     """
     # Submit the job.
     pbs = qsub(fname)
@@ -150,7 +162,7 @@ def pqsub(fname, fout="jobID.dat"):
         # Create the output file.
         f = open(fout, 'w')
         # Write the job id.
-        f.write('%i\n' % pbs)
+        f.write('%s\n' % pbs)
         # Close the file.
         f.close()
     # Return the number.
@@ -172,7 +184,8 @@ def psbatch(fname, fout="jobID.dat"):
         *pbs*: :class:`int` or ``None``
             PBS job ID number if submission was successful
     :Versions:
-        * 2018-10-10 ``@ddalle``: First version
+        * 2018-10-10 ``@ddalle``: Version 1.0
+        * 2021-08-09 ``@ddalle``: Version 1.1; allow non-int job IDs
     """
     # Submit the job.
     pbs = sbatch(fname)
@@ -181,7 +194,7 @@ def psbatch(fname, fout="jobID.dat"):
         # Create the output file.
         f = open(fout, 'w')
         # Write the job id.
-        f.write('%i\n' % pbs)
+        f.write('%s\n' % pbs)
         # Close the file.
         f.close()
     # Return the number.
@@ -246,7 +259,7 @@ def qstat(u=None, J=None):
     # Call the command with safety.
     try:
         # Call `qstat` with output.
-        txt = sp.Popen(cmd, stdout=sp.PIPE).communicate()[0]
+        txt = sp.Popen(cmd, stdout=sp.PIPE).communicate()[0].decode("utf-8")
         # Split into lines.
         lines = txt.split('\n')
         # Initialize jobs.
@@ -300,7 +313,7 @@ def squeue(u=None, J=None):
     # Call the command with safety.
     try:
         # Call `qstat` with output.
-        txt = sp.Popen(cmd, stdout=sp.PIPE).communicate()[0]
+        txt = sp.Popen(cmd, stdout=sp.PIPE).communicate()[0].decode("utf-8")
         # Split into lines.
         lines = txt.split('\n')
         # Initialize jobs.
