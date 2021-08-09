@@ -2792,7 +2792,11 @@ class Cntl(object):
         # Dump the Overflow and other run settings.
         if rc is None:
             # Write settings from the present options
-            json.dump(self.opts['RunControl'], f, indent=1)
+            try:
+                json.dump(self.opts['RunControl'], f, indent=1)
+            except Exception:
+                import pdb
+                pdb.set_trace()
         else:
             # Write the settings given as input
             json.dump(rc, f, indent=1)

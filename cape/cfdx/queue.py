@@ -35,9 +35,9 @@ def qsub(fname):
     # Call the command with safety
     try:
         # Call `qsub` with output
-        txt = sp.Popen(['qsub', fname], stdout=sp.PIPE).communicate()[0]
+        stdout, _ = sp.Popen(['qsub', fname], stdout=sp.PIPE).communicate()
         # Get the integer job number.
-        return int(txt.split('.')[0])
+        return int(str(stdout).split('.')[0])
     except Exception:
         # Print a message, but don't fail.
         print("Submitting PBS script failed:\n  '%s/%s'"
