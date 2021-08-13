@@ -261,7 +261,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 dbname = dbname_template % grps
             except Exception:
                 # Missing group or something
-                print("Failed to expand DB_NAME_TEPLATE_LIST %i:" % (i+1))
+                print("Failed to expand DB_NAME_TEMPLATE_LIST %i:" % (i+1))
                 print("  template: %s" % dbname_template)
                 print("  groups:")
                 # Print all groups
@@ -269,7 +269,7 @@ class DataKitLoader(kwutils.KwargHandler):
                     print("%12s: %s [%s]" % (k, v, type(v).__name__))
                 # Raise an exception
                 raise KeyError(
-                    "Failed to expand DB_NAME_TEPLATE_LIST %i" % (i+1))
+                    "Failed to expand DB_NAME_TEMPLATE_LIST %i" % (i+1))
             # Exit loop
             break
         else:
