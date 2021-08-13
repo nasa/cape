@@ -95,6 +95,131 @@ def merge_dict_default(opts1, opts2):
         merge_dict_default(u, v)
 
 
+# Class for single module's metadata
+class ModuleMetadata(dict):
+    r"""Read metadata from a datakit module
+
+    :Versions:
+        * 2021-08-12 ``@ddalle``: Version 0.1; started
+    """
+    def __init__(self, mod=None, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2021-08-12 ``@ddalle``: Version 1.0
+        """
+        # Name of JSON file to search for
+        fjson = kw.pop("_json", "meta.json")
+        # Check class of first argument
+        if mod is None:
+            # No JSON file to read
+            fdir = None
+            # No base dictionary
+            basedict = None
+        elif isinstance(mod, type(os)):
+            # Got a module; find the directory
+            fdir = os.path.dirname(mod.__file__)
+            # No starting-point dict
+            basedict = None
+        elif typeutils.isstr(mod):
+            # Got a string; check if it's a dir
+            if os.path.isdir(mod):
+                # Already a folder name
+                fdir = os.path.abspath(mod)
+            elif os.path.isfile(mod):
+                # Ensure absolute path
+                fabs = os.path.realpath(mod)
+                # Split into folder/file
+                fdir = os.path.dirname(fabs)
+            else:
+                # Invalid string
+                raise ValueError("Could not find file/folder '%s'" % mod)
+            # No starting-point dict
+            basedict = None
+        elif isinstance(mod, (dict, list, tuple)):
+            # No file to read
+            fdir = None
+            # Got a dictionary
+            basedict = mod
+        elif typeutils.isfile(mod):
+            # Got an open file
+            fabs = os.path.abs(mod.name)
+            # Split into folder/file
+            fdir, fjson = os.path.split(fabs)
+        else:
+            # Unrecognized type
+            raise TypeError(
+                "Unable to process input of type '%s'" %
+                mod.__class__.__name__)
+        # Initialize dictionary if given a valid dict(basedict)
+        if basedict is not None:
+            dict.__init__(self, basedict)
+        # Save JSON file locations
+        self.fdir = fdir
+        self.fjson = fjson
+        # Read the JSON file
+        if fdir is None:
+            # No file to read
+            self.fabs = None
+        else:
+            # Get absolute path
+            self.fabs = os.path.join(fdir, fjson)
+            # Check for already-opened file
+            if typeutils.isfile(mod):
+                # Read from open file
+                self.read_json(mod)
+            else:
+                # Read from file name
+                self.read_json(self.fabs)
+        # Add any keyword arguments
+        self.update(**kw)
+        
+    # Read a JSON file
+    def read_json(self, fjson):
+        r"""Read a JSON file into the keys of a metadata object
+
+        :Call:
+            >>> meta.read_json(fjson)
+            >>> meta.read_json(f)
+        :Inputs:
+            *meta*: :class:`ModuleMetadata`
+                Metadata object for one module
+            *fjson*: :class:`str`
+                Name of JSON file to read
+            *f*: **file**
+                Already opened file handle
+        :Versions:
+            * 2021-08-12 ``@ddalle``: Version 1.0
+        """
+        # Check for file
+        if typeutils.isfile(fjson):
+            # Read open file handle
+            self._read_json(fjson)
+        else:
+            # Open the file and read it
+            with open(fjson, "r") as f:
+                self._read_json(f)
+
+    # Read a file handle
+    def _read_json(self, f):
+        r"""Read a JSON file form its handle
+
+        :Call:
+            >>> meta._read_json(f)
+        :Inputs:
+            *meta*: :class:`ModuleMetadata`
+                Metadata object for one module
+            *f*: **file**
+                Already opened file handle
+        :Versions:
+            * 2021-08-12 ``@ddalle``: Version 1.0
+        """
+        # Read the file
+        opts = json.load(f)
+        # Save the options therein
+        self.update(**opts)
+        
+
 # Metadata class for module properties
 class ModulePropDB(dict):
     """Module properties database

@@ -40,6 +40,7 @@ import os
 import re
 
 # Local modules
+from . import metautils
 from . import rstutils
 from . import typeutils
 
@@ -121,6 +122,12 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
     lines_out = []
     # Global replacements
     opts = {}
+    # Attempt to read metadata if not specified
+    if meta is None:
+        try:
+            meta = metautils.ModuleMetadata(modfile)
+        except Exception:
+            pass
     # Split docstring into lines
     # (have to do this beforehand because of pesky *hline_after*)
     lines = doc.split("\n")
@@ -191,6 +198,16 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
                 else:
                     # Broken or empty metadata
                     fmt["meta"] = ""
+            elif key.startswith("meta_"):
+                # Get secondary key name
+                metakey = key[5:].replace("_", "-")
+                print(metakey)
+                # Check if found
+                if isinstance(meta, dict) and metakey in meta:
+                    # Save that key
+                    fmt[key] = "%s" % meta[metakey]
+                else:
+                    fmt[key] = ""
             elif key == "submodules":
                 # Specific options
                 kw_submod = {
