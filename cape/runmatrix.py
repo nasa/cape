@@ -724,7 +724,8 @@ class RunMatrix(dict):
         if i > len(self.linenos):
             raise ValueError("No text line for case %i" % i)
         # Set the marker in the attribute
-        self.ERROR[i] = True
+        self.ERROR[i] = False
+        self.PASS[i] = False
         # Get the line number
         nline = self.linenos[i]
         # Get line
