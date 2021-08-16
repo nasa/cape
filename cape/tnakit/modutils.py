@@ -201,7 +201,6 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
             elif key.startswith("meta_"):
                 # Get secondary key name
                 metakey = key[5:].replace("_", "-")
-                print(metakey)
                 # Check if found
                 if isinstance(meta, dict) and metakey in meta:
                     # Save that key
