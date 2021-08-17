@@ -18,7 +18,13 @@ JSON file that contains the naming conventions, such as the following:
         from cape.attdb.datakithub import DataKitHub
 
         # Create an instance
-        hub = DataKitHub("datakithub.json")
+        hub = DataKitHub()
+
+This will look for a file
+
+    ``data/datakithub/datakithub.json``
+
+in the current folder and each parent folder.
 
 A simple ``datakithub.json`` file might contain the following:
 
@@ -132,6 +138,8 @@ class DataKitHub(dict):
         """
         # Find best JSON file
         fabs = self._find_dkhubjson(fjson=fjson, cwd=cwd)
+        # Initialize dictionary of known groups
+        self.regex_groups = {}
         # Initialize fixed attributes
         self.datakit_modules = {}
         self.datakit_groupnames = {}
@@ -141,6 +149,8 @@ class DataKitHub(dict):
         self.dir_root = os.path.dirname(self.dir_json)
         # Read the JSON file
         opts = loadJSONFile(fabs)
+        # Save regex groups definition
+        self.regex_groups = opts.pop("__regex_groups__", {})
         # Save it...
         self.update(opts)
 
@@ -546,6 +556,8 @@ class DataKitHub(dict):
         for regex, pattern in regex_dict.items():
             # Check for a match
             if re.match(regex, name):
+                # Convert \g<grp> --> %(grp)s ?
+                # template = re.sub(r"\\g\<(\w+)\>", r"%(\1)s", pattern)
                 # Match found; use a substitution
                 return re.sub(regex, pattern, name)
 
