@@ -266,7 +266,7 @@ class DataKitHub(dict):
             * 2021-02-18 ``@ddalle``: Version 1.0
         """
         # Loop through sections
-        for grp, grpopts in self.items():
+        for grp in self:
             # Check if *name* matches
             if re.match(grp, name):
                 # Found a match!
@@ -561,4 +561,149 @@ class DataKitHub(dict):
                 # Match found; use a substitution
                 return re.sub(regex, pattern, name)
 
-                
+   # --- Regular expressions ---
+    # Get dict of group regular expressions
+    def get_regex_groups(self):
+        r"""Get expanded regular expressions from *hub.regex_groups*
+
+        :Call:
+            >>> regex_dict = hub.get_regex_groups()
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *regex_template*: :class:`str`
+                Raw template with ``<grp>`` or ``%(grp)s`` groups
+        :Outputs:
+            *regex_dict*: :class:`dict`\ [:class:`str`]
+                Expanded regex with ``(?P<grp>...)`` for each group
+        :Versions:
+            * 2021-08-17 ``@ddalle``: Version 1.0
+        """
+        # Initialize output
+        regex_dict = {}
+        # Loop through defined groups
+        for grp, pattern in self.regex_groups.items():
+            # Form full pattern with ?P<> notation
+            regex = "(?P<%s>%s)" % (grp, pattern)
+            # Save it
+            regex_dict[grp] = regex
+        # Output
+        return regex_dict
+
+    # Expand a regular expression
+    def expand_regex(self, regex_template):
+        r"""Expand a regular expression template
+
+        Use defined groups from *hub.regex_groups*
+
+        :Call:
+            >>> regex = hub.expand_regex(regex_template)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *regex_template*: :class:`str`
+                Raw template with ``<grp>`` or ``%(grp)s`` groups
+        :Outputs:
+            *regex*: :class:`str`
+                Expanded regex with ``(?P<grp>...)`` filled in
+        :Versions:
+            * 2021-08-17 ``@ddalle``: Version 1.0
+        """
+        # Expand <grp> shorthand (but not ?P<grp>)
+        #     <grp>    --> %(grp)s
+        #     ?P<grp>  --> ?P<grp>
+        template = re.sub(r"(?<!\?P)<(\w+)>", r"%(\1)s", regex_template)
+        # Get regular expression for each group
+        regex_dict = self.get_regex_groups()
+        # Expand template
+        return template % regex_dict
+
+    # Check if a database name matches a section
+    def match(self, regex_template, dbname):
+        r"""Check if a database name matches a given section
+
+        :Call:
+            >>> groupdict = hub.match(regex_template, dbname)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *regex_template*: :class:`str`
+                Regular expression template for section of datakits
+            *dbname*: :class:`str`
+                Database name for one datakit
+        :Outputs:
+            *match*: ``None`` | :class:`dict`\ [:class:`str`]
+                Augmented :class:`dict` of groups from regex
+        :Versions:
+            * 2021-08-17 ``@ddalle``: Version 1.0
+        """
+        # Expand the regular expression template
+        regex = self.expand_regex(regex_template)
+        # Process regular expression
+        match = re.match(regex, dbname)
+        # Check for match
+        if match is None:
+            return
+        # Initialize augmented dictionary of matches
+        groupdict = {}
+        # Loop through original matches
+        for grp, txt in match.groupdict().items():
+            # Save raw text
+            groupdict["s-" + grp] = txt
+            # Save upper- and lower-case versions
+            groupdict["l-" + grp] = txt.lower()
+            groupdict["u-" + grp] = txt.lower()
+            # Attempt to save as integer
+            try:
+                # Convert to integer
+                groupdict[grp] = int(txt)
+            except Exception:
+                # Couldn't be converted to integer; use string
+                groupdict[grp] = txt
+        # Loop through groups in order
+        for j, txt in enumerate(match.groups()):
+            # Create a group "name," which is really just the index
+            grp = str(j + 1)
+            # Save raw text
+            groupdict["s-" + grp] = txt
+            # Save upper- and lower-case versions
+            groupdict["l-" + grp] = txt.lower()
+            groupdict["u-" + grp] = txt.lower()
+            # Attempt to save as integer
+            try:
+                # Convert to integer
+                groupdict[grp] = int(txt)
+            except Exception:
+                # Couldn't be converted to integer; use string
+                groupdict[grp] = txt
+        # Output
+        return groupdict
+
+    # Check if a database name matches a section
+    def match_section(self, section, dbname):
+        r"""Check if a database name matches a given section
+
+        :Call:
+            >>> match = hub.match_section(section, dbname)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *section*: :class:`str`
+                Regular expression template for section of datakits
+            *dbname*: :class:`str`
+                Database name for one datakit
+        :Outputs:
+            *match*: ``None`` | :class:`re.Match`
+                Output from :func:`re.match`
+        :Versions:
+            * 2021-08-17 ``@ddalle``: Version 1.0
+        """
+        # Expand the regular expression template
+        regex = self.expand_regex(section)
+        # Check for match
+        return re.match(regex, dbname)
+            
+
+   # --- Module 2.0 ---
+        
+    # Load a module
