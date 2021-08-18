@@ -104,7 +104,17 @@ if sys.version_info.major > 2:
 
 
 # Defaults
+DEFAULT_REPO = None
 DEFAULT_TYPE = "module"
+DEFAULT_ATTRIBUTE = None
+DEFAULT_FUNCTION = ["read_db"]
+# Combined efaults
+DEFAULT_SECTION = {
+    "repo": DEFAULT_REPO,
+    "type": DEFAULT_TYPE,
+    "module_attribute": DEFAULT_ATTRIBUTE,
+    "module_function": DEFAULT_FUNCTION,
+}
 
 
 # JSON files
@@ -142,7 +152,6 @@ class DataKitHub(dict):
         self.regex_groups = {}
         # Initialize fixed attributes
         self.datakit_modules = {}
-        self.datakit_groupnames = {}
         # Save folder containing *fjson*
         self.file_json = os.path.basename(fabs)
         self.dir_json = os.path.dirname(fabs)
@@ -150,7 +159,7 @@ class DataKitHub(dict):
         # Read the JSON file
         opts = loadJSONFile(fabs)
         # Save regex groups definition
-        self.regex_groups = opts.pop("__regex_groups__", {})
+        self.regex_groups = opts.pop(".regex_groups", {})
         # Save it...
         self.update(opts)
 
@@ -349,6 +358,102 @@ class DataKitHub(dict):
         """
         # Use generic function
         return self.get_group_opt(grp, "type", DEFAULT_TYPE)
+
+   # --- Options 2.0 ---
+    # Find best matching category
+    def get_section(self, sec):
+        r"""Get options for specified module section
+
+        :Call:
+            >>> secopts = hub.get_section(sec)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *sec*: :class:`str`
+                Name of datakit section
+        :Outputs:
+            *secopts*: :class:`dict`
+                Options for *sec* loaded in *hub[sec]*
+        :Versions:
+            * 2021-08-18 ``@ddalle``: Version 1.0
+        """
+        # Get options from dict
+        return self.get(sec, {})
+
+    # Get option from a specific section
+    def get_section_opt(self, sec, opt, vdef=None):
+        r"""Get the *type* of a given datakit group
+
+        :Call:
+            >>> v = hub.get_section_opt(grp, opt, vdef=None)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *sec*: :class:`str`
+                Name of datakit section
+            *opt*: :class:`str`
+                Name of option to access
+            *vdef*: {``None``} | **any**
+                Default value for *opt*
+        :Outputs:
+            *v*: {*vdef*} | 
+                Value of *hub[grp][opt]* or *vdef*
+        :Versions:
+            * 2021-02-18 ``@ddalle``: Version 1.0
+            * 2021-08-18 ``@ddalle``: Version 1.1
+                - was :func:`get_group_opt`
+                - add module-level defaults
+        """
+        # Get group options
+        secopts = self.get_section(sec)
+        # Process default
+        if vdef is None:
+            # Use global default
+            vdef = DEFAULT_SECTION.get(opt)
+        # Check type
+        if not isinstance(secopts, dict):
+            # Use default if seciton is not a dict
+            return vdef
+        # Get type
+        return secopts.get(opt, vdef)
+
+    # Get repo
+    def get_section_type(self, sec):
+        r"""Get *type* option for section
+
+        :Call:
+            >>> sectype = hub.get_section_type(sec)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *sec*: :class:`str`
+                Name of datakit section
+        :Outputs:
+            *sectype*: :class:`str`
+                Name of folder to add to path
+        :Versions:
+            * 2021-08-18 ``@ddalle``: Version 1.0
+        """
+        return self.get_section_opt("type")
+
+    # Get repo
+    def get_section_repo(self, sec):
+        r"""Get *repo* option for section
+
+        :Call:
+            >>> repo = hub.get_section_repo(sec)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *sec*: :class:`str`
+                Name of datakit section
+        :Outputs:
+            *repo*: ``None`` | :class:`dict`
+                Name of folder to add to path
+        :Versions:
+            * 2021-08-18 ``@ddalle``: Version 1.0
+        """
+        return self.get_section_opt("repo")
 
    # --- Read DB ---
     # Get datakit by name
@@ -620,7 +725,7 @@ class DataKitHub(dict):
 
     # Check if a database name matches a section
     def match(self, regex_template, dbname):
-        r"""Check if a database name matches a given section
+        r"""Match a regular expression template to a target string
 
         :Call:
             >>> groupdict = hub.match(regex_template, dbname)
@@ -632,7 +737,7 @@ class DataKitHub(dict):
             *dbname*: :class:`str`
                 Database name for one datakit
         :Outputs:
-            *match*: ``None`` | :class:`dict`\ [:class:`str`]
+            *groupdict*: ``None`` | :class:`dict`\ [:class:`str`]
                 Augmented :class:`dict` of groups from regex
         :Versions:
             * 2021-08-17 ``@ddalle``: Version 1.0
@@ -641,6 +746,52 @@ class DataKitHub(dict):
         regex = self.expand_regex(regex_template)
         # Process regular expression
         match = re.match(regex, dbname)
+        # Process augmented groups
+        return self._process_groupdict(match)
+
+    # Check if a database name matches a section
+    def fullmatch(self, regex_template, dbname):
+        r"""Match a full string (usually DB name) to a regex template
+
+        :Call:
+            >>> groupdict = hub.match(regex_template, dbname)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *regex_template*: :class:`str`
+                Regular expression template for section of datakits
+            *dbname*: :class:`str`
+                Database name for one datakit
+        :Outputs:
+            *groupdict*: ``None`` | :class:`dict`\ [:class:`str`]
+                Augmented :class:`dict` of groups from regex
+        :Versions:
+            * 2021-08-17 ``@ddalle``: Version 1.0
+        """
+        # Expand the regular expression template
+        regex = self.expand_regex(regex_template)
+        # Process regular expression
+        match = re.fullmatch(regex, dbname)
+        # Process augmented groups
+        return self._process_groupdict(match)
+
+    # Get dictionary of match groups from match object
+    def _process_groupdict(self, match):
+        r"""Convert :class:`re.Match` to augmented group :class:`dict`
+
+        :Call:
+            >>> groupdict = hub._process_groupdict(match)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *match*: :class:`re.Match`
+                Output from :func:`re.match` or similar
+        :Outputs:
+            *groupdict*: ``None`` | :class:`dict`\ [:class:`str`]
+                Augmented :class:`dict` of groups from regex
+        :Versions:
+            * 2021-08-17 ``@ddalle``: Version 1.0
+        """
         # Check for match
         if match is None:
             return
@@ -680,7 +831,7 @@ class DataKitHub(dict):
         return groupdict
 
     # Check if a database name matches a section
-    def match_section(self, section, dbname):
+    def match_section(self, sec, dbname):
         r"""Check if a database name matches a given section
 
         :Call:
@@ -699,11 +850,175 @@ class DataKitHub(dict):
             * 2021-08-17 ``@ddalle``: Version 1.0
         """
         # Expand the regular expression template
-        regex = self.expand_regex(section)
+        regex = self.expand_regex(sec)
         # Check for match
         return re.match(regex, dbname)
             
 
    # --- Module 2.0 ---
+    # Load a module from name and section
+    def import_dbname(self, dbname, sec, regex, template):
+        r"""Import a datakit by DB name from section and modname regex
+
+        :Call:
+            >>> mod = hub.import_dbname(dbname, sec, regex, template)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *dbname*: :class:`str`
+                Database name for one datakit
+            *sec*: :class:`str`
+                Regular expression template for section of datakits
+            *regex*: :class:`str`
+                Regular expression template for database names
+            *template*: :class:`str`
+                Template for module name based on *regex* match groups
+        :Outputs:
+            *mod*: ``None`` | :class:`module`
+                Imported module if possible
+        :Versions:
+            * 2021-08-17 ``@ddalle``: Version 1.0
+        """
+        # Check for a previous load
+        mod = self.datakit_modules.get(dbname)
+        # Check if it's a module
+        if mod is not None:
+            # Just return it
+            return mod
+        # Get repo
+        repo = self.get_section_repo(sec)
+
+    # Expand module name based on template
+    def genr8_modname(self, dbname, regex, template):
+        r"""Determine module name from DB name, regex, and template
+    
+        :Call:
+            >>> modname = hub.genr8_modname(dbname, regex, template)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *dbname*: :class:`str`
+                Database name for one datakit
+            *sec*: :class:`str`
+                Regular expression template for section of datakits
+            *regex*: :class:`str`
+                Regular expression template for database names
+            *template*: :class:`str`
+                Template for module name based on *regex* match groups
+        :Outputs:
+            *modname*: ``None`` | :class:`str`
+                Name of module according to regex and template
+        :Versions:
+            * 2021-08-17 ``@ddalle``: Version 1.0
+        """
+        # Attempt to match *dbname* to the regex (with expansions)
+        grpdict = self.fullmatch(regex, dbname)
+        # Check for match
+        if grpdict is None:
+            # No match
+            return
+        # Preporocess the template (e.g. \1 -> %(1)s)
+        fmt = prepare_template(template)
+        # Otherwise expand the template using matched groups
+        return fmt % grpdict
+
+    # Get path for specified database name
+    def genr8_modpath(self, dbname, sec):
+        r"""Generate $PYTHONPATH for given database name (if any)
+
+        :Call:
+            >>> modpath = hub.genr8_modpath(dbname, sec)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *dbname*: :class:`str`
+                Database name for one datakit
+            *sec*: :class:`str`
+                Regular expression template for section of datakits
+            *template*: :class:`str`
+                Template for module name based on *regex* match groups
+        :Outputs:
+            *modpath*: ``None`` | :class:`str`
+                Path to module if not in existing ``$PYTHONPATH``
+        :Versions:
+            * 2021-08-18 ``@ddalle``: Version 1.0
+        """
+        # Match the database name to the section name
+        grpdict = self.match(sec, dbname)
+        # Check for non-matching database
+        if grpdict is None:
+            return
+        # Get repo option
+        repo = self.get_section_opt(sec, "repo")
+        # Expand template
+        fmt = prepare_template(repo)
+        # Use regular expression groups
+        path = fmt % grpdict
+        # Expand to absolute path
+        return self.abspath(path)
+
+    # Expand path
+    def abspath(self, path):
+        r"""Expand absolute path to a relative path
+
+        :Call:
+            >>> abspath = hub.abspath(path)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *path*: :class:`str`
+                Path to some file, relative or absolute
+        :Outputs:
+            *abspath*: ``None`` | :class:`str`
+                Absolute path to *path*
+        :Versions:
+            * 2021-08-18 ``@ddalle``: Version 1.0
+        """
+        # Check for empty path
+        if path is None:
+            return
+        # Expand any tildes (~)
+        relpath = os.path.expanduser(path)
+        # Check for absolute path
+        if os.path.isabs(relpath):
+            # Use it as is; already absolute
+            return relpath
+        # Otherwise append *dir_root*
+        abspath = os.path.join(self.dir_root, relpath)
+        # Follow links if necessary
+        return os.path.realpath(abspath)
+            
         
-    # Load a module
+
+# Expand a template (\\g<grp> -> %(grp)s)
+def prepare_template(template):
+    r"""Expand a string template with some substitutions
+
+    The substitutions made include:
+
+        * ``r"\g<grp>"`` --> ``"%(grp)s"``
+        * ``r"\l\g<grp>"`` --> ``"%(l-grp)s"``
+        * ``r"\u\1"`` --> ``"%(u-1)s"``
+        * ``r"\1"`` --> ``"%(1)s"``
+
+    :Call:
+        >>> fmt = prepare_template(template)
+    :Inputs:
+        *template*: :class:`str`
+            Initial template, mixing :class:`dict` string expansion and
+            :func:`re.sub` syntax
+    :Outputs:
+        *fmt*: :class:`str`
+            Template ready for standard string expansion, for example
+            using ``fmt % grpdict`` where *grpdict* is a :class:`dict`
+    :Versions:
+        * 2021-08-18 ``@ddalle``: Version 1.0
+    """
+    # Substitute modified re.sub() groups like \l\g<grp>
+    fmt1 = re.sub(r"\\([A-z])\\g<(\w+)>", r"%(\1-\2)s", template)
+    # Substitute plain groups like \g<grp>
+    fmt2 = re.sub(r"\\g<(\w+)>", r"%(\1)s", fmt1)
+    # Substitute modified numbered groups like \u\1
+    fmt3 = re.sub(r"\\([A-z])\\([1-9][0-9]*)", r"%(\1-\2)s", fmt2)
+    # Substitute regular numbered groups like \2
+    return re.sub(r"\\([1-9][0-9]*)", r"%(\1)s", fmt3)
