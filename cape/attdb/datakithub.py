@@ -128,16 +128,17 @@ ERROR_FUNCTION_NONE = 7
 # Error messages
 ERRMSG_NOMATCH_SECTION = "Section '%s' does not match db name (ierr=1)"
 ERRMSG_NOMATCH_DBNAME =  "  Regex '%s' does not match db name (ierr=2)"
-ERRMSG_IMPORT_ERROR =    "  Failed to import module '%s' (ierr=3)"
-ERRMSG_NO_ATTRIBUTE =    "  No attribute '%s.%s' (ierr=4)"
-ERRMSG_NO_FUNCTION =     "  No function '%s.%s()' (ierr=5)"
-ERRMSG_FUNCTION_CALL =   "  Exception while calling '%s.%s()' (ierr=6)"
-ERRMSG_FUNCTION_NONE =   "  Function '%s.%s()' returned None (ierr=7)"
+ERRMSG_IMPORT_ERROR =    "    Import module '%s' failed (ierr=3)"
+ERRMSG_NO_ATTRIBUTE =    "    No attribute '%s.%s' (ierr=4)"
+ERRMSG_NO_FUNCTION =     "    No function '%s.%s()' (ierr=5)"
+ERRMSG_FUNCTION_CALL =   "    Exception while calling '%s.%s()' (ierr=6)"
+ERRMSG_FUNCTION_NONE =   "    Function '%s.%s()' returned None (ierr=7)"
 # Success messages
 MSG_SECTION = "Section '%s'"
-MSG_IMPORT = "  Imported module '%s'"
-MSG_READDB_ATTR = "  Found attribute '%s.%s'"
-MSG_READDB_FUNC = "  Got datakit from '%s.%s()'"
+MSG_DBNAME = "  Regex '%s' matches"
+MSG_IMPORT = "    Import module '%s' succeeded"
+MSG_READDB_ATTR = "    Datakit from attribute '%s.%s'"
+MSG_READDB_FUNC = "    Datakit from function '%s.%s()'"
 
 
 # JSON files
@@ -882,6 +883,80 @@ class DataKitHub(dict):
         return groupdict
 
    # --- Module 2.0 ---
+    # Read a database by name
+    def read_dbname(self, dbname, **kw):
+        r"""Read a datakit based on DB name
+
+        :Call:
+            >>> db = hub.read_dbname(dbname, **kw)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *dbname*: :class:`str`
+                Database name for one datakit
+        :Keyword Arguments:
+            *v*, *verbose*: ``True`` | {``False``}
+                Option to report results of matching modules
+            *vv*, *veryverbose*: ``True`` | {``False``}
+                Option to report all attempts in matching sections
+            *vvv*, *veryveryverbose*: ``True`` | {``False``}
+                Option to report all attempts
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                Data interface if successfule
+        :Versions:
+            * 2021-08-18 ``@ddalle``: Version 1.0
+        """
+        # Initialize error
+        ierr = 0
+        # Loop through sections
+        for sec in self:
+            # Attempt to read
+            jerr, db = self._read_dbname_section(dbname, sec, **kw)
+            # Check status
+            if jerr == 0:
+                # Got it
+                return db
+            # Keep track of best step
+            ierr = max(ierr, jerr)
+
+    # Import a module by name
+    def import_dbname(self, dbname, **kw):
+        r"""Import a datakit module based on DB name
+
+        :Call:
+            >>> mod = hub.import_dbname(dbname, **kw)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *dbname*: :class:`str`
+                Database name for one datakit
+        :Keyword Arguments:
+            *v*, *verbose*: ``True`` | {``False``}
+                Option to report results of matching modules
+            *vv*, *veryverbose*: ``True`` | {``False``}
+                Option to report all attempts in matching sections
+            *vvv*, *veryveryverbose*: ``True`` | {``False``}
+                Option to report all attempts
+        :Outputs:
+            *mod*: ``None`` | :class:`module`
+                Imported module if possible
+        :Versions:
+            * 2021-08-18 ``@ddalle``: Version 1.0
+        """
+        # Initialize error
+        ierr = 0
+        # Loop through sections
+        for sec in self:
+            # Attempt to read
+            jerr, db = self._import_dbname_section(dbname, sec, **kw)
+            # Check status
+            if jerr == 0:
+                # Got it
+                return db
+            # Keep track of best step
+            ierr = max(ierr, jerr)
+
     # Try all candidates from a section
     def _read_dbname_section(self, dbname, sec, **kw):
         r"""Try all candidate modules from a given section
@@ -916,7 +991,7 @@ class DataKitHub(dict):
                 * ``7``: *module_function* returned ``None``
 
             *db*: ``None`` | :class:`DataKit`
-                Imported module if possible
+                Data interface if successfule
         :Versions:
             * 2021-08-18 ``@ddalle``: Version 1.0
         """
@@ -935,7 +1010,7 @@ class DataKitHub(dict):
             # Early exit
             return ERROR_NOMATCH_SECTION, None
         # Matching section status update
-        if vv:
+        if v:
             print(MSG_SECTION % sec)
         # Otherwise get candidate module name rules
         module_regex_dict = self.get_section_opt(sec, "module_regex", {})
@@ -997,7 +1072,7 @@ class DataKitHub(dict):
                 * ``7``: *module_function* returned ``None``
 
             *db*: ``None`` | :class:`DataKit`
-                Imported module if possible
+                Data interface if successfule
         :Versions:
             * 2021-08-18 ``@ddalle``: Version 1.0
         """
@@ -1079,6 +1154,79 @@ class DataKitHub(dict):
         self.datakit_modules.pop(dbname, None)
         # If reaching this point, return current error
         return ierr, None
+
+    # Try all candidates from a section
+    def _import_dbname_section(self, dbname, sec, **kw):
+        r"""Try all candidate modules from a given section
+
+        :Call:
+            >>> ierr, mod = hub._import_dbname_section(dbname, sec)
+        :Inputs:
+            *hub*: :class:`DataKitHub`
+                Instance of datakit-reading hub
+            *dbname*: :class:`str`
+                Database name for one datakit
+            *sec*: :class:`str`
+                Regular expression template for section of datakits
+        :Keyword Arguments:
+            *v*, *verbose*: ``True`` | {``False``}
+                Option to report results of matching modules
+            *vv*, *veryverbose*: ``True`` | {``False``}
+                Option to report all attempts in matching sections
+            *vvv*, *veryveryverbose*: ``True`` | {``False``}
+                Option to report all attempts
+        :Outputs:
+            *ierr*: ``0`` | :class:`int`
+                Exit code
+
+                * ``0``: success
+                * ``1``: *dbname* doesn't match *sec*
+                * ``2``: *dbname* doesn't match *regex*
+                * ``3``: couldn't import module
+
+            *mod*: ``None`` | :class:`module`
+                Imported module if possible
+        :Versions:
+            * 2021-08-19 ``@ddalle``: Version 1.0
+        """
+        # Verbosity flags
+        v = kw.get("verbose", kw.get("v", False))
+        vv = kw.get("veryverbose", kw.get("vv", False))
+        vvv = kw.get("veryveryverbose", kw.get("vvv", False))
+        # Verbosity cascade
+        vv = vv or vvv
+        v = v or vv
+        # Check valid section
+        if self.match_section(sec, dbname) is None:
+            # Verbosity option
+            if vvv:
+                print(ERRMSG_NOMATCH_SECTION % sec)
+            # Early exit
+            return ERROR_NOMATCH_SECTION, None
+        # Matching section status update
+        if v:
+            print(MSG_SECTION % sec)
+        # Otherwise get candidate module name rules
+        module_regex_dict = self.get_section_opt(sec, "module_regex", {})
+        # Initial error (in case "module_regex" is empty)
+        ierr = 0
+        # Loop through candidates
+        for regex, templates in module_regex_dict.items():
+            # Ensure we have a list of templates
+            modname_template_list = _listify(templates)
+            # Loop through module templates
+            for template in modname_template_list:
+                # Attempt to load it
+                jerr, mod = self._import_dbname(
+                    dbname, sec, regex, template, **kw)
+                # Check for success
+                if jerr == 0:
+                    # Success
+                    return jerr, mod
+                # Update error code (higher means it got farther)
+                ierr = max(ierr, jerr)
+        # If reaching this point, return the best error code
+        return ierr, None
         
     # Load a module from name and section
     def _import_dbname(self, dbname, sec, regex, template, **kw):
@@ -1132,8 +1280,6 @@ class DataKitHub(dict):
                 print(ERRMSG_NOMATCH_SECTION % (sec))
             # Early exit
             return ERROR_NOMATCH_SECTION, None
-        # Check for a previous load
-        mod = self.datakit_modules.get(dbname)
         # Check if *dbname* matches *regex*
         modname = self.genr8_modname(dbname, regex, template)
         # Exit if no match
@@ -1143,6 +1289,11 @@ class DataKitHub(dict):
                 print(ERRMSG_NOMATCH_DBNAME % regex)
             # Early exit
             return ERROR_NOMATCH_DBNAME, None
+        # Status update for match
+        if v:
+            print(MSG_DBNAME % regex)
+        # Check for a previous load
+        mod = self.datakit_modules.get(dbname)
         # Check if it's a module
         if mod is not None:
             # Verbosity option
@@ -1155,13 +1306,11 @@ class DataKitHub(dict):
         # Add to path if necessary
         if repo is None:
             # No required special path
-            addpath = False
+            pass
         elif repo in sys.path:
             # Requested path already present
-            addpath = False
+            pass
         else:
-            # Special path to temporarily add
-            addpath = True
             # Add to front of path
             sys.path.insert(0, repo)
         # Attempt to import the module
@@ -1182,9 +1331,6 @@ class DataKitHub(dict):
             # Status message
             if vv:
                 print(ERRMSG_IMPORT_ERROR % modname)
-        # Clean up path if necessary
-        if addpath:
-            sys.path.pop(0)
         # Output
         return ierr, mod
 
