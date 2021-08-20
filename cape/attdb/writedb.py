@@ -19,12 +19,61 @@ from .. import argread
 from .. import text as textutils
 
 
+# Docstring for CLI
+HELP_WRITEDB = r"""
+---------------------------------------------------------------
+:mod:`writedb`: Read raw data to create formatted datakit files
+---------------------------------------------------------------
+
+Any database can be processed by this script when given its module name.
+The revision argument can be something like **c008.f3d.db001** or a full
+module name like **sls10afa.c008.f3d.db001**.
+
+:Usage:
+    .. code-block:: bash
+
+        $ dkit-writedb [MODNAMES] [OPTIONS]
+
+:Options:
+
+    -h, --help
+        Display this help message and quit
+
+    -f, --force
+        Overwrite any existing database files (only for *MODNAMES*)
+
+    -F, --force-all
+        Overwrite all database files including added dependencies
+
+    --no-reqs, --no-dependencies
+        Don't read requirements; just process *MODNAMES*
+
+    --prefix PREFIX
+        Specify prefix which may be left off of *MODNAMES*
+
+    --no-write
+        Don't actually write databases (just print dependencies)
+
+    --write_func FUNC
+        Function name in modules to process datakits {"write_db"}
+
+:Versions:
+
+    * 2017-07-13 ``@ddalle``: Version 1.0
+    * 2020-07-06 ``@ddalle``: Version 1.1; update docstring
+    * 2021-05-20 ``@ddalle``: Version 1.0; from **SLS-10-D-AFA**
+    * 2021-07-17 ``@ddalle``: Version 2.0; process dependencies
+    * 2021-07-19 ``@ddalle``: Version 2.1; add ``--no-write``
+    * 2021-08-20 ``@ddalle``: Version 3.0; generalize for ``cape``
+"""
+
+
 # Main writer
-def main_write_db():
+def main():
     r"""Main command-line interface function
 
     :Call:
-        >>> main_write_db()
+        >>> main()
     :Versions:
         * 2021-07-15 ``@ddalle``: Version 1.0
         * 2021-07-17 ``@ddalle``: Version 2.0
@@ -72,7 +121,7 @@ def write_dbs(*a, **kw):
     # Check for help flag
     if (len(a) == 0) or kw.get('h') or kw.get('help'):
         # Display help message and quit
-        print(textutils.markdown(__doc__))
+        print(textutils.markdown(HELP_WRITEDB))
         return
     # Process other options
     force_all = kw.pop("force-all", kw.pop("force_all", kw.pop("F", False)))
@@ -306,13 +355,21 @@ def import_module(modname=None, prefix=None, **kw):
             - automated default *PREFIX*
             - support empty *modname*
     """
+    # Append current path
+    sys.path.insert(0, os.path.realpath("."))
     # Prepend module name if necessary
     modname = get_fullmodname(modname, prefix)
     # Attempt import
     try:
         # Use import library
-        return importlib.import_module(modname)
+        mod = importlib.import_module(modname)
+        # Clean up path
+        sys.path.pop(0)
+        # Output
+        return mod
     except ImportError:
+        # Clean up path
+        sys.path.pop(0)
         # Unknown version
         raise ValueError("Failed to import '%s'" % modname)
 
