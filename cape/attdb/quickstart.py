@@ -65,6 +65,28 @@ DataKit 3.0 package.
 # Defaults
 DEFAULT_TITLE = "DataKit quickstart package"
 
+DEFAULT_DOCSTRING = r"""
+%(hline_after-)s
+%(mod)s: %(meta_title)s
+%(hline-)s
+
+Module metadata:
+
+    %(meta)s
+
+The following code block shows how to import the module and access the
+primary database object(s).
+
+    .. code-block:: python
+        
+        # Import module
+        import %(pymod)s as dat
+
+        # Get interface to processed trajectory data
+        db = dat.read_db()
+
+"""
+
 
 # Main function
 def main():
@@ -126,12 +148,6 @@ def quickstart(*a, **kw):
     else:
         # No defaults
         opts = {}
-    # Apply default metadata
-    for k, v in opts.get("meta", {}).keys():
-        # Full CLI name
-        col = "meta." + k
-        # Save it
-        kw[col] = v
     # Set default target
     kw.setdefault("target", opts.get("target"))
     # Create folder
@@ -139,72 +155,11 @@ def quickstart(*a, **kw):
     # Prompt for a title
     kw["title"] = _prompt_title(**kw)
     # Write metadata
-    create_metadata(pkg, where, **kw)
-
-
-# Create the metadata
-def create_metadata(pkg, where=".", **kw):
-    r"""Write ``meta.json`` template in package folder
-
-    :Call:
-        >>> create_metadata(pkg, **kw)
-    :Inputs:
-        *pkg*: :class:`str`
-            Name of Python module/package to create
-        *title*: {``None``} | :class:`str`
-            Title to use for this package (not module name)
-        *where*: {``"."``} | :class:`str`
-            Path from which to begin
-        *t*, *target*: {``None``} | :class:`str`
-            Optional subdir of *where* to put package in
-        *meta.key*: :class:`str`
-            Save this value as *key* in ``meta.json``
-    :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
-    """
-    # Get the path to the package
-    basepath = expand_target(where)
-    pkgpath = get_pkgdir(pkg, **kw)
-    # Absolute path
-    pkgdir = os.path.join(basepath, pkgpath)
-    # Path to metadata file
-    fjson = os.path.join(pkgdir, "meta.json")
-    # Check if file exists
-    if os.path.isfile(fjson):
-        return
-    # Get title
-    title = kw.get("title", DEFAULT_TITLE)
-    # Initialize metadata
-    metadata = {
-        "title": title,
-    }
-    # Add anyother metadata
-    for k in kw:
-        # Check if it's a metadata key
-        if k.startswith("meta."):
-            # Normalized metadata key name
-            col = k[5:].replace("_", "-")
-            # Save value as shortened key
-            metadata[col] = kw[k]
-    # Write the JSON file
-    with open(fjson, "w") as f:
-        json.dump(metadata, f, indent=4)
-
-
-# Ensure a title is present
-def _prompt_title(**kw):
-    # Get existing title from kwargs
-    title = kw.get("title", kw.get("Title"))
-    # If non-empty, return it
-    if title:
-        return title
-    # Otherwise prompt one
-    title = promptutils.prompt("One-line title for package")
-    # Check for an answer again
-    if title is None:
-        return DEFAULT_TILE
-    else:
-        return title
+    create_metadata(pkg, opts, where, **kw)
+    # Create the package files
+    create_pkg(pkg, opts, where, **kw)
+    # Write the vendorize.json file
+    create_vendorize_json(pkg, opts, where, **kw)
 
 
 # Ensure folder
@@ -238,6 +193,222 @@ def create_pkgdir(pkg, where=".", **kw):
     path = get_pkgdir(pkg, **kw)
     # Create folders as needed
     mkdirs(basepath, path)
+
+
+# Ensure folder
+def create_pkg(pkg, opts, where=".", **kw):
+    r"""Create ``__init__.py`` files in package folders if needed
+
+    :Call:
+        >>> create_pkg(pkg, where=".", **kw)
+    :Inputs:
+        *pkg*: :class:`str`
+            Name of Python module/package to create
+        *opts*: :class:`dict`
+            Settings from ``datakit.json`` if available
+        *where*: {``"."``} | :class:`str`
+            Path from which to begin
+        *t*, *target*: {``None``} | :class:`str`
+            Optional subdir of *where* to put package in
+    :Versions:
+        * 2021-08-24 ``@ddalle``: Version 1.0
+    """
+    # Get absolute path to target
+    basepath = expand_target(where)
+    # Get relative folder
+    path = get_pkgdir(pkg, **kw)
+    # Full path to package
+    pkgdir = os.path.join(basepath, path)
+    # Loop through parts
+    for fdir in path.split(os.sep)[:-1]:
+        # Append to basepath
+        basepath = os.path.join(basepath, fdir)
+        # Name of Python file
+        fpy = os.path.join(basepath, "__init__.py")
+        # Check if file exists
+        if os.path.isfile(fpy):
+            continue
+        # Otherwise create empty file
+        with open(fpy, "w") as f:
+            f.write("#!%s\n" % sys.executable)
+            f.write("# -*- coding: utf-8 -*-\n\n")
+    # Write template for the main
+    write_init_py(pkgdir, opts)
+
+
+# Create the metadata
+def create_metadata(pkg, opts, where=".", **kw):
+    r"""Write ``meta.json`` template in package folder
+
+    :Call:
+        >>> create_metadata(pkg, opts, where=".", **kw)
+    :Inputs:
+        *pkg*: :class:`str`
+            Name of Python module/package to create
+        *opts*: :class:`dict`
+            Use metadata from ``opts["meta"]`` if able
+        *title*: {``None``} | :class:`str`
+            Title to use for this package (not module name)
+        *where*: {``"."``} | :class:`str`
+            Path from which to begin
+        *t*, *target*: {``None``} | :class:`str`
+            Optional subdir of *where* to put package in
+        *meta.key*: :class:`str`
+            Save this value as *key* in ``meta.json``
+    :Versions:
+        * 2021-08-24 ``@ddalle``: Version 1.0
+    """
+    # Get the path to the package
+    basepath = expand_target(where)
+    pkgpath = get_pkgdir(pkg, **kw)
+    # Absolute path
+    pkgdir = os.path.join(basepath, pkgpath)
+    # Path to metadata file
+    fjson = os.path.join(pkgdir, "meta.json")
+    # Check if file exists
+    if os.path.isfile(fjson):
+        return
+    # Get title
+    title = kw.get("title", DEFAULT_TITLE)
+    # Initialize metadata
+    metadata = {
+        "title": title,
+    }
+    # Get "meta" section from *opts*
+    if isinstance(opts, dict):
+        # Get "meta" section
+        opts_meta = opts.get("meta", {})
+        # Merge with "metadata" if able
+        if isinstance(opts_meta, dict):
+            metadata.update(opts_meta)
+    # Add any other metadata
+    for k in kw:
+        # Check if it's a metadata key
+        if k.startswith("meta."):
+            # Normalized metadata key name
+            col = k[5:].replace("_", "-")
+            # Save value as shortened key
+            metadata[col] = kw[k]
+    # Write the JSON file
+    with open(fjson, "w") as f:
+        json.dump(metadata, f, indent=4)
+
+
+# Write vendorization template
+def create_vendorize_json(pkg, opts, where=".", **kw):
+    r"""Write ``vendorize.json`` template in package folder
+
+    :Call:
+        >>> create_vendorize_json(pkg, opts, where=".", **kw)
+    :Inputs:
+        *pkg*: :class:`str`
+            Name of Python module/package to create
+        *opts*: :class:`dict`
+            Use settings from ``opts["vendor"]`` if able
+        *where*: {``"."``} | :class:`str`
+            Path from which to begin
+        *t*, *target*: {``None``} | :class:`str`
+            Optional subdir of *where* to put package in
+    :Versions:
+        * 2021-08-24 ``@ddalle``: Version 1.0
+    """
+    # Get "vendor" section from *opts*
+    if not isinstance(opts, dict):
+        return
+    # Get "vendor" section
+    opts_vendor = opts.get("vendor")
+    # Merge with "metadata" if able
+    if not isinstance(opts_vendor, dict):
+        return
+    # Get the path to the package
+    basepath = expand_target(where)
+    pkgpath = get_pkgdir(pkg, **kw)
+    # Absolute path
+    pkgdir = os.path.join(basepath, pkgpath)
+    # Vendorize in parent folder
+    setupdir = os.path.dirname(pkgdir)
+    # Path to vendorize file
+    fjson = os.path.join(setupdir, "vendorize.json")
+    # Check if file exists
+    if os.path.isfile(fjson):
+        return
+    # Set default "target" in vendorize.json
+    vendor = dict(target="%s/_vendor" % pkg.split(".")[-1])
+    # Merge settings from *opts_vendor*
+    vendor.update(opts_vendor)
+    # Write the JSON file
+    with open(fjson, "w") as f:
+        json.dump(vendor, f, indent=4)
+
+
+# Write the starter for a module
+def write_init_py(pkgdir, opts):
+    r"""Create ``__init__.py`` template for DataKit package
+
+    :Call:
+        >>> write_init_py(pkgdir, opts)
+    :Inputs:
+        *pkgdir*: :class:`str`
+            Folder in which to create ``__init__.py`` file
+        *opts*: :class:`dict`
+            Settings from ``datakit.json`` if available
+    :Versions:
+        * 2021-08-24 ``@ddalle``: Version 1.0
+    """
+    # Path to Python file
+    fpy = os.path.join(pkgdir, "__init__.py")
+    # Check if it exists
+    if os.path.isfile(fpy):
+        return
+    # Check for a datakitloader module
+    if isinstance(opts, dict):
+        # Try to get module with database name settings
+        dklmod = opts.get("datakitloader-module")
+        # Check for vendorize settings
+        vendor = opts.get("vendor", {})
+        # Check for vendorized packages
+        vendor_pkgs = vendor.get("packages", [])
+    else:
+        # No special settings
+        dklmod = None
+        vendor_pkgs = None
+    # Create the filw
+    with open(fpy, "w") as f:
+        # Write header info
+        f.write("#!%s\n" % sys.executable)
+        f.write("# -*- coding: utf-8 -*-\n")
+        # Write template docstring
+        f.write('r"""\n')
+        f.write(DEFAULT_DOCSTRING)
+        f.write('"""\n\n')
+        # Write import
+        f.write("# Standard library modules\n\n")
+        f.write("# Third-party modules\n\n")
+        f.write("# CAPE modules\n")
+        f.write("import cape.attdb.datakitloader as dkloader\n")
+        f.write("import cape.tnakit.modutils as modutils\n\n")
+        f.write("# Local modules\n")
+        # Check for vendorized packages
+        for pkg in vendor_pkgs:
+            f.write("from ._vendor imort %s\n" % pkg)
+        f.write("\n")
+        # Automatic docstring update
+        f.write("# Update docstring\n")
+        f.write("__doc__ = modutils.rst_docstring(")
+        f.write("__name__, __file__, __doc__)\n\n")
+        # Requirements template
+        f.write("# Supporting modules\n")
+        f.write("REQUIREMENTS = [\n]\n\n")
+        # Template DataKitLoader
+        f.write("# Get datakit loader settings\n")
+        f.write("DATAKIT_LOADER = dkloader.DataKitLoader(__name__, __file__")
+        # Check for existing settings
+        if dklmod:
+            # Use settings from specified modules
+            f.write(", **%s.DB_NAMES)\n\n" % dklmod)
+        else:
+            # No expanded settings
+            f.write(")\n\n")
 
 
 # Get relative path to package folder
@@ -319,6 +490,25 @@ def expand_target(target="."):
         return os.path.realpath(target)
 
 
-# Write the starter for a module
-def write_init_py(pkg, target="."):
-    pass
+# Ensure a title is present
+def _prompt_title(**kw):
+    r"""Prompt for a title if none provided
+
+    :Call:
+        >>> title = _prompt_title(**kw)
+    :Versions:
+        * 2021-08-24 ``@ddalle``: Version 1.0
+    """
+    # Get existing title from kwargs
+    title = kw.get("title", kw.get("Title"))
+    # If non-empty, return it
+    if title:
+        return title
+    # Otherwise prompt one
+    title = promptutils.prompt("One-line title for package")
+    # Check for an answer again
+    if title is None:
+        return DEFAULT_TILE
+    else:
+        return title
+
