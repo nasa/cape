@@ -21,9 +21,9 @@ from .. import text as textutils
 
 # Docstring for CLI
 HELP_WRITEDB = r"""
----------------------------------------------------------------
-:mod:`writedb`: Read raw data to create formatted datakit files
----------------------------------------------------------------
+-----------------------------------------------------------------
+``dkit-writedb``: Read raw data to create formatted datakit files
+-----------------------------------------------------------------
 
 Any database can be processed by this script when given its module name.
 The revision argument can be something like **c008.f3d.db001** or a full

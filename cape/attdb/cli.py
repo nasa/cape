@@ -11,6 +11,7 @@ r"""
 import sys
 
 # Local modules
+from . import quickstart
 from . import vendorutils
 from . import writedb
 from .. import argread
@@ -46,6 +47,9 @@ def main():
     elif cmd in {"vendorize"}:
         # Call vendorizer
         return vendorutils.vendorize_repo(*a, **kw)
+    elif cmd in {"quickstart"}:
+        # Call quickstart method
+        return quickstart.quickstart(*a, **kw)
     else:
         print(textutils.markdown(HELP_DKIT))
         print("")
