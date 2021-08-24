@@ -23,6 +23,9 @@ import pip
 import setuptools
 import vendorize
 
+# Local modules
+from .. import argread
+
 
 # Default values for various options
 DEFAULT_FIND_EXCLUDE = ()
@@ -45,6 +48,237 @@ OPTLIST_JSON = {
 # Regular expression for plain package name
 REGEX_PKG_PLAIN = re.compile("([A-z]\w+)(\[[A-z]\w+\])?")
 REGEX_PKG_EGG = re.compile("#egg=([A-z]\w+)$")
+
+
+# Docstring for CLI
+HELP_VENDORIZE = r"""
+---------------------------------------------------------------
+``dkit-vendorize``: Vendorize one or more packages
+---------------------------------------------------------------
+
+This command provides an extension to the :mod:`vendorize` package
+available from PyPI. It allows you to "vendorize," that is, install a
+local copy of, one or more packages. It can be called in the same folder
+as one of the two files:
+
+    * ``vendorize.json``
+    * ``vendorize.toml``
+
+:Usage:
+    .. code-block:: bash
+
+        $ dkit-vendorize [PKGS] [OPTIONS]
+
+:Arguments:
+    * *PKG1*: vendorize each package matching this regular expression
+    * *PKGN*: vendorize each package matching this regular expression
+
+:Options:
+
+    -h, --help
+        Display this help message and quit
+
+    -t, --target REGEX
+        Only vendoroze in parent packages including regular expression
+        *REGEX* (default is all packages with any vendorize file)
+
+    --cwd WHERE
+        Location from which to search for packages (``"."``)
+
+:Versions:
+
+    * 2021-08-23 ``@ddalle``: Version 1.0
+"""
+
+
+# Main function
+def main():
+    r"""Main command-line interface for vendorize command
+
+    :Call:
+        >>> main()
+    :Versions:
+        * 2021-08-23 ``@ddalle``: Version 1.0
+    """
+    # Process command-line arguments
+    a, kw = argread.readkeys(sys.argv)
+    # Real main function
+    vendorize_repo(*a, **kw)
+
+
+# Top-level function
+def vendorize_repo(*a, **kw):
+    r"""Vendorize in all repos
+
+    :Call:
+        >>> vendorize_repo(*a, **kw)
+    :Inputs:
+        *a*: :class:`tuple`\ [:class:`str`]
+            Regular expressions for vendorized package(s)
+        *cwd*, *where*: {``"."``} | :class:`str`
+            Location from which to search for target packages
+        *t*, *target*: {``None``} | :class:`str`
+            Regular expression for packages in which to vendor
+    :Versions:
+        * 2021-08-23 ``@ddalle``: Version 1.0
+    """
+    # Check for help flag
+    if kw.get('h') or kw.get('help'):
+        # Display help message and quit
+        print(textutils.markdown(HELP_VENDORIZE))
+        return
+    # Use args as package regexes
+    pkg_regexes = a
+    # Location
+    where = kw.get("cwd", kw.get("where", DEFAULT_FIND_WHERE))
+    # Absolutize
+    fabs = os.path.realpath(where)
+    # Get target
+    target_regex = kw.pop("target", kw.pop("t", None))
+    # Find all parents
+    targets = find_vendors(where, regex=target_regex)
+    # Remember current location
+    fpwd = os.getcwd()
+    # Vendorixe requested packages in each target
+    for target in targets:
+        # Get folder version of package
+        pkgdir = target.replace(".", os.sep)
+        # Absolutize
+        absdir = os.path.join(fabs, pkgdir)
+        # Two file candidates
+        fjson = os.path.join(absdir, "vendorize.json")
+        ftoml = os.path.join(absdir, "vendorize.toml")
+        # Check for JSON file
+        if os.path.isfile(fjson):
+            # Read JSON file
+            opts = VendorizeJSON(fjson)
+        elif os.path.isfile(ftoml):
+            # Read TOML file
+            opts = VendorizeTOML(ftoml)
+        else:
+            # Unreachable unless file got deleted very recently
+            continue
+        # Status update
+        print("In '%s':" % target)
+        # Vendorize requested packages
+        opts.vendorize(regex=pkg_regexes)
+
+
+# Find vendors
+def find_vendors(where=".", **kw):
+    r"""Find packages that have vendorization inputs
+
+    This looks for all packages that have either
+
+    * ``vendorize.json``
+    * ``vendorize.toml``
+
+    files in them.
+
+    :Call:
+        >>> pkgs = find_vendors(where=".", **kw)
+    :Inputs:
+        *where*: {``"."``} | :class:`str`
+            Location from which to search for packages
+        *exclude*: {``()``} | :class:`tuple`\ [:class:`str`]
+            List of globs to exclude from package search
+        *include*: {``("*",)``} | :class:`tuple`\ [:class:`str`]
+            List of globs to include during package search
+        *re*, *regex*, {``None``} | :class:`str`
+            Only include packages including regular expression *regex*
+    :Outputs:
+        *pkgs*: :class:`list`\ [:class:`str`]
+            List of packages with vendorization inputs (the package
+            ``''`` means the current folder has vendor inputs)
+    :Versions:
+        * 2021-08-23 ``@ddalle``: Version 1.0
+    """
+    # Options for find_packages()
+    o_exclude = kw.pop("exclude", DEFAULT_FIND_EXCLUDE)
+    o_include = kw.pop("include", DEFAULT_FIND_INCLUDE)
+    # Other options
+    o_regex = kw.pop("re", kw.pop("regex", DEFAULT_FIND_REGEX))
+    # Replace any Nones
+    if where is None:
+        where = DEFAULT_FIND_WHERE
+    if o_exclude is None:
+        o_exclude = DEFAULT_FIND_EXCLUDE
+    if o_include is None:
+        o_include = DEFAULT_FIND_INCLUDE
+    # Generate base path (absolute)
+    absdir = os.path.realpath(where)
+    # Find packages
+    pkg_list = setuptools.find_packages(
+        where, exclude=o_exclude, include=o_include)
+    # Also look in the current folder
+    pkg_list.insert(0, "")
+    # Initialize list of packages with vendorize inputs
+    pkgs = []
+    # Loop through found packages
+    for pkg in pkg_list:
+        # Check for regex
+        if o_regex:
+            # Check for regular expression match
+            if re.search(o_regex, pkg) is None:
+                continue
+        # Get folder name for package
+        pkgdir = pkg.replace(".", os.sep)
+        # Absolutize
+        pkgdir = os.path.join(absdir, pkgdir)
+        # Full path to vendorize input files
+        fjson = os.path.join(pkgdir, "vendorize.json")
+        ftoml = os.path.join(pkgdir, "vendorize.toml")
+        # Check for either file
+        if os.path.isfile(fjson):
+            # Found JSON file
+            pkgs.append(pkg)
+        elif os.path.isfile(ftoml):
+            # Found TOML file
+            pkgs.append(pkg)
+    # Sort the package list
+    pkgs.sort()
+    # Output
+    return pkgs
+
+
+# Vendorize from a TOML file
+def vendorize_toml(ftoml, **kw):
+    r"""Vendorize packages using ``vendorize.toml`` file
+
+    :Call:
+        >>> vendorize_toml(ftoml)
+    :Inputs:
+        *ftmol*: :class:`str`
+            Absolute path to a ``vendorize.toml`` path
+        *re*, *regex*: {``None``} | :class:`str`
+            Include packages matching optional regular expression
+    :Versions:
+        * 2021-08-23 ``@ddalle``: Version 1.0
+    """
+    # Read file
+    opts = VendorizeTOML(ftoml)
+    # Vendorize packages therein
+    opts.vendorize(**kw)
+
+
+# Vendorize from a JSON file
+def vendorize_json(fjson, **kw):
+    r"""Vendorize packages using ``vendorize.json`` file
+
+    :Call:
+        >>> vendorize_json(fjson)
+    :Inputs:
+        *fjson*: :class:`str`
+            Absolute path to a ``vendorize.json`` path
+        *re*, *regex*: {``None``} | :class:`str`
+            Include packages matching optional regular expression
+    :Versions:
+        * 2021-08-23 ``@ddalle``: Version 1.0
+    """
+    # Read file
+    opts = VendorizeJSON(ftoml)
+    # Vendorize packages therein
+    opts.vendorize(**kw)
 
 
 # Base class for vendorize file formats
@@ -144,13 +378,15 @@ class VendorizeConfig(dict):
         :Inputs:
             *opts*: :class:`VendorizeConfig`
                 Vendorization options interface
-            *re*, *regex*: {``None``} | :class:`str`
+            *re*, *regex*: {``None``} | :class:`str` | :class:`list`
                 Include packages matching optional regular expression
         :Versions:
             * 2021-08-23 ``@ddalle``: Version 1.0
         """
         # Get regex option
         regex = kw.get("regex", kw.get("re", None))
+        # Listify
+        regexs = _listify(regex)
         # Loop through packages
         for req in self.get("packages", []):
             # Get package name
@@ -161,7 +397,15 @@ class VendorizeConfig(dict):
             # Check for regular expression
             if regex:
                 # Check for match
-                if re.search(regex, pkg) is None:
+                for regexj in regexs:
+                    if re.search(regexj, pkg):
+                        match = True
+                        break
+                else:
+                    # Matched no filters
+                    match = False
+                # Go to next requirement if no matches
+                if not match:
                     continue
             # Status update
             print("Vendorizing package '%s'" % pkg)
@@ -373,121 +617,6 @@ class VendorizeJSON(VendorizeConfig):
         os.chdir(fpwd)
         # Return output
         return ierr
-
-
-# Find vendors
-def find_vendors(where=".", **kw):
-    r"""Find packages that have vendorization inputs
-
-    This looks for all packages that have either
-
-    * ``vendorize.json``
-    * ``vendorize.toml``
-
-    files in them.
-
-    :Call:
-        >>> pkgs = find_vendors(where=".", **kw)
-    :Inputs:
-        *where*: {``"."``} | :class:`str`
-            Location from which to search for packages
-        *exclude*: {``()``} | :class:`tuple`\ [:class:`str`]
-            List of globs to exclude from package search
-        *include*: {``("*",)``} | :class:`tuple`\ [:class:`str`]
-            List of globs to include during package search
-        *re*, *regex*, {``None``} | :class:`str`
-            Only include packages including regular expression *regex*
-    :Outputs:
-        *pkgs*: :class:`list`\ [:class:`str`]
-            List of packages with vendorization inputs (the package
-            ``''`` means the current folder has vendor inputs)
-    :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
-    """
-    # Options for find_packages()
-    o_exclude = kw.pop("exclude", DEFAULT_FIND_EXCLUDE)
-    o_include = kw.pop("include", DEFAULT_FIND_INCLUDE)
-    # Other options
-    o_regex = kw.pop("re", kw.pop("regex", DEFAULT_FIND_REGEX))
-    # Replace any Nones
-    if where is None:
-        where = DEFAULT_FIND_WHERE
-    if o_exclude is None:
-        o_exclude = DEFAULT_FIND_EXCLUDE
-    if o_include is None:
-        o_include = DEFAULT_FIND_INCLUDE
-    # Generate base path (absolute)
-    absdir = os.path.realpath(where)
-    # Find packages
-    pkg_list = setuptools.find_packages(
-        where, exclude=o_exclude, include=o_include)
-    # Also look in the current folder
-    pkg_list.insert(0, "")
-    # Initialize list of packages with vendorize inputs
-    pkgs = []
-    # Loop through found packages
-    for pkg in pkg_list:
-        # Check for regex
-        if o_regex:
-            # Check for regular expression match
-            if re.search(o_regex, pkg) is None:
-                continue
-        # Get folder name for package
-        pkgdir = pkg.replace(".", os.sep)
-        # Full path to vendorize input files
-        fjson = os.path.join(pkgdir, "vendorize.json")
-        ftoml = os.path.join(pkgdir, "vendorize.toml")
-        # Check for either file
-        if os.path.isfile(fjson):
-            # Found JSON file
-            pkgs.append(pkg)
-        elif os.path.isfile(ftoml):
-            # Found TOML file
-            pkgs.append(pkg)
-    # Sort the package list
-    pkgs.sort()
-    # Output
-    return pkgs
-
-
-# Vendorize from a TOML file
-def vendorize_toml(ftoml, **kw):
-    r"""Vendorize packages using ``vendorize.toml`` file
-
-    :Call:
-        >>> vendorize_toml(ftoml)
-    :Inputs:
-        *ftmol*: :class:`str`
-            Absolute path to a ``vendorize.toml`` path
-        *re*, *regex*: {``None``} | :class:`str`
-            Include packages matching optional regular expression
-    :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
-    """
-    # Read file
-    opts = VendorizeTOML(ftoml)
-    # Vendorize packages therein
-    opts.vendorize(**kw)
-
-
-# Vendorize from a JSON file
-def vendorize_json(fjson, **kw):
-    r"""Vendorize packages using ``vendorize.json`` file
-
-    :Call:
-        >>> vendorize_json(fjson)
-    :Inputs:
-        *fjson*: :class:`str`
-            Absolute path to a ``vendorize.json`` path
-        *re*, *regex*: {``None``} | :class:`str`
-            Include packages matching optional regular expression
-    :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
-    """
-    # Read file
-    opts = VendorizeJSON(ftoml)
-    # Vendorize packages therein
-    opts.vendorize(**kw)
 
 
 # Vendorize a folder

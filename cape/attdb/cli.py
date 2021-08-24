@@ -11,6 +11,7 @@ r"""
 import sys
 
 # Local modules
+from . import vendorutils
 from . import writedb
 from .. import argread
 from .. import text as textutils
@@ -42,6 +43,9 @@ def main():
     if cmd in {"writedb", "write-db"}:
         # Call datakit writer
         return writedb.write_dbs(*a, **kw)
+    elif cmd in {"vendorize"}:
+        # Call vendorizer
+        return vendorutils.vendorize_repo(*a, **kw)
     else:
         print(textutils.markdown(HELP_DKIT))
         print("")

@@ -102,6 +102,7 @@ setup(
     },
     scripts=[
         "bin/cape-writell",
+        "bin/dkit",
         "bin/pc_Step2Crv.py",
         "bin/pc_StepTri2Crv.py",
         "bin/pc_Tri2Plt.py",

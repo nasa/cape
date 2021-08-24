@@ -34,6 +34,10 @@ module name like **sls10afa.c008.f3d.db001**.
 
         $ dkit-writedb [MODNAMES] [OPTIONS]
 
+:Arguments:
+    * *MODNAME1*: name of first module to process
+    * *MODNAMEN*: name of *n*\ th module to process
+
 :Options:
 
     -h, --help
