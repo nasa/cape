@@ -295,8 +295,8 @@ def create_pkg(pkg, opts, where=".", **kw):
             f.write("# -*- coding: utf-8 -*-\n\n")
             # Write import statement for final level
             if j + 1 == npart:
-                f.write("from %s import *\n" % pkgname)
-                f.write("from %s import __doc__\n\n" % pkgname)
+                f.write("from .%s import *\n" % pkgname)
+                f.write("from .%s import __doc__\n\n" % pkgname)
     # Write template for the main Python file
     write_init_py(pkgdir, opts)
     # Write template for setup.py
