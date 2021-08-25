@@ -6767,7 +6767,7 @@ class DataKit(ftypes.BaseData):
             except (IndexError, TypeError):
                 # Reached scalar too soon
                 raise TypeError(
-                    ("Breakpoints for '%s':\n" % k) +
+                    ("Breakpoints for '%s':\n" % col) +
                     ("Expecting %i-dimensional " % nd) +
                     ("array but found %i-dim" % n))
         # Output
