@@ -458,7 +458,7 @@ def write_init_py(pkgdir, opts):
         # Check for vendorized packages
         for pkg in vendor_pkgs:
             f.write("from ._vendor import %s\n" % pkg)
-        f.write("\n")
+        f.write("\n\n")
         # Automatic docstring update
         f.write("# Update docstring\n")
         f.write("__doc__ = modutils.rst_docstring(")
