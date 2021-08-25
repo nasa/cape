@@ -65,6 +65,7 @@ DataKit 3.0 package.
 # Defaults
 DEFAULT_TITLE = "DataKit quickstart package"
 
+# Template docstring for a module
 DEFAULT_DOCSTRING = r"""
 %(hline_after-)s
 %(mod)s: %(meta_title)s
@@ -87,6 +88,54 @@ primary database object(s).
 
 """
 
+# Template setup.py file
+SETUP_PY = r"""#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Standard library
+import os
+
+# Third-part modules
+import setuptools
+
+# Cape modules
+from cape.tnakit.metautils import ModuleMetadata
+
+
+# Create the build
+def main():
+    # Find packages
+    pkgs = setuptools.find_packages()
+    # Main package
+    pkg = pkgs[0]
+    # Read metadata
+    try:
+        meta = ModuleMetadata(pkg)
+    except ValueError:
+        meta = {}
+    # Get title
+    title = meta.get("title", pkg)
+    # Create the egg/wheel
+    setuptools.setup(
+        name=pkg,
+        packages=pkgs,
+        package_data={
+            pkg: [
+                "meta.json",
+                "db/mat/ATT-VM-CLVTOPS-003-1002.mat",
+                "db/csv/ATT-VM-CLVTOPS-003-1002.csv"
+             ],
+        },
+        description=title,
+        version="1.0")
+
+
+# Compile
+if __name__ == "__main__":
+    main()
+
+"""
+
 
 # Main function
 def main():
@@ -105,6 +154,23 @@ def main():
 
 # Primary API function
 def quickstart(*a, **kw):
+    r"""Create templates for a new datakit module
+
+    :Call:
+        >>> quickstart(*a, **kw)
+        >>> quickstart(pkg[, where], **kw)
+    :Inputs:
+        *pkg*: :class:`str`
+            Name of Python package relative to *where*
+        *where*: {``"."``} | :class:`str`
+            Path from which to begin
+        *t*, *target*: {``None``} | :class:`str`
+            Optional subdir of *where* to put package in
+        *title*: {``None``} | :class:`str`
+            Title to use for this package (not module name)
+    :Versions:
+        * 2021-08-24 ``@ddalle``: Version 1.0
+    """
     # Check for help flag
     if kw.get('h') or kw.get('help'):
         # Display help message and quit
@@ -232,8 +298,10 @@ def create_pkg(pkg, opts, where=".", **kw):
         with open(fpy, "w") as f:
             f.write("#!%s\n" % sys.executable)
             f.write("# -*- coding: utf-8 -*-\n\n")
-    # Write template for the main
+    # Write template for the main Python file
     write_init_py(pkgdir, opts)
+    # Write template for setup.py
+    write_setup_py(os.path.dirname(pkgdir), opts)
 
 
 # Create the metadata
@@ -372,7 +440,7 @@ def write_init_py(pkgdir, opts):
         # No special settings
         dklmod = None
         vendor_pkgs = None
-    # Create the filw
+    # Create the file
     with open(fpy, "w") as f:
         # Write header info
         f.write("#!%s\n" % sys.executable)
@@ -382,8 +450,8 @@ def write_init_py(pkgdir, opts):
         f.write(DEFAULT_DOCSTRING)
         f.write('"""\n\n')
         # Write import
-        f.write("# Standard library modules\n\n")
-        f.write("# Third-party modules\n\n")
+        f.write("# Standard library modules\n\n\n")
+        f.write("# Third-party modules\n\n\n")
         f.write("# CAPE modules\n")
         f.write("import cape.attdb.datakitloader as dkloader\n")
         f.write("import cape.tnakit.modutils as modutils\n\n")
@@ -409,6 +477,31 @@ def write_init_py(pkgdir, opts):
         else:
             # No expanded settings
             f.write(")\n\n")
+
+
+# Write the setup.py script
+def write_setup_py(pkgdir, opts):
+    r"""Create ``__init__.py`` template for DataKit package
+
+    :Call:
+        >>> write_setup_py(pkgdir, opts)
+    :Inputs:
+        *pkgdir*: :class:`str`
+            Folder in which to create ``__init__.py`` file
+        *opts*: :class:`dict`
+            Settings from ``datakit.json`` if available
+    :Versions:
+        * 2021-08-24 ``@ddalle``: Version 1.0
+    """
+    # Path to Python file
+    fpy = os.path.join(pkgdir, "setup.py")
+    # Check if it exists
+    if os.path.isfile(fpy):
+        return
+    # Create the file
+    with open(fpy, "w") as f:
+        # Write the template
+        f.write(SETUP_PY)
 
 
 # Get relative path to package folder

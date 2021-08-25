@@ -196,6 +196,9 @@ class ModuleMetadata(dict):
             # Read open file handle
             self._read_json(fjson)
         else:
+            # Check for JSON file
+            if not os.path.isfile(fjson):
+                return
             # Open the file and read it
             with open(fjson, "r") as f:
                 self._read_json(f)
