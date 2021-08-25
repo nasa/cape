@@ -24,6 +24,27 @@ HELP_DKIT = r"""
 ``dkit``: Command-Line Interface to datakit tools
 -------------------------------------------------
 
+Perform actions on a DataKit package or package collection from the
+command line interface.
+
+:Usage:
+    .. code-block:: console
+
+        $ dkit CMD [ARGS] [OPTIONS]
+
+:Arguments:
+    * *CMD*: name of other command to run, one of:
+        - ``write-db``: Process raw data into datakit files
+        - ``vendorize``: Install local copies of packages
+        - ``quicksart``: Create a template DataKit package
+
+    * *ARGS*: arguments passed to individual commands
+
+:Options:
+    See options for specific commands
+
+:Versions:
+    * 2021-08-24 ``@ddalle``: Version 1.0
 """
 
 

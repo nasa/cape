@@ -25,39 +25,29 @@ Create several files and folders to create a basic template for a
 DataKit 3.0 package.
 
 :Usage:
-    .. code-block:: bash
+    .. code-block:: console
 
-        $ dkit-quickstart [PKG] [WHERE] [OPTIONS]
+        $ dkit-quickstart [PKG [WHERE]] [OPTIONS]
 
 :Arguments:
-    * *MODNAME1*: name of first module to process
-    * *MODNAMEN*: name of *n*\ th module to process
+    * *PKG*: name of Python package relative to *WHERE*
+    * *WHERE*: location to create package
 
 :Options:
 
     -h, --help
         Display this help message and quit
 
-    -f, --force
-        Overwrite any existing database files (only for *MODNAMES*)
+    -t, --target TARGET
+        Use *TARGET* as a prefix to the package name *PKG*
 
-    -F, --force-all
-        Overwrite all database files including added dependencies
+    --where WHERE
+        Create package in folder *WHERE* {.}
 
-    --no-reqs, --no-dependencies
-        Don't read requirements; just process *MODNAMES*
-
-    --prefix PREFIX
-        Specify prefix which may be left off of *MODNAMES*
-
-    --no-write
-        Don't actually write databases (just print dependencies)
-
-    --write_func FUNC
-        Function name in modules to process datakits {"write_db"}
+    --title TITLE
+        Use *TITLE* as the one-line description for the package
 
 :Versions:
-
     * 2021-08-24 ``@ddalle``: Version 1.0
 """
 
