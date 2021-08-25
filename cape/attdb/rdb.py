@@ -6903,6 +6903,9 @@ class DataKit(ftypes.BaseData):
                 # Check if *V* is an array
                 if V is None:
                     raise KeyError("No breakpoints for col '%s'" % col)
+                elif col in subcols and isinstance(V, list):
+                    # Special case for secondary slice col
+                    continue
                 elif not isinstance(V, np.ndarray):
                     # Non-array
                     raise TypeError(
@@ -6978,8 +6981,8 @@ class DataKit(ftypes.BaseData):
                 Vm = bkpts[col]
                 # Get first entry for type checks
                 v0 = bkpts[col][0]
-                # Check if it's a scheduled key; will be a list
-                if isinstance(v0, list):
+                # Check if it's a scheduled key; will be an array
+                if isinstance(v0, (list, np.ndarray)):
                     # Get break points for this slice key value
                     Vm = Vm[im]
                 # Save the values
