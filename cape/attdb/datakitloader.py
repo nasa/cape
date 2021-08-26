@@ -1141,8 +1141,10 @@ class DataKitLoader(kwutils.KwargHandler):
                 # Read initial database
                 db = self.read_dbfile_mat(fname, **kw)
             else:
+                # Get absolute path
+                fmat = self.get_dbfile_mat(fname)
                 # Use existing database
-                db.read_mat(fname)
+                db.read_mat(fmat)
         # Output
         return db
 
@@ -1173,8 +1175,10 @@ class DataKitLoader(kwutils.KwargHandler):
                 # Read initial database
                 db = self.read_dbfile_csv(fname, **kw)
             else:
+                # Get absolute path
+                fcsv = self.get_dbfile_csv(fname)
                 # Use existing database
-                db.read_csv(fname)
+                db.read_csv(fcsv)
         # Output
         return db
 
