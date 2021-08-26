@@ -252,6 +252,8 @@ def genr8_modsequence(modnames, **kw):
         return dbnames, list(modnames)
     # Make list of unchecked modules
     unprocessed_modnames = list(modnames)
+    # Save original inputs
+    orig_modnames = modnames
     # Initialize final module load sequence
     modnames = []
     dbnames = []
@@ -265,8 +267,8 @@ def genr8_modsequence(modnames, **kw):
         mod = import_module(modname, prefix)
         # Get name
         dbname = get_dbname(mod)
-        # Status update for original requests
-        if modname in modnames:
+        # Status update for original requests (even if it has no reqs)
+        if modname in orig_modnames:
             print("  %s (%s)" % (dbname, modname))
         # Append to sequence if not already present
         if dbname not in dbnames:
@@ -279,8 +281,8 @@ def genr8_modsequence(modnames, **kw):
         # Check if no requirements
         if not reqdbnames:
             continue
-        # Status update for requirements of requirements
-        if modname not in modnames:
+        # Status update for implied modules (only if *they* have reqs)
+        if modname not in orig_modnames:
             print("  %s (%s)" % (dbname, modname))
         # Loop through them (in reverse order)
         for reqdbname in reversed(reqdbnames):

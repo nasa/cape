@@ -112,7 +112,7 @@ def main():
         package_data={
             pkg: [
                 "meta.json",
-             ],
+            ],
         },
         description=title,
         version="1.0")
