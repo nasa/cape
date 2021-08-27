@@ -6904,7 +6904,7 @@ class DataKit(ftypes.BaseData):
                 # Check if *V* is an array
                 if V is None:
                     raise KeyError("No breakpoints for col '%s'" % col)
-                elif col in subcols and isinstance(V, list):
+                elif col in subcols and isinstance(V, (list, np.ndarray)):
                     # Special case for secondary slice col
                     continue
                 elif not isinstance(V, np.ndarray):
@@ -6922,7 +6922,7 @@ class DataKit(ftypes.BaseData):
                 elif not isinstance(V[0], (float, int, complex)):
                     # Not a simple number
                     raise TypeError(
-                        "Non-numeric breakpoitns for col '%s'" % col)
+                        "Non-numeric breakpoints for col '%s'" % col)
             # Make a copy
             cols = list(cols)
         # Eliminate *skey* if in key list
