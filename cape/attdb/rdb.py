@@ -4857,8 +4857,9 @@ class DataKit(ftypes.BaseData):
             *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
                 Function to use aux cols when estimating *ucol*
         :Versions:
-            * 2019-02-15 ``@ddalle``: First version
-            * 2020-04-02 ``@ddalle``: Ver2.0, from ``EstimateUQ_DB()``
+            * 2019-02-15 ``@ddalle``: Version 1.0
+            * 2020-04-02 ``@ddalle``: Version 2.0
+                - was :func:`EstimateUQ_DB`
         """
        # --- Inputs ---
         # Get minimum number of points in statistical window
