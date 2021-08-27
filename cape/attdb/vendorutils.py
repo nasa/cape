@@ -25,6 +25,7 @@ import vendorize
 
 # Local modules
 from .. import argread
+from .. import text as textutils
 
 
 # Default values for various options
