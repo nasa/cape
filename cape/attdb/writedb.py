@@ -132,7 +132,7 @@ def write_dbs(*a, **kw):
     force_last = kw.pop("force", kw.pop("f", False))
     write = kw.pop("write", True)
     # Process original module names
-    anames, _ = genr8_modsequence(a, reqs=False)
+    anames, _ = genr8_modsequence(a, reqs=False, **kw)
     # Process all other requirements
     dbnames, modnames = genr8_modsequence(a, **kw)
     # Status update
