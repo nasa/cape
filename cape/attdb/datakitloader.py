@@ -11,7 +11,9 @@ DataKit parameters.
 """
 
 # Standard library
+import fnmatch
 import importlib
+import json
 import os
 import re
 import sys
@@ -25,7 +27,8 @@ from ..tnakit import shellutils
 
 # Utility regular expressions
 REGEX_INT = re.compile("[0-9]+")
-REGEX_REMOTE = re.compile("((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)")
+REGEX_HOST = re.compile("((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)")
+REGEX_REMOTE = re.compile("((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)")
 
 # Create types for "strings" based on Python version
 if sys.version_info.major == 2:
@@ -143,6 +146,8 @@ class DataKitLoader(kwutils.KwargHandler):
         kwutils.KwargHandler.__init__(self, **kw)
         # Initialize attributes
         self.rawdata_sources = {}
+        self.rawdata_remotes = {}
+        self.rawdata_commits = {}
         # Use required inputs
         self.setdefault_option("MODULE_NAME", name)
         self.setdefault_option("MODULE_FILE", os.path.abspath(fname))
@@ -858,49 +863,284 @@ class DataKitLoader(kwutils.KwargHandler):
         return ierr
 
    # --- Raw data update ---
+    # Get list of remote files matching patterns
+    def get_rawdata_filelist(self, remote="origin"):
+        # Get list of files
+        ls_files = self.listtree_rawdata_remote(remote)
+        
+    # Get full list of files from rawdata source
+    def listtree_rawdata_remote(self, remote="origin"):
+        r"""List all files in candidate raw data remote source
+
+        :Call:
+            >>> ls_files = dkl.listtree_rawdata_remote(remote="origin")
+        :Outputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Outputs:
+            *ls_files*: :class:`list`\ [:class:`str`]
+                List of all files tracked by remote repo
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Get URL and hash
+        url, sha1 = self.get_rawdata_remote()
+        # Check for invalid repo
+        if url is None:
+            return []
+        # List files
+        stdout = self._call_o(
+            url, ["git", "ls-tree", "-r", sha1, "--name-only"])
+        # Check validity
+        if stdout is None:
+            return []
+        # Split
+        return stdout.strip().split("\n")
+
+    # Get the best rawdata source
+    def get_rawdata_remote(self, remote="origin"):
+        r"""Get full URL and SHA-1 hash for raw data source repo
+
+        :Call:
+            >>> url, sha1 = dkl.get_rawdata_remote(remote="origin")
+        :Outputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Outputs:
+            *url*: ``None`` | :class:`str`
+                Full path to valid git repo, if possible
+            *sha1*: ``None`` | :class:`str`
+                40-character hash of specified commit, if possible
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Check for existing remote
+        url = self.rawdata_remotes.get(remote)
+        sha1 = self.rawdata_commits.get(remote)
+        # Check for early termination
+        if url and sha1:
+            return url, sha1
+        # Read settings
+        self.read_rawdata_json()
+        # Get list of candidates
+        url_list = self._get_rawdata_remote_urls(remote)
+        # Get reference to check
+        ref = self.get_rawdata_ref(remote)
+        # Prepend to list if *url* is specified
+        if url:
+            # Remove it if needed
+            if url in url_list:
+                url_list.remove(url)
+            # Put it to front of list
+            url_list.insert(0, url)
+        # Loop through candidates
+        for url in url_list:
+            # Status update
+            msg = "Trying '%s'\r" % url
+            # Show it
+            sys.stdout.write(msg)
+            # Get most recent commit if possible
+            sha1 = self._get_sha1(url, ref)
+            # Clean up prompt
+            sys.stdout.write(" " * len(msg))
+            sys.stdout.write("\r")
+            # Check if successful
+            if sha1:
+                # Save options
+                self.rawdata_remotes[remote] = url
+                self.rawdata_commits[remote] = sha1
+                # Terminate
+                return url, sha1
+        # No valid repo found
+        return url, sha1
+
     # Get raw data settings
-    def read_rawdata_sources(self, fname="datakit-sources.json"):
+    def read_rawdata_json(self, fname="datakit-sources.json", f=False):
         r"""Read ``datakit-sources.json`` from package's raw data folder
 
         :Call:
-            >>> dkl.read_rawdata_sources(fname="datakit-sources.json")
+            >>> dkl.read_rawdata_json(fname=None, f=False)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
             *fname*: {``"datakit-sources.json"``} | :class:`str`
                 Relative or absolute file name (rel. to ``rawdata/``)
+            *f*: ``True`` | {``False``}
+                Reread even if *dkl.rawdata_sources* is nonempty
         :Effects:
             *dkl.rawdata_sources*: :class:`dict`
                 Settings read from JSON file
         :Versions:
             * 2021-09-01 ``@ddalle``: Version 1.0
         """
+        # Check for reread
+        if (not f) and self.rawdata_sources:
+            return
         # Get absolute path
         fabs = self.get_rawdatafilename(fname)
         # Check for file
         if not os.path.isfile(fabs):
-            raise NOFILE_ERROR("No raw data file '%s'" % fname)
+            return
         # Read the file
         with open(fabs) as f:
             self.rawdata_sources = json.load(f)
 
+    # Get git reference for a specified remote
+    def get_rawdata_ref(self, remote="origin"):
+        r"""Get optional SHA-1 hash, tag, or branch for raw data source
+
+        :Call:
+            >>> ref = dkl.get_rawdata_ref(remote="origin")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Outputs:
+            *ref*: {``"HEAD"``} | :class:`str`
+                Valid git reference name
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Try three valid references, with specified preference
+        ref = self.get_rawdata_opt("branch", remote=remote, vdef="HEAD")
+        ref = self.get_rawdata_opt("tag", remote=remote, vdef=ref)
+        ref = self.get_rawdata_opt("commit", remote=remote, vdef=ref)
+        # Output
+        return ref
+
+    # Get option from rawdata/datakit-sources.json
+    def get_rawdata_opt(self, opt, remote="origin", vdef=None):
+        r"""Get a ``rawdata/datakit-sources.json`` setting
+
+        :Call:
+            >>> v = dkl.get_rawdata_opt(opt, remote="origin")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *opt*: :class:`str`
+                Name of option to read
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote from which to read *opt*
+            *vdef*: {``None``} | **any**
+                Default value if *opt* not present
+        :Outputs:
+            *v*: {*vdef*} | **any**
+                Value from JSON file if possible, else *vdef*
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Special case for opt == "hub"
+        if opt == "hub":
+            return self.rawdata_sources.get("hub", vdef)
+        # Otherwise get the remotes section
+        opts = self.rawdata_sources.get("remotes", {})
+        # Get options for this remote
+        opts_remote = opts.get(remote, {})
+        # Return option
+        return opts_remote.get(opt, vdef)
+
+    # Get list of remote urls to try
+    def _get_rawdata_remote_urls(self, remote="origin"):
+        r"""Get list of candidate URLs for a given remote
+
+        :Call:
+            >>> remote_urls = dkl._get_rawdata_remote_urls(remote)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote from which to read *opt*
+        :Outputs:
+            *remote_urls*: :class:`list`\ [:class:`str`]
+                List of candidate URLs for *remote*
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Get hubs
+        hubs = _listify(self.get_rawdata_opt("hub"))
+        # Get URLs
+        urls = _listify(self.get_rawdata_opt("url"))
+        # Initialize list
+        remote_urls = []
+        # Loop through URLs
+        for url in urls:
+            # Match against full URL with remote host
+            match = REGEX_REMOTE.fullmatch(url)
+            # Check if it's absolute
+            if match:
+                # Absolute path with SSH host
+                remote_urls.append(url)
+                continue
+            elif os.path.isabs(url):
+                # Already an absolute path
+                remote_urls.append(url)
+                continue
+            # Got a relative path; prepend it with each hub
+            for hub in hubs:
+                remote_urls.append(os.path.join(hub, url))
+        # Output
+        return remote_urls
+        
 
     # Check most recent commit
-    def _get_rawdata_source_head(self, fgit, ref=None):
+    def _get_sha1(self, fgit, ref=None):
+        r"""Get the SHA-1 hash of specified ref from a git repo
+
+        :Call:
+            >>> commit = dkl._get_sha1(fgit, ref=None)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fgit*: :class:`str`
+                URL to a (candidate) git repo
+            *ref*: {``"HEAD"``} | :class:`str`
+                Any valid git reference; branch, tag, or SHA-1 hash
+        :Outputs:
+            *commit*: ``None`` | :class:`str`
+                SHA-1 hash of commit from *ref* if *fgit* is a repo
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Default ref
+        if ref is None:
+            ref = "HEAD"
+        # Call git command
+        return self._call_o(fgit, ["git", "rev-parse", ref])
+
+    # Run a git command remotely or locally
+    def _call_o(self, fgit, cmd):
+        r"""Run a command locally or remotely and capture STDOUT
+
+        :Call:
+            >>> stdout = dkl._call_o(fgit, cmd)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fgit*: :class:`str`
+                URL to a (candidate) git repo
+            *cmd*: :class:`list`\ [:class:`str`]
+                Subprocess-style command to run
+        :Outputs:
+            *stdout*: ``None`` | :class:`str`
+                Decoded STDOUT if command exited without error
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
         # Parse for remotes
-        match = REGEX_REMOTE.fullmatch(fgit)
+        match = REGEX_HOST.fullmatch(fgit)
         # Check for bad match
         if match is None:
             raise ValueError("Unable to parse remote repo '%s'" % fgit)
         # Get groups
         grps = match.groupdict()
-        # Default ref
-        if ref is None:
-            ref = "HEAD"
         # Get most recent commit
         stdout, _, ierr = shellutils.call_oe(
-            ["git", "rev-parse", ref],
-            cwd=grps["path"], host=grps["host"])
+            cmd, cwd=grps["path"], host=grps["host"])
         # Check for errors
         if ierr:
             return
@@ -991,6 +1231,34 @@ class DataKitLoader(kwutils.KwargHandler):
                 continue
             # Create the folder
             os.mkdir(fdir)
+
+    def prep_dirs_rawdata(self, frel):
+        r"""Prepare folders relative to ``rawdata/`` folder
+
+        :Call:
+            >>> dkl.prep_dirs_rawdata(frel)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *frel*: :class:`str`
+                Name of file relative to ``rawdata/`` folder
+            *fabs*: :class:`str`
+                Existing absolute path
+        :Keys:
+            * *MODULE_DIR*
+        :See also:
+            * :func:`DataKitLoader.prep_dirs`
+            * :func:`DataKitLoader.get_abspath`
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Check for absolute path
+        if os.path.isabs(frel):
+            # Don't prepend to already-absolute path
+            self.prep_dirs(frel)
+        else:
+            # Prepend "rawdata" to relative path
+            self.prep_dirs(os.path.join("rawdata", frel))
 
    # --- File checks ---
     def check_file(self, fname, f=False, dvc=True):
@@ -1505,4 +1773,45 @@ class DataKitLoader(kwutils.KwargHandler):
         # Output
         return fnames
   # >
+
+
+# Convert to list
+def _listify(v):
+    r"""Convert scalar or ``None`` to :class:`list`
+
+    :Call:
+        >>> V = _listify(V)
+        >>> V = _listify(v)
+        >>> V = _listify(vnone)
+    :Inputs:
+        *V*: :class:`list` | :class:`tuple`
+            Preexisting :class:`list` or :class:`tuple`
+        *vnone*: ``None``
+            Empty input of ``None``
+        *v*: **scalar**
+            Anything else
+    :Outputs:
+        *V*: :class:`list`
+            Enforced list, either
+
+            * ``V`` --> ``V``
+            * ``V`` --> ``list(V)``
+            * ``None`` --> ``[]``
+            * ``v`` --> ``[v]``
+    :Versions:
+        * 2021-08-18 ``@ddalle``: Version 1.0
+    """
+    # Check type
+    if isinstance(v, list):
+        # Return it
+        return v
+    elif isinstance(v, tuple):
+        # Just convert it
+        return list(v)
+    elif v is None:
+        # Empty list
+        return []
+    else:
+        # Create singleton
+        return [v]
 
