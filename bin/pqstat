@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 r"""
-PBS `qstat` Statistics Interface
-================================
+``pqstat``: Display PBS statistics
+========================================
 
 :Call:
 
@@ -14,16 +14,39 @@ PBS `qstat` Statistics Interface
     -h, --help
         Display this help message and exit
         
-    -u $UNAME
+    -u, --user UNAME
         Display information for *UNAME*, otherwise use the current user
+        (Note: *UNAME* may include commas, which checks mulitple users)
         
-    -q $QUEUE
-        Restrict stats to a specific queue; if used without ``-u``, displays
-        grand total for all users on that queue
+    -q, --queue QUEUE
+        Get stats for a specific queue
+
+    -g, --group GROUP
+        Get stats for a specific group (can be combined with *QUEUE* and
+        *UNAME*)
+
+    -m, --model MODEL
+        Limit stats to a specific architecture/model
+
+    -t, --total
+        Only show grand total instead of individual groups/users/que
+
+    --show-group
+        Group statistics by group name
+
+    --show-user
+        Group statistics by user ID
+
+    --no-show-model
+        Don't group statistics by architecture
+
+    --no-show-queue
+        Don't group statistics by queue name
         
 :Versions:
-    * 2015-07-23 ``@ddalle``: First version
-    * 2017-03-02 ``@ddalle``: Added queue grand total capability
+    * 2015-07-23 ``@ddalle``: Version 1.0
+    * 2017-03-02 ``@ddalle``: Version 1.1; add ``-t``
+    * 2021-09-01 ``@ddalle``: Version 1.2; add ``-g``
 """
 
 # Standard library modules
@@ -34,6 +57,7 @@ import subprocess as sp
 
 # CAPE modules
 import cape.argread
+import cape.text
 
 
 # Primary function
@@ -41,27 +65,47 @@ def main(**kw):
     r"""Process and display queue statistics for a user
 
     :Call:
-        >>> main(**k2)
+        >>> main(**kw)
     :Inputs:
+        *h*, *help*: ``True`` | {``False``}
+            Display help message and terminate
         *u*, *user*: {``None``} | :class:`str`
             Name of user to query (uses ``getpass.getuser()`` if all
-            three options are blank)
+            three options are blank) (can include multiple users
+            separated by comma)
         *q*, *queue*: {``None``} | :class:`str`
             Specific queue; if ``None``, list all queues
-        *g*, *group*: {``None``}
+        *g*, *group*: {``None``} | :class:`str`
             Name of group to query
+        *m*, *model*: {``None``} | :class:`str`
+            Only consider specific model(s)
         *t*, *total*: ``True`` | {``False``}
             Option to only show totals
+        *show_model*, *show-model*: {``True``} | ``False``
+            Group stats by architecture/model
+        *show_group*, *show-group*: ``True`` | {``False``}
+            Group stats by group name
+        *show_queue*, *show-queue*: {``True``} | ``False``
+            Group stats by queue name
+        *show_user*, *show-user*: ``True`` | {``False``}
+            Group stats by user name
     :Versions:
         * 2015-07-23 ``@ddalle``: Version 1.0
-        * 2021-09-01 ``@ddalle``: Version 1.1; add -g option
+        * 2017-03-02 ``@ddalle``: Version 1.1; add ``-t``
+        * 2021-09-01 ``@ddalle``: Version 1.2; add ``-g``
     """
+    # Check for help
+    if kw.get("help", kw.get("h")):
+        print(cape.text.markdown(__doc__))
+        return
     # Get user name
     u = kw.get("user", kw.get('u'))
     # Get queue name
     q = kw.get("queue", kw.get("que", kw.get('q')))
     # Get group
     g = kw.get("group", kw.get("g"))
+    # Get model
+    m = kw.get("model", kw.get("m"))
     # Formatting options
     show_model = kw.get("show-model", kw.get("show_model", True))
     show_group = kw.get("show-group", kw.get("show_group", False))
@@ -78,6 +122,9 @@ def main(**kw):
         u = None
     if g is True:
         print("WARNING: option '-g' needs a value; ignoring")
+        g = None
+    if m is True:
+        print("WARNING: option '-m' needs a value; ignoring")
         g = None
     # Default user
     if (q is None) and (u is None) and (g is None):
@@ -102,6 +149,11 @@ def main(**kw):
         users = u.split(",")
     else:
         users = []
+    # List of models
+    if m:
+        models = m.split(",")
+    else:
+        models = []
     # Get qstat output
     try:
         lines = check_lines(cmd)
@@ -143,6 +195,8 @@ def main(**kw):
         if g and (gj != g):
             continue
         if u and (uj not in users):
+            continue
+        if m and (mj not in models):
             continue
         # Form a title
         titleparts = []
@@ -195,9 +249,10 @@ def main(**kw):
     # Display the stats.
     show_qstats(d, q_total=q_total)
 
+
 # Function to show queue statistics
 def show_qstats(d, q_total=False):
-    """Show queue statistics
+    r"""Show queue statistics
 
     :Call:
         >>> show_qstats(d, q_total=False)
@@ -207,8 +262,8 @@ def show_qstats(d, q_total=False):
         *q_total*: ``True`` | {``False``}
             Option to only show totals
     :Versions:
-        * 2015-07-23 ``@ddalle``: First version
-        * 2017-06-23 ``@ddalle``: Added totals
+        * 2015-07-23 ``@ddalle``: Version 1.0
+        * 2017-06-23 ``@ddalle``: Version 1.1; add totals
     """
     # Initialize totals
     RT = {"jobs": 0, "nodes": 0, "cores": 0} 
@@ -270,13 +325,6 @@ def check_lines(cmd):
 if __name__ == "__main__":
     # Process inputs.
     a, kw = cape.argread.readkeys(os.sys.argv)
-    # Check for help option.
-    if kw.get('h') or kw.get('help'):
-        print(__doc__)
-        os.sys.exit()
     # Call the main function
     main(**kw)
 
-
-
-    

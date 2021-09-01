@@ -420,7 +420,7 @@ class VendorizeConfig(dict):
                 if not match:
                     continue
             # Status update
-            print("Vendorizing package '%s'" % pkg)
+            print("  Vendorizing package '%s'" % pkg)
             # Check for --no-install option
             if not install:
                 continue
@@ -454,7 +454,7 @@ class VendorizeConfig(dict):
         # Go to vendorize folder
         os.chdir(self.root_dir)
         # Status update
-        sys.stdout.write("  requirement='%s' ... " % req)
+        sys.stdout.write("    %s ... " % req)
         sys.stdout.flush()
         # Vendorize
         ierr = vendorize_requirement(req, target)
@@ -465,7 +465,7 @@ class VendorizeConfig(dict):
             sys.stdout.write("failed\n")
             sys.stdout.flush()
         else:
-            sys.stdout.write("succeeded\n")
+            sys.stdout.write("success\n")
             sys.stdout.flush()
         # Return output
         return ierr
