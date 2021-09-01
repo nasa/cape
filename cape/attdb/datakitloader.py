@@ -25,6 +25,7 @@ from ..tnakit import shellutils
 
 # Utility regular expressions
 REGEX_INT = re.compile("[0-9]+")
+REGEX_REMOTE = re.compile("((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)")
 
 # Create types for "strings" based on Python version
 if sys.version_info.major == 2:
@@ -140,6 +141,8 @@ class DataKitLoader(kwutils.KwargHandler):
         """
         # Process keyword options
         kwutils.KwargHandler.__init__(self, **kw)
+        # Initialize attributes
+        self.rawdata_sources = {}
         # Use required inputs
         self.setdefault_option("MODULE_NAME", name)
         self.setdefault_option("MODULE_FILE", os.path.abspath(fname))
@@ -853,7 +856,57 @@ class DataKitLoader(kwutils.KwargHandler):
         ierr = shellutils.call(cmd, cwd=gitdir)
         # Return error code
         return ierr
-        
+
+   # --- Raw data update ---
+    # Get raw data settings
+    def read_rawdata_sources(self, fname="datakit-sources.json"):
+        r"""Read ``datakit-sources.json`` from package's raw data folder
+
+        :Call:
+            >>> dkl.read_rawdata_sources(fname="datakit-sources.json")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fname*: {``"datakit-sources.json"``} | :class:`str`
+                Relative or absolute file name (rel. to ``rawdata/``)
+        :Effects:
+            *dkl.rawdata_sources*: :class:`dict`
+                Settings read from JSON file
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Get absolute path
+        fabs = self.get_rawdatafilename(fname)
+        # Check for file
+        if not os.path.isfile(fabs):
+            raise NOFILE_ERROR("No raw data file '%s'" % fname)
+        # Read the file
+        with open(fabs) as f:
+            self.rawdata_sources = json.load(f)
+
+
+    # Check most recent commit
+    def _get_rawdata_source_head(self, fgit, ref=None):
+        # Parse for remotes
+        match = REGEX_REMOTE.fullmatch(fgit)
+        # Check for bad match
+        if match is None:
+            raise ValueError("Unable to parse remote repo '%s'" % fgit)
+        # Get groups
+        grps = match.groupdict()
+        # Default ref
+        if ref is None:
+            ref = "HEAD"
+        # Get most recent commit
+        stdout, _, ierr = shellutils.call_oe(
+            ["git", "rev-parse", ref],
+            cwd=grps["path"], host=grps["host"])
+        # Check for errors
+        if ierr:
+            return
+        # Return the commit
+        return stdout.strip()
+
    # --- Generic file names ---
     def get_abspath(self, frel):
         r"""Get the full filename from path relative to *MODULE_DIR*

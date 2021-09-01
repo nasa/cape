@@ -33,6 +33,8 @@ def check_o(cmd, **kw):
             Name of encoding to use for converting strings to bytes
         *host*: {*repo.host*} | ``None`` | :class:`str`
             Name of remote host (if not ``None``) on which to run
+        *cwd*: {``os.getcwd()``} | :class:`str`
+            Folder in which to run command
         *executable*: {``"sh"``} | :class:`str`
             Name of shell to use if on remote host
     :Outputs:
@@ -74,6 +76,8 @@ def call(cmd, **kw):
             Name of encoding to use for converting strings to bytes
         *host*: {*repo.host*} | ``None`` | :class:`str`
             Name of remote host (if not ``None``) on which to run
+        *cwd*: {``os.getcwd()``} | :class:`str`
+            Folder in which to run command
         *executable*: {``"sh"``} | :class:`str`
             Name of shell to use if on remote host
     :Outputs:
@@ -106,6 +110,8 @@ def call_oe(cmd, **kw):
             Name of encoding to use for converting strings to bytes
         *host*: {*repo.host*} | ``None`` | :class:`str`
             Name of remote host (if not ``None``) on which to run
+        *cwd*: {``os.getcwd()``} | :class:`str`
+            Folder in which to run command
         *executable*: {``"sh"``} | :class:`str`
             Name of shell to use if on remote host
     :Outputs:
@@ -143,6 +149,8 @@ def call_o(cmd, **kw):
             Name of encoding to use for converting strings to bytes
         *host*: {*repo.host*} | ``None`` | :class:`str`
             Name of remote host (if not ``None``) on which to run
+        *cwd*: {``os.getcwd()``} | :class:`str`
+            Folder in which to run command
         *executable*: {``"sh"``} | :class:`str`
             Name of shell to use if on remote host
     :Outputs:
@@ -179,6 +187,8 @@ def call_q(self, cmd, **kw):
             Name of encoding to use for converting strings to bytes
         *host*: {*repo.host*} | ``None`` | :class:`str`
             Name of remote host (if not ``None``) on which to run
+        *cwd*: {``os.getcwd()``} | :class:`str`
+            Folder in which to run command
         *executable*: {``"sh"``} | :class:`str`
             Name of shell to use if on remote host
     :Outputs:
@@ -223,6 +233,8 @@ def _call(cmd, **kw):
             Name of encoding to use for converting strings to bytes
         *host*: {*repo.host*} | ``None`` | :class:`str`
             Name of remote host (if not ``None``) on which to run
+        *cwd*: {``os.getcwd()``} | :class:`str`
+            Folder in which to run command
         *executable*: {``"sh"``} | :class:`str`
             Name of shell to use if on remote host
     :Outputs:
