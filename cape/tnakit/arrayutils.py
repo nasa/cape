@@ -60,9 +60,9 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
         return "%%-%is" % maxlen
     # Don't consider "NaN" entries
     mask = np.logical_not(np.isnan(U))
-    # Get min and max values
-    umin = np.min(U[mask])
-    umax = np.max(U[mask])
+    # Get min and max values (with padding)
+    umin = 1.0001 * np.min(U[mask])
+    umax = 1.0001 * np.max(U[mask])
     # Maximum magnitude
     uabs = max(-umin, umax)
     # Logarithm

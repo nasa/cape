@@ -25,6 +25,7 @@ import vendorize
 
 # Local modules
 from .. import argread
+from .. import text as textutils
 
 
 # Default values for various options
@@ -85,6 +86,9 @@ as one of the two files:
     --cwd WHERE
         Location from which to search for packages (``"."``)
 
+    --no-install
+        List packages to vendorize but don't install
+
 :Versions:
 
     * 2021-08-23 ``@ddalle``: Version 1.0
@@ -139,6 +143,8 @@ def vendorize_repo(*a, **kw):
     targets = find_vendors(where, regex=target_regex)
     # Remember current location
     fpwd = os.getcwd()
+    # Install/check options
+    install = kw.get("install", not kw.get("check", False))
     # Vendorixe requested packages in each target
     for target in targets:
         # Get folder version of package
@@ -161,7 +167,7 @@ def vendorize_repo(*a, **kw):
         # Status update
         print("In '%s':" % target)
         # Vendorize requested packages
-        opts.vendorize(regex=pkg_regexes)
+        opts.vendorize(regex=pkg_regexes, install=install)
 
 
 # Find vendors
@@ -380,11 +386,17 @@ class VendorizeConfig(dict):
                 Vendorization options interface
             *re*, *regex*: {``None``} | :class:`str` | :class:`list`
                 Include packages matching optional regular expression
+            *check*: ``True`` | {``False``}
+                Option to only list packages and not install
+            *install*: {``True``} | ``False``
+                Opposite of *check*
         :Versions:
             * 2021-08-23 ``@ddalle``: Version 1.0
         """
         # Get regex option
         regex = kw.get("regex", kw.get("re", None))
+        # Get option for just checking
+        install = kw.get("install", not kw.get("check", False))
         # Listify
         regexs = _listify(regex)
         # Loop through packages
@@ -409,6 +421,9 @@ class VendorizeConfig(dict):
                     continue
             # Status update
             print("Vendorizing package '%s'" % pkg)
+            # Check for --no-install option
+            if not install:
+                continue
             # Vendorize
             self.vendorize_requirement(req)
 

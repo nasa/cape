@@ -4857,8 +4857,9 @@ class DataKit(ftypes.BaseData):
             *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
                 Function to use aux cols when estimating *ucol*
         :Versions:
-            * 2019-02-15 ``@ddalle``: First version
-            * 2020-04-02 ``@ddalle``: Ver2.0, from ``EstimateUQ_DB()``
+            * 2019-02-15 ``@ddalle``: Version 1.0
+            * 2020-04-02 ``@ddalle``: Version 2.0
+                - was :func:`EstimateUQ_DB`
         """
        # --- Inputs ---
         # Get minimum number of points in statistical window
@@ -6767,7 +6768,7 @@ class DataKit(ftypes.BaseData):
             except (IndexError, TypeError):
                 # Reached scalar too soon
                 raise TypeError(
-                    ("Breakpoints for '%s':\n" % k) +
+                    ("Breakpoints for '%s':\n" % col) +
                     ("Expecting %i-dimensional " % nd) +
                     ("array but found %i-dim" % n))
         # Output
@@ -6903,6 +6904,9 @@ class DataKit(ftypes.BaseData):
                 # Check if *V* is an array
                 if V is None:
                     raise KeyError("No breakpoints for col '%s'" % col)
+                elif col in subcols and isinstance(V, (list, np.ndarray)):
+                    # Special case for secondary slice col
+                    continue
                 elif not isinstance(V, np.ndarray):
                     # Non-array
                     raise TypeError(
@@ -6918,7 +6922,7 @@ class DataKit(ftypes.BaseData):
                 elif not isinstance(V[0], (float, int, complex)):
                     # Not a simple number
                     raise TypeError(
-                        "Non-numeric breakpoitns for col '%s'" % col)
+                        "Non-numeric breakpoints for col '%s'" % col)
             # Make a copy
             cols = list(cols)
         # Eliminate *skey* if in key list
@@ -6978,8 +6982,8 @@ class DataKit(ftypes.BaseData):
                 Vm = bkpts[col]
                 # Get first entry for type checks
                 v0 = bkpts[col][0]
-                # Check if it's a scheduled key; will be a list
-                if isinstance(v0, list):
+                # Check if it's a scheduled key; will be an array
+                if isinstance(v0, (list, np.ndarray)):
                     # Get break points for this slice key value
                     Vm = Vm[im]
                 # Save the values

@@ -112,9 +112,7 @@ def main():
         package_data={
             pkg: [
                 "meta.json",
-                "db/mat/ATT-VM-CLVTOPS-003-1002.mat",
-                "db/csv/ATT-VM-CLVTOPS-003-1002.csv"
-             ],
+            ],
         },
         description=title,
         version="1.0")
@@ -275,8 +273,14 @@ def create_pkg(pkg, opts, where=".", **kw):
     path = get_pkgdir(pkg, **kw)
     # Full path to package
     pkgdir = os.path.join(basepath, path)
+    # Split package name into parts
+    pkgparts = path.split(os.sep)
+    # Last part is the name of the stand-alone package
+    pkgname = pkgparts.pop()
+    # Number of parts
+    npart = len(pkgparts)
     # Loop through parts
-    for fdir in path.split(os.sep)[:-1]:
+    for j, fdir in enumerate(pkgparts):
         # Append to basepath
         basepath = os.path.join(basepath, fdir)
         # Name of Python file
@@ -286,8 +290,13 @@ def create_pkg(pkg, opts, where=".", **kw):
             continue
         # Otherwise create empty file
         with open(fpy, "w") as f:
+            # Write common header
             f.write("#!%s\n" % sys.executable)
             f.write("# -*- coding: utf-8 -*-\n\n")
+            # Write import statement for final level
+            if j + 1 == npart:
+                f.write("from .%s import *\n" % pkgname)
+                f.write("from .%s import __doc__\n\n" % pkgname)
     # Write template for the main Python file
     write_init_py(pkgdir, opts)
     # Write template for setup.py
@@ -436,7 +445,7 @@ def write_init_py(pkgdir, opts):
         f.write("#!%s\n" % sys.executable)
         f.write("# -*- coding: utf-8 -*-\n")
         # Write template docstring
-        f.write('r"""\n')
+        f.write('r"""')
         f.write(DEFAULT_DOCSTRING)
         f.write('"""\n\n')
         # Write import
@@ -448,8 +457,8 @@ def write_init_py(pkgdir, opts):
         f.write("# Local modules\n")
         # Check for vendorized packages
         for pkg in vendor_pkgs:
-            f.write("from ._vendor imort %s\n" % pkg)
-        f.write("\n")
+            f.write("from ._vendor import %s\n" % pkg)
+        f.write("\n\n")
         # Automatic docstring update
         f.write("# Update docstring\n")
         f.write("__doc__ = modutils.rst_docstring(")
@@ -459,7 +468,8 @@ def write_init_py(pkgdir, opts):
         f.write("REQUIREMENTS = [\n]\n\n")
         # Template DataKitLoader
         f.write("# Get datakit loader settings\n")
-        f.write("DATAKIT_LOADER = dkloader.DataKitLoader(__name__, __file__")
+        f.write("DATAKIT_LOADER = dkloader.DataKitLoader(\n")
+        f.write("    __name__, __file__")
         # Check for existing settings
         if dklmod:
             # Use settings from specified modules

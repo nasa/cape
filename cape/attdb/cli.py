@@ -50,6 +50,13 @@ command line interface.
 
 # main function
 def main():
+    r"""Main ``dkit`` command-line interface function
+
+    :Call:
+        >>> main()
+    :Versions:
+        * 2021-08-24 ``@ddalle``: Version 1.0
+    """
     # Process arguments
     a, kw = argread.readkeys(sys.argv)
     # Check first arg
