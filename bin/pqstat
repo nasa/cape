@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""
+r"""
 PBS `qstat` Statistics Interface
 ================================
 
@@ -25,58 +25,85 @@ PBS `qstat` Statistics Interface
     * 2015-07-23 ``@ddalle``: First version
     * 2017-03-02 ``@ddalle``: Added queue grand total capability
 """
-# System interface modules
+
+# Standard library modules
+import getpass
+import grp
 import os
 import subprocess as sp
+
+# CAPE modules
 import cape.argread
+
 
 # Primary function
 def main(**kw):
-    """Process and display queue statistics for a user
+    r"""Process and display queue statistics for a user
 
     :Call:
-        >>> main(u=os.environ['USER'], q=None)
+        >>> main(**k2)
     :Inputs:
-        *u*: {``os.environ['USER']``} | :class:`str`
-            Name of user to query
-        *q*: {``None``} | :class:`str`
+        *u*, *user*: {``None``} | :class:`str`
+            Name of user to query (uses ``getpass.getuser()`` if all
+            three options are blank)
+        *q*, *queue*: {``None``} | :class:`str`
             Specific queue; if ``None``, list all queues
+        *g*, *group*: {``None``}
+            Name of group to query
+        *t*, *total*: ``True`` | {``False``}
+            Option to only show totals
     :Versions:
-        * 2015-07-23 ``@ddalle``: First version
+        * 2015-07-23 ``@ddalle``: Version 1.0
+        * 2021-09-01 ``@ddalle``: Version 1.1; add -g option
     """
-    # Get user name.
-    u = kw.get('u', os.environ['USER'])
+    # Get user name
+    u = kw.get("user", kw.get('u'))
     # Get queue name
-    q = kw.get('q')
+    q = kw.get("queue", kw.get("que", kw.get('q')))
+    # Get group
+    g = kw.get("group", kw.get("g"))
+    # Formatting options
+    show_model = kw.get("show-model", kw.get("show_model", True))
+    show_group = kw.get("show-group", kw.get("show_group", False))
+    show_queue = kw.get("show-queue", kw.get("show_queue", True))
+    # Interpret option for showing only total
+    q_total = kw.get("total", kw.get("t", False))
     # Check for "-q" with no named queue
-    if q == True:
+    if q is True:
         print("WARNING: option '-q' needs a queue name; ignoring")
         q = None
-    # Get the lines of qstat.
-    if ("u" not in kw) and type(q).__name__.startswith("str"):
-        # Get all the jobs for a queue (all users)
-        try:
-            # Try to run with architecture name, too
-            lines = sp.check_output(
-                ['qstat', '-e', q, '-W', '-o=+model']).split('\n')
-        except Exception:
-            try:
-                lines = sp.check_output(['qstat', '-e', q]).split('\n')
-            except Exception:
-                lines = []
-    else:
-        # Get all jobs for a user (all queues)
-        try:
-            # Try to run with model name, too
-            lines = sp.check_output(
-                ['qstat', '-u', u, '-W', '-o=+model']).split('\n')
-        except Exception:
-            try:
-                lines = sp.check_output(['qstat', '-u', u]).split('\n')
-            except Exception:
-                lines = []
+    if u is True:
+        print("WARNING: option '-u' needs a value; using default")
+        u = None
+    if g is True:
+        print("WARNING: option '-g' needs a value; ignoring")
+        g = None
+    # Default user
+    if (q is None) and (u is None) and (g is None):
+        # Use current user
+        u = getpass.getuser()
+    # Get list of users for group if needed
+    if g and (u is None):
+        # Get interface to group
+        group = grp.getgrnam(g)
+        # Convert to user
+        u = ",".join(group.gr_mem)
+    # Initialize command
+    cmd = ["qstat", "-W", "-o=+model", "-W", "-o=+group"]
+    # Check for specific queue/user
+    if u:
+        cmd.extend(["-u", u])
+    # Check for queue option
+    if q:
+        cmd.extend(["-e", q])
+    # Get qstat output
+    try:
+        lines = check_lines(cmd)
+    except Exception:
+        lines = []
     # Check for no jobs.
-    if len(lines) < 3: return
+    if len(lines) < 3:
+        return
     # Initialize stats.
     d = {}
     # Check for reasonable number of lines
@@ -85,17 +112,25 @@ def main(**kw):
         return
     # Loop through lines.
     for line in lines[3:-1]:
-        # Sepaparate out the properties for this script.
+        # Separate out the properties for this script
         vals = line.split()
-        # Get the user and queue name for this job.
+        # Get the user and queue name for this job
         qj = vals[2]
         # Model name
         try:
             nj, mj = vals[10].split(':')
         except Exception:
-            mj = 'unkown'
-        # Check for a requested queue.
-        if (q is not None) and (qj != q[:8]): continue
+            nj, mj = 0, "unknown"
+        # Group name
+        try:
+            gj = vals[11]
+        except Exception:
+            gj = "unknown"
+        # Check for a requested queue
+        if q and (qj != q[:8]):
+            continue
+        if g and (gj != g):
+            continue
         # Form a title
         tj = '%s (model=%s)' % (qj, mj)
         # Initialize the queue statistics if necessary.
@@ -134,8 +169,6 @@ def main(**kw):
             d[tj]['Q']['cores'] += ncj
             # Model name
             d[tj]['R']['model'] = mj
-    # Interpret option for showing only total
-    q_total = kw.get("t", False) or kw.get("total", False)
     # Display the stats.
     show_qstats(d, q_total=q_total)
 
@@ -187,6 +220,28 @@ def show_qstats(d, q_total=False):
         % (QT['jobs'], QT['nodes'], QT['cores']))
     # Totals.
     print("  T: %3i jobs" % (RT['jobs']+QT['jobs']))
+
+
+# Get lines from system call
+def check_lines(cmd):
+    r"""Capture STDOUT and split into list of lines
+
+    :Call:
+        >>> lines = check_lines(cmd)
+    :Inputs:
+        *cmd*: :class:`list`\ [:class:`str`]
+            List of words of system command
+    :Outputs:
+        *lines*: :class:`list`\ [:class:`str`]
+            List of lines in STDOUT (with \n stripped)
+    :Versions:
+        * 2021-09-01 ``@ddalle``: Version 1.0
+    """
+    # Call check_output()
+    txt = sp.check_output(cmd)
+    # Decode and split
+    return txt.decode("utf-8").split("\n")
+
 
 # Check for CLI call
 if __name__ == "__main__":
