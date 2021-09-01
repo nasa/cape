@@ -96,6 +96,11 @@ def main(**kw):
     # Check for queue option
     if q:
         cmd.extend(["-e", q])
+    # List of users
+    if u:
+        users = u.split(",")
+    else:
+        users = []
     # Get qstat output
     try:
         lines = check_lines(cmd)
@@ -116,6 +121,11 @@ def main(**kw):
         vals = line.split()
         # Get the user and queue name for this job
         qj = vals[2]
+        # User name
+        try:
+            uj = vals[1]
+        except Exception:
+            uj = "unknown"
         # Model name
         try:
             nj, mj = vals[10].split(':')
@@ -126,10 +136,12 @@ def main(**kw):
             gj = vals[11]
         except Exception:
             gj = "unknown"
-        # Check for a requested queue
+        # Check for a requested queue or group
         if q and (qj != q[:8]):
             continue
         if g and (gj != g):
+            continue
+        if u and (uj not in users):
             continue
         # Form a title
         tj = '%s (model=%s)' % (qj, mj)
