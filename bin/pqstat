@@ -66,6 +66,7 @@ def main(**kw):
     show_model = kw.get("show-model", kw.get("show_model", True))
     show_group = kw.get("show-group", kw.get("show_group", False))
     show_queue = kw.get("show-queue", kw.get("show_queue", True))
+    show_uname = kw.get("show-user", kw.get("show_user", False))
     # Interpret option for showing only total
     q_total = kw.get("total", kw.get("t", False))
     # Check for "-q" with no named queue
@@ -144,7 +145,17 @@ def main(**kw):
         if u and (uj not in users):
             continue
         # Form a title
-        tj = '%s (model=%s)' % (qj, mj)
+        titleparts = []
+        if show_queue:
+            titleparts.append("queue=%s" % qj)
+        if show_uname:
+            titleparts.append("user=%s" % uj)
+        if show_model:
+            titleparts.append("model=%s" % mj)
+        if show_group:
+            titleparts.append("group=%s" % gj)
+        # Assemble title
+        tj = ", ".join(titleparts)
         # Initialize the queue statistics if necessary.
         if tj not in d:
             d[tj] = {
@@ -214,7 +225,7 @@ def show_qstats(d, q_total=False):
         # Check for option to hide totals
         if (not q_total):
             # Display the queue name.
-            print("QUEUE: %s" % q)
+            print("%s" % q)
             # Display the running jobs statistics
             print("  R: %3i jobs, %4i nodes, %5i cores, %.1f%% efficiency"
                 % (R['jobs'], R['nodes'], R['cores'], R['eff']))
