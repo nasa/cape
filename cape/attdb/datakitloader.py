@@ -1023,7 +1023,77 @@ class DataKitLoader(kwutils.KwargHandler):
 
     # Update one remote using rsync
     def _upd8_rawdataremote_rsync(self, remote="origin"):
-        pass
+        r"""Update raw data for one remote using ``rsync``
+
+        :Call:
+            >>> dkl._upd8_rawdataremote_rsync(remote="origin")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
+        # Status update
+        sys.stdout.write("updating remote '%s' using rsync\n" % remote)
+        sys.stdout.flush()
+        # Get URL to source
+        url = self.get_rawdata_opt("url", remote)
+        # Check if no URL
+        if url is None:
+            return
+        # Get files
+        ls_files = self.get_rawdataremote_rsyncfiles(remote)
+        # Get option regarding destination
+        # (Remove subfolders, e.g. folder/file.csv -> file.csv)
+        dst_folder = self.get_rawdata_opt("destination", remote)
+        # Counters
+        n_good = 0
+        n_fail = 0
+        # Copy each file
+        for src in ls_files:
+            # Destination folder
+            if dst_folder == ".":
+                # Just use the "basename"
+                dst = os.path.basename(rc)
+            elif dst_folder:
+                # For other non-empty destination folder
+                dst = os.path.join(dst_folder, os.path.basename(src))
+            else:
+                # Copy to file with same path as in git repo
+                dst = src
+            # Status update
+            if src == dst:
+                # Same file name as in git repo
+                msg = "  copying file '%s'\r" % src
+            else:
+                # Different git repo name and local name
+                msg = "  copying file '%s' -> '%s'\r" % (src, dst)
+            # Write the status update
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+            # Copy the file
+            ierr = self._upd8_rawdatafile_rsync(url, src, dst=dst)
+            # Check status
+            if ierr:
+                # Transfer failed
+                n_fail += 1
+            else:
+                # Transfer succeeded
+                n_good += 1
+            # Clean up prompt
+            sys.stdout.write(" " * len(msg))
+            sys.stdout.write("\r")
+            sys.stdout.flush()
+        # Status update
+        if n_fail:
+            msg = "  copied %i files (%i failed)" % (n_good, n_fail)
+        else:
+            msg = "  copied %i files" % (n_good)
+        print(msg)
+        # Write it
+        self._write_rawdata_commits_json()
 
     # Copy one file from remote repo
     def _upd8_rawdatafile_git(self, url, src, ref, **kw):
@@ -1094,7 +1164,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-09-02 ``@ddalle``: Version 1.0
         """
         # Name of destination file
-        dst = kw.get("dst", fname)
+        dst = kw.get("dst", src)
         # Check for "/" in output file
         if "/" in dst:
             # Localize path
@@ -1105,11 +1175,11 @@ class DataKitLoader(kwutils.KwargHandler):
             # Use specified path
             fdest = dst
         # Full source
-        fname = "/".join(url, src)
+        fname = url.rstrip("/") + "/" + src
         # Command to list contents of file
         cmd = ["rsync", "-tuz", fname, fdest]
         # Execute command
-        _, _, ierr = shellutils._call_oe(cmd)
+        _, _, ierr = shellutils.call_oe(cmd, cwd=self.get_rawdatadir())
         # Return same return code
         return ierr
 
@@ -1132,6 +1202,53 @@ class DataKitLoader(kwutils.KwargHandler):
         """
         # Get list of files
         ls_files = self.list_rawdataremote_git(remote)
+        # Get list of globs to copy
+        globs = _listify(self.get_rawdata_opt("glob", remote=remote))
+        # Get list of file name regular expressions to copy
+        regexs = _listify(self.get_rawdata_opt("regex", remote=remote))
+        # If no constraints, return all files
+        if len(globs) == 0 and len(regexs) == 0:
+            return ls_files
+        # Otherwise initialize set of files to copy
+        file_set = set()
+        # Loop through patterns
+        for pat in globs:
+            # Match git files with pattern
+            file_set.update(fnmatch.filter(ls_files, pat))
+        # Lop through regexes
+        for pat in regexs:
+            # Compile
+            regex = re.compile(pat)
+            # Compare pattern to each file name
+            for fname in ls_files:
+                # Skip if already included
+                if fname in file_set:
+                    continue
+                # Check for match
+                if regex.fullmatch(fname):
+                    file_set.add(fname)
+        # Output
+        return list(file_set)
+
+    # Get list of remote files matching patterns
+    def get_rawdataremote_rsyncfiles(self, remote="origin"):
+        r"""List all files in candidate remote folder
+
+        :Call:
+            >>> fnames = dkl.get_rawdataremote_rsyncfiles(remote)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Outputs:
+            *fnames*: :class:`list`\ [:class:`str`]
+                List of files to be copied from remote repo
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
+        # Get list of files
+        ls_files = self.list_rawdataremote_rsync(remote)
         # Get list of globs to copy
         globs = _listify(self.get_rawdata_opt("glob", remote=remote))
         # Get list of file name regular expressions to copy
@@ -1201,7 +1318,7 @@ class DataKitLoader(kwutils.KwargHandler):
         
     # Get full list of files from rawdata source
     def list_rawdataremote_rsync(self, remote="origin"):
-        r"""List all files in candidate raw data remote source
+        r"""List all files in candidate raw data remote folder
 
         :Call:
             >>> ls_files = dkl.list_rawdataremote_rsync(remote="origin")
@@ -1212,17 +1329,25 @@ class DataKitLoader(kwutils.KwargHandler):
                 Name of remote
         :Outputs:
             *ls_files*: :class:`list`\ [:class:`str`]
-                List of all files tracked by remote repo
+                List of all files in remote source folder
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: Version 1.0
         """
         # Get URL and hash
-        url = self.get_rawdata_opt("url")
+        url = self.get_rawdata_opt("url", remote)
         # Check for invalid repo
         if url is None:
             return []
+        # Status update
+        msg = "  getting list of files from remote\r"
+        sys.stdout.write(msg)
+        sys.stdout.flush()
         # List files
-        stdout = self._call_o(url, ["ls"])
+        stdout = self._call_o(url, ["/bin/ls"])
+        # Clean up raw data
+        sys.stdout.write(" " * len(msg))
+        sys.stdout.write("\r")
+        sys.stdout.flush()
         # Check validity
         if stdout is None:
             return []
@@ -1271,8 +1396,11 @@ class DataKitLoader(kwutils.KwargHandler):
         for url in url_list:
             # Status update
             msg = "  trying '%s'" % url
+            # Trim if needed
+            if len(msg) > 72:
+                msg = msg[:49] + "..." + msg[-20:]
             # Show it
-            sys.stdout.write(msg[:72] + "\r")
+            sys.stdout.write(msg + "\r")
             # Get most recent commit if possible
             sha1 = self._get_sha1(url, ref)
             # Clean up prompt
