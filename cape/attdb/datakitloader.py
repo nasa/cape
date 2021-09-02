@@ -863,17 +863,105 @@ class DataKitLoader(kwutils.KwargHandler):
         return ierr
 
    # --- Raw data update ---
-    # Get list of remote files matching patterns
-    def get_rawdata_filelist(self, remote="origin"):
-        # Get list of files
-        ls_files = self.listtree_rawdata_remote(remote)
+    # Copy one file from remote repo
+    def _upd8_rawdatafile_git(self, url, src, ref, **kw):
+        # Name of destination file
+        dst = kw.get("dst", fname)
+        # Check for "/" in output file
+        if "/" in dst:
+            # Localize path
+            fdest = dst.replace("/", os.sep)
+            # Prepare folder
+            self.prep_dirs_rawdata(fdest)
+        else:
+            # Use specified path
+            fdest = dst
+        # Open file
+        f = open(fdest, "w")
+        # Command to list contents of file
+        cmd = ["git", "show", "%s:%s" % (ref, src)]
+        # Execute command
+        _, _, ierr = self._call(url, cmd, stdout=f, stderr=shellutils.PIPE)
+        # Close file
+        f.close()
+        # Return same return code
+        return ierr
+
+    # Copy one file from remote repo
+    def _upd8_rawdatafile_rsync(self, url, src, **kw):
+        # Name of destination file
+        dst = kw.get("dst", fname)
+        # Check for "/" in output file
+        if "/" in dst:
+            # Localize path
+            fdest = dst.replace("/", os.sep)
+            # Prepare folder
+            self.prep_dirs_rawdata(fdest)
+        else:
+            # Use specified path
+            fdest = dst
+        # Full source
+        fname = "/".join(url, src)
+        # Command to list contents of file
+        cmd = ["rsync", "-gutz", fname, fdest]
+        # Execute command
+        _, _, ierr = shellutils._call_oe(cmd)
+        # Return same return code
+        return ierr
         
-    # Get full list of files from rawdata source
-    def listtree_rawdata_remote(self, remote="origin"):
+    # Get list of remote files matching patterns
+    def get_rawdataremote_gitfiles(self, remote="origin"):
         r"""List all files in candidate raw data remote source
 
         :Call:
-            >>> ls_files = dkl.listtree_rawdata_remote(remote="origin")
+            >>> fnames = dkl.get_rawdataremote_gitfiles(remote="origin")
+        :Outputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Outputs:
+            *fnames*: :class:`list`\ [:class:`str`]
+                List of files to be copied from remote repo
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Get list of files
+        ls_files = self.list_rawdataremote_git(remote)
+        # Get list of globs to copy
+        globs = _listify(self.get_rawdata_opt("glob", remote=remote))
+        # Get list of file name regular expressions to copy
+        regexs = _listify(self.get_rawdata_opt("regex", remote=remote))
+        # If no constraints, return all files
+        if len(o_glob) == 0 and len(o_regex) == 0:
+            return ls_files
+        # Otherwise initialize set of files to copy
+        file_set = set()
+        # Loop through patterns
+        for pat in globs:
+            # Match git files with pattern
+            file_set.update(fnmatch.filter(ls_files, pat))
+        # Lop through regexes
+        for pat in regexs:
+            # Compile
+            regex = re.compile(pat)
+            # Compare pattern to each file name
+            for fname in ls_files:
+                # Skip if already included
+                if fname in file_set:
+                    continue
+                # Check for match
+                if regex.fullmatch(fname):
+                    file_set.add(fname)
+        # Output
+        return list(file_set)
+        
+    # Get full list of files from rawdata source
+    def list_rawdataremote_git(self, remote="origin"):
+        r"""List all files in candidate raw data remote source
+
+        :Call:
+            >>> ls_files = dkl.list_rawdataremote_git(remote="origin")
         :Outputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
@@ -886,7 +974,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-09-01 ``@ddalle``: Version 1.0
         """
         # Get URL and hash
-        url, sha1 = self.get_rawdata_remote()
+        url, sha1 = self.get_rawdataremote_git(remote)
         # Check for invalid repo
         if url is None:
             return []
@@ -898,13 +986,43 @@ class DataKitLoader(kwutils.KwargHandler):
             return []
         # Split
         return stdout.strip().split("\n")
+        
+    # Get full list of files from rawdata source
+    def list_rawdataremote_rsync(self, remote="origin"):
+        r"""List all files in candidate raw data remote source
+
+        :Call:
+            >>> ls_files = dkl.list_rawdataremote_rsync(remote="origin")
+        :Outputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Outputs:
+            *ls_files*: :class:`list`\ [:class:`str`]
+                List of all files tracked by remote repo
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Get URL and hash
+        url = self.get_rawdata_opt("url")
+        # Check for invalid repo
+        if url is None:
+            return []
+        # List files
+        stdout = self._call_o(url, ["ls"])
+        # Check validity
+        if stdout is None:
+            return []
+        # Split
+        return stdout.strip().split("\n")
 
     # Get the best rawdata source
-    def get_rawdata_remote(self, remote="origin"):
+    def get_rawdataremote_git(self, remote="origin"):
         r"""Get full URL and SHA-1 hash for raw data source repo
 
         :Call:
-            >>> url, sha1 = dkl.get_rawdata_remote(remote="origin")
+            >>> url, sha1 = dkl.get_rawdataremote_git(remote="origin")
         :Outputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
@@ -927,7 +1045,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read settings
         self.read_rawdata_json()
         # Get list of candidates
-        url_list = self._get_rawdata_remote_urls(remote)
+        url_list = self._get_rawdataremote_git_urls(remote)
         # Get reference to check
         ref = self.get_rawdata_ref(remote)
         # Prepend to list if *url* is specified
@@ -956,7 +1074,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 # Terminate
                 return url, sha1
         # No valid repo found
-        return url, sha1
+        return None, None
 
     # Get raw data settings
     def read_rawdata_json(self, fname="datakit-sources.json", f=False):
@@ -1045,11 +1163,11 @@ class DataKitLoader(kwutils.KwargHandler):
         return opts_remote.get(opt, vdef)
 
     # Get list of remote urls to try
-    def _get_rawdata_remote_urls(self, remote="origin"):
+    def _get_rawdataremote_git_urls(self, remote="origin"):
         r"""Get list of candidate URLs for a given remote
 
         :Call:
-            >>> remote_urls = dkl._get_rawdata_remote_urls(remote)
+            >>> remote_urls = dkl._get_rawdataremote_git_urls(remote)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
@@ -1113,11 +1231,11 @@ class DataKitLoader(kwutils.KwargHandler):
         return self._call_o(fgit, ["git", "rev-parse", ref])
 
     # Run a git command remotely or locally
-    def _call_o(self, fgit, cmd):
+    def _call(self, fgit, cmd, **kw):
         r"""Run a command locally or remotely and capture STDOUT
 
         :Call:
-            >>> stdout = dkl._call_o(fgit, cmd)
+            >>> out, err, ierr = dkl._call_o(fgit, cmd, **kw)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
@@ -1125,6 +1243,8 @@ class DataKitLoader(kwutils.KwargHandler):
                 URL to a (candidate) git repo
             *cmd*: :class:`list`\ [:class:`str`]
                 Subprocess-style command to run
+            *kw*: :class:`dict`
+                Options passed to :func:`shellutils.call_oe`
         :Outputs:
             *stdout*: ``None`` | :class:`str`
                 Decoded STDOUT if command exited without error
@@ -1138,14 +1258,46 @@ class DataKitLoader(kwutils.KwargHandler):
             raise ValueError("Unable to parse remote repo '%s'" % fgit)
         # Get groups
         grps = match.groupdict()
+        # Set options
+        kw.setdefault("cwd", grps["path"])
+        kw.setdefault("host", grps["host"])
         # Get most recent commit
-        stdout, _, ierr = shellutils.call_oe(
-            cmd, cwd=grps["path"], host=grps["host"])
+        return shellutils._call(cmd, **kw)
+
+    # Run a git command remotely or locally
+    def _call_o(self, fgit, cmd, **kw):
+        r"""Run a command locally or remotely and capture STDOUT
+
+        :Call:
+            >>> stdout = dkl._call_o(fgit, cmd, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fgit*: :class:`str`
+                URL to a (candidate) git repo
+            *cmd*: :class:`list`\ [:class:`str`]
+                Subprocess-style command to run
+            *kw*: :class:`dict`
+                Options passed to :func:`shellutils.call_oe`
+        :Outputs:
+            *stdout*: ``None`` | :class:`str`
+                Decoded STDOUT if command exited without error
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Default options
+        kw.setdefault("stdout", shellutils.PIPE)
+        kw.setdefault("stderr", shellutils.PIPE)
+        # Call command
+        stdout, _, ierr = self._call(fgit, cmd, **kw)
         # Check for errors
         if ierr:
             return
-        # Return the commit
-        return stdout.strip()
+        # Return the output
+        if stdout is None:
+            return
+        else:
+            return stdout.strip()
 
    # --- Generic file names ---
     def get_abspath(self, frel):
