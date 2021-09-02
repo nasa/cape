@@ -866,6 +866,46 @@ class DataKitLoader(kwutils.KwargHandler):
    # --- Raw data update ---
     # Main updater
     def update_rawdata(self):
+        r"""Update raw data using ``rawdata/datakit-sources.json``
+
+        The settings for zero or more "remotes" are read from that JSON
+        file in the package's ``rawdata/`` folder. Example contents of
+        such a file are shown below:
+
+        .. code-block:: javascript
+
+            {
+                "hub": [
+                    "/nobackup/user/",
+                    "pfe:/nobackupp16/user/git",
+                    "linux252:/nobackup/user/git"
+                ],
+                "remotes": {
+                    "origin": {
+                        "url": "data/datarepo.git",
+                        "type": "git-show",
+                        "glob": "aero_STACK*.csv",
+                        "regex": [
+                            "aero_CORE_no_[a-z]+\.csv",
+                            "aero_LSRB_no_[a-z]+\.csv",
+                            "aero_RSRB_no_[a-z]+\.csv"
+                        ],
+                        "commit": null,
+                        "branch": "main",
+                        "tag": null,
+                        "destination": "."
+                    }
+                }
+            }
+
+        :Call:
+            >>> dkl.update_rawdata()
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
         # Get list of remotes
         remotes = self.get_rawdata_remotelist()
         # Loop through them
@@ -874,6 +914,18 @@ class DataKitLoader(kwutils.KwargHandler):
 
     # Update from one remote
     def update_rawdata_remote(self, remote="origin"):
+        r"""Update raw data for one remote
+
+        :Call:
+            >>> dkl.update_rawdata_remote(remote="origin")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
         # Get type
         remote_type = self.get_rawdata_opt("type", remote, vdef="git-show")
         # Check type
@@ -883,9 +935,24 @@ class DataKitLoader(kwutils.KwargHandler):
         elif remote_type in {2, "rsync"}:
             # Use rsync to copy updated files
             self._upd8_rawdataremote_rsync(remote)
+        else:
+            raise ValueError(
+                "Unrecognized raw data remote type '%s'" % remote_type)
 
     # Update one remote using git-show
     def _upd8_rawdataremote_git(self, remote="origin"):
+        r"""Update raw data for one remote using ``git show``
+
+        :Call:
+            >>> dkl._upd8_rawdataremote_git(remote="origin")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
         # Status update
         sys.stdout.write("updating remote '%s' using git-show\n" % remote)
         sys.stdout.flush()
@@ -895,12 +962,18 @@ class DataKitLoader(kwutils.KwargHandler):
         url, sha1 = self.get_rawdataremote_git(remote)
         # Check if up-to-date
         if sha1 == sha1_current:
+            # Status update
+            print("  up-to-date (%s)" % sha1)
+            # Terminate (no file transfers needed)
             return
         # Get files
         ls_files = self.get_rawdataremote_gitfiles(remote)
         # Get option regarding destination
         # (Remove subfolders, e.g. folder/file.csv -> file.csv)
         dst_folder = self.get_rawdata_opt("destination", remote)
+        # Counters
+        n_good = 0
+        n_fail = 0
         # Copy each file
         for src in ls_files:
             # Destination folder
@@ -924,13 +997,27 @@ class DataKitLoader(kwutils.KwargHandler):
             sys.stdout.write(msg)
             sys.stdout.flush()
             # Copy the file
-            self._upd8_rawdatafile_git(url, src, sha1, dst=dst)
+            ierr = self._upd8_rawdatafile_git(url, src, sha1, dst=dst)
+            # Check status
+            if ierr:
+                # Transfer failed
+                n_fail += 1
+            else:
+                # Transfer succeeded
+                n_good += 1
             # Clean up prompt
             sys.stdout.write(" " * len(msg))
             sys.stdout.write("\r")
             sys.stdout.flush()
         # Save the commit
         self.rawdata_sources_commit[remote] = sha1
+        # Status update
+        if n_fail:
+            msg = "  copied %i files (%i failed) from %s" % (
+                n_good, n_fail, sha1)
+        else:
+            msg = "  copied %i files from %s" % (n_good, sha1)
+        print(msg)
         # Write it
         self._write_rawdata_commits_json()
 
@@ -940,6 +1027,27 @@ class DataKitLoader(kwutils.KwargHandler):
 
     # Copy one file from remote repo
     def _upd8_rawdatafile_git(self, url, src, ref, **kw):
+        r"""Copy one raw data file from remote using ``git show``
+
+        :Call:
+            >>> ierr = dkl._upd8_rawdatafile_git(url, src, ref, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *url*: :class:`str`
+                Full path to git remote
+            *src*: :class:`str`
+                Name of file to copy relative to remote git repo
+            *ref*: :class:`str`
+                Any valid git reference, usually a SHA-1 hash
+            *dst*: {*src*} | :class:`str`
+                Name of destination file rel to ``rawdata/``
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code (``0`` for success)
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
         # Name of destination file
         dst = kw.get("dst", src)
         # Check for "/" in output file
@@ -966,6 +1074,25 @@ class DataKitLoader(kwutils.KwargHandler):
 
     # Copy one file from remote repo
     def _upd8_rawdatafile_rsync(self, url, src, **kw):
+        r"""Copy one raw data file from remote using ``rsync``
+
+        :Call:
+            >>> ierr = dkl._upd8_rawdatafile_rsync(url, src, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *url*: :class:`str`
+                Full path to git remote
+            *src*: :class:`str`
+                Name of file to copy relative to remote git repo
+            *dst*: {*src*} | :class:`str`
+                Name of destination file rel to ``rawdata/``
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code (``0`` for success)
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
         # Name of destination file
         dst = kw.get("dst", fname)
         # Check for "/" in output file
@@ -992,7 +1119,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
         :Call:
             >>> fnames = dkl.get_rawdataremote_gitfiles(remote="origin")
-        :Outputs:
+        :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
@@ -1039,7 +1166,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
         :Call:
             >>> ls_files = dkl.list_rawdataremote_git(remote="origin")
-        :Outputs:
+        :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
@@ -1078,7 +1205,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
         :Call:
             >>> ls_files = dkl.list_rawdataremote_rsync(remote="origin")
-        :Outputs:
+        :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
@@ -1108,7 +1235,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
         :Call:
             >>> url, sha1 = dkl.get_rawdataremote_git(remote="origin")
-        :Outputs:
+        :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
@@ -1143,9 +1270,9 @@ class DataKitLoader(kwutils.KwargHandler):
         # Loop through candidates
         for url in url_list:
             # Status update
-            msg = "  trying '%s'\r" % url
+            msg = "  trying '%s'" % url
             # Show it
-            sys.stdout.write(msg)
+            sys.stdout.write(msg[:72] + "\r")
             # Get most recent commit if possible
             sha1 = self._get_sha1(url, ref)
             # Clean up prompt
