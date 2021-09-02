@@ -148,6 +148,7 @@ class DataKitLoader(kwutils.KwargHandler):
         self.rawdata_sources = {}
         self.rawdata_remotes = {}
         self.rawdata_commits = {}
+        self.rawdata_sources_commit = {}
         # Use required inputs
         self.setdefault_option("MODULE_NAME", name)
         self.setdefault_option("MODULE_FILE", os.path.abspath(fname))
@@ -863,10 +864,84 @@ class DataKitLoader(kwutils.KwargHandler):
         return ierr
 
    # --- Raw data update ---
+    # Main updater
+    def update_rawdata(self):
+        # Get list of remotes
+        remotes = self.get_rawdata_remotelist()
+        # Loop through them
+        for remote in remotes:
+            self.update_rawdata_remote(remote)
+
+    # Update from one remote
+    def update_rawdata_remote(self, remote="origin"):
+        # Get type
+        remote_type = self.get_rawdata_opt("type", remote, vdef="git-show")
+        # Check type
+        if remote_type in {1, "git-show"}:
+            # Use git-show to read files
+            self._upd8_rawdataremote_git(remote)
+        elif remote_type in {2, "rsync"}:
+            # Use rsync to copy updated files
+            self._upd8_rawdataremote_rsync(remote)
+
+    # Update one remote using git-show
+    def _upd8_rawdataremote_git(self, remote="origin"):
+        # Status update
+        sys.stdout.write("updating remote '%s' using git-show\n" % remote)
+        sys.stdout.flush()
+        # Read current commit (already read)
+        sha1_current = self.get_rawdata_sourcecommit(remote)
+        # Get latest available
+        url, sha1 = self.get_rawdataremote_git(remote)
+        # Check if up-to-date
+        if sha1 == sha1_current:
+            return
+        # Get files
+        ls_files = self.get_rawdataremote_gitfiles(remote)
+        # Get option regarding destination
+        # (Remove subfolders, e.g. folder/file.csv -> file.csv)
+        dst_folder = self.get_rawdata_opt("destination", remote)
+        # Copy each file
+        for src in ls_files:
+            # Destination folder
+            if dst_folder == ".":
+                # Just use the "basename"
+                dst = os.path.basename(rc)
+            elif dst_folder:
+                # For other non-empty destination folder
+                dst = os.path.join(dst_folder, os.path.basename(src))
+            else:
+                # Copy to file with same path as in git repo
+                dst = src
+            # Status update
+            if src == dst:
+                # Same file name as in git repo
+                msg = "  copying file '%s'\r" % src
+            else:
+                # Different git repo name and local name
+                msg = "  copying file '%s' -> '%s'\r" % (src, dst)
+            # Write the status update
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+            # Copy the file
+            self._upd8_rawdatafile_git(url, src, sha1, dst=dst)
+            # Clean up prompt
+            sys.stdout.write(" " * len(msg))
+            sys.stdout.write("\r")
+            sys.stdout.flush()
+        # Save the commit
+        self.rawdata_sources_commit[remote] = sha1
+        # Write it
+        self._write_rawdata_commits_json()
+
+    # Update one remote using rsync
+    def _upd8_rawdataremote_rsync(self, remote="origin"):
+        pass
+
     # Copy one file from remote repo
     def _upd8_rawdatafile_git(self, url, src, ref, **kw):
         # Name of destination file
-        dst = kw.get("dst", fname)
+        dst = kw.get("dst", src)
         # Check for "/" in output file
         if "/" in dst:
             # Localize path
@@ -876,8 +951,10 @@ class DataKitLoader(kwutils.KwargHandler):
         else:
             # Use specified path
             fdest = dst
+        # Get absolute path to file in rawdata/ file
+        fout = self.get_rawdatafilename(fdest)
         # Open file
-        f = open(fdest, "w")
+        f = open(fout, "w")
         # Command to list contents of file
         cmd = ["git", "show", "%s:%s" % (ref, src)]
         # Execute command
@@ -903,12 +980,12 @@ class DataKitLoader(kwutils.KwargHandler):
         # Full source
         fname = "/".join(url, src)
         # Command to list contents of file
-        cmd = ["rsync", "-gutz", fname, fdest]
+        cmd = ["rsync", "-tuz", fname, fdest]
         # Execute command
         _, _, ierr = shellutils._call_oe(cmd)
         # Return same return code
         return ierr
-        
+
     # Get list of remote files matching patterns
     def get_rawdataremote_gitfiles(self, remote="origin"):
         r"""List all files in candidate raw data remote source
@@ -933,7 +1010,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get list of file name regular expressions to copy
         regexs = _listify(self.get_rawdata_opt("regex", remote=remote))
         # If no constraints, return all files
-        if len(o_glob) == 0 and len(o_regex) == 0:
+        if len(globs) == 0 and len(regexs) == 0:
             return ls_files
         # Otherwise initialize set of files to copy
         file_set = set()
@@ -978,9 +1055,17 @@ class DataKitLoader(kwutils.KwargHandler):
         # Check for invalid repo
         if url is None:
             return []
+        # Status update
+        msg = "  getting list of files from remote\r"
+        sys.stdout.write(msg)
+        sys.stdout.flush()
         # List files
         stdout = self._call_o(
             url, ["git", "ls-tree", "-r", sha1, "--name-only"])
+        # Clean up raw data
+        sys.stdout.write(" " * len(msg))
+        sys.stdout.write("\r")
+        sys.stdout.flush()
         # Check validity
         if stdout is None:
             return []
@@ -1058,7 +1143,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Loop through candidates
         for url in url_list:
             # Status update
-            msg = "Trying '%s'\r" % url
+            msg = "  trying '%s'\r" % url
             # Show it
             sys.stdout.write(msg)
             # Get most recent commit if possible
@@ -1075,6 +1160,29 @@ class DataKitLoader(kwutils.KwargHandler):
                 return url, sha1
         # No valid repo found
         return None, None
+
+    # Get commit of current raw data
+    def get_rawdata_sourcecommit(self, remote="origin"):
+        r"""Get the latest used SHA-1 hash for a remote
+
+        :Call:
+            >>> sha1 = dkl.get_rawdata_sourcecommit(remote="origin")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote from which to read *opt*
+        :Outputs:
+            *sha1*: ``None`` | :class:`str`
+                40-character SHA-1 hash if possible from
+                ``datakit-sources-commit.json``
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
+        # Read JSON file
+        self._read_rawdata_commits_json()
+        # Get commit for this origin
+        return self.rawdata_sources_commit.get(remote)
 
     # Get raw data settings
     def read_rawdata_json(self, fname="datakit-sources.json", f=False):
@@ -1106,6 +1214,51 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read the file
         with open(fabs) as f:
             self.rawdata_sources = json.load(f)
+
+    # Get raw data settings
+    def _read_rawdata_commits_json(self):
+        r"""Read ``datakit-sources-commit.json`` from raw data folder
+
+        :Call:
+            >>> dkl._read_rawdata_commits_json()
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+        :Effects:
+            *dkl.rawdata_sources_commit*: :class:`dict`
+                Settings read from JSON file
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
+        # Get absolute path
+        fabs = self.get_rawdatafilename("datakit-sources-commit.json")
+        # Check for file
+        if not os.path.isfile(fabs):
+            return
+        # Read the file
+        with open(fabs) as fp:
+            self.rawdata_sources_commit = json.load(fp)
+
+    # Get raw data settings
+    def _write_rawdata_commits_json(self):
+        r"""Write ``datakit-sources-commit.json`` in raw data folder
+
+        :Call:
+            >>> dkl._write_rawdata_commits_json()
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+        :Effects:
+            *dkl.rawdata_sources_commit*: :class:`dict`
+                Settings read from JSON file
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
+        # Get absolute path
+        fabs = self.get_rawdatafilename("datakit-sources-commit.json")
+        # Read the file
+        with open(fabs, "w") as fp:
+            json.dump(self.rawdata_sources_commit, fp)
 
     # Get git reference for a specified remote
     def get_rawdata_ref(self, remote="origin"):
@@ -1161,6 +1314,31 @@ class DataKitLoader(kwutils.KwargHandler):
         opts_remote = opts.get(remote, {})
         # Return option
         return opts_remote.get(opt, vdef)
+
+    # Get option from rawdata/datakit-sources.json
+    def get_rawdata_remotelist(self):
+        r"""Get list of remotes from ``rawdata/datakit-sources.json``
+
+        :Call:
+            >>> remotes = dkl.get_rawdata_remotelist()
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *remotes*: :class:`list`\ [:class:`str`]
+                List of remotes
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
+        # Read raw data optsion
+        self.read_rawdata_json()
+        # Otherwise get the remotes section
+        opts = self.rawdata_sources.get("remotes", {})
+        # Get remotes, which are the keys of this dict
+        if isinstance(opts, dict):
+            return list(opts.keys())
+        else:
+            return []
 
     # Get list of remote urls to try
     def _get_rawdataremote_git_urls(self, remote="origin"):
