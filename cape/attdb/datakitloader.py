@@ -958,7 +958,7 @@ class DataKitLoader(kwutils.KwargHandler):
         sys.stdout.flush()
         # Read current commit (already read)
         sha1_current = self.get_rawdata_sourcecommit(remote)
-        # Get latest available
+        # Get best available
         url, sha1 = self.get_rawdataremote_git(remote)
         # Check if up-to-date
         if sha1 == sha1_current:
@@ -1038,8 +1038,8 @@ class DataKitLoader(kwutils.KwargHandler):
         # Status update
         sys.stdout.write("updating remote '%s' using rsync\n" % remote)
         sys.stdout.flush()
-        # Get URL to source
-        url = self.get_rawdata_opt("url", remote)
+        # Get best available
+        url = self.get_rawdataremote_rsync(remote)
         # Check if no URL
         if url is None:
             return
@@ -1333,8 +1333,8 @@ class DataKitLoader(kwutils.KwargHandler):
         :Versions:
             * 2021-09-02 ``@ddalle``: Version 1.0
         """
-        # Get URL and hash
-        url = self.get_rawdata_opt("url", remote)
+        # Get best available
+        url = self.get_rawdataremote_rsync(remote)
         # Check for invalid repo
         if url is None:
             return []
@@ -1382,7 +1382,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read settings
         self.read_rawdata_json()
         # Get list of candidates
-        url_list = self._get_rawdataremote_git_urls(remote)
+        url_list = self._get_rawdataremote_urls(remote)
         # Get reference to check
         ref = self.get_rawdata_ref(remote)
         # Prepend to list if *url* is specified
@@ -1438,6 +1438,56 @@ class DataKitLoader(kwutils.KwargHandler):
         self._read_rawdata_commits_json()
         # Get commit for this origin
         return self.rawdata_sources_commit.get(remote)
+
+    # Get the best rawdata source (rsync)
+    def get_rawdataremote_rsync(self, remote="origin"):
+        r"""Get full URL for ``rsync`` raw data source repo
+
+        If several options are present, this function checks for the
+        first with an extant folder.
+
+        :Call:
+            >>> url = dkl.get_rawdataremote_rsync(remote="origin")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Outputs:
+            *url*: ``None`` | :class:`str`
+                Full path to valid git repo, if possible
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
+        # Check for existing remote
+        url = self.rawdata_remotes.get(remote)
+        # Check for early termination
+        if url:
+            return url
+        # Read settings
+        self.read_rawdata_json()
+        # Get list of candidates
+        url_list = self._get_rawdataremote_urls(remote)
+        # Loop through candidates
+        for url in url_list:
+            # Status update
+            msg = "  trying '%s'" % url
+            # Trim if needed
+            if len(msg) > 72:
+                msg = msg[:49] + "..." + msg[-20:]
+            # Show it
+            sys.stdout.write(msg + "\r")
+            # Get most recent commit if possible
+            q = self._isdir(url)
+            # Clean up prompt
+            sys.stdout.write(" " * len(msg))
+            sys.stdout.write("\r")
+            # Check if successful
+            if q:
+                # Save options
+                self.rawdata_remotes[remote] = url
+                # Terminate
+                return url
 
     # Get raw data settings
     def read_rawdata_json(self, fname="datakit-sources.json", f=False):
@@ -1596,11 +1646,11 @@ class DataKitLoader(kwutils.KwargHandler):
             return []
 
     # Get list of remote urls to try
-    def _get_rawdataremote_git_urls(self, remote="origin"):
+    def _get_rawdataremote_urls(self, remote="origin"):
         r"""Get list of candidate URLs for a given remote
 
         :Call:
-            >>> remote_urls = dkl._get_rawdataremote_git_urls(remote)
+            >>> remote_urls = dkl._get_rawdataremote_urls(remote)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
@@ -1615,7 +1665,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get hubs
         hubs = _listify(self.get_rawdata_opt("hub"))
         # Get URLs
-        urls = _listify(self.get_rawdata_opt("url"))
+        urls = _listify(self.get_rawdata_opt("url", remote))
         # Initialize list
         remote_urls = []
         # Loop through URLs
@@ -1664,40 +1714,6 @@ class DataKitLoader(kwutils.KwargHandler):
         return self._call_o(fgit, ["git", "rev-parse", ref])
 
     # Run a git command remotely or locally
-    def _call(self, fgit, cmd, **kw):
-        r"""Run a command locally or remotely and capture STDOUT
-
-        :Call:
-            >>> out, err, ierr = dkl._call_o(fgit, cmd, **kw)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *fgit*: :class:`str`
-                URL to a (candidate) git repo
-            *cmd*: :class:`list`\ [:class:`str`]
-                Subprocess-style command to run
-            *kw*: :class:`dict`
-                Options passed to :func:`shellutils.call_oe`
-        :Outputs:
-            *stdout*: ``None`` | :class:`str`
-                Decoded STDOUT if command exited without error
-        :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
-        """
-        # Parse for remotes
-        match = REGEX_HOST.fullmatch(fgit)
-        # Check for bad match
-        if match is None:
-            raise ValueError("Unable to parse remote repo '%s'" % fgit)
-        # Get groups
-        grps = match.groupdict()
-        # Set options
-        kw.setdefault("cwd", grps["path"])
-        kw.setdefault("host", grps["host"])
-        # Get most recent commit
-        return shellutils._call(cmd, **kw)
-
-    # Run a git command remotely or locally
     def _call_o(self, fgit, cmd, **kw):
         r"""Run a command locally or remotely and capture STDOUT
 
@@ -1731,6 +1747,77 @@ class DataKitLoader(kwutils.KwargHandler):
             return
         else:
             return stdout.strip()
+
+    # Run a git command remotely or locally
+    def _call(self, fgit, cmd, **kw):
+        r"""Run a command locally or remotely and capture STDOUT
+
+        :Call:
+            >>> out, err, ierr = dkl._call_o(fgit, cmd, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fgit*: :class:`str`
+                URL to a (candidate) git repo
+            *cmd*: :class:`list`\ [:class:`str`]
+                Subprocess-style command to run
+            *kw*: :class:`dict`
+                Options passed to :func:`shellutils.call_oe`
+        :Outputs:
+            *stdout*: ``None`` | :class:`str`
+                Decoded STDOUT if command exited without error
+        :Versions:
+            * 2021-09-01 ``@ddalle``: Version 1.0
+        """
+        # Parse for remotes
+        match = REGEX_HOST.fullmatch(fgit)
+        # Check for bad match
+        if match is None:
+            raise ValueError("Unable to parse remote repo '%s'" % fgit)
+        # Get groups
+        grps = match.groupdict()
+        # Set options
+        kw.setdefault("cwd", grps["path"])
+        kw.setdefault("host", grps["host"])
+        # Get most recent commit
+        return shellutils._call(cmd, **kw)
+
+    # Check if a (remote) folder exists
+    def _isdir(self, url):
+        r"""Check if a local/remote folder exists
+
+        :Call:
+            >>> q = dkl._isdir(url)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *url*: :class:`str`
+                URL to a (candidate) local/remote folder
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not *url* is an extant folder
+        :Versions:
+            * 2021-09-02 ``@ddalle``: Version 1.0
+        """
+        # Parse for remotes
+        match = REGEX_HOST.fullmatch(url)
+        # Check for bad match
+        if match is None:
+            raise ValueError("Unable to parse remote folder '%s'" % url)
+        # Get groups
+        host = match.group("host")
+        path = match.group("path")
+        # Check for remote host
+        if host:
+            # Use SSH to access remote host
+            cmd = ["ssh", "-q", host, "test", "-d", path]
+            # Call command
+            ierr = shellutils.call_q(cmd)
+            # Return code is 0 if folder exists (and is a folder)
+            return ierr == 0
+        else:
+            # Just check for folder locally
+            return os.path.isdir(os.path.realpath(path))
 
    # --- Generic file names ---
     def get_abspath(self, frel):

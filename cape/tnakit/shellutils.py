@@ -170,7 +170,7 @@ def call_o(cmd, **kw):
 
 
 # Call a command and suppress STDOUT and STDERR
-def call_q(self, cmd, **kw):
+def call_q(cmd, **kw):
     r"""Run a system command, suppressing STDOUT and STDERR
 
     :Call:
