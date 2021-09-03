@@ -58,7 +58,7 @@ DEFAULT_TITLE = "DataKit quickstart package"
 # Template docstring for a module
 DEFAULT_DOCSTRING = r"""
 %(hline_after-)s
-%(mod)s: %(meta_title)s
+%(modname)s: %(meta_title)s
 %(hline-)s
 
 Module metadata:
@@ -449,9 +449,11 @@ def write_init_py(pkgdir, opts):
         f.write(DEFAULT_DOCSTRING)
         f.write('"""\n\n')
         # Write import
-        f.write("# Standard library modules\n\n\n")
+        f.write("# Standard library modules\n")
+        f.write("import os\n\n")
         f.write("# Third-party modules\n\n\n")
         f.write("# CAPE modules\n")
+        f.write("import cape.attdb.rdb as rdb\n")
         f.write("import cape.attdb.datakitloader as dkloader\n")
         f.write("import cape.tnakit.modutils as modutils\n\n")
         f.write("# Local modules\n")

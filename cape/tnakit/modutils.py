@@ -122,6 +122,8 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
     lines_out = []
     # Global replacements
     opts = {}
+    # Base of module name
+    modbasename = modname.split(".")[-1]
     # Attempt to read metadata if not specified
     if meta is None:
         try:
@@ -218,12 +220,24 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
                 curtxt = rst_submodules(modname, modfile, **kw_submod)
                 # Save to dictionary
                 fmt["submodules"] = curtxt.lstrip()
+            elif key == "modname":
+                # Module name last
+                fmt[key] = ":mod:`%s`" % modbasename
+            elif key == "basemod":
+                # Module name last
+                fmt[key] = ":mod:`%s`" % modbasename
             elif key == "mod":
                 # Module name with reST markup
                 fmt[key] = ":mod:`%s`" % modname
             elif key == "pymod":
                 # Module name without markup
                 fmt[key] = modname
+            elif key == "pymodname":
+                # Module name without markup
+                fmt[key] = modbasename
+            elif key == "pybasemod":
+                # Module name without markup
+                fmt[key] = modbasename
             elif key == "file":
                 # Module file (just last part)
                 fmt[key] = os.path.split(modfile)[-1]
