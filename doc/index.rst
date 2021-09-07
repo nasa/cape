@@ -7,9 +7,12 @@ efficient interaction with several high-fidelity aerodynamics codes. This
 includes tools for pre-processing, executing the codes, performing
 post-processing tasks, and creating finished databases. The approach of Cape is
 to provide tools that make users more efficient at some or all of the modeling
-and analysis process. It may be useful to use Cape for just one step of a
+and analysis process. It may be useful to use CAPE for just one step of a
 particular user's project, or it may be useful to use it for the entire
 process.
+
+:ref:`Installation <install>` is done using the standard Python packaging tool
+``pip``.
 
 Most users really would rather evaluate new tools by seeing some examples, so
 here are the links to the example pages for the main solvers:
@@ -27,12 +30,12 @@ for the Space Launch System, which included over 10,000 different adaptive
 Cart3D runs in a 12-dimensional run matrix.
 
 The FUN3D interface, :mod:`cape.pyfun`, reuses most of the code used to build
-:mod:`cape.pycart`, and the OVERFLOW interface, :mod:`cape.pyover` was constructed in a
-similar manner. All modules are built off of common tools in the :mod:`cape`
-module, and so much of the usage is common between the two interfaces. These
-interfaces can be used to run OVERFLOW/FUN3D, interact with databases, and
-archive or clean up solutions. There is a Python interface to solution files
-including easy dimensionalization of state variables.
+:mod:`cape.pycart`; and the OVERFLOW interface, :mod:`cape.pyover` was
+constructed in a similar manner. All modules are built off of common tools in
+the :mod:`cape` module, and so much of the usage is common between the two
+interfaces. These interfaces can be used to run OVERFLOW/FUN3D, interact with
+databases, and archive or clean up solutions. There is a Python interface to
+solution files including easy dimensionalization of state variables.
 
 The central Python module that contains most of the code for each module is
 called :mod:`cape`, which may be mentioned from time to time.

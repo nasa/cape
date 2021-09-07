@@ -86,6 +86,10 @@ setup(
         "cape.tnakit.plot_mpl",
         "cape.tnakit.textutils"
     ],
+    install_requires=[
+        "numpy>=1.4.1",
+        "matplotlib>=2",
+    ],
     package_data={
         "cape": [
             "templates/paraview/*",
@@ -121,6 +125,6 @@ setup(
             "pyover=cape.pyover.cli:main"
         ],
     },
-    version="1.0a1",
+    version="1.0a2",
     description="CAPE computational aerosciences package",
     ext_modules=exts)
