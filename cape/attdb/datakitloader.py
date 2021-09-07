@@ -1355,7 +1355,7 @@ class DataKitLoader(kwutils.KwargHandler):
         return stdout.strip().split("\n")
 
     # Get the best rawdata source
-    def get_rawdataremote_git(self, remote="origin"):
+    def get_rawdataremote_git(self, remote="origin", f=False):
         r"""Get full URL and SHA-1 hash for raw data source repo
 
         :Call:
@@ -1365,6 +1365,8 @@ class DataKitLoader(kwutils.KwargHandler):
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
+            *f*: ``True`` | {``False``}
+                Option to override *dkl.rawdata_remotes* if present
         :Outputs:
             *url*: ``None`` | :class:`str`
                 Full path to valid git repo, if possible
@@ -1377,7 +1379,7 @@ class DataKitLoader(kwutils.KwargHandler):
         url = self.rawdata_remotes.get(remote)
         sha1 = self.rawdata_commits.get(remote)
         # Check for early termination
-        if url and sha1:
+        if url and sha1 and (not f):
             return url, sha1
         # Read settings
         self.read_rawdata_json()
@@ -1563,7 +1565,7 @@ class DataKitLoader(kwutils.KwargHandler):
         fabs = self.get_rawdatafilename("datakit-sources-commit.json")
         # Read the file
         with open(fabs, "w") as fp:
-            json.dump(self.rawdata_sources_commit, fp)
+            json.dump(self.rawdata_sources_commit, fp, indent=4)
 
     # Get git reference for a specified remote
     def get_rawdata_ref(self, remote="origin"):
