@@ -32,15 +32,23 @@ Cart3D runs in a 12-dimensional run matrix.
 The FUN3D interface, :mod:`cape.pyfun`, reuses most of the code used to build
 :mod:`cape.pycart`; and the OVERFLOW interface, :mod:`cape.pyover` was
 constructed in a similar manner. All modules are built off of common tools in
-the :mod:`cape` module, and so much of the usage is common between the two
-interfaces. These interfaces can be used to run OVERFLOW/FUN3D, interact with
-databases, and archive or clean up solutions. There is a Python interface to
-solution files including easy dimensionalization of state variables.
+the :mod:`cape` and :mod:`cape.cfdx` modulew, and so much of the usage is
+common between the two interfaces. These interfaces can be used to run
+OVERFLOW/FUN3D, interact with databases, and archive or clean up solutions.
+There is a Python interface to solution files including easy dimensionalization
+of state variables.
 
-The central Python module that contains most of the code for each module is
-called :mod:`cape`, which may be mentioned from time to time.
+In addition to running CFD codes, CAPE contains a package called
+:mod:`cape.attdb` for cleaning and processing numerical databases whether the
+original data comes from CFD or not. The key tool from this package is the
+class
 
-Each interface is a portmanteau of "Python" and the name of the solver. The
+    :class:`cape.attdb.rdb.DataKit`
+
+which can read CSV files, other ASCII text data files, MATLAB ``.mat`` files,
+Excel spreadsheets, and more.
+
+Each CFD interface is a portmanteau of "Python" and the name of the solver. The
 command-line interface is invoked with the commands ``pycart``, ``pyfun``, and
 ``pyover``. In addition, there are several scripts matching the glob
 ``p?_*.py`` for isolated tasks such as converting grid formats.
