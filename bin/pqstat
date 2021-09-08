@@ -269,7 +269,7 @@ def show_qstats(d, q_total=False):
     RT = {"jobs": 0, "nodes": 0, "cores": 0} 
     QT = {"jobs": 0, "nodes": 0, "cores": 0}
     # Loop through the queues.
-    for q in d.keys():
+    for q in d:
         # Extract running qnd queued statistics
         R = d[q]['R']
         Q = d[q]['Q']
@@ -279,6 +279,10 @@ def show_qstats(d, q_total=False):
             QT[k] += Q[k]
         # Check for option to hide totals
         if (not q_total):
+            # Check for empty response
+            # (can happen b/c of group members doing other work)
+            if R["jobs"] + Q["jobs"] == 0:
+                continue
             # Display the queue name.
             print("%s" % q)
             # Display the running jobs statistics

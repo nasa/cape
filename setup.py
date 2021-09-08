@@ -122,7 +122,11 @@ setup(
         "console_scripts": [
             "pycart=cape.pycart.cli:main",
             "pyfun=cape.pyfun.cli:main",
-            "pyover=cape.pyover.cli:main"
+            "pyover=cape.pyover.cli:main",
+            "dkit=cape.attdb.cli:main",
+            "dkit-quickstart=cape.attdb.quickstart:main",
+            "dkit-vendorize=cape.attdb.vendorutils:main",
+            "dkit-writedb=cape.attdb.writedb:main",
         ],
     },
     version="1.0a2",
