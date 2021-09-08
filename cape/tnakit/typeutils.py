@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`tnakit.typeutils`: Convenient Type Checking Tools
-=========================================================
+r"""
+:mod:`cape.tnakit.typeutils`: Python 2/3 type-check utils
+==========================================================
 
 This module contains convenience methods to check types of objects.   For the
 most part, this is a set of predefined calls to :func:`isinstance`, but with

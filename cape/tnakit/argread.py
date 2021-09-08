@@ -1,39 +1,40 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`tnakit.argread`: Command-Line Argument Processor
-========================================================
+r"""
+:mod:`cape.tnakit.argread`: Command-line argument parser
+=========================================================
 
-Parse command-line inputs based on one of two methods.  The first method counts
-both "-" and "--" as prefixes for keyword names; this is common among many
-advanced programs.  For example, the two following examples would be treated as
-equivalent (assuming it is called by some script :file:`myScript.py`.
+Parse command-line inputs based on one of two methods.  The first method
+counts both "-" and "--" as prefixes for keyword names; this is common
+among many advanced programs. For example, the two following examples
+would be treated as equivalent (assuming it is called by some script
+``myScript.py``.
 
     .. code-block:: console
     
         $ myScript.py --v --i test.txt
         $ myScript.py -v -i test.txt
 
-The second method assumes single-hyphen options are single-character flags that
-can be combined.  This is common in many built-in Unix/Linux utilities.
-Consider how ``ls -lh`` is interpreted.  The following two examples would be
-interpreted equivalently.
+The second method assumes single-hyphen options are single-character
+flags that can be combined. This is common in many built-in Unix/Linux
+utilities. Consider how ``ls -lh`` is interpreted.  The following two
+examples would be interpreted equivalently.
 
     .. code-block:: console
     
         $ myScript.py -v -i
         $ myScript.py -vi
 
-A third method is provided to have similar behavior to the Unix ``tar`` command.
-In this case, the following two commands will be different.
+A third method is provided to have similar behavior to the Unix ``tar``
+command. In this case, the following two commands will be different.
 
     .. code-block:: console
     
         $ myScript.py -cf mytar.tar
         $ myScript.py --cf mytar.tar
         
-The first example sets *c* to ``True`` and *f* to ``"mytar.tar"``; the second
-command sets *cf* to ``"mytar.tar"``.
+The first example sets *c* to ``True`` and *f* to ``"mytar.tar"``; the
+second command sets *cf* to ``"mytar.tar"``.
 """
 
 # Process options using any dash as keyword

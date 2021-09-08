@@ -1611,7 +1611,7 @@ class Cntl(cape.cntl.Cntl):
         option from the JSON file. These functions must take *cntl* as
         an input and the case number *i*. The function(s) are usually
         from a module imported via the ``"Modules"`` option. See the
-         following example:
+        following example:
 
             .. code-block:: javascript
 

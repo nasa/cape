@@ -9,8 +9,10 @@
 .. toctree::
     :maxdepth: 2
     
+    datakithub
+    datakitloader
     ftypes/index
     rdb
     rdbaero
-    datakithub
+    dbfm
 
