@@ -1460,7 +1460,7 @@ class Cntl(cape.cntl.Cntl):
         # Write it.
         self.WriteCaseJSON(i, rc=rc)
         # Write the conditions to a simple JSON file
-        self.x.WriteConditionsJSON(i)
+        self.WriteConditionsJSON(i)
         # Rewriting phases
         print("  Writing 'input.cntl' 1 to %s" % (nPhase))
         self.PrepareInputCntl(i)

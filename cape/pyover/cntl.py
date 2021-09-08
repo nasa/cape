@@ -1030,7 +1030,7 @@ class Cntl(cape.cntl.Cntl):
         # Write it
         self.WriteCaseJSON(i, rc=rc)
         # Write the conditions to a simple JSON file
-        self.x.WriteConditionsJSON(i)
+        self.WriteConditionsJSON(i)
         # Reread source namelist template
         self.ReadNamelist()
         # Rewriting phases

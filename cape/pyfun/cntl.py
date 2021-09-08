@@ -2768,7 +2768,7 @@ class Cntl(cape.cntl.Cntl):
         # Write it
         self.WriteCaseJSON(i, rc=rc)
         # Write the conditions to a simple JSON file
-        self.x.WriteConditionsJSON(i)
+        self.WriteConditionsJSON(i)
         # (Re)Prepare mesh in case needed
         print("  Checking mesh preparations")
         self.PrepareMesh(i)

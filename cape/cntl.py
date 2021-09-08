@@ -2763,6 +2763,33 @@ class Cntl(object):
         # Write the configuration file
         self.WriteConfig(i)
 
+    # Write conditions JSON file
+    @run_rootdir
+    def WriteConditionsJSON(self, i, rc=None):
+        r"""Write JSON file with run matrix settings for case *i*
+
+        :Call:
+            >>> cntl.WriteConditionsJSON(i, rc=None)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Generic control class
+            *i*: :class:`int`
+                Run index
+            *rc*: {``None``} | :class:`dict`
+                If specified, write specified "RunControl" options
+        :Versions:
+            * 2021-09-08 ``@ddalle``: Version 1.0
+        """
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists.
+        if not os.path.isdir(frun):
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Write conditions
+        self.x.WriteConditionsJSON(i)
+
     # Write run control options to JSON file
     @run_rootdir
     def WriteCaseJSON(self, i, rc=None):
