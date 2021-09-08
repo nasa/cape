@@ -2707,7 +2707,7 @@ class Cntl(cape.cntl.Cntl):
         :Call:
             >>> cntl.ApplyCase(i, nPhase=None)
         :Inputs:
-            *fun3d*: :class:`cape.pyfun.cntl.Cntl`
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D control interface
             *i*: :class:`int`
                 Case number
@@ -2767,6 +2767,8 @@ class Cntl(cape.cntl.Cntl):
             rc[k] = rco[k]
         # Write it
         self.WriteCaseJSON(i, rc=rc)
+        # Write the conditions to a simple JSON file
+        self.x.WriteConditionsJSON(i)
         # (Re)Prepare mesh in case needed
         print("  Checking mesh preparations")
         self.PrepareMesh(i)

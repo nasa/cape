@@ -1027,8 +1027,10 @@ class Cntl(cape.cntl.Cntl):
                 if k in ["PhaseIters", "PhaseSequence"]: continue
                 # Otherwise, overwrite
                 rc[k] = rco[k]
-            # Write it.
-            self.WriteCaseJSON(i, rc=rc)
+        # Write it
+        self.WriteCaseJSON(i, rc=rc)
+        # Write the conditions to a simple JSON file
+        self.x.WriteConditionsJSON(i)
         # Reread source namelist template
         self.ReadNamelist()
         # Rewriting phases

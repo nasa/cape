@@ -1453,11 +1453,14 @@ class Cntl(cape.cntl.Cntl):
             # Copy other sections
             for k in rco:
                 # Don't copy phase and iterations
-                if k in ["PhaseIters", "PhaseSequence"]: continue
+                if k in ["PhaseIters", "PhaseSequence"]:
+                    continue
                 # Otherwise, overwrite
                 rc[k] = rco[k]
-            # Write it.
-            self.WriteCaseJSON(i, rc=rc)
+        # Write it.
+        self.WriteCaseJSON(i, rc=rc)
+        # Write the conditions to a simple JSON file
+        self.x.WriteConditionsJSON(i)
         # Rewriting phases
         print("  Writing 'input.cntl' 1 to %s" % (nPhase))
         self.PrepareInputCntl(i)
