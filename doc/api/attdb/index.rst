@@ -15,4 +15,5 @@
     rdb
     rdbaero
     dbfm
+    cli
 

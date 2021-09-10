@@ -7488,6 +7488,58 @@ class DataKit(ftypes.BaseData):
             else:
                 # Save new data in place of old data
                 self[arg] = V
+
+    # Find duplicates
+    def find_duplicates(self, cols, **kw):
+        r"""Find repeats based on list of columns
+
+        :Call:
+            >>> repeats = db.find_duplicates(cols, **kw)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *cols*: :class:`list`\ [:class:`str`]
+                List of columns names to match
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Subset of *db* to consider
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+            *kw*: :class:`dict`
+                Additional values to use during evaluation
+        :Outputs:
+            *repeats*: :class:`list`\ [:class:`np.ndarray`]
+                List of *db* indices of repeats; each *repeat* in
+                *repeats* is an index of a case that matches for each
+                *col* in *cols*
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # Set (force) option for db.find()
+        kw["mapped"] = True
+        # Get values for each *col*
+        x = [self.get_all_values(col) for col in cols]
+        # Search for duplicates
+        Imap, _ = self.find(cols, *x, **kw)
+        # Create set of first index of repeat
+        anchors = set()
+        # Initialize repeats
+        repeats = []
+        # Loop through *Imap* entries
+        for imap in Imap:
+            # Check if multiple
+            if imap.size <= 1:
+                continue
+            # Check if already anchored
+            if imap[0] in anchors:
+                continue
+            # Save repeate
+            repeats.append(imap)
+            # Save anchor
+            anchors.add(imap[0])
+        # Output
+        return repeats
   # >
 
   # ==================
@@ -8320,16 +8372,16 @@ class DataKit(ftypes.BaseData):
         nx = np.prod(dims)
        # --- Checks ---
         # Initialize tests for database indices (set to ``False``)
-        MI = np.arange(n) < 0
+        MI = np.full(n, False)
         # Initialize tests for input data indices (set to ``False``)
-        MJ = np.arange(nx) < 0
+        MJ = np.full(nx, False)
         # Initialize maps if needed
         if mapped:
             Imap = []
         # Loop through entries
         for i in range(nx):
             # Initialize tests for this point (set to ``True``)
-            Mi = np.arange(n) > -1
+            Mi = np.full(n, True)
             # Loop through arguments
             for j, k in enumerate(args):
                 # Get array of database values
