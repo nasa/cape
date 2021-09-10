@@ -7550,13 +7550,15 @@ class DataKit(ftypes.BaseData):
    # --- Copy/Link ---
     # Link data
     def link_data(self, dbsrc, cols=None, **kw):
-        r"""Save a column to database
+        r"""Save one or more cols from another database
 
         :Call:
             >>> db.link_data(dbsrc, cols=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
+            *dbsrc*: :class:`dict`
+                Additional data container, not required to be a datakit
             *cols*: {``None``} | :class:`list`\ [:class:`str`]
                 List of columns to link (or *dbsrc.cols*)
             *append*: ``True`` | {``False``}
@@ -7658,7 +7660,7 @@ class DataKit(ftypes.BaseData):
    # --- Access ---
     # Look up a generic key
     def get_col(self, k=None, defnames=[], **kw):
-        """Process a key name, using an ordered list of defaults
+        r"""Process a key name, using an ordered list of defaults
 
         :Call:
             >>> col = db.get_key(k=None, defnames=[], **kw)
