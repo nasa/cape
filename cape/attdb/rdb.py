@@ -7568,6 +7568,10 @@ class DataKit(ftypes.BaseData):
                 List of columns to link (or *dbsrc.cols*)
             *append*: {``True``} | ``False``
                 Option to append data (or replace it)
+            *prefix*: {``None``} | :class:`str`
+                Prefix applied to *dbsrc* col when saved in *db*
+            *suffix*: {``None``} | :class:`str`
+                Prefix applied to *dbsrc* col when saved in *db*
         :Effects:
             *db.cols*: :class:`list`\ [:class:`str`]
                 Appends each *col* in *cols* where not present
@@ -7596,6 +7600,10 @@ class DataKit(ftypes.BaseData):
                 List of columns to link (or *dbsrc.cols*)
             *append*: ``True`` | {``False``}
                 Option to append data (or replace it)
+            *prefix*: {``None``} | :class:`str`
+                Prefix applied to *dbsrc* col when saved in *db*
+            *suffix*: {``None``} | :class:`str`
+                Prefix applied to *dbsrc* col when saved in *db*
         :Effects:
             *db.cols*: :class:`list`\ [:class:`str`]
                 Appends each *col* in *cols* where not present
@@ -7603,6 +7611,7 @@ class DataKit(ftypes.BaseData):
                 Reference to *dbsrc* data for each *col*
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: Version 1.1; *prefix* and *suffix*
         """
         # Check type of data set
         if not isinstance(dbsrc, dict):
@@ -7625,6 +7634,9 @@ class DataKit(ftypes.BaseData):
                 % cols.__class__.__name__)
         # Append option
         append = kw.get("append", False)
+        # Prefix/suffix
+        prefix = kw.get("prefix")
+        suffix = kw.get("suffix")
         # Loop through columns
         for col in cols:
             # Check type
@@ -7635,10 +7647,17 @@ class DataKit(ftypes.BaseData):
                 raise KeyError("No column '%s'" % col)
             # Candidate data
             v = dbsrc[col]
+            # Add prefix and suffix to output column (col in *self*)
+            if prefix:
+                col1 = prefix + col
+            else:
+                col1 = col
+            if suffix:
+                col1 = col1 + suffix
             # Get data to save
-            if append and col in self:
+            if append and col1 in self:
                 # Get current values
-                v0 = self[col]
+                v0 = self[col1]
                 # Check consistent types and combine values
                 if (
                     isinstance(v, float)
@@ -7688,7 +7707,7 @@ class DataKit(ftypes.BaseData):
                         % col)
                     sys.stderr.flush()
             # Save the data
-            self.save_col(col, v)
+            self.save_col(col1, v)
 
    # --- Access ---
     # Look up a generic key
