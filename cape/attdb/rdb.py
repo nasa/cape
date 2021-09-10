@@ -8100,6 +8100,7 @@ class DataKit(ftypes.BaseData):
 
         :Call:
             >>> db.apply_mask(mask, cols=None)
+            >>> db.apply_mask(mask_index, cols=None)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Database with scalar output functions
@@ -8128,6 +8129,42 @@ class DataKit(ftypes.BaseData):
             v = self.get_values(col, mask)
             # Save subsetted values
             self[col] = v
+
+    # Apply a mask to all columns
+    def remove_mask(self, mask, cols=None):
+        r"""Remove cases in a mask for one or more *cols*
+
+        This function is the opposite of :func:`apply_mask`
+
+        :Call:
+            >>> db.remove_mask(mask, cols=None)
+            >>> db.remove_mask(mask_index, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
+                Logical mask of ``True`` / ``False`` values
+            *mask_index*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of values to delete
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of columns to subset (default is all)
+        :Effects:
+            *db[col]*: :class:`list` | :class:`np.ndarray`
+                Subset *db[col][mask]* or similar
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # Default list of columns
+        if cols is None:
+            cols = self.cols
+        # Get size of first *col*
+        n = len(self[cols[0]])
+        # Create mask of what to *keep*
+        pmask = np.full(n, True)
+        # Cases to remove
+        pmask[mask] = False
+        # Apply tyat
+        self.apply_mask(pmask ,cols)
 
    # --- Mask ---
     # Prepare mask
