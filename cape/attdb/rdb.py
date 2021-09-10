@@ -7978,15 +7978,11 @@ class DataKit(ftypes.BaseData):
         I = self.prep_mask(mask, V=V)
         # Dimension
         if isinstance(V, list):
-            # Lists always 1D
-            ndim = 1
-            # Length of array is length of list
-            n = len(V)
-        else:
-            # Get array dimension
-            ndim = V.ndim
-            # "Length" of array; last dimension
-            n = V.shape[-1]
+            # Index directly
+            # (Lists always 1D)
+            return [V[i] for i in I]
+        # Get array dimension
+        ndim = V.ndim
         # Create slice that looks up last column
         J = tuple(slice(None) for j in range(ndim-1)) +  (I,)
         # Apply mask to last dimension
