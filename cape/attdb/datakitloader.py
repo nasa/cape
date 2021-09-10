@@ -2177,6 +2177,180 @@ class DataKitLoader(kwutils.KwargHandler):
         # Output
         return db
 
+   # --- Combined writers ---
+    def write_db_csv(self, readfunc, f=True, db=None, **kw):
+        r"""Write (all) canonical db CSV file(s)
+
+        :Call:
+            >>> db = dkl.write_db_csv(readfunc, f=True, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *cols*: {``None``} | :class:`list`
+                If *dkl* has more than one file, *cols* must be a list
+                of lists specifying which columns to write to each file
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # File name for MAT
+        fnames = self.get_dbfiles_csv()
+        # Check for multiple
+        if len(fnames) > 1:
+            # Get column lists
+            cols = kw.pop("cols", None)
+            # Check
+            if cols is None:
+                raise ValueError(
+                    ("Cannot write multiple CSV files w/o 'cols' kwarg,") +
+                    ("a list of columns to write for each CSV file"))
+        else:
+            cols = kw.pop("cols", None)
+        # Loop through files
+        for j, fname in enumerate(fnames):
+            # Get list of cols if needed
+            if len(fnames) > 1:
+                # Write columns for file *j*
+                kw["cols"] = cols[j]
+            else:
+                # Write main list
+                kw["cols"] = cols
+            # Write file if needed
+            db = self.write_dbfile_csv(fname, readfunc, f=f, db=db, **kw)
+        # Return *db* in case read during process
+        return db
+
+    def write_db_mat(self, readfunc, f=True, db=None, **kw):
+        r"""Write (all) canonical db MAT file(s)
+
+        :Call:
+            >>> db = dkl.write_db_mat(readfunc, f=True, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *cols*: {``None``} | :class:`list`
+                If *dkl* has more than one file, *cols* must be a list
+                of lists specifying which columns to write to each file
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # File name for MAT
+        fmats = self.get_dbfiles_mat()
+        # Check for multiple
+        if len(fmats) > 1:
+            # Get column lists
+            cols = kw.pop("cols", None)
+            # Check
+            if cols is None:
+                raise ValueError(
+                    ("Cannot write multiple MAT files w/o 'cols' kwarg,") +
+                    ("a list of columns to write for each MAT file"))
+        else:
+            cols = kw.pop("cols", None)
+        # Loop through files
+        for j, fmat in enumerate(fmats):
+            # Get list of cols if needed
+            if len(fmats) > 1:
+                # Write columns for file *j*
+                kw["cols"] = cols[j]
+            else:
+                # Write main list
+                kw["cols"] = cols
+            # Write file if needed
+            db = self.write_dbfile_mat(fmat, readfunc, f=f, db=db, **kw)
+        # Return *db* in case read during process
+        return db
+
+   # --- Individual file writers ---
+    def write_dbfile_csv(self, fcsv, readfunc, f=True, db=None, **kw):
+        r"""Write a canonical db CSV file
+
+        :Call:
+            >>> db = dkl.write_dbfile_csv(fcsv, readfunc, f=True, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fscv*: :class:`str`
+                Name of file to write
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # Check if it exists
+        if f or not os.path.isfile(fcsv):
+            # Read datakit from source
+            if db is None:
+                db = readfunc()
+            # Create folders as needed
+            self.prep_dirs(fcsv)
+            # Write it
+            db.write_csv(fcsv, **kw)
+        # Return *db* in case it was read during process
+        return db
+
+    def write_dbfile_mat(self, fmat, readfunc, f=True, db=None, **kw):
+        r"""Write a canonical db MAT file
+
+        :Call:
+            >>> db = dkl.write_dbfile_mat(fmat, readfunc, f=True, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fmat*: :class:`str`
+                Name of file to write
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # Check if it exists
+        if f or not os.path.isfile(fmat):
+            # Read datakit from source
+            if db is None:
+                db = readfunc()
+            # Create folders as needed
+            self.prep_dirs(fmat)
+            # Write it
+            db.write_mat(fmat, **kw)
+        # Return *db* in case it was read during process
+        return db
+
    # --- Individual file readers ---
     def read_dbfile_mat(self, fname, **kw):
         r"""Read a ``.mat`` file from *DB_DIR*
