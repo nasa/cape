@@ -7548,6 +7548,39 @@ class DataKit(ftypes.BaseData):
   # <
    # --- Save/Add ---
    # --- Copy/Link ---
+    # Append data
+    def append_data(self, dbsrc, cols=None, **kw):
+        r"""Save one or more cols from another database
+
+        .. note::
+
+            This is the same as :func:`link_data` but with *append*
+            defaulting to ``True``.
+
+        :Call:
+            >>> db.append_data(dbsrc, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Data container
+            *dbsrc*: :class:`dict`
+                Additional data container, not required to be a datakit
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of columns to link (or *dbsrc.cols*)
+            *append*: {``True``} | ``False``
+                Option to append data (or replace it)
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                Appends each *col* in *cols* where not present
+            *db[col]*: *dbsrc[col]*
+                Reference to *dbsrc* data for each *col*
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # Set *append* to ``True``
+        kw.setdefault("append", True)
+        # Link data
+        self.link_data(dbsrc, cols, **kw)
+        
     # Link data
     def link_data(self, dbsrc, cols=None, **kw):
         r"""Save one or more cols from another database
@@ -7569,7 +7602,7 @@ class DataKit(ftypes.BaseData):
             *db[col]*: *dbsrc[col]*
                 Reference to *dbsrc* data for each *col*
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
         """
         # Check type of data set
         if not isinstance(dbsrc, dict):
