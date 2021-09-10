@@ -7490,11 +7490,11 @@ class DataKit(ftypes.BaseData):
                 self[arg] = V
 
     # Find duplicates
-    def find_duplicates(self, cols, **kw):
+    def find_repeats(self, cols, **kw):
         r"""Find repeats based on list of columns
 
         :Call:
-            >>> repeats = db.find_duplicates(cols, **kw)
+            >>> repeats = db.find_repeats(cols, **kw)
         :Inputs:
             *db*: :class:`cape.attdb.rdb.DataKit`
                 Data container
