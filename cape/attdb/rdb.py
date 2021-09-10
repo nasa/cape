@@ -4548,6 +4548,41 @@ class DataKit(ftypes.BaseData):
   # Column Names
   # ===================
   # <
+   # --- Rename ---
+    # Rename a column
+    def rename_col(self, col1, col2):
+        r"""Rename a column from *col1* to *col2*
+
+        :Call:
+            >>> db.rename_col(col1, col2)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *col1*: :class:`str`
+                Name of column in *db* to rename
+            *col2*: :class:`str`
+                Renamed title for *col1*
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # Check if *col1* is present
+        if col1 not in self:
+            return
+        # Get index
+        if col1 in self.cols:
+            # Find it
+            i = self.cols.index(col1)
+            # replace it
+            self.cols[i] = col2
+        # Get definition
+        if col1 in self.defns:
+            # Remove it
+            defn = self.pop(col1)
+            # Save it
+            self.set_defn(col2, defn)
+        # Save new column
+        db.save_col(col2, db.pop(col1))
+            
    # --- Prefix ---
     # Prepend something to the name of a column
     def prepend_colname(self, col, prefix):
@@ -8034,13 +8069,53 @@ class DataKit(ftypes.BaseData):
         if isinstance(V, list):
             # Index directly
             # (Lists always 1D)
-            return [V[i] for i in I]
+            if len(I) > 0 and isinstance(I[0], bool):
+                # Apply boolean mask
+                return [v for i, v in enumerate(V) if mask[i]]
+            else:
+                # Apply index mask
+                return [V[i] for i in I]
         # Get array dimension
         ndim = V.ndim
         # Create slice that looks up last column
         J = tuple(slice(None) for j in range(ndim-1)) +  (I,)
         # Apply mask to last dimension
         return V.__getitem__(J)
+
+    # Apply a mask to all columns
+    def apply_mask(self, mask, cols=None):
+        r"""Apply a mask to one or more *cols*
+
+        :Call:
+            >>> db.apply_mask(mask, cols=None)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdb.DataKit`
+                Database with scalar output functions
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`bool`]
+                Logical mask of ``True`` / ``False`` values
+            *mask_index*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of values to consider
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of columns to subset (default is all)
+        :Effects:
+            *db[col]*: :class:`list` | :class:`np.ndarray`
+                Subset *db[col][mask]* or similar
+        :Versions:
+            * 2021-09-10 ``@ddalle``: Version 1.0
+        """
+        # Default list of columns
+        if cols is None:
+            cols = self.cols
+        # Loop through columns
+        for col in cols:
+            # Check validity of mask
+            if not self.check_mask(mask, col):
+                # Skip this column
+                continue
+            # Get values according to *mask*
+            v = self.get_values(col, mask)
+            # Save subsetted values
+            self[col] = v
 
    # --- Mask ---
     # Prepare mask
