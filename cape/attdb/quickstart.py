@@ -450,7 +450,7 @@ def write_init_py(pkgdir, opts):
         f.write('"""\n\n')
         # Write import
         f.write("# Standard library modules\n")
-        f.write("import os\n\n")
+        f.write("\n\n")
         f.write("# Third-party modules\n\n\n")
         f.write("# CAPE modules\n")
         f.write("import cape.attdb.rdb as rdb\n")
@@ -475,10 +475,27 @@ def write_init_py(pkgdir, opts):
         # Check for existing settings
         if dklmod:
             # Use settings from specified modules
-            f.write(", **%s.DB_NAMES)\n\n" % dklmod)
+            f.write(", **%s.DB_NAMES)\n\n\n" % dklmod)
         else:
             # No expanded settings
-            f.write(")\n\n")
+            f.write(")\n\n\n")
+        # Write reader stubs
+        f.write("# Read datakit from MAT file\n")
+        f.write("def read_db_mat():\n")
+        f.write("    return DATAKIT_LOADER.read_db_mat()\n\n\n")
+        f.write("# Read best datakit\n")
+        f.write("def read_db():\n")
+        f.write("    try:\n        return read_db_mat()\n")
+        f.write("    except Exception:\n        pass\n\n\n")
+        # Last reader stub
+        f.write("# Read source data\n")
+        f.write("def read_db_source():\n")
+        f.write("    pass\n\n\n")
+        # Writer stub
+        f.write("# Write datakit\n")
+        f.write("def write_db(f=True, **kw):\n")
+        f.write("    db = DATAKIT_LOADER.write_db_mat(read_db_source, f=f)")
+        f.write("\n\n")
 
 
 # Write the setup.py script
