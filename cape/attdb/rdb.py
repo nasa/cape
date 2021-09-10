@@ -8154,6 +8154,13 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2021-09-10 ``@ddalle``: Version 1.0
         """
+        # Check for null action
+        if mask is None:
+            return
+        if len(mask) == 0:
+            return
+        if not np.any(mask):
+            return
         # Default list of columns
         if cols is None:
             cols = self.cols
