@@ -61,7 +61,7 @@ DEFAULT_DOCSTRING = r"""
 %(modname)s: %(meta_title)s
 %(hline-)s
 
-Module metadata:
+Package metadata:
 
     %(meta)s
 
