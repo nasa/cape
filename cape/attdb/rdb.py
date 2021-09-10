@@ -4577,11 +4577,11 @@ class DataKit(ftypes.BaseData):
         # Get definition
         if col1 in self.defns:
             # Remove it
-            defn = self.pop(col1)
+            defn = self.defns.pop(col1)
             # Save it
             self.set_defn(col2, defn)
         # Save new column
-        db.save_col(col2, db.pop(col1))
+        self.save_col(col2, self.pop(col1))
             
    # --- Prefix ---
     # Prepend something to the name of a column
@@ -4605,8 +4605,11 @@ class DataKit(ftypes.BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: First version
+            * 2020-03-24 ``@ddalle``: Version 1.0
         """
+        # Check for null input
+        if not prefix:
+            return col
         # Check for component name
         parts = col.split(".")
         # Component name
@@ -4646,6 +4649,9 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-03-24 ``@ddalle``: First version
         """
+        # Check for null input
+        if not prefix:
+            return col
         # Check for component name
         parts = col.split(".")
         # Component name
@@ -4738,6 +4744,9 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-03-24 ``@ddalle``: First version
         """
+        # Check for null input
+        if not suffix:
+            return col
         # Check for component name
         parts = col.split(".")
         # Component name
@@ -4777,6 +4786,9 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2020-03-24 ``@ddalle``: First version
         """
+        # Check for null input
+        if not suffix:
+            return col
         # Check for component name
         parts = col.split(".")
         # Component name
