@@ -163,8 +163,12 @@ class MapBC(object):
         while i < self.n:
             # Read the line
             line = f.readline()
+            # Safety valve
+            if line == "":
+                break
             # Skip empty line
-            if line.strip() == "" or line.startswith("!"): continue
+            if line.strip() == "" or line.startswith("!"):
+                continue
             # Split the components
             compID, bc, name = line.split()
             # Save values
