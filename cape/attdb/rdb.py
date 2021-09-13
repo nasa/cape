@@ -7207,13 +7207,13 @@ class DataKit(ftypes.BaseData):
             # Joint list with commas
             arg_string = "(" + (",".join(arg_string_list)) + ")"
             # Loop through coefficients
-            for coeff in coeffs:
+            for col in cols:
                 # Status update
                 txt = "Creating RBF for %s%s" % (col, arg_string)
                 sys.stdout.write("%-72s\r" % txt[:72])
                 sys.stdout.flush()
                 # Append reference values to input tuple
-                Z = V + (self[coeff][J],)
+                Z = V + (self[col][J],)
                 # Create a single RBF
                 f = scirbf.Rbf(*Z, function=func, smooth=smooth)
                 # Save it
