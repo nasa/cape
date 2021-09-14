@@ -55,26 +55,7 @@ class MATFileOpts(BaseFileOpts):
 
 # Definition
 class MATFileDefn(BaseFileDefn):
-   # --- Global Options ---
-    # Option list
-    _optlist = {
-        "Dimension",
-        "Shape"
-    }
-
-    # Alternate names
-    _optmap = {
-        "dim": "Dimension",
-        "ndim": "Dimension",
-        "shape": "Shape",
-    }
-
-   # --- Types ---
-    # Allowed types
-    _opttypes = {
-        "Dimension": int,
-        "Shape": tuple,
-    }
+    pass
 
 
 # Combine options with parent class

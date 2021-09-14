@@ -131,24 +131,17 @@ class XLSFileDefn(BaseFileDefn):
     # Option list
     _optlist = {
         "ColWidth",
-        "Dimension",
-        "Shape"
     }
 
     # Alternate names
     _optmap = {
         "colwidth": "ColWidth",
-        "dim": "Dimension",
-        "ndim": "Dimension",
-        "shape": "Shape",
     }
 
    # --- Types ---
     # Allowed types
     _opttypes = {
         "ColWidth": int,
-        "Dimension": int,
-        "Shape": tuple,
     }
 
 

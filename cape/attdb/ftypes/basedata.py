@@ -46,10 +46,10 @@ class BaseDataOpts(kwutils.KwargHandler):
     # List of options
     _optlist = {
         "Columns",
-        "ExpandScalars",
         "Definitions",
         "DefaultDefinition",
-        "Values"
+        "ExpandScalars",
+        "Values",
     }
 
     # Alternate names
@@ -63,9 +63,9 @@ class BaseDataOpts(kwutils.KwargHandler):
     # Types
     _opttypes = {
         "Columns": list,
-        "ExpandScalars": bool,
         "Definitions": dict,
         "DefaultDefinition": dict,
+        "ExpandScalars": bool,
         "Values": dict,
     }
 
@@ -234,9 +234,11 @@ class BaseDataDefn(kwutils.KwargHandler):
    # --- Global Options ---
     # List of options
     _optlist = {
+        "Dimension",
         "Label",
         "LabelFormat",
         "LongName",
+        "Shape",
         "Tag",
         "Type",
         "WriteFormat",
@@ -246,16 +248,21 @@ class BaseDataDefn(kwutils.KwargHandler):
     # Alternate names
     _optmap = {
         "Format": "LabelFormat",
+        "dim": "Dimension",
         "longname": "LongName",
+        "ndim": "Dimension",
+        "shape": "Shape",
         "units": "Units",
     }
 
    # --- Types ---
     # Types
     _opttypes = {
+        "Dimension": int,
         "Label": bool,
         "LabelFormat": typeutils.strlike,
         "LongName": typeutils.strlike,
+        "Shape": tuple,
         "Type": typeutils.strlike,
         "WriteFormat": typeutils.strlike,
         "Units": typeutils.strlike,
