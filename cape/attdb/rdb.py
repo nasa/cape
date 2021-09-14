@@ -230,7 +230,7 @@ class DataKit(ftypes.BaseData):
   # Config
   # =============
   # <
-   # --- Primary Methods ---
+   # --- Dunder Methods ---
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
@@ -253,6 +253,8 @@ class DataKit(ftypes.BaseData):
         self.response_kwargs = {}
         self.response_methods = {}
         self.response_xargs = {}
+        # Radial basis function containers
+        self.rbf = {}
         # Extra attributes for plotting
         self.col_pngs = {}
         self.col_seams = {}
@@ -1673,7 +1675,7 @@ class DataKit(ftypes.BaseData):
                 # Save dependent variable name
                 coeffs.append(col)
             # Check for duplication
-            if coeff in self.cols:
+            if col in self.cols:
                 raise ValueError(
                     "RBF output col '%s' is already present." % coeff)
             # Save the data
@@ -1708,7 +1710,7 @@ class DataKit(ftypes.BaseData):
                 # Read function type
                 func = RBF_FUNCS[int(dbf[col + "_func"][0])]
                 # Create RBF
-                rbf = scipy.interpolate.rbf.Rbf(*Z, function=func)
+                rbf = scirbf.Rbf(*Z, function=func)
                 # Save not-too-important actual values
                 rbf.di = dbf[coeff]
                 # Use all conditions
@@ -1735,7 +1737,7 @@ class DataKit(ftypes.BaseData):
                     # Get function type
                     func = RBF_FUNCS[int(dbf[col + "_func"][0])]
                     # Initialize slice RBF
-                    rbf = scipy.interpolate.rbf.Rbf(*Z, function=func)
+                    rbf = scirbf.Rbf(*Z, function=func)
                     # Number of points in this slice
                     ni = np.count_nonzero(X0 == xi)
                     # End of range
