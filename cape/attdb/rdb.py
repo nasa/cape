@@ -1835,7 +1835,7 @@ class DataKit(ftypes.BaseData):
             # Check presence of required information
             if k not in self.cols:
                 raise KeyError("No col '%s' in database" % k)
-            elif self.get_resposne_args(k) is None:
+            elif self.get_response_args(k) is None:
                 raise KeyError("No 'response_args' for col '%s'" % k)
             elif self.get_response_method(k) is None:
                 raise KeyError("No 'response_method' for col '%s'" % k)
@@ -1849,8 +1849,11 @@ class DataKit(ftypes.BaseData):
             # Check values
             if self.get_response_args(k) != eval_args:
                 raise ValueError("Mismatching response_args for col '%s'" % k)
-            elif self.get_response_args(k) != eval_meth:
-                raise ValueError("Mismatching response_method for col '%s" % k)
+            elif self.get_response_method(k) != eval_meth:
+                raise ValueError(
+                    ("Mismatching response_method '%s' for col '%s'" % (
+                        self.get_response_args(k), k)) +
+                    ("; expected '%s'" % eval_meth))
 
         # Number of arguments
         narg = len(eval_args)
@@ -1895,7 +1898,7 @@ class DataKit(ftypes.BaseData):
             # Initialize the values
             vals[col] = np.zeros(nx)
         # Append type
-        for k in ["eval_method"]:
+        for col in ["eval_method"]:
             # Create values
             vals[col] = np.full(nx, imeth) 
 
@@ -1940,7 +1943,7 @@ class DataKit(ftypes.BaseData):
                     rbf = self.rbf[coeff][j]
                 # Derived columns
                 ccols = [
-                    ("%s_%s" % (col, suf)).rstrip("_") for suf in COEFF_COLS
+                    ("%s_%s" % (coeff, suf)).rstrip("_") for suf in COEFF_COLS
                 ]
                 # Save values
                 vals[ccols[0]][ny:ny+nj] = rbf.di
@@ -1952,8 +1955,8 @@ class DataKit(ftypes.BaseData):
                 vals[ccols[3]][ny:ny+nj] = rbf.epsilon
                 # Save smoothing parameter
                 vals[ccols[4]][ny:ny+nj] = rbf.smooth
-                # Update counter
-                ny += nj
+            # Update counter
+            ny += nj
         # Create CSV file
         dbcsv = ftypes.CSVFile(vals=vals)
         # Ensure proper order
