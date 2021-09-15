@@ -132,7 +132,7 @@ def write_dbs(*a, **kw):
     force_last = kw.pop("force", kw.pop("f", False))
     write = kw.pop("write", True)
     # Process original module names
-    anames, _ = genr8_modsequence(a, reqs=False, **kw)
+    anames, _ = genr8_modsequence(a, reqs=False)
     # Process all other requirements
     dbnames, modnames = genr8_modsequence(a, **kw)
     # Status update
@@ -400,6 +400,7 @@ def get_fullmodname(modname, prefix=None, **kw):
             Full module name for import, possibly prepended
     :Versions:
         * 2021-08-20 ``@ddalle``: Version 1.0
+        * 2021-09-15 ``@ddalle``: Version 1.1; better *prefix* check
     """
     # Get prefix
     prefix = get_prefix(prefix=prefix)
@@ -407,6 +408,9 @@ def get_fullmodname(modname, prefix=None, **kw):
     if not modname:
         # Use the prefix as the module name
         modname = prefix
+    elif os.path.isdir(modname.replace(".", os.sep)):
+        # Valid module name even if has different prefix
+        modname = modname
     elif modname.split(".")[0] != prefix:
         # Prepend
         modname = prefix + "." + modname

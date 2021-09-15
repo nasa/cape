@@ -842,6 +842,53 @@ class DataKitLoader(kwutils.KwargHandler):
         return self.get_dbdir("csv")
         
    # --- DVC files ---
+    def dvc_add(self, frel, **kw):
+        r"""Add (cache) a file using DVC
+
+        :Call:
+            >>> ierr = dkl.dvc_add(frel, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *frel*: :class:`str`
+                Name of file relative to *MODULE_DIR*
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+
+                * 0: success
+                * 512: not a git repo
+
+        :Versions:
+            * 2021-09-15 ``@ddalle``: Version 1.0
+        """
+        # Get absolute path
+        fabs = self.get_abspath(frel)
+        # Check for DVC flag
+        if fabs.endswith(".dvc"):
+            # Already a DVC file
+            fdvc = fabs
+        else:
+            # Append .dvc
+            fdvc = fabs + ".dvc"
+        # Get the folder name
+        fdir = os.path.dirname(fdvc)
+        # Get the gitdir
+        gitdir = gitutils.get_gitdir(fdir)
+        # Check for a valid git repo
+        if gitdir is None:
+            return 512
+        # Strip the *gitdir*
+        fadd = fdvc[len(gitdir):].lstrip(os.sep)
+        # Initialize command
+        cmd = ["dvc", "add", fadd]
+        # Status update
+        print("> " + " ".join(cmd))
+        # (Try to) execute the pull
+        ierr = shellutils.call(cmd, cwd=gitdir)
+        # Return error code
+        return ierr
+
     def dvc_pull(self, frel, **kw):
         r"""Pull a DVC file
 
@@ -886,7 +933,66 @@ class DataKitLoader(kwutils.KwargHandler):
         fpull = fdvc[len(gitdir):].lstrip(os.sep)
         # Initialize command
         cmd = ["dvc", "pull", fpull]
-        # Ohter DVC settings
+        # Other DVC settings
+        jobs = kw.get("jobs", kw.get("j", 1))
+        remote = kw.get("remote", kw.get("r"))
+        # Add other settings
+        if jobs:
+            cmd += ["-j", str(jobs)]
+        if remote:
+            cmd += ["-r", str(remote)]
+        # Status update
+        print("> " + " ".join(cmd))
+        # (Try to) execute the pull
+        ierr = shellutils.call(cmd, cwd=gitdir)
+        # Return error code
+        return ierr
+
+    def dvc_push(self, frel, **kw):
+        r"""Push a DVC file
+
+        :Call:
+            >>> ierr = dkl.dvc_push(frel, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *frel*: :class:`str`
+                Name of file relative to *MODULE_DIR*
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+
+                * 0: success
+                * 256: no DVC file
+                * 512: not a git repo
+
+        :Versions:
+            * 2021-07-19 ``@ddalle``: Version 1.0
+        """
+        # Get absolute path
+        fabs = self.get_abspath(frel)
+        # Check for DVC flag
+        if fabs.endswith(".dvc"):
+            # Already a DVC file
+            fdvc = fabs
+        else:
+            # Append .dvc
+            fdvc = fabs + ".dvc"
+            # Check DVC flag
+            if not os.path.isfile(fdvc):
+                return 256
+        # Get the folder name
+        fdir = os.path.dirname(fdvc)
+        # Get the gitdir
+        gitdir = gitutils.get_gitdir(fdir)
+        # Check for a valid git repo
+        if gitdir is None:
+            return 512
+        # Strip the *gitdir*
+        fpush = fdvc[len(gitdir):].lstrip(os.sep)
+        # Initialize command
+        cmd = ["dvc", "push", fpush]
+        # Other DVC settings
         jobs = kw.get("jobs", kw.get("j", 1))
         remote = kw.get("remote", kw.get("r"))
         # Add other settings
@@ -2335,6 +2441,8 @@ class DataKitLoader(kwutils.KwargHandler):
                 Overwrite *fmat* if it exists
             *db*: {``None``} | :class:`DataKit`
                 Existing source datakit to write
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -2342,7 +2450,10 @@ class DataKitLoader(kwutils.KwargHandler):
         :Versions:
             * 2021-09-10 ``@ddalle``: Version 1.0
             * 2021-09-15 ``@ddalle``: Version 1.1; check for DVC stub
+            * 2021-09-15 ``@ddalle``: Version 1.2; add *dvc* option
         """
+        # DVC option
+        dvc = kw.get("dvc", False)
         # Get DVC file name
         if fcsv.endswith(".dvc"):
             # Already a DVC stub
@@ -2359,6 +2470,17 @@ class DataKitLoader(kwutils.KwargHandler):
             self.prep_dirs(fcsv)
             # Write it
             db.write_csv(fcsv, **kw)
+            # Process DVC
+            if dvc or os.path.isfile(fdvc):
+                # Add the file
+                ierr = self.dvc_add(fcsv)
+                if ierr:
+                    print("Failed to dvc-add file '%s'" % fcsv)
+                    return db
+                # Push the file
+                ierr = self.dvc_push(fcsv)
+                if ierr:
+                    print("Failed to dvc-push file '%s'" % fcsv)
         # Return *db* in case it was read during process
         return db
 
@@ -2378,6 +2500,8 @@ class DataKitLoader(kwutils.KwargHandler):
                 Overwrite *fmat* if it exists
             *db*: {``None``} | :class:`DataKit`
                 Existing source datakit to write
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -2385,7 +2509,10 @@ class DataKitLoader(kwutils.KwargHandler):
         :Versions:
             * 2021-09-10 ``@ddalle``: Version 1.0
             * 2021-09-15 ``@ddalle``: Version 1.1; check for DVC stub
+            * 2021-09-15 ``@ddalle``: Version 1.2; add *dvc* option
         """
+        # DVC option
+        dvc = kw.get("dvc", False)
         # Get DVC file name
         if fmat.endswith(".dvc"):
             # Already a DVC stub
@@ -2402,6 +2529,17 @@ class DataKitLoader(kwutils.KwargHandler):
             self.prep_dirs(fmat)
             # Write it
             db.write_mat(fmat, **kw)
+            # Process DVC
+            if dvc or os.path.isfile(fdvc):
+                # Add the file
+                ierr = self.dvc_add(fmat)
+                if ierr:
+                    print("Failed to dvc-add file '%s'" % fmat)
+                    return db
+                # Push the file
+                ierr = self.dvc_push(fmat)
+                if ierr:
+                    print("Failed to dvc-push file '%s'" % fmat)
         # Return *db* in case it was read during process
         return db
 
