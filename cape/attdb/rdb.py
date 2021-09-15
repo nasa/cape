@@ -42,14 +42,12 @@ except ImportError:
     sciint = None
     scirbf = None
 
-# CAPE modules
-import cape.tnakit.kwutils as kwutils
-import cape.tnakit.plot_mpl as pmpl
-import cape.tnakit.statutils as statutils
-import cape.tnakit.typeutils as typeutils
-
-# Data Interfaces
-import cape.attdb.ftypes as ftypes
+# Local modules
+from ..tnakit import kwutils as kwutils
+from ..tnakit import plot_mpl as pmpl
+from ..tnakit import statutils
+from ..tnakit import typeutils
+from . import ftypes
 
 
 # Accepted list for response_method

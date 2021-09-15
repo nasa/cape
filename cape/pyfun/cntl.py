@@ -65,7 +65,7 @@ from . import dataBook
 from . import report
 
 # Unmodified CAPE modules
-from cape.util import RangeString
+from ..util import RangeString
 
 # Functions and classes from other modules
 from .runmatrix import RunMatrix

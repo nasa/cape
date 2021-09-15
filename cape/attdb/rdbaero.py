@@ -11,14 +11,10 @@ variables like "angle of attack," "total angle of attack," etc.
 
 """
 
-
-
-# CAPE modules
-import cape.tnakit.kwutils as kwutils
-
-# ATTDB modules
+# Local modules
 from . import rdb
 from . import convert
+from ..tnakit import kwutils
 
 
 # Class definition

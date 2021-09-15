@@ -31,13 +31,11 @@ import sys
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-import cape.attdb.convert as convert
-import cape.tnakit.kwutils as kwutils
-
 # Local modules
+from . import convert
 from . import rdb
 from . import rdbaero
+from ..tnakit import kwutils
 
 
 # Sets of common variable names
