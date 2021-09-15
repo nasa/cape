@@ -24,7 +24,7 @@ that are needed to support aerodynamic analysis of launch vehicles.
 """
 
 # Local modules
-from .rdb import DataKit
+#from .rdb import DataKit
 
 
 __version__ = '1.0'
