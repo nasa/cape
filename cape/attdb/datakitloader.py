@@ -878,14 +878,20 @@ class DataKitLoader(kwutils.KwargHandler):
         # Check for a valid git repo
         if gitdir is None:
             return 512
-        # Strip the *gitdir*
-        fadd = fdvc[len(gitdir):].lstrip(os.sep)
+        # Strip the *gitdir* prefix and .dvc extension
+        fcmd = fdvc[len(gitdir):-4].lstrip(os.sep)
+        # Shortened file name for pretty STDOUT
+        if len(fcmd) > 40:
+            fcmdp = "..." + fcmd[-37:]
+        else:
+            fcmdp = fcmd
         # Initialize command
-        cmd = ["dvc", "add", fadd]
+        cmd = ["dvc", "add", fcmd]
+        cmdp = ["dvc", "add", fcmdp]
         # Status update
-        print("> " + " ".join(cmd))
+        print("  > " + " ".join(cmdp))
         # (Try to) execute the pull
-        ierr = shellutils.call(cmd, cwd=gitdir)
+        ierr = shellutils.call_q(cmd, cwd=gitdir)
         # Return error code
         return ierr
 
@@ -930,19 +936,27 @@ class DataKitLoader(kwutils.KwargHandler):
         if gitdir is None:
             return 512
         # Strip the *gitdir*
-        fpull = fdvc[len(gitdir):].lstrip(os.sep)
+        fcmd = fdvc[len(gitdir):].lstrip(os.sep)
+        # Shortened file name for pretty STDOUT
+        if len(fcmd) > 45:
+            fcmdp = "..." + fcmd[-40:-4]
+        else:
+            fcmdp = fcmd[:-4]
         # Initialize command
-        cmd = ["dvc", "pull", fpull]
+        cmd = ["dvc", "pull", fcmd]
+        cmdp = ["dvc", "pull", fcmdp]
         # Other DVC settings
         jobs = kw.get("jobs", kw.get("j", 1))
         remote = kw.get("remote", kw.get("r"))
         # Add other settings
         if jobs:
-            cmd += ["-j", str(jobs)]
+            cmd.extend(["-j", str(jobs)])
+            cmdp.extend(["-j", str(jobs)])
         if remote:
-            cmd += ["-r", str(remote)]
+            cmd.extend(["-r", str(remote)])
+            cmdp.extend(["-r", str(remote)])
         # Status update
-        print("> " + " ".join(cmd))
+        print("  > " + " ".join(cmdp))
         # (Try to) execute the pull
         ierr = shellutils.call(cmd, cwd=gitdir)
         # Return error code
@@ -967,7 +981,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 * 512: not a git repo
 
         :Versions:
-            * 2021-07-19 ``@ddalle``: Version 1.0
+            * 2021-09-15 ``@ddalle``: Version 1.0
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
@@ -989,21 +1003,29 @@ class DataKitLoader(kwutils.KwargHandler):
         if gitdir is None:
             return 512
         # Strip the *gitdir*
-        fpush = fdvc[len(gitdir):].lstrip(os.sep)
+        fcmd = fdvc[len(gitdir):].lstrip(os.sep)
+        # Shortened file name for pretty STDOUT
+        if len(fcmd) > 45:
+            fcmdp = "..." + fcmd[-40:-4]
+        else:
+            fcmdp = fcmd[:-4]
         # Initialize command
-        cmd = ["dvc", "push", fpush]
+        cmd = ["dvc", "push", fcmd]
+        cmdp = ["dvc", "push", fcmdp]
         # Other DVC settings
         jobs = kw.get("jobs", kw.get("j", 1))
         remote = kw.get("remote", kw.get("r"))
         # Add other settings
         if jobs:
-            cmd += ["-j", str(jobs)]
+            cmd.extend(["-j", str(jobs)])
+            cmdp.extend(["-j", str(jobs)])
         if remote:
-            cmd += ["-r", str(remote)]
+            cmd.extend(["-r", str(remote)])
+            cmdp.extend(["-r", str(remote)])
         # Status update
-        print("> " + " ".join(cmd))
+        print("  > " + " ".join(cmdp))
         # (Try to) execute the pull
-        ierr = shellutils.call(cmd, cwd=gitdir)
+        ierr = shellutils.call_q(cmd, cwd=gitdir)
         # Return error code
         return ierr
 
@@ -1098,7 +1120,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-09-02 ``@ddalle``: Version 1.0
         """
         # Status update
-        sys.stdout.write("updating remote '%s' using git-show\n" % remote)
+        sys.stdout.write("  updating remote '%s' using git-show\n" % remote)
         sys.stdout.flush()
         # Read current commit (already read)
         sha1_current = self.get_rawdata_sourcecommit(remote)
@@ -1107,7 +1129,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Check if up-to-date
         if sha1 == sha1_current:
             # Status update
-            print("  up-to-date (%s)" % sha1)
+            print("    up-to-date (%s)" % sha1)
             # Terminate (no file transfers needed)
             return
         # Get files
@@ -2475,12 +2497,16 @@ class DataKitLoader(kwutils.KwargHandler):
                 # Add the file
                 ierr = self.dvc_add(fcsv)
                 if ierr:
-                    print("Failed to dvc-add file '%s'" % fcsv)
+                    print(
+                        "Failed to dvc-add file '%s'"
+                        % os.path.basename(fcsv))
                     return db
                 # Push the file
                 ierr = self.dvc_push(fcsv)
                 if ierr:
-                    print("Failed to dvc-push file '%s'" % fcsv)
+                    print(
+                        "Failed to dvc-push file '%s'"
+                        % os.path.basename(fcsv))
         # Return *db* in case it was read during process
         return db
 
@@ -2534,12 +2560,16 @@ class DataKitLoader(kwutils.KwargHandler):
                 # Add the file
                 ierr = self.dvc_add(fmat)
                 if ierr:
-                    print("Failed to dvc-add file '%s'" % fmat)
+                    print(
+                        "Failed to dvc-add file '%s'"
+                        % os.path.basename(fmat))
                     return db
                 # Push the file
                 ierr = self.dvc_push(fmat)
                 if ierr:
-                    print("Failed to dvc-push file '%s'" % fmat)
+                    print(
+                        "Failed to dvc-push file '%s'"
+                        % os.path.basename(fmat))
         # Return *db* in case it was read during process
         return db
 
