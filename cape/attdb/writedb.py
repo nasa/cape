@@ -29,6 +29,8 @@ Any database can be processed by this script when given its module name.
 The revision argument can be something like **c008.f3d.db001** or a full
 module name like **sls10afa.c008.f3d.db001**.
 
+Folder names, e.g. ``sls10afa/c008/f3d/db001``, are also allowed.
+
 :Usage:
     .. code-block:: bash
 
@@ -65,10 +67,10 @@ module name like **sls10afa.c008.f3d.db001**.
 
     * 2017-07-13 ``@ddalle``: Version 1.0
     * 2020-07-06 ``@ddalle``: Version 1.1; update docstring
-    * 2021-05-20 ``@ddalle``: Version 1.0; from **SLS-10-D-AFA**
     * 2021-07-17 ``@ddalle``: Version 2.0; process dependencies
     * 2021-07-19 ``@ddalle``: Version 2.1; add ``--no-write``
     * 2021-08-20 ``@ddalle``: Version 3.0; generalize for ``cape``
+    * 2021-09-15 ``@ddalle``: Version 3.1; more DVC support
 """
 
 
@@ -127,14 +129,16 @@ def write_dbs(*a, **kw):
         # Display help message and quit
         print(textutils.markdown(HELP_WRITEDB))
         return
+    # Change '/' to '.'
+    a_normalized = tuple(ai.replace(os.sep, '.') for ai in a)
     # Process other options
     force_all = kw.pop("force-all", kw.pop("force_all", kw.pop("F", False)))
     force_last = kw.pop("force", kw.pop("f", False))
     write = kw.pop("write", True)
     # Process original module names
-    anames, _ = genr8_modsequence(a, reqs=False)
+    anames, _ = genr8_modsequence(a_normalized, reqs=False)
     # Process all other requirements
-    dbnames, modnames = genr8_modsequence(a, **kw)
+    dbnames, modnames = genr8_modsequence(a_normalized, **kw)
     # Status update
     if force_all:
         print("Rewriting databases from source:")

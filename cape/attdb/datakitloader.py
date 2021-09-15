@@ -2361,6 +2361,8 @@ class DataKitLoader(kwutils.KwargHandler):
             *cols*: {``None``} | :class:`list`
                 If *dkl* has more than one file, *cols* must be a list
                 of lists specifying which columns to write to each file
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -2412,6 +2414,8 @@ class DataKitLoader(kwutils.KwargHandler):
             *cols*: {``None``} | :class:`list`
                 If *dkl* has more than one file, *cols* must be a list
                 of lists specifying which columns to write to each file
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
