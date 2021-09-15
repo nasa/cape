@@ -53,6 +53,16 @@ import cape.attdb.ftypes as ftypes
 
 
 # Accepted list for response_method
+RESPONSE_METHODS = [
+    None,
+    "nearest",
+    "linear",
+    "linear-schedule",
+    "rbf",
+    "rbf-map",
+    "rbf-linear",
+]
+# List of RBF types
 RBF_METHODS = [
     "rbf",
     "rbf-map",
@@ -1609,6 +1619,84 @@ class DataKit(ftypes.BaseData):
         # Create RBF from data
         self.create_rbf_from_db(dbf)
 
+    # Generate special cols for an RBF
+    def genr8_rbf_cols(self, col, xcols, **kw):
+        # Expand option
+        expand = kw.get("expand", False)
+        # Get arg list for first *coeff*
+        eval_args = self.get_response_args(col)
+        # Check for validity
+        if eval_args is None:
+            # No eval args for this coeff
+            raise KeyError("No 'response_args' for col '%s'" % col)
+        # Check if present
+        if col not in self:
+            raise KeyError("No coeff '%s' in database" % k)
+        # Get evaluation type
+        eval_meth = self.get_response_method(col)
+        # Check it
+        if eval_meth is None:
+            raise KeyError("No 'response_method' for col '%s'" % col)
+        # Check for RBFs attribute
+        try:
+            self.rbf[col]
+        except AttributeError:
+            # No definitions at all
+            raise AttributeError("No RBFs defined for this datakit")
+        except KeyError:
+            # No RBFs saved for ref coeff
+            raise KeyError("No RBFs for col '%s'" % col)
+        # Check if the method is in our accepted list
+        if eval_meth not in RBF_METHODS:
+            raise ValueError(
+                ("Response method '%s' is for col " % eval_meth) +
+                ("'%s' is not an RBF method" % col))
+        # Number of arguments
+        narg = len(eval_args)
+        # Initialize values
+        vals = {}
+        cols = []
+        # Extra columns for each output coeff
+        RBF_COL_SUFFIXES = ["", "method", "rbf", "func", "eps", "smooth"]
+        # Integer code for method
+        imeth = RESPONSE_METHODS.index(eval_meth)
+        # Check type
+        if eval_meth == "rbf":
+            # Get single global rbf
+            rbf = self.rbf[col]
+            rbfs = [rbf]
+        else:
+            # Get list of rbfs
+            rbfs = self.rbf[col]
+        # Number of rbfs
+        nrbf = len(rbfs)
+        # Sizes
+        nxs = np.array([rbfj.nodes.size for rbfj in rbfs])
+        nx = np.sum(nx)
+        # Special column names
+        cols = ["%s_%s" % (col, suf) for suf in RBF_COL_SUFFIXES]
+        cols = [colj.rstrip("_") for colj in cols]
+        # Initialize values
+        if expand:
+            vals[cols[0]] = np.zeros(nx)
+            vals[cols[1]] = np.zeros(nx, dtype="int32")
+            vals[cols[2]] = np.zeros(nx)
+            vals[cols[3]] = np.zeros(nx, dtype="int32")
+            vals[cols[4]] = np.zeros(nx)
+            vals[cols[5]] = np.zeros(nx)
+        else:
+            vals[cols[0]] = np.zeros(nx)
+            vals[cols[1]] = np.zeros(nrbf, dtype="int32")
+            vals[cols[2]] = np.zeros(nx)
+            vals[cols[3]] = np.zeros(nrbf, dtype="int32")
+            vals[cols[4]] = np.zeros(nrbf)
+            vals[cols[5]] = np.zeros(nrbf)
+        # Output
+        return vals
+        
+        
+        
+
     # Convert data object to RBF
     def create_rbf_from_db(self, dbf):
         r"""Create RBF response from data object
@@ -1623,6 +1711,7 @@ class DataKit(ftypes.BaseData):
         :Versions:
             * 2019-07-24 ``@ddalle``: Version 1.0; :func:`ReadRBFCSV`
             * 2021-06-07 ``@ddalle``: Version 2.0
+            * 2021-09-14 ``@ddalle``: Version 2.1; bug fix/testing
         """
         # Test that it's a **dict**
         if not isinstance(dbf, dict):
@@ -1796,6 +1885,7 @@ class DataKit(ftypes.BaseData):
             * 2019-07-24 ``@ddalle``: Version 1.0; :func:`WriteRBFCSV`
             * 2021-06-09 ``@ddalle``: Version 2.0
         """
+       # --- Checks ---
         # Check input type
         if not isinstance(coeffs, (list, tuple)):
             raise TypeError("Coefficient list must be a list of strings")
@@ -1856,17 +1946,15 @@ class DataKit(ftypes.BaseData):
                     ("Mismatching response_method '%s' for col '%s'" % (
                         self.get_response_args(k), k)) +
                     ("; expected '%s'" % eval_meth))
-
+       # --- Init ---
         # Number of arguments
         narg = len(eval_args)
         # Get method index
         imeth = RBF_METHODS.index(eval_meth)
-
         # Initialize final column list
         cols = eval_args + ["eval_method"]
         # Initialize values
         vals = {}
-
         # Extra columns for each output coeff
         COEFF_COLS = ["", "rbf", "func", "eps", "smooth"]
         # Loop through coefficients
@@ -1903,7 +1991,7 @@ class DataKit(ftypes.BaseData):
         for col in ["eval_method"]:
             # Create values
             vals[col] = np.full(nx, imeth) 
-
+       # --- Data/Properties ---
         # Number of columns
         ncol = len(cols)
         # Total number of points so fart

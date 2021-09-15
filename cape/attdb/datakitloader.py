@@ -2444,6 +2444,33 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read from db/ folder
         return self.read_dbfile(fname, "csv", **kw)
 
+    def read_dbfile_csv_rbf(self, fname, **kw):
+        r"""Read a ``.mat`` file from *DB_DIR*
+
+        :Call:
+            >>> db = dkl.read_dbfile_mat(fname, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fname*: :class:`str`
+                Name of file to read from raw data folder
+            *ftype*: {``"mat"``} | ``None`` | :class:`str`
+                Optional specifier to predetermine file type
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+            *kw*: :class:`dict`
+                Additional keyword arguments passed to *cls*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-06-25 ``@ddalle``: Version 1.0
+        """
+        # Set default file descriptor
+        kw.setdefault("ftype", "csv")
+        # Read from db/ folder
+        return self.read_dbfile(fname, "csv", **kw)
+
 
     def read_dbfile(self, fname, ext, **kw):
         r"""Read a databook file from *DB_DIR*
