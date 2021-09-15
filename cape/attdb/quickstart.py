@@ -49,6 +49,7 @@ DataKit 3.0 package.
 
 :Versions:
     * 2021-08-24 ``@ddalle``: Version 1.0
+    * 2021-09-15 ``@ddalle``: Version 1.1; more STDOUT
 """
 
 
@@ -204,10 +205,10 @@ def quickstart(*a, **kw):
         opts = {}
     # Set default target
     kw.setdefault("target", opts.get("target"))
-    # Create folder
-    create_pkgdir(pkg, where, **kw)
     # Prompt for a title
     kw["title"] = _prompt_title(**kw)
+    # Create folder
+    create_pkgdir(pkg, where, **kw)
     # Write metadata
     create_metadata(pkg, opts, where, **kw)
     # Create the package files
@@ -269,6 +270,7 @@ def create_pkg(pkg, opts, where=".", **kw):
     """
     # Get absolute path to target
     basepath = expand_target(where)
+    basepath0 = basepath
     # Get relative folder
     path = get_pkgdir(pkg, **kw)
     # Full path to package
@@ -288,6 +290,8 @@ def create_pkg(pkg, opts, where=".", **kw):
         # Check if file exists
         if os.path.isfile(fpy):
             continue
+        # Status update
+        print("Writing file '%s'" % os.path.relpath(fpy, basepath0))
         # Otherwise create empty file
         with open(fpy, "w") as f:
             # Write common header
@@ -298,9 +302,9 @@ def create_pkg(pkg, opts, where=".", **kw):
                 f.write("from .%s import *\n" % pkgname)
                 f.write("from .%s import __doc__\n\n" % pkgname)
     # Write template for the main Python file
-    write_init_py(pkgdir, opts)
+    write_init_py(pkgdir, opts, where=where)
     # Write template for setup.py
-    write_setup_py(os.path.dirname(pkgdir), opts)
+    write_setup_py(os.path.dirname(pkgdir), opts, where=where)
 
 
 # Create the metadata
@@ -335,6 +339,8 @@ def create_metadata(pkg, opts, where=".", **kw):
     # Check if file exists
     if os.path.isfile(fjson):
         return
+    # Status update
+    print("Writing file '%s'" % os.path.relpath(fjson, basepath))
     # Get title
     title = kw.get("title", DEFAULT_TITLE)
     # Initialize metadata
@@ -399,6 +405,8 @@ def create_vendorize_json(pkg, opts, where=".", **kw):
     # Check if file exists
     if os.path.isfile(fjson):
         return
+    # Status update
+    print("Writing file '%s'" % os.path.relpath(fjson, basepath))
     # Set default "target" in vendorize.json
     vendor = dict(target="%s/_vendor" % pkg.split(".")[-1])
     # Merge settings from *opts_vendor*
@@ -409,11 +417,11 @@ def create_vendorize_json(pkg, opts, where=".", **kw):
 
 
 # Write the starter for a module
-def write_init_py(pkgdir, opts):
+def write_init_py(pkgdir, opts, where="."):
     r"""Create ``__init__.py`` template for DataKit package
 
     :Call:
-        >>> write_init_py(pkgdir, opts)
+        >>> write_init_py(pkgdir, opts, basepath)
     :Inputs:
         *pkgdir*: :class:`str`
             Folder in which to create ``__init__.py`` file
@@ -427,6 +435,10 @@ def write_init_py(pkgdir, opts):
     # Check if it exists
     if os.path.isfile(fpy):
         return
+    # Get root for status message
+    basepath = expand_target(where)
+    # Status update
+    print("Writing file '%s'" % os.path.relpath(fpy, basepath))
     # Check for a datakitloader module
     if isinstance(opts, dict):
         # Try to get module with database name settings
@@ -499,7 +511,7 @@ def write_init_py(pkgdir, opts):
 
 
 # Write the setup.py script
-def write_setup_py(pkgdir, opts):
+def write_setup_py(pkgdir, opts, where="."):
     r"""Create ``__init__.py`` template for DataKit package
 
     :Call:
@@ -517,6 +529,10 @@ def write_setup_py(pkgdir, opts):
     # Check if it exists
     if os.path.isfile(fpy):
         return
+    # Get root for status message
+    basepath = expand_target(where)
+    # Status update
+    print("Writing file '%s'" % os.path.relpath(fpy, basepath))
     # Create the file
     with open(fpy, "w") as f:
         # Write the template
@@ -568,12 +584,18 @@ def mkdirs(basepath, path):
     # Ensure *basepath* exists
     if not os.path.isdir(basepath):
         raise SystemError("basepath '%s' is not a folder" % basepath)
+    # Save original base for status updates
+    basepath0 = basepath
     # Loop through remaining folders
     for pathj in path.split(os.sep):
         # Append to path
         basepath = os.path.join(basepath, pathj)
         # Check if it exists
         if not os.path.isdir(basepath):
+            # Status update
+            print(
+                "Creating folder '%s%s'"
+                % (os.path.relpath(basepath, basepath0), os.sep))
             # Create it
             os.mkdir(basepath)
 
