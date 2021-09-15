@@ -2341,9 +2341,17 @@ class DataKitLoader(kwutils.KwargHandler):
                 to be used in other write functions
         :Versions:
             * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-15 ``@ddalle``: Version 1.1; check for DVC stub
         """
+        # Get DVC file name
+        if fcsv.endswith(".dvc"):
+            # Already a DVC stub
+            fdvc = fcsv
+        else:
+            # Append ".dvc" extension
+            fdvc = fcsv + ".dvc"
         # Check if it exists
-        if f or not os.path.isfile(fcsv):
+        if f or not (os.path.isfile(fcsv) or os.path.isfile(fdvc)):
             # Read datakit from source
             if db is None:
                 db = readfunc()
@@ -2376,9 +2384,17 @@ class DataKitLoader(kwutils.KwargHandler):
                 to be used in other write functions
         :Versions:
             * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-15 ``@ddalle``: Version 1.1; check for DVC stub
         """
+        # Get DVC file name
+        if fmat.endswith(".dvc"):
+            # Already a DVC stub
+            fdvc = fmat
+        else:
+            # Append ".dvc" extension
+            fdvc = fmat + ".dvc"
         # Check if it exists
-        if f or not os.path.isfile(fmat):
+        if f or not (os.path.isfile(fmat) or os.path.isfile(fdvc)):
             # Read datakit from source
             if db is None:
                 db = readfunc()
