@@ -2664,10 +2664,14 @@ class DataKit(ftypes.BaseData):
                     "Expected 2D '%s' col; got %i dims" % (colX, X.ndim))
             # Valid saved values
             return X
-        # Special column name
-        colx = "%s_xcols" % col
-        # Check for this column in several places
-        xcols = kw.get(colx, vals.get(colx, self.get(colx)))
+        # Look for explicit kwark
+        xcols = kw.get("xcols")
+        # Check if that worked
+        if xcols is None:
+            # Special column name
+            colx = "%s_xcols" % col
+            # Check for this column in several places
+            xcols = kw.get(colx, vals.get(colx, self.get(colx)))
         # Use it if appropriate
         if xcols is None:
             raise ValueError("Unable to infer arg values for '%s'" % col)
@@ -2725,10 +2729,14 @@ class DataKit(ftypes.BaseData):
         if isinstance(x0, np.ndarray):
             # Valid saved values
             return x0
-        # Special column name
-        colx = "%s_xcols" % col
-        # Check for this column in several places
-        xcols = kw.get(colx, vals.get(colx, self.get(colx)))
+        # Look for explicit kwark
+        xcols = kw.get("xcols")
+        # Check if that worked
+        if xcols is None:
+            # Special column name
+            colx = "%s_xcols" % col
+            # Check for this column in several places
+            xcols = kw.get(colx, vals.get(colx, self.get(colx)))
         # Use it if appropriate
         if xcols is None:
             raise ValueError("Unable to infer arg values for '%s'" % col)
