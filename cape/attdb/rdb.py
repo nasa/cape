@@ -77,6 +77,8 @@ RBF_FUNCS = [
     "quintic",
     "thin_plate"
 ]
+# Names of parameters needed to describe an RBF network
+RBF_SUFFIXES = ["method", "rbf", "func", "eps", "smooth", "N"]
 
 
 # Options for RDBNull
@@ -1595,31 +1597,67 @@ class DataKit(ftypes.BaseData):
         dbmat.write_mat(fname, cols=cols, attrs=attrs)
 
    # --- RBF specials ---
-    # Read RBF directly from CSV file
-    def read_rbf_csv(self, fname, **kw):
-        r"""Read RBF directly from a CSV file
-        
-        :Call:
-            >>> db.read_rbf_csv(fname, **kw)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *fname*: :class:`str`
-                Name of CSV file to read
-        :See Also:
-            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
-        :Versions:
-            * 2021-06-17 ``@ddalle``: Version 1.0
-        """
-        # Set warning mode
-        kw.setdefault("_warnmode", 0)
-        # Read the data
-        dbf = ftypes.CSVFile(fname, **kw)
-        # Create RBF from data
-        self.create_rbf_from_db(dbf)
 
     # Infer RBF from cols with expected suffixes
     def infer_rbf(self, col, vals=None, **kw):
+        r"""Infer a radial basis function response mechanism
+
+        This looks for columns with specific suffixes in order to create
+        a Radial Basis Function (RBF) response mechanism in *db*.
+        Suppose that *col* is ``"CY"`` for this example, then this
+        function will look for the following columns, either in *col* or
+        *vals*:
+
+            * ``"CY"``: nominal values at which RBF was created
+            * ``"CY_method"``: response method index
+            * ``"CY_rbf"``: weights of RBF nodes
+            * ``"CY_func"``: RBF basis function index
+            * ``"CY_eps"``: scaling parameter for (each) RBF
+            * ``"CY_smooth:``: RBF smoothing parameter
+            * ``"CY_N"``: number of nodes in (each) RBF
+            * ``"CY_xcols"``: explicit list of RBF argument names
+            * ``"CY_X"``: 2D matrix of values of RBF args
+            * ``"CY_x0"``: values of first argument if not global RBF
+
+        The *CY_method* column will repeat one of the following values:
+
+            * ``4``: ``"rbf"``
+            * ``5``: ``"rbf-map"``
+            * ``6``: ``"rbf-schedule"``
+
+        The *CY_func* legend is as follows:
+
+            * ``0``: ``"multiquadric"``
+            * ``1``: ``"inverse_multiquadric"``
+            * ``2``: ``"gaussian"``
+            * ``3``: ``"linear",
+            * ``4``: ``"cubic"``
+            * ``5``: ``"quintic"``
+            * ``6``: ``"thin_plate"``
+        
+        :Call:
+            >>> db.infer_rbf(col, vals=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit where *db.rbf[col]* will be defined
+            *col*: :class:`str`
+                Name of column whose RBF will be constructed
+            *vals*: :class:`dict`\ [:class:`np.ndarray`]
+                Data to use in RBF creation in favor of *db*
+        :Effects:
+            *db[col]*: :class:`np.ndarray`\ [:class:`float`]
+                Values of *col* used in RBF
+            *db[xcol]*: :class:`np.ndarray`\ [:class:`float`]
+                Values of RBF args saved for each *xcol*
+            *db.bkpts[xcol]*: :class:`np.ndarray`\ [:class:`float`]
+                Break points for each RBF arg
+            *db.rbf[col]*: :class:`Rbf` | :class:`list`
+                One or more SciPy radial basis function instances
+            *db.response_methods[col]*: :class:`str`
+                Name of inferred response method
+        :Versions:
+            * 2021-09-16 ``@ddalle``: Version 1.0
+        """
        # --- Options ---
        # --- Get values ---
         # Default *vals* dict of extra columns
@@ -1762,6 +1800,78 @@ class DataKit(ftypes.BaseData):
         self.set_response_args(col, xcols)
 
     # Generate special cols for an RBF
+    def create_rbf_cols(self, col, **kw):
+        r"""Generate data to describe existing RBF(s) for *col*
+
+        This creates a :class:`dict` of various properties that are used
+        by the radial basis function (or list thereof) within *db.rbf*.
+        It is possible to recreate an RBF(s) with only this informaiton,
+        thus avoiding the need to retrain the RBF network(s).
+        
+        :Call:
+            >>> db.create_rbf_cols(col, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit with *db.rbf[col]* defined
+            *col*: :class:`str`
+                Name of column whose RBF will be analyzed
+            *expand*: ``True`` | {``False``}
+                Repeat properties like *eps* for each node of RBF
+                (for uniform data size, usually to write to CSV file)
+        :Effects:
+            *db[col]*: :class:`np.ndarray`\ [:class:`float`]
+                Values of *col* used in RBF
+            *db[col+"_method"]*: :class:`np.ndarray`\ [:class:`int`]
+                Response method index:
+
+                * ``4``: ``"rbf"``
+                * ``5``: ``"rbf-map"``
+                * ``6``: ``"rbf-schedule"``
+
+            *db[col+"_rbf"]*: :class:`np.ndarray`\ [:class:`float`]
+                Weight for each RBF node
+            *db[col+"_func"]*: :class:`np.ndarray`\ [:class:`int`]
+                RBF basis function index:
+
+                * ``0``: ``"multiquadric"``
+                * ``1``: ``"inverse_multiquadric"``
+                * ``2``: ``"gaussian"``
+                * ``3``: ``"linear",
+                * ``4``: ``"cubic"``
+                * ``5``: ``"quintic"``
+                * ``6``: ``"thin_plate"``
+
+            *db[col+"_eps"]*: :class:`np.ndarray`\ [:class:`float`]
+                Epsilon scaling factor for (each) RBF
+            *db[col+"_smooth"]*: :class:`np.ndarray`\ [:class:`float`]
+                Smoothing factor for (each) RBF
+            *db[col+"_N"]*: :class:`np.ndarray`\ [:class:`float`]
+                Number of nodes in (each) RBF
+            *db.response_args[col]*: :class:`list`\ [:class:`str`]
+                List of arguments for *col*
+        :Versions:
+            * 2021-09-16 ``@ddalle``: Version 1.0
+        """
+        # Create results
+        vals = self.genr8_rbf_cols(col, **kw)
+        # Check if nominal values saved
+        if col not in self:
+            # Get values from *vals*
+            v = vals[col]
+            # Save
+            self.save_col(col, v)
+        # Column index to keep *col* descriptors close
+        index_col = self.cols.index(col) + 1
+        # Suffixes to link from *vals*
+        for suffix in reversed(RBF_SUFFIXES):
+            # Special col name
+            colj = "%s_%s" % (col, suffix)
+            # Append this column
+            if colj not in self.cols:
+                self.cols.insert(index_col, colj)
+            # Save the values from *vals* dict
+            self.save_col(colj, vals[colj])
+        
     def genr8_rbf_cols(self, col, **kw):
         r"""Generate data to describe existing RBF(s) for *col*
 
@@ -1968,9 +2078,6 @@ class DataKit(ftypes.BaseData):
         vals[col9] = eval_args
         # Output
         return vals
-        
-        
-        
 
     # Convert data object to RBF
     def create_rbf_from_db(self, dbf):
@@ -2135,6 +2242,29 @@ class DataKit(ftypes.BaseData):
             self.create_bkpts(args[0:1])
             # Get break points at each slice
             self.create_bkpts_schedule(args[1:], args[0])
+
+    # Read RBF directly from CSV file
+    def read_rbf_csv(self, fname, **kw):
+        r"""Read RBF directly from a CSV file
+        
+        :Call:
+            >>> db.read_rbf_csv(fname, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *fname*: :class:`str`
+                Name of CSV file to read
+        :See Also:
+            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
+        :Versions:
+            * 2021-06-17 ``@ddalle``: Version 1.0
+        """
+        # Set warning mode
+        kw.setdefault("_warnmode", 0)
+        # Read the data
+        dbf = ftypes.CSVFile(fname, **kw)
+        # Create RBF from data
+        self.create_rbf_from_db(dbf)
 
     # Write a CSV file for radial basis functions
     def write_rbf_csv(self, fcsv, coeffs, **kw):
