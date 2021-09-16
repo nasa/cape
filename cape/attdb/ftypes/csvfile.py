@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.attdb.ftypes.csv`: Comma-separated value read/write
-===============================================================
+:mod:`cape.attdb.ftypes.csfilev`: Comma-separated value read/write
+===================================================================
 
 This module contains a basic interface in the spirit of
 :mod:`cape.attdb.ftypes` for standard comma-separated value files.  It
@@ -16,14 +16,18 @@ final comment before the beginning of data.
 """
 
 # Standard library
+import os
 import re
 import sys
+
+# Third-party modules
+import numpy as np
 
 # CAPE modules
 import cape.tnakit.typeutils as typeutils
 import cape.tnakit.arrayutils as arrayutils
 
-# Local modules
+# Local imports
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
 
 # Local extension
@@ -811,7 +815,8 @@ class CSVFile(BaseFile, TextInterpreter):
             # Check for presence
             if col not in self:
                 # Print a warning
-                sys.stderr.write("Warning: skipping col '%s'; " % col)
+                sys.stderr.write("Warning (%s): " % os.path.basename(f.name))
+                sys.stderr.write("skipping '%s'; " % col)
                 sys.stderr.write("not in database\n")
                 sys.stderr.flush()
                 # Delete it
@@ -821,8 +826,9 @@ class CSVFile(BaseFile, TextInterpreter):
             # Check dimension
             if ndim != 1:
                 # Print a warning
-                sys.stderr.write("Warning: skipping col '%s'; " % col)
-                sys.stderr.write("cannot write %iD data" % ndim)
+                sys.stderr.write("Warning (%s): " % os.path.basename(f.name))
+                sys.stderr.write("skipping '%s'; " % col)
+                sys.stderr.write("can't write %iD data" % ndim)
                 sys.stderr.flush()
                 # Delete it
                 cols.remove(col)
@@ -830,14 +836,34 @@ class CSVFile(BaseFile, TextInterpreter):
         n = len(self[cols[0]])
         # Loop through the keys
         for col in list(cols):
+            # Get length
+            nj = len(self[col])
             # Check length
-            if len(self[col]) != n:
-                # Print a warning
-                sys.stderr.write("Warning: skipping col '%s' " % col)
-                sys.stderr.write("with mismatching length\n")
-                sys.stderr.flush()
-                # Delete it
-                cols.remove(col)
+            if nj == n:
+                # No problems
+                continue
+            # Get unique values of first col
+            v0 = self[cols[0]]
+            x0 = np.unique(v0)
+            n0 = x0.size
+            # Check if we can "expand" the column using cols[0]
+            if n0 == nj:
+                # Count unique values of *cols[0]*
+                x0_N = np.array(
+                    [
+                        np.count_nonzero(np.abs(v0-x0j) <= 1e-8)
+                        for x0j in x0
+                    ])
+                # Repeat each value according number of times
+                self[col] = np.repeat(self[col], x0_N)
+                continue
+            # Otherwise print a warning and remove
+            sys.stderr.write("Warning (%s): " % os.path.basename(f.name))
+            sys.stderr.write("skipping '%s'; " % col)
+            sys.stderr.write("length mismatch\n")
+            sys.stderr.flush()
+            # Delete it
+            cols.remove(col)
         # Options handle
         opts = self.opts
         # Process kwargs

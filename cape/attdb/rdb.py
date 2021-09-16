@@ -78,7 +78,7 @@ RBF_FUNCS = [
     "thin_plate"
 ]
 # Names of parameters needed to describe an RBF network
-RBF_SUFFIXES = ["method", "rbf", "func", "eps", "smooth", "N"]
+RBF_SUFFIXES = ["method", "rbf", "func", "eps", "smooth", "N", "xcols"]
 
 
 # Options for RDBNull
@@ -1597,6 +1597,27 @@ class DataKit(ftypes.BaseData):
         dbmat.write_mat(fname, cols=cols, attrs=attrs)
 
    # --- RBF specials ---
+    def infer_rbfs(self, cols, **kw):
+        r"""Infer radial basis function responses for several *cols*
+
+        :Call:
+            >>> db.infer_rbfs(cols, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit where *db.rbf[col]* will be defined
+            *cols*: :class:`list`\ [:class:`str`]
+                Name of column whose RBF will be constructed
+            *xcols*: {``None``} | :class:`list`\ [:class:`str`]
+                Explicit list of arguments for all *cols*
+        :See Also:
+            * :func:`infer_rbf`
+            * :func:`create_rbf_cols`
+        :Versions:
+            * 2021-09-16 ``@ddalle``: Version 1.0
+        """
+        # Infer RBF for each *col*
+        for col in cols:
+            self.infer_rbf(col, **kw)
 
     # Infer RBF from cols with expected suffixes
     def infer_rbf(self, col, vals=None, **kw):
@@ -1670,8 +1691,6 @@ class DataKit(ftypes.BaseData):
         col4 = "%s_eps" % col
         col5 = "%s_smooth" % col
         col6 = "%s_N" % col
-        col7 = "%s_X" % col
-        col8 = "%s_x0" % col
         # Extract values
         v = vals.get(col0, self.get(col0))
         v_rbf  = vals.get(col2, self.get(col2))
@@ -1679,7 +1698,8 @@ class DataKit(ftypes.BaseData):
         v_eps  = vals.get(col4, self.get(col4))
         v_smth = vals.get(col5, self.get(col5))
         v_N = vals.get(col6, self.get(col6))
-        v_X = vals.get(col7, self.get(col7))
+        # Get arg values
+        v_X = self._infer_response_x(col, vals, **kw)
         # Get list of arguments
         xcols = self._infer_xcols(col, vals, **kw)
         # Get response method
@@ -1732,7 +1752,7 @@ class DataKit(ftypes.BaseData):
         else:
             # %%% Multiple RBFS %%%
             # Get *x0* values
-            v_x0 = vals.get(col8, self.get(col8))
+            v_x0 = self._infer_response_x0(col, vals, **kw)
             # Get unique values of first *xcol*
             x0_bkpts = np.unique(v_x0)
             # Count unique values
@@ -1800,13 +1820,38 @@ class DataKit(ftypes.BaseData):
         self.set_response_args(col, xcols)
 
     # Generate special cols for an RBF
+    def create_rbfs_cols(self, cols, **kw):
+        r"""Save data to describe multiple existing RBFs
+
+        :Call:
+            >>> db.create_rbfs_cols(cols, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit with *db.rbf[col]* defined
+            *cols*: :class:`str`
+                Name of columns whose RBFs will be archived
+            *expand*: ``True`` | {``False``}
+                Repeat properties like *eps* for each node of RBF
+                (for uniform data size, usually to write to CSV file)
+        :See Also:
+            * :func:`create_rbf_cols`
+            * :func:`infer_rbfs`
+            * :func:`infer_rbf`
+        :Versions:
+            * 2021-09-16 ``@ddalle``: Version 1.0
+        """
+        # Loop through column list
+        for col in cols:
+            self.create_rbf_cols(col, **kw)
+
     def create_rbf_cols(self, col, **kw):
         r"""Generate data to describe existing RBF(s) for *col*
 
-        This creates a :class:`dict` of various properties that are used
-        by the radial basis function (or list thereof) within *db.rbf*.
-        It is possible to recreate an RBF(s) with only this informaiton,
-        thus avoiding the need to retrain the RBF network(s).
+        This saves various properties extracted from *db.rbf[col]*
+        directly as additional columns in *db*. These values can then be
+        used but :func:`infer_rbf` to reconstruct a SciPy radial basis
+        function response mechanism without re-solving the original
+        linear system of equations that trains the RBF weights.
         
         :Call:
             >>> db.create_rbf_cols(col, **kw)
@@ -1847,6 +1892,8 @@ class DataKit(ftypes.BaseData):
                 Smoothing factor for (each) RBF
             *db[col+"_N"]*: :class:`np.ndarray`\ [:class:`float`]
                 Number of nodes in (each) RBF
+            *db[col+"_xcols"]*: :class:`list`\ [:class:`str`]
+                List of arguments for *col*
             *db.response_args[col]*: :class:`list`\ [:class:`str`]
                 List of arguments for *col*
         :Versions:
@@ -1877,7 +1924,7 @@ class DataKit(ftypes.BaseData):
 
         This creates a :class:`dict` of various properties that are used
         by the radial basis function (or list thereof) within *db.rbf*.
-        It is possible to recreate an RBF(s) with only this informaiton,
+        It is possible to recreate an RBF(s) with only this information,
         thus avoiding the need to retrain the RBF network(s).
         
         :Call:
@@ -2497,7 +2544,7 @@ class DataKit(ftypes.BaseData):
         xcols = kw.get(colx, vals.get(colx, self.get(colx)))
         # Use it if appropriate
         if xcols is not None:
-            return xcols
+            return [xcol.strip() for xcol in xcols]
         # Number of args
         narg = self._infer_response_narg(col, vals)
         # Special column name pattern, like "CYR_x.dy"
@@ -2561,7 +2608,7 @@ class DataKit(ftypes.BaseData):
         # Check for this column in several places
         xcols = kw.get(colx, vals.get(colx, self.get(colx)))
         # Use it if appropriate
-        if xcols is None:
+        if xcols is not None:
             return len(xcols)
         # Get *X* to see how many args are expected
         colX = "%s_X" % col
@@ -2584,6 +2631,117 @@ class DataKit(ftypes.BaseData):
             narg = X.shape[1] + 1
         # Output
         return narg
+
+    def _infer_response_x(self, col, vals=None, **kw):
+        r"""Infer argument values to response method
+
+        :Call:
+            >>> X = db._infer_response_x(col, vals)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface
+            *col*: :class:`str`
+                Name of *col* whose response mechanism is queried
+            *vals*: {``None``} | :class:`dict`
+                Additional values, e.g. from :func:`genr8_rbf_cols`
+        :Outputs:
+            *X*: :class:`np.ndarray`\ [:class:`float`]
+                2D array of arg values for all non-slice args
+        :Versions:
+            * 2021-09-16 ``@ddalle``: Version 1.0
+        """
+        # Default *vals*
+        if vals is None:
+            vals = {}
+        # Get *X* to see how many args are expected
+        colX = "%s_X" % col
+        X = vals.get(colX, self.get(colX))
+        # Check validity
+        if isinstance(X, np.ndarray):
+            # Check dimension
+            if X.ndim != 2:
+                raise ValueError(
+                    "Expected 2D '%s' col; got %i dims" % (colX, X.ndim))
+            # Valid saved values
+            return X
+        # Special column name
+        colx = "%s_xcols" % col
+        # Check for this column in several places
+        xcols = kw.get(colx, vals.get(colx, self.get(colx)))
+        # Use it if appropriate
+        if xcols is None:
+            raise ValueError("Unable to infer arg values for '%s'" % col)
+        # Ensure list
+        xcols = [xcol.strip() for xcol in xcols]
+        # Get response method
+        _, eval_meth = self._infer_response_method(col, vals)
+        # Number of args
+        if eval_meth != "rbf":
+            # First key is a mapped parameter
+            xcols.pop(0)
+        # Number of args
+        narg = len(xcols)
+        # Get size of first arg
+        x0 = vals.get(xcols[0], self.get(xcols[0]))
+        # Ensure validity
+        if x0 is None:
+            raise ValueError(
+                "Unable to infer arg '%s' values for '%s'" % (xcols[0], col))
+        # Get number of test points
+        nx = x0.size
+        # Initialize output
+        X = np.zeros((nx, narg))
+        # Save values
+        for j, xcol in enumerate(xcols):
+            X[:, j] = vals.get(xcol, self.get(xcol))
+        # Output
+        return X
+
+    def _infer_response_x0(self, col, vals=None, **kw):
+        r"""Infer first argument's values to response method
+
+        :Call:
+            >>> x0 = db._infer_response_x(col, vals)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface
+            *col*: :class:`str`
+                Name of *col* whose response mechanism is queried
+            *vals*: {``None``} | :class:`dict`
+                Additional values, e.g. from :func:`genr8_rbf_cols`
+        :Outputs:
+            *x0*: :class:`np.ndarray`\ [:class:`float`]
+                1D array of arg values for all first (slice) arg
+        :Versions:
+            * 2021-09-16 ``@ddalle``: Version 1.0
+        """
+        # Default *vals*
+        if vals is None:
+            vals = {}
+        # Get *X* to see how many args are expected
+        colx = "%s_x0" % col
+        x0 = vals.get(colx, self.get(colx))
+        # Check validity
+        if isinstance(x0, np.ndarray):
+            # Valid saved values
+            return x0
+        # Special column name
+        colx = "%s_xcols" % col
+        # Check for this column in several places
+        xcols = kw.get(colx, vals.get(colx, self.get(colx)))
+        # Use it if appropriate
+        if xcols is None:
+            raise ValueError("Unable to infer arg values for '%s'" % col)
+        # Get name of first column
+        xcol0 = xcols[0].strip()
+        # Get size of first arg
+        x0 = vals.get(xcol0, self.get(xcol0))
+        # Ensure validity
+        if x0 is None:
+            raise ValueError(
+                "Unable to infer arg '%s' values for '%s'" % (xcol0, col))
+        # Output
+        return x0
 
     def _infer_response_method(self, col, vals=None):
         r"""Determine response method based on expected *col* names
