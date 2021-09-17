@@ -8424,6 +8424,103 @@ class DataKit(ftypes.BaseData):
   # ==================
   # <
    # --- Save/Add ---
+   # --- Sort ---
+    # Sort by list of columns
+    def sort(self, cols=None):
+        r"""Sort (ascending) using list of *cols*
+
+        :Call:
+            >>> db.sort(cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of columns on which t sort, with highest sort
+                priority to the first *col*, later *cols* used as
+                tie-breakers
+        :Versions:
+            * 2021-09-17 ``@ddalle``: Version 1.0
+        """
+        # Default columns
+        if cols is None:
+            cols = list(self.cols)
+        # First column
+        col0 = cols[0]
+        # Get value
+        v0 = self.get_all_values(col0)
+        # Size
+        n0 = len(v0)
+        # Get sorting order
+        I = self.argsort(cols)
+        # Loop through all columns
+        for col in self.cols:
+            # Get value
+            v = self.get_all_values(col)
+            # Check length
+            if len(v) != n0:
+                continue
+            # Check type
+            if isinstance(v, list):
+                # Use a generator to reorder a list
+                v = [v[i] for i in I]
+            elif isinstance(v, np.ndarray):
+                # Check dimension
+                if v.ndim == 0:
+                    # No sortable data
+                    continue
+                else:
+                    # Sort on first axis
+                    v = v[I]
+            # Save sorted values
+            self[col] = v
+        
+    # Sort by list of columns (get order)
+    def argsort(self, cols=None):
+        r"""Get (ascending) sort order using list of *cols*
+
+        :Call:
+            >>> I = db.argsort(cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                List of columns on which t sort, with highest sort
+                priority to the first *col*, later *cols* used as
+                tie-breakers
+        :Outputs:
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                Ordering such that *db[cols[0]][I]* is ascending, etc.
+        :Versions:
+            * 2021-09-17 ``@ddalle``: Version 1.0
+        """
+        # Default columns
+        if cols is None:
+            cols = list(self.cols)
+        # First column
+        col0 = cols[0]
+        # Get value
+        v0 = self.get_all_values(col0)
+        # Size
+        n0 = len(v0)
+        # Start args to :func:`np.lexsort`
+        sort_args = []
+        # Loop through columns
+        for col in cols:
+            # Get value
+            v = self.get_all_values(col)
+            # Check length
+            if len(v) != n0:
+                # Can't sort this arg
+                continue
+            # Check for 2D array
+            if isinstance(v, np.ndarray) and v.ndim != 1:
+                # Unable to sort matrices
+                continue
+            # Prepend to list (lexsort() prioritizes last arg)
+            sort_args.insert(0, v)
+        # Sort
+        return np.lexsort(sort_args)
+
    # --- Copy/Link ---
     # Append data
     def append_data(self, dbsrc, cols=None, **kw):
