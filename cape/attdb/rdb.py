@@ -4924,9 +4924,15 @@ class DataKit(ftypes.BaseData):
             # Check for extrapolation
             if not extrap and ((fj < -1e-3) or (fj - 1 > 1e-3)):
                 # Raise extrapolation error
+                print("Extrapolation dectected:")
+                print("  arg 0: %s=%.4e" % (skey, x[0]))
+                for j1, k1 in enumerate(args):
+                    print("  arg %i: %s=%.4e" % (j1+1, k1, x[j1+1]))
+                sys.tracebacklimit = 2
                 raise ValueError(
-                    ("Lookup value %.4e is outside " % x[j+1]) +
-                    ("scheduled bounds [%.4e, %.4e]" % (xmin, xmax)))
+                    ("Value %.2e " % x[j+1]) +
+                    ("for arg %i (%s) is outside " % (j, k)) +
+                    ("bounds [%.2e, %.2e]" % (xmin, xmax)))
             # Get lookup points at slices *i0* and *i1* using this prog frac
             x0[j] = (1-fj)*xmin0 + fj*xmax0
             x1[j] = (1-fj)*xmin1 + fj*xmax1
