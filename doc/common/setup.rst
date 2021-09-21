@@ -23,12 +23,12 @@ structure of a run setup is the ``"RunMatrix"`` :ref:`section
 Matrix Setup
 ------------
 The first step is to pick the list of run matrix variables, which is a list set
-in *RunMatrix>Keys*. For example, this could be as simple as ``["mach",
+in *RunMatrix* |>| *Keys*. For example, this could be as simple as ``["mach",
 "alpha"]`` for a simple run matrix, or there could be may more variables such
 as fin deflection angles or thrust settings. Common variables such as
 ``"mach"``, ``"alpha"``, ``"beta"``, etc. do not need definitions, but special
 variables such as thrust settings need to have further explanation in the
-*RunMatrix>Definitions* section.
+*RunMatrix* |>| *Definitions* section.
 
 In addition, there are three other pre-declared variable types that do not
 directly impact any CFD input settings.  These variables are ``"config"``, which
@@ -77,14 +77,14 @@ the following.
 Pre-run JSON Setup
 -------------------
 Most of the sections of the JSON file other than *Report*, *DataBook*, and
-*RunControl>Archive* affect the way the CFD solver is run, and thus they should
-generally be determined before starting the first case.
+*RunControl* |>| *Archive* affect the way the CFD solver is run, and thus they
+should generally be determined before starting the first case.
 
 For each version of the code, the *RunControl* section contains some key
-parameters. For example, *RunControl>PhaseSequence* and *RunControl>PhaseIters*
-are mandatory. Some of the other *RunControl* parameters are very dependent on
-which solver is being used, for example command-line options to ``flowCart``
-(for Cart3D) ``nodet`` (for FUN3D).
+parameters. For example, *RunControl* |>| *PhaseSequence* and *RunControl* |>|
+*PhaseIters* are mandatory. Some of the other *RunControl* parameters are very
+dependent on which solver is being used, for example command-line options to
+``flowCart`` (for Cart3D) ``nodet`` (for FUN3D).
 
 Users should take special consideration of the *Config* section prior to
 starting the actual runs.  This section can be used to request certain outputs
@@ -120,10 +120,10 @@ solver.
         
 Data Book Setup
 ---------------
-The *DataBook>Components* parameter sets the list of data components that are
-considered final post-processing data products from the run.  With no other
+The *DataBook* |>| *Components* parameter sets the list of data components that
+are considered final post-processing data products from the run. With no other
 specifications, a "Component" is assumed to be a force and moment (``"Type":
-"FM"``) taken from an iterative history.  The exception is Cart3D, where the
+"FM"``) taken from an iterative history. The exception is Cart3D, where the
 default type is ``"Force"`` since users must separately request forces and
 moments in that particular solver.
 
@@ -155,10 +155,10 @@ together for each iteration.
         }
         
 Because this is a pure post-processing step, these parameters can be filled in
-after starting or even finishing some of the cases.  Other *DataBook*
-parameters, such as *DataBook>nStats* and *DataBook>nFirst* are also important;
-see the :ref:`appropriate subsection of the JSON settings description
-<cape-json-DataBook>` for more information.
+after starting or even finishing some of the cases. Other *DataBook*
+parameters, such as *DataBook* |>| *nStats* and *DataBook* |>| *nFirst* are
+also important; see the :ref:`appropriate subsection of the JSON settings
+description <cape-json-DataBook>` for more information.
 
 Collecting the data into a database, which is kept in a separate folder outside
 the run folders (so that the run folders can be deleted when appropriate
@@ -167,7 +167,7 @@ without affecting the databases), is performed via several commands:
     ================   =========================
     *Type*             *Command*
     ================   =========================
-    ``"FM"``           ``pycart --aero``
+    ``"FM"``           ``pycart --fm``
     ``"LineLoad"``     ``pycart --ll``
     ``"TriqFM"``       ``pycart --triqfm``
     ``"TriqPoint"``    ``pycart --pt``
@@ -191,9 +191,9 @@ files if requested. It can be useful for keeping below file size and file count
 quotas while running large databases.
 
 The ``--clean`` command performs a subset of the ``--archive`` actions and can
-be run at any time. Any files identified in the
-*RunControl>Archive>ProgressDeleteFiles* as noncritical files will be deleted
-at any time this ``--clean`` command is run.
+be run at any time. Any files identified in the *RunControl* |>| *Archive* |>|
+*ProgressDeleteFiles* as noncritical files will be deleted at any time this
+``--clean`` command is run.
 
 The command
 
@@ -207,5 +207,4 @@ useful to leave the solution folder in such a state that all necessary
 post-processing can still be performed after ``--archive`` has been run, but
 the remaining files after ``--skeleton`` are only sufficient for ``pycart -c``
 to report the correct number of iterations run.
-
 

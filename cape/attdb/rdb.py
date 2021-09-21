@@ -247,7 +247,7 @@ class DataKit(ftypes.BaseData):
         r"""Initialization method
 
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
         """
         # Required attributes
         self.cols = []
@@ -384,7 +384,7 @@ class DataKit(ftypes.BaseData):
             *dbcopy*: :class:`DataKit`
                 Copy of generic database
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Version 1.0
         """
         # Form a new database
         dbcopy = self.__class__()
@@ -440,7 +440,7 @@ class DataKit(ftypes.BaseData):
             *dbcopy*: :class:`DataKit`
                 Copy of generic database
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Version 1.0
         """
         # Loop through columns
         for col in self.cols:
@@ -465,7 +465,7 @@ class DataKit(ftypes.BaseData):
             ``getattr(dbtarg, k)``: ``getattr(db, k, vdef)``
                 Shallow copy of attribute from *DBc* or *vdef* if necessary
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Version 1.0
         """
         # Check *skip*
         if not isinstance(skip, (list, tuple)):
@@ -505,7 +505,7 @@ class DataKit(ftypes.BaseData):
             ``getattr(dbtarg, k)``: ``getattr(db, k, vdef)``
                 Shallow copy of attribute from *DBc* or *vdef* if necessary
         :Versions:
-            * 2018-06-08 ``@ddalle``: First version
+            * 2018-06-08 ``@ddalle``: Version 1.0
             * 2019-12-04 ``@ddalle``: Copied from :class:`DBCoeff`
         """
         # Check for attribute
@@ -535,7 +535,7 @@ class DataKit(ftypes.BaseData):
             *vcopy*: *v.__class__*
                 Copy of *v* (shallow or deep)
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Version 1.0
         """
         # Type
         t = v.__class__
@@ -610,7 +610,7 @@ class DataKit(ftypes.BaseData):
             *db.defns*: :class:`dict`
                 Merged with ``opts["Definitions"]``
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
             * 2020-02-10 ``@ddalle``: Removed *db.defns* effect
             * 2020-03-06 ``@ddalle``: Renamed from :func:`copy_options`
@@ -661,7 +661,7 @@ class DataKit(ftypes.BaseData):
             *db.defns*: :class:`dict`
                 Merged with ``opts["Definitions"]``
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
             * 2020-02-13 ``@ddalle``: Split from :func:`copy_options`
             * 2020-03-06 ``@ddalle``: Renamed from :func:`copy_defns`
@@ -703,7 +703,7 @@ class DataKit(ftypes.BaseData):
             *ndim*: {``0``} | :class:`int`
                 Dimension of *col* in database
         :Versions:
-            * 2020-03-12 ``@ddalle``: First version
+            * 2020-03-12 ``@ddalle``: Version 1.0
         """
         # Get column definition
         defn = self.get_defn(col)
@@ -745,7 +745,7 @@ class DataKit(ftypes.BaseData):
             *ndim*: {``0``} | :class:`int`
                 Dimension of *col* at a single condition
         :Versions:
-            * 2019-12-27 ``@ddalle``: First version
+            * 2019-12-27 ``@ddalle``: Version 1.0
             * 2020-03-12 ``@ddalle``: Keyed from "Dimension"
         """
         # Get column dimension
@@ -774,7 +774,7 @@ class DataKit(ftypes.BaseData):
             *ndim*: {``0``} | :class:`int`
                 Dimension of *col* in database
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Get column definition
         defn = self.get_defn(col)
@@ -805,7 +805,7 @@ class DataKit(ftypes.BaseData):
             *ndim*: {``0``} | :class:`int`
                 Dimension of *col* at a single condition
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Get column definition
         defn = self.get_defn(col)
@@ -845,7 +845,7 @@ class DataKit(ftypes.BaseData):
             *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
         :Versions:
-            * 2020-02-13 ``@ddalle``: First version
+            * 2020-02-13 ``@ddalle``: Version 1.0
         """
         # Get sources
         srcs = self.__dict__.get("sources", {})
@@ -907,7 +907,7 @@ class DataKit(ftypes.BaseData):
             *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
                 Data file interface
         :Versions:
-            * 2020-02-13 ``@ddalle``: First version
+            * 2020-02-13 ``@ddalle``: Version 1.0
             * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
         """
         # Don't use existing if *cols* is specified
@@ -988,7 +988,7 @@ class DataKit(ftypes.BaseData):
             *attrs*: ``None`` | :class:`list`\ [:class:`str`]
                 List of *db* attributes to copy
         :Versions:
-            * 2020-04-30 ``@ddalle``: First version
+            * 2020-04-30 ``@ddalle``: Version 1.0
         """
         # Check for null option
         if attrs is None:
@@ -1046,7 +1046,7 @@ class DataKit(ftypes.BaseData):
         :See Also:
             * :class:`cape.attdb.ftypes.csvfile.CSVFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveCSV", False))
@@ -1092,7 +1092,7 @@ class DataKit(ftypes.BaseData):
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
             * 2020-02-14 ``@ddalle``: Uniform "sources" interface
         """
         # Get CSV file interface
@@ -1122,7 +1122,7 @@ class DataKit(ftypes.BaseData):
             *kw*: :class:`dict`
                 Keyword args to :func:`CSVFile.write_csv`
         :Versions:
-            * 2020-04-01 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # Get CSV file interface
         dbcsv = self.make_source("csv", ftypes.CSVFile, cols=cols)
@@ -1152,7 +1152,7 @@ class DataKit(ftypes.BaseData):
         :See Also:
             * :class:`cape.attdb.ftypes.csvfile.CSVFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
         """
         # Get option to save database
         savecsv = kw.pop("save", kw.pop("SaveCSV", False))
@@ -1361,7 +1361,7 @@ class DataKit(ftypes.BaseData):
         :See Also:
             * :class:`cape.attdb.ftypes.csvfile.CSVFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
         """
         # Get option to save database
         savedat = kw.pop("save", False)
@@ -1425,7 +1425,7 @@ class DataKit(ftypes.BaseData):
         :See Also:
             * :class:`cape.attdb.ftypes.xls.XLSFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveXLS", False))
@@ -1473,7 +1473,7 @@ class DataKit(ftypes.BaseData):
             *kw*: :class:`dict`
                 Keyword args to :func:`CSVFile.write_csv`
         :Versions:
-            * 2020-05-21 ``@ddalle``: First version
+            * 2020-05-21 ``@ddalle``: Version 1.0
         """
         # Get column names per sheet
         sheetcols = kw.get("sheetcols", {})
@@ -1511,7 +1511,7 @@ class DataKit(ftypes.BaseData):
         :See Also:
             * :class:`cape.attdb.ftypes.mat.MATFile`
         :Versions:
-            * 2019-12-17 ``@ddalle``: First version
+            * 2019-12-17 ``@ddalle``: Version 1.0
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveMAT", False))
@@ -1587,7 +1587,7 @@ class DataKit(ftypes.BaseData):
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
         :Versions:
-            * 2019-12-06 ``@ddalle``: First version
+            * 2019-12-06 ``@ddalle``: Version 1.0
         """
         # Attributes
         attrs = kw.get("attrs", ["bkpts"])
@@ -1651,7 +1651,7 @@ class DataKit(ftypes.BaseData):
             * ``0``: ``"multiquadric"``
             * ``1``: ``"inverse_multiquadric"``
             * ``2``: ``"gaussian"``
-            * ``3``: ``"linear",
+            * ``3``: ``"linear"``
             * ``4``: ``"cubic"``
             * ``5``: ``"quintic"``
             * ``6``: ``"thin_plate"``
@@ -1881,7 +1881,7 @@ class DataKit(ftypes.BaseData):
                 * ``0``: ``"multiquadric"``
                 * ``1``: ``"inverse_multiquadric"``
                 * ``2``: ``"gaussian"``
-                * ``3``: ``"linear",
+                * ``3``: ``"linear"``
                 * ``4``: ``"cubic"``
                 * ``5``: ``"quintic"``
                 * ``6``: ``"thin_plate"``
@@ -1957,7 +1957,7 @@ class DataKit(ftypes.BaseData):
                 * ``0``: ``"multiquadric"``
                 * ``1``: ``"inverse_multiquadric"``
                 * ``2``: ``"gaussian"``
-                * ``3``: ``"linear",
+                * ``3``: ``"linear"``
                 * ``4``: ``"cubic"``
                 * ``5``: ``"quintic"``
                 * ``6``: ``"thin_plate"``
@@ -1972,9 +1972,9 @@ class DataKit(ftypes.BaseData):
                 Values of first response arg if *db.rbf[col]* is a list
             *vals[col+"_X"]*: :class:`np.ndarray`\ [:class:`float`]
                 2D matrix of node locations for (each) RBF
-            *vals[col+"_x.<xcol>"]: :class:`np.ndarray`
+            *vals[col+"_x.<xcol>"]*: :class:`np.ndarray`
                 1D array of node location values for each response arg
-            *vals[col+"_xcols"]: :class:`list`\ [:class:`str`]
+            *vals[col+"_xcols"]*: :class:`list`\ [:class:`str`]
                 List of arguments for *col*
         :Versions:
             * 2021-09-15 ``@ddalle``: Version 1.0
@@ -3025,7 +3025,7 @@ class DataKit(ftypes.BaseData):
             *V*: :class:`np.ndarray`\ [:class:`float`]
                 Multiple values matching exactly
         :Versions:
-            * 2018-12-30 ``@ddalle``: First version
+            * 2018-12-30 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
             * 2020-05-19 ``@ddalle``: Support for 2D cols
@@ -3110,7 +3110,7 @@ class DataKit(ftypes.BaseData):
             *y*: :class:`float` | *db[col].__class__*
                 Value of *db[col]* at point closest to *a*
         :Versions:
-            * 2018-12-30 ``@ddalle``: First version
+            * 2018-12-30 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
             * 2020-05-19 ``@ddalle``: Support for 2D cols
@@ -3192,7 +3192,7 @@ class DataKit(ftypes.BaseData):
             *U*: :class:`dict`\ [:class:`float` | :class:`np.ndarray`]
                 Values of relevant UQ col(s) by name
         :Versions:
-            * 2019-03-07 ``@ddalle``: First version
+            * 2019-03-07 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
        # --- Get coefficient name ---
@@ -3292,7 +3292,7 @@ class DataKit(ftypes.BaseData):
             *V*: :class:`float` | :class:`np.ndarray`
                 Values of *col* as appropriate
         :Versions:
-            * 2019-03-13 ``@ddalle``: First version
+            * 2019-03-13 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
        # --- Argument processing ---
@@ -3374,7 +3374,7 @@ class DataKit(ftypes.BaseData):
             *v*: :class:`float`
                 Scalar evaluation of *col*
         :Versions:
-            * 2019-03-13 ``@ddalle``: First version
+            * 2019-03-13 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
        # --- Argument processing ---
@@ -3422,7 +3422,7 @@ class DataKit(ftypes.BaseData):
                 Smoothing factor for methods that allow inexact
                 interpolation, ``0.0`` for exact interpolation
         :Versions:
-            * 2019-01-07 ``@ddalle``: First version
+            * 2019-01-07 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-18 ``@ddalle``: Name from :func:`SetEvalMethod`
             * 2020-03-06 ``@ddalle``: Name from :func:`set_responses`
@@ -3479,7 +3479,7 @@ class DataKit(ftypes.BaseData):
             *extracols*: {``None``} | :class:`set` | :class:`list`
                 Additional col names that might be used as kwargs
         :Versions:
-            * 2019-01-07 ``@ddalle``: First version
+            * 2019-01-07 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-30 ``@ddalle``: Version 2.0; map of methods
             * 2020-02-18 ``@ddalle``: Name from :func:`_set_method1`
@@ -3568,7 +3568,7 @@ class DataKit(ftypes.BaseData):
             *use_self*: {``True``} | ``False``
                 Flag to include database in callback
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Create response_funcs dictionary
         response_funcs = self.__dict__.setdefault("response_funcs", {})
@@ -3605,7 +3605,7 @@ class DataKit(ftypes.BaseData):
             *args*: :class:`list`\ [:class:`str`]
                 List of evaluation arguments
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Get arguments arg
         args = kw.pop("args", None)
@@ -3634,7 +3634,7 @@ class DataKit(ftypes.BaseData):
             *args*: :class:`list`\ [:class:`str`]
                 List of evaluation arguments
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Get arguments arg
         args = kw.pop("args", None)
@@ -3663,7 +3663,7 @@ class DataKit(ftypes.BaseData):
             *args*: :class:`list`\ [:class:`str`]
                 List of evaluation arguments
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Get arguments arg
         args = kw.pop("args", None)
@@ -3738,7 +3738,7 @@ class DataKit(ftypes.BaseData):
             *method*: ``None`` | :class:`str`
                 Name of evaluation method for *col* or ``"_"``
         :Versions:
-            * 2019-03-13 ``@ddalle``: First version
+            * 2019-03-13 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-30 ``@ddalle``: Added default
         """
@@ -3768,7 +3768,7 @@ class DataKit(ftypes.BaseData):
             *f*: ``None`` | callable
                 Callable converter
         :Versions:
-            * 2019-03-13 ``@ddalle``: First version
+            * 2019-03-13 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get converter dictionary
@@ -3799,7 +3799,7 @@ class DataKit(ftypes.BaseData):
             *fn*: ``None`` | *callable*
                 Specified function for *col*
         :Versions:
-            * 2019-12-28 ``@ddalle``: First version
+            * 2019-12-28 ``@ddalle``: Version 1.0
         """
         # Get dictionary
         response_funcs = self.__dict__.get("response_funcs", {})
@@ -3835,7 +3835,7 @@ class DataKit(ftypes.BaseData):
             *aliases*: {``{}``} | :class:`dict`
                 Alternate names for args while evaluationg *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Get attribute
         arg_aliases = self.__dict__.get("response_arg_aliases", {})
@@ -3875,7 +3875,7 @@ class DataKit(ftypes.BaseData):
             *kwargs*: {``{}``} | :class:`dict`
                 Keyword arguments to add while evaluating *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Get attribute
         response_kwargs = self.__dict__.get("response_kwargs", {})
@@ -3914,7 +3914,7 @@ class DataKit(ftypes.BaseData):
             *xargs*: {``[]``} | :class:`list`\ [:class:`str`]
                 List of input args to one condition of *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
             * 2020-03-27 ``@ddalle``: From *db.defns* to *db.response_xargs*
         """
         # Get attribute
@@ -3947,7 +3947,7 @@ class DataKit(ftypes.BaseData):
             *acols*: :class:`list`\ [:class:`str`]
                 Name of aux columns required to evaluate *col*
         :Versions:
-            * 2020-03-23 ``@ddalle``: First version
+            * 2020-03-23 ``@ddalle``: Version 1.0
             * 2020-04-21 ``@ddalle``: Rename *eval_acols*
         """
         # Get dictionary of ecols
@@ -3987,7 +3987,7 @@ class DataKit(ftypes.BaseData):
             *db.response_args*: :class:`dict`
                 Entry for *col* set to copy of *args* w/ type checks
         :Versions:
-            * 2019-12-28 ``@ddalle``: First version
+            * 2019-12-28 ``@ddalle``: Version 1.0
             * 2020-04-21 ``@ddalle``: Rename from :func:`set_eval_args`
         """
         # Check types
@@ -4028,7 +4028,7 @@ class DataKit(ftypes.BaseData):
             *db.response_methods*: :class:`dict`
                 Entry for *col* set to *method*
         :Versions:
-            * 2019-12-28 ``@ddalle``: First version
+            * 2019-12-28 ``@ddalle``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(col):
@@ -4063,7 +4063,7 @@ class DataKit(ftypes.BaseData):
             *db.response_methods*: :class:`dict`
                 Entry for *col* set to *method*
         :Versions:
-            * 2019-12-28 ``@ddalle``: First version
+            * 2019-12-28 ``@ddalle``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(col):
@@ -4099,7 +4099,7 @@ class DataKit(ftypes.BaseData):
             *v*: :class:`float`
                 Default value of the argument to set
         :Versions:
-            * 2019-02-28 ``@ddalle``: First version
+            * 2019-02-28 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get dictionary
@@ -4121,7 +4121,7 @@ class DataKit(ftypes.BaseData):
             *fn*: :class:`function`
                 Conversion function
         :Versions:
-            * 2019-02-28 ``@ddalle``: First version
+            * 2019-02-28 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Check input
@@ -4146,7 +4146,7 @@ class DataKit(ftypes.BaseData):
             *aliases*: {``{}``} | :class:`dict`
                 Alternate names for args while evaluationg *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Transform any False-like thing to {}
         if not aliases:
@@ -4188,7 +4188,7 @@ class DataKit(ftypes.BaseData):
             *kwargs*: {``{}``} | :class:`dict`
                 Keyword arguments to add while evaluating *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
         """
         # Transform any False-like thing to {}
         if not kwargs:
@@ -4226,7 +4226,7 @@ class DataKit(ftypes.BaseData):
                 Name of column to evaluate
                 List of input args to one condition of *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: First version
+            * 2019-12-30 ``@ddalle``: Version 1.0
             * 2020-03-27 ``@ddalle``: From *db.defns* to *db.response_xargs*
         """
         # De-None
@@ -4262,7 +4262,7 @@ class DataKit(ftypes.BaseData):
             *acols*: :class:`list`\ [:class:`str`]
                 Name of aux columns required to evaluate *col*
         :Versions:
-            * 2020-03-23 ``@ddalle``: First version
+            * 2020-03-23 ``@ddalle``: Version 1.0
             * 2020-04-21 ``@ddalle``: Rename *eval_acols*
         """
         # Check type
@@ -4300,7 +4300,7 @@ class DataKit(ftypes.BaseData):
             *db.respone_arg_alternates[col]*: :class:`set`
                 Cols that are used by response for *col*
         :Versions:
-            * 2020-04-24 ``@ddalle``: First version
+            * 2020-04-24 ``@ddalle``: Version 1.0
         """
         # Handle to class
         cls = self.__class__
@@ -4362,7 +4362,7 @@ class DataKit(ftypes.BaseData):
             *altcols*: :class:`set`\ [:class:`str`\
                 Cols that are used by response for *col*
         :Versions:
-            * 2020-04-24 ``@ddalle``: First version
+            * 2020-04-24 ``@ddalle``: Version 1.0
         """
         # Get dictionary
         arg_alts = self.__dict__.get("response_arg_alternates", {})
@@ -4393,7 +4393,7 @@ class DataKit(ftypes.BaseData):
                     * ``3``: use :func:`rcall_exact`
 
         :Versions:
-            * 2020-04-24 ``@ddalle``: First version
+            * 2020-04-24 ``@ddalle``: Version 1.0
         """
         # Get method, if any
         method = self.get_response_method(col)
@@ -4455,7 +4455,7 @@ class DataKit(ftypes.BaseData):
             *kwr*: :class:`dict`
                 Keyword args to :func:`__call__` or other methods
         :Versions:
-            * 2020-04-24 ``@ddalle``: First version
+            * 2020-04-24 ``@ddalle``: Version 1.0
         """
         # Check for trivial case
         if not kw:
@@ -4509,7 +4509,7 @@ class DataKit(ftypes.BaseData):
             *v*: :class:`float` | :class:`np.ndarray`
                 Value of the argument, possibly converted
         :Versions:
-            * 2019-02-28 ``@ddalle``: First version
+            * 2019-02-28 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Number of direct arguments
@@ -4586,7 +4586,7 @@ class DataKit(ftypes.BaseData):
                 according to *b.response_args[col]*; each entry of *X*
                 will have the same size
         :Versions:
-            * 2019-03-12 ``@ddalle``: First version
+            * 2019-03-12 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
        # --- Get column name ---
@@ -4640,7 +4640,7 @@ class DataKit(ftypes.BaseData):
             *kw*: :class:`dict`
                 Keyword inputs with coefficient name removed
         :Versions:
-            * 2019-03-12 ``@ddalle``: First version
+            * 2019-03-12 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-18 ``@ddalle``: From :func:`_process_coeff`
         """
@@ -4684,7 +4684,7 @@ class DataKit(ftypes.BaseData):
             *dims*: :class:`tuple` (:class:`int`)
                 Original dimensions of non-scalar input array
         :Versions:
-            * 2019-03-11 ``@ddalle``: First version
+            * 2019-03-11 ``@ddalle``: Version 1.0
             * 2019-03-14 ``@ddalle``: Added *asarray* input
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-18 ``@ddalle``: Removed ``@staticmethod``
@@ -4772,7 +4772,7 @@ class DataKit(ftypes.BaseData):
             *x1*: :class:`np.ndarray` (:class:`float`)
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
-            * 2019-04-19 ``@ddalle``: First version
+            * 2019-04-19 ``@ddalle``: Version 1.0
             * 2019-07-26 ``@ddalle``: Vectorized
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
@@ -4887,7 +4887,7 @@ class DataKit(ftypes.BaseData):
             *x1*: :class:`np.ndarray` (:class:`float`)
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
-            * 2019-04-19 ``@ddalle``: First version
+            * 2019-04-19 ``@ddalle``: Version 1.0
         """
         # Error check
         if len(args) < 2:
@@ -4965,7 +4965,7 @@ class DataKit(ftypes.BaseData):
             *y*: ``None`` | :class:`float` | ``db[col].__class__``
                 Interpolated value from ``db[col]``
         :Versions:
-            * 2018-12-30 ``@ddalle``: First version
+            * 2018-12-30 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Call root method without two of the options
@@ -5001,7 +5001,7 @@ class DataKit(ftypes.BaseData):
             *y*: ``None`` | :class:`float` | ``DBc[coeff].__class__``
                 Interpolated value from ``DBc[coeff]``
         :Versions:
-            * 2018-12-30 ``@ddalle``: First version
+            * 2018-12-30 ``@ddalle``: Version 1.0
             * 2019-04-19 ``@ddalle``: Moved from :func:`eval_multilnear`
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
@@ -5167,7 +5167,7 @@ class DataKit(ftypes.BaseData):
             *y*: ``None`` | :class:`float` | ``db[col].__class__``
                 Interpolated value from ``db[col]``
         :Versions:
-            * 2019-04-19 ``@ddalle``: First version
+            * 2019-04-19 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Slice tolerance
@@ -5208,7 +5208,7 @@ class DataKit(ftypes.BaseData):
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
         :Versions:
-            * 2018-12-31 ``@ddalle``: First version
+            * 2018-12-31 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get the radial basis function
@@ -5241,7 +5241,7 @@ class DataKit(ftypes.BaseData):
             *f*: :class:`scipy.interpolate.rbf.Rbf`
                 Callable radial basis function
         :Versions:
-            * 2018-12-31 ``@ddalle``: First version
+            * 2018-12-31 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get the radial basis function
@@ -5293,7 +5293,7 @@ class DataKit(ftypes.BaseData):
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
         :Versions:
-            * 2018-12-31 ``@ddalle``: First version
+            * 2018-12-31 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Lookup value for first variable
@@ -5329,7 +5329,7 @@ class DataKit(ftypes.BaseData):
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
         :Versions:
-            * 2018-12-31 ``@ddalle``: First version
+            * 2018-12-31 ``@ddalle``: Version 1.0
         """
         # Extrapolation option
         extrap = kw.get("extrap", False)
@@ -5366,7 +5366,7 @@ class DataKit(ftypes.BaseData):
             *y*: ``None`` | :class:`float` | ``DBc[coeff].__class__``
                 Interpolated value from ``DBc[coeff]``
         :Versions:
-            * 2018-12-31 ``@ddalle``: First version
+            * 2018-12-31 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get the function
@@ -5483,7 +5483,7 @@ class DataKit(ftypes.BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: First version
+            * 2020-03-24 ``@ddalle``: Version 1.0
         """
         # Check for null input
         if not prefix:
@@ -5531,7 +5531,7 @@ class DataKit(ftypes.BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: First version
+            * 2020-03-24 ``@ddalle``: Version 1.0
         """
         # Check for component name
         parts = col.split(".")
@@ -5578,7 +5578,7 @@ class DataKit(ftypes.BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: First version
+            * 2020-03-24 ``@ddalle``: Version 1.0
         """
         # Check for null input
         if not suffix:
@@ -5620,7 +5620,7 @@ class DataKit(ftypes.BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: First version
+            * 2020-03-24 ``@ddalle``: Version 1.0
         """
         # Check for null input
         if not suffix:
@@ -5668,7 +5668,7 @@ class DataKit(ftypes.BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: First version
+            * 2020-03-24 ``@ddalle``: Version 1.0
         """
         # Check for component name
         parts = col.split(".")
@@ -5837,7 +5837,7 @@ class DataKit(ftypes.BaseData):
                 Values of *ucol* and any *nu* "extra" *uq_ecols* for
                 each window
         :Versions:
-            * 2019-02-15 ``@ddalle``: First version
+            * 2019-02-15 ``@ddalle``: Version 1.0
             * 2020-04-02 ``@ddalle``: v2.0, from ``EstimateUQ_coeff()``
         """
        # --- Inputs ---
@@ -5921,7 +5921,7 @@ class DataKit(ftypes.BaseData):
             *U*: :class:`tuple`\ [:class:`float`]
                 Values of any "extra" *uq_ecols*
         :Versions:
-            * 2019-02-15 ``@ddalle``: First version
+            * 2019-02-15 ``@ddalle``: Version 1.0
             * 2020-04-02 ``@ddalle``: Second version
         """
        # --- Inputs ---
@@ -5978,7 +5978,7 @@ class DataKit(ftypes.BaseData):
             *a*: :class:`tuple`\ [:class:`float`]
                 Values of any "extra" *uq_ecols*
         :Versions:
-            * 2019-02-15 ``@ddalle``: First version
+            * 2019-02-15 ``@ddalle``: Version 1.0
             * 2020-03-20 ``@ddalle``: Mods from :mod:`tnakit.db.db1`
         """
        # --- Statistics Options ---
@@ -6129,7 +6129,7 @@ class DataKit(ftypes.BaseData):
             *I*: :class:`np.ndarray`
                 Indices of cases (relative to *test_values*) in window
         :Versions:
-            * 2019-02-13 ``@ddalle``: First version
+            * 2019-02-13 ``@ddalle``: Version 1.0
             * 2020-04-01 ``@ddalle``: Modified from :mod:`tnakit.db`
         """
        # --- Check bounds ---
@@ -6253,7 +6253,7 @@ class DataKit(ftypes.BaseData):
             *bkpts*: :class:`dict`\ [:class:`np.ndarray`]
                 Dictionary of unique candidate values for each key
         :Versions:
-            * 2019-02-13 ``@ddalle``: First version
+            * 2019-02-13 ``@ddalle``: Version 1.0
             * 2020-03-20 ``@ddalle``: Migrated from :mod:`tnakit`
         """
        # --- Lookup values ---
@@ -6315,7 +6315,7 @@ class DataKit(ftypes.BaseData):
             *a01*: :class:`float`
                 Value of *uargs[1]* for second window
         :Versions:
-            * 2019-02-16 ``@ddalle``: First version
+            * 2019-02-16 ``@ddalle``: Version 1.0
             * 2020-04-02 ``@ddalle``: Updates for :class:`DataKit`
         """
         # Get test values and test break points
@@ -6349,7 +6349,7 @@ class DataKit(ftypes.BaseData):
             *ucol*: ``None`` | :class:`str`
                 Name of UQ column for *col*
         :Versions:
-            * 2019-03-13 ``@ddalle``: First version
+            * 2019-03-13 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
         """
@@ -6373,7 +6373,7 @@ class DataKit(ftypes.BaseData):
             *ecols*: :class:`list`\ [:class:`str`]
                 Name of extra columns required to evaluate *ucol*
         :Versions:
-            * 2020-03-21 ``@ddalle``: First version
+            * 2020-03-21 ``@ddalle``: Version 1.0
         """
         # Get dictionary of ecols
         uq_ecols = self.__dict__.get("uq_ecols", {})
@@ -6409,7 +6409,7 @@ class DataKit(ftypes.BaseData):
             *efunc*: **callable**
                 Function to evaluate *ecol*
         :Versions:
-            * 2020-03-20 ``@ddalle``: First version
+            * 2020-03-20 ``@ddalle``: Version 1.0
         """
         # Get dictionary of extra UQ funcs
         uq_efuncs = self.__dict__.get("uq_efuncs", {})
@@ -6431,7 +6431,7 @@ class DataKit(ftypes.BaseData):
             *acols*: :class:`list`\ [:class:`str`]
                 Name of extra columns required for estimate *ucol*
         :Versions:
-            * 2020-03-23 ``@ddalle``: First version
+            * 2020-03-23 ``@ddalle``: Version 1.0
         """
         # Get dictionary of acols
         uq_acols = self.__dict__.get("uq_acols", {})
@@ -6467,7 +6467,7 @@ class DataKit(ftypes.BaseData):
             *afunc*: **callable**
                 Function to estimate *ucol*
         :Versions:
-            * 2020-03-23 ``@ddalle``: First version
+            * 2020-03-23 ``@ddalle``: Version 1.0
         """
         # Get dictionary of aux UQ funcs
         uq_afuncs = self.__dict__.get("uq_afuncs", {})
@@ -6492,7 +6492,7 @@ class DataKit(ftypes.BaseData):
             *db.uq_cols*: :class:`dict`
                 Entry for *col* set to *ucol*
         :Versions:
-            * 2020-03-20 ``@ddalle``: First version
+            * 2020-03-20 ``@ddalle``: Version 1.0
             * 2020-05-08 ``@ddalle``: Remove if *ucol* is ``None``
         """
         # Get handle to attribute
@@ -6532,7 +6532,7 @@ class DataKit(ftypes.BaseData):
             *ecols*: :class:`list`\ [:class:`str`]
                 Name of extra columns required for *ucol*
         :Versions:
-            * 2020-03-21 ``@ddalle``: First version
+            * 2020-03-21 ``@ddalle``: Version 1.0
             * 2020-05-08 ``@ddalle``: Remove if *ecols* is ``None``
         """
         # Get dictionary of ecols
@@ -6571,7 +6571,7 @@ class DataKit(ftypes.BaseData):
             *efunc*: ``None`` | **callable**
                 Function to evaluate *ecol*
         :Versions:
-            * 2020-03-21 ``@ddalle``: First version
+            * 2020-03-21 ``@ddalle``: Version 1.0
             * 2020-05-08 ``@ddalle``: Remove if *efunc* is ``None``
         """
         # Get dictionary of extra UQ funcs
@@ -6601,7 +6601,7 @@ class DataKit(ftypes.BaseData):
             *acols*: ``None`` | :class:`list`\ [:class:`str`]
                 Name of extra columns required for estimate *ucol*
         :Versions:
-            * 2020-03-23 ``@ddalle``: First version
+            * 2020-03-23 ``@ddalle``: Version 1.0
             * 2020-05-08 ``@ddalle``: Remove if *acols* is ``None``
         """
         # Get dictionary of ecols
@@ -6639,7 +6639,7 @@ class DataKit(ftypes.BaseData):
             *afunc*: **callable**
                 Function to estimate *ucol*
         :Versions:
-            * 2020-03-23 ``@ddalle``: First version
+            * 2020-03-23 ``@ddalle``: Version 1.0
             * 2020-05-08 ``@ddalle``: Remove if *afunc* is ``None``
         """
         # Get dictionary of aux UQ funcs
@@ -6698,7 +6698,7 @@ class DataKit(ftypes.BaseData):
             *ddb._slices*: :class:`list`\ [:class:`np.ndarray`]
                 Saved lists of indices on which smoothing is performed
         :Versions:
-            * 2020-05-08 ``@ddalle``: First version
+            * 2020-05-08 ``@ddalle``: Version 1.0
         """
         # Create primary (smoothed) deltas
         ddb = self.genr8_rdiff_by_rbf(db2, cols, scol=scol, **kw)
@@ -6998,7 +6998,7 @@ class DataKit(ftypes.BaseData):
             *ddb[col]*: :class:`np.ndarray`
                 Smoothed difference between *db2* and *db*
         :Versions:
-            * 2020-05-08 ``@ddalle``: First version
+            * 2020-05-08 ``@ddalle``: Version 1.0
         """
         # Create new instance
         ddb = self.__class__()
@@ -7087,7 +7087,7 @@ class DataKit(ftypes.BaseData):
             *slices*: :class:`list`\ [:class:`np.ndarray`]
                 Indices (relative to *vals*) of points in each slice
         :Versions:
-            * 2019-02-20 ``@ddalle``: First version
+            * 2019-02-20 ``@ddalle``: Version 1.0
             * 2020-05-07 ``@ddalle``: Fork from :class:`db1.DBCoeff`
         """
        # --- Tolerances ---
@@ -7174,7 +7174,7 @@ class DataKit(ftypes.BaseData):
             *db.bkpts[col]*: :class:`np.ndarray` | :class:`list`
                 Unique values of *DBc[col]* with at least *nmin* entries
         :Versions:
-            * 2018-06-08 ``@ddalle``: First version
+            * 2018-06-08 ``@ddalle``: Version 1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
             * 2020-03-26 ``@ddalle``: Renamed, :func:`get_bkpts`
             * 2020-05-06 ``@ddalle``: Moved much to :func:`genr8_bkpts`
@@ -7216,7 +7216,7 @@ class DataKit(ftypes.BaseData):
             *B*: :class:`np.ndarray` | :class:`list`
                 Unique values of *DBc[col]* with at least *nmin* entries
         :Versions:
-            * 2020-05-06 ``@ddalle``: First version
+            * 2020-05-06 ``@ddalle``: Version 1.0
         """
         # Check type
         if not isinstance(col, typeutils.strlike):
@@ -7286,7 +7286,7 @@ class DataKit(ftypes.BaseData):
             *DBc.bkpts[key]*: :class:`np.ndarray` (:class:`float`)
                 Unique values of *DBc[key]* with at least *nmin* entries
         :Versions:
-            * 2018-06-29 ``@ddalle``: First version
+            * 2018-06-29 ``@ddalle``: Version 1.0
             * 2019-12-16 ``@ddalle``: Ported to :mod:`rdbnull`
             * 2020-03-26 ``@ddalle``: Renamed, :func:`map_bkpts`
         """
@@ -7375,7 +7375,7 @@ class DataKit(ftypes.BaseData):
             *db.bkpts[col]*: :class:`list`\ [:class:`np.ndarray`]
                 Unique values of *db[col]* at each value of *scol*
         :Versions:
-            * 2018-06-29 ``@ddalle``: First version
+            * 2018-06-29 ``@ddalle``: Version 1.0
             * 2019-12-16 ``@ddalle``: Ported to :mod:`rdbnull`
             * 2020-03-26 ``@ddalle``: Renamed, :func:`schedule_bkpts`
         """
@@ -7487,7 +7487,7 @@ class DataKit(ftypes.BaseData):
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is equal to upper bound
         :Versions:
-            * 2018-12-30 ``@ddalle``: First version
+            * 2018-12-30 ``@ddalle``: Version 1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
         """
         # Extract values
@@ -7545,7 +7545,7 @@ class DataKit(ftypes.BaseData):
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is equal to upper bound
         :Versions:
-            * 2018-04-19 ``@ddalle``: First version
+            * 2018-04-19 ``@ddalle``: Version 1.0
         """
         # Get potential values
         V = self._scheduled_bkpts(k, j)
@@ -7580,7 +7580,7 @@ class DataKit(ftypes.BaseData):
                 Lookup fraction, ``1.0`` if *v* is equal to upper bound;
                 can be outside 0-1 bound for extrapolation
         :Versions:
-            * 2018-12-30 ``@ddalle``: First version
+            * 2018-12-30 ``@ddalle``: Version 1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
         """
         # Get length
@@ -7628,7 +7628,7 @@ class DataKit(ftypes.BaseData):
             *v*: :class:`float` | :class:`np.ndarray`
                 Break point or array of break points
         :Versions:
-            * 2018-12-31 ``@ddalle``: First version
+            * 2018-12-31 ``@ddalle``: Version 1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
         """
         # Get the break points
@@ -7679,7 +7679,7 @@ class DataKit(ftypes.BaseData):
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is equal to upper bound
         :Versions:
-            * 2018-12-30 ``@ddalle``: First version
+            * 2018-12-30 ``@ddalle``: Version 1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
         """
         # Get the break points
@@ -7734,7 +7734,7 @@ class DataKit(ftypes.BaseData):
             *slices*: :class:`dict` (:class:`ndarray`)
                 Array of slice values for each col in *scol*
         :Versions:
-            * 2018-11-16 ``@ddalle``: First version
+            * 2018-11-16 ``@ddalle``: Version 1.0
         """
        # --- Slice col Checks ---
         # Check for list or string
@@ -7947,7 +7947,7 @@ class DataKit(ftypes.BaseData):
             *db.rbf[col]*: :class:`scipy.interpolate.rbf.Rbf`
                 Radial basis function for each *col* in *cols*
         :Versions:
-            * 2019-01-01 ``@ddalle``: First version
+            * 2019-01-01 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-22 ``@ddalle``: Utilize :func:`create_rbf`
         """
@@ -7999,7 +7999,7 @@ class DataKit(ftypes.BaseData):
             *db.rbf[col]*: :class:`list`\ [:class:`scirbf.Rbf`]
                 List of RBFs at each slice for each *col* in *cols*
         :Versions:
-            * 2019-01-01 ``@ddalle``: First version
+            * 2019-01-01 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Check for module
@@ -8081,7 +8081,7 @@ class DataKit(ftypes.BaseData):
             *rbf*: :class:`scipy.interpolate.rbf.Rbf`
                 Radial basis function for *col*
         :Versions:
-            * 2019-01-01 ``@ddalle``: First version
+            * 2019-01-01 ``@ddalle``: Version 1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-22 ``@ddalle``: Single-*col* version
             * 2020-03-06 ``@ddalle``: Name from :funC:`create_rbf`
@@ -8125,7 +8125,7 @@ class DataKit(ftypes.BaseData):
             *W*: :class:`np.ndarray`\ [:class:`float`]
                 Interpolation weights; same size as test points *a*
         :Versions:
-            * 2020-03-10 ``@ddalle``: First version
+            * 2020-03-10 ``@ddalle``: Version 1.0
         """
         # Check for module
         if sciint is None:
@@ -8233,7 +8233,7 @@ class DataKit(ftypes.BaseData):
             *kw*: :class:`dict`
                 Additional values to use for evaluation in :func:`find`
         :Versions:
-            * 2020-05-05 ``@ddalle``: First version
+            * 2020-05-05 ``@ddalle``: Version 1.0
         """
        # --- Column Lists ---
         # Check types
@@ -8711,7 +8711,7 @@ class DataKit(ftypes.BaseData):
             *col*: *k* | *defnamess[0]* | *defnamess[1]* | ...
                 Name of lookup key in *db.cols*
         :Versions:
-            * 2018-06-22 ``@ddalle``: First version
+            * 2018-06-22 ``@ddalle``: Version 1.0
         """
         # Get default
         if (k is not None):
@@ -8776,7 +8776,7 @@ class DataKit(ftypes.BaseData):
             *V*: :class:`np.ndarray` | :class:`float`
                 Array of values or scalar for column *col*
         :Versions:
-            * 2019-03-12 ``@ddalle``: First version
+            * 2019-03-12 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
         """
         # Option for processing keywrods
@@ -8849,7 +8849,7 @@ class DataKit(ftypes.BaseData):
             *V*: :class:`np.ndarray`
                 Values of key *k* from conditions in *a* and *kw*
         :Versions:
-            * 2019-03-12 ``@ddalle``: First version
+            * 2019-03-12 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
         # Process coefficient
@@ -8894,7 +8894,7 @@ class DataKit(ftypes.BaseData):
             *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 Database indices
         :Versions:
-            * 2019-03-13 ``@ddalle``: First version
+            * 2019-03-13 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
         # Check for direct membership
@@ -8944,7 +8944,7 @@ class DataKit(ftypes.BaseData):
                 *db[col]* if available, otherwise an attempt to apply
                 *db.response_arg_converters[col]*
         :Versions:
-            * 2019-03-11 ``@ddalle``: First version
+            * 2019-03-11 ``@ddalle``: Version 1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Check if present
@@ -8997,7 +8997,7 @@ class DataKit(ftypes.BaseData):
                 *db[col]* if available, otherwise an attempt to apply
                 *db.response_arg_converters[col]*
         :Versions:
-            * 2020-02-21 ``@ddalle``: First version
+            * 2020-02-21 ``@ddalle``: Version 1.0
         """
         # Get all values
         V = self.get_all_values(col)
@@ -9129,7 +9129,7 @@ class DataKit(ftypes.BaseData):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of *db[col]* to consider
         :Versions:
-            * 2020-03-09 ``@ddalle``: First version
+            * 2020-03-09 ``@ddalle``: Version 1.0
         """
         # Get data so size can be determined
         if V is None:
@@ -9192,7 +9192,7 @@ class DataKit(ftypes.BaseData):
             *q*: ``True`` | ``False``
                 Whether or not *mask* is a valid mask
         :Versions:
-            * 2020-04-21 ``@ddalle``: First version
+            * 2020-04-21 ``@ddalle``: Version 1.0
         """
         # Check for empty mask
         if mask is None:
@@ -9268,7 +9268,7 @@ class DataKit(ftypes.BaseData):
             *V*: {``None``} | :class:`np.ndarray`
                 Array of values to test shape/values of *mask*
         :Versions:
-            * 2020-04-21 ``@ddalle``: First version
+            * 2020-04-21 ``@ddalle``: Version 1.0
         """
         # Check for empty mask
         if mask is None:
@@ -9353,7 +9353,7 @@ class DataKit(ftypes.BaseData):
                 Indices of entries with constant (within *tol*) values
                 of each *arg*
         :Versions:
-            * 2020-05-06 ``@ddalle``: First version
+            * 2020-05-06 ``@ddalle``: Version 1.0
         """
        # --- Column Lists ---
         # Check arg list
@@ -9437,7 +9437,7 @@ class DataKit(ftypes.BaseData):
             *Imap*: :class:`list`\ [:class:`np.ndarray`]
                 List of *db* indices for each test point in *J*
         :Versions:
-            * 2019-03-11 ``@ddalle``: First version
+            * 2019-03-11 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: From :func:`DBCoeff.FindMatches`
             * 2020-02-20 ``@ddalle``: Added *mask*, *once* kwargs
         """
@@ -9605,7 +9605,7 @@ class DataKit(ftypes.BaseData):
             *Imap*: :class:`list`\ [:class:`np.ndarray`]
                 List of *db* indices for each test point in *J*
         :Versions:
-            * 2020-02-20 ``@ddalle``: First version
+            * 2020-02-20 ``@ddalle``: Version 1.0
             * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
         """
         # Check types
@@ -9746,7 +9746,7 @@ class DataKit(ftypes.BaseData):
             *b*: :class:`float`
                 Upper bound of coverage intervalregion
         :Versions:
-            * 2018-09-28 ``@ddalle``: First version
+            * 2018-09-28 ``@ddalle``: Version 1.0
             * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
         """
         # Process search kwargs
@@ -9815,7 +9815,7 @@ class DataKit(ftypes.BaseData):
             *r*: :class:`float`
                 Half-width of coverage range
         :Versins:
-            * 2018-09-28 ``@ddalle``: First version
+            * 2018-09-28 ``@ddalle``: Version 1.0
             * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
         """
         # Process search kwargs
@@ -9878,7 +9878,7 @@ class DataKit(ftypes.BaseData):
             *y*: :class:`np.ndarray`
                 1D array of integral of each column of *db[col]*
         :Versions:
-            * 2020-06-10 ``@ddalle``: First version
+            * 2020-06-10 ``@ddalle``: Version 1.0
 
         .. |intmethods| replace::
             {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
@@ -9922,11 +9922,9 @@ class DataKit(ftypes.BaseData):
             *y*: :class:`np.ndarray`
                 1D array of integral of each column of *db[col]*
         :Versions:
-            * 2020-03-24 ``@ddalle``: First version
+            * 2020-03-24 ``@ddalle``: Version 1.0
             * 2020-06-02 ``@ddalle``: Added *mask*, callable *method*
 
-        .. |intmethods| replace::
-            {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
         """
         # Default column name
         if ocol is None:
@@ -9965,12 +9963,9 @@ class DataKit(ftypes.BaseData):
             *y*: :class:`np.ndarray`
                 1D array of integral of each column of *db[col]*
         :Versions:
-            * 2020-03-24 ``@ddalle``: First version
+            * 2020-03-24 ``@ddalle``: Version 1.0
             * 2020-06-02 ``@ddalle``: Added *mask*, callable *method*
             * 2020-06-04 ``@ddalle``: Split :func:`_genr8_integral`
-
-        .. |intmethods| replace::
-            {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
         """
         # Get mask
         mask = kw.get("mask")
@@ -10125,7 +10120,7 @@ class DataKit(ftypes.BaseData):
             *kw*: :class:`dict`
                 Processed keyword arguments with defaults applied
         :Versions:
-            * 2019-03-14 ``@ddalle``: First version
+            * 2019-03-14 ``@ddalle``: Version 1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
             * 2020-03-27 ``@ddalle``: From :func:`_process_plot_args1`
         """
@@ -10266,7 +10261,7 @@ class DataKit(ftypes.BaseData):
             *kw*: :class:`dict`
                 Processed keyword arguments with defaults applied
         :Versions:
-            * 2020-03-27 ``@ddalle``: First version
+            * 2020-03-27 ``@ddalle``: Version 1.0
         """
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
@@ -10388,7 +10383,7 @@ class DataKit(ftypes.BaseData):
             * :func:`DataKit.plot_linear`
             * :func:`cape.tnakit.plot_mpl.plot`
         :Versions:
-            * 2020-04-20 ``@ddalle``: First version
+            * 2020-04-20 ``@ddalle``: Version 1.0
         """
         # Process column name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
@@ -10441,7 +10436,7 @@ class DataKit(ftypes.BaseData):
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: First version
+            * 2015-05-30 ``@ddalle``: Version 1.0
             * 2015-12-14 ``@ddalle``: Added error bars
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
             * 2020-03-30 ``@ddalle``: Redocumented
@@ -10685,7 +10680,7 @@ class DataKit(ftypes.BaseData):
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
         :Versions:
-            * 2020-03-30 ``@ddalle``: First version
+            * 2020-03-30 ``@ddalle``: Version 1.0
         """
        # --- Prep ---
         # Process column name and values to plot
@@ -10815,7 +10810,7 @@ class DataKit(ftypes.BaseData):
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
         :Versions:
-            * 2020-04-24 ``@ddalle``: First version
+            * 2020-04-24 ``@ddalle``: Version 1.0
         """
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
@@ -10921,7 +10916,7 @@ class DataKit(ftypes.BaseData):
             *h.ax_img*: :class:`AxesSubplot`
                 Axes handle in wich *h.img* is shown
         :Versions:
-            * 2020-04-02 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Version 1.0
         """
         # Get name of PNG to add
         png = self.get_col_png(col)
@@ -11014,7 +11009,7 @@ class DataKit(ftypes.BaseData):
             *h.ax_seam*: :class:`AxesSubplot`
                 Axes handle in wich *h.seam* is shown
         :Versions:
-            * 2020-04-02 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Version 1.0
         """
         # Get name of seam curve to add
         seam = self.get_col_seam(col)
@@ -11100,7 +11095,7 @@ class DataKit(ftypes.BaseData):
             *fpng*: ``None`` | :class:`str`
                 Name of PNG file, if any
         :Versions:
-            * 2020-04-02 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(png):
@@ -11126,7 +11121,7 @@ class DataKit(ftypes.BaseData):
             *kw*: {``{}``} | :class:`MPLOpts`
                 Options to use when showing PNG image (copied)
         :Versions:
-            * 2020-04-02 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Version 1.0
         """
         # Get handle to kw
         png_kwargs = self.__dict__.setdefault("png_kwargs", {})
@@ -11154,7 +11149,7 @@ class DataKit(ftypes.BaseData):
             *png*: ``None`` | :class:`str`
                 Name/abbreviation/tag of PNG image to use
         :Versions:
-            * 2020-04-02 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(col):
@@ -11182,7 +11177,7 @@ class DataKit(ftypes.BaseData):
             *q*: ``True`` | ``False``
                 Whether or not *fig* is in *db.png_figs[png]*
         :Versions:
-            * 2020-04-01 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # Return ``False`` if *fig* is ``None``
         if fig is None:
@@ -11215,7 +11210,7 @@ class DataKit(ftypes.BaseData):
             * :func:`set_png_fname`
             * :func:`set_png_kwargs`
         :Versions:
-            * 2020-04-02 ``@ddalle``: First version
+            * 2020-04-02 ``@ddalle``: Version 1.0
         """
         # Set file name
         self.set_png_fname(png, fpng)
@@ -11243,7 +11238,7 @@ class DataKit(ftypes.BaseData):
             *db.col_pngs*: :class:`dict`
                 Entry for *col* in *cols* set to *png*
         :Versions:
-            * 2020-04-01 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # Check input
         if not isinstance(cols, (tuple, list)):
@@ -11276,7 +11271,7 @@ class DataKit(ftypes.BaseData):
             *db.col_pngs*: :class:`dict`
                 Entry for *col* set to *png*
         :Versions:
-            * 2020-04-01 ``@jmeeroff``: First version
+            * 2020-04-01 ``@jmeeroff``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(png):
@@ -11310,7 +11305,7 @@ class DataKit(ftypes.BaseData):
             *db.png_fnames*: :class:`dict`
                 Entry for *png* set to *fpng*
         :Versions:
-            * 2020-03-31 ``@ddalle``: First version
+            * 2020-03-31 ``@ddalle``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(png):
@@ -11347,7 +11342,7 @@ class DataKit(ftypes.BaseData):
             *kw*: {``{}``} | :class:`dict`
                 Options to use when showing PNG image
         :Versions:
-            * 2020-04-01 ``@jmeeroff``: First version
+            * 2020-04-01 ``@jmeeroff``: Version 1.0
             * 2020-04-02 ``@ddalle``: Use :class:`MPLOpts`
             * 2020-05-26 ``@ddalle``: Combine existing *png_kwargs*
         """
@@ -11385,7 +11380,7 @@ class DataKit(ftypes.BaseData):
             *db.png_figs[png]*: :class:`set`
                 Adds *fig* to :class:`set` if not already present
         :Versions:
-            * 2020-04-01 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # Get attribute
         png_figs = self.__dict__.setdefault("png_figs", {})
@@ -11409,7 +11404,7 @@ class DataKit(ftypes.BaseData):
             *db.png_figs[png]*: :class:`set`
                 Cleared to empty :class:`set`
         :Versions:
-            * 2020-04-01 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # Get attribute
         png_figs = self.__dict__.setdefault("png_figs", {})
@@ -11434,7 +11429,7 @@ class DataKit(ftypes.BaseData):
             *kw*: {``{}``} | :class:`MPLOpts`
                 Options to use when showing seam curve (copied)
         :Versions:
-            * 2020-04-03 ``@jmeeroff``: First version
+            * 2020-04-03 ``@jmeeroff``: Version 1.0
         """
         # Get handle to kw
         seam_kwargs = self.__dict__.setdefault("seam_kwargs", {})
@@ -11462,7 +11457,7 @@ class DataKit(ftypes.BaseData):
             *seam*: :class:`str`
                 Name used to tag seam curve
         :Versions:
-            * 2020-04-03 ``@jmeeroff``: First version
+            * 2020-04-03 ``@jmeeroff``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(col):
@@ -11490,7 +11485,7 @@ class DataKit(ftypes.BaseData):
             *ycol*: :class:`str`
                 Name of *col* for seam curve *y* coords
         :Versions:
-            * 2020-03-31 ``@ddalle``: First version
+            * 2020-03-31 ``@ddalle``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(seam):
@@ -11526,7 +11521,7 @@ class DataKit(ftypes.BaseData):
             * :func:`set_seam_col`
             * :func:`set_seam_kwargs`
         :Versions:
-            * 2020-04-03 ``@ddalle``: First version
+            * 2020-04-03 ``@ddalle``: Version 1.0
         """
         # Read a text file
         if fseam is not None:
@@ -11556,7 +11551,7 @@ class DataKit(ftypes.BaseData):
             *db.col_seams*: :class:`dict`
                 Entry for *col* in *cols* set to *seam*
         :Versions:
-            * 2020-04-02 ``@jmeeroff``: First version
+            * 2020-04-02 ``@jmeeroff``: Version 1.0
         """
         # Check input
         if not isinstance(cols, (list, tuple)):
@@ -11589,7 +11584,7 @@ class DataKit(ftypes.BaseData):
             *db.col_seams*: :class:`dict`
                 Entry for *col* set to *png*
         :Versions:
-            * 2020-04-02 ``@jmeeroff``: First version
+            * 2020-04-02 ``@jmeeroff``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(seam):
@@ -11625,7 +11620,7 @@ class DataKit(ftypes.BaseData):
             *db.seam_cols*: :class:`dict`
                 Entry for *seam* set to (*xcol*, *ycol*)
         :Versions:
-            * 2020-03-31 ``@ddalle``: First version
+            * 2020-03-31 ``@ddalle``: Version 1.0
         """
         # Check types
         if not typeutils.isstr(seam):
@@ -11666,7 +11661,7 @@ class DataKit(ftypes.BaseData):
             *kw*: {``{}``} | :class:`dict`
                 Options to use when showing seam curve
         :Versions:
-            * 2020-04-02 ``@jmeeroff``: First version
+            * 2020-04-02 ``@jmeeroff``: Version 1.0
             * 2020-05-26 ``@ddalle``: Combine existing *png_kwargs*
         """
         # Get handle to kw
@@ -11703,7 +11698,7 @@ class DataKit(ftypes.BaseData):
             *db.seam_figs[seam]*: :class:`set`
                 Adds *fig* to :class:`set` if not already present
         :Versions:
-            * 2020-04-01 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # Get current handles
         figs = self.seam_figs.setdefault(seam, set())
@@ -11727,7 +11722,7 @@ class DataKit(ftypes.BaseData):
             *q*: ``True`` | ``False``
                 Whether or not *fig* is in *db.seam_figs[seam]*
         :Versions:
-            * 2020-04-01 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # Get attribute
         seam_figs = self.__dict__.get("seam_figs", {})
@@ -11787,7 +11782,7 @@ class DataKit(ftypes.BaseData):
             *suffix*: :class:`str` | :class:`dict`
                 Universal suffix or *col*-specific suffixes
         :Versions:
-            * 2018-06-08 ``@ddalle``: First version
+            * 2018-06-08 ``@ddalle``: Version 1.0
             * 2020-02-24 ``@ddalle``: Version 2.0
         """
        # --- Options ---

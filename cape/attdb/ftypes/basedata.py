@@ -106,7 +106,7 @@ class BaseDataOpts(kwutils.KwargHandler):
             *defn*: :class:`BaseDataDefn` | *opts._defncls*
                 Column definition for *col*
         :Versions:
-            * 2020-01-31 ``@ddalle``: First version
+            * 2020-01-31 ``@ddalle``: Version 1.0
         """
         # Get class
         cls = self.__class__
@@ -154,7 +154,7 @@ class BaseDataOpts(kwutils.KwargHandler):
             *defn*: :class:`BaseDataDefn` | *opts._defncls*
                 Data column definition
         :Versions:
-            * 2020-01-31 ``@ddalle``: First version
+            * 2020-01-31 ``@ddalle``: Version 1.0
         """
         # Get definition class
         defncls = defn.__class__
@@ -198,7 +198,7 @@ class BaseDataOpts(kwutils.KwargHandler):
             *defncls*: :class:`BaseDataDefn`
                 Definition options class
         :Versions:
-            * 2020-01-30 ``@ddalle``: First version
+            * 2020-01-30 ``@ddalle``: Version 1.0
         """
         # Get parameters
         _optlist = cls._getattr_class("_optlist")
@@ -362,7 +362,7 @@ class BaseDataDefn(kwutils.KwargHandler):
             *dtype*: :class:`str`
                 Data type, looks up *Type* in *defn._dtypemap*
         :Versions:
-            * 2020-02-01 ``@ddalle``: First version
+            * 2020-02-01 ``@ddalle``: Version 1.0
         """
         # Check if already present
         if "DType" in self:
@@ -389,7 +389,7 @@ class BaseDataDefn(kwutils.KwargHandler):
             *defn*: :class:`BaseDataDefn`
                 Data column definition
         :Versions:
-            * 2020-01-31 ``@ddalle``: First version
+            * 2020-01-31 ``@ddalle``: Version 1.0
             * 2020-03-06 ``@ddalle``: Rename :func:`apply_defaults`
         """
         # Loop through _rc
@@ -433,7 +433,7 @@ class BaseData(dict):
         * :class:`cape.attdb.ftypes.csv.CSVSimple`
         * :class:`cape.attdb.ftypes.textdata.TextDataFile`
     :Versions:
-        * 2019-11-26 ``@ddalle``: First version
+        * 2019-11-26 ``@ddalle``: Version 1.0
         * 2020-02-02 ``@ddalle``: Second version
     """
   # ==================
@@ -464,7 +464,7 @@ class BaseData(dict):
             *cls*: :class:`type`
                 Data container class
         :Versions:
-            * 2020-03-19 ``@ddalle``: First version
+            * 2020-03-19 ``@ddalle``: Version 1.0
         """
         # Initialize tag -> set(col) map
         _tagcols = {}
@@ -487,7 +487,7 @@ class BaseData(dict):
         r"""Initialization method
 
         :Versions:
-            * 2020-02-02 ``@ddalle``: First version
+            * 2020-02-02 ``@ddalle``: Version 1.0
         """
         # Initialize columns
         self.cols = []
@@ -505,7 +505,7 @@ class BaseData(dict):
         """Generic representation method
 
         :Versions:
-            * 2019-11-08 ``@ddalle``: First version
+            * 2019-11-08 ``@ddalle``: Version 1.0
             * 2019-12-31 ``@ddalle``: Safe attributes
         """
         # Module name
@@ -537,7 +537,7 @@ class BaseData(dict):
         """Generic representation method
 
         :Versions:
-            * 2019-11-08 ``@ddalle``: First version
+            * 2019-11-08 ``@ddalle``: Version 1.0
             * 2019-12-04 ``@ddalle``: Only last part of module name
             * 2019-12-31 ``@ddalle``: Safe attributes
         """
@@ -586,7 +586,7 @@ class BaseData(dict):
             *opts*: :class:`BaseDataOpts` | *db._optscls*
                 Validated options from *kw*
         :Versions:
-            * 2020-02-02 ``@ddalle``: First version
+            * 2020-02-02 ``@ddalle``: Version 1.0
         """
         # Get class
         optscls = self.__class__._optscls
@@ -608,7 +608,7 @@ class BaseData(dict):
             *ExpandScalars*: ``True`` | ``False``
                 Option to expand scalars to match dimension of arrays
         :Versions:
-            * 2019-11-12 ``@ddalle``: First version
+            * 2019-11-12 ``@ddalle``: Version 1.0
             * 2019-12-31 ``@ddalle``: Removed :func:`pop` and output
             * 2020-02-02 ``@ddalle``: Deleted *kw* as input
         """
@@ -667,7 +667,7 @@ class BaseData(dict):
             *val*: *db.opts[key]* | *db.opts._rc[key]* | *vdef*
                 Value of option with fallback
         :Versions:
-            * 2019-12-31 ``@ddalle``: First version
+            * 2019-12-31 ``@ddalle``: Version 1.0
             * 2020-02-01 ``@ddalle``: Using :class:`BaseDataOpts`
         """
         return self.opts.get_option(key, vdef)
@@ -686,7 +686,7 @@ class BaseData(dict):
             *defns*: :class:`dict`\ [:class:`BaseDataDefn`]
                 Definitions for each column
         :Versions:
-            * 2019-12-31 ``@ddalle``: First version
+            * 2019-12-31 ``@ddalle``: Version 1.0
             * 2020-02-01 ``@ddalle``: Move from ``opts["Definitions"]``
         """
         # Definitions from "defns" attribute
@@ -707,7 +707,7 @@ class BaseData(dict):
             *defn*: :class:`BaseDataDefn`
                 Definition for column *col*
         :Versions:
-            * 2020-02-01 ``@ddalle``: First version
+            * 2020-02-01 ``@ddalle``: Version 1.0
         """
         # Get definition dictionary
         defns = self.get_defns()
@@ -787,7 +787,7 @@ class BaseData(dict):
         :Effects:
             *db[col]*: *defn*
         :Versions:
-            * 2020-03-19 ``@ddalle``: First version
+            * 2020-03-19 ``@ddalle``: Version 1.0
         """
         # Create the definition
         defn = self.genr8_defn(col, V, **kw)
@@ -815,7 +815,7 @@ class BaseData(dict):
             *defn*: *db._defncls*
                 Definition based on values *V*
         :Versions:
-            * 2020-03-19 ``@ddalle``: First version
+            * 2020-03-19 ``@ddalle``: Version 1.0
         """
         # Get definition from values (and kwargs)
         defn = self._genr8_defn(V, **kw)
@@ -846,7 +846,7 @@ class BaseData(dict):
             *defn*: *db._defncls*
                 Definition based on values *V*
         :Versions:
-            * 2020-03-19 ``@ddalle``: First version
+            * 2020-03-19 ``@ddalle``: Version 1.0
         """
         # Initialize definition
         defn = self._defncls()
@@ -921,7 +921,7 @@ class BaseData(dict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2020-02-03 ``@ddalle``: First version
+            * 2020-02-03 ``@ddalle``: Version 1.0
             * 2020-03-31 ``@ddalle``: Handled *db.opts* properly
         """
         # Default column list
@@ -977,7 +977,7 @@ class BaseData(dict):
             *defn*: *db._optscls._defncls*
                 Partial definition
         :Versions:
-            * 2020-03-31 ``@ddalle``: First version
+            * 2020-03-31 ``@ddalle``: Version 1.0
         """
         # Options and definition class
         optscls = self._optscls
@@ -1021,7 +1021,7 @@ class BaseData(dict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2020-03-18 ``@ddalle``: First version
+            * 2020-03-18 ``@ddalle``: Version 1.0
         """
         # Default column list
         if cols is None:
@@ -1050,7 +1050,7 @@ class BaseData(dict):
             *tagdef*: {``None``} | :class:`str`
                 Manually specified default tag
         :Versions:
-            * 2020-03-18 ``@ddalle``: First version
+            * 2020-03-18 ``@ddalle``: Version 1.0
         """
         # Check for specified tag
         if tagdef is None:
@@ -1086,7 +1086,7 @@ class BaseData(dict):
             *col*: ``None`` | :class:`str`
                 Name of column for which to set default tag
         :Versions:
-            * 2020-03-18 ``@ddalle``: First version
+            * 2020-03-18 ``@ddalle``: Version 1.0
         """
         # Loop through columns
         for col in self.cols:
@@ -1116,7 +1116,7 @@ class BaseData(dict):
             *cols*: :class:`list`\ [:class:`str`]
                 Name of column for which to set default tag
         :Versions:
-            * 2020-03-18 ``@ddalle``: First version
+            * 2020-03-18 ``@ddalle``: Version 1.0
         """
         # Initialize list
         cols = []
@@ -1135,8 +1135,9 @@ class BaseData(dict):
 
    # --- Column Properties ---
     # Set generic property from column
-    def set_col_prop(self, col, prop, v, vdef=None):
-        """Set property for specific column
+    def set_col_prop(self, col, prop, v):
+        r"""Set property for specific column
+
         :Call:
             >>> v = db.set_col_prop(col, prop, v, vdef=None)
         :Inputs:
@@ -1147,11 +1148,9 @@ class BaseData(dict):
             *prop*: :class:`str`
                 Name of property
             *v*: :class:`any`
-                Value to set to ``defns[col][prop]
-            *vdef*: {``None``} | :class:`any`
-                Default value if not specified in *db.opts*
+                Value to set to ``defns[col][prop]``
         :Versions:
-            * 2021-01-22 ``@aburkhea``: First version
+            * 2021-01-22 ``@aburkhea``: Version 1.0
         """
         # Get definition
         defn = self.get_defn(col)
@@ -1178,7 +1177,7 @@ class BaseData(dict):
                 Value of ``defns[col][prop]`` if possible; defaulting to
                 ``defns["_"][prop]`` or *vdef*
         :Versions:
-            * 2019-11-24 ``@ddalle``: First version
+            * 2019-11-24 ``@ddalle``: Version 1.0
             * 2019-12-31 ``@ddalle``: Moved from :mod:`basefile`
             * 2020-02-01 ``@ddalle``: Using :class:`BaseDataDefn`
         """
@@ -1202,7 +1201,7 @@ class BaseData(dict):
             *cls*: ``"int"`` | ``"float"`` | ``"str"`` | :class:`str`
                 Name of data type
         :Versions:
-            * 2019-11-24 ``@ddalle``: First version
+            * 2019-11-24 ``@ddalle``: Version 1.0
         """
         return self.get_col_prop(col, "Type", vdef="float64")
 
@@ -1221,7 +1220,7 @@ class BaseData(dict):
             *cls*: ``"int"`` | ``"float"`` | ``"str"`` | :class:`str`
                 Name of data type
         :Versions:
-            * 2019-11-24 ``@ddalle``: First version
+            * 2019-11-24 ``@ddalle``: Version 1.0
         """
         # Get definition
         defn = self.get_defn(col)
@@ -1319,7 +1318,7 @@ class BaseData(dict):
             *V*: :class:`np.ndarray` | :class:`list` | :class:`scalar`
                 Value(s) to save for specified column
         :Versions:
-            * 2020-03-19 ``@ddalle``: First version
+            * 2020-03-19 ``@ddalle``: Version 1.0
         """
         # Check if column is present
         if col in self:
@@ -1407,7 +1406,7 @@ class BaseData(dict):
             *dbcols*: :class:`list`\ [:class:`str`]
                 List of column names as stored in *db*
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Version 1.0
             * 2020-02-22 ``@ddalle``: Stole content from main function
 
         .. |args| replace:: trans, prefix, suffix
@@ -1439,7 +1438,7 @@ class BaseData(dict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of "original" column names, e.g. from file
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Version 1.0
             * 2019-12-11 ``@jmeeroff``: From :func:`translate_colnames`
             * 2020-02-22 ``@ddalle``: Moved code from main function
 
@@ -1513,7 +1512,7 @@ class BaseData(dict):
             *dbcol*: :class:`str`
                 Column names as stored in *db*
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Version 1.0
             * 2020-02-22 ``@ddalle``: Single-column version
 
         .. |args| replace:: trans, prefix, suffix
@@ -1564,7 +1563,7 @@ class BaseData(dict):
             *col*: :class:`str`
                 "Original" column name, e.g. from file
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: Version 1.0
             * 2019-12-11 ``@jmeeroff``: From :func:`translate_colnames`
             * 2020-02-22 ``@ddalle``: Single-column version
 

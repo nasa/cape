@@ -51,12 +51,14 @@ Excel spreadsheets, and more.
 Each CFD interface is a portmanteau of "Python" and the name of the solver. The
 command-line interface is invoked with the commands ``pycart``, ``pyfun``, and
 ``pyover``. In addition, there are several scripts matching the glob
-``p?_*.py`` for isolated tasks such as converting grid formats.
+``p?_*.py`` and for isolated tasks such as converting grid formats, and there
+is a ``run_*.py`` script for running the appropriate tasks for a single case of
+each CFD interface.
 
 **Cape Inputs and JSON Files**
 Inputs to Cape can be given as either command-line arguments, input files
 associated with the CFD solver, or JSON files. `JSON <http:www.json.org>`_ is a
-simple but extensible format similar to XML. There are interpreters for many
+simple but flexible format similar to XML. There are interpreters for many
 languages.
 
 
@@ -197,3 +199,10 @@ defined.  In general the required files are the following.
         test/ftypes/index
         test/attdb/index 
         test/tnakit/index
+
+**Authors**
+
+    * ``@ddalle``: Derek Dalle <derek.j.dalle@nasa.gov>
+    * ``@jmeeroff``: Jamie Meeroff <jamie.g.meeroff@nasa.gov>
+    * ``@aburkhea``: Aaron Burkhead <aaron.c.burkhead@nasa.gov>
+    * ``@dschauer``: Guy Schauerhamer <daniel.g.schauerhamer@nasa.gov>

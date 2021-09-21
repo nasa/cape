@@ -13,10 +13,10 @@ This documentation is built by the `Sphinx <http://www.sphinx-doc.org>`_
 documentation software, which has certain features that may not be obvious to
 all users of pyCart and the other parts of the CAPE package.  The docstrings
 like the one shown above are read by Sphinx and turned into formatted text such
-as :func:`pyCart.inputCntl.InputCntl.SetAlpha`.  The basic layout of these
+as :func:`cape.pycart.inputCntl.InputCntl.SetAlpha`.  The basic layout of these
 docstrings, with optional portions in parentheses, is as follows.
 
-    .. code-block:: none
+    .. code-block:: rst
     
         Short description of the function or class
         
@@ -89,17 +89,17 @@ The class, mod, and func keys generate links to their formatted documentation
 when Sphinx can find it.
 
 Some inputs and outputs can have multiple allowed types, which is also
-represented in the docstrings.  In addition, lists, dictionaries, and NumPy
-arrays often have a type, which is shown in parentheses.  For example, ``[0.1,
-0.2, 0.34]`` might be listed as :class:`list` (:class:`float`), and ``{"name":
-"a", "place": "b"}`` might be listed as :class:`dict` (:class:`str`).  Finally,
-default values are sometimes placed in curly braces.  An example portion of a
+represented in the docstrings. In addition, lists, dictionaries, and NumPy
+arrays often have a type, which is shown in parentheses. For example, ``[0.1,
+0.2, 0.34]`` might be listed as :class:`list`\ [:class:`float`], and ``{"name":
+"a", "place": "b"}`` might be listed as :class:`dict`\ [:class:`str`]. Finally,
+default values are sometimes placed in curly braces. An example portion of a
 document string is shown below.
 
-    .. code-block:: none
+    .. code-block:: rst
     
         :Inputs:
-            *a*: :class:`list` (:class:`float`)
+            *a*: :class:`list`\ [:class:`float`]
                 Description of a list of float values
             *b*: :class:`int` | ``None``
                 Description of variable that is either an integer or nothing
@@ -111,7 +111,7 @@ document string is shown below.
 The formatted version of the above looks like this.
 
     :Inputs:
-        *a*: :class:`list` (:class:`float`)
+        *a*: :class:`list`\ [:class:`float`]
             Description of a list of float values
         *b*: :class:`int` | ``None``
             Description of variable that is either an integer or nothing
