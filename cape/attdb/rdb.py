@@ -1810,7 +1810,7 @@ class DataKit(ftypes.BaseData):
                 self.save_col(xcol, xj)
             # Get break points
             self.create_bkpts(xcols[0], nmin=1)
-            self.create_bkpts_schedule(xcols[1:], xcols[0])
+            self.create_bkpts_schedule(xcols[1:], xcols[0], nmin=1)
        # --- Final Definitions ---
         # Save main values
         self.save_col(col, v)
