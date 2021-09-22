@@ -4719,7 +4719,7 @@ class DataKit(ftypes.BaseData):
             # Check for expansion
             if ndk == 0:
                 # Scalar to array
-                X.append(xi*np.ones(nx))
+                X.append(np.full(nx, xi))
             elif ndk != nd:
                 # Inconsistent size
                 raise ValueError(
@@ -4820,7 +4820,7 @@ class DataKit(ftypes.BaseData):
             # Check type
             if isinstance(V, (float, int)):
                 # Create constant-value array
-                X += (V * np.ones(n),)
+                X += (np.full(n, V),)
             else:
                 # Copy array
                 X += (V,)
@@ -9465,7 +9465,7 @@ class DataKit(ftypes.BaseData):
         # Option for mapped matches
         mapped = kw.pop("mapped", False)
         # Number of values
-        n0 = V.size
+        n0 = len(V)
        # --- Mask Prep ---
         # Get mask
         mask_index = self.prep_mask(mask, arg)
@@ -9510,14 +9510,23 @@ class DataKit(ftypes.BaseData):
                         ("expecting %i" % n))
                 # Apply mask
                 if mask is not None:
-                    Xk = Xk[mask]
+                    Xk = self.get_values(k, mask)
                 # Get input test value
                 xi = X[j][i]
                 # Get tolerance for this key
                 xtol = tols.get(k, tol)
-                # Check tolerance
-                Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
-            # Check for any matches of this test point
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Check for match
+                if Xk.dtype.name.startswith("str"):
+                    # Exact match for strings
+                    Mi = np.logical_and(Mi, Xk == xi)
+                else:
+                    # Use a tolerance
+                    Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
+            # Check if any cases
             found = np.any(Mi)
             # Got to next test point if no match
             if not found:
