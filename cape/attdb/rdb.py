@@ -10648,6 +10648,9 @@ class DataKit(ftypes.BaseData):
         if typeutils.isstr(x):
             # Get values
             xv = self.get_values(x, mask)
+            # Check validity
+            if xv is None:
+                raise KeyError("Could not find col '%s'" % x)
             # Save default labels
             opts.setdefault_option("XLabel", x)
         else:
@@ -10657,6 +10660,9 @@ class DataKit(ftypes.BaseData):
         if typeutils.isstr(y):
             # Get values
             yv = self.get_values(y, mask)
+            # Check validity
+            if yv is None:
+                raise KeyError("Could not find col '%s'" % y)
             # Save default labels
             opts.setdefault_option("YLabel", y)
         else:

@@ -1477,6 +1477,13 @@ def _axes_format(ax, **kw):
     xmax = kw.get("XLimMax", xmax)
     ymin = kw.get("YLimMin", ymin)
     ymax = kw.get("YLimMax", ymax)
+    # Test for log scale
+    if ax.yaxis.get_scale() == "log":
+        # Prevent negative limits
+        if ymin <= 0:
+            ymin = 1.0
+        if ymax <= 0:
+            ymax = max(1.0, ymin+1.0)
     # Check for typles
     xmin, xmax = kw.get("XLim", (xmin, xmax))
     ymin, ymax = kw.get("YLim", (ymin, ymax))
@@ -2849,8 +2856,21 @@ def auto_xlim(ax, pad=0.05):
             xdata = xdata[np.isfinite(xdata)]
             # Check the min and max data
             if len(xdata) > 0:
-                xmin = min(xmin, np.min(xdata))
-                xmax = max(xmax, np.max(xdata))
+                try:
+                    # Get min/max values
+                    xmin = min(xmin, np.min(xdata))
+                    xmax = max(xmax, np.max(xdata))
+                except Exception:
+                    # For some data types (like date arrays),
+                    # we can't use np.min(), but we can use slower min()
+                    if np.isfinite(xmin):
+                        xmin = min(xmin, min(xdata))
+                    else:
+                        xmin = min(xdata)
+                    if np.isfinite(xmax):
+                        xmax = max(xmax, max(xdata))
+                    else:
+                        xmax = max(xdata)
         elif t in ['PathCollection']:
             # Get bounds
             bbox = h.get_datalim(ax.transData).extents
@@ -2877,6 +2897,9 @@ def auto_xlim(ax, pad=0.05):
             # Update limits
             xmin = min(xmin, min(bbox[0], bbox[1]))
             xmax = max(xmax, max(bbox[0], bbox[1]))
+    # Only add padding for floats
+    if not isinstance(xmin, float):
+        return xmin, xmax
     # Check for identical values
     if xmax - xmin <= 0.1*pad:
         # Expand by manual amount
