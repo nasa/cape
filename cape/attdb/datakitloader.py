@@ -1079,9 +1079,6 @@ class DataKitLoader(kwutils.KwargHandler):
             fcmdp = fcmd[:-4]
         # Initialize command
         cmd = ["dvc", "status", fcmd]
-        cmdp = ["dvc", "status", fcmdp]
-        # Status update
-        print("  > " + " ".join(cmdp))
         # (Try to) execute the pull
         stdout, _, ierr = shellutils.call_oe(cmd, cwd=gitdir)
         # Check for error
