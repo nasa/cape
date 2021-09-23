@@ -1029,6 +1029,72 @@ class DataKitLoader(kwutils.KwargHandler):
         # Return error code
         return ierr
 
+    def dvc_status(self, frel, **kw):
+        r"""Check status a DVC file
+
+        :Call:
+            >>> ierr = dkl.dvc_status(frel, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *frel*: :class:`str`
+                Name of file relative to *MODULE_DIR*
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+
+                * 0: success
+                * 1: out-of-date
+                * 256: no DVC file
+                * 512: not a git repo
+
+        :Versions:
+            * 2021-09-23 ``@ddalle``: Version 1.0
+        """
+        # Get absolute path
+        fabs = self.get_abspath(frel)
+        # Check for DVC flag
+        if fabs.endswith(".dvc"):
+            # Already a DVC file
+            fdvc = fabs
+        else:
+            # Append .dvc
+            fdvc = fabs + ".dvc"
+            # Check DVC flag
+            if not os.path.isfile(fdvc):
+                return 256
+        # Get the folder name
+        fdir = os.path.dirname(fdvc)
+        # Get the gitdir
+        gitdir = gitutils.get_gitdir(fdir)
+        # Check for a valid git repo
+        if gitdir is None:
+            return 512
+        # Strip the *gitdir*
+        fcmd = fdvc[len(gitdir):].lstrip(os.sep)
+        # Shortened file name for pretty STDOUT
+        if len(fcmd) > 43:
+            fcmdp = "..." + fcmd[-38:-4]
+        else:
+            fcmdp = fcmd[:-4]
+        # Initialize command
+        cmd = ["dvc", "status", fcmd]
+        cmdp = ["dvc", "status", fcmdp]
+        # Status update
+        print("  > " + " ".join(cmdp))
+        # (Try to) execute the pull
+        stdout, _, ierr = shellutils.call_oe(cmd, cwd=gitdir)
+        # Check for error
+        if ierr:
+            return ierr
+        # Check if "up to date"
+        if len(stdout.strip().split("\n")) > 1:
+            # Out-of-date
+            return 1
+        else:
+            # Up-to-date
+            return 0
+
    # --- Raw data update ---
     # Main updater
     def update_rawdata(self):
@@ -2744,23 +2810,21 @@ class DataKitLoader(kwutils.KwargHandler):
                 DataKit instance read from *fname*
         :Versions:
             * 2021-06-28 ``@ddalle``: Version 1.0
+            * 2021-09-23 ``@ddalle``: Version 1.1; check ``dvc status``
         """
         # Default class
         if cls is None:
             cls = self.get_option("DATAKIT_CLS")
         # Option: whether or not to check for DVC files
         dvc = kw.get("dvc", True)
+        # Check for DVC file
+        if dvc and self._check_dvcfile(fabs):
+            # Check status
+            if self.dvc_status(fabs):
+                # Pull it
+                self.dvc_pull(fabs, **kw)
         # Check if file exists
-        if self._check_modfile(fabs):
-            # Nominal situation; file exists
-            pass
-        elif dvc and self._check_dvcfile(fabs):
-            # Pull the DVC file?
-            ierr = self.dvc_pull(fabs, **kw)
-            # Check success
-            if ierr:
-                raise SystemError("Failed to pull DVC file '%s.dvc'" % fabs)
-        else:
+        if not self._check_modfile(fabs):
             # No such file
             raise NOFILE_ERROR("No file '%s' found" % fabs)
         # Check for user-specified file type
