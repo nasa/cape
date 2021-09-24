@@ -958,7 +958,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Status update
         print("  > " + " ".join(cmdp))
         # (Try to) execute the pull
-        ierr = shellutils.call(cmd, cwd=gitdir)
+        ierr = shellutils.call(cmd, cwd=gitdir, stderr=shellutils.PIPE)
         # Return error code
         return ierr
 
@@ -2816,8 +2816,16 @@ class DataKitLoader(kwutils.KwargHandler):
         dvc = kw.get("dvc", True)
         # Check for DVC file
         if dvc and self._check_dvcfile(fabs):
+            # Name of DVC file
+            fdvc = fabs + ".dvc"
             # Check status
-            if self.dvc_status(fabs):
+            if not os.path.isfile(fabs):
+                # No main file; just pull
+                self.dvc_pull(fabs, **kw)
+            elif os.path.getmtime(fabs) > os.path.getmtime(fdvc):
+                # No reason to check status
+                pass
+            elif self.dvc_status(fabs):
                 # Pull it
                 self.dvc_pull(fabs, **kw)
         # Check if file exists
