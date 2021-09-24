@@ -141,6 +141,16 @@ def vendorize_repo(*a, **kw):
     target_regex = kw.pop("target", kw.pop("t", None))
     # Find all parents
     targets = find_vendors(where, regex=target_regex)
+    # Check for no targets
+    if len(targets) == 0:
+        # Primary status update
+        print("Found no targets to vendorize")
+        print("  in '%s'" % where)
+        # Check for targets
+        if target_regex:
+            print("  using target (-t, --target) '%s'" % target_regex)
+        # Quit
+        return
     # Remember current location
     fpwd = os.getcwd()
     # Install/check options
