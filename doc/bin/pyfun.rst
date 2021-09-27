@@ -1,3 +1,3 @@
 
-.. automodule:: cape.pyfun.cli_doc
+.. automodule:: cape.pyfun.cli
 

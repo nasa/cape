@@ -1,3 +1,3 @@
 
-.. automodule:: cape.pycart.cli_doc
+.. automodule:: cape.pycart.cli
 

@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-r"""
-:mod:`cape.pyfun.cli`: Command-line interface to ``pyfun``
-===========================================================
-
-This module provides the :func:`main` function that is used by the
-executable called ``pyfun``.
-
-"""
 
 # Standard library modules
 import sys
@@ -17,6 +9,11 @@ import cape.argread
 import cape.pyfun
 import cape.pyfun.cli_doc
 import cape.text
+from . import cli_doc
+
+
+# Transfer docstring
+__doc__ = cli_doc.PYFUN_HELP
 
 
 # Primary interface

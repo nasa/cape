@@ -149,6 +149,12 @@ functionality from this script is also accessible from the
     --unmark
         Remove PASS or ERROR markings from selected cases
 
+    --unmarked
+        Find only cases that are not marked PASS or ERROR
+
+    --rm
+        Delete a cases folder [``--no-prompt`` w/o interactive prompt]
+
     --apply
         Apply the settings in *FJSON* to all cases; way to quickly
         change settings for one or more runs

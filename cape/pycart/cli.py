@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-r"""
-:mod:`cape.pycart.cli`: Command-line interface to ``pycart``
-=============================================================
-
-This module provides the :func:`main` function that is used by the
-executable called ``pycart``.
-
-"""
 
 # Standard library modules
 import sys
@@ -17,6 +9,11 @@ import cape.argread
 import cape.pycart
 import cape.pycart.cli_doc
 import cape.text
+from . import cli_doc
+
+
+# Transfer docstring
+__doc__ = cli_doc.PYCART_HELP
 
 
 # Primary interface
