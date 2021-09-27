@@ -67,8 +67,6 @@ def run_fun3d():
     if os.path.isfile('RUNNING'):
         # Case already running
         raise IOError('Case already running!')
-    if re.search("nofail06", os.getcwd()):
-        raise IOError("Temporarily blocked all 'nofail06' cases!")
     # Touch (create) the running file
     open("RUNNING", "w").close()
     # Start timer
