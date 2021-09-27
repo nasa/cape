@@ -1305,6 +1305,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowMinMax": _rst_booln,
         "ShowUncertainty": _rst_booln,
         "SpineOptions": _rst_dict,
+        "Spines": _rst_boolt,
         "StDev":  "{``None``} | :class:`np.ndarray` | :class:`float` | :class:`list` | :class:`tuple`",
         "Subplot": """{``None``} | :class:`Axes` | :class:`int`""",
         "SubplotCols": _rst_intpos,
@@ -1514,6 +1515,7 @@ class MPLOpts(kwutils.KwargHandler):
         "ShowMinMax": """Plot *ymin* and *ymax* at each point""",
         "ShowUncertainty": """Plot uncertainty bounds""",
         "SpineOptions": """Options for all spines""",
+        "Spines": """Turn on/off all spines""",
         "StDev": """*sigma* multipliers for sigma bounds""",
         "Subplot": "Subplot index (1-based)",
         "SubplotCols": "Expected number of subplot columns",
@@ -2094,16 +2096,9 @@ class MPLOpts(kwutils.KwargHandler):
             *kw*: :class:`dict`
                 Dictionary of options to :func:`plot`
         :Versions:
-            * 2019-03-07 ``@ddalle``: First ver        "gauss": {
-            "color": "navy",
-            "lw": 1.5,
-            "zorder": 7,
-            "label": "Normal Distribution",
-        },:class:`KwargHandler`
+            * 2019-03-07 ``@ddalle``: Version 1.0
         """
-        # Use the "gauss" section
-        kw = self.section_options("histlbl")
-        return kw
+        return self.section_options("histlbl")
 
     # Process imshow() options
     def imshow_options(self):
@@ -2456,9 +2451,7 @@ class MPLOpts(kwutils.KwargHandler):
             * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Specific options
-        kw = self.get_option("HistSigmaOptions")
-        return kw
+        return self.get_option("HistSigmaOptions")
 
     def sigmalabel_options(self):
         r"""Process options for :func:`sigma` labels
@@ -2478,9 +2471,7 @@ class MPLOpts(kwutils.KwargHandler):
             * 2019-12-21 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
             * 2020-01-17 ``@ddalle``: Using :class:`KwargHandler`
         """
-        # Specific options
-        kw = self.get_option("HistSigmaLabelOptions")
-        return kw
+        return self.get_option("HistSigmaLabelOptions")
 
     # Spine options
     def spine_options(self):

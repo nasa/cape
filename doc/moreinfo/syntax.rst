@@ -105,7 +105,7 @@ document string is shown below.
                 Description of variable that is either an integer or nothing
             *c*: :class:`dict` | :class:`list`
                 Description of multiple ways to represent some data
-            *q*: {True} | False
+            *q*: {``True``} | ``False``
                 Description of Boolean variable that defaults to ``True``
                 
 The formatted version of the above looks like this.
@@ -117,7 +117,7 @@ The formatted version of the above looks like this.
             Description of variable that is either an integer or nothing
         *c*: :class:`dict` | :class:`list`
             Description of multiple ways to represent some data
-        *q*: {True} | False
+        *q*: {``True``} | ``False``
             Description of Boolean variable that defaults to ``True``
 
 
