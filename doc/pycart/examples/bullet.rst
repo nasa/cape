@@ -6,9 +6,23 @@ Demo 1: Basic Usage on a Bullet Shape
 
 The first example demonstrates how pyCart and other Cape interfaces generate
 parametrically named files, interact with the master JSON file, and set up
-Cart3D input files.  This example is found in
-``$PYCART/examples/pycart/01_bullet`` where ``$PYCART`` is the installation
-folder.
+Cart3D input files.  This example is found in the file
+
+    ``pycart01-bullet.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pycart01-bullet.tar.gz
+        $ cd pycart01-bullet
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time. 
 
 The geometry used for this shape is a simple capped cylinder with 4890 faces
 and three components.  The surface triangulation, :file:`bullet.tri`, is shown
@@ -28,27 +42,8 @@ use a template file without any problems.
     * ``bullet.tri``: Surface triangulation
     * ``Config.xml``: Names for surface components
     
-To get started, make sure that the ``$PYCART/bin`` folder is part of your
-path and ``$PYCART`` is listed in the environment variable *PYTHONPATH*.  It is
-a good idea to put these in your startup file or create a module.  For a BASH
-environment, the following commands set up the environment for using pyCart
-assuming that ``$HOME/pycart`` is where pyCart was installed.
-
-    .. code-block:: bash
-    
-        export PATH="$PATH:$HOME/pycart/bin"
-        export PYTHONPATH="$PYTHONPATH:$HOME/pycart"
-        
-For a C-shell environment, use the following.
-
-    .. code-block:: csh
-    
-        setenv PATH "$PATH:$HOME/pycart/bin"
-        setenv PYTHONPATH "$PYTHONPATH:$HOME/pycart"
-        
-Assuming the present working directory is in this demo folder, i.e.
-``$PYCART/examples/pycart/01_bullet``, a good first test command is the
-following, which checks the status of each case in the matrix.
+A good first test command is the following, which checks the status of each
+case in the matrix.
 
     .. code-block:: bash
     

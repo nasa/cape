@@ -1,5 +1,5 @@
 
-``pycart`` Documentation
+pyCart Documentation
 ==========================
 
 Welcome to the documentation for pyCart, which provides a Python module for
