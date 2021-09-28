@@ -1,12 +1,12 @@
 
-pyCart Documentation
-====================
+``pycart`` Documentation
+==========================
 
 Welcome to the documentation for pyCart, which provides a Python module for
-interacting with Cart3D.
+interacting with Cart3D cases.
 
 The basic usage for this module is to create a file called :file:`pyCart.json`
-and use the script `pycart`.  In addition to this control file for pyCart,
+and use the executable ``pycart``. In addition to this control file for pyCart,
 several other Cart3D input files (or, more accurately, input template files)
 must be provided.
 

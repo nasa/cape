@@ -29,12 +29,12 @@ that contains a single Python :class:`dict`, with a few differences.
     #. Other JSON files can be imported using ``JSONFile(othersettings.json)``.
 
 The pyFun control file, which by default is called :file:`pyFun.json` but can
-also have other names, is split into several sections.  Most aspects of the
+also have other names, is split into several sections. Most aspects of the
 control file have defaults that will go into effect if the user does not
-specify that option, but several entries are required.  The user can also
+specify that option, but several entries are required. The user can also
 customize these defaults by editing the file
-:file:`$CAPE/settings/pyOver.default.json`, where ``$CAPE`` is the path to
-the Cape root directory.  Many of the settings are common to all solvers, and
+:file:`$CAPE/pyover/options/pyOver.default.json`, where ``$CAPE`` is the path
+to the Cape root directory. Many of the settings are common to all solvers, and
 their description can be found in the :ref:`Cape JSON section <cape-json>`.
 
 The master settings file is loaded in one of two ways: a command-line call to
@@ -57,9 +57,9 @@ Within a Python script, the settings can be loaded with the following code.
         import cape.pyover
         
         # Loads pyOver.json
-        c1 = pyOver.Cntl()
+        c1 = cape.pyover.Cntl()
         # Loads run/poweron.json
-        c2 = pyOver.Cntl('run/poweron.json')
+        c2 = cape.pyover('run/poweron.json')
 
 The location from which either of these two methods is called (i.e., the current
 working directory) is remembered as the root directory for the run.  Locations

@@ -30,17 +30,17 @@ two equations.
 
     .. math::
     
-        \tan\alpha &= \cos\phi\tan\alpha_T \\
-        \sin\beta  &= \sin\phi\sin\alpha_T
+        \tan\alpha &= \cos\phi_p\tan\alpha_p \\
+        \sin\beta  &= \sin\phi_p\sin\alpha_p
 
 The total angle of attack is the angle between the body *x* axis (or the *x*
 axis of the CFD coordinate system) and the velocity, and the roll angle gives
 the angle of the velocity projected into the CFD *yz* plane.
         
-Cape also provides *alpha_t* and *phi* as variables for the user, and it
-automatically calculates *alpha* and *beta* accordingly.  These are listed in
-the :ref:`JSON settings description <cape-json-RunMatrixGroups>`, and more
-details are provided below.
+CAPE also provides *aoap* (a.k.a. *alpha_t*) and *phip* (a.k.a. *phi*) as
+variables for the user, and it automatically calculates *alpha* and *beta*
+accordingly. These are listed in the :ref:`JSON settings description
+<cape-json-RunMatrixGroups>`, and more details are provided below.
 
     **alpha**: :class:`dict`
     
@@ -119,7 +119,7 @@ extra digits.  This avoids having folder names such as ``a2.7893478247``.
 
 The second way to define the flow angles is using *alpha_t* and *phi*.
 
-    **alpha_t**, **aoav**: :class:`dict`
+    **alpha_t**, **aoap**: :class:`dict`
     
         *Group*: ``True`` | {``False``}
             Whether or not to consider the angle of attack as a group key
@@ -145,7 +145,7 @@ The second way to define the flow angles is using *alpha_t* and *phi*.
         *PBSFormat*: {``%.1f``} | ``%s`` | :class:`str`
             Print flag for the name of the PBS job
             
-    **phi**, **phiv**: :class:`dict`
+    **phi**, **phip**: :class:`dict`
     
         *Group*: ``True`` | {``False``}
             Whether or not to consider the angle of attack as a group key
@@ -193,12 +193,13 @@ static pressure or freestream dynamic pressure instead. Cape will automatically
 calculate *Re* using the temperature and either static pressure or dynamic
 pressure when setting up a case. Conversely, the user may define *Re* in the
 standard manner, and it will automatically calculate the freestream static and
-dynamic pressures as reference variables using
-:func:`cape.runmatrix.RunMatrix.GetPressure` and
-:func:`cape.runmatrix.RunMatrix.GetDynamicPressure`.  There are also methods
-to calculate freestream static temperature
-(:func:`cape.runmatrix.RunMatrix.GetTemperature`) and freestream stagnation
-temperature (:func:`cape.runmatrix.RunMatrix.GetStagnationTemperature`).
+dynamic pressures and several other common state variables:
+
+    * :func:`cape.runmatrix.RunMatrix.GetPressure`
+    * :func:`cape.runmatrix.RunMatrix.GetDynamicPressure`
+    * :func:`cape.runmatrix.RunMatrix.GetTotalPressure`
+    * :func:`cape.runmatrix.RunMatrix.GetTemperature`
+    * :func:`cape.runmatrix.RunMatrix.GetTotalTemperature`.
 
 Finally, most codes also allow the user to specify non-default values of the
 freestream ratio of specific heats, which can be done using the *gamma* run

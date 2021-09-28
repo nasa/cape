@@ -29,13 +29,14 @@ that contains a single Python :class:`dict`, with a few differences.
     #. Other JSON files can be imported using ``JSONFile(othersettings.json)``.
 
 The pyCart control file, which by default is called :file:`pyCart.json` but can
-also have other names, is split into several sections.  Most aspects of the
+also have other names, is split into several sections. Most aspects of the
 control file have defaults that will go into effect if the user does not
-specify that option, but several entries are required.  The user can also
+specify that option, but several entries are required. The user can also
 customize these defaults by editing the file
-:file:`$PYCART/settings/pyCart.default.json`, where ``$PYCART`` is the path to
-the pyCart root directory.  Many of the settings are common to all solvers, and
-their description can be found in the :ref:`Cape JSON section <cape-json>`.
+:file:`$CAPE/pycart/options/pyCart.default.json`, where ``$CAPE`` is the path
+to the :mod:`cape` root directory. Many of the settings are common to all
+solvers, and their description can be found in the :ref:`Cape JSON section
+<cape-json>`.
 
 The master settings file is loaded in one of two ways: a command-line call to
 the script `pycart` or loading an instance of the :class:`cape.pycart.cntl.Cntl`
@@ -56,9 +57,9 @@ Within a Python script, the settings can be loaded with the following code.
         import cape.pycart
         
         # Loads pyCart.json
-        c1 = pyCart.Cntl()
+        c1 = cape.pycart.Cntl()
         # Loads run/poweron.json
-        c2 = pyCart.Cntl('run/poweron.json')
+        c2 = cape.pycart.Cntl('run/poweron.json')
 
 The location from which either of these two methods is called (i.e., the current
 working directory) is remembered as the root directory for the run.  Locations

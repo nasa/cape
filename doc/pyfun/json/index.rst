@@ -33,7 +33,7 @@ also have other names, is split into several sections.  Most aspects of the
 control file have defaults that will go into effect if the user does not
 specify that option, but several entries are required.  The user can also
 customize these defaults by editing the file
-:file:`$CAPE/settings/pyFun.default.json`, where ``$CAPE`` is the path to
+:file:`$CAPE/pyfun/options/pyFun.default.json`, where ``$CAPE`` is the path to
 the Cape root directory.  Many of the settings are common to all solvers, and
 their description can be found in the :ref:`Cape JSON section <cape-json>`.
 
@@ -56,9 +56,9 @@ Within a Python script, the settings can be loaded with the following code.
         import cape.pyfun
         
         # Loads pyFun.json
-        c1 = pyFun.Cntl()
+        c1 = cape.pyfun.Cntl()
         # Loads run/poweron.json
-        c2 = pyFun.Cntl('run/poweron.json')
+        c2 = cape.pyfun.Cntl('run/poweron.json')
 
 The location from which either of these two methods is called (i.e., the current
 working directory) is remembered as the root directory for the run.  Locations

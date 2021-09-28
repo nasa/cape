@@ -638,7 +638,7 @@ def grid(ax, **kw):
 
 # Legend
 def legend(ax=None, **kw):
-    """Create/update a legend
+    r"""Create/update a legend
 
     :Call:
         >>> leg = legend(ax=None, **kw)

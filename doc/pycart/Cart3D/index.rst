@@ -14,7 +14,6 @@ second link requires entering some basic information but is free.  These were
 most recently accessed on April 19, 2016.
 
     * `<http://people.nas.nasa.gov/~aftosmis/cart3d/>`_
-    * `<http://info.desktop.aero/cart3ddocs.html>`_
 
 This documentation is really about the Cart3D input and output files and the
 Cart3D binaries.  All or most of the content is discussed in the context of

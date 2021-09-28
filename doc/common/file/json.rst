@@ -9,10 +9,10 @@ The various Cape utilities and modules extensively utilize the
 easily read into Python and many other languages (a 
 `list of interpreters <http://www.json.org>`_ can be found on the official
 website).  In CAPE, these files are used to store many types of information.
-In fact, using pyCart mostly boils down to three tasks:
+In fact, using CAPE mostly boils down to three tasks:
 
-    * preparation of input files for the CFD solver, including mesh generation,
-    * interacting with JSON files, and
+    * preparation of input files for the CFD solver, including mesh generation;
+    * interacting with JSON files; and
     * issuing the appropriate command-line commands
     
 The JSON format originated with Javascript in mind, but we can think of it as
@@ -43,10 +43,7 @@ file.
             }
         }
         
-This would be interpreted in Python as the following :class:`dict`.  Actually
-the strings are interpreted as class :class:`unicode`, so for example the
-configuration file here would be ``u"Config.xml"``, but the ``u`` markers are
-omitted here.
+This would be interpreted in Python as the following :class:`dict`.
 
     .. code-block:: python
     
@@ -64,6 +61,13 @@ omitted here.
                 "RefPoint": None
             }
         }
+
+    .. note::
+
+        In Python 2.7,  the strings are interpreted as class :class:`unicode`,
+        so for example the configuration file here would be ``u"Config.xml"``.
+        The Python 3.x :class:`str` class is Unicode by default, so the ``u``
+        markers do not appear.
 
 There are a few conversions between Python and JSON syntax:
 
@@ -150,3 +154,7 @@ JSON file. This is usually a missing ``:``, extra ``,``, or something similar.
 They can be very difficult to track down, but such syntax errors are
 accompanied with the line containing the problem and the line above and below.
 
+    .. note::
+
+        The usefulness of these syntax error helpers are generally better in
+        the Python 3 version.

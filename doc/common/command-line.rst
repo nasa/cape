@@ -55,7 +55,7 @@ taken, and that order of precedence is demonstrated in the table below.
     |                          | PBS job that runs the same command with  |
     |                          | the ``--batch`` flag removed             |
     +--------------------------+------------------------------------------+
-    | ``pycart --aero``        | Create/update force & moment databook    |
+    | ``pycart --fm``          | Create/update force & moment databook    |
     +--------------------------+------------------------------------------+
     | ``pycart --pt $PT``      | Update point sensor data book for point  |
     |                          | sensor group *PT*; if *PT* is not        |
@@ -87,7 +87,7 @@ taken, and that order of precedence is demonstrated in the table below.
     +--------------------------+------------------------------------------+
     | ``pycart --qdel``        | Kill PBS jobs                            |
     +--------------------------+------------------------------------------+
-    | ``pycart --kill``        | Kill PBS jobs                            |
+    | ``pycart --rm``          | Delete run folders                       |
     +--------------------------+------------------------------------------+
     | ``pycart -e $CMD``       | Run command *CMD* in each case folder    |
     +--------------------------+------------------------------------------+
@@ -144,8 +144,8 @@ To see of the options from the command line, just run ``pycart
 The help messages are printed as raw text on the command line in such a format
 that is interpreted as 
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_  at
-:mod:`cape.pycart.cli_doc` (for ``pycart``), :mod:`cape.pyfun.cli_doc` (for
-``pyfun``), and :mod:`cape.pyover.cli-doc` (for ``pyover``).
+:mod:`cape.pycart.cli` (for ``pycart``), :mod:`cape.pyfun.cli` (for
+``pyfun``), and :mod:`cape.pyover.cli` (for ``pyover``).
         
 
 .. _cli-c:
@@ -219,7 +219,7 @@ require much work, and so they can not be submitted as batch jobs.
 
 Data Book Updates
 *****************
-The ``--aero`` flag creates or updates the force and moment database.  The list
+The ``--fm`` flag creates or updates the force and moment database.  The list
 of components included in the database, along with other defining options, are
 specified in the ``"DataBook"`` section of the input JSON file.  When a user 
 runs this command, each case (:ref:`subsetting commands <cli-subset>` still
@@ -380,7 +380,28 @@ following two commands are equivalent.
     .. code-block:: console
     
         $ pycart --qdel
-        $ pycart --kill
+
+
+.. _cli-rm:
+
+Removing Cases
+****************
+The CAPE CLI also provides a convenient method to delete the entire folder of
+one or more case using
+
+    .. code-block:: console
+    
+        $ pycart --rm
+
+By default this will interactively ask for confirmation for each individual
+case folder, which can be eliminated using
+
+    .. code-block:: console
+
+        $ pycart --rm --no-prompt
+
+However, even with the ``--no-prompt`` option, it will ask for confirmation
+when the case has more than 0 iterations run.
 
 
 .. _cli-e:
@@ -515,7 +536,7 @@ This command accepts several modifiers:
     | ``--no-start``    | Set up new cases but do not actually start  |
     |                   | simulation or submit job                    |
     +-------------------+---------------------------------------------+
-    | ``--no-qsub``     | Keep all tasks local and do not submt PBS   |
+    | ``--no-qsub``     | Keep all tasks local and do not submit PBS  |
     |                   | job(s)                                      |
     +-------------------+---------------------------------------------+
 

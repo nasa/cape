@@ -52,7 +52,7 @@ to mark these statuses, the contents of :file:`matrix.csv` should be edited to
         p 0.80, 2.0, 0.0, poweroff,
         p 0.80, 4.0, 0.0, poweroff,
         p 1.20, 0.0, 0.0, poweroff,
-        e 1.20, 2.0, 0.0, poweroff,
+        E 1.20, 2.0, 0.0, poweroff,
           1.20, 2.0, 0.0, poweroff, try2
      
 

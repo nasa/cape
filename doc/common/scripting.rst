@@ -55,7 +55,7 @@ following syntax would work.
         # Load relevant module
         import cape.pyfun
         # Read JSON file
-        cntl = pyFun.Cntl('poweroff.json')
+        cntl = cape.pyfun.Cntl('poweroff.json')
         # Apply scripts
         execfile('poweroff.py')
         execfile('report.py')
@@ -91,26 +91,17 @@ data book components, the following example might work.
             }
             
 As this example might make clear, these scripting capabilities have a tendency
-to require or at least benefit from knowledge of the pyCart API.  However, while
+to require or at least benefit from knowledge of the pyCart API. However, while
 API functions may be useful for generating these scripts, all settings *can* be
-accessed as if they were in a standard Python :class:`dict`.  The JSON file is
-basically read in as a dictionary that is saved in *fun3d.opts*.  For example,
+accessed as if they were in a standard Python :class:`dict`. The JSON file is
+basically read in as a dictionary that is saved in *fun3d.opts*. For example,
 the ``"Report"`` section of the JSON file becomes ``fun3d.opts["Report"]``, and
-the *Report>Subfigures* subsection is ``fun3d.opts["Report"]["Subfigures"]``,
-etc.
+the *Report* |>| *Subfigures* subsection is
+``fun3d.opts["Report"]["Subfigures"]``, etc.
 
-Finally, because this ``-x`` command uses global variables, the scripts must use
-the correct variable name for the global settings handle.  In the examples above
-it was *fun3d*, but below is a table of which variable name to use for each
-primary executable.
-
-    =================   ====================
-    Command             Variable Name
-    =================   ====================
-    ``pycart``          *cart3d*
-    ``pyfun``           *fun3d*
-    ``pyover``          *ofl*
-    =================   ====================
+Finally, because this ``-x`` command uses global variables, the scripts must
+use the correct variable name for the global settings handle, which is
+``cntl``.
 
 
 .. _cape-scripting-InitFunction:
@@ -165,9 +156,9 @@ this allows each user to set the archive location to their own home folder even
 while using identical input files.
 
 The input to the *InitFunction* is the :class:`cape.cntl.Cntl`,
-:class:`cape.pycart.cntl.Cntl`, :class:`cape.pyfun.cntl.Cntl`, etc. global object
-that contains all of the settings from the JSON file and an interface to act on
-them.  The JSON settings are stored within *cntl.opts*.
+:class:`cape.pycart.cntl.Cntl`, :class:`cape.pyfun.cntl.Cntl`, etc. global
+object that contains all of the settings from the JSON file and an interface to
+act on them. The JSON settings are stored within *cntl.opts*.
 
 The *InitFunction* can be used to accomplish many more complex tasks.  For
 example you may have many different databook components that have their own
@@ -248,6 +239,6 @@ FUN3D is shown below.
             
 As can be seen from this example, the inputs to a *CaseFunction* are the
 overall control object (:class:`cape.pycart.cntl.Cntl`,
-:class:`cape.pyover.cntl.Cntl`, or :class:`pyfun.fun3d.Cntl`) and the case
+:class:`cape.pyover.cntl.Cntl`, or :class:`cape.pyfun.cntl.Cntl`) and the case
 number *i*.
 
