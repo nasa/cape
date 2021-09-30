@@ -12,13 +12,15 @@ directly from the system command line.
         pycart
         pyfun
         pyover
-        run_flowCart
-        run_fun3d
-        run_overflow
         dkit
         dkit-quickstart
         dkit-vendorize
         dkit-writedb
+        run_flowCart
+        run_fun3d
+        run_overflow
+        cape
+        cape-writell
         ExpandJSON
         UH3D2Tri
         Tri2Plt
@@ -27,6 +29,4 @@ directly from the system command line.
         Step2Crv
         StepTri2Crv
         TriqFM
-        WriteSplitmq
-        
-    
+

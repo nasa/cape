@@ -105,8 +105,6 @@ setup(
         "cape.pyover.options": ["*.json"],
     },
     scripts=[
-        "bin/cape-writell",
-        "bin/dkit",
         "bin/pc_Step2Crv.py",
         "bin/pc_StepTri2Crv.py",
         "bin/pc_Tri2Plt.py",
@@ -127,8 +125,9 @@ setup(
             "dkit-quickstart=cape.attdb.quickstart:main",
             "dkit-vendorize=cape.attdb.vendorutils:main",
             "dkit-writedb=cape.attdb.writedb:main",
+            "cape-writell=cape.writell:main",
         ],
     },
-    version="1.0a2",
+    version="1.0a3",
     description="CAPE computational aerosciences package",
     ext_modules=exts)

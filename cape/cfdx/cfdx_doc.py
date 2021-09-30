@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pyfun.cfdx_doc`: Create help message for ``cape`` executable
+:mod:`cape.cfdx.cfdx_doc`: Create help message for ``cape`` executable
 =======================================================================
 
 This module formats the output of ``cape -h`` by filling in some slots
@@ -14,11 +14,11 @@ import os
 import sys
 
 # CAPE modules
-import cape.cfdx.cli_doc
+from . import cli_doc
 
 
 # (Automatic) name of executable category
-NAME = __name__.split(".")[1]
+NAME = __name__.split(".")[0]
 # (Suggested) tool name
 TITLE = NAME[:2] + NAME[2].upper() + NAME[3:]
 # Main module name
@@ -70,7 +70,7 @@ _fmt = {
 
 
 # Get template
-_template = cape.cfdx.cli_doc.template
+_template = cli_doc.template
 
 # Create docstring for PYCART; add version info
 CAPE_HELP = _template % _fmt + r"""

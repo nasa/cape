@@ -28,14 +28,14 @@ command line interface.
 
 :Arguments:
     * *CMD*: name of other command to run, one of:
-        - ``write-db``: Process raw data into datakit files
+        - ``writedb``: Process raw data into datakit files
         - ``vendorize``: Install local copies of packages
         - ``quicksart``: Create a template DataKit package
 
     * *ARGS*: arguments passed to individual commands
 
 :Options:
-    See options for specific commands
+    See options for specific commands, e.g. ``dkit writedb -h``
 
 :Versions:
     * 2021-08-24 ``@ddalle``: Version 1.0

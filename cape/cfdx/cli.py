@@ -13,10 +13,10 @@ executable called ``cape``.
 import sys
 
 # CAPE modules
-import cape
-import cape.argread
-import cape.cfdx.cfdx_doc
-import cape.text
+from .. import argread
+from .. import text as textutils
+from .cfdx_doc import CAPE_HELP
+from ..cntl import Cntl
 
 
 # Primary interface
@@ -31,21 +31,19 @@ def main():
         * 2021-03-04 ``@ddalle``: Version 1.0
     """
     # Parse inputs
-    a, kw = cape.argread.readflagstar(sys.argv)
+    a, kw = argread.readflagstar(sys.argv)
     
     # Check for a help flag
     if kw.get('h') or kw.get("help"):
-        # Get help message
-        HELP_MSG = cape.cfdx.cfdx_doc.CAPE_HELP
         # Display help
-        print(cape.text.markdown(HELP_MSG))
+        print(textutils.markdown(CAPE_HELP))
         return
         
     # Get file name
     fname = kw.get('f', "cape.json")
     
     # Try to read it
-    cntl = cape.Cntl(fname)
+    cntl = Cntl(fname)
     
     # Call the command-line interface
     cntl.cli(*a, **kw)
