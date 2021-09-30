@@ -1,3 +1,3 @@
 
-.. automodule:: cape.pyover.cli
+.. automodule:: cape.clidoc.pyover
 

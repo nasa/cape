@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pyover.cntl`: OVERFLOW control module 
 ==================================================
 

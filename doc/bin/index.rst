@@ -16,6 +16,9 @@ directly from the system command line.
         run_fun3d
         run_overflow
         dkit
+        dkit-quickstart
+        dkit-vendorize
+        dkit-writedb
         ExpandJSON
         UH3D2Tri
         Tri2Plt

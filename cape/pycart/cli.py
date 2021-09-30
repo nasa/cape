@@ -14,7 +14,7 @@ import sys
 # CAPE modules
 from .. import argread
 from .. import text as textutils
-from . import cntl
+from .cntl import Cntl
 from .cli_doc import PYCART_HELP
 
 
@@ -43,7 +43,7 @@ def main():
     fname = kw.get('f', "pyCart.json")
     
     # Try to read it
-    cntl = cntl.Cntl(fname)
+    cntl = Cntl(fname)
     
     # Call the command-line interface
     cntl.cli(*a, **kw)

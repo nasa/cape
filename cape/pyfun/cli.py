@@ -1,26 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+r"""
+:mod:`cape.pyfun.cli`: Interface to ``pyfun`` executable
+===========================================================
+
+This module provides the Python function :func:`main`, which is
+executed whenever ``pyfun`` is used.
+"""
 
 # Standard library modules
 import sys
 
 # CAPE modules
-import cape.argread
-import cape.pyfun
-import cape.pyfun.cli_doc
-import cape.text
-from . import cli_doc
-
-
-# Transfer docstring
-__doc__ = cli_doc.PYFUN_HELP
+from .. import argread
+from .. import text as textutils
+from .cntl import Cntl
+from .cli_doc import PYFUN_HELP
 
 
 # Primary interface
 def main():
     r"""Main interface to ``pyfun``
 
-    This is basically an interface to :func:`cape.pyfun.cntl.Cntl.cli`. 
+    This turns ``sys.argv`` into Python arguments and calls
+    :func:`cape.pyfun.cntl.Cntl.cli`. 
 
     :Call:
         >>> main()
@@ -28,21 +31,19 @@ def main():
         * 2021-03-03 ``@ddalle``: Version 1.0
     """
     # Parse inputs
-    a, kw = cape.argread.readflagstar(sys.argv)
+    a, kw = argread.readflagstar(sys.argv)
     
     # Check for a help flag
     if kw.get('h') or kw.get("help"):
-        # Get help message
-        HELP_MSG = cape.pyfun.cli_doc.PYFUN_HELP
         # Display help
-        print(cape.text.markdown(HELP_MSG))
+        print(textutils.markdown(PYFUN_HELP))
         return
         
     # Get file name
     fname = kw.get('f', "pyFun.json")
     
     # Try to read it
-    cntl = cape.pyfun.Cntl(fname)
+    cntl = Cntl(fname)
     
     # Call the command-line interface
     cntl.cli(*a, **kw)
