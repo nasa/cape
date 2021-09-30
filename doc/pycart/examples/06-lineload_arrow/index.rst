@@ -19,7 +19,7 @@ The geometry used for this shape is a capped cylinder with four fins and 9216
 faces and seven components.  The surface triangulation, :file:`arrow.tri`, is
 shown below.
 
-    .. figure:: ../arrow01.png
+    .. figure:: ../02-arrow/arrow01.png
         :width: 4in
         
         Simple bullet shape triangulation with four fins

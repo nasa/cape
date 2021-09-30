@@ -16,7 +16,7 @@ examples as shown in :numref:`fig-pycart-ex08-arrow` and add a stand-alone
 engine geometry as shown in :numref:`fig-pycart-ex08-engine`.
 
     .. _fig-pycart-ex08-arrow:
-    .. figure:: ../arrow01.png
+    .. figure:: arrow01.png
         :width: 3.0 in
         
         Trimmed arrow surface from previous examples

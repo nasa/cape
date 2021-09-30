@@ -20,11 +20,11 @@ are fairly independent.  One exception is the :ref:`business jet example
 .. toctree::
     :maxdepth: 2
     
-    bullet
-    arrow
-    fins
-    bJet/bJet
-    adapt_bJet/adapt_bJet
-    lineload_arrow/lineload_arrow
-    data_arrow/data_arrow
-    thrust/missile
+    01-bullet/index
+    02-arrow/index
+    03-fins/index
+    04-bJet/index
+    05-adapt_bJet/index
+    06-lineload_arrow/index
+    07-data_arrow/index
+    08-thrust/index
