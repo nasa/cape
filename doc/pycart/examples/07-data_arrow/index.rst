@@ -4,12 +4,26 @@
 Demo 7: Data Book Plots and Reports
 ===================================
 
-Using the geometry from :ref:`Example 2 <pycart-ex-arrow>` and 
-:ref:`Example 7 <pycart-ex-lineload-arrow>`, this example computes forces and
-moments on a larger number of cases in order to
+Using the geometry from :ref:`Example 2 <pycart-ex-arrow>` and :ref:`Example 7
+<pycart-ex-lineload-arrow>`, this example computes forces and moments on a
+larger number of cases in order to continues the analysis and adds computation
+of sectional loads. This example is found in the file
 
-continues the analysis and adds computation of sectional loads.  The example is
-located in ``$PYCART/examples/pycart/07_data_arrow``.
+    ``pycart07-data_arrow.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pycart07-data_arrow.tar.gz
+        $ cd pycart07-data_arrow
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
 faces and seven components.  This example is set to run 30 cases with a square

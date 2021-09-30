@@ -5,8 +5,26 @@ Demo 4: Business Jet, Data Book, and Automated Reports
 ======================================================
 
 The following example uses a more complex geometry to demonstrate Cart3D's
-capabilities and the ease with which complex geometries can be analyzed.  Let's
-run the first case in the ``$PYCART/examples/pycart/04_bJet`` folder.
+capabilities and the ease with which complex geometries can be analyzed. This
+example is found in the file
+
+    ``pycart04-bJet.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pycart04-bJet.tar.gz
+        $ cd pycart04-bJet
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
+
+Let's run the first case.
 
     .. code-block:: none
     

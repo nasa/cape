@@ -4,8 +4,23 @@
 Demo 1: Basic Viscous Usage on Arrow with Fins
 ===============================================
 
-This first example is found in ``$PYCART/examples/pyfun/01_arrow`` where
-``$PYCART`` is the installation folder.
+This example is found in the file
+
+    ``pyfun01-bullet.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pyfun01-bullet.tar.gz
+        $ cd pyfun01-bullet
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
 faces and seven components.  The surface triangulation, :file:`arrow.tri`, is

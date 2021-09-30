@@ -5,13 +5,12 @@
 OVERFLOW Powered Nacelle Example
 --------------------------------
 
-This pyOver example shows how to use pyover to run one of the simple test cases
-that come with the OVERFLOW source code. This example starts with the grids and
-inputs files that are created within the OVERFLOW examples, and documents how
-to create the pyOver setup, run matrix, how to run several OVERFLOW cases,
-covers some post-processing.  This pyOver example looks at the process from grid generation to execution and
- post-processing for a simple bullet geometry. This example is located in a
-separate tarball called 
+This pyOver example shows how to use ``pyover`` to run one of the simple test
+cases that come with the OVERFLOW source code. This example starts with the
+grids and inputs files that are created within the OVERFLOW examples, and
+documents how to create the pyOver setup, run matrix, how to run several
+OVERFLOW cases, covers some post-processing. This example is located in a
+separate tarball called
 
     ``pyover02-powered_nacelle.tar.gz``
 

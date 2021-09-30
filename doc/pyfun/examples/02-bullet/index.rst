@@ -4,13 +4,29 @@
 Demo 2: Inviscid Bullet with Reports
 ====================================
 
-This second example is found in ``$PYCART/examples/pyfun/02_bullet`` where
-``$PYCART`` is the installation folder.  To keep computation time low for the
-purposes of running examples.  The example seeks to introduce the pyFun user to
-data books and automated reports, including sweep plots.  It should be noted
-that the :ref:`Cart3D examples <pycart-examples>` are more descriptive, and
-users are encouraged to consider reading those examples since most of the
-process is the same for each solver.
+This example is found in the file
+
+    ``pyfun02-bullet.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pyfun02-bullet.tar.gz
+        $ cd pyfun02-bullet
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
+
+To keep computation time low for the purposes of running examples. The example
+seeks to introduce the pyFun user to data books and automated reports,
+including sweep plots. It should be noted that the :ref:`Cart3D examples
+<pycart-examples>` are more descriptive, and users are encouraged to consider
+reading those examples since most of the process is the same for each solver.
 
 The geometry used for this shape is a capped cylinder and little or nothing
 else. An inviscid volume mesh was created using AFLR3. The surface

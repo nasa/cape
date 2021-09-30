@@ -3,8 +3,25 @@ Demo 5: Mesh Adaptation on a Business Jet
 =========================================
 
 The following example uses a more complex geometry in combination with Cart3D's
-adaptive meshing capability.  It can be found in the
-``$PYCART/examples/pycart/05_adapt_bJet`` folder.  Let's run the first case.
+adaptive meshing capability. This example is found in the file
+
+    ``pycart05-adapt_bJet.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pycart05-adapt_bJet.tar.gz
+        $ cd pycart05-adapt_bJet
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
+
+Let's run the first case.
 
     .. code-block:: none
     

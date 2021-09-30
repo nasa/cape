@@ -6,8 +6,7 @@ OVERFLOW Bullet Example
 ------------------------
 
 This pyOver example looks at the process from grid generation to execution and
-post-processing for a simple bullet geometry.  This example is located in a
-separate tarball called 
+post-processing for a simple bullet geometry. This example is found in the file
 
     ``pyover01-bullet.tar.gz``
 
@@ -19,7 +18,7 @@ After untarring this file and entering the resulting folder using
         $ cd pyover01-bullet
 
 the folder has the required input files, but it's recommended to copy them to a
-working folder so that it's easy to reset.  Just run the following command:
+working folder so that it's easy to reset. Just run the following command:
 
     .. code-block:: console
 

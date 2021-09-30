@@ -6,7 +6,7 @@ Demo 1: Basic Usage on a Bullet Shape
 
 The first example demonstrates how pyCart and other Cape interfaces generate
 parametrically named files, interact with the master JSON file, and set up
-Cart3D input files.  This example is found in the file
+Cart3D input files. This example is found in the file
 
     ``pycart01-bullet.tar.gz``
 
@@ -22,7 +22,7 @@ To get started, download this file and run the following easy commands:
 This will copy all of the files into a newly created ``work/`` folder. Follow
 the instructions below by entering that ``work/`` folder; the purpose is that
 you can easily delete the ``work/`` folder and restart the tutorial at any
-time. 
+time.
 
 The geometry used for this shape is a simple capped cylinder with 4890 faces
 and three components.  The surface triangulation, :file:`bullet.tri`, is shown

@@ -4,16 +4,35 @@
 Demo 6: Line Loads on the Arrow Example
 =======================================
 
-NOTE: This example requires `Chimera Grid Tools 
-<https://www.nas.nasa.gov/publications/software/docs/chimera/index.html>`_ to
-calculate sectional loads.  Specifically, the `triload
-<https://www.nas.nasa.gov/publications/software/docs/chimera/pages/triload.html>`_
-command is used.  To acquire Chimera Grid Tools, free software from NASA, use
-the `NASA Software Catalog <https://software.nasa.gov/software/ARC-16025-1A>`_.
+.. note::
 
-Using the geometry from :ref:`Example 2 <pycart-ex-arrow>`, this case
-continues the analysis and adds computation of sectional loads.  The example is
-located in ``$PYCART/examples/pycart/06_lineload_arrow``.
+    This example requires `Chimera Grid Tools
+    <https://www.nas.nasa.gov/publications/software/docs/chimera/index.html>`_
+    to calculate sectional loads. Specifically, the `triload
+    <https://www.nas.nasa.gov/publications/software/docs/chimera/pages/triload.html>`_
+    command is used. To acquire Chimera Grid Tools, free software from NASA,
+    use the `NASA Software Catalog
+    <https://software.nasa.gov/software/ARC-16025-1A>`_.
+
+Using the geometry from :ref:`Example 2 <pycart-ex-arrow>`, this case continues
+the analysis and adds computation of sectional loads. This example is found in
+the file
+
+    ``pycart06-lineload_arrow.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pycart06-lineload_arrow.tar.gz
+        $ cd pycart06-lineload_arrow
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
 faces and seven components.  The surface triangulation, :file:`arrow.tri`, is

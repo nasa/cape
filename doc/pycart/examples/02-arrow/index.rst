@@ -5,9 +5,24 @@ Demo 2: Closer Analysis of Simple Arrow Shape
 =============================================
 
 The second example is similar to the first pyCart demo except that four fins
-have been added and more details of the input files are explained.  The example
-is found in ``$PYCART/examples/pycart/02_arrow`` where ``$PYCART`` is the
-installation folder.
+have been added and more details of the input files are explained. This example
+is found in the file
+
+    ``pycart02-arrow.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pycart02-arrow.tar.gz
+        $ cd pycart02-arrow
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
 faces and seven components.  The surface triangulation, :file:`arrow.tri`, is

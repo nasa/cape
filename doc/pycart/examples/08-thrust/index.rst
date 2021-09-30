@@ -11,6 +11,24 @@ rocket engines.  In addition, component rotations and intersections are
 demonstrated, and a detailed report including a customized Tecplot layout are
 also included.
 
+This example is found in the file
+
+    ``pycart08-thrust.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pycart08-thrust.tar.gz
+        $ cd pycart08-thrust
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
+
 To demonstrate these capabilities, we begin with the arrow example of previous
 examples as shown in :numref:`fig-pycart-ex08-arrow` and add a stand-alone
 engine geometry as shown in :numref:`fig-pycart-ex08-engine`.

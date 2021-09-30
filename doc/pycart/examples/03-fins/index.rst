@@ -15,6 +15,24 @@ This allows for the fins to be rotated about some hinge axis, and then once the
 fins are in the correct position, Cart3D's ``intersect`` tool can be used to
 transform this self-intersecting surface into a single water-tight geometry.
 
+This example is found in the file
+
+    ``pycart03-fins.tar.gz``
+
+To get started, download this file and run the following easy commands:
+
+    .. code-block:: console
+
+        $ tar -xzf pycart03-fins.tar.gz
+        $ cd pycart03-fins
+        $ ./copy-files.py
+        $ cd work/
+
+This will copy all of the files into a newly created ``work/`` folder. Follow
+the instructions below by entering that ``work/`` folder; the purpose is that
+you can easily delete the ``work/`` folder and restart the tutorial at any
+time.
+
 Let's run a case to see how this works.
 
     .. code-block:: none
