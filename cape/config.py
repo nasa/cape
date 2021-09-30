@@ -222,13 +222,14 @@ class ConfigXML(object):
                 XML interface to element with tag ``"Component"``
         :Versions:
             * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2021-09-30 ``@ddalle``: Version 1.1
+                - :func:`Element.getchildren` removed in Python 3.9
+                - *c* is iterable
         """
-        # Get the children
-        D = c.getchildren()
         # Get the component name
         comp = c.get('Name')
         # Loop through children
-        for d in D:
+        for d in c:
             # Check the element's type
             if d.tag == 'Data':
                 # Process the face label
@@ -256,13 +257,14 @@ class ConfigXML(object):
                 XML interface to element with tag ``"Component"``
         :Versions:
             * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2021-09-30 ``@ddalle``: Version 1.1
+                - :func:`Element.getchildren` removed in Python 3.9
+                - *c* is iterable
         """
-        # Get the children
-        D = c.getchildren()
         # Get the component name
         comp = c.get('Name')
         # Loop through children
-        for d in D:
+        for d in c:
             # Check the element's type
             if d.tag == 'Data':
                 # Process the face label
@@ -397,16 +399,15 @@ class ConfigXML(object):
                 XML interface to element with tag ``'Transform'``
         :Versions:
             * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2021-09-30 ``@ddalle``: Version 1.1; iterate *t* directly
         """
         # Check the tag
         if t.tag != "Transform":
             raise ValueError("Element '%s' does not have 'Transform' tag" % t)
-        # Process transformation
-        X = t.getchildren()
         # Initialize transformations
         self.transform[comp] = []
         # Loop through children
-        for x in X:
+        for x in t:
             # Check rotation/translation
             if x.tag == "Rotate":
                 # Get center
