@@ -147,7 +147,7 @@ class DataBook(odict):
             # Check for system defaults
             if sys:
                 # Get the value.
-                umask = os.popen('umask', 'r', 1).read()
+                umask = os.popen('umask', 'r').read()
                 # Convert to value.
                 umask = eval('0o' + umask.strip())
             else:

@@ -345,7 +345,7 @@ class Archive(odict):
         # Check if we need to use the default.
         if umask is None:
             # Get the value.
-            umask = os.popen('umask', 'r', 1).read()
+            umask = os.popen('umask', 'r').read()
             # Convert to value.
             umask = eval('0o' + umask.strip())
         elif type(umask).__name__ in ['str', 'unicode']:
