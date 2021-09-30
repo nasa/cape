@@ -17,6 +17,6 @@ complex features one at a time.
 .. toctree::
     :maxdepth: 2
     
-    arrow
-    bullet
+    01-arrow/index
+    02-bullet/index
     

@@ -13,6 +13,6 @@ OVERFLOW.
 
 .. toctree::
 
-    bullet/index
-    powered_nacelle/index
+    01-bullet/index
+    02-powered_nacelle/index
 

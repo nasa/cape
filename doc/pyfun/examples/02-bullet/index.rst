@@ -16,7 +16,7 @@ The geometry used for this shape is a capped cylinder and little or nothing
 else. An inviscid volume mesh was created using AFLR3. The surface
 triangulation, :file:`bullet.tri`, is shown below.
 
-    .. figure:: bullet/bullet01.png
+    .. figure:: bullet01.png
         :width: 4in
         
         Simple bullet shape triangulation with four fins
@@ -184,7 +184,7 @@ history plots, and a flow visualization slide that works with Paraview.
 case 17 (``bullet/m1.50a4.0b0.0``).
 
     .. _fig-pyfun-ex02-slice-y0:
-    .. figure:: bullet/m1.50a4.0b0.0/slice-y0.png
+    .. figure:: m1.50a4.0b0.0/slice-y0.png
         :width: 4.0 in
         
         Surface :math:`c_p` and :math:`y{=}0` Mach slice
@@ -206,7 +206,7 @@ The report also includes axial force coefficient (*CA*), side force coefficient
 one of these plots.
 
     .. _fig-pyfun-ex02-bullet-CN:
-    .. figure:: bullet/m1.50a4.0b0.0/bullet_CN.*
+    .. figure:: m1.50a4.0b0.0/bullet_CN.*
         :width: 3.2 in
         
         Iterative history on bullet (not including base) normal force
@@ -220,7 +220,7 @@ behavior at iteration 75; the residual stops dropping for a while while the
 fluxes are frozen.
 
     .. _fig-pyfun-ex02-L2:
-    .. figure:: bullet/m1.50a4.0b0.0/L2.*
+    .. figure:: m1.50a4.0b0.0/L2.*
         :width: 3.2 in
         
         Overall :math:`L_2` residual for ``bullet/m1.50a4.0b0.0``
@@ -379,7 +379,7 @@ in the Cart3D example :ref:`pycart-ex-data-arrow`, but
 the resulting :file:`report-mach.pdf`.
 
     .. _fig-pyfun-ex02-mach-cap-CN:
-    .. figure:: bullet/b0/mach_cap_CN.*
+    .. figure:: b0/mach_cap_CN.*
         :width: 3.5 in
         
         Mach sweep of *CN* on ``cap`` for various angles of attacks.
