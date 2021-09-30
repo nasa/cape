@@ -22,7 +22,7 @@ After untarring this file and entering the resulting folder using
         $ cd pyover02-powered_nacelle
 
 the folder has the required input files, but it's recommended to copy them to a
-working folder so that it's easy to reset.  Just run the following command:
+working folder so that it's easy to reset. Just run the following command:
 
     .. code-block:: console
 
@@ -31,7 +31,7 @@ working folder so that it's easy to reset.  Just run the following command:
 
 This example shows how to use pyOver for a test case with two related
 configurations, a flow-through axisymmetric nacelle, and a powered axisymmetric
-nacelle.  The example comes with the grids and input files ready to run
+nacelle. The example comes with the grids and input files ready to run
 OVERFLOW.
 
 
@@ -870,7 +870,6 @@ The total pressure values of 1.2, 2.0, and 4.0 prescribed in the run matrix
 in the ExitBC column are also evident. The increasing total pressure creates
 higher exit pressures and higher Mach numbers as the flow exits the nacelle.
 
-
     .. _tab-pyover-nacelle-05:
     .. table:: Tecplot® Cp and Mach contour plots for each case
 
@@ -890,8 +889,3 @@ higher exit pressures and higher Mach numbers as the flow exits the nacelle.
         |                                 |                                  |
         |Cp slice bc_power_1.458_E4.000   |Mach slice  bc_power_1.458_E4.000 |
         +---------------------------------+----------------------------------+
-
-
-
-
-

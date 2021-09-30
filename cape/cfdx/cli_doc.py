@@ -27,7 +27,7 @@ or
 
 # Template docstrint
 template = r"""
-Python %(pyver)sinterface for %(solver)s: **%(cmd)s**
+**%(cmd)s**: Python %(pyver)sinterface for %(solver)s
 ======================================================
 
 This function provides a master interface for %(title)s.  All of the

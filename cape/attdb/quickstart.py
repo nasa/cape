@@ -128,17 +128,11 @@ if __name__ == "__main__":
 
 # Main function
 def main():
-    r"""Main command-line interface function
-
-    :Call:
-        >>> main()
-    :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
-    """
     # Process command-line arguments
     a, kw = argread.readkeys(sys.argv)
     # Real main function
     quickstart(*a, **kw)
+main.__doc__ = HELP_QUICKSTART
 
 
 # Primary API function
@@ -235,7 +229,7 @@ def create_pkgdir(pkg, where=".", **kw):
         
             >>> create_pkgdir("c008.f3d.db001")
 
-        This would create the folder ``att_vm_clvtops3/db001":
+        This would create the folder ``att_vm_clvtops3/db001``:
 
             >>> create_pkgdir("db001", t="att_vm_clvtops3")
 

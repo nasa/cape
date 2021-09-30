@@ -805,7 +805,8 @@ class Cntl(object):
         ecmd = kw.get('exec', kw.get('e'))
         qExec = (ecmd is not None)
         # No submissions if we're just deleting.
-        if qKill or qExec or qDel: qCheck = True
+        if qKill or qExec or qDel:
+            qCheck = True
        # ---------
        # Options
        # ---------
@@ -1026,7 +1027,8 @@ class Cntl(object):
                 # At least one with this status.
                 fline += ("%s=%i, " % (key,total[key]))
         # Print the line.
-        if fline: print(fline)
+        if fline:
+            print(fline)
 
     # Mark a case as PASS
     @run_rootdir

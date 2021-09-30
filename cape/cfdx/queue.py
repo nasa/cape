@@ -1,5 +1,5 @@
 """
-:mod:`cape.cfdx.queue`: PBS queue interface module 
+:mod:`cape.cfdx.queue`: PBS queue interface module
 ==================================================
 
 This module contains direct interface for functions like `qsub` and `qstat`.
@@ -20,7 +20,7 @@ import re
 # Function to call `qsub` and get the PBS number
 def qsub(fname):
     """Submit a PBS script and return the job number
-    
+
     :Call:
         >>> pbs = cape.queue.qsub(fname)
     :Inputs:
@@ -49,7 +49,7 @@ def qsub(fname):
     except Exception:
         # Print a message, but don't fail.
         print("Submitting PBS script failed:\n  '%s/%s'"
-            % (os.getcwd(), fname)) 
+            % (os.getcwd(), fname))
         print("  Recevied STDOUT: %si (%s)" % (stdout, type(stdout)))
         # Failed; return None
         return None
@@ -58,7 +58,7 @@ def qsub(fname):
 # Function to call `qsub` and get the PBS number
 def sbatch(fname):
     """Submit a Slurm script and return the job number
-    
+
     :Call:
         >>> pbs = cape.queue.sbatch(fname)
     :Inputs:
@@ -81,14 +81,15 @@ def sbatch(fname):
     except Exception:
         # Print a message, but don't fail.
         print("Submitting Slurm script failed:\n  '%s/%s'"
-            % (os.getcwd(), fname)) 
+            % (os.getcwd(), fname))
         # Failed; return None
         return None
-        
+
+
 # Function to delete jobs from the queue.
 def qdel(jobID):
     """Delete a PBS job by number
-    
+
     :Call:
         >>> cape.queue.qdel(jobID)
     :Inputs:
@@ -110,11 +111,12 @@ def qdel(jobID):
             print("     Deleted PBS job %i" % jobI)
         except Exception:
             print("     Failed to delete PBS job %s" % jobI)
-        
+
+
 # Function to delete jobs from the Slurm queue.
 def scancel(jobID):
     """Delete a Slurm job by number
-    
+
     :Call:
         >>> cape.queue.scancel(jobID)
     :Inputs:
@@ -137,10 +139,11 @@ def scancel(jobID):
         except Exception:
             print("     Failed to delete Slurm job %s" % jobI)
 
+
 # Function to call `qsub` and save the job ID
 def pqsub(fname, fout="jobID.dat"):
     """Submit a PBS script and save the job number in an *fout* file
-    
+
     :Call:
         >>> pbs = cape.queue.pqsub(fname, fout="jobID.dat")
     :Inputs:
@@ -167,12 +170,12 @@ def pqsub(fname, fout="jobID.dat"):
         f.close()
     # Return the number.
     return pbs
-        
+
 
 # Function to call `abatch` and save the job ID
 def psbatch(fname, fout="jobID.dat"):
     """Submit a PBS script and save the job number in an *fout* file
-    
+
     :Call:
         >>> pbs = cape.queue.psbatch(fname, fout="jobID.dat")
     :Inputs:
@@ -199,11 +202,12 @@ def psbatch(fname, fout="jobID.dat"):
         f.close()
     # Return the number.
     return pbs
-    
+
+
 # Function to get the job ID
 def pqjob(fname="jobID.dat"):
     """Read the PBS job number from file
-    
+
     :Call:
         >>> pbs = cape.queue.pqjob()
         >>> pbs = cape.queue.pqjob(fname="jobID.dat")
@@ -212,7 +216,7 @@ def pqjob(fname="jobID.dat"):
             Name of file to read containing PBS job number
     :Outputs:
         *pbs*: :class:`int`
-            PBS job ID number if possible or ``0`` if file could not be read 
+            PBS job ID number if possible or ``0`` if file could not be read
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
@@ -226,11 +230,12 @@ def pqjob(fname="jobID.dat"):
         return pbs
     except Exception:
         return None
-        
+
+
 # Function to get `qstat` information
 def qstat(u=None, J=None):
     """Call `qstat` and process information
-    
+
     :Call:
         >>> jobs = cape.queue.qstat(u=None)
         >>> jobs = cape.queue.qstat(J=None)
@@ -279,12 +284,12 @@ def qstat(u=None, J=None):
     except Exception:
         # Failed or no qstat command
         return {}
-# def qstat
-        
+
+
 # Function to get `qstat` information
 def squeue(u=None, J=None):
     """Call `qstat` and process information
-    
+
     :Call:
         >>> jobs = cape.queue.squeue(u=None)
         >>> jobs = cape.queue.squeue(J=None)
@@ -333,5 +338,4 @@ def squeue(u=None, J=None):
     except Exception:
         # Failed or no qstat command
         return {}
-# def qstat
 

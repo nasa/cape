@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-r"""
-:mod:`cape.attdb.cli`: Command-Line Interface to datakit tools
-=================================================================
-
-
-"""
 
 # Standard library modules
 import sys
@@ -46,6 +40,7 @@ command line interface.
 :Versions:
     * 2021-08-24 ``@ddalle``: Version 1.0
 """
+__doc__ = HELP_DKIT
 
 
 # main function
