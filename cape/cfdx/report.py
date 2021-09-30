@@ -2033,9 +2033,9 @@ class Report(object):
             # Use the run matrix trajectory.
             x = self.cntl.x
         # Check input type
-        if isinstance(I, int):
+        if isinstance(I, (int, np.int32, np.int64)):
             # Use index value given and make a list with one entry.
-            i = I
+            i = int(I)
             I = np.array([i])
         else:
             # Extract first index

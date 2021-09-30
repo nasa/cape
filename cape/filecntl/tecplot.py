@@ -231,7 +231,7 @@ class Tecscript(FileCntl):
             lines.append('%s%s\n' % (s, key))
             lines.append('%s{\n'  % (' '*(m+2)))
             # Sort the keys
-            keys = val.keys()
+            keys = list(val.keys())
             keys.sort()
             # Loop through the keys
             for k in keys:
@@ -1084,7 +1084,7 @@ class Tecscript(FileCntl):
         # Initialize command
         cmd = "CREATECOLORMAP"
         # Get cmap fraction keys
-        V = cmap.keys()
+        V = list(cmap.keys())
         # Make sure all are floats
         for v in V:
             # Get control point type and check it
