@@ -21,8 +21,155 @@ try:
     from scipy.stats import t as student
 except ImportError:
     pass
-# stats
 
+# Get ordered stats
+def get_ordered_stats(V, cov=None, onesided=False, **kw):
+    r"""Calculate coverage using ordered statistics
+
+    :Call:
+        >>> vmin, vmax = get_ordered_stats(V, cov)
+        >>> vmin, vmax = get_ordered_stats(V, **kw)
+        >>> vlim = get_ordered_stats(V, cov, onesided=True)
+        >>> vlim = get_ordered_stats(V, onsided=True, **kw)
+    :Inputs:
+        *V*: :class:`np.ndarray`\ [:class:`float`]
+            Array of scalar values
+        *cov*: :class:`float`
+            Coverage fraction, 0 < *cov* <= 1
+        *onsided*: ``True`` | {``False``}
+            Option to find coverage of one-sided distribution
+        *ksig*: {``None``} | :class:`float`
+            Option to calculate *cov* based on Gaussian distribution
+        *tsig*: {``None``} | :class:`float`
+            Option to calculate *cov* based on Student's t-distribution
+    :Outputs:
+        *vmin*: :class:`float`
+            Lower limit of two-sided coverage interval
+        *vmax*: :class:`float`
+            Upper limit of two-sided coverage interval
+        *vlim*: :class:`float`
+            Upper limit of one-sided coverage interval
+    :Versions:
+        * 2021-09-30 ``@ddalle``: Version 1.0
+    """
+    # Get standard deviation counts
+    ksig = kw.get("ksig")
+    tsig = kw.get("tsig")
+    # Input size
+    n = len(V)
+    # Check for *ksig* option
+    if ksig:
+        # Check for conflict
+        if cov is not None:
+            raise ValueError("Specified both *cov* and *ksig*")
+        # Calculate coverage fraction using 3-sigma or similar
+        cov = norm.cdf(ksig)
+    # Check for *tsig* option
+    if tsig:
+        # Check for conflict
+        if ksig is not None:
+            raise ValueError("Specified both *ksig* and *tsig*")
+        if cov is not None:
+            raise ValueError("Specified both *cov* and *ksig*")
+        # Calculate coverage fraction using 3-sigma or similar
+        cov = student.cdf(tsig, n)
+    # Check for one-sided option
+    if onesided:
+        # Simple coverage
+        return get_ordered_upper(V, 2*cov - 1)
+    else:
+        # Two-sided coverages
+        vmin = get_ordered_lower(V, cov)
+        vmax = get_ordered_upper(V, cov)
+        # Output
+        return vmin, vmax
+
+
+# Calculate coverage using ordered stats
+def get_ordered_lower(V, cov):
+    r"""Calculate value less than fraction *cov* of *V*'s values
+
+    :Call:
+        >>> v = get_ordered_lower(V, cov)
+    :Inputs:
+        *V*: :class:`np.ndarray`\ [:class:`float`]
+            Array of scalar values
+        *cov*: :class:`float`
+            Coverage fraction, 0 < *cov* <= 1
+    :Outputs:
+        *v*: :class:`float`
+            Value such that ``cov*V.size`` entries in *V* are greater
+            than or equal to *v*; may be interpolated between sorted
+            values of *V*
+    :Versions:
+        * 2021-09-30 ``@ddalle``: Version 1.0
+    """
+    # Get size
+    n = len(V)
+    # Check for trivial input
+    if n == 0:
+        return np.nan
+    # Get sorted values
+    U = np.sort(V)
+    # Calculate indices (first exact)
+    i = cov * U.size
+    # Get neighboring integer indices for interpolation
+    ia = int(i)
+    ib = int(np.ceil(i))
+    # Check for trivial case (exact coverage)
+    if ia == ib:
+        return U[n-ia]
+    # Otherwise interpolate
+    va = U[n-ia]
+    vb = U[n-ib]
+    # Get fraction covered by *ia*
+    cova = ia / float(n)
+    # Interpolate ... n = 1 / (covb-cova)
+    return va + n*(cov-cova)*(vb-va)
+
+
+# Calculate coverage using ordered stats
+def get_ordered_upper(V, cov):
+    r"""Calculate value greater than fraction *cov* of *V*'s values
+
+    :Call:
+        >>> v = get_ordered_upper(V, cov)
+    :Inputs:
+        *V*: :class:`np.ndarray`\ [:class:`float`]
+            Array of scalar values
+        *cov*: :class:`float`
+            Coverage fraction, 0 < *cov* <= 1
+    :Outputs:
+        *v*: :class:`float`
+            Value such that ``cov*V.size`` entries in *V* are less than
+            or equal to *v*; may be interpolated between sorted values
+            of *V*
+    :Versions:
+        * 2021-09-30 ``@ddalle``: Version 1.0
+    """
+    # Get size
+    n = len(V)
+    # Check for trivial input
+    if n == 0:
+        return np.nan
+    # Get sorted values
+    U = np.sort(V)
+    # Calculate indices (first exact)
+    i = cov * U.size
+    # Get neighboring integer indices for interpolation
+    ia = int(i)
+    ib = int(np.ceil(i))
+    # Check for trivial case (exact coverage)
+    if ia == ib:
+        return U[ia-1]
+    # Otherwise interpolate
+    va = U[ia-1]
+    vb = U[ib-1]
+    # Get fraction covered by *ia*
+    cova = ia / float(n)
+    # Interpolate ... n = 1 / (covb-cova)
+    return va + n*(cov-cova)*(vb-va)
+    
 
 # Calculate range
 def get_range(R, cov=None, **kw):
