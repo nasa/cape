@@ -85,7 +85,8 @@ BLIST_WALLBCS = {
     5051, 5052, 7011, 7012,
     7021, 7031, 7036, 7100, 
     7101, 7103, 7104, 7105
-    }
+}
+
 
 # Class to read input files
 class Cntl(cape.cntl.Cntl):
@@ -1440,14 +1441,14 @@ class Cntl(cape.cntl.Cntl):
             # Main folder
             fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
 
-
         # Prepare internal boundary conditions
         self.PrepareNamelistBoundaryConditions()
         # Write the BC file
         self.MapBC.Write(fout)
 
         # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Apply any namelist functions
         self.NamelistFunction(i)
         # Loop through input sequence

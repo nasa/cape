@@ -21,8 +21,8 @@ directly from the system command line.
         run_overflow
         cape
         cape-writell
+        cape-uh3d2tri
         ExpandJSON
-        UH3D2Tri
         Tri2Plt
         Tri2Surf
         Plt2Triq
