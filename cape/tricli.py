@@ -20,9 +20,32 @@ import numpy as np
 # Local imprts
 from . import argread
 from . import text as textutils
-from .tri import Tri
 from .config import ConfigXML, ConfigMIXSUR, ConfigJSON
+from .plt import Plt
+from .tri import Tri
 
+
+# Template help messages
+_help_help = r"""-h, --help
+        Display this help message and exit"""
+_help_config = r"""-c CONFIGFILE
+        Use file *CONFIGFILE* to map component ID numbers; guess type
+        based on file name
+
+    --xml XML
+        Use file *XML* as config file with XML format
+
+    --json JSON
+        Use file *JSON* as JSON-style surface config file
+
+    --mixsur MIXSUR
+        Use file *MIXSUR* to label surfaces assuming ``mixsur`` or
+        ``usurp`` input file format"""
+
+_help = {
+    "config": _help_config,
+    "help": _help_help,
+}
 
 # Help message for "uh3d2tri"
 HELP_UH3D2TRI = r"""
@@ -44,8 +67,7 @@ Convert a ``.uh3d`` file to a Cart3D triangulation format.
     * *TRI*: Name of output '.tri' file
     
 :Options:
-    -h, --help
-        Display this help message and exit
+    %(help)s
         
     -i UH3D
         Use *UH3D* as input file
@@ -53,19 +75,7 @@ Convert a ``.uh3d`` file to a Cart3D triangulation format.
     -o TRI
         Use *TRI* as name of created output file
        
-    -c CONFIGFILE
-        Use file *CONFIGFILE* to map component ID numbers; guess type
-        based on file name
-
-    --xml XML
-        Use file *XML* as config file with XML format
-
-    --json JSON
-        Use file *JSON* as JSON-style surface config file
-
-    --mixsur MIXSUR
-        Use file *MIXSUR* to label surfaces assuming ``mixsur`` or
-        ``usurp`` input file format
+    %(config)s
 
     --ascii
         Write *TRI* as an ASCII file (default)
@@ -105,7 +115,7 @@ as the extension to the input (deleting '.uh3d' if possible).
     * 2015-10-09 ``@ddalle``: Version 1.1
         - Add tolerances and ``Config.xml`` processing
         - Add *dx*, *dy*, *dz* translation options
-"""
+""" % _help
 
 HELP_TRI2UH3D = r"""
 ``cape-tri2uh3d``: Convert Cart3D Triangulation to UH3D Format
@@ -127,8 +137,7 @@ bodies with alternative software such as ANSA.
     * *UH3D*: Name of input ``.uh3d`` file
 
 :Options:
-    -h, --help
-        Display this help message and exit
+    %(help)s
 
     -i TRI
         Use *TRI* as name of created output file
@@ -136,19 +145,7 @@ bodies with alternative software such as ANSA.
     -o UH3D
         Use *UH3D* as input file
        
-    -c CONFIGFILE
-        Use file *CONFIGFILE* to map component ID numbers; guess type
-        based on file name
-
-    --xml XML
-        Use file *XML* as config file with XML format
-
-    --json JSON
-        Use file *JSON* as JSON-style surface config file
-
-    --mixsur MIXSUR
-        Use file *MIXSUR* to label surfaces assuming ``mixsur`` or
-        ``usurp`` input file format
+    %(config)s
 
 If the name of the output file is not specified, the script will just
 add ``.uh3d`` as the extension to the input (deleting ``.tri`` if
@@ -157,48 +154,51 @@ possible).
 :Versions:
     * 2015-04-17 ``@ddalle``: Version 1.0
     * 2017-04-06 ``@ddalle``: Version 1.1: JSON and MIXSUR config files
-"""
+""" % _help
 
-# Main function
-def Tri2UH3D(*a, **kw):
-    r"""Convert a UH3D triangulation file to Cart3D tri format
+HELP_TRI2PLT = r"""
+``cape-tri2plt``: Convert Triangulation to Tecplot PLT Format
+==================================================================
+
+Convert a Cart3D triangulation ``.tri`` or ``.triq`` file to a Tecplot
+PLT file.  Each component of the triangulation is written as a separate
+zone.
+
+:Usage:
+    .. code-block:: console
     
-    :Call:
-        >>> tri2uh3d(ftri, **kw)
-        >>> tri2uh3d(ftri, fuh3d, **kw)
-        >>> Tri2UH3D(i=ftri, o=fuh3d, **kw)
-    :Inputs:
-        *ftri*: :class:`str`
-            Name of input file
-        *fuh3d*: :class:`str`
-            Name of output file
-        *c*: :class:`str`
-            Surface config file, guess type from file name 
-        *json*: {``None``} | :class:`str`
-            JSON surface config file 
-        *mixsur*: {``None``} | :class:`str`
-            MIXSUR/USURP surface config file 
-        *xml*: {``None``} | :class:`str`
-            XML surface config file
-        *h*: ``True`` | {``False``}
-            Display help and exit if ``True``
-    :Versions:
-        * 2015-04-17 ``@ddalle``: Version 1.0
-        * 2021-10-01 ``@ddalle``: Version 2.0
-    """
-    # Get input file name
-    ftri = _get_i(*a, **kw)
-    # Get output file name
-    fuh3d = _get_o(ftri, "tri", "uh3d", **kw)
-    # Read TRI file
-    tri = Tri(ftri)
-    # Read Config file
-    cfg = _read_config(*a, **kw)
-    # Apply configuration if requested
-    if cfg is not None:
-        tri.ApplyConfig(cfg)
-    # Write the UH3D file
-    tri.WriteUH3D(fuh3d)
+        $ cape-tri2plt TRI [PLT] [OPTIONS]
+        $ cape-tri2plt -i TRI [-o PLT] OPTIONS
+
+:Inputs:
+    * *TRI*: Name of input ``.tri`` file
+    * *PLT*: Name of output Tecplot ``.plt`` or ``.dat`` file
+
+:Options:
+    %(help)s
+        
+    -v
+        Verbose output while creating PLT interface
+
+    -i TRI
+        Use *TRI* as name of created output file
+
+    -o PLT
+        Use *PLT* as input file; default is to replace ``tri``
+        extension of *TRI* with ``plt``
+
+    --dat
+        Explicitly write output as ASCII Tecplot file
+    
+    --plt
+        Explicitly use binary ``.plt`` format for output
+
+    %(config)s
+
+:Versions:
+    * 2014-04-05 ``@ddalle``: Version 1.0
+    * 2021-10-01 ``@ddalle``: Version 2.0
+""" % _help
 
 
 def uh3d2tri(*a, **kw):
@@ -282,8 +282,115 @@ def uh3d2tri(*a, **kw):
         tri.Nodes[:,2] += float(dz)
     # Get write options
     tri.Write(ftri, **kw)
+
+
+def tri2plt(*a, **kw):
+    r"""Convert a UH3D triangulation file to Cart3D ``.tri`` format
+    
+    :Call:
+        >>> tri2plt(ftri, **kw)
+        >>> tri2plt(ftri, fplt, **kw)
+        >>> tri2plt(i=ftri, o=fplt, **kw)
+    :Inputs:
+        *ftri*: :class:`str`
+            Name of input file; can be any readable TRI or TRIQ format
+        *fplt*: {``None``} | :class:`str`
+            Name of PLT file to create; defaults to *tri* with the
+            ``.tri`` replaced by ``.plt``
+        *dat*: {``None``} | ``True`` | ``False``
+            Write output file as ASCII format
+        *plt*: {``None``} | ``true`` | ``False``
+            Opposite of *dat*; default is to guess bases on *fplt*
+        *h*, *help*: ``True`` | {``False``}
+            Display help and exit if ``True``
+        *v*: ``True`` | {``False``}
+            Verbose output while creating PLT interface
+    :Versions:
+        * 2016-04-05 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: Version 2.0
+    """
+    # Check for ASCII output option
+    qdat = kw.get("dat")
+    qplt = kw.get("plt")
+    # Get input file name
+    ftri = _get_i(*a, **kw)
+    # Get output file name
+    if qdat:
+        # Default to ".dat" extension
+        fplt = _get_o(ftri, "tri", "dat", **kw)
+    else:
+        # Default to ".plt" extension
+        fplt = _get_o(ftri, "tri", "plt", **kw)
+    # Check file name for default output type
+    if qdat is not None:
+        # Explicit
+        qdat = qdat
+    elif qplt is not None:
+        # Explicit based on opposite variable
+        qdat = not qplt
+    else:
+        # Check file name
+        qdat = fplt.endswith(".dat")
+    # Read TRI file
+    tri = Tri(ftri)
+    # Read Config file
+    cfg = _read_config(*a, **kw)
+    # Apply configuration if requested
+    if cfg is not None:
+        tri.ApplyConfig(cfg)
+    # Create PLT interface
+    plt = Plt(triq=tri, **kw)
+    # Output
+    if qdat:
+        # Write ASCII Tecplot DAT file
+        plt.WriteDat(fplt)
+    else:
+        # Write PLT file
+        plt.Write(fplt)
+
+
+def tri2uh3d(*a, **kw):
+    r"""Convert a UH3D triangulation file to Cart3D tri format
+    
+    :Call:
+        >>> tri2uh3d(ftri, **kw)
+        >>> tri2uh3d(ftri, fuh3d, **kw)
+        >>> tri2uh3d(i=ftri, o=fuh3d, **kw)
+    :Inputs:
+        *ftri*: :class:`str`
+            Name of input file
+        *fuh3d*: :class:`str`
+            Name of output file
+        *c*: :class:`str`
+            Surface config file, guess type from file name 
+        *json*: {``None``} | :class:`str`
+            JSON surface config file 
+        *mixsur*: {``None``} | :class:`str`
+            MIXSUR/USURP surface config file 
+        *xml*: {``None``} | :class:`str`
+            XML surface config file
+        *h*: ``True`` | {``False``}
+            Display help and exit if ``True``
+    :Versions:
+        * 2015-04-17 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: Version 2.0
+    """
+    # Get input file name
+    ftri = _get_i(*a, **kw)
+    # Get output file name
+    fuh3d = _get_o(ftri, "tri", "uh3d", **kw)
+    # Read TRI file
+    tri = Tri(ftri)
+    # Read Config file
+    cfg = _read_config(*a, **kw)
+    # Apply configuration if requested
+    if cfg is not None:
+        tri.ApplyConfig(cfg)
+    # Write the UH3D file
+    tri.WriteUH3D(fuh3d)
     
 
+# CLI functions
 def main_uh3d2tri():
     r"""CLI for :func:`uh3d2tri`
 
@@ -292,7 +399,18 @@ def main_uh3d2tri():
     :Versions:
         * 2021-10-01 ``@ddalle``: Version 1.0
     """
-    _main(uh3d2tri)
+    _main(uh3d2tri, HELP_UH3D2TRI)
+
+
+def main_tri2plt():
+    r"""CLI for :func:`tri2plt`
+
+    :Call:
+        >>> main_tri2plt()
+    :Versions:
+        * 2021-10-01 ``@ddalle``: Version 1.0
+    """
+    _main(tri2plt, HELP_TRI2PLT)
 
 
 def main_tri2uh3d():
@@ -303,17 +421,19 @@ def main_tri2uh3d():
     :Versions:
         * 2021-10-01 ``@ddalle``: Version 1.0
     """
-    _main(tri2uh3d)
+    _main(tri2uh3d, HELP_TRI2UH3D)
 
 
-def _main(func):
+def _main(func, doc):
     r"""Command-line interface template
 
     :Call:
-        >>> _main(func)
+        >>> _main(func, doc)
     :Inputs:
         *func*: **callable**
             API function to call after processing args
+        *doc*: :class:`str`
+            Docstring to print with ``-h``
     :Versions:
         * 2021-10-01 ``@ddalle``: Version 1.0
     """
@@ -321,13 +441,13 @@ def _main(func):
     a, kw = argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h', False) or kw.get("help", False):
-        print(textutils.markdown(HELP_UH3D2TRI))
+        print(textutils.markdown(doc))
         return
     # Run the main function.
     func(*a, **kw)
     
 
-# Process first arg OR -i option
+# Process sys.argv
 def _get_i(*a, **kw):
     r"""Process input file name
 
@@ -363,7 +483,6 @@ def _get_i(*a, **kw):
     return fname_in
 
 
-# Process second arg OR -o option OR default
 def _get_o(fname_in, ext1, ext2, *a, **kw):
     r"""Process output file name
 
@@ -404,7 +523,6 @@ def _get_o(fname_in, ext1, ext2, *a, **kw):
     return fname_out
         
 
-# Determine best CONFIG file and read it
 def _read_config(*a, **kw):
     r"""Read best-guess surface config file
 

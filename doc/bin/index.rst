@@ -22,9 +22,9 @@ directly from the system command line.
         cape
         cape-writell
         cape-uh3d2tri
+        cape-tri2plt
         cape-tri2uh3d
         ExpandJSON
-        Tri2Plt
         Tri2Surf
         Plt2Triq
         Step2Crv

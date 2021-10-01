@@ -107,7 +107,6 @@ setup(
     scripts=[
         "bin/pc_Step2Crv.py",
         "bin/pc_StepTri2Crv.py",
-        "bin/pc_Tri2Plt.py",
         "bin/pc_Tri2Surf.py",
         "bin/pf_Plt2Triq.py",
         "bin/run_flowCart.py",
@@ -125,7 +124,8 @@ setup(
             "dkit-writedb=cape.attdb.writedb:main",
             "cape-writell=cape.writell:main",
             "cape-uh3d2tri=cape.tricli:main_uh3d2tri",
-            "cape-uh3d2tri=cape.tricli:main_tri2uh3d",
+            "cape-tri2uh3d=cape.tricli:main_tri2uh3d",
+            "cape-tri2plt=cape.tricli:main_tri2plt",
         ],
     },
     version="1.0a3",
