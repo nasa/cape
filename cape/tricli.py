@@ -53,9 +53,20 @@ Convert a ``.uh3d`` file to a Cart3D triangulation format.
     -o TRI
         Use *TRI* as name of created output file
        
-    -c XML
-        Use file *XML* to map component ID numbers
-        
+    -c CONFIGFILE
+        Use file *CONFIGFILE* to map component ID numbers; guess type
+        based on file name
+
+    --xml XML
+        Use file *XML* as config file with XML format
+
+    --json JSON
+        Use file *JSON* as JSON-style surface config file
+
+    --mixsur MIXSUR
+        Use file *MIXSUR* to label surfaces assuming ``mixsur`` or
+        ``usurp`` input file format
+
     --ascii
         Write *TRI* as an ASCII file (default)
         
@@ -96,7 +107,100 @@ as the extension to the input (deleting '.uh3d' if possible).
         - Add *dx*, *dy*, *dz* translation options
 """
 
+HELP_TRI2UH3D = r"""
+``cape-tri2uh3d``: Convert Cart3D Triangulation to UH3D Format
+===================================================================
+
+Convert a Cart3D triangulation ``.tri`` file to a UH3D file.  The most
+common purpose for this task is to inspect triangulations with moving
+bodies with alternative software such as ANSA.
+
+:Usage:
+    .. code-block:: console
+    
+        $ cape-tri2uh3d TRI [OPTIONS]
+        $ cape-tri2uh3d TRI UH3D [OPTIONS]
+        $ cape-tri2uh3d -i TRI [-o UH3D] [OPTIONS]
+
+:Inputs:
+    * *TRI*: Name of output ``.tri`` file
+    * *UH3D*: Name of input ``.uh3d`` file
+
+:Options:
+    -h, --help
+        Display this help message and exit
+
+    -i TRI
+        Use *TRI* as name of created output file
+
+    -o UH3D
+        Use *UH3D* as input file
+       
+    -c CONFIGFILE
+        Use file *CONFIGFILE* to map component ID numbers; guess type
+        based on file name
+
+    --xml XML
+        Use file *XML* as config file with XML format
+
+    --json JSON
+        Use file *JSON* as JSON-style surface config file
+
+    --mixsur MIXSUR
+        Use file *MIXSUR* to label surfaces assuming ``mixsur`` or
+        ``usurp`` input file format
+
+If the name of the output file is not specified, the script will just
+add ``.uh3d`` as the extension to the input (deleting ``.tri`` if
+possible).
+
+:Versions:
+    * 2015-04-17 ``@ddalle``: Version 1.0
+    * 2017-04-06 ``@ddalle``: Version 1.1: JSON and MIXSUR config files
+"""
+
 # Main function
+def Tri2UH3D(*a, **kw):
+    r"""Convert a UH3D triangulation file to Cart3D tri format
+    
+    :Call:
+        >>> tri2uh3d(ftri, **kw)
+        >>> tri2uh3d(ftri, fuh3d, **kw)
+        >>> Tri2UH3D(i=ftri, o=fuh3d, **kw)
+    :Inputs:
+        *ftri*: :class:`str`
+            Name of input file
+        *fuh3d*: :class:`str`
+            Name of output file
+        *c*: :class:`str`
+            Surface config file, guess type from file name 
+        *json*: {``None``} | :class:`str`
+            JSON surface config file 
+        *mixsur*: {``None``} | :class:`str`
+            MIXSUR/USURP surface config file 
+        *xml*: {``None``} | :class:`str`
+            XML surface config file
+        *h*: ``True`` | {``False``}
+            Display help and exit if ``True``
+    :Versions:
+        * 2015-04-17 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: Version 2.0
+    """
+    # Get input file name
+    ftri = _get_i(*a, **kw)
+    # Get output file name
+    fuh3d = _get_o(ftri, "tri", "uh3d", **kw)
+    # Read TRI file
+    tri = Tri(ftri)
+    # Read Config file
+    cfg = _read_config(*a, **kw)
+    # Apply configuration if requested
+    if cfg is not None:
+        tri.ApplyConfig(cfg)
+    # Write the UH3D file
+    tri.WriteUH3D(fuh3d)
+
+
 def uh3d2tri(*a, **kw):
     r"""Convert a UH3D triangulation file to Cart3D ``.tri`` format
     
@@ -180,12 +284,36 @@ def uh3d2tri(*a, **kw):
     tri.Write(ftri, **kw)
     
 
-# Command-line interface for uh3d2tri
 def main_uh3d2tri():
     r"""CLI for :func:`uh3d2tri`
 
     :Call:
         >>> main_uh3d2tri()
+    :Versions:
+        * 2021-10-01 ``@ddalle``: Version 1.0
+    """
+    _main(uh3d2tri)
+
+
+def main_tri2uh3d():
+    r"""CLI for :func:`tri2uh3d`
+
+    :Call:
+        >>> main_tri2uh3d()
+    :Versions:
+        * 2021-10-01 ``@ddalle``: Version 1.0
+    """
+    _main(tri2uh3d)
+
+
+def _main(func):
+    r"""Command-line interface template
+
+    :Call:
+        >>> _main(func)
+    :Inputs:
+        *func*: **callable**
+            API function to call after processing args
     :Versions:
         * 2021-10-01 ``@ddalle``: Version 1.0
     """
@@ -196,7 +324,7 @@ def main_uh3d2tri():
         print(textutils.markdown(HELP_UH3D2TRI))
         return
     # Run the main function.
-    uh3d2tri(*a, **kw)
+    func(*a, **kw)
     
 
 # Process first arg OR -i option

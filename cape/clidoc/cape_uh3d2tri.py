@@ -2,5 +2,5 @@
 from .. import tricli
 
 
-__doc__ = tricle.HELP_UH3D2TRI
+__doc__ = tricli.HELP_UH3D2TRI
 

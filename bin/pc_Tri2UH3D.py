@@ -13,13 +13,11 @@ bodies with alternative software such as ANSA.
     
         $ pc_Tri2UH3D.py TRI [OPTIONS]
         $ pc_Tri2UH3D.py TRI UH3D [OPTIONS]
-        $ pc_Tri2UH3D.py -tri TRI [-c CFG -uh3d UH3D]
-        $ pc_Tri2UH3D.py -h
+        $ pc_Tri2UH3D.py -i TRI [-o UH3D] [OPTIONS]
 
 :Inputs:
     * *TRI*: Name of output ``.tri`` file
     * *UH3D*: Name of input ``.uh3d`` file
-    * *CFG*: Name of configuration file: XML, JSON, or MIXSUR
 
 :Options:
     -h, --help
