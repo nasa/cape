@@ -257,7 +257,7 @@ def uh3d2tri(*a, **kw):
     cfg = _read_config(*a, **kw)
     # Apply configuration if requested
     if cfg is not None:
-        tri.ApplyConfig(cfg)
+        tri.config = cfg
     # Check for tolerances
     xtol = kw.get('xtol')
     ytol = kw.get('ytol')
@@ -317,10 +317,10 @@ def tri2plt(*a, **kw):
     # Get output file name
     if qdat:
         # Default to ".dat" extension
-        fplt = _get_o(ftri, "tri", "dat", **kw)
+        fplt = _get_o(ftri, "tri", "dat", *a, **kw)
     else:
         # Default to ".plt" extension
-        fplt = _get_o(ftri, "tri", "plt", **kw)
+        fplt = _get_o(ftri, "tri", "plt", *a, **kw)
     # Check file name for default output type
     if qdat is not None:
         # Explicit
@@ -337,7 +337,7 @@ def tri2plt(*a, **kw):
     cfg = _read_config(*a, **kw)
     # Apply configuration if requested
     if cfg is not None:
-        tri.ApplyConfig(cfg)
+        tri.config = cfg
     # Create PLT interface
     plt = Plt(triq=tri, **kw)
     # Output
@@ -378,7 +378,7 @@ def tri2uh3d(*a, **kw):
     # Get input file name
     ftri = _get_i(*a, **kw)
     # Get output file name
-    fuh3d = _get_o(ftri, "tri", "uh3d", **kw)
+    fuh3d = _get_o(ftri, "tri", "uh3d", *a, **kw)
     # Read TRI file
     tri = Tri(ftri)
     # Read Config file
