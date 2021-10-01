@@ -301,10 +301,16 @@ def tri2plt(*a, **kw):
             Write output file as ASCII format
         *plt*: {``None``} | ``true`` | ``False``
             Opposite of *dat*; default is to guess bases on *fplt*
-        *h*, *help*: ``True`` | {``False``}
-            Display help and exit if ``True``
+        *c*: :class:`str`
+            Surface config file, guess type from file name 
+        *json*: {``None``} | :class:`str`
+            JSON surface config file 
+        *mixsur*: {``None``} | :class:`str`
+            MIXSUR/USURP surface config file 
+        *xml*: {``None``} | :class:`str`
+            XML surface config file
         *v*: ``True`` | {``False``}
-            Verbose output while creating PLT interface
+            Verbose output while creating PLT instance
     :Versions:
         * 2016-04-05 ``@ddalle``: Version 1.0
         * 2021-10-01 ``@ddalle``: Version 2.0
@@ -334,10 +340,7 @@ def tri2plt(*a, **kw):
     # Read TRI file
     tri = Tri(ftri)
     # Read Config file
-    cfg = _read_config(*a, **kw)
-    # Apply configuration if requested
-    if cfg is not None:
-        tri.config = cfg
+    _read_triconfig(tri, *a, **kw)
     # Create PLT interface
     plt = Plt(triq=tri, **kw)
     # Output
@@ -382,10 +385,7 @@ def tri2uh3d(*a, **kw):
     # Read TRI file
     tri = Tri(ftri)
     # Read Config file
-    cfg = _read_config(*a, **kw)
-    # Apply configuration if requested
-    if cfg is not None:
-        tri.ApplyConfig(cfg)
+    _read_triconfig(tri, *a, **kw)
     # Write the UH3D file
     tri.WriteUH3D(fuh3d)
     
@@ -574,4 +574,56 @@ def _read_config(*a, **kw):
     if os.path.isfile("Config.xml"):
         # Use that
         return ConfigXML("Config.xml")
+
+
+def _read_triconfig(tri, *a, **kw):
+    r"""Read surface config file into triangulation
+
+    :Call:
+        >>> _read_triconfig(tri, *a, **kw)
+    :Inputs:
+        *c*: {``None``} | :class:`str`
+            Config file, type determined from file name
+        *tri*: :class:`Tri`
+            Triangulation instance
+        *json*: {``None``} | :class:`str`
+            JSON config file name
+        *mixsur*: {``None``} | :class:`str`
+            ``mixsur``\ /``usurp`` config file name
+        *xml*: {``None``} | :class:`str`
+            XML config file name
+    :Versions:
+        * 2021-10-01 ``@ddalle``: Version 1.0
+    """
+    # Configuration
+    fcfg = kw.get('c')
+    fxml = kw.get("xml")
+    fjson = kw.get("json")
+    fmxsr = kw.get("mixsur")
+    # Check options for best config format
+    if fxml:
+        # Directly-specified XML config
+        tri.ReadConfigXML(fxml)
+    if fjson:
+        # Directly-specified JSON config
+        tri.ReadConfigJSON(fjson)
+    if fmxsr:
+        # Directly-specified MIXSUR config
+        tri.ReadConfigMIXSUR(fmxsr)
+    # Check options for format guessed from file name
+    if fcfg:
+        # Guess type based on extension
+        if fcfg.endswith("json"):
+            # Probably a JSON config
+            tri.ReadConfigJSON(fcfg)
+        elif fcfg.startswith("mixsur") or fcfg.endswith(".i"):
+            # Likely a MIXSUR/OVERINT input file
+            tri.ReadConfigMIXSUR(fcfg)
+        else:
+            # Default to XML
+            tri.ReadConfigXML(fcfg)
+    # Check for some defaults
+    if os.path.isfile("Config.xml"):
+        # Use that
+        tri.ReadConfigXML("Config.xml")
 
