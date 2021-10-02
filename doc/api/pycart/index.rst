@@ -24,7 +24,6 @@ The :mod:`cape.pycart` module
     dataBook
     lineLoad
     pointSensor
-    queue
     report
     tecplot
     manage

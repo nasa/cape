@@ -21,7 +21,6 @@ The :mod:`cape.pyover` module
     runmatrix
     dataBook
     lineLoad
-    queue
     report
     tecplot
     manage

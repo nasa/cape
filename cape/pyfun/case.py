@@ -34,7 +34,7 @@ import numpy as np
 # Local imports
 from . import bin
 from . import cmd
-from . import queue
+from .. import queue
 from .. import argread
 from .. import text as textutils
 from ..cfdx import case as cc

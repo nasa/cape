@@ -41,7 +41,9 @@ from .options.runControl import RunControl
 # Import the namelist
 from .overNamelist import OverNamelist
 # Interface for writing commands
-from . import bin, cmd, queue
+from . import bin
+from . import cmd
+from .. import queue
 
 global twall, dtwall, twall_avail
 

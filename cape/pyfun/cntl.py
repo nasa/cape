@@ -41,7 +41,7 @@ class are also available here.
 
 """
 
-# System modules
+# Standard library
 import os
 import shutil
 

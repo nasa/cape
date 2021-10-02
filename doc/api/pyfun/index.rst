@@ -25,7 +25,6 @@ The :mod:`cape.pyfun` module
     lineLoad
     pointSensor
     plt
-    queue
     report
     tecplot
     manage

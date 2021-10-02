@@ -40,7 +40,10 @@ from .tri import Tri, Triq
 from .options.runControl import RunControl
 
 # Local modules
-from . import cmd, queue, manage, bin
+from . import cmd
+from .. import queue
+from . import manage
+from . import bin
 from . import pointSensor
 
 
