@@ -20,37 +20,62 @@ are available unless specifically overwritten by specific
 """
 
 # Standard library modules
-import os
 import glob
 import json
-import shutil
+import os
 import re
-
-# Standard library direct imports
+import shutil
+import sys
 from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-import cape.cfdx.case as cc
-
 # Local imports
 from . import bin
 from . import cmd
 from . import queue
-
-# Partial local imports
+from .. import argread
+from .. import text as textutils
+from ..cfdx import case as cc
 from .options.runControl import RunControl
 from .namelist import Namelist
 
+
 # Regular expression to find a line with an iteration
-regex_dict = {
+_regex_dict = {
     "time": "(?P<time>[1-9][0-9]*)",
     "iter": "(?P<iter>[1-9][0-9]*)",
 }
 # Combine them; different format for steady and time-accurate modes
-regex_f3dout = re.compile("\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % regex_dict)
+REGEX_F3DOUT = re.compile("\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
+
+# Help message for CLI
+HELP_RUN_FUN3D = """
+``run_fun3d.py``: Run FUN3D for one phase
+================================================
+
+This script determines the appropriate index to run for an individual
+case (e.g. if a restart is appropriate, etc.), sets that case up, and
+runs it.
+
+:Call:
+    
+    .. code-block:: console
+    
+        $ run_fun3d.py [OPTIONS]
+        $ python -m cape.pyfun run [OPTIONS]
+        
+:Options:
+    
+    -h, --help
+        Display this help message and quit
+
+:Versions:
+    * 2014-10-02 ``@ddalle``: Version 1.0 (pycart)
+    * 2015-10-19 ``@ddalle``: Version 1.0
+    * 2021-10-01 ``@ddalle``: Version 2.0; part of :mod:`case`
+"""
 
 
 # Function to complete final setup and call the appropriate FUN3D commands
@@ -63,6 +88,13 @@ def run_fun3d():
         * 2015-10-19 ``@ddalle``: First version
         * 2016-04-05 ``@ddalle``: Added AFLR3 to this function
     """
+    # Process arguments
+    a, kw = argread.readkeys(sys.argv)
+    # Check for help argument.
+    if kw.get('h') or kw.get('help'):
+        # Display help and exit
+        print(textutils.markdown(HELP_RUN_FUN3D))
+        return
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
         # Case already running
@@ -909,7 +941,7 @@ def GetRunningIter():
                     nr = None
                     break
                 # Use the iteration regular expression
-                match = regex_f3dout.match(line)
+                match = REGEX_F3DOUT.match(line)
                 # Check for match
                 if match:
                     # Get the iteration number from the line
