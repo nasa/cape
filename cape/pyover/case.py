@@ -43,7 +43,7 @@ from .overNamelist import OverNamelist
 # Interface for writing commands
 from . import bin
 from . import cmd
-from .. import queue
+from ..cfdx import queue
 
 global twall, dtwall, twall_avail
 

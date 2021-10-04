@@ -15,7 +15,6 @@ The :mod:`cape.pycart` module
     options/index
     case
     tri
-    runmatrix
     bin
     cmd
     inputCntl

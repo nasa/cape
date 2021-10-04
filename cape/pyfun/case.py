@@ -34,10 +34,10 @@ import numpy as np
 # Local imports
 from . import bin
 from . import cmd
-from .. import queue
 from .. import argread
 from .. import text as textutils
 from ..cfdx import case as cc
+from ..cfdx import queue
 from .options.runControl import RunControl
 from .namelist import Namelist
 

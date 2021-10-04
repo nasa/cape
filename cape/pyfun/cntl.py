@@ -48,14 +48,7 @@ import shutil
 # Third-party modules
 import numpy as np
 
-# Import template class
-import cape.cntl
-
-# Local classes
-from .namelist   import Namelist
-from .rubberData import RubberData
-
-# Other pyFun modules
+# Local imports
 from . import options
 from . import manage
 from . import case
@@ -63,12 +56,11 @@ from . import mapbc
 from . import faux
 from . import dataBook
 from . import report
-
-# Unmodified CAPE modules
+from .. import cntl as ccntl
+from .namelist   import Namelist
+from .rubberData import RubberData
 from ..util import RangeString
-
-# Functions and classes from other modules
-from .runmatrix import RunMatrix
+from ..runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -89,7 +81,7 @@ BLIST_WALLBCS = {
 
 
 # Class to read input files
-class Cntl(cape.cntl.Cntl):
+class Cntl(ccntl.Cntl):
     r"""
     Class for handling global options and setup for FUN3D.
 
@@ -104,7 +96,7 @@ class Cntl(cape.cntl.Cntl):
     require explanation.
 
     Defaults are read from the file
-    ``$CAPE/settings/pyFun.default.json``.
+    ``options/pyFun.default.json``.
 
     :Call:
         >>> cntl = pyFun.Cntl(fname="pyFun.json")
@@ -130,7 +122,11 @@ class Cntl(cape.cntl.Cntl):
   # <
     # Initialization method
     def __init__(self, fname="pyFun.json"):
-        r"""Initialization method for :mod:`cape.cntl.Cntl`"""
+        r"""Initialization method
+
+        :Versions:
+            * 2015-10-16 ``@ddalle``: Version 1.0
+        """
         # Force default
         if fname is None:
             fname = "pyFun.json"
@@ -753,7 +749,7 @@ class Cntl(cape.cntl.Cntl):
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -1626,7 +1622,7 @@ class Cntl(cape.cntl.Cntl):
         :Call:
             >>> cntl.NamelistFunction(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`Cntl`
                 Overall control interface
             *i*: :class:`int`
                 Case number

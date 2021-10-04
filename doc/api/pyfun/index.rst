@@ -20,7 +20,6 @@ The :mod:`cape.pyfun` module
     rubberData
     bin
     cmd
-    runmatrix
     dataBook
     lineLoad
     pointSensor

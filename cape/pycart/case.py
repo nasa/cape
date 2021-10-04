@@ -41,10 +41,10 @@ from .options.runControl import RunControl
 
 # Local modules
 from . import cmd
-from .. import queue
 from . import manage
 from . import bin
 from . import pointSensor
+from ..cfdx import queue
 
 
 # Function to setup and call the appropriate flowCart file.
