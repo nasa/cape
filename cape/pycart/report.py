@@ -68,7 +68,6 @@ from ..filecntl import tex
 from .dataBook import CaseFM, CaseResid
 from .case import LinkPLT
 from .tri import Tri
-from .config import ConfigXML
 from ..filecntl.tecplot import ExportLayout, Tecscript
 
 
@@ -89,6 +88,7 @@ def ImportPointSensor():
     except Exception:
         # Load the modules.
         import pointSensor
+
 
 # Dedicated function to load lineLoad only when needed.
 def ImportLineLoad():

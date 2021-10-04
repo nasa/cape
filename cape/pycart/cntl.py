@@ -63,7 +63,6 @@ from ..cfdx import queue
 from .inputCntl import InputCntl
 from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
-from .config import ConfigXML
 from .tri import Tri
 from ..geom import RotatePoints
 from ..runmatrix import RunMatrix
