@@ -24,7 +24,6 @@ The :mod:`cape.pycart` module
     lineLoad
     pointSensor
     report
-    tecplot
     manage
     util
 

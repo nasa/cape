@@ -25,6 +25,5 @@ The :mod:`cape.pyfun` module
     pointSensor
     plt
     report
-    tecplot
     manage
     util

@@ -64,22 +64,20 @@ import json
 import shutil
 import glob
 
-# Numerics
+# Third-party
 import numpy as np
 
-# CAPE modules
-import cape.cfdx.report
-from cape.filecntl import tex
-from cape          import tar
-
-# Local modules
+# Local import
+from .. import tar
+from ..cfdx import report as capereport
+from ..filecntl import tex
+from .case import LinkPLT
 from .dataBook import CaseFM, CaseResid
-from .case     import LinkPLT
-from .tecplot  import ExportLayout, Tecscript
+from ..filecntl.tecplot import ExportLayout, Tecscript
 
 
 # Class to interface with report generation and updating.
-class Report(cape.cfdx.report.Report):
+class Report(capereport.Report):
     r"""Interface for automated report generation
     
     :Call:

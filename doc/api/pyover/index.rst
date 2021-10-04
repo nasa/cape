@@ -21,7 +21,6 @@ The :mod:`cape.pyover` module
     dataBook
     lineLoad
     report
-    tecplot
     manage
     util
 
