@@ -125,6 +125,138 @@ class XMLFile(object):
         return self.__repr__()
 
    # --- Find ---
+    def find(self, tag, attrib=None, text=None, **kw):
+        r"""Find an element using full path and expanded search criteria
+
+        :Call:
+            >>> elem = xml.find(tag, attrib=None, **kw)
+            >>> elem = xml.find(tags, attrib=None, **kw)
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *tag*: :class:`str`
+                Subelement tag, using ``'.'`` to separate levels
+            *tags*: :class:`list`\ [:class:`str`]
+                Path of tags to sought *elem*
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *text*: {``None``} | :class:`str`
+                Target *elem.text*, ignoring head/tail white space
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail*, ignoring head/tail white space
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+        :Outputs:
+            *elem*: :class:`Element`
+                Element matching all criteria
+        :Versions:
+            * 2021-10-07 ``@ddalle``: Version 1.0
+        """
+        # Get list of tags
+        if isinstance(tag, (list, tuple)):
+            # Already a list
+            tags = tag
+        else:
+            # Split levels using "."
+            tags = tag.split(".")
+        # Number of levels
+        ntag = len(tags)
+        # Find (or try to) full path to *elem*
+        elems = self.find_trail(tag, attrib, text, **kw)
+        # Check length
+        if len(elems) == ntag:
+            return elems[-1]
+
+    def find_trail(self, tag, attrib=None, text=None, **kw):
+        r"""Find an element using full path and expanded search criteria
+
+        :Call:
+            >>> elems = xml.find_trail(tag, attrib=None, **kw)
+            >>> elems = xml.find_trail(tags, attrib=None, **kw)
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *tag*: :class:`str`
+                Subelement tag, using ``'.'`` to separate levels
+            *tags*: :class:`list`\ [:class:`str`]
+                Path of tags to sought *elem*
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *text*: {``None``} | :class:`str`
+                Target *elem.text*, ignoring head/tail white space
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail*, ignoring head/tail white space
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+        :Outputs:
+            *elems*: :class:`list`\ [:class:`Element`]
+                Path of elements leading up to requested tag
+        :Versions:
+            * 2021-10-07 ``@ddalle``: Version 1.0
+        """
+        # Turn off search-sublevels option
+        kw["finditer"] = False
+        # Options
+        tail = kw.pop("tail", None)
+        attribs = kw.pop("attribs", None)
+        exacttext = kw.pop("exacttext", None)
+        exacttail = kw.pop("exactfail", None)
+        # Get list of tags
+        if isinstance(tag, (list, tuple)):
+            # Already a list
+            tags = list(tag)
+        else:
+            # Split levels using "."
+            tags = tag.split(".")
+        # Check for *attribs*
+        if isinstance(attrib, (list, tuple)):
+            attribs = list(attrib)
+            attrib = None
+        # Number of levels
+        ntag = len(tags)
+        # Initialize output
+        elems = []
+        # Current parent
+        e = self.root
+        # Loop through levels
+        for j, tagj in enumerate(tags):
+            # Check for criteria on last tag
+            if j + 1 == ntag:
+                # Search criteria for end of trail
+                kwj = {
+                    "attrib": attrib,
+                    "text": text,
+                    "tail": tail,
+                    "exacttext": exacttext,
+                    "exacttail": exacttail,
+                }
+            else:
+                # No search criteria for end of trail
+                kwj = {}
+            # Get search criteria
+            if attribs and len(attribs) > j:
+                # Use attribute for level *j*
+                kwj["attrib"] = attribs[j]
+            # Search
+            ej = find_elem(e, tagj, **kwj)
+            # Check for find
+            if ej is None:
+                return elems
+            # Append to list
+            elems.append(ej)
+            # Move to next deeper level
+            e = ej
+        # Output
+        return elems
+
     def find_iter(self, tag=None, attrib=None, text=None, **kw):
         r"""Find an element at any level using various search criteria
     
