@@ -1,0 +1,4 @@
+
+.. automodule:: cape.xmlfile
+    :members:
+

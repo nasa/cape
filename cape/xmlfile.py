@@ -19,7 +19,13 @@ through multiple levels of elements and subelements.
 # Standard library
 import copy
 import os
+import sys
 import xml.etree.ElementTree as ET
+
+
+# Faulty *unicode* type for Python 3
+if sys.version_info.major > 2:
+    unicode = str
 
 
 # Primary class
@@ -44,6 +50,16 @@ class XMLFile(object):
             XML text to parse directly
         *xml1*: :class:`XMLFile`
             Another instance
+    :Outputs:
+        *xml*: :class:`XMLFile`
+            Instance of XML file interface
+    :Attributes:
+        *xml.tree*: :class:`xml.etree.ElementTree.ElementTree`
+            An XML element tree interface to contents
+        *xml.root*: :class:`xml.etree.ElementTree.Element`
+            The root element of the XML element tree
+        *xml.fname*: ``None`` | :class:`str`
+            Name of file read or default file name to write
     :Versions:
         * 2021-10-06 ``@ddalle``: Version 0.0: Started
     """
@@ -147,14 +163,99 @@ class XMLFile(object):
 
    # --- Set ---
     def set_elem(self, tag, newtext=None, attrib=None, **kw):
+        r"""Edit or insert an element
+
+        :Call:
+            >>> xml.set_elem(tag, newtext, attrib=None, **kw)
+            >>> xml.set_elem(tags, newtext, attrib=None, **kw)
+
+        :Examples:
+            Using the following example XML text:
+
+            .. code-block:: xml
+
+                <JobXML>
+                  <InputList>
+                    <Input name="Alpha">4.0</Input>
+                    <Input name="Beta">1.0</Input>
+                  </InputList>
+                </JobXML>
+
+            Suppose we want to find the *Input* element with attribute
+            ``name="Alpha"`` and change the value (*text* to 3.0):
+
+            .. code-block:: python
+
+                xml.set_elem(
+                    "InputList.Input", 3.0, attrib={"name": "Alpha"})
+
+            Suppose we want to add a condition for ``"Mach"`` at 1.5:
+
+            .. code-block:: python
+
+                xml.set_elem(
+                    "InputList.Input", 1.5, attrib={"name": "Mach"})
+
+            Suppose we want to change ``"Alpha"`` to ``"alpha"``:
+
+            .. code-block:: python
+
+                xml.set_elem(
+                    "InputList.Input", attrib={"name": "Alpha"},
+                    newattrib={"name": "alpha"})
+            
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *tag*: :class:`str`
+                Subelement tag, using ``'.'`` to separate levels
+            *tags*: :class:`list`\ [:class:`str`]
+                Path of tags to sought *elem*
+            *newtext*: {``None``} | :class:`str`
+                The final text to set in new/edited element
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *insert*: {``True``} | ``False``
+                Option to insert new element(s) if not found
+            *indent*: {``2``} | :class:`int` >= 0
+                Number of spaces in an indent
+            *tab*: {``indent * " "``} | :class:`str`
+                Override *indent* with a specific string
+            *text*: {``None``} | :class:`str`
+                Target *elem.text* for searching
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail* for searching
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+            *newattrib*: {``None``} | :class:`dict`
+                New attributes to set in found element
+            *newtail*: {``None``} | :class:`str`
+                Specific final *tail* text for found dlement
+            *updateattrib*: {``None``} | :class:`dict`
+                Attributes to update without resetting *elem.attrib*
+        :Versions:
+            * 2021-10-08 ``@ddalle``: Version 1.0
+        """
         # Options
         attribs = kw.get("attribs")
         indent = kw.pop("indent", 2)
         insert = kw.pop("insert", True)
         tab = kw.pop("tab", " "*indent)
         # Other output properties
-        newattrib = kw.pop("newattrib", None)
         newtail = kw.pop("newtail", None)
+        newattrib = kw.pop("newattrib", None)
+        updateattrib = kw.pop("updateattrib", None)
+        # Convert *newtxt* to string, for convenience
+        if newtxt is None:
+            pass
+        elif isinstance(newtxt, (str, unicode, bytes)):
+            pass
+        else:
+            newtxt = str(newtxt)
         # Get list of tags
         if isinstance(tag, (list, tuple)):
             # Already a list
@@ -205,7 +306,7 @@ class XMLFile(object):
                 ej = toelement(tagj, attribj)
                 # Set text if needed
                 if newtext:
-                    ej.text = newtext
+                    ej.text = str(newtext)
                 # Use this weird code to get the first child (if any)
                 # Copy tail from first element
                 if len(e) == 0:
@@ -228,13 +329,42 @@ class XMLFile(object):
             elem.text = None
         elif newtext:
             elem.text = newtext
-        # Check for other values
+        # Check for other values to edit
         if isinstance(newattrib, dict):
             elem.attrib = newattrib
+        if isinstance(updateattrib, dict):
+            elem.attrib.update(updateattrib)
         if newtail is not None:
             elem.tail = newtail
 
     def remove(self, tag, attrib=None, text=None, **kw):
+        r"""Remove an element; raise exception if not found
+
+        :Call:
+            >>> xml.remove(tag, attrib=None, **kw)
+            >>> xml.remove(tags, attrib=None, **kw)
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *tag*: :class:`str`
+                Subelement tag, using ``'.'`` to separate levels
+            *tags*: :class:`list`\ [:class:`str`]
+                Path of tags to sought *elem*
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *text*: {``None``} | :class:`str`
+                Target *elem.text* for searching
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail* for searching
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+        :Versions:
+            * 2021-10-08 ``@ddalle``: Version 1.0
+        """
         # Pop the element, with no error
         elem = self.pop(tag, attrib, text, **kw)
         # Check if removed
@@ -242,6 +372,36 @@ class XMLFile(object):
             raise ValueError("XMLFile.remove(): element not found")
 
     def pop(self, tag, attrib=None, text=None, **kw):
+        r"""Remove an element if found
+
+        :Call:
+            >>> elem = xml.pop(tag, attrib=None, **kw)
+            >>> elem = xml.pop(tags, attrib=None, **kw)
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *tag*: :class:`str`
+                Subelement tag, using ``'.'`` to separate levels
+            *tags*: :class:`list`\ [:class:`str`]
+                Path of tags to sought *elem*
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *text*: {``None``} | :class:`str`
+                Target *elem.text* for searching
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail* for searching
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+        :Outputs:
+            *elem*: ``None`` | :class:`Element`
+                Element matching all criteria, if present
+        :Versions:
+            * 2021-10-08 ``@ddalle``: Version 1.0
+        """
         # Get list of tags
         if isinstance(tag, (list, tuple)):
             # Already a list
@@ -263,7 +423,7 @@ class XMLFile(object):
                 self.root.remove(elem)
             else:
                 # Remove from immediate parent
-                elems[[-2].remove(elem)
+                elems[-2].remove(elem)
             # Removed one element
             return elem
 
@@ -274,6 +434,32 @@ class XMLFile(object):
         :Call:
             >>> elem = xml.find(tag, attrib=None, **kw)
             >>> elem = xml.find(tags, attrib=None, **kw)
+
+        :Examples:
+            Find the first element called *InputList* that's a direct
+            child of the root element:
+
+            >>> elem = xml.find("InputList")
+
+            Using the following example XML text:
+
+            .. code-block:: xml
+
+                <JobXML>
+                  <InputList>
+                    <Input name="Alpha">4.0</Input>
+                    <Input name="Beta">1.0</Input>
+                  </InputList>
+                </JobXML>
+
+            find the *Input* element with attribute ``name="Alpha"``:
+
+            >>> xml.find("InputList.Input", attrib={"name": "Alpha"})
+
+            or, alternatively:
+
+            >>> xml.find(["InputList","Input"], attrib={"name":"Alpha"})
+
         :Inputs:
             *xml*: :class:`XMLFile`
                 XML file interface

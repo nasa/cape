@@ -31,4 +31,5 @@ The :mod:`cape` module
     text
     tri
     util
+    xmlfile
     _cape
