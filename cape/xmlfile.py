@@ -105,14 +105,12 @@ class XMLFile(object):
             * 2021-10-07 ``@ddalle``: Version 1.0
         """
         # Initialize
-        txt = "<%s root='%s'" % (
-            self.__class__.__name__.split(".")[-1],
-            self.root.tag)
+        txt = "<%s " % self.__class__.__name__.split(".")[-1]
         # Check for file name
         if self.fname:
-            txt += " fname='%s'>" % os.path.basename(self.fname)
-        else:
-            txt += ">"
+            txt += "fname='%s' " % os.path.basename(self.fname)
+        # Add name of root element
+        txt += "root='%s'>" % self.root.tag
         # Output
         return txt
 
@@ -123,6 +121,118 @@ class XMLFile(object):
             * 2021-10-07 ``@ddalle``: Version 1.0
         """
         return self.__repr__()
+
+   # --- I/O ---
+    def write(self, fname=None):
+        r"""Write a file
+
+        :Call:
+            >>> xml.write(fname=None)
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *fname*: {``None``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2021-10-07 ``@ddalle``: Version 1.0
+        """
+        # Default file name
+        if fname is None:
+            fname = self.fname
+        # Check again
+        if fname is None:
+            raise ValueError("No file name determined")
+        # Write file
+        self.tree.write(fname)
+
+   # --- Set ---
+    def set_elem(self, tag, newtext=None, attrib=None, **kw):
+        # Options
+        attribs = kw.get("attribs")
+        indent = kw.pop("indent", 2)
+        insert = kw.pop("insert", True)
+        tab = kw.pop("tab", " "*indent)
+        # Other output properties
+        newattrib = kw.pop("newattrib", None)
+        newtail = kw.pop("newtail", None)
+        # Get list of tags
+        if isinstance(tag, (list, tuple)):
+            # Already a list
+            tags = list(tag)
+        else:
+            # Split levels using "."
+            tags = tag.split(".")
+        # Check for *attribs*
+        if isinstance(attrib, (list, tuple)):
+            attribs = list(attrib)
+            attrib = None
+        # Number of levels
+        ntag = len(tags)
+        # Find (or try to) full path to *elem*
+        elems = self.find_trail(tag, attrib, **kw)
+        # Number found
+        nelem = len(elems)
+        # Check length
+        if nelem >= ntag:
+            # Found element; set text
+            elem = elems[ntag - 1]
+        elif not insert:
+            # Missing key
+            raise KeyError("Couldn't find element '%s'" % ".".join(tags))
+        else:
+            # Get handle to last parent found
+            if nelem == 0:
+                # Use root element
+                e = self.root
+            else:
+                # Use last level found
+                e = elems[-1]
+            # Loop through required levels
+            for j in range(nelem, ntag):
+                # Required and optional properties
+                tagj = tags[j]
+                # Set attributes from list
+                if attribs and len(attribs) > j:
+                    # Found attribute from list
+                    attribj = attribs[j]
+                else:
+                    # No attributes from list
+                    attribj = None
+                # Check for attribute from *attrib*
+                if j + 1 == ntag and attrib:
+                    attribj = attrib
+                # Create element
+                ej = toelement(tagj, attribj)
+                # Set text if needed
+                if newtext:
+                    ej.text = newtext
+                # Use this weird code to get the first child (if any)
+                # Copy tail from first element
+                if len(e) == 0:
+                    # Use same tail as *ej* parent
+                    ej.tail = e.tail
+                    # Increase indent of parent
+                    if "\n" in e.text:
+                        e.text = e.text + tab
+                else:
+                    # New element's tail same as parent's text
+                    ej.tail = e.text
+                # Insert element
+                e.insert(0, ej)
+                # Move to next level
+                e = ej
+            # Use last newly inserted element
+            elem = e
+        # Set values
+        if newtext == "":
+            elem.text = None
+        elif newtext:
+            elem.text = newtext
+        # Check for other values
+        if isinstance(newattrib, dict):
+            elem.attrib = newattrib
+        if newtail is not None:
+            elem.tail = newtail
 
    # --- Find ---
     def find(self, tag, attrib=None, text=None, **kw):
@@ -521,4 +631,37 @@ def findall_elem(e, tag=None, attrib=None, text=None, **kw):
         elems.append(elem)
     # Output
     return elems
-            
+
+
+# Convert properties to an element
+def toelement(tag, attrib=None, text=None, tail=None):
+    r"""Create a new element from basic properties
+
+    :Call:
+        >>> e = toelement(tag, attrib=None, text=None, tail=None)
+    :Inputs:
+        *tag*: :class:`str`
+            Name of the XML element
+        *attrib*: {``None``} | :class:`dict`
+            Attributes for the XML element
+        *text*: {``None``} | :class:`str`
+            Text for the interior of the element
+        *tail*: {``None``} | :class:`str`
+            Text after the element
+    :Outputs:
+        *e*: :class:`Element`
+            New XML element
+    :Versions:
+        * 2021-10-07 ``@ddalle``: Version 1.0
+    """
+    # Default attributes
+    if attrib is None:
+        attrib = {}
+    # Create element
+    e = ET.Element(tag, attrib=attrib)
+    # Set texts
+    e.text = text
+    e.tail = tail
+    # Output
+    return e
+
