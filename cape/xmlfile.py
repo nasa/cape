@@ -234,6 +234,39 @@ class XMLFile(object):
         if newtail is not None:
             elem.tail = newtail
 
+    def remove(self, tag, attrib=None, text=None, **kw):
+        # Pop the element, with no error
+        elem = self.pop(tag, attrib, text, **kw)
+        # Check if removed
+        if elem is None:
+            raise ValueError("XMLFile.remove(): element not found")
+
+    def pop(self, tag, attrib=None, text=None, **kw):
+        # Get list of tags
+        if isinstance(tag, (list, tuple)):
+            # Already a list
+            tags = list(tag)
+        else:
+            # Split levels using "."
+            tags = tag.split(".")
+        # Number of levels
+        ntag = len(tags)
+        # Find (or try to) full path to *elem*
+        elems = self.find_trail(tag, attrib, **kw)
+        # Check depth
+        if len(elems) == ntag:
+            # Save reference to last element
+            elem = elems[-1]
+            # Check if direct child of root
+            if ntag == 1:
+                # Remove from root
+                self.root.remove(elem)
+            else:
+                # Remove from immediate parent
+                elems[[-2].remove(elem)
+            # Removed one element
+            return elem
+
    # --- Find ---
     def find(self, tag, attrib=None, text=None, **kw):
         r"""Find an element using full path and expanded search criteria
