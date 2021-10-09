@@ -20,32 +20,31 @@ available unless specifically overwritten by specific :mod:`cape.pyover` version
 """
 
 # Standard library modules
-import os
 import glob
 import json
-import shutil
-import resource
+import os
 import re
-
-# Standard library direct imports
+import resource
+import shutil
+import sys
 from datetime import datetime
 
-# Numerics
+# Third-party modules
 import numpy as np
 
-# Template CAPE module
-import cape.cfdx.case as cc
-
-# Import options class
-from .options.runControl import RunControl
-# Import the namelist
-from .overNamelist import OverNamelist
-# Interface for writing commands
+# Local imports
 from . import bin
 from . import cmd
+from .. import argread
+from .. import text as textutils
 from ..cfdx import queue
+from ..cfdx import case as cc
+from .options.runControl import RunControl
+from .overNamelist import OverNamelist
+
 
 global twall, dtwall, twall_avail
+
 
 # Total wall time used
 twall = 0.0
@@ -55,16 +54,51 @@ dtwall = 0.0
 twall_avail = 1e99
 
 
+# Help message for CLI
+HELP_RUN_OVERFLOW = """
+``run_overflow.py``: Run FUN3D for one phase
+================================================
+
+This script determines the appropriate phase to run for an individual
+case (e.g. if a restart is appropriate, etc.), sets that case up, and
+runs it.
+
+:Call:
+    
+    .. code-block:: console
+    
+        $ run_overflow.py [OPTIONS]
+        $ python -m cape.pyover run [OPTIONS]
+        
+:Options:
+    
+    -h, --help
+        Display this help message and quit
+
+:Versions:
+    * 2014-10-02 ``@ddalle``: Version 1.0 (pycart)
+    * 2016-02-02 ``@ddalle``: Version 1.0
+    * 2021-10-01 ``@ddalle``: Version 2.0; part of :mod:`case`
+"""
+
 
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_overflow():
-    """Setup and run the appropriate OVERFLOW command
+    r"""Setup and run the appropriate OVERFLOW command
     
     :Call:
-        >>> pyFun.case.run_overflow()
+        >>> run_overflow()
     :Versions:
-        * 2016-02-02 ``@ddalle``: First version
+        * 2016-02-02 ``@ddalle``: Version 1.0
+        * 2021-10-08 ``@ddalle``: Version 1.1
     """
+    # Parse arguments
+    a, kw = argread.readkeys(sys.argv)
+    # Check for help argument.
+    if kw.get('h') or kw.get('help'):
+        # Display help and exit
+        print(textutils.markdown(HELP_RUN_OVERFLOW))
+        return
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
         # Case already running
@@ -120,7 +154,7 @@ def StartCase():
     :Call:
         >>> pyOver.case.StartCase()
     :Versions:
-        * 2014-10-06 ``@ddalle``: First version
+        * 2014-10-06 ``@ddalle``: Version 1.0
         * 2015-10-19 ``@ddalle``: Copied from pyCart
     """
     # Get the config.
@@ -157,7 +191,7 @@ def GetStopIter():
         *n*: ``None`` |  :class:`int`
             Iteration at which to stop OVERFLOW
     :Versions:
-        * 2017-03-07 ``@ddalle``: First version
+        * 2017-03-07 ``@ddalle``: Version 1.0
     """
     # Check for the file
     if not os.path.isfile("STOP"):
@@ -186,7 +220,7 @@ def WriteStopIter(n=0):
         *n*: ``None`` | {``0``} | positive :class:`int`
             Iteration at which to stop; empty file if ``0`` or ``None``
     :Versions:
-        * 2017-03-07 ``@ddalle``: First version
+        * 2017-03-07 ``@ddalle``: Version 1.0
     """
     # Create the STOP file
     f = open("STOP", "w")
@@ -209,7 +243,7 @@ def RestartCase(i0=None):
         *i0*: :class:`int` | ``None``
             Phase index of the previous run
     :Versions:
-        * 2016-02-01 ``@ddalle``: First version
+        * 2016-02-01 ``@ddalle``: Version 1.0
     """
     global twall, dtwall, twall_avail
     # Get the config.
@@ -268,7 +302,7 @@ def ExtendCase(m=1, run=True):
         *run*: {``True``} | ``False``
             Whether or not to actually run the case
     :Versions:
-        * 2016-09-19 ``@ddalle``: First version
+        * 2016-09-19 ``@ddalle``: Version 1.0
     """
     # Check for "RUNNING"
     if os.path.isfile('RUNNING'): return
@@ -312,7 +346,7 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
         *toc*: :class:`datetime.datetime`
             Time at which time delta was measured
     :Versions:
-        * 2015-12-29 ``@ddalle``: First version
+        * 2015-12-29 ``@ddalle``: Version 1.0
     """
     global twall, dtwall
     # Call the function from :mod:`cape.case`
@@ -362,7 +396,7 @@ def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
         *fname*: {``"pyover_start.dat"``} | :class:`str`
             Name of file containing run start times
     :Versions:
-        * 2016-08-31 ``@ddalle``: First version
+        * 2016-08-31 ``@ddalle``: Version 1.0
     """
     # Call the function from :mod:`cape.case`
     cc.WriteStartTimeProg(tic, rc, i, fname, 'run_overflow.py')
@@ -375,7 +409,7 @@ def GetPBSScript(i=None):
     PBS scripts in a single run directory
     
     :Call:
-        >>> fpbs = pyFun.case.GetPBSScript(i=None)
+        >>> fpbs = GetPBSScript(i=None)
     :Inputs:
         *i*: :class:`int`
             Run index
@@ -383,7 +417,7 @@ def GetPBSScript(i=None):
         *fpbs*: :class:`str`
             Name of PBS script to call
     :Versions:
-        * 2014-12-01 ``@ddalle``: First version
+        * 2014-12-01 ``@ddalle``: Version 1.0
         * 2015-10-19 ``@ddalle``: FUN3D version
     """
     # Form the full file name, e.g. run_cart3d.00.pbs
@@ -414,7 +448,7 @@ def GetPhaseNumber(rc):
         *i*: :class:`int`
             Most appropriate phase number for a restart
     :Versions:
-        * 2014-10-02 ``@ddalle``: First version
+        * 2014-10-02 ``@ddalle``: Version 1.0
         * 2015-12-29 ``@ddalle``: FUN3D version
         * 2016-02-03 ``@ddalle``: OVERFLOW version
         * 2017-01-13 ``@ddalle``: Removed req't to have full ``run.%02.*`` seq
@@ -468,7 +502,7 @@ def GetNamelist(rc=None, i=None):
         *nml*: :class:`pyOver.overNamelist.OverNamelist`
             Namelist interface
     :Versions:
-        * 2015-12-29 ``@ddalle``: First version
+        * 2015-12-29 ``@ddalle``: Version 1.0
         * 2015-02-02 ``@ddalle``: Copied from :mod:`cape.pyfun.case`
         * 2016-12-12 ``@ddalle``: Added phase as optional input
     """
@@ -496,8 +530,8 @@ def GetPrefix(rc=None, i=None):
     """Read OVERFLOW file prefix
     
     :Call:
-        >>> rname = pyFun.case.GetPrefix()
-        >>> rname = pyFun.case.GetPrefix(rc=None, i=None)
+        >>> rname = GetPrefix()
+        >>> rname = GetPrefix(rc=None, i=None)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
@@ -507,7 +541,7 @@ def GetPrefix(rc=None, i=None):
         *rname*: :class:`str`
             Project prefix
     :Versions:
-        * 2016-02-01 ``@ddalle``: First version
+        * 2016-02-01 ``@ddalle``: Version 1.0
     """
     # Get the options if necessary
     if rc is None:
@@ -525,7 +559,7 @@ def ReadCaseJSON():
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Options interface for run control settings
     :Versions:
-        * 2014-10-02 ``@ddalle``: First version
+        * 2014-10-02 ``@ddalle``: Version 1.0
         * 2015-12-29 ``@ddalle``: OVERFLOW version
     """
     # Read the file, fail if not present.
@@ -549,7 +583,7 @@ def WriteCaseJSON(rc):
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Options interface for run control settings
     :Versions:
-        * 2016-09-19 ``@ddalle``: First version
+        * 2016-09-19 ``@ddalle``: Version 1.0
     """
     # Open the file for rewrite
     f = open('case.json', 'w')
@@ -569,7 +603,7 @@ def GetCurrentIter():
         *n*: :class:`int` | ``None``
             Last iteration number
     :Versions:
-        * 2015-10-19 ``@ddalle``: First version
+        * 2015-10-19 ``@ddalle``: Version 1.0
     """
     # Read the two sources
     nh = GetHistoryIter()
@@ -601,7 +635,7 @@ def GetHistoryIter():
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2016-02-01 ``@ddalle``: First version
+        * 2016-02-01 ``@ddalle``: Version 1.0
     """
     # Read the project rootname
     try:
@@ -641,7 +675,7 @@ def GetRunningIter():
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2016-02-01 ``@ddalle``: First version
+        * 2016-02-01 ``@ddalle``: Version 1.0
     """
     # Assemble file name.
     fname = "resid.tmp"
@@ -671,7 +705,7 @@ def GetOutIter():
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2016-02-02 ``@ddalle``: First version
+        * 2016-02-02 ``@ddalle``: Version 1.0
     """
     # Assemble file name.
     fname = "resid.out"
@@ -694,12 +728,12 @@ def GetRestartIter(rc=None):
     """Get total iteration number of most recent flow file
     
     :Call:
-        >>> n = pyFun.case.GetRestartIter()
+        >>> n = GetRestartIter()
     :Outputs:
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2015-10-19 ``@ddalle``: First version
+        * 2015-10-19 ``@ddalle``: Version 1.0
     """
     # Get prefix
     rname = GetPrefix(rc)
@@ -726,14 +760,14 @@ def SetRestartIter(rc, n=None):
     """Set a given check file as the restart point
     
     :Call:
-        >>> pyFun.case.SetRestartIter(rc, n=None)
+        >>> SetRestartIter(rc, n=None)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
         *n*: :class:`int`
             Restart iteration number, defaults to most recent available
     :Versions:
-        * 2014-10-02 ``@ddalle``: First version
+        * 2014-10-02 ``@ddalle``: Version 1.0
         * 2014-11-28 ``@ddalle``: Added `td_flowCart` compatibility
     """
     # Check the input.
@@ -788,7 +822,7 @@ def checkqavg(fname):
         *nq*: :class:`int`
             Number of iterations included in average
     :Versions:
-        * 2016-12-29 ``@ddalle``: First version
+        * 2016-12-29 ``@ddalle``: Version 1.0
     """
     # Open the file
     f = open(fname, 'rb')
@@ -829,7 +863,7 @@ def checkqt(fname):
         *t*: ``None`` | :class:`float`
             Iteration number or time value
     :Versions:
-        * 2016-12-29 ``@ddalle``: First version
+        * 2016-12-29 ``@ddalle``: Version 1.0
     """
     # Open the file
     f = open(fname, 'rb')
@@ -893,7 +927,7 @@ def EditSplitmqI(fin, fout, qin, qout):
         *qout*: :class:`str`
             Name of output solution or grid file
     :Versions:
-        * 2017-01-07 ``@ddalle``: First version
+        * 2017-01-07 ``@ddalle``: Version 1.0
     """
     # Check for input file
     if not os.path.isfile(fin):
@@ -923,7 +957,7 @@ def GetQ():
         *fq*: ``None`` | :class:`str`
             Name of most recent averaged ``q`` file or most recent ``q`` file
     :Versions:
-        * 2016-12-29 ``@ddalle``: First version
+        * 2016-12-29 ``@ddalle``: Version 1.0
     """
     # Get the list of q files
     qglob = glob.glob('q.save')+glob.glob('q.restart')+glob.glob('q.[0-9]*')
@@ -955,7 +989,7 @@ def GetLatest(glb):
         *fq*: ``None`` | :class:`str`
             Name of most recent file matching glob(s)
     :Versions:
-        * 2017-01-08 ``@ddalle``: First version
+        * 2017-01-08 ``@ddalle``: Version 1.0
     """
     # Check type
     if type(glb).__name__ in ['list', 'ndarray']:
@@ -994,7 +1028,7 @@ def LinkLatest(fsrc, fname):
         *fname*: :class:`str`
             Name of the link to create
     :Versions:
-        * 2017-01-08 ``@ddalle``: First version
+        * 2017-01-08 ``@ddalle``: Version 1.0
     """
     # Check for file
     if os.path.islink(fname):
@@ -1021,7 +1055,7 @@ def LinkQ():
     :Call:
         >>> pyOver.case.LinkQ()
     :Versions:
-        * 2016-09-06 ``@ddalle``: First version
+        * 2016-09-06 ``@ddalle``: Version 1.0
         * 2016-12-29 ``@ddalle``: Moved file search to :func:`GetQ`
     """
     # Get the general best ``q`` file name
@@ -1046,7 +1080,7 @@ def GetX():
         *fx*: ``None`` | :class:`str`
             Name of most recent ``x.save`` or similar file
     :Versions:
-        * 2016-12-29 ``@ddalle``: First version
+        * 2016-12-29 ``@ddalle``: Version 1.0
     """
     # Get the list of q files
     xglob = (glob.glob('x.save') + glob.glob('x.restart') +
@@ -1067,7 +1101,7 @@ def LinkX():
     :Call:
         >>> pyOver.case.LinkX()
     :Versions:
-        * 2016-09-06 ``@ddalle``: First version
+        * 2016-09-06 ``@ddalle``: Version 1.0
     """
     # Get the best file
     fx = GetX()
@@ -1100,7 +1134,7 @@ def GetQFile(fqi="q.pyover.p3d"):
         *i1*: :class:`int`
             Last iteration in the averaging
     :Versions:
-        * 2016-12-30 ``@ddalle``: First version
+        * 2016-12-30 ``@ddalle``: Version 1.0
         * 2017-03-28 ``@ddalle``: Moved from :mod:`lineLoad` to :mod:`case`
     """
     # Link grid and solution files
