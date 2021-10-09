@@ -2919,7 +2919,7 @@ class Cntl(ccntl.Cntl):
             # Write the header.
             self.WritePBSHeader(f, i, j)
 
-            # Initialize options to `run_FUN3D.py`
+            # Initialize options to `run_fun3d.py`
             flgs = ''
 
             # Get specific python version
@@ -2929,11 +2929,7 @@ class Cntl(ccntl.Cntl):
             f.write('\n# Call the FUN3D interface.\n')
             if pyexec:
                 # Use specific version
-                f.write("%s run_fun3d.py %s\n" % (pyexec, flgs))
-                # Create a local script
-                with open("run_fun3d.py", "w") as fpy:
-                    fpy.write("import cape.pyfun.case\n\n")
-                    fpy.write("cape.pyfun.case.run_fun3d()\n")
+                f.write("%s -m cape.pyfun run %s\n" % (pyexec, flgs))
             else:
                 # Use CAPE-provided script
                 f.write('run_fun3d.py' + flgs + '\n')

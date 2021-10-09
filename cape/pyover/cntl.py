@@ -1499,12 +1499,20 @@ class Cntl(capecntl.Cntl):
             # Write the header.
             self.WritePBSHeader(f, i, j)
             
-            # Initialize options to `run_FUN3D.py`
+            # Initialize options to `run_overflow.py`
             flgs = ''
+
+            # Get specific python version
+            pyexec = self.opts.get_PythonExec(j)
 
             # Simply call the advanced interface.
             f.write('\n# Call the OVERFLOW interface.\n')
-            f.write('run_overflow.py' + flgs + '\n')
+            if pyexec:
+                # Use specific version
+                f.write("%s -m cape.pyover run %s\n" % (pyexec, flgs))
+            else:
+                # Use CAPE-provided script
+                f.write('run_overflow.py' + flgs + '\n')
             
             # Close the file.
             f.close()

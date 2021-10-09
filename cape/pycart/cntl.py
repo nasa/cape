@@ -1313,13 +1313,18 @@ class Cntl(capecntl.Cntl):
             
             # Initialize options to `run_flowCart.py`
             flgs = ''
-            # Check for potential need of preprocessing.
-            qflg = j==0 and (self.opts.get_Adaptive(0) 
-                and not self.opts.get_jumpstart(0))
+
+            # Get specific python version
+            pyexec = self.opts.get_PythonExec(j)
 
             # Simply call the advanced interface.
-            f.write('\n# Call the flowCart/mpix_flowCart/aero.csh interface.\n')
-            f.write('run_flowCart.py' + flgs + '\n')
+            f.write('\n# Call the Cart3D interface.\n')
+            if pyexec:
+                # Use specific version
+                f.write("%s -m cape.pycart run %s\n" % (pyexec, flgs))
+            else:
+                # Use CAPE-provided script
+                f.write('run_flowCart.py' + flgs + '\n')
             
             # Close the file.
             f.close()
