@@ -95,7 +95,6 @@ class TestDriver(object):
     :Versions:
         * 2019-07-03 ``@ddalle``: Started
     """
-
     # Initialization method
     def __init__(self, *a, **kw):
         r"""Initialization method
@@ -529,7 +528,7 @@ class TestDriver(object):
 
     # Execute test
     def exec_commands(self):
-        """Execute tests in the current folder
+        r"""Execute tests in the current folder
 
         :Call:
             >>> results = testd.exec_commands()
@@ -596,7 +595,7 @@ class TestDriver(object):
 
     # Ensure an attribute has at least *i* entries
     def _extend_attribute_list(self, k, i):
-        """Ensure attribute *k* is a :class:`list` with *i* entries
+        r"""Ensure attribute *k* is a :class:`list` with *i* entries
 
         :Call:
             >>> testd._extend_attribute_list(k, i)
@@ -621,9 +620,76 @@ class TestDriver(object):
         for j in range(n, i+1):
             V.append(None)
 
+    # Write reST results all at once
+    def write_results(self):
+        r"""Write ``.rst`` file of results
+
+
+        """
+        self.write_rst_intro()
+        results = self.get_results_dict()
+        for i in range(self.TestCommandsRun):
+            self._write_results_summary(results, i)
+
+    # Write reST results for one file
+    def _write_results_summary(self, i):
+        # Get file handle
+        f = self.frst
+        if not isinstance(f, filelike) or f.closed:
+            return
+        # Get subtitle
+        subt = self.opts.getel("CommandTitles", i, vdef=None)
+        # Create an indent
+        tab = "    "
+        # Form the title for subsection
+        if subt:
+            # Include subtitle
+            ttl = "Command %i: %s" % (i+1, subt)
+        else:
+            # No subtitle; just command number
+            ttl = "Command %i" % (i+1)
+        # Check for failure
+        if self.TestStatus or (i - 1 < self.TestCommandsRun):
+            # PASS
+            ttl + "\n"
+        else:
+            # FAIL
+            ttl + " (FAILED)\n"
+        # Write title
+        f.write(ttl)
+        # Delimiter line
+        f.write("-" * len(ttl))
+        f.write("\n\n")
+        # Show the command
+        f.write(":Command:\n")
+        f.write(tab)
+        f.write(".. code-block:: console\n\n")
+        f.write(tab + tab + "$ " + cmd)
+        f.write("\n\n")
+
+    def _write_results_returncode(self, i):
+        # Get file handle
+        f = self.frst
+        if not isinstance(f, filelike) or f.closed:
+            return
+        # Target return code
+        rc_target = self.opts.getel("ReturnCode", i, vdef=0)
+        # Get the actual return code
+        ierr = self.TestReturnCodes[i]
+        # Return code section
+        f.write(":Return Code:\n")
+        # Write status of the test
+        if self.TestStatus_ReturnCode[i]:
+            f.write("    * **PASS**\n")
+        else:
+            f.write("    * **FAIL**\n")
+        # Write targets
+        f.write("    * Output: ``%i``\n" % ierr)
+        f.write("    * Target: ``%i``\n" % rc_target)
+
     # Start log output
     def process_results_summary(self, i, cmd):
-        """Start the reST results summary for command *i*
+        r"""Start the reST results summary for command *i*
 
         :Call:
             >>> testd.process_results_summary(i, cmd)
@@ -728,7 +794,7 @@ class TestDriver(object):
 
     # Check timer status
     def process_results_maxtime(self, i, t):
-        """Check the maximum time for command *i*
+        r"""Check the maximum time for command *i*
 
         :Call:
             >>> q = testd.process_results_maxtime(i, t)
@@ -791,11 +857,13 @@ class TestDriver(object):
             else:
                 f.write("    * **FAIL**\n")
             # Write time taken
-            f.write("    * Command took %4g seconds\n" % t)
-            f.write("    * Cumulative time: %4g seconds\n" % (ttot + t))
+            f.write("    * Command took %.2f seconds\n" % t)
+            if i > 0:
+                f.write("    * Cumulative time: %.2f seconds\n" % (ttot + t))
             # Write constraint
             if tsec:
-                f.write("    * Max allowed: %4g seconds (%s)\n" % (tsec, tmax))
+                f.write(
+                    "    * Max allowed: %.2f seconds (%s)\n" % (tsec, tmax))
         # Output
         return q
 
@@ -1362,7 +1430,7 @@ class TestDriver(object):
 
     # Test file
     def process_results_file(self, i):
-        """Compare files written from command *i* to target
+        r"""Compare files written from command *i* to target
 
         :Call:
             >>> q = testd.process_results_file(i)
@@ -1619,12 +1687,10 @@ class TestDriver(object):
             "TestRunTimeList":       self.TestRunTimeList,
         }
 
-# class TestDriver
-
 
 # Command-line interface
 def cli(*a, **kw):
-    """Test case command-line interface
+    r"""Test case command-line interface
 
     :Call:
         >>> results = cli(*a, **kw)
