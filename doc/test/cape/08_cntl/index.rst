@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-12 at 14:16 PDT
 
 Test ``08_cntl``
 ==================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/08_cntl/``
+    ``/home/dalle/usr/cape/test/cape/08_cntl/``
 
 and the working folder for the test is
 
@@ -50,8 +50,8 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.488697 seconds
-    * Cumulative time: 0.488697 seconds
+    * Command took 0.169654 seconds
+    * Cumulative time: 0.169654 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -80,8 +80,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.713669 seconds
-    * Cumulative time: 1.20237 seconds
+    * Command took 0.257344 seconds
+    * Cumulative time: 0.426998 seconds
 :STDOUT:
     * **PASS**
     * Target:

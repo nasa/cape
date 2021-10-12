@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-12 at 14:16 PDT
 
 Test ``12_units``
 ===================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/12_units/``
+    ``/home/dalle/usr/cape/test/cape/12_units/``
 
 and the working folder for the test is
 
@@ -166,8 +166,8 @@ Command 1: Unit Conversions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.486349 seconds
-    * Cumulative time: 0.486349 seconds
+    * Command took 0.169877 seconds
+    * Cumulative time: 0.169877 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -213,8 +213,8 @@ Command 2: Unit Conversions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.742504 seconds
-    * Cumulative time: 1.22885 seconds
+    * Command took 0.258322 seconds
+    * Cumulative time: 0.428199 seconds
 :STDOUT:
     * **PASS**
     * Target:

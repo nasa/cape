@@ -11,7 +11,7 @@ test driver for individual tests.
 The test crawler is initiated using the command:
 
     .. code-block:: console
-    
+
         $ pc_TestCase.py
 
 This calls the :func:`cli` command from this module.
@@ -82,8 +82,8 @@ def _import_pyplot():
 
 # Crawler class
 class TestDriver(object):
-    """Test driver class
-    
+    r"""Test driver class
+
     :Call:
         >>> driver = TestDriver(**kw)
     :Inputs:
@@ -95,11 +95,11 @@ class TestDriver(object):
     :Versions:
         * 2019-07-03 ``@ddalle``: Started
     """
-    
+
     # Initialization method
     def __init__(self, *a, **kw):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
             * 2019-07-03 ``@ddalle``: First version
         """
@@ -133,11 +133,11 @@ class TestDriver(object):
         self.TestCommandsRun = 0
         # Save number of commands
         self.TestCommandsNum = len(cmds)
-        
+
     # String method
     def __str__(self):
-        """String method
-        
+        r"""String method
+
         :Versions:
             * 2019-07-09 ``@ddalle``: <TestDriver('$dirname', n=$ncommands)>
         """
@@ -148,8 +148,8 @@ class TestDriver(object):
 
     # Representation method
     def __repr__(self):
-        """Representation method
-        
+        r"""Representation method
+
         :Versions:
             * 2019-07-09 ``@ddalle``: <TestDriver('$dirname', n=$ncommands)>
         """
@@ -160,8 +160,8 @@ class TestDriver(object):
 
     # Reset results for test
     def init_test_results(self):
-        """(Re)initialize attributes that store results of test
-        
+        r"""(Re)initialize attributes that store results of test
+
         :Call:
             >>> testd.init_test_results()
         :Inputs:
@@ -185,11 +185,11 @@ class TestDriver(object):
         self.TestReturnCodes = []
         self.TestCommandsNum = 0
         self.TestCommandsRun = 0
-        
+
     # Run the main test
     def run(self):
-        """Execute the test controlled by the driver
-        
+        r"""Execute the test controlled by the driver
+
         :Call:
             >>> results = testd.run()
         :Inputs:
@@ -219,8 +219,8 @@ class TestDriver(object):
 
     # Prepare a test
     def prepare_files(self):
-        """Prepare test folder for execution
-        
+        r"""Prepare test folder for execution
+
         :Call:
             >>> testd.prepare_files()
         :Inputs:
@@ -274,11 +274,11 @@ class TestDriver(object):
             os.symlink(fname, os.path.join(fwork, fname))
         # Enter the folder
         os.chdir(fwork)
-        
+
     # Start log file
     def init_rst(self):
-        """Initialize ReST file of test results
-        
+        r"""Initialize ReST file of test results
+
         :Call:
             >>> testd.init_rst()
         :Inputs:
@@ -361,8 +361,8 @@ class TestDriver(object):
 
     # Write header for ReST file
     def write_rst_intro(self):
-        """Write intro section for ReST log file
-        
+        r"""Write intro section for ReST log file
+
         :Call:
             >>> testd.write_rst_intro()
         :Inputs:
@@ -504,14 +504,11 @@ class TestDriver(object):
         if len(flink_list) > 0:
             # Start bullet list
             f.write("\n")
-            
-            
-        
-    
+
     # Close ReST file
     def close_rst(self):
         """Close ReST log file, if open
-        
+
         :Call:
             >>> testd.close_rst()
         :Inputs:
@@ -533,7 +530,7 @@ class TestDriver(object):
     # Execute test
     def exec_commands(self):
         """Execute tests in the current folder
-        
+
         :Call:
             >>> results = testd.exec_commands()
         :Inputs:
@@ -600,7 +597,7 @@ class TestDriver(object):
     # Ensure an attribute has at least *i* entries
     def _extend_attribute_list(self, k, i):
         """Ensure attribute *k* is a :class:`list` with *i* entries
-        
+
         :Call:
             >>> testd._extend_attribute_list(k, i)
         :Inputs:
@@ -627,7 +624,7 @@ class TestDriver(object):
     # Start log output
     def process_results_summary(self, i, cmd):
         """Start the reST results summary for command *i*
-        
+
         :Call:
             >>> testd.process_results_summary(i, cmd)
         :Inputs:
@@ -667,11 +664,11 @@ class TestDriver(object):
         f.write(".. code-block:: console\n\n")
         f.write(tab + tab + "$ " + cmd)
         f.write("\n\n")
-            
+
     # Check return code status
     def process_results_returncode(self, i, ierr):
         """Check the return code against target for command *i*
-        
+
         :Call:
             >>> q = testd.process_results_returncode(i, ierr)
         :Inputs:
@@ -728,11 +725,11 @@ class TestDriver(object):
             f.write("    * Target: ``%i``\n" % rc_target)
         # Output
         return q
-        
+
     # Check timer status
     def process_results_maxtime(self, i, t):
         """Check the maximum time for command *i*
-        
+
         :Call:
             >>> q = testd.process_results_maxtime(i, t)
         :Inputs:
@@ -801,11 +798,11 @@ class TestDriver(object):
                 f.write("    * Max allowed: %4g seconds (%s)\n" % (tsec, tmax))
         # Output
         return q
-        
+
     # Check contents of STDOUT
     def process_results_stdout(self, i, fnout):
         """Compare STDOUT from command *i* to target
-        
+
         :Call:
             >>> q = testd.process_results_stdout(i, fnout)
         :Inputs:
@@ -943,7 +940,7 @@ class TestDriver(object):
     # Check contents of STDERR
     def process_results_stderr(self, i, fnerr, fnout):
         """Compare STDERR from command *i* to target
-        
+
         :Call:
             >>> q = testd.process_results_stderr(i, fnerr, fnout)
         :Inputs:
@@ -1103,7 +1100,7 @@ class TestDriver(object):
     # Test PNG
     def process_results_png(self, i):
         """Compare PNG results from command *i* to target
-        
+
         :Call:
             >>> q = testd.process_results_png(i)
         :Inputs:
@@ -1135,7 +1132,7 @@ class TestDriver(object):
         show_work = self.opts.getel("ShowPNG", i, vdef=True)
         link_work = self.opts.getel("LinkPNG", i, vdef=False)
         show_targ = self.opts.getel("ShowTargetPNG", i, vdef=True)
-        link_targ = self.opts.getel("LinkTargetPNG", i, vdef=False)     
+        link_targ = self.opts.getel("LinkTargetPNG", i, vdef=False)
         show_diff = self.opts.getel("ShowDiffPNG", i, vdef=False)
         link_diff = self.opts.getel("LinkDiffPNG", i, vdef=False)
         # Get tolerance
@@ -1366,7 +1363,7 @@ class TestDriver(object):
     # Test file
     def process_results_file(self, i):
         """Compare files written from command *i* to target
-        
+
         :Call:
             >>> q = testd.process_results_file(i)
         :Inputs:
@@ -1403,7 +1400,7 @@ class TestDriver(object):
         disp_work = show_work or link_work
         disp_targ = show_targ or link_targ
         # Get options for file comparisons
-        kw_comp = self.opts.get_FileComparisonOpts(i)  
+        kw_comp = self.opts.get_FileComparisonOpts(i)
         # Initialize status as "success"
         status = 0
         # Check for matching-length lists
@@ -1572,7 +1569,7 @@ class TestDriver(object):
     # Get results dictionary
     def get_results_dict(self):
         """Create a dictionary of results from the test
-        
+
         :Call:
             >>> results = testd.get_results_dict()
         :Inputs:
@@ -1621,14 +1618,14 @@ class TestDriver(object):
             "TestRunTimeTotal":      self.TestRunTimeTotal,
             "TestRunTimeList":       self.TestRunTimeList,
         }
-                
+
 # class TestDriver
-    
-    
+
+
 # Command-line interface
 def cli(*a, **kw):
     """Test case command-line interface
-    
+
     :Call:
         >>> results = cli(*a, **kw)
     :Inputs:

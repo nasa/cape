@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-12 at 14:16 PDT
 
 Test ``04_subset_api``
 ========================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/04_subset_api/``
+    ``/home/dalle/usr/cape/test/cape/04_subset_api/``
 
 and the working folder for the test is
 
@@ -54,8 +54,8 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.522432 seconds
-    * Cumulative time: 0.522432 seconds
+    * Command took 0.189685 seconds
+    * Cumulative time: 0.189685 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -85,8 +85,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.743418 seconds
-    * Cumulative time: 1.26585 seconds
+    * Command took 0.268498 seconds
+    * Cumulative time: 0.458183 seconds
 :STDOUT:
     * **PASS**
     * Target:

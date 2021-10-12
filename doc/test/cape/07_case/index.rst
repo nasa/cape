@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-12 at 14:16 PDT
 
 Test ``07_case``
 ==================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/07_case/``
+    ``/home/dalle/usr/cape/test/cape/07_case/``
 
 and the working folder for the test is
 
@@ -141,8 +141,8 @@ Command 1: Conditions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.479488 seconds
-    * Cumulative time: 0.479488 seconds
+    * Command took 0.180488 seconds
+    * Cumulative time: 0.180488 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -171,8 +171,8 @@ Command 2: Conditions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.701815 seconds
-    * Cumulative time: 1.1813 seconds
+    * Command took 0.25897 seconds
+    * Cumulative time: 0.439458 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -201,8 +201,8 @@ Command 3: ``case.json``: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.480107 seconds
-    * Cumulative time: 1.66141 seconds
+    * Command took 0.165863 seconds
+    * Cumulative time: 0.605321 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -233,8 +233,8 @@ Command 4: ``case.json``: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.605351 seconds
-    * Cumulative time: 2.26676 seconds
+    * Command took 0.261276 seconds
+    * Cumulative time: 0.866597 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -265,8 +265,8 @@ Command 5: Timing: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.465953 seconds
-    * Cumulative time: 2.73271 seconds
+    * Command took 0.176578 seconds
+    * Cumulative time: 1.04317 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -293,8 +293,8 @@ Command 6: Timing: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.731923 seconds
-    * Cumulative time: 3.46464 seconds
+    * Command took 0.267549 seconds
+    * Cumulative time: 1.31072 seconds
 :STDOUT:
     * **PASS**
     * Target:

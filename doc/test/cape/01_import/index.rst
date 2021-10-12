@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-12 at 14:16 PDT
 
 Test ``01_import``
 ====================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/01_import/``
+    ``/home/dalle/usr/cape/test/cape/01_import/``
 
 and the working folder for the test is
 
@@ -45,8 +45,8 @@ Command 1
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.362759 seconds
-    * Cumulative time: 0.362759 seconds
+    * Command took 0.211888 seconds
+    * Cumulative time: 0.211888 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -66,8 +66,8 @@ Command 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.536451 seconds
-    * Cumulative time: 0.89921 seconds
+    * Command took 0.260228 seconds
+    * Cumulative time: 0.472116 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

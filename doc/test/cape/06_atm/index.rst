@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-12 at 14:16 PDT
 
 Test ``06_atm``
 =================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/06_atm/``
+    ``/home/dalle/usr/cape/test/cape/06_atm/``
 
 and the working folder for the test is
 
@@ -103,8 +103,8 @@ Command 1: Standard Atmosphere: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.347977 seconds
-    * Cumulative time: 0.347977 seconds
+    * Command took 0.179487 seconds
+    * Cumulative time: 0.179487 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -136,8 +136,8 @@ Command 2: Standard Atmosphere: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.654076 seconds
-    * Cumulative time: 1.00205 seconds
+    * Command took 0.272879 seconds
+    * Cumulative time: 0.452365 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -169,8 +169,8 @@ Command 3: Sutherland's Law: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.45763 seconds
-    * Cumulative time: 1.45968 seconds
+    * Command took 0.165181 seconds
+    * Cumulative time: 0.617546 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -197,8 +197,8 @@ Command 4: Sutherland's Law: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.71444 seconds
-    * Cumulative time: 2.17412 seconds
+    * Command took 0.255651 seconds
+    * Cumulative time: 0.873197 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -225,8 +225,8 @@ Command 5: Temperature from Enthalpy: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.474422 seconds
-    * Cumulative time: 2.64854 seconds
+    * Command took 0.16462 seconds
+    * Cumulative time: 1.03782 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -253,8 +253,8 @@ Command 6: Temperature from Enthalpy: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.7422 seconds
-    * Cumulative time: 3.39074 seconds
+    * Command took 0.274413 seconds
+    * Cumulative time: 1.31223 seconds
 :STDOUT:
     * **PASS**
     * Target:

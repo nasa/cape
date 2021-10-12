@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-12 at 14:16 PDT
 
 Test ``02_cli``
 =================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/02_cli/``
+    ``/home/dalle/usr/cape/test/cape/02_cli/``
 
 and the working folder for the test is
 
@@ -39,8 +39,8 @@ Command 1: Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.518027 seconds
-    * Cumulative time: 0.518027 seconds
+    * Command took 0.28397 seconds
+    * Cumulative time: 0.28397 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -90,8 +90,8 @@ Command 2: Filter
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.515962 seconds
-    * Cumulative time: 1.03399 seconds
+    * Command took 0.273313 seconds
+    * Cumulative time: 0.557283 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -131,8 +131,8 @@ Command 3: Constraints
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.524063 seconds
-    * Cumulative time: 1.55805 seconds
+    * Command took 0.28413 seconds
+    * Cumulative time: 0.841413 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -168,8 +168,8 @@ Command 4: Glob
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.536373 seconds
-    * Cumulative time: 2.09443 seconds
+    * Command took 0.272102 seconds
+    * Cumulative time: 1.11351 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -207,8 +207,8 @@ Command 5: Regular Expression
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.532106 seconds
-    * Cumulative time: 2.62653 seconds
+    * Command took 0.274696 seconds
+    * Cumulative time: 1.38821 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -244,8 +244,8 @@ Command 6: Index List
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.530423 seconds
-    * Cumulative time: 3.15695 seconds
+    * Command took 0.270853 seconds
+    * Cumulative time: 1.65906 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -281,8 +281,8 @@ Command 7: Compound Subsets
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.529565 seconds
-    * Cumulative time: 3.68652 seconds
+    * Command took 0.270895 seconds
+    * Cumulative time: 1.92996 seconds
 :STDOUT:
     * **PASS**
     * Target:

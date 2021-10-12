@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-19 at 09:42 PDT
+   on 2021-10-12 at 14:16 PDT
 
 Test ``13_config_xml``
 ========================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/13_config_xml/``
+    ``/home/dalle/usr/cape/test/cape/13_config_xml/``
 
 and the working folder for the test is
 
@@ -66,6 +66,15 @@ The commands executed by this test are
         # Write arrow2 XML config from JSON
         cfgj.WriteXML("arrow2.xml", Name="bullet sample", Source="bullet.tri")
         
+        # Open arrow2 XML
+        with open("arrow2.xml", "r") as f:
+            # Print lines of f
+            for line in f:
+                # Skip comments
+                if line.startswith(" <!--"):
+                    continue
+                else:
+                    print(line)
 
 Command 1: Read JSON Configuration: Python 2
 ---------------------------------------------
@@ -81,8 +90,8 @@ Command 1: Read JSON Configuration: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.350254 seconds
-    * Cumulative time: 0.350254 seconds
+    * Command took 0.169484 seconds
+    * Cumulative time: 0.169484 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -102,8 +111,8 @@ Command 2: Read JSON Configuration: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.556431 seconds
-    * Cumulative time: 0.906685 seconds
+    * Command took 0.256241 seconds
+    * Cumulative time: 0.425725 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -123,8 +132,8 @@ Command 3: Read XML Configuration: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.193984 seconds
-    * Cumulative time: 1.10067 seconds
+    * Command took 0.168179 seconds
+    * Cumulative time: 0.593904 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -144,8 +153,8 @@ Command 4: Read XML Configuration: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.472582 seconds
-    * Cumulative time: 1.57325 seconds
+    * Command took 0.261135 seconds
+    * Cumulative time: 0.855038 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -165,70 +174,103 @@ Command 5: Compare XML Configurations: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.336923 seconds
-    * Cumulative time: 1.91017 seconds
+    * Command took 0.170027 seconds
+    * Cumulative time: 1.02507 seconds
 :STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-:Compare Files:
     * **PASS**
     * Target:
 
-        .. code-block:: none
+      .. code-block:: none
 
+          No parent for component 'bullet_total'
+        <?xml version="1.0" encoding="utf-8"?>
+        
+        
+        
+        <Configuration Name="bullet sample" Source="bullet.tri">
+        
+        
+        
+          <Component Name="cap" Parent="bullet_no_base" Type="tri">
+        
+            <Data>Face Label=1</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="body" Parent="bullet_no_base" Type="tri">
+        
+            <Data>Face Label=2</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="base" Parent="bullet_total" Type="tri">
+        
+            <Data>Face Label=3</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="fin1" Parent="fins" Type="tri">
+        
+            <Data>Face Label=11</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="fin2" Parent="fins" Type="tri">
+        
+            <Data>Face Label=12</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="fin3" Parent="fins" Type="tri">
+        
+            <Data>Face Label=13</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="fin4" Parent="fins" Type="tri">
+        
+            <Data>Face Label=14</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="bullet_no_base" Parent="bullet_total" Type="container">
+        
+          </Component>
+        
+        
+        
+          <Component Name="bullet_total" Type="container">
+        
+          </Component>
+        
+        
+        
+          <Component Name="fins" Parent="bullet_no_base" Type="container">
+        
+          </Component>
+        
+        
+        
+        </Configuration>
+        
+        
 
-              .. code-block:: none
-
-            <?xml version="1.0" encoding="ISO-8859-1"?>
-            
-            <Configuration Name="bullet sample" Source="bullet.tri">
-            
-             <!-- Containers -->
-              <Component Name="bullet_no_base" Type="container" Parent="bullet_total">
-              </Component>
-              <Component Name="fins" Type="container" Parent="bullet_no_base">
-              </Component>
-             
-              <Component Name="bullet_total" Type="container">
-              </Component>
-             <!-- Containers -->
-            
-             <!-- body -->
-              <Component Name="cap" Type="tri" Parent="bullet_no_base">
-               <Data> Face Label=1 </Data>
-              </Component>
-             
-              <Component Name="body" Type="tri" Parent="bullet_no_base">
-               <Data> Face Label=2 </Data>
-              </Component>
-             
-              <Component Name="base" Parent="bullet_total" Type="tri">
-               <Data> Face Label=3 </Data>
-              </Component>
-             <!-- body -->
-             
-             <!-- fins -->
-              <Component Name="fin1" Parent="fins" Type="tri">
-               <Data> Face Label=11 </Data>
-              </Component>
-              
-              <Component Name="fin2" Parent="fins" Type="tri">
-               <Data> Face Label=12 </Data>
-              </Component>
-              
-              <Component Name="fin3" Parent="fins" Type="tri">
-               <Data> Face Label=13 </Data>
-              </Component>
-              
-              <Component Name="fin4" Parent="fins" Type="tri">
-               <Data> Face Label=14 </Data>
-              </Component>
-             <!-- fins -->
-            
-            </Configuration>
-
+:STDERR:
+    * **PASS**
 
 Command 6: Compare XML Configurations: Python 3
 ------------------------------------------------
@@ -244,68 +286,101 @@ Command 6: Compare XML Configurations: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.542945 seconds
-    * Cumulative time: 2.45312 seconds
+    * Command took 0.260368 seconds
+    * Cumulative time: 1.28543 seconds
 :STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-:Compare Files:
     * **PASS**
     * Target:
 
-        .. code-block:: none
+      .. code-block:: none
 
+          No parent for component 'bullet_total'
+        <?xml version="1.0" encoding="utf-8"?>
+        
+        
+        
+        <Configuration Name="bullet sample" Source="bullet.tri">
+        
+        
+        
+          <Component Name="cap" Parent="bullet_no_base" Type="tri">
+        
+            <Data>Face Label=1</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="body" Parent="bullet_no_base" Type="tri">
+        
+            <Data>Face Label=2</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="base" Parent="bullet_total" Type="tri">
+        
+            <Data>Face Label=3</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="fin1" Parent="fins" Type="tri">
+        
+            <Data>Face Label=11</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="fin2" Parent="fins" Type="tri">
+        
+            <Data>Face Label=12</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="fin3" Parent="fins" Type="tri">
+        
+            <Data>Face Label=13</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="fin4" Parent="fins" Type="tri">
+        
+            <Data>Face Label=14</Data>
+        
+          </Component>
+        
+        
+        
+          <Component Name="bullet_no_base" Parent="bullet_total" Type="container">
+        
+          </Component>
+        
+        
+        
+          <Component Name="bullet_total" Type="container">
+        
+          </Component>
+        
+        
+        
+          <Component Name="fins" Parent="bullet_no_base" Type="container">
+        
+          </Component>
+        
+        
+        
+        </Configuration>
+        
+        
 
-              .. code-block:: none
-
-            <?xml version="1.0" encoding="ISO-8859-1"?>
-            
-            <Configuration Name="bullet sample" Source="bullet.tri">
-            
-             <!-- Containers -->
-              <Component Name="bullet_no_base" Type="container" Parent="bullet_total">
-              </Component>
-              <Component Name="fins" Type="container" Parent="bullet_no_base">
-              </Component>
-             
-              <Component Name="bullet_total" Type="container">
-              </Component>
-             <!-- Containers -->
-            
-             <!-- body -->
-              <Component Name="cap" Type="tri" Parent="bullet_no_base">
-               <Data> Face Label=1 </Data>
-              </Component>
-             
-              <Component Name="body" Type="tri" Parent="bullet_no_base">
-               <Data> Face Label=2 </Data>
-              </Component>
-             
-              <Component Name="base" Parent="bullet_total" Type="tri">
-               <Data> Face Label=3 </Data>
-              </Component>
-             <!-- body -->
-             
-             <!-- fins -->
-              <Component Name="fin1" Parent="fins" Type="tri">
-               <Data> Face Label=11 </Data>
-              </Component>
-              
-              <Component Name="fin2" Parent="fins" Type="tri">
-               <Data> Face Label=12 </Data>
-              </Component>
-              
-              <Component Name="fin3" Parent="fins" Type="tri">
-               <Data> Face Label=13 </Data>
-              </Component>
-              
-              <Component Name="fin4" Parent="fins" Type="tri">
-               <Data> Face Label=14 </Data>
-              </Component>
-             <!-- fins -->
-            
-            </Configuration>
-
+:STDERR:
+    * **PASS**
 

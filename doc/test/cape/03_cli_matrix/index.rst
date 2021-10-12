@@ -1,13 +1,13 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-12 at 14:18 PDT
 
 Test ``03_cli_matrix``
 ========================
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/03_cli_matrix/``
+    ``/home/dalle/usr/cape/test/cape/03_cli_matrix/``
 
 and the working folder for the test is
 
@@ -37,26 +37,10 @@ Command 1: Missing JSON File
     * Target: ``1``
 :Time Taken:
     * **PASS**
-    * Command took 0.839263 seconds
-    * Cumulative time: 0.839263 seconds
+    * Command took 0.310781 seconds
+    * Cumulative time: 0.310781 seconds
 :STDOUT:
     * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory   Status  Iterations  Que CPU Time 
-        ---- ---------------------- ------- ----------- --- --------
-        0    poweroff/m0.80a0.0b0.0 ---     /           .            
-        1    poweroff/m0.80a4.0b0.0 ---     /           .            
-        2    poweroff/m0.90a0.0b0.0 ---     /           .            
-        3    poweroff/m0.90a4.0b0.0 ---     /           .            
-        4    poweroff/m1.05a0.0b0.0 ---     /           .            
-        5    poweroff/m1.05a4.0b0.0 ---     /           .            
-        
-        ---=6, 
-        
-
 :STDERR:
     * **PASS**
     * Target:
@@ -81,8 +65,8 @@ Command 2: JSON-only Matrix
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.525508 seconds
-    * Cumulative time: 1.36477 seconds
+    * Command took 0.269301 seconds
+    * Cumulative time: 0.580082 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -118,8 +102,8 @@ Command 3: JSON-only with RegEx
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.533587 seconds
-    * Cumulative time: 1.89836 seconds
+    * Command took 0.268505 seconds
+    * Cumulative time: 0.848587 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -152,8 +136,8 @@ Command 4: Mixed CSV and JSON
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.513976 seconds
-    * Cumulative time: 2.41233 seconds
+    * Command took 0.274509 seconds
+    * Cumulative time: 1.1231 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -193,8 +177,8 @@ Command 5: Mixed CSV and JSON with RegEx
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52451 seconds
-    * Cumulative time: 2.93684 seconds
+    * Command took 0.268481 seconds
+    * Cumulative time: 1.39158 seconds
 :STDOUT:
     * **PASS**
     * Target:
