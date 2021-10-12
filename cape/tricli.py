@@ -156,6 +156,46 @@ possible).
     * 2017-04-06 ``@ddalle``: Version 1.1: JSON and MIXSUR config files
 """ % _help
 
+HELP_TRI2SURF = r"""
+``cape-tri2surf``: Convert surf triangulation to AFLR3 format
+==================================================================
+
+Convert a ``.tri`` file to a AFLR3 surface format.
+
+:Usage:
+    .. code-block:: console
+
+        $ cape-tri2surf TRI [OPTIONS]
+        $ cape-tri2surf TRI SURF [OPTIONS]
+        $ cape-tri2surf -i TRI [-o SURF] [OPTIONS]
+
+:Inputs:
+    * *TRI*: Input triangulation file; any readable format
+    * *SURF*: Name of output ``.surf`` file
+    
+:Options:
+    %(help)s
+        
+    -i TRI
+        Use *TRI* as input file
+        
+    -o SURF
+        Use *SURF* as name of created output file
+       
+    %(config)s
+        
+    --bc MAPBC
+        Use *MAPBC* as boundary condition map file
+    
+If the name of the output file is not specified, it will just add
+``.surf`` as the extension to the input (deleting ``.tri`` if possible).
+
+:Versions:
+    * 2014-06-12 ``@ddalle``: Version 1.0
+    * 2015-10-09 ``@ddalle``: Version 1.1; tols and Config.xml
+    * 2021-10-12 ``@ddalle``: Version 2.0; move to :mod:`tricli`
+""" % _help
+
 HELP_TRI2PLT = r"""
 ``cape-tri2plt``: Convert Triangulation to Tecplot PLT Format
 ==================================================================
@@ -199,6 +239,154 @@ zone.
     * 2014-04-05 ``@ddalle``: Version 1.0
     * 2021-10-01 ``@ddalle``: Version 2.0
 """ % _help
+
+
+def tri2plt(*a, **kw):
+    r"""Convert a UH3D triangulation file to Cart3D ``.tri`` format
+    
+    :Call:
+        >>> tri2plt(ftri, **kw)
+        >>> tri2plt(ftri, fplt, **kw)
+        >>> tri2plt(i=ftri, o=fplt, **kw)
+    :Inputs:
+        *ftri*: :class:`str`
+            Name of input file; can be any readable TRI or TRIQ format
+        *fplt*: {``None``} | :class:`str`
+            Name of PLT file to create; defaults to *tri* with the
+            ``.tri`` replaced by ``.plt``
+        *dat*: {``None``} | ``True`` | ``False``
+            Write output file as ASCII format
+        *plt*: {``None``} | ``true`` | ``False``
+            Opposite of *dat*; default is to guess bases on *fplt*
+        *c*: :class:`str`
+            Surface config file, guess type from file name 
+        *json*: {``None``} | :class:`str`
+            JSON surface config file 
+        *mixsur*: {``None``} | :class:`str`
+            MIXSUR/USURP surface config file 
+        *xml*: {``None``} | :class:`str`
+            XML surface config file
+        *v*: ``True`` | {``False``}
+            Verbose output while creating PLT instance
+    :Versions:
+        * 2016-04-05 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: Version 2.0
+    """
+    # Check for ASCII output option
+    qdat = kw.get("dat")
+    qplt = kw.get("plt")
+    # Get input file name
+    ftri = _get_i(*a, **kw)
+    # Get output file name
+    if qdat:
+        # Default to ".dat" extension
+        fplt = _get_o(ftri, "tri", "dat", *a, **kw)
+    else:
+        # Default to ".plt" extension
+        fplt = _get_o(ftri, "tri", "plt", *a, **kw)
+    # Check file name for default output type
+    if qdat is not None:
+        # Explicit
+        qdat = qdat
+    elif qplt is not None:
+        # Explicit based on opposite variable
+        qdat = not qplt
+    else:
+        # Check file name
+        qdat = fplt.endswith(".dat")
+    # Read TRI file
+    tri = Tri(ftri)
+    # Read Config file
+    _read_triconfig(tri, *a, **kw)
+    # Create PLT interface
+    plt = Plt(triq=tri, **kw)
+    # Output
+    if qdat:
+        # Write ASCII Tecplot DAT file
+        plt.WriteDat(fplt)
+    else:
+        # Write PLT file
+        plt.Write(fplt)
+
+
+def tri2surf(*a, **kw):
+    r"""Convert a triangulated surface to AFLR3 ``.surf`` format
+    
+    :Call:
+        >>> Tri2Surf(tri, surf, bc=None)
+        >>> Tri2Surf(i=tri, o=surf, bc=None)
+    :Inputs:
+        *tri*: :class:`str`
+            Name of input file
+        *surf*: :class:`str`
+            Name of output file (defaults to *tri* with ``.surf`` as
+            the extension in the place of ``.tri``)
+        *bc*: :class:`str`
+            (Optional) name of boundary condition file to apply
+    :Versions:
+        * 2015-11-19 ``@ddalle``: Version 1.0; :func:`Tri2Surf`
+        * 2021-10-12 ``@ddalle``: Version 2.0;
+            - :func:`tri2surf`
+            - in :mod:`cape.tricli`
+            - support all three surf config formats
+    """
+    # Get input file name
+    ftri = _get_i(*a, **kw)
+    # Get output file name
+    fsurf = _get_o(ftri, "tri", "surf", *a, **kw)
+    # Read TRI file
+    tri = Tri(ftri)
+    # Read Config file
+    _read_triconfig(tri, *a, **kw)
+    # Configuration
+    fbc = kw.get('bc')
+    # Apply configuration if requested
+    if fbc:
+        # Map the boundary conditions
+        tri.ReadBCs_AFLR3(fbc)
+    else:
+        # Use defaults.
+        tri.MapBCs_AFLR3()
+    # Write converted file
+    tri.WriteSurf(fsurf)
+
+
+def tri2uh3d(*a, **kw):
+    r"""Convert a UH3D triangulation file to Cart3D tri format
+    
+    :Call:
+        >>> tri2uh3d(ftri, **kw)
+        >>> tri2uh3d(ftri, fuh3d, **kw)
+        >>> tri2uh3d(i=ftri, o=fuh3d, **kw)
+    :Inputs:
+        *ftri*: :class:`str`
+            Name of input file
+        *fuh3d*: :class:`str`
+            Name of output file
+        *c*: :class:`str`
+            Surface config file, guess type from file name 
+        *json*: {``None``} | :class:`str`
+            JSON surface config file 
+        *mixsur*: {``None``} | :class:`str`
+            MIXSUR/USURP surface config file 
+        *xml*: {``None``} | :class:`str`
+            XML surface config file
+        *h*: ``True`` | {``False``}
+            Display help and exit if ``True``
+    :Versions:
+        * 2015-04-17 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: Version 2.0
+    """
+    # Get input file name
+    ftri = _get_i(*a, **kw)
+    # Get output file name
+    fuh3d = _get_o(ftri, "tri", "uh3d", *a, **kw)
+    # Read TRI file
+    tri = Tri(ftri)
+    # Read Config file
+    _read_triconfig(tri, *a, **kw)
+    # Write the UH3D file
+    tri.WriteUH3D(fuh3d)
 
 
 def uh3d2tri(*a, **kw):
@@ -282,112 +470,6 @@ def uh3d2tri(*a, **kw):
         tri.Nodes[:,2] += float(dz)
     # Get write options
     tri.Write(ftri, **kw)
-
-
-def tri2plt(*a, **kw):
-    r"""Convert a UH3D triangulation file to Cart3D ``.tri`` format
-    
-    :Call:
-        >>> tri2plt(ftri, **kw)
-        >>> tri2plt(ftri, fplt, **kw)
-        >>> tri2plt(i=ftri, o=fplt, **kw)
-    :Inputs:
-        *ftri*: :class:`str`
-            Name of input file; can be any readable TRI or TRIQ format
-        *fplt*: {``None``} | :class:`str`
-            Name of PLT file to create; defaults to *tri* with the
-            ``.tri`` replaced by ``.plt``
-        *dat*: {``None``} | ``True`` | ``False``
-            Write output file as ASCII format
-        *plt*: {``None``} | ``true`` | ``False``
-            Opposite of *dat*; default is to guess bases on *fplt*
-        *c*: :class:`str`
-            Surface config file, guess type from file name 
-        *json*: {``None``} | :class:`str`
-            JSON surface config file 
-        *mixsur*: {``None``} | :class:`str`
-            MIXSUR/USURP surface config file 
-        *xml*: {``None``} | :class:`str`
-            XML surface config file
-        *v*: ``True`` | {``False``}
-            Verbose output while creating PLT instance
-    :Versions:
-        * 2016-04-05 ``@ddalle``: Version 1.0
-        * 2021-10-01 ``@ddalle``: Version 2.0
-    """
-    # Check for ASCII output option
-    qdat = kw.get("dat")
-    qplt = kw.get("plt")
-    # Get input file name
-    ftri = _get_i(*a, **kw)
-    # Get output file name
-    if qdat:
-        # Default to ".dat" extension
-        fplt = _get_o(ftri, "tri", "dat", *a, **kw)
-    else:
-        # Default to ".plt" extension
-        fplt = _get_o(ftri, "tri", "plt", *a, **kw)
-    # Check file name for default output type
-    if qdat is not None:
-        # Explicit
-        qdat = qdat
-    elif qplt is not None:
-        # Explicit based on opposite variable
-        qdat = not qplt
-    else:
-        # Check file name
-        qdat = fplt.endswith(".dat")
-    # Read TRI file
-    tri = Tri(ftri)
-    # Read Config file
-    _read_triconfig(tri, *a, **kw)
-    # Create PLT interface
-    plt = Plt(triq=tri, **kw)
-    # Output
-    if qdat:
-        # Write ASCII Tecplot DAT file
-        plt.WriteDat(fplt)
-    else:
-        # Write PLT file
-        plt.Write(fplt)
-
-
-def tri2uh3d(*a, **kw):
-    r"""Convert a UH3D triangulation file to Cart3D tri format
-    
-    :Call:
-        >>> tri2uh3d(ftri, **kw)
-        >>> tri2uh3d(ftri, fuh3d, **kw)
-        >>> tri2uh3d(i=ftri, o=fuh3d, **kw)
-    :Inputs:
-        *ftri*: :class:`str`
-            Name of input file
-        *fuh3d*: :class:`str`
-            Name of output file
-        *c*: :class:`str`
-            Surface config file, guess type from file name 
-        *json*: {``None``} | :class:`str`
-            JSON surface config file 
-        *mixsur*: {``None``} | :class:`str`
-            MIXSUR/USURP surface config file 
-        *xml*: {``None``} | :class:`str`
-            XML surface config file
-        *h*: ``True`` | {``False``}
-            Display help and exit if ``True``
-    :Versions:
-        * 2015-04-17 ``@ddalle``: Version 1.0
-        * 2021-10-01 ``@ddalle``: Version 2.0
-    """
-    # Get input file name
-    ftri = _get_i(*a, **kw)
-    # Get output file name
-    fuh3d = _get_o(ftri, "tri", "uh3d", *a, **kw)
-    # Read TRI file
-    tri = Tri(ftri)
-    # Read Config file
-    _read_triconfig(tri, *a, **kw)
-    # Write the UH3D file
-    tri.WriteUH3D(fuh3d)
     
 
 # CLI functions
@@ -411,6 +493,17 @@ def main_tri2plt():
         * 2021-10-01 ``@ddalle``: Version 1.0
     """
     _main(tri2plt, HELP_TRI2PLT)
+
+
+def main_tri2surf():
+    r"""CLI for :func:`tri2surf`
+
+    :Call:
+        >>> main_tri2surf()
+    :Versions:
+        * 2021-10-12 ``@ddalle``: Version 1.0
+    """
+    _main(tri2surf, HELP_TRI2SURF)
 
 
 def main_tri2uh3d():
