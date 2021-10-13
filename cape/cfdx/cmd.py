@@ -52,11 +52,10 @@ from ..util import GetTecplotCommand
 
 # Function to run tecplot
 def tecmcr(mcr="export-lay.mcr", **kw):
-    """
-    Run a Tecplot macro
+    r"""Run a Tecplot macro
     
     :Call:
-        >>> cmd = pyCart.cmd.tecmcr(mcr="export-lay.mcr")
+        >>> cmd = tecmcr(mcr="export-lay.mcr")
     :Inputs:
         *mcr*: :class:`str`
             File name of Tecplot macro
@@ -64,7 +63,7 @@ def tecmcr(mcr="export-lay.mcr", **kw):
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2015-03-10 ``@ddalle``: First version
+        * 2015-03-10 ``@ddalle``: Version 1.0
     """
     # Get tecplot command
     t360 = GetTecplotCommand()
@@ -76,7 +75,7 @@ def tecmcr(mcr="export-lay.mcr", **kw):
 
 # Function get aflr3 commands
 def aflr3(opts=None, j=0, **kw):
-    """Create AFLR3 system command as a list of strings
+    r"""Create AFLR3 system command as a list of strings
     
     :Call:
         >>> cmdi = aflr3(opts=None, j=0, **kw)
@@ -101,7 +100,7 @@ def aflr3(opts=None, j=0, **kw):
         *cmdi*: :class:`list` (:class:`str`)
             System command created as list of strings
     :Versions:
-        * 2016-04-04 ``@ddalle``: First version
+        * 2016-04-04 ``@ddalle``: Version 1.0
     """
     # Check the input type.
     if opts is not None:
@@ -191,7 +190,7 @@ def aflr3(opts=None, j=0, **kw):
 
 # Function to call verify
 def intersect(opts=None, j=0, **kw):
-    """Interface to Cart3D binary ``intersect``
+    r"""Interface to Cart3D binary ``intersect``
     
     :Call:
         >>> cmd = cape.cmd.intesect(opts=None, **kw)
@@ -206,7 +205,7 @@ def intersect(opts=None, j=0, **kw):
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2015-02-13 ``@ddalle``: First version
+        * 2015-02-13 ``@ddalle``: Version 1.0
     """
     # Check input type
     if opts is not None:
@@ -252,7 +251,7 @@ def intersect(opts=None, j=0, **kw):
 
 # Function to call verify
 def verify(opts=None, **kw):
-    """Generate command for Cart3D executable ``verify``
+    r"""Generate command for Cart3D executable ``verify``
     
     :Call:
         >>> cmdi = cape.cmd.verify(opts=None, **kw)
@@ -269,7 +268,7 @@ def verify(opts=None, **kw):
         *cmdi*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2015-02-13 ``@ddalle``: First version
+        * 2015-02-13 ``@ddalle``: Version 1.0
     """
     # Check input type
     if opts is not None:

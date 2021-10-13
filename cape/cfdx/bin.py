@@ -81,15 +81,20 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
     print(" > " + " ".join(cmdi))
     # Print the current location.
     if v:
-        print("     (PWD = '%s')" % os.getcwd())
+        # Get abbreviated path
+        cwd_parts = os.getcwd().split(os.sep)
+        # Just use the last two folders
+        cwd = os.sep.join(cwd_parts[-2:]) + os.sep
+        # Print the abbreviated path
+        print("     (PWD = '%s')" % cwd)
     # Check for an output
     if f:
         # Print the location of STDOUT
         if v:
-            print("     (STDOUT = '%s')" % os.path.split(f)[-1])
+            print("     (STDOUT = '%s')" % os.path.basename(f))
         # Print the location of STDERR
         if v and (e is not None):
-            print("     (STDERR = '%s')" % os.path.split(e)[-1])
+            print("     (STDERR = '%s')" % os.path.basename(e))
         # Open the files for STDOUT and STDERR
         fid = open(f, 'w')
         # Check for separate STDERR file

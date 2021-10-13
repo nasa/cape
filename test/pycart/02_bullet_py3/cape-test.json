@@ -8,9 +8,9 @@
         "test_databook.py"
     ],
     "Commands": [
-        "pycart3 -c",
-        "pycart3 -I 0",
-        "pycart3 -I 0 --aero",
+        "python3 -m cape.pycart -c",
+        "python3 -m cape.pycart -I 0",
+        "python3 -m cape.pycart -I 0 --aero",
         "python3 test_databook.py"
     ],
     "CommandTitles": [

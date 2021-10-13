@@ -190,19 +190,14 @@ defined.  In general the required files are the following.
     **Testing**
     
     .. toctree::
-        :maxdepth: 2
+        :maxdepth: 3
 
-        test/cape/index
-        test/pycart/index
-        test/pyfun/index
-        test/pyover/index
-        test/ftypes/index
-        test/attdb/index 
-        test/tnakit/index
+        test/index
 
 **Authors**
 
     * ``@ddalle``: Derek Dalle <derek.j.dalle@nasa.gov>
+    * ``@serogers``: Stuart Rogers <stuart.e.rogers@nasa.gov>
     * ``@jmeeroff``: Jamie Meeroff <jamie.g.meeroff@nasa.gov>
     * ``@aburkhea``: Aaron Burkhead <aaron.c.burkhead@nasa.gov>
     * ``@dschauer``: Guy Schauerhamer <daniel.g.schauerhamer@nasa.gov>
