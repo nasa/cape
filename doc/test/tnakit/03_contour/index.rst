@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 15:14 PDT
+   on 2021-10-13 at 15:16 PDT
 
 Test ``03_contour``: PASS
 ===========================
 
-This test PASSED on 2021-10-13 at 15:14 PDT
+This test PASSED on 2021-10-13 at 15:16 PDT
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Contour plot: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
+    * Command took 5.63 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -64,8 +64,8 @@ Command 2: Contour plot: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.62 seconds
-    * Cumulative time: 1.12 seconds
+    * Command took 3.81 seconds
+    * Cumulative time: 9.44 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -73,7 +73,7 @@ Command 2: Contour plot: Python 3 (PASS)
 
 :PNG:
     * **PASS**
-    * Difference fraction: 0.0000
+    * Difference fraction: 0.0010
     * Target:
 
         .. image:: PNG-target-01-00.png
