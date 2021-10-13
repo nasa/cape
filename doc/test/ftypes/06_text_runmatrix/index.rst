@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 14:30 PDT
+   on 2021-10-13 at 14:49 PDT
 
-Test ``06_text_runmatrix``: **FAIL** (command 1)
-==================================================
+Test ``06_text_runmatrix``: PASS
+==================================
 
-This test **FAILED** (command 1) on 2021-10-13 at 14:30 PDT
+This test PASSED on 2021-10-13 at 14:49 PDT
 
 This test is run in the folder:
 
@@ -44,8 +44,8 @@ The commands executed by this test are
             print("%8s: %s" % (col, db[col][i]))
         
 
-Command 1: First-column BoolMap: Python 2 (**FAIL**)
------------------------------------------------------
+Command 1: First-column BoolMap: Python 2 (PASS)
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -60,8 +60,8 @@ Command 1: First-column BoolMap: Python 2 (**FAIL**)
     * **PASS**
     * Command took 0.21 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual:
+    * **PASS**
+    * Target:
 
       .. code-block:: none
 
@@ -76,11 +76,32 @@ Command 1: First-column BoolMap: Python 2 (**FAIL**)
             PASS: True
         
 
+:STDERR:
+    * **PASS**
+
+Command 2: First-column BoolMap: Python 3 (PASS)
+-------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_minimal.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.30 seconds
+    * Cumulative time: 0.51 seconds
+:STDOUT:
+    * **PASS**
     * Target:
 
       .. code-block:: none
 
-           _col1: None
+           _col1: p
             mach: 2.1
            alpha: 4.0
             beta: 1.5

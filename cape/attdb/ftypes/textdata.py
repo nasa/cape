@@ -273,7 +273,9 @@ class TextDataFile(BaseFile, TextInterpreter):
         keys = []
         vals = []
         # Get list of boolean columns
-        for (k, abbrevs) in boolmap.items():
+        for k in sorted(list(boolmap.keys())):
+            # Get abbreviations
+            abbrevs = boolmap[k]
             # Create a definition
             defnc = self.get_defn(k)
             # Set type (forced)
