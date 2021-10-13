@@ -1,11 +1,70 @@
+Command 1: Regularize line load using griddata: Python 2 (PASS)
+----------------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_griddata.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.67 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        reg.bullet.dCN.shape = [51, 578]
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 2: Regularize line load using griddata: Python 3 (PASS)
+----------------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_griddata.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.74 seconds
+    * Cumulative time: 1.41 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        reg.bullet.dCN.shape = [51, 578]
+        
+
+:STDERR:
+    * **PASS**
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 10:43 PDT
+   on 2021-10-13 at 11:44 PDT
 
 Test ``05_rdb_llreg``: PASS
 =============================
 
-This test PASSED on 2021-10-13 at 10:43 PDT
+This test PASSED on 2021-10-13 at 11:44 PDT
 
 This test is run in the folder:
 
@@ -36,7 +95,7 @@ Command 1: Regularize line load using griddata: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.64 seconds
+    * Command took 0.67 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -63,8 +122,8 @@ Command 2: Regularize line load using griddata: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.84 seconds
-    * Cumulative time: 1.48 seconds
+    * Command took 0.74 seconds
+    * Cumulative time: 1.41 seconds
 :STDOUT:
     * **PASS**
     * Target:

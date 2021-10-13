@@ -1,11 +1,144 @@
+Command 1: Regularize using griddata: Python 2 (PASS)
+------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_griddata.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 1.18 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        regularized cols:
+            reg.bullet.CA : 578  reg.bullet.CY : 578  reg.bullet.CN : 578
+            reg.bullet.CLL: 578  reg.bullet.CLM: 578  reg.bullet.CLN: 578
+            reg.q         : 578  reg.T         : 578  reg.mach      : 578
+            reg.alpha     : 578  reg.beta      : 578
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 2: Regularize using griddata: Python 3 (PASS)
+------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_griddata.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 1.16 seconds
+    * Cumulative time: 2.34 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        regularized cols:
+            reg.bullet.CA : 578  reg.bullet.CY : 578  reg.bullet.CN : 578
+            reg.bullet.CLL: 578  reg.bullet.CLM: 578  reg.bullet.CLN: 578
+            reg.mach      : 578  reg.q         : 578  reg.T         : 578
+            reg.alpha     : 578  reg.beta      : 578
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 3: Regularize using RBF: Python 2 (PASS)
+-------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_rbf.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.57 seconds
+    * Cumulative time: 2.91 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        regularized cols:
+            reg.bullet.CA : 578  reg.bullet.CY : 578  reg.bullet.CN : 578
+            reg.bullet.CLL: 578  reg.bullet.CLM: 578  reg.bullet.CLN: 578
+            reg.alpha     : 578  reg.beta      : 578  reg.mach      : 578
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 4: Regularize using RBF: Python 3 (PASS)
+-------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_rbf.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.59 seconds
+    * Cumulative time: 3.50 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        regularized cols:
+            reg.bullet.CA : 578  reg.bullet.CY : 578  reg.bullet.CN : 578
+            reg.bullet.CLL: 578  reg.bullet.CLM: 578  reg.bullet.CLN: 578
+            reg.alpha     : 578  reg.beta      : 578  reg.mach      : 578
+        
+
+:STDERR:
+    * **PASS**
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 10:43 PDT
+   on 2021-10-13 at 11:44 PDT
 
 Test ``07_dbfm_regularize``: PASS
 ===================================
 
-This test PASSED on 2021-10-13 at 10:43 PDT
+This test PASSED on 2021-10-13 at 11:44 PDT
 
 This test is run in the folder:
 
@@ -38,7 +171,7 @@ Command 1: Regularize using griddata: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.94 seconds
+    * Command took 1.18 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -69,8 +202,8 @@ Command 2: Regularize using griddata: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.08 seconds
-    * Cumulative time: 2.01 seconds
+    * Command took 1.16 seconds
+    * Cumulative time: 2.34 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -101,8 +234,8 @@ Command 3: Regularize using RBF: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 2.54 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 2.91 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -132,8 +265,8 @@ Command 4: Regularize using RBF: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.85 seconds
-    * Cumulative time: 3.39 seconds
+    * Command took 0.59 seconds
+    * Cumulative time: 3.50 seconds
 :STDOUT:
     * **PASS**
     * Target:

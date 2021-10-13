@@ -1,13 +1,126 @@
+:Compare Files:
+    * **PASS**
+    * Target:
+        - :download:`FILE-target-00-00.txt`
+
+Command 1: Simple dense TSV writer: Python 2 (PASS)
+----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_tsv_dense.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.52 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+
+
+:Compare Files:
+    * **PASS**
+    * Target:
+        - :download:`FILE-target-01-00.txt`
+
+Command 2: Simple dense TSV writer: Python 3 (PASS)
+----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_tsv_dense.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.53 seconds
+    * Cumulative time: 1.05 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+
+
+:Compare Files:
+    * **PASS**
+    * Target:
+        - :download:`FILE-target-02-00.txt`
+
+Command 3: TSV writer with defaults: Python 2 (PASS)
+-----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_tsv_default.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.39 seconds
+    * Cumulative time: 1.44 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+
+
+:Compare Files:
+    * **PASS**
+    * Target:
+        - :download:`FILE-target-03-00.txt`
+
+Command 4: TSV writer with defaults: Python 3 (PASS)
+-----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_tsv_default.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.67 seconds
+    * Cumulative time: 2.10 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 11:45 PDT
 
-Test ``15_rdb_write_tsv``
-===========================
+Test ``15_rdb_write_tsv``: PASS
+=================================
+
+This test PASSED on 2021-10-13 at 11:45 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/15_rdb_write_tsv/``
+    ``test/attdb/15_rdb_write_tsv/``
 
 and the working folder for the test is
 
@@ -22,8 +135,8 @@ The commands executed by this test are
         $ python2 test02_tsv_default.py
         $ python3 test02_tsv_default.py
 
-Command 1: Simple dense TSV writer: Python 2
----------------------------------------------
+Command 1: Simple dense TSV writer: Python 2 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -36,20 +149,14 @@ Command 1: Simple dense TSV writer: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.502562 seconds
-    * Cumulative time: 0.502562 seconds
+    * Command took 0.52 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-:Compare Files:
-    * **PASS**
-    * Target:
-        - :download:`FILE-target-00-00.txt`
-
-Command 2: Simple dense TSV writer: Python 3
----------------------------------------------
+Command 2: Simple dense TSV writer: Python 3 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -62,20 +169,15 @@ Command 2: Simple dense TSV writer: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.784196 seconds
-    * Cumulative time: 1.28676 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 1.05 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-:Compare Files:
-    * **PASS**
-    * Target:
-        - :download:`FILE-target-01-00.txt`
-
-Command 3: TSV writer with defaults: Python 2
-----------------------------------------------
+Command 3: TSV writer with defaults: Python 2 (PASS)
+-----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -88,20 +190,15 @@ Command 3: TSV writer with defaults: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.411685 seconds
-    * Cumulative time: 1.69844 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.44 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-:Compare Files:
-    * **PASS**
-    * Target:
-        - :download:`FILE-target-02-00.txt`
-
-Command 4: TSV writer with defaults: Python 3
-----------------------------------------------
+Command 4: TSV writer with defaults: Python 3 (PASS)
+-----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -114,15 +211,10 @@ Command 4: TSV writer with defaults: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.513966 seconds
-    * Cumulative time: 2.21241 seconds
+    * Command took 0.67 seconds
+    * Cumulative time: 2.10 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
-
-:Compare Files:
-    * **PASS**
-    * Target:
-        - :download:`FILE-target-03-00.txt`
 

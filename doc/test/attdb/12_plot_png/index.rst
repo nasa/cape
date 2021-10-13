@@ -1,27 +1,5 @@
-
-.. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
-
-Test ``12_plot_png``
-======================
-
-This test is run in the folder:
-
-    ``/u/wk/ddalle/usr/cape/test/attdb/12_plot_png/``
-
-and the working folder for the test is
-
-    ``work/``
-
-The commands executed by this test are
-
-    .. code-block:: console
-
-        $ python2 test01_plot_png.py
-        $ python3 test01_plot_png.py
-
-Command 1: Line load plot with PNG: Python 2
----------------------------------------------
+Command 1: Line load plot with PNG: Python 2 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -34,8 +12,7 @@ Command 1: Line load plot with PNG: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.25984 seconds
-    * Cumulative time: 1.25984 seconds
+    * Command took 5.94 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -49,8 +26,10 @@ Command 1: Line load plot with PNG: Python 2
         .. image:: PNG-target-00-00.png
             :width: 4.5in
 
-Command 2: Line load plot with PNG: Python 3
----------------------------------------------
+
+
+Command 2: Line load plot with PNG: Python 3 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -63,8 +42,91 @@ Command 2: Line load plot with PNG: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.81822 seconds
-    * Cumulative time: 3.07807 seconds
+    * Command took 4.12 seconds
+    * Cumulative time: 10.07 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0200
+    * Target:
+
+        .. image:: PNG-target-01-00.png
+            :width: 4.5in
+
+
+
+
+.. This documentation written by TestDriver()
+   on 2021-10-13 at 11:44 PDT
+
+Test ``12_plot_png``: PASS
+============================
+
+This test PASSED on 2021-10-13 at 11:44 PDT
+
+This test is run in the folder:
+
+    ``test/attdb/12_plot_png/``
+
+and the working folder for the test is
+
+    ``work/``
+
+The commands executed by this test are
+
+    .. code-block:: console
+
+        $ python2 test01_plot_png.py
+        $ python3 test01_plot_png.py
+
+Command 1: Line load plot with PNG: Python 2 (PASS)
+----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_plot_png.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 5.94 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0197
+    * Target:
+
+        .. image:: PNG-target-00-00.png
+            :width: 4.5in
+
+Command 2: Line load plot with PNG: Python 3 (PASS)
+----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_plot_png.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 4.12 seconds
+    * Cumulative time: 10.07 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

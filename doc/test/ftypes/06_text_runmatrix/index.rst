@@ -1,11 +1,63 @@
+Command 1: First-column BoolMap: Python 2 (**FAIL**)
+-----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_minimal.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.42 seconds
+:STDOUT:
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: none
+
+           _col1: p
+            mach: 2.1
+           alpha: 4.0
+            beta: 1.5
+          config: poweroff
+           Label: 
+            user: @user3
+           ERROR: False
+            PASS: True
+        
+
+    * Target:
+
+      .. code-block:: none
+
+           _col1: None
+            mach: 2.1
+           alpha: 4.0
+            beta: 1.5
+          config: poweroff
+           Label: 
+            user: @user3
+           ERROR: False
+            PASS: True
+        
+
+:STDERR:
+    * **PASS**
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 10:48 PDT
+   on 2021-10-13 at 11:50 PDT
 
 Test ``06_text_runmatrix``: **FAIL** (command 1)
 ==================================================
 
-This test **FAILED** (command 1) on 2021-10-13 at 10:48 PDT
+This test **FAILED** (command 1) on 2021-10-13 at 11:50 PDT
 
 This test is run in the folder:
 

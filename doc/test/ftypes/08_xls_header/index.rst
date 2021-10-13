@@ -1,11 +1,69 @@
+Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
+----------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_workbook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.48 seconds
+:STDOUT:
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: none
+
+            colnames.mach        : array (shape=75, dtype=float64)
+            colnames.alpha       : array (shape=75, dtype=float64)
+            colnames.beta        : array (shape=75, dtype=float64)
+            colnames.config      : list (len=75, type=unicode)
+            cols_with_array.mach : array (shape=3, dtype=float64)
+            cols_with_array.alpha: array (shape=3, dtype=float64)
+            cols_with_array.beta : array (shape=3, dtype=float64)
+            cols_with_array.DCN  : array (shape=3x3, dtype=float64)
+        
+
+    * Target:
+
+      .. code-block:: none
+
+            colnames.mach        : array (shape=75, dtype=float64)
+            colnames.alpha       : array (shape=75, dtype=float64)
+            colnames.beta        : array (shape=75, dtype=float64)
+            colnames.config      : list (len=75, type=unicode)
+            colnames.mach        : array (shape=75, dtype=float64)
+            colnames.alpha       : array (shape=75, dtype=float64)
+            colnames.beta        : array (shape=75, dtype=float64)
+            colnames.config      : list (len=75, type=unicode)
+            cols_with_array.mach : array (shape=3, dtype=float64)
+            cols_with_array.alpha: array (shape=3, dtype=float64)
+            cols_with_array.beta : array (shape=3, dtype=float64)
+            cols_with_array.DCN  : array (shape=3x3, dtype=float64)
+            cols_with_array.mach : array (shape=3, dtype=float64)
+            cols_with_array.alpha: array (shape=3, dtype=float64)
+            cols_with_array.beta : array (shape=3, dtype=float64)
+            cols_with_array.DCN  : array (shape=3x3, dtype=float64)
+        
+
+:STDERR:
+    * **PASS**
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 10:48 PDT
+   on 2021-10-13 at 11:50 PDT
 
 Test ``08_xls_header``: **FAIL** (command 1)
 ==============================================
 
-This test **FAILED** (command 1) on 2021-10-13 at 10:48 PDT
+This test **FAILED** (command 1) on 2021-10-13 at 11:50 PDT
 
 This test is run in the folder:
 
@@ -75,7 +133,7 @@ Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
+    * Command took 0.48 seconds
 :STDOUT:
     * **FAIL**
     * Actual:

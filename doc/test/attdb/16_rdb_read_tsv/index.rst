@@ -1,13 +1,142 @@
+Command 1: Simple dense TSV reader: Python 2 (PASS)
+----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_tsv_dense.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.45 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha: float64
+        beta: float64
+        CN: float64
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 2: Simple dense TSV reader: Python 3 (PASS)
+----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_tsv_dense.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.50 seconds
+    * Cumulative time: 0.95 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha: float64
+        beta: float64
+        CN: float64
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 3: Main TSV reader: Python 2 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_tsv_default.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.39 seconds
+    * Cumulative time: 1.34 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha: float64
+        beta: float64
+        CN: float64
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 4: Main TSV reader: Python 3 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_tsv_default.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.58 seconds
+    * Cumulative time: 1.92 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha: float64
+        beta: float64
+        CN: float64
+        
+
+:STDERR:
+    * **PASS**
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 11:45 PDT
 
-Test ``16_rdb_read_tsv``
-==========================
+Test ``16_rdb_read_tsv``: PASS
+================================
+
+This test PASSED on 2021-10-13 at 11:45 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/16_rdb_read_tsv/``
+    ``test/attdb/16_rdb_read_tsv/``
 
 and the working folder for the test is
 
@@ -22,8 +151,8 @@ The commands executed by this test are
         $ python2 test02_tsv_default.py
         $ python3 test02_tsv_default.py
 
-Command 1: Simple dense TSV reader: Python 2
----------------------------------------------
+Command 1: Simple dense TSV reader: Python 2 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -36,8 +165,7 @@ Command 1: Simple dense TSV reader: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.527736 seconds
-    * Cumulative time: 0.527736 seconds
+    * Command took 0.45 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -52,8 +180,8 @@ Command 1: Simple dense TSV reader: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Simple dense TSV reader: Python 3
----------------------------------------------
+Command 2: Simple dense TSV reader: Python 3 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -66,8 +194,8 @@ Command 2: Simple dense TSV reader: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57686 seconds
-    * Cumulative time: 1.1046 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 0.95 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -82,8 +210,8 @@ Command 2: Simple dense TSV reader: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Main TSV reader: Python 2
--------------------------------------
+Command 3: Main TSV reader: Python 2 (PASS)
+--------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -96,8 +224,8 @@ Command 3: Main TSV reader: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.42507 seconds
-    * Cumulative time: 1.52967 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.34 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -112,8 +240,8 @@ Command 3: Main TSV reader: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Main TSV reader: Python 3
--------------------------------------
+Command 4: Main TSV reader: Python 3 (PASS)
+--------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -126,8 +254,8 @@ Command 4: Main TSV reader: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.510298 seconds
-    * Cumulative time: 2.03996 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 1.92 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -1,11 +1,239 @@
+Command 1: Clean CSV read: Python 2 (PASS)
+-------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_clean.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.48 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        m1.20a0.00b4.00
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 2: Clean CSV read: Python 3 (PASS)
+-------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_clean.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.51 seconds
+    * Cumulative time: 0.99 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        m1.20a0.00b4.00
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 3: Specified :class:`float` types: Python 2 (PASS)
+-----------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_dtypes.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.42 seconds
+    * Cumulative time: 1.41 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        mach : float32
+        alpha: float32
+        beta : float16
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 4: Specified :class:`float` types: Python 3 (PASS)
+-----------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_dtypes.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.70 seconds
+    * Cumulative time: 2.11 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        mach : float32
+        alpha: float32
+        beta : float16
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 5: Simple CSV read: Python 2 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test03_simple.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.46 seconds
+    * Cumulative time: 2.57 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        m1.20a0.00b4.00
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 6: Simple CSV read: Python 3 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_simple.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.51 seconds
+    * Cumulative time: 3.08 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        m1.20a0.00b4.00
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 7: Clean C read: Python 2 (**FAIL**)
+---------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test04_c.py
+
+:Return Code:
+    * **FAIL**
+    * Output: ``1``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.52 seconds
+    * Cumulative time: 3.59 seconds
+:STDOUT:
+    * **FAIL**
+    * Actual: (empty)
+    * Target:
+
+      .. code-block:: none
+
+        m1.20a0.00b4.00
+        
+
+:STDERR:
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: pytb
+
+        Traceback (most recent call last):
+          File "test04_c.py", line 11, in <module>
+            db.c_read_csv("aeroenv.csv")
+          File "/u/wk/ddalle/usr/cape/cape/attdb/ftypes/csvfile.py", line 304, in c_read_csv
+            self.c_read_csv_data(f)
+          File "/u/wk/ddalle/usr/cape/cape/attdb/ftypes/csvfile.py", line 608, in c_read_csv_data
+            raise ImportError("No _ftypes extension module")
+        ImportError: No _ftypes extension module
+        
+
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 10:48 PDT
+   on 2021-10-13 at 11:50 PDT
 
 Test ``02_csv_float``: **FAIL** (command 7)
 =============================================
 
-This test **FAILED** (command 7) on 2021-10-13 at 10:48 PDT
+This test **FAILED** (command 7) on 2021-10-13 at 11:50 PDT
 
 This test is run in the folder:
 
@@ -168,7 +396,7 @@ Command 1: Clean CSV read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
+    * Command took 0.48 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -195,8 +423,8 @@ Command 2: Clean CSV read: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 1.26 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.99 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -223,8 +451,8 @@ Command 3: Specified :class:`float` types: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59 seconds
-    * Cumulative time: 1.85 seconds
+    * Command took 0.42 seconds
+    * Cumulative time: 1.41 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -253,8 +481,8 @@ Command 4: Specified :class:`float` types: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59 seconds
-    * Cumulative time: 2.44 seconds
+    * Command took 0.70 seconds
+    * Cumulative time: 2.11 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -283,8 +511,8 @@ Command 5: Simple CSV read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
-    * Cumulative time: 2.87 seconds
+    * Command took 0.46 seconds
+    * Cumulative time: 2.57 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -312,7 +540,7 @@ Command 6: Simple CSV read: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.51 seconds
-    * Cumulative time: 3.37 seconds
+    * Cumulative time: 3.08 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -340,7 +568,7 @@ Command 7: Clean C read: Python 2 (**FAIL**)
 :Time Taken:
     * **PASS**
     * Command took 0.52 seconds
-    * Cumulative time: 3.89 seconds
+    * Cumulative time: 3.59 seconds
 :STDOUT:
     * **FAIL**
     * Actual: (empty)

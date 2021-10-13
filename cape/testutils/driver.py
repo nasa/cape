@@ -31,6 +31,7 @@ import os
 import time
 import shlex
 import shutil
+import sys
 
 # Local modules
 from . import fileutils
@@ -267,6 +268,8 @@ class TestDriver(object):
         # Go to home folder
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+        # Open rst file and process folder
+        self.init_rst()
         # Prepare files (also enters working folder)
         self.prepare_files()
         # Run any commands
@@ -464,8 +467,6 @@ class TestDriver(object):
             * 2019-07-09 ``@ddalle``: Version 1.0
             * 2021-10-12 ``@ddalle``: Version 2.0; result in title
         """
-        # Open file
-        self.init_rst()
         # Check if file is actually open
         if self.frst is None:
             return
@@ -673,6 +674,17 @@ class TestDriver(object):
         self.TestCommandsNum = len(cmds)
         # Loop through commands
         for i, cmd in enumerate(cmds):
+            # Get subtitle
+            subt = self.opts.getel("CommandTitles", i, vdef=None)
+            # Status update message
+            msg = (
+                "    Testing command %i/%i" % (i+1, self.TestCommandsNum))
+            # Include title
+            if subt:
+                msg += ": %s" % subt
+            # Status update
+            sys.stdout.write(msg)
+            sys.stdout.flush()
             # Break command into parts
             cmdi = shlex.split(cmd)
             # Get handles
@@ -725,7 +737,16 @@ class TestDriver(object):
                 self.frst.write(fp.txt)
                 self.frst.write("\n\n")
             # Exit if a failure was detected
-            if not self.TestStatus:
+            if self.TestStatus:
+                # Clean up STDOUT
+                sys.stdout.write("\r")
+                sys.stdout.write(" " * len(msg))
+                sys.stdout.write("\r")
+                sys.stdout.flush()
+            else:
+                # Remember failur
+                sys.stdout.write(" FAILED\n")
+                # Exit test
                 break
         # Output
         return self.get_results_dict()

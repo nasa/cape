@@ -1,13 +1,200 @@
+Command 1: Contours from indices: Python 2 (PASS)
+--------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_mask.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 5.74 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-00-00.png
+            :width: 4.5in
+
+
+
+Command 2: Contours from indices: Python 3 (PASS)
+--------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_mask.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 3.98 seconds
+    * Cumulative time: 9.73 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-01-00.png
+            :width: 4.5in
+
+
+
+Command 3: Contours levels: Python 2 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_levels.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 5.81 seconds
+    * Cumulative time: 15.53 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-02-00.png
+            :width: 4.5in
+
+
+
+Command 4: Contours levels: Python 3 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_levels.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 4.11 seconds
+    * Cumulative time: 19.64 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-03-00.png
+            :width: 4.5in
+
+
+
+Command 5: Contours from response: Python 2 (PASS)
+---------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test03_response.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 6.66 seconds
+    * Cumulative time: 26.30 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-04-00.png
+            :width: 4.5in
+
+
+
+Command 6: Contours from response: Python 3 (PASS)
+---------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_response.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 3.96 seconds
+    * Cumulative time: 30.26 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-05-00.png
+            :width: 4.5in
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 11:45 PDT
 
-Test ``14_plot_contour``
-==========================
+Test ``14_plot_contour``: PASS
+================================
+
+This test PASSED on 2021-10-13 at 11:45 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/14_plot_contour/``
+    ``test/attdb/14_plot_contour/``
 
 and the working folder for the test is
 
@@ -24,8 +211,8 @@ The commands executed by this test are
         $ python2 test03_response.py
         $ python3 test03_response.py
 
-Command 1: Contours from indices: Python 2
--------------------------------------------
+Command 1: Contours from indices: Python 2 (PASS)
+--------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -38,8 +225,7 @@ Command 1: Contours from indices: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.27473 seconds
-    * Cumulative time: 1.27473 seconds
+    * Command took 5.74 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -53,8 +239,8 @@ Command 1: Contours from indices: Python 2
         .. image:: PNG-target-00-00.png
             :width: 4.5in
 
-Command 2: Contours from indices: Python 3
--------------------------------------------
+Command 2: Contours from indices: Python 3 (PASS)
+--------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -67,8 +253,8 @@ Command 2: Contours from indices: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.76844 seconds
-    * Cumulative time: 3.04317 seconds
+    * Command took 3.98 seconds
+    * Cumulative time: 9.73 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -82,8 +268,8 @@ Command 2: Contours from indices: Python 3
         .. image:: PNG-target-01-00.png
             :width: 4.5in
 
-Command 3: Contours levels: Python 2
--------------------------------------
+Command 3: Contours levels: Python 2 (PASS)
+--------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -96,8 +282,8 @@ Command 3: Contours levels: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.03944 seconds
-    * Cumulative time: 4.08261 seconds
+    * Command took 5.81 seconds
+    * Cumulative time: 15.53 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -111,8 +297,8 @@ Command 3: Contours levels: Python 2
         .. image:: PNG-target-02-00.png
             :width: 4.5in
 
-Command 4: Contours levels: Python 3
--------------------------------------
+Command 4: Contours levels: Python 3 (PASS)
+--------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -125,8 +311,8 @@ Command 4: Contours levels: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.59988 seconds
-    * Cumulative time: 5.68249 seconds
+    * Command took 4.11 seconds
+    * Cumulative time: 19.64 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -140,8 +326,8 @@ Command 4: Contours levels: Python 3
         .. image:: PNG-target-03-00.png
             :width: 4.5in
 
-Command 5: Contours from response: Python 2
---------------------------------------------
+Command 5: Contours from response: Python 2 (PASS)
+---------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -154,8 +340,8 @@ Command 5: Contours from response: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.08157 seconds
-    * Cumulative time: 6.76405 seconds
+    * Command took 6.66 seconds
+    * Cumulative time: 26.30 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -169,8 +355,8 @@ Command 5: Contours from response: Python 2
         .. image:: PNG-target-04-00.png
             :width: 4.5in
 
-Command 6: Contours from response: Python 3
---------------------------------------------
+Command 6: Contours from response: Python 3 (PASS)
+---------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -183,8 +369,8 @@ Command 6: Contours from response: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.55927 seconds
-    * Cumulative time: 8.32332 seconds
+    * Command took 3.96 seconds
+    * Cumulative time: 30.26 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

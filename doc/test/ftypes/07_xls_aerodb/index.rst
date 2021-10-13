@@ -1,11 +1,250 @@
+Command 1: XLSX File: Python 2 (PASS)
+--------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test01_xlsx.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.43 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            mach: 0.80
+           alpha: 1.00
+          config: poweroff
+           Label: 
+              CA: 0.34
+              CY: -0.00
+              CN: 0.15
+             CLM: -0.11
+         nOrders: 4.49
+           nIter: 200.00
+          nStats: 100.00
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 2: XLSX File: Python 3 (PASS)
+--------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_xlsx.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.52 seconds
+    * Cumulative time: 0.94 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            mach: 0.80
+           alpha: 1.00
+          config: poweroff
+           Label: 
+              CA: 0.34
+              CY: -0.00
+              CN: 0.15
+             CLM: -0.11
+         nOrders: 4.49
+           nIter: 200.00
+          nStats: 100.00
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 3: XLS File: Python 2 (PASS)
+-------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_xls.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.39 seconds
+    * Cumulative time: 1.33 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            mach: 0.80
+           alpha: 1.00
+          config: poweroff
+           Label: 
+              CA: 0.34
+              CY: -0.00
+              CN: 0.15
+             CLM: -0.11
+         nOrders: 4.49
+           nIter: 200.00
+          nStats: 100.00
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 4: XLS File: Python 3 (PASS)
+-------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_xls.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.52 seconds
+    * Cumulative time: 1.85 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            mach: 0.80
+           alpha: 1.00
+          config: poweroff
+           Label: 
+              CA: 0.34
+              CY: -0.00
+              CN: 0.15
+             CLM: -0.11
+         nOrders: 4.49
+           nIter: 200.00
+          nStats: 100.00
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 5: Specified dtypes: Python 2 (PASS)
+---------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test03_dtypes.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.43 seconds
+    * Cumulative time: 2.28 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            mach: float32 (ndarray)
+           alpha: float16 (ndarray)
+          config: unicode (list)
+           Label: unicode (list)
+              CA: float64 (ndarray)
+              CY: float64 (ndarray)
+              CN: float64 (ndarray)
+             CLM: float64 (ndarray)
+         nOrders: float64 (ndarray)
+           nIter: float64 (ndarray)
+          nStats: int32 (ndarray)
+        
+
+:STDERR:
+    * **PASS**
+
+
+
+Command 6: Specified dtypes: Python 3 (PASS)
+---------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_dtypes.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.51 seconds
+    * Cumulative time: 2.80 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            mach: float32 (ndarray)
+           alpha: float16 (ndarray)
+          config: str (list)
+           Label: str (list)
+              CA: float64 (ndarray)
+              CY: float64 (ndarray)
+              CN: float64 (ndarray)
+             CLM: float64 (ndarray)
+         nOrders: float64 (ndarray)
+           nIter: float64 (ndarray)
+          nStats: int32 (ndarray)
+        
+
+:STDERR:
+    * **PASS**
+
+
+
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 10:48 PDT
+   on 2021-10-13 at 11:50 PDT
 
 Test ``07_xls_aerodb``: PASS
 ==============================
 
-This test PASSED on 2021-10-13 at 10:48 PDT
+This test PASSED on 2021-10-13 at 11:50 PDT
 
 This test is run in the folder:
 
@@ -127,7 +366,7 @@ Command 1: XLSX File: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54 seconds
+    * Command took 0.43 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -164,8 +403,8 @@ Command 2: XLSX File: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 1.29 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 0.94 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -202,8 +441,8 @@ Command 3: XLS File: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
-    * Cumulative time: 1.72 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.33 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -240,8 +479,8 @@ Command 4: XLS File: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 2.28 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 1.85 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -278,8 +517,8 @@ Command 5: Specified dtypes: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.39 seconds
-    * Cumulative time: 2.67 seconds
+    * Command took 0.43 seconds
+    * Cumulative time: 2.28 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -316,8 +555,8 @@ Command 6: Specified dtypes: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 3.16 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 2.80 seconds
 :STDOUT:
     * **PASS**
     * Target:
