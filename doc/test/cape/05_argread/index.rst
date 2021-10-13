@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-12 at 14:52 PDT
+   on 2021-10-13 at 10:24 PDT
 
-Test ``05_argread``
-=====================
+Test ``05_argread``: PASS
+===========================
+
+This test PASSED on 2021-10-13 at 10:24 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/cape/test/cape/05_argread/``
+    ``test/cape/05_argread/``
 
 and the working folder for the test is
 
@@ -108,8 +110,8 @@ The commands executed by this test are
         print(a)
         printdict(kw)
 
-Command 1: Python 2
---------------------
+Command 1: Python 2 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -146,8 +148,8 @@ Command 1: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Python 3
---------------------
+Command 2: Python 3 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -160,8 +162,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.26 seconds
-    * Cumulative time: 0.43 seconds
+    * Command took 0.27 seconds
+    * Cumulative time: 0.44 seconds
 :STDOUT:
     * **PASS**
     * Target:
