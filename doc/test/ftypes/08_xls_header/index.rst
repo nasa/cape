@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 14:16 PDT
+   on 2021-10-13 at 14:54 PDT
 
-Test ``08_xls_header``: **FAIL** (command 1)
-==============================================
+Test ``08_xls_header``: PASS
+==============================
 
-This test **FAILED** (command 1) on 2021-10-13 at 14:16 PDT
+This test PASSED on 2021-10-13 at 14:54 PDT
 
 This test is run in the folder:
 
@@ -60,9 +60,10 @@ The commands executed by this test are
                     dtype = "str"
                 # Print type and size
                 print("    %-21s: list (len=%i, type=%s)" % (col, n, dtype))
+        
 
-Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
-----------------------------------------------------------
+Command 1: Auto-Workbook with Arrays: Python 2 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -75,10 +76,10 @@ Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
+    * Command took 0.19 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual:
+    * **PASS**
+    * Target:
 
       .. code-block:: none
 
@@ -92,6 +93,27 @@ Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
             cols_with_array.DCN  : array (shape=3x3, dtype=float64)
         
 
+:STDERR:
+    * **PASS**
+
+Command 2: Auto-Workbook with Arrays: Python 3 (PASS)
+------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_workbook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.29 seconds
+    * Cumulative time: 0.48 seconds
+:STDOUT:
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -99,15 +121,7 @@ Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
             colnames.mach        : array (shape=75, dtype=float64)
             colnames.alpha       : array (shape=75, dtype=float64)
             colnames.beta        : array (shape=75, dtype=float64)
-            colnames.config      : list (len=75, type=unicode)
-            colnames.mach        : array (shape=75, dtype=float64)
-            colnames.alpha       : array (shape=75, dtype=float64)
-            colnames.beta        : array (shape=75, dtype=float64)
-            colnames.config      : list (len=75, type=unicode)
-            cols_with_array.mach : array (shape=3, dtype=float64)
-            cols_with_array.alpha: array (shape=3, dtype=float64)
-            cols_with_array.beta : array (shape=3, dtype=float64)
-            cols_with_array.DCN  : array (shape=3x3, dtype=float64)
+            colnames.config      : list (len=75, type=str)
             cols_with_array.mach : array (shape=3, dtype=float64)
             cols_with_array.alpha: array (shape=3, dtype=float64)
             cols_with_array.beta : array (shape=3, dtype=float64)

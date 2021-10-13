@@ -12,9 +12,9 @@
     ],
     "TargetSTDOUT": [
         "test.01.out",
-        "test.01.out",
         "test.02.out",
-        "test.02.out"
+        "test.03.out",
+        "test.04.out"
 
     ],
     "CommandTitles": [

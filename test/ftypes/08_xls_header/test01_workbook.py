@@ -32,3 +32,4 @@ for col in db.cols:
             dtype = "str"
         # Print type and size
         print("    %-21s: list (len=%i, type=%s)" % (col, n, dtype))
+

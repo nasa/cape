@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 14:17 PDT
+   on 2021-10-13 at 15:02 PDT
 
-Test ``10_mat_lineload``: **FAIL** (command 2)
-================================================
+Test ``10_mat_lineload``: PASS
+================================
 
-This test **FAILED** (command 2) on 2021-10-13 at 14:17 PDT
+This test PASSED on 2021-10-13 at 15:02 PDT
 
 This test is run in the folder:
 
@@ -31,14 +31,24 @@ The commands executed by this test are
         #!/usr/bin/env python
         # -*- coding: utf-8 -*-
         
+        # Standard library
+        import sys
+        
         # Import MAT module
         import cape.attdb.ftypes.matfile as matfile
         
         # Read MAT file
         db = matfile.MATFile("bullet.mat")
         
+        # Get columns
+        if sys.version_info.major == 2:
+            # Can't control column order ...
+            cols = sorted(db.cols)
+        else:
+            # Column order under our control
+            cols = db.cols
         # Loop through colums
-        for col in db.cols:
+        for col in cols:
             # Display it and its shape
             print("%-10s: %s" % (col, db[col].shape))
         
@@ -49,6 +59,9 @@ The commands executed by this test are
 
         #!/usr/bin/env python
         # -*- coding: utf-8 -*-
+        
+        # Standard library
+        import sys
         
         # Import MAT module
         import cape.attdb.ftypes.matfile as matfile
@@ -67,8 +80,16 @@ The commands executed by this test are
         # Reread
         db = matfile.MATFile("bullet1.mat")
         
+        # Get columns
+        if sys.version_info.major == 2:
+            # Can't control column order ...
+            cols = sorted(db.cols)
+        else:
+            # Column order under our control
+            cols = db.cols
+        
         # Loop through colums
-        for col in db.cols:
+        for col in cols:
             # Display it and its shape
             print("%-10s: %s" % (col, db[col].shape))
         
@@ -87,31 +108,31 @@ Command 1: Clean MAT read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.42 seconds
+    * Command took 0.18 seconds
 :STDOUT:
     * **PASS**
     * Target:
 
       .. code-block:: none
 
-        aoap      : (6,)
-        bullet.x  : (101,)
-        bullet.dCA: (101, 6)
-        bullet.dCY: (101, 6)
-        bullet.dCN: (101, 6)
-        q         : (6,)
-        beta      : (6,)
         T         : (6,)
-        phip      : (6,)
         alpha     : (6,)
+        aoap      : (6,)
+        beta      : (6,)
+        bullet.dCA: (101, 6)
+        bullet.dCN: (101, 6)
+        bullet.dCY: (101, 6)
+        bullet.x  : (101,)
         mach      : (6,)
+        phip      : (6,)
+        q         : (6,)
         
 
 :STDERR:
     * **PASS**
 
-Command 2: Clean MAT read: Python 3 (**FAIL**)
------------------------------------------------
+Command 2: Clean MAT read: Python 3 (PASS)
+-------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -124,11 +145,11 @@ Command 2: Clean MAT read: Python 3 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 0.99 seconds
+    * Command took 0.29 seconds
+    * Cumulative time: 0.47 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual:
+    * **PASS**
+    * Target:
 
       .. code-block:: none
 
@@ -145,21 +166,80 @@ Command 2: Clean MAT read: Python 3 (**FAIL**)
         bullet.dCN: (101, 6)
         
 
+:STDERR:
+    * **PASS**
+
+Command 3: MATFile write: Python 2 (PASS)
+------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_write.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.21 seconds
+    * Cumulative time: 0.68 seconds
+:STDOUT:
+    * **PASS**
     * Target:
 
       .. code-block:: none
 
+        MACH      : (6,)
+        T         : (6,)
+        alpha     : (6,)
         aoap      : (6,)
+        beta      : (6,)
+        bullet.dCA: (101, 6)
+        bullet.dCN: (101, 6)
+        bullet.dCY: (101, 6)
+        bullet.x  : (101,)
+        phip      : (6,)
+        q         : (6,)
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: MATFile write: Python 3 (PASS)
+------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_write.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.29 seconds
+    * Cumulative time: 0.97 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha     : (6,)
+        beta      : (6,)
+        aoap      : (6,)
+        phip      : (6,)
+        q         : (6,)
+        T         : (6,)
         bullet.x  : (101,)
         bullet.dCA: (101, 6)
         bullet.dCY: (101, 6)
         bullet.dCN: (101, 6)
-        q         : (6,)
-        beta      : (6,)
-        T         : (6,)
-        phip      : (6,)
-        alpha     : (6,)
-        mach      : (6,)
+        MACH      : (6,)
         
 
 :STDERR:
