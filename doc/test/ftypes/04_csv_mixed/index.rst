@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 13:23 PDT
+   on 2021-10-13 at 14:03 PDT
 
-Test ``04_csv_mixed``: **FAIL** (command 1)
+Test ``04_csv_mixed``: **FAIL** (command 4)
 =============================================
 
-This test **FAILED** (command 1) on 2021-10-13 at 13:23 PDT
+This test **FAILED** (command 4) on 2021-10-13 at 14:03 PDT
 
 This test is run in the folder:
 
@@ -75,8 +75,8 @@ The commands executed by this test are
             print("%8s: %s (%s)" % (col, dtype, clsname))
         
 
-Command 1: Minimal Definitions: Python 2 (**FAIL**)
-----------------------------------------------------
+Command 1: Minimal Definitions: Python 2 (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -89,21 +89,9 @@ Command 1: Minimal Definitions: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
+    * Command took 0.19 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual:
-
-      .. code-block:: none
-
-            mach: 2.1
-           alpha: 4.0
-            beta: 1.5
-          config: poweroff
-           Label:   
-            user: @user3
-        
-
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -118,4 +106,114 @@ Command 1: Minimal Definitions: Python 2 (**FAIL**)
 
 :STDERR:
     * **PASS**
+
+Command 2: Minimal Definitions: Python 3 (PASS)
+------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_minimal.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.30 seconds
+    * Cumulative time: 0.49 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            mach: 2.1
+           alpha: 4.0
+            beta: 1.5
+          config: poweroff
+           Label: 
+            user: @user3
+        
+
+:STDERR:
+    * **PASS**
+
+Command 3: Specified dtypes: Python 2 (PASS)
+---------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_dtypes.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.20 seconds
+    * Cumulative time: 0.68 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            mach: float16 (ndarray)
+           alpha: float32 (ndarray)
+            beta: float32 (ndarray)
+          config: str (list)
+           Label: str (list)
+            user: str (list)
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: Specified dtypes: Python 3 (**FAIL**)
+-------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_dtypes.py
+
+:Return Code:
+    * **FAIL**
+    * Output: ``1``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.37 seconds
+    * Cumulative time: 1.05 seconds
+:STDOUT:
+    * **FAIL**
+    * Actual: (empty)
+    * Target:
+
+      .. code-block:: none
+
+            mach: float16 (ndarray)
+           alpha: float32 (ndarray)
+            beta: float32 (ndarray)
+          config: str (list)
+           Label: str (list)
+            user: str (list)
+        
+
+:STDERR:
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: pytb
+
+        Traceback (most recent call last):
+          File "test02_dtypes.py", line 22, in <module>
+            dtype = V[0].__class__.__name__
+        IndexError: index 0 is out of bounds for axis 0 with size 0
+        
+
 

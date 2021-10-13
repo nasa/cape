@@ -173,8 +173,13 @@ def compare_files(fn1, fn2, **kw):
             # Report line number
             f1.close()
             f2.close()
+            # Get error message
+            if sys.version_info.major == 2:
+                msg = e.message
+            else:
+                msg = e
             raise ValueError(
-                ("In line %i of file '%s':\n" % (i + 1, fn2)) + e.message)
+                "In line %i of file '%s':\n%s" % (i + 1, fn2, msg))
         if not qi:
             # Failure
             q = False

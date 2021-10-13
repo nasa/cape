@@ -63,6 +63,10 @@ int capeCSV_ReadSTR(FILE *fp, PyObject *coldata, size_t irow)
     
     // Attempt to read next entry as a string
     nscan = fscanf(fp, "%80[^,\n\r\t]", buff);
+    // Check for empty string (otherwise we'll get "  " in Python)
+    if (nscan == 0) {
+        buff[0] = '\0';
+    }
     // Convert to Python string
     v = capePyString_FromString((const char *) buff);
     // Check for errors
