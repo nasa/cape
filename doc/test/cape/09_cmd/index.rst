@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:31 PDT
 
-Test ``09_cmd``
-=================
+Test ``09_cmd``: PASS
+=======================
+
+This test PASSED on 2021-10-13 at 10:31 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/09_cmd/``
+    ``test/cape/09_cmd/``
 
 and the working folder for the test is
 
@@ -75,8 +77,8 @@ The commands executed by this test are
         print(' '.join(cmd1))
         print(' '.join(cmd2))
 
-Command 1: AFLR3 Commands Python 2
------------------------------------
+Command 1: AFLR3 Commands Python 2 (PASS)
+------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -89,8 +91,7 @@ Command 1: AFLR3 Commands Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.480851 seconds
-    * Cumulative time: 0.480851 seconds
+    * Command took 0.51 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -104,8 +105,8 @@ Command 1: AFLR3 Commands Python 2
 :STDERR:
     * **PASS**
 
-Command 2: CART3D ``intersect`` Commands Python 2
---------------------------------------------------
+Command 2: CART3D ``intersect`` Commands Python 2 (PASS)
+---------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -118,8 +119,8 @@ Command 2: CART3D ``intersect`` Commands Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.449084 seconds
-    * Cumulative time: 0.929935 seconds
+    * Command took 0.47 seconds
+    * Cumulative time: 0.97 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -133,8 +134,8 @@ Command 2: CART3D ``intersect`` Commands Python 2
 :STDERR:
     * **PASS**
 
-Command 3: AFLR3 Commands Python 3
------------------------------------
+Command 3: AFLR3 Commands Python 3 (PASS)
+------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -147,8 +148,8 @@ Command 3: AFLR3 Commands Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.710352 seconds
-    * Cumulative time: 1.64029 seconds
+    * Command took 0.70 seconds
+    * Cumulative time: 1.67 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -162,8 +163,8 @@ Command 3: AFLR3 Commands Python 3
 :STDERR:
     * **PASS**
 
-Command 4: CART3D ``intersect`` Commands Python 3
---------------------------------------------------
+Command 4: CART3D ``intersect`` Commands Python 3 (PASS)
+---------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -176,8 +177,8 @@ Command 4: CART3D ``intersect`` Commands Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.690579 seconds
-    * Cumulative time: 2.33087 seconds
+    * Command took 0.70 seconds
+    * Cumulative time: 2.37 seconds
 :STDOUT:
     * **PASS**
     * Target:

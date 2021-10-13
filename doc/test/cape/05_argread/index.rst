@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:30 PDT
 
-Test ``05_argread``
-=====================
+Test ``05_argread``: PASS
+===========================
+
+This test PASSED on 2021-10-13 at 10:30 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/05_argread/``
+    ``test/cape/05_argread/``
 
 and the working folder for the test is
 
@@ -27,8 +29,23 @@ The commands executed by this test are
         #!/usr/bin/env python
         # -*- coding: utf-8 -*-
         
+        # Standard library
+        import sys
+        
         # Import cape module
         import cape
+        
+        
+        # Print dict in sorted order
+        def printdict(kw):
+            sys.stdout.write("{")
+            for j, k in enumerate(sorted(list(kw.keys()))):
+                v = kw[k]
+                if j > 0:
+                    sys.stdout.write(", ")
+                sys.stdout.write("'%s': %s" % (k, repr(v)))
+            sys.stdout.write("}\n")
+            sys.stdout.flush()
         
         # Basic Keys
         # Test 1
@@ -39,7 +56,7 @@ The commands executed by this test are
         a, kw = cape.argread.readkeys(argv)
         # Print results
         print(a)
-        print(kw)
+        printdict(kw)
         
         # Test 2
         # List of arguments
@@ -49,7 +66,7 @@ The commands executed by this test are
         a, kw = cape.argread.readkeys(argv)
         # Print results
         print(a)
-        print(kw)
+        printdict(kw)
         
         # Test 3
         # List of arguments
@@ -59,7 +76,7 @@ The commands executed by this test are
         a, kw = cape.argread.readkeys(argv)
         # Print results
         print(a)
-        print(kw)
+        printdict(kw)
         
         # Read as Flags
         # Test 4
@@ -70,7 +87,7 @@ The commands executed by this test are
         a, kw = cape.argread.readflags(argv)
         # Print results
         print(a)
-        print(kw)
+        printdict(kw)
         
         # Test 5
         # List of arguments
@@ -80,7 +97,7 @@ The commands executed by this test are
         a, kw = cape.argread.readflags(argv)
         # Print results
         print(a)
-        print(kw)
+        printdict(kw)
         
         # Read flags like tar command
         # Test 6
@@ -91,10 +108,10 @@ The commands executed by this test are
         a, kw = cape.argread.readflagstar(argv)
         # Print results
         print(a)
-        print(kw)
+        printdict(kw)
 
-Command 1: Python 2
---------------------
+Command 1: Python 2 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -107,8 +124,7 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.480624 seconds
-    * Cumulative time: 0.480624 seconds
+    * Command took 0.46 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -116,24 +132,24 @@ Command 1: Python 2
       .. code-block:: none
 
         ['run']
-        {'filter': 'b2', 'c': True, '_old': []}
+        {'_old': [], 'c': True, 'filter': 'b2'}
         ['run']
-        {'filter': 'b2', 'c': True, '_old': []}
+        {'_old': [], 'c': True, 'filter': 'b2'}
         []
-        {'c': True, 'aero': 'fin', '_old': [{'aero': 'body'}, {'aero': 'base'}]}
+        {'_old': [{'aero': 'body'}, {'aero': 'base'}], 'aero': 'fin', 'c': True}
         ['run']
-        {'filter': 'b2', 'c': True, '_old': []}
+        {'_old': [], 'c': True, 'filter': 'b2'}
         ['run', 'b2']
-        {'c': True, 'r': True, '_old': [], 'f': True}
+        {'_old': [], 'c': True, 'f': True, 'r': True}
         ['run']
-        {'c': True, 'r': 'b2', '_old': [], 'f': True}
+        {'_old': [], 'c': True, 'f': True, 'r': 'b2'}
         
 
 :STDERR:
     * **PASS**
 
-Command 2: Python 3
---------------------
+Command 2: Python 3 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -146,8 +162,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59929 seconds
-    * Cumulative time: 1.07991 seconds
+    * Command took 0.69 seconds
+    * Cumulative time: 1.16 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -155,17 +171,17 @@ Command 2: Python 3
       .. code-block:: none
 
         ['run']
-        {'c': True, 'filter': 'b2', '_old': []}
+        {'_old': [], 'c': True, 'filter': 'b2'}
         ['run']
-        {'c': True, 'filter': 'b2', '_old': []}
+        {'_old': [], 'c': True, 'filter': 'b2'}
         []
-        {'aero': 'fin', 'c': True, '_old': [{'aero': 'body'}, {'aero': 'base'}]}
+        {'_old': [{'aero': 'body'}, {'aero': 'base'}], 'aero': 'fin', 'c': True}
         ['run']
-        {'c': True, 'filter': 'b2', '_old': []}
+        {'_old': [], 'c': True, 'filter': 'b2'}
         ['run', 'b2']
-        {'c': True, 'f': True, 'r': True, '_old': []}
+        {'_old': [], 'c': True, 'f': True, 'r': True}
         ['run']
-        {'c': True, 'r': 'b2', 'f': True, '_old': []}
+        {'_old': [], 'c': True, 'f': True, 'r': 'b2'}
         
 
 :STDERR:

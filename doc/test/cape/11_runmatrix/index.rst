@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:31 PDT
 
-Test ``11_runmatrix``
-=======================
+Test ``11_runmatrix``: PASS
+=============================
+
+This test PASSED on 2021-10-13 at 10:31 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/11_runmatrix/``
+    ``test/cape/11_runmatrix/``
 
 and the working folder for the test is
 
@@ -32,8 +34,8 @@ The commands executed by this test are
     * :download:`test01_nofile.py`
     * :download:`test02_conditions.py`
 
-Command 1: Run Matrix w/o File: Python 2
------------------------------------------
+Command 1: Run Matrix w/o File: Python 2 (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -46,8 +48,7 @@ Command 1: Run Matrix w/o File: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.487049 seconds
-    * Cumulative time: 0.487049 seconds
+    * Command took 0.38 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -83,8 +84,8 @@ Command 1: Run Matrix w/o File: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Run Matrix w/o File: Python 3
------------------------------------------
+Command 2: Run Matrix w/o File: Python 3 (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -97,8 +98,8 @@ Command 2: Run Matrix w/o File: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.725223 seconds
-    * Cumulative time: 1.21227 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 0.86 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -134,8 +135,8 @@ Command 2: Run Matrix w/o File: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Conversions: Python 2
----------------------------------
+Command 3: Conversions: Python 2 (PASS)
+----------------------------------------
 
 :Command:
     .. code-block:: console
@@ -148,8 +149,8 @@ Command 3: Conversions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.484017 seconds
-    * Cumulative time: 1.69629 seconds
+    * Command took 0.37 seconds
+    * Cumulative time: 1.23 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -185,8 +186,8 @@ Command 3: Conversions: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Conversions: Python 3
----------------------------------
+Command 4: Conversions: Python 3 (PASS)
+----------------------------------------
 
 :Command:
     .. code-block:: console
@@ -199,8 +200,8 @@ Command 4: Conversions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.707198 seconds
-    * Cumulative time: 2.40349 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 1.71 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -236,8 +237,8 @@ Command 4: Conversions: Python 3
 :STDERR:
     * **PASS**
 
-Command 5: Mark PASS
----------------------
+Command 5: Mark PASS (PASS)
+----------------------------
 
 :Command:
     .. code-block:: console
@@ -250,15 +251,15 @@ Command 5: Mark PASS
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51618 seconds
-    * Cumulative time: 2.91967 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 2.28 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 6: Check PASS Status
------------------------------
+Command 6: Check PASS Status (PASS)
+------------------------------------
 
 :Command:
     .. code-block:: console
@@ -271,8 +272,8 @@ Command 6: Check PASS Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.511583 seconds
-    * Cumulative time: 3.43125 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 2.76 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -289,8 +290,8 @@ Command 6: Check PASS Status
 :STDERR:
     * **PASS**
 
-Command 7: Mark ERROR
-----------------------
+Command 7: Mark ERROR (PASS)
+-----------------------------
 
 :Command:
     .. code-block:: console
@@ -303,15 +304,15 @@ Command 7: Mark ERROR
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.521633 seconds
-    * Cumulative time: 3.95288 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 3.24 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 8: Check ERROR Status
-------------------------------
+Command 8: Check ERROR Status (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -324,8 +325,8 @@ Command 8: Check ERROR Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.514077 seconds
-    * Cumulative time: 4.46696 seconds
+    * Command took 0.59 seconds
+    * Cumulative time: 3.82 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -342,8 +343,8 @@ Command 8: Check ERROR Status
 :STDERR:
     * **PASS**
 
-Command 9: Overwrite PASS/ERROR Marks
---------------------------------------
+Command 9: Overwrite PASS/ERROR Marks (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -356,15 +357,15 @@ Command 9: Overwrite PASS/ERROR Marks
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.506645 seconds
-    * Cumulative time: 4.9736 seconds
+    * Command took 0.43 seconds
+    * Cumulative time: 4.25 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 10: Check Final Marks
-------------------------------
+Command 10: Check Final Marks (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -377,8 +378,8 @@ Command 10: Check Final Marks
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.504778 seconds
-    * Cumulative time: 5.47838 seconds
+    * Command took 0.59 seconds
+    * Cumulative time: 4.84 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -11,7 +11,7 @@ test driver for individual tests.
 The test crawler is initiated using the command:
 
     .. code-block:: console
-    
+
         $ pc_TestCase.py
 
 This calls the :func:`cli` command from this module.
@@ -80,10 +80,71 @@ def _import_pyplot():
         return
 
 
+# String container
+class ResultsStream(object):
+    r"""Simple string extension with :func:`write` interface
+
+    :Call:
+        >>> fp = ResultsStream()
+        >>> fp = ResultsStream(txt)
+    :Inputs:
+        *txt*: {``None``} | :class:`str`
+            Initial text
+    :Outputs:
+        *fp*: :class:`ResultsStream`
+            String with :func:`write` interface
+        *fp.txt*: :class:`str`
+            Current contents of the stream
+    :Versions:
+        * 2021-10-12 ``@ddalle``: Version 1.0
+    """
+    def __init__(self, txt=None):
+        if txt is None:
+            self.txt = ""
+        else:
+            self.txt = txt
+
+    def __repr__(self):
+        return repr(self.txt)
+
+    def __str__(self):
+        return self.txt.__str__()
+
+    def write(self, txt):
+        r"""Append to stream's text by adding it to the end
+
+        :Call:
+            >>> fp.write(txt)
+        :Inputs:
+            *fp*: :class:`ResultsStream`
+                String with :func:`write` 
+            *txt*: :class:`str`
+                Additional text
+        :Versions:
+            * 2021-10-12 ``@ddalle``: Version 1.0
+        """
+        self.txt += txt
+
+    def prepend(self, txt):
+        r"""Append to stream's text by adding it to the beginning
+
+        :Call:
+            >>> fp.prepend(txt)
+        :Inputs:
+            *fp*: :class:`ResultsStream`
+                String with :func:`write` 
+            *txt*: :class:`str`
+                Additional text
+        :Versions:
+            * 2021-10-12 ``@ddalle``: Version 1.0
+        """
+        self.txt = txt + self.txt
+
+
 # Crawler class
 class TestDriver(object):
-    """Test driver class
-    
+    r"""Test driver class
+
     :Call:
         >>> driver = TestDriver(**kw)
     :Inputs:
@@ -95,13 +156,12 @@ class TestDriver(object):
     :Versions:
         * 2019-07-03 ``@ddalle``: Started
     """
-    
     # Initialization method
     def __init__(self, *a, **kw):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2019-07-03 ``@ddalle``: First version
+            * 2019-07-03 ``@ddalle``: Version 1.0
         """
         # Process options file name
         fname = kw.pop("f", kw.pop("json", "cape-test.json"))
@@ -118,8 +178,11 @@ class TestDriver(object):
         # Standard attributes
         self.fdoc = None
         self.frst = None
+        # Container for texts
+        self.TestSummary_List = []
         # Results attributes
         self.TestStatus = True
+        self.TestStatus_List = []
         self.TestStatus_ReturnCode = True
         self.TestStatus_MaxTime = True
         self.TestStatus_STDOUT = True
@@ -131,13 +194,13 @@ class TestDriver(object):
         self.TestReturnCodes = []
         self.TestCommandsNum = 0
         self.TestCommandsRun = 0
-        # Save number of commands
+        # Save number of intended commands
         self.TestCommandsNum = len(cmds)
-        
+
     # String method
     def __str__(self):
-        """String method
-        
+        r"""String method
+
         :Versions:
             * 2019-07-09 ``@ddalle``: <TestDriver('$dirname', n=$ncommands)>
         """
@@ -148,8 +211,8 @@ class TestDriver(object):
 
     # Representation method
     def __repr__(self):
-        """Representation method
-        
+        r"""Representation method
+
         :Versions:
             * 2019-07-09 ``@ddalle``: <TestDriver('$dirname', n=$ncommands)>
         """
@@ -160,15 +223,15 @@ class TestDriver(object):
 
     # Reset results for test
     def init_test_results(self):
-        """(Re)initialize attributes that store results of test
-        
+        r"""(Re)initialize attributes that store results of test
+
         :Call:
             >>> testd.init_test_results()
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
         :Versions:
-            * 2019-07-07 ``@ddalle``: First version
+            * 2019-07-07 ``@ddalle``: Version 1.0
         """
         # Reset test results attributes
         self.TestStatus = True
@@ -185,11 +248,11 @@ class TestDriver(object):
         self.TestReturnCodes = []
         self.TestCommandsNum = 0
         self.TestCommandsRun = 0
-        
+
     # Run the main test
     def run(self):
-        """Execute the test controlled by the driver
-        
+        r"""Execute the test controlled by the driver
+
         :Call:
             >>> results = testd.run()
         :Inputs:
@@ -199,28 +262,54 @@ class TestDriver(object):
             *results*: :class:`dict`
                 Results from :func:`get_results_dict`
         :Versions:
-            * 2019-07-05 ``@ddalle``: First version
+            * 2019-07-05 ``@ddalle``: Version 1.0
         """
         # Go to home folder
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Prepare files (also enters working folder)
         self.prepare_files()
-        # Begin documentation
-        self.write_rst_intro()
         # Run any commands
         results = self.exec_commands()
-        # Close file
-        self.close_rst()
+        # Write all results
+        self.write_results()
         # Return to original location
         os.chdir(fpwd)
         # Output
         return results
 
+    # Write reST results all at once
+    def write_results(self):
+        r"""Write ``.rst`` file of results
+
+        :Call:
+            >>> testd.write_results()
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+        :Versions:
+            * 2021-10-12``@ddalle``: Version 1.0
+        """
+        # Begin documentation
+        self.write_rst_intro()
+        # Get *rst* file handle
+        frst = self.frst
+        # Check if it's open
+        if not isinstance(frst, filelike) or frst.closed:
+            return
+        # Loop through commands
+        for i in range(self.TestCommandsRun):
+            # Get handle for results of command *i*
+            fp = self.get_results_summary(i)
+            # Write it to .rst file
+            frst.write(fp.txt)
+        # Close rst file
+        self.close_rst()
+
     # Prepare a test
     def prepare_files(self):
-        """Prepare test folder for execution
-        
+        r"""Prepare test folder for execution
+
         :Call:
             >>> testd.prepare_files()
         :Inputs:
@@ -230,7 +319,7 @@ class TestDriver(object):
             *testd.frst*: ``None`` | :class:`file`
                 File handle to new ReST file if applicable
         :Versions:
-            * 2019-07-03 ``@ddalle``: First version
+            * 2019-07-03 ``@ddalle``: Version 1.0
         """
         # Name of container folder
         fwork = self.opts.get("ContainerName", "work")
@@ -274,11 +363,11 @@ class TestDriver(object):
             os.symlink(fname, os.path.join(fwork, fname))
         # Enter the folder
         os.chdir(fwork)
-        
+
     # Start log file
     def init_rst(self):
-        """Initialize ReST file of test results
-        
+        r"""Initialize ReST file of test results
+
         :Call:
             >>> testd.init_rst()
         :Inputs:
@@ -288,7 +377,7 @@ class TestDriver(object):
             *testd.frst*: ``None`` | :class:`file`
                 Open or newly opened file handle if applicable
         :Versions:
-            * 2019-07-09 ``@ddalle``: First version
+            * 2019-07-09 ``@ddalle``: Version 1.0
         """
         # If *frst* is already a file, do nothing
         if isinstance(self.frst, filelike):
@@ -361,8 +450,8 @@ class TestDriver(object):
 
     # Write header for ReST file
     def write_rst_intro(self):
-        """Write intro section for ReST log file
-        
+        r"""Write intro section for ReST log file
+
         :Call:
             >>> testd.write_rst_intro()
         :Inputs:
@@ -372,7 +461,8 @@ class TestDriver(object):
             *testd.frst*: ``None`` | :class:`file`
                 File handle to which intro is written, if applicable
         :Versions:
-            * 2019-07-09 ``@ddalle``: First version
+            * 2019-07-09 ``@ddalle``: Version 1.0
+            * 2021-10-12 ``@ddalle``: Version 2.0; result in title
         """
         # Open file
         self.init_rst()
@@ -384,7 +474,14 @@ class TestDriver(object):
         # Default title
         if ttl is None:
             # Use the folder name
-            ttl = "Test ``%s``" % self.dirname
+            ttl = "Test ``%s``: " % self.dirname
+        # Add status
+        if self.TestStatus:
+            # Passed all tests
+            ttl += "PASS"
+        else:
+            # Failed at least one command
+            ttl += "**FAIL** (command %i)" % self.TestCommandsRun
         # Get the current time
         t = time.localtime()
         # Get timezone name using DST flag
@@ -394,6 +491,21 @@ class TestDriver(object):
         else:
             # Standard timezone name
             tz = time.tzname[0]
+        # Get option for root level
+        nroot = self.opts.get("RootLevel")
+        # Get path to root
+        if nroot is not None and nroot < 0:
+            # Initialize root folder for documentation
+            fdoc = self.RootDir
+            # Go up *nroot* levels
+            for i in range(-nroot):
+                # Raise one level
+                fdoc = os.path.dirname(fdoc)
+            # Document path relative to root
+            froot = os.path.relpath(self.RootDir, fdoc)
+        else:
+            # Just use full path to test
+            froot = self.RootDir
         # Create an indent
         tab = "    "
         # Get handle to save some characters
@@ -434,9 +546,20 @@ class TestDriver(object):
             f.write(open(fintro).read())
             # Add a blank line for good measure
             f.write("\n")
+        # Summary: status and date
+        if self.TestStatus:
+            # Note the success
+            f.write("This test PASSED ")
+        else:
+            # Note the failure and which command failed
+            f.write(
+                "This test **FAILED** (command %i) " % self.TestCommandsRun)
+        # Write the date
+        f.write("on %04i-%02i-%02i " % (t.tm_year, t.tm_mon, t.tm_mday))
+        f.write("at %02i:%02i %s\n\n" % (t.tm_hour, t.tm_min, tz))
         # Summary: location
         f.write("This test is run in the folder:\n\n")
-        f.write("    ``%s%s``\n\n" % (self.RootDir, os.sep))
+        f.write("    ``%s%s``\n\n" % (froot, os.sep))
         # Summary: container
         fwork = self.opts.get("ContainerName", "work")
         f.write("and the working folder for the test is\n\n")
@@ -504,14 +627,11 @@ class TestDriver(object):
         if len(flink_list) > 0:
             # Start bullet list
             f.write("\n")
-            
-            
-        
-    
+
     # Close ReST file
     def close_rst(self):
         """Close ReST log file, if open
-        
+
         :Call:
             >>> testd.close_rst()
         :Inputs:
@@ -521,7 +641,7 @@ class TestDriver(object):
             *testd.frst*: ``None`` | :class:`file`
                 Closed file handle if applicable
         :Versions:
-            * 2019-07-08 ``@ddalle``: First version
+            * 2019-07-08 ``@ddalle``: Version 1.0
         """
         # Check if *frst* is a file
         if isinstance(self.frst, filelike):
@@ -532,8 +652,8 @@ class TestDriver(object):
 
     # Execute test
     def exec_commands(self):
-        """Execute tests in the current folder
-        
+        r"""Execute tests in the current folder
+
         :Call:
             >>> results = testd.exec_commands()
         :Inputs:
@@ -543,7 +663,7 @@ class TestDriver(object):
             *results*: :class:`dict`
                 Results from :func:`get_results_dict`
         :Versions:
-            * 2019-07-05 ``@ddalle``: First version
+            * 2019-07-05 ``@ddalle``: Version 1.0
         """
         # Get commands to run
         cmds = self.opts.get_commands()
@@ -577,7 +697,7 @@ class TestDriver(object):
             if isinstance(ferr, filelike):
                 ferr.close()
             # Start the log for this command
-            self.process_results_summary(i, cmd)
+            self.write_command_summary(i, cmd)
             # Check the return code
             self.process_results_returncode(i, ierr)
             # Check for timeout and update timers
@@ -591,16 +711,58 @@ class TestDriver(object):
             self.process_results_file(i)
             # Update number of commands run
             self.TestCommandsRun = i + 1
+            # Create handle for test status list
+            self._extend_attribute_list("TestStatus_List", i)
+            # Save status
+            self.TestStatus_List[i] = self.TestStatus
+            # Write title
+            self.write_command_title(i)
+            # Check for reST file handle
+            if isinstance(self.frst, filelike):
+                # Get results summary
+                fp = self.get_results_summary(i)
+                # Write to RST file
+                self.frst.write(fp.txt)
+                self.frst.write("\n\n")
             # Exit if a failure was detected
             if not self.TestStatus:
                 break
         # Output
         return self.get_results_dict()
 
+    # Get or create results handler
+    def get_results_summary(self, i):
+        r"""Get or create results summary for command *i*
+
+        :Call:
+            >>> fp = testd.get_results_summary(i)
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+            *i*: :class:`int`
+                Command number
+        :Outputs:
+            *fp*: :class:`ResultsStream`
+                String-like object with :func:`write` interface
+        :Versions:
+            * 2021-10-12 ``@ddalle``: Version 1.0
+        """
+        # Get current list of results text handlers
+        fps = self.TestSummary_List
+        # Check if already present
+        if i < len(fps):
+            # Use it
+            return fps[i]
+        # Append as many as needed
+        for j in range(len(fps), i+1):
+            fps.append(ResultsStream())
+        # Return the last one
+        return fps[i]
+
     # Ensure an attribute has at least *i* entries
     def _extend_attribute_list(self, k, i):
-        """Ensure attribute *k* is a :class:`list` with *i* entries
-        
+        r"""Ensure attribute *k* is a :class:`list` with *i* entries
+
         :Call:
             >>> testd._extend_attribute_list(k, i)
         :Inputs:
@@ -611,7 +773,7 @@ class TestDriver(object):
             *i*: :class:`int`
                 Command number
         :Versions:
-            * 2019-07-08 ``@ddalle``: First version
+            * 2019-07-08 ``@ddalle``: Version 1.0
         """
         # Get the attribute
         V = getattr(self, k)
@@ -624,12 +786,50 @@ class TestDriver(object):
         for j in range(n, i+1):
             V.append(None)
 
-    # Start log output
-    def process_results_summary(self, i, cmd):
-        """Start the reST results summary for command *i*
-        
+    # Write title for command *i* with result
+    def write_command_title(self, i):
+        r"""Write the title for command *i*, with result
+
         :Call:
-            >>> testd.process_results_summary(i, cmd)
+            >>> testd.write_command_title(i)
+        :Inputs:
+            *testd*: :class:`cape.testutils.testd.TestDriver`
+                Test driver controller
+            *i*: :class:`int`
+                Command number
+        :Versions:
+            * 2021-10-12 ``@ddalle``: Version 1.0
+        """
+        # Get subtitle
+        subt = self.opts.getel("CommandTitles", i, vdef=None)
+        # Create an indent
+        tab = "    "
+        # Status
+        status = self.TestStatus_List[i]
+        # Form the title for subsection
+        if subt:
+            # Include subtitle
+            ttl = "Command %i: %s" % (i+1, subt)
+        else:
+            # No subtitle; just command number
+            ttl = "Command %i" % (i+1)
+        # Add result
+        if self.TestStatus_List[i]:
+            ttl += " (PASS)\n"
+        else:
+            ttl += " (**FAIL**)\n"
+        # Stash results
+        fp = self.get_results_summary(i)
+        fp.prepend("\n\n")
+        fp.prepend("-" * len(ttl))
+        fp.prepend(ttl)
+
+    # Start log output
+    def write_command_summary(self, i, cmd):
+        r"""Start the reST results summary for command *i*
+
+        :Call:
+            >>> testd.write_command_summary(i, cmd)
         :Inputs:
             *testd*: :class:`cape.testutils.testd.TestDriver`
                 Test driver controller
@@ -638,40 +838,25 @@ class TestDriver(object):
             *cmd*: :class:`str`
                 The command that was run in step *i*
         :Versions:
-            * 2019-07-09 ``@ddalle``: First version
+            * 2019-07-09 ``@ddalle``: Version 1.0
+            * 2021-10-12 ``@ddalle``: Version 2.0; title elsewhere
         """
-        # Get file handle
-        f = self.frst
-        # reST output
-        if not isinstance(f, filelike) or f.closed:
-            return
         # Get subtitle
         subt = self.opts.getel("CommandTitles", i, vdef=None)
         # Create an indent
         tab = "    "
-        # Form the title for subsection
-        if subt:
-            # Include subtitle
-            ttl = "Command %i: %s\n" % (i+1, subt)
-        else:
-            # No subtitle; just command number
-            ttl = "Command %i\n" % (i+1)
-        # Write title
-        f.write(ttl)
-        # Delimiter line
-        f.write("-" * len(ttl))
-        f.write("\n\n")
-        # Show the command
-        f.write(":Command:\n")
-        f.write(tab)
-        f.write(".. code-block:: console\n\n")
-        f.write(tab + tab + "$ " + cmd)
-        f.write("\n\n")
-            
+        # Stash results
+        fp = self.get_results_summary(i)
+        fp.write(":Command:\n")
+        fp.write(tab)
+        fp.write(".. code-block:: console\n\n")
+        fp.write(tab + tab + "$ " + cmd)
+        fp.write("\n\n")
+
     # Check return code status
     def process_results_returncode(self, i, ierr):
-        """Check the return code against target for command *i*
-        
+        r"""Check the return code against target for command *i*
+
         :Call:
             >>> q = testd.process_results_returncode(i, ierr)
         :Inputs:
@@ -692,7 +877,7 @@ class TestDriver(object):
             *testd.TestStatus*: ``True`` | ``False``
                 Set to ``False`` if above test fails
         :Versions:
-            * 2019-07-08 ``@ddalle``: First version
+            * 2019-07-08 ``@ddalle``: Version 1.0
         """
         # Extend attributes as necessary
         self._extend_attribute_list("TestStatus_ReturnCode", i)
@@ -712,27 +897,25 @@ class TestDriver(object):
             self.TestStatus_ReturnCode[i] = False
             # Fail the test and abort
             self.TestStatus = False
-        # Get file handle
-        f = self.frst
-        # reST output
-        if isinstance(f, filelike) and (not f.closed):
-            # Return code section
-            f.write(":Return Code:\n")
-            # Write status of the test
-            if q:
-                f.write("    * **PASS**\n")
-            else:
-                f.write("    * **FAIL**\n")
-            # Write targets
-            f.write("    * Output: ``%i``\n" % ierr)
-            f.write("    * Target: ``%i``\n" % rc_target)
+        # Stash results
+        fp = self.get_results_summary(i)
+        # Return code section
+        fp.write(":Return Code:\n")
+        # Write status of the test
+        if q:
+            fp.write("    * **PASS**\n")
+        else:
+            fp.write("    * **FAIL**\n")
+        # Write targets
+        fp.write("    * Output: ``%i``\n" % ierr)
+        fp.write("    * Target: ``%i``\n" % rc_target) 
         # Output
         return q
-        
+
     # Check timer status
     def process_results_maxtime(self, i, t):
-        """Check the maximum time for command *i*
-        
+        r"""Check the maximum time for command *i*
+
         :Call:
             >>> q = testd.process_results_maxtime(i, t)
         :Inputs:
@@ -755,7 +938,7 @@ class TestDriver(object):
             *testd.TestStatus*: ``True`` | ``False``
                 Set to ``False`` if above test fails
         :Versions:
-            * 2019-07-08 ``@ddalle``: First version
+            * 2019-07-08 ``@ddalle``: Version 1.0
         """
         # Maximum time
         tmax = self.opts.getel("MaxTime", i, vdef=None)
@@ -782,30 +965,30 @@ class TestDriver(object):
         self.TestStatus_MaxTime.append(q)
         # Update overall status
         self.TestStatus = self.TestStatus and q
-        # Get file handle
-        f = self.frst
-        # reST output
-        if isinstance(f, filelike) and (not f.closed):
-            # Return code section
-            f.write(":Time Taken:\n")
-            # Write status of the test
-            if q:
-                f.write("    * **PASS**\n")
-            else:
-                f.write("    * **FAIL**\n")
-            # Write time taken
-            f.write("    * Command took %4g seconds\n" % t)
-            f.write("    * Cumulative time: %4g seconds\n" % (ttot + t))
-            # Write constraint
-            if tsec:
-                f.write("    * Max allowed: %4g seconds (%s)\n" % (tsec, tmax))
+        # Stash results
+        fp = self.get_results_summary(i)
+        # Return code section
+        fp.write(":Time Taken:\n")
+        # Write status of the test
+        if q:
+            fp.write("    * **PASS**\n")
+        else:
+            fp.write("    * **FAIL**\n")
+        # Write time taken
+        fp.write("    * Command took %.2f seconds\n" % t)
+        if i > 0:
+            fp.write("    * Cumulative time: %.2f seconds\n" % (ttot + t))
+        # Write constraint
+        if tsec:
+            fp.write(
+                "    * Max allowed: %.2f seconds (%s)\n" % (tsec, tmax))
         # Output
         return q
-        
+
     # Check contents of STDOUT
     def process_results_stdout(self, i, fnout):
         """Compare STDOUT from command *i* to target
-        
+
         :Call:
             >>> q = testd.process_results_stdout(i, fnout)
         :Inputs:
@@ -825,7 +1008,7 @@ class TestDriver(object):
             *testd.TestStatus*: ``True`` | ``False``
                 Set to ``False`` if above test fails
         :Versions:
-            * 2019-07-08 ``@ddalle``: First version
+            * 2019-07-08 ``@ddalle``: Version 1.0
         """
         # Get target STDOUT file
         fntout = self.opts.get_TargetSTDOUT(i)
@@ -860,12 +1043,6 @@ class TestDriver(object):
         self.TestStatus_STDOUT[i] = q
         # Update overall status
         self.TestStatus = self.TestStatus and q
-        # Get file handle
-        f = self.frst
-        # Check for file
-        if not isinstance(f, filelike) or f.closed:
-            # If no file, exit now
-            return q
         # Indentation
         tab = "    "
         # reST settings
@@ -875,13 +1052,15 @@ class TestDriver(object):
         link_trg = self.opts.getel("LinkTargetSTDOUT", i, vdef=False)
         # Get language for Lexer
         lang = self.opts.getel("LexerSTDOUT", i, vdef="none")
+        # Get output handle
+        fp = self.get_results_summary(i)
         # Return code section
-        f.write(":STDOUT:\n")
+        fp.write(":STDOUT:\n")
         # Write status of the test
         if q:
-            f.write("    * **PASS**\n")
+            fp.write("    * **PASS**\n")
         else:
-            f.write("    * **FAIL**\n")
+            fp.write("    * **FAIL**\n")
         # Show actual STDOUT
         if qactual and link_out:
             # Link file name
@@ -889,8 +1068,8 @@ class TestDriver(object):
             # Copy the file
             shutil.copy(fnout, os.path.join(self.fdoc, flink))
             # Create the link
-            f.write(tab)
-            f.write("* Actual: :download:`%s`\n" % flink)
+            fp.write(tab)
+            fp.write("* Actual: :download:`%s`\n" % flink)
         elif qactual and (
                 (show_out is None and not (q and show_trg)) or show_out):
             # Read it
@@ -898,18 +1077,18 @@ class TestDriver(object):
             # Check for content
             if len(txt) > 0:
                 # Write header information
-                f.write(tab + "* Actual:\n\n")
+                fp.write(tab + "* Actual:\n\n")
                 # Use language
-                f.write(tab + "  .. code-block:: %s\n\n" % lang)
+                fp.write(tab + "  .. code-block:: %s\n\n" % lang)
                 # Loop through lines
                 for line in txt.split("\n"):
                     # Indent it 8 spaces
-                    f.write(tab + tab + line + "\n")
+                    fp.write(tab + tab + line + "\n")
                 # Blank line
-                f.write("\n")
+                fp.write("\n")
             else:
                 # Write empty actual
-                f.write(tab + "* Actual: (empty)\n")
+                fp.write(tab + "* Actual: (empty)\n")
         # Show target STDOUT
         if qtarget and link_trg:
             # Link file name
@@ -917,33 +1096,33 @@ class TestDriver(object):
             # Copy the file
             shutil.copy(fnout, os.path.join(self.fdoc, flink))
             # Create the link
-            f.write(tab)
-            f.write("* Target: :download:`%s`\n" % flink)
+            fp.write(tab)
+            fp.write("* Target: :download:`%s`\n" % flink)
         elif qtarget and show_trg:
             # Read it
             txt = open(fntout).read()
             # Check for content
             if len(txt) > 0:
                 # Write header information
-                f.write(tab + "* Target:\n\n")
+                fp.write(tab + "* Target:\n\n")
                 # Use language
-                f.write(tab + "  .. code-block:: %s\n\n" % lang)
+                fp.write(tab + "  .. code-block:: %s\n\n" % lang)
                 # Loop through lines
                 for line in txt.split("\n"):
                     # Indent it 8 spaces
-                    f.write(tab + tab + line + "\n")
+                    fp.write(tab + tab + line + "\n")
                 # Blank line
-                f.write("\n")
+                fp.write("\n")
             else:
                 # Write empty actual
-                f.write(tab + "* Target: (empty)\n")
+                fp.write(tab + "* Target: (empty)\n")
         # Output
         return q
 
     # Check contents of STDERR
     def process_results_stderr(self, i, fnerr, fnout):
-        """Compare STDERR from command *i* to target
-        
+        r"""Compare STDERR from command *i* to target
+
         :Call:
             >>> q = testd.process_results_stderr(i, fnerr, fnout)
         :Inputs:
@@ -965,7 +1144,7 @@ class TestDriver(object):
             *testd.TestStatus*: ``True`` | ``False``
                 Set to ``False`` if above test fails
         :Versions:
-            * 2019-07-08 ``@ddalle``: First version
+            * 2019-07-08 ``@ddalle``: Version 1.0
         """
         # Get target STDOUT file
         fnterr = self.opts.get_TargetSTDERR(i)
@@ -1018,12 +1197,8 @@ class TestDriver(object):
         self.TestStatus_STDERR[i] = q
         # Update overall status
         self.TestStatus = self.TestStatus and q
-        # Get file handle
-        f = self.frst
-        # Check for a log file
-        if not isinstance(f, filelike) or f.closed:
-            # Early output
-            return q
+        # Get output handle
+        fp = self.get_results_summary(i)
         # Indentation
         tab = "    "
         # reST settings
@@ -1034,12 +1209,12 @@ class TestDriver(object):
         # Get language for Lexer
         lang = self.opts.getel("LexerSTDERR", i, vdef="none")
         # Return code section
-        f.write(":STDERR:\n")
+        fp.write(":STDERR:\n")
         # Write status of the test
         if q:
-            f.write("    * **PASS**\n")
+            fp.write("    * **PASS**\n")
         else:
-            f.write("    * **FAIL**\n")
+            fp.write("    * **FAIL**\n")
         # Show actual STDERR
         if qactual and link_out:
             # Link file name
@@ -1047,8 +1222,8 @@ class TestDriver(object):
             # Copy the file
             shutil.copy(fnout, os.path.join(self.fdoc, flink))
             # Create the link
-            f.write(tab)
-            f.write("* Actual: :download:`%s`\n" % flink)
+            fp.write(tab)
+            fp.write("* Actual: :download:`%s`\n" % flink)
         elif qactual and (
                 (show_out is None and not (q and show_trg)) or show_out):
             # Read it
@@ -1056,18 +1231,18 @@ class TestDriver(object):
             # Check for content
             if len(txt) > 0:
                 # Write header information
-                f.write(tab + "* Actual:\n\n")
+                fp.write(tab + "* Actual:\n\n")
                 # Use language
-                f.write(tab + "  .. code-block:: %s\n\n" % lang)
+                fp.write(tab + "  .. code-block:: %s\n\n" % lang)
                 # Loop through lines
                 for line in txt.split("\n"):
                     # Indent it 8 spaces
-                    f.write(tab + tab + line + "\n")
+                    fp.write(tab + tab + line + "\n")
                 # Blank line
-                f.write("\n")
+                fp.write("\n")
             else:
                 # Write empty actual
-                f.write(tab + "* Actual: (empty)\n")
+                fp.write(tab + "* Actual: (empty)\n")
         # Show target STDERR
         if qtarget and link_trg:
             # Link file name
@@ -1075,35 +1250,35 @@ class TestDriver(object):
             # Copy the file
             shutil.copy(fnout, os.path.join(self.fdoc, flink))
             # Create the link
-            f.write(tab)
-            f.write("* Target: :download:`%s`\n" % flink)
+            fp.write(tab)
+            fp.write("* Target: :download:`%s`\n" % flink)
         elif qtarget and show_trg:
             # Read it
             txt = open(fnterr).read()
             # Check for content
             if len(txt) > 0:
                 # Write header information
-                f.write(tab + "* Target:\n\n")
+                fp.write(tab + "* Target:\n\n")
                 # Use language
-                f.write(tab + "  .. code-block:: %s\n\n" % lang)
+                fp.write(tab + "  .. code-block:: %s\n\n" % lang)
                 # Loop through lines
                 for line in txt.split("\n"):
                     # Indent it 8 spaces
-                    f.write(tab + tab + line + "\n")
+                    fp.write(tab + tab + line + "\n")
                 # Blank line
-                f.write("\n")
+                fp.write("\n")
             else:
                 # Write empty actual
-                f.write(tab + "* Actual: (empty)\n")
+                fp.write(tab + "* Actual: (empty)\n")
         # End section
-        f.write("\n")
+        fp.write("\n")
         # Output
         return q
 
     # Test PNG
     def process_results_png(self, i):
-        """Compare PNG results from command *i* to target
-        
+        r"""Compare PNG results from command *i* to target
+
         :Call:
             >>> q = testd.process_results_png(i)
         :Inputs:
@@ -1121,7 +1296,7 @@ class TestDriver(object):
             *testd.TestStatus*: ``True`` | ``False``
                 Set to ``False`` if above test fails
         :Versions:
-            * 2020-03-16 ``@ddalle``: First version
+            * 2020-03-16 ``@ddalle``: Version 1.0
         """
         # PNG file names
         fpngs_targ = self.opts.get_TargetPNG(i)
@@ -1135,7 +1310,7 @@ class TestDriver(object):
         show_work = self.opts.getel("ShowPNG", i, vdef=True)
         link_work = self.opts.getel("LinkPNG", i, vdef=False)
         show_targ = self.opts.getel("ShowTargetPNG", i, vdef=True)
-        link_targ = self.opts.getel("LinkTargetPNG", i, vdef=False)     
+        link_targ = self.opts.getel("LinkTargetPNG", i, vdef=False)
         show_diff = self.opts.getel("ShowDiffPNG", i, vdef=False)
         link_diff = self.opts.getel("LinkDiffPNG", i, vdef=False)
         # Get tolerance
@@ -1250,34 +1425,30 @@ class TestDriver(object):
         self.TestStatus_PNG[i] = q
         # Update overall status
         self.TestStatus = self.TestStatus and q
-        # Get file handle
-        f = self.frst
-        # Check for a log file
-        if not isinstance(f, filelike) or f.closed:
-            # Early output
-            return q
+        # Get output handle
+        fp = self.get_results_summary(i)
         # Indentation
         tab = "    "
         # Return code section
-        f.write(":PNG:\n")
+        fp.write(":PNG:\n")
         # Write status of the test
         if q:
             # Overall status
-            f.write("    * **PASS**\n")
+            fp.write("    * **PASS**\n")
             # Fraction
-            f.write("    * Difference fraction: %.4f\n" % frac_diff)
+            fp.write("    * Difference fraction: %.4f\n" % frac_diff)
         else:
             # Overall status
-            f.write("    * **FAIL**\n")
+            fp.write("    * **FAIL**\n")
             # Fraction if status sufficient
             if status >= 800:
                 # Write fraction
-                f.write("    * Difference fraction: %.4f\n" % frac_diff)
+                fp.write("    * Difference fraction: %.4f\n" % frac_diff)
         # Copy and include working images
         if (show_work and not (q and show_targ)) or link_work:
             # Subsection header
-            f.write(tab)
-            f.write("* Actual:\n")
+            fp.write(tab)
+            fp.write("* Actual:\n")
             # Loop through files
             for k, fpng in enumerate(fpngs_work[:j+1]):
                 # Skip cases if target shown
@@ -1296,23 +1467,23 @@ class TestDriver(object):
                 # Include instructions
                 if show_work:
                     # Image directive
-                    f.write("\n")
-                    f.write(tab*2)
-                    f.write(".. image:: %s\n" % fname)
+                    fp.write("\n")
+                    fp.write(tab*2)
+                    fp.write(".. image:: %s\n" % fname)
                     # Width instructions
-                    f.write(tab*3)
-                    f.write(":width: 4.5in\n")
+                    fp.write(tab*3)
+                    fp.write(":width: 4.5in\n")
                 else:
                     # Include a link
-                    f.write(tab*2)
-                    f.write("- :download:`%s`\n" % fname)
+                    fp.write(tab*2)
+                    fp.write("- :download:`%s`\n" % fname)
             # Extra blank line
-            f.write("\n")
+            fp.write("\n")
         # Copy and include target files
         if show_targ or link_targ:
             # Header
-            f.write(tab)
-            f.write("* Target:\n")
+            fp.write(tab)
+            fp.write("* Target:\n")
             # Loop through files
             for k, fpng in enumerate(fpngs_targ[:j+1]):
                 # Name of copied image
@@ -1328,45 +1499,45 @@ class TestDriver(object):
                 # Include instructions
                 if show_targ:
                     # Image directive
-                    f.write("\n")
-                    f.write(tab*2)
-                    f.write(".. image:: %s\n" % fname)
+                    fp.write("\n")
+                    fp.write(tab*2)
+                    fp.write(".. image:: %s\n" % fname)
                     # Width instructions
-                    f.write(tab*3)
-                    f.write(":width: 4.5in\n")
+                    fp.write(tab*3)
+                    fp.write(":width: 4.5in\n")
                 else:
                     # Include a link
-                    f.write(tab*2)
-                    f.write("- :download:`%s`\n" % fname)
+                    fp.write(tab*2)
+                    fp.write("- :download:`%s`\n" % fname)
             # Extra blank line
-            f.write("\n")
+            fp.write("\n")
         # Copy and include diff
         if (status >= 800) and (show_diff or link_diff):
             # Header
-            f.write(tab)
-            f.write("* Diff:\n")
+            fp.write(tab)
+            fp.write("* Diff:\n")
             # Include image
             if show_diff:
                 # Image directive
-                f.write("\n")
-                f.write(tab*2)
-                f.write(".. image:: %s\n" % fdiff)
+                fp.write("\n")
+                fp.write(tab*2)
+                fp.write(".. image:: %s\n" % fdiff)
                 # Width instructions
-                f.write(tab*3)
-                f.write(":width: 4.5in\n")
+                fp.write(tab*3)
+                fp.write(":width: 4.5in\n")
             else:
                 # Include a link
-                f.write(tab*2)
-                f.write("- :download:`%s`\n" % fdiff)
+                fp.write(tab*2)
+                fp.write("- :download:`%s`\n" % fdiff)
             # Extra blank line
-            f.write("\n")
+            fp.write("\n")
         # Output
         return q
 
     # Test file
     def process_results_file(self, i):
-        """Compare files written from command *i* to target
-        
+        r"""Compare files written from command *i* to target
+
         :Call:
             >>> q = testd.process_results_file(i)
         :Inputs:
@@ -1384,7 +1555,7 @@ class TestDriver(object):
             *testd.TestStatus*: ``True`` | ``False``
                 Set to ``False`` if above test fails
         :Versions:
-            * 2020-04-01 ``@ddalle``: First version
+            * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # File names
         fnames_targ = self.opts.get_TargetFile(i)
@@ -1403,7 +1574,7 @@ class TestDriver(object):
         disp_work = show_work or link_work
         disp_targ = show_targ or link_targ
         # Get options for file comparisons
-        kw_comp = self.opts.get_FileComparisonOpts(i)  
+        kw_comp = self.opts.get_FileComparisonOpts(i)
         # Initialize status as "success"
         status = 0
         # Check for matching-length lists
@@ -1462,28 +1633,24 @@ class TestDriver(object):
         self.TestStatus_File[i] = q
         # Update overall status
         self.TestStatus = self.TestStatus and q
-        # Get file handle
-        f = self.frst
-        # Check for a log file
-        if not isinstance(f, filelike) or f.closed:
-            # Early output
-            return q
+        # Get output handle
+        fp = self.frst
         # Indentation
         tab = "    "
         # Return code section
-        f.write(":Compare Files:\n")
+        fp.write(":Compare Files:\n")
         # Write status of the test
         if q:
             # Overall status
-            f.write("    * **PASS**\n")
+            fp.write("    * **PASS**\n")
         else:
             # Overall status
-            f.write("    * **FAIL**\n")
+            fp.write("    * **FAIL**\n")
         # Copy and include working images
         if disp_work and not (q and disp_targ):
             # Header
-            f.write(tab)
-            f.write("* Actual:\n")
+            fp.write(tab)
+            fp.write("* Actual:\n")
             # Loop through files
             for k, fname in enumerate(fnames_work[:j+1]):
                 # Skip cases if target shown
@@ -1504,29 +1671,29 @@ class TestDriver(object):
                     # Check for content
                     if len(lines) > 0:
                         # Write directive to show file
-                        f.write("\n")
-                        f.write(tab*2)
-                        f.write("  .. code-block:: none\n\n")
+                        fp.write("\n")
+                        fp.write(tab*2)
+                        fp.write("  .. code-block:: none\n\n")
                         # Loop through lines
                         for line in lines:
                             # Indent it 12 spaces
-                            f.write(tab*3)
-                            f.write(line)
+                            fp.write(tab*3)
+                            fp.write(line)
                         # Blank line
-                        f.write("\n")
+                        fp.write("\n")
                 else:
                     # Copy file
                     shutil.copy(fsrc, fout)
                     # Include a link
-                    f.write(tab*2)
-                    f.write("- :download:`%s`\n" % flink)
+                    fp.write(tab*2)
+                    fp.write("- :download:`%s`\n" % flink)
             # Extra blank line
-            f.write("\n")
+            fp.write("\n")
         # Copy and include target files
         if disp_targ:
             # Header
-            f.write(tab)
-            f.write("* Target:\n")
+            fp.write(tab)
+            fp.write("* Target:\n")
             # Loop through files
             for k, fname in enumerate(fnames_targ[:j+1]):
                 # Name of copied file
@@ -1540,39 +1707,39 @@ class TestDriver(object):
                 # Include instructions
                 if show_targ:
                     # Image directive
-                    f.write("\n")
-                    f.write(tab*2)
-                    f.write(".. code-block:: none\n\n")
+                    fp.write("\n")
+                    fp.write(tab*2)
+                    fp.write(".. code-block:: none\n\n")
                     # Read file
                     lines = open(fsrc).readlines()
                     # Check for content
                     if len(lines) > 0:
                         # Write directive to show file
-                        f.write("\n")
-                        f.write(tab*2)
-                        f.write(tab + "  .. code-block:: none\n\n")
+                        fp.write("\n")
+                        fp.write(tab*2)
+                        fp.write(tab + "  .. code-block:: none\n\n")
                         # Loop through lines
                         for line in lines:
                             # Indent it 12 spaces
-                            f.write(tab*3)
-                            f.write(line)
+                            fp.write(tab*3)
+                            fp.write(line)
                         # Blank line
-                        f.write("\n")
+                        fp.write("\n")
                 else:
                     # Copy file
                     shutil.copy(fsrc, fout)
                     # Include a link
-                    f.write(tab*2)
-                    f.write("- :download:`%s`\n" % flink)
+                    fp.write(tab*2)
+                    fp.write("- :download:`%s`\n" % flink)
             # Extra blank line
-            f.write("\n")
+            fp.write("\n")
         # Output
         return q
 
     # Get results dictionary
     def get_results_dict(self):
         """Create a dictionary of results from the test
-        
+
         :Call:
             >>> results = testd.get_results_dict()
         :Inputs:
@@ -1604,7 +1771,7 @@ class TestDriver(object):
             *TestRunTimeList*: :class:`list`\ [:class:`float`]
                 Time taken by each command run
         :Versions:
-            * 2019-07-09 ``@ddalle``: First version
+            * 2019-07-09 ``@ddalle``: Version 1.0
         """
         # Create dictionary and return it
         return {
@@ -1621,14 +1788,12 @@ class TestDriver(object):
             "TestRunTimeTotal":      self.TestRunTimeTotal,
             "TestRunTimeList":       self.TestRunTimeList,
         }
-                
-# class TestDriver
-    
-    
+
+
 # Command-line interface
 def cli(*a, **kw):
-    """Test case command-line interface
-    
+    r"""Test case command-line interface
+
     :Call:
         >>> results = cli(*a, **kw)
     :Inputs:
@@ -1658,7 +1823,7 @@ def cli(*a, **kw):
         *TestRunTimeList*: :class:`list`\ [:class:`float`]
             Time taken by each command run
     :Versions:
-        * 2019-07-03 ``@ddalle``: First version
+        * 2019-07-03 ``@ddalle``: Version 1.0
         * 2019-07-08 ``@ddalle``: Added output
     """
     # Get an instance of the crawler class

@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-31 at 10:20 PST
+   on 2021-10-13 at 10:33 PDT
 
-Test ``01_import``
-====================
+Test ``01_import``: PASS
+==========================
+
+This test PASSED on 2021-10-13 at 10:33 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/ftypes/01_import/``
+    ``test/ftypes/01_import/``
 
 and the working folder for the test is
 
@@ -29,11 +31,11 @@ The commands executed by this test are
         
         # Import ftypes module(s)
         import cape.attdb.ftypes
-        import cape.attdb.ftypes.csv
+        import cape.attdb.ftypes.csvfile
         
 
-Command 1: Import :mod:`cape.attdb.ftypes`: Python2
-----------------------------------------------------
+Command 1: Import :mod:`cape.attdb.ftypes`: Python2 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -46,15 +48,14 @@ Command 1: Import :mod:`cape.attdb.ftypes`: Python2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.535598 seconds
-    * Cumulative time: 0.535598 seconds
+    * Command took 0.53 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 2: Import :mod:`cape.attdb.ftypes`: Python3
-----------------------------------------------------
+Command 2: Import :mod:`cape.attdb.ftypes`: Python3 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -67,8 +68,8 @@ Command 2: Import :mod:`cape.attdb.ftypes`: Python3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.75956 seconds
-    * Cumulative time: 1.29516 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 1.09 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:30 PDT
 
-Test ``06_atm``
-=================
+Test ``06_atm``: PASS
+=======================
+
+This test PASSED on 2021-10-13 at 10:30 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/06_atm/``
+    ``test/cape/06_atm/``
 
 and the working folder for the test is
 
@@ -89,8 +91,8 @@ The commands executed by this test are
         # Print results
         print("%0.2e" % Tref)
 
-Command 1: Standard Atmosphere: Python 2
------------------------------------------
+Command 1: Standard Atmosphere: Python 2 (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -103,8 +105,7 @@ Command 1: Standard Atmosphere: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.347977 seconds
-    * Cumulative time: 0.347977 seconds
+    * Command took 0.44 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -122,8 +123,8 @@ Command 1: Standard Atmosphere: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Standard Atmosphere: Python 3
------------------------------------------
+Command 2: Standard Atmosphere: Python 3 (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -136,8 +137,8 @@ Command 2: Standard Atmosphere: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.654076 seconds
-    * Cumulative time: 1.00205 seconds
+    * Command took 0.70 seconds
+    * Cumulative time: 1.14 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -155,8 +156,8 @@ Command 2: Standard Atmosphere: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Sutherland's Law: Python 2
---------------------------------------
+Command 3: Sutherland's Law: Python 2 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -169,8 +170,8 @@ Command 3: Sutherland's Law: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.45763 seconds
-    * Cumulative time: 1.45968 seconds
+    * Command took 0.41 seconds
+    * Cumulative time: 1.55 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -183,8 +184,8 @@ Command 3: Sutherland's Law: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Sutherland's Law: Python 3
---------------------------------------
+Command 4: Sutherland's Law: Python 3 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -197,8 +198,8 @@ Command 4: Sutherland's Law: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.71444 seconds
-    * Cumulative time: 2.17412 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 2.03 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -211,8 +212,8 @@ Command 4: Sutherland's Law: Python 3
 :STDERR:
     * **PASS**
 
-Command 5: Temperature from Enthalpy: Python 2
------------------------------------------------
+Command 5: Temperature from Enthalpy: Python 2 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -225,8 +226,8 @@ Command 5: Temperature from Enthalpy: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.474422 seconds
-    * Cumulative time: 2.64854 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 2.43 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -239,8 +240,8 @@ Command 5: Temperature from Enthalpy: Python 2
 :STDERR:
     * **PASS**
 
-Command 6: Temperature from Enthalpy: Python 3
------------------------------------------------
+Command 6: Temperature from Enthalpy: Python 3 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -253,8 +254,8 @@ Command 6: Temperature from Enthalpy: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.7422 seconds
-    * Cumulative time: 3.39074 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 2.91 seconds
 :STDOUT:
     * **PASS**
     * Target:

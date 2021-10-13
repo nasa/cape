@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:30 PDT
 
-Test ``07_case``
-==================
+Test ``07_case``: PASS
+========================
+
+This test PASSED on 2021-10-13 at 10:30 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/07_case/``
+    ``test/cape/07_case/``
 
 and the working folder for the test is
 
@@ -127,8 +129,8 @@ The commands executed by this test are
         case.WriteUserTimeProg(tic, rc, 0, ftime, "cape")
         
 
-Command 1: Conditions: Python 2
---------------------------------
+Command 1: Conditions: Python 2 (PASS)
+---------------------------------------
 
 :Command:
     .. code-block:: console
@@ -141,8 +143,7 @@ Command 1: Conditions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.479488 seconds
-    * Cumulative time: 0.479488 seconds
+    * Command took 0.37 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -157,8 +158,8 @@ Command 1: Conditions: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Conditions: Python 3
---------------------------------
+Command 2: Conditions: Python 3 (PASS)
+---------------------------------------
 
 :Command:
     .. code-block:: console
@@ -171,8 +172,8 @@ Command 2: Conditions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.701815 seconds
-    * Cumulative time: 1.1813 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 0.90 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -187,8 +188,8 @@ Command 2: Conditions: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: ``case.json``: Python 2
------------------------------------
+Command 3: ``case.json``: Python 2 (PASS)
+------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -201,8 +202,8 @@ Command 3: ``case.json``: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.480107 seconds
-    * Cumulative time: 1.66141 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 1.30 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -219,8 +220,8 @@ Command 3: ``case.json``: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: ``case.json``: Python 3
------------------------------------
+Command 4: ``case.json``: Python 3 (PASS)
+------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -233,8 +234,8 @@ Command 4: ``case.json``: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.605351 seconds
-    * Cumulative time: 2.26676 seconds
+    * Command took 0.47 seconds
+    * Cumulative time: 1.77 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -251,8 +252,8 @@ Command 4: ``case.json``: Python 3
 :STDERR:
     * **PASS**
 
-Command 5: Timing: Python 2
-----------------------------
+Command 5: Timing: Python 2 (PASS)
+-----------------------------------
 
 :Command:
     .. code-block:: console
@@ -265,8 +266,8 @@ Command 5: Timing: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.465953 seconds
-    * Cumulative time: 2.73271 seconds
+    * Command took 0.46 seconds
+    * Cumulative time: 2.23 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -279,8 +280,8 @@ Command 5: Timing: Python 2
 :STDERR:
     * **PASS**
 
-Command 6: Timing: Python 3
-----------------------------
+Command 6: Timing: Python 3 (PASS)
+-----------------------------------
 
 :Command:
     .. code-block:: console
@@ -293,8 +294,8 @@ Command 6: Timing: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.731923 seconds
-    * Cumulative time: 3.46464 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 2.81 seconds
 :STDOUT:
     * **PASS**
     * Target:

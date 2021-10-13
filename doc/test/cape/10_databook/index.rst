@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:31 PDT
 
-Test ``10_databook``
-======================
+Test ``10_databook``: PASS
+============================
+
+This test PASSED on 2021-10-13 at 10:31 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/10_databook/``
+    ``test/cape/10_databook/``
 
 and the working folder for the test is
 
@@ -90,8 +92,8 @@ The commands executed by this test are
         print("Standard deviation: %(CN_std).4f" % S)
         print("Sampling error: %(CN_err).4f" % S)
 
-Command 1: Python 2
---------------------
+Command 1: Python 2 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -104,8 +106,7 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.541105 seconds
-    * Cumulative time: 0.541105 seconds
+    * Command took 0.45 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -141,8 +142,8 @@ Command 1: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Python 3
---------------------
+Command 2: Python 3 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -155,8 +156,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.763412 seconds
-    * Cumulative time: 1.30452 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 1.02 seconds
 :STDOUT:
     * **PASS**
     * Target:

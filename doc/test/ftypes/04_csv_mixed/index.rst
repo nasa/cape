@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-31 at 10:20 PST
+   on 2021-10-13 at 10:34 PDT
 
-Test ``04_csv_mixed``
-=======================
+Test ``04_csv_mixed``: PASS
+=============================
+
+This test PASSED on 2021-10-13 at 10:34 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/ftypes/04_csv_mixed/``
+    ``test/ftypes/04_csv_mixed/``
 
 and the working folder for the test is
 
@@ -30,10 +32,10 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import CSV module
-        import cape.attdb.ftypes.csv as csv
+        import cape.attdb.ftypes.csvfile as csvfile
         
         # Read CSV file
-        db = csv.CSVFile("runmatrix.csv")
+        db = csvfile.CSVFile("runmatrix.csv")
         
         # Case number
         i = 6
@@ -51,10 +53,10 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import CSV module
-        import cape.attdb.ftypes.csv as csv
+        import cape.attdb.ftypes.csvfile as csvfile
         
         # Read CSV file
-        db = csv.CSVFile("runmatrix.csv",
+        db = csvfile.CSVFile("runmatrix.csv",
             DefaultType="float32",
             Types={
                 "config": "str",
@@ -73,8 +75,8 @@ The commands executed by this test are
             print("%8s: %s (%s)" % (col, dtype, clsname))
         
 
-Command 1: Minimal Definitions: Python 2
------------------------------------------
+Command 1: Minimal Definitions: Python 2 (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -87,8 +89,7 @@ Command 1: Minimal Definitions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.393979 seconds
-    * Cumulative time: 0.393979 seconds
+    * Command took 0.43 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -106,8 +107,8 @@ Command 1: Minimal Definitions: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Minimal Definitions: Python 3
------------------------------------------
+Command 2: Minimal Definitions: Python 3 (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -120,8 +121,8 @@ Command 2: Minimal Definitions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.727321 seconds
-    * Cumulative time: 1.1213 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 0.94 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -139,8 +140,8 @@ Command 2: Minimal Definitions: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Specified dtypes: Python 2
---------------------------------------
+Command 3: Specified dtypes: Python 2 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -153,8 +154,8 @@ Command 3: Specified dtypes: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.514785 seconds
-    * Cumulative time: 1.63609 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.33 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -172,8 +173,8 @@ Command 3: Specified dtypes: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Specified dtypes: Python 3
---------------------------------------
+Command 4: Specified dtypes: Python 3 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -186,8 +187,8 @@ Command 4: Specified dtypes: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.755956 seconds
-    * Cumulative time: 2.39204 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 1.84 seconds
 :STDOUT:
     * **PASS**
     * Target:

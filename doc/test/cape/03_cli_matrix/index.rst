@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:30 PDT
 
-Test ``03_cli_matrix``
-========================
+Test ``03_cli_matrix``: PASS
+==============================
+
+This test PASSED on 2021-10-13 at 10:30 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/03_cli_matrix/``
+    ``test/cape/03_cli_matrix/``
 
 and the working folder for the test is
 
@@ -23,8 +25,8 @@ The commands executed by this test are
         $ cape -c -f cape-mixed.json
         $ cape -c -f cape-mixed.json --re a2
 
-Command 1: Missing JSON File
------------------------------
+Command 1: Missing JSON File (PASS)
+------------------------------------
 
 :Command:
     .. code-block:: console
@@ -37,26 +39,9 @@ Command 1: Missing JSON File
     * Target: ``1``
 :Time Taken:
     * **PASS**
-    * Command took 0.839263 seconds
-    * Cumulative time: 0.839263 seconds
+    * Command took 0.68 seconds
 :STDOUT:
     * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory   Status  Iterations  Que CPU Time 
-        ---- ---------------------- ------- ----------- --- --------
-        0    poweroff/m0.80a0.0b0.0 ---     /           .            
-        1    poweroff/m0.80a4.0b0.0 ---     /           .            
-        2    poweroff/m0.90a0.0b0.0 ---     /           .            
-        3    poweroff/m0.90a4.0b0.0 ---     /           .            
-        4    poweroff/m1.05a0.0b0.0 ---     /           .            
-        5    poweroff/m1.05a4.0b0.0 ---     /           .            
-        
-        ---=6, 
-        
-
 :STDERR:
     * **PASS**
     * Target:
@@ -67,8 +52,8 @@ Command 1: Missing JSON File
         
 
 
-Command 2: JSON-only Matrix
-----------------------------
+Command 2: JSON-only Matrix (PASS)
+-----------------------------------
 
 :Command:
     .. code-block:: console
@@ -81,8 +66,8 @@ Command 2: JSON-only Matrix
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.525508 seconds
-    * Cumulative time: 1.36477 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 1.24 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -104,8 +89,8 @@ Command 2: JSON-only Matrix
 :STDERR:
     * **PASS**
 
-Command 3: JSON-only with RegEx
---------------------------------
+Command 3: JSON-only with RegEx (PASS)
+---------------------------------------
 
 :Command:
     .. code-block:: console
@@ -118,8 +103,8 @@ Command 3: JSON-only with RegEx
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.533587 seconds
-    * Cumulative time: 1.89836 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 1.80 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -138,8 +123,8 @@ Command 3: JSON-only with RegEx
 :STDERR:
     * **PASS**
 
-Command 4: Mixed CSV and JSON
-------------------------------
+Command 4: Mixed CSV and JSON (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -152,8 +137,8 @@ Command 4: Mixed CSV and JSON
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.513976 seconds
-    * Cumulative time: 2.41233 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 2.35 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -179,8 +164,8 @@ Command 4: Mixed CSV and JSON
 :STDERR:
     * **PASS**
 
-Command 5: Mixed CSV and JSON with RegEx
------------------------------------------
+Command 5: Mixed CSV and JSON with RegEx (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -193,8 +178,8 @@ Command 5: Mixed CSV and JSON with RegEx
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52451 seconds
-    * Cumulative time: 2.93684 seconds
+    * Command took 0.54 seconds
+    * Cumulative time: 2.89 seconds
 :STDOUT:
     * **PASS**
     * Target:

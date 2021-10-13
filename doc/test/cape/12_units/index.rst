@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:31 PDT
 
-Test ``12_units``
-===================
+Test ``12_units``: PASS
+=========================
+
+This test PASSED on 2021-10-13 at 10:31 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/12_units/``
+    ``test/cape/12_units/``
 
 and the working folder for the test is
 
@@ -152,8 +154,8 @@ The commands executed by this test are
         print("  %.4f" % (mks(s1)))
         
 
-Command 1: Unit Conversions: Python 2
---------------------------------------
+Command 1: Unit Conversions: Python 2 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -166,8 +168,7 @@ Command 1: Unit Conversions: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.486349 seconds
-    * Cumulative time: 0.486349 seconds
+    * Command took 0.42 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -199,8 +200,8 @@ Command 1: Unit Conversions: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Unit Conversions: Python 3
---------------------------------------
+Command 2: Unit Conversions: Python 3 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -213,8 +214,8 @@ Command 2: Unit Conversions: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.742504 seconds
-    * Cumulative time: 1.22885 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 0.89 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-31 at 10:21 PST
+   on 2021-10-13 at 10:34 PDT
 
-Test ``07_xls_aerodb``
-========================
+Test ``07_xls_aerodb``: PASS
+==============================
+
+This test PASSED on 2021-10-13 at 10:34 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/ftypes/07_xls_aerodb/``
+    ``test/ftypes/07_xls_aerodb/``
 
 and the working folder for the test is
 
@@ -32,10 +34,10 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import CSV module
-        import cape.attdb.ftypes.xls as xls
+        import cape.attdb.ftypes.xlsfile as xlsfile
         
         # Read CSV file
-        db = xls.XLSFile("aero_arrow_no_base.xlsx")
+        db = xlsfile.XLSFile("aero_arrow_no_base.xlsx")
         
         # Case number
         i = 6
@@ -60,10 +62,10 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import CSV module
-        import cape.attdb.ftypes.xls as xls
+        import cape.attdb.ftypes.xlsfile as xlsfile
         
         # Read CSV file
-        db = xls.XLSFile("aero_arrow_no_base.xls")
+        db = xlsfile.XLSFile("aero_arrow_no_base.xls")
         
         # Case number
         i = 6
@@ -88,10 +90,10 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import CSV module
-        import cape.attdb.ftypes.xls as xls
+        import cape.attdb.ftypes.xlsfile as xlsfile
         
         # Read CSV file
-        db = xls.XLSFile("aero_arrow_no_base.xlsx",
+        db = xlsfile.XLSFile("aero_arrow_no_base.xlsx",
             Types={
                 "config": "str",
                 "alpha": "float16",
@@ -111,8 +113,8 @@ The commands executed by this test are
             print("%8s: %s (%s)" % (col, dtype, clsname))
         
 
-Command 1: XLSX File: Python 2
--------------------------------
+Command 1: XLSX File: Python 2 (PASS)
+--------------------------------------
 
 :Command:
     .. code-block:: console
@@ -125,8 +127,7 @@ Command 1: XLSX File: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.532903 seconds
-    * Cumulative time: 0.532903 seconds
+    * Command took 0.40 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -149,8 +150,8 @@ Command 1: XLSX File: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: XLSX File: Python 3
--------------------------------
+Command 2: XLSX File: Python 3 (PASS)
+--------------------------------------
 
 :Command:
     .. code-block:: console
@@ -163,8 +164,8 @@ Command 2: XLSX File: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.783047 seconds
-    * Cumulative time: 1.31595 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.91 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -187,8 +188,8 @@ Command 2: XLSX File: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: XLS File: Python 2
-------------------------------
+Command 3: XLS File: Python 2 (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -201,8 +202,8 @@ Command 3: XLS File: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.509683 seconds
-    * Cumulative time: 1.82563 seconds
+    * Command took 0.42 seconds
+    * Cumulative time: 1.33 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -225,8 +226,8 @@ Command 3: XLS File: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: XLS File: Python 3
-------------------------------
+Command 4: XLS File: Python 3 (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -239,8 +240,8 @@ Command 4: XLS File: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.620976 seconds
-    * Cumulative time: 2.44661 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 1.90 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -263,8 +264,8 @@ Command 4: XLS File: Python 3
 :STDERR:
     * **PASS**
 
-Command 5: Specified dtypes: Python 2
---------------------------------------
+Command 5: Specified dtypes: Python 2 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -277,8 +278,8 @@ Command 5: Specified dtypes: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.492162 seconds
-    * Cumulative time: 2.93877 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 2.45 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -301,8 +302,8 @@ Command 5: Specified dtypes: Python 2
 :STDERR:
     * **PASS**
 
-Command 6: Specified dtypes: Python 3
---------------------------------------
+Command 6: Specified dtypes: Python 3 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -315,8 +316,8 @@ Command 6: Specified dtypes: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.616545 seconds
-    * Cumulative time: 3.55532 seconds
+    * Command took 0.76 seconds
+    * Cumulative time: 3.21 seconds
 :STDOUT:
     * **PASS**
     * Target:

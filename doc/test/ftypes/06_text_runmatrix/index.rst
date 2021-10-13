@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-31 at 10:20 PST
+   on 2021-10-13 at 10:34 PDT
 
-Test ``06_text_runmatrix``
-============================
+Test ``06_text_runmatrix``: **FAIL** (command 1)
+==================================================
+
+This test **FAILED** (command 1) on 2021-10-13 at 10:34 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/ftypes/06_text_runmatrix/``
+    ``test/ftypes/06_text_runmatrix/``
 
 and the working folder for the test is
 
@@ -42,8 +44,8 @@ The commands executed by this test are
             print("%8s: %s" % (col, db[col][i]))
         
 
-Command 1: First-column BoolMap: Python 2
-------------------------------------------
+Command 1: First-column BoolMap: Python 2 (**FAIL**)
+-----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -56,15 +58,14 @@ Command 1: First-column BoolMap: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.375013 seconds
-    * Cumulative time: 0.375013 seconds
+    * Command took 0.44 seconds
 :STDOUT:
-    * **PASS**
-    * Target:
+    * **FAIL**
+    * Actual:
 
       .. code-block:: none
 
-           _col1: None
+           _col1: p
             mach: 2.1
            alpha: 4.0
             beta: 1.5
@@ -75,27 +76,6 @@ Command 1: First-column BoolMap: Python 2
             PASS: True
         
 
-:STDERR:
-    * **PASS**
-
-Command 2: First-column BoolMap: Python 3
-------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_minimal.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.735979 seconds
-    * Cumulative time: 1.11099 seconds
-:STDOUT:
-    * **PASS**
     * Target:
 
       .. code-block:: none

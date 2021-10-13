@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-11-25 at 13:11 PST
+   on 2021-10-13 at 10:30 PDT
 
-Test ``04_subset_api``
-========================
+Test ``04_subset_api``: PASS
+==============================
+
+This test PASSED on 2021-10-13 at 10:30 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/cape/04_subset_api/``
+    ``test/cape/04_subset_api/``
 
 and the working folder for the test is
 
@@ -40,8 +42,8 @@ The commands executed by this test are
         print(list(cntl.x.GetIndices(I=range(15,20), cons=["Mach%1==0.5"])))
         
 
-Command 1: Python 2
---------------------
+Command 1: Python 2 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -54,8 +56,7 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.522432 seconds
-    * Cumulative time: 0.522432 seconds
+    * Command took 0.53 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -71,8 +72,8 @@ Command 1: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Python 3
---------------------
+Command 2: Python 3 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -85,8 +86,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.743418 seconds
-    * Cumulative time: 1.26585 seconds
+    * Command took 0.75 seconds
+    * Cumulative time: 1.28 seconds
 :STDOUT:
     * **PASS**
     * Target:
