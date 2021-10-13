@@ -581,9 +581,15 @@ class CSVFile(BaseFile, TextInterpreter):
             * 2019-11-25 ``@ddalle``: Version 1.0
             * 2019-11-29 ``@ddalle``: Tries C versionfirst
         """
+        # Save position
+        pos = f.tell()
+        # Try C then Python readers
         try:
             self.c_read_csv_data(f)
         except Exception:
+            # Return to position (for Python 3+)
+            f.seek(pos)
+            # Read using Python
             self.py_read_csv_data(f)
 
     # Read data: C implementation
