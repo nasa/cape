@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2020-03-30 at 10:48 PDT
+   on 2021-10-13 at 15:05 PDT
 
-Test ``02_pmpl_opts``
-=======================
+Test ``02_pmpl_opts``: **FAIL** (command 2)
+=============================================
+
+This test **FAILED** (command 2) on 2021-10-13 at 15:05 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/pycart/test/tnakit/02_pmpl_opts/``
+    ``test/tnakit/02_pmpl_opts/``
 
 and the working folder for the test is
 
@@ -20,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_PlotOptions.py
         $ python3 test01_PlotOptions.py
 
-Command 1: :class:`MPLOpts` *PlotOptions*: Python 2
-----------------------------------------------------
+Command 1: :class:`MPLOpts` *PlotOptions*: Python 2 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -34,8 +36,7 @@ Command 1: :class:`MPLOpts` *PlotOptions*: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.234808 seconds
-    * Cumulative time: 0.234808 seconds
+    * Command took 0.17 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -62,8 +63,8 @@ Command 1: :class:`MPLOpts` *PlotOptions*: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: :class:`MPLOpts` *PlotOptions*: Python 3
-----------------------------------------------------
+Command 2: :class:`MPLOpts` *PlotOptions*: Python 3 (**FAIL**)
+---------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -76,10 +77,31 @@ Command 2: :class:`MPLOpts` *PlotOptions*: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.442529 seconds
-    * Cumulative time: 0.677337 seconds
+    * Command took 0.27 seconds
+    * Cumulative time: 0.44 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: none
+
+        PlotOptions:
+            :color:
+                +------------------+
+                | ``"b"``          |
+                +------------------+
+                | ``"k"``          |
+                +------------------+
+                | ``"darkorange"`` |
+                +------------------+
+                | ``"g"``          |
+                +------------------+
+            :ls: ``"--"``
+            :zorder: 8
+            :Index: 2
+            :Rotate: ``False``
+        
+
     * Target:
 
       .. code-block:: none

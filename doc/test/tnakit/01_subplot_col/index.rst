@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2020-04-10 at 08:45 PDT
+   on 2021-10-13 at 15:05 PDT
 
-Test ``01_subplot_col``
-=========================
+Test ``01_subplot_col``: **FAIL** (command 1)
+===============================================
+
+This test **FAILED** (command 1) on 2021-10-13 at 15:05 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/pycart/test/tnakit/01_subplot_col/``
+    ``test/tnakit/01_subplot_col/``
 
 and the working folder for the test is
 
@@ -20,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_plot_col.py
         $ python3 test01_plot_col.py
 
-Command 1: Line load plot with image: Python 2
------------------------------------------------
+Command 1: Line load plot with image: Python 2 (**FAIL**)
+----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -34,47 +36,15 @@ Command 1: Line load plot with image: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.74925 seconds
-    * Cumulative time: 0.74925 seconds
+    * Command took 0.53 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
 :PNG:
-    * **PASS**
-    * Difference fraction: 0.0000
+    * **FAIL**
+    * Actual:
+
     * Target:
-
-        .. image:: PNG-target-00-00.png
-            :width: 4.5in
-
-Command 2: Line load plot with image: Python 3
------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_plot_col.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 1.19082 seconds
-    * Cumulative time: 1.94007 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-:PNG:
-    * **PASS**
-    * Difference fraction: 0.0000
-    * Target:
-
-        .. image:: PNG-target-01-00.png
-            :width: 4.5in
 
