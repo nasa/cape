@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-12 at 14:16 PDT
+   on 2021-10-13 at 10:30 PDT
 
-Test ``02_cli``
-=================
+Test ``02_cli``: PASS
+=======================
+
+This test PASSED on 2021-10-13 at 10:30 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/cape/test/cape/02_cli/``
+    ``test/cape/02_cli/``
 
 and the working folder for the test is
 
@@ -25,8 +27,8 @@ The commands executed by this test are
         $ cape -c -I 2:5,7,18:
         $ cape -c -I 15: --cons Mach%1=0.5 --re b2
 
-Command 1: Status
-------------------
+Command 1: Status (PASS)
+-------------------------
 
 :Command:
     .. code-block:: console
@@ -39,8 +41,7 @@ Command 1: Status
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.28397 seconds
-    * Cumulative time: 0.28397 seconds
+    * Command took 0.55 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -76,8 +77,8 @@ Command 1: Status
 :STDERR:
     * **PASS**
 
-Command 2: Filter
-------------------
+Command 2: Filter (PASS)
+-------------------------
 
 :Command:
     .. code-block:: console
@@ -90,8 +91,8 @@ Command 2: Filter
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.273313 seconds
-    * Cumulative time: 0.557283 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 1.14 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -117,8 +118,8 @@ Command 2: Filter
 :STDERR:
     * **PASS**
 
-Command 3: Constraints
------------------------
+Command 3: Constraints (PASS)
+------------------------------
 
 :Command:
     .. code-block:: console
@@ -131,8 +132,8 @@ Command 3: Constraints
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.28413 seconds
-    * Cumulative time: 0.841413 seconds
+    * Command took 0.49 seconds
+    * Cumulative time: 1.64 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -154,8 +155,8 @@ Command 3: Constraints
 :STDERR:
     * **PASS**
 
-Command 4: Glob
-----------------
+Command 4: Glob (PASS)
+-----------------------
 
 :Command:
     .. code-block:: console
@@ -168,8 +169,8 @@ Command 4: Glob
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.272102 seconds
-    * Cumulative time: 1.11351 seconds
+    * Command took 0.44 seconds
+    * Cumulative time: 2.08 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -193,8 +194,8 @@ Command 4: Glob
 :STDERR:
     * **PASS**
 
-Command 5: Regular Expression
-------------------------------
+Command 5: Regular Expression (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -207,8 +208,8 @@ Command 5: Regular Expression
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.274696 seconds
-    * Cumulative time: 1.38821 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 2.64 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -230,8 +231,8 @@ Command 5: Regular Expression
 :STDERR:
     * **PASS**
 
-Command 6: Index List
-----------------------
+Command 6: Index List (PASS)
+-----------------------------
 
 :Command:
     .. code-block:: console
@@ -244,8 +245,8 @@ Command 6: Index List
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.270853 seconds
-    * Cumulative time: 1.65906 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 3.15 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -267,8 +268,8 @@ Command 6: Index List
 :STDERR:
     * **PASS**
 
-Command 7: Compound Subsets
-----------------------------
+Command 7: Compound Subsets (PASS)
+-----------------------------------
 
 :Command:
     .. code-block:: console
@@ -281,8 +282,8 @@ Command 7: Compound Subsets
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.270895 seconds
-    * Cumulative time: 1.92996 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 3.66 seconds
 :STDOUT:
     * **PASS**
     * Target:

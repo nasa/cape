@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-12 at 14:16 PDT
+   on 2021-10-13 at 10:31 PDT
 
-Test ``13_config_xml``
-========================
+Test ``13_config_xml``: PASS
+==============================
+
+This test PASSED on 2021-10-13 at 10:31 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/cape/test/cape/13_config_xml/``
+    ``test/cape/13_config_xml/``
 
 and the working folder for the test is
 
@@ -76,8 +78,8 @@ The commands executed by this test are
                 else:
                     print(line)
 
-Command 1: Read JSON Configuration: Python 2
----------------------------------------------
+Command 1: Read JSON Configuration: Python 2 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -90,15 +92,14 @@ Command 1: Read JSON Configuration: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.169484 seconds
-    * Cumulative time: 0.169484 seconds
+    * Command took 0.36 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 2: Read JSON Configuration: Python 3
----------------------------------------------
+Command 2: Read JSON Configuration: Python 3 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -111,15 +112,15 @@ Command 2: Read JSON Configuration: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.256241 seconds
-    * Cumulative time: 0.425725 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 0.84 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 3: Read XML Configuration: Python 2
---------------------------------------------
+Command 3: Read XML Configuration: Python 2 (PASS)
+---------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -132,15 +133,15 @@ Command 3: Read XML Configuration: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.168179 seconds
-    * Cumulative time: 0.593904 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 1.24 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 4: Read XML Configuration: Python 3
---------------------------------------------
+Command 4: Read XML Configuration: Python 3 (PASS)
+---------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -153,15 +154,15 @@ Command 4: Read XML Configuration: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.261135 seconds
-    * Cumulative time: 0.855038 seconds
+    * Command took 0.46 seconds
+    * Cumulative time: 1.70 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 5: Compare XML Configurations: Python 2
-------------------------------------------------
+Command 5: Compare XML Configurations: Python 2 (PASS)
+-------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -174,8 +175,8 @@ Command 5: Compare XML Configurations: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.170027 seconds
-    * Cumulative time: 1.02507 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 2.10 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -272,8 +273,8 @@ Command 5: Compare XML Configurations: Python 2
 :STDERR:
     * **PASS**
 
-Command 6: Compare XML Configurations: Python 3
-------------------------------------------------
+Command 6: Compare XML Configurations: Python 3 (PASS)
+-------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -286,8 +287,8 @@ Command 6: Compare XML Configurations: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.260368 seconds
-    * Cumulative time: 1.28543 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 2.58 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-12 at 14:16 PDT
+   on 2021-10-13 at 10:30 PDT
 
-Test ``08_cntl``
-==================
+Test ``08_cntl``: PASS
+========================
+
+This test PASSED on 2021-10-13 at 10:30 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/cape/test/cape/08_cntl/``
+    ``test/cape/08_cntl/``
 
 and the working folder for the test is
 
@@ -36,8 +38,8 @@ The commands executed by this test are
         # print results
         print(cntl)
 
-Command 1: Python 2
---------------------
+Command 1: Python 2 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -50,8 +52,7 @@ Command 1: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.169654 seconds
-    * Cumulative time: 0.169654 seconds
+    * Command took 0.54 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -66,8 +67,8 @@ Command 1: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Python 3
---------------------
+Command 2: Python 3 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -80,8 +81,8 @@ Command 2: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.257344 seconds
-    * Cumulative time: 0.426998 seconds
+    * Command took 0.54 seconds
+    * Cumulative time: 1.09 seconds
 :STDOUT:
     * **PASS**
     * Target:

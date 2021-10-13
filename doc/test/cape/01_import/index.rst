@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-12 at 14:16 PDT
+   on 2021-10-13 at 10:30 PDT
 
-Test ``01_import``
-====================
+Test ``01_import``: PASS
+==========================
+
+This test PASSED on 2021-10-13 at 10:30 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/cape/test/cape/01_import/``
+    ``test/cape/01_import/``
 
 and the working folder for the test is
 
@@ -31,8 +33,8 @@ The commands executed by this test are
         import cape
         import cape.cfdx.options
 
-Command 1
-----------
+Command 1 (PASS)
+-----------------
 
 :Command:
     .. code-block:: console
@@ -45,15 +47,14 @@ Command 1
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.211888 seconds
-    * Cumulative time: 0.211888 seconds
+    * Command took 0.40 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 2
-----------
+Command 2 (PASS)
+-----------------
 
 :Command:
     .. code-block:: console
@@ -66,8 +67,8 @@ Command 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.260228 seconds
-    * Cumulative time: 0.472116 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 0.88 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

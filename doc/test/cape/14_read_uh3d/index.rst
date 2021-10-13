@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-12 at 14:16 PDT
+   on 2021-10-13 at 10:31 PDT
 
-Test ``14_read_uh3d``
-=======================
+Test ``14_read_uh3d``: PASS
+=============================
+
+This test PASSED on 2021-10-13 at 10:31 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/cape/test/cape/14_read_uh3d/``
+    ``test/cape/14_read_uh3d/``
 
 and the working folder for the test is
 
@@ -151,8 +153,8 @@ The commands executed by this test are
         # Read triangulation output from test01
         plt = cape.plt.Plt(fname=PLTFILE)
 
-Command 1: Read UH3D: Python 2
--------------------------------
+Command 1: Read UH3D: Python 2 (PASS)
+--------------------------------------
 
 :Command:
     .. code-block:: console
@@ -165,8 +167,7 @@ Command 1: Read UH3D: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.204273 seconds
-    * Cumulative time: 0.204273 seconds
+    * Command took 0.61 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -190,8 +191,8 @@ Command 1: Read UH3D: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Read UH3D: Python 3
--------------------------------
+Command 2: Read UH3D: Python 3 (PASS)
+--------------------------------------
 
 :Command:
     .. code-block:: console
@@ -204,8 +205,8 @@ Command 2: Read UH3D: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.387811 seconds
-    * Cumulative time: 0.592083 seconds
+    * Command took 0.92 seconds
+    * Cumulative time: 1.53 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -229,8 +230,8 @@ Command 2: Read UH3D: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Check TRI CompIDs: Python 2
----------------------------------------
+Command 3: Check TRI CompIDs: Python 2 (PASS)
+----------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -243,8 +244,8 @@ Command 3: Check TRI CompIDs: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.167511 seconds
-    * Cumulative time: 0.759594 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.92 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -260,8 +261,8 @@ Command 3: Check TRI CompIDs: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Check TRI CompIDs: Python 3
----------------------------------------
+Command 4: Check TRI CompIDs: Python 3 (PASS)
+----------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -274,8 +275,8 @@ Command 4: Check TRI CompIDs: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.25936 seconds
-    * Cumulative time: 1.01895 seconds
+    * Command took 0.47 seconds
+    * Cumulative time: 2.39 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -291,8 +292,8 @@ Command 4: Check TRI CompIDs: Python 3
 :STDERR:
     * **PASS**
 
-Command 5: Read PLT: Python 2
-------------------------------
+Command 5: Read PLT: Python 2 (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -305,15 +306,15 @@ Command 5: Read PLT: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.167221 seconds
-    * Cumulative time: 1.18618 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 2.79 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 6: Read PLT: Python 3
-------------------------------
+Command 6: Read PLT: Python 3 (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -326,8 +327,8 @@ Command 6: Read PLT: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.260609 seconds
-    * Cumulative time: 1.44678 seconds
+    * Command took 0.49 seconds
+    * Cumulative time: 3.28 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
