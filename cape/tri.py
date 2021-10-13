@@ -1,22 +1,25 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.tri`: Surface triangulation module
 =============================================
 
-This module provides the utilities for interacting with Cart3D or Plot3D type
-triangulations, including annotated triangulations (including ``.triq`` files).
-Triangulations can also be read from the UH3D, UNV, and AFLR3 surf formats.
+This module provides the utilities for interacting with Cart3D or
+Plot3D type triangulations, including annotated triangulations
+(including ``.triq`` files). Triangulations can also be read from
+several other formats, including UH3D, UNV, and AFLR3 surf formats.
 
 The module consists of individual classes that are built off of a base
-triangulation class :class:`cape.tri.TriBase`.  Methods that are written for
-the TriBase class apply to all other classes as well.
+triangulation class :class:`TriBase`. Methods that are written for the
+:class:`TriBase` class apply to all other classes as well.
 
-Some triangulation methods are written in Python/C using the :mod:`cape._cape`
-module.  For some repeated tasks (especially writing triangulations to file),
-creating a compiled version can lead to significant time savings.  These are
-relatively simple to compile, but fall-back methods are provided using purely
-Python code in each case.  The convention used for this situation is to provide
-a method like :func:`cape.tri.TriBase.WriteFast` for the compiled version and
-:func:`cape.tri.TriBase.WriteSlow` for the Python version.
+Some triangulation methods are written in Python/C using the
+:mod:`cape._cape` module. For some repeated tasks (especially writing
+triangulations to file), creating a compiled version can lead to
+significant time savings. These are relatively simple to compile, but
+fall-back methods are provided using purely Python code in each case.
+The convention used for this situation is to provide
+a method like :func:`TriBase.WriteFast` for the compiled version and
+:func:`TriBase.WriteSlow` for the Python version.
 
 """
 
@@ -25,39 +28,32 @@ import os
 import sys
 import shutil
 import subprocess as sp
-from pprint import pprint
-
-# Specific commands to copy files and call commands.
 from shutil import copy
 from collections import OrderedDict
 
 # Third-party modules
 import numpy as np
 
-# Absolute imports from this package
-import cape.cfdx.options
-import cape.cgns
-import cape.tnakit.plot_mpl.mpl as mpl
-
-# Input/output and geometry modules
+# Local inputs
 from . import io
 from . import geom
 from . import util
+from .cfdx import options
 from .cfdx import volcomp
-
-# Utilities
+from .tnakit import plot_mpl as pmpl
 from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
+from .cgns import CGNS
 
 
 # Default tolerances for mapping triangulations
-atoldef  = cape.cfdx.options.rc.get("atoldef", 1e-2)
-rtoldef  = cape.cfdx.options.rc.get("rtoldef", 1e-4)
-ctoldef  = cape.cfdx.options.rc.get("ctoldef", 1e-4)
-ztoldef  = cape.cfdx.options.rc.get("ztoldef", 5e-2)
-antoldef = cape.cfdx.options.rc.get("antoldef", 2e-2)
-rntoldef = cape.cfdx.options.rc.get("rntoldef", 1e-4)
-cntoldef = cape.cfdx.options.rc.get("cntoldef", 1e-4)
-rztoldef = cape.cfdx.options.rc.get("rztoldef", 1e-5)
+atoldef = options.rc.get("atoldef", 1e-2)
+rtoldef = options.rc.get("rtoldef", 1e-4)
+ctoldef = options.rc.get("ctoldef", 1e-4)
+ztoldef = options.rc.get("ztoldef", 5e-2)
+antoldef = options.rc.get("antoldef", 2e-2)
+rntoldef = options.rc.get("rntoldef", 1e-4)
+cntoldef = options.rc.get("cntoldef", 1e-4)
+rztoldef = options.rc.get("rztoldef", 1e-5)
 
 
 # Attempt to load the compiled helper module.
@@ -75,7 +71,7 @@ except ImportError:
 
 # Function to get a non comment line
 def _readline(f, comment='#'):
-    """Read line that is nonempty and not a comment
+    r"""Read line that is nonempty and not a comment
 
     :Call:
         >>> line = _readline(f, comment='#')
@@ -88,7 +84,7 @@ def _readline(f, comment='#'):
         *line*: :class:`str`
             Nontrivial line or `''` if at end of file
     :Versions:
-        * 2015-11-19 ``@ddalle``: First version
+        * 2015-11-19 ``@ddalle``: Version 1.0
     """
     # Read a line.
     line = f.readline()
@@ -110,7 +106,7 @@ def _readline(f, comment='#'):
 
 # Function to read a single triangulation file
 def ReadTriFile(fname, fmt=None):
-    """Read a single triangulation file
+    r"""Read a single triangulation file
 
     :Call:
         >>> tri = ReadTriFile(fname)
@@ -123,7 +119,7 @@ def ReadTriFile(fname, fmt=None):
         *tri*: :class:`cape.tri.Tri`
             Triangulation
     :Versions:
-        * 2016-04-06 ``@ddalle``: First version
+        * 2016-04-06 ``@ddalle``: Version 1.0
     """
     # Split based on '.'
     fext = fname.split('.')
@@ -152,12 +148,11 @@ def ReadTriFile(fname, fmt=None):
     else:
         # Assume Cart3D triangulation file
         return Tri(fname)
-# end ReadTriFile
 
 
 # Triangulation class
 class TriBase(object):
-    """Cape base triangulation class
+    r"""Cape base triangulation class
 
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
@@ -201,7 +196,7 @@ class TriBase(object):
         *tri.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
             Component number for each triangle
     :Versions:
-        * 2014-05-23 ``@ddalle``: First version
+        * 2014-05-23 ``@ddalle``: Version 1.0
         * 2014-06-02 ``@ddalle``: Added UH3D reading capability
         * 2015-11-19 ``@ddalle``: Added AFLR3 surface capability
     """
@@ -217,7 +212,7 @@ class TriBase(object):
         nQuad=None, Quads=None, CompID=None):
         """Initialization method"""
         # Versions:
-        #  2014-05-23 @ddalle: First version
+        #  2014-05-23 @ddalle: Version 1.0
         #  2014-06-02 @ddalle: Added UH3D reading capability
         #  2015-11-19 @ddalle: Added XML reading and AFLR3 surfs
 
@@ -316,7 +311,7 @@ class TriBase(object):
         This looks like ``<cape.tri.Tri(nNode=M, nTri=N)>``
 
         :Versions:
-            * 2014-05-27 ``@ddalle``: First version
+            * 2014-05-27 ``@ddalle``: Version 1.0
         """
         return '<cape.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
 
@@ -335,7 +330,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of file, use the extension to guess format
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Split based on '.'
         fext = fname.split('.')
@@ -380,7 +375,7 @@ class TriBase(object):
             *tri2*: :class:`cape.tri.Tri`
                 Triangulation with same values as *tri* but not linked
         :Versions:
-            * 2014-06-12 ``@ddalle``: First version
+            * 2014-06-12 ``@ddalle``: Version 1.0
         """
         # Make a new triangulation with no information.
         typ = type(self).__name__
@@ -474,7 +469,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to read
         :Versions:
-            * 2014-06-02 ``@ddalle``: First version
+            * 2014-06-02 ``@ddalle``: Version 1.0
         """
         # Get the file type
         self.GetTriFileType(fname)
@@ -535,7 +530,7 @@ class TriBase(object):
             *n*: {``1``} | :class:`int` > 0
                 Number of iterations included in average (for ``triq`` files)
         :Versions:
-            * 2014-06-02 ``@ddalle``: First version
+            * 2014-06-02 ``@ddalle``: Version 1.0
             * 2016-08-18 ``@ddalle``: Moved from :func:`Read` to enable binary
         """
         # Open the file
@@ -585,7 +580,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-08-18 ``@ddalle``: First version
+            * 2016-08-18 ``@ddalle``: Version 1.0
         """
         # Open the file for binary reading
         fid = open(fname, 'rb')
@@ -718,7 +713,7 @@ class TriBase(object):
             *tri.precision*: ``4`` | ``8``
                 Number of bytes in one entry
         :Versions:
-            * 2016-08-18 ``@ddalle``: First version
+            * 2016-08-18 ``@ddalle``: Version 1.0
         """
         # Open the file; attempt a binary read
         fid = open(fname, 'rb')
@@ -825,7 +820,7 @@ class TriBase(object):
             *f*: :class:`file`
                 File remains open
         :Versions:
-            * 2014-06-16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: Version 1.0
         """
         # Save the node count.
         self.nNode = nNode
@@ -857,7 +852,7 @@ class TriBase(object):
             *f*: :class:`file`
                 File remains open
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Version 1.0
         """
         # Save the node count.
         self.nNode = nNode
@@ -893,7 +888,7 @@ class TriBase(object):
         :Effects:
             Reads and creates *tri.Tris*; file remains open.
         :Versions:
-            * 2014-06-16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: Version 1.0
         """
         # Save the tri count.
         self.nTri = nTri
@@ -925,7 +920,7 @@ class TriBase(object):
             *f*: :class:`file`
                 File remains open
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Version 1.0
         """
         # Save the tri count
         self.nTri = nTri
@@ -975,7 +970,7 @@ class TriBase(object):
             *f*: :class:`file`
                 File remains open
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Version 1.0
         """
         # Save the tri count
         self.nQuad = nQuad
@@ -1016,7 +1011,7 @@ class TriBase(object):
             Reads and creates *tri.CompID* if not at end of file.  Otherwise all
             components are labeled ``1``.
         :Versions:
-            * 2014-06-16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: Version 1.0
         """
         # Check for end of file.
         if f.tell() == os.fstat(f.fileno()).st_size:
@@ -1049,7 +1044,7 @@ class TriBase(object):
         :Effects:
             Reads and creates *tri.Nodes*; file remains open.
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         # Save the state count.
         self.nq = nq
@@ -1123,7 +1118,7 @@ class TriBase(object):
             >>> tri = cape.ReadTri('bJet.i.tri')
             >>> tri.Write('bjet2.tri')
         :Versions:
-            * 2014-05-23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: Version 1.0
             * 2015-01-03 ``@ddalle``: Added C capability
             * 2015-02-25 ``@ddalle``: Added status update
             * 2016-10-02 ``@ddalle``: Now checking for binary/ASCII
@@ -1236,7 +1231,7 @@ class TriBase(object):
             *ext*: {``ascii``} | ``b4`` | ``b8`` | ``lb4`` | ``lb8``
                 File type
         :Outputs:
-            * 2016-10-02 ``@ddalle``: First version
+            * 2016-10-02 ``@ddalle``: Version 1.0
         """
         # Check for format flag
         if 'fmt' in kw:
@@ -1357,7 +1352,7 @@ class TriBase(object):
             >>> tri = cape.ReadTri('bJet.i.tri')
             >>> tri.Write('bjet2.tri')
         :Versions:
-            * 2014-05-23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: Version 1.0
             * 2015-01-03 ``@ddalle``: Added C capability
             * 2015-02-25 ``@ddalle``: Added status update
             * 2016-10-02 ``@ddalle``: Moved from :func:`tri.Write`
@@ -1382,7 +1377,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to create
         :Versions:
-            * 2015-01-03 ``@ddalle``: First version
+            * 2015-01-03 ``@ddalle``: Version 1.0
         """
         # Write the nodes.
         _cape.WriteTri(self.Nodes, self.Tris)
@@ -1411,7 +1406,7 @@ class TriBase(object):
             >>> tri = cape.ReadTri('bJet.i.tri')
             >>> tri.Write('bjet2.tri')
         :Versions:
-            * 2014-05-23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: Version 1.0
         """
         # Open the file for creation.
         fid = open(fname, 'w')
@@ -1454,7 +1449,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         try:
             # Compiled (C) version
@@ -1475,7 +1470,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         #
         _cape.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
@@ -1495,7 +1490,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-09-05 ``@ddalle``: Version 1.0
         """
         # Check for state vars
         try:
@@ -1533,7 +1528,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         try:
             # Compiled (C) version
@@ -1554,7 +1549,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         #
         _cape.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
@@ -1574,7 +1569,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-09-05 ``@ddalle``: Version 1.0
         """
         # Check for state vars
         try:
@@ -1612,7 +1607,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         try:
             # Compiled (C) version
@@ -1633,7 +1628,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         #
         _cape.WriteTri_lb8(self.Nodes, self.Tris, self.CompID)
@@ -1653,7 +1648,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-09-05 ``@ddalle``: Version 1.0
         """
         # Check for state vars
         try:
@@ -1691,7 +1686,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         try:
             # Compiled (C) version
@@ -1712,7 +1707,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         #
         _cape.WriteTri_b8(self.Nodes, self.Tris, self.CompID)
@@ -1732,7 +1727,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-09-05 ``@ddalle``: Version 1.0
         """
         # Check for state vars
         try:
@@ -1770,7 +1765,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         try:
             # Compiled (C) version
@@ -1791,7 +1786,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         #
         _cape.WriteTri_lr4(self.Nodes, self.Tris, self.CompID)
@@ -1811,7 +1806,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-09-05 ``@ddalle``: Version 1.0
         """
         # Check for state vars
         try:
@@ -1849,7 +1844,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         try:
             # Compiled (C) version
@@ -1870,7 +1865,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         #
         _cape.WriteTri_r4(self.Nodes, self.Tris, self.CompID)
@@ -1890,7 +1885,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-09-05 ``@ddalle``: Version 1.0
         """
         # Check for state vars
         try:
@@ -1928,7 +1923,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         try:
             # Compiled (C) version
@@ -1949,7 +1944,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         #
         _cape.WriteTri_lr8(self.Nodes, self.Tris, self.CompID)
@@ -1969,7 +1964,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-09-05 ``@ddalle``: Version 1.0
         """
         # Check for state vars
         try:
@@ -2007,7 +2002,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         try:
             # Compiled (C) version
@@ -2028,7 +2023,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-10-10 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: Version 1.0
         """
         #
         _cape.WriteTri_r8(self.Nodes, self.Tris, self.CompID)
@@ -2048,7 +2043,7 @@ class TriBase(object):
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-09-05 ``@ddalle``: Version 1.0
         """
         # Check for state vars
         try:
@@ -2093,7 +2088,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to read
         :Versions:
-            * 2014-06-02 ``@ddalle``: First version
+            * 2014-06-02 ``@ddalle``: Version 1.0
             * 2014-10-27 ``@ddalle``: Added draft of reading component names
         """
         # Open the file
@@ -2217,7 +2212,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to read
         :Versions:
-            * 2014-06-02 ``@ddalle``: First version
+            * 2014-06-02 ``@ddalle``: Version 1.0
             * 2014-10-27 ``@ddalle``: Added draft of reading component names
         """
         # Open the file
@@ -2249,7 +2244,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 File name
         :Versions:
-            * 2015-12-13 ``@ddalle``: First version
+            * 2015-12-13 ``@ddalle``: Version 1.0
         """
         # Check for the file
         if not os.path.isfile(fname):
@@ -2360,11 +2355,11 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2018-03-02 ``@ddalle``: First version
+            * 2018-03-02 ``@ddalle``: Version 1.0
         """
        # --- Input ---
         # Read the CGNS file
-        cgns = cape.cgns.CGNS(fname)
+        cgns = CGNS(fname)
        # --- CGNSBase_t ---
         # Get the *CGNSBase_t* node
         K_zt = cgns.GetNodeIndex(label="CGNSBase_t")
@@ -2557,7 +2552,7 @@ class TriBase(object):
             >>> triq = cape.ReadTriq('bJet.i.triq')
             >>> triq.Write('bjet2.triq', b4=True)
         :Versions:
-            * 2014-05-23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: Version 1.0
             * 2015-01-03 ``@ddalle``: Added C capability
             * 2015-02-25 ``@ddalle``: Added status update
             * 2015-09-14 ``@ddalle``: Copied from :func:`TriBase.WriteTri`
@@ -2610,7 +2605,7 @@ class TriBase(object):
             *v*: :class:`bool`
                 Verbosity flag
         :Versions:
-            * 2014-05-23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: Version 1.0
             * 2015-01-03 ``@ddalle``: Added C capability
             * 2015-02-25 ``@ddalle``: Added status update
             * 2015-09-14 ``@ddalle``: Copied from :func:`TriBase.WriteTri`
@@ -2642,7 +2637,7 @@ class TriBase(object):
             >>> triq = cape.ReadTriQ('bJet.i.triq')
             >>> triq.Write('bjet2.triq')
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         # Write the Common portion of the triangulation
         self.WriteSlow_ASCII(fname=fname)
@@ -2674,7 +2669,7 @@ class TriBase(object):
             >>> triq = cape.ReadTriQ('bJet.i.triq')
             >>> triq.Write('bjet2.triq')
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         # Write the nodes.
         _cape.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
@@ -2703,7 +2698,7 @@ class TriBase(object):
             >>> tri = cape.ReadTri('bJet.i.tri')
             >>> tri.WriteUH3D('bjet2.uh3d')
         :Versions:
-            * 2015-04-17 ``@ddalle``: First version
+            * 2015-04-17 ``@ddalle``: Version 1.0
         """
         # Initialize labels
         lbls = {}
@@ -2746,7 +2741,7 @@ class TriBase(object):
             *lbls*: :class:`dict`
                 Optioan dict of names for component IDs, e.g. ``{1: "body"}``
         :Versions:
-            * 2015-04-17 ``@ddalle``: First version
+            * 2015-04-17 ``@ddalle``: Version 1.0
         """
         # List of actual component IDs
         cID = list(np.unique(self.CompID))
@@ -2802,7 +2797,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to create
         :Versions:
-            * 2015-11-22 ``@ddalle``: First version
+            * 2015-11-22 ``@ddalle``: Version 1.0
         """
         # Status update.
         if v:
@@ -2827,7 +2822,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to create
         :Versions:
-            * 2015-11-22 ``@ddalle``: First version
+            * 2015-11-22 ``@ddalle``: Version 1.0
         """
         # Ensure that normals have been calculated
         self.GetNormals()
@@ -2872,7 +2867,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to create
         :Versions:
-            * 2016-04-08 ``@ddalle``: First version
+            * 2016-04-08 ``@ddalle``: Version 1.0
         """
         # Write the nodes.
         _cape.WriteTriSTL(self.Nodes, self.Tris)
@@ -2898,7 +2893,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to create
         :Versions:
-            * 2015-11-19 ``@ddalle``: First version
+            * 2015-11-19 ``@ddalle``: Version 1.0
         """
         # Status update
         print("    Writing ALFR3 surface: '%s'" % fname)
@@ -2936,7 +2931,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to create
         :Versions:
-            * 2015-11-19 ``@ddalle``: First version
+            * 2015-11-19 ``@ddalle``: Version 1.0
             * 2016-04-05 ``@ddalle``: Added quads, *blds*, and *bldel*
         """
         # Open the file for creation.
@@ -2975,7 +2970,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to create
         :Versions:
-            * 2015-01-03 ``@ddalle``: First version
+            * 2015-01-03 ``@ddalle``: Version 1.0
         """
         # Write the nodes.
         _cape.WriteSurf(
@@ -3018,7 +3013,7 @@ class TriBase(object):
             result, the number of nodes, number of tris, and number of
             components in *tri* will all increase.
         :Versions:
-            * 2014-06-12 ``@ddalle``: First version
+            * 2014-06-12 ``@ddalle``: Version 1.0
             * 2014-10-03 ``@ddalle``: Auto detect CompID overlap
         """
         # Concatenate the node matrix.
@@ -3142,7 +3137,7 @@ class TriBase(object):
             result, the number of nodes, number of tris, and number of
             components in *tri* will all increase.
         :Versions:
-            * 2014-06-12 ``@ddalle``: First version
+            * 2014-06-12 ``@ddalle``: Version 1.0
             * 2019-06-17 ``@ddalle``: Added *newnodes* keyword
         """
         # Check for separate node lists
@@ -3245,7 +3240,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of .tri file for use as input to `intersect`
         :Versions:
-            * 2015-02-24 ``@ddalle``: First version
+            * 2015-02-24 ``@ddalle``: Version 1.0
         """
         # Copy the triangulation.
         tri = self.Copy()
@@ -3295,7 +3290,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of .tri file to use for mapping intersected tris
         :Versions:
-            * 2017-05-25 ``@ddalle``: First version
+            * 2017-05-25 ``@ddalle``: Version 1.0
         """
         # Copy the triangulation.
         tri = self.Copy()
@@ -3338,7 +3333,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of .tri file to use for mapping intersected tris
         :Versions:
-            * 2017-05-25 ``@ddalle``: First version
+            * 2017-05-25 ``@ddalle``: Version 1.0
         """
         # Copy the triangulation.
         tri = self.Copy()
@@ -3383,7 +3378,7 @@ class TriBase(object):
             *k1*: :class:`numpy.ndarray` (:class:`int`)
                 Indices of faces in *tric* to considerider
         :Versions:
-            * 2015-02-24 ``@ddalle``: First version
+            * 2015-02-24 ``@ddalle``: Version 1.0
         """
         # Default last index.
         if kc is None: kc = np.arange(tric.nTri)
@@ -3481,7 +3476,7 @@ class TriBase(object):
             *tri0*: :class:`cape.tri.Tri`
                 Input triangulation to `intersect`
         :Versions:
-            * 2015-02-25 ``@ddalle``: First version
+            * 2015-02-25 ``@ddalle``: Version 1.0
         """
         # Get the components from the pre-intersected triangulation.
         comps = np.unique(tri0.CompID)
@@ -3509,7 +3504,7 @@ class TriBase(object):
             *c*: :class:`str`
                 Configuration file name
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Split based on '.'
         fext = c.split('.')
@@ -3564,7 +3559,7 @@ class TriBase(object):
             *restrict*: ``True`` | {``False``}
                 Option to eliminate faces that are not present in triangulation
         :Versions:
-            * 2015-11-19 ``@ddalle``: First version
+            * 2015-11-19 ``@ddalle``: Version 1.0
         """
         # Read the configuration and save it.
         self.config = ConfigXML(c)
@@ -3584,7 +3579,7 @@ class TriBase(object):
             *c*: :class:`str`
                 Configuration file name
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Read the configuration and save it
         self.config = ConfigJSON(c)
@@ -3601,7 +3596,7 @@ class TriBase(object):
             *c*: :class:`str`
                 Configuration file name
         :Versions:
-            * 2017-04-05 ``@ddalle``: First version
+            * 2017-04-05 ``@ddalle``: Version 1.0
         """
         # Read the configuration and save it
         self.config = ConfigMIXSUR(c)
@@ -3636,7 +3631,7 @@ class TriBase(object):
             *fcfg*: :class:`str`
                 Name of XML config file
         :Versions:
-            * 2014-11-10 ``@ddalle``: First version
+            * 2014-11-10 ``@ddalle``: Version 1.0
         """
         # Check for Conf in the triangulation.
         try:
@@ -3699,7 +3694,7 @@ class TriBase(object):
             *fname*: {``"Config.xml"``} | :class:`str`
                 Name of GMP configuration file to write
         :Versions:
-            * 2016-11-06 ``@ddalle``: First version
+            * 2016-11-06 ``@ddalle``: Version 1.0
         """
         # Check for a configuration
         try:
@@ -3721,7 +3716,7 @@ class TriBase(object):
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
         :Versions:
-            * 2016-11-05 ``@ddalle``: First version
+            * 2016-11-05 ``@ddalle``: Version 1.0
         """
         # Get list of component IDs
         compIDs = np.unique(self.CompID)
@@ -3742,7 +3737,7 @@ class TriBase(object):
             *tri*: :class:`cape.tri.TriBase`
                 Triangulation interface
         :Versions:
-            * 2016-11-09 ``@ddalle``: First version
+            * 2016-11-09 ``@ddalle``: Version 1.0
         """
         # Check for a configuration
         try:
@@ -3866,7 +3861,7 @@ class TriBase(object):
             *compID*: :class:`list` (:class:`int`)
                 List of component IDs
         :Versions:
-            * 2014-10-12 ``@ddalle``: First version
+            * 2014-10-12 ``@ddalle``: Version 1.0
             * 2016-03-29 ``@ddalle``: Edited docstring
             * 2017-02-10 ``@ddalle``: Added fallback to *tri.Conf*
         """
@@ -3893,7 +3888,7 @@ class TriBase(object):
             *face*: {``""``} | :class:`str`
                 Name of so-numbered component, if any
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
+            * 2017-03-30 ``@ddalle``: Version 1.0
         """
         # Try to use the UH3D dictionary
         try:
@@ -3952,7 +3947,7 @@ class TriBase(object):
             *compID*: :class:`list` (:class:`int`)
                 List of component IDs
         :Versions:
-            * 2017-02-10 ``@ddalle``: First version
+            * 2017-02-10 ``@ddalle``: Version 1.0
         """
         # Check for scalar
         if face is None:
@@ -4008,7 +4003,7 @@ class TriBase(object):
             *tri.Conf*: :class:`dict`
                 Dictionary of face names coped from *tri.config.faces*
         :Versions:
-            * 2017-02-10 ``@ddalle``: First version
+            * 2017-02-10 ``@ddalle``: Version 1.0
         """
         # Check for existing *Conf*
         try:
@@ -4043,7 +4038,7 @@ class TriBase(object):
             *i*: :class:`numpy.array` (:class:`int`)
                 Node indices, 0-based
         :Versions:
-            * 2014-09-27 ``@ddalle``: First version
+            * 2014-09-27 ``@ddalle``: Version 1.0
         """
         # Process inputs.
         if compID is None:
@@ -4089,7 +4084,7 @@ class TriBase(object):
             *k*: :class:`numpy.ndarray` (:class:`int`, shape=(N,))
                 List of triangle indices in requested component(s)
         :Versions:
-            * 2015-01-23 ``@ddalle``: First version
+            * 2015-01-23 ``@ddalle``: Version 1.0
         """
         # Process inputs.
         if compID is None:
@@ -4131,7 +4126,7 @@ class TriBase(object):
             *K*: :class:`np.ndarray`\ [:class:`int`]
                 Array of triangle indices
         :Versions:
-            * 2019-05-14 ``@ddalle``: First version
+            * 2019-05-14 ``@ddalle``: Version 1.0
         """
         # Initialize True|{False} array of each triangle
         Q = np.arange(self.nTri) < 0
@@ -4169,7 +4164,7 @@ class TriBase(object):
             *faces*: :class:`list`\ [:class:`str`]
                 List of face names (if available) or numbers
         :Versions:
-            * 2019-05-14 ``@ddalle``: First version
+            * 2019-05-14 ``@ddalle``: Version 1.0
         """
         # Component numbers of *K* triangles
         CompID = self.CompID[K]
@@ -4213,7 +4208,7 @@ class TriBase(object):
             *faces*: :class:`list`\ [:class:`str`]
                 List of face names (if available) or numbers
         :Versions:
-            * 2019-05-14 ``@ddalle``: First version
+            * 2019-05-14 ``@ddalle``: Version 1.0
         """
         # Component numbers of *K* triangles
         CompID = self.CompIDQuad[K]
@@ -4261,7 +4256,7 @@ class TriBase(object):
             *k*: :class:`numpy.ndarray` (:class:`int`, shape=(N,))
                 List of quad indices in requested component(s)
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Version 1.0
         """
         # Be careful because not everyone has quads
         try:
@@ -4312,7 +4307,7 @@ class TriBase(object):
             *tri0*: :class:`cape.tri.Tri`
                 Copied triangulation containing only faces with CompID in *i*
         :Versions:
-            * 2015-01-23 ``@ddalle``: First version
+            * 2015-01-23 ``@ddalle``: Version 1.0
         """
         # Get the triangle indices.
         k = self.GetTrisFromCompID(i)
@@ -4340,7 +4335,7 @@ class TriBase(object):
             *v*: ``True`` | {``False``}
                 Verbosity flag
         :Versions:
-            * 2017-02-10 ``@ddalle``: First version
+            * 2017-02-10 ``@ddalle``: Version 1.0
             * 2019-06-18 ``@ddalle``: NO LOOPS
         """
         # Get nodes that are used
@@ -4388,7 +4383,7 @@ class TriBase(object):
             *recurse*: {``True``} | ``False``
                 Whether or not to remove newly created small tris
         :Versions:
-            * 2017-06-19 ``@ddalle``: First version
+            * 2017-06-19 ``@ddalle``: Version 1.0
         """
         # Calculate areas
         self.GetNormals()
@@ -4516,7 +4511,7 @@ class TriBase(object):
             *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
                 Only consider tris in this component(s)
         :Versions:
-            * 2017-02-09 ``@ddalle``: First version
+            * 2017-02-09 ``@ddalle``: Version 1.0
         """
         # Check triangulation type
         tt = type(tri).__name__
@@ -4697,7 +4692,7 @@ class TriBase(object):
             *triu*: :class:`cape.tri.Tri`
                 Single joined triangulation if *join* is ``True``
         :Versions:
-            * 2016-02-10 ``@ddalle``: First version
+            * 2016-02-10 ``@ddalle``: Version 1.0
         """
         # Initialize output
         tris = {}
@@ -4768,7 +4763,7 @@ class TriBase(object):
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Check for configuration
         self.config
@@ -4885,7 +4880,7 @@ class TriBase(object):
             *bldel*: :class:`dict` (:class:`str` | :class:`int`)
                 Dictionary of BL thicknesses for CompIDs or component names
         :Versions:
-            * 2015-11-19 ``@ddalle``: First version
+            * 2015-11-19 ``@ddalle``: Version 1.0
             * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
         """
         # Initialize the BCs to -1 (grow boundary layer)
@@ -4954,7 +4949,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of boundary condition map file
         :Versions:
-            * 2015-11-19 ``@ddalle``: First version
+            * 2015-11-19 ``@ddalle``: Version 1.0
             * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
         """
         # Read the boundary condition file
@@ -5026,7 +5021,7 @@ class TriBase(object):
             *tri.TriZ*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
                 *z*-coordinates of each node of each triangle
         :Versions:
-            * 2017-12-22 ``@ddalle``: First version
+            * 2017-12-22 ``@ddalle``: Version 1.0
         """
         # Check for centers
         try:
@@ -5054,7 +5049,7 @@ class TriBase(object):
             *tri.Centers*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
                 Center of each triangle
         :Versions:
-            * 2017-02-09 ``@ddalle``: First version
+            * 2017-02-09 ``@ddalle``: Version 1.0
         """
         # Check for centers
         try:
@@ -5084,7 +5079,7 @@ class TriBase(object):
             *tri.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
                 Unit normal for each triangle is saved
         :Versions:
-            * 2014-06-12 ``@ddalle``: First version
+            * 2014-06-12 ``@ddalle``: Version 1.0
             * 2016-01-23 ``@ddalle``: Added a check before calculating
         """
         # Check for normals.
@@ -5128,7 +5123,7 @@ class TriBase(object):
             *tri.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
                 Unit normal for each triangle is saved
         :Versions:
-            * 2014-06-12 ``@ddalle``: First version
+            * 2014-06-12 ``@ddalle``: Version 1.0
             * 2016-01-23 ``@ddalle``: Added a check before calculating
         """
         # Check for normals.
@@ -5166,7 +5161,7 @@ class TriBase(object):
             *tri.e3*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
                 Unit normal of each triangle
         :Versions:
-            * 2017-02-09 ``@ddalle``: First version
+            * 2017-02-09 ``@ddalle``: Version 1.0
         """
         # Check for all the requested attributes
         try:
@@ -5220,7 +5215,7 @@ class TriBase(object):
             *tri.Lengths*: :class:`numpy.ndarray`, shape=(tri.nTri,3)
                 Length of edge of each triangle
         :Versions:
-            * 2015-02-21 ``@ddalle``: First version
+            * 2015-02-21 ``@ddalle``: Version 1.0
         """
         try:
             self.Lengths
@@ -5282,7 +5277,7 @@ class TriBase(object):
             *T["k4"]*: ``None`` | :class:`int`
                 Index of nearest triangle outside components *c1*, *c2*, *c3*
         :Versions:
-            * 2017-02-06 ``@ddalle``: First version
+            * 2017-02-06 ``@ddalle``: Version 1.0
             * 2017-02-07 ``@ddalle``: Added search for second point
             * 2017-02-08 ``@ddalle``: Added third and fourth families
         """
@@ -5402,7 +5397,7 @@ class TriBase(object):
             *K*: :class:`np.ndarray` (:class:`int`)
                 List of 1-based tri numbers that intersect BBox
         :Versions:
-            * 2017-02-17 ``@ddalle``: First version
+            * 2017-02-17 ``@ddalle``: Version 1.0
         """
         # Compute vertices
         x = self.Nodes[self.Tris-1,0]
@@ -5440,7 +5435,7 @@ class TriBase(object):
             *tri.NodeNormals*: :class:`np.ndarray`, shape=(tri.nNode,3)
                 Unit normal at each node averaged from neighboring triangles
         :Versions:
-            * 2016-01-23 ``@ddalle``: First version
+            * 2016-01-23 ``@ddalle``: Version 1.0
         """
         # Ensure normals are present
         self.GetNormals()
@@ -5479,7 +5474,7 @@ class TriBase(object):
             *tri.Edges*: :class:`np.ndarray`, shape=(3*nTri, 2)
                 Array of node indices defining each edge
         :Versions:
-            * 2016-09-29 ``@ddalle``: First version
+            * 2016-09-29 ``@ddalle``: Version 1.0
         """
         # Check for edges
         try:
@@ -5510,7 +5505,7 @@ class TriBase(object):
             *tri.EdgeTable*: :class:`np.ndarray`, shape=(3*nTri, 3)
                 Array of node indices defining each edge
         :Versions:
-            * 2019-06-20 ``@ddalle``: First version
+            * 2019-06-20 ``@ddalle``: Version 1.0
         """
         # Check for edges
         try:
@@ -5562,7 +5557,7 @@ class TriBase(object):
                 Triangle index containing edge *i0* -> *i1* [1-based],
                 if no match, returns ``0``
         :Versions:
-            * 2019-06-20 ``@ddalle``: First version
+            * 2019-06-20 ``@ddalle``: Version 1.0
         """
         # Get edge table
         self.GetEdgeTable()
@@ -5602,7 +5597,7 @@ class TriBase(object):
             *k2*: :class:`int` >= 0
                 Triangle index sharing edge 1 of triangle *k*
         :Versions:
-            * 2019-06-20 ``@ddalle``: First version
+            * 2019-06-20 ``@ddalle``: Version 1.0
         """
         # Get nodes of this triangle
         i0, i1, i2 = self.Tris[k]
@@ -5638,7 +5633,7 @@ class TriBase(object):
             *A*: :class:`float`
                 Area of the component
         :Versions:
-            * 2014-06-13 ``@ddalle``: First version
+            * 2014-06-13 ``@ddalle``: Version 1.0
         """
         # Check for areas.
         try:
@@ -5683,7 +5678,7 @@ class TriBase(object):
             *A*: :class:`float`
                 Area of the component
         :Versions:
-            * 2014-06-13 ``@ddalle``: First version
+            * 2014-06-13 ``@ddalle``: Version 1.0
         """
         # Check for areas.
         self.GetAreaVectors()
@@ -5707,7 +5702,7 @@ class TriBase(object):
             *n*: :class:`numpy.ndarray` shape=(3,)
                 Area-averaged unit normal
         :Versions:
-            * 2014-06-13 ``@ddalle``: First version
+            * 2014-06-13 ``@ddalle``: Version 1.0
         """
         # Check for areas.
         try:
@@ -5748,7 +5743,7 @@ class TriBase(object):
             *z*: :class:`float`
                 Coordinate of the centroid
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Version 1.0
         """
         # Check for areas.
         try:
@@ -5829,7 +5824,7 @@ class TriBase(object):
             *xlim*: :class:`numpy.ndarray` (:class:`float`), shape=(6,)
                 List of *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, *zmax*
         :Versions:
-            * 2014-06-16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: Version 1.0
             * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
             * 2017-02-08 ``@ddalle``: CompID ``None`` gets BBox for full tri
         """
@@ -5883,7 +5878,7 @@ class TriBase(object):
             *L*: nonnegative :class:`float`
                 Length of the diagonal of the bounding box
         :Versions:
-            * 2017-02-08 ``@ddalle``: First version
+            * 2017-02-08 ``@ddalle``: Version 1.0
         """
         # Get the bounding box
         BBox = self.GetCompBBox(compID, **kw)
@@ -6057,9 +6052,9 @@ class TriBase(object):
         # Plot the results if requested
         if img is not None:
             # Just-in-time PyPlot import
-            mpl._import_pyplot()
+            pmpl.mpl._import_pyplot()
             # Handle to usual PyPlot module
-            plt = mpl.plt
+            plt = pmpl.mpl.plt
             # Reverse mask
             mask_ = np.logical_not(mask)
             # Get new figure
@@ -6103,7 +6098,7 @@ class TriBase(object):
             *L*: :class:`float`
                 Value of the distance
         :Versions:
-            * 2016-09-29 ``@ddalle``: First version
+            * 2016-09-29 ``@ddalle``: Version 1.0
         """
         # Get deltas in each axis
         dx = self.Nodes[:,0] - x[0]
@@ -6135,7 +6130,7 @@ class TriBase(object):
             *X*: :class:`np.ndarray` shape=(m,3)
                 Sequential list of nodes that trace a curve
         :Versions:
-            * 2016-09-29 ``@ddalle``: First version
+            * 2016-09-29 ``@ddalle``: Version 1.0
         """
         # Spatial tolerance
         dtol = kw.get('dtol', 0.05)
@@ -6194,7 +6189,7 @@ class TriBase(object):
             *jnew*: :class:`int`
                 Number of curve segments to discount from next search
         :Versions:
-            * 2016-09-29 ``@ddalle``: First version
+            * 2016-09-29 ``@ddalle``: Version 1.0
         """
         # Direction tolerance
         atol = np.cos(kw.get('atol', 60.0) * np.pi/180)
@@ -6287,7 +6282,7 @@ class TriBase(object):
             *j*: :class:`int`
                 Index of segment in which closest point is located
         :Versions:
-            * 2016-09-29 ``@ddalle``: First version
+            * 2016-09-29 ``@ddalle``: Version 1.0
         """
         # Get distance from point to curve and length of each curve segment
         D = geom.DistancePointToCurve(x, Y)
@@ -6330,7 +6325,7 @@ class TriBase(object):
             *i*: :class:`str` or :class:`int` or :class:`list` (:class:`int`)
                 Component name, ID or list of component IDs
         :Versions:
-            * 2015-01-23 ``@ddalle``: First version
+            * 2015-01-23 ``@ddalle``: Version 1.0
         """
         # Get the subtriangulation.
         tri0 = self.GetSubTri(i)
@@ -6381,7 +6376,7 @@ class TriBase(object):
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
         :Versions:
-            * 2015-01-23 ``@ddalle``: First version
+            * 2015-01-23 ``@ddalle``: Version 1.0
         """
         # Plot "entire.png"
         print("Plotting entire surface ...")
@@ -6430,7 +6425,7 @@ class TriBase(object):
             *u*: :class:`str` | :class:`list` (:class:`int`)
                 Axis pointing upward in plot
         :Versions:
-            * 2015-11-22 ``@ddalle``: First version
+            * 2015-11-22 ``@ddalle``: Version 1.0
         """
         # Get the subtriangulation
         tri0 = self.GetSubTri(i)
@@ -6493,7 +6488,7 @@ class TriBase(object):
             *compID*: :class:`int` | :class:`str` | :class:`list`
                 Component ID(s) to which to apply translation
         :Versions:
-            * 2014-05-23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: Version 1.0
             * 2014-10-08 ``@ddalle``: Exported functionality to function
             * 2016-04-08 ``@ddalle``: Redid inputs
         """
@@ -6569,7 +6564,7 @@ class TriBase(object):
             *compID*: :class:`int` | :class:`str` | :class:`list`
                 Component ID(s) to which to apply translation
         :Versions:
-            * 2014-05-27 ``@ddalle``: First version
+            * 2014-05-27 ``@ddalle``: Version 1.0
             * 2014-10-07 ``@ddalle``: Exported functionality to function
         """
         # Get the node indices.
@@ -6582,7 +6577,6 @@ class TriBase(object):
         self.Nodes[i,:] = Y
   # >
 
-# class TriBase
 
 
 # Regular triangulation class
@@ -6644,7 +6638,7 @@ class Tri(TriBase):
         *tri.bldel*: :class:`np.ndarray` (:class:`float`), (*nNode*,)
             Boundary layer thicknesses for each node
     :Versions:
-        * 2014-05-23 ``@ddalle``: First version
+        * 2014-05-23 ``@ddalle``: Version 1.0
         * 2016-04-05 ``@ddalle``: Many input formats
     """
     # Initialization method
@@ -6652,7 +6646,7 @@ class Tri(TriBase):
         """Initialization method
 
         :Versions:
-            * 2014-05-23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: Version 1.0
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
             * 2016-04-05 ``@ddalle``: Added AFLR3 and cleaned up inputs
         """
@@ -6745,19 +6739,18 @@ class Tri(TriBase):
         This looks like ``<cape.tri.Tri(nNode=M, nTri=N)>``
 
         :Versions:
-            * 2014-05-27 ``@ddalle``: First version
+            * 2014-05-27 ``@ddalle``: Version 1.0
         """
         return '<cape.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
 
-# class Tri
 
 
 # Regular triangulation class
 class Triq(TriBase):
-    """Class for surface geometry with solution values at each point
+    r"""Class for surface geometry with solution values at each point
 
-    This class is based on the concept of Cart3D ``triq`` files, which are also
-    utilized by some Overflow utilities, including ``overint``.
+    This class is based on the concept of Cart3D ``triq`` files, which
+    are also utilized by some Overflow utilities, including ``overint``.
 
     :Call:
         >>> triq = cape.Triq(fname=fname, c=None)
@@ -6806,10 +6799,10 @@ class Triq(TriBase):
     # Initialization method
     def __init__(self, fname=None, n=1, nNode=None, Nodes=None, c=None,
         nTri=None, Tris=None, CompID=None, nq=None, q=None):
-        """Initialization method
+        r"""Initialization method
 
         :Versions:
-            * 2014-05-23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: Version 1.0
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
         """
         # Save file name
@@ -6869,7 +6862,7 @@ class Triq(TriBase):
         This looks like ``<cape.tri.Triq(nNode=M, nTri=N)>``
 
         :Versions:
-            * 2014-05-27 ``@ddalle``: First version
+            * 2014-05-27 ``@ddalle``: Version 1.0
         """
         return '<cape.tri.Triq(nNode=%i, nTri=%i, nq=%i)>' % (
             self.nNode, self.nTri, self.nq)
@@ -6893,7 +6886,7 @@ class Triq(TriBase):
             *b4*: ``True`` | {``False``}
                 Write single-precision big-endian
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         self.WriteTriq(fname, **kw)
   # >
@@ -6914,7 +6907,7 @@ class Triq(TriBase):
             *triq2*: class:`cape.tri.Triq`
                 Second triangulation instance
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         # Check consistency.
         if self.nNode != triq.nNode:
@@ -6958,7 +6951,7 @@ class Triq(TriBase):
             *q*: :class:`np.ndarray` shape=(*triq.nq*,)
                 Interpolated state from *triq.q*
         :Versions:
-            * 2017-10-10 ``@ddalle``: First version
+            * 2017-10-10 ``@ddalle``: Version 1.0
         """
         # Get the nearest triangle to point *x*
         T = self.GetNearestTri(x, **kw)
@@ -7056,7 +7049,7 @@ class Triq(TriBase):
             *cf_z*: :class:`np.ndarray`
                 *z*-component of skin friction coefficient
         :Versions:
-            * 2017-04-03 ``@ddalle``: First version
+            * 2017-04-03 ``@ddalle``: Version 1.0
         """
        # --------------
        # Viscous Forces
@@ -7274,7 +7267,7 @@ class Triq(TriBase):
                 Overall axial force coefficient
         :Versions:
             * 2017-02-11 ``@ddalle``: Started
-            * 2017-02-15 ``@ddalle``: First version
+            * 2017-02-15 ``@ddalle``: Version 1.0
         """
        # ------
        # Inputs
@@ -7558,12 +7551,11 @@ class Triq(TriBase):
 
   # >
 
-# class Triq
 
 
 # Function to read .tri files
 def ReadTri(fname):
-    """Read a basic triangulation file
+    r"""Read a basic triangulation file
 
     :Call:
         >>> tri = cape.ReadTri(fname)
@@ -7578,7 +7570,7 @@ def ReadTri(fname):
         >>> tri.nNode
         92852
     :Versions:
-        * 2014-05-27 ``@ddalle``: First version
+        * 2014-05-27 ``@ddalle``: Version 1.0
     """
     # Create the tri object and return it.
     return Tri(fname)
@@ -7586,7 +7578,7 @@ def ReadTri(fname):
 
 # Global function to write a triangulation (just calls tri method)
 def WriteTri(fname, tri):
-    """Write a triangulation instance to file
+    r"""Write a triangulation instance to file
 
     :Call:
         >>> cape.WriteTri(fname, tri)
@@ -7599,10 +7591,9 @@ def WriteTri(fname, tri):
         >>> tri = cape.ReadTri('bJet.i.tri')
         >>> cape.WriteTri('bjet2.tri', tri)
     :Versions:
-        * 2014-05-23 ``ddalle``: First version
+        * 2014-05-23 ``ddalle``: Version 1.0
     """
     # Call the triangulation's write method.
     tri.Write(fname)
     return None
-# def WriteTri
 

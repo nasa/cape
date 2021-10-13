@@ -19,9 +19,12 @@ directory.  These methods may be duplicated in :mod:`cape.pycart.case`.
     * :mod:`cape.util`
 """
 
-# Import everything from cape.util
-from cape.util import *
+# Standard library
 import glob
+
+# Local imports
+from ..util import *
+
 
 # pyCart base folder
 pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
@@ -64,6 +67,7 @@ def GetWorkingFolder():
         if os.path.isfile(os.path.join(fi, 'history.dat')): return fi
     # Output
     return fdir
+
     
 # Function to read last line of 'history.dat' file
 def GetHistIter(fname='history.dat'):
@@ -98,6 +102,7 @@ def GetHistIter(fname='history.dat'):
         txt = line.split()[0]
         # Return iteration number
         return float(txt)
+
 
 # Get steady-state history iteration
 def GetSteadyHistIter():
@@ -157,6 +162,7 @@ def GetSteadyHistIter():
             n = int(line.split()[0])
         # Output
         return n
+
         
 # Get unsteady history iteration
 def GetUnsteadyHistIter():
@@ -211,6 +217,7 @@ def GetUnsteadyHistIter():
         if '.' not in txt: return 0
         # Return iteration number
         return float(txt)
+
         
 # Get total history iteration
 def GetTotalHistIter():

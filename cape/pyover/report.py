@@ -1,45 +1,48 @@
-"""
+r"""
 :mod:`cape.pyover.report`: Automated report interface
 ======================================================
 
-The pyOver module for generating automated results reports using PDFLaTeX
-provides a single class :class:`pyOver.report.Report`, which is based off the
-CAPE version :class:`cape.cfdx.report.Report`. The :class:`cape.cfdx.report.Report` class
-is a sort of dual-purpose object that contains a file interface using
-:class:`cape.tex.Tex` combined with a capability to create figures for each
-case or sweep of cases mostly based on :mod:`cape.cfdx.dataBook`.
+The pyOver module for generating automated results reports using
+PDFLaTeX provides a single class :class:`pyOver.report.Report`, which is
+based off the CAPE version :class:`cape.cfdx.report.Report`. The
+:class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
+that contains a file interface using :class:`cape.tex.Tex` combined with
+a capability to create figures for each case or sweep of cases mostly
+based on :mod:`cape.cfdx.dataBook`.
 
-An automated report is a multi-page PDF generated using PDFLaTeX. Usually, each
-CFD case has one or more pages dedicated to results for that case. The user
-defines a list of figures, each with its own list of subfigures, and these are
-generated for each case in the run matrix (subject to any command-line
-constraints the user may specify). Types of subfigures include
+An automated report is a multi-page PDF generated using PDFLaTeX.
+Usually, each CFD case has one or more pages dedicated to results for
+that case. The user defines a list of figures, each with its own list of
+subfigures, and these are generated for each case in the run matrix
+(subject to any command-line constraints the user may specify). Types of
+subfigures include
 
     * Table of the values of the input variables for this case
     * Table of force and moment values and statistics
-    * Iterative histories of forces or moments (for one or more coefficients)
+    * Iterative histories of forces or moments (one or more coefficients)
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
     
-In addition, the user may also define "sweeps," which analyze groups of cases
-defined by user-specified constraints. For example, a sweep may be used to plot
-results as a function of Mach number for sets of cases having matching angle of
-attack and sideslip angle. When using a sweep, the report contains one or more
-pages for each sweep (rather than one or more pages for each case).
+In addition, the user may also define "sweeps," which analyze groups of
+cases defined by user-specified constraints. For example, a sweep may be
+used to plot results as a function of Mach number for sets of cases
+having matching angle of attack and sideslip angle. When using a sweep,
+the report contains one or more pages for each sweep (rather than one or
+more pages for each case).
 
-Reports are usually created using system commands of the following format.
+Reports are created using system commands of the following format.
 
     .. code-block: console
     
         $ pyover --report
 
-The class has an immense number of methods, which can be somewhat grouped into
-bookkeeping methods and plotting methods.  The main user-facing methods are
-:func:`cape.cfdx.report.Report.UpdateCases` and
-:func:`cape.cfdx.report.Report.UpdateSweep`.  Each 
-:ref:`type of subfigure <cape-json-ReportSubfigure>` has its own method, for
-example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
+The class has an immense number of methods, which can be somewhat
+grouped into bookkeeping methods and plotting methods.  The main
+user-facing methods are :func:`cape.cfdx.report.Report.UpdateCases` and
+:func:`cape.cfdx.report.Report.UpdateSweep`.  Each type of subfigure has
+its own method, for example
+:func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 :func:`cape.cfdx.report.Report.SubfigPlotL2` for ``"PlotL2"``.
 
 :See also:
@@ -61,22 +64,20 @@ import shutil
 # Third-party modules
 import numpy as np
 
-# CAPE modules
+# Local imports
 import cape.cfdx.report
 # CAPE submodules
-from cape.filecntl import tex
-from cape          import tar
-
-# Local modules
 from . import case
-# Local submodules
+from .. import tar
 from .dataBook import CaseFM, CaseResid
-from .tecplot  import ExportLayout, Tecscript
+from ..cfdx import report as capereport
+from ..filecntl import tex
+from ..filecntl.tecplot import ExportLayout, Tecscript
 
 
 # Class to interface with report generation and updating.
-class Report(cape.cfdx.report.Report):
-    """Interface for automated report generation
+class Report(capereport.Report):
+    r"""Interface for automated report generation
     
     :Call:
         >>> R = pyOver.report.Report(oflow, rep)

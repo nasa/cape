@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 import re
 import sys
-from cape.pycart.case import run_flowCart
+from cape.tricli import main_uh3d2tri
 if __name__ == "__main__":
     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(run_flowCart())
-
+    sys.exit(main_uh3d2tri())

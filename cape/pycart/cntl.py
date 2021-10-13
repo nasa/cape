@@ -46,35 +46,26 @@ import os
 import shutil
 import json
 import subprocess as sp
-
-# Standard library modules: direct imports
 from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
-# Import template class
-import cape.cntl
-
-# Locale modules
+# Local imports
 from . import options
-from . import queue
 from . import bin
 from . import case
 from . import manage
 from . import dataBook
 from . import report
-
-# Functions and classes from other modules
-from .runmatrix   import RunMatrix
-from .inputCntl   import InputCntl
-from .aeroCsh     import AeroCsh
+from .. import cntl as capecntl
+from ..cfdx import queue
+from .inputCntl import InputCntl
+from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
-from .config      import ConfigXML
-
-# Import triangulation
-from .tri      import Tri
-from cape.geom import RotatePoints
+from .tri import Tri
+from ..geom import RotatePoints
+from ..runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -118,7 +109,7 @@ def _upgradeDocString(docstr, fromclass):
 
     
 # Class to read input files
-class Cntl(cape.cntl.Cntl):
+class Cntl(capecntl.Cntl):
     """
     Class for handling global options and setup for Cart3D.
     
@@ -1322,13 +1313,18 @@ class Cntl(cape.cntl.Cntl):
             
             # Initialize options to `run_flowCart.py`
             flgs = ''
-            # Check for potential need of preprocessing.
-            qflg = j==0 and (self.opts.get_Adaptive(0) 
-                and not self.opts.get_jumpstart(0))
+
+            # Get specific python version
+            pyexec = self.opts.get_PythonExec(j)
 
             # Simply call the advanced interface.
-            f.write('\n# Call the flowCart/mpix_flowCart/aero.csh interface.\n')
-            f.write('run_flowCart.py' + flgs + '\n')
+            f.write('\n# Call the Cart3D interface.\n')
+            if pyexec:
+                # Use specific version
+                f.write("%s -m cape.pycart run %s\n" % (pyexec, flgs))
+            else:
+                # Use CAPE-provided script
+                f.write('run_flowCart.py' + flgs + '\n')
             
             # Close the file.
             f.close()

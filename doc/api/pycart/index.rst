@@ -15,7 +15,6 @@ The :mod:`cape.pycart` module
     options/index
     case
     tri
-    runmatrix
     bin
     cmd
     inputCntl
@@ -24,9 +23,7 @@ The :mod:`cape.pycart` module
     dataBook
     lineLoad
     pointSensor
-    queue
     report
-    tecplot
     manage
     util
 

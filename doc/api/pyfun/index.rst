@@ -20,13 +20,10 @@ The :mod:`cape.pyfun` module
     rubberData
     bin
     cmd
-    runmatrix
     dataBook
     lineLoad
     pointSensor
     plt
-    queue
     report
-    tecplot
     manage
     util

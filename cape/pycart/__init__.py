@@ -91,12 +91,7 @@ _fname = os.path.abspath(__file__)
 PyCartFolder = os.path.split(_fname)[0]
 
 # Import classes and methods from the submodules
-from .tri    import Tri, Triq
-from .cntl   import Cntl, RunMatrix
-from .config import ConfigXML
-from .case   import ReadCaseJSON, run_flowCart
-
-# Import the file control classes.
+from .cntl import Cntl, RunMatrix
 from .inputCntl   import InputCntl
 from .aeroCsh     import AeroCsh
 from .preSpecCntl import PreSpecCntl

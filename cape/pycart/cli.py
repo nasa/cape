@@ -32,6 +32,19 @@ def main():
     """
     # Parse inputs
     a, kw = argread.readflagstar(sys.argv)
+    # Check for args
+    if len(a) == 0:
+        # No command, doing class pyfun behavior
+        cmd = None
+    else:
+        cmd = a[0]
+
+    # Check for "run_fun3d"
+    if cmd.lower() in {"run_flowcart", "run_cart3d", "run"}:
+        # Run case in this folder
+        from .case import run_flowCart
+        # Run and exit
+        return run_flowCart()
     
     # Check for a help flag
     if kw.get('h') or kw.get("help"):

@@ -18,12 +18,9 @@ The :mod:`cape.pyover` module
     bin
     cmd
     plot3d
-    runmatrix
     dataBook
     lineLoad
-    queue
     report
-    tecplot
     manage
     util
 

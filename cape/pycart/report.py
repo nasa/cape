@@ -61,19 +61,15 @@ import shutil
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-import cape.cfdx.report
-
-# Direct CAPE imports
-from cape.filecntl import tex
-from cape          import tar
-
-# Local modules
+# Local imports
+from .. import tar
+from ..cfdx import report as capereport
+from ..filecntl import tex
 from .dataBook import CaseFM, CaseResid
-from .case     import LinkPLT
-from .tecplot  import ExportLayout, Tecscript
-from .tri      import Tri
-from .config   import ConfigXML
+from .case import LinkPLT
+from .tri import Tri
+from ..filecntl.tecplot import ExportLayout, Tecscript
+
 
 # Dedicated function to load pointSensor only when needed.
 def ImportPointSensor():
@@ -92,6 +88,7 @@ def ImportPointSensor():
     except Exception:
         # Load the modules.
         import pointSensor
+
 
 # Dedicated function to load lineLoad only when needed.
 def ImportLineLoad():
@@ -113,7 +110,7 @@ def ImportLineLoad():
 
 
 # Class to interface with report generation and updating.
-class Report(cape.cfdx.report.Report):
+class Report(capereport.Report):
     """Interface for automated report generation
     
     :Call:

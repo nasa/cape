@@ -41,21 +41,14 @@ class are also available here.
 
 """
 
-# System modules
+# Standard library
 import os
 import shutil
 
 # Third-party modules
 import numpy as np
 
-# Import template class
-import cape.cntl
-
-# Local classes
-from .namelist   import Namelist
-from .rubberData import RubberData
-
-# Other pyFun modules
+# Local imports
 from . import options
 from . import manage
 from . import case
@@ -63,12 +56,11 @@ from . import mapbc
 from . import faux
 from . import dataBook
 from . import report
-
-# Unmodified CAPE modules
+from .. import cntl as ccntl
+from .namelist   import Namelist
+from .rubberData import RubberData
 from ..util import RangeString
-
-# Functions and classes from other modules
-from .runmatrix import RunMatrix
+from ..runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -85,10 +77,11 @@ BLIST_WALLBCS = {
     5051, 5052, 7011, 7012,
     7021, 7031, 7036, 7100, 
     7101, 7103, 7104, 7105
-    }
+}
+
 
 # Class to read input files
-class Cntl(cape.cntl.Cntl):
+class Cntl(ccntl.Cntl):
     r"""
     Class for handling global options and setup for FUN3D.
 
@@ -103,7 +96,7 @@ class Cntl(cape.cntl.Cntl):
     require explanation.
 
     Defaults are read from the file
-    ``$CAPE/settings/pyFun.default.json``.
+    ``options/pyFun.default.json``.
 
     :Call:
         >>> cntl = pyFun.Cntl(fname="pyFun.json")
@@ -129,7 +122,11 @@ class Cntl(cape.cntl.Cntl):
   # <
     # Initialization method
     def __init__(self, fname="pyFun.json"):
-        r"""Initialization method for :mod:`cape.cntl.Cntl`"""
+        r"""Initialization method
+
+        :Versions:
+            * 2015-10-16 ``@ddalle``: Version 1.0
+        """
         # Force default
         if fname is None:
             fname = "pyFun.json"
@@ -752,7 +749,7 @@ class Cntl(cape.cntl.Cntl):
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -1440,14 +1437,14 @@ class Cntl(cape.cntl.Cntl):
             # Main folder
             fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
 
-
         # Prepare internal boundary conditions
         self.PrepareNamelistBoundaryConditions()
         # Write the BC file
         self.MapBC.Write(fout)
 
         # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Apply any namelist functions
         self.NamelistFunction(i)
         # Loop through input sequence
@@ -1625,7 +1622,7 @@ class Cntl(cape.cntl.Cntl):
         :Call:
             >>> cntl.NamelistFunction(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`Cntl`
                 Overall control interface
             *i*: :class:`int`
                 Case number
@@ -2922,7 +2919,7 @@ class Cntl(cape.cntl.Cntl):
             # Write the header.
             self.WritePBSHeader(f, i, j)
 
-            # Initialize options to `run_FUN3D.py`
+            # Initialize options to `run_fun3d.py`
             flgs = ''
 
             # Get specific python version
@@ -2932,11 +2929,7 @@ class Cntl(cape.cntl.Cntl):
             f.write('\n# Call the FUN3D interface.\n')
             if pyexec:
                 # Use specific version
-                f.write("%s run_fun3d.py %s\n" % (pyexec, flgs))
-                # Create a local script
-                with open("run_fun3d.py", "w") as fpy:
-                    fpy.write("import cape.pyfun.case\n\n")
-                    fpy.write("cape.pyfun.case.run_fun3d()\n")
+                f.write("%s -m cape.pyfun run %s\n" % (pyexec, flgs))
             else:
                 # Use CAPE-provided script
                 f.write('run_fun3d.py' + flgs + '\n')

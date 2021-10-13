@@ -59,16 +59,16 @@ Modules included within this one are outlined below.
         - :mod:`cape.pyfun.cmd`
         - :mod:`cape.pyfun.bin`
         - :mod:`cape.pyfun.report`
-        - :mod:`cape.pyfun.queue`
         - :mod:`cape.pyfun.util`
 
 """
 
-# System
+# Standard library
 import os
 
-# Import Control module
-from .cntl  import Cntl, RunMatrix
+# Local imports
+from .cntl import Cntl
+
 
 # Save version number
 version = "1.0"

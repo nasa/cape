@@ -21,10 +21,11 @@ directly from the system command line.
         run_overflow
         cape
         cape-writell
-        ExpandJSON
-        UH3D2Tri
-        Tri2Plt
-        Tri2Surf
+        cape-uh3d2tri
+        cape-tri2plt
+        cape-tri2uh3d
+        cape-tri2surf
+        cape-expandjson
         Plt2Triq
         Step2Crv
         StepTri2Crv

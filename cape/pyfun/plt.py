@@ -40,13 +40,12 @@ import glob
 # Third-party modules
 import numpy as np
 
-# CAPE modules
+# Local imports
+from . import mapbc
 import cape.io
 import cape.plt
 import cape.tri
 
-# PYFUN modules
-import cape.pyfun.mapbc
 
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):

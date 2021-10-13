@@ -16,7 +16,7 @@ It also stores the absolute path to the folder containing the
 """
 
 # Import everything from cape.util
-from cape.util import *
+from ..util import *
 
 
 # pyCart base folder
