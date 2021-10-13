@@ -293,13 +293,13 @@ class TestDriver(object):
         :Versions:
             * 2021-10-12``@ddalle``: Version 1.0
         """
-        # Begin documentation
-        self.write_rst_intro()
         # Get *rst* file handle
         frst = self.frst
         # Check if it's open
         if not isinstance(frst, filelike) or frst.closed:
             return
+        # Begin documentation
+        self.write_rst_intro()
         # Loop through commands
         for i in range(self.TestCommandsRun):
             # Get handle for results of command *i*
@@ -628,6 +628,8 @@ class TestDriver(object):
         if len(flink_list) > 0:
             # Start bullet list
             f.write("\n")
+        # Ensure everything has been written
+        f.flush()
 
     # Close ReST file
     def close_rst(self):
@@ -729,13 +731,6 @@ class TestDriver(object):
             self.TestStatus_List[i] = self.TestStatus
             # Write title
             self.write_command_title(i)
-            # Check for reST file handle
-            if isinstance(self.frst, filelike):
-                # Get results summary
-                fp = self.get_results_summary(i)
-                # Write to RST file
-                self.frst.write(fp.txt)
-                self.frst.write("\n\n")
             # Exit if a failure was detected
             if self.TestStatus:
                 # Clean up STDOUT
@@ -862,8 +857,6 @@ class TestDriver(object):
             * 2019-07-09 ``@ddalle``: Version 1.0
             * 2021-10-12 ``@ddalle``: Version 2.0; title elsewhere
         """
-        # Get subtitle
-        subt = self.opts.getel("CommandTitles", i, vdef=None)
         # Create an indent
         tab = "    "
         # Stash results

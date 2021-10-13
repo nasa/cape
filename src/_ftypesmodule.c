@@ -45,10 +45,21 @@ static PyMethodDef FTypesMethods[] = {
     PyMODINIT_FUNC
     PyInit__ftypes3(void)
     {
+        // The module
+        PyObject *m;
+
         // This must be called before using the NumPy API
         import_array();
         // Initialize module
-        return PyModule_Create(&ftypesmodule);
+        m = PyModule_Create(&ftypesmodule);
+        // Check for errors
+        if (m == NULL)
+            return;
+
+        // Add attributes
+        capec_AddDTypes(m);
+        // Output
+        return m;
     }
 
 #else
@@ -56,10 +67,19 @@ static PyMethodDef FTypesMethods[] = {
     PyMODINIT_FUNC
     init_ftypes2(void)
     {
+        // The module
+        PyObject *m;
+
         // This must be called before using the NumPy API
         import_array();
         // Python 2 module creation
-        (void) Py_InitModule("_ftypes2", FTypesMethods);
+        m = Py_InitModule("_ftypes2", FTypesMethods);
+        // Check for errors
+        if (m == NULL)
+            return;
+
+        // Add attributes
+        capec_AddDTypes(m);
     }
 
 #endif
