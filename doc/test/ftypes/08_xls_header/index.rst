@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 13:24 PDT
+   on 2021-10-13 at 14:15 PDT
 
 Test ``08_xls_header``: **FAIL** (command 1)
 ==============================================
 
-This test **FAILED** (command 1) on 2021-10-13 at 13:24 PDT
+This test **FAILED** (command 1) on 2021-10-13 at 14:15 PDT
 
 This test is run in the folder:
 
@@ -75,7 +75,7 @@ Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.39 seconds
+    * Command took 0.52 seconds
 :STDOUT:
     * **FAIL**
     * Actual:
