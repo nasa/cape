@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 15:05 PDT
+   on 2021-10-13 at 15:14 PDT
 
-Test ``03_contour``: **FAIL** (command 1)
-===========================================
+Test ``03_contour``: PASS
+===========================
 
-This test **FAILED** (command 1) on 2021-10-13 at 15:05 PDT
+This test PASSED on 2021-10-13 at 15:14 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_contourplot.py
         $ python3 test01_contourplot.py
 
-Command 1: Contour plot: Python 2 (**FAIL**)
----------------------------------------------
+Command 1: Contour plot: Python 2 (PASS)
+-----------------------------------------
 
 :Command:
     .. code-block:: console
@@ -36,22 +36,46 @@ Command 1: Contour plot: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
+    * Command took 0.50 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
 :PNG:
-    * **FAIL**
-    * Difference fraction: 0.2183
-    * Actual:
-
-        .. image:: PNG-00-00.png
-            :width: 4.5in
-
+    * **PASS**
+    * Difference fraction: 0.0000
     * Target:
 
         .. image:: PNG-target-00-00.png
+            :width: 4.5in
+
+Command 2: Contour plot: Python 3 (PASS)
+-----------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_contourplot.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.62 seconds
+    * Cumulative time: 1.12 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-01-00.png
             :width: 4.5in
 

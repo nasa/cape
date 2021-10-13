@@ -12,8 +12,9 @@ simplifies the important task of creating a table that includes several
 images.
 """
 
-# Regular expressions
+# Standard library
 import re
+import sys
 
 # Local modules
 from . import typeutils
@@ -47,7 +48,7 @@ def rst_param_list(keys, types, descrs, alts={}, **kw):
         *txt*: :class:`str`
             Text in CAPE docstring format describing *keys*
     :Versions:
-        * 2019-12-19 ``@ddalle``: First version
+        * 2019-12-19 ``@ddalle``: Version 1.0
     """
     # Get other options
     indent = kw.get("indent", 4)
@@ -133,7 +134,7 @@ def rst_param_list(keys, types, descrs, alts={}, **kw):
 
 # Write a title
 def rst_title(title, char="-", margin=2, before=False):
-    """Create an ReST title from string
+    r"""Create an ReST title from string
     
     This adds characters before (optionally) and after the title, creating
     valid syntax for ReStructuredText titles.  Examples of valid titles with
@@ -167,7 +168,7 @@ def rst_title(title, char="-", margin=2, before=False):
         *txt*: :class:`str` | :class:`unicode`
             String with title, adornment line(s), and 2 or 3 newline chars
     :Versions:
-        * 2019-02-22 ``@ddalle``: First version
+        * 2019-02-22 ``@ddalle``: Version 1.0
     """
     # Check input type
     if not typeutils.isstr(title):
@@ -198,7 +199,7 @@ def rst_title(title, char="-", margin=2, before=False):
 
 # Write an rst option
 def rst_directive_option(k, v):
-    """Convert an option name and value to an reST directive option
+    r"""Convert an option name and value to an reST directive option
     
     :Call:
         >>> txt = rst_directive_option(k, v)
@@ -219,7 +220,7 @@ def rst_directive_option(k, v):
         *Else*          ``":%s: %s" % (k, v)``
         =============   ==========================
     :Versions:
-        * 2019-02-24 ``@ddalle``: First version
+        * 2019-02-24 ``@ddalle``: Version 1.0
     """
     # Check value
     if v is None:
@@ -252,7 +253,7 @@ def py2rst(v, **kw):
         *txt*: :class:`str`
             Marked up reST text
     :Versions:
-        * 2019-04-25 ``@ddalle``: First version
+        * 2019-04-25 ``@ddalle``: Version 1.0
     """
     # Check for special types to use :func:`repr` for
     repr_types = kw.get("repr_types")
@@ -342,7 +343,7 @@ def py2rst_mod(mod, markup=True):
         *txt*: :class:`str`
             Text representation for reST
     :Versions:
-        * 2019-12-27 ``@ddalle``: First version
+        * 2019-12-27 ``@ddalle``: Version 1.0
     """
     # Check input types
     if not isinstance(mod, typeutils.moduletype):
@@ -374,7 +375,7 @@ def py2rst_int(i, markup=False, fmt="%s"):
         *txt*: :class:`str`
             Text representation for reST
     :Versions:
-        * 2019-04-24 ``@ddalle``: First version
+        * 2019-04-24 ``@ddalle``: Version 1.0
     """
     # Check input types
     if i is True:
@@ -418,7 +419,7 @@ def py2rst_float(x, markup=False, fmt="%s"):
         *txt*: :class:`str`
             Text representation for reST
     :Versions:
-        * 2019-04-24 ``@ddalle``: First version
+        * 2019-04-24 ``@ddalle``: Version 1.0
     """
     # Check input types
     if not isinstance(x, float):
@@ -456,7 +457,7 @@ def py2rst_bool(q, markup=True):
         *txt*: :class:`str`
             Text representation for reST
     :Versions:
-        * 2019-04-24 ``@ddalle``: First version
+        * 2019-04-24 ``@ddalle``: Version 1.0
     """
     # Check input types
     if not isinstance(q, bool):
@@ -485,7 +486,7 @@ def py2rst_none(markup=True):
         *txt*: :class:`str`
             Text representation for reST
     :Versions:
-        * 2019-04-24 ``@ddalle``: First version
+        * 2019-04-24 ``@ddalle``: Version 1.0
     """
     # Check for markup
     if markup:
@@ -517,7 +518,7 @@ def py2rst_str(s, **kw):
         *txt*: :class:`str`
             Marked up reST text
     :Versions:
-        * 2019-04-25 ``@ddalle``: First version
+        * 2019-04-25 ``@ddalle``: Version 1.0
     """
     # Check input types
     if not typeutils.isstr(s):
@@ -669,7 +670,7 @@ def py2rst_list(V, **kw):
 
 # Convert dictionary to reST
 def py2rst_dict(v, **kw):
-    """Convert a :class:`dict` to reST text
+    r"""Convert a :class:`dict` to reST text
 
     :Call:
         >>> txt = py2rst_dict(v, **kw)
@@ -704,7 +705,7 @@ def py2rst_dict(v, **kw):
         *fmts*: :class:`dict`\ [:class:`str`]
             Specific *fmt* for types ``"int"`` and/or ``"float"``
     :Versions:
-        * 2019-04-25 ``@ddalle``: First version
+        * 2019-04-25 ``@ddalle``: Version 1.0
     """
     # Check input types
     if not isinstance(v, dict):
@@ -792,7 +793,7 @@ def py2rst_any_str(v, markup=True):
         *txt*: :class:`str`
             Text representation for reST
     :Versions:
-        * 2019-04-25 ``@ddalle``: First version
+        * 2019-04-25 ``@ddalle``: Version 1.0
     """
     # Convert text
     txt = str(v)
@@ -819,7 +820,7 @@ def py2rst_any_repr(v, markup=True):
         *txt*: :class:`str`
             Text representation for reST
     :Versions:
-        * 2019-04-25 ``@ddalle``: First version
+        * 2019-04-25 ``@ddalle``: Version 1.0
     """
     # Convert text
     txt = repr(v)
@@ -888,7 +889,7 @@ def rst_image_lines(ffig, directive="image", **kw):
         *lines*: :class:`list` (:class:`str`)
             List of lines of text
     :Versions:
-        * 2019-02-22 ``@ddalle``: First version
+        * 2019-02-22 ``@ddalle``: Version 1.0
     """
     # Check value
     if directive not in ["image", "figure"]:
@@ -936,7 +937,6 @@ def rst_image_lines(ffig, directive="image", **kw):
             lines.append(tab + line)
     # Output
     return lines
-# def rst_image_lines
 
 
 # Write a directive for an image
@@ -960,7 +960,7 @@ def rst_image(ffig, caption=None, **kw):
         *txt*: :class:`str`
             Text of directive
     :Versions:
-        * 2019-02-24 ``@ddalle``: First version
+        * 2019-02-24 ``@ddalle``: Version 1.0
     """
     # Get an indent
     indent = kw.pop("indent", kw.get("tab", ("    ")))
@@ -974,7 +974,6 @@ def rst_image(ffig, caption=None, **kw):
         txt += (indent + line.rstrip() + "\n")
     # Output
     return txt
-# def rst_image
 
 
 # Write a directive for an image
@@ -1002,7 +1001,7 @@ def rst_figure(ffig, caption, **kw):
         *txt*: :class:`str`
             Text of directive
     :Versions:
-        * 2019-02-24 ``@ddalle``: First version
+        * 2019-02-24 ``@ddalle``: Version 1.0
     """
     # Get an indent and tab
     tab    = kw.get("tab", "    ")
@@ -1030,7 +1029,6 @@ def rst_figure(ffig, caption, **kw):
         txt += (indent + tab + line.rstrip() + "\n")
     # Output
     return txt
-# def rst_figure
 
 
 # Create a table of images
@@ -1052,7 +1050,7 @@ def rst_image_table_lines(imgtable, **kw):
         *subs*: :class:`str`
             Substitution definition text to insert after the table
     :Versions:
-        * 2019-02-26 ``@ddalle``: First version
+        * 2019-02-26 ``@ddalle``: Version 1.0
     """
    # --- Input Checks ---
     # Check type
@@ -1181,7 +1179,6 @@ def rst_image_table_lines(imgtable, **kw):
    # --- Output ---
     # Output
     return lines, subs_txt
-# def rst_image_table_lines
 
 
 # Create a table of images
@@ -1205,7 +1202,7 @@ def rst_image_table(imgtable, caption=None, directive="table", **kw):
         *subs*: :class:`str`
             Substitution definition text to insert after the table
     :Versions:
-        * 2019-02-26 ``@ddalle``: First version
+        * 2019-02-26 ``@ddalle``: Version 1.0
     """
    # --- Global Options ---
     # Pop off indent option
@@ -1308,7 +1305,7 @@ def unpack_image_cell(cell):
         *kwj*: {``{}``} | :class:`dict`
             Dictionary of specific options for this cell
     :Versions:
-        * 2019-02-25 ``@ddalle``: First version
+        * 2019-02-25 ``@ddalle``: Version 1.0
     """
     # Unpack cell
     try:
@@ -1340,5 +1337,4 @@ def unpack_image_cell(cell):
             kwj = None
     # Output
     return ffig, cap, kwj
-# def unpack_image_cell
 

@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 15:05 PDT
+   on 2021-10-13 at 15:15 PDT
 
-Test ``05_scatter``: **FAIL** (command 1)
-===========================================
+Test ``05_scatter``: PASS
+===========================
 
-This test **FAILED** (command 1) on 2021-10-13 at 15:05 PDT
+This test PASSED on 2021-10-13 at 15:15 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_scatterplot.py
         $ python3 test01_scatterplot.py
 
-Command 1: Scatter plot: Python 2 (**FAIL**)
----------------------------------------------
+Command 1: Scatter plot: Python 2 (PASS)
+-----------------------------------------
 
 :Command:
     .. code-block:: console
@@ -43,15 +43,39 @@ Command 1: Scatter plot: Python 2 (**FAIL**)
     * **PASS**
 
 :PNG:
-    * **FAIL**
-    * Difference fraction: 0.0740
-    * Actual:
-
-        .. image:: PNG-00-00.png
-            :width: 4.5in
-
+    * **PASS**
+    * Difference fraction: 0.0000
     * Target:
 
         .. image:: PNG-target-00-00.png
+            :width: 4.5in
+
+Command 2: Scatter plot: Python 3 (PASS)
+-----------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_scatterplot.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.59 seconds
+    * Cumulative time: 1.06 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-01-00.png
             :width: 4.5in
 

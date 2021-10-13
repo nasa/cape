@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 15:05 PDT
+   on 2021-10-13 at 15:13 PDT
 
-Test ``02_pmpl_opts``: **FAIL** (command 2)
-=============================================
+Test ``02_pmpl_opts``: PASS
+=============================
 
-This test **FAILED** (command 2) on 2021-10-13 at 15:05 PDT
+This test PASSED on 2021-10-13 at 15:13 PDT
 
 This test is run in the folder:
 
@@ -56,15 +56,15 @@ Command 1: :class:`MPLOpts` *PlotOptions*: Python 2 (PASS)
                 +------------------+
                 | ``"g"``          |
                 +------------------+
-            :zorder: 8
             :ls: ``"--"``
+            :zorder: 8
         
 
 :STDERR:
     * **PASS**
 
-Command 2: :class:`MPLOpts` *PlotOptions*: Python 3 (**FAIL**)
----------------------------------------------------------------
+Command 2: :class:`MPLOpts` *PlotOptions*: Python 3 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -77,31 +77,10 @@ Command 2: :class:`MPLOpts` *PlotOptions*: Python 3 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.27 seconds
-    * Cumulative time: 0.44 seconds
+    * Command took 0.28 seconds
+    * Cumulative time: 0.45 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual:
-
-      .. code-block:: none
-
-        PlotOptions:
-            :color:
-                +------------------+
-                | ``"b"``          |
-                +------------------+
-                | ``"k"``          |
-                +------------------+
-                | ``"darkorange"`` |
-                +------------------+
-                | ``"g"``          |
-                +------------------+
-            :ls: ``"--"``
-            :zorder: 8
-            :Index: 2
-            :Rotate: ``False``
-        
-
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -119,8 +98,8 @@ Command 2: :class:`MPLOpts` *PlotOptions*: Python 3 (**FAIL**)
                 +------------------+
                 | ``"g"``          |
                 +------------------+
-            :zorder: 8
             :ls: ``"--"``
+            :zorder: 8
         
 
 :STDERR:

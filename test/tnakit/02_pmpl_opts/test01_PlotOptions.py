@@ -11,5 +11,5 @@ plot_opts = opts.get_option("PlotOptions")
 
 # Show options for plot()
 print("PlotOptions:")
-print(rstutils.py2rst(plot_opts, indent=4))
+print(rstutils.py2rst(plot_opts, indent=4, sort=True))
 
