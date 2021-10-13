@@ -417,6 +417,10 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Remove flags
         del self._textdata_header_once
         del self._textdata_header_complete
+        # Check for manual column names
+        colnames = self.opts.get_option("Columns")
+        if colnames:
+            self.cols = colnames
         # Get default column names if necessary
         self.read_textdata_headerdefaultcols(f)
         # Get guesses as to types
