@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 14:03 PDT
+   on 2021-10-13 at 14:15 PDT
 
-Test ``04_csv_mixed``: **FAIL** (command 4)
-=============================================
+Test ``04_csv_mixed``: PASS
+=============================
 
-This test **FAILED** (command 4) on 2021-10-13 at 14:03 PDT
+This test PASSED on 2021-10-13 at 14:15 PDT
 
 This test is run in the folder:
 
@@ -89,7 +89,7 @@ Command 1: Minimal Definitions: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.19 seconds
+    * Command took 0.23 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -122,7 +122,7 @@ Command 2: Minimal Definitions: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.30 seconds
-    * Cumulative time: 0.49 seconds
+    * Cumulative time: 0.53 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -154,8 +154,8 @@ Command 3: Specified dtypes: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.20 seconds
-    * Cumulative time: 0.68 seconds
+    * Command took 0.19 seconds
+    * Cumulative time: 0.72 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -173,8 +173,8 @@ Command 3: Specified dtypes: Python 2 (PASS)
 :STDERR:
     * **PASS**
 
-Command 4: Specified dtypes: Python 3 (**FAIL**)
--------------------------------------------------
+Command 4: Specified dtypes: Python 3 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -182,16 +182,15 @@ Command 4: Specified dtypes: Python 3 (**FAIL**)
         $ python3 test02_dtypes.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.37 seconds
-    * Cumulative time: 1.05 seconds
+    * Command took 0.30 seconds
+    * Cumulative time: 1.01 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -205,15 +204,5 @@ Command 4: Specified dtypes: Python 3 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
-
-      .. code-block:: pytb
-
-        Traceback (most recent call last):
-          File "test02_dtypes.py", line 22, in <module>
-            dtype = V[0].__class__.__name__
-        IndexError: index 0 is out of bounds for axis 0 with size 0
-        
-
+    * **PASS**
 
