@@ -17,15 +17,14 @@ from distutils import sysconfig
 PY_MAJOR_VERSION = sys.version_info.major
 PY_MINOR_VERSION = sys.version_info.minor
 
+
+# Get suffix of build/lib.* folder
+syssystem = platform.system().lower()
+sysmachine = platform.machine()
+sysplatform = "%s-%s" % (syssystem, sysmachine)
+
 # Version-dependent imports
 if PY_MAJOR_VERSION == 2:
-    # Standard library modules
-    from ConfigParser import SafeConfigParser
-
-    # Hack for getting suffix of build/lib.* folder
-    syssystem = platform.system().lower()
-    sysmachine = platform.machine()
-    sysplatform = "%s-%s" % (syssystem, sysmachine)
     # File extension for the binary extension modules
     if syssystem == "windows":
         # Alternate extension
@@ -34,14 +33,8 @@ if PY_MAJOR_VERSION == 2:
         # Normally it's a .so file
         ext_suffix = ".so"
 else:
-    # Standard library modules
-    from configparser import SafeConfigParser
-
-    # Suffix for build/lib.* folder
-    sysplatform = sysconfig.get_platform()
     # Extension binary file extension
     ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
-
 
 # Path to this file
 fdir = os.path.dirname(os.path.realpath(__file__))
@@ -64,17 +57,9 @@ extjson = os.path.join(fmod, "extensions.json")
 # Read extension settings
 extopts = json.load(open(extjson))
 
-# Get a get/set type object
-config = SafeConfigParser()
-# Read the configuration options
-config.read(os.path.join(fmod, fcfg))
-
-# Python command, in cases of potential ambiguity.
-pythonexec = config.get("python", "exec")
-
 # Compile
 print("Building extensions...")
-sp.call([pythonexec, "setup.py", "build"])
+sp.call([sys.executable, "setup.py", "build"])
 
 # Check for build
 if not os.path.isdir(flib):
@@ -84,7 +69,7 @@ if not os.path.isdir(flib):
 
 # Creating wheel
 print("Building wheel...")
-sp.call([pythonexec, "setup.py", "bdist_wheel"])
+ierr = sp.call([sys.executable, "setup.py", "bdist_wheel"])
 
 # Status update
 print("Moving the extensions into place...")
