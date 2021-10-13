@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2020-02-04 at 22:50 PST
+   on 2021-10-13 at 10:34 PDT
 
-Test ``02_csv_float``
-=======================
+Test ``02_csv_float``: **FAIL** (command 7)
+=============================================
+
+This test **FAILED** (command 7) on 2021-10-13 at 10:34 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/pycart/test/ftypes/02_csv_float/``
+    ``test/ftypes/02_csv_float/``
 
 and the working folder for the test is
 
@@ -152,8 +154,8 @@ The commands executed by this test are
         print("m%.2fa%.2fb%.2f" % (mach, alph, beta))
         
 
-Command 1: Clean CSV read: Python 2
-------------------------------------
+Command 1: Clean CSV read: Python 2 (PASS)
+-------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -166,8 +168,7 @@ Command 1: Clean CSV read: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.224191 seconds
-    * Cumulative time: 0.224191 seconds
+    * Command took 0.43 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -180,8 +181,8 @@ Command 1: Clean CSV read: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Clean CSV read: Python 3
-------------------------------------
+Command 2: Clean CSV read: Python 3 (PASS)
+-------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -194,8 +195,8 @@ Command 2: Clean CSV read: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.416805 seconds
-    * Cumulative time: 0.640996 seconds
+    * Command took 0.54 seconds
+    * Cumulative time: 0.97 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -208,8 +209,8 @@ Command 2: Clean CSV read: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Specified :class:`float` types: Python 2
-----------------------------------------------------
+Command 3: Specified :class:`float` types: Python 2 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -222,8 +223,8 @@ Command 3: Specified :class:`float` types: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.217636 seconds
-    * Cumulative time: 0.858632 seconds
+    * Command took 0.49 seconds
+    * Cumulative time: 1.47 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -238,8 +239,8 @@ Command 3: Specified :class:`float` types: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Specified :class:`float` types: Python 3
-----------------------------------------------------
+Command 4: Specified :class:`float` types: Python 3 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -252,8 +253,8 @@ Command 4: Specified :class:`float` types: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.415681 seconds
-    * Cumulative time: 1.27431 seconds
+    * Command took 0.54 seconds
+    * Cumulative time: 2.00 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -268,8 +269,8 @@ Command 4: Specified :class:`float` types: Python 3
 :STDERR:
     * **PASS**
 
-Command 5: Simple CSV read: Python 2
--------------------------------------
+Command 5: Simple CSV read: Python 2 (PASS)
+--------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -277,15 +278,72 @@ Command 5: Simple CSV read: Python 2
         $ python2 test03_simple.py
 
 :Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.39 seconds
+    * Cumulative time: 2.39 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        m1.20a0.00b4.00
+        
+
+:STDERR:
+    * **PASS**
+
+Command 6: Simple CSV read: Python 3 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_simple.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.53 seconds
+    * Cumulative time: 2.92 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        m1.20a0.00b4.00
+        
+
+:STDERR:
+    * **PASS**
+
+Command 7: Clean C read: Python 2 (**FAIL**)
+---------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test04_c.py
+
+:Return Code:
     * **FAIL**
     * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.217712 seconds
-    * Cumulative time: 1.49203 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 3.45 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -300,11 +358,13 @@ Command 5: Simple CSV read: Python 2
       .. code-block:: pytb
 
         Traceback (most recent call last):
-          File "test03_simple.py", line 8, in <module>
-            db = csvfile.CSVSimple("aeroenv.csv")
-          File "/home/dalle/usr/pycart/cape/attdb/ftypes/csvfile.py", line 913, in __init__
-            kw = self.process_opts_generic(**kw)
-        AttributeError: 'CSVSimple' object has no attribute 'process_opts_generic'
+          File "test04_c.py", line 11, in <module>
+            db.c_read_csv("aeroenv.csv")
+          File "/u/wk/ddalle/usr/cape/cape/attdb/ftypes/csvfile.py", line 304, in c_read_csv
+            self.c_read_csv_data(f)
+          File "/u/wk/ddalle/usr/cape/cape/attdb/ftypes/csvfile.py", line 608, in c_read_csv_data
+            raise ImportError("No _ftypes extension module")
+        ImportError: No _ftypes extension module
         
 
 

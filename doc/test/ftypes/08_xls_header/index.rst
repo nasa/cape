@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2020-02-16 at 21:48 PST
+   on 2021-10-13 at 10:34 PDT
 
-Test ``08_xls_header``
-========================
+Test ``08_xls_header``: **FAIL** (command 1)
+==============================================
+
+This test **FAILED** (command 1) on 2021-10-13 at 10:34 PDT
 
 This test is run in the folder:
 
-    ``/home/dalle/usr/pycart/test/ftypes/08_xls_header/``
+    ``test/ftypes/08_xls_header/``
 
 and the working folder for the test is
 
@@ -59,8 +61,8 @@ The commands executed by this test are
                 # Print type and size
                 print("    %-21s: list (len=%i, type=%s)" % (col, n, dtype))
 
-Command 1: Auto-Workbook with Arrays: Python 2
------------------------------------------------
+Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
+----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -73,11 +75,10 @@ Command 1: Auto-Workbook with Arrays: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.250967 seconds
-    * Cumulative time: 0.250967 seconds
+    * Command took 0.54 seconds
 :STDOUT:
-    * **PASS**
-    * Target:
+    * **FAIL**
+    * Actual:
 
       .. code-block:: none
 
@@ -85,41 +86,12 @@ Command 1: Auto-Workbook with Arrays: Python 2
             colnames.alpha       : array (shape=75, dtype=float64)
             colnames.beta        : array (shape=75, dtype=float64)
             colnames.config      : list (len=75, type=unicode)
-            colnames.mach        : array (shape=75, dtype=float64)
-            colnames.alpha       : array (shape=75, dtype=float64)
-            colnames.beta        : array (shape=75, dtype=float64)
-            colnames.config      : list (len=75, type=unicode)
-            cols_with_array.mach : array (shape=3, dtype=float64)
-            cols_with_array.alpha: array (shape=3, dtype=float64)
-            cols_with_array.beta : array (shape=3, dtype=float64)
-            cols_with_array.DCN  : array (shape=3x3, dtype=float64)
             cols_with_array.mach : array (shape=3, dtype=float64)
             cols_with_array.alpha: array (shape=3, dtype=float64)
             cols_with_array.beta : array (shape=3, dtype=float64)
             cols_with_array.DCN  : array (shape=3x3, dtype=float64)
         
 
-:STDERR:
-    * **PASS**
-
-Command 2: Auto-Workbook with Arrays: Python 3
------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_workbook.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.459722 seconds
-    * Cumulative time: 0.710689 seconds
-:STDOUT:
-    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -127,11 +99,11 @@ Command 2: Auto-Workbook with Arrays: Python 3
             colnames.mach        : array (shape=75, dtype=float64)
             colnames.alpha       : array (shape=75, dtype=float64)
             colnames.beta        : array (shape=75, dtype=float64)
-            colnames.config      : list (len=75, type=str)
+            colnames.config      : list (len=75, type=unicode)
             colnames.mach        : array (shape=75, dtype=float64)
             colnames.alpha       : array (shape=75, dtype=float64)
             colnames.beta        : array (shape=75, dtype=float64)
-            colnames.config      : list (len=75, type=str)
+            colnames.config      : list (len=75, type=unicode)
             cols_with_array.mach : array (shape=3, dtype=float64)
             cols_with_array.alpha: array (shape=3, dtype=float64)
             cols_with_array.beta : array (shape=3, dtype=float64)

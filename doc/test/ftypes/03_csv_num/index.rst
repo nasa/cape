@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2019-12-31 at 10:20 PST
+   on 2021-10-13 at 10:34 PDT
 
-Test ``03_csv_num``
-=====================
+Test ``03_csv_num``: PASS
+===========================
+
+This test PASSED on 2021-10-13 at 10:34 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/pycart/test/ftypes/03_csv_num/``
+    ``test/ftypes/03_csv_num/``
 
 and the working folder for the test is
 
@@ -30,10 +32,10 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import CSV module
-        import cape.attdb.ftypes.csv as csv
+        import cape.attdb.ftypes.csvfile as csvfile
         
         # Read CSV file
-        db = csv.CSVFile("wt-sample.csv")
+        db = csvfile.CSVFile("wt-sample.csv")
         
         # Case number
         i = 2
@@ -57,18 +59,18 @@ The commands executed by this test are
         # -*- coding: utf-8 -*-
         
         # Import CSV module
-        import cape.attdb.ftypes.csv as csv
+        import cape.attdb.ftypes.csvfile as csvfile
         
         # Read CSV file
-        db = csv.CSVFile("wt-sample.csv", DefaultType="int32")
+        db = csvfile.CSVFile("wt-sample.csv", DefaultType="int32")
         
         # Print data types
         for col in db.cols:
             print("%-5s: %s" % (col, db[col].dtype.name))
         
 
-Command 1: Clean CSV read: Python 2
-------------------------------------
+Command 1: Clean CSV read: Python 2 (PASS)
+-------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -81,8 +83,7 @@ Command 1: Clean CSV read: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.521738 seconds
-    * Cumulative time: 0.521738 seconds
+    * Command took 0.53 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -95,8 +96,8 @@ Command 1: Clean CSV read: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Clean CSV read: Python 3
-------------------------------------
+Command 2: Clean CSV read: Python 3 (PASS)
+-------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -109,8 +110,8 @@ Command 2: Clean CSV read: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.779107 seconds
-    * Cumulative time: 1.30085 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 1.08 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -123,8 +124,8 @@ Command 2: Clean CSV read: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Specified :class:`float` types: Python 2
-----------------------------------------------------
+Command 3: Specified :class:`float` types: Python 2 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -137,8 +138,8 @@ Command 3: Specified :class:`float` types: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.515233 seconds
-    * Cumulative time: 1.81608 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.47 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -155,8 +156,8 @@ Command 3: Specified :class:`float` types: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Specified :class:`float` types: Python 3
-----------------------------------------------------
+Command 4: Specified :class:`float` types: Python 3 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -169,8 +170,8 @@ Command 4: Specified :class:`float` types: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.728275 seconds
-    * Cumulative time: 2.54435 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 1.98 seconds
 :STDOUT:
     * **PASS**
     * Target:
