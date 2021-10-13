@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 10:44 PDT
 
-Test ``09_rdb_lleval``
-========================
+Test ``09_rdb_lleval``: PASS
+==============================
+
+This test PASSED on 2021-10-13 at 10:44 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/09_rdb_lleval/``
+    ``test/attdb/09_rdb_lleval/``
 
 and the working folder for the test is
 
@@ -20,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_eval.py
         $ python3 test01_eval.py
 
-Command 1: Interpolate line loads: Python 2
---------------------------------------------
+Command 1: Interpolate line loads: Python 2 (PASS)
+---------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -34,8 +36,7 @@ Command 1: Interpolate line loads: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.928535 seconds
-    * Cumulative time: 0.928535 seconds
+    * Command took 5.22 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -52,8 +53,8 @@ Command 1: Interpolate line loads: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Interpolate line loads: Python 3
---------------------------------------------
+Command 2: Interpolate line loads: Python 3 (PASS)
+---------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -66,8 +67,8 @@ Command 2: Interpolate line loads: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.94114 seconds
-    * Cumulative time: 1.86967 seconds
+    * Command took 3.70 seconds
+    * Cumulative time: 8.92 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -142,11 +142,11 @@ def compare_files(fn1, fn2, **kw):
     # Check if first file (nominal output) exists
     if not os.path.isfile(fn1):
         # Missing required file
-        return False
+        return False, 0
     # Check if second file (target output) exists
     if not os.path.isfile(fn2):
         # Test successful if no target
-        return True
+        return True, None
     # Open both files
     f1 = open(fn1, 'r')
     f2 = open(fn2, 'r')

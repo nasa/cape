@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 10:44 PDT
 
-Test ``08_dbfm_eval``
-=======================
+Test ``08_dbfm_eval``: PASS
+=============================
+
+This test PASSED on 2021-10-13 at 10:44 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/08_dbfm_eval/``
+    ``test/attdb/08_dbfm_eval/``
 
 and the working folder for the test is
 
@@ -26,8 +28,8 @@ The commands executed by this test are
         $ python2 test04_aoap.py
         $ python3 test04_aoap.py
 
-Command 1: Evaluate FM cols: Python 2
---------------------------------------
+Command 1: Evaluate FM cols: Python 2 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -40,8 +42,7 @@ Command 1: Evaluate FM cols: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.559291 seconds
-    * Cumulative time: 0.559291 seconds
+    * Command took 0.52 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -62,8 +63,8 @@ Command 1: Evaluate FM cols: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Evaluate FM cols: Python 3
---------------------------------------
+Command 2: Evaluate FM cols: Python 3 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -76,8 +77,8 @@ Command 2: Evaluate FM cols: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.718369 seconds
-    * Cumulative time: 1.27766 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 1.08 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -98,8 +99,8 @@ Command 2: Evaluate FM cols: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Evaluate *CLMX* and *CLNX*: Python 2
-------------------------------------------------
+Command 3: Evaluate *CLMX* and *CLNX*: Python 2 (PASS)
+-------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -112,8 +113,8 @@ Command 3: Evaluate *CLMX* and *CLNX*: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.446528 seconds
-    * Cumulative time: 1.72419 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.47 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -133,8 +134,8 @@ Command 3: Evaluate *CLMX* and *CLNX*: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Evaluate *CLMX* and *CLNX*: Python 3
-------------------------------------------------
+Command 4: Evaluate *CLMX* and *CLNX*: Python 3 (PASS)
+-------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -147,8 +148,8 @@ Command 4: Evaluate *CLMX* and *CLNX*: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.558975 seconds
-    * Cumulative time: 2.28316 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 1.98 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -168,8 +169,8 @@ Command 4: Evaluate *CLMX* and *CLNX*: Python 3
 :STDERR:
     * **PASS**
 
-Command 5: Evaluate *q* and *T*: Python 2
-------------------------------------------
+Command 5: Evaluate *q* and *T*: Python 2 (PASS)
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -182,8 +183,8 @@ Command 5: Evaluate *q* and *T*: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.440592 seconds
-    * Cumulative time: 2.72376 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 2.47 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -198,8 +199,8 @@ Command 5: Evaluate *q* and *T*: Python 2
 :STDERR:
     * **PASS**
 
-Command 6: Evaluate *q* and *T*: Python 3
-------------------------------------------
+Command 6: Evaluate *q* and *T*: Python 3 (PASS)
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -212,8 +213,8 @@ Command 6: Evaluate *q* and *T*: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.537341 seconds
-    * Cumulative time: 3.2611 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 3.03 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -228,8 +229,8 @@ Command 6: Evaluate *q* and *T*: Python 3
 :STDERR:
     * **PASS**
 
-Command 7: Process *aoap* and *phip*: Python 2
------------------------------------------------
+Command 7: Process *aoap* and *phip*: Python 2 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -242,8 +243,8 @@ Command 7: Process *aoap* and *phip*: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.439367 seconds
-    * Cumulative time: 3.70046 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 3.62 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -268,8 +269,8 @@ Command 7: Process *aoap* and *phip*: Python 2
 :STDERR:
     * **PASS**
 
-Command 8: Process *aoap* and *phip*: Python 3
------------------------------------------------
+Command 8: Process *aoap* and *phip*: Python 3 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -282,8 +283,8 @@ Command 8: Process *aoap* and *phip*: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53397 seconds
-    * Cumulative time: 4.23443 seconds
+    * Command took 0.76 seconds
+    * Cumulative time: 4.38 seconds
 :STDOUT:
     * **PASS**
     * Target:

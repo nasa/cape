@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 10:43 PDT
 
-Test ``07_dbfm_regularize``
-=============================
+Test ``07_dbfm_regularize``: PASS
+===================================
+
+This test PASSED on 2021-10-13 at 10:43 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/07_dbfm_regularize/``
+    ``test/attdb/07_dbfm_regularize/``
 
 and the working folder for the test is
 
@@ -22,8 +24,8 @@ The commands executed by this test are
         $ python2 test02_rbf.py
         $ python3 test02_rbf.py
 
-Command 1: Regularize using griddata: Python 2
------------------------------------------------
+Command 1: Regularize using griddata: Python 2 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -36,8 +38,7 @@ Command 1: Regularize using griddata: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.06657 seconds
-    * Cumulative time: 1.06657 seconds
+    * Command took 0.94 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -54,8 +55,8 @@ Command 1: Regularize using griddata: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Regularize using griddata: Python 3
------------------------------------------------
+Command 2: Regularize using griddata: Python 3 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -68,8 +69,8 @@ Command 2: Regularize using griddata: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.16456 seconds
-    * Cumulative time: 2.23114 seconds
+    * Command took 1.08 seconds
+    * Cumulative time: 2.01 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -86,8 +87,8 @@ Command 2: Regularize using griddata: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Regularize using RBF: Python 2
-------------------------------------------
+Command 3: Regularize using RBF: Python 2 (PASS)
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -100,8 +101,8 @@ Command 3: Regularize using RBF: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.510077 seconds
-    * Cumulative time: 2.74121 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 2.54 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -117,8 +118,8 @@ Command 3: Regularize using RBF: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Regularize using RBF: Python 3
-------------------------------------------
+Command 4: Regularize using RBF: Python 3 (PASS)
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -131,8 +132,8 @@ Command 4: Regularize using RBF: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.60179 seconds
-    * Cumulative time: 3.343 seconds
+    * Command took 0.85 seconds
+    * Cumulative time: 3.39 seconds
 :STDOUT:
     * **PASS**
     * Target:

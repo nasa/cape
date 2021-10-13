@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 10:43 PDT
 
-Test ``01_import``
-====================
+Test ``01_import``: PASS
+==========================
+
+This test PASSED on 2021-10-13 at 10:43 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/01_import/``
+    ``test/attdb/01_import/``
 
 and the working folder for the test is
 
@@ -32,8 +34,8 @@ The commands executed by this test are
         import cape.attdb.rdb
         
 
-Command 1: Import :mod:`cape.attdb.rdb`: Python2
--------------------------------------------------
+Command 1: Import :mod:`cape.attdb.rdb`: Python2 (PASS)
+--------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -46,15 +48,14 @@ Command 1: Import :mod:`cape.attdb.rdb`: Python2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.587881 seconds
-    * Cumulative time: 0.587881 seconds
+    * Command took 0.43 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 2: Import :mod:`cape.attdb.rdb`: Python3
--------------------------------------------------
+Command 2: Import :mod:`cape.attdb.rdb`: Python3 (PASS)
+--------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -67,8 +68,8 @@ Command 2: Import :mod:`cape.attdb.rdb`: Python3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.641435 seconds
-    * Cumulative time: 1.22932 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 0.98 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

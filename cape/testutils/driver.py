@@ -1038,7 +1038,7 @@ class TestDriver(object):
             # Get options for file comparisons
             kw_comp = self.opts.get_FileComparisonOpts(i)
             # Compare STDOUT files
-            q,i2 = fileutils.compare_files(fnout, fntout, **kw_comp)
+            q, i2 = fileutils.compare_files(fnout, fntout, **kw_comp)
         # Save result
         self.TestStatus_STDOUT[i] = q
         # Update overall status

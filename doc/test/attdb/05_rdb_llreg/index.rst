@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 10:43 PDT
 
-Test ``05_rdb_llreg``
-=======================
+Test ``05_rdb_llreg``: PASS
+=============================
+
+This test PASSED on 2021-10-13 at 10:43 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/05_rdb_llreg/``
+    ``test/attdb/05_rdb_llreg/``
 
 and the working folder for the test is
 
@@ -20,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_griddata.py
         $ python3 test01_griddata.py
 
-Command 1: Regularize line load using griddata: Python 2
----------------------------------------------------------
+Command 1: Regularize line load using griddata: Python 2 (PASS)
+----------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -34,8 +36,7 @@ Command 1: Regularize line load using griddata: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.653805 seconds
-    * Cumulative time: 0.653805 seconds
+    * Command took 0.64 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -48,8 +49,8 @@ Command 1: Regularize line load using griddata: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Regularize line load using griddata: Python 3
----------------------------------------------------------
+Command 2: Regularize line load using griddata: Python 3 (PASS)
+----------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -62,8 +63,8 @@ Command 2: Regularize line load using griddata: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.857231 seconds
-    * Cumulative time: 1.51104 seconds
+    * Command took 0.84 seconds
+    * Cumulative time: 1.48 seconds
 :STDOUT:
     * **PASS**
     * Target:

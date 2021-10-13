@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 10:43 PDT
 
-Test ``03_rdb_find``
-======================
+Test ``03_rdb_find``: PASS
+============================
+
+This test PASSED on 2021-10-13 at 10:43 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/03_rdb_find/``
+    ``test/attdb/03_rdb_find/``
 
 and the working folder for the test is
 
@@ -22,8 +24,8 @@ The commands executed by this test are
         $ python2 test02_multi.py
         $ python3 test02_multi.py
 
-Command 1: Basic DataKit search: Python 2
-------------------------------------------
+Command 1: Basic DataKit search: Python 2 (PASS)
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -36,8 +38,7 @@ Command 1: Basic DataKit search: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.438374 seconds
-    * Cumulative time: 0.438374 seconds
+    * Command took 0.47 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -52,8 +53,8 @@ Command 1: Basic DataKit search: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Basic DataKit search: Python 3
-------------------------------------------
+Command 2: Basic DataKit search: Python 3 (PASS)
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -66,8 +67,8 @@ Command 2: Basic DataKit search: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.511946 seconds
-    * Cumulative time: 0.95032 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 1.04 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -82,8 +83,8 @@ Command 2: Basic DataKit search: Python 3
 :STDERR:
     * **PASS**
 
-Command 3: Multiple-condition search: Python 2
------------------------------------------------
+Command 3: Multiple-condition search: Python 2 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -96,8 +97,8 @@ Command 3: Multiple-condition search: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.487851 seconds
-    * Cumulative time: 1.43817 seconds
+    * Command took 0.54 seconds
+    * Cumulative time: 1.57 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -127,8 +128,8 @@ Command 3: Multiple-condition search: Python 2
 :STDERR:
     * **PASS**
 
-Command 4: Multiple-condition search: Python 3
------------------------------------------------
+Command 4: Multiple-condition search: Python 3 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -141,8 +142,8 @@ Command 4: Multiple-condition search: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.566599 seconds
-    * Cumulative time: 2.00477 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 2.13 seconds
 :STDOUT:
     * **PASS**
     * Target:

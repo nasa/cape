@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-04-28 at 13:51 PDT
+   on 2021-10-13 at 10:43 PDT
 
-Test ``06_rdb_integrate``
-===========================
+Test ``06_rdb_integrate``: PASS
+=================================
+
+This test PASSED on 2021-10-13 at 10:43 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/ddalle/usr/cape/test/attdb/06_rdb_integrate/``
+    ``test/attdb/06_rdb_integrate/``
 
 and the working folder for the test is
 
@@ -20,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_trapz.py
         $ python3 test01_trapz.py
 
-Command 1: Trapezoidal line load integration: Python 2
--------------------------------------------------------
+Command 1: Trapezoidal line load integration: Python 2 (PASS)
+--------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -34,8 +36,7 @@ Command 1: Trapezoidal line load integration: Python 2
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.589775 seconds
-    * Cumulative time: 0.589775 seconds
+    * Command took 0.42 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -59,8 +60,8 @@ Command 1: Trapezoidal line load integration: Python 2
 :STDERR:
     * **PASS**
 
-Command 2: Trapezoidal line load integration: Python 3
--------------------------------------------------------
+Command 2: Trapezoidal line load integration: Python 3 (PASS)
+--------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -73,8 +74,8 @@ Command 2: Trapezoidal line load integration: Python 3
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.810239 seconds
-    * Cumulative time: 1.40001 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 0.99 seconds
 :STDOUT:
     * **PASS**
     * Target:

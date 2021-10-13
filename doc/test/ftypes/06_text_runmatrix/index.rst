@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 10:34 PDT
+   on 2021-10-13 at 10:48 PDT
 
 Test ``06_text_runmatrix``: **FAIL** (command 1)
 ==================================================
 
-This test **FAILED** (command 1) on 2021-10-13 at 10:34 PDT
+This test **FAILED** (command 1) on 2021-10-13 at 10:48 PDT
 
 This test is run in the folder:
 
@@ -58,7 +58,7 @@ Command 1: First-column BoolMap: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
+    * Command took 0.42 seconds
 :STDOUT:
     * **FAIL**
     * Actual:

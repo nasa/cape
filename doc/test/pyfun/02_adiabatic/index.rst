@@ -1,13 +1,15 @@
 
 .. This documentation written by TestDriver()
-   on 2021-03-29 at 10:29 PDT
+   on 2021-10-13 at 10:53 PDT
 
-Test ``02_adiabatic``
-=======================
+Test ``02_adiabatic``: PASS
+=============================
+
+This test PASSED on 2021-10-13 at 10:53 PDT
 
 This test is run in the folder:
 
-    ``/u/wk/jmeeroff/usr/cape/test/pyfun/02_adiabatic/``
+    ``test/pyfun/02_adiabatic/``
 
 and the working folder for the test is
 
@@ -24,8 +26,8 @@ The commands executed by this test are
         $ pyfun -f pyFun03.json -I 2 --no-start
         $ cat bullet/m0.80a10.0b0.0/fun3d.00.nml
 
-Command 1: Create Input Files
-------------------------------
+Command 1: Create Input Files (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -38,15 +40,14 @@ Command 1: Create Input Files
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.539479 seconds
-    * Cumulative time: 0.539479 seconds
+    * Command took 0.66 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 2: Check Adiabatic BC Setting : all boundaries
--------------------------------------------------------
+Command 2: Check Adiabatic BC Setting : all boundaries (PASS)
+--------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -59,8 +60,8 @@ Command 2: Check Adiabatic BC Setting : all boundaries
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.00871801 seconds
-    * Cumulative time: 0.548197 seconds
+    * Command took 0.01 seconds
+    * Cumulative time: 0.67 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -199,8 +200,8 @@ Command 2: Check Adiabatic BC Setting : all boundaries
 :STDERR:
     * **PASS**
 
-Command 3: Create Input Files
-------------------------------
+Command 3: Create Input Files (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -213,15 +214,15 @@ Command 3: Create Input Files
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54489 seconds
-    * Cumulative time: 1.09309 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 1.27 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 4: Check Adiabatic BC Setting : specified wall selection
------------------------------------------------------------------
+Command 4: Check Adiabatic BC Setting : specified wall selection (PASS)
+------------------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -234,8 +235,8 @@ Command 4: Check Adiabatic BC Setting : specified wall selection
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.008255 seconds
-    * Cumulative time: 1.10134 seconds
+    * Command took 0.01 seconds
+    * Cumulative time: 1.28 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -372,8 +373,8 @@ Command 4: Check Adiabatic BC Setting : specified wall selection
 :STDERR:
     * **PASS**
 
-Command 5: Create Input Files
-------------------------------
+Command 5: Create Input Files (PASS)
+-------------------------------------
 
 :Command:
     .. code-block:: console
@@ -386,15 +387,15 @@ Command 5: Create Input Files
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.548949 seconds
-    * Cumulative time: 1.65029 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 1.84 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 6: Check Adiabatic BC Setting : no boundaries
-------------------------------------------------------
+Command 6: Check Adiabatic BC Setting : no boundaries (PASS)
+-------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -407,8 +408,8 @@ Command 6: Check Adiabatic BC Setting : no boundaries
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.00882339 seconds
-    * Cumulative time: 1.65911 seconds
+    * Command took 0.01 seconds
+    * Cumulative time: 1.85 seconds
 :STDOUT:
     * **PASS**
     * Target:
