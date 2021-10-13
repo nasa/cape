@@ -1,138 +1,11 @@
-Command 1: Clean CSV read: Python 2 (PASS)
--------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test01_clean.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.43 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        run257.03_m0.974a2.0b-0.0
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 2: Clean CSV read: Python 3 (PASS)
--------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_clean.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 0.93 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        run257.03_m0.974a2.0b-0.0
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 3: Specified :class:`float` types: Python 2 (PASS)
------------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.42 seconds
-    * Cumulative time: 1.35 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        run  : int32
-        pt   : int32
-        mach : float64
-        alpha: float64
-        beta : float64
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 4: Specified :class:`float` types: Python 3 (PASS)
------------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.85 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        run  : int32
-        pt   : int32
-        mach : float64
-        alpha: float64
-        beta : float64
-        
-
-:STDERR:
-    * **PASS**
-
-
-
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:50 PDT
+   on 2021-10-13 at 13:23 PDT
 
 Test ``03_csv_num``: PASS
 ===========================
 
-This test PASSED on 2021-10-13 at 11:50 PDT
+This test PASSED on 2021-10-13 at 13:23 PDT
 
 This test is run in the folder:
 
@@ -210,7 +83,7 @@ Command 1: Clean CSV read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
+    * Command took 0.39 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -237,8 +110,8 @@ Command 2: Clean CSV read: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 0.93 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.90 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -266,7 +139,7 @@ Command 3: Specified :class:`float` types: Python 2 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.42 seconds
-    * Cumulative time: 1.35 seconds
+    * Cumulative time: 1.32 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -298,7 +171,7 @@ Command 4: Specified :class:`float` types: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.51 seconds
-    * Cumulative time: 1.85 seconds
+    * Cumulative time: 1.83 seconds
 :STDOUT:
     * **PASS**
     * Target:

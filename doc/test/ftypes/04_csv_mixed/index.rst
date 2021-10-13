@@ -1,150 +1,11 @@
-Command 1: Minimal Definitions: Python 2 (PASS)
-------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test01_minimal.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.39 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 2.1
-           alpha: 4.0
-            beta: 1.5
-          config: poweroff
-           Label: 
-            user: @user3
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 2: Minimal Definitions: Python 3 (PASS)
-------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_minimal.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 0.90 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 2.1
-           alpha: 4.0
-            beta: 1.5
-          config: poweroff
-           Label: 
-            user: @user3
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 3: Specified dtypes: Python 2 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.39 seconds
-    * Cumulative time: 1.28 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float16 (ndarray)
-           alpha: float32 (ndarray)
-            beta: float32 (ndarray)
-          config: str (list)
-           Label: str (list)
-            user: str (list)
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 4: Specified dtypes: Python 3 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.79 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float16 (ndarray)
-           alpha: float32 (ndarray)
-            beta: float32 (ndarray)
-          config: str (list)
-           Label: str (list)
-            user: str (list)
-        
-
-:STDERR:
-    * **PASS**
-
-
-
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:50 PDT
+   on 2021-10-13 at 13:23 PDT
 
-Test ``04_csv_mixed``: PASS
-=============================
+Test ``04_csv_mixed``: **FAIL** (command 1)
+=============================================
 
-This test PASSED on 2021-10-13 at 11:50 PDT
+This test **FAILED** (command 1) on 2021-10-13 at 13:23 PDT
 
 This test is run in the folder:
 
@@ -214,8 +75,8 @@ The commands executed by this test are
             print("%8s: %s (%s)" % (col, dtype, clsname))
         
 
-Command 1: Minimal Definitions: Python 2 (PASS)
-------------------------------------------------
+Command 1: Minimal Definitions: Python 2 (**FAIL**)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -228,9 +89,21 @@ Command 1: Minimal Definitions: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.39 seconds
+    * Command took 0.43 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: none
+
+            mach: 2.1
+           alpha: 4.0
+            beta: 1.5
+          config: poweroff
+           Label:   
+            user: @user3
+        
+
     * Target:
 
       .. code-block:: none
@@ -241,105 +114,6 @@ Command 1: Minimal Definitions: Python 2 (PASS)
           config: poweroff
            Label: 
             user: @user3
-        
-
-:STDERR:
-    * **PASS**
-
-Command 2: Minimal Definitions: Python 3 (PASS)
-------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_minimal.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 0.90 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 2.1
-           alpha: 4.0
-            beta: 1.5
-          config: poweroff
-           Label: 
-            user: @user3
-        
-
-:STDERR:
-    * **PASS**
-
-Command 3: Specified dtypes: Python 2 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.39 seconds
-    * Cumulative time: 1.28 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float16 (ndarray)
-           alpha: float32 (ndarray)
-            beta: float32 (ndarray)
-          config: str (list)
-           Label: str (list)
-            user: str (list)
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: Specified dtypes: Python 3 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.79 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float16 (ndarray)
-           alpha: float32 (ndarray)
-            beta: float32 (ndarray)
-          config: str (list)
-           Label: str (list)
-            user: str (list)
         
 
 :STDERR:

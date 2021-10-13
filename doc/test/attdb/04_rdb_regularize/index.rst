@@ -1,138 +1,11 @@
-Command 1: Regularize using griddata: Python 2 (PASS)
-------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test01_griddata.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.44 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        max error(regalpha) = 0.00
-        max error(regbeta)  = 0.00
-        monotonic(regCN): True
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 2: Regularize using griddata: Python 3 (PASS)
-------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_griddata.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 1.01 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        max error(regalpha) = 0.00
-        max error(regbeta)  = 0.00
-        monotonic(regCN): True
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 3: Regularize using RBF: Python 2 (PASS)
--------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_rbf.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.52 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        max error(regalpha) = 0.00
-        max error(regbeta)  = 0.00
-        monotonic(regCN): True
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 4: Regularize using RBF: Python 3 (PASS)
--------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_rbf.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.55 seconds
-    * Cumulative time: 2.07 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        max error(regalpha) = 0.00
-        max error(regbeta)  = 0.00
-        monotonic(regCN): True
-        
-
-:STDERR:
-    * **PASS**
-
-
-
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:44 PDT
+   on 2021-10-13 at 13:24 PDT
 
 Test ``04_rdb_regularize``: PASS
 ==================================
 
-This test PASSED on 2021-10-13 at 11:44 PDT
+This test PASSED on 2021-10-13 at 13:24 PDT
 
 This test is run in the folder:
 
@@ -165,7 +38,7 @@ Command 1: Regularize using griddata: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
+    * Command took 0.53 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -194,8 +67,8 @@ Command 2: Regularize using griddata: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 1.01 seconds
+    * Command took 0.66 seconds
+    * Cumulative time: 1.18 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -224,8 +97,8 @@ Command 3: Regularize using RBF: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.52 seconds
+    * Command took 0.42 seconds
+    * Cumulative time: 1.60 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -255,7 +128,7 @@ Command 4: Regularize using RBF: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.55 seconds
-    * Cumulative time: 2.07 seconds
+    * Cumulative time: 2.15 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -3,120 +3,29 @@
     * Target:
         - :download:`FILE-target-00-00.txt`
 
-Command 1: Simple dense CSV writer: Python 2 (PASS)
-----------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test01_csv_dense.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-
-
 :Compare Files:
     * **PASS**
     * Target:
         - :download:`FILE-target-01-00.txt`
-
-Command 2: Simple dense CSV writer: Python 3 (PASS)
-----------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_csv_dense.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.02 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-
 
 :Compare Files:
     * **PASS**
     * Target:
         - :download:`FILE-target-02-00.txt`
 
-Command 3: CSV writer with defaults: Python 2 (PASS)
------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_csv_default.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.38 seconds
-    * Cumulative time: 1.40 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-
-
 :Compare Files:
     * **PASS**
     * Target:
         - :download:`FILE-target-03-00.txt`
 
-Command 4: CSV writer with defaults: Python 3 (PASS)
------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_csv_default.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 1.93 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-
-
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:44 PDT
+   on 2021-10-13 at 13:25 PDT
 
 Test ``11_rdb_writecsv``: PASS
 ================================
 
-This test PASSED on 2021-10-13 at 11:44 PDT
+This test PASSED on 2021-10-13 at 13:25 PDT
 
 This test is run in the folder:
 
@@ -149,7 +58,7 @@ Command 1: Simple dense CSV writer: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
+    * Command took 0.59 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -169,8 +78,8 @@ Command 2: Simple dense CSV writer: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.02 seconds
+    * Command took 0.75 seconds
+    * Cumulative time: 1.34 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -190,8 +99,8 @@ Command 3: CSV writer with defaults: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.38 seconds
-    * Cumulative time: 1.40 seconds
+    * Command took 0.54 seconds
+    * Cumulative time: 1.88 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -212,7 +121,7 @@ Command 4: CSV writer with defaults: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.53 seconds
-    * Cumulative time: 1.93 seconds
+    * Cumulative time: 2.41 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

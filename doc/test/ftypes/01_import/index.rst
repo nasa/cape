@@ -1,56 +1,11 @@
-Command 1: Import :mod:`cape.attdb.ftypes`: Python2 (PASS)
------------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test01_import.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.38 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-
-
-Command 2: Import :mod:`cape.attdb.ftypes`: Python3 (PASS)
------------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_import.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.70 seconds
-    * Cumulative time: 1.08 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-
-
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:50 PDT
+   on 2021-10-13 at 13:23 PDT
 
 Test ``01_import``: PASS
 ==========================
 
-This test PASSED on 2021-10-13 at 11:50 PDT
+This test PASSED on 2021-10-13 at 13:23 PDT
 
 This test is run in the folder:
 
@@ -93,7 +48,7 @@ Command 1: Import :mod:`cape.attdb.ftypes`: Python2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.38 seconds
+    * Command took 0.43 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -113,8 +68,8 @@ Command 2: Import :mod:`cape.attdb.ftypes`: Python3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.70 seconds
-    * Cumulative time: 1.08 seconds
+    * Command took 0.75 seconds
+    * Cumulative time: 1.17 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

@@ -1,72 +1,11 @@
-Command 1: CSV read; MAT write/read: Python 2 (PASS)
------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test01_csv_to_mat.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.44 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case 13: m0.95a5.00 CA=0.526
-        Case 13: m0.95a5.00 CA=0.526
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 2: CSV read; MAT write/read: Python 3 (PASS)
------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_csv_to_mat.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 0.97 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case 13: m0.95a5.00 CA=0.526
-        Case 13: m0.95a5.00 CA=0.526
-        
-
-:STDERR:
-    * **PASS**
-
-
-
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:44 PDT
+   on 2021-10-13 at 13:24 PDT
 
 Test ``02_rdb_io``: PASS
 ==========================
 
-This test PASSED on 2021-10-13 at 11:44 PDT
+This test PASSED on 2021-10-13 at 13:24 PDT
 
 This test is run in the folder:
 
@@ -125,8 +64,8 @@ Command 2: CSV read; MAT write/read: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 0.97 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 1.01 seconds
 :STDOUT:
     * **PASS**
     * Target:

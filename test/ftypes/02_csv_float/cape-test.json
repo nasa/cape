@@ -14,10 +14,10 @@
         "python3 test02_dtypes.py",
         "python2 test03_simple.py",
         "python3 test03_simple.py",
-        "python2 test04_c.py",
-        "python3 test04_c.py",
         "python2 test05_py.py",
-        "python3 test05_py.py"
+        "python3 test05_py.py",
+        "python2 test04_c.py",
+        "python3 test04_c.py"
     ],
     "TargetSTDOUT": [
         "test.01.out",
@@ -38,10 +38,10 @@
         "Specified :class:`float` types: Python 3",
         "Simple CSV read: Python 2",
         "Simple CSV read: Python 3",
-        "Clean C read: Python 2",
-        "Clean C read: Python 3",
         "Clean Python read: Python 2",
-        "Clean Python read: Python 3"
+        "Clean Python read: Python 3",
+        "Clean C read: Python 2",
+        "Clean C read: Python 3"
     ],
     "DocFilesShow": [
         "test01_clean.py",

@@ -95,7 +95,7 @@ from . import manage
 
 
 # Save version number
-version = "1.0pre0"
+version = "1.0a4"
 __version__ = version
 
 # Get the root directory of the module.

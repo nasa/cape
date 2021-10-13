@@ -1,78 +1,11 @@
-Command 1: Interpolate line loads: Python 2 (PASS)
----------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test01_eval.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 5.25 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        alpha: 1.50
-        beta: 0.50
-        bullet.dCN.size: 51
-        bullet.dCN.xargs: ['bullet.x']
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 2: Interpolate line loads: Python 3 (PASS)
----------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_eval.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 3.71 seconds
-    * Cumulative time: 8.96 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        alpha: 1.50
-        beta: 0.50
-        bullet.dCN.size: 51
-        bullet.dCN.xargs: ['bullet.x']
-        
-
-:STDERR:
-    * **PASS**
-
-
-
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:44 PDT
+   on 2021-10-13 at 13:24 PDT
 
 Test ``09_rdb_lleval``: PASS
 ==============================
 
-This test PASSED on 2021-10-13 at 11:44 PDT
+This test PASSED on 2021-10-13 at 13:24 PDT
 
 This test is run in the folder:
 
@@ -103,7 +36,7 @@ Command 1: Interpolate line loads: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 5.25 seconds
+    * Command took 5.16 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -134,8 +67,8 @@ Command 2: Interpolate line loads: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 3.71 seconds
-    * Cumulative time: 8.96 seconds
+    * Command took 3.63 seconds
+    * Cumulative time: 8.79 seconds
 :STDOUT:
     * **PASS**
     * Target:

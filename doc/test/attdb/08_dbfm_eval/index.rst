@@ -1,308 +1,11 @@
-Command 1: Evaluate FM cols: Python 2 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test01_fm.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.57 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        alpha: 1.50
-        beta: 0.50
-        bullet.CA: 0.24
-        bullet.CY: 0.02
-        bullet.CN: 0.07
-        bullet.CLL: 0.00
-        bullet.CLM: 0.22
-        bullet.CLN: 0.07
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 2: Evaluate FM cols: Python 3 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_fm.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 1.32 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        alpha: 1.50
-        beta: 0.50
-        bullet.CA: 0.24
-        bullet.CY: 0.02
-        bullet.CN: 0.07
-        bullet.CLL: 0.00
-        bullet.CLM: 0.22
-        bullet.CLN: 0.07
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 3: Evaluate *CLMX* and *CLNX*: Python 2 (PASS)
--------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_CLMX.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.54 seconds
-    * Cumulative time: 1.86 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach : 0.90
-        alpha: 1.50
-        beta : 0.50
-        xMRP : 2.00
-        bullet.CLM : 0.218
-        bullet.CLMX: 0.352
-        bullet.CLN : 0.073
-        bullet.CLNX: 0.117
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 4: Evaluate *CLMX* and *CLNX*: Python 3 (PASS)
--------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_CLMX.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 2.38 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach : 0.90
-        alpha: 1.50
-        beta : 0.50
-        xMRP : 2.00
-        bullet.CLM : 0.218
-        bullet.CLMX: 0.352
-        bullet.CLN : 0.073
-        bullet.CLNX: 0.117
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 5: Evaluate *q* and *T*: Python 2 (PASS)
--------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test03_q.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.43 seconds
-    * Cumulative time: 2.81 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        q: 1250.00
-        T: 475.33
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 6: Evaluate *q* and *T*: Python 3 (PASS)
--------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_q.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 3.32 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        q: 1250.00
-        T: 475.33
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 7: Process *aoap* and *phip*: Python 2 (PASS)
-------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test04_aoap.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.44 seconds
-    * Cumulative time: 3.76 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        aoa : 1.50
-        beta: 0.50
-        aoap: 1.5811
-        phip: 18.4373
-        bullet.CA : 0.241 0.241 0.241
-        bullet.CY : 0.022 0.022 0.022
-        bullet.CN : 0.067 0.067 0.067
-        bullet.CLL: 0.000 0.000 0.000
-        bullet.CLM: 0.218 0.218 0.218
-        bullet.CLN: 0.073 0.073 0.073
-        aoap: size=578, dtype=float64
-        phip: size=578, dtype=float64
-        
-
-:STDERR:
-    * **PASS**
-
-
-
-Command 8: Process *aoap* and *phip*: Python 3 (PASS)
-------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test04_aoap.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 4.28 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        aoa : 1.50
-        beta: 0.50
-        aoap: 1.5811
-        phip: 18.4373
-        bullet.CA : 0.241 0.241 0.241
-        bullet.CY : 0.022 0.022 0.022
-        bullet.CN : 0.067 0.067 0.067
-        bullet.CLL: 0.000 0.000 0.000
-        bullet.CLM: 0.218 0.218 0.218
-        bullet.CLN: 0.073 0.073 0.073
-        aoap: size=578, dtype=float64
-        phip: size=578, dtype=float64
-        
-
-:STDERR:
-    * **PASS**
-
-
-
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:44 PDT
+   on 2021-10-13 at 13:24 PDT
 
 Test ``08_dbfm_eval``: PASS
 =============================
 
-This test PASSED on 2021-10-13 at 11:44 PDT
+This test PASSED on 2021-10-13 at 13:24 PDT
 
 This test is run in the folder:
 
@@ -339,7 +42,7 @@ Command 1: Evaluate FM cols: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
+    * Command took 0.54 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -374,8 +77,8 @@ Command 2: Evaluate FM cols: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 1.32 seconds
+    * Command took 0.73 seconds
+    * Cumulative time: 1.27 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -410,8 +113,8 @@ Command 3: Evaluate *CLMX* and *CLNX*: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54 seconds
-    * Cumulative time: 1.86 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 1.75 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -445,8 +148,8 @@ Command 4: Evaluate *CLMX* and *CLNX*: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 2.38 seconds
+    * Command took 0.77 seconds
+    * Cumulative time: 2.52 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -480,8 +183,8 @@ Command 5: Evaluate *q* and *T*: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
-    * Cumulative time: 2.81 seconds
+    * Command took 0.44 seconds
+    * Cumulative time: 2.96 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -510,8 +213,8 @@ Command 6: Evaluate *q* and *T*: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 3.32 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 3.47 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -541,7 +244,7 @@ Command 7: Process *aoap* and *phip*: Python 2 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.44 seconds
-    * Cumulative time: 3.76 seconds
+    * Cumulative time: 3.90 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -580,8 +283,8 @@ Command 8: Process *aoap* and *phip*: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 4.28 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 4.46 seconds
 :STDOUT:
     * **PASS**
     * Target:
