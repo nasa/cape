@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-14 at 10:30 PDT
+   on 2021-10-14 at 11:23 PDT
 
-Test ``01_bullet``: **FAIL** (command 3)
+Test ``01_bullet``: **FAIL** (command 4)
 ==========================================
 
-This test **FAILED** (command 3) on 2021-10-14 at 10:30 PDT
+This test **FAILED** (command 4) on 2021-10-14 at 11:23 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Case 1 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 95.42 seconds
+    * Command took 95.96 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -90,8 +90,8 @@ Command 2: Show DONE Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 95.99 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 96.55 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -119,8 +119,8 @@ Command 2: Show DONE Status (PASS)
 :STDERR:
     * **PASS**
 
-Command 3: Collect Aero (**FAIL**)
------------------------------------
+Command 3: Collect Aero (PASS)
+-------------------------------
 
 :Command:
     .. code-block:: console
@@ -128,37 +128,50 @@ Command 3: Collect Aero (**FAIL**)
         $ pyover -I 1 --fm
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.74 seconds
-    * Cumulative time: 96.73 seconds
+    * Command took 0.88 seconds
+    * Cumulative time: 97.44 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
+    * **PASS**
+
+Command 4: Check DataBook (Python 2) (**FAIL**)
+------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.54 seconds
+    * Cumulative time: 97.98 seconds
+:STDOUT:
     * **FAIL**
     * Actual:
 
-      .. code-block:: pytb
+      .. code-block:: none
 
-        Traceback (most recent call last):
-          File "/u/wk/ddalle/usr/cape/bin/pyover", line 8, in <module>
-            sys.exit(main())
-          File "/u/wk/ddalle/usr/cape/cape/pyover/cli.py", line 62, in main
-            cntl.cli(*a, **kw)
-          File "/u/wk/ddalle/usr/cape/cape/pyover/cntl.py", line 180, in cli
-            cmd = self.cli_cape(*a, **kw)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 664, in cli_cape
-            self.UpdateFM(**kw)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 100, in wrapper_func
-            v = func(self, *args, **kwargs)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 3607, in UpdateFM
-            self.ReadDataBook(comp=[])
-          File "/u/wk/ddalle/usr/cape/cape/pyover/cntl.py", line 219, in ReadDataBook
-            comp = list(np.array(comp).flatten())
-        NameError: global name 'np' is not defined
+        CN = 0.221
         
 
+    * Target:
+
+      .. code-block:: none
+
+        CN = <valint>[0.190,0.206]
+        
+
+:STDERR:
+    * **PASS**
 

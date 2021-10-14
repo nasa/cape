@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 :mod:`cape.pyover.cntl`: OVERFLOW control module 
 ==================================================
@@ -45,6 +46,7 @@ import subprocess as sp
 from datetime import datetime
 
 # Third-party
+import numpy as np
 
 # Local imports
 from . import options
