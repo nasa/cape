@@ -6,9 +6,9 @@ r"""
 
 This module provides the class :class:`cape.pyfun.plt.Plt`, which 
 intends to read and write Tecplot binary or ASCII PLT files for surface
-grid solutions from FUN3D. It is based on the generic PLT interface, :class:`cape.bin.plt.Plt`,
-which does not use the TecIO library to avoid causing unnecessary 
-dependencies for the software.
+grid solutions from FUN3D. It is based on the generic PLT interface,
+:class:`cape.bin.plt.Plt`, which does not use the TecIO library to avoid
+causing unnecessary dependencies for the software.
 
 This version of the module has several modifications that are
 particular to FUN3D solutions.  It has a special method for calculating 
@@ -30,7 +30,6 @@ input to ``triload`` and other post-processing based on the
     * :mod:`cape.pyfun.mapbc`
     * :mod:`pc_Tri2Plt`
     * :mod:`pc_Plt2Tri`
-
 """
 
 # Standard library modules
@@ -42,9 +41,7 @@ import numpy as np
 
 # Local imports
 from . import mapbc
-import cape.io
-import cape.plt
-import cape.tri
+from .. import plt as capeplt
 
 
 # Convert a PLT to TRIQ
@@ -98,8 +95,9 @@ def Plt2Triq(fplt, ftriq=None, **kw):
     # Write triangulation
     triq.Write(ftriq, **kw)
 
+
 # Tecplot class
-class Plt(cape.plt.Plt):
+class Plt(capeplt.Plt):
     r"""Interface for Tecplot PLT files
     
     :Call:
@@ -172,7 +170,4 @@ class Plt(cape.plt.Plt):
             self.qmax[n,-1] = np.max(cp)
             # Append the other random info
             self.VarLocs[n] = np.append(self.VarLocs[n], self.VarLocs[n][k])
-            
-
-# class Plt
 

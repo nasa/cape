@@ -1,16 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-Calculate Forces and Moments on a TRIQ File: ``pc_TriqFM.py``
+:mod:`cape.triqfm`: Command-line interface to ``triqfm`` tool
+==============================================================
+
+This function provides the Python function :func:`triqfm` that executes
+the TriqFM functionality and the function :func:`main` that accesses
+this function from the command line.
+
+"""
+
+# Standard library
+import json
+import sys
+
+# Third-party modules
+import numpy as np
+
+# Local imports
+from . import argread
+from . import text as textutils
+from .tri import Tri, Triq
+from .cfdx.options.util import loadJSONFile
+
+
+HELP_TRIQFM = r"""
+``triqfm``: Calculate forces and moments on a ``.triq`` file
 =============================================================
 
-Calculate the integrated forces and moments on a triangulated surface
+Calculate the integrated forces and moments on a triangulated surface.
+This can calculate the forces and moments on one or many subcomponents
+of the annotated surface triangulation and write all the results to
+parametrically named files.
 
 :Usage:
     .. code-block:: console
     
-        $ pc_TriqFM.py TRIQ COMP1 COMP2 [...] [OPTIONS]
-        $ pc_TriqFM.py -h
         $ triqfm TRIQ COMP1 COMP2 [...] [OPTIONS]
         $ triqfm -h
 
@@ -82,27 +107,16 @@ Calculate the integrated forces and moments on a triangulated surface
     * 2017-02-17 ``@ddalle``: Version 1.0
 """
 
-# Standard library
-import json
-import sys
-
-# CAPE modules
-import cape.tri
-import cape.argread
-
-# CAPE modules: direct import
-from cape.cfdx.options.util import loadJSONFile
-
 
 # Main function
-def TriqFM(*a, **kw):
+def triqfm(*a, **kw):
     r"""Extract forces and moments from a TRIQ file
     
     Note that both *triq* and *comps* can be overwritten by keyword
     arguments even if specified using positional arguments.
     
     :Call:
-        >>> C = TriqFM(triq, *comps, **kw)
+        >>> C = triqfm(triq, *comps, **kw)
     :Inputs:
         *triq*: {``"grid.i.triq"``} | :class:`str`
             Name of TRIQ annotated triangulation file
@@ -135,10 +149,11 @@ def TriqFM(*a, **kw):
         *MRP* {[*XMRP*, *YMRP*, *ZMRP*]} | :class:`list`
             Moment reference point
     :Outputs:
-        *C*: :class:`dict` (:class:`float`)
+        *FM*: :class:`dict`\ [:class:`float`]
             Dictionary of force and moment coefficients
     :Versions:
-        * 2017-02-16 ``@ddalle``: First version
+        * 2017-02-16 ``@ddalle``: Version 1.0; :func:`TriqFM`
+        * 2021-10-14 ``@ddalle``: Version 1.1; in :mod:`cape.triqfm`
     """
    # -----------------
    # Sequential Inputs
@@ -204,12 +219,22 @@ def TriqFM(*a, **kw):
     fcfg  = kw.get("c",     fcfg)
     fo    = kw.get("o",     fo)
     incm  = kw.get("incm",  kw.get("momentum", incm))
-    # Check for components
+    # Check for components from kwargs
     kwcomps = kw.get("comps", kw.get("comps", "")).split(",")
-    if len(kwcomps) > 0: comps = kwcomps
+    if len(kwcomps) > 0:
+        comps = kwcomps
     # Default output file name
     if fo is None:
-        fo = "%s.json" % (ftriq.rstrip(".i.triq").rstrip(".triq"))
+        # Strip suffixes
+        if ftriq.endswith(".i.triq"):
+            # grid.i.triq -> grid.json
+            fo = ftriq[:-6] + "json"
+        elif ftriq.endswith(".triq"):
+            # grid.triq -> grid.json
+            fo = ftriq[:-4] + "json"
+        else:
+            # grid.uh3d -> grid.uh3d.json
+            fo = ftriq + ".json"
     # Read conditions
     mach = kw.get("m",   kw.get("mach",  mach))
     Rey  = kw.get("Re",  kw.get("Rey",   Rey))
@@ -218,23 +243,26 @@ def TriqFM(*a, **kw):
     Aref = kw.get("Aref", kw.get("RefArea",   Aref))
     Lref = kw.get("Lref", kw.get("RefLength", Lref))
     bref = kw.get("bref", kw.get("RefSpan",   bref))
-    if bref is None: bref = Lref
+    # Fallback reference span
+    if bref is None:
+        bref = Lref
     # Ensure list of components
-    if type(comps).__name__ != "list": comps = [comps]
+    if not isinstance(comps, list):
+        comps = [comps]
    # ------
    # Input
    # ------
     # Check for a tri file
     if ftri is None:
         # Read the input TRIQ file
-        triq = cape.tri.Triq(ftriq, c=fcfg)
+        triq = Triq(ftriq, c=fcfg)
         # No component map
         compmap = {}
     else:
         # Read the unmapped TRIQ file
-        triq = cape.tri.Triq(ftriq)
+        triq = Triq(ftriq)
         # Read the TRI file
-        tri = cape.tri.Tri(ftri, c=fcfg)
+        tri = Tri(ftri, c=fcfg)
         # Map the component IDs
         compmap = triq.MapTriCompID(tri, v=True)
     # Initialize output
@@ -255,7 +283,7 @@ def TriqFM(*a, **kw):
     # Loop through components
     for comp in comps:
         # Process component
-        if type(comp).__name__ in ["list", "ndarray"]:
+        if isinstance(comp, (list, np.ndarray)):
             # Make up a name
             cname = str(comp[0])
             # Translate component numbers if needed
@@ -281,25 +309,21 @@ def TriqFM(*a, **kw):
    # Output
    # ------
     # Open the output file
-    f = open(fo, 'w')
-    # Dump the results
-    json.dump(FM, f, indent=1)
-    # Close the file
-    f.write("\n")
-    f.close()
+    with open(fo, 'w') as fp:
+        # Dump the results
+        json.dump(FM, fp, indent=1)
+    # Output
     return FM
-# end TriqFM
         
 
 # Only process inputs if called as a script!
-if __name__ == "__main__":
+def main():
     # Process the command-line interface inputs.
-    a, kw = cape.argread.readkeys(sys.argv)
+    a, kw = argread.readkeys(sys.argv)
     # Check for a help option.
-    if kw.get('h',False) or kw.get('help',False):
-        import cape.text
-        print(cape.text.markdown(__doc__))
-        sys.exit()
-    # Run the main function.
-    TriqFM(*a, **kw)
+    if kw.get('h', False) or kw.get("help", False):
+        print(textutils.markdown(HELP_TRIQFM))
+        return
+    # Run the main function
+    triqfm(*a, **kw)
     

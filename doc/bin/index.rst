@@ -29,5 +29,5 @@ directly from the system command line.
         pyfun-plt2triq
         Step2Crv
         StepTri2Crv
-        TriqFM
+        triqfm
 

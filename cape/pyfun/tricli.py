@@ -60,8 +60,8 @@ Convert a Tecplot ``.plt`` file from FUN3D
         $ pyfun-plt2triq -i PLT [-o TRIQ] [OPITONS] 
 
 :Inputs:
-    * *PLT*: Name of FUN3D Tecplot '.plt' file
-    * *TRIQ*: Name of output '.triq' file
+    * *PLT*: Name of FUN3D Tecplot ``.plt`` file
+    * *TRIQ*: Name of output ``.triq`` file
     
 :Options:
     %(help)s
@@ -86,7 +86,7 @@ Convert a Tecplot ``.plt`` file from FUN3D
         Write RMS of each variable instead of nominal/average value
     
 If the name of the output file is not specified, it will just add ``triq`` as
-the extension to the input (deleting ``.plt`` if possible).
+the extension to the input (replacing ``.plt`` if possible).
 
 :Versions:
     * 2016-12-19 ``@ddalle``: Version 1.0
@@ -106,7 +106,7 @@ def plt2triq(*a, **kw):
             Name of input file Tecplot file (can be ASCII)
         *ftriq*: {``None``} | :class:`str`
             Name of annotated triangulation ``.triq`` file to create;
-            defaults to *fplt* with the ``.plt`` replaced by ``.triq
+            defaults to *fplt* with the ``.plt`` replaced by ``.triq``
         *mach*: {``1.0``} | positive :class:`float`
             Freestream Mach number for skin friction coeff conversion
         *triload*: {``True``} | ``False``
