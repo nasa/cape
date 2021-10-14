@@ -1,22 +1,23 @@
-"""
-:mod:`cape.pyover.case`: OVERFLOWase control module
+# -*- coding: utf-8 -*-
+r"""
+:mod:`cape.pyover.case`: OVERFLOW base control module
 =====================================================
 
-This module contains the important function :func:`case.run_overflow`, which
-actually runs ``overrunmpi`` or whichever executable is specified by the user,
-along with the utilities that support it.
+This module contains the important function :func:`run_overflow`, which
+actually runs ``overrunmpi`` or whichever executable is specified by the
+user, along with the utilities that support it.
 
-It also contains OVERFLOW-specific versions of some of the generic methods from
-:mod:`cape.case`. For instance the function :func:`GetCurrentIter` determines
-how many OVERFLOW iterations have been run in the current folder, which is
-obviously a solver-specific task. It also contains the function :func:`LinkQ`
-and :func:`LinkX` which creates links to fixed file names from the most recent
-output created by OVERFLOW, which is useful for creating simpler Tecplot
-layouts, for example.
+It also contains OVERFLOW-specific versions of some of the generic
+methods from :mod:`cape.cfdx.case`. For instance the function
+:func:`GetCurrentIter` determines how many OVERFLOW iterations have been
+run in the current folder, which is obviously a solver-specific task. It
+also contains the function :func:`LinkQ` and :func:`LinkX` which creates
+links to fixed file names from the most recent output created by OVERFLOW,
+which is useful for creating simpler Tecplot layouts, for example.
 
-All of the functions from :mod:`cape.case` are imported here.  Thus they are
-available unless specifically overwritten by specific :mod:`cape.pyover` versions.
-
+All of the functions from :mod:`cape.case` are imported here.  Thus they
+are available unless specifically overwritten by specific
+:mod:`cape.pyover` versions.
 """
 
 # Standard library modules
@@ -111,31 +112,48 @@ def run_overflow():
     fproj = GetPrefix()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Record current iteration
+    n0 = GetCurrentIter()
     # Write start time
     WriteStartTime(tic, rc, i)
     # Delete any input file.
-    if os.path.isfile('over.namelist') or os.path.islink('over.namelist'):
-        os.remove('over.namelist')
+    if os.path.isfile("over.namelist") or os.path.islink("over.namelist"):
+        os.remove("over.namelist")
     # Prepare environment variables (other than OMP_NUM_THREADS)
     cc.PrepareEnvironment(rc, i)
     # Create the correct namelist.
-    shutil.copy('%s.%02i.inp' % (fproj,i+1), 'over.namelist')
-    # Get the `nodet` or `nodet_mpi` command
+    shutil.copy("%s.%02i.inp" % (fproj,i+1), "over.namelist")
+    # Get the ``overrunmpi`` command
     cmdi = cmd.overrun(rc, i=i)
     # Call the command.
-    bin.callf(cmdi, f='overrun.out', check=False)
+    bin.callf(cmdi, f="overrun.out", check=False)
     # Remove the RUNNING file.
-    if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    if os.path.isfile("RUNNING"):
+        os.remove("RUNNING")
     # Save time usage
     WriteUserTime(tic, rc, i)
     # Get the most recent iteration number
     n = GetCurrentIter()
     # Get STOP iteration, if any
     nstop = GetStopIter()
-    # Assuming that worked, move the temp output file.
-    fout = '%s.%02i.out' % (fproj, i+1)
+    # Assuming that worked, move the temp output file
+    fout = "%s.%02i.out" % (fproj, i+1)
+    flog = "%s.%02i.%i" % (fproj, i+1, n)
+    flogj = flog + ".1"
+    jlog = 1
+    # Check if expected output file exists
     if os.path.isfile(fout):
-        os.rename(fout, '%s.%02i.%i' % (fproj, i+1, n))
+        # Check if final file name already exists
+        if os.path.isfile(flog):
+            # Loop utnil we find a viable log file name
+            while os.path.isfile(flogj):
+                # Increase counter
+                jlog += 1
+                flogj = "%s.%i" % (flog, jlog)
+            # Move the existing log file
+            os.rename(flog, flogj)
+        # Move immediate output file to log location
+        os.rename(fout, flog)
     # Check current iteration count and phase
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         # Case completed
@@ -143,19 +161,23 @@ def run_overflow():
     elif (nstop is not None) and (n >= nstop):
         # Stop requested externally
         return
+    elif (n is None) or ((n0 is not None) and n <= n0):
+        # Failed to advance
+        with open("FAIL", "w") as fp:
+            fp.write("no-advance")
+        return
     # Resubmit/restart if this point is reached.
     RestartCase(i)
-# def run_overflow
+
 
 # Function to call script or submit.
 def StartCase():
-    """Start a case by either submitting it or calling with a system command
+    r"""Start a case by submitting it or calling a system command
     
     :Call:
-        >>> pyOver.case.StartCase()
+        >>> StartCase()
     :Versions:
-        * 2014-10-06 ``@ddalle``: Version 1.0
-        * 2015-10-19 ``@ddalle``: Copied from pyCart
+        * 2015-10-19 ``@ddalle``: Version 1.0
     """
     # Get the config.
     rc = ReadCaseJSON()
@@ -182,11 +204,12 @@ def StartCase():
 def GetStopIter():
     """Get iteration at which to stop by reading ``STOP`` file
     
-    If the file exists but is empty, returns ``0``; if file does not exist,
-    returns ``None``; and otherwise reads the iteration number from the file.
+    If the file exists but is empty, returns ``0``; if file does not
+    exist, returns ``None``; and otherwise reads the iteration number
+    from the file.
     
     :Call:
-        >>> n = pyOver.case.GetStopIter()
+        >>> n = GetStopIter()
     :Outputs:
         *n*: ``None`` |  :class:`int`
             Iteration at which to stop OVERFLOW
@@ -215,7 +238,7 @@ def WriteStopIter(n=0):
     """Create a ``STOP`` file and optionally set the iteration at which to stop
     
     :Call:
-        >>> pyOver.case.WriteStopIter(n)
+        >>> WriteStopIter(n)
     :Inputs:
         *n*: ``None`` | {``0``} | positive :class:`int`
             Iteration at which to stop; empty file if ``0`` or ``None``
@@ -238,7 +261,7 @@ def RestartCase(i0=None):
     running a phase or attempting to run a phase.
     
     :Call:
-        >>> pyOver.case.RestartCase(i0=None)
+        >>> RestartCase(i0=None)
     :Inputs:
         *i0*: :class:`int` | ``None``
             Phase index of the previous run
@@ -440,7 +463,7 @@ def GetPhaseNumber(rc):
     """Determine the appropriate input number based on results available
     
     :Call:
-        >>> i = pyOver.case.GetPhaseNumber(rc)
+        >>> i = GetPhaseNumber(rc)
     :Inputs:
         *rc*: :class:`pyOver.options.runControl.RunControl`
             Options interface for run control
@@ -492,7 +515,7 @@ def GetNamelist(rc=None, i=None):
     """Read case namelist file
     
     :Call:
-        >>> nml = pyOver.case.GetNamelist(rc=None, i=None)
+        >>> nml = GetNamelist(rc=None, i=None)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
@@ -554,7 +577,7 @@ def ReadCaseJSON():
     """Read `RunControl` settings for local case
     
     :Call:
-        >>> rc = pyOver.case.ReadCaseJSON()
+        >>> rc = ReadCaseJSON()
     :Outputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Options interface for run control settings
@@ -578,7 +601,7 @@ def WriteCaseJSON(rc):
     """Write or rewrite ``RunControl`` settings to ``case.json``
     
     :Call:
-        >>> pyOver.case.WriteCaseJSON(rc)
+        >>> WriteCaseJSON(rc)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Options interface for run control settings
@@ -598,7 +621,7 @@ def GetCurrentIter():
     """Get the most recent iteration number
     
     :Call:
-        >>> n = pyOver.case.GetHistoryIter()
+        >>> n = GetHistoryIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Last iteration number
@@ -630,7 +653,7 @@ def GetHistoryIter():
     This function uses the last line from the file ``run.resid``
     
     :Call:
-        >>> n = pyOver.case.GetHistoryIter()
+        >>> n = GetHistoryIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
@@ -670,7 +693,7 @@ def GetRunningIter():
     This function uses the last line from the file ``resid.tmp``
     
     :Call:
-        >>> n = pyOver.case.GetRunningIter()
+        >>> n = GetRunningIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
@@ -700,7 +723,7 @@ def GetOutIter():
     This function uses the last line from the file ``resid.out``
     
     :Call:
-        >>> n = pyOver.case.GetOutIter()
+        >>> n = GetOutIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
@@ -952,7 +975,7 @@ def GetQ():
     """Get the most recent ``q.*`` file, with ``q.avg`` taking precedence
     
     :Call:
-        >>> fq = pyOver.case.GetQ()
+        >>> fq = GetQ()
     :Outputs:
         *fq*: ``None`` | :class:`str`
             Name of most recent averaged ``q`` file or most recent ``q`` file
@@ -978,8 +1001,8 @@ def GetLatest(glb):
     """Get the most recent file matching a glob or list of globs
     
     :Call:
-        >>> fq = pyOver.case.GetLatest(glb)
-        >>> fq = pyOver.case.GetLatest(lglb)
+        >>> fq = GetLatest(glb)
+        >>> fq = GetLatest(lglb)
     :Inputs:
         *glb*: :class:`str`
             File name glob
@@ -1021,7 +1044,7 @@ def LinkLatest(fsrc, fname):
     already a full file, no action is taken.
     
     :Call:
-        >>> pyOver.case.LinkLatest(fsrc, fname)
+        >>> LinkLatest(fsrc, fname)
     :Inputs:
         *fsrc*: ``None`` | :class:`str`
             Name of file to act as source for the link
@@ -1053,7 +1076,7 @@ def LinkQ():
     """Link the most recent ``q.*`` file to a fixed file name
     
     :Call:
-        >>> pyOver.case.LinkQ()
+        >>> LinkQ()
     :Versions:
         * 2016-09-06 ``@ddalle``: Version 1.0
         * 2016-12-29 ``@ddalle``: Moved file search to :func:`GetQ`
@@ -1075,7 +1098,7 @@ def GetX():
     """Get the most recent ``x.*`` file
     
     :Call:
-        >>> fx = pyOver.case.GetX()
+        >>> fx = GetX()
     :Outputs:
         *fx*: ``None`` | :class:`str`
             Name of most recent ``x.save`` or similar file
@@ -1093,13 +1116,14 @@ def GetX():
     ix = np.argmax(tx)
     # Output
     return xglob[ix]
-    
+
+
 # Link best X file
 def LinkX():
-    """Link the most recent ``x.*`` file to a fixed file name
+    r"""Link the most recent ``x.*`` file to a fixed file name
     
     :Call:
-        >>> pyOver.case.LinkX()
+        >>> LinkX()
     :Versions:
         * 2016-09-06 ``@ddalle``: Version 1.0
     """
