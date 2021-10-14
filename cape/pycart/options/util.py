@@ -212,5 +212,5 @@ def getCart3DTemplate(fname):
         * 2021-03-01 ``@ddalle``: Version 2.0; see :func:`get_template`
     """
     # Get the full path
-    return get_template(fc3d)
+    return get_template(fname)
         

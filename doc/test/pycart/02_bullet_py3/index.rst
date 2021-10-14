@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:14 PDT
+   on 2021-10-13 at 23:45 PDT
 
-Test ``02_bullet_py3``: **FAIL** (command 1)
-==============================================
+Test ``02_bullet_py3``: PASS
+==============================
 
-This test **FAILED** (command 1) on 2021-10-13 at 11:14 PDT
+This test PASSED on 2021-10-13 at 23:45 PDT
 
 This test is run in the folder:
 
@@ -24,8 +24,8 @@ The commands executed by this test are
         $ python3 -m cape.pycart -I 0 --aero
         $ python3 test_databook.py
 
-Command 1: Run Matrix Status (**FAIL**)
-----------------------------------------
+Command 1: Run Matrix Status (PASS)
+------------------------------------
 
 :Command:
     .. code-block:: console
@@ -33,14 +33,14 @@ Command 1: Run Matrix Status (**FAIL**)
         $ python3 -m cape.pycart -c
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.80 seconds
+    * Command took 0.58 seconds
 :STDOUT:
-    * **FAIL**
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -56,21 +56,92 @@ Command 1: Run Matrix Status (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
+    * **PASS**
+
+Command 2: Run Case 0 (PASS)
+-----------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 -m cape.pycart -I 0
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 6.18 seconds
+    * Cumulative time: 6.76 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+Command 3: Collect Aero Data (PASS)
+------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 -m cape.pycart -I 0 --aero
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.64 seconds
+    * Cumulative time: 7.40 seconds
+:STDOUT:
+    * **PASS**
     * Actual:
 
-      .. code-block:: pytb
+      .. code-block:: none
 
-        Traceback (most recent call last):
-          File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
-            "__main__", mod_spec)
-          File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
-            exec(code, run_globals)
-          File "/u/wk/ddalle/usr/cape/cape/pycart/__main__.py", line 12, in <module>
-            sys.exit(cli.main())
-          File "/u/wk/ddalle/usr/cape/cape/pycart/cli.py", line 43, in main
-            if cmd.lower() in {"run_flowcart", "run_cart3d", "run"}:
-        AttributeError: 'NoneType' object has no attribute 'lower'
+        Force component 'bullet_no_base'...
+        poweroff/m1.5a0.0b0.0
+          Adding new databook entry at iteration 200.
+        Writing 1 new or updated entries
         
 
+:STDERR:
+    * **PASS**
+
+Command 4: Test DataBook Value (PASS)
+--------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.79 seconds
+    * Cumulative time: 8.19 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.746
+        
+
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.744,0.746]
+        
+
+:STDERR:
+    * **PASS**
 

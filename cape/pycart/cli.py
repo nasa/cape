@@ -40,7 +40,7 @@ def main():
         cmd = a[0]
 
     # Check for "run_fun3d"
-    if cmd.lower() in {"run_flowcart", "run_cart3d", "run"}:
+    if cmd and cmd.lower() in {"run_flowcart", "run_cart3d", "run"}:
         # Run case in this folder
         from .case import run_flowCart
         # Run and exit
