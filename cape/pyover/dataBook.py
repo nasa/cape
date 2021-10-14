@@ -1,10 +1,12 @@
-"""
+# -*- coding: utf-8 -*-
+r"""
 :mod:`cape.pyover.dataBook`: pyOver data book module 
 =====================================================
 
-This module contains functions for reading and processing forces, moments, and
-other statistics from cases in a trajectory.  Data books are usually created by
-using the :func:`cape.pyover.cntl.Cntl.ReadDataBook` function.
+This module contains functions for reading and processing forces,
+moments, and other statistics from cases in a trajectory. Data books are
+usually created by using the :func:`cape.pyover.cntl.Cntl.ReadDataBook`
+function.
 
     .. code-block:: python
     
@@ -22,12 +24,13 @@ using the :func:`cape.pyover.cntl.Cntl.ReadDataBook` function.
         DB.ReadTarget("t97")
         DBT = DB.Targets["t97"]
         
-Data books can be created without an overall control structure, but it requires
-creating a run matrix object using :class:`pyOver.runmatrix.RunMatrix`, so it
-is a more involved process.
+Data books can be created without an overall control structure, but it
+requires creating a run matrix object using
+:class:`cape.pyover.runmatrix.RunMatrix`, so it is a more involved
+process.
 
-Data book modules are also invoked during update and reporting command-line
-calls.
+Data book modules are also invoked during update and reporting
+command-line calls.
 
     .. code-block:: console
     
@@ -36,10 +39,10 @@ calls.
         $ pyfun --triqfm
         $ pyfun --report
 
-The available components mirror those described on the template data book
-modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineLoad`, and
-:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be implemented
-for all CFD solvers.
+The available components mirror those described on the template data
+book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineLoad`, and
+:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be
+implemented for all CFD solvers.
 
 :See Also:
     * :mod:`cape.cfdx.dataBook`
@@ -50,26 +53,26 @@ for all CFD solvers.
     * :mod:`cape.pyover.options.DataBook`
 """
 
-# File interface
-import os, shutil
-# Basic numerics
-import numpy as np
-# Advanced text (regular expressions)
+# Standard library
+import os
 import re
-# Date processing
+import shutil
 from datetime import datetime
 
-# Utilities or advanced statistics
+# Third-party modules
+import numpy as np
+
+# Local imports
 from . import util
 from . import bin
 from . import case
-# Data modules
 from . import pointSensor
 from . import lineLoad
 
 # Template module
 import cape.cfdx.dataBook
 import cape.tri
+
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -130,11 +133,12 @@ def ReadFomocoComps(fname):
     # Loop until a component repeats
     while comp not in comps:
         # Check for empty line
-        if comp == "": break
+        if comp == "":
+            break
         # Add the component
         comps.append(comp)
         # Move to the next component
-        f.seek(569, 1)
+        f.seek(569 + f.tell())
         # Read the next component.
         comp = f.readline().strip()
     # Close the file
@@ -1028,7 +1032,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                 # Increase count
                 j += 1
             # Skip to next iteration
-            f.seek(650*(nc-1)+81, 1)
+            f.seek(650*(nc-1) + 81 + f.tell())
         # Close the file
         f.close()
     

@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-14 at 11:23 PDT
+   on 2021-10-14 at 11:35 PDT
 
-Test ``01_bullet``: **FAIL** (command 4)
-==========================================
+Test ``01_bullet``: PASS
+==========================
 
-This test **FAILED** (command 4) on 2021-10-14 at 11:23 PDT
+This test PASSED on 2021-10-14 at 11:35 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Case 1 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 95.96 seconds
+    * Command took 97.31 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -90,8 +90,8 @@ Command 2: Show DONE Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.60 seconds
-    * Cumulative time: 96.55 seconds
+    * Command took 0.65 seconds
+    * Cumulative time: 97.95 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -133,15 +133,15 @@ Command 3: Collect Aero (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.88 seconds
-    * Cumulative time: 97.44 seconds
+    * Command took 0.84 seconds
+    * Cumulative time: 98.79 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 4: Check DataBook (Python 2) (**FAIL**)
-------------------------------------------------
+Command 4: Check DataBook (Python 2) (PASS)
+--------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -154,10 +154,10 @@ Command 4: Check DataBook (Python 2) (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54 seconds
-    * Cumulative time: 97.98 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 99.36 seconds
 :STDOUT:
-    * **FAIL**
+    * **PASS**
     * Actual:
 
       .. code-block:: none
@@ -169,7 +169,42 @@ Command 4: Check DataBook (Python 2) (**FAIL**)
 
       .. code-block:: none
 
-        CN = <valint>[0.190,0.206]
+        CN = <valint>[0.190,0.226]
+        
+
+:STDERR:
+    * **PASS**
+
+Command 5: Check DataBook (Python 3) (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.86 seconds
+    * Cumulative time: 100.22 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CN = 0.221
+        
+
+    * Target:
+
+      .. code-block:: none
+
+        CN = <valint>[0.190,0.226]
         
 
 :STDERR:
