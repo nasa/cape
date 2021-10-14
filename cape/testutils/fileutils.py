@@ -13,8 +13,9 @@ wildcard patterns into lists of extant files/folders.
 # Standard library modules
 import os
 import glob
-import shutil
 import re
+import shutil
+import sys
 
 
 # Regular expression for finding numbers

@@ -35,6 +35,7 @@
         true,
         true
     ],
+    "ELLIPSIS": true,
     "VALUE_INTERVAL": true,
     "DocFolder": "doc/test/pyover",
     "RootLevel": -3,
