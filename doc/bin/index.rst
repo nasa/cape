@@ -26,7 +26,7 @@ directly from the system command line.
         cape-tri2uh3d
         cape-tri2surf
         cape-expandjson
-        Plt2Triq
+        pyfun-plt2triq
         Step2Crv
         StepTri2Crv
         TriqFM

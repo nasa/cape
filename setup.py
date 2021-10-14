@@ -107,7 +107,6 @@ setup(
     scripts=[
         "bin/pc_Step2Crv.py",
         "bin/pc_StepTri2Crv.py",
-        "bin/pf_Plt2Triq.py",
         "bin/run_flowCart.py",
         "bin/run_fun3d.py",
         "bin/run_overflow.py"
@@ -126,6 +125,7 @@ setup(
             "cape-tri2uh3d=cape.tricli:main_tri2uh3d",
             "cape-tri2plt=cape.tricli:main_tri2plt",
             "cape-tri2surf=cape.tricli:main_tri2surf",
+            "pyfun-plt2triq=cape.pyfun.tricli:main_plt2triq",
         ],
     },
     version="1.0a3",

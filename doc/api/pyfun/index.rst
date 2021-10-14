@@ -26,4 +26,5 @@ The :mod:`cape.pyfun` module
     plt
     report
     manage
+    tricli
     util

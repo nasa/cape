@@ -49,8 +49,7 @@ import cape.tri
 
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):
-    r"""Convert a Tecplot PLT file to a Cart3D annotated triangulation 
-    (TRIQ)
+    r"""Convert Tecplot PLT file to Cart3D annotated tri (TRIQ)
     
     :Call:
         >>> Plt2Triq(fplt, ftriq=None, **kw)

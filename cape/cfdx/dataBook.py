@@ -1300,8 +1300,8 @@ class DataBook(dict):
         :Inputs:
            *DB*: :class:`cape.cfdx.dataBook.DataBook`
                Instance of data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
+           *I*: :class:`list`\ [:class:`int`]
+               List or array of run matrix indices
            *comp*: {``None``} | :class:`str`
                Name of TriqPoint group or all if ``None``
         :Versions:
