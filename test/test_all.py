@@ -43,6 +43,14 @@ def crawl():
     os.chdir(THIS_DIR)
     # Get up to date
     os.system("git pull hub main")
+    # Test current commit
+    sha1 = os.popen("git rev-parse HEAD", "r").read()
+    # Read last commit
+    with open("last-commit", "r") as fp:
+        sha1_last = fp.read()
+    # Test if test necessary
+    if sha1.strip() == sha1_last.strip():
+        return
     # Start container
     stats = {}
     # Keep track of failures
@@ -84,9 +92,12 @@ def crawl():
         msg = "Auto-commit of all tests: PASS"
     # Add test results
     os.system("git add doc/test")
-    os.system("git commit -a -m '%s'" % msg)
+    os.system("git commit -m '%s'" % msg)
     # Share results
     os.system("git push hub main")
+    # Write commit
+    with open("last-commit" ,"w") as fp:
+        fp.write(os.popen("git rev-parse HEAD", "r").read())
     # Return to original folder
     os.chdir(fpwd)
     # Output
