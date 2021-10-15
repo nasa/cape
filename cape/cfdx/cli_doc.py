@@ -85,9 +85,6 @@ functionality from this script is also accessible from the
     -n NJOB
         Submit at most *NJOB* PBS scripts (default: 10)
 
-    -q QUEUE
-        Submit to a specific queue, overrides value in JSON file
-
     --kill, --qdel
          Remove jobs from the queue and stop them abruptly
 
@@ -108,16 +105,15 @@ functionality from this script is also accessible from the
     --glob TXT
         Restrict to cases whose name matches the glob *TXT*
 
+    --unmarked
+        Find only cases that are not marked PASS or ERROR
+
     --report RP
         Update report named *RP* (default: first report in JSON file)
 
-    --archive
-        Create archive according to options in "Archive" section of
-        *FJSON* and clean up run folder if case is marked PASS
-
-    --clean
-        Delete any files as described by *ProgressDeleteFiles* in
-        "Archive" section of *FJSON*; can be run at any time
+    --dezombie
+        Clean up ZOMBIE cases, which appear to be RUNNING but have no
+        recently modified files
 
     --exec, -e CMD
         Execute command *CMD* in each folder
@@ -149,8 +145,17 @@ functionality from this script is also accessible from the
     --unmark
         Remove PASS or ERROR markings from selected cases
 
-    --unmarked
-        Find only cases that are not marked PASS or ERROR
+    --clean
+        Delete any files as described by *ProgressDeleteFiles* in
+        "Archive" section of *FJSON*; can be run at any time
+
+    --archive
+        Create archive according to options in "Archive" section of
+        *FJSON* and clean up run folder if case is marked PASS
+
+    --skeleton
+        Do ``--archive`` actions and also delete even more files
+        according to *FJSON* settings like *SkeletonDeleteFiles*
 
     --rm
         Delete a cases folder [``--no-prompt`` w/o interactive prompt]
@@ -171,6 +176,9 @@ functionality from this script is also accessible from the
 
     --no-restart
         When submitting new jobs, only submit new cases (status '---')
+
+    -q QUEUE
+        Submit to a specific queue, overrides value in JSON file
 """
 
 
