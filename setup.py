@@ -105,7 +105,6 @@ setup(
         "cape.pyover.options": ["*.json"],
     },
     scripts=[
-        "bin/pc_Step2Crv.py",
         "bin/pc_StepTri2Crv.py",
         "bin/run_flowCart.py",
         "bin/run_fun3d.py",
@@ -121,6 +120,7 @@ setup(
             "dkit-vendorize=cape.attdb.vendorutils:main",
             "dkit-writedb=cape.attdb.writedb:main",
             "cape-writell=cape.writell:main",
+            "cape-step2crv=cape.tricli:main_step2crv",
             "cape-uh3d2tri=cape.tricli:main_uh3d2tri",
             "cape-tri2uh3d=cape.tricli:main_tri2uh3d",
             "cape-tri2plt=cape.tricli:main_tri2plt",

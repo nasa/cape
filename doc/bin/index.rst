@@ -21,13 +21,13 @@ directly from the system command line.
         run_overflow
         cape
         cape-writell
+        cape-step2crv
+        cape-steptri2crv
         cape-uh3d2tri
         cape-tri2plt
         cape-tri2uh3d
         cape-tri2surf
         cape-expandjson
         pyfun-plt2triq
-        Step2Crv
-        StepTri2Crv
         triqfm
 

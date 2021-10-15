@@ -22,12 +22,26 @@ from . import argread
 from . import text as textutils
 from .config import ConfigXML, ConfigMIXSUR, ConfigJSON
 from .plt import Plt
+from .step import STEP
 from .tri import Tri
 
 
 # Template help messages
 _help_help = r"""-h, --help
         Display this help message and exit"""
+_help_sample = r"""
+    -n N
+        Use a minimum of *N* segments per curve (defaults to ``3``)
+
+    --ds DS
+        Use a maximum arc length of *DS* on each curve
+
+    --dth THETA
+        Make sure maximum turning angle is below *THETA*
+
+    --da PHI
+        Make sure maximum turning angle times length of adjoining
+        segments is less than or equal to *PHI*"""
 _help_config = r"""-c CONFIGFILE
         Use file *CONFIGFILE* to map component ID numbers; guess type
         based on file name
@@ -45,14 +59,152 @@ _help_config = r"""-c CONFIGFILE
 _help = {
     "config": _help_config,
     "help": _help_help,
+    "sample": _help_sample,
 }
 
-# Help message for "uh3d2tri"
+# Lists of file extensions
+STEP_EXTS = [
+    "STEP",
+    "STP",
+    "step",
+    "stp"
+]
+TRI_EXTS = [
+    "lb4.tri",
+    "b4.tri",
+    "i.tri",
+    "lr4.tri",
+    "r4.tri",
+    "tri",
+]
+
+# Help messages
+HELP_STEP2CRV = r"""
+``cape-step2crv``: Convert STEP file to Plot3D multiple curve file
+===================================================================
+
+Create a Plot3D discretized curve file from a STEP file using various
+maximum spacing command-line options.
+
+:Usage:
+    .. code-block:: console
+    
+        $ cape-step2crv STP [OPTIONS]
+        $ cape-step2crv STP CRV [OPTIONS]
+        $ cape-step2crv -i STP [-o CRV] [OPTIONS]
+
+:Inputs:
+    * *STP*: Name of input ``'.stp`` or ``.step`` file
+    * *CRV*: Name of output Plot3D file
+    
+:Options:
+    %(help)s
+        
+    -i STP
+        Use *STP* as input file
+        
+    -o CRV
+        Use *CRV* as name of created output file
+        
+    %(sample)s
+    
+    --link
+        Link curves and sort by ascending *x* coordinate (default)
+        
+    --link AXIS
+        Link curves and sort by *AXIS*, for example ``+x``, ``-y``, etc.
+        
+    --no-link
+        Do not link curves together or sort
+        
+    --xtol XTOL
+        Truncate nodal coordinates within *XTOL* of x=0 plane to zero
+        
+    --ytol YTOL
+        Truncate nodal coordinates within *YTOL* of y=0 plane to zero
+        
+    --ztol ZTOL
+        Truncate nodal coordinates within *ZTOL* of z=0 plane to zero
+    
+:Versions:
+    * 2016-05-10 ``@ddalle``: Version 1.0
+    * 2021-10-15 ``@ddalle``: Version 2.0
+""" % _help
+
+
+HELP_STEPTRI2CRV = r"""
+``cape-steptri2crv``: Extract TRI file nodes on STEP curves
+===============================================================
+
+Convert a STEP file to a Plot3D multiple curve file by sampling curves
+from the STEP file at nodes from a surface triangulation. The result is
+a multiple-curve Plot3D curve file
+
+:Usage:
+    .. code-block:: console
+    
+        $ cape-steptri2crv STP [TRI [CRV]] [OPTIONS]
+        $ cape-steptri2crv --stp STP [--tri TRI] [--crv CRV] [OPTIONS]
+
+:Inputs:
+    * *STP*: name of input STEP file
+    * *TRI*: name of input TRI file (or *STP* with new extension)
+    * *CRV*: name of output curve file (or *STP* with new extension)
+    
+:Options:
+    %(help)s
+        
+    --stp STP
+        Use *STP* as input STEP file
+        
+    --tri TRI
+        Use *TRI* as input triangulation file
+
+    --crv CRV
+        Use *CRV* as name of created output file
+
+    --atol ATOL
+        Maximum angle between node vector and curve tangent [60]
+
+    --dtol DTOL
+        Max dist. from node to curve as a fraction of edge length [0.05]
+
+    --ascii
+        Write text curves file instead of binary
+
+    --lr8
+        Write double-precision little-endian curves
+
+    --r8
+        Write double-precision big-endian curves
+
+    --lr4
+        Write single-precision little-endian curves
+
+    --r4
+        Write single-precision big-endian curves
+
+    --endian BO
+        Use non-default byte order, "big" or "little"
+
+    --sp
+        Write single-precision curve file (default is double)
+
+    %(sample)s
+
+:Versions:
+    * 2016-09-29 ``@ddalle``: Version 1.0
+"""
+
+
 HELP_UH3D2TRI = r"""
 ``cape-uh3d2tri``: Convert UH3D triangulation to Cart3D format
 ===============================================================
 
 Convert a ``.uh3d`` file to a Cart3D triangulation format.
+    
+If the name of the output file is not specified, it will just add '.tri'
+as the extension to the input (deleting '.uh3d' if possible).
 
 :Usage:
 
@@ -106,9 +258,6 @@ Convert a ``.uh3d`` file to a Cart3D triangulation format.
 
     --dz DZ
         Translate all nodes by *DZ* in *z* direction
-    
-If the name of the output file is not specified, it will just add '.tri'
-as the extension to the input (deleting '.uh3d' if possible).
 
 :Versions:
     * 2014-06-12 ``@ddalle``: Version 1.0
@@ -117,6 +266,7 @@ as the extension to the input (deleting '.uh3d' if possible).
         - Add *dx*, *dy*, *dz* translation options
 """ % _help
 
+
 HELP_TRI2UH3D = r"""
 ``cape-tri2uh3d``: Convert Cart3D Triangulation to UH3D Format
 ===================================================================
@@ -124,6 +274,10 @@ HELP_TRI2UH3D = r"""
 Convert a Cart3D triangulation ``.tri`` file to a UH3D file.  The most
 common purpose for this task is to inspect triangulations with moving
 bodies with alternative software such as ANSA.
+
+If the name of the output file is not specified, the script will just
+add ``.uh3d`` as the extension to the input (deleting ``.tri`` if
+possible).
 
 :Usage:
     .. code-block:: console
@@ -147,20 +301,20 @@ bodies with alternative software such as ANSA.
        
     %(config)s
 
-If the name of the output file is not specified, the script will just
-add ``.uh3d`` as the extension to the input (deleting ``.tri`` if
-possible).
-
 :Versions:
     * 2015-04-17 ``@ddalle``: Version 1.0
     * 2017-04-06 ``@ddalle``: Version 1.1: JSON and MIXSUR config files
 """ % _help
+
 
 HELP_TRI2SURF = r"""
 ``cape-tri2surf``: Convert surf triangulation to AFLR3 format
 ==================================================================
 
 Convert a ``.tri`` file to a AFLR3 surface format.
+    
+If the name of the output file is not specified, it will just add
+``.surf`` as the extension to the input (deleting ``.tri`` if possible).
 
 :Usage:
     .. code-block:: console
@@ -186,15 +340,13 @@ Convert a ``.tri`` file to a AFLR3 surface format.
         
     --bc MAPBC
         Use *MAPBC* as boundary condition map file
-    
-If the name of the output file is not specified, it will just add
-``.surf`` as the extension to the input (deleting ``.tri`` if possible).
 
 :Versions:
     * 2014-06-12 ``@ddalle``: Version 1.0
     * 2015-10-09 ``@ddalle``: Version 1.1; tols and Config.xml
     * 2021-10-12 ``@ddalle``: Version 2.0; move to :mod:`tricli`
 """ % _help
+
 
 HELP_TRI2PLT = r"""
 ``cape-tri2plt``: Convert Triangulation to Tecplot PLT Format
@@ -241,6 +393,213 @@ zone.
 """ % _help
 
 
+# API functions
+def step2crv(*a, **kw):
+    r"""Write the curves from a STEP file to Plot3D multiple curve file
+    
+    :Call:
+        >>> step2crv(fstp, fcrv, **kw)
+        >>> step2crv(i=fstp, o=fcrv, **kw)
+    :Inputs:
+        *fstp*: :class:`str`
+            Name of input file
+        *fcrv*: :class:`str`
+            Name of output file (defaults to value of *fstp* but with
+            ``.crv`` in the place of ``.stp`` or ``.step``)
+        *n*: :class:`int`
+            Number of intervals to use
+        *ds*: :class:`float`
+            Upper bound of uniform spacing
+        *dth*: :class:`float` | {``None``}
+            Maximum allowed turning angle in degrees
+        *da*: :class:`float` | {``None``}
+            Maximum allowed length-weighted turning angle
+        *link*: ``True`` | ``False`` | {``"x"``} | ``"-x"``
+            Whether or not to link curves and if so using which axis to
+            use for sorting
+        *xtol*: :class:`float` | :class:`str`
+            Tolerance for *x*-coordinates to be truncated to zero
+        *ytol*: :class:`float` | :class:`str`
+            Tolerance for *y*-coordinates to be truncated to zero
+        *ztol*: :class:`float` | :class:`str`
+            Tolerance for *z*-coordinates to be truncated to zero
+    :Versions:
+        * 2016-05-10 ``@ddalle``: Version 1.0
+        * 2021-10-15 ``@ddalle``: Version 2.0; in :mod:`cape.tricli`
+    """
+    # Get input file name
+    fstp = _get_i(*a, **kw)
+    # Get output file name
+    fcrv = _get_o(fstp, STEP_EXTS, "crv", *a, **kw)
+    # Options
+    xtol = kw.get("xtol")
+    ytol = kw.get("ytol")
+    ztol = kw.get("ztol")
+    # Read in the STEP file
+    stp = STEP(fstp, xtol=xtol, ytol=ytol, ztol=ztol)
+    # Sampling options
+    n = kw.get('n', 3)
+    da = kw.get('da')
+    ds = kw.get('ds')
+    dth = kw.get('dth')
+    tol = kw.get('tol', 1.0)
+    # Convert as necessary
+    if n is not None:
+        n = int(n)
+    if ds is not None:
+        ds  = float(ds)
+    if dth is not None:
+        dth = float(dth)
+    if da is not None:
+        da = float(da)
+    if tol is not None:
+        tol = float(tol)
+    # Sample (discretize) curves
+    stp.SampleCurves(n=n, ds=ds, dth=dth, da=da)
+    # Get link options
+    nolink = kw.get('no-link') 
+    axis = kw.get('link', 'x')
+    # Link/sort as requested
+    if not nolink and axis is True:
+        # Default sorting
+        stp.LinkCurves(ds=tol)
+    elif not nolink and axis:
+        # Specialized sorting
+        stp.LinkCurves(axis=axis, ds=tol)
+    # Write the curves
+    if kw.get('ascii', False):
+        # Write ASCII file
+        stp.WritePlot3DCurvesASCII(fcrv)
+    elif kw.get('lb8', kw.get('lr8', False)):
+        # Write little-endian double
+        stp.WritePlot3DCurvesBin(fcrv, endian='little', single=False)
+    elif kw.get('b8', kw.get('r8', False)):
+        # Write big-endian double
+        stp.WritePlot3DCurvesBin(fcrv, endian='big', single=False)
+    elif kw.get('lb4', kw.get('lr4', False)):
+        # Write little-endian single
+        stp.WritePlot3DCurvesBin(fcrv, endian='little', single=True)
+    elif kw.get('b4', kw.get('r4', False)):
+        # Write big-endian single
+        stp.WritePlot3DCurvesBin(fcrv, endian='big', single=True)
+    else:
+        # Process endianness
+        bo = kw.get('endian')
+        # Process precision
+        sp = kw.get('sp', False)
+        # Write binary file
+        stp.WritePlot3DCurvesBin(fcrv, endian=bo, single=sp)
+
+
+def steptri2crv(*a, **kw):
+    r"""Write Plot3D curves of ``.tri`` nodes near ``.stp`` curves
+
+    Read curves from a STEP file and use these to subset nodes from a
+    surface triangulation.  Each curve is written as a series of points,
+    and the combined output is written to a Plot3D multiple curve file.
+
+    :Call:
+        >>> steptri2crv(fstp, **kw)
+        >>> steptri2crv(fstp, ftri, **kw)
+        >>> steptri2crv(fstp, ftri, fcrv, **kw)
+        >>> steptri2crv(stp=fstp, tri=ftri, o=fcrv, **kw)
+    :Inputs:
+        *fstp*: :class:`str`
+            Name of input STEP file
+        *ftri*: :class:`str`
+            Name of input TRI file (defaults to *fstp* with ``.tri``
+            in place of ``.stp`` or ``.step``)
+        *fcrv*: :class:`str`
+            Name of output Plot3D curve file (defaults to *fstp* with
+            ``.crv`` in place of ``.stp`` or ``.step``)
+        *sp*: ``True`` | {``False``}
+            Write curves as single-precision file
+        *ascii*: ``True`` | {``False``}
+            Write curves as text file
+        *endian*: {``None``} | ``"big"`` | ``"little"``
+            Byte order
+        *r4*, *b4*: ``True`` | {``False``}
+            Write single-precision big-endian
+        *r8*, *b8*: ``True`` | {``False``}
+            Write double-precision big-endian
+        *lr4*, *lb4*: ``True`` | {``False``}
+            Write single-precision little-endian
+        *lr8*, *lb8*: ``True`` | {``False``}
+            Write double-precision little-endian
+    :Versions:
+        * 2016-09-29 ``@ddalle``: Version 1.0
+        * 2021-10-15 ``@ddalle``: Version 2.0
+    """
+    # Get first input file
+    fstp = _get_i(*a, _key="stp", **kw)
+    # Get second input file, then output file
+    ftri = _get_o(fstp, STEP_EXTS, "tri", *a, _arg=1, _key="tri", **kw)
+    fcrv = _get_o(fstp, STEP_EXTS, "crv", *a, _arg=2, _key="o", **kw)
+    # Read input files
+    print("  Reading TRI file: '%s" % ftri)
+    tri = Tri(ftri)
+    print("  Reading STEP file: '%s" % fstp)
+    stp = STEP(fstp)
+    # Get the edges of the triangles
+    tri.GetEdges()
+    # Initialize curves
+    X = []
+    # Options for initial curve sampling
+    kw_s = {
+        'n':   kw.get('n', 100),
+        'ds':  kw.get('ds'),
+        'dth': kw.get('dth'),
+        'da':  kw.get('da')
+    }
+    # Loop through curves
+    print("  Sampling curves...")
+    for i in range(stp.ncrv):
+        # Sample the curve
+        Yi = stp.SampleCurve(i, **kw_s)
+        # Get the nodes for this curve
+        Xi = tri.TraceCurve(Yi, **kw)
+        # Check for valid curve
+        if len(Xi) > 1:
+            # Valid curve
+            X.append(Xi)
+            continue
+        # If reached here, tracing failed; try reverse curve
+        Yi = np.flipud(Yi)
+        # Get the nodes for this curve
+        Xi = tri.TraceCurve(Yi, **kw)
+        # Check for valid curve
+        if len(Xi) > 1:
+            # Valid curve
+            X.append(Xi)
+    # Trick the STEP object into using these curves
+    stp.ncrv = len(X)
+    stp.crvs = X
+    # Write the curves
+    print("  Writing curves: '%s" % fcrv)
+    if kw.get('ascii', False):
+        # Write ASCII file
+        stp.WritePlot3DCurvesASCII(fcrv)
+    elif kw.get('lb8', kw.get('lr8', False)):
+        # Write little-endian double
+        stp.WritePlot3DCurvesBin(fcrv, endian='little', single=False)
+    elif kw.get('b8', kw.get('r8', False)):
+        # Write big-endian double
+        stp.WritePlot3DCurvesBin(fcrv, endian='big', single=False)
+    elif kw.get('lb4', kw.get('lr4', False)):
+        # Write little-endian single
+        stp.WritePlot3DCurvesBin(fcrv, endian='little', single=True)
+    elif kw.get('b4', kw.get('r4', False)):
+        # Write big-endian single
+        stp.WritePlot3DCurvesBin(fcrv, endian='big', single=True)
+    else:
+        # Process endianness
+        bo = kw.get('endian')
+        # Process precision
+        sp = kw.get('sp', False)
+        # Write binary file
+        stp.WritePlot3DCurvesBin(fcrv, endian=bo, single=sp)
+
+
 def tri2plt(*a, **kw):
     r"""Convert a UH3D triangulation file to Cart3D ``.tri`` format
     
@@ -280,10 +639,10 @@ def tri2plt(*a, **kw):
     # Get output file name
     if qdat:
         # Default to ".dat" extension
-        fplt = _get_o(ftri, "tri", "dat", *a, **kw)
+        fplt = _get_o(ftri, TRI_EXTS, "dat", *a, **kw)
     else:
         # Default to ".plt" extension
-        fplt = _get_o(ftri, "tri", "plt", *a, **kw)
+        fplt = _get_o(ftri, TRI_EXTS, "plt", *a, **kw)
     # Check file name for default output type
     if qdat is not None:
         # Explicit
@@ -333,7 +692,7 @@ def tri2surf(*a, **kw):
     # Get input file name
     ftri = _get_i(*a, **kw)
     # Get output file name
-    fsurf = _get_o(ftri, "tri", "surf", *a, **kw)
+    fsurf = _get_o(ftri, TRI_EXTS, "surf", *a, **kw)
     # Read TRI file
     tri = Tri(ftri)
     # Read Config file
@@ -380,7 +739,7 @@ def tri2uh3d(*a, **kw):
     # Get input file name
     ftri = _get_i(*a, **kw)
     # Get output file name
-    fuh3d = _get_o(ftri, "tri", "uh3d", *a, **kw)
+    fuh3d = _get_o(ftri, TRI_EXTS, "uh3d", *a, **kw)
     # Read TRI file
     tri = Tri(ftri)
     # Read Config file
@@ -473,15 +832,26 @@ def uh3d2tri(*a, **kw):
     
 
 # CLI functions
-def main_uh3d2tri():
-    r"""CLI for :func:`uh3d2tri`
+def main_step2crv():
+    r"""CLI for :func:`step2crv`
 
     :Call:
-        >>> main_uh3d2tri()
+        >>> main_step2crv()
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-15 ``@ddalle``: Version 1.0
     """
-    _main(uh3d2tri, HELP_UH3D2TRI)
+    _main(step2crv, HELP_STEP2CRV)
+
+
+def main_steptri2crv():
+    r"""CLI for :func:`steptri2crv`
+
+    :Call:
+        >>> main_steptri2crv()
+    :Versions:
+        * 2021-10-15 ``@ddalle``: Version 1.0
+    """
+    _main(steptri2crv, HELP_STEPTRI2CRV)
 
 
 def main_tri2plt():
@@ -517,6 +887,17 @@ def main_tri2uh3d():
     _main(tri2uh3d, HELP_TRI2UH3D)
 
 
+def main_uh3d2tri():
+    r"""CLI for :func:`uh3d2tri`
+
+    :Call:
+        >>> main_uh3d2tri()
+    :Versions:
+        * 2021-10-01 ``@ddalle``: Version 1.0
+    """
+    _main(uh3d2tri, HELP_UH3D2TRI)
+
+
 def _main(func, doc):
     r"""Command-line interface template
 
@@ -549,7 +930,13 @@ def _get_i(*a, **kw):
         >>> fname_in = _get_i(fname)
         >>> fname_in = _get_i(i=None)
     :Inputs:
-        *a[0]*: :class:`str`
+        *_arg*: {``0``} | :class:`int`
+            Positional parameter to use for input
+        *_key*: {``"i"``} | :class:`str`
+            Name of keyword argument to use
+        *_vdef*: {``None``} | :class:`str`
+            Default value to use
+        *a[_arg]*: :class:`str`
             Input file name specified as first positional arg
         *i*: :class:`str`
             Input file name as kwarg; supersedes *a*
@@ -558,20 +945,26 @@ def _get_i(*a, **kw):
             Input file name
     :Versions:
         * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-15 ``@ddalle``: Version 1.1
     """
+    # Argument index
+    n = kw.pop("_arg", 0)
+    col = kw.pop("_key", "i")
+    vdef = kw.pop("_vdef", None)
     # Get the input file name
-    if len(a) == 0:
+    if len(a) <= n:
         # Defaults
-        fname_in = None
+        fname_in = vdef
     else:
         # Use the first general input
-        fname_in = a[0]
+        fname_in = a[n]
     # Prioritize a "-i" input
-    fname_in = kw.get('i', fname_in)
+    fname_in = kw.get(col, fname_in)
     # Must have a file name.
     if fname_in is None:
         # Required input.
-        raise ValueError("Required at least 1 arg or 'i' kwarg")
+        raise ValueError(
+            "Required at least %i arg(s) or '%s' kwarg" % (n + 1, col))
     # Output
     return fname_in
 
@@ -581,15 +974,24 @@ def _get_o(fname_in, ext1, ext2, *a, **kw):
 
     :Call:
         >>> fname_out = _get_o(fname_in, ext1, ext2, *a, **kw)
+        >>> fname_out = _get_o(fname_in, exts1, ext2, *a, **kw)
     :Inputs:
         *fname_in*: :class:`str`
             Input file name
+        *exts1*: :class:`list`\ [:class:`str`]
+            List of expected file extensions for *fname_in*
         *ext1*: :class:`str`
             Expected file extension for *fname_in*
         *ext2*: :class:`str`
             Default file extension for *fname_out*
-        *a[1]*: :class:`str`
-            Output file name specified as first positional arg
+        *_arg*: {``1``} | :class:`int`
+            Positional parameter to use for input
+        *_key*: {``"o"``} | :class:`str`
+            Name of keyword argument to use
+        *_vdef*: {``swap_ext(fname_in, ext1, ext2)``} | :class:`str`
+            Default value to use
+        *a[_arg]*: :class:`str`
+            Input file name specified as first positional arg
         *o*: :class:`str`
             Output file name as kwarg; supersedes *a*
     :Outputs:
@@ -598,22 +1000,52 @@ def _get_o(fname_in, ext1, ext2, *a, **kw):
     :Versions:
         * 2021-10-01 ``@ddalle``: Version 1.0
     """
+    # Form default
+    fname_out = _swap_ext(fname_in, ext1, ext2)
+    # Set default options for output
+    kw.setdefault("_arg", 1)
+    kw.setdefault("_key", "o")
+    kw.setdefault("_vdef", fname_out)
+    # Use input detector
+    return _get_i(*a, **kw)
+
+
+def _swap_ext(fname_in, ext1, ext2):
+    r"""Strip one file extension and replace with another
+
+    :Call:
+        >>> fname_out = _swap_ext(fname_in, ext1, ext2)
+        >>> fname_out = _swap_ext(fname_in, exts1, ext2)
+    :Inputs:
+        *fname_in*: :class:`str`
+            Input file name
+        *exts1*: :class:`list`\ [:class:`str`]
+            List of expected file extensions for *fname_in*
+        *ext1*: :class:`str`
+            Expected file extension for *fname_in*
+        *ext2*: :class:`str`
+            Default file extension for *fname_out*
+    :Outputs:
+        *fname_out*: :class:`str`
+            Output file name
+    :Versions:
+        * 2021-10-01 ``@ddalle``: Version 1.0
+    """
+    # Get list of possible extensions
+    if not isinstance(ext1, (list, tuple)):
+        # Singleton list
+        ext1 = [ext1]
     # Strip *ext1* as starter for default
-    if fname_in.endswith(ext1):
-        # Strip expected file extension
-        fname_out = fname_in[:-len(ext1)]
+    for extj in ext1:
+        if fname_in.endswith(extj):
+            # Strip expected file extension
+            fname_out = fname_in[:-len(extj)]
+            break
     else:
         # Use current file name since extension not found
         fname_out = fname_in + "."
     # Add supplied *ext2* extension for output
-    fname_out = fname_out + ext2
-    # Get the output file name
-    if len(a) >= 2:
-        fname_out = a[1]
-    # Prioritize a "-o" input.
-    fname_out = kw.get('o', fname_out)
-    # Output
-    return fname_out
+    return fname_out + ext2
         
 
 def _read_config(*a, **kw):
