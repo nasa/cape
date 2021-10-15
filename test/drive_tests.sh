@@ -2,7 +2,7 @@
 
 # Initialize modules
 . /usr/share/Modules/init/bash
-module use -a /u/w/ddalle/share/modulefiles
+module use -a /u/wk/ddalle/share/modulefiles
 
 # Environment
 module load cape

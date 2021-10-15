@@ -17,7 +17,7 @@ from cape.testutils import crawler
 
 
 # Folder containing this document
-THIS_DIR = os.path.dirname(__file__)
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 # Parent folder
 CAPE_DIR = os.path.dirname(THIS_DIR)
 
@@ -54,7 +54,7 @@ def crawl():
         if not os.path.isdir(family):
             continue
         # Enter folder
-        os.chidr(os.path.join(THIS_DIR, family))
+        os.chdir(os.path.join(THIS_DIR, family))
         # Run the tests
         stats[family] = crawler.cli()
         # Add up failures
