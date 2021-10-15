@@ -13,7 +13,7 @@ in each subfolder that exists.
 The test crawler is initiated using the command:
 
     .. code-block:: console
-    
+
         $ pc_TestCrawler.py
 
 This calls the :func:`cli` command from this module.
@@ -32,18 +32,41 @@ import os
 import sys
 import glob
 import math
-import traceback
 
 # Local modules
+from . import argread
 from . import crawleropts
 from . import driver
 from . import fileutils
 
 
+HELP_TESTCRAWLER = r"""
+CAPE test crawler
+===================
+
+The test crawler completes a simple task, namely that enters zero or
+more folders and runs the main CAPE test utility.  This list of
+folders is set by the user either directly or by pattern.  The default
+is to run a test in each subfolder that exists.
+
+:Usage:
+    .. code-block:: console
+        
+        $ cape_TestCrawler.py [OPTIONS]
+
+:Options:
+    -f, --json FNAME
+        Read settings from file *FNAME* {cape-test.json}
+
+:Versions:
+    * 2019-07-03 ``@ddalle``: Version 1.0
+"""
+
+
 # Crawler class
 class TestCrawler(object):
-    """Test crawler class
-    
+    r"""Test crawler class
+
     :Call:
         >>> crawler = TestCrawler(**kw)
     :Inputs:
@@ -64,9 +87,9 @@ class TestCrawler(object):
         *crawldirs*: :class:`list`\ [:class:`str`]
             List of folders to recurse crawler in
     :Versions:
-        * 2019-07-03 ``@ddalle``: First version
+        * 2019-07-03 ``@ddalle``: Version 1.0
     """
-    
+
     # Standard attributes
     fname = "cape-test.json"
     RootDir = None
@@ -74,13 +97,13 @@ class TestCrawler(object):
     testdirs = []
     crawldirs = []
     results = {}
-    
+
     # Initialization method
     def __init__(self, *a, **kw):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2019-07-03 ``@ddalle``: First version
+            * 2019-07-03 ``@ddalle``: Version 1.0
         """
         # Process options file name
         fname = kw.pop("f", kw.pop("json", "cape-test.json"))
@@ -88,38 +111,38 @@ class TestCrawler(object):
         self.fname = os.path.split(fname)[1]
         # Save current directory
         self.RootDir = os.getcwd()
-        # Process options 
+        # Process options
         self.opts = crawleropts.TestCrawlerOpts(fname)
         # Get list of tests
         self.get_test_dirs()
-        
+
     # Representation
     def __repr__(self):
-        """Representation method
-        
+        r"""Representation method
+
         :Versions:
             * 2019-07-03 ``@ddalle``: <TestCrawler(ntest=4)>
         """
         return "<%s(ntest=%i)>" % (
             self.__class__.__name__, len(self.testdirs))
-        
+
     # String
     def __str__(self):
-        """String method
-        
+        r"""String method
+
         :Versions:
             * 2019-07-03 ``@ddalle``: <TestCrawler('/root/', [])>
         """
         return "<%s('%s', %s)>" % (
             self.__class__.__name__,
             self.RootDir, self.testdirs)
-        
+
     # Process test list
     def get_test_dirs(self):
-        """Process list of test directories from options
-        
+        r"""Process list of test directories from options
+
         This process the option *Glob* in *crawler.opts*
-        
+
         :Call:
             >>> testdirs = crawler.get_test_dirs()
         :Inputs:
@@ -129,7 +152,7 @@ class TestCrawler(object):
             *crawler.testdirs*: :class:`list`\ [:class:`str`]
                 List of folders in which to conduct tests
         :Versions:
-            * 2019-07-03 ``@ddalle``: First version
+            * 2019-07-03 ``@ddalle``: Version 1.0
         """
         # Safely change to root folder
         fpwd = os.getcwd()
@@ -147,13 +170,13 @@ class TestCrawler(object):
         os.chdir(fpwd)
         # Output
         return self.testdirs
-        
+
     # Process recursive crawl list
     def get_crawl_dirs(self):
-        """Process list of test directories to recurse crawler in
-        
+        r"""Process list of test directories to recurse crawler in
+
         This process the option *CrawlGlob* in *crawler.opts*
-        
+
         :Call:
             >>> crawldirs = crawler.get_crawl_dirs()
         :Inputs:
@@ -163,7 +186,7 @@ class TestCrawler(object):
             *crawler.crawldirs*: :class:`list`\ [:class:`str`]
                 List of folders in which to recurse crawler
         :Versions:
-            * 2019-07-05 ``@ddalle``: First version
+            * 2019-07-05 ``@ddalle``: Version 1.0
         """
         # Safely change to root folder
         fpwd = os.getcwd()
@@ -181,11 +204,11 @@ class TestCrawler(object):
         os.chdir(fpwd)
         # Output
         return self.crawldirs
-        
+
     # Primary function
     def crawl(self, **kw):
-        """Execute tests
-        
+        r"""Execute tests
+
         :Call:
             >>> stats = crawler.crawl()
         :Inputs:
@@ -199,8 +222,8 @@ class TestCrawler(object):
             *stats["FAIL"]*: :class:`int`
                 Number of failed tests
         :Versions:
-            * 2019-07-03 ``@ddalle``: First version
-            * 2019-07-05 ``@ddalle``: Added recursion
+            * 2019-07-03 ``@ddalle``: Version 1.0
+            * 2019-07-05 ``@ddalle``: Version 1.1; add recursion
         """
         # Update test list if necessary
         self.get_test_dirs()
@@ -325,7 +348,7 @@ class TestCrawler(object):
             sys.stdout.flush()
         # Status update
         sys.stdout.write(
-            "  %i tests PASS and %i tests FAILED\n" % 
+            "  %i tests PASS and %i tests FAILED\n" %
             (stats["PASS"], stats["FAIL"]))
         sys.stdout.flush()
         # Get recursive folder list
@@ -343,31 +366,55 @@ class TestCrawler(object):
         # Status update
         if len(self.crawldirs) > 0:
             sys.stdout.write(
-                "  %i tests PASS and %i tests FAILED\n" % 
+                "  %i tests PASS and %i tests FAILED\n" %
                 (stats["PASS"], stats["FAIL"]))
             sys.stdout.flush()
         # Go back to original location
         os.chdir(fpwd)
         # Output
         return stats
-# class TestCrawler
-    
-    
+
+
 # Command-line interface
 def cli(*a, **kw):
-    """Test crawler command-line interface
-    
+    r"""Test crawler command-line interface
+
     :Call:
-        >>> cli(*a, **kw)
+        >>> stats = cli(*a, **kw)
     :Inputs:
         *f*, *json*: {``"cape-test.json"``} | :class:`str`
             Name of JSON settings file for crawler
+    :Outputs:
+        *stats*: :class:`dict`\ [:class:`int`]
+            Number of cases that passed and failed
+        *stats["PASS"]*: :class:`int`
+            Number of successful tests
+        *stats["FAIL"]*: :class:`int`
+            Number of failed tests
     :Versions:
-        * 2019-07-03 ``@ddalle``: First version
+        * 2019-07-03 ``@ddalle``: Version 1.0
+        * 2021-10-15 ``@ddalle``: Version 1.1; output
     """
     # Get an instance of the crawler class
     crawler = TestCrawler(**kw)
     # Run the crawler
-    crawler.crawl()
+    return crawler.crawl()
 
 
+# Entry point
+def main():
+    r"""Run CAPE test crawler
+
+    :Call:
+        >>> main()
+    :Versions:
+        * 2021-10-15 ``@ddalle``: Version 1.0
+    """
+    # Parse command-line args
+    a, kw = argread.readkeys(sys.argv)
+    # Check for help flgas
+    if kw.get("h") or kw.get("help"):
+        print(HELP_TESTCRAWLER)
+        return
+    # Call the function
+    cli(*a, **kw)
