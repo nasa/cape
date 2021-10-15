@@ -48,8 +48,10 @@ def crawl():
     # Keep track of failures
     fail_n = 0
     fail_fams = []
+    print(os.listdir("."))
     # Loop through test families
     for family in os.listdir("."):
+        print(family)
         # Only folders
         if not os.path.isdir(family):
             continue
@@ -81,7 +83,7 @@ def crawl():
         # PASS all
         msg = "Auto-commit of all tests: PASS"
     # Add test results
-    os.system("git add test")
+    os.system("git add doc/test")
     os.system("git commit -a -m '%s'" % msg)
     # Share results
     #os.system("git push hub main")
