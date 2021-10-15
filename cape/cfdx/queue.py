@@ -105,10 +105,15 @@ def qdel(jobID):
     # Call the command with safety.
     for jobI in jobID:
         try:
-            # Call `qdel`
-            sp.Popen(['qdel', str(jobI)], stdout=sp.PIPE).communicate()
-            # Status update.
-            print("     Deleted PBS job %i" % jobI)
+            # Call ``qdel``
+            proc = sp.Popen(
+                ['qdel', str(jobI)],
+                stdout=sp.PIPE, stderr=sp.PIPE)
+            # Wait for command
+            proc.communicate()
+            # Status update
+            if proc.returncode == 0:
+                print("     Deleted PBS job %i" % jobI)
         except Exception:
             print("     Failed to delete PBS job %s" % jobI)
 

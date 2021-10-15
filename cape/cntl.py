@@ -629,6 +629,10 @@ class Cntl(object):
             # Process a batch job
             self.SubmitBatchPBS(os.sys.argv)
             return 'batch'
+        elif kw.get('dezombie'):
+            # Kill ZOMBIE jobs and delete running file
+            self.Dezombie(**kw)
+            return "dezombie"
         elif kw.get('extend'):
             # Extend the number of iterations in a phase
             self.ExtendCases(**kw)
@@ -1861,6 +1865,52 @@ class Cntl(object):
    # Case Modification
    # =================
    # <
+    # Function to clear out zombies
+    def Dezombie(self, **kw):
+        r"""Clean up any **ZOMBIE** cases
+
+        :Call:
+            >>> cntl.Dezombie(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of overall control interface
+            *extend*: {``True``} | positive :class:`int`
+                Extend phase *j* by *extend* nominal runs
+            *j*: {``None``} | :class:`int` >= 0
+                Phase number
+            *imax*: {``None``} | :class:`int`
+                Do not increase iteration number beyond *imax*
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+        :Versions:
+            * 2021-10-14 ``@ddalle``: Version 1.0
+        """
+        # Zombie counter
+        nzombie = 0
+        # Cases
+        I = self.x.GetIndices(**kw)
+        # Largest size
+        nlog = int(np.ceil(np.log10(max(1, np.max(I)))))
+        # Print format
+        fmt = "%%%ii %%s" % nlog
+        # Loop through folders
+        for i in I:
+            # Get status
+            sts = self.CheckCaseStatus(i)
+            # Move to next case if not zombie
+            if sts != "ZOMBIE":
+                continue
+            # Status update
+            print(fmt % (i, self.x.GetFullFolderNames(i)))
+            # qdel any cases 
+            self.StopCase(i)
+            # Counter
+            nzombie += 1
+        # Final status
+        print("Cleared up %i ZOMBIEs" % nzombie)
+
     # Function to extend one or more cases
     def ExtendCases(self, **kw):
         r"""Extend one or more case by a number of iterations
