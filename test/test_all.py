@@ -48,15 +48,15 @@ def crawl():
     # Keep track of failures
     fail_n = 0
     fail_fams = []
-    print(os.listdir("."))
     # Loop through test families
     for family in os.listdir("."):
-        print(family)
+        # Base placement
+        os.chdir(THIS_DIR)
         # Only folders
         if not os.path.isdir(family):
             continue
         # Enter folder
-        os.chdir(os.path.join(THIS_DIR, family))
+        os.chdir(family)
         # Run the tests
         stats[family] = crawler.cli()
         # Add up failures
@@ -86,7 +86,7 @@ def crawl():
     os.system("git add doc/test")
     os.system("git commit -a -m '%s'" % msg)
     # Share results
-    #os.system("git push hub main")
+    os.system("git push hub main")
     # Return to original folder
     os.chdir(fpwd)
     # Output

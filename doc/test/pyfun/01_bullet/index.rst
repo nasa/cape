@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-13 at 11:02 PDT
+   on 2021-10-15 at 15:22 PDT
 
 Test ``01_bullet``: PASS
 ==========================
 
-This test PASSED on 2021-10-13 at 11:02 PDT
+This test PASSED on 2021-10-15 at 15:22 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Case 8 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 38.72 seconds
+    * Command took 40.01 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -52,10 +52,10 @@ Command 1: Run Case 8 (PASS)
           Case name: 'bullet/m1.10a0.0b0.0' (index 8)
              Starting case 'bullet/m1.10a0.0b0.0'
          > nodet --animation_freq 100
-             (PWD = '/u/wk/ddalle/usr/cape/test/pyfun/01_bullet/work/bullet/m1.10a0.0b0.0')
+             (PWD = 'bullet/m1.10a0.0b0.0/')
              (STDOUT = 'fun3d.out')
          > nodet --animation_freq 100
-             (PWD = '/u/wk/ddalle/usr/cape/test/pyfun/01_bullet/work/bullet/m1.10a0.0b0.0')
+             (PWD = 'bullet/m1.10a0.0b0.0/')
              (STDOUT = 'fun3d.out')
         
         Submitted or ran 1 job(s).
@@ -80,8 +80,8 @@ Command 2: Show DONE Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.69 seconds
-    * Cumulative time: 39.41 seconds
+    * Command took 0.87 seconds
+    * Cumulative time: 40.88 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -112,8 +112,8 @@ Command 3: Collect Aero (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.81 seconds
-    * Cumulative time: 40.22 seconds
+    * Command took 0.90 seconds
+    * Cumulative time: 41.78 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -133,8 +133,8 @@ Command 4: Check DataBook (Python 2) (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 40.75 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 42.36 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -168,8 +168,8 @@ Command 5: Check DataBook (Python 3) (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59 seconds
-    * Cumulative time: 41.34 seconds
+    * Command took 0.76 seconds
+    * Cumulative time: 43.12 seconds
 :STDOUT:
     * **PASS**
     * Actual:

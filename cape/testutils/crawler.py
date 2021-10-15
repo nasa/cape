@@ -347,9 +347,12 @@ class TestCrawler(object):
             sys.stdout.write(msg)
             sys.stdout.flush()
         # Status update
-        sys.stdout.write(
-            "  %i tests PASS and %i tests FAILED\n" %
-            (stats["PASS"], stats["FAIL"]))
+        if stats["FAIL"]:
+            sys.stdout.write(
+                "  %i tests PASS and %i tests FAILED\n" %
+                (stats["PASS"], stats["FAIL"]))
+        else:
+            sys.stdout.write("  %i tests PASS\n" % stats["PASS"])
         sys.stdout.flush()
         # Get recursive folder list
         for fdir in self.crawldirs:
