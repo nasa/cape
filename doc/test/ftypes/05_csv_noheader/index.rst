@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-15 at 15:26 PDT
+   on 2021-10-16 at 01:45 PDT
 
 Test ``05_csv_noheader``: PASS
 ================================
 
-This test PASSED on 2021-10-15 at 15:26 PDT
+This test PASSED on 2021-10-16 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -90,7 +90,7 @@ Command 1: Minimal Definitions: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.42 seconds
+    * Command took 0.43 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -122,8 +122,8 @@ Command 2: Minimal Definitions: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 0.93 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.94 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -155,7 +155,7 @@ Command 3: Specified Column Titles: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
+    * Command took 0.42 seconds
     * Cumulative time: 1.36 seconds
 :STDOUT:
     * **PASS**
@@ -188,8 +188,8 @@ Command 4: Specified Column Titles: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 1.87 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 1.85 seconds
 :STDOUT:
     * **PASS**
     * Target:

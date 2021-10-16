@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-15 at 15:26 PDT
+   on 2021-10-16 at 01:45 PDT
 
-Test ``09_rdb_lleval``: PASS
-==============================
+Test ``09_rdb_lleval``: **FAIL** (command 1)
+==============================================
 
-This test PASSED on 2021-10-15 at 15:26 PDT
+This test **FAILED** (command 1) on 2021-10-16 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_eval.py
         $ python3 test01_eval.py
 
-Command 1: Interpolate line loads: Python 2 (PASS)
----------------------------------------------------
+Command 1: Interpolate line loads: Python 2 (**FAIL**)
+-------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -31,14 +31,23 @@ Command 1: Interpolate line loads: Python 2 (PASS)
         $ python2 test01_eval.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 5.11 seconds
+    * Command took 0.75 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: none
+
+        mach: 0.90
+        alpha: 1.50
+        beta: 0.50
+        
+
     * Target:
 
       .. code-block:: none
@@ -51,37 +60,29 @@ Command 1: Interpolate line loads: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Interpolate line loads: Python 3 (PASS)
----------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_eval.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 3.81 seconds
-    * Cumulative time: 8.93 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        alpha: 1.50
-        beta: 0.50
-        bullet.dCN.size: 51
-        bullet.dCN.xargs: ['bullet.x']
+        Traceback (most recent call last):
+          File "test01_eval.py", line 37, in <module>
+            plt.plot(db["bullet.x"], dCN)
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 3352, in plot
+            ax = gca()
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 969, in gca
+            return gcf().gca(**kwargs)
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 586, in gcf
+            return figure()
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 533, in figure
+            **kwargs)
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/backend_bases.py", line 161, in new_figure_manager
+            return cls.new_figure_manager_given_figure(num, fig)
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/backends/_backend_tk.py", line 1046, in new_figure_manager_given_figure
+            window = Tk.Tk(className="matplotlib")
+          File "/usr/lib64/python2.7/lib-tk/Tkinter.py", line 1745, in __init__
+            self.tk = _tkinter.create(screenName, baseName, className, interactive, wantobjects, useTk, sync, use)
+        _tkinter.TclError: no display name and no $DISPLAY environment variable
         
 
-:STDERR:
-    * **PASS**
 

@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-15 at 15:27 PDT
+   on 2021-10-16 at 01:45 PDT
 
-Test ``13_plot_seam``: PASS
-=============================
+Test ``13_plot_seam``: **FAIL** (command 1)
+=============================================
 
-This test PASSED on 2021-10-15 at 15:27 PDT
+This test **FAILED** (command 1) on 2021-10-16 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_plot_seam.py
         $ python3 test01_plot_seam.py
 
-Command 1: Line load plot with seam curve: Python 2 (PASS)
------------------------------------------------------------
+Command 1: Line load plot with seam curve: Python 2 (**FAIL**)
+---------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -31,51 +31,71 @@ Command 1: Line load plot with seam curve: Python 2 (PASS)
         $ python2 test01_plot_seam.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 6.24 seconds
+    * Command took 0.74 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
+
+      .. code-block:: pytb
+
+        /u/wk/ddalle/usr/cape/cape/tnakit/plot_mpl/mpl.py:84: UserWarning: 
+        This call to matplotlib.use() has no effect because the backend has already
+        been chosen; matplotlib.use() must be called *before* pylab, matplotlib.pyplot,
+        or matplotlib.backends is imported for the first time.
+        
+        The backend was *originally* set to 'TkAgg' by the following code:
+          File "test01_plot_seam.py", line 8, in <module>
+            import matplotlib.pyplot as plt
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 71, in <module>
+            from matplotlib.backends import pylab_setup
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/backends/__init__.py", line 17, in <module>
+            line for line in traceback.format_stack()
+        
+        
+          mpl.use("Agg")
+        Traceback (most recent call last):
+          File "test01_plot_seam.py", line 37, in <module>
+            h = db.plot("bullet.dCN", 1, XLabel="x/Lref", YLabel="dCN/d(x/Lref)")
+          File "/u/wk/ddalle/usr/cape/cape/attdb/rdb.py", line 10407, in plot
+            return self.plot_linear(col, *a, **kw)
+          File "/u/wk/ddalle/usr/cape/cape/attdb/rdb.py", line 10717, in plot_linear
+            hi = pmpl.plot(X, V, **opts)
+          File "/u/wk/ddalle/usr/cape/cape/tnakit/plot_mpl/__init__.py", line 263, in plot
+            _part_init_figure(opts, h)
+          File "/u/wk/ddalle/usr/cape/cape/tnakit/plot_mpl/__init__.py", line 414, in _part_init_figure
+            h.fig = mpl._figure(**kw_fig)
+          File "/u/wk/ddalle/usr/cape/cape/tnakit/plot_mpl/mpl.py", line 1890, in _figure
+            fig = plt.gcf()
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 586, in gcf
+            return figure()
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 533, in figure
+            **kwargs)
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/backend_bases.py", line 161, in new_figure_manager
+            return cls.new_figure_manager_given_figure(num, fig)
+          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/backends/_backend_tk.py", line 1046, in new_figure_manager_given_figure
+            window = Tk.Tk(className="matplotlib")
+          File "/usr/lib64/python2.7/lib-tk/Tkinter.py", line 1745, in __init__
+            self.tk = _tkinter.create(screenName, baseName, className, interactive, wantobjects, useTk, sync, use)
+        _tkinter.TclError: no display name and no $DISPLAY environment variable
+        
+
 
 :PNG:
-    * **PASS**
-    * Difference fraction: 0.0000
+    * **FAIL**
+    * Actual:
+
+        .. image:: PNG-00-00.png
+            :width: 4.5in
+
     * Target:
 
         .. image:: PNG-target-00-00.png
-            :width: 4.5in
-
-Command 2: Line load plot with seam curve: Python 3 (PASS)
------------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_plot_seam.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 4.33 seconds
-    * Cumulative time: 10.57 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-:PNG:
-    * **PASS**
-    * Difference fraction: 0.0062
-    * Target:
-
-        .. image:: PNG-target-01-00.png
             :width: 4.5in
 
