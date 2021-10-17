@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-16 at 01:40 PDT
+   on 2021-10-17 at 01:40 PDT
 
 Test ``06_atm``: PASS
 =======================
 
-This test PASSED on 2021-10-16 at 01:40 PDT
+This test PASSED on 2021-10-17 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -105,7 +105,7 @@ Command 1: Standard Atmosphere: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54 seconds
+    * Command took 0.36 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -137,8 +137,8 @@ Command 2: Standard Atmosphere: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.72 seconds
-    * Cumulative time: 1.26 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 0.84 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -171,7 +171,7 @@ Command 3: Sutherland's Law: Python 2 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.40 seconds
-    * Cumulative time: 1.66 seconds
+    * Cumulative time: 1.24 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -199,7 +199,7 @@ Command 4: Sutherland's Law: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.47 seconds
-    * Cumulative time: 2.12 seconds
+    * Cumulative time: 1.71 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -226,8 +226,8 @@ Command 5: Temperature from Enthalpy: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.46 seconds
-    * Cumulative time: 2.58 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 2.11 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -254,8 +254,8 @@ Command 6: Temperature from Enthalpy: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 3.07 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 2.59 seconds
 :STDOUT:
     * **PASS**
     * Target:
