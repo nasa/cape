@@ -73,6 +73,15 @@ class JobXML(xmlfile.XMLFile):
     def get_restart(self):
         return self.get_input("Restart")
 
+    def get_kcfd_iters(self):
+        return self.get_kcfd("Iterations")
+
+    def get_kcfd_subiters(self):
+        return self.get_kcfd("Subiterations")
+
+    def get_kcfd_timestep(self):
+        return self.get_kcfd("TimeStep")
+
    # --- Specific values: set ---
     def set_mach(self, mach):
         return self.set_input("Mach", mach)
@@ -85,6 +94,15 @@ class JobXML(xmlfile.XMLFile):
 
     def set_restart(self, restart=True):
         return self.set_input("Restart", restart)
+
+    def set_kcfd_iters(self, iters):
+        return self.set_kcfd("Iterations", iters)
+
+    def set_kcfd_subiters(self, subiters):
+        return self.set_kcfd("Subiterations", subiters)
+
+    def set_kcfd_timestep(self, timestep):
+        return self.set_kcfd("TimeStep", timestep)
             
    # --- Sections: find ---
     def find_input(self, name):
@@ -373,6 +391,11 @@ INPUTLIST_KEYS = {
     "relen": "Reynolds length",
     "restart": "restart flag",
 }
+KCFD_KEYS = {
+    "iters": "number of iterations",
+    "subiters": "number of subiterations",
+    "timestep": "non-dimensional time step",
+}
 
 
 # Template docstrings
@@ -396,6 +419,27 @@ _DOCSTRING_SET_INPUT = r"""Set %(descr)s in *InputList* section
                 Instance of Kestrel job XML file interface
             *%(key)s*: ``None`` | :class:`float` | :class:`str`
                 Value to set in XML file
+        """
+_DOCSTRING_GET_KCFD = r"""Get %(descr)s from *KCFD* section
+
+        :Call:
+            >>> %(key)s = xml.get_kcfd_%(key)s()
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+        :Outputs:
+            *%(key)s*: ``None`` | :class:`float` | :class:`str`
+                Converted value of XML element text
+        """
+_DOCSTRING_SET_KCFD = r"""Set %(descr)s in *KCFD* section
+
+        :Call:
+            >>> xml.set_kcfd_%(key)s(%(key)s)
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+            *%(key)s*: ``None`` | :class:`float` | :class:`str`
+                Converted value of XML element text
         """
 
 
@@ -421,4 +465,26 @@ for _key, _desc in INPUTLIST_KEYS.items():
     _fmt = {"key": _key, "descr": _desc}
     # Save updated doscstring
     _func.__doc__ = _DOCSTRING_SET_INPUT % _fmt
+# Set doc strings: *KCFD* getters
+for _key, _desc in KCFD_KEYS.items():
+    # Try to get function
+    _func = getattr(JobXML, "get_kcfd_%s" % _key, None)
+    # Check if found
+    if _func is None:
+        continue
+    # Format mapping
+    _fmt = {"key": _key, "descr": _desc}
+    # Save updated doscstring
+    _func.__doc__ = _DOCSTRING_GET_KCFD % _fmt
+# Set doc strings: *KCFD* setters
+for _key, _desc in KCFD_KEYS.items():
+    # Try to get function
+    _func = getattr(JobXML, "set_kcfd_%s" % _key, None)
+    # Check if found
+    if _func is None:
+        continue
+    # Format mapping
+    _fmt = {"key": _key, "descr": _desc}
+    # Save updated doscstring
+    _func.__doc__ = _DOCSTRING_SET_KCFD % _fmt
 
