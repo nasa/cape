@@ -1,0 +1,75 @@
+{
+    // Settings for the PBS script
+    "PBS": {
+        "j": "oe",
+        "r": "n",
+        "S": "/bin/bash",
+        "select": 1,
+        "ncpus": 12,
+        "mpiprocs": 12,
+        "model": "",
+        "W": "",
+        "q": "normal",
+        "walltime": "2:00:00"
+    },
+    
+	// The names of these two files have the obvious defaults.
+	"JobXML": "inputs/kestrel.nml",
+	
+	// Commands to load at head of run scripts (run_cart3d.pbs)
+	"ShellCmds": [
+	    ". $MODULESHOME/init/bash",
+	    "module load cape",
+	    "module load kestrel"
+	],
+	
+	// Iteration control and command-line inputs
+	"RunControl": {
+	    // Run sequence
+	    "PhaseSequence": [0],
+	    "PhaseIters": [2000],
+	    // Number of threads
+	    "nProc": 8,
+	    // Mode
+	    "Adaptive": false,
+	    "MPI": false,
+	    "qsub": false,
+	    "Resubmit": false,
+	    "Continue": true,
+	    // System interface
+	    "mpicmd": "mpiexec",
+        "Environ": {},
+        "ulimit": {"s": 4194304}
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        
+    },
+    
+    // RunMatrix description
+    "RunMatrix": {
+        // If a file is specified, and it exists, trajectory values will be 
+        // read from it.  RunMatrix values can also be specified locally.
+        "File": "inputs/matrix.csv",
+        // REQUIRED: Name of the variables to vary in the trajectory
+        "Keys": ["mach", "alpha", "beta"],
+        // Prefix placed in front of folder name
+        //   i.e.  "F_m2.50a4.00r30.00/" if Prefix="F", or
+        //         "m2.50a4.00r30.00/" if Prefix=""
+        "Prefix": "",
+        // Prefix for the groups of conditions using the same mesh
+        "GroupPrefix": "",
+        # Default properties for a new variable
+        # This also serves as the template for new variables
+        "Definitions": {
+            # Default parameter
+            "Default": {
+                "Group": false,
+                "Type": "Value",
+                "Script": ""
+            }
+        # Predefined parameter: Mach
+        }
+    }
+}
