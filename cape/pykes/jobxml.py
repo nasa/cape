@@ -494,5 +494,3 @@ _DOCSTRING_SET_KCFD = r"""Set %(descr)s in *KCFD* section
 # Update docstrings
 JobXML._doc_keys()
 
-
-

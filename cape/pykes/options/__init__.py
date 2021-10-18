@@ -51,21 +51,21 @@ class Options(options.Options):
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method"""
-        # Check for an input file.
+        # Check for an input file
         if fname:
-            # Get the equivalent dictionary.
+            # Read JSON file into a dict
             d = loadJSONFile(fname)
-            # Loop through the keys.
-            for k in d:
-                kw[k] = d[k]
+        else:
+            # No dict
+            d = {}
         # Read the defaults.
         defs = getPyKesDefaults()
         
         # Apply the defaults.
-        kw = applyDefaults(kw, defs)
+        d = applyDefaults(d, defs)
         # Store the data in *this* instance
-        for k in kw:
-            self[k] = kw[k]
+        self.update(d)
+        self.update(kw)
         # Upgrade important groups to their own classes.
         self._PBS()
         self._Slurm()
