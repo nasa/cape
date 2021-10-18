@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-17 at 01:45 PDT
+   on 2021-10-18 at 01:45 PDT
 
 Test ``01_subplot_col``: **FAIL** (command 1)
 ===============================================
 
-This test **FAILED** (command 1) on 2021-10-17 at 01:45 PDT
+This test **FAILED** (command 1) on 2021-10-18 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Line load plot with image: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.95 seconds
+    * Command took 0.80 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
