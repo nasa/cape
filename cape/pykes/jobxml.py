@@ -381,6 +381,54 @@ class JobXML(xmlfile.XMLFile):
         # Otherwise just convert to text using str()
         return str(v)
 
+   # --- Meta ---
+    @classmethod
+    def _doc_keys(cls):
+        # Set doc strings: InputList getters
+        for key, desc in INPUTLIST_KEYS.items():
+            # Try to get function
+            func = cls.__dict__.get("get_%s" % key)
+            # Check if found
+            if not callable(func):
+                continue
+            # Format mapping
+            fmt = {"key": key, "descr": desc}
+            # Save updated doscstring
+            func.__doc__ = _DOCSTRING_GET_INPUT % fmt
+        # Set doc strings: InputList setters
+        for key, desc in INPUTLIST_KEYS.items():
+            # Try to get function
+            func = cls.__dict__.get("set_%s" % key)
+            # Check if found
+            if not callable(func):
+                continue
+            # Format mapping
+            fmt = {"key": key, "descr": desc}
+            # Save updated doscstring
+            func.__doc__ = _DOCSTRING_SET_INPUT % fmt
+        # Set doc strings: *KCFD* getters
+        for key, desc in KCFD_KEYS.items():
+            # Try to get function
+            func = cls.__dict__.get("get_kcfd_%s" % key)
+            # Check if found
+            if not callable(func):
+                continue
+            # Format mapping
+            fmt = {"key": key, "descr": desc}
+            # Save updated doscstring
+            func.__doc__ = _DOCSTRING_GET_KCFD % fmt
+        # Set doc strings: *KCFD* setters
+        for key, desc in KCFD_KEYS.items():
+            # Try to get function
+            func = cls.__dict__.get("set_kcfd_%s" % key)
+            # Check if found
+            if not callable(func):
+                continue
+            # Format mapping
+            fmt = {"key": key, "descr": desc}
+            # Save updated doscstring
+            func.__doc__ = _DOCSTRING_SET_KCFD % fmt
+
 
 # Common *InputList.Input* keys
 INPUTLIST_KEYS = {
@@ -443,48 +491,8 @@ _DOCSTRING_SET_KCFD = r"""Set %(descr)s in *KCFD* section
         """
 
 
-# Set doc strings: InputList getters
-for _key, _desc in INPUTLIST_KEYS.items():
-    # Try to get function
-    _func = getattr(JobXML, "get_%s" % _key, None)
-    # Check if found
-    if _func is None:
-        continue
-    # Format mapping
-    _fmt = {"key": _key, "descr": _desc}
-    # Save updated doscstring
-    _func.__doc__ = _DOCSTRING_GET_INPUT % _fmt
-# Set doc strings: InputList setters
-for _key, _desc in INPUTLIST_KEYS.items():
-    # Try to get function
-    _func = getattr(JobXML, "set_%s" % _key, None)
-    # Check if found
-    if _func is None:
-        continue
-    # Format mapping
-    _fmt = {"key": _key, "descr": _desc}
-    # Save updated doscstring
-    _func.__doc__ = _DOCSTRING_SET_INPUT % _fmt
-# Set doc strings: *KCFD* getters
-for _key, _desc in KCFD_KEYS.items():
-    # Try to get function
-    _func = getattr(JobXML, "get_kcfd_%s" % _key, None)
-    # Check if found
-    if _func is None:
-        continue
-    # Format mapping
-    _fmt = {"key": _key, "descr": _desc}
-    # Save updated doscstring
-    _func.__doc__ = _DOCSTRING_GET_KCFD % _fmt
-# Set doc strings: *KCFD* setters
-for _key, _desc in KCFD_KEYS.items():
-    # Try to get function
-    _func = getattr(JobXML, "set_kcfd_%s" % _key, None)
-    # Check if found
-    if _func is None:
-        continue
-    # Format mapping
-    _fmt = {"key": _key, "descr": _desc}
-    # Save updated doscstring
-    _func.__doc__ = _DOCSTRING_SET_KCFD % _fmt
+# Update docstrings
+JobXML._doc_keys()
+
+
 

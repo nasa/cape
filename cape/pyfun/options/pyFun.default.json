@@ -20,14 +20,14 @@
 	"ShellCmds": [
 	    ". $MODULESHOME/init/bash",
 	    "module load fun3d",
-	    "module load pycart"
+	    "module load cape"
 	],
 	
 	// Iteration control and command-line inputs
 	"RunControl": {
 	    // Run sequence
-	    "InputSeq": [0],
-	    "IterSeq": [200],
+	    "PhaseSequence": [0],
+	    "PhaseIters": [200],
 	    // Number of threads
 	    "nProc": 8,
 	    // Mode

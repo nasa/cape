@@ -10,7 +10,6 @@ jobs from the CFD software *Kestrel*.
 """
 
 # Local imports
-from .jobxml import JobXML
 
 
 # Version
