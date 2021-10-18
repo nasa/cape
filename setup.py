@@ -89,6 +89,9 @@ setup(
     install_requires=[
         "numpy>=1.4.1",
         "matplotlib>=2",
+        "vendorize",
+        "xlrd",
+        "xlsxwriter"
     ],
     package_data={
         "cape": [

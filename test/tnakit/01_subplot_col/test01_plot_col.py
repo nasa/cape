@@ -5,6 +5,8 @@
 import sys
 
 # Third-party modules
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # CAPE modules

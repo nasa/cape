@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-18 at 01:45 PDT
+   on 2021-10-18 at 10:05 PDT
 
-Test ``09_rdb_lleval``: **FAIL** (command 1)
-==============================================
+Test ``09_rdb_lleval``: PASS
+==============================
 
-This test **FAILED** (command 1) on 2021-10-18 at 01:45 PDT
+This test PASSED on 2021-10-18 at 10:05 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_eval.py
         $ python3 test01_eval.py
 
-Command 1: Interpolate line loads: Python 2 (**FAIL**)
--------------------------------------------------------
+Command 1: Interpolate line loads: Python 2 (PASS)
+---------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -31,23 +31,14 @@ Command 1: Interpolate line loads: Python 2 (**FAIL**)
         $ python2 test01_eval.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.77 seconds
+    * Command took 0.31 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual:
-
-      .. code-block:: none
-
-        mach: 0.90
-        alpha: 1.50
-        beta: 0.50
-        
-
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -60,29 +51,37 @@ Command 1: Interpolate line loads: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Interpolate line loads: Python 3 (PASS)
+---------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_eval.py", line 37, in <module>
-            plt.plot(db["bullet.x"], dCN)
-          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 3352, in plot
-            ax = gca()
-          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 969, in gca
-            return gcf().gca(**kwargs)
-          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 586, in gcf
-            return figure()
-          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/pyplot.py", line 533, in figure
-            **kwargs)
-          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/backend_bases.py", line 161, in new_figure_manager
-            return cls.new_figure_manager_given_figure(num, fig)
-          File "/u/wk/ddalle/.local/lib/python2.7/site-packages/matplotlib/backends/_backend_tk.py", line 1046, in new_figure_manager_given_figure
-            window = Tk.Tk(className="matplotlib")
-          File "/usr/lib64/python2.7/lib-tk/Tkinter.py", line 1745, in __init__
-            self.tk = _tkinter.create(screenName, baseName, className, interactive, wantobjects, useTk, sync, use)
-        _tkinter.TclError: no display name and no $DISPLAY environment variable
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_eval.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.39 seconds
+    * Cumulative time: 0.70 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        mach: 0.90
+        alpha: 1.50
+        beta: 0.50
+        bullet.dCN.size: 51
+        bullet.dCN.xargs: ['bullet.x']
         
 
+:STDERR:
+    * **PASS**
 
