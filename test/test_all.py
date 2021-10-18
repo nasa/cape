@@ -78,7 +78,7 @@ def crawl():
     # Write commit message
     if fail_n:
         # Count up the failures
-        msg = "Auto-commit of all tests: %i FAILURES\n\n"
+        msg = "Auto-commit of all tests: %i FAILURES\n\n" % fail_n
         msg += "Failures occurred in these folders:\n"
         # Loop through families
         for family, stats_fam in stats.items():
@@ -96,7 +96,7 @@ def crawl():
     # Share results
     os.system("git push hub main")
     # Write commit
-    with open("last-commit" ,"w") as fp:
+    with open("test/last-commit" ,"w") as fp:
         fp.write(os.popen("git rev-parse HEAD", "r").read())
     # Return to original folder
     os.chdir(fpwd)
