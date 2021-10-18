@@ -14,7 +14,7 @@
     },
     
 	// The names of these two files have the obvious defaults.
-	"JobXML": "inputs/kestrel.nml",
+	"JobXML": "inputs/kestrel.xml",
 	
 	// Commands to load at head of run scripts (run_cart3d.pbs)
 	"ShellCmds": [

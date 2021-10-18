@@ -28,10 +28,12 @@ import os
 import glob
 import json
 import shutil
-import resource
-
-# Partial standard library modules
 from datetime import datetime
+
+if os.system == "nt":
+    resource = None
+else:
+    import resource
 
 # Third-party modules
 import numpy as np

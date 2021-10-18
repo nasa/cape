@@ -321,3 +321,4 @@ class Options(options.Options):
 # class Options
 
 
+promote_subsec(Options, DataBook)

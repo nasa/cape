@@ -47,15 +47,15 @@ import shutil
 import numpy as np
 
 # Local imports
-#from . import options
+from . import options
 #from . import manage
 #from . import case
 #from . import dataBook
-from .. import report
-from .. import cntl as ccntl
 from .jobxml   import JobXML
-from ..util import RangeString
+from .. import cntl as ccntl
+from ..cfdx import report
 from ..runmatrix import RunMatrix
+from ..util import RangeString
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -291,7 +291,7 @@ class Cntl(ccntl.Cntl):
             * 2021-10-18 ``@ddalle``: Version 1.0
         """
         # Namelist file
-        fxml = self.opts.get_FUN3DNamelist(j)
+        fxml = self.opts.get_JobXML(j)
         # Check for empty value
         if fxml is None:
             return
@@ -299,6 +299,9 @@ class Cntl(ccntl.Cntl):
         if not os.path.isabs(fxml):
             # Use path relative to JSON root
             fxml = os.path.join(self.RootDir, fxml)
+        # Check again
+        if not os.path.isabs(fxml):
+            return
         # Read the file
         xml = JobXML(fxml)
         # Save it.
