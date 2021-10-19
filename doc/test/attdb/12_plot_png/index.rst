@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-18 at 10:07 PDT
+   on 2021-10-19 at 01:45 PDT
 
 Test ``12_plot_png``: PASS
 ============================
 
-This test PASSED on 2021-10-18 at 10:07 PDT
+This test PASSED on 2021-10-19 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Line load plot with PNG: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
+    * Command took 0.99 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -64,8 +64,8 @@ Command 2: Line load plot with PNG: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 1.01 seconds
+    * Command took 1.38 seconds
+    * Cumulative time: 2.37 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -73,7 +73,7 @@ Command 2: Line load plot with PNG: Python 3 (PASS)
 
 :PNG:
     * **PASS**
-    * Difference fraction: 0.0271
+    * Difference fraction: 0.0200
     * Target:
 
         .. image:: PNG-target-01-00.png

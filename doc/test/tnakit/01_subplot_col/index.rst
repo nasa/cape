@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-18 at 10:09 PDT
+   on 2021-10-19 at 01:46 PDT
 
 Test ``01_subplot_col``: PASS
 ===============================
 
-This test PASSED on 2021-10-18 at 10:09 PDT
+This test PASSED on 2021-10-19 at 01:46 PDT
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Line load plot with image: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.42 seconds
+    * Command took 0.79 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -64,8 +64,8 @@ Command 2: Line load plot with image: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 0.93 seconds
+    * Command took 1.32 seconds
+    * Cumulative time: 2.11 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -73,7 +73,7 @@ Command 2: Line load plot with image: Python 3 (PASS)
 
 :PNG:
     * **PASS**
-    * Difference fraction: 0.0000
+    * Difference fraction: 0.0083
     * Target:
 
         .. image:: PNG-target-01-00.png

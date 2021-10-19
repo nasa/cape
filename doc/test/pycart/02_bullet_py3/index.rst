@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-18 at 01:40 PDT
+   on 2021-10-19 at 01:40 PDT
 
 Test ``02_bullet_py3``: PASS
 ==============================
 
-This test PASSED on 2021-10-18 at 01:40 PDT
+This test PASSED on 2021-10-19 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -72,8 +72,8 @@ Command 2: Run Case 0 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 5.97 seconds
-    * Cumulative time: 6.75 seconds
+    * Command took 6.10 seconds
+    * Cumulative time: 6.88 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -93,8 +93,8 @@ Command 3: Collect Aero Data (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.64 seconds
-    * Cumulative time: 7.39 seconds
+    * Command took 0.81 seconds
+    * Cumulative time: 7.68 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -124,8 +124,8 @@ Command 4: Test DataBook Value (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.78 seconds
-    * Cumulative time: 8.16 seconds
+    * Command took 0.59 seconds
+    * Cumulative time: 8.27 seconds
 :STDOUT:
     * **PASS**
     * Actual:

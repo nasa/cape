@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-18 at 10:09 PDT
+   on 2021-10-19 at 01:45 PDT
 
 Test ``13_plot_seam``: PASS
 =============================
 
-This test PASSED on 2021-10-18 at 10:09 PDT
+This test PASSED on 2021-10-19 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Line load plot with seam curve: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
+    * Command took 1.20 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -64,8 +64,8 @@ Command 2: Line load plot with seam curve: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.64 seconds
-    * Cumulative time: 1.16 seconds
+    * Command took 1.59 seconds
+    * Cumulative time: 2.79 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -73,7 +73,7 @@ Command 2: Line load plot with seam curve: Python 3 (PASS)
 
 :PNG:
     * **PASS**
-    * Difference fraction: 0.0000
+    * Difference fraction: 0.0062
     * Target:
 
         .. image:: PNG-target-01-00.png
