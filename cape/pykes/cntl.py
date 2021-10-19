@@ -200,15 +200,8 @@ class Cntl(ccntl.Cntl):
         if cmd is not None:
             return
         # Otherwise fall back to code-specific commands
-        if kw.get('pt'):
-            # Update point sensor data book
-            self.UpdateTriqPoint(**kw)
-        elif kw.get('checkTriqPoint') or kw.get('checkPt'):
-            # Check aero databook
-            self.CheckTriqPoint(**kw)
-        else:
-            # Submit the jobs
-            self.SubmitJobs(**kw)
+        # Submit the jobs
+        self.SubmitJobs(**kw)
 
   # >
 

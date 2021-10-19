@@ -748,6 +748,57 @@ class odict(dict):
         # Output
         return opts
 
+    # Generic subsection
+    def init_section(self, cls, sec=None, parent=None):
+        r"""Initialize a generic section
+
+        :Call:
+            >>> opts.init_section(cls, sec=None, parent=None)
+        :Inputs:
+            *opts*: :class:`odict`
+                Options interface
+            *cls*: :class:`type`
+                Class to use for *opts[sec]*
+            *sec*: {*cls.__name__*} | :class:`str`
+                Specific key name to use for subsection
+            *parent*: {``None``} | :class:`str`
+                Other subsection from which to inherit defaults
+        :Versions:
+            * 2021-10-18 ``@ddalle``: Version 1.0
+        """
+        # Default name
+        if sec is None:
+            # Use the name of the class
+            sec = cls.__name__
+        # Check if present
+        if sec not in self:
+            # Create empty instance
+            self[sec] = cls()
+        # Otherwise get value
+        v = self[sec]
+        # Check its type
+        if isinstance(v, cls):
+            # Already good
+            pass
+        elif isinstance(v, dict):
+            # Convert :class:`dict` to special class
+            self[sec] = cls(**v)
+        else:
+            # Got something other than a mapping
+            print("  Warning: could not convert options section '%s'," % sec)
+            print("           which has type '%s'" % type(v).__name__)
+            return
+        # Check for *parent* to define default settings
+        if parent:
+            # Get the settings of parent
+            vp = self.get(parent)
+            # Ensure it's a dict
+            if not isinstance(vp, dict):
+                return
+            # Loop through *vp*, but don't overwrite
+            for k, vpk in vp.items():
+                v.setdefault(k, vpk)
+
 
 # Decorator to get function from subclass
 def subsec_func(cls, sec=None, parent=None, init=True):
