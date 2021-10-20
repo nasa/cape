@@ -653,7 +653,7 @@ class XMLFile(object):
         # Set search-sublevels option
         kw["finditer"] = True
         # Search
-        return find_elem(self.root, tag, attrib, text, **kw)
+        return findall_elem(self.root, tag, attrib, text, **kw)
 
    # --- Text <--> value ---
     def text2val(self, txt):

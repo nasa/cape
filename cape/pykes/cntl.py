@@ -219,7 +219,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Versions:
-            * 2016-09-15 ``@ddalle``: First version
+            * 2016-09-15 ``@ddalle``: Version 1.0
         """
         # Test for an existing data book.
         try:
@@ -255,7 +255,7 @@ class Cntl(ccntl.Cntl):
             *R*: :class:`pyFun.report.Report`
                 Report interface
         :Versions:
-            * 2018-10-19 ``@ddalle``: First version
+            * 2018-10-19 ``@ddalle``: Version 1.0
         """
         # Read the report
         R = report.Report(self, rep)
@@ -326,7 +326,7 @@ class Cntl(ccntl.Cntl):
             *val*::class:`int`|:class:`float`|:class:`str`|:class:`list`
                 Value
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: Version 1.0
         """
         # Get the namelist value.
         nval = self.Namelist.GetVar(sec, key)
@@ -365,7 +365,7 @@ class Cntl(ccntl.Cntl):
             *name*: :class:`str`
                 Project root name
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: Version 1.0
         """
         # Read the namelist.
         self.ReadNamelist(j, False)
@@ -416,7 +416,7 @@ class Cntl(ccntl.Cntl):
             *fmt*: :class:`str`
                 Project root name
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: Version 1.0
         """
         return self.GetNamelistVar('raw_grid', 'grid_format', j)
 
