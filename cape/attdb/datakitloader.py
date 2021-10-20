@@ -1914,7 +1914,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 continue
             # Got a relative path; prepend it with each hub
             for hub in hubs:
-                remote_urls.append(os.path.join(hub, url))
+                remote_urls.append(hub + "/" + url)
         # Output
         return remote_urls
         

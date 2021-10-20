@@ -15,6 +15,13 @@ import os
 from subprocess import Popen, PIPE
 
 
+# Default encoding based on OS
+if os.name == "nt":
+    DEFAULT_ENCODING = "ascii"
+else:
+    DEFAULT_ENCODING = "utf-8"
+
+
 # Call a command and capture output
 def check_o(cmd, **kw):
     r"""Run a system command and capture STDOUT
@@ -251,7 +258,7 @@ def _call(cmd, **kw):
     cwd = kw.get("cwd", os.getcwd())
     stdout = kw.get("stdout")
     stderr = kw.get("stderr")
-    encoding = kw.get("encoding", "utf-8")
+    encoding = kw.get("encoding", DEFAULT_ENCODING)
     host = kw.get("host")
     executable = kw.get("executable", "sh")
     # Check if remote
