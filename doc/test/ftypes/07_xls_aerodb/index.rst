@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-19 at 01:45 PDT
+   on 2021-10-20 at 01:45 PDT
 
 Test ``07_xls_aerodb``: PASS
 ==============================
 
-This test PASSED on 2021-10-19 at 01:45 PDT
+This test PASSED on 2021-10-20 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -127,7 +127,7 @@ Command 1: XLSX File: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
+    * Command took 0.54 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -164,8 +164,8 @@ Command 2: XLSX File: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 0.95 seconds
+    * Command took 0.74 seconds
+    * Cumulative time: 1.28 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -202,8 +202,8 @@ Command 3: XLS File: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.39 seconds
-    * Cumulative time: 1.34 seconds
+    * Command took 0.45 seconds
+    * Cumulative time: 1.73 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -240,8 +240,8 @@ Command 4: XLS File: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.85 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 2.28 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -278,8 +278,8 @@ Command 5: Specified dtypes: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.39 seconds
-    * Cumulative time: 2.24 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 2.78 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -316,8 +316,8 @@ Command 6: Specified dtypes: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 2.75 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 3.33 seconds
 :STDOUT:
     * **PASS**
     * Target:

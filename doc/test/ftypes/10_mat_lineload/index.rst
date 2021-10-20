@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-19 at 01:45 PDT
+   on 2021-10-20 at 01:45 PDT
 
 Test ``10_mat_lineload``: PASS
 ================================
 
-This test PASSED on 2021-10-19 at 01:45 PDT
+This test PASSED on 2021-10-20 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -108,7 +108,7 @@ Command 1: Clean MAT read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
+    * Command took 0.39 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -145,8 +145,8 @@ Command 2: Clean MAT read: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.76 seconds
-    * Cumulative time: 1.29 seconds
+    * Command took 0.66 seconds
+    * Cumulative time: 1.05 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -184,7 +184,7 @@ Command 3: MATFile write: Python 2 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.43 seconds
-    * Cumulative time: 1.72 seconds
+    * Cumulative time: 1.48 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -221,8 +221,8 @@ Command 4: MATFile write: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.66 seconds
-    * Cumulative time: 2.37 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 1.98 seconds
 :STDOUT:
     * **PASS**
     * Target:

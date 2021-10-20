@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-19 at 01:44 PDT
+   on 2021-10-20 at 01:44 PDT
 
 Test ``01_import``: PASS
 ==========================
 
-This test PASSED on 2021-10-19 at 01:44 PDT
+This test PASSED on 2021-10-20 at 01:44 PDT
 
 This test is run in the folder:
 
@@ -68,8 +68,8 @@ Command 2: Import :mod:`cape.attdb.ftypes`: Python3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 0.91 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.92 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
