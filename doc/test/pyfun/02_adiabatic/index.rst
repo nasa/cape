@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-19 at 01:41 PDT
+   on 2021-10-20 at 01:41 PDT
 
 Test ``02_adiabatic``: PASS
 =============================
 
-This test PASSED on 2021-10-19 at 01:41 PDT
+This test PASSED on 2021-10-20 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -40,7 +40,7 @@ Command 1: Create Input Files (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.65 seconds
+    * Command took 0.59 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -61,7 +61,7 @@ Command 2: Check Adiabatic BC Setting : all boundaries (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.01 seconds
-    * Cumulative time: 0.66 seconds
+    * Cumulative time: 0.60 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -214,8 +214,8 @@ Command 3: Create Input Files (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 1.22 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 1.08 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -236,7 +236,7 @@ Command 4: Check Adiabatic BC Setting : specified wall selection (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.01 seconds
-    * Cumulative time: 1.22 seconds
+    * Cumulative time: 1.09 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -387,8 +387,8 @@ Command 5: Create Input Files (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.64 seconds
-    * Cumulative time: 1.86 seconds
+    * Command took 0.65 seconds
+    * Cumulative time: 1.74 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -409,7 +409,7 @@ Command 6: Check Adiabatic BC Setting : no boundaries (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.01 seconds
-    * Cumulative time: 1.87 seconds
+    * Cumulative time: 1.75 seconds
 :STDOUT:
     * **PASS**
     * Target:
