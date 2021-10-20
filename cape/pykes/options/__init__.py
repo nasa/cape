@@ -19,19 +19,15 @@ value of a given parameter should be is below.
 
 """
 
-# Import options-specific utilities (loads :mod:`os`, too)
-from .util import *
-
-# Import template module
+# Local imports
+from . import util
+from .runcontrol import RunControl
 from ...cfdx import options
-
-# Import modules for controlling specific parts of Cart3D
 from ...cfdx.options.pbs         import PBS
 from ...cfdx.options.DataBook    import DataBook
 from ...cfdx.options.Report      import Report
 from ...cfdx.options.Mesh        import Mesh
 from ...cfdx.options.Config      import Config
-from ...cfdx.options.runControl  import RunControl
 from ...cfdx.options.slurm       import Slurm
 
 
@@ -55,14 +51,14 @@ class Options(options.Options):
         # Check for an input file
         if fname:
             # Read JSON file into a dict
-            d = loadJSONFile(fname)
+            d = util.loadJSONFile(fname)
         else:
             # No dict
             d = {}
         # Read the defaults.
-        defs = getPyKesDefaults()
+        defs = util.getPyKesDefaults()
         # Apply the defaults.
-        d = applyDefaults(d, defs)
+        d = util.applyDefaults(d, defs)
         # Store the data in *this* instance
         self.update(d)
         self.update(kw)
@@ -84,6 +80,7 @@ class Options(options.Options):
    # Global Options
    # ==============
    # <
+    # Get 
     # Method to get the namelist template
     def get_JobXML(self, j=None):
         r"""Return the name of the main Kestrel XML input file
@@ -121,4 +118,5 @@ class Options(options.Options):
    # >
 
 
-#promote_subsec(Options, DataBook)
+util.promote_subsec(Options, RunControl)
+

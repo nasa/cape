@@ -34,10 +34,9 @@ from ...cfdx.options.util import *
 PYKES_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PYKES_FOLDER = os.path.dirname(PYKES_OPTS_FOLDER)
 
-# Copy default settings
-rc = dict(rc)
+
 # Backup default settings
-rc["project_rootname"] = "pykes"
+rc["ProjectName"] = "pykes"
     
 
 # Function to ensure scalar from above
