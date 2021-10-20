@@ -30,7 +30,7 @@ import json
 import shutil
 from datetime import datetime
 
-if os.system == "nt":
+if os.name == "nt":
     resource = None
 else:
     import resource
