@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-20 at 01:45 PDT
+   on 2021-10-21 at 01:45 PDT
 
 Test ``09_mat``: PASS
 =======================
 
-This test PASSED on 2021-10-20 at 01:45 PDT
+This test PASSED on 2021-10-21 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -83,7 +83,7 @@ Command 1: Clean MAT read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
+    * Command took 0.53 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -103,8 +103,8 @@ Command 2: Clean MAT read: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 0.99 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 1.08 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -124,8 +124,8 @@ Command 3: MAT dtype check: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 1.47 seconds
+    * Command took 0.41 seconds
+    * Cumulative time: 1.49 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -145,8 +145,8 @@ Command 4: MAT dtype check: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 2.03 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 1.99 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
