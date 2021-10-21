@@ -51,7 +51,7 @@ _regex_dict = {
 REGEX_F3DOUT = re.compile("\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
 
 # Help message for CLI
-HELP_RUN_FUN3D = """
+HELP_RUN_FUN3D = r"""
 ``run_fun3d.py``: Run FUN3D for one phase
 ================================================
 
