@@ -836,7 +836,11 @@ def read_case_json(cls=RunControl):
     :Versions:
         * 2021-10-21 ``@ddalle``: Version 1.0
     """
-    # Read the file, fail if not present.
+    # Check for file
+    if not os.path.isfile("case.json"):
+        # Use defaults
+        return cls()
+    # Read the file, fail if not present
     with open("case.json") as fp:
         # Read the settings.
         opts = json.load(fp)

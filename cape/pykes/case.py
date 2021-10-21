@@ -14,6 +14,7 @@ created by :mod:`cape.pykes`.
 """
 
 # Standard library
+import glob
 import os
 import sys
 
@@ -87,6 +88,50 @@ def run_kestrel():
     prepare_files(rc, j)
 
 
+# --- STATUS functions ---
+def get_phase(rc):
+    r"""Determine the phase number based on files in folder
+    
+    :Call:
+        >>> j = get_phase(rc)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Case *RunControl* options
+    :Outputs:
+        *j*: :class:`int`
+            Most appropriate phase number for a (re)start
+    :Versions:
+        * 2021-10-21 ``@ddalle``: Version 1.0
+    """
+    # Get the iteration from which a restart would commence
+    n = None
+    # Start with phase 0 if ``None``
+    if n is None:
+        return rc.get_PhaseSequence(0)
+    # Get last phase number
+    j = rc.get_PhaseSequence(-1)
+    # Special check for --skeleton cases
+    if len(glob.glob("run.%02i.*" % j)) > 0:
+        # Check iteration count
+        if n >= rc.get_PhaseIters(j):
+            return j
+    # Loop through phases
+    for j in rc.get_PhaseSequence():
+        # Target iterations for this phase
+        nt = rc.get_PhaseIters(j)
+        # Check output files
+        if len(glob.glob("run.%02i.*" % j)) == 0:
+            # This phase has not been run
+            return j
+        # Check the iteration numbers
+        if nt is None:
+            # Don't check null phases
+            pass
+        elif n < nt:
+            # Case has been run but hasn't reached target
+            return j
+    # Case completed; just return the last phase
+    return j
 
 
 
