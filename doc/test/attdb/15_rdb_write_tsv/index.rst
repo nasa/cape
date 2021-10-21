@@ -20,12 +20,12 @@
 
 
 .. This documentation written by TestDriver()
-   on 2021-10-20 at 01:45 PDT
+   on 2021-10-21 at 01:45 PDT
 
 Test ``15_rdb_write_tsv``: PASS
 =================================
 
-This test PASSED on 2021-10-20 at 01:45 PDT
+This test PASSED on 2021-10-21 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -58,7 +58,7 @@ Command 1: Simple dense TSV writer: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.46 seconds
+    * Command took 0.59 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -78,8 +78,8 @@ Command 2: Simple dense TSV writer: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 1.02 seconds
+    * Command took 0.59 seconds
+    * Cumulative time: 1.18 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -99,8 +99,8 @@ Command 3: TSV writer with defaults: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.42 seconds
-    * Cumulative time: 1.45 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.57 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -120,8 +120,8 @@ Command 4: TSV writer with defaults: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.55 seconds
-    * Cumulative time: 1.99 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 2.08 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
