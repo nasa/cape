@@ -211,13 +211,14 @@ class MATFile(BaseFile):
         defn = self.get_defn(col)
         # Process type
         if isinstance(V, (int, float)):
-            # Save as a scalar
-            dtype = V.__class__.__name__ + "64"
-            V1 = V
+            # Convert to singleton array
+            V1 = np.array([V])
+            # Get data type from array
+            dtype = V1.dtype.name
         elif typeutils.isstr(V):
             # Save as a scalar
             dtype = "str"
-            V1 = V
+            V1 = [V]
         elif isinstance(V, list):
             # Assume string
             dtype = "str"
