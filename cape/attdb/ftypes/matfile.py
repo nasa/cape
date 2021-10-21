@@ -212,12 +212,12 @@ class MATFile(BaseFile):
         # Process type
         if isinstance(V, (int, float)):
             # Save as a scalar
-            self.__dict__[col] = V
-            return
+            dtype = V.__class__.__name__ + "64"
+            V1 = V
         elif typeutils.isstr(V):
             # Save as a scalar
-            self.__dict__[col] = V
-            return
+            dtype = "str"
+            V1 = V
         elif isinstance(V, list):
             # Assume string
             dtype = "str"
