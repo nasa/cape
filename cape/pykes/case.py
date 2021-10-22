@@ -123,7 +123,7 @@ def get_phase(rc):
         if len(glob.glob("run.%02i.*" % j)) == 0:
             # This phase has not been run
             return j
-        # Check the iteration numbers
+        # Check the iteration- numbers
         if nt is None:
             # Don't check null phases
             pass

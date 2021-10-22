@@ -86,36 +86,21 @@ SETUP_PY = r"""#!/usr/bin/env python3
 # Standard library
 import os
 
-# Third-part modules
-import setuptools
-
-# Cape modules
-from cape.tnakit.metautils import ModuleMetadata
+# CAPE modules
+from cape.attdb import pkgutils
 
 
 # Create the build
 def main():
-    # Find packages
-    pkgs = setuptools.find_packages()
-    # Main package
-    pkg = pkgs[0]
-    # Read metadata
-    try:
-        meta = ModuleMetadata(pkg)
-    except ValueError:
-        meta = {}
-    # Get title
-    title = meta.get("title", pkg)
     # Create the egg/wheel
-    setuptools.setup(
-        name=pkg,
-        packages=pkgs,
-        package_data={
-            pkg: [
-                "meta.json",
-            ],
-        },
-        description=title,
+    pkgutils.setup(
+        name=None,
+        packages=None,
+        package_data=None,
+        description=None,
+        db=True,
+        meta=True,
+        rawdata=False,
         version="1.0")
 
 
