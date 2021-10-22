@@ -184,7 +184,6 @@ def quickstart(*a, **kw):
     kw.pop("t", None)
     # Prompt for a title
     kw["title"] = _prompt_title(**kw)
-    breakpoint()
     # Create folder
     create_pkgdir(pkg, where, **kw)
     # Write metadata
