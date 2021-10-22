@@ -136,7 +136,7 @@ class DataKitLoader(kwutils.KwargHandler):
   # ===============
   # <
     # Initialization method
-    def __init__(self, name, fname, **kw):
+    def __init__(self, name=None, fname=None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -149,11 +149,26 @@ class DataKitLoader(kwutils.KwargHandler):
         self.rawdata_remotes = {}
         self.rawdata_commits = {}
         self.rawdata_sources_commit = {}
+        # Default file name
+        if fname is None and name is not None:
+            # Transform mod1.mod2 -> mod1/mod2
+            fname = name.replace(".", os.sep)
+            # Append "__init__.py"
+            fname = os.path.join(fname, "__init__.py")
+        # Absolute fname
+        if fname:
+            # Absolutize
+            fname = os.path.abspath(fname)
+            fdir = os.path.dirname(fname)
+        else:
+            # Null
+            fname = None
+            fdir = None
         # Use required inputs
         self.setdefault_option("MODULE_NAME", name)
-        self.setdefault_option("MODULE_FILE", os.path.abspath(fname))
+        self.setdefault_option("MODULE_FILE", fname)
         # Set name of folder containing data
-        self.set_option("MODULE_DIR", os.path.dirname(self["MODULE_FILE"]))
+        self.set_option("MODULE_DIR", fdir)
         # Get database (datakit) NAME
         self.create_db_name()
   # >
@@ -219,49 +234,10 @@ class DataKitLoader(kwutils.KwargHandler):
         :Versions:
             * 2021-07-15 ``@ddalle``: Version 1.0
         """
-        # Get list of regexes
-        dbname_regexes = self._genr8_dbname_regexes()
-        # Get format lists (list[list[str]])
-        modname_templates = self.get_option("MODULE_NAME_TEMPLATE_LIST")
-        # Make list of module names suggested by regexes and *dbname*
-        modname_list = []
-        # Module name
-        if dbname is None:
-            # Use default; this datakit
-            dbname = self.make_db_name()
-        # Loop through regular expressions
-        for i, regex in enumerate(dbname_regexes):
-            # Check for match
-            grps = self._genr8_dbname_match_groups(regex, dbname)
-            # Check for match
-            if grps is None:
-                continue
-            # Get the template
-            if i >= len(modname_templates):
-                # Not enough templates!
-                raise IndexError(
-                    ("DB name matched regex %i, but only " % (i+1)) + 
-                    ("%i templates specified" % len(modname_templates)))
-            # Get templates for this regex
-            modname_template = modname_templates[i]
-            # Expand all groups
-            try:
-                # Apply formatting substitutions
-                modname = modname_template % grps
-            except Exception:
-                # Missing group or something
-                print("Failed to expand MODULE_NAME_TEPLATE_LIST %i:" % (i+1))
-                print("  template: %s" % modname_template)
-                print("  groups:")
-                # Print all groups
-                for k, v in grps.items():
-                    print("%12s: %s [%s]" % (k, v, type(v).__name__))
-                # Raise an exception
-                raise KeyError(
-                    ("Failed to expand MODULE_NAME_TEPLATE_LIST ") +
-                    ("%i (1-based)" % (i+1)))
-            # Save candidate module name
-            modname_list.append(modname)
+        # Get list of candidate module names
+        modname_list = self.genr8_modnames(dbname)
+        # Loop through candidates
+        for modname in modname_list:
             # Attempt to import that module
             try:
                 # Import module by string
@@ -288,7 +264,7 @@ class DataKitLoader(kwutils.KwargHandler):
   # MODULE_NAME --> DB_NAME
   # ==========================
   # <
-   # --- Create names ---
+   # --- Create DB names ---
     def make_db_name(self):
         r"""Retrieve or create database name from module name
 
@@ -375,6 +351,10 @@ class DataKitLoader(kwutils.KwargHandler):
         if modname is None:
             # Use default; this module
             modname = self.get_option("MODULE_NAME")
+        # Check for null module
+        if modname is None:
+            # Global default
+            return "datakit"
         # Loop through regular expressions
         for i, regex in enumerate(modname_regexes):
             # Check for match
@@ -412,6 +392,76 @@ class DataKitLoader(kwutils.KwargHandler):
             dbname = "datakit"
         # Also output it
         return dbname
+
+   # --- Generate module names ---
+    def genr8_modnames(self, dbname=None):
+        r"""Import first available module based on a DB name
+
+        This utilizes the following parameters:
+
+        * *DB_NAME*
+        * *DB_NAME_REGEX_LIST*
+        * *DB_NAME_REGEX_GROUPS*
+        * *MODULE_NAME_TEMPLATE_LIST*
+
+        :Call:
+            >>> modnames = dkl.genr8_modnames(dbname=None)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *dbame*: {``None``} | :class:`str`
+                Database name parse (default: *DB_NAME*)
+        :Outputs:
+            *modnames*: :class:`list`\ [:class:`str`]
+                Candidate module names
+        :Versions:
+            * 2021-10-22 ``@ddalle``: Version 1.0
+        """
+        # Get list of regexes
+        dbname_regexes = self._genr8_dbname_regexes()
+        # Get format lists (list[list[str]])
+        modname_templates = self.get_option("MODULE_NAME_TEMPLATE_LIST")
+        # Make list of module names suggested by regexes and *dbname*
+        modname_list = []
+        # Module name
+        if dbname is None:
+            # Use default; this datakit
+            dbname = self.make_db_name()
+        # Loop through regular expressions
+        for i, regex in enumerate(dbname_regexes):
+            # Check for match
+            grps = self._genr8_dbname_match_groups(regex, dbname)
+            # Check for match
+            if grps is None:
+                continue
+            # Get the template
+            if i >= len(modname_templates):
+                # Not enough templates!
+                raise IndexError(
+                    ("DB name matched regex %i, but only " % (i+1)) + 
+                    ("%i templates specified" % len(modname_templates)))
+            # Get templates for this regex
+            modname_template = modname_templates[i]
+            # Expand all groups
+            try:
+                # Apply formatting substitutions
+                modname = modname_template % grps
+            except Exception:
+                # Missing group or something
+                print("Failed to expand MODULE_NAME_TEPLATE_LIST %i:" % (i+1))
+                print("  template: %s" % modname_template)
+                print("  groups:")
+                # Print all groups
+                for k, v in grps.items():
+                    print("%12s: %s [%s]" % (k, v, type(v).__name__))
+                # Raise an exception
+                raise KeyError(
+                    ("Failed to expand MODULE_NAME_TEPLATE_LIST ") +
+                    ("%i (1-based)" % (i+1)))
+            # Save candidate module name
+            modname_list.append(modname)
+        # Export
+        return modname_list
 
    # --- Supporting ---
     def _genr8_modname_match_groups(self, regex, modname):
