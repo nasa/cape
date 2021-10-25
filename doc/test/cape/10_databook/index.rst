@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-22 at 01:40 PDT
+   on 2021-10-23 at 01:40 PDT
 
 Test ``10_databook``: PASS
 ============================
 
-This test PASSED on 2021-10-22 at 01:40 PDT
+This test PASSED on 2021-10-23 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -106,7 +106,7 @@ Command 1: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
+    * Command took 0.60 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -157,7 +157,7 @@ Command 2: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.82 seconds
-    * Cumulative time: 1.43 seconds
+    * Cumulative time: 1.42 seconds
 :STDOUT:
     * **PASS**
     * Target:

@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-10-22 at 01:40 PDT
+   on 2021-10-23 at 01:40 PDT
 
 Test ``02_cli``: PASS
 =======================
 
-This test PASSED on 2021-10-22 at 01:40 PDT
+This test PASSED on 2021-10-23 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -41,7 +41,7 @@ Command 1: Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.62 seconds
+    * Command took 0.59 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -91,8 +91,8 @@ Command 2: Filter (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.55 seconds
-    * Cumulative time: 1.17 seconds
+    * Command took 0.61 seconds
+    * Cumulative time: 1.20 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -132,8 +132,8 @@ Command 3: Constraints (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 1.64 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 1.77 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -170,7 +170,7 @@ Command 4: Glob (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.56 seconds
-    * Cumulative time: 2.20 seconds
+    * Cumulative time: 2.33 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -208,8 +208,8 @@ Command 5: Regular Expression (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 2.68 seconds
+    * Command took 0.44 seconds
+    * Cumulative time: 2.76 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -246,7 +246,7 @@ Command 6: Index List (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.47 seconds
-    * Cumulative time: 3.15 seconds
+    * Cumulative time: 3.24 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -282,8 +282,8 @@ Command 7: Compound Subsets (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 3.65 seconds
+    * Command took 0.62 seconds
+    * Cumulative time: 3.85 seconds
 :STDOUT:
     * **PASS**
     * Target:
