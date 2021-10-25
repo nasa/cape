@@ -27,7 +27,7 @@ from .. import argread
 from .. import text as textutils
 from ..cfdx import case as cc
 from ..cfdx import queue
-from .optoins.runcontrol import RunControl
+from .options.runcontrol import RunControl
 
 
 

@@ -49,7 +49,7 @@ import numpy as np
 # Local imports
 from . import options
 #from . import manage
-#from . import case
+from . import case
 #from . import dataBook
 from .jobxml   import JobXML
 from .. import cntl as ccntl
@@ -304,5 +304,36 @@ class Cntl(ccntl.Cntl):
         else:
             # Template for reading original parameters
             self.JobXML0 = xml
+
+    # Find files referenced in XML
+    def FindXMLPaths(self, j=0):
+        r"""Find all *Path* and *File* elements
+
+        :Call:
+            >>> elems = cntl.FindXMLPaths(j=0)
+        :Inputs:
+            *cntl*: :class:`cape.pykes.cntl.Cntl`
+                Run matrix control interface
+            *j*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *elems*: :class:`list`\ [:class:`Element`]
+                List of XML elements
+        :Versions:
+            * 2021-10-25 ``@ddalle``: Version 1.0
+        """
+        # Read XML file
+        self.ReadJobXML(j=j, q=False)
+        # Find all *Path* and *File* elements
+        elems1 = self.JobXML0.findall_iter("Path")
+        elems2 = self.JobXML0.findall_iter("File")
+        # Return combination
+        return elems1 + elems2
   # >
 
+  # ================
+  # File/Mesh Copy
+  # ================
+  # <
+    # Find all
+  # >
