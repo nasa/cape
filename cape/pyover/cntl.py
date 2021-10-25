@@ -788,8 +788,6 @@ class Cntl(capecntl.Cntl):
         else:
             # Default to the options
             return self.opts_get_namelist_var(sec, key, i)
-
-
   # >
 
   # ================
@@ -1605,6 +1603,7 @@ class Cntl(capecntl.Cntl):
         T0inf = self.x.GetSurfCT_RefTemperature(i, key, **kwg)
         # Output
         return (ap*p0+bp)/p0inf, (aT*T0+bT)/T0inf
+  # >
 
   # ==========
   # Archive
@@ -1662,4 +1661,5 @@ class Cntl(capecntl.Cntl):
         """
         # Archive using the local module
         manage.CleanFolder(self.opts, phantom=phantom)
+  # >
 

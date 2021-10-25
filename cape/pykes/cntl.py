@@ -263,6 +263,41 @@ class Cntl(ccntl.Cntl):
         return R
   # >
 
+  # ================
+  # Primary Setup
+  # ================
+  # <
+    # Prepare the mesh for case *i*
+    @ccntl.run_rootdir
+    def PrepareMesh(self, i):
+        r"""Prepare the mesh for case *i* if necessary
+        
+        :Call:
+            >>> cntl.PrepareMesh(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2021-10-26 ``@ddalle``: Version 1.0
+        """
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Get the name of the group
+        fgrp = self.x.GetGroupFolderNames(i)
+        # Create folders
+        if not os.path.isdir(fgrp):
+            self.mkdir(fgrp)
+        if not os.path.isdir(frun):
+            self.mkdir(fgrp)
+        # Status update
+        print("  Case name: '%s' (index %i)" % (frun, i))
+        # Enter the case folder
+        os.chdir(frun)
+        
+  # >
+
   # ========
   # XML job
   # ========
@@ -335,5 +370,44 @@ class Cntl(ccntl.Cntl):
   # File/Mesh Copy
   # ================
   # <
-    # Find all
+    # Find all mesh files
+    def GetMeshFileNames(self, j=0):
+        r"""Get list of copy/link files from both JSON and XML
+
+        :Call:
+            >>> meshfiles = cntl.GetMeshFiles(j=0)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *j*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *meshfiles*: :class:`list`\ [:class:`str`]
+                List of files to copy/link
+        :Versions:
+            * 2021-10-25 ``@ddalle``: Version 1.0
+        """
+        # Get file names from mesh
+        meshfiles = self.opts.get_MeshFiles()
+        # Get XML candidates
+        elems = self.FindXMLPaths(j)
+        # Loop through elements
+        for elem in elems:
+            # Get candidate file name
+            fname = elem.text
+            # Check if it exists
+            if fname is None:
+                # Empty element (?)
+                continue
+            if os.path.isabs(fname):
+                # Already absolute
+                fabs = fname
+            else:
+                # Absolutize from *RootDir*
+                fabs = os.path.join(self.RootDir, fname)
+            # Check if file exists
+            if os.path.isfile(fabs):
+                meshfiles.append(fname)
+        # Output
+        return meshfiles
   # >

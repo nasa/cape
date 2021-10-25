@@ -21,12 +21,12 @@ value of a given parameter should be is below.
 
 # Local imports
 from . import util
+from .mesh import Mesh
 from .runcontrol import RunControl
 from ...cfdx import options
 from ...cfdx.options.pbs         import PBS
 from ...cfdx.options.DataBook    import DataBook
 from ...cfdx.options.Report      import Report
-from ...cfdx.options.Mesh        import Mesh
 from ...cfdx.options.Config      import Config
 from ...cfdx.options.slurm       import Slurm
 
@@ -118,5 +118,7 @@ class Options(options.Options):
    # >
 
 
+# Upgrade any local functions
+util.promote_subsec(Options, Mesh)
 util.promote_subsec(Options, RunControl)
 
