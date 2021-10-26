@@ -267,6 +267,33 @@ class Cntl(ccntl.Cntl):
   # Primary Setup
   # ================
   # <
+    # Prepare a case
+    @ccntl.run_rootdir
+    def PrepareCase(self, i):
+        r"""Prepare a case for running if necessary
+
+        :Call:
+            >>> cntl.PrepareCase(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2021-10-26 ``@ddalle``: Version 1.0
+        """
+        # Check case
+        n = self.CheckCase(i)
+        # Quit if already prepared
+        if f is not None:
+            return
+        # Run any case functions
+        self.CaseFunction(i)
+        # Prepare mesh
+        self.PrepareMesh(i)
+        # Get the run folder name
+        frun = self.x.GetFullFolderNames(i)
+
     # Prepare the mesh for case *i*
     @ccntl.run_rootdir
     def PrepareMesh(self, i):
@@ -290,12 +317,128 @@ class Cntl(ccntl.Cntl):
         if not os.path.isdir(fgrp):
             self.mkdir(fgrp)
         if not os.path.isdir(frun):
-            self.mkdir(fgrp)
+            self.mkdir(frun)
         # Status update
         print("  Case name: '%s' (index %i)" % (frun, i))
+        # Initialize copied/linked list
+        copiedfiles = set()
+        # Linked files
+        linkfiles = self.opts.get_MeshLinkFiles()
+        # Loop through phases
+        for j in self.opts.get_PhaseSequence():
+            # Loop through candidates
+            for fname in self.GetMeshFileNames(j):
+                # Absolute source path
+                fabs = self.abspath(fname)
+                # Name in case folder
+                fbase = os.path.basename(fabs)
+                # Absolute destination folder
+                fdest = os.path.join(self.RootDir, frun, fbase)
+                # Check if already copied
+                if fbase in copiedfiles:
+                    continue
+                # Check if file exists
+                if not os.path.isfile(fabs):
+                    continue
+                # Check for file in folder
+                if os.path.isfile(fdest):
+                    # Remove it
+                    os.remove(fdest)
+                # Check copy vs link
+                if fname in linkfiles:
+                    # Link it
+                    os.link(fabs, fdest)
+                else:
+                    # Copy it
+                    shutil.copy(fabs, fdest)
+                # Add to list already copied
+                copiedfiles.add(fbase)
         # Enter the case folder
         os.chdir(frun)
         
+  # >
+
+  # ===============
+  # Case Interface
+  # ===============
+  # <
+    # Check if mesh is prepared
+    def CheckMesh(self, i):
+        r"""Check if the mesh for case *i* is prepared
+
+        :Call:
+            >>> q = cntl.CheckMesh(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Main CAPE control instance
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not mesh for case *i* is prepared
+        :Versions:
+            * 2021-10-26 ``@ddalle``: Version 1.0
+        """
+        # Name for this folder
+        frun = self.x.GetFullFolderNames(i)
+        # List of files checked
+        checkedfiles = set()
+        # Get *rc* to check phases
+        rc = self.ReadCaseJSON(i)
+        # If none yet, use local settings
+        if rc is None:
+            rc = self.opts
+        # Loop through phases
+        for j in rc.get_PhaseSequence():
+            # Get file names
+            for fname in self.GetMeshFileNames(j):
+                # Get base name
+                fbase = os.path.basename(fname)
+                # Check if already checked
+                if fbase in checkedfiles:
+                    continue
+                # Absolute path
+                fabs = os.path.join(self.RootDir, frun, fbase)
+                # Check if it exists
+                if not os.path.isfile(fabs):
+                    return False
+        # All files found
+        return True
+
+    # Read run control options from case JSON file
+    @ccntl.run_rootdir
+    def ReadCaseJSON(self, i):
+        r"""Read ``case.json`` file from case *i* if possible
+
+        :Call:
+            >>> rc = cntl.ReadCaseJSON(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Instance of cape.pyover control class
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *rc*: ``None`` | :class:`RunControl`
+                Run control interface read from ``case.json`` file
+        :Versions:
+            * 2016-12-12 ``@ddalle``: Version 1.0
+        """
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists
+        if not os.path.isdir(frun):
+            return
+        # Go to the folder
+        os.chdir(frun)
+        # Check for file
+        if not os.path.isfile('case.json'):
+            # Nothing to read
+            rc = None
+        else:
+            # Read the file
+            rc = case.ReadCaseJSON()
+        # Output
+        return rc
   # >
 
   # ========

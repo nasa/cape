@@ -1245,7 +1245,7 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Run index
         :Outputs:
-            *rc*: ``None`` | :class:`cape.pyover.options.runControl.RunControl`
+            *rc*: ``None`` | :class:`RunControl`
                 Run control interface read from ``case.json`` file
         :Versions:
             * 2016-12-12 ``@ddalle``: Version 1.0

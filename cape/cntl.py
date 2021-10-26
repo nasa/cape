@@ -336,6 +336,36 @@ class Cntl(object):
             print("  Case Function: cntl.%s(%s)" % (func, i))
             # Run the function
             exec("self.%s(self, %s)" % (func, i))
+  # >
+
+  # ===============
+  # Files
+  # ===============
+  # <
+    # Absolutize
+    def abspath(self, fname):
+        r"""Absolutize a file name
+
+        :Call:
+            >>> fabs = cntl.abspath(fname)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *fname*: :class:`str`
+                A file name
+        :Outputs:
+            *fabs*: :class:`str`
+                Absolute file path
+        :Versions:
+            * 2021-10-25 ``@ddalle``: Version 1.0
+        """
+        # Check if absolute
+        if os.path.isabs(fname):
+            # Already absolute
+            return fname
+        else:
+            # Relative to *RootDir*
+            return os.path.join(self.RootDir, fname)
 
     # Make a directory
     def mkdir(self, fdir):
@@ -4332,5 +4362,4 @@ class Cntl(object):
                     print("Checking point sensor '%s/%s'" % (comp, pt))
                     print(txt[:-1])
    # >
-# class Cntl
 
