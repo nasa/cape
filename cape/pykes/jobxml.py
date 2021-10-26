@@ -10,6 +10,7 @@ writes the main XML file that sets the main inputs for Kestrel jobs.
 """
 
 # Standard library
+import re
 import sys
 
 # Third-party
@@ -127,8 +128,117 @@ class JobXML(xmlfile.XMLFile):
 
     def set_kcfd_timestep(self, timestep):
         return self.set_kcfd("TimeStep", timestep)
-            
+
+   # --- Sections: general ---
+    def _prep_section_item(self, **kw):
+        r"""Prepare :class:`dict` item descriptor for :func:`set_elem`
+
+        :Call:
+            >>> tags, v, xmlitem = xml._prep_section_item(**kw)
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+            *tag*: :class:`str`
+                Element tag using full path or shortcut
+            *section*: {``None``} | ``Input`` | ``KCFD`` | :class:`str`
+                Name of special section
+            *value*: {``None``} | :class:`str`
+                Value to set, if any
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail*, ignoring head/tail white space
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+        :Outputs:
+            *tags*: :class:`list`\ [:class:`str`]
+                Full path to sought XML item
+            *v*: ``None`` | :class:`str`
+                Text from *value* above
+            *xmlitem*: :class:`dict`
+                Modified search parameters for section *type*
+        :Versions:
+            * 2021-10-18 ``@ddalle``: Version 1.0
+        """
+        # Get final text
+        v = kw.pop("value", None)
+        # Initial *tag* specification
+        tag = kw.pop("tag", None)
+        # Check for special type
+        itemtype = kw.pop("section", None)
+        # Check for special type
+        if itemtype == "KCFD":
+            # Full path to <KCFD> tag
+            tags = [
+                "BodyHierarchy",
+                "ActionList",
+                "FVMCFD",
+                tag
+            ]
+            # Filter on <FVMCFD> attribute
+            kw.setdefault(
+                "attribs", [
+                    None,
+                    None,
+                    {"name": "KCFD"}
+                ])
+        elif itemtype == "Input":
+            # Full path to <Input> tag
+            tags = [
+                "InputList",
+                "Input"
+            ]
+            # Filters by *name* attribute
+            kw.setdefault("attrib", {"name": tag})
+        elif itemtype:
+            # Unknown
+            print('    Unknown XML element "type" "%s"' % itemtype)
+        else:
+            # Use specified tags and options (manual option)
+            tags = tag.split(".")
+        # Output
+        return tags, v, kw
+        
    # --- Sections: find ---
+    def find_section_item(self, **kw):
+        r"""Prepare :class:`dict` item descriptor for :func:`set_elem`
+
+        :Call:
+            >>> elem = xml.find_section_item(**kw)
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+            *tag*: :class:`str`
+                Element tag using full path or shortcut
+            *section*: {``None``} | ``Input`` | ``KCFD`` | :class:`str`
+                Name of special section
+            *value*: {``None``} | :class:`str`
+                Value to set, if any
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail*, ignoring head/tail white space
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+        :Outputs:
+            *elem*: ``None`` | :class:`Element`
+                Element matching all criteria
+        :Versions:
+            * 2021-10-18 ``@ddalle``: Version 1.0
+        """
+        # Prepare descriptor
+        tags, _, xmlitem = self._prep_section_item(**kw)
+        # Find item
+        return self.find(tags, **xmlitem)
+        
     def find_input(self, name):
         r"""Get an *InputList.Input* XML element by *name* attrib
 
@@ -180,6 +290,52 @@ class JobXML(xmlfile.XMLFile):
         return self.find(tags, attribs=attribs)
 
    # --- Sections: set value --- 
+    def set_section_item(self, **kw):
+        r"""Set value by dictionary of options
+
+        :Call:
+            >>> xml.set_section_item(**kw)
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+            *tag*: :class:`str`
+                Element tag using full path or shortcut
+            *section*: {``None``} | ``Input`` | ``KCFD`` | :class:`str`
+                Name of special section
+            *value*: {``None``} | :class:`str`
+                Value to set, if any
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *insert*: {``True``} | ``False``
+                Option to insert new element(s) if not found
+            *indent*: {``2``} | :class:`int` >= 0
+                Number of spaces in an indent
+            *tab*: {``indent * " "``} | :class:`str`
+                Override *indent* with a specific string
+            *text*: {``None``} | :class:`str`
+                Target *elem.text* for searching
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail* for searching
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+            *newattrib*: {``None``} | :class:`dict`
+                New attributes to set in found element
+            *newtail*: {``None``} | :class:`str`
+                Specific final *tail* text for found dlement
+            *updateattrib*: {``None``} | :class:`dict`
+                Attributes to update without resetting *elem.attrib*
+        :Versions:
+            * 2021-10-26 ``@ddalle``: Version 1.0
+        """
+        # Prepare descriptor
+        tags, v, xmlitem = self._prep_section_item(**kw)
+        # Set item
+        self.set_elem(tags, v, **xmlitem)
+
     def set_input(self, name, v):
         r"""Set the text of an *InputList.Input* element
 
@@ -195,7 +351,7 @@ class JobXML(xmlfile.XMLFile):
         :Versions:
             * 2021-10-18 ``@ddalle``: Version 1.0
         """
-        self.set_elem("InputList.Input", v, attrib={"name": name})
+        self.set_section_item(tag=name, value=v, section="Input")
 
     def set_kcfd(self, tag, v):
         r"""Set the text of a *KCFD* element
@@ -212,21 +368,7 @@ class JobXML(xmlfile.XMLFile):
         :Versions:
             * 2021-10-18 ``@ddalle``: Version 1.0
         """
-        # Full path to section
-        tags = [
-            "BodyHierarchy",
-            "ActionList",
-            "FVMCFD",
-            tag
-        ]
-        # Constraints at each level
-        attribs = [
-            None,
-            None,
-            {"name": "KCFD"}
-        ]
-        # Edit or add requested element
-        self.set_elem(tags, v, attribs=attribs)
+        self.set_section_item(tag=tag, value=v, section="KCFD")
 
    # --- Sections: get value ---
     def get_input(self, name):

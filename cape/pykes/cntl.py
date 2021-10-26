@@ -378,15 +378,14 @@ class Cntl(ccntl.Cntl):
                 xml.set_restart(True)
             # Set number of iterations
             xml.set_kcfd_iters(self.opts.get_nIter(j))
-            # Apply the *XML* section of JSON file
-
-
+            # Get the items from *XML* section for this phase
+            for xmlitem in self.opts.select_xml_phase(j):
+                # Set item
+                xml.set_section_item(**xmlitem)
             # Name of output file
             fxml = os.path.join(frun, "%s.%02i.xml" % (proj, j))
             # Write it
             xml.write(fxml)
-        
-            
 
     # Prepare the mesh for case *i*
     @ccntl.run_rootdir

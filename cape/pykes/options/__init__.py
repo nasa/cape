@@ -117,6 +117,48 @@ class Options(options.Options):
         self["JobXML"] = fname
    # >
 
+   # =============
+   # XML section
+   # =============
+   # <
+    # Get XML options for a given phase
+    def select_xml_phase(self, j=None):
+        r"""Get all items from the *XML* section for phase *j*
+
+        :Call:
+            >>> xmlitems = opts.select_xml_phase(j=None)
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *xmlitems*: :class:`list`\ [:class:`dict`]
+                List of XML element descriptors
+        :Versions:
+            * 2021-10-26 ``@ddalle``: Version 1.0
+        """
+        # Get the *XML* section
+        xmlsec = self.get("XML")
+        # Check if it's a list
+        if not isinstance(xmlsec, list):
+            return []
+        # Initialize items
+        xmlitems = []
+        # Loop through *xmlsec*
+        for elem in xmlsec:
+            # Check if it's a dict
+            if not isinstance(elem, dict):
+                continue
+            # Copy it
+            e = dict(elem)
+            # Get value
+            v = elem.get("value")
+            # Set value to phase *j* and save it
+            xmlitems.append(dict(elem, value=util.getel(v, j)))
+        # Output
+        return xmlitems
+   # >
 
 # Upgrade any local functions
 util.promote_subsec(Options, Mesh)
