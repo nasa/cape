@@ -70,6 +70,18 @@ class JobXML(xmlfile.XMLFile):
     def get_beta(self):
         return self.get_input("Beta")
 
+    def get_pressure(self):
+        return self.get_input("StaticPressure")
+
+    def get_relen(self):
+        return self.get_input("ReynoldsLength")
+
+    def get_rey(self):
+        return self.get_input("Reynolds")
+
+    def get_temperature(self):
+        return self.get_input("StaticTemperature")
+
     def get_restart(self):
         return self.get_input("Restart")
 
@@ -91,6 +103,18 @@ class JobXML(xmlfile.XMLFile):
 
     def set_beta(self, beta):
         return self.set_input("Beta", beta)
+
+    def set_pressure(self, pressure):
+        return self.set_input("StaticPressure", pressure)
+
+    def set_relen(self, relen):
+        return self.set_input("ReynoldsLength", relen)
+
+    def set_rey(self, rey):
+        return self.set_input("Reynolds", rey)
+
+    def set_temperature(self, temperature):
+        return self.set_input("StaticTemperature", temperature)
 
     def set_restart(self, restart=True):
         return self.set_input("Restart", restart)
@@ -435,9 +459,11 @@ INPUTLIST_KEYS = {
     "alpha": "angle of attack",
     "beta": "sideslip angle",
     "mach": "Mach number",
+    "pressure": "freestream pressure",
     "rey": "Reynolds number",
     "relen": "Reynolds length",
     "restart": "restart flag",
+    "temperature": "freestream temperature",
 }
 KCFD_KEYS = {
     "iters": "number of iterations",

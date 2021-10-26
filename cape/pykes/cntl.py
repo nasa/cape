@@ -293,6 +293,80 @@ class Cntl(ccntl.Cntl):
         self.PrepareMesh(i)
         # Get the run folder name
         frun = self.x.GetFullFolderNames(i)
+        # Write the "conditions.json" file
+        self.x.WriteConditionsJSON(i)
+        # Read the XML file
+        self.ReadJobXML()
+        # Check for any "CaseFunction" hooks
+        casekeys = self.x.GetKeysByType("CaseFunction")
+        # Get the list of functions
+        casefuncs = [
+            self.x.defns[key].get("Function") for key in casekeys
+        ]
+        # # Loop through the functions
+        for (key, funcname) in zip(casekeys, casefuncs):
+            # Get handle to module
+            try:
+                func = eval("self.%s" % funcname)
+            except Exception:
+                print(
+                    "  CaseFunction key '%s' function '%s()' not found"
+                    % (key, funcname))
+                continue
+            # Check if callable
+            if not callable(func):
+                print("  CaseFunction '%s' not callable! Skipping." % key)
+                continue
+            # Run it
+            func(self.x[key][i], i=i)
+        # Prepare the XML file(s)
+        self.PrepareJobXML(i)
+
+    # Prepare the job'x XML file(s)
+    @ccntl.run_rootdir
+    def PrepareJobXML(self, i):
+        r"""Write ``pykes.xml`` file(s) for case *i*
+
+        :Call:
+            >>> cntl.PrepareJobXML(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2021-10-26 ``@ddalle``: Version 1.0
+        """
+        # Get run matrix
+        x = self.x
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Exit if not folder
+        if not os.path.isdir(frun):
+            return
+        # Set any flight conditions
+        # Mach number
+        mach = x.GetMach(i)
+        if mach is not None:
+            self.JobXML.set_mach(mach)
+        # Angle of attack
+        a = x.GetAlpha(i)
+        if a is not None:
+            self.JobXML.set_alpha(a)
+        # Sideslip angle
+        b = x.GetBeta(i)
+        if b  is not None:
+            self.JobXML.set_beta(b)
+        # Reynolds number
+        Re = x.GetReynoldsNumber(i)
+        if Re is not None:
+            self.JobXML.SetReynoldsNumber(Re)
+        # Temperature
+        T = x.GetTemperature(i)
+        if T  is not None:
+            self.JobXML.SetTemperature(T)
+        
+            
 
     # Prepare the mesh for case *i*
     @ccntl.run_rootdir
