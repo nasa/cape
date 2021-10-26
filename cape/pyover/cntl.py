@@ -1201,7 +1201,7 @@ class Cntl(capecntl.Cntl):
                 Instance of cape.pyover control class
             *i*: :class:`int`
                 Run index
-            *rc*: {``None``} | :class:`cape.pyover.options.runControl.RunControl`
+            *rc*: {``None``} | :class:`RunControl`
                 If specified, write specified "RunControl" options
         :Versions:
             * 2015-10-19 ``@ddalle``: Version 1.0

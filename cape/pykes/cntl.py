@@ -321,6 +321,10 @@ class Cntl(ccntl.Cntl):
             func(self.x[key][i], i=i)
         # Prepare the XML file(s)
         self.PrepareJobXML(i)
+        # Write "case.json"
+        self.WriteCaseJSON(i)
+        # Write the PBS script(s)
+        self.WritePBS(i)
 
     # Prepare the job'x XML file(s)
     @ccntl.run_rootdir
@@ -446,9 +450,61 @@ class Cntl(ccntl.Cntl):
                     shutil.copy(fabs, fdest)
                 # Add to list already copied
                 copiedfiles.add(fbase)
-        # Enter the case folder
-        os.chdir(frun)
+
+    # Write the PBS script
+    @ccntl.run_rootdir
+    def WritePBS(self, i):
+        r"""Write the PBS script(s) for a given case
         
+        :Call:
+            >>> cntl.WritePBS(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Main CAPE control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2021-10-26 ``@ddalle``: Version 1.0
+        """
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Make folder if necessary.
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
+        # Go to the folder.
+        os.chdir(frun)
+        # Determine number of unique PBS scripts.
+        if self.opts.get_nPBS() > 1:
+            # If more than one, use unique PBS script for each run.
+            nPBS = max(self.opts.get_nSeq(), nPhase)
+        else:
+            # Otherwise use a single PBS script.
+            nPBS = 1
+        # Loop through the runs.
+        for j in range(nPBS):
+            # PBS script name.
+            if nPBS > 1:
+                # Put PBS number in file name.
+                fpbs = 'run_kestrel.%02i.pbs' % (j + 1)
+            else:
+                # Use single PBS script with plain name.
+                fpbs = 'run_kestrel.pbs'
+            # Initialize the PBS script
+            with open(fpbs, "w") as fp:
+                # Write the header
+                self.WritePBSHeader(fp, i, j)
+                # Initialize options to `run_overflow.py`
+                flgs = ''
+                # Get specific python version
+                pyexec = self.opts.get_PythonExec(j)
+                # Simply call the advanced interface.
+                fp.write('\n# Call the Kestrel interface\n')
+                if pyexec:
+                    # Use specific version
+                    fp.write("%s -m cape.pykes run %s\n" % (pyexec, flgs))
+                else:
+                    # Use CAPE-provided script
+                    fp.write('run_kestrel.py' + flgs + '\n')
   # >
 
   # ===============
@@ -532,6 +588,40 @@ class Cntl(ccntl.Cntl):
             rc = case.ReadCaseJSON()
         # Output
         return rc
+
+    # Write run control options to JSON file
+    @ccntl.run_rootdir
+    def WriteCaseJSON(self, i, rc=None):
+        r"""Write JSON file with run control for case *i*
+        
+        :Call:
+            >>> cntl.WriteCaseJSON(i, rc=None)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Instance of cape.pyover control class
+            *i*: :class:`int`
+                Run index
+            *rc*: {``None``} | :class:`RunControl`
+                Prespecified "RunControl" options
+        :Versions:
+            * 2021-10-26 ``@ddalle``: Version 1.0
+        """
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists
+        if not os.path.isdir(frun):
+            return
+        # Go to the folder
+        os.chdir(frun)
+        # Write file
+        with open("case.json", "w") as fp:
+            # Dump the Overflow and other run settings.
+            if rc is None:
+                # Write settings from the present options
+                json.dump(self.opts["RunControl"], fp, indent=1)
+            else:
+                # Write the settings given as input
+                json.dump(rc, fp, indent=1)
   # >
 
   # ========
