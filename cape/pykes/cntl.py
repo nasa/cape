@@ -339,32 +339,52 @@ class Cntl(ccntl.Cntl):
         """
         # Get run matrix
         x = self.x
+        # Get XML file instance
+        xml = self.JobXML
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
         # Exit if not folder
         if not os.path.isdir(frun):
             return
+        # Project name
+        proj = self.opts.get_ProjectName()
         # Set any flight conditions
         # Mach number
         mach = x.GetMach(i)
         if mach is not None:
-            self.JobXML.set_mach(mach)
+            xml.set_mach(mach)
         # Angle of attack
         a = x.GetAlpha(i)
         if a is not None:
-            self.JobXML.set_alpha(a)
+            xml.set_alpha(a)
         # Sideslip angle
         b = x.GetBeta(i)
         if b  is not None:
-            self.JobXML.set_beta(b)
+            xml.set_beta(b)
         # Reynolds number
-        Re = x.GetReynoldsNumber(i)
-        if Re is not None:
-            self.JobXML.SetReynoldsNumber(Re)
+        rey = x.GetReynoldsNumber(i)
+        if rey is not None:
+            xml.set_rey(rey)
         # Temperature
-        T = x.GetTemperature(i)
-        if T  is not None:
-            self.JobXML.SetTemperature(T)
+        t = x.GetTemperature(i)
+        if t is not None:
+            xml.set_temperature(t)
+        # Loop through phases
+        for j in self.opts.get_PhaseSequence():
+            # Set the restart flag according to phase
+            if j == 0:
+                xml.set_restart(False)
+            else:
+                xml.set_restart(True)
+            # Set number of iterations
+            xml.set_kcfd_iters(self.opts.get_nIter(j))
+            # Apply the *XML* section of JSON file
+
+
+            # Name of output file
+            fxml = os.path.join(frun, "%s.%02i.xml" % (proj, j))
+            # Write it
+            xml.write(fxml)
         
             
 
