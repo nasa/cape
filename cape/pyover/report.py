@@ -162,12 +162,12 @@ class Report(capereport.Report):
                 Name of subfigure to update
             *i*: :class:`int`
                 Case index
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines already in LaTeX file
             *q*: ``True`` | ``False``
                 Whether or not to redraw images
         :Outputs:
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 Updated list of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: First version

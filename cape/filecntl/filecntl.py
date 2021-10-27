@@ -153,11 +153,11 @@ class FileCntl(object):
     :Data members:
         *FC.fname*: :class:`str`
             Name of file instance was read from
-        *FC.lines*: :class:`list` (:class:`str`)
+        *FC.lines*: :class:`list`\ [:class:`str`]
             List of all lines in the file (to use for replacement)
-        *FC.SectionNames*: :class:`list` (:class:`str`)
+        *FC.SectionNames*: :class:`list`\ [:class:`str`]
             List of section titles if present
-        *FC.Section*: :class:`dict` (:class:`list` (:class:`str`))
+        *FC.Section*: :class:`dict` (:class:`list`\ [:class:`str`])
             Dictionary of the lines in each section, if present
     """
     
@@ -1315,7 +1315,7 @@ class FileCntl(object):
         :Inputs:
             *FC*: :class:`cape.filecntl.FileCntl`
                 File control instance
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines in section or file
         :Outputs:
             *n*: :class:`int`
@@ -1344,7 +1344,7 @@ class FileCntl(object):
         :Inputs:
             *FC*: :class:`cape.filecntl.FileCntl`
                 File control instance
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines in section or file
         :Outputs:
             *n*: :class:`int`
@@ -1432,7 +1432,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Maximum number of matches to search for
         :Outputs:
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
@@ -1472,7 +1472,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Maximum number of matches to search for
         :Outputs:
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
@@ -1514,7 +1514,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Maximum number of matches to search for
         :Outputs:
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
@@ -1558,7 +1558,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Maximum number of matches to search for
         :Outputs:
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
@@ -1682,7 +1682,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Maximum number of matches to search for
         :Outputs:
-            *i*: :class:`list` (:class:`int`)
+            *i*: :class:`list`\ [:class:`int`]
                 List of indices of lines in section that match pattern
         :Versions:
             * 2014-02-28 ``@ddalle``: First version
@@ -1726,7 +1726,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Maximum number of matches to search for
         :Outputs:
-            *i*: :class:`list` (:class:`int`)
+            *i*: :class:`list`\ [:class:`int`]
                 List of indices of lines in section that match pattern
         :Versions:
             * 2014-02-28 ``@ddalle``: First version

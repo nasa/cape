@@ -265,7 +265,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
                 Manually specified label
             *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
                 Target or list of target values
-            *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
+            *TargetLabel*: :class:`str` | :class:`list`\ [:class:`str`]
                 Legend label(s) for target(s)
             *StDev*: [ {None} | :class:`float` ]
                 Multiple of iterative history standard deviation to plot

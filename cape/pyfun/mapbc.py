@@ -87,13 +87,13 @@ class MapBC(object):
             Boundary condition map instance
         *BC.n*: :class:`int`
             Number of surfaces
-        *BC.SurfID*: :class:`np.ndarray` (:class:`int`)
+        *BC.SurfID*: :class:`np.ndarray`\ [:class:`int`]
             FUN3D surface indices, numbered 1 to *n*
-        *BC.CompID*: :class:`np.ndarray` (:class:`int`)
+        *BC.CompID*: :class:`np.ndarray`\ [:class:`int`]
             Corresponding component IDs of each surface
-        *BC.BCs*: :class:`np.ndarray` (:class:`int`)
+        *BC.BCs*: :class:`np.ndarray`\ [:class:`int`]
             Boundary condition numbers
-        *BC.Names*: :class:`list` (:class:`str`)
+        *BC.Names*: :class:`list`\ [:class:`str`]
             List of surface names
     :Versions:
         * 2016-03-30 ``@ddalle``: First version

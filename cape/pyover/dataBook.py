@@ -119,7 +119,7 @@ def ReadFomocoComps(fname):
         *fname*: :class:`str`
             Name of the file to read
     :Outputs:
-        *comps*: :class:`list` (:class:`str`)
+        *comps*: :class:`list`\ [:class:`str`]
             List of components
     :Versions:
         * 2016-02-03 ``@ddalle``: First version
@@ -192,7 +192,7 @@ def ReadResidGrids(fname):
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *grids*: :class:`list` (:class:`str`)
+        *grids*: :class:`list`\ [:class:`str`]
             List of grids
     :Versions:
         * 2016-02-04 ``@ddalle``: First version
@@ -822,7 +822,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
     :Outputs:
         *FM*: :class:`pyOver.dataBook.FM`
             Instance of the force and moment class
-        *FM.C*: :class:`list` (:class:`str`)
+        *FM.C*: :class:`list`\ [:class:`str`]
             List of coefficients
         *FM.i*: :class:`numpy.ndarray` shape=(0,)
             List of iteration numbers

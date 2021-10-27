@@ -902,7 +902,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Outputs:
-            *fname*: :class:`list` (:class:`str`)
+            *fname*: :class:`list`\ [:class:`str`]
                 List of file names read from root directory
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
@@ -930,7 +930,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Outputs:
-            *fname*: :class:`list` (:class:`str`)
+            *fname*: :class:`list`\ [:class:`str`]
                 List of file names written to case folders
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
@@ -2513,7 +2513,7 @@ class Cntl(ccntl.Cntl):
             *comps*: :class:`list` (:class:`int` | :class:`str`)
                 List of component IDs or face names
         :Outputs:
-            *surfID*: :class:`list` (:class:`int`)
+            *surfID*: :class:`list`\ [:class:`int`]
                 List of corresponding indices of surface in MapBC
         :Versions:
             * 2016-04-27 ``@ddalle``: First version

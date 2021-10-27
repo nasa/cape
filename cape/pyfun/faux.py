@@ -31,7 +31,7 @@ class FAUXGeom(object):
             Interface for ``faux_input`` file
         *faux.nSurf*: :class:`int`
             Number of MapBC surfaces with geometry descriptions
-        *faux.Surfs*: :class:`list` (:class:`int`)
+        *faux.Surfs*: :class:`list`\ [:class:`int`]
             List of surface indices
         *faux.Geom*: :class:`dict` (:class:`float` | :class:`list`)
             Dictionary of geometry definitions

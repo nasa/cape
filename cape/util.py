@@ -47,7 +47,7 @@ def stackcol(cols):
         *A*: :class:`np.ndarray`
             Matrix with ``A[:,0]==cols[0]``, ``A[:,1]==cols[1]``, etc.
     :Versions:
-        * 2017-02-17 ``@ddalle``: First version
+        * 2017-02-17 ``@ddalle``: Version 1.0
     """
     # We have to do this stupid VSTACK thing for old versions of NUMPY
     # First, create tuple of 1xN row vector matrices
@@ -58,7 +58,7 @@ def stackcol(cols):
 
 # Split text by either comma or space
 def SplitLineGeneral(line):
-    """Split a string in which uses a mix of commas and spaces as delimiters
+    r"""Split a string that uses commas and/or spaces as delimiters
 
     :Call:
         >>> V = SplitLineGeneral(line)
@@ -66,10 +66,10 @@ def SplitLineGeneral(line):
         *line*: :class:`str`
             Text with commas, spaces, or a combination as delimiters
     :Outputs:
-        *V*: :class:`list`\ [:class:`str']
+        *V*: :class:`list`\ [:class:`str`]
             List of values split by delimiters
     :Versions:
-        * 2016-12-29 ``@ddalle``: First version
+        * 2016-12-29 ``@ddalle``: Version 1.0
     """
     # Split using regular expressions (after stripping white space)
     V = re.split("[\s\,]+", line.strip())
@@ -83,18 +83,18 @@ def SplitLineGeneral(line):
 
 # Convert a list of numbers to a compact string
 def RangeString(rng):
-    """Convert a list of ascending integers to a string like "1-10,12,14-15"
+    r"""Convert a list of integers to a string like "1-10,12,14-15"
 
     :Call:
         >>> txt = RangeString(rng)
     :Inputs:
-        *rng*: :class:`list` (:class:`int`)
+        *rng*: :class:`list`\ [:class:`int`]
             Range of integers
     :Outputs:
         *txt*: :class:`str`
-            Nicely formatted string combining contiguous ranges with ``"-"``
+            Formatted string combining contiguous ranges with ``"-"``
     :Versions:
-        * 2016-10-20 ``@ddalle``: First version
+        * 2016-10-20 ``@ddalle``: Version 1.0
     """
     # Number of components
     n = len(rng)
@@ -146,14 +146,14 @@ def TrimUnused(T):
     :Call:
         >>> U = cape.util.TrimUnused(T)
     :Inputs:
-        *T*: :class:`np.ndarray` (:class:`int`)
+        *T*: :class:`np.ndarray`\ [:class:`int`]
             Nodal index matrix or similar
     :Outputs:
-        *U*: :class:`np.ndarray` (:class:`int`)
+        *U*: :class:`np.ndarray`\ [:class:`int`]
             Nodal matrix with nodes 1 to *n* with same dimensions as *T*
     :Versions:
-        * 2017-02-10 ``@ddalle``: First version
-        * 2017-03-30 ``@ddalle``: From :func:`cape.tri.Tri.RemoveUnusedNodes`
+        * 2017-02-10 ``@ddalle``: Version 1.0
+        * 2017-03-30 ``@ddalle``: Version 1.1; from :class:`Tri`
     """
     # Get nodes that are used
     N = np.unique(T)
@@ -177,12 +177,14 @@ def TrimUnused(T):
 
 # Convert matrix of truth values to BC lists
 def GetBCBlock2(I):
-    """Get largest rectangle of boundary conditions
+    r"""Get largest rectangle of boundary conditions
 
     :Call:
         >>> js, je, ks, ke = GetBCBlock(I)
     :Inputs:
-        *I*: :class:`np.ndarray` (:class:`bool`, shape=(NJ,NK))
+        *I*: :class:`np.ndarray`\ [:class:`bool`]
+            * *shape*: (NJ,NK)
+
             Matrix of whether or not each grid point is in the family
     :Outputs:
         *js*: {``None``} | :class:`int`
@@ -194,7 +196,7 @@ def GetBCBlock2(I):
         *ke*: {``None``} | :class:`int`
             End *k*-index of block
     :Versions:
-        * 2017-02-08 ``@ddalle``: First version
+        * 2017-02-08 ``@ddalle``: Version 1.0
     """
     # Initialize indices
     js = None
@@ -265,7 +267,7 @@ def SigmaMean(x):
         *sig*: :class:`float`
             Estimated standard deviation of the mean
     :Versions:
-        * 2015-02-21 ``@ddalle``: First version
+        * 2015-02-21 ``@ddalle``: Version 1.0
     """
     # Length of list
     n = len(x)
@@ -302,7 +304,7 @@ def GetBestFrequency(y, fs=1.0, **kw):
         *w*: :class:`float`
             Dominant frequency
     :Versions:
-        * 2017-09-29 ``@ddalle``: First version
+        * 2017-09-29 ``@ddalle``: Version 1.0
     """
     # Length of signal
     n = len(y)
@@ -353,7 +355,7 @@ def FitLinearSinusoid(x, y, w):
         *w*: :class:`float`
             Specified frequency of the sinusoid
     :Outputs:
-        *a*: :class:`np.ndarray` (:class:`float`)
+        *a*: :class:`np.ndarray`\ [:class:`float`]
             Array of *a0*, *a1*, *a2*, *a3*
         *a0*: :class:`float`
             Constant offset
@@ -364,7 +366,7 @@ def FitLinearSinusoid(x, y, w):
         *a3*: :class:`float`
             Magnitude of sine signal
     :Versions:
-        * 2017-09-29 ``@ddalle``: First version
+        * 2017-09-29 ``@ddalle``: Version 1.0
     """
     # Length of signal
     n = len(x)
@@ -464,7 +466,7 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
         *F['np']*: :class:`float`
             Number of dominant-frequency periods in window
     :Versions:
-        * 2017-09-29 ``@ddalle``: First version
+        * 2017-09-29 ``@ddalle``: Version 1.0
     """
     # Process defaults
     if nMax is None:
@@ -545,7 +547,7 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
         *F['np']*: :class:`float`
             Number of dominant-frequency periods in window
     :Versions:
-        * 2017-09-29 ``@ddalle``: First version
+        * 2017-09-29 ``@ddalle``: Version 1.0
     """
     # Switch inputs if necessary
     if N2 < N1:
@@ -620,18 +622,16 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
     }
 
 
-
-
 # Function to calculate window with lowest linear fit
 def BisectLinearFit(I, x, N1, N2, **kw):
-    """Calculate window size that results in
+    r"""Calculate window size that results in
 
     :Call:
         >>> N, dx = BisectLinearFit(I, x, N1, N2, **kw)
     :Inputs:
-        *I*: :class:`np.ndarray` (:class:`int` | :class:`float`)
+        *I*: :class:`np.ndarray`\ [:class:`int` | :class:`float`]
             Iteration indices (in case of non-uniform spacing)
-        *x*: :class:`np.ndarray` (:class:`float`)
+        *x*: :class:`np.ndarray`\ [:class:`float`]
             Array of test values
         *N1*: :class:`int`
             Minimum candidate window size
@@ -643,7 +643,7 @@ def BisectLinearFit(I, x, N1, N2, **kw):
         *dx*: :class:`float`
             Absolute value of change in *x* over window *N*
     :Versions:
-        * 20178-09-28 ``@ddalle``: First version
+        * 20178-09-28 ``@ddalle``: Version 1.0
     """
     # Check inputs
     N1 = int(N1)
@@ -706,7 +706,6 @@ def BisectLinearFit(I, x, N1, N2, **kw):
     return N, a*(I[-1] - I[-N])
 
 
-
 # Function to get a non comment line
 def readline(f, comment='#'):
     """Read line that is nonempty and not a comment
@@ -722,7 +721,7 @@ def readline(f, comment='#'):
         *line*: :class:`str`
             Nontrivial line or `''` if at end of file
     :Versions:
-        * 2015-11-19 ``@ddalle``: First version
+        * 2015-11-19 ``@ddalle``: Version 1.0
     """
     # Read a line.
     line = f.readline()
@@ -789,12 +788,13 @@ def denone(x):
         *y*: any
             Same as *x* unless *x* is ``None``, then ``[]``
     :Versions:
-        * 2015-03-09 ``@ddalle``: First version
+        * 2015-03-09 ``@ddalle``: Version 1.0
     """
     if x is None:
         return []
     else:
         return x
+
 
 # Check if an object is a list.
 def islist(x):
@@ -807,11 +807,12 @@ def islist(x):
             Any variable
     :Outputs:
         *q*: :class:`bool`
-            Whether or not *x* is in [:class:`list` or :class:`numpy.ndarray`]
+            Whether or not *x* is in [:class:`list` or :class:`ndarray`]
     :Versions:
-        * 2015-06-01 ``@ddalle``: First version
+        * 2015-06-01 ``@ddalle``: Version 1.0
     """
     return type(x).__name__ in ['list', 'ndarray']
+
 
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, ypad=0.05, **kw):
@@ -837,7 +838,7 @@ def get_ylim(ha, ypad=0.05, **kw):
         *ymax*: :class:`float`
             Maximum *y* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: First version
+        * 2015-07-06 ``@ddalle``: Version 1.0
         * 2016-06-10 ``@ddalle``: Moved to :mod:`cape.util`
     """
     # Initialize limits.
@@ -898,7 +899,7 @@ def get_xlim(ha, xpad=0.05, **kw):
         *xmax*: :class:`float`
             Maximum *x* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: First version
+        * 2015-07-06 ``@ddalle``: Version 1.0
     """
     # Initialize limits.
     xmin = np.inf
@@ -960,7 +961,7 @@ def get_ylim_ax(ha, ypad=0.05, **kw):
         *ymax*: :class:`float`
             Maximum *y* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: First version
+        * 2015-07-06 ``@ddalle``: Version 1.0
         * 2016-06-10 ``@ddalle``: Moved to :mod:`cape.util`
     """
     # Initialize limits.
@@ -1029,7 +1030,7 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
         *xmax*: :class:`float`
             Maximum *x* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: First version
+        * 2015-07-06 ``@ddalle``: Version 1.0
     """
     # Initialize limits.
     xmin = np.inf

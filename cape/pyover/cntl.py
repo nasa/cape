@@ -809,7 +809,7 @@ class Cntl(capecntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Outputs:
-            *fname*: :class:`list` (:class:`str`)
+            *fname*: :class:`list`\ [:class:`str`]
                 List of file names read from root directory
         :Versions:
             * 2016-02-01 ``@ddalle``: Version 1.0
@@ -1336,7 +1336,7 @@ class Cntl(capecntl.Cntl):
         :Inputs:
             *n*: ``None`` | {``0``} | positive :class:`int`
                 Iteration at which to stop
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of trajectory constraints
             *I*: :class:`list` (:class:`int`)
                 List of case indices

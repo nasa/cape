@@ -110,11 +110,11 @@ class Namelist2(FileCntl):
     :Outputs:
         *nml*: :class:`cape.filecntl.namelist2.Namelist2`
             Namelist file control instance
-        *nml.ibeg*: :class:`np.ndarray` (:class:`int`)
+        *nml.ibeg*: :class:`np.ndarray`\ [:class:`int`]
             Indices of lines starting each namelist/section
-        *nml.iend*: :class:`np.ndarray` (:class:`int`)
+        *nml.iend*: :class:`np.ndarray`\ [:class:`int`]
             Indices of lines ending each namelist/section
-        *nml.Groups*: :class:`np.ndarray` (:class:`str`)
+        *nml.Groups*: :class:`np.ndarray`\ [:class:`str`]
             List of namelist/section/group titles
     :Versions:
         * 2016-02-01 ``@ddalle``: First version
@@ -257,7 +257,7 @@ class Namelist2(FileCntl):
             *igrp*: :class:`int`
                 If namelist contains multiple copies, return match number *igrp*
         :Outputs:
-            *i*: :class:`int` | :class:`np.ndarray` (:class:`int`)
+            *i*: :class:`int` | :class:`np.ndarray`\ [:class:`int`]
                 Group index of requested match
         :Versions:
             * 2016-01-31 ``@ddalle``: First version
@@ -303,7 +303,7 @@ class Namelist2(FileCntl):
             *igrp*: :class:`int`
                 Group index to read
         :Outputs:
-            *d*: :class:`dict` (:class:`str`)
+            *d*: :class:`dict`\ [:class:`str`]
                 Raw (uncoverted) values of the dict
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
@@ -423,7 +423,7 @@ class Namelist2(FileCntl):
             *line*: :class:`str`
                 One line from a namelist file
         :Outputs:
-            *d*: :class:`dict` (:class:`str`)
+            *d*: :class:`dict`\ [:class:`str`]
                 Unconverted values of each key
         :Versions:
             * 2016-01-29 ``@ddalle``: First version

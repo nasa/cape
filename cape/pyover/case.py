@@ -1006,7 +1006,7 @@ def GetLatest(glb):
     :Inputs:
         *glb*: :class:`str`
             File name glob
-        *lblb*: :class:`list` (:class:`str`)
+        *lblb*: :class:`list`\ [:class:`str`]
             List of file name globs
     :Outputs:
         *fq*: ``None`` | :class:`str`

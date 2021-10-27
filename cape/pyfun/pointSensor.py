@@ -79,7 +79,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
             Options interface
         *name*: :class:`str` | ``None``
             Name of data book group
-        *pts*: {``None``} | :class:`list` (:class:`str`)
+        *pts*: {``None``} | :class:`list`\ [:class:`str`]
             List of points to read; defaults to all points in the group
         *RootDir*: {``None``} | :class:`str`
             Project root directory absolute path, default is *PWD*
@@ -219,7 +219,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
         :Outputs:
             *triq*: :class:`cape.tri.Triq`
                 Annotated triangulation interface
-            *VarList*: :class:`list` (:class:`str`)
+            *VarList*: :class:`list`\ [:class:`str`]
                 List of variable names
         :Versions:
             * 2017-10-10 ``@ddalle``: First version

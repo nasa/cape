@@ -118,9 +118,9 @@ class Tecscript(FileCntl):
             *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script base class
         :Effects:
-            *tec.icmd*: :class:`list` (:class:`int`)
+            *tec.icmd*: :class:`list`\ [:class:`int`]
                 Indices of lines that start commands
-            *tec.cmds*: :class:`list` (:class:`str`)
+            *tec.cmds*: :class:`list`\ [:class:`str`]
                 Name of each command
         :Versions:
             * 2015-02-28 ``@ddalle``: First version
@@ -143,7 +143,7 @@ class Tecscript(FileCntl):
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Index at which to insert the first line
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 Lines to insert, *lines[0]* is inserted at line *i*
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
@@ -369,10 +369,10 @@ class Tecscript(FileCntl):
             *n*: {``0``} | ``None`` | :class:`int` >= 0
                 Instance of command to find; if ``None`` return all
         :Outputs:
-            *ibeg*: ``None`` | :class:`int` | :class:`list` (:class:`int`)
+            *ibeg*: ``None`` | :class:`int` | :class:`list`\ [:class:`int`]
                 Index of start of command (or ``None`` if less than *n*
                 instances of commands named *cmd*)
-            *iend*: ``None`` | :class:`int` | :class:`list` (:class:`int`)
+            *iend*: ``None`` | :class:`int` | :class:`list`\ [:class:`int`]
                 Index of start of next command
         :Versions:
             * 2017-10-05 ``@ddalle``: First version
@@ -508,7 +508,7 @@ class Tecscript(FileCntl):
                 Title of the command to insert
             *txt*: :class:`str`
                 Text to add after the command on the same line
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 Additional lines to add to the command
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
@@ -548,13 +548,13 @@ class Tecscript(FileCntl):
                 Title of the command to replace
             *txt*: :class:`str`
                 Text to add after the command on the same line
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 Additional lines to add to the command
             *k*: :class:`int`
                 Default command index at which to insert command
             *reg*: :class:`str`
                 Regular expression for text after the command
-            *regs*: :class:`list` (:class:`str`)
+            *regs*: :class:`list`\ [:class:`str`]
                 Additional lines to filter for (regular expressions)
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
@@ -586,7 +586,7 @@ class Tecscript(FileCntl):
                 Title of the command to delete
             *txt*: :class:`str`
                 Regular expression for text after the command
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 Additional lines to filter for (regular expressions)
         :Outputs:
             *kcmd*: :class:`int`
@@ -1191,7 +1191,7 @@ class Tecscript(FileCntl):
         :Inputs:
             *tec*: :class:`cape.filecntl.tecplot.Tecscript`
                 Instance of Tecplot script interface
-            *grps*: :class:`list` (:class:`int`)
+            *grps*: :class:`list`\ [:class:`int`]
                 List of last zone number in each ``FIELDMAP`` section
         :Versions:
             * 2016-10-04 ``@ddalle``: First version
