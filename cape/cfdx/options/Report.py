@@ -1,10 +1,10 @@
 """
-:mod:`cape.cfdx.options.Report`: Automated report options 
+:mod:`cape.cfdx.options.Report`: Automated report options
 ==========================================================
 
 This module interfaces options for generating reports. Since many of the report
 options are common to different solvers, much of the report generation content
-is controlled here.  
+is controlled here.
 
 The function :func:`Report.SetSubfigDefaults` contains an extensive set of
 default options for each subfigure type. However, the docstring does not
@@ -19,12 +19,13 @@ information.
 # Import options-specific utilities
 from .util import rc0, odict, getel, isArray
 
+
 # Class for flowCart settings
 class Report(odict):
-    """Dictionary-based interface for options specific to plotting and reports
-    
+    r"""Dictionary-based interface for automatic report options
+
     :Call:
-        >>> opts = cape.options.Report.Report(**kw)
+        >>> opts = Report(**kw)
     :Inputs:
         *kw*: :class:`dict`
             Dictionary of archive options
@@ -32,23 +33,23 @@ class Report(odict):
         *opts*: :class:`cape.options.Report.Report`
             Automated report options interface
     :Versions:
-        * 2016-30-02 ``@ddalle``: First version
+        * 2016-30-02 ``@ddalle``: Version 1.0
     """
-    
+
     # Initialization method
     def __init__(self, **kw):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Call:
             >>> opts = Report(**kw)
         :Inputs:
-            *kw*: :class:`dict` | :class:`cape.options.util.odict`
+            *kw*: :class:`dict` | :class:`odict`
                 Dictionary that is converted to this class
         :Outputs:
             *opts*: :class:`cape.options.Report.Report`
                 Options interface
         :Versions:
-            * 2016-02-04 ``@ddalle``: First version (not using :class:`dict`)
+            * 2016-02-04 ``@ddalle``: Version 1.0
         """
         # Initialize
         for k in kw:
@@ -58,11 +59,11 @@ class Report(odict):
         self.ModSubfigDefaults()
         # Store self subfigure tag
         self.sfig = None
-    
+
     # Subfigure defaults
     def SetSubfigDefaults(self):
-        """Set subfigure default options
-        
+        r"""Set subfigure default options
+
         :Call:
             >>> opts.SetSubfigDefaults()
         :Inputs:
@@ -72,7 +73,7 @@ class Report(odict):
             *opts.defns*: :class:`dict`
                 Default options for each subfigure type is set
         :Versions:
-            * 2016-02-04 ``@ddalle``: First version
+            * 2016-02-04 ``@ddalle``: Version 1.0
         """
         # Initialize the dictionary
         self.defs = {}
@@ -492,38 +493,38 @@ class Report(odict):
             "Width": 0.5,
             "ImageFile": "export.png"
         }
-        
+
     # Modify defaults or add definitions for a particular module
     def ModSubfigDefaults(self):
         """Modify subfigure defaults for a particular solver
-        
-        If you are seeing this docstring, then there are no unique subfigure
-        defaults for this solver
-        
+
+        If you are seeing this docstring, then there are no unique
+        subfigure defaults for this solver
+
         :Call:
             >>> opts.ModSubfigDefaults()
         :Inputs:
             *opts*: :class:`cape.options.Report.Report`
                 Options interface
         :Versions:
-            * 2016-02-04 ``@ddalle``: First version
+            * 2016-02-04 ``@ddalle``: Version 1.0
         """
         return None
-    
+
     # List of reports
     def get_ReportList(self):
         """Get list of reports available to create
-        
+
         :Call:
             >>> reps = opts.get_ReportList()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
         :Outputs:
-            *reps*: :class:`list` (:class:`str`)
+            *reps*: :class:`list`\ [:class:`str`]
                 List of reports by name
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the full list of keys.
         K = self.keys()
@@ -546,75 +547,75 @@ class Report(odict):
                 reps.append(k)
         # Output
         return reps
-    
+
     # List of sweeps
     def get_SweepList(self):
         """Get list of sweeps for a report
-        
+
         :Call:
             >>> fswps = opts.get_SweepList()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
         :Outputs:
-            *figs*: :class:`list` (:class:`str`)
+            *figs*: :class:`list`\ [:class:`str`]
                 List of figures by name
         :Versions:
-            * 2015-05-28 ``@ddalle``: First version
+            * 2015-05-28 ``@ddalle``: Version 1.0
         """
         # Get sweep list.
         fswps = self.get('Sweeps', {})
         # Output the keys.
         return fswps.keys()
-        
+
     # List of figures (case)
     def get_FigList(self):
         """Get list of figures for a report
-        
+
         :Call:
             >>> figs = opts.get_FigList()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
         :Outputs:
-            *figs*: :class:`list` (:class:`str`)
+            *figs*: :class:`list`\ [:class:`str`]
                 List of figures by name
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get figures dictionary.
         figs = self.get('Figures', {})
         # Output the keys.
         return figs.keys()
-        
+
     # List of available subfigures
     def get_SubfigList(self):
         """Get list of available subfigures for a report
-        
+
         :Call:
             >>> figs = opts.get_SubfigList()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
         :Outputs:
-            *sfigs*: :class:`list` (:class:`str`)
+            *sfigs*: :class:`list`\ [:class:`str`]
                 List of subfigures by name
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get figures dictionary.
         sfigs = self.get('Subfigures', {})
         # Output the keys.
         return list(sfigs.keys())
-        
+
     # Get the report options.
     def get_Report(self, rep):
         """Return an interface to an individual figure
-        
+
         :Call:
             >>> R = opts.get_Report(rep)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
@@ -622,7 +623,7 @@ class Report(odict):
             *R*: :class:`dict`
                 Options for figure *rep*
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Check for the figure.
         if rep in self.get_ReportList():
@@ -631,15 +632,15 @@ class Report(odict):
         else:
             # Return empty figure.
             return {}
-        
+
     # Get the figure itself.
     def get_Figure(self, fig):
         """Return an interface to an individual figure
-        
+
         :Call:
             >>> F = opts.get_Figure(fig)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
@@ -647,7 +648,7 @@ class Report(odict):
             *F*: :class:`dict`
                 Options for figure *fig*
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Check for the figure.
         if fig in self.get_FigList():
@@ -656,15 +657,15 @@ class Report(odict):
         else:
             # Return empty figure.
             return {}
-        
+
     # Get the figure itself.
     def get_Subfigure(self, sfig):
         """Return an interface to options for an individual subfigure
-        
+
         :Call:
             >>> S = opts.get_Subfigure(sfig)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -672,7 +673,7 @@ class Report(odict):
             *S*: :class:`dict`
                 Options for subfigure *sfig*
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Check for the figure.
         if sfig in self.get_SubfigList():
@@ -681,15 +682,15 @@ class Report(odict):
         else:
             # Return empty figure.
             return {}
-            
+
     # Return all non-default options for a subfigure
     def get_SubfigCascade(self, sfig):
         """Return all options for a subfigure including ones set in a template
-        
+
         :Call:
             >>> S = opts.get_SubfigCasecasde(sfig)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -697,7 +698,7 @@ class Report(odict):
             *S*: :class:`dict`
                 Options for subfigure *sfig*
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # get the subfigure options
         S = dict(self.get_Subfigure(sfig))
@@ -725,15 +726,15 @@ class Report(odict):
             S.setdefault(k, v)
         # Output
         return S
-            
+
     # Get the sweep
     def get_Sweep(self, fswp):
         """Return a sweep and its options
-        
+
         :Call:
             >>> S = opts.get_Sweep(fswp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *fswp*: :class:`str`
                 Name of sweep
@@ -741,7 +742,7 @@ class Report(odict):
             *S*: :class:`dict`
                 Options for sweep *fswp*
         :Versions:
-            * 2015-05-28 ``@ddalle``: First version
+            * 2015-05-28 ``@ddalle``: Version 1.0
         """
         # Check for the sweep.
         if fswp in self.get_SweepList():
@@ -750,103 +751,103 @@ class Report(odict):
         else:
             # Return an empty sweep
             return {}
-            
+
     # Get report list of sweeps.
     def get_ReportSweepList(self, rep):
         """Get list of sweeps in a report
-        
+
         :Call:
             >>> fswps = opts.get_ReportSweepList(rep)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *rep*: :class:`str`
                 Name of report
         :Outputs:
-            *fswps*: :class:`list` (:class:`str`)
+            *fswps*: :class:`list`\ [:class:`str`]
                 List of sweeps in the report
         :Versions:
-            * 2015-05-28 ``@ddalle``: First version
+            * 2015-05-28 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the list of sweeps.
         return R.get('Sweeps', [])
-            
+
     # Get report list of figures.
     def get_ReportFigList(self, rep):
         """Get list of figures in a report
-        
+
         :Call:
             >>> figs = opts.get_ReportFigList(rep)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *rep*: :class:`str`
                 Name of report
         :Outputs:
-            *figs*: :class:`list` (:class:`str`)
+            *figs*: :class:`list`\ [:class:`str`]
                 List of figures in the report
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the list of figures.
         return R.get('Figures', [])
-        
+
     # Get report list of figures for cases marked FAIL
     def get_ReportErrorFigList(self, rep):
         """Get list of figures for cases marked FAIL
-        
+
         :Call:
             >>> figs = opts.get_ReportErrorFigList(rep)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *rep*: :class:`str`
                 Name of report
         :Outputs:
-            *figs*: :class:`list` (:class:`str`)
+            *figs*: :class:`list`\ [:class:`str`]
                 List of figures in the report
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the list of figures.
         return R.get('ErrorFigures', R.get('Figures', []))
-        
+
     # Get report list of figures for cases marked FAIL
     def get_ReportZeroFigList(self, rep):
         """Get list of figures for cases with zero iterations
-        
+
         :Call:
             >>> figs = opts.get_ReportZeroFigList(rep)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *rep*: :class:`str`
                 Name of report
         :Outputs:
-            *figs*: :class:`list` (:class:`str`)
+            *figs*: :class:`list`\ [:class:`str`]
                 List of figures in the report
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the list of figures.
         return R.get('ZeroFigures', [])
-        
+
     # Minimum iteration
     def get_ReportMinIter(self, rep):
         """Get minimum iteration to create a report
-        
+
         :Call:
             >>> nMin = opts.get_ReportMinIter(rep)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -854,21 +855,21 @@ class Report(odict):
             *nMin*: :class:`int`
                 Do not create report if iteration count is below this number
         :Versions:
-            * 2017-04-12 ``@ddalle``: First version
+            * 2017-04-12 ``@ddalle``: Version 1.0
         """
         # Get the report
         R = self.get_Report(rep)
         # Get the value
         return R.get("MinIter", 1)
-        
+
     # Get report title
     def get_ReportTitle(self, rep):
         """Get the title of a report
-        
+
         :Call:
             >>> ttl = opts.get_ReportTitle(rep)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -876,17 +877,17 @@ class Report(odict):
             *ttl*: :class:`str`
                 Report title
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the title
         return R.get('Title', 'pyCart Automated Report')
-        
+
     # Get report subtitle
     def get_ReportSubtitle(self, rep):
         """Get the subtitle of a report
-        
+
         :Call:
             >>> ttl = opts.get_ReportSubtitle(rep)
         :Inputs:
@@ -898,21 +899,21 @@ class Report(odict):
             *ttl*: :class:`str`
                 Report subtitle
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the subtitle
         return R.get('Subtitle', '')
-        
+
     # Get report author
     def get_ReportAuthor(self, rep):
         """Get the title of a report
-        
+
         :Call:
             >>> auth = opts.get_ReportTitle(rep)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -920,17 +921,17 @@ class Report(odict):
             *auth*: :class:`str`
                 Report author
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the title
         return R.get('Author', '')
-        
+
     # Get report affiliation
     def get_ReportAffiliation(self, rep):
         """Get the author affiliation of a report
-        
+
         :Call:
             >>> afl = opts.get_ReportAffiliation(rep)
         :Inputs:
@@ -942,19 +943,19 @@ class Report(odict):
             *afl*: :class:`str`
                 Author affiliation for the report
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the subtitle
         return R.get('Affiliation', '')
-        
+
     # Get report restriction
     def get_ReportRestriction(self, rep):
         """Get the restriction for a report
-        
+
         For example, this may be "SBU - ITAR" or "FOUO"
-        
+
         :Call:
             >>> lbl = opts.get_ReportRestriction(rep)
         :Inputs:
@@ -966,17 +967,17 @@ class Report(odict):
             *lbl*: :class:`str`
                 Distribution restriction
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the title
         return R.get('Restriction', '')
-        
+
     # Get report logo
     def get_ReportLogo(self, rep):
         """Get the file name for the report logo (placed in footer of each page)
-        
+
         :Call:
             >>> fimg = opts.get_ReportLogo(rep)
         :Inputs:
@@ -988,17 +989,17 @@ class Report(odict):
             *fimg*: :class:`str`
                 File name of logo relative to ``report/`` directory
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the title
         return R.get('Logo', '')
-        
+
     # Get report frontispiece (front page logo)
     def get_ReportFrontispiece(self, rep):
         """Get the frontispiece (i.e. title-page logo)
-        
+
         :Call:
             >>> fimg = opts.get_ReportLogo(rep)
         :Inputs:
@@ -1010,17 +1011,17 @@ class Report(odict):
             *fimg*: :class:`str`
                 File name of frontispiece relative to ``report/`` directory
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Report(rep)
         # Get the title
         return R.get('Frontispiece', '')
-        
+
     # Get report archive status
     def get_ReportArchive(self):
         """Get the option of whether or not to archive report folders
-        
+
         :Call:
             >>> qtar = opts.get_ReportArchive()
         :Inputs:
@@ -1030,15 +1031,15 @@ class Report(odict):
             *qtar*: :class:`bool`
                 Whether or not to tar archives
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the title
         return self.get('Archive', False)
-        
+
     # Get report option to show case
     def get_ReportShowCaseNumber(self, rep):
         """Get the option of whether or not to show case number in header
-        
+
         :Call:
             >>> qnum = opts.get_ReportShowCaseNumber(rep)
         :Inputs:
@@ -1050,7 +1051,7 @@ class Report(odict):
             *qnum*: ``True`` | {``False``}
                 Whether or not to show case number on each page
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
         """
         # Get the overall option
         qnum = self.get('ShowCaseNumber', False)
@@ -1058,15 +1059,15 @@ class Report(odict):
         R = self.get_Report(rep)
         # Get the report-specific option
         return R.get('ShowCaseNumber', qnum)
-            
+
     # Get alignment for a figure
     def get_FigAlignment(self, fig):
         """Get alignment for a figure
-        
+
         :Call:
             >>> algn = opts.get_FigAlignment(fig)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
@@ -1074,21 +1075,21 @@ class Report(odict):
             *algn*: :class:`str`
                 Figure alignment
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the figure.
         F = self.get_Figure(fig)
         # Get the option
         return F.get('Alignment', 'center')
-    
+
     # Get figure header
     def get_FigHeader(self, fig):
         """Get header (if any) for a figure
-        
+
         :Call:
             >>> lbl = opts.get_FigHeader(fig)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
@@ -1096,29 +1097,29 @@ class Report(odict):
             *lbl*: :class:`str`
                 Figure header
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the figure.
         F = self.get_Figure(fig)
         # Return the header.
         return F.get('Header', '')
-        
+
     # Get list of figures in a sweep
     def get_SweepFigList(self, fswp):
         """Get list of figures in a sweep
-        
+
         :Call:
             >>> figs = opts.get_SweepFigList(fswp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *fswp*: :class:`str`
                 Name of sweep
         :Outputs:
-            *figs*: :class:`list` (:class:`str`)
+            *figs*: :class:`list`\ [:class:`str`]
                 List of "sweep" figures in the report
         :Versions:
-            * 2015-05-28 ``@ddalle``: First version
+            * 2015-05-28 ``@ddalle``: Version 1.0
         """
         # Get the report.
         R = self.get_Sweep(fswp)
@@ -1128,34 +1129,34 @@ class Report(odict):
     # Get list of subfigures in a figure
     def get_FigSubfigList(self, fig):
         """Get list of subfigures for a figure
-        
+
         :Call:
             >>> sfigs = opts.get_FigSubfigList(fig)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
         :Outputs:
-            *sfigs*: :class:`list` (:class:`str`)
+            *sfigs*: :class:`list`\ [:class:`str`]
                 Figure header
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the figure.
         F = self.get_Figure(fig)
         # Return the list of subfigures
         return F.get('Subfigures', [])
-        
-        
+
+
     # Process subfigure type
     def get_SubfigType(self, sfig):
         """Get type for an individual subfigure
-        
+
         :Call:
             >>> t = opts.get_SubfigType(sfig)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1163,7 +1164,7 @@ class Report(odict):
             *t*: :class:`str`
                 Subfigure type
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the subfigure
         S = self.get_Subfigure(sfig)
@@ -1172,15 +1173,15 @@ class Report(odict):
             raise IOError("Subfigure '%s' was not found." % sfig)
         # Return the type.
         return S.get('Type', '')
-        
+
     # Get base type of a figure
     def get_SubfigBaseType(self, sfig):
         """Get type for an individual subfigure
-        
+
         :Call:
             >>> t = opts.get_SubfigBaseType(sfig)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1188,7 +1189,7 @@ class Report(odict):
             *t*: :class:`str`
                 Subfigure parent type
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
         """
         # Get the subfigure specified type
         t = self.get_SubfigType(sfig)
@@ -1203,15 +1204,15 @@ class Report(odict):
         else:
             # Derived type; recurse.
             return self.get_SubfigBaseType(t)
-            
+
     # Get option from a sweep
     def get_SweepOpt(self, fswp, opt):
         """Retrieve an option for a sweep
-        
+
         :Call:
             >>> val = opts.get_SweepOpt(fswp, opt)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1221,7 +1222,7 @@ class Report(odict):
             *val*: any
                 Sweep option value
         :Versions:
-            * 2015-05-28 ``@ddalle``: First version
+            * 2015-05-28 ``@ddalle``: Version 1.0
         """
         # Get the sweep
         S = self.get_Sweep(fswp)
@@ -1244,16 +1245,16 @@ class Report(odict):
         }
         # Output
         return S.get(opt)
-            
-        
+
+
     # Process defaults.
     def get_SubfigOpt(self, sfig, opt, i=None, k=None):
         """Retrieve an option for a subfigure, applying necessary defaults
-        
+
         :Call:
             >>> val = opts.get_SubfigOpt(sfig, opt, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1265,7 +1266,7 @@ class Report(odict):
             *val*: any
                 Subfigure option value
         :Versions:
-            * 2015-03-08 ``@ddalle``: First version
+            * 2015-03-08 ``@ddalle``: Version 1.0
             * 2015-05-22 ``@ddalle``: Support for multiple coeffs in PlotCoeff
         """
         # Ensure *sfig* attribute exists
@@ -1302,26 +1303,26 @@ class Report(odict):
         self.sfig = None
         # Process output type.
         return getel(o, i)
-        
+
     # Special function for plot options, which repeat
     def get_SubfigPlotOpt(self, sfig, opt, i):
         """Retrieve an option for a subfigure plot
-        
+
         For example, ``{"color": "k", "marker": ["^", "+", "o"]}`` results in a
         sequence of plot options as follows.
-        
+
             0. ``{"color": "k", "marker": "^"}``
             1. ``{"color": "k", "marker": "+"}``
             2. ``{"color": "k", "marker": "o"}``
             3. ``{"color": "k", "marker": "^"}``
             4. ``{"color": "k", "marker": "+"}``
-            
+
         It is also possible to ...
-        
+
         :Call:
             >>> val = opts.get_SubfigPlotOpt(sfig, opt, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Report`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1333,7 +1334,7 @@ class Report(odict):
             *val*: any
                 Subfigure option value
         :Versions:
-            * 2015-06-01 ``@ddalle``: First version
+            * 2015-06-01 ``@ddalle``: Version 1.0
         """
         # Get the list of options.
         o_in = self.get_SubfigOpt(sfig, opt)
@@ -1391,5 +1392,4 @@ class Report(odict):
             o_plt.setdefault('facecolor', o_plt.get('color'))
         # Output.
         return o_plt
-# class Report
 
