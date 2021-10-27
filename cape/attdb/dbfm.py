@@ -836,9 +836,9 @@ def estimate_xCLM(self, DCLM, DCN):
     :Inputs:
         *self*: :class:`DBFM`
             Force & moment database with *self.xMRP* and *self.Lref*
-        *DCLM*: :class:`np.ndarray` (:class:`float`)
+        *DCLM*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CLM* values
-        *DCN*: :class:`np.ndarray` (:class:`float`)
+        *DCN*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CN* values
     :Outputs:
         *xCLM*: :class:`float`
@@ -870,9 +870,9 @@ def estimate_xCLN(self, DCLN, DCY):
     :Inputs:
         *self*: :class:`DBFM`
             Force & moment database with *self.xMRP* and *self.Lref*
-        *DCLN*: :class:`np.ndarray` (:class:`float`)
+        *DCLN*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CLN* values
-        *DCY*: :class:`np.ndarray` (:class:`float`)
+        *DCY*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CY* values
     :Outputs:
         *xCLN*: :class:`float`

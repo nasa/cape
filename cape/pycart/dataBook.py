@@ -369,7 +369,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *I*: :class:`list` (:class:`int`) or ``None``
+            *I*: :class:`list`\ [:class:`int`] or ``None``
                 List of trajectory indices or update all cases in trajectory
         :Versions:
             * 2015-09-17 ``@ddalle``: First version
@@ -394,7 +394,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *I*: :class:`list` (:class:`int`) or ``None``
+            *I*: :class:`list`\ [:class:`int`] or ``None``
                 List of trajectory indices or update all cases in trajectory
         :Versions:
             * 2015-10-04 ``@ddalle``: First version
@@ -419,7 +419,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices or update all cases in trajectory
         :Versions:
             * 2015-03-13 ``@ddalle``: First version
@@ -692,7 +692,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
     :Outputs:
         *FM*: :class:`pyCart.aero.FM`
             Instance of the force and moment class
-        *FM.coeffs*: :class:`list` (:class:`str`)
+        *FM.coeffs*: :class:`list`\ [:class:`str`]
             List of coefficients
         *FM.i*: :class:`numpy.ndarray` shape=(0,)
             List of iteration numbers
@@ -791,7 +791,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         :Inputs:
             *FM*: :class:`pyCart.dataBook.CaseFM`
                 Case force/moment history
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines from the data file
         :Versions:
             * 2015-10-16 ``@ddalle``: First version

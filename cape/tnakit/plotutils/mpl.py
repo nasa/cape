@@ -110,9 +110,9 @@ def plot(xv, yv, *a, **kw):
     :Call:
         >>> h, kw = plot_base(xv, yv, *a, **kw)
     :Inputs:
-        *xv*: :class:`np.ndarray` (:class:`float`)
+        *xv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *x*-axis
-        *yv*: :class:`np.ndarray` (:class:`float`)
+        *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
         *h*: :class:`dict`
@@ -300,7 +300,7 @@ def hist(v, **kw):
     :Call:
         >>> h, kw = plot_base(xv, yv, *a, **kw)
     :Inputs:
-        *v*: :class:`np.ndarray` (:class:`float`)
+        *v*: :class:`np.ndarray`\ [:class:`float`]
             List of values for which to create histogram
     :Outputs:
         *h*: :class:`dict`
@@ -757,7 +757,7 @@ def _hist(v, **kw):
     :Call:
         >>> h = _hist(V, **kw))
     :Inputs:
-        *v*: :class:`np.ndarray` (:class:`float`)
+        *v*: :class:`np.ndarray`\ [:class:`float`]
             List of values for which to create histogram
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.hist`

@@ -260,7 +260,7 @@ def get_coverage(dx, cov=None, **kw):
     :Call:
         >>> width = get_coverage(dx, cov, **kw)
     :Inputs:
-        *dx*: :class:`np.ndarray` (:class:`float`)
+        *dx*: :class:`np.ndarray`\ [:class:`float`]
             Array of signed deltas
         *cov*, *Coverage*: {``None``} | 0 < :class:`float` < 1
             Strict coverage fraction
@@ -298,7 +298,7 @@ def get_cov_interval(dx, cov=None, **kw):
     :Call:
         >>> a, b = get_cov_interval(dx, cov, **kw)
     :Inputs:
-        *dx*: :class:`np.ndarray` (:class:`float`)
+        *dx*: :class:`np.ndarray`\ [:class:`float`]
             Array of signed deltas
         *cov*, *Coverage*: {``None``} | 0 < :class:`float` < 1
             Strict coverage fraction

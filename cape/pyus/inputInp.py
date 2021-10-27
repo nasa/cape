@@ -66,9 +66,9 @@ class InputInp(cape.filecntl.namelist.Namelist):
     :Outputs:
         *inp*: :class:`cape.pyus.inputInp.InputInp`
             Namelist file control instance
-        *inp.Sections*: :class:`dict` (:class:`list` (:class:`str`))
+        *inp.Sections*: :class:`dict` (:class:`list`\ [:class:`str`])
             Dictionary of sections containing contents of each namelist
-        *inp.SectionNames*: :class:`list` (:class:`str`)
+        *inp.SectionNames*: :class:`list`\ [:class:`str`]
             List of section names
     :Version:
         * 2019-06-06 ``@ddalle``: First version

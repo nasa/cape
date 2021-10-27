@@ -1042,7 +1042,7 @@ class Tecscript(FileCntl):
                 Instance of Tecplot script base class
             *n*: :class:`int`
                 Contour map number (as labeled in layout file)
-            *V*: :class:`np.ndarray` (:class:`float`)
+            *V*: :class:`np.ndarray`\ [:class:`float`]
                 List of contour levels
         :Versions:
             * 2017-10-05 ``@ddalle``: First version

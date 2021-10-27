@@ -482,7 +482,7 @@ class Config(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *x*: :class:`list` (:class:`float`)
+            *x*: :class:`list`\ [:class:`float`]
                 Point
             *s*: :class:`str`
                 Point name

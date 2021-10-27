@@ -1436,9 +1436,9 @@ class Cntl(capecntl.Cntl):
         :Inputs:
             *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2014-12-11 ``@ddalle``: First version
@@ -1510,9 +1510,9 @@ class Cntl(capecntl.Cntl):
                 Instance of control class containing relevant parameters
             *pt*: :class:`str`
                 Optional name of point sensor group to update
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2016-01-13 ``@ddalle``: First version
@@ -1559,9 +1559,9 @@ class Cntl(capecntl.Cntl):
                 Instance of control class containing relevant parameters
             *ll*: :class:`str`
                 Optional name of line load component to update
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
@@ -1612,9 +1612,9 @@ class Cntl(capecntl.Cntl):
         :Inputs:
             *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2015-04-12 ``@ddalle``: First version
@@ -1654,9 +1654,9 @@ class Cntl(capecntl.Cntl):
         :Inputs:
             *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2014-11-14 ``@ddalle``: First version
@@ -1697,9 +1697,9 @@ class Cntl(capecntl.Cntl):
         :Inputs:
             *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2014-12-18 ``@ddalle``: First version
@@ -1745,9 +1745,9 @@ class Cntl(capecntl.Cntl):
         :Inputs:
             *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2015-01-11 ``@ddalle``: First version

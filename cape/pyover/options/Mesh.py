@@ -54,7 +54,7 @@ class Mesh(odict):
             *config*: :class:`str`
                 Name of configuration to use (optional)
         :Outputs:
-            *fname*: :class:`str` | :class:`list` (:class:`str`)
+            *fname*: :class:`str` | :class:`list`\ [:class:`str`]
                 Mesh file name or list of files
         :Versions:
             * 2015-12-29 ``@ddalle``: First version
@@ -73,7 +73,7 @@ class Mesh(odict):
             *config*: :class:`str`
                 Name of configuration to use (optional)
         :Outputs:
-            *fmsh*: :class:`list` (:class:`str`)
+            *fmsh*: :class:`list`\ [:class:`str`]
                 List of mesh file names to be copied to each case folder
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
@@ -117,7 +117,7 @@ class Mesh(odict):
             *config*: :class:`str`
                 Name of configuration to use (optional)
         :Outputs:
-            *fmsh*: :class:`list` (:class:`str`)
+            *fmsh*: :class:`list`\ [:class:`str`]
                 List of mesh file names to be copied to each case folder
         :Versions:
             * 2016-02-01 ``@ddalle``: First version

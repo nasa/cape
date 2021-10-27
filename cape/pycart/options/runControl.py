@@ -650,7 +650,7 @@ class flowCart(odict):
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *dt*: :class:`float` | :class:`list` (:class:`float`)
+            *dt*: :class:`float` | :class:`list`\ [:class:`float`]
                 Nondimensional physical time step
             *i*: :class:`int` or ``None``
                 Phase number
@@ -672,7 +672,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Outputs:
-            *it_sub*: :class:`int` | :class:`list` (:class:`int`)
+            *it_sub*: :class:`int` | :class:`list`\ [:class:`int`]
                 Number of subiterations
         :Versions:
             * 2014-11-28 ``@ddalle``: First version
@@ -691,7 +691,7 @@ class flowCart(odict):
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
-            *it_sub*: :class:`int` | :class:`list` (:class:`int`)
+            *it_sub*: :class:`int` | :class:`list`\ [:class:`int`]
                 Number of subiterations
         :Versions:
             * 2014-11-28 ``@ddalle``: First version
@@ -1872,7 +1872,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Outputs:
-            *sf*: :class:`int` or :class:`list` (:class:`int`)
+            *sf*: :class:`int` or :class:`list`\ [:class:`int`]
                 Number of additional refinements at sharp edges
         :Versions:
             * 2014-12-02 ``@ddalle``: First version
@@ -1888,7 +1888,7 @@ class cubes(odict):
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *sf*: :class:`int` or :class:`list` (:class:`int`)
+            *sf*: :class:`int` or :class:`list`\ [:class:`int`]
                 Number of additional refinements at sharp edges
             *i*: :class:`int` or ``None``
                 Phase number

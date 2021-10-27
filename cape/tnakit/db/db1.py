@@ -92,7 +92,7 @@ class DBCoeff(dict):
             Coefficient lookup database
         *DBc.coeffs*: :class:`list` (:class:`str` | :class:`unicode`)
             List of coefficients present in the database
-        *DBc[coeff]*: :class:`np.ndarray` (:class:`float`)
+        *DBc[coeff]*: :class:`np.ndarray`\ [:class:`float`]
             Data for coefficient named *coeff*
     :Versions:
         * 2018-06-08 ``@ddalle``: First version
@@ -309,7 +309,7 @@ class DBCoeff(dict):
                 Numeric value for first argument to *coeff* evaluator
             *x1*: :class:`float` | :class:`int`
                 Numeric value for second argument to *coeff* evaluator
-            *X1*: :class:`np.ndarray` (:class:`float`)
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
                 Name of first argument to *coeff* evaluator
@@ -318,7 +318,7 @@ class DBCoeff(dict):
         :Outputs:
             *v*: :class:`float` | :class:`int`
                 Function output for scalar evaluation
-            *V*: :class:`np.ndarray` (:class:`float`)
+            *V*: :class:`np.ndarray`\ [:class:`float`]
                 Array of function outputs
         :Versions:
             * 2019-01-07 ``@ddalle``: First version
@@ -463,20 +463,20 @@ class DBCoeff(dict):
                 Numeric value for first argument to *coeff* evaluator
             *x1*: :class:`float` | :class:`int`
                 Numeric value for second argument to *coeff* evaluator
-            *X1*: :class:`np.ndarray` (:class:`float`)
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
                 Name of first argument to *coeff* evaluator
             *k1*: :class:`str` | :class:`unicode`
                 Name of second argument to *coeff* evaluator
         :Outputs:
-            *V*: :class:`np.ndarray` (:class:`float`)
+            *V*: :class:`np.ndarray`\ [:class:`float`]
                 Array of function outputs
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases matching inputs (see :func:`FindMatches`)
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of matches within input arrays
-            *X*: :class:`tuple` (:class:`np.ndarray` (:class:`float`))
+            *X*: :class:`tuple` (:class:`np.ndarray`\ [:class:`float`])
                 Values of arguments at exact matches
         :Versions:
             * 2019-03-11 ``@ddalle``: First version
@@ -555,7 +555,7 @@ class DBCoeff(dict):
                 Numeric value for first argument to *coeff* evaluator
             *x1*: :class:`float` | :class:`int`
                 Numeric value for second argument to *coeff* evaluator
-            *X1*: :class:`np.ndarray` (:class:`float`)
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
                 Name of first argument to *coeff* evaluator
@@ -654,7 +654,7 @@ class DBCoeff(dict):
                 Numeric value for first argument to *coeff* evaluator
             *x1*: :class:`float` | :class:`int`
                 Numeric value for second argument to *coeff* evaluator
-            *X1*: :class:`np.ndarray` (:class:`float`)
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
                 Name of first argument to *coeff* evaluator
@@ -1074,7 +1074,7 @@ class DBCoeff(dict):
             *k*: :class:`str`
                 Name of evaluation argument
         :Outputs:
-            *V*: ``None`` | :class:`np.ndarray` (:class:`float`)
+            *V*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
                 *DBc[k]* if available, otherwise an attempt to apply
                 *DBc.eval_arg_converters[k]*
         :Versions:
@@ -1116,7 +1116,7 @@ class DBCoeff(dict):
         :Outputs:
             *X*: :class:`list` (:class:`np.ndarray`)
                 Normalized arrays all with same size
-            *dims*: :class:`tuple` (:class:`int`)
+            *dims*: :class:`tuple`\ [:class:`int`]
                 Original dimensions of non-scalar input array
         :Versions:
             * 2019-03-11 ``@ddalle``: First version
@@ -1436,9 +1436,9 @@ class DBCoeff(dict):
                 Upper bound index, if ``None``, extrapolation above
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is at upper bound
-            *x0*: :class:`np.ndarray` (:class:`float`)
+            *x0*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i0*
-            *x1*: :class:`np.ndarray` (:class:`float`)
+            *x1*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
             * 2019-04-19 ``@ddalle``: First version
@@ -1550,9 +1550,9 @@ class DBCoeff(dict):
                 Upper bound index, if ``None``, extrapolation above
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is at upper bound
-            *x0*: :class:`np.ndarray` (:class:`float`)
+            *x0*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i0*
-            *x1*: :class:`np.ndarray` (:class:`float`)
+            *x1*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
             * 2019-04-19 ``@ddalle``: First version
@@ -1735,7 +1735,7 @@ class DBCoeff(dict):
             *j*: :class:`int`
                 (Optional) second RBF list index
         :Outputs:
-            *v*: :class:`float` | :class:`np.ndarray` (:class:`float`)
+            *v*: :class:`float` | :class:`np.ndarray`\ [:class:`float`]
                 Break point or array of break points
         :Versions:
             * 2018-12-31 ``@ddalle``: First version
@@ -2700,7 +2700,7 @@ class DBCoeff(dict):
                 Coefficient database interface
             *args*: :class:`list` (:class:`str`)
                 List of argument names to match
-            *a*: :class:`tuple` (:class:`float`)
+            *a*: :class:`tuple`\ [:class:`float`]
                 Values of the arguments
             *tol*: {``1e-4``} | :class:`float` >= 0
                 Default tolerance for all *args*
@@ -2709,9 +2709,9 @@ class DBCoeff(dict):
             *kw*: :class:`dict`
                 Additional values to use during evaluation
         :Outputs:
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases in *DBc* that match a point in (*a*, *kw*)
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of entries in (*a*, *kw*) that have a match in *DBc*
         :Versions:
             * 2019-03-11 ``@ddalle``: First version
@@ -2800,7 +2800,7 @@ class DBCoeff(dict):
                 List of argument names to match
             *args_test*: :class:`list` (:class:`str`)
                 Additional arguments required for *DBc* and *DB2* match
-            *a*: :class:`tuple` (:class:`float`)
+            *a*: :class:`tuple`\ [:class:`float`]
                 Values of the arguments
             *tol*: {``1e-4``} | :class:`float` >= 0
                 Default tolerance for all *args*
@@ -2811,11 +2811,11 @@ class DBCoeff(dict):
             *kw*: :class:`dict`
                 Additional values to use during evaluation
         :Outputs:
-            *I1*: :class:`np.ndarray` (:class:`int`)
+            *I1*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases in *DBc* that match a point in (*a*, *kw*)
-            *I2*: :class:`np.ndarray` (:class:`int`)
+            *I2*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases in *DB2* that match a point in (*a*, *kw*)
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of entries in (*a*, *kw*) that have a match in *DBc*
         :Versions:
             * 2019-03-11 ``@ddalle``: First version
@@ -2954,7 +2954,7 @@ class DBCoeff(dict):
                 Second coefficient database interface
             *args_test*: :class:`list` (:class:`str`)
                 Additional arguments required for *DBc* and *DB2* match
-            *I*: {``None``} | :class:`np.ndarray` (:class:`int`)
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases in *DBc* to consider
             *tol*: {``1e-4``} | :class:`float` >= 0
                 Default tolerance for all *args*
@@ -2963,11 +2963,11 @@ class DBCoeff(dict):
             *unique*: ``True`` | {``False``}
                 Option to only allow indices to appear once in *I1* and *I2*
         :Outputs:
-            *I1*: :class:`np.ndarray` (:class:`int`)
+            *I1*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases in *DBc* from *I* that match a *DB2* case
-            *I2*: :class:`np.ndarray` (:class:`int`)
+            *I2*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of *I1* cases in *DB2*
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of *I1* entries in *I*
         :Versions:
             * 2019-03-21 ``@ddalle``: First version
@@ -4107,7 +4107,7 @@ class DBCoeff(dict):
         :Outputs:
             *DBc.bkpts*: :class:`dict`
                 Dictionary of 1D unique lookup values
-            *DBc.bkpts[key]*: :class:`np.ndarray` (:class:`float`)
+            *DBc.bkpts[key]*: :class:`np.ndarray`\ [:class:`float`]
                 Unique values of *DBc[key]* with at least *nmin* entries
         :Versions:
             * 2018-06-08 ``@ddalle``: First version
@@ -4160,7 +4160,7 @@ class DBCoeff(dict):
         :Outputs:
             *DBc.bkpts*: :class:`dict`
                 Dictionary of 1D unique lookup values
-            *DBc.bkpts[key]*: :class:`np.ndarray` (:class:`float`)
+            *DBc.bkpts[key]*: :class:`np.ndarray`\ [:class:`float`]
                 Unique values of *DBc[key]* with at least *nmin* entries
         :Versions:
             * 2018-06-29 ``@ddalle``: First version
@@ -4384,7 +4384,7 @@ class DBCoeff(dict):
                 Specify candidate window boundaries; must be ascending array of
                 unique values for each key
         :Outputs:
-            *A*: :class:`np.ndarray` (:class:`float`)
+            *A*: :class:`np.ndarray`\ [:class:`float`]
                 List of conditions for each window
             *a00*: :class:`float`
                 Value of *arg_list[0]* for first window
@@ -4574,7 +4574,7 @@ class DBCoeff(dict):
         :Outputs:
             *u*: :class:`float`
                 Single uncertainty estimate for generated window
-            *U*: :class:`tuple` (:class:`float`)
+            *U*: :class:`tuple`\ [:class:`float`]
                 Value of *ucoeff* and any "extra" coefficients in
                 ``FM1.uq_keys_extra[ucoeff]``
         :Versions:
@@ -4719,7 +4719,7 @@ class DBCoeff(dict):
                 Name of coefficient whose uncertainty is being estimated
             *ucoeff*: :class:`str`
                 Name of uncertainty coefficient
-            *a*: :class:`tuple` (:class:`float`)
+            *a*: :class:`tuple`\ [:class:`float`]
                 Conditions at which to evaluate uncertainty
             *a[0]*: :class:`float`
                 Value of *FM1.eval_args[ucoeff][0]*
@@ -4758,7 +4758,7 @@ class DBCoeff(dict):
         :Outputs:
             *u*: :class:`float`
                 Single uncertainty estimate for generated window
-            *U*: :class:`tuple` (:class:`float`)
+            *U*: :class:`tuple`\ [:class:`float`]
                 Value of *ucoeff* and any "extra" coefficients in
                 ``FM1.uq_keys_extra[ucoeff]``
         :Versions:
@@ -4989,7 +4989,7 @@ class DBCoeff(dict):
                 Dictionary of lookup values for each key in *arg_list*
             *bkpts*: :class:`dict` (:class:`np.ndarray`)
                 Dictionary of unique candidate values for each key
-            *J*: :class:`list` (:class:`np.ndarray` (:class:`int`))
+            *J*: :class:`list` (:class:`np.ndarray`\ [:class:`int`])
                 Indices of points (relative to *vals*) of points in each slice
         :Versions:
             * 2019-02-20 ``@ddalle``: First version
@@ -5078,7 +5078,7 @@ class DBCoeff(dict):
                 Specific tolerance for particular slice keys
             *increment_slice_args*: {``None``} | :class:`dict` (:class:`list`)
                 List of slice keys for particular coefficients (overrides attr)
-            *increment_smooth*: {``None``} | :class:`dict` (:class:`float`)
+            *increment_smooth*: {``None``} | :class:`dict`\ [:class:`float`]
                 Separate smoothing for each parameter (overrides attribute)
             *increment_function*: {``None``} | :class:`dict` (:class:`str`)
                 Separate RBF functions for each parameter (overrides attr)
@@ -5087,7 +5087,7 @@ class DBCoeff(dict):
         :Required Attributes:
             *FM1.increment_slice_args*: :class:`dict` (:class:`list`)
                 List of slice keys for particular coefficients
-            *FM1.increment_smooth*: :class:`dict` (:class:`float`)
+            *FM1.increment_smooth*: :class:`dict`\ [:class:`float`]
                 Separate smoothing for each parameter
             *FM1.increment_function*: :class:`dict` (:class:`str`)
                 Separate RBF functions for each parameter
@@ -5283,16 +5283,16 @@ class DBCoeff(dict):
                 Coefficient lookup databook
             *a*: :class:`tuple` (:class:`np.ndarray` | :class:`float`)
                 Array of values for arguments to evaluator for *coeff*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
             *kw*: :class:`dict`
                 Keyword arguments to plot function and evaluation
         :Outputs:
             *coeff*: :class:`str`
                 Coefficient to evaluate
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of matches within *a*
             *a*: :class:`tuple` (:class:`float` | :class:`np.ndarray`)
                 Values for arguments for *coeff* evaluator
@@ -5412,7 +5412,7 @@ class DBCoeff(dict):
                 Coefficient to evaluate
             *a*: :class:`tuple` (:class:`np.ndarray` | :class:`float`)
                 Array of values for arguments to evaluator for *coeff*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
         :Keyword Arguments:
             *xk*: {``None``} | :class:`str`
@@ -5610,7 +5610,7 @@ class DBCoeff(dict):
                 Coefficient to evaluate
             *a*: :class:`tuple` (:class:`np.ndarray` | :class:`float`)
                 Array of values for arguments to evaluator for *coeff*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries in *DBc* to plot
         :Keyword Arguments:
             *xk*: {``None``} | :class:`str`
@@ -5624,7 +5624,7 @@ class DBCoeff(dict):
                 Interpolate second database or use only exact matches
             *ReverseY*: ``True`` | {``False``}
                 Plot values of first database minus second database
-            *I2*: {``None``} | :class:`np.ndarray` (:class:`int`)
+            *I2*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 Prespecified indices of cases in *DB2* to use; error checked
                 but not corrected (can be used where *DB2* is *DBc*)
         :Plot Options:
@@ -5766,7 +5766,7 @@ class DBCoeff(dict):
         :Inputs:
             *DBc*: :class:`tnakit.db.db1.DBFM`
                 Coefficient lookup databook
-            *V*: :class:`numpy.ndarray` (:class:`float`)
+            *V*: :class:`numpy.ndarray`\ [:class:`float`]
                 List of values for which to create histogram
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -5777,7 +5777,7 @@ class DBCoeff(dict):
                 Manually specified label
             *Target*: {``None``} | :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -6258,7 +6258,7 @@ class DBCoeff(dict):
         :Inputs:
             *DBc*: :class:`tnakit.db.db1.DBFM`
                 Coefficient lookup databook
-            *V*: :class:`numpy.ndarray` (:class:`float`)
+            *V*: :class:`numpy.ndarray`\ [:class:`float`]
                 List of values for which to create range histogram
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -6269,7 +6269,7 @@ class DBCoeff(dict):
                 Manually specified label
             *Target*: {``None``} | :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)

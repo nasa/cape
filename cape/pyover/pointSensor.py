@@ -258,12 +258,12 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
                 Instance of the data book component class
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list`\ [:class:`str`]
                 Legend label(s) for target(s)

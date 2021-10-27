@@ -63,7 +63,7 @@ def cubes(cart3d=None, opts=None, j=0, **kw):
         *sf*: :class:`int`
             Number of extra refinements around sharp edges
     :Outputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmd*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
         * 2014-06-30 ``@ddalle``: First version
@@ -123,7 +123,7 @@ def mgPrep(cart3d=None, opts=None, j=0, **kw):
         *mg_fc*: :class:`int`
             Number of multigrid levels to prepare
     :Outputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmd*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
         * 2014-09-02 ``@ddalle``: First version
@@ -174,7 +174,7 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
         *maxR*: :class:`int`
             Number of refinements to make
     :Outputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmd*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
         * 2014-09-02 ``@ddalle``: First version
@@ -264,7 +264,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         *buffLim*: :class:`bool`
             Whether or not to use buffer limits for strong off-body shocks
     :Outputs:
-        *cmdi*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
         * 2014-09-07 ``@ddalle``: First version

@@ -2394,9 +2394,9 @@ class Cntl(ccntl.Cntl):
             *compID*: :class:`int`
                 Component ID for which to calculate flow volume
         :Outputs:
-            *x1*: :class:`np.ndarray` (:class:`float`)
+            *x1*: :class:`np.ndarray`\ [:class:`float`]
                 First point of cylinder center line
-            *x2*: :class:`np.ndarray` (:class:`float`)
+            *x2*: :class:`np.ndarray`\ [:class:`float`]
                 End point of cylinder center line
             *r*: :class:`float`
                 Radius of cylinder

@@ -1338,7 +1338,7 @@ class Cntl(capecntl.Cntl):
                 Iteration at which to stop
             *cons*: :class:`list`\ [:class:`str`]
                 List of trajectory constraints
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
         :See also:
             * :func:`cape.runmatrix.RunMatrix.GetIndices`

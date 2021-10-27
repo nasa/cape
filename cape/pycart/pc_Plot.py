@@ -53,7 +53,7 @@ def ProcessCLI(opts, C=[], **kw):
     :Inputs:
         *opts*: :class:`pyCart.options.Plot.Plot
             Options interface for iterative history plots
-        *C*: :class:`list` (:class:`str`)
+        *C*: :class:`list`\ [:class:`str`]
             List of coefficients to plot
         *n*: :class:`int`
             Number of iterations to plot
@@ -145,7 +145,7 @@ def pc_Plot(C=[], **kw):
     :Call:
         >>> h = pc_Plot(C=[], **kw)
     :Inputs:
-        *C*: :class:`list` (:class:`str`)
+        *C*: :class:`list`\ [:class:`str`]
             List of coefficients to plot
         *f*: {``'plot.json'``} | :class:`str`
             Name of JSON formatting file to read

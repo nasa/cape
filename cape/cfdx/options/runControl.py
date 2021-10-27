@@ -1188,7 +1188,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Run sequence index
         :Outputs:
-            *nIter*: :class:`int` or :class:`list` (:class:`int`)
+            *nIter*: :class:`int` or :class:`list`\ [:class:`int`]
                 Number of iterations to run
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
@@ -1207,7 +1207,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Outputs:
-            *nIter*: :class:`int` or :class:`list` (:class:`int`)
+            *nIter*: :class:`int` or :class:`list`\ [:class:`int`]
                 Number of iterations to run
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
@@ -1227,7 +1227,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Outputs:
-            *PhaseSeq*: :class:`int` or :class:`list` (:class:`int`)
+            *PhaseSeq*: :class:`int` or :class:`list`\ [:class:`int`]
                 Sequence of input run index(es)
         :Versions:
             * 2014-10-02 ``@ddalle``: First version

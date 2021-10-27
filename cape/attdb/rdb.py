@@ -2816,7 +2816,7 @@ class DataKit(ftypes.BaseData):
                 Numeric value for first argument to *col* response
             *x1*: :class:`float` | :class:`int`
                 Numeric value for second argument to *col* response
-            *X1*: :class:`np.ndarray` (:class:`float`)
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
                 Name of first argument to *col* response
@@ -2825,7 +2825,7 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *v*: :class:`float` | :class:`int`
                 Function output for scalar evaluation
-            *V*: :class:`np.ndarray` (:class:`float`)
+            *V*: :class:`np.ndarray`\ [:class:`float`]
                 Array of function outputs
         :Versions:
             * 2019-01-07 ``@ddalle``: Version 1.0
@@ -2871,7 +2871,7 @@ class DataKit(ftypes.BaseData):
                 Numeric value for first argument to *col* response
             *x1*: :class:`float` | :class:`int`
                 Numeric value for second argument to *col* response
-            *X1*: :class:`np.ndarray` (:class:`float`)
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
                 Name of first argument to *col* response
@@ -4681,7 +4681,7 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *X*: :class:`list`\ [:class:`float` | :class:`np.ndarray`]
                 Normalized arrays/floats all with same size
-            *dims*: :class:`tuple` (:class:`int`)
+            *dims*: :class:`tuple`\ [:class:`int`]
                 Original dimensions of non-scalar input array
         :Versions:
             * 2019-03-11 ``@ddalle``: Version 1.0
@@ -4767,9 +4767,9 @@ class DataKit(ftypes.BaseData):
                 Upper bound index, if ``None``, extrapolation above
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is at upper bound
-            *x0*: :class:`np.ndarray` (:class:`float`)
+            *x0*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i0*
-            *x1*: :class:`np.ndarray` (:class:`float`)
+            *x1*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
             * 2019-04-19 ``@ddalle``: Version 1.0
@@ -4882,9 +4882,9 @@ class DataKit(ftypes.BaseData):
                 Upper bound index, if ``None``, extrapolation above
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is at upper bound
-            *x0*: :class:`np.ndarray` (:class:`float`)
+            *x0*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i0*
-            *x1*: :class:`np.ndarray` (:class:`float`)
+            *x1*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
             * 2019-04-19 ``@ddalle``: Version 1.0
@@ -7283,7 +7283,7 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *DBc.bkpts*: :class:`dict`
                 Dictionary of 1D unique lookup values
-            *DBc.bkpts[key]*: :class:`np.ndarray` (:class:`float`)
+            *DBc.bkpts[key]*: :class:`np.ndarray`\ [:class:`float`]
                 Unique values of *DBc[key]* with at least *nmin* entries
         :Versions:
             * 2018-06-29 ``@ddalle``: Version 1.0
@@ -10378,7 +10378,7 @@ class DataKit(ftypes.BaseData):
                 Data column (or derived column) to evaluate
             *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
                 Array of values for arguments to evaluator for *col*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
             *xcol*, *xk*: :class:`str`
                 Key/column name for *x* axis
@@ -10427,7 +10427,7 @@ class DataKit(ftypes.BaseData):
                 Data column (or derived column) to evaluate
             *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
                 Array of values for arguments to evaluator for *col*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
             *xcol*, *xk*: {``None``} | :class:`str`
                 Key/column name for *x* axis

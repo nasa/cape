@@ -104,7 +104,7 @@ class Plot(odict):
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
         :Outputs:
-            *coeffs*: :class:`list` (:class:`str`)
+            *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients to plot
         :Versions:
             * 2014-11-22 ``@ddalle``: First version

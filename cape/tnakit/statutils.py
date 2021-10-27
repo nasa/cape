@@ -46,7 +46,7 @@ def get_range(R, cov, **kw):
     :Call:
         >>> width = get_range(R, cov, **kw)
     :Inputs:
-        *R*: :class:`np.ndarray` (:class:`float`)
+        *R*: :class:`np.ndarray`\ [:class:`float`]
             Array of ranges (absolute values of deltas)
         *cov*: ``0.95`` | 0 < :class:`float` < 1
             Coverage percentage
@@ -131,7 +131,7 @@ def get_cov_interval(dx, cov, **kw):
     :Call:
         >>> a, b = get_cov_interval(dx, cov, **kw)
     :Inputs:
-        *dx*: :class:`np.ndarray` (:class:`float`)
+        *dx*: :class:`np.ndarray`\ [:class:`float`]
             Array of signed deltas
         *cov*: 0 < :class:`float` < 1
             Coverage percentage
@@ -217,7 +217,7 @@ def check_outliers(dx, cov, **kw):
     :Call:
         >>> I = check_outliers(dx, cov, **kw)
     :Inputs:
-        *dx*: :class:`np.ndarray` (:class:`float`)
+        *dx*: :class:`np.ndarray`\ [:class:`float`]
             Array of signed deltas
         *cov*: ``0.95`` | 0 < :class:`float` < 1
             Coverage percentage

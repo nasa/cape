@@ -101,7 +101,7 @@ class DataBook(cape.cfdx.options.DataBook):
             *comp*: :class:`str`
                 Name of data book component
         :Outputs:
-            *fcols*: :class:`list` (:class:`str`)
+            *fcols*: :class:`list`\ [:class:`str`]
                 List of additional float columns
         :Versions:
             * 2016-03-15 ``@ddalle``: First version
@@ -146,7 +146,7 @@ class DataBook(cape.cfdx.options.DataBook):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *coeffs*: :class:`list` (:class:`str`)
+            *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients for that component
         :Versions:
             * 2014-12-21 ``@ddalle``: First version

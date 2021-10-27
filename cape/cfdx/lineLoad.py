@@ -1079,7 +1079,7 @@ class DBLineLoad(dataBook.DBBase):
                 Keep enough modes so that this fraction of energy is kept
             *cons*: {``None``} | :class:`list` (:class:`str`)
                 Constraints for which cases to include in basis
-            *I*: {``None``} | :class:`list` (:class:`int`)
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List of cases to include in basis
         :Versions:
             * 2016-12-27 ``@ddalle``: First version

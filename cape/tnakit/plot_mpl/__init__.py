@@ -90,11 +90,11 @@ def contour(xv, yv, zv, *a, **kw):
     :Call:
         >>> h, kw = plot(xv, yv, zv, *a, **kw)
     :Inputs:
-        *xv*: :class:`np.ndarray` (:class:`float`)
+        *xv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *x*-axis
-        *yv*: :class:`np.ndarray` (:class:`float`)
+        *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
-        *zv*: :class:`np.ndarray` (:class:`float`)
+        *zv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for contour levels
     :Outputs:
         *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
@@ -139,7 +139,7 @@ def hist(v, *a, **kw):
     :Call:
         >>> h, kw = hist(v,*a, **kw)
     :Inputs:
-        *v*: :class:`np.ndarray` (:class:`float`)
+        *v*: :class:`np.ndarray`\ [:class:`float`]
             Array of values to plot in historgram
     :Outputs:
         *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
@@ -220,9 +220,9 @@ def plot(xv, yv, *a, **kw):
     :Call:
         >>> h, kw = plot(xv, yv, *a, **kw)
     :Inputs:
-        *xv*: :class:`np.ndarray` (:class:`float`)
+        *xv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *x*-axis
-        *yv*: :class:`np.ndarray` (:class:`float`)
+        *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
         *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
@@ -290,9 +290,9 @@ def semilogy(xv, yv, *a, **kw):
     :Call:
         >>> h, kw = semilogy(xv, yv, *a, **kw)
     :Inputs:
-        *xv*: :class:`np.ndarray` (:class:`float`)
+        *xv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *x*-axis
-        *yv*: :class:`np.ndarray` (:class:`float`)
+        *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
         *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
@@ -365,9 +365,9 @@ def scatter(xv, yv,  *a, **kw):
     :Call:
         >>> h, kw = scatter(xv, yv, *a, **kw)
     :Inputs:
-        *xv*: :class:`np.ndarray` (:class:`float`)
+        *xv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *x*-axis
-        *yv*: :class:`np.ndarray` (:class:`float`)
+        *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
         *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`

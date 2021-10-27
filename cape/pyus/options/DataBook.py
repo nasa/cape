@@ -72,7 +72,7 @@ class DataBook(cape.cfdx.options.DataBook):
             *comp*: :class:`str`
                 Name of data book component
         :Outputs:
-            *fcols*: :class:`list` (:class:`str`)
+            *fcols*: :class:`list`\ [:class:`str`]
                 List of additional float columns
         :Versions:
             * 2016-09-16 ``@ddalle``: First version
