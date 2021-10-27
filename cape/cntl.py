@@ -138,6 +138,12 @@ class Cntl(object):
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: Version 1.0
     """
+   # =================
+   # Class Attributes
+   # =================
+   # <
+    _case_mod = case
+   # >
    # =============
    # Configuration
    # =============
@@ -1318,7 +1324,7 @@ class Cntl(object):
         elif self.CheckRunning(i):
             # Case already running!
             return
-        # Safely go to the folder.
+        # Safely go to the folder
         os.chdir(frun)
         # Print status.
         print("     Starting case '%s'" % frun)
@@ -1344,12 +1350,13 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Cape control interface
         :Outputs:
-            *pbs*: :class:`int` or ``None``
+            *pbs*: ``None`` | :class:`int`
                 PBS job ID if submitted successfully
         :Versions:
             * 2015-10-14 ``@ddalle``: Version 1.0
+            * 2021-10-26 ``@ddalle``: Version 2.0; use *cls._case_mod*
         """
-        return case.StartCase()
+        return self._case_mod.StartCase()
 
     # Function to terminate a case: qdel and remove RUNNING file
     @run_rootdir

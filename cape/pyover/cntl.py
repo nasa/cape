@@ -69,20 +69,17 @@ PyOverFolder = os.path.split(_fname)[0]
     
 # Class to read input files
 class Cntl(capecntl.Cntl):
-    r"""
-    Class for handling global options and setup for OVERFLOW.
-    
-    This class is intended to handle all settings used to describe a group
-    of OVERFLOW cases.  For situations where it is not sufficiently
-    customized, it can be used partially, e.g., to set up a Mach/alpha sweep
-    for each single control variable setting.
-    
-    The settings are read from a JSON file, which is robust and simple to
-    read, but has the disadvantage that there is no support for comments.
-    Hopefully the various names are descriptive enough not to require
-    explanation.
-    
-    Defaults are read from the file ``$CAPE/settings/pyOver.default.json``.
+    r"""Class for handling global options and setup for OVERFLOW
+
+    This class is intended to handle all settings used to describe a
+    group of OVERFLOW cases. For situations where it is not
+    sufficiently customized, it can be used partially, e.g., to set up a
+    Mach/alpha sweep for each single control variable setting.
+
+    The settings are read from a JSON file, which is robust and simple
+    to read, but has the disadvantage that there is no support for
+    comments. Hopefully the various names are descriptive enough not to
+    require explanation.
     
     :Call:
         >>> cntl = cape.pyover.Cntl(fname="pyOver.json")
@@ -104,7 +101,15 @@ class Cntl(capecntl.Cntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
         * 2016-02-02 ``@ddalle``: Version 1.0
-    """ 
+    """
+  # =================
+  # Class Attributes
+  # =================
+  # <
+    # Case module
+    _case_mod = case
+  # >
+
   # =======
   # Config
   # =======
@@ -1321,26 +1326,6 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
         # Output
         return nml
-
-    # Call the correct :mod:`case` module to start a case
-    def CaseStartCase(self):
-        r"""Start a case by either submitting it or running it
-        
-        This function relies on :mod:`cape.pyover.case`, and so it is
-        customized for only in that it calls the correct *case* module.
-        
-        :Call:
-            >>> pbs = cntl.CaseStartCase()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-        :Outputs:
-            *pbs*: :class:`int` or ``None``
-                PBS job ID if submitted successfully
-        :Versions:
-            * 2015-10-14 ``@ddalle``: Version 1.0
-        """
-        return case.StartCase()
 
     # Stop a set of cases
     def StopCases(self, n=0, **kw):
