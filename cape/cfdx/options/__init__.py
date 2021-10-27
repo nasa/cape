@@ -586,7 +586,7 @@ class Options(odict):
             *typ*: {``None``} | ``"batch"`` | ``"post"``
                 Add additional commands for batch or post-processing jobs
         :Outputs:
-            *cmds*: :class:`list` (:class:`str`)
+            *cmds*: :class:`list`\ [:class:`str`]
                 List of initialization commands
         :Versions:
             * 2015-11-08 ``@ddalle``: Moved to "RunControl"
@@ -621,7 +621,7 @@ class Options(odict):
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *cmds*: :class:`list` (:class:`str`)
+            *cmds*: :class:`list`\ [:class:`str`]
                 List of initialization commands
         :Versions:
             * 2015-11-08 ``@ddalle``: Version 1.0
@@ -639,7 +639,7 @@ class Options(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *cmds*: :class:`list` (:class:`str`)
+            *cmds*: :class:`list`\ [:class:`str`]
                 List of initialization commands
         :Versions:
             * 2017-01-10 ``@ddalle``: Version 1.0

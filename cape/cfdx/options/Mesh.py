@@ -34,7 +34,7 @@ class Mesh(odict):
             *i*: :class:`int` | ``None``
                 Optional index
         :Outputs:
-            *fname*: :class:`str` | :class:`list` (:class:`str`)
+            *fname*: :class:`str` | :class:`list`\ [:class:`str`]
                 Mesh file name or list of files
         :Versions:
             * 2015-10-19 ``@ddalle``: First version

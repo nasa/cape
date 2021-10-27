@@ -216,7 +216,7 @@ class Config(cape.cfdx.options.Config):
             *opts*: :class:`pyFun.options.Options`
                 Options interface
         :Outputs:
-            *BP*: :class:`list` (:class:`str`)
+            *BP*: :class:`list`\ [:class:`str`]
                 List of boundary point groups
         :Versions:
             * 2017-09-01 ``@ddalle``: First version
@@ -243,7 +243,7 @@ class Config(cape.cfdx.options.Config):
         :Inputs:
             *opts*: :class:`pyFun.options.Options`
                 Options interface
-            *BP*: {``[]``} | :class:`list` (:class:`str`)
+            *BP*: {``[]``} | :class:`list`\ [:class:`str`]
                 List of boundary point groups
         :Versions:
             * 2017-09-01 ``@ddalle``: First version

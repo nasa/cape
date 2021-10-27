@@ -119,7 +119,7 @@ class Config(odict):
             *i*: :class:`int`
                 List index
         :Outputs:
-            *comps*: :class:`list` (:class:`str`)
+            *comps*: :class:`list`\ [:class:`str`]
                 List of components
             *comp*: :class:`str`
                 Single component
@@ -140,7 +140,7 @@ class Config(odict):
                 Options interface
             *i*: :class:`int`
                 List index
-            *comps*: :class:`list` (:class:`str`)
+            *comps*: :class:`list`\ [:class:`str`]
                 List of components
             *comp*: :class:`str`
                 Single component

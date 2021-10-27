@@ -66,7 +66,7 @@ def SplitLineGeneral(line):
         *line*: :class:`str`
             Text with commas, spaces, or a combination as delimiters
     :Outputs:
-        *V*: :class:`list` (:class:`str`)
+        *V*: :class:`list`\ [:class:`str']
             List of values split by delimiters
     :Versions:
         * 2016-12-29 ``@ddalle``: First version

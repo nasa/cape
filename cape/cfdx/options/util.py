@@ -335,7 +335,7 @@ def expandJSONFile(fname):
     :Outputs:
         *txt*: :class:`unicode`
             Full text with references to JSON file(s) expanded
-        *fnames*: :class:`list` (:class:`str`)
+        *fnames*: :class:`list`\ [:class:`str`]
             List of files read (can include the same file multiple
             times) including *fname* and any other expanded
             ``JSONFile()`` directives

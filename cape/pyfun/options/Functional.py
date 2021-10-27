@@ -21,7 +21,7 @@ class Functional(cape.cfdx.options.Functional.Functional):
             *opts*: :class:`pyFun.options.Options`
                 Options interface
         :Ouutputs:
-            *coeffs*: :class:`list` (:class:`str`)
+            *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients in the adaptive function
         :Versions:
             * 2016-04-26 ``@ddalle``: First version
