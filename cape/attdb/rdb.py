@@ -8054,6 +8054,10 @@ class DataKit(ftypes.BaseData):
                 f = scirbf.Rbf(*Z, function=func, smooth=smooth)
                 # Save it
                 self.rbf[col].append(f)
+        # Save break points for slice key
+        self.bkpts[skey] = B
+        # Save break points for other args
+        self.create_bkpts_schedule(args[1:], skey, nmin=1)
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
