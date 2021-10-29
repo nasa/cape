@@ -4919,8 +4919,11 @@ class DataKit(ftypes.BaseData):
             # Interpolate to current *skey* value
             xmin = (1-f)*xmin0 + f*xmin1
             xmax = (1-f)*xmax0 + f*xmax1
-            # Get the progress fraction at current inter-slice *skey* value
-            fj = (x[j+1] - xmin) / (xmax-xmin)
+            # Get progress fraction at current inter-slice *skey* value
+            if xmax - xmin < 1e-8:
+                fj = 0.0
+            else:
+                fj = (x[j+1] - xmin) / (xmax-xmin)
             # Check for extrapolation
             if not extrap and ((fj < -1e-3) or (fj - 1 > 1e-3)):
                 # Raise extrapolation error
@@ -4933,7 +4936,7 @@ class DataKit(ftypes.BaseData):
                     ("Value %.2e " % x[j+1]) +
                     ("for arg %i (%s) is outside " % (j, k)) +
                     ("bounds [%.2e, %.2e]" % (xmin, xmax)))
-            # Get lookup points at slices *i0* and *i1* using this prog frac
+            # Lookup points at slices *i0* and *i1* using this prog frac
             x0[j] = (1-fj)*xmin0 + fj*xmax0
             x1[j] = (1-fj)*xmin1 + fj*xmax1
         # Output
