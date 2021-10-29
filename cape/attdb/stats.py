@@ -57,6 +57,12 @@ def get_ordered_stats(V, cov=None, onesided=False, **kw):
     tsig = kw.get("tsig")
     # Input size
     n = len(V)
+    # Check for trivial case
+    if n == 1:
+        if onesided:
+            return V[0]
+        else:
+            return V[0], V[0]
     # Check for *ksig* option
     if ksig:
         # Check for conflict
@@ -109,6 +115,8 @@ def get_ordered_lower(V, cov):
     # Check for trivial input
     if n == 0:
         return np.nan
+    elif n == 1:
+        return V[0]
     # Get sorted values
     U = np.sort(V)
     # Calculate indices (first exact)
@@ -152,6 +160,8 @@ def get_ordered_upper(V, cov):
     # Check for trivial input
     if n == 0:
         return np.nan
+    elif n == 1:
+        return V[0]
     # Get sorted values
     U = np.sort(V)
     # Calculate indices (first exact)
