@@ -293,7 +293,7 @@ class STEP(object):
         # Number of knots
         n0 = len(self.icrv[j])
         # Number of intervals
-        N = (n0-1) / k
+        N = (n0-1) // k
         # Evaluate curve on a fine grid.
         u = np.linspace(0, N, 100*N+1)
         # Evaluate

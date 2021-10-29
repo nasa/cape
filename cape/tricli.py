@@ -194,7 +194,7 @@ a multiple-curve Plot3D curve file
 
 :Versions:
     * 2016-09-29 ``@ddalle``: Version 1.0
-"""
+""" % _help
 
 
 HELP_UH3D2TRI = r"""
