@@ -15,6 +15,7 @@ import sys
 
 # Local modules
 from . import datakitloader
+from . import pkgutils
 from .. import argread
 from .. import text as textutils
 
