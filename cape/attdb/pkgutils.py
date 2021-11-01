@@ -12,6 +12,7 @@ defaults. The goal is for most datakit packages to just be able to call
 # Standard library
 import ast
 import os
+import re
 
 # Third-party modules
 import setuptools

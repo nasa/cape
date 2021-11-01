@@ -132,14 +132,30 @@ def write_dbs(*a, **kw):
         return
     # Change '/' to '.'
     a_normalized = tuple(ai.replace(os.sep, '.') for ai in a)
+    # Initialize packages
+    pkgs = []
+    # Check inputs against list
+    for j, aj in enumerate(a_normalized):
+        # Find matching packages
+        pkgsj = pkgutils.find_packages(regex=aj)
+        # Check for errors
+        if len(pkgsj) == 0:
+            print("Found no packages for name %i, '%s'" % (j+1, aj))
+            continue
+        # Avoid duplicates
+        for pkg in pkgsj:
+            if pkg in pkgs:
+                continue
+            # Add to global list
+            pkgs.append(pkg)
     # Process other options
     force_all = kw.pop("force-all", kw.pop("force_all", kw.pop("F", False)))
     force_last = kw.pop("force", kw.pop("f", False))
     write = kw.pop("write", True)
     # Process original module names
-    anames, _ = genr8_modsequence(a_normalized, reqs=False)
+    anames, _ = genr8_modsequence(pkgs, reqs=False)
     # Process all other requirements
-    dbnames, modnames = genr8_modsequence(a_normalized, **kw)
+    dbnames, modnames = genr8_modsequence(pkgs, **kw)
     # Status update
     if force_all:
         print("Rewriting databases from source:")
