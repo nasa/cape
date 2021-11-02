@@ -25,6 +25,7 @@ import sys
 from . import cmdgen
 from .. import argread
 from .. import text as textutils
+from .jobxml import JobXML
 from ..cfdx import case as cc
 from ..cfdx import queue
 from .options.runcontrol import RunControl
@@ -57,7 +58,12 @@ runs it.
 """
 
 
-# Function to run Kestrel for one phase (and restart if approp.)
+# Template file names
+XML_FILE = "kestrel.xml"
+XML_FILE_TEMPLATe = "kestrel.%02i.xml"
+
+
+# --- Execution ----
 def run_kestrel():
     r"""Setup and run the appropriate Kestrel command
 
@@ -86,6 +92,55 @@ def run_kestrel():
     write_starttime(tic, rc, j)
     # Prepare files
     prepare_files(rc, j)
+    # Prepare environment
+    cc.PrepareEnvironment(rc, j)
+    # 
+
+
+def run_phase(rc, j):
+    r"""Run one pass of one phase
+
+    :Call:
+        >>> run_phase(rc, j)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+        *j*: :class:`int`
+            Phase number
+    :Versions:
+        * 2021-11-02 ``@ddalle``: Version 1.0
+    """
+    pass
+
+
+# --- File management ---
+def prepare_files(rc, j=None):
+    r"""Prepare files appropriate to run phase *j*
+
+    :Call:
+        >>> prepare_files(rc, j=None)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+        *j*: {``None``} | :class:`int`
+            Phase number
+    :Versions:
+        * 2021-11-02 ``@ddalle``: Version 1.0
+    """
+    # Get phase number if needed
+    if j is None:
+        j = get_phase(rc)
+    # XML file names
+    fxml0 = XML_FILE
+    fxmlj = XML_FILE_TMPLATE % j
+    # Check for "kestrel.xml" file
+    if os.path.isfile(fxml0) or os.path.islink(fxml0):
+        os.remove(fxml0)
+    # Check for *j*
+    if not os.path.isfile(fxmlj):
+        raise OSError("Couldn't find file '%s'" % fxmlj)
+    # Link "kestrel.02.xml" to "kestrel.xml", for example
+    os.symlink(fxmlj, fxml0)
 
 
 # --- STATUS functions ---
@@ -135,7 +190,7 @@ def get_phase(rc):
 
 
 
-# Function to read the local settings file
+# --- Case settings ---
 def read_case_json():
     r"""Read *RunControl* settings from ``case.json``
     
@@ -150,7 +205,45 @@ def read_case_json():
     return cc.read_case_json(RunControl)
 
 
-# Write start time
+def read_xml(rc=None, j=None):
+    r"""Read Kestrel ``.xml`` control file for one phase
+
+    :Call:
+        >>> xml = read_xml(rc=None, j=None)
+    :Inputs:
+        *rc*: {``None``} | :class:`RunControl`
+            Options interface from ``case.json``
+        *j*: {``None``} | :class:`int`
+            Phase number
+    :Outputs:
+        *xml*: :class:`JobXML`
+            XML control file interface
+    :Versions:
+        * 2021-11-02 ``@ddalle``: Version 1.0
+    """
+    # Read "case.json" if needed
+    if rc is None:
+        rc = read_case_json()
+    # Automatic phase option
+    if j is None and rc is not None:
+        j = get_phase(rc)
+    # Check for folder w/o "case.json"
+    if j is None:
+        if os.path.isfile(XML_FILE):
+            # Use currently-linked file
+            return JobXML(XML_FILE)
+        else:
+            # Look for template files
+            xmlglob = glob.glob(XML_FILE_GLOB)
+            # Sort it
+            xmlglob.sort()
+            # Use the last one
+            return JobXML(xmlglob[-1])
+    # Get specified version
+    return JobXML(XML_FILE_TMPLATE % j)
+
+
+# --- Timers ---
 def write_starttime(tic, rc, j, fname="pykes_start.dat"):
     r"""Write the start time from *tic*
     
