@@ -60,7 +60,8 @@ runs it.
 
 # Template file names
 XML_FILE = "kestrel.xml"
-XML_FILE_TEMPLATe = "kestrel.%02i.xml"
+XML_FILE_GLOB = "kestrel.[0-9]*.xml"
+XML_FILE_TEMPLATE = "kestrel.%02i.xml"
 
 
 # --- Execution ----
