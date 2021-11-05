@@ -398,7 +398,7 @@ def read_xml(rc=None, j=None):
             # Use the last one
             return JobXML(xmlglob[-1])
     # Get specified version
-    return JobXML(XML_FILE_TMPLATE % j)
+    return JobXML(XML_FILE_TEMPLATE % j)
 
 
 # Function to determine which PBS script to call

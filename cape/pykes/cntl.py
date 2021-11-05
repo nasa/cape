@@ -422,6 +422,18 @@ class Cntl(ccntl.Cntl):
         t = x.GetTemperature(i)
         if t is not None:
             xml.set_temperature(t)
+        # Find all *Path* and *File* elements
+        elems1 = self.JobXML0.findall_iter("Path")
+        elems2 = self.JobXML0.findall_iter("File")
+        # Remove paths from file names
+        for elem in elems1 + elems2:
+            # Get file name
+            fname = elem.text
+            # Check for any
+            if fname is None:
+                continue
+            # Reset to base name
+            elem.text = os.path.basename(fname)
         # Loop through phases
         for j in self.opts.get_PhaseSequence():
             # Set the restart flag according to phase
