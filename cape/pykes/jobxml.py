@@ -605,6 +605,7 @@ class JobXML(xmlfile.XMLFile):
 
 # Common *InputList.Input* keys
 INPUTLIST_KEYS = {
+    "job_name": "Kestrel job name",
     "alpha": "angle of attack",
     "beta": "sideslip angle",
     "mach": "Mach number",
