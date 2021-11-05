@@ -30,8 +30,8 @@ def csi(opts=None, i=0, **kw):
             Phase number
         *nProc*: {``None``} | :class:`int`
             Directly specified number of cores
-        *proj*: {``None``} | :class:`str`
-            Directly specified job name
+        *XMLPrefix*: {``"kestrel"``} | :class:`str`
+            Directly specified XML prefix
         *xmlfile*: {``None``} | :class:`str`
             Name of XML file; usually from *proj*
     :Outputs:
@@ -44,18 +44,16 @@ def csi(opts=None, i=0, **kw):
     if opts is None:
         # Defaults
         n_proc = 1
-        proj = "pykes"
     else:
         # Get values from *RunControl* section
         n_proc  = opts.get_nProc(i)
-        proj = opts.get_ProjectName(i)
     # Get values from keyword arguments
     n_proc  = int(kw.get("nProc", n_proc))
     # Job name
-    proj = kw.get("ProjectName", proj)
+    prefix = kw.get("XMLPrefix", "kestrel")
     # Default XML file
-    fxml = "%s.xml" % proj
-    fxmli = "%s.%02i.xml" % (proj, i)
+    fxml = "%s.xml" % prefix
+    fxmli = "%s.%02i.xml" % (prefix, i)
     # Check if we should use phase
     if op.isfile(fxmli) and not op.isfile(fxml):
         # Use phase number in default
