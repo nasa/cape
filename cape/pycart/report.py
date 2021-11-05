@@ -306,12 +306,12 @@ class Report(capereport.Report):
                 Name of subfigure to update
             *i*: :class:`int`
                 Case index
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines already in LaTeX file
             *q*: ``True`` | ``False``
                 Whether or not to redraw images
         :Outputs:
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 Updated list of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
@@ -378,12 +378,12 @@ class Report(capereport.Report):
                 Name of sweep
             *I*: :class:`numpy.ndarray` (:class:`list`)
                 List of case indices in the subsweep
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 List of lines already in LaTeX file
             *q*: ``True`` | ``False``
                 Whether or not to redraw images
         :Outputs:
-            *lines*: :class:`list` (:class:`str`)
+            *lines*: :class:`list`\ [:class:`str`]
                 Updated list of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
@@ -967,7 +967,7 @@ class Report(capereport.Report):
                 Name of sfigure to update
             *fswp*: :class:`str`
                 Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices in the sweep
             *q*: ``True`` | ``False``
                 Whether or not to redraw images

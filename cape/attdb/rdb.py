@@ -2816,7 +2816,7 @@ class DataKit(ftypes.BaseData):
                 Numeric value for first argument to *col* response
             *x1*: :class:`float` | :class:`int`
                 Numeric value for second argument to *col* response
-            *X1*: :class:`np.ndarray` (:class:`float`)
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
                 Name of first argument to *col* response
@@ -2825,7 +2825,7 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *v*: :class:`float` | :class:`int`
                 Function output for scalar evaluation
-            *V*: :class:`np.ndarray` (:class:`float`)
+            *V*: :class:`np.ndarray`\ [:class:`float`]
                 Array of function outputs
         :Versions:
             * 2019-01-07 ``@ddalle``: Version 1.0
@@ -2871,7 +2871,7 @@ class DataKit(ftypes.BaseData):
                 Numeric value for first argument to *col* response
             *x1*: :class:`float` | :class:`int`
                 Numeric value for second argument to *col* response
-            *X1*: :class:`np.ndarray` (:class:`float`)
+            *X1*: :class:`np.ndarray`\ [:class:`float`]
                 Array of *x1* values
             *k0*: :class:`str` | :class:`unicode`
                 Name of first argument to *col* response
@@ -4681,7 +4681,7 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *X*: :class:`list`\ [:class:`float` | :class:`np.ndarray`]
                 Normalized arrays/floats all with same size
-            *dims*: :class:`tuple` (:class:`int`)
+            *dims*: :class:`tuple`\ [:class:`int`]
                 Original dimensions of non-scalar input array
         :Versions:
             * 2019-03-11 ``@ddalle``: Version 1.0
@@ -4767,9 +4767,9 @@ class DataKit(ftypes.BaseData):
                 Upper bound index, if ``None``, extrapolation above
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is at upper bound
-            *x0*: :class:`np.ndarray` (:class:`float`)
+            *x0*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i0*
-            *x1*: :class:`np.ndarray` (:class:`float`)
+            *x1*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
             * 2019-04-19 ``@ddalle``: Version 1.0
@@ -4882,9 +4882,9 @@ class DataKit(ftypes.BaseData):
                 Upper bound index, if ``None``, extrapolation above
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is at upper bound
-            *x0*: :class:`np.ndarray` (:class:`float`)
+            *x0*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i0*
-            *x1*: :class:`np.ndarray` (:class:`float`)
+            *x1*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
             * 2019-04-19 ``@ddalle``: Version 1.0
@@ -4919,8 +4919,11 @@ class DataKit(ftypes.BaseData):
             # Interpolate to current *skey* value
             xmin = (1-f)*xmin0 + f*xmin1
             xmax = (1-f)*xmax0 + f*xmax1
-            # Get the progress fraction at current inter-slice *skey* value
-            fj = (x[j+1] - xmin) / (xmax-xmin)
+            # Get progress fraction at current inter-slice *skey* value
+            if xmax - xmin < 1e-8:
+                fj = 0.0
+            else:
+                fj = (x[j+1] - xmin) / (xmax-xmin)
             # Check for extrapolation
             if not extrap and ((fj < -1e-3) or (fj - 1 > 1e-3)):
                 # Raise extrapolation error
@@ -4933,7 +4936,7 @@ class DataKit(ftypes.BaseData):
                     ("Value %.2e " % x[j+1]) +
                     ("for arg %i (%s) is outside " % (j, k)) +
                     ("bounds [%.2e, %.2e]" % (xmin, xmax)))
-            # Get lookup points at slices *i0* and *i1* using this prog frac
+            # Lookup points at slices *i0* and *i1* using this prog frac
             x0[j] = (1-fj)*xmin0 + fj*xmax0
             x1[j] = (1-fj)*xmin1 + fj*xmax1
         # Output
@@ -7283,7 +7286,7 @@ class DataKit(ftypes.BaseData):
         :Outputs:
             *DBc.bkpts*: :class:`dict`
                 Dictionary of 1D unique lookup values
-            *DBc.bkpts[key]*: :class:`np.ndarray` (:class:`float`)
+            *DBc.bkpts[key]*: :class:`np.ndarray`\ [:class:`float`]
                 Unique values of *DBc[key]* with at least *nmin* entries
         :Versions:
             * 2018-06-29 ``@ddalle``: Version 1.0
@@ -8054,6 +8057,10 @@ class DataKit(ftypes.BaseData):
                 f = scirbf.Rbf(*Z, function=func, smooth=smooth)
                 # Save it
                 self.rbf[col].append(f)
+        # Save break points for slice key
+        self.bkpts[skey] = B
+        # Save break points for other args
+        self.create_bkpts_schedule(args[1:], skey, nmin=1)
         # Clean up the prompt
         sys.stdout.write("%72s\r" % "")
         sys.stdout.flush()
@@ -10378,7 +10385,7 @@ class DataKit(ftypes.BaseData):
                 Data column (or derived column) to evaluate
             *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
                 Array of values for arguments to evaluator for *col*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
             *xcol*, *xk*: :class:`str`
                 Key/column name for *x* axis
@@ -10427,7 +10434,7 @@ class DataKit(ftypes.BaseData):
                 Data column (or derived column) to evaluate
             *a*: :class:`tuple`\ [:class:`np.ndarray` | :class:`float`]
                 Array of values for arguments to evaluator for *col*
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of exact entries to plot
             *xcol*, *xk*: {``None``} | :class:`str`
                 Key/column name for *x* axis

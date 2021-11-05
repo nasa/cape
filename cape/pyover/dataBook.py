@@ -119,7 +119,7 @@ def ReadFomocoComps(fname):
         *fname*: :class:`str`
             Name of the file to read
     :Outputs:
-        *comps*: :class:`list` (:class:`str`)
+        *comps*: :class:`list`\ [:class:`str`]
             List of components
     :Versions:
         * 2016-02-03 ``@ddalle``: First version
@@ -192,7 +192,7 @@ def ReadResidGrids(fname):
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *grids*: :class:`list` (:class:`str`)
+        *grids*: :class:`list`\ [:class:`str`]
             List of grids
     :Versions:
         * 2016-02-04 ``@ddalle``: First version
@@ -822,7 +822,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
     :Outputs:
         *FM*: :class:`pyOver.dataBook.FM`
             Instance of the force and moment class
-        *FM.C*: :class:`list` (:class:`str`)
+        *FM.C*: :class:`list`\ [:class:`str`]
             List of coefficients
         *FM.i*: :class:`numpy.ndarray` shape=(0,)
             List of iteration numbers
@@ -1460,7 +1460,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 Iterative residual history class
             *i*: :class:`np.ndarray` (:class:`float` | :class:`int`)
                 Vector of iteration numbers
-            *L*: :class:`np.ndarray` (:class:`float`)
+            *L*: :class:`np.ndarray`\ [:class:`float`]
                 Vector of residuals to write
             *n*: :class:`int` | ``None``
                 Last iteration already written to file.
@@ -1516,11 +1516,11 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *grid*: {``None``} | :class:`int` | :class:`str`
                 If used, read only one grid
         :Outputs:
-            *i*: :class:`np.ndarray` (:class:`float`)
+            *i*: :class:`np.ndarray`\ [:class:`float`]
                 Array of iteration numbers
-            *L2*: :class:`np.ndarray` (:class:`float`)
+            *L2*: :class:`np.ndarray`\ [:class:`float`]
                 Array of weighted global L2 norms
-            *LInf*: :class:`np.ndarray` (:class:`float`)
+            *LInf*: :class:`np.ndarray`\ [:class:`float`]
                 Array of global L-infinity norms
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
@@ -1627,11 +1627,11 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *n*: :class:`int` | ``None``
                 Number of last iteration that's already processed
         :Outputs:
-            *i*: :class:`np.ndarray` (:class:`float`)
+            *i*: :class:`np.ndarray`\ [:class:`float`]
                 Array of iteration numbers
-            *L2*: :class:`np.ndarray` (:class:`float`)
+            *L2*: :class:`np.ndarray`\ [:class:`float`]
                 Array of weighted global L2 norms
-            *LInf*: :class:`np.ndarray` (:class:`float`)
+            *LInf*: :class:`np.ndarray`\ [:class:`float`]
                 Array of global L-infinity norms
         :Versions:
             * 2017-04-19 ``@ddalle``: First version

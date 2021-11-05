@@ -93,7 +93,7 @@ def qdel(jobID):
     :Call:
         >>> cape.queue.qdel(jobID)
     :Inputs:
-        *pbs*: :class:`int` or :class:`list` (:class:`int`)
+        *pbs*: :class:`int` or :class:`list`\ [:class:`int`]
             PBS job ID number if submission was successful
     :Versions:
         * 2014-12-26 ``@ddalle``: First version
@@ -125,7 +125,7 @@ def scancel(jobID):
     :Call:
         >>> cape.queue.scancel(jobID)
     :Inputs:
-        *pbs*: :class:`int` or :class:`list` (:class:`int`)
+        *pbs*: :class:`int` or :class:`list`\ [:class:`int`]
             PBS job ID number if submission was successful
     :Versions:
         * 2018-10-10 ``@ddalle``: First version

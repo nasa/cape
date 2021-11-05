@@ -57,6 +57,12 @@ def get_ordered_stats(V, cov=None, onesided=False, **kw):
     tsig = kw.get("tsig")
     # Input size
     n = len(V)
+    # Check for trivial case
+    if n == 1:
+        if onesided:
+            return V[0]
+        else:
+            return V[0], V[0]
     # Check for *ksig* option
     if ksig:
         # Check for conflict
@@ -109,6 +115,8 @@ def get_ordered_lower(V, cov):
     # Check for trivial input
     if n == 0:
         return np.nan
+    elif n == 1:
+        return V[0]
     # Get sorted values
     U = np.sort(V)
     # Calculate indices (first exact)
@@ -152,6 +160,8 @@ def get_ordered_upper(V, cov):
     # Check for trivial input
     if n == 0:
         return np.nan
+    elif n == 1:
+        return V[0]
     # Get sorted values
     U = np.sort(V)
     # Calculate indices (first exact)
@@ -260,7 +270,7 @@ def get_coverage(dx, cov=None, **kw):
     :Call:
         >>> width = get_coverage(dx, cov, **kw)
     :Inputs:
-        *dx*: :class:`np.ndarray` (:class:`float`)
+        *dx*: :class:`np.ndarray`\ [:class:`float`]
             Array of signed deltas
         *cov*, *Coverage*: {``None``} | 0 < :class:`float` < 1
             Strict coverage fraction
@@ -298,7 +308,7 @@ def get_cov_interval(dx, cov=None, **kw):
     :Call:
         >>> a, b = get_cov_interval(dx, cov, **kw)
     :Inputs:
-        *dx*: :class:`np.ndarray` (:class:`float`)
+        *dx*: :class:`np.ndarray`\ [:class:`float`]
             Array of signed deltas
         *cov*, *Coverage*: {``None``} | 0 < :class:`float` < 1
             Strict coverage fraction

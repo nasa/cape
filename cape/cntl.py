@@ -138,6 +138,12 @@ class Cntl(object):
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: Version 1.0
     """
+   # =================
+   # Class Attributes
+   # =================
+   # <
+    _case_mod = case
+   # >
    # =============
    # Configuration
    # =============
@@ -336,6 +342,36 @@ class Cntl(object):
             print("  Case Function: cntl.%s(%s)" % (func, i))
             # Run the function
             exec("self.%s(self, %s)" % (func, i))
+  # >
+
+  # ===============
+  # Files
+  # ===============
+  # <
+    # Absolutize
+    def abspath(self, fname):
+        r"""Absolutize a file name
+
+        :Call:
+            >>> fabs = cntl.abspath(fname)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *fname*: :class:`str`
+                A file name
+        :Outputs:
+            *fabs*: :class:`str`
+                Absolute file path
+        :Versions:
+            * 2021-10-25 ``@ddalle``: Version 1.0
+        """
+        # Check if absolute
+        if os.path.isabs(fname):
+            # Already absolute
+            return fname
+        else:
+            # Relative to *RootDir*
+            return os.path.join(self.RootDir, fname)
 
     # Make a directory
     def mkdir(self, fdir):
@@ -1288,7 +1324,7 @@ class Cntl(object):
         elif self.CheckRunning(i):
             # Case already running!
             return
-        # Safely go to the folder.
+        # Safely go to the folder
         os.chdir(frun)
         # Print status.
         print("     Starting case '%s'" % frun)
@@ -1314,20 +1350,21 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Cape control interface
         :Outputs:
-            *pbs*: :class:`int` or ``None``
+            *pbs*: ``None`` | :class:`int`
                 PBS job ID if submitted successfully
         :Versions:
             * 2015-10-14 ``@ddalle``: Version 1.0
+            * 2021-10-26 ``@ddalle``: Version 2.0; use *cls._case_mod*
         """
-        return case.StartCase()
+        return self._case_mod.StartCase()
 
     # Function to terminate a case: qdel and remove RUNNING file
     @run_rootdir
     def StopCase(self, i):
         r"""Stop a case if running
 
-        This function deletes a case's PBS job and removes the ``RUNNING``
-        file if it exists.
+        This function deletes a case's PBS job and removes the
+        ``RUNNING``file if it exists.
 
         :Call:
             >>> cntl.StopCase(i)
@@ -4332,5 +4369,4 @@ class Cntl(object):
                     print("Checking point sensor '%s/%s'" % (comp, pt))
                     print(txt[:-1])
    # >
-# class Cntl
 

@@ -1936,7 +1936,7 @@ class DataBook(dict):
                 Component whose coefficient is being plotted
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: :class:`str`
@@ -2797,7 +2797,7 @@ class DBBase(dict):
                 Coefficient being plotted
             *i*: :class:`int`
                 Individual case/entry index
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Outputs:
             *v*: :class:`float`
@@ -2948,7 +2948,7 @@ class DBBase(dict):
             *key*: :class:`str`
                 Name of trajectory key to use for sorting; default is first key
         :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
@@ -2998,7 +2998,7 @@ class DBBase(dict):
                 An individual item data book
             *key*: :class:`str`
                 Name of trajectory key to use for sorting; default is first key
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
@@ -3102,7 +3102,7 @@ class DBBase(dict):
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
         :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
+            *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of index that matches the trajectory case or ``NaN``
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
@@ -3178,7 +3178,7 @@ class DBBase(dict):
             *source*: ``"self"`` | {``"target"``}
                 Match *DBc.x* case *i* if ``"self"``, else *DBT.x* case *i*
         :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
+            *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
             * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
@@ -3418,14 +3418,14 @@ class DBBase(dict):
                 Index of the case from the trajectory to try match
             *EqCons*: {``[]``} | :class:`list` (:class:`str`)
                 List of variables that must match the trajectory exactly
-            *TolCons*: {``{}``} | :class:`dict` (:class:`float`)
+            *TolCons*: {``{}``} | :class:`dict`\ [:class:`float`]
                 List of variables that may match trajectory within a tolerance
             *GlobCons*: {``[]``} | :class:`list` (:class:`str`)
                 List of global constraints, see :func:`cape.RunMatrix.Filter`
             *xkeys*: {``{}``} | :class:`dict` (:class:`str`)
                 Dictionary of alternative names of variables
         :Outputs:
-            *J*: :class:`numpy.ndarray` (:class:`int`)
+            *J*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
             * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
@@ -3633,7 +3633,7 @@ class DBBase(dict):
                 Component databook
             *coeff*: :class:`str`
                 Name of coefficient on which to compute statistics
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 Indices of cases/entries to consider
             *topts*: {``{}``} | :class:`dict`
                 Dictionary of tolerances for variables in question
@@ -3742,7 +3742,7 @@ class DBBase(dict):
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: {``None``} | :class:`str`
@@ -4221,7 +4221,7 @@ class DBBase(dict):
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             * See :func:`cape.cfdx.dataBook.DBBase.PlotCoeffBase`
@@ -4246,7 +4246,7 @@ class DBBase(dict):
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: :class:`str`
@@ -4453,7 +4453,7 @@ class DBBase(dict):
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             * See :func:`cape.cfdx.dataBook.DBBase.PlotCoeffBase`
@@ -4477,7 +4477,7 @@ class DBBase(dict):
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -4488,7 +4488,7 @@ class DBBase(dict):
                 Manually specified label
             *Target*: {``None``} | :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -4952,7 +4952,7 @@ class DBBase(dict):
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             * See :func:`cape.cfdx.dataBook.DBBase.PlotHistBase`
@@ -4975,7 +4975,7 @@ class DBBase(dict):
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -4986,7 +4986,7 @@ class DBBase(dict):
                 Manually specified label
             *Target*: :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -5441,7 +5441,7 @@ class DBBase(dict):
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             * See :func:`cape.cfdx.dataBook.DBBase.PlotHistBase`
@@ -6129,7 +6129,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
-            *CompIDs*: :class:`list` (:class:`int`) | ``None``
+            *CompIDs*: :class:`list`\ [:class:`int`] | ``None``
                 List of component IDs that came from the mapping file
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
@@ -6401,7 +6401,7 @@ class DBTriqFM(DataBook):
             *i*: :class:`int`
                 Case index
         :Outputs:
-            *FM*: :class:`dict` (:class:`float`)
+            *FM*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
@@ -6460,10 +6460,10 @@ class DBTriqFM(DataBook):
                 Name of patch
             *i*: :class:`int`
                 Case index
-            *FM*: :class:`dict` (:class:`float`)
+            *FM*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Outputs:
-            *FM*: :class:`dict` (:class:`float`)
+            *FM*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
@@ -6509,10 +6509,10 @@ class DBTriqFM(DataBook):
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
-            *FM*: :class:`dict` (:class:`float`)
+            *FM*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Outputs:
-            *FM*: :class:`dict` (:class:`float`)
+            *FM*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
@@ -6553,7 +6553,7 @@ class DBTriqFM(DataBook):
             *i*: :class:`int`
                 Case index
         :Outputs:
-            *FM*: :class:`dict` (:class:`dict` (:class:`float`))
+            *FM*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of force & moment dictionaries for each patch
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
@@ -6605,10 +6605,10 @@ class DBTriqFM(DataBook):
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
-            *FM*: :class:`dict` (:class:`dict` (:class:`float`))
+            *FM*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of force & moment coefficients
         :Outputs:
-            *FM*: :class:`dict` (:class:`dict` (:class:`float`))
+            *FM*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of transformed force & moment coefficients
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
@@ -7250,7 +7250,7 @@ class DBTarget(DBBase):
                 Coefficient being plotted
             *i*: :class:`int`
                 Individual case/entry index
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Outputs:
             *v*: :class:`float`
@@ -7369,7 +7369,7 @@ class DBTarget(DBBase):
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
         :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
+            *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
             * :func:`cape.cfdx.dataBook.DBBase.FindTargetMatch`
@@ -7400,7 +7400,7 @@ class DBTarget(DBBase):
                 Component whose coefficient is being plotted
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *x*: [ {None} | :class:`str` ]
@@ -8138,7 +8138,7 @@ class CaseData(object):
                 Figure height
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -8533,7 +8533,7 @@ class CaseFM(CaseData):
     :Inputs:
         *C*: :class:`list` (:class:`str`)
             List of coefficients to initialize
-        *MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
+        *MRP*: :class:`numpy.ndarray`\ [:class:`float`] shape=(3,)
             Moment reference point
         *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
             Matrix of forces and/or moments at *N* iterations
@@ -8542,7 +8542,7 @@ class CaseFM(CaseData):
             Instance of the force and moment class
         *FM.C*: :class:`list` (:class:`str`)
             List of coefficients
-        *FM.MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
+        *FM.MRP*: :class:`numpy.ndarray`\ [:class:`float`] shape=(3,)
             Moment reference point
         *FM.i*: :class:`numpy.ndarray` shape=(0,)
             List of iteration numbers
@@ -9011,9 +9011,9 @@ class CaseFM(CaseData):
                 Instance of the force and moment class
             *Lref*: :class:`float`
                 Reference length
-            *x*: :class:`list` (:class:`float`)
+            *x*: :class:`list`\ [:class:`float`]
                 Target moment reference point
-            *xi*: :class:`list` (:class:`float`)
+            *xi*: :class:`list`\ [:class:`float`]
                 Current moment reference point (default: *self.MRP*)
         :Versions:
             * 2015-03-02 ``@ddalle``: First version
@@ -9060,7 +9060,7 @@ class CaseFM(CaseData):
             *nLast*: :class:`int`
                 Last iteration to use for statistics
         :Outputs:
-            *s*: :class:`dict` (:class:`float`)
+            *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2014-12-09 ``@ddalle``: First version
@@ -9136,7 +9136,7 @@ class CaseFM(CaseData):
             *nLast*: :class:`int`
                 Last iteration to use for statistics
         :Outputs:
-            *s*: :class:`dict` (:class:`float`)
+            *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2015-02-28 ``@ddalle``: First version
@@ -9200,7 +9200,7 @@ class CaseFM(CaseData):
             *nLast*: {*FM.i[-1]*} | :class:`int`
                 Last iteration to use for statistics
         :Outputs:
-            *s*: :class:`dict` (:class:`float`)
+            *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for *coeff*
         :Versions:
             * 2017-09-29 ``@ddalle``: First version
@@ -9252,7 +9252,7 @@ class CaseFM(CaseData):
             *nLast*: {*FM.i[-1]*} | :class:`int`
                 Last iteration to use for statistics
         :Outputs:
-            *s*: :class:`dict` (:class:`float`)
+            *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std, err for each coefficient
         :Versions:
             * 2017-09-29 ``@ddalle``: First version
@@ -9418,7 +9418,7 @@ class CaseResid(object):
             *n*: :class:`int`
                 Number of iterations to analyze
         :Outputs:
-            *nOrders*: :class:`numpy.ndarray` (:class:`float`), shape=(n,)
+            *nOrders*: :class:`numpy.ndarray`\ [:class:`float`], shape=(n,)
                 Number of orders of magnitude of unsteady residual drop
         :Versions:
             * 2015-01-01 ``@ddalle``: First versoin

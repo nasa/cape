@@ -330,7 +330,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Inputs:
             *DBPG*: :class:`cape.cfdx.dataBook.DBPointGroup`
                 Point sensor group data book
-            *I*: :class:`list` (:class:`int`) | ``None``
+            *I*: :class:`list`\ [:class:`int`] | ``None``
                 List of trajectory indices or update all cases in trajectory
             *pt*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
                 Point name or list of point names
@@ -539,7 +539,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Inputs:
             *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 Point sensor group data book
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
             *pt*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
                 Point name or list of point names
@@ -573,7 +573,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Inputs:
             *DBPG*: :class:`cape.cfdx.pointSensor.DBPointSensorGroup`
                 Point sensor group data book
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices or update all cases in trajectory
             *pt*: :class:`str`
                 Name of point sensor

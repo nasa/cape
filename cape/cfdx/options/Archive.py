@@ -533,7 +533,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *cmd*: :class:`list` (:class:`str`)
+            *cmd*: :class:`list`\ [:class:`str`]
                 Tar command and appropriate flags
         :Versions:
             * 2016-03-01 ``@ddalle``: First version
@@ -564,7 +564,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *cmd*: :class:`list` (:class:`str`)
+            *cmd*: :class:`list`\ [:class:`str`]
                 Untar command and appropriate flags
         :Versions:
             * 2016-03-01 ``@ddalle``: First version
@@ -600,7 +600,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file globs to delete at the end of each run
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -616,7 +616,7 @@ class Archive(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
                 File glob or list of file globs to add
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -633,7 +633,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of globs of folder names to delete at the end of each run
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -649,7 +649,7 @@ class Archive(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
                 File glob or list of file globs to add
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -666,7 +666,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of globs of folder names to delete at the end of each run
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -682,7 +682,7 @@ class Archive(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
                 File glob or list of file globs to add
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -699,7 +699,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of globs of folder names to delete at the end of each run
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -715,7 +715,7 @@ class Archive(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
                 File glob or list of file globs to add
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -732,7 +732,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of globs of folder names to delete at the end of each run
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -748,7 +748,7 @@ class Archive(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
                 File glob or list of file globs to add
         :Versions:
             * 2016-03-14 ``@ddalle``: First version
@@ -770,7 +770,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file globs to keep around after archiving
         :Versions:
             * 2017-12-13 ``@ddalle``: First version
@@ -787,7 +787,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file globs to keep around after archiving
         :Versions:
             * 2017-12-14 ``@ddalle``: First version
@@ -821,7 +821,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of folders to tar and then delete during skeleton action
         :Versions:
             * 2017-12-13 ``@ddalle``: First version
@@ -837,7 +837,7 @@ class Archive(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fskel*: :class:`str` | :class:`list` (:class:`str`)
+            *fskel*: :class:`str` | :class:`list`\ [:class:`str`]
                 File glob or list of file globs to add
         :Versions:
             * 2017-12-13 ``@ddalle``: First version
@@ -853,7 +853,7 @@ class Archive(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fskel*: :class:`str` | :class:`list` (:class:`str`)
+            *fskel*: :class:`str` | :class:`list`\ [:class:`str`]
                 File glob or list of file globs to add
         :Versions:
             * 2017-12-14 ``@ddalle``: First version
@@ -907,7 +907,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
@@ -926,7 +926,7 @@ class Archive(odict):
                 Options interface
             *fpre*: :class:`str`
                 File or file glob to add to list
-            *lpre*: :class:`list` (:class:`str`)
+            *lpre*: :class:`list`\ [:class:`str`]
                 List of files or file globs to add to list
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
@@ -943,7 +943,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
@@ -979,7 +979,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
@@ -1015,7 +1015,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
@@ -1051,7 +1051,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
@@ -1092,7 +1092,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete after archiving
         :Versions:
             * 2016-12-09 ``@ddalle``: First version
@@ -1111,7 +1111,7 @@ class Archive(odict):
                 Options interface
             *farch*: :class:`str`
                 File or file glob to archive
-            *larch*: :class:`list` (:class:`str`)
+            *larch*: :class:`list`\ [:class:`str`]
                 List of file or file globs to add to list
         :Versions:
             * 2016-12-09 ``@ddalle``: First version
@@ -1133,7 +1133,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete after archiving
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
@@ -1152,7 +1152,7 @@ class Archive(odict):
                 Options interface
             *fpost*: :class:`str`
                 File or file glob to add to list
-            *lpost*: :class:`list` (:class:`str`)
+            *lpost*: :class:`list`\ [:class:`str`]
                 List of files or file globs to add to list
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
@@ -1169,7 +1169,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of globs of folders to delete after archiving
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
@@ -1205,7 +1205,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
@@ -1241,7 +1241,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of globs of folders to delete fter archiving
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
@@ -1277,7 +1277,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
@@ -1313,7 +1313,7 @@ class Archive(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fglob*: :class:`list` (:class:`str`)
+            *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
             * 2016-03-14 ``@ddalle``: First version

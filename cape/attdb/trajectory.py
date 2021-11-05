@@ -193,7 +193,7 @@ class Trajectory(dict):
                 Run matrix conditions interface
             *i*: :class:`int`
                 Single case index
-            *I*: ``None`` | :class:`np.ndarray` (:class:`int`)
+            *I*: ``None`` | :class:`np.ndarray`\ [:class:`int`]
                 List of cases, or return for all cases if ``None``
         :Outputs:
             *fdir*: :class:`str`
@@ -243,7 +243,7 @@ class Trajectory(dict):
                 Run matrix conditions interface
             *i*: :class:`int`
                 Single case index
-            *I*: ``None`` | :class:`np.ndarray` (:class:`int`)
+            *I*: ``None`` | :class:`np.ndarray`\ [:class:`int`]
                 List of cases, or return for all cases if ``None``
         :Outputs:
             *fdir*: :class:`str`
@@ -301,7 +301,7 @@ class Trajectory(dict):
                 Trajectory key name
             *i*: :class:`int`
                 Case index
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of case indices
         :Outputs:
             *V*: :class:`np.ndarray`
@@ -370,7 +370,7 @@ class Trajectory(dict):
             *machtol*: {*tol*} | :class:`float` >= 0
                 Tolerance for *mach* key, for instance
         :Outputs:
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices matching all constraints
         :Versions:
             * 2017-07-21 ``@ddalle``: First version
@@ -456,10 +456,10 @@ class Trajectory(dict):
                 Instance of the pyCart trajectory class
             *cons*: :class:`list` (:class:`str`)
                 List of constraints
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of initial indices to consider
         :Outputs:
-            *i*: :class:`numpy.ndarray` (:class:`int`)
+            *i*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
             * 2014-12-09 ``@ddalle``: First version
@@ -527,7 +527,7 @@ class Trajectory(dict):
             *EqCons*: :class:`list` (:class:`str`)
                 List of trajectory keys which must match (exactly) the first
                 point in the sweep
-            *TolCons*: :class:`dict` (:class:`float`)
+            *TolCons*: :class:`dict`\ [:class:`float`]
                 Dictionary whose keys are trajectory keys which must match the
                 first point in the sweep to a specified tolerance and whose
                 values are the specified tolerances
@@ -535,7 +535,7 @@ class Trajectory(dict):
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
         :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of trajectory point indices in the sweep
         :Versions:
             * 2015-05-24 ``@ddalle``: First version
@@ -686,7 +686,7 @@ class Trajectory(dict):
             *EqCons*: :class:`list` (:class:`str`)
                 List of trajectory keys which must match (exactly) the first
                 point in the sweep
-            *TolCons*: :class:`dict` (:class:`float`)
+            *TolCons*: :class:`dict`\ [:class:`float`]
                 Dictionary whose keys are trajectory keys which must match the
                 first point in the sweep to a specified tolerance and whose
                 values are the specified tolerances
@@ -694,7 +694,7 @@ class Trajectory(dict):
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
         :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of trajectory point indices in the sweep
         :Versions:
             * 2015-05-24 ``@ddalle``: First version
@@ -841,14 +841,14 @@ class Trajectory(dict):
             *cons*: :class:`list` (:class:`str`)
                 List of global constraints; only points satisfying these
                 constraints will be in one of the output sweeps
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices to restrict to
             *SortVar*: :class:`str`
                 Variable by which to sort each sweep
             *EqCons*: :class:`list` (:class:`str`)
                 List of trajectory keys which must match (exactly) the first
                 point in the sweep
-            *TolCons*: :class:`dict` (:class:`float`)
+            *TolCons*: :class:`dict`\ [:class:`float`]
                 Dictionary whose keys are trajectory keys which must match the
                 first point in the sweep to a specified tolerance and whose
                 values are the specified tolerances
@@ -856,7 +856,7 @@ class Trajectory(dict):
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
         :Outputs:
-            *J*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+            *J*: :class:`list` (:class:`numpy.ndarray`\ [:class:`int`])
                 List of trajectory point sweeps
         :Versions:
             * 2015-05-25 ``@ddalle``: First version
@@ -1243,7 +1243,7 @@ class Trajectory(dict):
                 Trajectory key name
             *i*: :class:`int`
                 Case index
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of case indices
         :Outputs:
             *V*: :class:`np.ndarray`

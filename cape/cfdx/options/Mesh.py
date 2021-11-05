@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.cfdx.options.mesh`: Basic meshing options
 ======================================================
 
@@ -14,17 +14,17 @@ from .util import rc0, odict
 
 # Class for Cart3D mesh settings
 class Mesh(odict):
-    """Dictionary-based interfaced for options for Cart3D meshing"""
+    r"""Dictionary-based interfaced for options for meshing"""
     
     # Initialization method
     def __init__(self, **kw):
         # Store the data in *this* instance
         for k in kw:
             self[k] = kw[k]
-    
+
     # Mesh filenames
     def get_MeshFile(self, i=None):
-        """Return the original mesh file names
+        r"""Return the original mesh file names
         
         :Call:
             >>> fname = opts.get_MeshFile(i=None)
@@ -34,7 +34,7 @@ class Mesh(odict):
             *i*: :class:`int` | ``None``
                 Optional index
         :Outputs:
-            *fname*: :class:`str` | :class:`list` (:class:`str`)
+            *fname*: :class:`str` | :class:`list`\ [:class:`str`]
                 Mesh file name or list of files
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
@@ -43,7 +43,7 @@ class Mesh(odict):
 
     # Get the triangulation file(s)
     def get_TriFile(self, i=None):
-        """Return the surface triangulation file
+        r"""Return the surface triangulation file
         
         :Call:
             >>> fname = opts.get_TriFile(i=None)

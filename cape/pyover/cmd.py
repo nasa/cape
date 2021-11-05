@@ -69,7 +69,7 @@ def overrun(opts=None, i=0, **kw):
         *cmd*: :class:`str`
             Name of OVERFLOW binary to use
     :Outputs:
-        *cmdi*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
         * 2016-02-02 ``@ddalle``: First version

@@ -15,9 +15,9 @@
     
     // Commands to load at head of run scripts (run_cart3d.pbs)
     "ShellCmds": [
-        // ". $MODULESHOME/init/bash",
-        // "module load cart3d",
-        // "module load pycart",
+        ". $MODULESHOME/init/bash",
+        "module load cart3d",
+        "module load cape"
     ],
     
 	// The names of these two files have the obvious defaults.
@@ -27,8 +27,8 @@
 	// Iteration control and command-line inputs
 	"RunControl": {
 	    // Run sequence
-	    "InputSeq": [0],
-	    "IterSeq": [200],
+	    "PhaseSequence": [0],
+	    "PhaseIterations": [200],
 	    // Number of threads
 	    "nProc": 8,
 	    // Mode

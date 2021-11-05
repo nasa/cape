@@ -13,11 +13,11 @@
         "walltime": "2:00:00"
     },
 	
-	// Commands to load at head of run scripts (run_cart3d.pbs)
+	// Commands to load at head of run scripts
 	"ShellCmds": [
 	    ". $MODULESHOME/init/bash",
 	    "module load overflow",
-	    "module load pycart"
+	    "module load cape"
 	],
 	
 	// Iteration control and command-line inputs

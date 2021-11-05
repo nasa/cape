@@ -57,7 +57,7 @@ def nodet(opts=None, i=0, **kw):
         *animation_freq*: :class:`int`
             Output frequency
     :Outputs:
-        *cmdi*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
         * 2015-11-24 ``@ddalle``: First version

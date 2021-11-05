@@ -1,22 +1,24 @@
-"""
+r"""
 :mod:`cape.cfdx.options.util`: Utilities for options modules
 =============================================================
 
-This module provides utilities for the Cape options module.  It includes the
-:class:`cape.options.util.odict` class upon which all Cape options classes are
-based, and it several basic methods useful to processing options.
+This module provides utilities for the CAPE options module. It includes
+the :class:`cape.options.util.odict` class upon which all CAPE options
+classes are based, and it several basic methods useful to processing
+options.
 
-The :func:`getel` and :func:`setel` methods in particular play an important
-role in the entire Cape coding strategy.
+The :func:`getel` and :func:`setel` methods in particular play an
+important role in the entire CAPE coding strategy.
 
 """
 
 # Standard library modules
+import copy
+import functools
+import io
+import json
 import os
 import re
-import json
-import copy
-import io
 
 # Third-party modules
 import numpy as np
@@ -173,27 +175,27 @@ rc['aflr3_mdf']    = 2
 rc['aflr3_mdsblf'] = 1
 rc['aflr3_nqual']  = 2
 
+
+ARRAY_TYPE_NAMES = {'list', 'tuple', 'array', 'ndarray'}
+
+
 # Utility function to get elements sanely
 def getel(x, i=None):
-    """
-    Return element *i* of an array if possible
+    r""" Return element *i* of an array if possible
     
     :Call:
-        >>> xi = getel(x)
+        >>> x = getel(x)
         >>> xi = getel(x, i)
-        
     :Inputs:
         *x*: number-like or list-like
             A number or list or NumPy vector
-        *i*: :class:`int`
-            Index.  If not specified, treated as though *i* is ``0``
-            
+        *i*: ``None`` | :class:`int`
+            Index
     :Outputs:
         *xi*: scalar
-            Equal to ``x[i]`` if possible, ``x[-1]`` if *i* is greater than the
-            length of *x*, or ``x`` if *x* is not a :class:`list` or
-            :class:`numpy.ndarray` instance
-    
+            Equal to ``x[i]`` if possible, ``x[-1]`` if *i* is greater
+            than the length of *x*, or ``x`` if *x* is not a
+            :class:`list` or :class:`numpy.ndarray` instance
     :Examples:
         >>> getel('abc', 2)
         'abc'
@@ -205,14 +207,14 @@ def getel(x, i=None):
         300
         >>> getel([200, 100, 300])
         200
-        
     :Versions:
-        * 2014-07-29 ``@ddalle``: First version
+        * 2014-07-29 ``@ddalle``: Version 1.0
+        * 2021-10-18 ``@ddalle``: Version 1.1; add :class:`tuple`
     """
     # Check the type.
     if i is None:
         return x
-    if type(x).__name__ in ['list', 'array', 'ndarray']:
+    if type(x).__name__ in ARRAY_TYPE_NAMES:
         # Check for empty input.
         if len(x) == 0:
             return None
@@ -231,11 +233,11 @@ def getel(x, i=None):
     else:
         # Scalar
         return x
-        
+
+
 # Utility function to set elements sanely
 def setel(x, i, xi):
-    """
-    Return element *i* of an array if possible
+    r"""Return element *i* of an array if possible
     
     :Call:
         >>> y = setel(x, i, xi)
@@ -244,14 +246,12 @@ def setel(x, i, xi):
         *x*: number-like or list-like
             A number or list or NumPy vector
         *i*: :class:`int`
-            Index to set.  If *i* is ``None``, the output is reset to *xi*
+            Index. If *i* is ``None``, the output is reset to *xi*
         *xi*: scalar
             Value to set at scalar
-            
     :Outputs:
         *y*: number-like or list-like
             Input *x* with ``y[i]`` set to ``xi`` unless *i* is ``None``
-    
     :Examples:
         >>> setel(['a', 2, 'c'], 1, 'b')
         ['a', 'b', 'c']
@@ -261,24 +261,21 @@ def setel(x, i, xi):
         ['a', None, 'b']
         >>> setel([0, 1], None, 'a')
         'a'
-        
     :Versions:
-        * 2014-07-29 ``@ddalle``: First version
+        * 2014-07-29 ``@ddalle``: Version 1.0
+        * 2021-10-18 ``@ddalle``: Version 1.1; add :class:`tuple`
     """
     # Check the index input.
     if i is None:
         # Scalar output
         return xi
-    # Ensure list.
-    if type(x).__name__ == 'ndarray':
-        # NumPy array
+    # Ensure list
+    if type(x).__name__ in ARRAY_TYPE_NAMES:
+        # Already a list; make a copy
         y = list(x)
-    elif type(x).__name__ != 'list':
-        # Scalar input
-        y = [x]
     else:
-        # Already a list
-        y = x
+        # Create a singleton list
+        y = [x]
     # Get default value
     if len(y) > 0:
         # Select the last value
@@ -289,12 +286,12 @@ def setel(x, i, xi):
     # Make sure *y* is long enough.
     for j in range(len(y), i):
         y.append(ydef)
-    # Check if we are setting an element or appending it.
+    # Check if we are setting an element or appending it
     if i >= len(y):
         # Append
         y.append(xi)
     else:
-        # Set the value.
+        # Set the value
         y[i] = xi
     # Output
     return y
@@ -302,20 +299,20 @@ def setel(x, i, xi):
 
 # Function to ensure scalar from above
 def rc0(p):
-    """Return default setting from ``cape.options.rc``, but ensure a scalar
+    r"""Return default setting for named parameter
     
     :Call:
-        >>> v = rc0(s)
+        >>> v = rc0(p)
     :Inputs:
-        *s*: :class:`str`
+        *p*: :class:`str`
             Name of parameter to extract
     :Outputs:
         *v*: any
-            Either ``rc[s]`` or ``rc[s][0]``, whichever is appropriate
+            Either ``rc[p]`` or ``rc[p][0]``, whichever is appropriate
     :Versions:
-        * 2014-08-01 ``@ddalle``: First version
+        * 2014-08-01 ``@ddalle``: Version 1.0
     """
-    # Use the `getel` function to do this.
+    # Use the :func:`getel` function to do this.
     return getel(rc.get(p), 0)
 
 
@@ -328,7 +325,7 @@ regex = re.compile(
 
 # Function to expand CSV file inputs
 def expandJSONFile(fname):
-    """Expand contents of other JSON files
+    r"""Expand contents of other JSON files
     
     :Call:
         >>> txt, fnames, linenos = expandJSONFile(fname)
@@ -338,14 +335,16 @@ def expandJSONFile(fname):
     :Outputs:
         *txt*: :class:`unicode`
             Full text with references to JSON file(s) expanded
-        *fnames*: :class:`list` (:class:`str`)
-            List of files read (can include the same file multiple times)
-            including *fname* and any other expanded ``JSONFile()`` directives
+        *fnames*: :class:`list`\ [:class:`str`]
+            List of files read (can include the same file multiple
+            times) including *fname* and any other expanded
+            ``JSONFile()`` directives
         *linenos*: :class:`np.ndarray` (:class:`int`, ndim=2)
-            Line numbers in original files; column *j* represents the line
-            number of each line in file *j*; ``0`` for lines not from file *j*
+            Line numbers in original files; column *j* represents the
+            line number of each line in file *j*; ``0`` for lines not
+            from file *j*
     :Versions:
-        * 2015-12-10 ``@ddalle``: First version
+        * 2015-12-10 ``@ddalle``: Version 1.0
     """
     # Read the input file.
     txt = io.open(fname, mode="r", encoding="utf-8").read()
@@ -430,11 +429,11 @@ def expandJSONFile(fname):
     txt = "\n".join(lines) + "\n"
     # Output
     return txt, fnames, linenos
-# def expandJSONFile
+
 
 # Function to read JSON file with all the works
 def loadJSONFile(fname):
-    """Read a JSON file with helpful error handling and comment stripping
+    r"""Read JSON file w/ helpful error handling and comment stripping
     
     :Call:
         >>> d = loadJSONFile(fname)
@@ -445,7 +444,7 @@ def loadJSONFile(fname):
         *d*: :class:`dict`
             JSON contents in Python form
     :Versions:
-        * 2015-12-15 ``@ddalle``: First version
+        * 2015-12-15 ``@ddalle``: Version 1.0
     """
     # Read the input file
     txt, fnames, linenos = expandJSONFile(fname)
@@ -502,7 +501,7 @@ def loadJSONFile(fname):
 
 # Function to get the default settings.
 def getDefaults(fname):
-    """Read default settings configuration file
+    r"""Read default settings configuration file
     
     :Call:
         >>> defs = getDefaults(fname)
@@ -513,15 +512,16 @@ def getDefaults(fname):
         *defs*: :class:`dict`
             Dictionary of settings read from JSON file
     :Versions:
-        * 2014-06-03 ``@ddalle``: First version
-        * 2014-07-28 ``@ddalle``: Moved to new options module
+        * 2014-06-03 ``@ddalle``: Version 1.0
+        * 2014-07-28 ``@ddalle``: Version 1.1; in options module
     """
     # Process the default input file.
     return loadJSONFile(fname)
-    
+
+
 # Function to get the default CAPE settings
 def getCapeDefaults():
-    """Read default CAPE settings configuration file
+    r"""Read default CAPE settings configuration file
     
     :Call:
         >>> defs = getCapeDefaults()
@@ -536,10 +536,11 @@ def getCapeDefaults():
     fname = os.path.join(CAPE_OPTS_FOLDER, 'cape.default.json')
     # Read the settings.
     return getDefaults(fname)
-    
+
+
 # Function to get template
 def getTemplateFile(fname):
-    """Get the absolute path to a template file by name
+    r"""Get the absolute path to a template file by name
     
     :Call:
         >>> fabs = getTemplateFile(fname)
@@ -549,15 +550,15 @@ def getTemplateFile(fname):
         *fabs*: :class:`str`
             Full path to file
     :Versions:
-        * 2015-10-26 ``@ddalle``: First version
+        * 2015-10-26 ``@ddalle``: Version 1.0
     """
     # Join with BaseFolder and 'templates'
     return os.path.join(BaseFolder, 'templates', fname)
-    
-    
+
+
 # Get the keys of the default dict.
 def applyDefaults(opts, defs):
-    """Recursively apply defaults for any missing options
+    r"""Recursively apply defaults for any missing options
     
     :Call:
         >>> opts = applyDefaults(opts, defs)
@@ -570,8 +571,8 @@ def applyDefaults(opts, defs):
         *opts*: :class:`dict` | :class:`odict`
             Input dictionary with all of the fields of *defs*
     :Versions:
-        * 2014-06-17 ``@ddalle``: First version
-        * 2014-07-28 ``@ddalle``: Cleaned and moved to options module
+        * 2014-06-17 ``@ddalle``: Version 1.0
+        * 2014-07-28 ``@ddalle``: Version 1.1; move to options module
     """
     # Loop through the keys in the options dict.
     for k in defs:
@@ -584,10 +585,11 @@ def applyDefaults(opts, defs):
             opts[k] = applyDefaults(opts[k], defs[k])
     # Output the modified defaults.
     return opts
-    
+
+
 # Test if a variable is "list-like"
 def isArray(x):
-    """Test if a variable is "list-like."
+    r"""Test if a variable is "list-like."
     
     :Call:
         >>> q = isArray(x)
@@ -598,13 +600,14 @@ def isArray(x):
         *q*: :class:`bool`
             ``True`` if and only if *x* is a list or NumPy array
     :Versions:
-        * 2014-12-17 ``@ddalle``: First version
+        * 2014-12-17 ``@ddalle``: Version 1.0
     """
-    return (type(x).__name__ in ['list', 'ndarray'])
-    
+    return (type(x).__name__ in ARRAY_TYPE_NAMES)
+
+
 # Test if a variable is "string-like"
 def isStr(x):
-    """Test if a variable is "string-like"
+    r"""Test if a variable is "string-like"
     
     :Call:
         >>> q = isArray(x)
@@ -615,16 +618,17 @@ def isStr(x):
         *q*: :class:`bool`
             ``True`` if and only if *x* is a string or unicode
     :Versions:
-        * 2014-12-17 ``@ddalle``: First version
+        * 2014-12-17 ``@ddalle``: Version 1.0
     """
     # Get the type.
     typ = type(x).__name__
     # Test it.
     return typ.startswith('str') or (typ in ['unicode'])
-    
+
+
 # Dictionary derivative specific to options
 class odict(dict):
-    """Dictionary-based options module
+    r"""Dictionary-based options module
     
     :Call:
         >>> opts = odict(**kw)
@@ -635,22 +639,22 @@ class odict(dict):
         *opts*: :class:`cape.options.util.odict`
             Dictionary-based options interface
     :Versions:
-        * 2014-08-02 ``@ddalle``: First version
+        * 2014-08-02 ``@ddalle``: Version 1.0
         * 2015-11-10 ``@ddalle``: More robust :func:`get_key` using *rck*
     """
-    
     # General "get" function
     def get_key(self, k, i=None, rck=None):
-        """Intelligently get option for index *i* of key *k*
-        
-        This is a two-step process.  The first is to get the dictionary value
-        or the default if *k* is not in *opts*.  The default is ``rc[k]``.  Let
-        *V* be the result of the process.
-        
-        The second step is to apply indexing.  If *V* is a scalar or *i* is
-        ``None``, then *V* is the output.  Otherwise, the function will attempt
-        to return ``V[i]``, but if *i* is too large, ``V[-1]`` is the output.
-        
+        r"""Intelligently get option for index *i* of key *k*
+
+        This is a two-step process.  The first is to get the dictionary
+        value or the default if *k* is not in *opts*. The default is
+        ``rc[k]``. Let *V* be the result of the process.
+
+        The second step is to apply indexing. If *V* is a scalar or *i*
+        is ``None``, then *V* is the output. Otherwise, the function
+        will attempt to return ``V[i]``, but if *i* is too large,
+        ``V[-1]`` is the output.
+
         :Call:
             >>> v = opts.get_key(k, i, rck=None)
         :Inputs:
@@ -659,17 +663,17 @@ class odict(dict):
             *i*: :class:`int` | ``None``
                 Index to apply
             *rck*: :class:`str` | ``None``
-                Name of key in *rc0* default option dictionary; defaults to *k*
+                Name of *rc0* key to default to
         :Outputs:
-            *v*: any
-                Let ``V=opts.get(k,rc[k])``.  Then *v* is either ``V[i]`` if
-                possible, ``V[-1]`` if *V* is a list and *i* is not ``None``,
-                or ``V`` otherwise
+            *v*: **any**
+                Let ``V=opts.get(k,rc[k])``. Then *v* is either
+                ``V[i]`` if possible, ``V[-1]`` if *V* is a list and *i*
+                is not ``None``, or ``V`` otherwise
         :See also:
             * :func:`cape.options.util.getel`
         :Versions:
-            * 2014-08-02 ``@ddalle``: First version
-            * 2015-11-10 ``@ddalle``: Added *rck*
+            * 2014-08-02 ``@ddalle``: Version 1.0
+            * 2015-11-10 ``@ddalle``: Version 1.1; add *rck*
         """
         # Default key name
         if rck is None: rck = k
@@ -680,13 +684,13 @@ class odict(dict):
         
     # General "set" function
     def set_key(self, k, v=None, i=None, rck=None):
-        """Set option for key *k*
-        
-        This sets the value for ``opts[k]`` or ``opts[k][i]`` if appropriate.
-        If *i* is greater than the length of ``opts[k]``, then ``opts[k]`` is
-        appended with its current last value enough times to make
-        ``opts[k][i]`` exist.
-        
+        r"""Set option for key *k*
+
+        This sets the value for ``opts[k]`` or ``opts[k][i]`` if
+        appropriate. If *i* is greater than the length of ``opts[k]``,
+        then ``opts[k]`` is appended with its current last value enough
+        times to make ``opts[k][i]`` exist.
+
         :Call:
             >>> opts.set_key(k, v=None, i=None, rck=None)
         :Inputs:
@@ -701,8 +705,8 @@ class odict(dict):
         :See also:
             * :func:`cape.options.util.setel`
         :Versions:
-            * 2014-08-02 ``@ddalle``: First version
-            * 2015-11-10 ``@ddalle``: Added *rck*
+            * 2014-08-02 ``@ddalle``: Version 1.0
+            * 2015-11-10 ``@ddalle``: Version 1.1; add *rck*
         """
         # Check for default key name
         if rck is None: rck = k
@@ -717,7 +721,7 @@ class odict(dict):
     
     # Copy
     def copy(self):
-        """Create a copy of an options interface
+        r"""Create a copy of an options interface
         
         :Call:
             >>> opts1 = opts.copy()
@@ -726,9 +730,9 @@ class odict(dict):
                 Options instance
         :Outputs:
             *opts1*: :class:`odict`
-                Copy of options instance with all :class:`dict` keys copied
+                Deep copy of options instance
         :Versions:
-            * 2019-05-10 ``@ddalle``: First version
+            * 2019-05-10 ``@ddalle``: Version 1.0
         """
         # Initialize copy
         opts = self.__class__()
@@ -743,5 +747,155 @@ class odict(dict):
                 opts[k] = v.copy()
         # Output
         return opts
-# class odict
+
+    # Generic subsection
+    def init_section(self, cls, sec=None, parent=None):
+        r"""Initialize a generic section
+
+        :Call:
+            >>> opts.init_section(cls, sec=None, parent=None)
+        :Inputs:
+            *opts*: :class:`odict`
+                Options interface
+            *cls*: :class:`type`
+                Class to use for *opts[sec]*
+            *sec*: {*cls.__name__*} | :class:`str`
+                Specific key name to use for subsection
+            *parent*: {``None``} | :class:`str`
+                Other subsection from which to inherit defaults
+        :Versions:
+            * 2021-10-18 ``@ddalle``: Version 1.0
+        """
+        # Default name
+        if sec is None:
+            # Use the name of the class
+            sec = cls.__name__
+        # Check if present
+        if sec not in self:
+            # Create empty instance
+            self[sec] = cls()
+        # Otherwise get value
+        v = self[sec]
+        # Check its type
+        if isinstance(v, cls):
+            # Already good
+            pass
+        elif isinstance(v, dict):
+            # Convert :class:`dict` to special class
+            self[sec] = cls(**v)
+        else:
+            # Got something other than a mapping
+            print("  Warning: could not convert options section '%s'," % sec)
+            print("           which has type '%s'" % type(v).__name__)
+            return
+        # Check for *parent* to define default settings
+        if parent:
+            # Get the settings of parent
+            vp = self.get(parent)
+            # Ensure it's a dict
+            if not isinstance(vp, dict):
+                return
+            # Loop through *vp*, but don't overwrite
+            for k, vpk in vp.items():
+                v.setdefault(k, vpk)
+
+
+# Decorator to get function from subclass
+def subsec_func(cls, sec=None, parent=None, init=True):
+    r"""Decorator (w/ args) to apply a function from a subsection class
+    
+    :Call:
+        >>> f = subsec_func(cls, sec=None, parent=None, init=True)
+    :Inputs:
+        *cls*::class:`type`
+            Class to apply to subsection
+        *sec*: {*cls.__name*} | :class:`str`
+            Name of subsection
+        *init*: {``True``} | ``False``
+            If ``True`` and nontrivial *cls*, initialize subsection
+        *parent*: {``None``} | :class:`str`
+            Name of section from which to get default settings
+    :Outputs:
+        *f*: :class:`function`
+            Decorator with arguments expanded
+    :Examples:
+        .. code-block:: python
+        
+            @subsec_func("RunControl", RunControl)
+            def get_PhaseSequence(self, *a, **kw):
+                pass
+                
+    :Versions:
+        * 2019-01-10 ``@ddalle``: Version 1.0
+        * 2021-10-18 ``@ddalle``: Version 1.1; default *sec*
+    """
+    # Default *sec*
+    if sec is None:
+        sec = cls.__name__
+    # Decorator for the function
+    def decorator_subsec(func):
+        # Inherit metadata from func
+        @functools.wraps(func)
+        # The before and after function
+        def wrapper(self, *a, **kw):
+            # Initialize the section
+            if init and (cls is not None):
+                self.init_section(cls, sec, parent=parent)
+            # Get the function from the subsection
+            f = getattr(self[sec], func.__name__)
+            # Call the function from the subsection
+            v = f(*a, **kw)
+            # Return value
+            return v
+        # Copy the docstring
+        if cls is not None:
+            wrapper.__doc__ = getattr(cls,func.__name__).__doc__
+        # Output
+        return wrapper
+    # Return decorator
+    return decorator_subsec
+
+
+# Apply all methods of one subsection class to parent
+def promote_subsec(cls1, cls2, sec=None, skip=[], **kw):
+    r"""Promote all methods of a subsection class to parent options class
+
+    Methods of parent class will not be overwritten
+
+    :Call:
+        >>> promote_subsec(cls1, cls2, sec=None, skip=[], **kw)
+    :Inputs:
+        *cls1*: :class:`type`
+            Parent class
+        *cls2*: :class:`type`
+            Subsection class
+        *skip*: {``[]``} | :class:`list`
+            List of methods from *cls2* not to add to *cls1*
+        *init*: {``True``} | ``False``
+            If ``True``, initialize subsection when *cls1* methods used
+        *parent*: {``None``} | :class:`str`
+            Name of section from which to get default settings
+    :Versions:
+        * 2019-01-10 ``@ddalle``: Version 1.0
+    """
+    # Get property dictionaries
+    dict1 = cls1.__dict__
+    dict2 = cls2.__dict__
+    # Create the decorator to promote each method (function)
+    f_deco = subsec_func(cls2, sec, **kw)
+    # Loop through methods of *cls2*
+    for fn in dict2:
+        # Manual skipping
+        if fn in skip:
+            continue
+        # Get value of *cls2* attribute
+        func = dict2[fn]
+        # Skip if not a function
+        if not callable(func):
+            continue
+        # Check if already present
+        if fn in dict1:
+            continue
+        # Set attribute to decorated function
+        setattr(cls1, fn, f_deco(func))
 

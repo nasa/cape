@@ -53,10 +53,10 @@ from .Mesh       import Mesh
 from .Config     import Config
 from .runControl import RunControl
 
+
 # Class definition
 class Options(odict):
-    """
-    Options structure, subclass of :class:`dict`
+    r"""Options structure, subclass of :class:`dict`
     
     :Call:
         >>> opts = Options(fname=None, **kw)
@@ -66,10 +66,10 @@ class Options(odict):
         *kw*: :class:`dict`
             Dictionary to be transformed into :class:`cape.options.Options`
     :Outputs:
-        *opts*: :class:`cape.options.Options`
+        *opts*: :class:`Options`
             Options interface
     :Versions:
-        * 2014-07-28 ``@ddalle``: First version
+        * 2014-07-28 ``@ddalle``: Version 1.0
     """
    # =============
    # Configuration
@@ -115,7 +115,7 @@ class Options(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Versions:
-            * 2014-10-08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: Version 1.0
         """
         # Get the "PythonPath" option
         lpath = self.get("PythonPath", [])
@@ -143,7 +143,7 @@ class Options(odict):
             *sys*: ``True`` | {``False``}
                 Whether or not to replace ``None`` with system setting
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Get umask
         umask = self.get_umask(sys=sys)
@@ -185,7 +185,7 @@ class Options(odict):
    # <
     # Write a PBS header
     def WritePBSHeader(self, f, lbl, j=0, typ=None, wd=None):
-        """Write common part of PBS script
+        r"""Write common part of PBS script
         
         :Call:
             >>> opts.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
@@ -283,7 +283,7 @@ class Options(odict):
     
     # Write a Slurm header
     def WriteSlurmHeader(self, f, lbl, j=0, typ=None, wd=None):
-        """Write common part of Slurm script
+        r"""Write common part of Slurm script
         
         :Call:
             >>> opts.WriteSlurmHeader(f, i=None, j=0, typ=None, wd=None)
@@ -355,10 +355,9 @@ class Options(odict):
    # Initializers
    # ============
    # < 
-   
     # Initialization method for folder management optoins
     def _RunControl(self):
-        """Initialize folder management options if necessary"""
+        r"""Initialize folder management options if necessary"""
         # Check status.
         if 'RunControl' not in self:
             # Missing entirely.
@@ -366,7 +365,7 @@ class Options(odict):
         elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class
             self['RunControl'] = RunControl(**self['RunControl'])
-    
+
     # Initialization and confirmation for Adaptation options
     def _Mesh(self):
         """Initialize mesh options if necessary"""
@@ -587,7 +586,7 @@ class Options(odict):
             *typ*: {``None``} | ``"batch"`` | ``"post"``
                 Add additional commands for batch or post-processing jobs
         :Outputs:
-            *cmds*: :class:`list` (:class:`str`)
+            *cmds*: :class:`list`\ [:class:`str`]
                 List of initialization commands
         :Versions:
             * 2015-11-08 ``@ddalle``: Moved to "RunControl"
@@ -622,10 +621,10 @@ class Options(odict):
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *cmds*: :class:`list` (:class:`str`)
+            *cmds*: :class:`list`\ [:class:`str`]
                 List of initialization commands
         :Versions:
-            * 2015-11-08 ``@ddalle``: First version
+            * 2015-11-08 ``@ddalle``: Version 1.0
         """
         # Set them.
         self['ShellCmds'] = cmds
@@ -640,10 +639,10 @@ class Options(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *cmds*: :class:`list` (:class:`str`)
+            *cmds*: :class:`list`\ [:class:`str`]
                 List of initialization commands
         :Versions:
-            * 2017-01-10 ``@ddalle``: First version
+            * 2017-01-10 ``@ddalle``: Version 1.0
         """
         # Get the commands
         cmds = self.get('BatchShellCmds', [])
@@ -666,7 +665,7 @@ class Options(odict):
             *nSub*: :class:`int`
                 Maximum number of jobs to submit
         :Versions:
-            * 2015-01-24 ``@ddalle``: First version
+            * 2015-01-24 ``@ddalle``: Version 1.0
         """
         return self.get('nSubmit', rc0('nSubmit'))
         
@@ -682,7 +681,7 @@ class Options(odict):
             *nSub*: :class:`int`
                 Maximum number of jobs to submit
         :Versions:
-            * 2015-01-24 ``@ddalle``: First version
+            * 2015-01-24 ``@ddalle``: Version 1.0
         """
         self['nSubmit'] = nSub
     
@@ -699,7 +698,7 @@ class Options(odict):
             *qGM*: :class:`bool`
                 True all cases in a group use the same (starting) mesh
         :Versions:
-            * 2014-10-06 ``@ddalle``: First version
+            * 2014-10-06 ``@ddalle``: Version 1.0
         """
         # Safely get the trajectory.
         x = self.get('RunMatrix', {})
@@ -717,13 +716,13 @@ class Options(odict):
             *qGM*: :class:`bool`
                 True all cases in a group use the same (starting) mesh
         :Versions:
-            * 2014-10-06 ``@ddalle``: First version
+            * 2014-10-06 ``@ddalle``: Version 1.0
         """
         self['RunMatrix']['GroupMesh'] = qGM
         
     # Get the umask
     def get_umask(self, sys=True):
-        """Get the current file permissions mask
+        r"""Get the current file permissions mask
         
         The default value is the read from the system
         
@@ -738,14 +737,14 @@ class Options(odict):
             *umask*: ``None`` | :class:`oct`
                 File permissions mask (``None`` only if *sys* is ``False``)
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Read the option.
         umask = self.get('umask')
         # Check if we need to use the default.
         if umask is None:
             # Check for system defaults
-            if sys:
+            if sys and os.name != "nt":
                 # Get the value.
                 umask = os.popen('umask', 'r').read()
                 # Convert to value.
@@ -774,7 +773,7 @@ class Options(odict):
             *dmask*: :class:`int` | ``None``
                 New folder permissions mask
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Get the umask
         umask = self.get_umask()
@@ -795,7 +794,7 @@ class Options(odict):
             *sys*: {``True``} | ``False``
                 Whether or not to use system setting as default
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
             * 2017-09-05 ``@ddalle``: Added *sys* input variable
         """
         # Get umask

@@ -62,6 +62,8 @@ class XMLFile(object):
             Name of file read or default file name to write
     :Versions:
         * 2021-10-06 ``@ddalle``: Version 0.0: Started
+        * 2021-10-08 ``@ddalle``: Version 1.0
+        * 2021-10-18 ``@ddalle``: Version 1.1; :func:`text2val`
     """
    # --- __dunder__ ---
     def __init__(self, arg0=None, **kw):
@@ -249,13 +251,13 @@ class XMLFile(object):
         newtail = kw.pop("newtail", None)
         newattrib = kw.pop("newattrib", None)
         updateattrib = kw.pop("updateattrib", None)
-        # Convert *newtxt* to string, for convenience
-        if newtxt is None:
+        # Convert *newtext* to string, for convenience
+        if newtext is None:
             pass
-        elif isinstance(newtxt, (str, unicode, bytes)):
+        elif isinstance(newtext, (str, unicode, bytes)):
             pass
         else:
-            newtxt = str(newtxt)
+            newtext = self.val2text(newtext)
         # Get list of tags
         if isinstance(tag, (list, tuple)):
             # Already a list
@@ -306,7 +308,7 @@ class XMLFile(object):
                 ej = toelement(tagj, attribj)
                 # Set text if needed
                 if newtext:
-                    ej.text = str(newtext)
+                    ej.text = self.val2text(newtext)
                 # Use this weird code to get the first child (if any)
                 # Copy tail from first element
                 if len(e) == 0:
@@ -337,6 +339,7 @@ class XMLFile(object):
         if newtail is not None:
             elem.tail = newtail
 
+   # --- Delete ---
     def remove(self, tag, attrib=None, text=None, **kw):
         r"""Remove an element; raise exception if not found
 
@@ -650,8 +653,84 @@ class XMLFile(object):
         # Set search-sublevels option
         kw["finditer"] = True
         # Search
-        return find_elem(self.root, tag, attrib, text, **kw)
-        
+        return findall_elem(self.root, tag, attrib, text, **kw)
+
+   # --- Text <--> value ---
+    def text2val(self, txt):
+        r"""Convert XML text to Python value
+
+        :Call:
+            >>> v = xml.text2val(txt)
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *txt*: :class:`str`
+                Text to convert
+        :Outputs:
+            *v*: ``None`` | |xml2py-types|
+                Converted value
+        :Versions:
+            * 2021-10-18 ``@ddalle``: Version 1.0
+
+        .. |xml2py-types| replace:
+            :class:`bool` | :class:`int` | :class:`float` | :class:`str`
+        """
+        # Allow None
+        if txt is None:
+            return
+        # Check if we were given something other than a string
+        if not isinstance(txt, (str, unicode)):
+            raise TypeError("Expected a 'str'; got '%s'" % type(txt).__name__)
+        # Strip white space
+        txt = txt.strip()
+        # Check for two literal values
+        if txt == "true":
+            return True
+        elif txt == "false":
+            return False
+        # Attempt conversions: int first
+        try:
+            return int(txt)
+        except ValueError:
+            pass
+        # Attempt conversions: float second
+        try:
+            return float(txt)
+        except ValueError:
+            pass
+        # Weird case, hex?
+        if re.fullmatch("0x[0-9A-Fa-f]+", txt):
+            # Convert hex literal to int
+            return eval(txt)
+        else:
+            # Unable to convert; use string
+            return txt
+
+    def val2text(self, v):
+        r"""Convert Python value to XML text
+
+        :Call:
+            >>> txt = xml.val2text(v)
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *v*: **any**
+                Python value to convert
+        :Outputs:
+            *txt*: :class:`str`
+                Converted text
+        :Versions:
+            * 2021-10-18 ``@ddalle``: Version 1.0
+        """
+        # Check for recognized literals
+        if v is None:
+            return ""
+        elif v is True:
+            return "true"
+        elif v is False:
+            return "false"
+        # Otherwise just convert to text using str()
+        return str(v)
 
 
 # Find a subelement

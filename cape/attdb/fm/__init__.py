@@ -63,7 +63,7 @@ class DBCoeff(db1.DBCoeff):
             Coefficient lookup database
         *DBc.coeffs*: :class:`list` (:class:`str` | :class:`unicode`)
             List of coefficients present in the database
-        *DBc[coeff]*: :class:`np.ndarray` (:class:`float`)
+        *DBc[coeff]*: :class:`np.ndarray`\ [:class:`float`]
             Data for coefficient named *coeff*
     :Versions:
         * 2018-06-08 ``@ddalle``: First version
@@ -94,7 +94,7 @@ class DBCoeff(db1.DBCoeff):
                 First coefficient database
             *DBT*: :class:`attdb.fm.DBCoeff`
                 Target coefficient database
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of case indices from *DBc*
             *cov*: {``0.95``} | 0 < :class:`float` < 1
                 Coverage percentage
@@ -180,7 +180,7 @@ class DBCoeff(db1.DBCoeff):
                 First coefficient database
             *DBT*: :class:`attdb.fm.DBCoeff`
                 Target coefficient database
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of case indices from *DBc*
             *cov*: {``0.95``} | 0 < :class:`float` < 1
                 Coverage percentage
@@ -218,16 +218,16 @@ class DBCoeff(db1.DBCoeff):
                 First coefficient database
             *DBT*: :class:`attdb.fm.DBCoeff`
                 Target coefficient database
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of case indices from *DBc*
             *keys*: {``["mach","alpha_t","phi"]`` | :class:`list`
                 List of keys to use for testing if cases are equal
             *tol*: {``1e-8``} | :class:`float`
                 Default tolerance for matching conditions
         :Outputs:
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of case indices from *DBc* with matches in *DBT*
-            *J*: :class:`np.ndarray` (:class:`int`)
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 Array of case indices from *DBT* with matches in *DBc*
         :Versins:
             * 2018-09-28 ``@ddalle``: First version
@@ -902,7 +902,7 @@ class DBCoeff(db1.DBCoeff):
             *DBc[coeff]*: :class:`np.ndarray`
                 Properly sized array of output data
         :Outputs:
-            *C* :class:`list` (:class:`float`)
+            *C* :class:`list`\ [:class:`float`]
                 Interpolated coefficient at each coefficient in *coeffs*
             *c*: :class:`float`
                 Interpolated coefficient for *coeff*
@@ -953,7 +953,7 @@ class DBCoeff(db1.DBCoeff):
             *DBc[coeff]*: :class:`np.ndarray`
                 Properly sized array of output data
         :Outputs:
-            *C* :class:`list` (:class:`float`)
+            *C* :class:`list`\ [:class:`float`]
                 Interpolated coefficient at each coefficient in *coeffs*
             *c*: :class:`float`
                 Interpolated coefficient for *coeff*
@@ -1025,7 +1025,7 @@ class DBCoeff(db1.DBCoeff):
             *DBc[coeff]*: :class:`np.ndarray`
                 Properly sized array of output data
         :Outputs:
-            *C* :class:`list` (:class:`float`)
+            *C* :class:`list`\ [:class:`float`]
                 Interpolated coefficient at each coefficient in *coeffs*
             *c*: :class:`float`
                 Interpolated coefficient for *coeff*
@@ -1107,9 +1107,9 @@ def estimate_xCLM(self, DCLM, DCN):
     :Inputs:
         *self*: :class:`DBFM`
             Force & moment database with *self.xMRP* and *self.Lref*
-        *DCLM*: :class:`np.ndarray` (:class:`float`)
+        *DCLM*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CLM* values
-        *DCN*: :class:`np.ndarray` (:class:`float`)
+        *DCN*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CN* values
     :Outputs:
         *xCLM*: :class:`float`
@@ -1139,9 +1139,9 @@ def estimate_xCLN(self, DCLN, DCY):
     :Inputs:
         *self*: :class:`DBFM`
             Force & moment database with *self.xMRP* and *self.Lref*
-        *DCLN*: :class:`np.ndarray` (:class:`float`)
+        *DCLN*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CLN* values
-        *DCY*: :class:`np.ndarray` (:class:`float`)
+        *DCY*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CY* values
     :Outputs:
         *xCLN*: :class:`float`
@@ -1171,14 +1171,14 @@ def shift_DCLM(self, DCLM, DCN, xCLM):
     :Inputs:
         *self*: :class:`DBFM`
             Force & moment database with *self.xMRP* and *self.Lref*
-        *DCLM*: :class:`np.ndarray` (:class:`float`)
+        *DCLM*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CLM* values
-        *DCN*: :class:`np.ndarray` (:class:`float`)
+        *DCN*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CN* values
         *xCLM*: :class:`float`
             Reference *x* that minimizes *UCLM*
     :Outputs:
-        *DCLM2*: :class:`np.ndarray` (:class:`float`)
+        *DCLM2*: :class:`np.ndarray`\ [:class:`float`]
             Deltas in *CLM* about *xCLM*
     :Versions:
         * 2019-02-20 ``@ddalle``: First version
@@ -1199,14 +1199,14 @@ def shift_DCLN(self, DCLN, DCY, xCLN):
     :Inputs:
         *self*: :class:`DBFM`
             Force & moment database with *self.xMRP* and *self.Lref*
-        *DCLN*: :class:`np.ndarray` (:class:`float`)
+        *DCLN*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CLN* values
-        *DCY*: :class:`np.ndarray` (:class:`float`)
+        *DCY*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CY* values
         *xCLN*: :class:`float`
             Reference *x* that minimizes *UCLN*
     :Outputs:
-        *DCLN2*: :class:`np.ndarray` (:class:`float`)
+        *DCLN2*: :class:`np.ndarray`\ [:class:`float`]
             Deltas in *CLN* about *xCLN*
     :Versions:
         * 2019-02-20 ``@ddalle``: First version
@@ -1493,7 +1493,7 @@ class DBCoeffFM(DBCoeff):
             Coefficient lookup database
         *DBc.coeffs*: :class:`list` (:class:`str` | :class:`unicode`)
             List of coefficients present in the database
-        *DBc[coeff]*: :class:`np.ndarray` (:class:`float`)
+        *DBc[coeff]*: :class:`np.ndarray`\ [:class:`float`]
             Data for coefficient named *coeff*
     :Versions:
         * 2018-06-08 ``@ddalle``: First version
@@ -1769,11 +1769,11 @@ class DBCoeffFM(DBCoeff):
         :Inputs:
             *DBc*: :class:`attdb.fm.DBCoeffMAB`
                 Coefficient database interface
-            *TolCons*: {``{}``} | :class:`dict` (:class:`float`)
+            *TolCons*: {``{}``} | :class:`dict`\ [:class:`float`]
                 Dictionary of tolerance constraints for points considered equal
             *EqCons*: {``[]``} | :class:`list` (:class:`str`)
                 List of keys only considered equal if exact
-            *I*: {``None``} | :class:`np.ndarray` (:class:`int`)
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 Only consider specified indices
             *f*: {``None``} | :class:`func`
                 Averaging function, default is to use :func:`np.mean`
@@ -1846,7 +1846,7 @@ class DBCoeffFM(DBCoeff):
                 An individual item data book
             *coeff*: :class:`str`
                 Name of coefficient
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
         :Keyword Arguments:
             *Lref*: {``DBc.Lref``} | :class:`float`
@@ -2031,7 +2031,7 @@ class DBCoeffFM(DBCoeff):
                 Target values for data book
             *coeff*: :class:`str`
                 Name of coefficient
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -2042,7 +2042,7 @@ class DBCoeffFM(DBCoeff):
                 Manually specified label
             *Target*: {``None``} | :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -2167,7 +2167,7 @@ class DBCoeffFM(DBCoeff):
                 Target values for data book
             *coeff*: :class:`str`
                 Name of coefficient
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -2178,7 +2178,7 @@ class DBCoeffFM(DBCoeff):
                 Manually specified label
             *Target*: {``None``} | :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -2301,7 +2301,7 @@ class DBCoeffFM(DBCoeff):
                 Coefficient lookup databook
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
             *xk*: :class:`str`
@@ -2501,7 +2501,7 @@ class DBCoeffFM(DBCoeff):
                 An individual item data book
             *coeff*: :class:`str`
                 Name of coefficient
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -2512,7 +2512,7 @@ class DBCoeffFM(DBCoeff):
                 Manually specified label
             *Target*: {``None``} | :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -2585,7 +2585,7 @@ class DBCoeffFM(DBCoeff):
                 Target values for data book
             *coeff*: :class:`str`
                 Name of coefficient
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -2596,7 +2596,7 @@ class DBCoeffFM(DBCoeff):
                 Manually specified label
             *Target*: {``None``} | :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -2676,7 +2676,7 @@ class DBCoeffFM(DBCoeff):
                 An individual item data book
             *coeff*: :class:`str`
                 Name of coefficient
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
         :Keyword Arguments:
             *FigWidth*: :class:`float`
@@ -2687,7 +2687,7 @@ class DBCoeffFM(DBCoeff):
                 Manually specified label
             *Target*: {``None``} | :class:`DBBase` | :class:`list`
                 Target database or list thereof
-            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+            *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
             *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
                 Legend label(s) for target(s)
@@ -2783,7 +2783,7 @@ class DBCoeffMAB(DBCoeffFM):
             Coefficient lookup database
         *DBc.coeffs*: :class:`list` (:class:`str` | :class:`unicode`)
             List of coefficients present in the database
-        *DBc[coeff]*: :class:`np.ndarray` (:class:`float`)
+        *DBc[coeff]*: :class:`np.ndarray`\ [:class:`float`]
             Data for coefficient named *coeff*
     :Versions:
         * 2018-06-08 ``@ddalle``: First version
@@ -3491,11 +3491,11 @@ class DBCoeffMAB(DBCoeffFM):
                 Coefficient lookup databook
             *coeff*: :class:`str`
                 Coefficient being plotted
-            *M*: :class:`np.ndarray` (:class:`float`)
+            *M*: :class:`np.ndarray`\ [:class:`float`]
                 Array of Mach numbers
-            *A*: :class:`np.ndarray` (:class:`float`)
+            *A*: :class:`np.ndarray`\ [:class:`float`]
                 Array of angle of attack values
-            *B*: :class:`np.ndarray` (:class:`float`)
+            *B*: :class:`np.ndarray`\ [:class:`float`]
                 Array of sideslip angles
         :Keyword Arguments:
             *x*: {``None``} | :class:`str`
@@ -3878,7 +3878,7 @@ class DBFM(DBCoeffMAB):
             Coefficient lookup database
         *DBc.coeffs*: :class:`list` (:class:`str` | :class:`unicode`)
             List of coefficients present in the database
-        *DBc[coeff]*: :class:`np.ndarray` (:class:`float`)
+        *DBc[coeff]*: :class:`np.ndarray`\ [:class:`float`]
             Data for coefficient named *coeff*
     :Versions:
         * 2018-06-08 ``@ddalle``: First version
@@ -4226,7 +4226,7 @@ def interp_monolinear(m, bkpt, k1, FM, coeffs=None):
         *FM[coeff]*: :class:`np.ndarray`
             Properly sized array of output data
     :Outputs:
-        *C* :class:`list` (:class:`float`)
+        *C* :class:`list`\ [:class:`float`]
             Interpolated coefficient at each coefficient in *coeffs*
         *c*: :class:`float`
             Interpolated coefficient for *coeff*
@@ -4292,7 +4292,7 @@ def interp_bilinear(a, b, bkpt, k1, k2, FM, coeffs=None):
         *FM[coeff]*: :class:`np.ndarray`
             Properly sized array of output data
     :Outputs:
-        *C* :class:`list` (:class:`float`)
+        *C* :class:`list`\ [:class:`float`]
             Interpolated coefficient at each coefficient in *coeffs*
         *c*: :class:`float`
             Interpolated coefficient for *coeff*
@@ -4361,7 +4361,7 @@ def interp_trilinear(m, a, b, bkpt, k1, k2, k3, FM, coeffs=None):
         *FM[coeff]*: :class:`np.ndarray`
             Properly sized array of output data
     :Outputs:
-        *C* :class:`list` (:class:`float`)
+        *C* :class:`list`\ [:class:`float`]
             Interpolated coefficient at each coefficient in *coeffs*
         *c*: :class:`float`
             Interpolated coefficient for *coeff*

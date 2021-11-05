@@ -87,15 +87,11 @@ A categorized list of modules available to the API are listed below.
 import os
 
 # Import classes and methods from the submodules
-from .tri  import Tri, Triq
 from .cntl import Cntl
-
-# Submodules
-from . import manage
 
 
 # Save version number
-version = "1.0a4"
+version = "1.0b1"
 __version__ = version
 
 # Get the root directory of the module.

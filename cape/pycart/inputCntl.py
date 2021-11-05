@@ -49,9 +49,9 @@ class InputCntl(FileCntl):
             Interface to :file:`input.cntl` and its settings
         *IC.fname*: :class:`str`
             Name of the file that was read
-        *IC.lines*: :class:`list` (:class:`str`)
+        *IC.lines*: :class:`list`\ [:class:`str`]
             List of lines, which may be altered
-        *IC.SectionNames*: :class:`list` (:class:`str`)
+        *IC.SectionNames*: :class:`list`\ [:class:`str`]
             List of section names
         *IC.Section*: :class:`dict` (:class:`list`)
             Lines split into sections by section name
@@ -374,7 +374,7 @@ class InputCntl(FileCntl):
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
-            *x*: *array_like* (:class:`float`)
+            *x*: *array_like*\ [:class:`float`]
                 List or vector of *x*-coordinates at which to make cut planes
         :Effects:
             Replaces the current list of *x* cut planes with the input list.
@@ -401,7 +401,7 @@ class InputCntl(FileCntl):
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
-            *y*: *array_like* (:class:`float`)
+            *y*: *array_like*\ [:class:`float`]
                 List or vector of *y*-coordinates at which to make cut planes
         :Effects:
             Replaces the current list of *y* cut planes with the input list.
@@ -428,7 +428,7 @@ class InputCntl(FileCntl):
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
-            *z*: *array_like* (:class:`float`)
+            *z*: *array_like*\ [:class:`float`]
                 List or vector of *z*-coordinates at which to make cut planes
         :Effects:
             Replaces the current list of *z* cut planes with the input list.
@@ -457,7 +457,7 @@ class InputCntl(FileCntl):
             *name*: :class:`str`
                 Name of the line sensor
         :Outputs:
-            *X*: :class:`list` (:class:`float`)
+            *X*: :class:`list`\ [:class:`float`]
                 List of start x,y,z and end x,y,z
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
@@ -484,7 +484,7 @@ class InputCntl(FileCntl):
                 File control instance for :file:`input.cntl`
             *name*: :class:`str`
                 Name of the line sensor
-            *X*: :class:`list` (:class:`float`)
+            *X*: :class:`list`\ [:class:`float`]
                 List of start x,y,z and end x,y,z
         :Versions:
             * 2015-05-06 ``@ddalle``: First version
@@ -541,7 +541,7 @@ class InputCntl(FileCntl):
             *name*: :class:`str`
                 Name of the line sensor
         :Outputs:
-            *X*: :class:`list` (:class:`float`)
+            *X*: :class:`list`\ [:class:`float`]
                 List of point x,y,z coordinates
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
@@ -568,7 +568,7 @@ class InputCntl(FileCntl):
                 File control instance for :file:`input.cntl`
             *name*: :class:`str`
                 Name of the line sensor
-            *X*: :class:`list` (:class:`float`)
+            *X*: :class:`list`\ [:class:`float`]
                 List of point x,y,z coordinates
         :Versions:
             * 2015-05-07 ``@ddalle``: First version
@@ -771,7 +771,7 @@ class InputCntl(FileCntl):
             *compID*: :class:`str`
                 Component to which reference applies (default is ``'all'``)
         :Outputs:
-            *x*: :class:`list` (:class:`float`)
+            *x*: :class:`list`\ [:class:`float`]
                 List of three coordinates of moment reference point
         :Versions:
             * 2015-03-02 ``@ddalle``: First version

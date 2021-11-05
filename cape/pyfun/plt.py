@@ -110,7 +110,7 @@ class Plt(capeplt.Plt):
             Tecplot PLT interface
         *plt.nVar*: :class:`int`
             Number of variables
-        *plt.Vars*: :class:`list` (:class:`str`)
+        *plt.Vars*: :class:`list`\ [:class:`str`]
             List of of variable names
         *plt.nZone*: :class:`int`
             Number of zones

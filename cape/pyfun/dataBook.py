@@ -241,7 +241,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
-            *pts*: {``None``} | :class:`list` (:class:`str`)
+            *pts*: {``None``} | :class:`list`\ [:class:`str`]
                 List of points to read (default is read from *DB.opts*)
             *pt*: {``None``} | :class:`str`
                 Individual point to read
@@ -533,7 +533,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
     :Outputs:
         *FM*: :class:`pyFun.aero.FM`
             Instance of the force and moment class
-        *FM.C*: :class:`list` (:class:`str`)
+        *FM.C*: :class:`list`\ [:class:`str`]
             List of coefficients
         *FM.i*: :class:`numpy.ndarray` shape=(0,)
             List of iteration numbers
@@ -788,11 +788,11 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         :Outputs:
             *nhdr*: :class:`int`
                 Number of header rows to skip
-            *cols*: :class:`list` (:class:`str`)
+            *cols*: :class:`list`\ [:class:`str`]
                 List of column names
-            *coeffs*: :class:`list` (:class:`str`)
+            *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficient names
-            *inds*: :class:`list` (:class:`int`)
+            *inds*: :class:`list`\ [:class:`int`]
                 List of column indices for each entry of *cols*
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
@@ -1198,9 +1198,9 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         :Outputs:
             *nhdr* :class:`int`
                 Number of header rows
-            *cols*: :class:`list` (:class:`str`)
+            *cols*: :class:`list`\ [:class:`str`]
                 List of columns
-            *inds*: :class:`list` (:class:`int`)
+            *inds*: :class:`list`\ [:class:`int`]
                 List of indices in columns
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
@@ -1317,9 +1317,9 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         :Outputs:
             *nhdr* :class:`int`
                 Number of header rows
-            *cols*: :class:`list` (:class:`str`)
+            *cols*: :class:`list`\ [:class:`str`]
                 List of columns
-            *inds*: :class:`list` (:class:`int`)
+            *inds*: :class:`list`\ [:class:`int`]
                 List of indices in columns
         :Versions:
             * 2015-10-20 ``@ddalle``: First version

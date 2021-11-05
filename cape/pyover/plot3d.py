@@ -226,30 +226,30 @@ class P3D(cape.plot3d.X):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list` (:class:`int`) 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
             *JE*: :class:`int`
                 End index, *j* direction
-            *K*: :class:`int` | :class:`list` (:class:`int`)
+            *K*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *k* direction
             *KS*: :class:`int`
                 Start index, *k* direction
             *KE*: :class:`int`
                 End index, *k* direction
-            *L*: :class:`int` | :class:`list` (:class:`int`)
+            *L*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *l* direction
             *LS*: :class:`int`
                 Start index, *l* direction
             *LE*: :class:`int`
                 End index, *l* direction
         :Outputs:
-            *J*: :class:`np.ndarray` (:class:`int`) 
+            *J*: :class:`np.ndarray`\ [:class:`int`] 
                 Array of grid indices in *j* direction
-            *K*: :class:`np.ndarray` (:class:`int`) 
+            *K*: :class:`np.ndarray`\ [:class:`int`] 
                 Array of grid indices in *k* direction
-            *L*: :class:`np.ndarray` (:class:`int`) 
+            *L*: :class:`np.ndarray`\ [:class:`int`] 
                 Array of grid indices in *l* direction
         :Versions:
             * 2016-03-07 ``@ddalle``: First version
@@ -582,7 +582,7 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number to read, defaults to ``len(q.Q)+1``
         :Data members:
-            ``q.Q[IG-1]``: :class:`numpy.ndarray` (:class:`float`)
+            ``q.Q[IG-1]``: :class:`numpy.ndarray`\ [:class:`float`]
                 Solution array
         :Versions:
             * 2016-02-26 ``@ddalle``: First version
@@ -637,26 +637,26 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list` (:class:`int`) 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
             *JE*: :class:`int`
                 End index, *j* direction
-            *K*: :class:`int` | :class:`list` (:class:`int`)
+            *K*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *k* direction
             *KS*: :class:`int`
                 Start index, *k* direction
             *KE*: :class:`int`
                 End index, *k* direction
-            *L*: :class:`int` | :class:`list` (:class:`int`)
+            *L*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *l* direction
             *LS*: :class:`int`
                 Start index, *l* direction
             *LE*: :class:`int`
                 End index, *l* direction
         :Outputs:
-            *Cp*: :class:`float` | :class:`numpy.ndarray` (:class:`float`)
+            *Cp*: :class:`float` | :class:`numpy.ndarray`\ [:class:`float`]
                 Pressure coefficient or array of pressure coefficients
         :See also:
             :func:`expand_grid_indices`
@@ -701,26 +701,26 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list` (:class:`int`) 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
             *JE*: :class:`int`
                 End index, *j* direction
-            *K*: :class:`int` | :class:`list` (:class:`int`)
+            *K*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *k* direction
             *KS*: :class:`int`
                 Start index, *k* direction
             *KE*: :class:`int`
                 End index, *k* direction
-            *L*: :class:`int` | :class:`list` (:class:`int`)
+            *L*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *l* direction
             *LS*: :class:`int`
                 Start index, *l* direction
             *LE*: :class:`int`
                 End index, *l* direction
         :Outputs:
-            *M*: :class:`float` | :class:`numpy.ndarray` (:class:`float`)
+            *M*: :class:`float` | :class:`numpy.ndarray`\ [:class:`float`]
                 Mach number or array of Mach numbers
         :See also:
             :func:`expand_grid_indices`
@@ -767,26 +767,26 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list` (:class:`int`) 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
             *JE*: :class:`int`
                 End index, *j* direction
-            *K*: :class:`int` | :class:`list` (:class:`int`)
+            *K*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *k* direction
             *KS*: :class:`int`
                 Start index, *k* direction
             *KE*: :class:`int`
                 End index, *k* direction
-            *L*: :class:`int` | :class:`list` (:class:`int`)
+            *L*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *l* direction
             *LS*: :class:`int`
                 Start index, *l* direction
             *LE*: :class:`int`
                 End index, *l* direction
         :Outputs:
-            *p*: :class:`float` | :class:`numpy.ndarray` (:class:`float`)
+            *p*: :class:`float` | :class:`numpy.ndarray`\ [:class:`float`]
                 Pressure or array of pressures [psf]
         :See also:
             :func:`expand_grid_indices`
@@ -830,26 +830,26 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list` (:class:`int`) 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
             *JE*: :class:`int`
                 End index, *j* direction
-            *K*: :class:`int` | :class:`list` (:class:`int`)
+            *K*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *k* direction
             *KS*: :class:`int`
                 Start index, *k* direction
             *KE*: :class:`int`
                 End index, *k* direction
-            *L*: :class:`int` | :class:`list` (:class:`int`)
+            *L*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *l* direction
             *LS*: :class:`int`
                 Start index, *l* direction
             *LE*: :class:`int`
                 End index, *l* direction
         :Outputs:
-            *T*: :class:`float` | :class:`numpy.ndarray` (:class:`float`)
+            *T*: :class:`float` | :class:`numpy.ndarray`\ [:class:`float`]
                 Temperature or array of temperatures [R]
         :See also:
             :func:`expand_grid_indices`

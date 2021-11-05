@@ -597,7 +597,7 @@ class OverNamelist(cape.filecntl.namelist2.Namelist2):
             *grdnam*: :class:`str`
                 Name of the grid
         :Outputs:
-            *grps*: :class:`list` (:class:`str`)
+            *grps*: :class:`list`\ [:class:`str`]
                 List of group names in the grid *grdnam* definition
         :Versions:
             * 2016-01-31 ``@ddalle``: First version

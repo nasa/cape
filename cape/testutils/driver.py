@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
 :mod:`cape.testutils.driver`: CAPE's main test case driver
 ===========================================================
 
@@ -12,7 +12,7 @@ The test crawler is initiated using the command:
 
     .. code-block:: console
 
-        $ pc_TestCase.py
+        $ cape_TestCase.py
 
 This calls the :func:`cli` command from this module.
 
@@ -34,6 +34,7 @@ import shutil
 import sys
 
 # Local modules
+from . import argread
 from . import fileutils
 from . import testshell
 from . import testopts
@@ -57,6 +58,31 @@ else:
 # Third-party modules
 np = None
 plt = None
+
+
+# CLI help message
+HELP_TESTCASE = r"""
+CAPE single-case test driver
+=============================
+
+The test driver executes a test in the current folder.  This consists
+of several steps that run the test in a subfolder (which is called
+work/ by default).  If that subfolder exists, it is deleted at the
+beginning of the test.
+
+:Usage:
+
+    .. code-block:: console
+        
+        $ cape_TestCase.py [OPTIONS]
+
+:Options:
+    -f, --json FNAME
+        Read settings from file *FNAME* {cape-test.json}
+
+:Versions:
+    * 2019-07-06 ``@ddalle``: Version 1.0
+"""
 
 
 # Function to import Matplotlib
@@ -633,7 +659,7 @@ class TestDriver(object):
 
     # Close ReST file
     def close_rst(self):
-        """Close ReST log file, if open
+        r"""Close ReST log file, if open
 
         :Call:
             >>> testd.close_rst()
@@ -1001,7 +1027,7 @@ class TestDriver(object):
 
     # Check contents of STDOUT
     def process_results_stdout(self, i, fnout):
-        """Compare STDOUT from command *i* to target
+        r"""Compare STDOUT from command *i* to target
 
         :Call:
             >>> q = testd.process_results_stdout(i, fnout)
@@ -1752,7 +1778,7 @@ class TestDriver(object):
 
     # Get results dictionary
     def get_results_dict(self):
-        """Create a dictionary of results from the test
+        r"""Create a dictionary of results from the test
 
         :Call:
             >>> results = testd.get_results_dict()
@@ -1845,3 +1871,21 @@ def cli(*a, **kw):
     # Run the crawler
     return testd.run()
 
+
+# Entry point
+def main():
+    r"""Run CAPE test crawler
+
+    :Call:
+        >>> main()
+    :Versions:
+        * 2021-10-15 ``@ddalle``: Version 1.0
+    """
+    # Parse command-line args
+    a, kw = argread.readkeys(sys.argv)
+    # Check for help flgas
+    if kw.get("h") or kw.get("help"):
+        print(HELP_TESTCASE)
+        return
+    # Call the function
+    cli(*a, **kw)

@@ -552,7 +552,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
@@ -621,7 +621,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
@@ -655,7 +655,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
@@ -694,7 +694,7 @@ class Report(object):
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
@@ -742,9 +742,9 @@ class Report(object):
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of cases in this sweep
-            *IT*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+            *IT*: :class:`list` (:class:`numpy.ndarray`\ [:class:`int`])
                 List of correspond indices for each target
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
@@ -810,7 +810,7 @@ class Report(object):
         :Inputs:
             *i*: :class:`int`
                 Case index
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
             *fswp*: :class:`str`
                 Name of sweep
@@ -967,7 +967,7 @@ class Report(object):
                 Automated report interface
             *i*: :class:`int`
                 Case index
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
             *fswp*: :class:`str`
                 Name of sweep
@@ -1026,7 +1026,7 @@ class Report(object):
                 Name of figure to update
             *i*: :class:`int`
                 Case index
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
             *fswp*: :class:`str`
                 Name of sweep
@@ -1277,7 +1277,7 @@ class Report(object):
                 Name of figure to update
             *fswp*: :class:`str`
                 Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices in the subsweep
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
@@ -1422,7 +1422,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
             *sfig*: :class:`str`
                 Name of subfigure to check
@@ -1430,7 +1430,7 @@ class Report(object):
                 Dictionary from ``report.json``
             *fruns*: :class:`list` (:class:`str`)
                 List of cases in the sweep
-            *nIter*: :class:`list` (:class:`int`)
+            *nIter*: :class:`list`\ [:class:`int`]
                 List of iterations for each case
         :Outputs:
             *q*: ``True`` | ``False``
@@ -1487,7 +1487,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
@@ -1518,7 +1518,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
@@ -1626,7 +1626,7 @@ class Report(object):
                 Name of subfigure to initialize
             *i*: :class:`int`
                 Case index
-            *I*: :class:`np.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Case index
         :Versions:
             * 2017-06-22 ``@ddalle``: First version
@@ -2017,7 +2017,7 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices
             *q*: ``True`` | ``False``
                 Whether or not to update images
@@ -2343,7 +2343,7 @@ class Report(object):
                 Name of sfigure to update
             *fswp*: :class:`str`
                 Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 Case indices
             *q*: ``True`` | ``False``
                 Whether or not to update images
@@ -3086,7 +3086,7 @@ class Report(object):
                 Name of sfigure to update
             *fswp*: :class:`str`
                 Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices in the sweep
             *q*: ``True`` | ``False``
                 Whether or not to update images
@@ -3275,7 +3275,7 @@ class Report(object):
                 Name of sfigure to update
             *fswp*: :class:`str`
                 Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices in the sweep
             *q*: ``True`` | ``False``
                 Whether or not to update images
@@ -3729,7 +3729,7 @@ class Report(object):
                 Name of sfigure to update
             *fswp*: :class:`str`
                 Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices in the sweep
             *q*: ``True`` | ``False``
                 Whether or not to redraw images
@@ -3951,7 +3951,7 @@ class Report(object):
                 Name of sfigure to update
             *fswp*: :class:`str`
                 Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices in the sweep
             *q*: ``True`` | ``False``
                 Whether or not to update images
@@ -5480,7 +5480,7 @@ class Report(object):
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
@@ -5488,7 +5488,7 @@ class Report(object):
                 Optional name of DataBook component (useful for TriqFM
                 components, which may have a different trajectory)
         :Outputs:
-            *J*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+            *J*: :class:`list` (:class:`numpy.ndarray`\ [:class:`int`])
                 List of sweep index lists
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
@@ -5558,7 +5558,7 @@ class Report(object):
             *targ*: :class:`int`
                 Name of the target in data book to use
         :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of target data indices
         :Versions:
             * 2015-06-03 ``@ddalle``: First version
@@ -5611,7 +5611,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of the target in data book to use (if any)
         :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of target data indices
         :Versions:
             * 2015-06-03 ``@ddalle``: First version

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Standard library
+import importlib
 import json
 import os
 import sys
@@ -12,6 +13,7 @@ import setuptools
 # Local modules
 from .. import argread
 from .. import text as textutils
+from .datakitloader import DataKitLoader
 from ..tnakit import promptutils
 
 
@@ -86,36 +88,21 @@ SETUP_PY = r"""#!/usr/bin/env python3
 # Standard library
 import os
 
-# Third-part modules
-import setuptools
-
-# Cape modules
-from cape.tnakit.metautils import ModuleMetadata
+# CAPE modules
+from cape.attdb import pkgutils
 
 
 # Create the build
 def main():
-    # Find packages
-    pkgs = setuptools.find_packages()
-    # Main package
-    pkg = pkgs[0]
-    # Read metadata
-    try:
-        meta = ModuleMetadata(pkg)
-    except ValueError:
-        meta = {}
-    # Get title
-    title = meta.get("title", pkg)
     # Create the egg/wheel
-    setuptools.setup(
-        name=pkg,
-        packages=pkgs,
-        package_data={
-            pkg: [
-                "meta.json",
-            ],
-        },
-        description=title,
+    pkgutils.setup(
+        name=None,
+        packages=None,
+        package_data=None,
+        description=None,
+        db=True,
+        meta=True,
+        rawdata=False,
         version="1.0")
 
 
@@ -153,6 +140,8 @@ def quickstart(*a, **kw):
             Title to use for this package (not module name)
     :Versions:
         * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-10-21 ``@ddalle``: Version 1.1; improve ``setup.py``
+        * 2021-10-22 ``@ddalle``: Version 1.2; auto suffix
     """
     # Check for help flag
     if kw.get('h') or kw.get('help'):
@@ -176,15 +165,6 @@ def quickstart(*a, **kw):
         # Get the package
         pkg = a[0]
     else:
-        # Look for an existing package folder
-        pkgs = setuptools.find_packages(where)
-        # Get a default
-        if len(pkgs) > 0:
-            # Default to the first package found
-            pkg = pkgs[0]
-        else:
-            # No default
-            pkg = None
         # Prompt for a package
         pkg = promptutils.prompt("Python package name", vdef=pkg)
     # Path to default settings JSON file
@@ -197,8 +177,11 @@ def quickstart(*a, **kw):
     else:
         # No defaults
         opts = {}
-    # Set default target
-    kw.setdefault("target", opts.get("target"))
+    # Expand the package name
+    pkg = get_full_pkgname(pkg, opts, where, **kw)
+    # Remove *target* options
+    kw.pop("target", None)
+    kw.pop("t", None)
     # Prompt for a title
     kw["title"] = _prompt_title(**kw)
     # Create folder
@@ -533,6 +516,107 @@ def write_setup_py(pkgdir, opts, where="."):
         f.write(SETUP_PY)
 
 
+# Create maximum-length package name
+def get_full_pkgname(pkg, opts, where=".", **kw):
+    r"""Expand shortened package name
+
+    For example, this may expand
+
+        * ``"c007.f3d.db201"`` to
+        * ``"sls28sfb.c007.f3d.db201.sls28sfb_c007_f3d_201"``
+
+    if the *target* is ``"sls28sfb"``. This prevents the user from
+    needing to type the base module name, which doesn't change, and the
+    final portion, which can be determined from the preceding portion.
+
+    :Call:
+        >>> fullpkg = get_full_pkgname(pkg, opts, where, **kw)
+    :Inputs:
+        *pkg*: :class:`str`
+            Package name, possibly abbreviated
+        *opts*: ``None`` | :class:`dict`
+            Options read from ``datakit.json``
+        *where*: {``"."``} | ``None`` | :class:`str`
+            Base folder in which *fullpkg* resides
+        *t*, *target*: {``None``} | :class:`str`
+            Prefix from command line
+    :Outputs:
+        *fullpkg*: :class:`str`
+            Full package name with prefix and suffix if needed
+    :Versions:
+        * 2021-10-22 ``@ddalle``: Version 1.0
+    """
+    # Prepend *target* if needed
+    pkg = expand_pkg1(pkg, opts, **kw)
+    # Read a *DataKitLoader* to get full names
+    dkl = read_datakitloader(pkg, opts, where)
+    # See if we can get full list of candidate module names
+    if dkl is None:
+        # No candidates
+        return pkg
+    else:
+        # Generate list of candidates
+        modnames = dkl.genr8_modnames()
+        # Initialize final candidate
+        modname = pkg
+        # Loop through them
+        for name in modnames:
+            # Check if it starts with *pkg*
+            if name.startswith(pkg):
+                # Check if it's longer than the current one
+                if len(name) > len(modname):
+                    modname = name
+        # Use longest correct module name
+        return modname
+
+
+# Read datakitloader
+def read_datakitloader(pkg, opts, where="."):
+    r"""Read :class:`DataKitLoader` to assist with module/db names
+
+    :Call:
+        >>> dkl = read_datakitloader(pkg, opts, where=".")
+    :Inputs:
+        *pkg*: :class:`str`
+            Module name to quickstart, possibly shortened
+        *opts*: ``None`` | :class:`dict`
+            Options read from ``datakit.json``
+        *where*: ``"."`` | :class:`str`
+            Base folder from which *pkg* is imported
+    :Outputs:
+        *dkl*: ``None`` | :class:`DataKitLoader`
+            Datakit reader and db/module name interchanger
+    :Versions:
+        * 2021-10-22 ``@ddalle``: Version 1.0
+    """
+    # Check for settings
+    if not isinstance(opts, dict):
+        return
+    # Get module name
+    modname = opts.get("datakitloader-module")
+    # Check if one was found
+    if modname is None:
+        return
+    # Attempt to load it
+    try:
+        mod = importlib.import_module(modname)
+    except Exception:
+        return
+    # Check for absolute path
+    if where is None:
+        # Let DataKitLoader figure it out from current path
+        fdir = None
+    else:
+        # Absolutize from "where"
+        fdir = os.path.abspath(os.path.join(where, pkg.replace(".", os.sep)))
+    # Create DataKitLoader
+    try:
+        dkl = DataKitLoader(pkg, fdir, **mod.DB_NAMES)
+        return dkl
+    except Exception:
+        return
+
+
 # Get relative path to package folder
 def get_pkgdir(pkg, **kw):
     r"""Get relative folder to a package
@@ -558,7 +642,6 @@ def get_pkgdir(pkg, **kw):
     else:
         # No target; just the package
         return pkgdir
-
 
 
 # Create folders
@@ -616,6 +699,50 @@ def expand_target(target="."):
     else:
         # Expand
         return os.path.realpath(target)
+
+
+# Apply the "target" to a package name
+def expand_pkg1(pkg, opts=None, **kw):
+    r"""Apply *target* prefix if appropriate
+
+    :Call:
+        >>> pkg1 = expand_pkg1(pkg, opts=None, **kw)
+    :Inputs:
+        *pkg*: :class:`str`
+            Name of package, possibly w/o prefix
+        *opts*: {``None``} | :class:`dict`
+            Options read from ``datakit.json``
+        *t*, *target*: {``None``} | :class:`str`
+            Target read from command line or kwargs
+    :Outputs:
+        *pkg1*: :class:`str`
+            *pkg* prepended with *target* if necessary
+    :Versions:
+        * 2021-10-22 ``@ddalle``: Version 1.0
+    """
+    # Get target from *opts*
+    if isinstance(opts, dict):
+        # Check for it from valid *opts*
+        opts_target = opts.get("target")
+    else:
+        # No JSON *target*
+        opts_target = None
+    # Check for *kw*
+    kw_target = kw.get("target", kw.get("t"))
+    # Pick between *kw* and *opts*
+    if kw_target is None:
+        # Use JSON value
+        target = opts_target
+    else:
+        # Use *kw*
+        target = kw_target
+    # Check if *pkg* starts with *target*
+    if pkg.startswith(target):
+        # Already good
+        return pkg
+    else:
+        # Prepend *pkg1*
+        return target + "." + pkg
 
 
 # Ensure a title is present

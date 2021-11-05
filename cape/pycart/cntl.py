@@ -12,27 +12,27 @@ into a run matrix can be loaded using the following commands.
     
         >>> import cape.pycart.cart3d
         >>> cntl = cape.pycart.cntl.Cntl("pyCart.json")
-        >>> cart3d
+        >>> cntl
         <cape.pycart.Cntl(nCase=4, tri='bullet.tri')>
         >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
         
         
-An instance of this :class:`cape.pycart.cntl.Cntl` class has many methods, which
-include the run matrix (``cart3d.x``), the options interface (``cart3d.opts``),
-and optionally the data book (``cart3d.DataBook``), the triangulation
-(``cart3d.tri``), and the appropriate input files (such as
-``cart3d.InputCntl``).
+An instance of this :class:`cape.pycart.cntl.Cntl` class has many
+attributes, which include the run matrix (``cntl.x``), the options
+interface (``cntl.opts``), and optionally the data book
+(``cntl.DataBook``), the triangulation (``cntl.tri``), and the
+appropriate input files (such as ``cntl.InputCntl``).
 
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *cart3d.x*             :class:`cape.pycart.runmatrix.RunMatrix`
-    *cart3d.opts*          :class:`cape.pycart.options.Options`
-    *cart3d.tri*           :class:`cape.pycart.tri.Tri`
-    *cart3d.DataBook*      :class:`cape.pycart.dataBook.DataBook`
-    *cart3d.InputCntl*     :class:`cape.pycart.inputCntl.InputCntl`
-    *cart3d.AeroCsh*       :class:`cape.pycart.aeroCsh.AeroCsh`
+    *cntl.x*               :class:`cape.runmatrix.RunMatrix`
+    *cntl.opts*            :class:`cape.pycart.options.Options`
+    *cntl.tri*             :class:`cape.tri.Tri`
+    *cntl.DataBook*        :class:`cape.pycart.dataBook.DataBook`
+    *cntl.InputCntl*       :class:`cape.pycart.inputCntl.InputCntl`
+    *cntl.AeroCsh*         :class:`cape.pycart.aeroCsh.AeroCsh`
     ====================   =============================================
 
 Finally, the :class:`cape.pycart.cntl.Cntl` class is subclassed from the
@@ -74,56 +74,13 @@ _fname = os.path.abspath(__file__)
 PyCartFolder = os.path.split(_fname)[0]
 TemplateFodler = os.path.join(PyCartFolder, "templates")
 
-
-# Function to automate minor changes to docstrings
-def _upgradeDocString(docstr, fromclass):
-    """
-    Upgrade docstrings from a certain subclass to make them look like
-    :class:`cape.pycart.cntl.Cntl` docstrings.
-    
-    :Call:
-        >>> doc3d = _upgradDocString(docstr, fromclass)
-    :Inputs:
-        *docstr*: :class:`str`
-            Docstring (e.g. ``x.__doc__``) from some other method
-        *fromclass*: :class:`str`
-            Name of class of the original docstring (e.g. ``type(x).__name__``)
-    :Outputs:
-        *doc3d*: :class:`str`
-            Docstring with certain substitutions, e.g. ``x.`` --> ``cart3d.``
-    :Versions:
-        * 2014-07-28 ``@ddalle``: First version
-    """
-    # Check the input class.
-    if fromclass in ['RunMatrix']:
-        # Replacements in the :Call: area
-        docstr = docstr.replace(">>> x.", ">>> cntl.")
-        docstr = docstr.replace("= x.", "= cntl.")
-        # Replacements in variable names
-        docstr = docstr.replace('*x*', '*cart3d*')
-        # Class name
-        docstr = docstr.replace('trajectory.RunMatrix', 'cart3d.Cntl')
-        docstr = docstr.replace('trajectory class', 'control class')
-    # Output
-    return docstr
-
     
 # Class to read input files
 class Cntl(capecntl.Cntl):
-    """
-    Class for handling global options and setup for Cart3D.
+    """Class for handling global options and setup for Cart3D
     
     This class is intended to handle all settings used to describe a group
-    of Cart3D cases.  For situations where it is not sufficiently
-    customized, it can be used partially, e.g., to set up a Mach/alpha sweep
-    for each single control variable setting.
-    
-    The settings are read from a JSON file, which is robust and simple to
-    read, but has the disadvantage that there is no support for comments.
-    Hopefully the various names are descriptive enough not to require
-    explanation.
-    
-    Defaults are read from the file ``$PYCART/settings/pyCart.default.json``.
+    of Cart3D cases. The settings are read from a JSON file.
     
     :Call:
         >>> cntl = cape.pycart.Cntl(fname="pyCart.json")
@@ -131,14 +88,14 @@ class Cntl(capecntl.Cntl):
         *fname*: :class:`str`
             Name of pyCart input file
     :Outputs:
-        *cart3d*: :class:`cape.pycart.cntl.Cntl`
+        *cntl*: :class:`cape.pycart.cntl.Cntl`
             Instance of the pyCart control class
     :Data members:
-        *cart3d.opts*: :class:`dict`
+        *cntl.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *cart3d.x*: :class:`cape.runmatrix.RunMatrix`
+        *cntl.x*: :class:`cape.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
-        *cart3d.RootDir*: :class:`str`
+        *cntl.RootDir*: :class:`str`
             Absolute path to the root directory
     :Versions:
         * 2014-05-28 ``@ddalle``  : First version
@@ -204,7 +161,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
                 Unprocessed keyword arguments
@@ -249,7 +206,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.ReadDataBook(comp=None)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *comp*: {``None``} | :class:`str` | :class:`list`
                 List of components, or read all if ``None``
@@ -281,7 +238,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> R = cntl.ReadReport(rep)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *rep*: :class:`str`
                 Name of report
@@ -354,7 +311,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> pbs = cntl.CaseStartCase()
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
         :Outputs:
             *pbs*: :class:`int` or ``None``
@@ -381,7 +338,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> n = cntl.CaseGetCurrentIter()
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -403,7 +360,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -429,7 +386,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> q = cntl.CheckMesh(i)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -503,7 +460,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> q = cntl.CheckNone(v=False)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *v*: ``True`` | {``False``}
                 Verbose flag; prints message if *q* is ``True``
@@ -598,7 +555,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.PrepareCase(i)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of case to analyze
@@ -692,7 +649,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.PrepareMesh(i)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -817,7 +774,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.PreparePreSpecCntl()
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
         :See Also:
             * :func:`cape.pycart.options.Mesh.Mesh.get_BBox`
@@ -869,7 +826,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.ReadInputCntl()
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
         :Versions:
             * 2015-06-13 ``@ddalle``: First version
@@ -899,7 +856,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.PrepareInputCntl(i)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
             *i*: :class:`int`
                 Run index
@@ -1010,7 +967,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> rho, U, p = cntl.GetSurfBCState(key, i)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
             *key*: :class:`str`
                 Name of key to process
@@ -1056,7 +1013,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> rho, U, p = cntl.GetSurfCTState(key, i)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
             *key*: :class:`str`
                 Name of key to process
@@ -1125,7 +1082,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.SetSurfBC(key, i, CT=False)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
             *key*: :class:`str`
                 Name of key to process
@@ -1192,7 +1149,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.ReadAeroCsh()
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
         :Versions:
             * 2015-10-14 ``@ddalle``: Revived from deletion
@@ -1224,7 +1181,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.PrepareAeroCsh(i)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
             *i*: :class:`int`
                 Run index
@@ -1272,7 +1229,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.WritePBS(i)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index
@@ -1345,7 +1302,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of pyCart control class
             *i*: :class:`int`
                 Run index
@@ -1390,7 +1347,7 @@ class Cntl(capecntl.Cntl):
             
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
-        """Apply settings from *cart3d.opts* to an individual case
+        """Apply settings from *cntl.opts* to an individual case
         
         This rewrites each run namelist file and the :file:`case.json` file in
         the specified directories.  It can also be used to 
@@ -1398,7 +1355,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.ApplyCase(i, nPhase=None)
         :Inputs:
-            *cart3d*: :class:`cape.pyfun.cntl.Cntl`
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 Cart3D control interface
             *i*: :class:`int`
                 Case number
@@ -1470,18 +1427,18 @@ class Cntl(capecntl.Cntl):
         
     # Function to apply settings from a specific JSON file
     def ApplyFlowCartSettings(self, **kw):
-        """Apply settings from *cart3d.opts* to a set of cases
+        """Apply settings from *cntl.opts* to a set of cases
         
         This rewrites the :file:`case.json` file in the specified directories.
         
         :Call:
             >>> cntl.ApplyFlowCartSettings(cons=[])
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2014-12-11 ``@ddalle``: First version
@@ -1504,14 +1461,14 @@ class Cntl(capecntl.Cntl):
         """Create a 3-view of each named or numbered component using TecPlot
         
         This will create a folder called ``subtri/`` in the master directory for
-        this *cart3d* object, and it will contain a triangulation for each named
+        this *cntl* object, and it will contain a triangulation for each named
         component inf :file:`Config.xml` along with a three-view plot of each
         component created using TecPlot if possible.
         
         :Call:
             >>> cntl.ExplodeTri()
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
         :Versions:
             * 2015-01-23 ``@ddalle``: First version
@@ -1549,13 +1506,13 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.UpdatePointSensor(pt=None, cons=[], **kw)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *pt*: :class:`str`
                 Optional name of point sensor group to update
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2016-01-13 ``@ddalle``: First version
@@ -1598,13 +1555,13 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.UpdateLineLoad(ll=None, **kw)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *ll*: :class:`str`
                 Optional name of line load component to update
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
@@ -1653,11 +1610,11 @@ class Cntl(capecntl.Cntl):
             >>> cntl.UntarAdapt()
             >>> cntl.UntarAdapt(cons=[])
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2015-04-12 ``@ddalle``: First version
@@ -1695,11 +1652,11 @@ class Cntl(capecntl.Cntl):
             >>> cntl.TarAdapt()
             >>> cntl.TarAdapt(cons=[])
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2014-11-14 ``@ddalle``: First version
@@ -1738,11 +1695,11 @@ class Cntl(capecntl.Cntl):
             >>> cntl.TarViz()
             >>> cntl.TarViz(cons=[], **kw)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2014-12-18 ``@ddalle``: First version
@@ -1786,11 +1743,11 @@ class Cntl(capecntl.Cntl):
             >>> cntl.ArchiveCases()
             >>> cntl.ArchiveCases(cons=[], **kw)
         :Inputs:
-            *cart3d*: :class:`cape.pycart.cntl.Cntl`
+            *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of indices
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
             * 2015-01-11 ``@ddalle``: First version

@@ -19,21 +19,22 @@ loaded using the following commands.
         'poweroff/m1.5a0.0b0.0'
 
 
-An instance of this :class:`cape.pyus.us3d.US3D` class has many methods, which
-include the run matrix (``cntl.x``), the options interface (``cntl.opts``),
-and optionally the data book (``cntl.DataBook``), the appropriate input files
-(such as ``cntl.InputInp``), and possibly others.
+An instance of this :class:`cape.pyus.cntl.Cntl` class has many
+attributes, which include the run matrix (``cntl.x``), the options
+interface (``cntl.opts``), and optionally the data book
+(``cntl.DataBook``), the appropriate input files (such as
+``cntl.InputInp``), and possibly others.
 
     ====================   =============================================
     Attribute              Class
     ====================   =============================================
-    *cntl.x*               :class:`cape.pyus.runmatrix.RunMatrix`
+    *cntl.x*               :class:`cape.pyus.RunMatrix`
     *cntl.opts*            :class:`cape.pyus.options.Options`
     *cntl.DataBook*        :class:`cape.pyus.dataBook.DataBook`
     *cntl.InputInp*        :class:`cape.pyus.inputInp.InputInp`
     ====================   =============================================
 
-Finally, the :class:`pyUs.us3d.US3D` class is subclassed from the
+Finally, the :class:`cape.pyus.cntl.Cntl` class is subclassed from the
 :class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
 also available here.
 

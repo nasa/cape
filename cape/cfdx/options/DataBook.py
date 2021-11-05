@@ -255,7 +255,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *targs*: :class:`list` (:class:`str`)
+            *targs*: :class:`list`\ [:class:`str`]
                 List of targets for that component
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
@@ -284,7 +284,7 @@ class DataBook(odict):
             *name*: :class:`str`
                 Name of data book group
         :Outputs:
-            *pts*: :class:`list` (:class:`str`)
+            *pts*: :class:`list`\ [:class:`str`]
                 List of points (by name) in the group
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
@@ -631,7 +631,7 @@ class DataBook(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *key*: :class:`str` | ``None`` | :class:`list` (:class:`str`)
+            *key*: :class:`str` | ``None`` | :class:`list`\ [:class:`str`]
                 Name of key to sort with
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
@@ -647,7 +647,7 @@ class DataBook(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *key*: :class:`str` | ``None`` | :class:`list` (:class:`str`)
+            *key*: :class:`str` | ``None`` | :class:`list`\ [:class:`str`]
                 Name of key to sort with
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
@@ -921,7 +921,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Data book component name
         :Outputs:
-            *tols*: :class:`dict` (:class:`float`)
+            *tols*: :class:`dict`\ [:class:`float`]
                 Dict of relative and absolute tolerances for CompID mapping
         :Versions:
             * 2017-04-07 ``@ddalle``: First version
@@ -1008,7 +1008,7 @@ class DataBook(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *targets*: :class:`dict` (:class:`dict`)
+            *targets*: :class:`dict`\ [:class:`dict`]
                 Dictionary of targets
         :Versions:
             * 2014-12-20 ``@ddalle``: First version
@@ -1109,7 +1109,7 @@ class DataBook(odict):
             *typ*: ``"Force"`` | ``"FM"`` | ``"LineLoad"`` | :class:`str`
                 Data book type
         :Outputs:
-            *comps*: :class:`list` (:class:`str`)
+            *comps*: :class:`list`\ [:class:`str`]
                 List of data book components with ``"Type"`` matching *typ*
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
@@ -1235,7 +1235,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *coeffs*: :class:`list` (:class:`str`)
+            *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients for that component
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
@@ -1354,7 +1354,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of data book component
         :Outputs:
-            *fcols*: :class:`list` (:class:`str`)
+            *fcols*: :class:`list`\ [:class:`str`]
                 List of additional float columns
         :Versions:
             * 2016-03-15 ``@ddalle``: First version
@@ -1388,7 +1388,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of data book component
         :Outputs:
-            *fcols*: :class:`list` (:class:`str`)
+            *fcols*: :class:`list`\ [:class:`str`]
                 List of additional float columns
         :Versions:
             * 2016-03-15 ``@ddalle``: First version
@@ -1431,7 +1431,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *cols*: :class:`list` (:class:`str`)
+            *cols*: :class:`list`\ [:class:`str`]
                 List of coefficients and other columns for that coefficient
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
@@ -1456,7 +1456,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *cols*: :class:`list` (:class:`str`)
+            *cols*: :class:`list`\ [:class:`str`]
                 List of coefficients and other columns for that coefficient
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
@@ -1488,7 +1488,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *cols*: :class:`list` (:class:`str`)
+            *cols*: :class:`list`\ [:class:`str`]
                 List of coefficient target values
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
@@ -1524,7 +1524,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of data book component
         :Outputs:
-            *pts*: :class:`list` (:class:`str`)
+            *pts*: :class:`list`\ [:class:`str`]
                 List of subcomponents
         :Versions:
             * 2015-12-14 ``@ddalle``: First version
@@ -1561,7 +1561,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *tlist*: :class:`list` (:class:`dict`)
+            *tlist*: :class:`list`\ [:class:`dict`]
                 List of targets for that component
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
@@ -1646,7 +1646,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component file
         :Outputs:
-            *fpatches*: :class:`list` (:class:`str`)
+            *fpatches*: :class:`list`\ [:class:`str`]
                 List of names of patches, if any
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
@@ -1810,7 +1810,7 @@ class DataBook(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *comps*: :class:`list` (:class:`str` | :class:`int`)
+            *comps*: :class:`list`\ [:class:`str` | :class:`int`]
                 List of components (names or numbers) to plot
         :Versions:
             * 2014-11-22 ``@ddalle``: First version
@@ -1836,7 +1836,7 @@ class DataBook(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *comps*: :class:`list` (:class:`str` | :class:`int`)
+            *comps*: :class:`list`\ [:class:`str` | :class:`int`]
                 List of components (names or numbers) to plot
         :Versions:
             * 2014-11-22 ``@ddalle``: First version
@@ -1860,7 +1860,7 @@ class DataBook(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *comps*: :class:`list` (:class:`str` | :class:`int`)
+            *comps*: :class:`list`\ [:class:`str` | :class:`int`]
                 List of components (names or numbers) to plot
         :Versions:
             * 2014-11-23 ``@ddalle``: First version
@@ -1896,7 +1896,7 @@ class DataBook(odict):
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
         :Outputs:
-            *coeffs*: :class:`list` (:class:`str`)
+            *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients to plot
         :Versions:
             * 2014-11-22 ``@ddalle``: First version
@@ -2252,7 +2252,7 @@ class DBTarget(odict):
             *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
-            *comps*: :class:`list` (:class:`str`)
+            *comps*: :class:`list`\ [:class:`str`]
                 List of components (``None`` if not specified)
         :Versions:
             * 2015-06-03 ``@ddalle``: First version

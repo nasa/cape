@@ -62,7 +62,7 @@ class PreSpecCntl(FileCntl):
                 Instance of the :file:`preSpec.c3d.cntl` interface
             *n*: :class:`int`
                 Number of refinements to use in the box
-            *xlim*: :class:`numpy.ndarray` or :class:`list` (:class:`float`)
+            *xlim*: :class:`numpy.ndarray` or :class:`list`\ [:class:`float`]
                 List of *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, *zmax*
         :Effects:
             Adds a bounding box line to the existing boxes
@@ -103,7 +103,7 @@ class PreSpecCntl(FileCntl):
                 Instance of the :file:`preSpec.c3d.cntl` interface
             *n*: :class:`int`
                 Number of refinements to use in the box
-            *compID*: :class:`int` | :class:`list` (:class:`int`)
+            *compID*: :class:`int` | :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
             * 2014-10-08 ``@ddalle``: First version

@@ -21,7 +21,7 @@ class Functional(odict):
             *fn*: :class:`str`
                 Function name
         :Outputs:
-            *coeffs*: :class:`list` (:class:`str`)
+            *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients
         :Versions:
             * 2016-04-24 ``@ddalle``: First version
@@ -71,7 +71,7 @@ class Functional(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fns*: :class:`list` (:class:`str`)
+            *fns*: :class:`list`\ [:class:`str`]
                 List of objective functions 
         :Versions:
             * 2016-04-25 ``@ddalle``: First version
@@ -100,7 +100,7 @@ class Functional(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fns*: :class:`list` (:class:`str`)
+            *fns*: :class:`list`\ [:class:`str`]
                 List of adaptive output functions
         :Versions:
             * 2016-04-26 ``@ddalle``: First version
@@ -129,7 +129,7 @@ class Functional(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *fns*: :class:`list` (:class:`str`)
+            *fns*: :class:`list`\ [:class:`str`]
                 List of adaptive output functions
         :Versions:
             * 2016-04-27 ``@ddalle``: First version

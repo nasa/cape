@@ -189,7 +189,7 @@ class DBPointSensorGroup(cape.cfdx.pointSensor.DBPointSensorGroup):
             Options interface
         *name*: :class:`str` | ``None``
             Name of data book item (defaults to *pt*)
-        *pts*: :class:`list` (:class:`str`) | ``None``
+        *pts*: :class:`list`\ [:class:`str`] | ``None``
             List of points to read, by default all points in the group
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
@@ -785,7 +785,7 @@ class CasePointSensor(cape.cfdx.dataBook.CaseData):
             *nLast*: :class:`int` | ``None``
                 If specified, maximum iteration to use
         :Outputs:
-            *s*: :class:`dict` (:class:`float`)
+            *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for each variable
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
@@ -1039,12 +1039,12 @@ class PointSensor(object):
     :Inputs:
         *fname*: :class:`str`
             Name of Cart3D output point sensors file
-        *data*: :class:`np.ndarray` (:class:`float`)
+        *data*: :class:`np.ndarray`\ [:class:`float`]
             Data array with either 9 (2-D) or 11 (3-D) columns
     :Outputs:
         *PS*: :class:`pyCart.pointSensor.PointSensor`
             Point sensor
-        *PS.data*: :class:`np.ndarray` (:class:`float`)
+        *PS.data*: :class:`np.ndarray`\ [:class:`float`]
             Data array with either 9 (2-D) or 11 (3-D) columns
         *PS.nd*: ``2`` | ``3``
             Number of dimensions of the data
