@@ -10,6 +10,7 @@ writes the main XML file that sets the main inputs for Kestrel jobs.
 """
 
 # Standard library
+import ast
 import re
 import sys
 
@@ -523,7 +524,7 @@ class JobXML(xmlfile.XMLFile):
         # Weird case, hex?
         if re.match("0x[0-9A-Fa-f]+$", txt):
             # Convert hex literal to int
-            return eval(txt)
+            return asl.literal_eval(txt)
         else:
             # Unable to convert; use string
             return txt
