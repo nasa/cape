@@ -217,11 +217,13 @@ class Options(odict):
         # Get the rerun status.
         PBS_r = self.get_PBS_r(j, typ=typ)
         # Write if specified.
-        if PBS_r: f.write('#PBS -r %s\n' % PBS_r)
+        if PBS_r:
+            f.write('#PBS -r %s\n' % PBS_r)
         # Get the option for combining STDIO/STDOUT
         PBS_j = self.get_PBS_j(j, typ=typ)
         # Write if specified.
-        if PBS_j: f.write('#PBS -j %s\n' % PBS_j)
+        if PBS_j:
+            f.write('#PBS -j %s\n' % PBS_j)
         # Get the number of nodes, etc.
         nnode = self.get_PBS_select(j, typ=typ)
         ncpus = self.get_PBS_ncpus(j, typ=typ)
