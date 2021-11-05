@@ -1326,7 +1326,7 @@ class Cntl(object):
             return
         # Safely go to the folder
         os.chdir(frun)
-        # Print status.
+        # Print status
         print("     Starting case '%s'" % frun)
         # Start the case by either submitting or calling it.
         pbs = self.CaseStartCase()

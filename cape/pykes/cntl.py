@@ -94,6 +94,14 @@ class Cntl(ccntl.Cntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
     """
+  # =================
+  # Class Attributes
+  # =================
+  # <
+    # Case module
+    _case_mod = case
+  # >
+
   # ======
   # Config
   # ======
@@ -505,6 +513,27 @@ class Cntl(ccntl.Cntl):
                 else:
                     # Use CAPE-provided script
                     fp.write('run_kestrel.py' + flgs + '\n')
+
+    # Call the correct :mod:`case` module to start a case
+    def CaseStartCase(self):
+        r"""Start a case by either submitting it or running it
+
+        This function relies on :mod:`cape.pycart.case`, and so it is
+        customized for the Cart3D solver only in that it calls the
+        correct *case* module.
+
+        :Call:
+            >>> pbs = cntl.CaseStartCase()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Main CAPE control instance
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                PBS job ID if submitted successfully
+        :Versions:
+            * 2021-11-05 ``@ddalle``: Version 1.0
+        """
+        return case.start_case()
   # >
 
   # ===============
@@ -585,7 +614,10 @@ class Cntl(ccntl.Cntl):
             rc = None
         else:
             # Read the file
-            rc = case.ReadCaseJSON()
+            try:
+                rc = case.read_case_json()
+            except ValueError:
+                rc = None
         # Output
         return rc
   # >
