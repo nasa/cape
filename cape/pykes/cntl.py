@@ -390,6 +390,8 @@ class Cntl(ccntl.Cntl):
         job_name = self.get_job_name(i)
         # Get run matrix
         x = self.x
+        # (Re)read XML
+        self.ReadJobXML()
         # Get XML file instance
         xml = self.JobXML
         # Enforce main job name
