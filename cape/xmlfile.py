@@ -20,7 +20,9 @@ through multiple levels of elements and subelements.
 import copy
 import os
 import sys
-import xml.etree.ElementTree as ET
+
+# Third-party
+import defusedxml.ElementTree as ET
 
 
 # Faulty *unicode* type for Python 3
