@@ -297,7 +297,7 @@ class Cntl(ccntl.Cntl):
             *rep*: :class:`str`
                 Name of report
         :Outputs:
-            *R*: :class:`pyFun.report.Report`
+            *R*: :class:`Report`
                 Report interface
         :Versions:
             * 2018-10-19 ``@ddalle``: Version 1.0
@@ -595,6 +595,29 @@ class Cntl(ccntl.Cntl):
   # Case Interface
   # ===============
   # <
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentIter(self):
+        r"""Get current iteration number from case in current folder
+
+        :Call:
+            >>> n = cntl.CaseGetCurrentIter()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Instance of main CAPE control class
+        :Outputs:
+            *n*: ``None`` | :class:`int`
+                Number of completed iters or ``None`` if not set up
+        :Versions:
+            * 2021-11-05 ``@ddalle``: Version 1.0
+        """
+        # Read value
+        n = case.get_current_iter()
+        # Default to zero.
+        if n is None:
+            return 0
+        else:
+            return n
+
     # Check if mesh is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared

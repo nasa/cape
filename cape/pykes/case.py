@@ -104,6 +104,9 @@ def run_kestrel():
     run_phase(rc, j)
     # Clean up files
     finalize_files(rc, j)
+    # Remove the RUNNING file
+    if os.path.isfile("RUNNING"):
+        os.remove("RUNNING")
 
 
 def run_phase(rc, j):

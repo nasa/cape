@@ -220,7 +220,7 @@ def RunPhase(rc, i):
             if rc.get_Dual():
                 os.chdir('..')
             # Create an output file to make phase number programs work
-            os.system('touch run.%02i.%i' % (i, n))
+            open("run.%02i.%i" % (i, n), 'w').close()
             return
     # Prepare for restart if that's appropriate.
     SetRestartIter(rc)
