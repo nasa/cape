@@ -2897,24 +2897,22 @@ class Cntl(object):
             * 2015-10-19 ``@ddalle``: Version 1.0
             * 2013-03-31 ``@ddalle``: Version 2.0, manual options input
         """
-        # Get the case name.
+        # Get the case name
         frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
+        # Check if it exists
         if not os.path.isdir(frun):
             return
-        # Go to the folder.
+        # Go to the folder
         os.chdir(frun)
-        # Write folder.
-        f = open('case.json', 'w')
-        # Dump the Overflow and other run settings.
-        if rc is None:
-            # Write settings from the present options
-            json.dump(self.opts['RunControl'], f, indent=1)
-        else:
-            # Write the settings given as input
-            json.dump(rc, f, indent=1)
-        # Close the file.
-        f.close()
+        # Write file
+        with open("case.json", 'w') as fp:
+            # Dump the run settings
+            if rc is None:
+                # Write settings from the present options
+                json.dump(self.opts["RunControl"], fp, indent=1)
+            else:
+                # Write the settings given as input
+                json.dump(rc, fp, indent=1)
 
     # Read run control options from case JSON file
     @run_rootdir

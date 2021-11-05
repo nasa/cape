@@ -285,7 +285,7 @@ class Cntl(ccntl.Cntl):
         # Check case
         n = self.CheckCase(i)
         # Quit if already prepared
-        if f is not None:
+        if n is not None:
             return
         # Run any case functions
         self.CaseFunction(i)
@@ -588,40 +588,6 @@ class Cntl(ccntl.Cntl):
             rc = case.ReadCaseJSON()
         # Output
         return rc
-
-    # Write run control options to JSON file
-    @ccntl.run_rootdir
-    def WriteCaseJSON(self, i, rc=None):
-        r"""Write JSON file with run control for case *i*
-        
-        :Call:
-            >>> cntl.WriteCaseJSON(i, rc=None)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-            *rc*: {``None``} | :class:`RunControl`
-                Prespecified "RunControl" options
-        :Versions:
-            * 2021-10-26 ``@ddalle``: Version 1.0
-        """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists
-        if not os.path.isdir(frun):
-            return
-        # Go to the folder
-        os.chdir(frun)
-        # Write file
-        with open("case.json", "w") as fp:
-            # Dump the Overflow and other run settings.
-            if rc is None:
-                # Write settings from the present options
-                json.dump(self.opts["RunControl"], fp, indent=1)
-            else:
-                # Write the settings given as input
-                json.dump(rc, fp, indent=1)
   # >
 
   # ========

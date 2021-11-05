@@ -1195,49 +1195,6 @@ class Cntl(capecntl.Cntl):
         # Call the general function using hard-coded file name
         return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
         
-    # Write run control options to JSON file
-    def WriteCaseJSON(self, i, rc=None):
-        r"""Write JSON file with run control for case *i*
-        
-        :Call:
-            >>> cntl.WriteCaseJSON(i, rc=None)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-            *rc*: {``None``} | :class:`RunControl`
-                If specified, write specified "RunControl" options
-        :Versions:
-            * 2015-10-19 ``@ddalle``: Version 1.0
-            * 2016-12-14 ``@ddalle``: Version 1.1; *rc* input
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Write folder.
-        f = open('case.json', 'w')
-        # Dump the Overflow and other run settings.
-        if rc is None:
-            # Write settings from the present options
-            json.dump(self.opts['RunControl'], f, indent=1)
-        else:
-            # Write the settings given as input
-            json.dump(rc, f, indent=1)
-        # Close the file.
-        f.close()
-        # Return to original location
-        os.chdir(fpwd)
-        
     # Read run control options from case JSON file
     def ReadCaseJSON(self, i):
         r"""Read ``case.json`` file from case *i* if possible
