@@ -91,7 +91,7 @@ class XMLFile(object):
             e = copy.deepcopy(arg0.tree)
             # Copy any file name
             self.fname = arg0.fname
-        elif isinstance(arg0, str):
+        elif isinstance(arg0, (str, unicode)):
             # Check if it looks like an XML file
             if arg0.lstrip().startswith("<"):
                 # Looks like an XML file
