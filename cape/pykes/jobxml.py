@@ -521,7 +521,7 @@ class JobXML(xmlfile.XMLFile):
         except ValueError:
             pass
         # Weird case, hex?
-        if re.fullmatch("0x[0-9A-Fa-f]+", txt):
+        if re.match("0x[0-9A-Fa-f]+$", txt):
             # Convert hex literal to int
             return eval(txt)
         else:
