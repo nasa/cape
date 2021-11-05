@@ -749,11 +749,11 @@ class odict(dict):
         return opts
 
     # Generic subsection
-    def init_section(self, cls, sec=None, parent=None):
+    def init_section(self, cls, sec=None, parent=None, prefix=None):
         r"""Initialize a generic section
 
         :Call:
-            >>> opts.init_section(cls, sec=None, parent=None)
+            >>> opts.init_section(cls, sec=None, **kw)
         :Inputs:
             *opts*: :class:`odict`
                 Options interface
@@ -763,6 +763,8 @@ class odict(dict):
                 Specific key name to use for subsection
             *parent*: {``None``} | :class:`str`
                 Other subsection from which to inherit defaults
+            *prefix*: {``None``} | :class:`str`
+                Prefix to add at beginning of each key
         :Versions:
             * 2021-10-18 ``@ddalle``: Version 1.0
         """
@@ -782,7 +784,17 @@ class odict(dict):
             pass
         elif isinstance(v, dict):
             # Convert :class:`dict` to special class
-            self[sec] = cls(**v)
+            if prefix is None:
+                # Transfer keys into new class
+                self[sec] = cls(**v)
+            else:
+                # Create dict with prefixed key names
+                tmp = {
+                    prefix + k: vk
+                    for k, vk in v.items()
+                }
+                # Convert *tmp* instead of *v*
+                self[sec] = cls(**tmp)
         else:
             # Got something other than a mapping
             print("  Warning: could not convert options section '%s'," % sec)
