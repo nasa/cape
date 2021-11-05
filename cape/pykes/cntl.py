@@ -436,7 +436,7 @@ class Cntl(ccntl.Cntl):
                 # Set item
                 xml.set_section_item(**xmlitem)
             # Name of output file
-            fxml = os.path.join(frun, "%s.%02i.xml" % (proj, j))
+            fxml = os.path.join(frun, "kestrel.%02i.xml" % j)
             # Write it
             xml.write(fxml)
 

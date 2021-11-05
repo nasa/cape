@@ -219,7 +219,7 @@ def prepare_files(rc, j=None):
         j = get_phase(rc)
     # XML file names
     fxml0 = XML_FILE
-    fxmlj = XML_FILE_TMPLATE % j
+    fxmlj = XML_FILE_TEMPLATE % j
     # Check for "kestrel.xml" file
     if os.path.isfile(fxml0) or os.path.islink(fxml0):
         os.remove(fxml0)
@@ -454,6 +454,6 @@ def write_starttime(tic, rc, j, fname="pykes_start.dat"):
         * 2021-10-21 ``@ddalle``: Version 1.0
     """
     # Call the function from :mod:`cape.cfdx.case`
-    cc.WriteStartTimeProg(tic, rc, i, fname, "run_kestrel.py")
+    cc.WriteStartTimeProg(tic, rc, j, fname, "run_kestrel.py")
 
 
