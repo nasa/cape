@@ -61,6 +61,13 @@ class JobXML(xmlfile.XMLFile):
         * 2021-10-18 ``@ddalle``: Version 0.0: Started
     """
    # --- __dunder__ ---
+   # --- Overall ---
+    def get_job_name(self):
+        return self.get_input("JobName")
+
+    def set_job_name(self, job_name):
+        return self.set_input("JobName", job_name)
+
    # --- Specific values: get ---
     def get_mach(self):
         return self.get_input("Mach")

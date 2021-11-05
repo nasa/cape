@@ -16,6 +16,7 @@ created by :mod:`cape.pykes`.
 # Standard library
 import glob
 import os
+import shutil
 import sys
 
 # Third-party
@@ -62,6 +63,7 @@ runs it.
 XML_FILE = "kestrel.xml"
 XML_FILE_GLOB = "kestrel.[0-9]*.xml"
 XML_FILE_TEMPLATE = "kestrel.%02i.xml"
+LOG_FILE = os.path.join("log", "perIteration.log")
 
 
 # --- Execution ----
@@ -95,7 +97,10 @@ def run_kestrel():
     prepare_files(rc, j)
     # Prepare environment
     cc.PrepareEnvironment(rc, j)
-    # 
+    # Run appropriate commands
+    run_phase(rc, j)
+    # Clean up files
+    finalize_files(rc, j)
 
 
 def run_phase(rc, j):
@@ -112,6 +117,36 @@ def run_phase(rc, j):
         * 2021-11-02 ``@ddalle``: Version 1.0
     """
     pass
+
+
+def start_case():
+    r"""Start a case by either submitting it or calling locally
+    
+    :Call:
+        >>> start_case()
+    :Versions:
+        * 2021-11-05 ``@ddalle``: Version 1.0
+    """
+    # Get the config
+    rc = read_case_json()
+    # Determine the run index.
+    i = get_phase(rc)
+    # Check qsub status.
+    if rc.get_sbatch(i):
+        # Get the name of the PBS file
+        fpbs = get_pbsscript(i)
+        # Submit the Slurm case
+        pbs = queue.psbatch(fpbs)
+        return pbs
+    elif rc.get_qsub(i):
+        # Get the name of the PBS file.
+        fpbs = get_pbsscript(i)
+        # Submit the case.
+        pbs = queue.pqsub(fpbs)
+        return pbs
+    else:
+        # Simply run the case. Don't reset modules either.
+        run_kestrel()
 
 
 # --- File management ---
@@ -142,6 +177,43 @@ def prepare_files(rc, j=None):
         raise OSError("Couldn't find file '%s'" % fxmlj)
     # Link "kestrel.02.xml" to "kestrel.xml", for example
     os.symlink(fxmlj, fxml0)
+
+
+def finalize_files(rc, j=None):
+    r"""Clean up files after running one cycle of phase *j*
+    
+    :Call:
+        >>> finalize_files(rc, j=None)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+        *j*: {``None``} | :class:`int`
+            Phase number
+    :Versions:
+        * 2021-11-05 ``@ddalle``: Version 1.0
+    """
+    # Get phase number if necessary
+    if j is None:
+        # Get locally
+        j = get_phase(rc)
+    # Read XML file
+    xml = read_xml(rc, j)
+    # Get the project name
+    jobname = xml.get_job_name()
+    # Get the last iteration number
+    n = get_current_iter()
+    # Don't use ``None`` for this
+    if n is None:
+        n = 0
+    # Name of history file
+    fhist = "run.%02i.%i" % (j, n)
+    # Assuming that worked, move the temp output file.
+    if os.path.isfile(LOG_FILE):
+        # Copy the file
+        shutil.copy(LOG_FILE, fhist)
+    else:
+        # Create an empty file
+        open(fhist, 'w').close()
 
 
 # --- STATUS functions ---
@@ -189,6 +261,14 @@ def get_phase(rc):
     # Case completed; just return the last phase
     return j
 
+
+def get_current_inter():
+    # Check if log file exists
+    if not os.path.isfile(LOG_FILE):
+        return None
+    # Otherwise open file to read last line
+    #with open(LOG_FILE, 'r') as fp:
+        
 
 
 # --- Case settings ---
@@ -242,6 +322,40 @@ def read_xml(rc=None, j=None):
             return JobXML(xmlglob[-1])
     # Get specified version
     return JobXML(XML_FILE_TMPLATE % j)
+
+
+# Function to determine which PBS script to call
+def get_pbsscript(j=None):
+    r"""Determine the file name of the PBS script to call
+
+    This is a compatibility function for cases that do or do not have
+    multiple PBS scripts in a single run directory
+
+    :Call:
+        >>> fpbs = get_pbsscript(j=None)
+    :Inputs:
+        *j*: {``None``} | :class:`int`
+            Phase number
+    :Outputs:
+        *fpbs*: :class:`str`
+            Name of PBS script to call
+    :Versions:
+        * 2021-11-05 ``@ddalle``: Version 1.0
+    """
+    # Form the full file name, e.g. run_cart3d.00.pbs
+    if j is not None:
+        # Create the name.
+        fpbs = "run_kestrel.%02i.pbs" % j
+        # Check for the file.
+        if os.path.isfile(fpbs):
+            # This is the preferred option if it exists.
+            return fpbs
+        else:
+            # File not found; use basic file name
+            return "run_kestrel.pbs"
+    else:
+        # Do not search for numbered PBS script if *i* is None
+        return "run_kestrel.pbs"
 
 
 # --- Timers ---

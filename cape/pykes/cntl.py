@@ -154,6 +154,43 @@ class Cntl(ccntl.Cntl):
             self.x.nCase)
   # >
 
+  # ==================
+  # Overall Settings
+  # ==================
+  # <
+    # Job name
+    def get_job_name(self, j=0):
+        r"""Get "job name" for phase *j*
+
+        :Call:
+            >>> name = cntl.get_job_name(j=0)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Instance of main CAPE control class
+            *j*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *name*: :class:`str`
+                Job name for phase *j*
+        :Versions:
+            * 2021-1-05 ``@ddalle``: Version 1.0
+        """
+        # Get default
+        name = self.opts.get_ProjectName(j)
+        # Use *opts* as primary
+        if name is not None:
+            return name
+        # Read XML template
+        self.ReadJobXML(j, False)
+        # Get XML setting
+        name = self.JobXML0.get_job_name()
+        # Check if found
+        if name is None:
+            return "pykes"
+        else:
+            return name
+  # >
+
   # =======================
   # Command-Line Interface
   # =======================
@@ -349,10 +386,14 @@ class Cntl(ccntl.Cntl):
         :Versions:
             * 2021-10-26 ``@ddalle``: Version 1.0
         """
+        # Get job name
+        job_name = self.get_job_name(i)
         # Get run matrix
         x = self.x
         # Get XML file instance
         xml = self.JobXML
+        # Enforce main job name
+        xml.set_job_name(job_name)
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
         # Exit if not folder
