@@ -94,6 +94,14 @@ class Cntl(ccntl.Cntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
     """
+  # =================
+  # Class Attributes
+  # =================
+  # <
+    # Case module
+    _case_mod = case
+  # >
+
   # ======
   # Config
   # ======
@@ -285,7 +293,7 @@ class Cntl(ccntl.Cntl):
         # Check case
         n = self.CheckCase(i)
         # Quit if already prepared
-        if f is not None:
+        if n is not None:
             return
         # Run any case functions
         self.CaseFunction(i)
@@ -505,6 +513,27 @@ class Cntl(ccntl.Cntl):
                 else:
                     # Use CAPE-provided script
                     fp.write('run_kestrel.py' + flgs + '\n')
+
+    # Call the correct :mod:`case` module to start a case
+    def CaseStartCase(self):
+        r"""Start a case by either submitting it or running it
+
+        This function relies on :mod:`cape.pycart.case`, and so it is
+        customized for the Cart3D solver only in that it calls the
+        correct *case* module.
+
+        :Call:
+            >>> pbs = cntl.CaseStartCase()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Main CAPE control instance
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                PBS job ID if submitted successfully
+        :Versions:
+            * 2021-11-05 ``@ddalle``: Version 1.0
+        """
+        return case.start_case()
   # >
 
   # ===============
@@ -585,43 +614,12 @@ class Cntl(ccntl.Cntl):
             rc = None
         else:
             # Read the file
-            rc = case.ReadCaseJSON()
+            try:
+                rc = case.read_case_json()
+            except ValueError:
+                rc = None
         # Output
         return rc
-
-    # Write run control options to JSON file
-    @ccntl.run_rootdir
-    def WriteCaseJSON(self, i, rc=None):
-        r"""Write JSON file with run control for case *i*
-        
-        :Call:
-            >>> cntl.WriteCaseJSON(i, rc=None)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-            *rc*: {``None``} | :class:`RunControl`
-                Prespecified "RunControl" options
-        :Versions:
-            * 2021-10-26 ``@ddalle``: Version 1.0
-        """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists
-        if not os.path.isdir(frun):
-            return
-        # Go to the folder
-        os.chdir(frun)
-        # Write file
-        with open("case.json", "w") as fp:
-            # Dump the Overflow and other run settings.
-            if rc is None:
-                # Write settings from the present options
-                json.dump(self.opts["RunControl"], fp, indent=1)
-            else:
-                # Write the settings given as input
-                json.dump(rc, fp, indent=1)
   # >
 
   # ========
