@@ -423,8 +423,8 @@ class Cntl(ccntl.Cntl):
         if t is not None:
             xml.set_temperature(t)
         # Find all *Path* and *File* elements
-        elems1 = self.JobXML0.findall_iter("Path")
-        elems2 = self.JobXML0.findall_iter("File")
+        elems1 = xml.findall_iter("Path")
+        elems2 = xml.findall_iter("File")
         # Remove paths from file names
         for elem in elems1 + elems2:
             # Get file name
