@@ -47,9 +47,9 @@ import shutil
 import numpy as np
 
 # Local imports
+from . import case
 from . import options
 #from . import manage
-from . import case
 #from . import dataBook
 from .jobxml   import JobXML
 from .. import cntl as ccntl
