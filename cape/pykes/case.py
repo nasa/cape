@@ -27,8 +27,10 @@ from . import cmdgen
 from .. import argread
 from .. import text as textutils
 from .jobxml import JobXML
+from ..cfdx import bin
 from ..cfdx import case as cc
 from ..cfdx import queue
+from ..tnakit import fileutils
 from .options.runcontrol import RunControl
 
 
@@ -64,6 +66,7 @@ XML_FILE = "kestrel.xml"
 XML_FILE_GLOB = "kestrel.[0-9]*.xml"
 XML_FILE_TEMPLATE = "kestrel.%02i.xml"
 LOG_FILE = os.path.join("log", "perIteration.log")
+STDOUT_FILE = "kestrel.out"
 
 
 # --- Execution ----
@@ -116,7 +119,55 @@ def run_phase(rc, j):
     :Versions:
         * 2021-11-02 ``@ddalle``: Version 1.0
     """
-    pass
+    # Count number of times this phase has been run previously.
+    nprev = len(glob.glob("run.%02i.*" % j))
+    # Read XML file
+    xml = read_xml(rc, j)
+    # Get job name
+    job_name = xml.get_job_name()
+    # Get the last iteration number
+    n = get_current_iter()
+    # Number of requested iters for the end of this phase
+    nj = rc.get_PhaseIters(j)
+    # Mesh generation and verification status
+    if j == 0 and n is None:
+        # Run *intersect* and *verify*
+        cc.CaseIntersect(rc, job_name, n)
+        cc.CaseVerify(rc, job_name, n)
+        # Create volume mesh if necessary
+        cc.CaseAFLR3(rc, proj=job_name, n=n)
+        # Check for mesh-only phase
+        if nj is None:
+            # Create an output file to indicate completion
+            open("run.00.0", 'w').close()
+            return
+    # Prepare for restart if that's appropriate
+    set_restart_iter(rc)
+    # Save initial iteration number, but replacing ``None``
+    if n is None:
+        n0 = 0
+    else:
+        n0 = n
+    # Check if we should run this phase
+    if nprev == 0 or n0 < nj:
+        # Get the ``csi`` command
+        cmdi = cmdgen.csi(rc, j)
+        # Run the command
+        bin.callf(cmdi, f="kestrel.out")
+        # Check new iteration number
+        n1 = get_current_iter()
+        # Check for lack of progress
+        if n1 <= n0:
+            raise SystemError(
+                "Running phase %i did not advance iteration count" % j)
+    else:
+        # No new iterations
+        n1 = n0
+    # Check if last phase
+    if j >= rc.get_PhaseSequence(-1):
+        # Check iteration number
+        if n1 >= rc.get_LastIter():
+            return
 
 
 def start_case():
@@ -208,12 +259,16 @@ def finalize_files(rc, j=None):
     # Name of history file
     fhist = "run.%02i.%i" % (j, n)
     # Assuming that worked, move the temp output file.
-    if os.path.isfile(LOG_FILE):
+    if os.path.isfile(STDOUT_FILE):
         # Copy the file
-        shutil.copy(LOG_FILE, fhist)
+        shutil.copy(STDOUT_FILE, fhist)
     else:
         # Create an empty file
         open(fhist, 'w').close()
+
+
+def set_restart_iter(rc):
+    pass
 
 
 # --- STATUS functions ---
@@ -262,13 +317,35 @@ def get_phase(rc):
     return j
 
 
-def get_current_inter():
+def get_current_iter():
+    r"""Get the most recent iteration number
+
+    :Call:
+        >>> n = get_current_iter()
+    :Outputs:
+        *n*: :class:`int` | ``None``
+            Last iteration number
+    :Versions:
+        * 2021-11-05 ``@ddalle``: Version 1.0
+    """
     # Check if log file exists
     if not os.path.isfile(LOG_FILE):
         return None
     # Otherwise open file to read last line
-    #with open(LOG_FILE, 'r') as fp:
-        
+    lines = fileutils.tail(LOG_FILE, n=1)
+    # Attempt to unpack it
+    if len(lines) == 0:
+        # File exists but is empty
+        return 0
+    # Unpack singleton list of lines
+    line, = lines
+    # Trey to get iteration number
+    try:
+        # First entry should be iteration number
+        return int(line.split()[0])
+    except ValueError:
+        # Some other tailing line; probably no iterations yet
+        return 0
 
 
 # --- Case settings ---

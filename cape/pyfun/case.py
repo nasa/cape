@@ -741,7 +741,7 @@ def GetCurrentIter():
             Last iteration number
     :Versions:
         * 2015-10-19 ``@ddalle``: Version 1.0
-        * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
+        * 2016-04-28 ``@ddalle``: Version 1.1; ``Flow/`` folder
     """
     # Read the two sources
     nh, ns = GetHistoryIter()
