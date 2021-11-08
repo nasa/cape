@@ -9473,6 +9473,9 @@ class CaseResid(object):
         if n is None:
             # Use all iterations
             n = self.i[-1]
+        # Default *nFirst*
+        if nFirst is None:
+            nFirst = 1
         # Process other options
         fw = kw.get('FigWidth')
         fh = kw.get('FigHeight')
