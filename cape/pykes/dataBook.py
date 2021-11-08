@@ -9,10 +9,11 @@ outputs tracked by the :mod:`cape` package.
 """
 
 # Standard library
-
+import os
+import re
 
 # Third-party imports
-
+import numpy as np
 
 # Local imports
 from ..cfdx import dataBook as cdbook
@@ -61,13 +62,13 @@ class CaseFM(cdbook.CaseFM):
         """
         # Save inputs
         self.comp = comp
+        # File name to read
+        fdat = self.create_fname_coeff_dat()
         # Initialize attributes
         self.init_data()
         # Check for empty input
         if not comp:
             return
-        # File name to read
-        fdat = self.genr8_fname_coeff_dat()
         # Check if file exists
         if not os.path.isfile(fdat):
             return
@@ -118,7 +119,7 @@ class CaseFM(cdbook.CaseFM):
         if fdat is None or not os.path.isfile(fdat):
             return
         # Figure out headers
-        nhdr, cols, coeffs, inds = fm.read_colnames(fdat)
+        nhdr, cols, coeffs, inds = self.read_colnames(fdat)
         # Save entries
         self._hdr = nhdr
         self.cols = cols
@@ -164,7 +165,7 @@ class CaseFM(cdbook.CaseFM):
             # Loop through lines
             while nhdr < 100:
                 # Strip whitespace from the line.
-                l = f.readline().strip()
+                l = fp.readline().strip()
                 # Check the line
                 if flag == 0:
                     # Count line
@@ -228,6 +229,27 @@ class CaseFM(cdbook.CaseFM):
         return nhdr, cols, coeffs, inds
 
    # --- Files ---
+    def create_fname_coeff_dat(self, comp=None):
+        r"""Generate full file name for ``coeff.dat``
+
+        :Call:
+            >>> fdat = self.create_fname_coeff_dat(comp=None)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Case force/moment history
+            *comp*: {*fm.comp*} | :class:`str`
+                Name of component
+        :Outputs:
+            *fdat*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2021-11-08 ``@ddalle``: Version 1.0
+        """
+        # Get file name
+        self.fdat = self.genr8_fname_coeff_dat(comp)
+        # Output
+        return self.fdat
+
     def genr8_fname_coeff_dat(self, comp=None):
         r"""Generate full file name for ``coeff.dat``
 
