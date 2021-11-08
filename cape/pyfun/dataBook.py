@@ -87,9 +87,9 @@ def ImportPyPlot():
     r"""Import :mod:`matplotlib.pyplot` if not loaded
 
     :Call:
-        >>> pyCart.dataBook.ImportPyPlot()
+        >>> ImportPyPlot()
     :Versions:
-        * 2014-12-27 ``@ddalle``: First version
+        * 2014-12-27 ``@ddalle``: Version 1.0
     """
     # Make global variables
     global plt
@@ -147,7 +147,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2015-11-10 ``@ddalle``: First version
+            * 2015-11-10 ``@ddalle``: Version 1.0
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
             * 2017-04-13 ``@ddalle``: Self-contained and renameed
         """
@@ -169,7 +169,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         r"""Version-specific line load reader
 
         :Versions:
-            * 2017-04-18 ``@ddalle``: First version
+            * 2017-04-18 ``@ddalle``: Version 1.0
         """
         # Check for target
         if targ is None:
@@ -203,7 +203,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Initialize if necessary
         try:
@@ -246,7 +246,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *pt*: {``None``} | :class:`str`
                 Individual point to read
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
             * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
         """
         # Initialize if necessary
@@ -378,7 +378,7 @@ class DBComp(cape.cfdx.dataBook.DBComp):
         *DBc*: :class:`pyOver.dataBook.DBComp`
             An individual component data book
     :Versions:
-        * 2016-09-15 ``@ddalle``: First version
+        * 2016-09-15 ``@ddalle``: Version 1.0
     """
     pass
 # class DBComp
@@ -431,7 +431,7 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
         *DBF*: :class:`pyFun.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
-        * 2017-03-28 ``@ddalle``: First version
+        * 2017-03-28 ``@ddalle``: Version 1.0
     """
 
     # Get file
@@ -493,7 +493,7 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
             *i*: {``None``} | :class:`int`
                 Case index (else read from :file:`conditions.json`)
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Get name of plt file
         fplt = ftriq.rstrip('triq') + 'plt'
@@ -524,7 +524,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
     file it determines which coefficients are recorded automatically.
 
     :Call:
-        >>> FM = pyFun.dataBook.CaseFM(proj, comp)
+        >>> FM = CaseFM(proj, comp)
     :Inputs:
         *proj*: :class:`str`
             Root name of the project
@@ -646,7 +646,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             *FM*: :class:`pyFun.dataBook.CaseFM`
                 Case force/moment history
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 1.0
         """
         # Make all entries empty.
         self.i = np.array([])
@@ -672,10 +672,11 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             *fname*: {``None``} | :class:`str`
                 Name of file to process (defaults to *FM.fname*)
         :Versions:
-            * 2016-05-05 ``@ddalle``: First version
+            * 2016-05-05 ``@ddalle``: Version 1.0
         """
         # Default file name
-        if fname is None: fname = self.fname
+        if fname is None:
+            fname = self.fname
         # Process the column names
         nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
         # Save entries
@@ -720,7 +721,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2016-05-05 ``@ddalle``: First version
+            * 2016-05-05 ``@ddalle``: Version 1.0
             * 2016-10-28 ``@ddalle``: Catching iteration resets
         """
         # Process the column names
@@ -795,9 +796,9 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             *inds*: :class:`list`\ [:class:`int`]
                 List of column indices for each entry of *cols*
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
-            * 2016-05-05 ``@ddalle``: Using outputs instead of saving
-                                      to *FM*
+            * 2015-10-20 ``@ddalle``: Version 1.0
+            * 2016-05-05 ``@ddalle``: Version 2.0
+                - return results instead of saving to *FM*
         """
         # Initialize variables and read flag
         keys = []
@@ -1007,7 +1008,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         *hist*: :class:`pyFun.dataBook.CaseResid`
             Instance of the run history class
     :Versions:
-        * 2015-10-21 ``@ddalle``: First version
+        * 2015-10-21 ``@ddalle``: Version 1.0
         * 2016-10-28 ``@ddalle``: Catching iteration resets
     """
 
@@ -1016,7 +1017,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         r"""Initialization method
 
         :Versions:
-            * 2015-10-21 ``@ddalle``: First version
+            * 2015-10-21 ``@ddalle``: Version 1.0
         """
         # Save the project root name
         self.proj = proj
@@ -1120,7 +1121,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-10-21 ``@ddalle``: First version
+            * 2015-10-21 ``@ddalle``: Version 1.0
         """
         # Plot "R_1"
         return self.PlotResid('R_1', YLabel='Density Residual', **kw)
@@ -1149,7 +1150,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-10-21 ``@ddalle``: First version
+            * 2015-10-21 ``@ddalle``: Version 1.0
         """
         # Plot "R_6"
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
@@ -1164,7 +1165,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *hist*: :class:`pyFun.dataBook.CaseResid`
                 Case residual history
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: Version 1.0
         """
         # Make all entries empty.
         self.i = np.array([])
@@ -1203,7 +1204,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *inds*: :class:`list`\ [:class:`int`]
                 List of indices in columns
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: Version 1.0
             * 2016-05-05 ``@ddalle``: Use output instead of saving to
                                       *FM*
         """
@@ -1322,7 +1323,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *inds*: :class:`list`\ [:class:`int`]
                 List of indices in columns
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: Version 1.0
             * 2016-05-05 ``@ddalle``: Now an output
         """
         # Default file name
@@ -1373,7 +1374,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2016-05-05 ``@ddalle``: First version
+            * 2016-05-05 ``@ddalle``: Version 1.0
             * 2016-10-28 ``@ddalle``: Catching iteration resets
         """
         # Process the column names
@@ -1438,7 +1439,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             *iend*: {``0``} | positive :class:`int`
                 Last iteration number before reading this file
         :Versions:
-            * 2016-10-29 ``@ddalle``: First version
+            * 2016-10-29 ``@ddalle``: Version 1.0
         """
         # Initialize variables and read flag
         keys = []
