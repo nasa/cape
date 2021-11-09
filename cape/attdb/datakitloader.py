@@ -490,7 +490,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * *MODULE_NAME_REGEX_STR_GROUPS*
         """
         # Attempt to match regex (all of *modname*)
-        match = re.fullmatch(regex, modname)
+        match = re.match(regex + "$", modname)
         # Check for no match
         if match is None:
             return None
@@ -522,7 +522,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 groups[grp] = ival
                 # Save raw value
                 groups["s-" + grp] = val
-            elif REGEX_INT.fullmatch(val):
+            elif REGEX_INT.match(val + "$"):
                 # Convertible to integer
                 groups[grp] = int(val)
                 # Resave raw value
@@ -602,7 +602,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * *DB_NAME_REGEX_STR_GROUPS*
         """
         # Attempt to match regex (all of *dbname*)
-        match = re.fullmatch(regex, dbname)
+        match = re.match(regex + "$", dbname)
         # Check for no match
         if match is None:
             return None
@@ -634,7 +634,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 groups[grp] = ival
                 # Save raw value
                 groups["s-" + grp] = val
-            elif REGEX_INT.fullmatch(val):
+            elif REGEX_INT.match(val + "$"):
                 # Convertible to integer
                 groups[grp] = int(val)
                 # Resave raw value
@@ -1504,7 +1504,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 if fname in file_set:
                     continue
                 # Check for match
-                if regex.fullmatch(fname):
+                if regex.match(fname + "$"):
                     file_set.add(fname)
         # Output
         return list(file_set)
@@ -1551,7 +1551,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 if fname in file_set:
                     continue
                 # Check for match
-                if regex.fullmatch(fname):
+                if regex.match(fname + "$"):
                     file_set.add(fname)
         # Output
         return list(file_set)
@@ -1952,7 +1952,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Loop through URLs
         for url in urls:
             # Match against full URL with remote host
-            match = REGEX_REMOTE.fullmatch(url)
+            match = REGEX_REMOTE.match(url + "$")
             # Check if it's absolute
             if match:
                 # Absolute path with SSH host
@@ -2051,7 +2051,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-09-01 ``@ddalle``: Version 1.0
         """
         # Parse for remotes
-        match = REGEX_HOST.fullmatch(fgit)
+        match = REGEX_HOST.match(fgit + "$")
         # Check for bad match
         if match is None:
             raise ValueError("Unable to parse remote repo '%s'" % fgit)
@@ -2081,7 +2081,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-09-02 ``@ddalle``: Version 1.0
         """
         # Parse for remotes
-        match = REGEX_HOST.fullmatch(url)
+        match = REGEX_HOST.match(url + "$")
         # Check for bad match
         if match is None:
             raise ValueError("Unable to parse remote folder '%s'" % url)
