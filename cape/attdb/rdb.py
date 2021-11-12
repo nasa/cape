@@ -7596,10 +7596,13 @@ class DataKit(ftypes.BaseData):
         vmin = np.min(V)
         vmax = np.max(V)
         # Check for extrapolation cases
+        if n == 1:
+            # Only one point
+            return 0, None, 1.0
         if v < vmin - tol*(vmax-vmin):
             # Extrapolation left
             return None, 0, (v-V[0])/(V[1]-V[0])
-        elif v > vmax + tol*(vmax-vmin):
+        if v > vmax + tol*(vmax-vmin):
             # Extrapolation right
             return n-1, None, (v-V[-2])/(V[-1]-V[-2])
         # Otherwise, count up values below
