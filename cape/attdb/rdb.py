@@ -5177,8 +5177,12 @@ class DataKit(ftypes.BaseData):
         tol = kw.get("tol", 1e-6)
         # Name of master (slice) key
         skey = args[0]
+        # Extrapolation option
+        extrap = kw.get("extrap", False)
+        # Copy arguments
+        args = list(args)
         # Get lookup points at both sides of scheduling key
-        i0, i1, f, x0, x1 = self.get_schedule(args, x, extrap=False)
+        i0, i1, f, x0, x1 = self.get_schedule(args, x, extrap=extrap)
         # Get the values for the slice key
         x00 = self.get_bkpt(skey, i0)
         x01 = self.get_bkpt(skey, i1)
