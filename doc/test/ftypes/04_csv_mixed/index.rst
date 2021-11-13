@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-10 at 01:45 PST
+   on 2021-11-13 at 01:45 PST
 
 Test ``04_csv_mixed``: PASS
 =============================
 
-This test PASSED on 2021-11-10 at 01:45 PST
+This test PASSED on 2021-11-13 at 01:45 PST
 
 This test is run in the folder:
 
@@ -89,7 +89,7 @@ Command 1: Minimal Definitions: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.38 seconds
+    * Command took 0.53 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -121,8 +121,8 @@ Command 2: Minimal Definitions: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 0.88 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 1.06 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -154,8 +154,8 @@ Command 3: Specified dtypes: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.39 seconds
-    * Cumulative time: 1.27 seconds
+    * Command took 0.41 seconds
+    * Cumulative time: 1.47 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -187,8 +187,8 @@ Command 4: Specified dtypes: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 1.77 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 2.01 seconds
 :STDOUT:
     * **PASS**
     * Target:
