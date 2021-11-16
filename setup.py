@@ -90,8 +90,9 @@ setup(
         "defusedxml",
         "numpy>=1.4.1",
         "matplotlib>=2",
+        "scipy",
         "vendorize",
-        "xlrd",
+        "xlrd%i" % PY_MAJOR_VERSION,
         "xlsxwriter"
     ],
     package_data={

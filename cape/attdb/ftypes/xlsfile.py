@@ -29,14 +29,16 @@ provide no functionality if these modules are not available.
 """
 
 # Standard library
+import sys
 import copy
 
 # Third-party modules
 import numpy as np
-
-# Quasi-optional third-party modules
 try:
-    import xlrd
+    if sys.version_info.major == 2:
+        import xlrd2 as xlrd
+    else:
+        import xlrd3 as xlrd
 except ImportError:
     xlrd = None
 try:
@@ -44,10 +46,8 @@ try:
 except ImportError:
     xlsxwriter = None
 
-# CAPE modules
-import cape.tnakit.typeutils as typeutils
-
-# Local modules
+# Local imports
+from ...tnakit import typeutils
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
 
 

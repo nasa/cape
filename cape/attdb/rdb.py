@@ -7588,7 +7588,7 @@ class DataKit(ftypes.BaseData):
                 can be outside 0-1 bound for extrapolation
         :Versions:
             * 2018-12-30 ``@ddalle``: Version 1.0
-            * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
+            * 2019-12-16 ``@ddalle``: Version 2.0; for :mod:`rdbnull`
         """
         # Get length
         n = V.size
