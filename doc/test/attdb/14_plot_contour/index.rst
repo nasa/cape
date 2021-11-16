@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-13 at 01:45 PST
+   on 2021-11-16 at 01:45 PST
 
 Test ``14_plot_contour``: PASS
 ================================
 
-This test PASSED on 2021-11-13 at 01:45 PST
+This test PASSED on 2021-11-16 at 01:45 PST
 
 This test is run in the folder:
 
@@ -40,7 +40,7 @@ Command 1: Contours from indices: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.90 seconds
+    * Command took 0.95 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -68,8 +68,8 @@ Command 2: Contours from indices: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.12 seconds
-    * Cumulative time: 2.02 seconds
+    * Command took 1.27 seconds
+    * Cumulative time: 2.22 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -97,8 +97,8 @@ Command 3: Contours levels: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.03 seconds
-    * Cumulative time: 3.05 seconds
+    * Command took 0.92 seconds
+    * Cumulative time: 3.14 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -126,8 +126,8 @@ Command 4: Contours levels: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.37 seconds
-    * Cumulative time: 4.42 seconds
+    * Command took 1.30 seconds
+    * Cumulative time: 4.44 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -155,8 +155,8 @@ Command 5: Contours from response: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.00 seconds
-    * Cumulative time: 5.42 seconds
+    * Command took 0.95 seconds
+    * Cumulative time: 5.39 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -184,8 +184,8 @@ Command 6: Contours from response: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.28 seconds
-    * Cumulative time: 6.71 seconds
+    * Command took 1.33 seconds
+    * Cumulative time: 6.72 seconds
 :STDOUT:
     * **PASS**
 :STDERR:

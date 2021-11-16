@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-13 at 01:45 PST
+   on 2021-11-16 at 01:45 PST
 
 Test ``06_rdb_integrate``: PASS
 =================================
 
-This test PASSED on 2021-11-13 at 01:45 PST
+This test PASSED on 2021-11-16 at 01:45 PST
 
 This test is run in the folder:
 

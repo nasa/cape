@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-13 at 01:45 PST
+   on 2021-11-16 at 01:45 PST
 
-Test ``08_xls_header``: PASS
-==============================
+Test ``08_xls_header``: **FAIL** (command 1)
+==============================================
 
-This test PASSED on 2021-11-13 at 01:45 PST
+This test **FAILED** (command 1) on 2021-11-16 at 01:45 PST
 
 This test is run in the folder:
 
@@ -62,8 +62,8 @@ The commands executed by this test are
                 print("    %-21s: list (len=%i, type=%s)" % (col, n, dtype))
         
 
-Command 1: Auto-Workbook with Arrays: Python 2 (PASS)
-------------------------------------------------------
+Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
+----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -71,14 +71,15 @@ Command 1: Auto-Workbook with Arrays: Python 2 (PASS)
         $ python2 test01_workbook.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
+    * Command took 0.66 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -94,40 +95,19 @@ Command 1: Auto-Workbook with Arrays: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Auto-Workbook with Arrays: Python 3 (PASS)
-------------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_workbook.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 0.94 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            colnames.mach        : array (shape=75, dtype=float64)
-            colnames.alpha       : array (shape=75, dtype=float64)
-            colnames.beta        : array (shape=75, dtype=float64)
-            colnames.config      : list (len=75, type=str)
-            cols_with_array.mach : array (shape=3, dtype=float64)
-            cols_with_array.alpha: array (shape=3, dtype=float64)
-            cols_with_array.beta : array (shape=3, dtype=float64)
-            cols_with_array.DCN  : array (shape=3x3, dtype=float64)
+        Traceback (most recent call last):
+          File "test01_workbook.py", line 11, in <module>
+            db = xlsfile.XLSFile("header_categories.xlsx")
+          File "/u/wk/ddalle/usr/cape/cape/attdb/ftypes/xlsfile.py", line 284, in __init__
+            self.read_xls(fname, sheet=sheet)
+          File "/u/wk/ddalle/usr/cape/cape/attdb/ftypes/xlsfile.py", line 381, in read_xls
+            raise ImportError("No module 'xlrd'")
+        ImportError: No module 'xlrd'
         
 
-:STDERR:
-    * **PASS**
 

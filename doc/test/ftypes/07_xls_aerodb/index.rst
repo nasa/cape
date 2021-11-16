@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-13 at 01:45 PST
+   on 2021-11-16 at 01:45 PST
 
-Test ``07_xls_aerodb``: PASS
-==============================
+Test ``07_xls_aerodb``: **FAIL** (command 1)
+==============================================
 
-This test PASSED on 2021-11-13 at 01:45 PST
+This test **FAILED** (command 1) on 2021-11-16 at 01:45 PST
 
 This test is run in the folder:
 
@@ -113,8 +113,8 @@ The commands executed by this test are
             print("%8s: %s (%s)" % (col, dtype, clsname))
         
 
-Command 1: XLSX File: Python 2 (PASS)
---------------------------------------
+Command 1: XLSX File: Python 2 (**FAIL**)
+------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -122,14 +122,15 @@ Command 1: XLSX File: Python 2 (PASS)
         $ python2 test01_xlsx.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.42 seconds
+    * Command took 0.59 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -148,195 +149,19 @@ Command 1: XLSX File: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: XLSX File: Python 3 (PASS)
---------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_xlsx.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 0.92 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 0.80
-           alpha: 1.00
-          config: poweroff
-           Label: 
-              CA: 0.34
-              CY: -0.00
-              CN: 0.15
-             CLM: -0.11
-         nOrders: 4.49
-           nIter: 200.00
-          nStats: 100.00
+        Traceback (most recent call last):
+          File "test01_xlsx.py", line 8, in <module>
+            db = xlsfile.XLSFile("aero_arrow_no_base.xlsx")
+          File "/u/wk/ddalle/usr/cape/cape/attdb/ftypes/xlsfile.py", line 284, in __init__
+            self.read_xls(fname, sheet=sheet)
+          File "/u/wk/ddalle/usr/cape/cape/attdb/ftypes/xlsfile.py", line 381, in read_xls
+            raise ImportError("No module 'xlrd'")
+        ImportError: No module 'xlrd'
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: XLS File: Python 2 (PASS)
--------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_xls.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.43 seconds
-    * Cumulative time: 1.35 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 0.80
-           alpha: 1.00
-          config: poweroff
-           Label: 
-              CA: 0.34
-              CY: -0.00
-              CN: 0.15
-             CLM: -0.11
-         nOrders: 4.49
-           nIter: 200.00
-          nStats: 100.00
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: XLS File: Python 3 (PASS)
--------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_xls.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 1.86 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 0.80
-           alpha: 1.00
-          config: poweroff
-           Label: 
-              CA: 0.34
-              CY: -0.00
-              CN: 0.15
-             CLM: -0.11
-         nOrders: 4.49
-           nIter: 200.00
-          nStats: 100.00
-        
-
-:STDERR:
-    * **PASS**
-
-Command 5: Specified dtypes: Python 2 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test03_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.44 seconds
-    * Cumulative time: 2.30 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float32 (ndarray)
-           alpha: float16 (ndarray)
-          config: unicode (list)
-           Label: unicode (list)
-              CA: float64 (ndarray)
-              CY: float64 (ndarray)
-              CN: float64 (ndarray)
-             CLM: float64 (ndarray)
-         nOrders: float64 (ndarray)
-           nIter: float64 (ndarray)
-          nStats: int32 (ndarray)
-        
-
-:STDERR:
-    * **PASS**
-
-Command 6: Specified dtypes: Python 3 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 2.82 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float32 (ndarray)
-           alpha: float16 (ndarray)
-          config: str (list)
-           Label: str (list)
-              CA: float64 (ndarray)
-              CY: float64 (ndarray)
-              CN: float64 (ndarray)
-             CLM: float64 (ndarray)
-         nOrders: float64 (ndarray)
-           nIter: float64 (ndarray)
-          nStats: int32 (ndarray)
-        
-
-:STDERR:
-    * **PASS**
 
