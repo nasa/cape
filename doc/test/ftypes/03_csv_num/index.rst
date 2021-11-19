@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-16 at 01:45 PST
+   on 2021-11-19 at 01:45 PST
 
 Test ``03_csv_num``: PASS
 ===========================
 
-This test PASSED on 2021-11-16 at 01:45 PST
+This test PASSED on 2021-11-19 at 01:45 PST
 
 This test is run in the folder:
 
@@ -83,7 +83,7 @@ Command 1: Clean CSV read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.42 seconds
+    * Command took 0.47 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -110,8 +110,8 @@ Command 2: Clean CSV read: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.72 seconds
-    * Cumulative time: 1.14 seconds
+    * Command took 0.78 seconds
+    * Cumulative time: 1.25 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -138,8 +138,8 @@ Command 3: Specified :class:`float` types: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 1.70 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 1.65 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -170,8 +170,8 @@ Command 4: Specified :class:`float` types: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 2.27 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 2.16 seconds
 :STDOUT:
     * **PASS**
     * Target:

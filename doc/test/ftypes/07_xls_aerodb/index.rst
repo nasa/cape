@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-16 at 01:45 PST
+   on 2021-11-19 at 01:45 PST
 
 Test ``07_xls_aerodb``: **FAIL** (command 1)
 ==============================================
 
-This test **FAILED** (command 1) on 2021-11-16 at 01:45 PST
+This test **FAILED** (command 1) on 2021-11-19 at 01:45 PST
 
 This test is run in the folder:
 
@@ -127,7 +127,7 @@ Command 1: XLSX File: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59 seconds
+    * Command took 0.52 seconds
 :STDOUT:
     * **FAIL**
     * Actual: (empty)
