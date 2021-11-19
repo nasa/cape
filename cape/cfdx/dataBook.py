@@ -2956,7 +2956,7 @@ class DBBase(dict):
                 # Positive pitch
                 psi = self[kps][mask]*deg
             # Loop through cases
-            for j, (phj, thj, psj) in enumarate(zip(phi, theta, psi)):
+            for j, (phj, thj, psj) in enumerate(zip(phi, theta, psi)):
                 # Sines and cosines
                 cph = np.cos(phj); cth = np.cos(thj); cps = np.cos(psj)
                 sph = np.sin(phj); sth = np.sin(thj); sps = np.sin(psj)
