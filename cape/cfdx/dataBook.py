@@ -121,7 +121,7 @@ def ImportPyPlot():
     :Call:
         >>> ImportPyPlot()
     :Versions:
-        * 2014-12-27 ``@ddalle``: First version
+        * 2014-12-27 ``@ddalle``: Version 1.0
     """
     # Make global variables
     global plt
@@ -171,7 +171,7 @@ class DataBook(dict):
             Dictionary of :class:`DBTarget` target data books
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
-        * 2015-01-10 ``@ddalle``: First version
+        * 2015-01-10 ``@ddalle``: Version 1.0
     """
   # ======
   # Config
@@ -182,7 +182,7 @@ class DataBook(dict):
         r"""Initialization method
         
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Root directory
         if RootDir is None:
@@ -257,7 +257,7 @@ class DataBook(dict):
         r"""Representation method
         
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Version 1.0
         """
         # Initialize string
         lbl = "<DataBook "
@@ -282,7 +282,7 @@ class DataBook(dict):
             *fdir*: :class:`str`
                 Directory to create
         :Versions:
-            * 2017-09-05 ``@ddalle``: First version
+            * 2017-09-05 ``@ddalle``: Version 1.0
         """
         # Call databook method
         self.opts["DataBook"].mkdir(fdir)
@@ -302,7 +302,7 @@ class DataBook(dict):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Version 1.0
             * 2015-06-19 ``@ddalle``: New multi-key sort
             * 2017-06-12 ``@ddalle``: Added *unlock*
         """
@@ -338,7 +338,7 @@ class DataBook(dict):
             *lock*: ``True`` | {``False``}
                 Whether or not to create LOCK file
         :Versions:
-            * 2015-11-10 ``@ddalle``: First version
+            * 2015-11-10 ``@ddalle``: Version 1.0
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
         self[comp] = DBComp(comp, self.x, self.opts,
@@ -360,7 +360,7 @@ class DataBook(dict):
             *targ*: {``None``} | :class:`str`
                 Alternate directory to read from, else *DB.targ*
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
+            * 2015-09-16 ``@ddalle``: Version 1.0
             * 2016-06-27 ``@ddalle``: Added *targ*
         """
         # Initialize if necessary
@@ -392,7 +392,7 @@ class DataBook(dict):
         r"""Versions-specific line load reader
         
         :Versions:
-            * 2017-04-18 ``@ddalle``: First version
+            * 2017-04-18 ``@ddalle``: Version 1.0
         """
         pass
     
@@ -412,7 +412,7 @@ class DataBook(dict):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Initialize if necessary
         try:
@@ -449,7 +449,7 @@ class DataBook(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DBComp`
                 Data book for one component
         :Versions:
-            * 2016-08-18 ``@ddalle``: First version
+            * 2016-08-18 ``@ddalle``: Version 1.0
         """
         # Loop through components
         for comp in self.Components:
@@ -472,7 +472,7 @@ class DataBook(dict):
             *targ*: :class:`str`
                 Target name
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
+            * 2015-09-16 ``@ddalle``: Version 1.0
         """
         # Initialize targets if necessary
         try:
@@ -599,7 +599,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
-            * 2017-04-13 ``@ddalle``: First version
+            * 2017-04-13 ``@ddalle``: Version 1.0
         """
         # Get type
         t = type(comp).__name__
@@ -636,7 +636,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Version 1.0
             * 2017-04-12 ``@ddalle``: Split by component
         """
         # Default.
@@ -693,7 +693,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
-            * 2015-03-13 ``@ddalle``: First version
+            * 2015-03-13 ``@ddalle``: Version 1.0
             * 2017-04-13 ``@ddalle``: Split by component
         """
         # Default.
@@ -731,7 +731,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of deleted entries
         :Versions:
-            * 2015-03-13 ``@ddalle``: First version
+            * 2015-03-13 ``@ddalle``: Version 1.0
             * 2017-04-13 ``@ddalle``: Split by component
         """
         # Read if necessary
@@ -802,7 +802,7 @@ class DataBook(dict):
             *n*: ``0`` | ``1``
                 How many updates were made
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Version 1.0
             * 2017-04-12 ``@ddalle``: Modified to work one component
             * 2017-04-23 ``@ddalle``: Added output
         """
@@ -969,7 +969,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of cases updated or added
         :Versions:
-            * 2015-09-17 ``@ddalle``: First version
+            * 2015-09-17 ``@ddalle``: Version 1.0
             * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
             * 2017-04-25 ``@ddalle``: Added wild cards
         """
@@ -1007,7 +1007,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of cases updated or added
         :Versions:
-            * 2015-09-17 ``@ddalle``: First version
+            * 2015-09-17 ``@ddalle``: Version 1.0
             * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
         """
         # Default case list
@@ -1038,7 +1038,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
-            * 2017-04-25 ``@ddalle``: First version
+            * 2017-04-25 ``@ddalle``: Version 1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("LineLoad", comp)
@@ -1070,7 +1070,7 @@ class DataBook(dict):
             *n*: :class:`list`
                 Number of deletions made
         :Versions:
-            * 2017-04-25 ``@ddalle``: First version
+            * 2017-04-25 ``@ddalle``: Version 1.0
         """
         # Default case list
         if I is None:
@@ -1133,7 +1133,7 @@ class DataBook(dict):
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
         :Versions:
-            * 2017-03-29 ``@ddalle``: First version
+            * 2017-03-29 ``@ddalle``: Version 1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqFM", comp)
@@ -1167,7 +1167,7 @@ class DataBook(dict):
             *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List or array of run matrix indices
         :Versions:
-            * 2017-03-29 ``@ddalle``: First version
+            * 2017-03-29 ``@ddalle``: Version 1.0
         """
         # Default case list
         if I is None:
@@ -1202,7 +1202,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
-            * 2017-04-25 ``@ddalle``: First version
+            * 2017-04-25 ``@ddalle``: Version 1.0
         """    
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqFM", comp)
@@ -1237,7 +1237,7 @@ class DataBook(dict):
             *n*: :class:`list`
                 Number of deletions made
         :Versions:
-            * 2017-04-25 ``@ddalle``: First version
+            * 2017-04-25 ``@ddalle``: Version 1.0
         """
         # Default case list
         if I is None:
@@ -1305,7 +1305,7 @@ class DataBook(dict):
            *comp*: {``None``} | :class:`str`
                Name of TriqPoint group or all if ``None``
         :Versions:
-            * 2017-10-11 ``@ddalle``: First version
+            * 2017-10-11 ``@ddalle``: Version 1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
@@ -1333,7 +1333,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of updates made
         :Versions:
-            * 2017-10-11 ``@ddalle``: First version
+            * 2017-10-11 ``@ddalle``: Version 1.0
         """
         # Default case list
         if I is None:
@@ -1372,7 +1372,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
-            * 2017-10-11 ``@ddalle``: First version
+            * 2017-10-11 ``@ddalle``: Version 1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
@@ -1405,7 +1405,7 @@ class DataBook(dict):
             *n*: :class:`list`
                 Number of deletions made
         :Versions:
-            * 2017-04-25 ``@ddalle``: First version
+            * 2017-04-25 ``@ddalle``: Version 1.0
             * 2017-10-11 ``@ddalle``: From :func:`DeleteTriqFMComp`
         """
         # Default case list
@@ -1561,7 +1561,7 @@ class DataBook(dict):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
-            * 2015-05-22 ``@ddalle``: First version
+            * 2015-05-22 ``@ddalle``: Version 1.0
         """
         # Get the first component.
         DBc = self.GetRefComponent()
@@ -1584,7 +1584,7 @@ class DataBook(dict):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
-            * 2015-05-28 ``@ddalle``: First version
+            * 2015-05-28 ``@ddalle``: Version 1.0
         """
         # Get the first component.
         DBc = self.GetRefComponent()
@@ -1632,7 +1632,7 @@ class DataBook(dict):
             *J*: :class:`np.ndarray`
                 Array of target indices for each data book index
         :Versions:
-            * 2015-08-30 ``@ddalle``: First version
+            * 2015-08-30 ``@ddalle``: Version 1.0
         """
         # First component.
         DBC = self.GetRefComponent()
@@ -1675,7 +1675,7 @@ class DataBook(dict):
             *j*: :class:`int` | ``np.nan``
                 Data book target index
         :Versions:
-            * 2015-08-30 ``@ddalle``: First version
+            * 2015-08-30 ``@ddalle``: Version 1.0
         """
         # Check inputs.
         if type(tols).__name__ not in ['dict']:
@@ -1741,7 +1741,7 @@ class DataBook(dict):
             *i*: :class:`int`
                 Data book index
         :Versions:
-            * 2015-08-30 ``@ddalle``: First version
+            * 2015-08-30 ``@ddalle``: Version 1.0
         """
         # Check inputs.
         if type(tols).__name__ not in ['dict']:
@@ -1806,7 +1806,7 @@ class DataBook(dict):
             *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the pyCart data book target class
         :Versions:
-            * 2015-06-04 ``@ddalle``: First version
+            * 2015-06-04 ``@ddalle``: Version 1.0
         """
         # Get target list
         try:
@@ -1838,7 +1838,7 @@ class DataBook(dict):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
-            * 2014-12-30 ``@ddalle``: First version
+            * 2014-12-30 ``@ddalle``: Version 1.0
             * 2015-06-19 ``@ddalle``: New multi-key sort
             * 2016-01-13 ``@ddalle``: Checks to allow incomplete comps
         """
@@ -1914,7 +1914,7 @@ class DataBook(dict):
         :See also:
             * :func:`cape.cfdx.dataBook.DBBase.PlotCoeff`
         :Versions:
-            * 2015-05-30 ``@ddalle``: First version
+            * 2015-05-30 ``@ddalle``: Version 1.0
             * 2015-12-14 ``@ddalle``: Added error bars
         """
         # Check for the component
@@ -1965,7 +1965,7 @@ class DataBook(dict):
         :See also:
             * :func:`cape.cfdx.dataBook.DBBase.PlotCoeff`
         :Versions:
-            * 2015-05-30 ``@ddalle``: First version
+            * 2015-05-30 ``@ddalle``: Version 1.0
             * 2015-12-14 ``@ddalle``: Added error bars
         """
         # Check for the component
@@ -1997,7 +1997,7 @@ def get_ylim(ha, pad=0.05):
         *ymax*: :class:`float`
             Maximum *y* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: First version
+        * 2015-07-06 ``@ddalle``: Version 1.0
     """
     # Initialize limits.
     ymin = np.inf
@@ -2051,7 +2051,7 @@ def get_xlim(ha, pad=0.05):
         *xmax*: :class:`float`
             Maximum *x* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: First version
+        * 2015-07-06 ``@ddalle``: Version 1.0
     """
     # Initialize limits.
     xmin = np.inf
@@ -2109,7 +2109,7 @@ class DBBase(dict):
         *DBi*: :class:`cape.cfdx.dataBook.DBBase`
             An individual item data book
     :Versions:
-        * 2014-12-22 ``@ddalle``: First version
+        * 2014-12-22 ``@ddalle``: Version 1.0
         * 2015-12-04 ``@ddalle``: Forked from :class:`DBComp`
     """
   # ======
@@ -2121,7 +2121,7 @@ class DBBase(dict):
         """Initialization method
         
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
             * 2016-03-15 ``@ddalle``: Generalized column names
         """
         # Save relevant inputs
@@ -2157,7 +2157,7 @@ class DBBase(dict):
         """Representation method
         
         :Versions:
-            * 2014-12-27 ``@ddalle``: First version
+            * 2014-12-27 ``@ddalle``: Version 1.0
         """
         # Initialize string
         try:
@@ -2179,7 +2179,7 @@ class DBBase(dict):
             *fdir*: :class:`str`
                 Directory to create
         :Versions:
-            * 2017-09-05 ``@ddalle``: First version
+            * 2017-09-05 ``@ddalle``: Version 1.0
         """
         # Call databook method
         self.opts["DataBook"].mkdir(fdir)
@@ -2220,7 +2220,7 @@ class DBBase(dict):
             *DBi.nCol*: :class:`int`
                 Total number of columns
         :Versions:
-            * 2016-03-15 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: Version 1.0
         """
         # Get coefficients
         coeffs = self.opts.get_DataBookCoeffs(self.comp)
@@ -2275,7 +2275,7 @@ class DBBase(dict):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2015-12-04 ``@ddalle``: First version
+            * 2015-12-04 ``@ddalle``: Version 1.0
             * 2017-06-12 ``@ddalle``: Added *lock*
         """
         # Check for lock status?
@@ -2433,7 +2433,7 @@ class DBBase(dict):
             *DBc1*: :class:`cape.cfdx.dataBook.DBBase`
                 Copy of data book base object
         :Versions:
-            * 2017-06-26 ``@ddalle``: First version
+            * 2017-06-26 ``@ddalle``: Version 1.0
         """
         # Check for a name
         try:
@@ -2466,7 +2466,7 @@ class DBBase(dict):
             *pos*: :class:`int`
                 Position of first data character
         :Versions:
-            * 2016-03-15 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: Version 1.0
         """
         # Check for default file name
         if fname is None: fname = self.fname
@@ -2513,7 +2513,7 @@ class DBBase(dict):
             *DBP.wflag*: :class:`list` (%i | %.12g | %s)
                 List of write flags
         :Versions:
-            * 2016-03-15 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: Version 1.0
         """
         # Full list of columns
         cols = self.xCols + self.fCols + self.iCols
@@ -2582,7 +2582,7 @@ class DBBase(dict):
             *flock*: :class:`str`
                 Full path to potential ``lock`` file
         :Versions:
-            * 2017-06-12 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Version 1.0
         """
         # Split file name so we can insert "lock." at the right place
         fdir, fn = os.path.split(self.fname)
@@ -2608,7 +2608,7 @@ class DBBase(dict):
             *q*: :class:`bool`
                 Whether or not corresponding LOCK file exists
         :Versions:
-            * 2017-06-12 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Version 1.0
         """
         # Get the name of the lock file
         flock = self.GetLockFile()
@@ -2641,7 +2641,7 @@ class DBBase(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
-            * 2017-06-12 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Version 1.0
         """
         # Name of the lock file
         flock = self.GetLockFile()
@@ -2669,7 +2669,7 @@ class DBBase(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
-            * 2017-06-14 ``@ddalle``: First version
+            * 2017-06-14 ``@ddalle``: Version 1.0
         """
         # Name of the lock file
         flock = self.GetLockFile()
@@ -2686,7 +2686,7 @@ class DBBase(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
-            * 2017-06-12 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Version 1.0
         """
         # Name of the lock file
         flock = self.GetLockFile()
@@ -2719,7 +2719,7 @@ class DBBase(dict):
             *unlock*: {``True``} | ``False``
                 Whether or not to delete any lock files
         :Versions:
-            * 2015-12-04 ``@ddalle``: First version
+            * 2015-12-04 ``@ddalle``: Version 1.0
             * 2017-06-12 ``@ddalle``: Added *unlock*
             * 2017-06-26 ``@ddalle``: Added *merge*
         """
@@ -2783,8 +2783,8 @@ class DBBase(dict):
   # <
     # Get a value
     def GetCoeff(self, comp, coeff, I, **kw):
-        """Get a coefficient value for one or more cases
-        
+        r"""Get a coefficient value for one or more cases
+
         :Call:
             >>> v = DBT.GetCoeff(comp, coeff, i)
             >>> V = DBT.GetCoeff(comp, coeff, I)
@@ -2805,7 +2805,7 @@ class DBBase(dict):
             *V*: :class:`np..ndarray`
                 Array of values from the appropriate column
         :Versions:
-            * 2018-02-12 ``@ddalle``: First version
+            * 2018-02-12 ``@ddalle``: Version 1.0
         """
         # Check for patch delimiter
         if "/" in comp:
@@ -2852,7 +2852,204 @@ class DBBase(dict):
             ccoeff = coeff
         # Get the value
         return self[coeff][I]
-        
+
+    # Transform force or moment reference frame
+    def TransformDBFM(self, topts, mask=None):
+        r"""Transform force and moment coefficients
+
+        Available transformations and their parameters are
+
+            * "Euler123": "phi", "theta", "psi"
+            * "Euler321": "psi", "theta", "phi"
+            * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
+
+        Other variables (columns) in the databook are used to specify
+        values to use for the transformation variables.  For example,
+
+            .. code-block:: python
+
+                topts = {
+                    "Type": "Euler321",
+                    "psi": "Psi",
+                    "theta": "Theta",
+                    "phi": "Phi",
+                }
+
+        will cause this function to perform a reverse Euler 3-2-1
+        transformation using *dbc["Psi"]*, *dbc["Theta"]*, and
+        *dbc["Phi"]* as the angles.
+
+        Coefficient scaling can be used to fix incorrect reference areas
+        or flip axes. The default is actually to flip *CLL* and *CLN*
+        due to the transformation from CFD axes to standard flight
+        dynamics axes.
+
+            .. code-block:: python
+
+                topts = {
+                    "Type": "ScaleCoeffs",
+                    "CLL": -1.0,
+                    "CLN": -1.0,
+                }
+
+        :Call:
+            >>> dbc.TransformDBFM(topts, mask=None)
+        :Inputs:
+            *dbc*: :class:`DBBase`
+                Instance of the force and moment class
+            *topts*: :class:`dict`
+                Dictionary of options for the transformation
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Optional subset of cases to transform
+        :Versions:
+            * 2021-11-18 ``@ddalle``: Version 1.0
+        """
+        # Get the transformation type.
+        ttype = topts.get("Type", "")
+        # Check it.
+        if ttype in ["Euler321", "Euler123"]:
+            # Get the angle variable names.
+            # Use same as default in case it's obvious what they should be.
+            kph = topts.get('phi', 0.0)
+            kth = topts.get('theta', 0.0)
+            kps = topts.get('psi', 0.0)
+            # Extract roll
+            if isinstance(kph, (float, np.float, np.ndarray)):
+                # Directly specified value(s)
+                phi = kph*deg
+            elif kph.startswith('-'):
+                # Negative roll angle
+                if mask is None:
+                    # All values
+                    phi = -self[kph[1:]]*deg
+                else:
+                    # Subset of values
+                    phi = -self[kph[1:]][mask]*deg
+            else:
+                # Positive roll
+                if mask is None:
+                    # All values
+                    phi = self[kph]*deg
+                else:
+                    # Subset of values
+                    phi = self[kph][mask]*deg
+            # Extract pitch
+            if isinstance(kth, (float, np.float, np.ndarray)):
+                # Fixed value
+                theta = kth*deg
+            elif kth.startswith('-'):
+                # Negative pitch
+                if mask is None:
+                    # All values
+                    theta = -self[kth[1:]]*deg
+                else:
+                    # Subset
+                    theta = -self[kth[1:]][mask]*deg
+            else:
+                # Positive pitch
+                if mask is None:
+                    # All values
+                    theta = self[kth]*deg
+                else:
+                    # Subset
+                    theta = self[kth][mask]*deg
+            # Extract yaw
+            if isinstance(kps, (float, np.float, np.ndarray)):
+                # Fixed value
+                psi = kps*deg
+            elif kps.startswith('-'):
+                # Negative yaw
+                if mask is None:
+                    # All values
+                    psi = -self[kps[1:]]*deg
+                else:
+                    # Subset
+                    psi = -self[kps[1:]][mask]*deg
+            else:
+                # Positive pitch
+                if mask is None:
+                    # All values
+                    psi = self[kps]*deg
+                else:
+                    # Subset
+                    psi = self[kps][mask]*deg
+            # Sines and cosines
+            cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
+            sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
+            # Make the matrices.
+            # Roll matrix
+            R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
+            # Pitch matrix
+            R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
+            # Yaw matrix
+            R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
+            # Combined transformation matrix.
+            # Remember, these are applied backwards in order to undo the
+            # original Euler transformation that got the component here.
+            if ttype == "Euler321":
+                R = np.dot(R1, np.dot(R2, R3))
+            elif ttype == "Euler123":
+                R = np.dot(R3, np.dot(R2, R1))
+            # Area transformations
+            if "Ay" in self:
+                # Assemble area vector
+                Ac = np.array([self["Ax"], self["Ay"], self["Az"]])
+                # Transform
+                Ab = np.dot(R, Ac)
+                # Reset
+                self["Ax"] = Ab[0]
+                self["Ay"] = Ab[1]
+                self["Az"] = Ab[2]
+            # Force transformations
+            # Loop through suffixes
+            for s in ["", "p", "vac", "v", "m"]:
+                # Construct force coefficient names
+                cx = "CA" + s
+                cy = "CY" + s
+                cz = "CN" + s
+                # Check if the coefficient is present
+                if cy in self:
+                    # Assemble forces
+                    Fc = np.array([self[cx], self[cy], self[cz]])
+                    # Transform
+                    Fb = np.dot(R, Fc)
+                    # Reset
+                    self[cx] = Fb[0]
+                    self[cy] = Fb[1]
+                    self[cz] = Fb[2]
+                # Construct moment coefficient names
+                cx = "CLL" + s
+                cy = "CLM" + s
+                cz = "CLN" + s
+                # Check if the coefficient is present
+                if cy in self:
+                    # Assemble moment vector
+                    Mc = np.array([self[cx], self[cy], self[cz]])
+                    # Transform
+                    Mb = np.dot(R, Mc)
+                    # Reset
+                    self[cx] = Fb[0]
+                    self[cy] = Fb[1]
+                    self[cz] = Fb[2]
+        elif ttype in ["ScaleCoeffs"]:
+            # Loop through coefficients.
+            for c in topts:
+                # Get the value.
+                k = topts[c]
+                # Check if it's a number.
+                if not isinstance(k, (float, int, np.float)):
+                    # Assume they meant to flip it.
+                    k = -1.0
+                # Loop through suffixes
+                for s in ["", "p", "vac", "v", "m"]:
+                    # Construct overall name
+                    cc = c + s
+                    # Check if it's present
+                    if cc in self:
+                        self[cc] = k*self[cc]
+        else:
+            raise IOError(
+                "Transformation type '%s' is not recognized." % ttype)
   # >
   
   # ==============
@@ -2869,7 +3066,7 @@ class DBBase(dict):
             *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 Component data book
         :Versions:
-            * 2017-04-18 ``@ddalle``: First version
+            * 2017-04-18 ``@ddalle``: Version 1.0
         """
         # Copy trajectory
         self.x = self.x.Copy()
@@ -2901,7 +3098,7 @@ class DBBase(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Copy of component data book, perhaps read at a different time
         :Versions:
-            * 2017-06-26 ``@ddalle``: First version
+            * 2017-06-26 ``@ddalle``: Version 1.0
         """
         # List of keys
         keys = self.keys()
@@ -2951,7 +3148,7 @@ class DBBase(dict):
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
-            * 2014-12-30 ``@ddalle``: First version
+            * 2014-12-30 ``@ddalle``: Version 1.0
         """
         # Process the key.
         if key is None: key = self.x.cols[0]
@@ -3001,7 +3198,7 @@ class DBBase(dict):
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
-            * 2014-12-30 ``@ddalle``: First version
+            * 2014-12-30 ``@ddalle``: Version 1.0
             * 2017-04-18 ``@ddalle``: Using :func:`np.lexsort`
         """
         # Process inputs.
@@ -3059,7 +3256,7 @@ class DBBase(dict):
             *i*: :class:`int`
                 RunMatrix index or ``None``
         :Versions:
-            * 2015-05-28 ``@ddalle``: First version
+            * 2015-05-28 ``@ddalle``: Version 1.0
         """
         # Initialize indices (assume all trajectory points match to start).
         i = np.arange(self.x.nCase)
@@ -3105,7 +3302,7 @@ class DBBase(dict):
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of index that matches the trajectory case or ``NaN``
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Version 1.0
         """
         # Initialize indices (assume all are matches)
         j = np.arange(self.n) > -1
@@ -3184,7 +3381,7 @@ class DBBase(dict):
             * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
             * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
             * 2018-02-12 ``@ddalle``: Changed first input to :class:`DBBase`
         """
@@ -3335,7 +3532,7 @@ class DBBase(dict):
             *j*: ``None`` | :class:`int`
                 Data book index for *DBj*
         :Versions:
-            * 2017-06-26 ``@ddalle``: First version
+            * 2017-06-26 ``@ddalle``: Version 1.0
         """
         # Initialize indices of potential matches
         J = np.arange(DBc.n)
@@ -3431,7 +3628,7 @@ class DBBase(dict):
             * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
             * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
@@ -3651,7 +3848,7 @@ class DBBase(dict):
             *S["mu"]*: :class:`float`
                 Mean of histogram
         :Versions:
-            * 2018-02-12 ``@ddalle``: First version
+            * 2018-02-12 ``@ddalle``: Version 1.0
         """
         # Default keys
         keylist = kw.get("keylist", "x")
@@ -3789,7 +3986,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: First version
+            * 2015-05-30 ``@ddalle``: Version 1.0
             * 2015-12-14 ``@ddalle``: Added error bars
         """
        # ----------------
@@ -4229,7 +4426,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: First version
+            * 2015-05-30 ``@ddalle``: Version 1.0
             * 2015-12-14 ``@ddalle``: Added error bars
         """
         # Call base function with no modifications to defaults
@@ -4275,7 +4472,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2017-04-17 ``@ddalle``: First version
+            * 2017-04-17 ``@ddalle``: Version 1.0
         """
        # ------
        # Inputs
@@ -4461,7 +4658,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2017-04-17 ``@ddalle``: First version
+            * 2017-04-17 ``@ddalle``: Version 1.0
         """
         # Call base function with no modifications to defaults
         return self.PlotContourBase(coeff, I, **kw)
@@ -4532,7 +4729,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: First version
+            * 2015-05-30 ``@ddalle``: Version 1.0
             * 2015-12-14 ``@ddalle``: Added error bars
             * 2016-04-04 ``@ddalle``: Moved from point sensor to data book
         """
@@ -4960,7 +5157,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2016-04-04 ``@ddalle``: First version
+            * 2016-04-04 ``@ddalle``: Version 1.0
         """
         # Call base function with no modifications to defaults
         return self.PlotHistBase(coeff, I, **kw)
@@ -5026,7 +5223,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: First version
+            * 2015-05-30 ``@ddalle``: Version 1.0
             * 2015-12-14 ``@ddalle``: Added error bars
             * 2016-04-04 ``@ddalle``: Moved from point sensor to data book
         """
@@ -5449,7 +5646,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2016-04-04 ``@ddalle``: First version
+            * 2016-04-04 ``@ddalle``: Version 1.0
         """
         # Call base function with no modifications to defaults
         return self.PlotRangeHistBase(coeff, I, **kw)
@@ -5484,7 +5681,7 @@ class DBComp(DBBase):
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
-        * 2014-12-22 ``@ddalle``: First version
+        * 2014-12-22 ``@ddalle``: Version 1.0
         * 2016-06-27 ``@ddalle``: Added target option for using other folders
     """
   # ========
@@ -5496,7 +5693,7 @@ class DBComp(DBBase):
         """Initialization method
         
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Save relevant inputs
         self.x = x
@@ -5541,7 +5738,7 @@ class DBComp(DBBase):
         """Representation method
         
         :Versions:
-            * 2014-12-27 ``@ddalle``: First version
+            * 2014-12-27 ``@ddalle``: Version 1.0
         """
         # Initialize string
         lbl = "<DBComp %s, " % self.comp
@@ -5577,7 +5774,7 @@ class DBTriqFM(DataBook):
         *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
-        * 2017-03-28 ``@ddalle``: First version
+        * 2017-03-28 ``@ddalle``: Version 1.0
     """
   # ======
   # Config
@@ -5588,7 +5785,7 @@ class DBTriqFM(DataBook):
         """Initialization method
         
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
@@ -5636,7 +5833,7 @@ class DBTriqFM(DataBook):
         """Representation method
         
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Initialize string
         lbl = "<DBTriqFM %s, patches=%s>" % (self.comp, self.patches)
@@ -5661,7 +5858,7 @@ class DBTriqFM(DataBook):
             *DBF1*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Another instance of related TriqFM data book
         :Versions:
-            * 2017-06-26 ``@ddalle``: First version
+            * 2017-06-26 ``@ddalle``: Version 1.0
         """
         # Check for a name
         try:
@@ -5688,7 +5885,7 @@ class DBTriqFM(DataBook):
             *DBF1*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Another instance of related TriqFM data book
         :Versions:
-            * 2016-06-26 ``@ddalle``: First version
+            * 2016-06-26 ``@ddalle``: Version 1.0
         """
         # Check patch list
         if DBF1.patches != self.patches:
@@ -5707,7 +5904,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2016-03-08 ``@ddalle``: First version
+            * 2016-03-08 ``@ddalle``: Version 1.0
         """
         # Loop through points
         for patch in ([None] + self.patches):
@@ -5727,8 +5924,8 @@ class DBTriqFM(DataBook):
             *unlock*: {``True``} | ``False``
                 Whether or not to delete any lock file
         :Versions:
-            * 2015-12-04 ``@ddalle``: First version
-            * 2017-06-26 ``@ddalle``: First version
+            * 2015-12-04 ``@ddalle``: Version 1.0
+            * 2017-06-26 ``@ddalle``: Version 1.0
         """
         # Check merge option
         if merge:
@@ -5763,7 +5960,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2017-06-12 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Version 1.0
         """
         # Loop through patches
         for patch in ([None] + self.patches):
@@ -5780,7 +5977,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2017-06-14 ``@ddalle``: First version
+            * 2017-06-14 ``@ddalle``: Version 1.0
         """
         # Loop through patches
         for patch in ([None] + self.patches):
@@ -5797,7 +5994,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2017-06-12 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Version 1.0
         """
         # Loop through patches
         for patch in ([None] + self.patches):
@@ -5817,7 +6014,7 @@ class DBTriqFM(DataBook):
             *DBc*: :class:`cape.cfdx.dataBook.DBComp`
                 Data book for one component
         :Versions:
-            * 2016-08-18 ``@ddalle``: First version
+            * 2016-08-18 ``@ddalle``: Version 1.0
             * 2017-04-05 ``@ddalle``: Had to customize for TriqFM
         """
         # Get the total
@@ -5843,7 +6040,7 @@ class DBTriqFM(DataBook):
             *n*: ``0`` | ``1``
                 How many updates were made
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
        # -----
        # Setup
@@ -6012,7 +6209,7 @@ class DBTriqFM(DataBook):
             *i*: {``None``} | :class:`int`
                 Case index
         :Versions:
-            * 2016-12-19 ``@ddalle``: First version
+            * 2016-12-19 ``@ddalle``: Version 1.0
             * 2016-12-21 ``@ddalle``: Added PBS
         """
         pass
@@ -6029,7 +6226,7 @@ class DBTriqFM(DataBook):
             *ftriq*: :class:`str`
                 Name of ``triq`` file
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Delete the triangulation if present
         try:
@@ -6059,7 +6256,7 @@ class DBTriqFM(DataBook):
             *t*: {``1``} | :class:`float`
                 Iteration number
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
+            * 2017-03-30 ``@ddalle``: Version 1.0
         """
         # Get the output file type
         fmt = self.opts.get_DataBookOutputFormat(self.comp)
@@ -6132,7 +6329,7 @@ class DBTriqFM(DataBook):
             *CompIDs*: :class:`list`\ [:class:`int`] | ``None``
                 List of component IDs that came from the mapping file
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
+            * 2017-03-30 ``@ddalle``: Version 1.0
         """
         # Initialize list of Component IDs
         CompIDs = []
@@ -6188,7 +6385,7 @@ class DBTriqFM(DataBook):
             *triq*: :class:`cape.tri.Triq`
                 Interface to annotated surface triangulation
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
+            * 2017-03-30 ``@ddalle``: Version 1.0
         """
         # Get component IDs
         CompIDs = self.GetPatchCompIDs()
@@ -6216,7 +6413,7 @@ class DBTriqFM(DataBook):
             *plt*: :class:`cape.plt.Plt`
                 Binary Tecplot interface
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
+            * 2017-03-30 ``@ddalle``: Version 1.0
         """
         # Get component IDs
         CompIDs = self.GetPatchCompIDs()
@@ -6253,7 +6450,7 @@ class DBTriqFM(DataBook):
             *compID*: {*patch*} | :class:`str` | :class:`int` | :class:`list`
                 Name, number, or list thereof of *patch* in map tri file
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Get data book option
         compIDmap = self.opts.get_DataBookCompID(self.comp)
@@ -6284,7 +6481,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Get the name of the tri file and configuration
         ftri = self.opts.get_DataBookMapTri(self.comp)
@@ -6318,7 +6515,7 @@ class DBTriqFM(DataBook):
             *DBF.compmap*: :class:`dict`
                 Map of component numbers altered during the mapping
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Ensure tri is present
         try:
@@ -6361,7 +6558,7 @@ class DBTriqFM(DataBook):
             *xi*: :class:`dict`
                 Dictionary of Mach number (*mach*), Reynolds number (*Re*)
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Attempt to get Mach number
         try:
@@ -6404,7 +6601,7 @@ class DBTriqFM(DataBook):
             *FM*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Set inputs for TriqForces
         kwfm = self.GetConditions(i)
@@ -6466,7 +6663,7 @@ class DBTriqFM(DataBook):
             *FM*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
-            * 2017-03-29 ``@ddalle``: First version
+            * 2017-03-29 ``@ddalle``: Version 1.0
         """
         # Dimensionalization value
         Fref = self.x.GetDynamicPressure(i) * self.Aref
@@ -6515,7 +6712,7 @@ class DBTriqFM(DataBook):
             *FM*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Get component for this patch
         compID = self.GetCompID(patch)
@@ -6556,7 +6753,7 @@ class DBTriqFM(DataBook):
             *FM*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of force & moment dictionaries for each patch
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Initialize dictionary of forces
         FM = {}
@@ -6611,7 +6808,7 @@ class DBTriqFM(DataBook):
             *FM*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of transformed force & moment coefficients
         :Versions:
-            * 2017-03-29 ``@ddalle``: First version
+            * 2017-03-29 ``@ddalle``: Version 1.0
         """
         # Get the data book transformations for this component
         db_transforms = self.opts.get_DataBookTransformations(self.comp)
@@ -6630,33 +6827,33 @@ class DBTriqFM(DataBook):
     
     # Transform force or moment reference frame
     def TransformFM(self, FM, topts, i):
-        """Transform a force and moment history
-        
+        r"""Transform a force and moment history
+
         Available transformations and their parameters are listed below.
-        
+
             * "Euler321": "psi", "theta", "phi"
             * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
-            
+
         RunMatrix variables are used to specify values to use for the
         transformation variables.  For example,
-        
+
             .. code-block:: python
-            
+
                 topts = {"Type": "Euler321",
                     "psi": "Psi", "theta": "Theta", "phi": "Phi"}
-        
+
         will cause this function to perform a reverse Euler 3-2-1 transformation
         using *x.Psi[i]*, *x.Theta[i]*, and *x.Phi[i]* as the angles.
-        
+
         Coefficient scaling can be used to fix incorrect reference areas or flip
         axes.  The default is actually to flip *CLL* and *CLN* due to the
         transformation from CFD axes to standard flight dynamics axes.
-        
+
             .. code-block:: python
-            
-                tops = {"Type": "ScaleCoeffs",
+
+                topts = {"Type": "ScaleCoeffs",
                     "CLL": -1.0, "CLN": -1.0}
-        
+
         :Call:
             >>> FM.TransformFM(topts, x, i)
         :Inputs:
@@ -6667,9 +6864,9 @@ class DBTriqFM(DataBook):
             *x*: :class:`cape.runmatrix.RunMatrix`
                 The run matrix used for this analysis
             *i*: :class:`int`
-                The index of the case to transform in the current run matrix
+                The index of the case to in the current run matrix
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Version 1.0
         """
         # Get the transformation type.
         ttype = topts.get("Type", "")
@@ -6790,7 +6987,6 @@ class DBTriqFM(DataBook):
                 "Transformation type '%s' is not recognized." % ttype)
         # Output for clarity
         return FM
-        
   # >
 # class DBTriqFM
 
@@ -6817,7 +7013,7 @@ class DBTriqFMComp(DBComp):
         *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
-        * 2017-03-28 ``@ddalle``: First version
+        * 2017-03-28 ``@ddalle``: Version 1.0
     """
   # ======
   # Config
@@ -6828,7 +7024,7 @@ class DBTriqFMComp(DBComp):
         """Initialization method
         
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Save relevant inputs
         self.x = x
@@ -6909,7 +7105,7 @@ class DBTarget(DBBase):
             Instance of the Cape data book target class
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
-        * 2015-01-10 ``@ddalle``: First version
+        * 2015-01-10 ``@ddalle``: Version 1.0
         * 2015-12-14 ``@ddalle``: Added uncertainties
     """
   # ========
@@ -6921,7 +7117,7 @@ class DBTarget(DBBase):
         """Initialization method
         
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
             * 2015-06-03 ``@ddalle``: Added trajectory, split into methods
         """
         # Save the target options
@@ -6950,7 +7146,7 @@ class DBTarget(DBBase):
         """Representation method
         
         :Versions:
-            * 2015-12-16 ``@ddalle``: First version
+            * 2015-12-16 ``@ddalle``: Version 1.0
         """
         return "<DBTarget '%s', n=%i>" % (self.Name, self.n)
     __str__ = __repr__
@@ -7035,7 +7231,7 @@ class DBTarget(DBBase):
             *skiprows*: :class:`int`
                 Number of header rows to skip
         :Versions:
-            * 2015-09-07 ``@ddalle``: First version
+            * 2015-09-07 ``@ddalle``: Version 1.0
         """
         # Read the data.
         self.data = np.loadtxt(fname, delimiter=delimiter,
@@ -7059,7 +7255,7 @@ class DBTarget(DBBase):
             *skiprows*: :class:`int`
                 Number of header rows to skip
         :Versions:
-            * 2015-09-07 ``@ddalle``: First version
+            * 2015-09-07 ``@ddalle``: Version 1.0
         """
         # Initialize data.
         self.data = []
@@ -7177,7 +7373,7 @@ class DBTarget(DBBase):
             *fi*: ``None`` | :class:`str`
                 Name of the column in data book if present
         :Versions:
-            * 2015-12-14 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Version 1.0
         """
         # Assemble coefficient/statistic name
         c = '%s.%s_%s' % (pt, cf, sfx)
@@ -7258,7 +7454,7 @@ class DBTarget(DBBase):
             *V*: :class:`np..ndarray`
                 Array of values from the appropriate column
         :Versions:
-            * 2018-02-12 ``@ddalle``: First version
+            * 2018-02-12 ``@ddalle``: Version 1.0
         """
         # Check for patch delimiter
         if "/" in comp:
@@ -7305,7 +7501,7 @@ class DBTarget(DBBase):
             *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the data book target class
         :Versions:
-            * 2015-06-03 ``@ddalle``: First version
+            * 2015-06-03 ``@ddalle``: Version 1.0
         """
         # Get trajectory key specifications.
         tkeys = self.topts.get_RunMatrix()
@@ -7375,7 +7571,7 @@ class DBTarget(DBBase):
             * :func:`cape.cfdx.dataBook.DBBase.FindTargetMatch`
             * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
             * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
             * 2018-02-12 ``@ddalle``: Moved first input to :class:`DBBase`
         """
@@ -7437,7 +7633,7 @@ class DBTarget(DBBase):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: First version
+            * 2015-05-30 ``@ddalle``: Version 1.0
             * 2015-12-14 ``@ddalle``: Added uncertainties
         """
         # Check for patch delimiter
@@ -7516,7 +7712,7 @@ class CaseData(object):
         *FM*: :class:`cape.cfdx.dataBook.CaseData`
             Base iterative history class
     :Versions:
-        * 2015-12-07 ``@ddalle``: First version
+        * 2015-12-07 ``@ddalle``: Version 1.0
     """
   # =======
   # Config
@@ -7527,7 +7723,7 @@ class CaseData(object):
         """Initialization method
         
         :Versions:
-            * 2015-12-07 ``@ddalle``: First version
+            * 2015-12-07 ``@ddalle``: Version 1.0
         """
         # Empty iterations
         self.i = np.array([])
@@ -7555,7 +7751,7 @@ class CaseData(object):
             *j*: :class:`int`
                 Index of last iteration in *FM.i* less than or equal to *i*
         :Versions:
-            * 2015-03-06 ``@ddalle``: First version
+            * 2015-03-06 ``@ddalle``: Version 1.0
             * 2015-12-07 ``@ddalle``: Copied from :class:`CaseFM`
         """
         # Check for *i* less than first iteration.
@@ -7590,7 +7786,7 @@ class CaseData(object):
             *C*: :class:`np.ndarray`
                 Array of values for *c* at each iteration or sample interval
         :Versions:
-            * 2015-12-07 ``@ddalle``: First version
+            * 2015-12-07 ``@ddalle``: Version 1.0
         """
         # Direct reference
         try:
@@ -7717,7 +7913,7 @@ class CaseData(object):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: Version 1.0
             * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
@@ -8182,7 +8378,7 @@ class CaseData(object):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-02-15 ``@ddalle``: First version
+            * 2015-02-15 ``@ddalle``: Version 1.0
             * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
             * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
         """
@@ -8571,7 +8767,7 @@ class CaseFM(CaseData):
         """Initialization method
         
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: Version 1.0
             * 2015-10-16 ``@ddalle``: Trivial generic version
         """
         # Save the component name.
@@ -8589,7 +8785,7 @@ class CaseFM(CaseData):
             * ``'<dataBook.CaseFM('entire', i=100)>'``
         
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: Version 1.0
             * 2015-10-16 ``@ddalle``: Generic version
         """
         return "<dataBook.CaseFM('%s', i=%i)>" % (self.comp, len(self.i))
@@ -8609,7 +8805,7 @@ class CaseFM(CaseData):
             *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Copy of *FM1*
         :Versions:
-            * 2017-03-20 ``@ddalle``: First version
+            * 2017-03-20 ``@ddalle``: Version 1.0
         """
         # Initialize output
         FM = CaseFM(self.comp)
@@ -8632,7 +8828,7 @@ class CaseFM(CaseData):
             *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
                 Matrix of forces and/or moments at *N* iterations
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: Version 1.0
             * 2015-10-16 ``@ddalle``: Version 2.0, complete rewrite
         """
         # Save the values.
@@ -8652,7 +8848,7 @@ class CaseFM(CaseData):
         :Call:
             >>> FM.TrimIters()
         :Versions:
-            * 2017-10-02 ``@ddalle``: First version
+            * 2017-10-02 ``@ddalle``: Version 1.0
         """
         # Number of existing iterations
         n = len(self.i)
@@ -8688,7 +8884,7 @@ class CaseFM(CaseData):
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
-            * 2017-03-20 ``@ddalle``: First version
+            * 2017-03-20 ``@ddalle``: Version 1.0
         """
         # Check dimensions
         if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
@@ -8731,7 +8927,7 @@ class CaseFM(CaseData):
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
-            * 2017-03-20 ``@ddalle``: First version
+            * 2017-03-20 ``@ddalle``: Version 1.0
         """
         # Check dimensions
         if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
@@ -8771,7 +8967,7 @@ class CaseFM(CaseData):
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
-            * 2017-03-20 ``@ddalle``: First version
+            * 2017-03-20 ``@ddalle``: Version 1.0
         """
         # Check dimensions
         if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
@@ -8814,7 +9010,7 @@ class CaseFM(CaseData):
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
-            * 2017-03-20 ``@ddalle``: First version
+            * 2017-03-20 ``@ddalle``: Version 1.0
         """
         # Check dimensions
         if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
@@ -8884,7 +9080,7 @@ class CaseFM(CaseData):
             *i*: :class:`int`
                 The index of the case to transform in the current run matrix
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Version 1.0
         """
         # Get the transformation type.
         ttype = topts.get("Type", "")
@@ -9016,7 +9212,7 @@ class CaseFM(CaseData):
             *xi*: :class:`list`\ [:class:`float`]
                 Current moment reference point (default: *self.MRP*)
         :Versions:
-            * 2015-03-02 ``@ddalle``: First version
+            * 2015-03-02 ``@ddalle``: Version 1.0
         """
         # Check for moments.
         if ('CA' not in self.coeffs) or ('CLM' not in self.coeffs):
@@ -9063,7 +9259,7 @@ class CaseFM(CaseData):
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
-            * 2014-12-09 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Version 1.0
             * 2015-02-28 ``@ddalle``: Renamed from :func:`GetStats`
             * 2015-03-04 ``@ddalle``: Added last iteration capability
         """
@@ -9139,7 +9335,7 @@ class CaseFM(CaseData):
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
-            * 2015-02-28 ``@ddalle``: First version
+            * 2015-02-28 ``@ddalle``: Version 1.0
             * 2015-03-04 ``@ddalle``: Added last iteration capability
         """
         # Make sure the number of iterations used is an integer.
@@ -9203,7 +9399,7 @@ class CaseFM(CaseData):
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for *coeff*
         :Versions:
-            * 2017-09-29 ``@ddalle``: First version
+            * 2017-09-29 ``@ddalle``: Version 1.0
         """
         # Number of iterations available
         ni = len(self.i)
@@ -9255,7 +9451,7 @@ class CaseFM(CaseData):
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std, err for each coefficient
         :Versions:
-            * 2017-09-29 ``@ddalle``: First version
+            * 2017-09-29 ``@ddalle``: Version 1.0
         """
         # Initialize output
         s = {}
@@ -9314,7 +9510,7 @@ class CaseFM(CaseData):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: Version 1.0
             * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
@@ -9352,7 +9548,7 @@ class CaseFM(CaseData):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-02-15 ``@ddalle``: First version
+            * 2015-02-15 ``@ddalle``: Version 1.0
             * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
             * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
         """
@@ -9459,7 +9655,7 @@ class CaseResid(object):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: Version 1.0
             * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
@@ -9583,7 +9779,7 @@ class CaseResid(object):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: Version 1.0
             * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
@@ -9618,7 +9814,7 @@ class CaseResid(object):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: Version 1.0
             * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
@@ -9680,7 +9876,7 @@ class CaseResid(object):
             *j*: :class:`int`
                 Index of last iteration in *FM.i* less than or equal to *i*
         :Versions:
-            * 2015-03-06 ``@ddalle``: First version
+            * 2015-03-06 ``@ddalle``: Version 1.0
         """
         # Check for *i* less than first iteration.
         if i < self.i[0]: return 0
