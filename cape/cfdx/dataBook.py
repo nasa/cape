@@ -2906,6 +2906,9 @@ class DBBase(dict):
         """
         # Get the transformation type.
         ttype = topts.get("Type", "")
+        # Default mask
+        if mask is None:
+            mask = np.arange(self["CA"].size)
         # Check it.
         if ttype in ["Euler321", "Euler123"]:
             # Get the angle variable names.
@@ -2914,123 +2917,105 @@ class DBBase(dict):
             kth = topts.get('theta', 0.0)
             kps = topts.get('psi', 0.0)
             # Extract roll
-            if isinstance(kph, (float, np.float, np.ndarray)):
+            if isinstance(kph, (float, np.float)):
+                # Singleton
+                phi = kph*deg * np.ones_like(mask)
+            elif isinstance(kph, np.ndarray):
                 # Directly specified value(s)
                 phi = kph*deg
             elif kph.startswith('-'):
                 # Negative roll angle
-                if mask is None:
-                    # All values
-                    phi = -self[kph[1:]]*deg
-                else:
-                    # Subset of values
-                    phi = -self[kph[1:]][mask]*deg
+                phi = -self[kph[1:]][mask]*deg
             else:
                 # Positive roll
-                if mask is None:
-                    # All values
-                    phi = self[kph]*deg
-                else:
-                    # Subset of values
-                    phi = self[kph][mask]*deg
+                phi = self[kph][mask]*deg
             # Extract pitch
-            if isinstance(kth, (float, np.float, np.ndarray)):
-                # Fixed value
+            if isinstance(kth, (float, np.float)):
+                # Singleton
+                theta = kth*deg * np.ones_like(mask)
+            elif isinstance(kth, np.ndarray):
+                # Directly specified value(s)
                 theta = kth*deg
             elif kth.startswith('-'):
                 # Negative pitch
-                if mask is None:
-                    # All values
-                    theta = -self[kth[1:]]*deg
-                else:
-                    # Subset
-                    theta = -self[kth[1:]][mask]*deg
+                theta = -self[kth[1:]][mask]*deg
             else:
                 # Positive pitch
-                if mask is None:
-                    # All values
-                    theta = self[kth]*deg
-                else:
-                    # Subset
-                    theta = self[kth][mask]*deg
+                theta = self[kth][mask]*deg
             # Extract yaw
-            if isinstance(kps, (float, np.float, np.ndarray)):
-                # Fixed value
-                psi = kps*deg
+            if isinstance(kps, (float, np.float)):
+                # Singleton
+                psi = ksh*deg * np.ones_like(mask)
+            elif isinstance(kph, np.ndarray):
+                # Directly specified value(s)
+                psi = ksh*deg
             elif kps.startswith('-'):
                 # Negative yaw
-                if mask is None:
-                    # All values
-                    psi = -self[kps[1:]]*deg
-                else:
-                    # Subset
-                    psi = -self[kps[1:]][mask]*deg
+                psi = -self[kps[1:]][mask]*deg
             else:
                 # Positive pitch
-                if mask is None:
-                    # All values
-                    psi = self[kps]*deg
-                else:
-                    # Subset
-                    psi = self[kps][mask]*deg
-            # Sines and cosines
-            cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
-            sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
-            # Make the matrices.
-            # Roll matrix
-            R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
-            # Pitch matrix
-            R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
-            # Yaw matrix
-            R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
-            # Combined transformation matrix.
-            # Remember, these are applied backwards in order to undo the
-            # original Euler transformation that got the component here.
-            if ttype == "Euler321":
-                R = np.dot(R1, np.dot(R2, R3))
-            elif ttype == "Euler123":
-                R = np.dot(R3, np.dot(R2, R1))
-            # Area transformations
-            if "Ay" in self:
-                # Assemble area vector
-                Ac = np.array([self["Ax"], self["Ay"], self["Az"]])
-                # Transform
-                Ab = np.dot(R, Ac)
-                # Reset
-                self["Ax"] = Ab[0]
-                self["Ay"] = Ab[1]
-                self["Az"] = Ab[2]
-            # Force transformations
-            # Loop through suffixes
-            for s in ["", "p", "vac", "v", "m"]:
-                # Construct force coefficient names
-                cx = "CA" + s
-                cy = "CY" + s
-                cz = "CN" + s
-                # Check if the coefficient is present
-                if cy in self:
-                    # Assemble forces
-                    Fc = np.array([self[cx], self[cy], self[cz]])
+                psi = self[kps][mask]*deg
+            # Loop through cases
+            for j, (phj, thj, psj) in enumarate(zip(phi, theta, psi)):
+                # Sines and cosines
+                cph = np.cos(phj); cth = np.cos(thj); cps = np.cos(psj)
+                sph = np.sin(phj); sth = np.sin(thj); sps = np.sin(psj)
+                # Make the matrices
+                # Roll matrix
+                R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
+                # Pitch matrix
+                R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
+                # Yaw matrix
+                R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
+                # Combined transformation matrix.
+                # Remember, these are applied backwards in order to undo the
+                # original Euler transformation that got the component here.
+                if ttype == "Euler321":
+                    R = np.dot(R1, np.dot(R2, R3))
+                elif ttype == "Euler123":
+                    R = np.dot(R3, np.dot(R2, R1))
+                # Area transformations
+                if "Ay" in self:
+                    # Assemble area vector
+                    Ac = np.array(
+                        [self["Ax"][j], self["Ay"][j], self["Az"][j]])
                     # Transform
-                    Fb = np.dot(R, Fc)
+                    Ab = np.dot(R, Ac)
                     # Reset
-                    self[cx] = Fb[0]
-                    self[cy] = Fb[1]
-                    self[cz] = Fb[2]
-                # Construct moment coefficient names
-                cx = "CLL" + s
-                cy = "CLM" + s
-                cz = "CLN" + s
-                # Check if the coefficient is present
-                if cy in self:
-                    # Assemble moment vector
-                    Mc = np.array([self[cx], self[cy], self[cz]])
-                    # Transform
-                    Mb = np.dot(R, Mc)
-                    # Reset
-                    self[cx] = Fb[0]
-                    self[cy] = Fb[1]
-                    self[cz] = Fb[2]
+                    self["Ax"][j] = Ab[0]
+                    self["Ay"][j] = Ab[1]
+                    self["Az"][j] = Ab[2]
+                # Force transformations
+                # Loop through suffixes
+                for s in ["", "p", "vac", "v", "m"]:
+                    # Construct force coefficient names
+                    cx = "CA" + s
+                    cy = "CY" + s
+                    cz = "CN" + s
+                    # Check if the coefficient is present
+                    if cy in self:
+                        # Assemble forces
+                        Fc = np.array([self[cx][j], self[cy][j], self[cz][j]])
+                        # Transform
+                        Fb = np.dot(R, Fc)
+                        # Reset
+                        self[cx][j] = Fb[0]
+                        self[cy][j] = Fb[1]
+                        self[cz][j] = Fb[2]
+                    # Construct moment coefficient names
+                    cx = "CLL" + s
+                    cy = "CLM" + s
+                    cz = "CLN" + s
+                    # Check if the coefficient is present
+                    if cy in self:
+                        # Assemble moment vector
+                        Mc = np.array([self[cx][j], self[cy][j], self[cz][j]])
+                        # Transform
+                        Mb = np.dot(R, Mc)
+                        # Reset
+                        self[cx][j] = Fb[0]
+                        self[cy][j] = Fb[1]
+                        self[cz][j] = Fb[2]
         elif ttype in ["ScaleCoeffs"]:
             # Loop through coefficients.
             for c in topts:
