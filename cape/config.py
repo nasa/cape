@@ -1742,7 +1742,7 @@ class ConfigJSON(object):
                 ("List of relevant component ID numbers must be made ") +
                 ("up of integers; received type '%s'" % t))
         # Loop through all keys
-        for face in self.faces.keys():
+        for face in list(self.faces.keys()):
             # Get the current parameters
             c = self.faces[face]
             t = type(c).__name__
