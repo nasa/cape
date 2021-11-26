@@ -33,7 +33,7 @@ import cape.tnakit.typeutils as typeutils
 class P3D(cape.plot3d.X):
     """
     Base OVERFLOW Plot3D file interface
-    
+
     :Call:
         >>> q = pyOver.plot3d.P3D(fname, endian=None)
     :Inputs:
@@ -47,11 +47,11 @@ class P3D(cape.plot3d.X):
     :Versions:
         * 2016-02-26 ``@ddalle``: First version
     """
-    
+
     # Open a function
     def open(self):
         """Open a file with appropriate flags
-        
+
         :Call:
             >>> q.open()
         :Inputs:
@@ -64,7 +64,7 @@ class P3D(cape.plot3d.X):
             * 2019-05-24 ``@ddalle``: First version
         """
         # Check if the file is open
-        if isinstance(self.f, typeutils.file) and (not self.f.closed):
+        if typeutils.isfile(self.f) and (not self.f.closed):
             # Already open
             self.f.seek(0)
             return
@@ -74,7 +74,7 @@ class P3D(cape.plot3d.X):
     # Check if file is open
     def close(self):
         """Close a file if open
-        
+
         :Call:
             >>> q.close()
         :Inputs:
@@ -90,11 +90,11 @@ class P3D(cape.plot3d.X):
         if isinstance(self.f, file) and (not self.f.closed):
             # Close the file
             self.f.close()
-    
+
     # Determine byte order
     def get_byteorder(self, endian=None):
         """Determine the proper byte order automatically if necessary
-        
+
         :Call:
             >>> q.get_byteorder(endian=None)
         :Inputs:
@@ -120,11 +120,11 @@ class P3D(cape.plot3d.X):
         else:
             # Big-endian
             self.endian = "big"
-        
+
     # Determine read flags
     def get_dtypes(self):
         """Save NumPy data types to prevent later look-ups
-        
+
         :Call:
             >>> q.get_dtypes()
         :Inputs:
@@ -147,11 +147,11 @@ class P3D(cape.plot3d.X):
             # Big-endian 64-bit flags
             self.itype = ">i4"
             self.ftype = ">f8"
-            
+
     # Read integer
     def read_int(self, n=None):
         """Read one or more integers
-        
+
         :Call:
             >>> i = q.read_int()
             >>> I = q.read_int(n)
@@ -177,11 +177,11 @@ class P3D(cape.plot3d.X):
         else:
             # Read array
             return np.fromfile(self.f, count=n, dtype=self.itype)
-            
+
     # Read integer
     def read_float(self, n=None):
         """Read one or more floats (doubles)
-        
+
         :Call:
             >>> v = q.read_float()
             >>> V = q.read_float(n)
@@ -207,17 +207,17 @@ class P3D(cape.plot3d.X):
         else:
             # Read array
             return np.fromfile(self.f, count=n, dtype=self.ftype)
-    
+
     # Get grid indices
     def expand_grid_indices(self, IG, **kw):
         """Expand grid indices using a variety of input methods
-        
+
         Portions of a grid can be extracted either by using a list of indices
         using the *J*, *K*, *L* keyword arguments, individual indices using the
         *J*, *K*, *L* keyword arguments, or start-end subsets using *JS*, *JE*,
         etc.  The *J* keyword takes precedence over *JS*, *JE* if bot hare
         specified.
-        
+
         :Call:
             >>> J, K, L = q.expand_grid_indices(IG, **kw)
         :Inputs:
@@ -226,7 +226,7 @@ class P3D(cape.plot3d.X):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
@@ -245,11 +245,11 @@ class P3D(cape.plot3d.X):
             *LE*: :class:`int`
                 End index, *l* direction
         :Outputs:
-            *J*: :class:`np.ndarray`\ [:class:`int`] 
+            *J*: :class:`np.ndarray`\ [:class:`int`]
                 Array of grid indices in *j* direction
-            *K*: :class:`np.ndarray`\ [:class:`int`] 
+            *K*: :class:`np.ndarray`\ [:class:`int`]
                 Array of grid indices in *k* direction
-            *L*: :class:`np.ndarray`\ [:class:`int`] 
+            *L*: :class:`np.ndarray`\ [:class:`int`]
                 Array of grid indices in *l* direction
         :Versions:
             * 2016-03-07 ``@ddalle``: First version
@@ -264,7 +264,7 @@ class P3D(cape.plot3d.X):
         LS = kw.get("LS", 1)
         # Process index end indices
         JE = kw.get("JE", JD)
-        KE = kw.get("KE", KD)            
+        KE = kw.get("KE", KD)
         LE = kw.get("LE", LD)
         # Check for negative indices
         if JS < 0: JS += JD
@@ -283,16 +283,16 @@ class P3D(cape.plot3d.X):
         L = kw.get("L", LDEF) - 1
         # Output
         return J, K, L
-    
-    
+
+
 # class P3D
-    
+
 
 # OVERFLOW q class
 class Q(P3D):
     """
     General OVERFLOW ``q`` file interface
-    
+
     :Call:
         >>> q = pyOver.plot3d.Q(fname, endian=None)
     :Inputs:
@@ -309,7 +309,7 @@ class Q(P3D):
     # Initialization method
     def __init__(self, fname, endian=None):
         """Initialization method
-        
+
         :Versions:
             * 2016-02-26 ``@ddalle``: First version
         """
@@ -323,18 +323,18 @@ class Q(P3D):
         # Sutherland's law reference temperature [R]
         self.TREF = 198.6
         # Gas constant [unitus ridiculous]
-        self.R = 1716.0 
+        self.R = 1716.0
         # Determine endianness
         self.get_byteorder(endian)
         # Get flags
         self.get_dtypes()
         # Read the file
         self.Read()
-    
+
     # Read the file
     def Read(self):
         """Read an OVERFLOW generic Q file
-        
+
         :Call:
             >>> q.Read()
         :Inputs:
@@ -364,7 +364,7 @@ class Q(P3D):
             self.ReadQHeader(i+1)
             self.ReadQData(i+1)
         # Reread if q.restart...
-        
+
         # Close the file
         self.close()
         # Freestream viscosity
@@ -379,11 +379,11 @@ class Q(P3D):
         self.PINF = self.RHOINF * self.R * self.TINF
         # Dynamic pressure
         self.QINF = 0.5*self.RHOINF * self.UINF**2
-            
+
     # Get the number of grids
     def GetNGrid(self):
         """Read the number of grids and determine multiple grid status
-        
+
         :Call:
             >>> nGrid = q.GetNGrid()
         :Inputs:
@@ -416,11 +416,11 @@ class Q(P3D):
             self.f.seek(0)
         # Output
         return self.nGrid
-        
+
     # Read the dimensions for each grid
     def GetGridDims(self):
         """Read the dimensions for each grid
-        
+
         :Call:
             >>> q.GetGridDims()
         :Inputs:
@@ -464,11 +464,11 @@ class Q(P3D):
         self.NQ = D[-2]
         # Save *NQC*, the number of species
         self.NQC = D[-1]
-        
+
     # Initialize grids
     def InitHeaders(self):
         """Initialize reference quantities for each grid
-        
+
         :Call:
             >>> q.InitHeaders()
         :Inputs:
@@ -497,11 +497,11 @@ class Q(P3D):
         self._FSMACH  = np.zeros(nGrid, dtype=self.ftype)
         self._TVREF   = np.zeros(nGrid, dtype=self.ftype)
         self._DTVREF  = np.zeros(nGrid, dtype=self.ftype)
-        
+
     # Read the header info
     def ReadQHeader(self, IG=None):
         """Read header info assuming the file marker is in the correct place
-        
+
         :Call:
             >>> q.ReadQHeader(IG=None)
         :Inputs:
@@ -569,11 +569,11 @@ class Q(P3D):
             self._DTVREF[ig]  = self.DTVREF
         # Read end-of-record
         self.read_int()
-        
+
     # Read data and unpack it
     def ReadQData(self, IG=None):
         """Read the data
-        
+
         :Call:
             >>> q.ReadQData(IG=None)
         :Inputs:
@@ -624,11 +624,11 @@ class Q(P3D):
         self.Q[IG-1] = np.reshape(qi, (NQ, LD, KD, JD))
         # Read end-of-record
         self.read_int()
-        
+
     # Extract CP
     def get_Cp(self, IG, **kw):
         """Get pressure coefficients from a grid
-        
+
         :Call:
             >>> Cp = q.get_Cp(IG, **kw)
         :Inputs:
@@ -637,7 +637,7 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
@@ -688,11 +688,11 @@ class Q(P3D):
         Cp = (gam*pstar-1)/(0.5*g_inf*M_inf**2)
         # Output
         return Cp
-        
+
     # Extract Mach number
     def get_M(self, IG, **kw):
         """Get Mach numbers from a grid
-        
+
         :Call:
             >>> M = q.get_M(IG, **kw)
         :Inputs:
@@ -701,7 +701,7 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
@@ -754,11 +754,11 @@ class Q(P3D):
         M = np.sqrt(U2star) / astar
         # Output
         return M
-        
+
     # Extract dimensional pressure
     def get_p(self, IG, **kw):
         """Get dimensional point pressures from a grid in lb/ft^2
-        
+
         :Call:
             >>> p = q.get_p(IG, **kw)
         :Inputs:
@@ -767,7 +767,7 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
@@ -817,11 +817,11 @@ class Q(P3D):
         pstar = (gam-1)*rhostar*estar
         # Dimensional pressures
         return gam*p_inf*pstar
-        
+
     # Extract dimensional temperature
     def get_T(self, IG, **kw):
         """Get dimensional point temperatures from a grid in degrees Rankine
-        
+
         :Call:
             >>> p = q.get_p(IG, **kw)
         :Inputs:
@@ -830,7 +830,7 @@ class Q(P3D):
             *IG*: :class:`int`
                 Grid number (one-based index)
         :Keyword arguments:
-            *J*: :class:`int` | :class:`list`\ [:class:`int`] 
+            *J*: :class:`int` | :class:`list`\ [:class:`int`]
                 Single grid index, *j* direction
             *JS*: :class:`int`
                 Start index, *j* direction
@@ -897,15 +897,15 @@ class Q(P3D):
         # Non-dimensional pressures
         Tstar = (gam-1)*estar / Rstar
         # Dimensional pressures
-        return g_inf*T_inf*Tstar            
-        
+        return g_inf*T_inf*Tstar
+
 # class Q
 
 # OVERFLOW x class
 class X(P3D):
     """
     General OVERFLOW ``x`` file interface
-    
+
     :Call:
         >>> x = pyOver.plot3d.X(fname, endian=None)
     :Inputs:
@@ -922,7 +922,7 @@ class X(P3D):
     # Initialization method
     def __init__(self, fname, endian=None):
         """Initialization method
-        
+
         :Versions:
             * 2016-02-26 ``@ddalle``: First version
         """
@@ -934,9 +934,9 @@ class X(P3D):
         self.get_byteorder(endian)
         # Get flags
         self.get_dtypes()
-        
-        
-        
-        
-        
+
+
+
+
+
 # CLASS x
