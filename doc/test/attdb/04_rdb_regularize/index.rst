@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-20 at 01:45 PST
+   on 2021-11-27 at 01:45 PST
 
 Test ``04_rdb_regularize``: PASS
 ==================================
 
-This test PASSED on 2021-11-20 at 01:45 PST
+This test PASSED on 2021-11-27 at 01:45 PST
 
 This test is run in the folder:
 
@@ -38,7 +38,7 @@ Command 1: Regularize using griddata: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.63 seconds
+    * Command took 0.54 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -67,8 +67,8 @@ Command 2: Regularize using griddata: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 1.38 seconds
+    * Command took 0.82 seconds
+    * Cumulative time: 1.36 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -97,8 +97,8 @@ Command 3: Regularize using RBF: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 1.94 seconds
+    * Command took 0.59 seconds
+    * Cumulative time: 1.95 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -127,8 +127,8 @@ Command 4: Regularize using RBF: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.78 seconds
-    * Cumulative time: 2.73 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 2.51 seconds
 :STDOUT:
     * **PASS**
     * Target:
