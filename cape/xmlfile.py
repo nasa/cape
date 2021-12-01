@@ -20,9 +20,13 @@ through multiple levels of elements and subelements.
 import copy
 import os
 import sys
+import xml.etree.ElementTree as ET
 
 # Third-party
-import defusedxml.ElementTree as ET
+try:
+    import defusedxml.ElementTree as xmlparsemod
+except ImportError:
+    xmlparsemod = ET
 
 
 # Faulty *unicode* type for Python 3
@@ -97,12 +101,12 @@ class XMLFile(object):
             # Check if it looks like an XML file
             if arg0.lstrip().startswith("<"):
                 # Looks like an XML file
-                elem = ET.fromstring(arg0)
+                elem = xmlparsemod.fromstring(arg0)
                 # Create a tree
                 e = ET.ElementTree(elem)
             elif os.path.isfile(arg0):
                 # Existing file
-                e = ET.parse(arg0)
+                e = xmlparsemod.parse(arg0)
                 # Save file name
                 self.fname = arg0
             else:
