@@ -568,7 +568,7 @@ class Cntl(object):
         if opts0 is None:
             raise AttributeError("No *cntl._opts0* options archived")
         # Revert options
-        self.opts = opts0
+        self.opts = copy.deepcopy(opts0)
         
    # >
 
