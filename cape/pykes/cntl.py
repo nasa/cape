@@ -19,20 +19,20 @@ combined into a run matrix can be loaded using the following commands.
         'poweroff/m1.5a0.0b0.0'
 
 
-An instance of this :class:`cape.pyfun.cntl.Cntl` class has many
+An instance of this :class:`cape.pykes.cntl.Cntl` class has many
 attributes, which include the run matrix (``cntl.x``), the options
 interface (``cntl.opts``), and optionally the data book
 (``cntl.DataBook``), the appropriate input files (such as
 ``cntl.``), and possibly others.
 
-    ====================   =============================================
+    ====================   ============================================
     Attribute              Class
-    ====================   =============================================
+    ====================   ============================================
     *cntl.x*              :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*           :class:`cape.pykes.options.Options`
     *cntl.DataBook*       :class:`cape.pykes.dataBook.DataBook`
-    *cntl.JobXML*         :class:`cape.pykes.namelist.Namelist`
-    ====================   =============================================
+    *cntl.JobXML*         :class:`cape.pykes.jobxml.JobXML`
+    ====================   ============================================
 
 :class:`cape.cntl.Cntl` class, so any methods available to the CAPE
 class are also available here.
@@ -50,7 +50,7 @@ import numpy as np
 from . import case
 from . import options
 #from . import manage
-#from . import dataBook
+from . import dataBook
 from .jobxml   import JobXML
 from .. import cntl as ccntl
 from ..cfdx import report
@@ -202,8 +202,8 @@ class Cntl(ccntl.Cntl):
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.pykes.cntl.Cntl`
+                CAPE main control instance
             *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
                 Unprocessed keyword arguments
         :Outputs:
@@ -254,15 +254,16 @@ class Cntl(ccntl.Cntl):
   # Readers
   # ========
   # <
-    # Function to read the databook.
+    # Function to read the databook
+    @ccntl.run_rootdir
     def ReadDataBook(self, comp=None):
         r"""Read the current data book
 
         :Call:
             >>> cntl.ReadDataBook()
         :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.pykes.cntl.Cntl`
+                CAPE main control instance
         :Versions:
             * 2016-09-15 ``@ddalle``: Version 1.0
         """
@@ -272,18 +273,11 @@ class Cntl(ccntl.Cntl):
             return
         except AttributeError:
             pass
-        # Go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Ensure list of components
-        if comp is not None:
-            comp = list(np.array(comp).flatten())
+        if not (comp is None or isinstance(comp, list)):
+            comp = [comp]
         # Read the data book.
         self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
-        # Save project name
-        self.DataBook.proj = self.GetProjectRootName(None)
-        # Return to original folder.
-        os.chdir(fpwd)
 
     # Function to read a report
     def ReadReport(self, rep):
@@ -292,8 +286,8 @@ class Cntl(ccntl.Cntl):
         :Call:
             >>> R = cntl.ReadReport(rep)
         :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.pykes.cntl.Cntl`
+                CAPE main control instance
             *rep*: :class:`str`
                 Name of report
         :Outputs:
