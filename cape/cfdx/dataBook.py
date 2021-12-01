@@ -366,7 +366,7 @@ class DataBook(dict):
         # Initialize if necessary
         try:
             self.LineLoads
-        except Exception:
+        except AttributeError:
             self.LineLoads = {}
         # Try to access the line load
         try:
@@ -982,7 +982,8 @@ class DataBook(dict):
             # Perform update and get number of deletions
             n = self.UpdateLineLoadComp(comp, I=I, conf=conf)
             # Check for updates
-            if n == 0: continue
+            if n == 0:
+                continue
             print("Added or updated %s entries" % n)
             # Write the updated results
             self.LineLoads[comp].Sort()

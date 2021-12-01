@@ -603,22 +603,22 @@ class DBLineLoad(dataBook.DBBase):
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nAvg):
             # Not enough iterations (or zero)
-            print(frun)
-            print("  Not enough iterations (%s) for analysis." % nIter)
+            print("    %s" % frun)
+            print("      Not enough iterations (%s) for analysis." % nIter)
             q = False
         elif np.isnan(j):
             # No current entry, but may have *lds files in run folder
             q = True
         elif self['nIter'][j] < nIter:
             # Update
-            print(frun)
-            print("  Updating from iteration %i to %i." %
+            print("    %s" % frun)
+            print("      Updating from iteration %i to %i." %
                 (self['nIter'][j], nIter))
             q = True
         elif self['nStats'][j] < nStats:
             # Change statistics
-            print(frun)
-            print("  Recomputing statistics using %i iterations." % nStats)
+            print("    %s" % frun)
+            print("      Recomputing statistics using %i iterations." % nStats)
             q = True
         else:
             # Up-to-date
@@ -629,7 +629,8 @@ class DBLineLoad(dataBook.DBBase):
             os.chdir(fpwd)
             return 0
         # Create lineload folder if necessary
-        if not os.path.isdir('lineload'): self.mkdir('lineload')
+        if not os.path.isdir('lineload'):
+            self.mkdir('lineload')
         # Enter lineload folder
         os.chdir('lineload')
         # Append to triq file
@@ -653,22 +654,22 @@ class DBLineLoad(dataBook.DBBase):
         # Run triload if necessary
         if q:
             # Status update
-            print(frun)
-            print("  Adding new databook entry at iteration %i." % nIter)
+            print("    " + frun)
+            print("      Adding new databook entry at iteration %i." % nIter)
             # Write triloadCmd input file
             self.WriteTriloadInput(ftriq, i)
             # Run the command
             self.RunTriload(qtriq, ftriq, i=i)
         else:
             # Status update
-            print(frun)
-            print("  Reading from %s/lineload/ folder" % frun)
+            print("    " + frun)
+            print("      Reading from %s/lineload/ folder" % frun)
         # Check number of seams
         try:
             # Get seam counts
-            nsmx = self.smx['n']
-            nsmy = self.smy['n']
-            nsmz = self.smz['n']
+            nsmx = self.smx.n
+            nsmy = self.smy.n
+            nsmz = self.smz.n
             # Check if at least some seam segments
             nsm = max(nsmx, nsmy, nsmz)
         except:
@@ -1197,6 +1198,7 @@ class CaseLL(object):
                 # Read triload output file
                 self.ReadLDS(self.fname)
         except Exception:
+            raise
             # Create empty line loads
             self.x   = np.zeros(0)
             self.CA  = np.zeros(0)
@@ -1286,11 +1288,11 @@ class CaseLL(object):
         # Number of columns
         nCol = len(line.split())
         # Go backwards one line from current position.
-        f.seek(-len(line), 1)
+        f.seek(f.tell() - len(line))
         # Read the rest of the file.
         D = np.fromfile(f, count=-1, sep=' ')
         # Reshape to a matrix
-        D = D.reshape((D.size/nCol, nCol))
+        D = D.reshape((D.size//nCol, nCol))
         # Save the keys.
         self.x   = D[:,0]
         self.CA  = D[:,1]

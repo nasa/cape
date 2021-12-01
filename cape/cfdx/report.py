@@ -2890,7 +2890,6 @@ class Report(object):
         targs = self.SubfigTargets(sfig)
         # And their types
         targ_types = {}
-        LL = self.ReadLineLoad(comp, i, update=True)
         # Loop through targets.
         for targ in targs:
             # Try to read the line loads
@@ -2962,7 +2961,10 @@ class Report(object):
             # Read the line load data book and read case *i* if possible
             LL = self.ReadLineLoad(comp, i, update=True)
             # Check for case
-            if LL is None: continue
+            if LL is None:
+                continue
+            elif LL.x.size == 0:
+                continue
             # Add to plot count
             nPlot += 1
             # Get figure dimensions.
@@ -5333,7 +5335,7 @@ class Report(object):
         self.cntl.ReadConfig()
         # Read the data book and line load data book
         self.cntl.ReadDataBook()
-        # Get data book handle.
+        # Get data book handle
         if targ is None:
             # General data book
             DB = self.cntl.DataBook
