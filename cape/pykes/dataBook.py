@@ -16,6 +16,7 @@ import re
 import numpy as np
 
 # Local imports
+from . import case
 from ..cfdx import dataBook as cdbook
 
 
