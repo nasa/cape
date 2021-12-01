@@ -197,7 +197,7 @@ class Report(capereport.Report):
         # Get component (note this automatically defaults to *comp*)
         compID = self.cntl.opts.get_DataBookCompID(comp)
         # Check for multiple components
-        if isinstance(compID in (list, np.ndarray)):
+        if isinstance(compID, (list, np.ndarray)):
             # Read the first component
             FM = CaseFM(compID[0])
             # Loop through remaining components
