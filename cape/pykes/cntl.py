@@ -48,12 +48,11 @@ import numpy as np
 
 # Local imports
 from . import case
-from . import options
-#from . import manage
 from . import dataBook
+from . import options
+from . import report
 from .jobxml   import JobXML
 from .. import cntl as ccntl
-from ..cfdx import report
 from ..runmatrix import RunMatrix
 from ..util import RangeString
 
