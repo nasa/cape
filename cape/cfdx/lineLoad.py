@@ -501,17 +501,20 @@ class DBLineLoad(dataBook.DBBase):
             * 2017-04-18 ``@ddalle``: Alternate index inputs
         """
         # Check if already up to date
-        if i in self: return
+        if i in self:
+            return
         # Path to lineload folder
         fll = os.path.join(self.RootDir, self.fdir, 'lineload')
         # Get name of case
         frun = os.path.join(fll, self.x.GetFullFolderNames(i))
         # Check if the case is present
-        if not os.path.isdir(frun): return
+        if not os.path.isdir(frun):
+            return
         # File name
         fname = os.path.join(frun, '%s_%s.csv' % (self.proj, self.comp))
         # Check for the file
-        if not os.path.isfile(fname): return
+        if not os.path.isfile(fname):
+            return
         # Read the file
         self[i] = CaseLL(self.comp, 
             proj=self.proj, typ=self.sec, ext='csv', fdir=frun)
@@ -561,11 +564,11 @@ class DBLineLoad(dataBook.DBBase):
   # ===========
   # <
     # Update a case
-    def UpdateCase(self, i, qpbs=False):
+    def UpdateCase(self, i, qpbs=False, seam=False):
         """Update one line load entry if necessary
         
         :Call:
-            >>> n = DBL.UpdateLineLoadCase(i, qpbs=False)
+            >>> n = DBL.UpdateLineLoadCase(i, qpbs=False, seam=False)
         :Inputs:
             *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
                 Line load data book
@@ -573,6 +576,8 @@ class DBLineLoad(dataBook.DBBase):
                 Case number
             *qpbs*: ``True`` | {``False``}
                 Whether or not to submit as a script
+            *seam*: ``True`` | {``False``}
+                Option to always read local seam curves
         :Outputs:
             *n*: ``0`` | ``1``
                 Number of cases updated or added
@@ -581,6 +586,7 @@ class DBLineLoad(dataBook.DBBase):
             * 2016-12-19 ``@ddalle``: Modified for generic module
             * 2016-12-21 ``@ddalle``: Added PBS
             * 2017-04-24 ``@ddalle``: Removed PBS and added output
+            * 2021-12-01 ``@ddalle``: Added *deam*
         """
         # Try to find a match in the data book
         j = self.FindMatch(i)
@@ -676,14 +682,15 @@ class DBLineLoad(dataBook.DBBase):
             # No seams yet
             nsm = 0
         # Read the loads file
-        self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=False)
+        self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=seam)
         # Check for null loads
         if self[i].x.size == 0:
             return 0
         # Check whether or not to read seams
         if nsm == 0:
             # Read the seam curves from this output
-            self[i].ReadSeamCurves()
+            if not seam:
+                self[i].ReadSeamCurves()
             # Copy the seams
             self.smx = self[i].smx
             self.smy = self[i].smy
@@ -1198,7 +1205,6 @@ class CaseLL(object):
                 # Read triload output file
                 self.ReadLDS(self.fname)
         except Exception:
-            raise
             # Create empty line loads
             self.x   = np.zeros(0)
             self.CA  = np.zeros(0)

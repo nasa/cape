@@ -1727,6 +1727,8 @@ class Report(object):
             return cdef
         # Get prefix
         fcptb = self.cntl.opts.get_SubfigOpt(sfig, "CaptionComponent")
+        # Deal with any unbound underscores
+        fcptb = re.sub(r"([^\\])_", r"\1\_", fcptb)
         # Get component and coefficients
         comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
         coeff = self.cntl.opts.get_SubfigOpt(sfig, "Coefficient")
@@ -2903,7 +2905,7 @@ class Report(object):
                 print("    WARNING: " +
                     ("failed to read target line load '%s'" % targ))
                 raise IOError
-                targ_types[targ] = 'generic'
+                #targ_types[targ] = 'generic'
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
             # List of coefficients
@@ -2918,7 +2920,7 @@ class Report(object):
         # Current status
         nIter  = self.cntl.CheckCase(i)
         # Get caption.
-        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        fcpt = self.SubfigCaption(sfig)
         # Process default caption.
         if fcpt is None:
             # Check for a list.
@@ -5379,7 +5381,7 @@ class Report(object):
         # Check auto-update flag
         if update:
             # Update the case (even if up-to-date)
-            DBL.UpdateCase(j)
+            DBL.UpdateCase(j, seam=True)
         # Read the case
         DBL.ReadCase(j)
         # Output the case line load
