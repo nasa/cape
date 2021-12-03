@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-01 at 01:40 PST
+   on 2021-12-03 at 01:40 PST
 
 Test ``08_cntl``: PASS
 ========================
 
-This test PASSED on 2021-12-01 at 01:40 PST
+This test PASSED on 2021-12-03 at 01:40 PST
 
 This test is run in the folder:
 
@@ -52,7 +52,7 @@ Command 1: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
+    * Command took 0.55 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -81,8 +81,8 @@ Command 2: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.71 seconds
-    * Cumulative time: 1.28 seconds
+    * Command took 0.70 seconds
+    * Cumulative time: 1.25 seconds
 :STDOUT:
     * **PASS**
     * Target:
