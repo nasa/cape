@@ -2131,7 +2131,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get top-level and relative raw-data folder
         moddir = self.get_option("MODULE_DIR")
         # Return full path to file name
-        return os.path.join(fdir, frel)
+        return os.path.join(moddir, frel)
 
    # --- Create folder ---
     def prep_dirs(self, frel):
