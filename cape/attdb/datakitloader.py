@@ -26,7 +26,7 @@ from ..tnakit import shellutils
 
 
 # Utility regular expressions
-REGEX_INT = re.compile("[0-9]+")
+REGEX_INT = re.compile("[0-9]+$")
 REGEX_HOST = re.compile("((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)")
 REGEX_REMOTE = re.compile("((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)")
 
@@ -522,7 +522,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 groups[grp] = ival
                 # Save raw value
                 groups["s-" + grp] = val
-            elif REGEX_INT.match(val + "$"):
+            elif REGEX_INT.match(val):
                 # Convertible to integer
                 groups[grp] = int(val)
                 # Resave raw value
@@ -634,7 +634,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 groups[grp] = ival
                 # Save raw value
                 groups["s-" + grp] = val
-            elif REGEX_INT.match(val + "$"):
+            elif REGEX_INT.match(val):
                 # Convertible to integer
                 groups[grp] = int(val)
                 # Resave raw value

@@ -614,6 +614,7 @@ def read_datakitloader(pkg, opts, where="."):
         dkl = DataKitLoader(pkg, fdir, **mod.DB_NAMES)
         return dkl
     except Exception:
+        raise
         return
 
 
