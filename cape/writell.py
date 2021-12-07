@@ -184,7 +184,7 @@ def genr8_ll_datakit(cntl, comp):
     n = len(fruns)
     # Maximum length
     lmax_name = max([len(frun) for frun in fruns])
-    lmax_case = int(np.log10(n)) + 1
+    lmax_case = int(np.log10(n-1)) + 1
     # STDOUT format
     fmt = "index=%%%ii n=%%%ii case=%%-%is" % (lmax_case, lmax_case, lmax_name)
     # Name for line load datat files in databook case folders
