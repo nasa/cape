@@ -7332,7 +7332,7 @@ class Triq(TriBase):
         # Calculate average *Cp* (first state variable)
         Cp = np.sum(Q[T,0], axis=1)/3
         # Forces are inward normals
-        Fp = -stackcol((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]))
+        Fp = -util.stackcol((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]))
         # Vacuum
         Fvac = -2/(gam*mach*mach)*N
        # ---------------
