@@ -10,6 +10,7 @@ writes the main XML file that sets the main inputs for Kestrel jobs.
 """
 
 # Standard library
+import ast
 import re
 import sys
 
@@ -61,6 +62,13 @@ class JobXML(xmlfile.XMLFile):
         * 2021-10-18 ``@ddalle``: Version 0.0: Started
     """
    # --- __dunder__ ---
+   # --- Overall ---
+    def get_job_name(self):
+        return self.get_input("JobName")
+
+    def set_job_name(self, job_name):
+        return self.set_input("JobName", job_name)
+
    # --- Specific values: get ---
     def get_mach(self):
         return self.get_input("Mach")
@@ -514,9 +522,9 @@ class JobXML(xmlfile.XMLFile):
         except ValueError:
             pass
         # Weird case, hex?
-        if re.fullmatch("0x[0-9A-Fa-f]+", txt):
+        if re.match("0x[0-9A-Fa-f]+$", txt):
             # Convert hex literal to int
-            return eval(txt)
+            return asl.literal_eval(txt)
         else:
             # Unable to convert; use string
             return txt
@@ -598,6 +606,7 @@ class JobXML(xmlfile.XMLFile):
 
 # Common *InputList.Input* keys
 INPUTLIST_KEYS = {
+    "job_name": "Kestrel job name",
     "alpha": "angle of attack",
     "beta": "sideslip angle",
     "mach": "Mach number",

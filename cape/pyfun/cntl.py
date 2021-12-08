@@ -191,7 +191,7 @@ class Cntl(ccntl.Cntl):
             >>> cntl.cli(*a, **kw)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
                 Unprocessed keyword arguments
         :Outputs:
@@ -257,9 +257,9 @@ class Cntl(ccntl.Cntl):
             >>> cntl.ReadDataBook()
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
         :Versions:
-            * 2016-09-15 ``@ddalle``: First version
+            * 2016-09-15 ``@ddalle``: Version 1.0
         """
         # Test for an existing data book.
         try:
@@ -288,14 +288,14 @@ class Cntl(ccntl.Cntl):
             >>> R = cntl.ReadReport(rep)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *rep*: :class:`str`
                 Name of report
         :Outputs:
             *R*: :class:`pyFun.report.Report`
                 Report interface
         :Versions:
-            * 2018-10-19 ``@ddalle``: First version
+            * 2018-10-19 ``@ddalle``: Version 1.0
         """
         # Read the report
         R = report.Report(self, rep)
@@ -321,7 +321,7 @@ class Cntl(ccntl.Cntl):
             *q*: :class:`bool`
                 Whether or not to read to *Namelist*, else *Namelist0*
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 1.0
             * 2015-12-31 ``@ddalle``: Added *Namelist0*
         """
         # Namelist file
@@ -364,7 +364,7 @@ class Cntl(ccntl.Cntl):
             *val*::class:`int`|:class:`float`|:class:`str`|:class:`list`
                 Value
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: Version 1.0
         """
         # Get the namelist value.
         nval = self.Namelist.GetVar(sec, key)
@@ -403,7 +403,7 @@ class Cntl(ccntl.Cntl):
             *name*: :class:`str`
                 Project root name
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: Version 1.0
         """
         # Read the namelist.
         self.ReadNamelist(j, False)
@@ -454,7 +454,7 @@ class Cntl(ccntl.Cntl):
             *fmt*: :class:`str`
                 Project root name
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: Version 1.0
         """
         return self.GetNamelistVar('raw_grid', 'grid_format', j)
 
@@ -476,7 +476,7 @@ class Cntl(ccntl.Cntl):
             *q*: {``True``} | ``False``
                 Whether or not to read to *MapBC*, else *MapBC0*
         :Versions:
-            * 2016-03-30 ``@ddalle``: First version
+            * 2016-03-30 ``@ddalle``: Version 1.0
         """
         # Change to root safely
         fpwd = os.getcwd()
@@ -507,7 +507,7 @@ class Cntl(ccntl.Cntl):
             *q*: :class:`bool`
                 Whether or not read *RubberData*, else *RubberData0*
         :Versions:
-            * 2016-04-27 ``@ddalle``: First version
+            * 2016-04-27 ``@ddalle``: Version 1.0
         """
         # Change to root safely
         fpwd = os.getcwd()
@@ -545,7 +545,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
         :Versions:
-            * 2017-02-23 ``@ddalle``: First version
+            * 2017-02-23 ``@ddalle``: Version 1.0
         """
         # Get options
         ffaux = self.opts.get_FauxFile()
@@ -585,7 +585,7 @@ class Cntl(ccntl.Cntl):
             *q*: :class:`bool`
                 Whether or not to read to *Namelist*, else *Namelist0*
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 1.0
             * 2015-12-31 ``@ddalle``: Added *Namelist0*
             * 2018-10-22 ``@ddalle``: Forked from :func:`ReadNamelist`
         """
@@ -626,7 +626,7 @@ class Cntl(ccntl.Cntl):
             *fname*: :class:`str`
                 Name of file to write
         :Versions:
-            * 2017-02-23 ``@ddalle``: First version
+            * 2017-02-23 ``@ddalle``: Version 1.0
         """
         # Failure tolerance
         self.ReadFreezeSurfs()
@@ -656,7 +656,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of control class
         :Versions:
-            * 2017-02-23 ``@ddalle``: First version
+            * 2017-02-23 ``@ddalle``: Version 1.0
         """
         # Check for existing list
         try:
@@ -722,14 +722,14 @@ class Cntl(ccntl.Cntl):
             >>> n = cntl.CaseGetCurrentIter()
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Outputs:
             *n*: :class:`int` or ``None``
                 Number of completed iterations or ``None`` if not set up
         :Versions:
-            * 2015-10-14 ``@ddalle``: First version
+            * 2015-10-14 ``@ddalle``: Version 1.0
         """
         # Read value
         n = case.GetCurrentIter()
@@ -750,14 +750,14 @@ class Cntl(ccntl.Cntl):
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
             *cntl*: :class:`Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Outputs:
             *j*: :class:`int` | ``None``
                 Phase number
         :Versions:
-            * 2017-06-29 ``@ddalle``: First version
+            * 2017-06-29 ``@ddalle``: Version 1.0
         """
         # Be safe
         try:
@@ -776,14 +776,14 @@ class Cntl(ccntl.Cntl):
             >>> q = cntl.CheckNone(v=False)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *v*: ``True`` | {``False``}
                 Verbosity option
         :Outputs:
             *q*: ``True`` | ``False``
                 Whether or not the case is **not** set up to run
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: Version 1.0
             * 2016-04-11 ``@ddalle``: Checking for AFLR3 input files,
                                       too
             * 2016-04-29 ``@ddalle``: Simpler version that handles
@@ -836,7 +836,7 @@ class Cntl(ccntl.Cntl):
             *q*: :class:`bool`
                 If ``True``, case has :file:`FAIL` file in it
         :Versions:
-            * 2015-01-02 ``@ddalle``: First version
+            * 2015-01-02 ``@ddalle``: Version 1.0
             * 2017-04-06 ``@ddalle``: Checking for
                                       ``nan_locations*.dat``
         """
@@ -877,7 +877,7 @@ class Cntl(ccntl.Cntl):
             *CPUt*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
-            * 2015-12-22 ``@ddalle``: First version
+            * 2015-12-22 ``@ddalle``: Version 1.0
             * 2016-08-31 ``@ddalle``: Checking time since last start
         """
         # File names
@@ -900,12 +900,12 @@ class Cntl(ccntl.Cntl):
             >>> fname = cntl.GetInputMeshFileNames()
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
         :Outputs:
             *fname*: :class:`list`\ [:class:`str`]
                 List of file names read from root directory
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: Version 1.0
         """
         # Get the file names from *opts*
         fname = self.opts.get_MeshFile()
@@ -928,12 +928,12 @@ class Cntl(ccntl.Cntl):
             >>> fname = cntl.GetProcessedMeshFileNames()
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
         :Outputs:
             *fname*: :class:`list`\ [:class:`str`]
                 List of file names written to case folders
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: Version 1.0
         """
         # Initialize output
         fname = []
@@ -952,14 +952,14 @@ class Cntl(ccntl.Cntl):
             >>> fout = cntl.ProcessMeshFileName(fname)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *fname*: :class:`str`
                 Raw file name to be converted to case-folder file name
         :Outputs:
             *fout*: :class:`str`
                 Name of file name using project name as prefix
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Version 1.0
         """
         # Get project name
         fproj = self.GetProjectRootName()
@@ -984,14 +984,14 @@ class Cntl(ccntl.Cntl):
             >>> q = cntl.CheckMesh(i)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *i*: :class:`int`
                 Index of the case to check
         :Outputs:
             *q*: :class:`bool`
                 Whether or not the mesh for case *i* is prepared
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: Version 1.0
         """
         # Check input
         if not type(i).__name__.startswith("int"):
@@ -1042,14 +1042,14 @@ class Cntl(ccntl.Cntl):
             >>> q = cntl.CheckMeshFiles(v=False)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *v*: ``True`` | {``False``}
                 Verbose flag
         :Outputs:
             *q*: :class:`bool`
                 Whether or not the present folder has the required mesh files
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
             * 2017-02-22 ``@ddalle``: Added verbose option
         """
         # Initialize status
@@ -1123,7 +1123,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: Version 1.0
         """
        # ---------
        # Case info
@@ -1288,11 +1288,11 @@ class Cntl(ccntl.Cntl):
             >>> cntl.PrepareCase(i)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *i*: :class:`int`
                 Index of case to prepare/analyze
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: Version 1.0
         """
         # Get the existing status.
         n = self.CheckCase(i)
@@ -1389,7 +1389,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014-06-04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: Version 1.0
             * 2014-06-06 ``@ddalle``: Low-level functionality for grid
                                       folders
             * 2014-09-30 ``@ddalle``: Changed to write only a single
@@ -1540,7 +1540,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2018-04-19 ``@ddalle``: First version
+            * 2018-04-19 ``@ddalle``: Version 1.0
         """
         # Get equations type
         eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
@@ -1627,7 +1627,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Case number
         :Versions:
-            * 2017-04-05 ``@ddalle``: First version
+            * 2017-04-05 ``@ddalle``: Version 1.0
             * 2017-06-07 ``@ddalle``: Copied from :func:`CaseFunction`
         :See also:
             * :func:`cape.cntl.Cntl.CaseFunction`
@@ -1654,9 +1654,9 @@ class Cntl(ccntl.Cntl):
             >>> cntl.PrepareNamelistConfig()
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: Version 1.0
         """
         # Get the components
         comps = self.opts.get_ConfigComponents()
@@ -1718,7 +1718,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D settings interface
         :Versions:
-            * 2018-10-24 ``@ddalle``: First version
+            * 2018-10-24 ``@ddalle``: Version 1.0
         """
         # Get equations type
         eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
@@ -1765,7 +1765,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D settings interface
         :Versions:
-            * 2021-03-22 ``@jmeeroff``: First version
+            * 2021-03-22 ``@jmeeroff``: Version 1.0
         """
         # Namelist handle
         nml = self.Namelist
@@ -1820,7 +1820,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D settings interface
         :Versions:
-            * 2017-09-01 ``@ddalle``: First version
+            * 2017-09-01 ``@ddalle``: Version 1.0
         """
         # Get the boundary points
         BPG = self.opts.get_BoundaryPointGroups()
@@ -1876,7 +1876,7 @@ class Cntl(ccntl.Cntl):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 FUN3D settings interface
         :Versions:
-            * 2021-03-18 ``@jmeeroff``: First version
+            * 2021-03-18 ``@jmeeroff``: Version 1.0
         """
         # Check for MapBC interface
         try:
@@ -1927,7 +1927,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2016-04-27 ``@ddalle``: First version
+            * 2016-04-27 ``@ddalle``: Version 1.0
         """
         # Check options
         if not self.opts.get_Dual(): return
@@ -1981,7 +1981,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2017-02-23 ``@ddalle``: First version
+            * 2017-02-23 ``@ddalle``: Version 1.0
         """
         # Read options
         self.ReadFAUXGeom()
@@ -2019,7 +2019,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2017-02-23 ``@ddalle``: First version
+            * 2017-02-23 ``@ddalle``: Version 1.0
         """
         # Read inputs
         self.ReadFreezeSurfs()
@@ -2060,7 +2060,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2018-04-19 ``@ddalle``: First version
+            * 2018-04-19 ``@ddalle``: Version 1.0
         """
         # Get name of TData file (if any)
         fname = self.opts.get_TDataFile()
@@ -2097,7 +2097,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2018-04-19 ``@ddalle``: First version
+            * 2018-04-19 ``@ddalle``: Version 1.0
         """
         # Get name of TData file (if any)
         fname = self.opts.get_SpeciesThermoDataFile()
@@ -2134,7 +2134,7 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2018-04-19 ``@ddalle``: First version
+            * 2018-04-19 ``@ddalle``: Version 1.0
         """
         # Get name of TData file (if any)
         fname = self.opts.get_KineticDataFile()
@@ -2188,7 +2188,7 @@ class Cntl(ccntl.Cntl):
                 Whether this key has thrust as input (else *p0*, *T0*
                 directly)
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Version 1.0
             * 2016-04-13 ``@ddalle``: Added SurfCT compatibility
         """
         # Get equations type
@@ -2289,7 +2289,7 @@ class Cntl(ccntl.Cntl):
             *T0*: :class:`float`
                 Ratio of BC stagnation temperature to freestream static temp
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Version 1.0
         """
         # Get equations type
         eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
@@ -2340,7 +2340,7 @@ class Cntl(ccntl.Cntl):
                 Ratio of BC stagnation temperature to freestream static
                 temp
         :Versions:
-            * 2016-04-13 ``@ddalle``: First version
+            * 2016-04-13 ``@ddalle``: Version 1.0
         """
         # Get the thrust value
         CT = self.x.GetSurfCT_Thrust(i, key, comp=comp)
@@ -2401,7 +2401,7 @@ class Cntl(ccntl.Cntl):
             *r*: :class:`float`
                 Radius of cylinder
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Version 1.0
         """
         # Convert to index if necessary
         compID = self.MapBC.GetCompID(compID)
@@ -2449,7 +2449,7 @@ class Cntl(ccntl.Cntl):
             *c*: :class:`float`
                 Normalized sound speed, *a/ainf*
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Version 1.0
             * 2016-04-13 ``@ddalle``: Added *CT*/BC capability
         """
         # Get equations type
@@ -2516,7 +2516,7 @@ class Cntl(ccntl.Cntl):
             *surfID*: :class:`list`\ [:class:`int`]
                 List of corresponding indices of surface in MapBC
         :Versions:
-            * 2016-04-27 ``@ddalle``: First version
+            * 2016-04-27 ``@ddalle``: Version 1.0
         """
         # Make sure the triangulation is present.
         try:
@@ -2554,7 +2554,7 @@ class Cntl(ccntl.Cntl):
             *surfID*: :class:`int`
                 Surface index (1-based) according to *cntl.MapBC*
         :Versions:
-            * 2017-02-23 ``@ddalle``: First version
+            * 2017-02-23 ``@ddalle``: Version 1.0
         """
         # Try to convert input to an integer directly
         try:
@@ -2584,7 +2584,7 @@ class Cntl(ccntl.Cntl):
             >>> cntl.GetConfigInput(comp, warn=False)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *comp*: :class:`str`
                 Name of component to process
             *warn*: ``True`` | {``False``}
@@ -2593,7 +2593,7 @@ class Cntl(ccntl.Cntl):
             *inp*: :class:`str`
                 String describing list of integers included
         :Versions:
-            * 2016-10-21 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Version 1.0
         """
         # Get input definitions.
         inp = self.opts.get_ConfigInput(comp)
@@ -2639,14 +2639,13 @@ class Cntl(ccntl.Cntl):
   # <
     # Extend a case
     def ExtendCase(self, i, n=1, j=None, imax=None):
-        r"""Add *NSTEPS* iterations to case *i* using the last phase's
-        namelist
+        r"""Add iterations to case *i* by repeating the last phase
 
         :Call:
             >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of pyFun control class
+                CAPE main control instance
             *i*: :class:`int`
                 Run index
             *n*: {``1``} | positive :class:`int`
@@ -2656,7 +2655,7 @@ class Cntl(ccntl.Cntl):
             *imax*: {``None``} | nonnegative :class:`int`
                 Use *imax* as the maximum iteration count
         :Versions:
-            * 2016-12-12 ``@ddalle``: First version
+            * 2016-12-12 ``@ddalle``: Version 1.0
         """
         # Ignore cases marked PASS
         if self.x.PASS[i]: return
@@ -2711,7 +2710,7 @@ class Cntl(ccntl.Cntl):
             *nPhase*: {``None``} | positive :class:`int`
                 Last phase number (default determined by *PhaseSequence*)
         :Versions:
-            * 2016-03-31 ``@ddalle``: First version
+            * 2016-03-31 ``@ddalle``: Version 1.0
         """
         # Ignore cases marked PASS
         if self.x.PASS[i] or self.x.ERROR[i]:
@@ -2797,7 +2796,7 @@ class Cntl(ccntl.Cntl):
             *rc*: ``None`` | :class:`pyOver.options.runControl.RunControl`
                 Run control interface read from ``case.json`` file
         :Versions:
-            * 2016-12-12 ``@ddalle``: First version
+            * 2016-12-12 ``@ddalle``: Version 1.0
             * 2017-03-31 ``@ddalle``: Copied from :mod:`cape.pyover`
         """
         # Safely go to root directory.
@@ -2843,7 +2842,7 @@ class Cntl(ccntl.Cntl):
             *nml*: ``None`` | :class:`pyOver.overNamelist.OverNamelist`
                 Namelist interface is possible
         :Versions:
-            * 2016-12-12 ``@ddalle``: First version
+            * 2016-12-12 ``@ddalle``: Version 1.0
         """
         # Read the *rc* if necessary
         if rc is None:
@@ -2880,11 +2879,11 @@ class Cntl(ccntl.Cntl):
             >>> cntl.WritePBS(i)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014-10-19 ``@ddalle``: First version
+            * 2014-10-19 ``@ddalle``: Version 1.0
         """
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
@@ -2951,12 +2950,12 @@ class Cntl(ccntl.Cntl):
             >>> pbs = cntl.CaseStartCase()
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
         :Outputs:
             *pbs*: :class:`int` or ``None``
                 PBS job ID if submitted successfully
         :Versions:
-            * 2015-10-14 ``@ddalle``: First version
+            * 2015-10-14 ``@ddalle``: Version 1.0
         """
         return case.StartCase()
   # >
@@ -2973,7 +2972,7 @@ class Cntl(ccntl.Cntl):
             >>> cntl.ArchivePWD(phantom=False)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if
                 ``False``
@@ -2992,12 +2991,12 @@ class Cntl(ccntl.Cntl):
             >>> cntl.SkeletonPWD(phantom=False)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                CAPE main control instance
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if
                 ``False``
         :Versions:
-            * 2017-12-14 ``@ddalle``: First version
+            * 2017-12-14 ``@ddalle``: Version 1.0
         """
         # Archive using the local module
         manage.SkeletonFolder(self.opts, phantom=phantom)
@@ -3015,7 +3014,7 @@ class Cntl(ccntl.Cntl):
                 Write actions to ``archive.log``; only delete if
                 ``False``
         :Versions:
-            * 2017-03-10 ``@ddalle``: First version
+            * 2017-03-10 ``@ddalle``: Version 1.0
             * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module

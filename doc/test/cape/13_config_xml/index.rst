@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-11-02 at 01:40 PDT
+   on 2021-12-08 at 01:40 PST
 
 Test ``13_config_xml``: PASS
 ==============================
 
-This test PASSED on 2021-11-02 at 01:40 PDT
+This test PASSED on 2021-12-08 at 01:40 PST
 
 This test is run in the folder:
 
@@ -92,7 +92,7 @@ Command 1: Read JSON Configuration: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
+    * Command took 0.58 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -112,8 +112,8 @@ Command 2: Read JSON Configuration: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.74 seconds
-    * Cumulative time: 1.30 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 1.08 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -133,8 +133,8 @@ Command 3: Read XML Configuration: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.38 seconds
-    * Cumulative time: 1.68 seconds
+    * Command took 0.39 seconds
+    * Cumulative time: 1.47 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -155,7 +155,7 @@ Command 4: Read XML Configuration: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.48 seconds
-    * Cumulative time: 2.16 seconds
+    * Cumulative time: 1.95 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -175,8 +175,8 @@ Command 5: Compare XML Configurations: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.38 seconds
-    * Cumulative time: 2.54 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 2.51 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -287,8 +287,8 @@ Command 6: Compare XML Configurations: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 3.02 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 3.09 seconds
 :STDOUT:
     * **PASS**
     * Target:

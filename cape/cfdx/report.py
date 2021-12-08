@@ -1727,6 +1727,8 @@ class Report(object):
             return cdef
         # Get prefix
         fcptb = self.cntl.opts.get_SubfigOpt(sfig, "CaptionComponent")
+        # Deal with any unbound underscores
+        fcptb = re.sub(r"([^\\])_", r"\1\_", fcptb)
         # Get component and coefficients
         comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
         coeff = self.cntl.opts.get_SubfigOpt(sfig, "Coefficient")
@@ -2890,7 +2892,6 @@ class Report(object):
         targs = self.SubfigTargets(sfig)
         # And their types
         targ_types = {}
-        LL = self.ReadLineLoad(comp, i, update=True)
         # Loop through targets.
         for targ in targs:
             # Try to read the line loads
@@ -2904,7 +2905,7 @@ class Report(object):
                 print("    WARNING: " +
                     ("failed to read target line load '%s'" % targ))
                 raise IOError
-                targ_types[targ] = 'generic'
+                #targ_types[targ] = 'generic'
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
             # List of coefficients
@@ -2919,7 +2920,7 @@ class Report(object):
         # Current status
         nIter  = self.cntl.CheckCase(i)
         # Get caption.
-        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        fcpt = self.SubfigCaption(sfig)
         # Process default caption.
         if fcpt is None:
             # Check for a list.
@@ -2962,7 +2963,10 @@ class Report(object):
             # Read the line load data book and read case *i* if possible
             LL = self.ReadLineLoad(comp, i, update=True)
             # Check for case
-            if LL is None: continue
+            if LL is None:
+                continue
+            elif LL.x.size == 0:
+                continue
             # Add to plot count
             nPlot += 1
             # Get figure dimensions.
@@ -5333,7 +5337,7 @@ class Report(object):
         self.cntl.ReadConfig()
         # Read the data book and line load data book
         self.cntl.ReadDataBook()
-        # Get data book handle.
+        # Get data book handle
         if targ is None:
             # General data book
             DB = self.cntl.DataBook
@@ -5377,7 +5381,7 @@ class Report(object):
         # Check auto-update flag
         if update:
             # Update the case (even if up-to-date)
-            DBL.UpdateCase(j)
+            DBL.UpdateCase(j, seam=True)
         # Read the case
         DBL.ReadCase(j)
         # Output the case line load

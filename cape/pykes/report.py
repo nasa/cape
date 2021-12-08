@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.pyfun.report`: Automated report interface
+:mod:`cape.pykes.report`: Automated report interface
 ======================================================
 
 The pyFun module for generating automated results reports using 
@@ -37,7 +37,7 @@ format.
 
     .. code-block: console
     
-        $ pyfun --report
+        $ pykes --report
 
 The class has an immense number of methods, which can be somewhat 
 grouped into bookkeeping methods and plotting methods.  The main 
@@ -51,7 +51,7 @@ method, for example
 
 :See also:
     * :mod:`cape.cfdx.report`
-    * :mod:`cape.pyfun.options.Report`
+    * :mod:`cape.pykes.options.Report`
     * :mod:`cape.options.Report`
     * :class:`cape.cfdx.dataBook.DBComp`
     * :class:`cape.cfdx.dataBook.CaseFM`
@@ -69,12 +69,8 @@ import glob
 import numpy as np
 
 # Local import
-from .. import tar
 from ..cfdx import report as capereport
-from ..filecntl import tex
-from .case import LinkPLT
 from .dataBook import CaseFM, CaseResid
-from ..filecntl.tecplot import ExportLayout, Tecscript
 
 
 # Class to interface with report generation and updating.
@@ -82,18 +78,17 @@ class Report(capereport.Report):
     r"""Interface for automated report generation
     
     :Call:
-        >>> R = pyFun.report.Report(fun3d, rep)
+        >>> R = Report(cntl, rep)
     :Inputs:
-        *fun3d*: :class:`cape.pyfun.cntl.Cntl`
-            Master Cart3D settings interface
+        *cntl*: :class:`cape.pykes.cntl.Cntl`
+            CAPE main control instance
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
         *R*: :class:`pyFun.report.Report`
             Automated report interface
     :Versions:
-        * 2015-03-07 ``@ddalle``: Started
-        * 2015-03-10 ``@ddalle``: First version
+        * 2021-12-01 ``@ddalle``: Version 1.0
     """
     
     # String conversion
@@ -101,9 +96,9 @@ class Report(capereport.Report):
         """String/representation method
         
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 1.0
         """
-        return '<pyFun.Report("%s")>' % self.rep
+        return "<pykes.Report('%s')>" % self.rep
     # Copy the function
     __str__ = __repr__
             
@@ -130,7 +125,7 @@ class Report(capereport.Report):
             *lines*: :class:`list`\ [:class:`str`]
                 Updated list of lines for LaTeX file
         :Versions:
-            * 2015-05-29 ``@ddalle``: First version
+            * 2015-05-29 ``@ddalle``: Version 1.0
             * 2016-10-25 ``@ddalle``: *UpdateCaseSubfigs* -> 
                                       *SubfigSwitch*
         """
@@ -177,7 +172,7 @@ class Report(capereport.Report):
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
-        
+
     # Read iterative history
     def ReadCaseFM(self, comp):
         r"""Read iterative history for a component
@@ -196,32 +191,30 @@ class Report(capereport.Report):
                 derivative
                 Case iterative force & moment history for one component
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 1.0
             * 2017-03-27 ``@ddalle``: Added *CompID* option
         """
-        # Project rootname
-        proj = self.cntl.GetProjectRootName(None)
         # Get component (note this automatically defaults to *comp*)
         compID = self.cntl.opts.get_DataBookCompID(comp)
         # Check for multiple components
-        if type(compID).__name__ in ['list', 'ndarray']:
+        if isinstance(compID, (list, np.ndarray)):
             # Read the first component
-            FM = CaseFM(proj, compID[0])
+            FM = CaseFM(compID[0])
             # Loop through remaining components
             for compi in compID[1:]:
                 # Check for minus sign
                 if compi.startswith('-1'):
                     # Subtract the component
-                    FM -= CaseFM(proj, compi.lstrip('-'))
+                    FM -= CaseFM(compi.lstrip('-'))
                 else:
                     # Add in the component
-                    FM += CaseFM(proj, compi)
+                    FM += CaseFM(compi)
         else:
             # Read the iterative history for single component
-            FM = CaseFM(proj, compID)
+            FM = CaseFM(compID)
         # Read the history for that component
         return FM
-        
+
     # Read residual history
     def ReadCaseResid(self, sfig=None):
         r"""Read iterative residual history for a component
@@ -240,54 +233,8 @@ class Report(capereport.Report):
                 derivative
                 Case iterative residual history for one case
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-            * 2016-02-04 ``@ddalle``: Added argument
+            * 2021-12-01 ``@ddalle``: Version 1.0
         """
-        # Project rootname
-        proj = self.cntl.GetProjectRootName(None)
         # Read the residual history
-        return CaseResid(proj)
-        
-    # Read a Tecplot script
-    def ReadTecscript(self, fsrc):
-        r"""Read a Tecplot script interface
-        
-        :Call:
-            >>> R.ReadTecscript(fsrc)
-        :Inputs:
-            *R*: :class:`pyFun.report.Report`
-                Automated report interface
-            *fscr*: :class:`str`
-                Name of file to read
-        :Versions:
-            * 2016-10-25 ``@ddalle``: First version
-        """
-        return Tecscript(fsrc)
-            
-    # Function to link appropriate visualization files
-    def LinkVizFiles(self, sfig=None, i=None):
-        """Create links to appropriate visualization files
-        
-        Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
-        ``Components.i.dat`` and ``cutPlanes.dat`` are created.
-        
-        :Call:
-            >>> R.LinkVizFiles(sfig, i)
-        :Inputs:
-            *R*: :class:`pyFun.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of the subfigure
-            *i*: :class:`int`
-                Case index
-        :See Also:
-            :func:`pyFun.case.LinkPLT`
-        :Versions:
-            * 2016-02-06 ``@ddalle``: First version
-        """
-        # Defer to function from :func:`pyFun.case`
-        LinkPLT()
-        
-        
-# class Report
+        return CaseResid()
 

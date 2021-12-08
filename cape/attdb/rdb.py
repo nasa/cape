@@ -5177,8 +5177,12 @@ class DataKit(ftypes.BaseData):
         tol = kw.get("tol", 1e-6)
         # Name of master (slice) key
         skey = args[0]
+        # Extrapolation option
+        extrap = kw.get("extrap", False)
+        # Copy arguments
+        args = list(args)
         # Get lookup points at both sides of scheduling key
-        i0, i1, f, x0, x1 = self.get_schedule(args, x, extrap=False)
+        i0, i1, f, x0, x1 = self.get_schedule(args, x, extrap=extrap)
         # Get the values for the slice key
         x00 = self.get_bkpt(skey, i0)
         x01 = self.get_bkpt(skey, i1)
@@ -7584,7 +7588,7 @@ class DataKit(ftypes.BaseData):
                 can be outside 0-1 bound for extrapolation
         :Versions:
             * 2018-12-30 ``@ddalle``: Version 1.0
-            * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
+            * 2019-12-16 ``@ddalle``: Version 2.0; for :mod:`rdbnull`
         """
         # Get length
         n = V.size
@@ -7592,10 +7596,13 @@ class DataKit(ftypes.BaseData):
         vmin = np.min(V)
         vmax = np.max(V)
         # Check for extrapolation cases
+        if n == 1:
+            # Only one point
+            return 0, None, 1.0
         if v < vmin - tol*(vmax-vmin):
             # Extrapolation left
             return None, 0, (v-V[0])/(V[1]-V[0])
-        elif v > vmax + tol*(vmax-vmin):
+        if v > vmax + tol*(vmax-vmin):
             # Extrapolation right
             return n-1, None, (v-V[-2])/(V[-1]-V[-2])
         # Otherwise, count up values below

@@ -220,7 +220,7 @@ def RunPhase(rc, i):
             if rc.get_Dual():
                 os.chdir('..')
             # Create an output file to make phase number programs work
-            os.system('touch run.%02i.%i' % (i, n))
+            open("run.%02i.%i" % (i, n), 'w').close()
             return
     # Prepare for restart if that's appropriate.
     SetRestartIter(rc)
@@ -741,7 +741,7 @@ def GetCurrentIter():
             Last iteration number
     :Versions:
         * 2015-10-19 ``@ddalle``: Version 1.0
-        * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
+        * 2016-04-28 ``@ddalle``: Version 1.1; ``Flow/`` folder
     """
     # Read the two sources
     nh, ns = GetHistoryIter()
@@ -1075,7 +1075,8 @@ def SetRestartIter(rc, n=None):
         * 2014-11-28 ``@ddalle``: Added `td_flowCart` compatibility
     """
     # Check the input.
-    if n is None: n = GetRestartIter()
+    if n is None:
+        n = GetRestartIter()
     # Read the namelist.
     nml = GetNamelist(rc)
     # Set restart flag
@@ -1095,9 +1096,12 @@ def SetRestartIter(rc, n=None):
             f1 = glob.glob('run.%02i.*' % (i-1))
             n1 = rc.get_PhaseIters(i-1)
             # Read the previous namelist
-            if (n > n1) and (len(f1) > 0) and os.path.isfile("fun3d.out"):
-                # Current phase was already run, but run.$i.$n wasn't created
-                nml0 = GetNamelist(rc, i)
+            if n is not None and n1 is not None and (n > n1):
+                if (len(f1) > 0) and os.path.isfile("fun3d.out"):
+                    # Current phase was already run, but run.$i.$n wasn't created
+                    nml0 = GetNamelist(rc, i)
+                else:
+                    nml0 = GetNamelist(rc, i-1)
             else:
                 # Read the previous phase
                 nml0 = GetNamelist(rc, i-1)

@@ -501,17 +501,20 @@ class DBLineLoad(dataBook.DBBase):
             * 2017-04-18 ``@ddalle``: Alternate index inputs
         """
         # Check if already up to date
-        if i in self: return
+        if i in self:
+            return
         # Path to lineload folder
         fll = os.path.join(self.RootDir, self.fdir, 'lineload')
         # Get name of case
         frun = os.path.join(fll, self.x.GetFullFolderNames(i))
         # Check if the case is present
-        if not os.path.isdir(frun): return
+        if not os.path.isdir(frun):
+            return
         # File name
         fname = os.path.join(frun, '%s_%s.csv' % (self.proj, self.comp))
         # Check for the file
-        if not os.path.isfile(fname): return
+        if not os.path.isfile(fname):
+            return
         # Read the file
         self[i] = CaseLL(self.comp, 
             proj=self.proj, typ=self.sec, ext='csv', fdir=frun)
@@ -561,11 +564,11 @@ class DBLineLoad(dataBook.DBBase):
   # ===========
   # <
     # Update a case
-    def UpdateCase(self, i, qpbs=False):
+    def UpdateCase(self, i, qpbs=False, seam=False):
         """Update one line load entry if necessary
         
         :Call:
-            >>> n = DBL.UpdateLineLoadCase(i, qpbs=False)
+            >>> n = DBL.UpdateLineLoadCase(i, qpbs=False, seam=False)
         :Inputs:
             *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
                 Line load data book
@@ -573,6 +576,8 @@ class DBLineLoad(dataBook.DBBase):
                 Case number
             *qpbs*: ``True`` | {``False``}
                 Whether or not to submit as a script
+            *seam*: ``True`` | {``False``}
+                Option to always read local seam curves
         :Outputs:
             *n*: ``0`` | ``1``
                 Number of cases updated or added
@@ -581,6 +586,7 @@ class DBLineLoad(dataBook.DBBase):
             * 2016-12-19 ``@ddalle``: Modified for generic module
             * 2016-12-21 ``@ddalle``: Added PBS
             * 2017-04-24 ``@ddalle``: Removed PBS and added output
+            * 2021-12-01 ``@ddalle``: Added *deam*
         """
         # Try to find a match in the data book
         j = self.FindMatch(i)
@@ -603,22 +609,22 @@ class DBLineLoad(dataBook.DBBase):
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nAvg):
             # Not enough iterations (or zero)
-            print(frun)
-            print("  Not enough iterations (%s) for analysis." % nIter)
+            print("    %s" % frun)
+            print("      Not enough iterations (%s) for analysis." % nIter)
             q = False
         elif np.isnan(j):
             # No current entry, but may have *lds files in run folder
             q = True
         elif self['nIter'][j] < nIter:
             # Update
-            print(frun)
-            print("  Updating from iteration %i to %i." %
+            print("    %s" % frun)
+            print("      Updating from iteration %i to %i." %
                 (self['nIter'][j], nIter))
             q = True
         elif self['nStats'][j] < nStats:
             # Change statistics
-            print(frun)
-            print("  Recomputing statistics using %i iterations." % nStats)
+            print("    %s" % frun)
+            print("      Recomputing statistics using %i iterations." % nStats)
             q = True
         else:
             # Up-to-date
@@ -629,7 +635,8 @@ class DBLineLoad(dataBook.DBBase):
             os.chdir(fpwd)
             return 0
         # Create lineload folder if necessary
-        if not os.path.isdir('lineload'): self.mkdir('lineload')
+        if not os.path.isdir('lineload'):
+            self.mkdir('lineload')
         # Enter lineload folder
         os.chdir('lineload')
         # Append to triq file
@@ -653,36 +660,37 @@ class DBLineLoad(dataBook.DBBase):
         # Run triload if necessary
         if q:
             # Status update
-            print(frun)
-            print("  Adding new databook entry at iteration %i." % nIter)
+            print("    " + frun)
+            print("      Adding new databook entry at iteration %i." % nIter)
             # Write triloadCmd input file
             self.WriteTriloadInput(ftriq, i)
             # Run the command
             self.RunTriload(qtriq, ftriq, i=i)
         else:
             # Status update
-            print(frun)
-            print("  Reading from %s/lineload/ folder" % frun)
+            print("    " + frun)
+            print("      Reading from %s/lineload/ folder" % frun)
         # Check number of seams
         try:
             # Get seam counts
-            nsmx = self.smx['n']
-            nsmy = self.smy['n']
-            nsmz = self.smz['n']
+            nsmx = self.smx.n
+            nsmy = self.smy.n
+            nsmz = self.smz.n
             # Check if at least some seam segments
             nsm = max(nsmx, nsmy, nsmz)
         except:
             # No seams yet
             nsm = 0
         # Read the loads file
-        self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=False)
+        self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=seam)
         # Check for null loads
         if self[i].x.size == 0:
             return 0
         # Check whether or not to read seams
         if nsm == 0:
             # Read the seam curves from this output
-            self[i].ReadSeamCurves()
+            if not seam:
+                self[i].ReadSeamCurves()
             # Copy the seams
             self.smx = self[i].smx
             self.smy = self[i].smy
@@ -1286,11 +1294,11 @@ class CaseLL(object):
         # Number of columns
         nCol = len(line.split())
         # Go backwards one line from current position.
-        f.seek(-len(line), 1)
+        f.seek(f.tell() - len(line))
         # Read the rest of the file.
         D = np.fromfile(f, count=-1, sep=' ')
         # Reshape to a matrix
-        D = D.reshape((D.size/nCol, nCol))
+        D = D.reshape((D.size//nCol, nCol))
         # Save the keys.
         self.x   = D[:,0]
         self.CA  = D[:,1]

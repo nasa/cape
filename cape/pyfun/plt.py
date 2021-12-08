@@ -84,7 +84,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         # Make a crude attempt at sorting
         fglob.sort()
         # Import the alphabetically last one (should be the same anyway)
-        kw["mapbc"] = cape.pyfun.mapbc.MapBC(fglob[0])
+        kw["mapbc"] = mapbc.MapBC(fglob[0])
     # Attempt to get *cp_tavg* state
     if "mach" in kw:
         plt.GetCpTAvg(float(kw["mach"]))
@@ -168,6 +168,11 @@ class Plt(capeplt.Plt):
             # Update min/max
             self.qmin[n,-1] = np.min(cp)
             self.qmax[n,-1] = np.max(cp)
-            # Append the other random info
-            self.VarLocs[n] = np.append(self.VarLocs[n], self.VarLocs[n][k])
+            # Update variable locations for this zone if applicable
+            varlocs = self.VarLocs[n]
+            # Check if this property has been set
+            if len(varlocs) <= k:
+                continue
+            # Append
+            self.VarLocs[n] = np.append(varlocs, varlocs[k])
 

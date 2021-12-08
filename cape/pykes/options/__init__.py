@@ -63,9 +63,9 @@ class Options(options.Options):
         self.update(d)
         self.update(kw)
         # Initialize sections
-        self.init_section(PBS)
-        self.init_section(PBS, "BatchPBS", parent="PBS")
-        self.init_section(PBS, "PostPBS", parent="PBS")
+        self.init_section(PBS, prefix="PBS_")
+        self.init_section(PBS, "BatchPBS", parent="PBS", prefix="PBS_")
+        self.init_section(PBS, "PostPBS", parent="PBS", prefix="PBS_")
         # Upgrade important groups to their own classes.
         self.init_section(Slurm)
         self.init_section(DataBook)

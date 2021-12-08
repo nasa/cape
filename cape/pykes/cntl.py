@@ -19,20 +19,20 @@ combined into a run matrix can be loaded using the following commands.
         'poweroff/m1.5a0.0b0.0'
 
 
-An instance of this :class:`cape.pyfun.cntl.Cntl` class has many
+An instance of this :class:`cape.pykes.cntl.Cntl` class has many
 attributes, which include the run matrix (``cntl.x``), the options
 interface (``cntl.opts``), and optionally the data book
 (``cntl.DataBook``), the appropriate input files (such as
 ``cntl.``), and possibly others.
 
-    ====================   =============================================
+    ====================   ============================================
     Attribute              Class
-    ====================   =============================================
+    ====================   ============================================
     *cntl.x*              :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*           :class:`cape.pykes.options.Options`
     *cntl.DataBook*       :class:`cape.pykes.dataBook.DataBook`
-    *cntl.JobXML*         :class:`cape.pykes.namelist.Namelist`
-    ====================   =============================================
+    *cntl.JobXML*         :class:`cape.pykes.jobxml.JobXML`
+    ====================   ============================================
 
 :class:`cape.cntl.Cntl` class, so any methods available to the CAPE
 class are also available here.
@@ -47,13 +47,12 @@ import shutil
 import numpy as np
 
 # Local imports
-from . import options
-#from . import manage
 from . import case
-#from . import dataBook
+from . import dataBook
+from . import options
+from . import report
 from .jobxml   import JobXML
 from .. import cntl as ccntl
-from ..cfdx import report
 from ..runmatrix import RunMatrix
 from ..util import RangeString
 
@@ -94,6 +93,14 @@ class Cntl(ccntl.Cntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
     """
+  # =================
+  # Class Attributes
+  # =================
+  # <
+    # Case module
+    _case_mod = case
+  # >
+
   # ======
   # Config
   # ======
@@ -146,6 +153,43 @@ class Cntl(ccntl.Cntl):
             self.x.nCase)
   # >
 
+  # ==================
+  # Overall Settings
+  # ==================
+  # <
+    # Job name
+    def get_job_name(self, j=0):
+        r"""Get "job name" for phase *j*
+
+        :Call:
+            >>> name = cntl.get_job_name(j=0)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Instance of main CAPE control class
+            *j*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *name*: :class:`str`
+                Job name for phase *j*
+        :Versions:
+            * 2021-1-05 ``@ddalle``: Version 1.0
+        """
+        # Get default
+        name = self.opts.get_ProjectName(j)
+        # Use *opts* as primary
+        if name is not None:
+            return name
+        # Read XML template
+        self.ReadJobXML(j, False)
+        # Get XML setting
+        name = self.JobXML0.get_job_name()
+        # Check if found
+        if name is None:
+            return "pykes"
+        else:
+            return name
+  # >
+
   # =======================
   # Command-Line Interface
   # =======================
@@ -157,8 +201,8 @@ class Cntl(ccntl.Cntl):
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.pykes.cntl.Cntl`
+                CAPE main control instance
             *kw*: :class:`dict` (``True`` | ``False`` | :class:`str`)
                 Unprocessed keyword arguments
         :Outputs:
@@ -209,15 +253,16 @@ class Cntl(ccntl.Cntl):
   # Readers
   # ========
   # <
-    # Function to read the databook.
+    # Function to read the databook
+    @ccntl.run_rootdir
     def ReadDataBook(self, comp=None):
         r"""Read the current data book
 
         :Call:
             >>> cntl.ReadDataBook()
         :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.pykes.cntl.Cntl`
+                CAPE main control instance
         :Versions:
             * 2016-09-15 ``@ddalle``: Version 1.0
         """
@@ -227,18 +272,11 @@ class Cntl(ccntl.Cntl):
             return
         except AttributeError:
             pass
-        # Go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Ensure list of components
-        if comp is not None:
-            comp = list(np.array(comp).flatten())
+        if not (comp is None or isinstance(comp, list)):
+            comp = [comp]
         # Read the data book.
         self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
-        # Save project name
-        self.DataBook.proj = self.GetProjectRootName(None)
-        # Return to original folder.
-        os.chdir(fpwd)
 
     # Function to read a report
     def ReadReport(self, rep):
@@ -247,12 +285,12 @@ class Cntl(ccntl.Cntl):
         :Call:
             >>> R = cntl.ReadReport(rep)
         :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.pykes.cntl.Cntl`
+                CAPE main control instance
             *rep*: :class:`str`
                 Name of report
         :Outputs:
-            *R*: :class:`pyFun.report.Report`
+            *R*: :class:`Report`
                 Report interface
         :Versions:
             * 2018-10-19 ``@ddalle``: Version 1.0
@@ -285,7 +323,7 @@ class Cntl(ccntl.Cntl):
         # Check case
         n = self.CheckCase(i)
         # Quit if already prepared
-        if f is not None:
+        if n is not None:
             return
         # Run any case functions
         self.CaseFunction(i)
@@ -341,10 +379,16 @@ class Cntl(ccntl.Cntl):
         :Versions:
             * 2021-10-26 ``@ddalle``: Version 1.0
         """
+        # Get job name
+        job_name = self.get_job_name(i)
         # Get run matrix
         x = self.x
+        # (Re)read XML
+        self.ReadJobXML()
         # Get XML file instance
         xml = self.JobXML
+        # Enforce main job name
+        xml.set_job_name(job_name)
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
         # Exit if not folder
@@ -373,6 +417,18 @@ class Cntl(ccntl.Cntl):
         t = x.GetTemperature(i)
         if t is not None:
             xml.set_temperature(t)
+        # Find all *Path* and *File* elements
+        elems1 = xml.findall_iter("Path")
+        elems2 = xml.findall_iter("File")
+        # Remove paths from file names
+        for elem in elems1 + elems2:
+            # Get file name
+            fname = elem.text
+            # Check for any
+            if fname is None:
+                continue
+            # Reset to base name
+            elem.text = os.path.basename(fname)
         # Loop through phases
         for j in self.opts.get_PhaseSequence():
             # Set the restart flag according to phase
@@ -387,7 +443,7 @@ class Cntl(ccntl.Cntl):
                 # Set item
                 xml.set_section_item(**xmlitem)
             # Name of output file
-            fxml = os.path.join(frun, "%s.%02i.xml" % (proj, j))
+            fxml = os.path.join(frun, "kestrel.%02i.xml" % j)
             # Write it
             xml.write(fxml)
 
@@ -505,12 +561,56 @@ class Cntl(ccntl.Cntl):
                 else:
                     # Use CAPE-provided script
                     fp.write('run_kestrel.py' + flgs + '\n')
+
+    # Call the correct :mod:`case` module to start a case
+    def CaseStartCase(self):
+        r"""Start a case by either submitting it or running it
+
+        This function relies on :mod:`cape.pycart.case`, and so it is
+        customized for the Cart3D solver only in that it calls the
+        correct *case* module.
+
+        :Call:
+            >>> pbs = cntl.CaseStartCase()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Main CAPE control instance
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                PBS job ID if submitted successfully
+        :Versions:
+            * 2021-11-05 ``@ddalle``: Version 1.0
+        """
+        return case.start_case()
   # >
 
   # ===============
   # Case Interface
   # ===============
   # <
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentIter(self):
+        r"""Get current iteration number from case in current folder
+
+        :Call:
+            >>> n = cntl.CaseGetCurrentIter()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Instance of main CAPE control class
+        :Outputs:
+            *n*: ``None`` | :class:`int`
+                Number of completed iters or ``None`` if not set up
+        :Versions:
+            * 2021-11-05 ``@ddalle``: Version 1.0
+        """
+        # Read value
+        n = case.get_current_iter()
+        # Default to zero.
+        if n is None:
+            return 0
+        else:
+            return n
+
     # Check if mesh is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared
@@ -585,43 +685,12 @@ class Cntl(ccntl.Cntl):
             rc = None
         else:
             # Read the file
-            rc = case.ReadCaseJSON()
+            try:
+                rc = case.read_case_json()
+            except ValueError:
+                rc = None
         # Output
         return rc
-
-    # Write run control options to JSON file
-    @ccntl.run_rootdir
-    def WriteCaseJSON(self, i, rc=None):
-        r"""Write JSON file with run control for case *i*
-        
-        :Call:
-            >>> cntl.WriteCaseJSON(i, rc=None)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-            *rc*: {``None``} | :class:`RunControl`
-                Prespecified "RunControl" options
-        :Versions:
-            * 2021-10-26 ``@ddalle``: Version 1.0
-        """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists
-        if not os.path.isdir(frun):
-            return
-        # Go to the folder
-        os.chdir(frun)
-        # Write file
-        with open("case.json", "w") as fp:
-            # Dump the Overflow and other run settings.
-            if rc is None:
-                # Write settings from the present options
-                json.dump(self.opts["RunControl"], fp, indent=1)
-            else:
-                # Write the settings given as input
-                json.dump(rc, fp, indent=1)
   # >
 
   # ========

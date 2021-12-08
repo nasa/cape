@@ -22,6 +22,12 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 
+# Third-party
+try:
+    import defusedxml.ElementTree as xmlparsemod
+except ImportError:
+    xmlparsemod = ET
+
 
 # Faulty *unicode* type for Python 3
 if sys.version_info.major > 2:
@@ -91,16 +97,16 @@ class XMLFile(object):
             e = copy.deepcopy(arg0.tree)
             # Copy any file name
             self.fname = arg0.fname
-        elif isinstance(arg0, str):
+        elif isinstance(arg0, (str, unicode)):
             # Check if it looks like an XML file
             if arg0.lstrip().startswith("<"):
                 # Looks like an XML file
-                elem = ET.fromstring(arg0)
+                elem = xmlparsemod.fromstring(arg0)
                 # Create a tree
                 e = ET.ElementTree(elem)
             elif os.path.isfile(arg0):
                 # Existing file
-                e = ET.parse(arg0)
+                e = xmlparsemod.parse(arg0)
                 # Save file name
                 self.fname = arg0
             else:
