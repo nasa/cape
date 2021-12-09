@@ -1,23 +1,24 @@
-"""
+r"""
 :mod:`cape.pycart.options.DataBook`: pyCart DataBook Options
 =============================================================
 
-This module provides database options specific to pyCart/Cart3D.  The vast
-majority of database options are common to all solvers and are thus inherited
-from :class:`cape.cfdx.options.DataBook.DataBook`.
+This module provides database options specific to pyCart/Cart3D.  The
+vast majority of database options are common to all solvers and are thus
+inherited from :class:`cape.cfdx.options.DataBook.DataBook`.
 
-For force and/or moment components (``"Type": "FM"`` or ``"Type": "Force"``),
-each component requested in the databook must also be listed appropriately as a
-force and/or moment in the :file:`input.cntl`` file.  These can be written
-manually to the template :file:`input.cntl` file or controlled via the
-:class:`pyCart.options.Config.Config` class.
+For force and/or moment components (``"Type": "FM"`` or
+``"Type": "Force"``), each component requested in the databook must also
+be listed appropriately as a force and/or moment in the ``input.cntl``
+file. These can be written manually to the template ``input.cntl`` file
+or controlled via the :class:`cape.pycart.options.Config.Config` class.
 
 The pyCart version of this module alters the default list of columns for
-inclusion in the data book.  For point sensors this includes a column called
-*RefLev* that specifies the number of refinements of the mesh at the location
-of that point sensor (which my vary from case to case depending on mesh
-adaptation options).  Point sensors also save the values of state variables at
-that point, which for Cart3D are the following columns.
+inclusion in the data book. For point sensors this includes a column
+called *RefLev* that specifies the number of refinements of the mesh at
+the location of that point sensor (which my vary from case to case
+depending on mesh adaptation options). Point sensors also save the values
+of state variables at that point, which for Cart3D are the following
+columns.
 
     ==============  ==============================================
     Column          Description
@@ -40,7 +41,7 @@ The full description of the JSON options can be found in a
 
 :See Also:
     * :mod:`cape.cfdx.options.DataBook`
-    * :mod:`cape.pycart.options.config.Config`
+    * :mod:`cape.pycart.options.Config.Config`
 """
 
 # Import options-specific utilities
@@ -83,7 +84,7 @@ class DataBook(cape.cfdx.options.DataBook):
         # Get the component options.
         copts = self.get(comp, {})
         # Return the type
-        return copts.get("Type", "Force")
+        return copts.get("Type", "FM")
     
     # Get additional float columns
     def get_DataBookFloatCols(self, comp):
