@@ -85,8 +85,11 @@ class Config(cape.cfdx.options.Config):
         :Versions:
             * 2014-12-08 ``@ddalle``: First version
         """
-        # Get the values.
-        comp = self.get_key('Force', i)
+        # Get the values of requested components
+        comp = self.get_key("Components", i)
+        # Fall back to old "Force" if needed
+        if comp is None:
+            comp = self.get_key('Force', i)
         # Check to make sure it's a list.
         if (i is None) and (type(comp).__name__!="list"):
             # Create simple list.
