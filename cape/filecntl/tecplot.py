@@ -1088,10 +1088,9 @@ class Tecscript(FileCntl):
         # Make sure all are floats
         for v in V:
             # Get control point type and check it
-            t = type(v).__name__
-            if t not in ['float', 'int']:
+            if not isinstance(v, (float, int)):
                 raise TypeError(("COLORMAPFRACTION value '%s' " % v) +
-                    ("must be a float or int (found: '%s')" % t))
+                    ("must be a float or int (got: '%s')" % type(v).__name__))
         # Sort
         V.sort()
         # Number of control points
@@ -1103,12 +1102,11 @@ class Tecscript(FileCntl):
             vmin = min(V)
             vmax = max(V)
         # Loop through control points
-        for i in range(nV):
+        for i, vi in enumerate(V):
             # Get the color value
-            c = cmap[V[i]]
-            t = type(c).__name__
+            c = cmap[vi]
             # Unpack if two colors
-            if (t in ['list', 'ndarray']) and (len(c) == 2):
+            if isinstance(c, list) and (len(c) == 2):
                 # Separate lead and trail RGB values
                 cL = ToRGB(c[0])
                 cR = ToRGB(c[1])
@@ -1117,7 +1115,7 @@ class Tecscript(FileCntl):
                 cL = ToRGB(c)
                 cR = ToRGB(c)
             # Convert value to level
-            v = (V[i] - vmin) / (vmax - vmin)
+            v = (vi - vmin) / (vmax - vmin)
             # Append the color
             lines.append("  CONTROLPOINT %i\n" % (i+1))
             lines.append("    {\n")
