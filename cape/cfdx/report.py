@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.cfdx.report`: Automated CFD report interface
 ==========================================================
 
@@ -57,11 +57,12 @@ example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 """
 
 # Standard library modules
-import os
-import json
-import shutil
+import ast
 import glob
+import json
+import os
 import re
+import shutil
 
 # Third-party modules
 import numpy as np
@@ -4599,9 +4600,9 @@ class Report(object):
             self.SubfigFunction(sfig, i)
             # Parse fieldmaps
             # If its a list, just use those values
-            if type(grps) == list:
+            if isinstance(grps, list):
                 fieldmaps = grps
-            elif type(grps) == dict:
+            elif isinstance(grps, dict):
                 if grps.get('auto'):
                     # Init fieldmap list
                     fieldmaps = []
@@ -4619,14 +4620,8 @@ class Report(object):
                     fieldmaps = grps.get('manual')
             # If nothing, assume auto with no slices
             else:
-                # Init fieldmap list
-                fieldmaps = []
-                # First read the first line of the layout to get plt name
-                fplt =  tec.ReadKey(1)[1].strip("'\'\"")
-                # Now we have to read the plt file to get field map
-                tecplt = plt.Plt(fplt)
-                # Append last zone to fieldmap list
-                fieldmaps.append(tecplt.nZone)
+                # No field map
+                fieldmaps = None
             # Set the Mach number if appropriate
             if omach:
                 try:
@@ -4855,7 +4850,7 @@ class Report(object):
 
     # Function to prepare color maps and contours in Tecplot layout
     def PrepTecplotContourLevels(self, tec, sfig, i):
-        """Customize contour levels for a Tecplot layout
+        r"""Customize contour levels for a Tecplot layout
 
         :Call:
             >>> R.PrepTecplotContourLevels(tec, sfig, i)
@@ -4885,8 +4880,9 @@ class Report(object):
             # Get the options
             cl = clev[k]
             # Check type
-            if type(cl).__name__ != "dict":
-                raise TypeError("ContourLevels specification must be dict\n" +
+            if not isinstance(cl, dict):
+                raise TypeError(
+                    "ContourLevels specification must be dict\n" +
                     "Problematic specification:\n" +
                     ("%s" % cl))
             # Get constraints
@@ -4907,8 +4903,8 @@ class Report(object):
             vmin = cl.get("MinLevel", 0.0)
             vmax = cl.get("MaxLevel", 1.0)
             # Evaluate the variables
-            vmin = eval(self.EvalVar(vmin, i))
-            vmax = eval(self.EvalVar(vmax, i))
+            vmin = ast.literal_eval(self.EvalVar(vmin, i))
+            vmax = ast.literal_eval(self.EvalVar(vmax, i))
             # Get the interval
             dv = cl.get("Delta")
             nv = cl.get("NLevel", 11)
