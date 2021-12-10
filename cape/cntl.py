@@ -705,7 +705,7 @@ class Cntl(object):
             return 'fm'
         elif kw.get('ll'):
             # Update line load data book
-            self.UpdateLineLoad(**kw)
+            self.UpdateLL(**kw)
             return 'll'
         elif kw.get('triqfm'):
             # Update TriqFM data book
@@ -3695,11 +3695,11 @@ class Cntl(object):
 
     # Update line loads
     @run_rootdir
-    def UpdateLineLoad(self, **kw):
+    def UpdateLL(self, **kw):
         r"""Update one or more line load data books
 
         :Call:
-            >>> cntl.UpdateLineLoad(ll=None, **kw)
+            >>> cntl.UpdateLL(ll=None, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance

@@ -1555,55 +1555,6 @@ class Cntl(capecntl.Cntl):
             self.DataBook.PointSensors[pt].Write()
         # Return to original location.
         os.chdir(fpwd)
-        
-    # Update line loads
-    def UpdateLineLoad(self, **kw):
-        """Update one or more line load data books
-        
-        :Call:
-            >>> cntl.UpdateLineLoad(ll=None, **kw)
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *ll*: :class:`str`
-                Optional name of line load component to update
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints like ``'Mach<=0.5'``
-        :Versions:
-            * 2016-06-07 ``@ddalle``: First version
-        """
-        # Save current location
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Apply all constraints
-        I = self.x.GetIndices(**kw)
-        # Read the existing data book.
-        self.ReadDataBook()
-        self.ReadConfig()
-        # Get lineload option
-        ll = kw.get('ll')
-        # Check for single line load
-        if ll in [None, True]:
-            # Use all components
-            comps = self.opts.get_DataBookByType('LineLoad')
-        else:
-            # Use the component given
-            comps = [ll]
-        # Loop through the points
-        for comp in comps:
-            # Print name of line load
-            print("Updating line load data book '%s' ..." % comp)
-            # Read the line load data book
-            self.DataBook.ReadLineLoad(comp, conf=self.config)
-            # Update it
-            self.DataBook.UpdateLineLoad(comp, conf=self.config, I=I)
-            # Write the updated results
-            self.DataBook.LineLoads[comp].Write()
-        # Return to original location
-        os.chdir(fpwd)
-    
   # >
         
   # =========

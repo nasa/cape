@@ -360,7 +360,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
                 conf=conf, RootDir=self.RootDir, targ=targ)
             
     # Update line load data book
-    def UpdateLineLoad(self, comp, conf=None, I=None):
+    def UpdateLineLoad(self, I=None, comp=None, conf=None, I=None):
         """Update a line load data book for a list of cases
         
         :Call:

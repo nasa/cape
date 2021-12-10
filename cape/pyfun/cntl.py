@@ -220,7 +220,7 @@ class Cntl(ccntl.Cntl):
             print("---- Updating FM DataBook components ----")
             self.UpdateFM(**kw)
             print("---- Updating LineLoad DataBook components ----")
-            self.UpdateLineLoad(**kw)
+            self.UpdateLL(**kw)
             print("---- Updating TriqFM DataBook components ----")
             self.UpdateTriqFM(**kw)
             print("---- Updating TriqPoint DataBook components ----")
