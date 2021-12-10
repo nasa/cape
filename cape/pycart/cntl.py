@@ -1297,7 +1297,7 @@ class Cntl(capecntl.Cntl):
         
     # Extend a case
     def ExtendCase(self, i, n=1, j=None, imax=None):
-        """Extend the number of iterations for which a case should run
+        r"""Extend the number of iterations for which a case should run
         
         :Call:
             >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
@@ -1313,24 +1313,32 @@ class Cntl(capecntl.Cntl):
             *imax*: {``None``} | nonnegative :class:`int`
                 Use *imax* as the maximum iteration count
         :Versions:
-            * 2017-03-31 ``@ddalle``: First version
+            * 2017-03-31 ``@ddalle``: Version 1.0
+            * 2021-12-09 ``@ddalle``: Version 1.1; bug fixes
         """
         # Ignore cases marked PASS
-        if self.x.PASS[i]: return
+        if self.x.PASS[i]:
+            return
         # Read the ``case.json`` file
         rc = self.ReadCaseJSON(i)
         # Exit if none
-        if rc is None: return
+        if rc is None:
+            return
         # Process phase number (can extend middle phases)
         if j is None:
             # Use the last phase number currently in use from "case.json"
             j = rc.get_PhaseSequence(-1)
         # Get the number of steps
-        NSTEPS = rc.get_nIter(j)
+        NSTEPS = rc.get_it_fc(j)
         # Get the current iteration count
-        n = case.GetCurrentIter()
+        ni = self.CheckCase(i)
         # Get the current cutoff for phase *j*
-        N = max(n, rc.get_PhaseIters(j))
+        if ni is None:
+            # Use prescribed mas iters
+            N = rc.get_PhaseIters(j)
+        else:
+            # Use max of prescribed target and current count
+            N = max(ni, rc.get_PhaseIters(j))
         # Determine output number of steps
         if imax is None:
             # Unlimited by input; add one or more nominal runs

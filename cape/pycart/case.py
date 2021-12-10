@@ -1047,7 +1047,7 @@ def GetWorkingFolder():
         ni = GetHistoryIter(os.path.join(fi, 'history.dat'))
         # Check it.
         if ni >= n0:
-            # Current best estimate of working directory.
+            # Current best estimate
             fdir = fi
     # Output
     return fdir
@@ -1156,10 +1156,23 @@ def GetTriqFile():
             Last iteration in the averaging
     :Versions:
         * 2015-09-16 ``@ddalle``: Version 1.0
+        * 2021-12-09 ``@ddalle``: Version 1.1
+            - Check for ``adapt??/`` folder w/o ``triq`` file
     """
-    # Get the working directory.
-    fwrk = GetWorkingFolder()
-    # Go there.
+    # Find all possible TRIQ files
+    triqglob0 = sorted(glob.glob("Components.*.triq"))
+    triqglob1 = sorted(glob.glob("adapt??/Components.*.triq"))
+    # Determine best folder
+    if len(triqglob0) > 0:
+        # Use parent folder
+        fwrk = "."
+    elif len(triqglob1) > 0:
+        # Use latest adapt??/ folder
+        fwrk = os.path.dirname(triqglob1[-1])
+    else:
+        # None available
+        return None, None, None, None
+    # Go to best folder
     fpwd = os.getcwd()
     os.chdir(fwrk)
     # Get the glob of numbered files.
@@ -1211,16 +1224,11 @@ def GetTriqFile():
         n = 1
         # file name
         ftriq = 'Components.i.triq'
-    else:
-        # No iterations
-        i1 = None
-        i0 = None
-        n = None
-        ftriq = None
     # Return to original location
     os.chdir(fpwd)
     # Prepend name of folder if appropriate
-    if fwrk != '.': ftriq = os.path.join(fwrk, ftriq)
+    if fwrk != '.' and ftriq is not None:
+        ftriq = os.path.join(fwrk, ftriq)
     # Output
     return ftriq, n, i0, i1
     
