@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-09 at 01:40 PST
+   on 2021-12-10 at 01:40 PST
 
 Test ``01_bullet``: PASS
 ==========================
 
-This test PASSED on 2021-12-09 at 01:40 PST
+This test PASSED on 2021-12-10 at 01:40 PST
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Matrix Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.40 seconds
+    * Command took 0.56 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -73,8 +73,8 @@ Command 2: Run Case 0 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 6.21 seconds
-    * Cumulative time: 7.62 seconds
+    * Command took 6.07 seconds
+    * Cumulative time: 6.63 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -94,15 +94,15 @@ Command 3: Collect Aero Data (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.66 seconds
-    * Cumulative time: 8.28 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 7.19 seconds
 :STDOUT:
     * **PASS**
     * Actual:
 
       .. code-block:: none
 
-        Force component 'bullet_no_base'...
+        FM component 'bullet_no_base'...
         poweroff/m1.5a0.0b0.0
           Adding new databook entry at iteration 200.
         Writing 1 new or updated entries
@@ -125,8 +125,8 @@ Command 4: Test DataBook Value (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 8.88 seconds
+    * Command took 0.46 seconds
+    * Cumulative time: 7.65 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -160,8 +160,8 @@ Command 5: Test DataBook Value (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.68 seconds
-    * Cumulative time: 9.57 seconds
+    * Command took 0.59 seconds
+    * Cumulative time: 8.25 seconds
 :STDOUT:
     * **PASS**
     * Actual:

@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-09 at 01:40 PST
+   on 2021-12-10 at 01:40 PST
 
 Test ``02_bullet_py3``: PASS
 ==============================
 
-This test PASSED on 2021-12-09 at 01:40 PST
+This test PASSED on 2021-12-10 at 01:40 PST
 
 This test is run in the folder:
 
@@ -38,7 +38,7 @@ Command 1: Run Matrix Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.79 seconds
+    * Command took 0.60 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -72,8 +72,8 @@ Command 2: Run Case 0 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 6.23 seconds
-    * Cumulative time: 7.02 seconds
+    * Command took 6.18 seconds
+    * Cumulative time: 6.78 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -93,15 +93,15 @@ Command 3: Collect Aero Data (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 7.63 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 7.38 seconds
 :STDOUT:
     * **PASS**
     * Actual:
 
       .. code-block:: none
 
-        Force component 'bullet_no_base'...
+        FM component 'bullet_no_base'...
         poweroff/m1.5a0.0b0.0
           Adding new databook entry at iteration 200.
         Writing 1 new or updated entries
@@ -124,8 +124,8 @@ Command 4: Test DataBook Value (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 8.19 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 7.98 seconds
 :STDOUT:
     * **PASS**
     * Actual:
