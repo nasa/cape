@@ -3703,7 +3703,7 @@ class Cntl(object):
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
-            *ll*: :class:`str`
+            *ll*: {``None``} | :class:`str`
                 Optional name of line load component to update
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
@@ -3720,6 +3720,13 @@ class Cntl(object):
         """
         # Get component option
         comp = kw.get("ll")
+        # Check for True or False
+        if comp is True:
+            # Update all components
+            comp = None
+        elif comp is False:
+            # Exit
+            return
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Read the data book handle
