@@ -1728,8 +1728,6 @@ class Report(object):
             return cdef
         # Get prefix
         fcptb = self.cntl.opts.get_SubfigOpt(sfig, "CaptionComponent")
-        # Deal with any unbound underscores
-        fcptb = re.sub(r"([^\\])_", r"\1\_", fcptb)
         # Get component and coefficients
         comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
         coeff = self.cntl.opts.get_SubfigOpt(sfig, "Coefficient")
@@ -1739,6 +1737,8 @@ class Report(object):
         # Check for a list.
         if (fcptb is not None):
             # Use the user-specified base to start the caption
+            # Deal with any unbound underscores
+            fcptb = re.sub(r"([^\\])_", r"\1\_", fcptb)
             # e.g. [RSRB (black), LSRB(g)]/CA"
             fcpt = fcptb
         elif (tcomp == "list") and (len(comp)>1):
