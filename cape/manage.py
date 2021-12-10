@@ -2233,7 +2233,7 @@ def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
     # Write flag
     write_log('<ProgressArchiveFiles>')
     # Copy
-    ArchiveFiles(opts, fglob, fsub=fsub, n=0, phantom=phantom)
+    ArchiveFiles(opts, fsub=fsub, phantom=phantom)
 
 
 # Function for in-progress folder deletion
