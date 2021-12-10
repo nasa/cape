@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-09 at 01:40 PST
+   on 2021-12-10 at 01:40 PST
 
 Test ``07_case``: PASS
 ========================
 
-This test PASSED on 2021-12-09 at 01:40 PST
+This test PASSED on 2021-12-10 at 01:40 PST
 
 This test is run in the folder:
 
@@ -143,7 +143,7 @@ Command 1: Conditions: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.40 seconds
+    * Command took 0.54 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -173,7 +173,7 @@ Command 2: Conditions: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.48 seconds
-    * Cumulative time: 0.88 seconds
+    * Cumulative time: 1.01 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -202,8 +202,8 @@ Command 3: ``case.json``: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 1.35 seconds
+    * Command took 0.41 seconds
+    * Cumulative time: 1.42 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -234,8 +234,8 @@ Command 4: ``case.json``: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.70 seconds
-    * Cumulative time: 2.05 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 1.89 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -266,8 +266,8 @@ Command 5: Timing: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 2.54 seconds
+    * Command took 0.43 seconds
+    * Cumulative time: 2.32 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -295,7 +295,7 @@ Command 6: Timing: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.58 seconds
-    * Cumulative time: 3.12 seconds
+    * Cumulative time: 2.90 seconds
 :STDOUT:
     * **PASS**
     * Target:
