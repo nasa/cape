@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-10 at 01:45 PST
+   on 2021-12-11 at 01:45 PST
 
 Test ``03_rdb_find``: PASS
 ============================
 
-This test PASSED on 2021-12-10 at 01:45 PST
+This test PASSED on 2021-12-11 at 01:45 PST
 
 This test is run in the folder:
 
@@ -67,8 +67,8 @@ Command 2: Basic DataKit search: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 1.17 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.93 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -97,8 +97,8 @@ Command 3: Multiple-condition search: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 1.65 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 1.33 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -142,8 +142,8 @@ Command 4: Multiple-condition search: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59 seconds
-    * Cumulative time: 2.24 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 1.85 seconds
 :STDOUT:
     * **PASS**
     * Target:
