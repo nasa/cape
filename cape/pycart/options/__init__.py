@@ -114,6 +114,14 @@ class Options(cape.cfdx.options.Options):
         self._PostPBS()
         # Add extra folders to path.
         self.AddPythonPath()
+        # Default list of ZombieFiles
+        self.setdefault(
+            "ZombieFiles", [
+                "*.out",
+                "history.dat",
+                "adapt??/history.dat",
+                "adapt??/*.out"
+            ])
    # >
     
    # ============
