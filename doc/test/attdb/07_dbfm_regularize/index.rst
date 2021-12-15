@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-10 at 01:45 PST
+   on 2021-12-11 at 01:45 PST
 
 Test ``07_dbfm_regularize``: PASS
 ===================================
 
-This test PASSED on 2021-12-10 at 01:45 PST
+This test PASSED on 2021-12-11 at 01:45 PST
 
 This test is run in the folder:
 
@@ -38,7 +38,7 @@ Command 1: Regularize using griddata: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.28 seconds
+    * Command took 1.33 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -69,8 +69,8 @@ Command 2: Regularize using griddata: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.21 seconds
-    * Cumulative time: 2.49 seconds
+    * Command took 1.35 seconds
+    * Cumulative time: 2.67 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -101,8 +101,8 @@ Command 3: Regularize using RBF: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 2.98 seconds
+    * Command took 0.49 seconds
+    * Cumulative time: 3.16 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -132,8 +132,8 @@ Command 4: Regularize using RBF: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.60 seconds
-    * Cumulative time: 3.58 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 3.75 seconds
 :STDOUT:
     * **PASS**
     * Target:
