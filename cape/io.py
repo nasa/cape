@@ -221,12 +221,12 @@ def read_c_str(f, nmax=1000):
         b = f.read(1)
         n += 1
         # Check for termination
-        if (b == '\0') or (b is None):
+        if (b == b'\0') or (b is None):
             # Output
             return str(buf)
         else:
             # Append the character to the buffer
-            buf.append(b)
+            buf.append(ord(b))
     # If this point is reached, we had an overflow
     print("WARNING: More than nmax=%i characters in buffer" % nmax)
     return str(buf)
@@ -1205,7 +1205,7 @@ def read_record_lr4_i(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i4')
     # Get count
-    n = int(I[0] / 4)
+    n = I[0] // 4
     # Read that many ints
     x = np.fromfile(f, count=n, dtype="<i4")
     # Read the end-of-record
@@ -1239,7 +1239,7 @@ def read_record_lr4_f(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i4')
     # Get count
-    n = I[0] / 4
+    n = I[0] // 4
     # Read that many ints
     x = np.fromfile(f, count=n, dtype="<f4")
     # Read the end-of-record
@@ -1319,7 +1319,7 @@ def read_record_lr8_i(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i8')
     # Get count
-    n = I[0] / 8
+    n = I[0] // 8
     # Read that many ints
     x = np.fromfile(f, count=n, dtype="<i8")
     # Read the end-of-record
@@ -1353,7 +1353,7 @@ def read_record_lr8_f(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='f8')
     # Get count
-    n = I[0] / 8
+    n = I[0] // 8
     # Read that many ints
     x = np.fromfile(f, count=n, dtype="<f8")
     # Read the end-of-record
@@ -1389,7 +1389,7 @@ def read_record_lr8_i2(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i8')
     # Get count
-    n = I[0] / 8
+    n = I[0] // 8
     # Read that many ints
     x = np.fromfile(f, count=n, dtype="<i8")
     # Read the end-of-record
@@ -1425,7 +1425,7 @@ def read_record_lr8_f2(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i8')
     # Get count
-    n = I[0] / 8
+    n = I[0] // 8
     # Read that many ints
     x = np.fromfile(f, count=n, dtype="<f8")
     # Read the end-of-record
@@ -1505,7 +1505,7 @@ def read_record_r4_i(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i4')
     # Get count
-    n = I[0] / 4
+    n = I[0] // 4
     # Read that many ints
     x = np.fromfile(f, count=n, dtype=">i4")
     # Read the end-of-record
@@ -1539,7 +1539,7 @@ def read_record_r4_f(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i4')
     # Get count
-    n = I[0] / 4
+    n = I[0] // 4
     # Read that many ints
     x = np.fromfile(f, count=n, dtype=">f4")
     # Read the end-of-record
@@ -1619,7 +1619,7 @@ def read_record_r8_i(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i8')
     # Get count
-    n = I[0] / 8
+    n = I[0] // 8
     # Read that many ints
     x = np.fromfile(f, count=n, dtype=">i8")
     # Read the end-of-record
@@ -1653,7 +1653,7 @@ def read_record_r8_f(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='f8')
     # Get count
-    n = I[0] / 8
+    n = I[0] // 8
     # Read that many ints
     x = np.fromfile(f, count=n, dtype=">f8")
     # Read the end-of-record
@@ -1689,7 +1689,7 @@ def read_record_r8_i2(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i8')
     # Get count
-    n = I[0] / 8
+    n = I[0] // 8
     # Read that many ints
     x = np.fromfile(f, count=n, dtype=">i8")
     # Read the end-of-record
@@ -1725,7 +1725,7 @@ def read_record_r8_f2(f):
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i8')
     # Get count
-    n = I[0] / 8
+    n = I[0] // 8
     # Read that many ints
     x = np.fromfile(f, count=n, dtype=">f8")
     # Read the end-of-record
