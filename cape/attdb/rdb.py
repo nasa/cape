@@ -3932,6 +3932,34 @@ class DataKit(ftypes.BaseData):
         # Output (copy)
         return list(xargs)
 
+    def get_output_xarg1(self, col):
+        r"""Get single arg for output for column *col*
+
+        :Call:
+            >>> xarg = db.get_output_xarg1(col)
+        :Inputs:
+            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
+                Database with multidimensional output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+        :Outputs:
+            *xarg*: ``None`` | :class:`str`
+                Input arg to function for one condition of *col*
+        :Versions:
+            * 2021-12-16 ``@ddalle``: Version 1.0
+        """
+        # Get *xk* for output
+        xargs = self.get_output_xargs(col)
+        # Unpack
+        if isinstance(xargs, list):
+            # Check length
+            if len(xargs) == 0:
+                return
+            else:
+                return xargs[0]
+        else:
+            return
+
     # Get auxiliary cols
     def get_response_acol(self, col):
         r"""Get names of any aux cols related to primary col
@@ -10292,14 +10320,10 @@ class DataKit(ftypes.BaseData):
         # Get list of arguments
         args = self.get_response_args(col)
         # Get *xk* for output
-        xargs = self.get_output_xargs(col)
-        # Unpack
-        if xargs is None:
-            xarg = None
-        else:
-            xarg, = xargs
+        xarg = self.get_output_xarg1(col)
         # Get key for *x* axis
         xk = kw.setdefault("xk", xarg)
+        xk = kw.get("xcol", xk)
         # Check for indices
         if len(a) == 0:
             raise ValueError("At least 2 inputs required; received 1")
@@ -10715,7 +10739,7 @@ class DataKit(ftypes.BaseData):
         # Process column name and values to plot
         col, X, V, kw = self._prep_args_plot2(*a, **kw)
         # Get key for *x* axis
-        xk = kw.pop("xcol", kw.pop("xk", self.get_output_xargs(col)[0]))
+        xk = kw.pop("xcol", kw.pop("xk", self.get_output_xarg1(col)))
        # --- Plot Values ---
         # Check for existing handle
         h = kw.get("h")
@@ -11049,7 +11073,7 @@ class DataKit(ftypes.BaseData):
             # Create one
             h = pmpl.MPLHandle()
             # Create axes
-            h.ax = plt.gca()
+            h.ax = pmpl.plt.gca()
         # Exit if None
         if seam is None:
             # Nothing to show

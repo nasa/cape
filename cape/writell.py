@@ -297,7 +297,7 @@ def genr8_ll_datakit(cntl, comp):
     # Check for z=0 seam curves
     if os.path.isfile(fsmz):
         # Read data and set as default
-        db.make_seam("smz", fsmz, "smz.s", "smz.y", llcols)
+        db.make_seam("smz", fsmz, "smz.x", "smz.y", llcols)
     # Output
     return db
 
