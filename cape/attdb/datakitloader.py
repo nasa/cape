@@ -27,8 +27,8 @@ from ..tnakit import shellutils
 
 # Utility regular expressions
 REGEX_INT = re.compile("[0-9]+$")
-REGEX_HOST = re.compile("((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)")
-REGEX_REMOTE = re.compile("((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)")
+REGEX_HOST = re.compile("((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)$")
+REGEX_REMOTE = re.compile("((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)$")
 
 # Create types for "strings" based on Python version
 if sys.version_info.major == 2:
@@ -1952,7 +1952,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Loop through URLs
         for url in urls:
             # Match against full URL with remote host
-            match = REGEX_REMOTE.match(url + "$")
+            match = REGEX_REMOTE.match(url)
             # Check if it's absolute
             if match:
                 # Absolute path with SSH host
@@ -2051,7 +2051,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-09-01 ``@ddalle``: Version 1.0
         """
         # Parse for remotes
-        match = REGEX_HOST.match(fgit + "$")
+        match = REGEX_HOST.match(fgit)
         # Check for bad match
         if match is None:
             raise ValueError("Unable to parse remote repo '%s'" % fgit)
@@ -2081,7 +2081,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-09-02 ``@ddalle``: Version 1.0
         """
         # Parse for remotes
-        match = REGEX_HOST.match(url + "$")
+        match = REGEX_HOST.match(url)
         # Check for bad match
         if match is None:
             raise ValueError("Unable to parse remote folder '%s'" % url)

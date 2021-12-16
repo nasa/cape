@@ -10980,7 +10980,7 @@ class DataKit(ftypes.BaseData):
             # Create one
             h = pmpl.MPLHandle()
             # Create axes
-            h.ax = plt.gca()
+            h.ax = pmpl.get_axes(fig)
         # Exit if None
         if png is None:
             # Nothing to show
@@ -11073,7 +11073,7 @@ class DataKit(ftypes.BaseData):
             # Create one
             h = pmpl.MPLHandle()
             # Create axes
-            h.ax = pmpl.plt.gca()
+            h.ax = pmpl.get_axes(fig)
         # Exit if None
         if seam is None:
             # Nothing to show

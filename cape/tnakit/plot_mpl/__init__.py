@@ -34,7 +34,7 @@ from .mplopts import MPLOpts
 from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
     axes_autoscale_height,
-    axlabel, auto_xlim, auto_ylim, get_figure,
+    axlabel, auto_xlim, auto_ylim, get_figure, get_axes,
     figure, grid, imshow, spine, spines)
 
 
@@ -97,7 +97,7 @@ def contour(xv, yv, zv, *a, **kw):
         *zv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for contour levels
     :Outputs:
-        *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
+        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2020-03-26 ``@jmeeroff``: First version
@@ -142,7 +142,7 @@ def hist(v, *a, **kw):
         *v*: :class:`np.ndarray`\ [:class:`float`]
             Array of values to plot in historgram
     :Outputs:
-        *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
+        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2020-04-23 ``@jmeeroff``: First version
@@ -225,7 +225,7 @@ def plot(xv, yv, *a, **kw):
         *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
-        *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
+        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2019-03-01 ``@ddalle``: First (independent) version
@@ -295,7 +295,7 @@ def semilogy(xv, yv, *a, **kw):
         *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
-        *h*: :class:`cape.tnakit.plto_mpl.MPLHandle`
+        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2019-03-01 ``@ddalle``: First (independent) version

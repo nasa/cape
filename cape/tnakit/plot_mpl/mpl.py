@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
 --------------------------------------------------------------------
 :mod:`cape.tnakit.plot_mpl.mpl`: Direct PyPlot Interface
 --------------------------------------------------------------------
@@ -703,6 +703,43 @@ def spines(ax, **kw):
     opts = MPLOpts(_section="spines", **kw)
     # Call root function
     return _spines(ax, **opts)
+
+
+# Get axes handle based on inputs
+def get_axes(ax=None):
+    r"""Get axes handle from default, handle, or figure 
+
+    :Call:
+        >>> ax = get_axes(ax=None)
+        >>> ax = get_axes(fig)
+    :Inputs:
+        *ax*: {``None``} | :class:`Axes`
+            Optional prespecified axes handle
+        *fig*: :class:`Figure` | :class:`int`
+            Figure handle or number
+    :Outputs:
+        *ax*: :class:`Axes`
+            Converted :class:`matplotlib` axes handle
+    :Versions:
+        * 2021-12-16 ``@ddalle``: Version 1.0
+    """
+    # Make sure pyplot is present
+    _import_pyplot()
+    # Default figure
+    if ax is None:
+        # Get most recent figure or create
+        return plt.gca()
+    elif isinstance(ax, (int, Figure)):
+        # Got a figure instead
+        fig = get_figure(fig)
+        # Get recent axes from *fig*
+        return fig.gca()
+    elif isinstance(ax, Axes):
+        # Already an axes
+        return ax
+    # Not an axes, figure, or number
+    raise TypeError(
+        "'ax' arg expected 'Axes', 'int', or 'Figure' (got %s)" % type(ax))
 
 
 # Get figure handle based on inputs
