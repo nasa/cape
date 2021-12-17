@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-16 at 01:45 PST
+   on 2021-12-17 at 01:45 PST
 
 Test ``02_rdb_io``: PASS
 ==========================
 
-This test PASSED on 2021-12-16 at 01:45 PST
+This test PASSED on 2021-12-17 at 01:45 PST
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: CSV read; MAT write/read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
+    * Command took 0.53 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -65,7 +65,7 @@ Command 2: CSV read; MAT write/read: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.57 seconds
-    * Cumulative time: 1.08 seconds
+    * Cumulative time: 1.10 seconds
 :STDOUT:
     * **PASS**
     * Target:
