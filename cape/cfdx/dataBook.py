@@ -3014,9 +3014,9 @@ class DBBase(dict):
                         # Transform
                         Mb = np.dot(R, Mc)
                         # Reset
-                        self[cx][j] = Fb[0]
-                        self[cy][j] = Fb[1]
-                        self[cz][j] = Fb[2]
+                        self[cx][j] = Mb[0]
+                        self[cy][j] = Mb[1]
+                        self[cz][j] = Mb[2]
         elif ttype in ["ScaleCoeffs"]:
             # Loop through coefficients.
             for c in topts:
