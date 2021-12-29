@@ -340,8 +340,8 @@ class X(object):
         # Open file
         f = open(fname, 'rb');
         # Try to interpret the first record
-        qr4  = io.check_record_r4(f)
-        qlr4 = io.check_record_lr4(f)
+        qr4  = io.check_record(f, ">i4")
+        qlr4 = io.check_record(f, "<i4")
         # Read the first four bytes using big/little
         r4,  = np.fromfile(f, count=1, dtype=">i4"); f.seek(0)
         lr4, = np.fromfile(f, count=1, dtype="<i4"); f.seek(0)
@@ -350,7 +350,7 @@ class X(object):
             # Actually read the record
             R = io.read_record_lr4_i(f)
             # Try the next record
-            if io.check_record_lr4(f):
+            if io.check_record(f, "<i4"):
                 # Check the length of the first record
                 if (R.size == 1):
                     # Valid multiple grid file
@@ -374,7 +374,7 @@ class X(object):
             # Actually read the record
             R = io.read_record_r4_i(f)
             # Try the next record
-            if io.check_record_r4(f):
+            if io.check_record(f, ">i4"):
                 # Check the length of the first record
                 if (R.size == 1):
                     # Valid multiple grid file
