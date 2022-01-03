@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-17 at 01:46 PST
+   on 2021-12-30 at 01:45 PST
 
 Test ``02_pmpl_opts``: PASS
 =============================
 
-This test PASSED on 2021-12-17 at 01:46 PST
+This test PASSED on 2021-12-30 at 01:45 PST
 
 This test is run in the folder:
 
@@ -77,8 +77,8 @@ Command 2: :class:`MPLOpts` *PlotOptions*: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 0.89 seconds
+    * Command took 0.67 seconds
+    * Cumulative time: 1.09 seconds
 :STDOUT:
     * **PASS**
     * Target:

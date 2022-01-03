@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-17 at 01:45 PST
+   on 2021-12-30 at 01:45 PST
 
 Test ``08_dbfm_eval``: PASS
 =============================
 
-This test PASSED on 2021-12-17 at 01:45 PST
+This test PASSED on 2021-12-30 at 01:45 PST
 
 This test is run in the folder:
 
@@ -42,7 +42,7 @@ Command 1: Evaluate FM cols: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
+    * Command took 0.42 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -77,8 +77,8 @@ Command 2: Evaluate FM cols: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54 seconds
-    * Cumulative time: 0.98 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.93 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -113,8 +113,8 @@ Command 3: Evaluate *CLMX* and *CLNX*: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.40 seconds
-    * Cumulative time: 1.38 seconds
+    * Command took 0.42 seconds
+    * Cumulative time: 1.35 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -148,8 +148,8 @@ Command 4: Evaluate *CLMX* and *CLNX*: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.54 seconds
-    * Cumulative time: 1.92 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 1.82 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -183,8 +183,8 @@ Command 5: Evaluate *q* and *T*: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.42 seconds
-    * Cumulative time: 2.34 seconds
+    * Command took 0.41 seconds
+    * Cumulative time: 2.24 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -213,8 +213,8 @@ Command 6: Evaluate *q* and *T*: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.74 seconds
-    * Cumulative time: 3.08 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 2.75 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -243,8 +243,8 @@ Command 7: Process *aoap* and *phip*: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.58 seconds
-    * Cumulative time: 3.66 seconds
+    * Command took 0.42 seconds
+    * Cumulative time: 3.17 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -283,8 +283,8 @@ Command 8: Process *aoap* and *phip*: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 4.19 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 3.69 seconds
 :STDOUT:
     * **PASS**
     * Target:

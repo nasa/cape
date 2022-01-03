@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2021-12-17 at 01:46 PST
+   on 2021-12-30 at 01:46 PST
 
 Test ``04_axlabel``: PASS
 ===========================
 
-This test PASSED on 2021-12-17 at 01:46 PST
+This test PASSED on 2021-12-30 at 01:46 PST
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Axes labels: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.85 seconds
+    * Command took 0.91 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -64,8 +64,8 @@ Command 2: Axes labels: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.15 seconds
-    * Cumulative time: 1.99 seconds
+    * Command took 1.14 seconds
+    * Cumulative time: 2.05 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
