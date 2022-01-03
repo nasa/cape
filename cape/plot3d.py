@@ -1005,7 +1005,7 @@ class X(object):
             ia = mpt[i]
             ib = mpt[i+1]
             # Put all three coordinates 
-            io.write_record_lr8_f(f, self.X[:,ia:ib])
+            io.write_record_lr4_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
             
@@ -1079,7 +1079,7 @@ class X(object):
             ia = mpt[i]
             ib = mpt[i+1]
             # Put all three coordinates 
-            io.write_record_r8_f(f, self.X[:,ia:ib])
+            io.write_record_r4_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
   # >
