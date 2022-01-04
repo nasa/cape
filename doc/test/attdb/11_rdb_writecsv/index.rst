@@ -20,12 +20,12 @@
 
 
 .. This documentation written by TestDriver()
-   on 2021-12-30 at 01:45 PST
+   on 2022-01-04 at 01:45 PST
 
 Test ``11_rdb_writecsv``: PASS
 ================================
 
-This test PASSED on 2021-12-30 at 01:45 PST
+This test PASSED on 2022-01-04 at 01:45 PST
 
 This test is run in the folder:
 
@@ -58,7 +58,7 @@ Command 1: Simple dense CSV writer: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
+    * Command took 0.55 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -78,8 +78,8 @@ Command 2: Simple dense CSV writer: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 1.00 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 1.13 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -99,8 +99,8 @@ Command 3: CSV writer with defaults: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
-    * Cumulative time: 1.43 seconds
+    * Command took 0.41 seconds
+    * Cumulative time: 1.54 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -121,7 +121,7 @@ Command 4: CSV writer with defaults: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.51 seconds
-    * Cumulative time: 1.95 seconds
+    * Cumulative time: 2.05 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
