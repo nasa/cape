@@ -569,7 +569,6 @@ class Cntl(object):
             raise AttributeError("No *cntl._opts0* options archived")
         # Revert options
         self.opts = copy.deepcopy(opts0)
-        
    # >
 
    # ======================

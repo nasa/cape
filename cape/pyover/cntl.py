@@ -348,7 +348,8 @@ class Cntl(capecntl.Cntl):
         # Get the existing status.
         n = self.CheckCase(i)
         # Quit if already prepared.
-        if n is not None: return
+        if n is not None:
+            return
         # Go to root folder safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -359,7 +360,8 @@ class Cntl(capecntl.Cntl):
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
         # Enter the run directory.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
@@ -729,28 +731,24 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2016-02-01 ``@ddalle``: Version 1.0
         """
-        # Change to root safely
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # File name
         fnml = self.opts.get_OverNamelist(j)
-        # Check for the file.
-        if not os.path.isfile(fnml):
-            # We really need a namelist
-            raise ValueError(
-                "Namelist file '%s' does not exist" % fnml)
-        else:
-            # Read the file
-            nml = OverNamelist(self.opts.get_OverNamelist(j))
-        # Save it
+        # Check for empty value
+        if fnml is None:
+            return
+        # Check for absolute path
+        if not os.path.isabs(fnml):
+            # Use path relative to JSON root
+            fnml = os.path.join(self.RootDir, fnml)
+        # Read the file
+        nml = Namelist(fnml)
+        # Save it.
         if q:
             # Read to main slot for modification
             self.Namelist = nml
         else:
             # Template for reading original parameters
             self.Namelist0 = nml
-        # Go back to original location
-        os.chdir(fpwd)
         
     # Get namelist var
     def GetNamelistVar(self, sec, key, j=0):

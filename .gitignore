@@ -12,6 +12,9 @@ __pychache__
 # Local settings
 .vscode
 
+# Other documents
+/docs
+
 # Autosaves and such
 *.asv
 *.swp
