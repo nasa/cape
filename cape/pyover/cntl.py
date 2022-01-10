@@ -741,7 +741,7 @@ class Cntl(capecntl.Cntl):
             # Use path relative to JSON root
             fnml = os.path.join(self.RootDir, fnml)
         # Read the file
-        nml = Namelist(fnml)
+        nml = OverNamelist(fnml)
         # Save it.
         if q:
             # Read to main slot for modification
