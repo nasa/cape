@@ -93,6 +93,8 @@ def run_overflow():
         * 2016-02-02 ``@ddalle``: Version 1.0
         * 2021-10-08 ``@ddalle``: Version 1.1
     """
+    # Local log file
+    fp = open("pyover.log", "w")
     # Parse arguments
     a, kw = argread.readkeys(sys.argv)
     # Check for help argument.
@@ -106,14 +108,17 @@ def run_overflow():
         raise IOError('Case already running!')
     # Start timer
     tic = datetime.now()
+    fp.write("pyover: starting at time %s\n" % tic)
     # Get the run control settings
     rc = ReadCaseJSON()
     # Get the project name
     fproj = GetPrefix()
+    fp.write("pyover: using project '%s'\n" % fproj)
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Record current iteration
     n0 = GetCurrentIter()
+    fp.write("pyover: starting phase %i from existing iteration '%s'" % (i, n0))
     # Write start time
     WriteStartTime(tic, rc, i)
     # Delete any input file.
@@ -154,6 +159,7 @@ def run_overflow():
             os.rename(flog, flogj)
         # Move immediate output file to log location
         os.rename(fout, flog)
+    fp.close()
     # Check current iteration count and phase
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         # Case completed
