@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-04 at 01:45 PST
+   on 2022-01-11 at 01:45 PST
 
 Test ``01_import``: PASS
 ==========================
 
-This test PASSED on 2022-01-04 at 01:45 PST
+This test PASSED on 2022-01-11 at 01:45 PST
 
 This test is run in the folder:
 
@@ -48,7 +48,7 @@ Command 1: Import :mod:`cape.attdb.rdb`: Python2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
+    * Command took 0.40 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -69,7 +69,7 @@ Command 2: Import :mod:`cape.attdb.rdb`: Python3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.51 seconds
-    * Cumulative time: 0.94 seconds
+    * Cumulative time: 0.91 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
