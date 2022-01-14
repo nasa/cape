@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-11 at 01:45 PST
+   on 2022-01-14 at 01:45 PST
 
 Test ``06_rdb_integrate``: PASS
 =================================
 
-This test PASSED on 2022-01-11 at 01:45 PST
+This test PASSED on 2022-01-14 at 01:45 PST
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Trapezoidal line load integration: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.40 seconds
+    * Command took 0.41 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -74,8 +74,8 @@ Command 2: Trapezoidal line load integration: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 0.90 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.92 seconds
 :STDOUT:
     * **PASS**
     * Target:
