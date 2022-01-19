@@ -678,7 +678,7 @@ class XMLFile(object):
         :Versions:
             * 2021-10-18 ``@ddalle``: Version 1.0
 
-        .. |xml2py-types| replace:
+        .. |xml2py-types| replace::
             :class:`bool` | :class:`int` | :class:`float` | :class:`str`
         """
         # Allow None

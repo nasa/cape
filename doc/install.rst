@@ -17,13 +17,13 @@ Installation is simple and done directly from a Python "wheel" file:
 
     .. code-block:: console
 
-        $ python3 -m pip install cape-1.0a2-cp38-cp38-linux_x86_64.whl
+        $ python3 -m pip install cape-1.0-cp38-cp38-linux_x86_64.whl
 
 :Python 2.7:
 
     .. code-block:: console
 
-        $ python2.7 -m pip install cape-1.0a2-cp27-cp27mu-linux_x86_64.whl
+        $ python2.7 -m pip install cape-1.0-cp27-cp27mu-linux_x86_64.whl
 
 This package (including its C Python extensions) is supports either Python 2.7
 or 3.6+ using the same source code. Some of the newer capabilities of Python 3
@@ -61,7 +61,7 @@ with the next release.
 
         .. code-block:: console
 
-            $ py -m pip install cape-1.0a2-none-any.whl
+            $ py -m pip install cape-1.0-none-any.whl
 
 
 Software Dependencies

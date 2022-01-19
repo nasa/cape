@@ -109,8 +109,7 @@ regex_float = re.compile(
 
 # RunMatrix class
 class RunMatrix(dict):
-    """
-    Read a list of configuration variables
+    r"""Read a list of configuration variables
 
     :Call:
         >>> x = cape.RunMatrix(**traj)
@@ -1000,7 +999,7 @@ class RunMatrix(dict):
                     "Label": False,
                     "Abbreviation": "q"
                 }
-            elif key in ['U', 'V']:
+            elif key in ['U', 'V', 'u', 'v', 'uinf', 'vinf']:
                 # Freestream speed
                 defkey = {
                     "Group": False,

@@ -413,10 +413,18 @@ class Cntl(ccntl.Cntl):
         rey = x.GetReynoldsNumber(i)
         if rey is not None:
             xml.set_rey(rey)
+        # Pressure
+        p = x.GetPressure(i)
+        if t is not None:
+            xml.set_pressure(p)
         # Temperature
         t = x.GetTemperature(i)
         if t is not None:
             xml.set_temperature(t)
+        # Velocity
+        v = x.GetTemperature(v)
+        if t is not None:
+            xml.set_velocity(v)
         # Find all *Path* and *File* elements
         elems1 = xml.findall_iter("Path")
         elems2 = xml.findall_iter("File")
