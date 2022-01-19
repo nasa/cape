@@ -1144,7 +1144,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
    # --- Raw data update ---
     # Main updater
-    def update_rawdata(self):
+    def update_rawdata(self, **kw):
         r"""Update raw data using ``rawdata/datakit-sources.json``
 
         The settings for zero or more "remotes" are read from that JSON
@@ -1178,15 +1178,26 @@ class DataKitLoader(kwutils.KwargHandler):
             }
 
         :Call:
-            >>> dkl.update_rawdata()
+            >>> dkl.update_rawdata(remote=None, remotes=None)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
+            *remote*: {``None``} | :class:`str`
+                Name of single remote to update
+            *remotes*: {``None``} | :class:`list`\ [:class:`str`]
+                Name of multiple remotes to update
         :Versions:
             * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2022-01-18 ``@ddalle``: Version 1.1; remote(s) kwarg
         """
-        # Get list of remotes
-        remotes = self.get_rawdata_remotelist()
+        # User-specified remote(s)
+        remote = kw.get("remote")
+        if remote is None:
+            # Check for list
+            remotes = kw.get("remotes", self.get_rawdata_remotelist())
+        else:
+            # Convert singleton to list
+            remotes = [remote]
         # Loop through them
         for remote in remotes:
             self.update_rawdata_remote(remote)

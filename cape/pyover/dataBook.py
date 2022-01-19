@@ -350,7 +350,7 @@ def ReadResidLastIter(fname):
     
 # Get number of iterations from a resid file
 def ReadResidNIter(fname):
-    """Get number of iterations in an OVERFLOW residual file
+    r"""Get number of iterations in an OVERFLOW residual file
     
     :Call:
         >>> nIter = pyOver.dataBook.ReadResidNIter(fname)
@@ -361,7 +361,8 @@ def ReadResidNIter(fname):
         *nIter*: :class:`int`
             Number of iterations
     :Versions:
-        * 2016-02-04 ``@ddalle``: First version
+        * 2016-02-04 ``@ddalle``: Version 1.0
+        * 2022-01-09 ``@ddalle``: Version 1.1; Python 3 int division
     """
     # Get the number of grids.
     nGrid = ReadResidNGrids(fname)
@@ -370,7 +371,7 @@ def ReadResidNIter(fname):
     # Go to the end of the file
     f.seek(0, 2)
     # Use the position to determine the number of lines
-    nIter = f.tell() / nGrid / 218
+    nIter = f.tell() // nGrid // 218
     # close the file.
     f.close()
     # Output

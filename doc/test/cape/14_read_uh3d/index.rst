@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-04 at 01:40 PST
+   on 2022-01-19 at 01:40 PST
 
-Test ``14_read_uh3d``: **FAIL** (command 1)
-=============================================
+Test ``14_read_uh3d``: PASS
+=============================
 
-This test **FAILED** (command 1) on 2022-01-04 at 01:40 PST
+This test PASSED on 2022-01-19 at 01:40 PST
 
 This test is run in the folder:
 
@@ -153,8 +153,8 @@ The commands executed by this test are
         # Read triangulation output from test01
         plt = cape.plt.Plt(fname=PLTFILE)
 
-Command 1: Read UH3D: Python 2 (**FAIL**)
-------------------------------------------
+Command 1: Read UH3D: Python 2 (PASS)
+--------------------------------------
 
 :Command:
     .. code-block:: console
@@ -162,12 +162,12 @@ Command 1: Read UH3D: Python 2 (**FAIL**)
         $ python2 test01_read_uh3d.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
+    * Command took 0.46 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -189,17 +189,148 @@ Command 1: Read UH3D: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Read UH3D: Python 3 (PASS)
+--------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_read_uh3d.py", line 68, in <module>
-            plt.Write(fname)
-          File "/u/wk/ddalle/usr/cape/cape/plt.py", line 377, in Write
-            cape.io.tofile_ne4_s(f, self.title)
-        AttributeError: 'module' object has no attribute 'tofile_ne4_s'
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_read_uh3d.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.85 seconds
+    * Cumulative time: 1.31 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        Reading source triangulation
+        Writing ConfigXML file
+          arrow.xml
+          No parent for component 'bullet_total'
+        Mapping AFLR3 boundary conditions
+        Writing AFLR3 boundary conditions summary
+        Mapping FUN3D boundary conditions
+        Writing surface TRI file
+         Writing arrow-tri10k.lr4.tri
+        Writing combined surface PLT file
+          Creating PLT interface
+          Writing arrow-tri10k.plt
         
 
+:STDERR:
+    * **PASS**
+
+Command 3: Check TRI CompIDs: Python 2 (PASS)
+----------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_tri_ids.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.56 seconds
+    * Cumulative time: 1.87 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        CompIDs from TRI file
+        [ 1  2  3 11 12 13 14]
+        CompIDs from JSON file
+        [ 1  2  3 11 12 13 14]
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: Check TRI CompIDs: Python 3 (PASS)
+----------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_tri_ids.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.72 seconds
+    * Cumulative time: 2.59 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        CompIDs from TRI file
+        [ 1  2  3 11 12 13 14]
+        CompIDs from JSON file
+        [ 1  2  3 11 12 13 14]
+        
+
+:STDERR:
+    * **PASS**
+
+Command 5: Read PLT: Python 2 (PASS)
+-------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test03_read_plt.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.41 seconds
+    * Cumulative time: 3.00 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+Command 6: Read PLT: Python 3 (PASS)
+-------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_read_plt.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.49 seconds
+    * Cumulative time: 3.49 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
 

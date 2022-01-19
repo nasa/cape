@@ -775,7 +775,7 @@ class ConfigXML(object):
             # Get the list of components in the component.
             compID = self.GetCompID(comp)
             # Check if negative
-            if compID < 0: return
+            if any(compID) < 0: return
             print("       %s: %s" % (comp, compID))
             # Single component
             lbl = "Face Label"

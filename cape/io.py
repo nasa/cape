@@ -438,6 +438,26 @@ def tofile_b4_s(fp, s):
     x = [ord(c) for c in str(s)] + [0]
     # Write it
     tofile_b4_i(fp, x)
+
+
+# Write native byte string
+def tofile_ne4_s(fp, s):
+    r"""Write C-style string assuming 4 native-endian bytes per char
+
+    :Call:
+        >>> tofile_lb4_s(fp)
+    :Inputs:
+        *fp*: :class:`file`
+            File handle, open 'wb' or similar
+        *s*: :class:`str`
+            String to write to binary file
+    :Versions:
+        * 2017-03-29 ``@ddalle``: Version 1.0
+    """
+    # Create array
+    x = [ord(c) for c in str(s)] + [0]
+    # Write it
+    tofile_ne4_i(fp, x)
 # > string write
 
 
