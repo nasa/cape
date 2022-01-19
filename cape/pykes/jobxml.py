@@ -91,6 +91,9 @@ class JobXML(xmlfile.XMLFile):
     def get_temperature(self):
         return self.get_input("StaticTemperature")
 
+    def get_velocity(self):
+        return self.get_input("Velocity")
+
     def get_restart(self):
         return self.get_input("Restart")
 
@@ -124,6 +127,9 @@ class JobXML(xmlfile.XMLFile):
 
     def set_temperature(self, temperature):
         return self.set_input("StaticTemperature", temperature)
+
+    def set_velocity(self, velocity):
+        return self.set_input("Velocity", velocity)
 
     def set_restart(self, restart=True):
         return self.set_input("Restart", restart)
@@ -615,6 +621,7 @@ INPUTLIST_KEYS = {
     "relen": "Reynolds length",
     "restart": "restart flag",
     "temperature": "freestream temperature",
+    "velocity": "freestream flow velocity",
 }
 KCFD_KEYS = {
     "iters": "number of iterations",
