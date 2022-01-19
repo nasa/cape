@@ -1144,7 +1144,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
    # --- Raw data update ---
     # Main updater
-    def update_rawdata(self):
+    def update_rawdata(self, **kw):
         r"""Update raw data using ``rawdata/datakit-sources.json``
 
         The settings for zero or more "remotes" are read from that JSON
