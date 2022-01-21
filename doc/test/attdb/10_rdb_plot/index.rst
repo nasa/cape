@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-20 at 01:45 PST
+   on 2022-01-21 at 01:45 PST
 
 Test ``10_rdb_plot``: PASS
 ============================
 
-This test PASSED on 2022-01-20 at 01:45 PST
+This test PASSED on 2022-01-21 at 01:45 PST
 
 This test is run in the folder:
 
@@ -38,7 +38,7 @@ Command 1: Prep plot args: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59 seconds
+    * Command took 0.61 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -82,8 +82,8 @@ Command 2: Prep plot args: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.63 seconds
-    * Cumulative time: 1.21 seconds
+    * Command took 0.77 seconds
+    * Cumulative time: 1.38 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -127,8 +127,8 @@ Command 3: Plot line load: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.71 seconds
-    * Cumulative time: 1.93 seconds
+    * Command took 0.91 seconds
+    * Cumulative time: 2.29 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -163,8 +163,8 @@ Command 4: Plot line load: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.23 seconds
-    * Cumulative time: 3.15 seconds
+    * Command took 1.22 seconds
+    * Cumulative time: 3.51 seconds
 :STDOUT:
     * **PASS**
     * Target:
