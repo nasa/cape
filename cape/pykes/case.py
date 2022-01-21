@@ -112,9 +112,9 @@ def run_kestrel():
         # Clean up files
         finalize_files(rc, j)
         # Check if case is resubmitted
-        #q = resubmit_case(rc, j)
-        #if q:
-        #    break
+        q = resubmit_case(rc, j)
+        if q:
+            break
     # Remove the RUNNING file
     if os.path.isfile("RUNNING"):
         os.remove("RUNNING")
@@ -190,7 +190,7 @@ def run_phase(rc, j):
 
 
 def resubmit_case(rc, j0):
-    r"""Resubmit a case if appropriate
+    r"""Resubmit a case as a new job if appropriate
 
     :Call:
         >>> q = resubmit_case(rc, j0)
@@ -200,23 +200,54 @@ def resubmit_case(rc, j0):
         *j0*: :class:`int`
             Index of phase most recently run prior
             (may differ from :func:`get_phase` now)
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not a new job was submitted to queue
     :Versions:
         * 2022-01-20 ``@ddalle``: Version 1.0
     """
-    # Check if case is already complete
-    if check_complete(rc):
-        # Remove the RUNNING file
-        if os.path.isfile("RUNNING"):
-            os.remove("RUNNING")
-        # Don't restart
-        return
     # Get *current* phase
-    j = get_phase(rc)
+    j1 = get_phase(rc)
     # Job submission options
-    qpbs = rc.get_qsub(j)
-    qslr = rc.get_sbatch(j)
-    # Restart
-        
+    qsub0 = rc.get_qsub(j0) or rc.get_sbatch(j0)
+    qsub1 = rc.get_qsub(j1) or rc.get_sbatch(j1)
+    # Trivial case if phase *j* is not submitted
+    if not qsub1:
+        return False
+    # Check if *j1* is submitted and not *j0*
+    if not qsub0:
+        # Submit new phase
+        _submit_job(rc, j1)
+        return True
+    # If rerunning same phase, check the *Continue* option
+    if j0 == j1:
+        if rc.get_Continue(j):
+            # Don't submit new job (continue current one)
+            return False
+        else:
+            # Rerun same phase as new job
+            _submit_job(rc, j1)
+            return True
+    # Now we know we're going to new phase; check the *Resubmit* opt
+    if rc.get_Resubmit(j0):
+        # Submit phase *j1* as new job
+        _submit_job(rc, j1)
+        return True
+    else:
+        # Continue to next phase in same job
+        return False
+
+
+def _submit_job(rc, j):
+    # Get name of PBS script
+    fpbs = get_pbs_script(j)
+    # Check submission type
+    if rc.get_qsub(j):
+        # Submit PBS job
+        return queue.pqsub(fpbs)
+    elif rc.get_qsbatch(j):
+        # Submit slurm job
+        return queue.pqsbatch(fpbs)
 
 
 def start_case(rc=None, j=None):
@@ -250,6 +281,19 @@ def start_case(rc=None, j=None):
 
 
 def check_complete(rc):
+    r"""Check if case is complete as described
+
+    :Call:
+        >>> q = check_complete(rc)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether case has reached last phase w/ enough iters
+    :Versions:
+        * 2022-01-20 ``@ddalle``: Version 1.0
+    """
     # Determine current phase
     j = get_phase(rc)
     # Check if last phase
@@ -335,6 +379,41 @@ def finalize_files(rc, j=None):
 
 def set_restart_iter(rc):
     pass
+
+
+# Function to determine which PBS script to call
+def get_pbs_script(j=None):
+    r"""Determine the file name of the PBS script to call
+    
+    This is a compatibility function for cases that do or do not have
+    multiple PBS scripts in a single run directory
+    
+    :Call:
+        >>> fpbs = case.get_pbs_script(j=None)
+    :Inputs:
+        *j*: {``None``} | :class:`int`
+            Phase number
+    :Outputs:
+        *fpbs*: :class:`str`
+            Name of PBS script to call
+    :Versions:
+        * 2014-12-01 ``@ddalle``: Version 1.0 (pycart)
+        * 2022-01-20 ``@ddalle``: Version 1.0
+    """
+    # Form the full file name, e.g. run_cart3d.00.pbs
+    if j is not None:
+        # Create the name.
+        fpbs = "run_kestrel.%02i.pbs" % j
+        # Check for the file.
+        if os.path.isfile(fpbs):
+            # This is the preferred option if it exists.
+            return fpbs
+        else:
+            # File not found; use basic file name
+            return "run_kestrel.pbs"
+    else:
+        # Do not search for numbered PBS script if *i* is None
+        return "run_kestrel.pbs"
 
 
 # --- STATUS functions ---
