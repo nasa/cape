@@ -10,8 +10,6 @@ r"""
 
 # Standard library
 import os
-
-# Direct standard library imports
 from subprocess import Popen, PIPE
 
 
@@ -27,7 +25,7 @@ def check_o(cmd, **kw):
     r"""Run a system command and capture STDOUT
 
     :Call:
-        >>> out, err = call_o(cmd, **kw)
+        >>> out, err = check_o(cmd, **kw)
     :Inputs:
         *cmd*: :class:`list`\ [:class:`str`]
             System command to run, broken into parts as for
@@ -68,6 +66,10 @@ def check_o(cmd, **kw):
 # Call a command without default captures
 def call(cmd, **kw):
     r"""Run a system command and ignore STDOUT and STDERR
+
+    Setting *stdout* and/or *stderr* to *PIPE* will suppress them.
+    Setting them to ``None`` (the default) will cause them to display
+    normally and not be captured.
 
     :Call:
         >>> ierr = call(cmd, **kw)

@@ -68,6 +68,9 @@ XML_FILE_TEMPLATE = "kestrel.%02i.xml"
 LOG_FILE = os.path.join("log", "perIteration.log")
 STDOUT_FILE = "kestrel.out"
 
+# Maximum number of calls to run_kestrel()
+NSTART_MAX = 20
+
 
 # --- Execution ----
 def run_kestrel():
@@ -92,18 +95,26 @@ def run_kestrel():
     tic = cc.init_timer()
     # Read settings
     rc = read_case_json()
-    # Get phase number
-    j = get_phase(rc)
-    # Write the start time
-    write_starttime(tic, rc, j)
-    # Prepare files
-    prepare_files(rc, j)
-    # Prepare environment
-    cc.PrepareEnvironment(rc, j)
-    # Run appropriate commands
-    run_phase(rc, j)
-    # Clean up files
-    finalize_files(rc, j)
+    # Initialize number of calls
+    nstart = 0
+    # Loop until complete or aborted by resubmission
+    while not check_complete(rc, j) and nstart < NSTART_MAX:
+        # Get phase number
+        j = get_phase(rc)
+        # Write the start time
+        write_starttime(tic, rc, j)
+        # Prepare files
+        prepare_files(rc, j)
+        # Prepare environment
+        cc.PrepareEnvironment(rc, j)
+        # Run appropriate commands
+        run_phase(rc, j)
+        # Clean up files
+        finalize_files(rc, j)
+        # Check if case is resubmitted
+        #q = resubmit_case(rc, j)
+        #if q:
+        #    break
     # Remove the RUNNING file
     if os.path.isfile("RUNNING"):
         os.remove("RUNNING")
@@ -130,6 +141,19 @@ def run_phase(rc, j):
     job_name = xml.get_job_name()
     # Get the last iteration number
     n = get_current_iter()
+    # Set restart if appropriate
+    if n > 0:
+        # This is a restart
+        if not xml.get_restart():
+            # It should be a restart (e.g. running Phase 0 2x)
+            xml.set_restart()
+            xml.write()
+    else:
+        # This is *not* a restart
+        if xml.get_restart():
+            # This should not be a restart
+            xml.set_restart(False)
+            xml.write()
     # Number of requested iters for the end of this phase
     nj = rc.get_PhaseIters(j)
     # Mesh generation and verification status
@@ -147,10 +171,7 @@ def run_phase(rc, j):
     # Prepare for restart if that's appropriate
     set_restart_iter(rc)
     # Save initial iteration number, but replacing ``None``
-    if n is None:
-        n0 = 0
-    else:
-        n0 = n
+    n0 = 0 if n is None else n
     # Check if we should run this phase
     if nprev == 0 or n0 < nj:
         # Get the ``csi`` command
@@ -166,14 +187,39 @@ def run_phase(rc, j):
     else:
         # No new iterations
         n1 = n0
-    # Check if last phase
-    if j >= rc.get_PhaseSequence(-1):
-        # Check iteration number
-        if n1 >= rc.get_LastIter():
-            return
 
 
-def start_case():
+def resubmit_case(rc, j0):
+    r"""Resubmit a case if appropriate
+
+    :Call:
+        >>> q = resubmit_case(rc, j0)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+        *j0*: :class:`int`
+            Index of phase most recently run prior
+            (may differ from :func:`get_phase` now)
+    :Versions:
+        * 2022-01-20 ``@ddalle``: Version 1.0
+    """
+    # Check if case is already complete
+    if check_complete(rc):
+        # Remove the RUNNING file
+        if os.path.isfile("RUNNING"):
+            os.remove("RUNNING")
+        # Don't restart
+        return
+    # Get *current* phase
+    j = get_phase(rc)
+    # Job submission options
+    qpbs = rc.get_qsub(j)
+    qslr = rc.get_sbatch(j)
+    # Restart
+        
+
+
+def start_case(rc=None, j=None):
     r"""Start a case by either submitting it or calling locally
     
     :Call:
@@ -184,23 +230,40 @@ def start_case():
     # Get the config
     rc = read_case_json()
     # Determine the run index.
-    i = get_phase(rc)
+    j = get_phase(rc)
     # Check qsub status.
-    if rc.get_sbatch(i):
+    if rc.get_sbatch(j):
         # Get the name of the PBS file
-        fpbs = get_pbsscript(i)
+        fpbs = get_pbsscript(j)
         # Submit the Slurm case
         pbs = queue.psbatch(fpbs)
         return pbs
-    elif rc.get_qsub(i):
+    elif rc.get_qsub(j):
         # Get the name of the PBS file.
-        fpbs = get_pbsscript(i)
+        fpbs = get_pbsscript(j)
         # Submit the case.
         pbs = queue.pqsub(fpbs)
         return pbs
     else:
         # Simply run the case. Don't reset modules either.
         run_kestrel()
+
+
+def check_complete(rc):
+    # Determine current phase
+    j = get_phase(rc)
+    # Check if last phase
+    if j < rc.get_PhaseSequence(-1):
+        return False
+    # Get iteration number
+    n = get_current_iter()
+    # Check iteration number
+    if n is None:
+        return False
+    elif n < rc.get_LastIter():
+        return False
+    else:
+        return False
 
 
 # --- File management ---
