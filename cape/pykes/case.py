@@ -108,7 +108,14 @@ def run_kestrel():
         # Prepare environment
         cc.PrepareEnvironment(rc, j)
         # Run appropriate commands
-        run_phase(rc, j)
+        try:
+            run_phase(rc, j)
+        except Exception:
+            # Failure
+            open("FAIL", "w").write("run_phase")
+            if os.path.isfile("RUNNING"):
+                os.remove("RUNNING")
+            return 128
         # Clean up files
         finalize_files(rc, j)
         # Check if case is resubmitted
