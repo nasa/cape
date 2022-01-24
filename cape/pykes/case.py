@@ -90,7 +90,7 @@ def run_kestrel():
     if kw.get('h') or kw.get('help'):
         # Display help and exit
         print(textutils.markdown(HELP_RUN_KESTREL))
-        return
+        return 0
     # Start RUNNING and initialize timer
     tic = cc.init_timer()
     # Read settings
@@ -98,7 +98,7 @@ def run_kestrel():
     # Initialize number of calls
     nstart = 0
     # Loop until complete or aborted by resubmission
-    while not check_complete(rc, j) and nstart < NSTART_MAX:
+    while not check_complete(rc) and nstart < NSTART_MAX:
         # Get phase number
         j = get_phase(rc)
         # Write the start time
@@ -118,6 +118,7 @@ def run_kestrel():
     # Remove the RUNNING file
     if os.path.isfile("RUNNING"):
         os.remove("RUNNING")
+    return 0
 
 
 def run_phase(rc, j):

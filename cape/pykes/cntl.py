@@ -811,6 +811,9 @@ class Cntl(ccntl.Cntl):
             # Check if file exists
             if os.path.isfile(fabs):
                 meshfiles.append(fname)
+            else:
+                print("    File warning: could not find mesh file named")
+                print("      %s" % fabs)
         # Output
         return meshfiles
   # >
