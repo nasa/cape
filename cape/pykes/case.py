@@ -143,7 +143,7 @@ def run_phase(rc, j):
     # Get the last iteration number
     n = get_current_iter()
     # Set restart if appropriate
-    if n > 0:
+    if n is not None and n > 0:
         # This is a restart
         if not xml.get_restart():
             # It should be a restart (e.g. running Phase 0 2x)
