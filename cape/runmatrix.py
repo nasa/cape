@@ -1007,7 +1007,7 @@ class RunMatrix(dict):
                     "Value": "float",
                     "Format": "%s",
                     "Label": True,
-                    "Abbreviation": "V"
+                    "Abbreviation": key[0]
                 }
             elif key.lower() in ["r", "rho", "density"]:
                 # Freestream density
@@ -3373,7 +3373,7 @@ class RunMatrix(dict):
         # Search for a combination of parameters we can interpret
         if kV and kT:
             # Velocity and Temperature
-            U = self.Velocity(i, units="m/s")
+            U = self.GetVelocity(i, units="m/s")
             T = self.GetTemperature(i, units="K")
             # Sound speed
             a = np.sqrt(gam*R*T)
