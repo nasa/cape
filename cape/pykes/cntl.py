@@ -332,7 +332,9 @@ class Cntl(ccntl.Cntl):
         # Get the run folder name
         frun = self.x.GetFullFolderNames(i)
         # Write the "conditions.json" file
+        os.chdir(frun)
         self.x.WriteConditionsJSON(i)
+        os.chdir(self.RootDir)
         # Read the XML file
         self.ReadJobXML()
         # Check for any "CaseFunction" hooks
