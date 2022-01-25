@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-21 at 01:40 PST
+   on 2022-01-25 at 01:40 PST
 
 Test ``02_cli``: PASS
 =======================
 
-This test PASSED on 2022-01-21 at 01:40 PST
+This test PASSED on 2022-01-25 at 01:40 PST
 
 This test is run in the folder:
 
@@ -91,8 +91,8 @@ Command 2: Filter (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 1.23 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 1.16 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -132,8 +132,8 @@ Command 3: Constraints (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 1.85 seconds
+    * Command took 0.63 seconds
+    * Cumulative time: 1.79 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -169,8 +169,8 @@ Command 4: Glob (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 2.46 seconds
+    * Command took 0.63 seconds
+    * Cumulative time: 2.42 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -208,8 +208,8 @@ Command 5: Regular Expression (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.60 seconds
-    * Cumulative time: 3.06 seconds
+    * Command took 0.62 seconds
+    * Cumulative time: 3.04 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -245,8 +245,8 @@ Command 6: Index List (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 3.58 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 3.55 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -282,8 +282,8 @@ Command 7: Compound Subsets (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.63 seconds
-    * Cumulative time: 4.21 seconds
+    * Command took 0.46 seconds
+    * Cumulative time: 4.01 seconds
 :STDOUT:
     * **PASS**
     * Target:
