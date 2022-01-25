@@ -409,7 +409,10 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2016-02-01 ``@ddalle``: Version 1.0
             * 2016-12-13 ``@ddalle``: Version 1.1; add second input
+            * 2022-01-25 ``@ddalle``: Version 1.2; reread nml each call
         """
+        # Reread namelist
+        self.ReadNamelist()
         # Phase number
         if nPhase is None:
             nPhase = self.opts.get_nSeq()

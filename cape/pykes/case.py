@@ -112,7 +112,7 @@ def run_kestrel():
             run_phase(rc, j)
         except Exception:
             # Failure
-            open("FAIL", "w").write("run_phase")
+            open("FAIL", "w").write("run_phase\n")
             if os.path.isfile("RUNNING"):
                 os.remove("RUNNING")
             return 128
