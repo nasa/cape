@@ -158,6 +158,9 @@ class MATFile(BaseFile):
         _check_sio()
         # Update options
         self.opts.update(**kw)
+        # Get prefix and suffix for each column
+        prefix = self.opts.get_option("Prefix")
+        suffix = self.opts.get_option("Suffix")
         # Check type
         if typeutils.isfile(fname):
             # Safe file name
@@ -170,15 +173,28 @@ class MATFile(BaseFile):
         db = sio.loadmat(fname, struct_as_record=False, squeeze_me=True)
 
         # Loop through database
-        for (col, V) in db.items():
+        for (field, V) in db.items():
             # Skip invalid MATLAB names (reserved for other purposes)
-            if col.startswith("_"):
+            if field.startswith("_"):
                 continue
             # Check type
             if isinstance(V, siom.mat_struct):
+                # Update prefix, e.g. smy -> STACK.smy
+                #            but also STACK.smy.x -> STACK.smy.x
+                if prefix and not field.startswith(prefix):
+                    prefield = prefix + field
+                else:
+                    prefield = field
                 # Recurse
-                self.from_mat_struct(V, prefix=col)
+                self.from_mat_struct(V, prefix=prefield)
                 continue
+            # Full column name
+            if prefix:
+                col = prefix + field
+            else:
+                col = field
+            if suffix:
+                col += suffix
             # Otherwise save column
             self.from_mat_field(col, V)
 
