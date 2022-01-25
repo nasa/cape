@@ -143,6 +143,7 @@ class Cntl(object):
    # =================
    # <
     _case_mod = case
+    _zombie_files = ["*.out"]
    # >
    # =============
    # Configuration
@@ -1861,6 +1862,7 @@ class Cntl(object):
                 ``True`` if no listed files have been modified recently
         :Versions:
             * 2017-04-04 ``@ddalle``: Version 1.0
+            * 2021-01-25 ``@ddalle``: Version 1.1; use cls._zombie_files
         """
         # Check if case is running
         qrun = self.CheckRunning(i)
@@ -1875,9 +1877,11 @@ class Cntl(object):
         # Enter the folder
         os.chdir(frun)
         # List of files to check
-        fzomb = self.opts.get("ZombieFiles", "*.out")
+        fzomb = self.opts.get("ZombieFiles", self.__class__._zombie_files)
         # Ensure list
-        fzomb = list(np.array(fzomb).flatten())
+        if not isinstance(fzomb, (list, tuple)):
+            # Singleton glob, probably
+            fzomb = [fzomb]
         # Create list of files matching globs
         fglob = []
         for fg in fzomb:

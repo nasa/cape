@@ -99,6 +99,10 @@ class Cntl(ccntl.Cntl):
   # <
     # Case module
     _case_mod = case
+    # List of files to check for zombie status
+    _zombie_files = (
+        "*.out",
+        "log/*.log")
   # >
 
   # ======
