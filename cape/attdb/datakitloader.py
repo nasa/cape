@@ -23,6 +23,7 @@ from .rdb import DataKit
 from ..tnakit import gitutils
 from ..tnakit import kwutils
 from ..tnakit import shellutils
+from ..tnakit import typeutils
 
 
 # Utility regular expressions
@@ -1901,16 +1902,30 @@ class DataKitLoader(kwutils.KwargHandler):
                 Value from JSON file if possible, else *vdef*
         :Versions:
             * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2022-01-26 ``@ddalle``: Version 1.1; add substitutions
         """
         # Special case for opt == "hub"
         if opt == "hub":
             return self.rawdata_sources.get("hub", vdef)
+        # Format options
+        fmt = {
+            "remote": remote,
+        }
         # Otherwise get the remotes section
         opts = self.rawdata_sources.get("remotes", {})
         # Get options for this remote
         opts_remote = opts.get(remote, {})
-        # Return option
-        return opts_remote.get(opt, vdef)
+        # Get option, using default as needed
+        v = opts_remote.get(opt, vdef)
+        # Perform substitutions
+        if typeutils.isstr(v):
+            # Substitute
+            v = v % fmt
+        elif isinstance(v, (tuple, list)):
+            # Substitute each element
+            v = v.__class__([vj % fmt for vj in v])
+        # Return option with substitutions
+        return v
 
     # Get option from rawdata/datakit-sources.json
     def get_rawdata_remotelist(self):
