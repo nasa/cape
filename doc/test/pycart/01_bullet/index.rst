@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-26 at 01:40 PST
+   on 2022-01-27 at 01:40 PST
 
 Test ``01_bullet``: PASS
 ==========================
 
-This test PASSED on 2022-01-26 at 01:40 PST
+This test PASSED on 2022-01-27 at 01:40 PST
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Matrix Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.70 seconds
+    * Command took 0.50 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -73,8 +73,8 @@ Command 2: Run Case 0 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 6.02 seconds
-    * Cumulative time: 6.71 seconds
+    * Command took 5.97 seconds
+    * Cumulative time: 6.47 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -94,8 +94,8 @@ Command 3: Collect Aero Data (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.55 seconds
-    * Cumulative time: 7.26 seconds
+    * Command took 0.69 seconds
+    * Cumulative time: 7.16 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -125,8 +125,8 @@ Command 4: Test DataBook Value (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 7.79 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 7.68 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -160,8 +160,8 @@ Command 5: Test DataBook Value (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.78 seconds
-    * Cumulative time: 8.57 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 8.24 seconds
 :STDOUT:
     * **PASS**
     * Actual:

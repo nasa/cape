@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-26 at 01:40 PST
+   on 2022-01-27 at 01:40 PST
 
 Test ``09_cmd``: PASS
 =======================
 
-This test PASSED on 2022-01-26 at 01:40 PST
+This test PASSED on 2022-01-27 at 01:40 PST
 
 This test is run in the folder:
 
@@ -91,7 +91,7 @@ Command 1: AFLR3 Commands Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
+    * Command took 0.55 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -119,8 +119,8 @@ Command 2: CART3D ``intersect`` Commands Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
-    * Cumulative time: 1.00 seconds
+    * Command took 0.49 seconds
+    * Cumulative time: 1.04 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -148,8 +148,8 @@ Command 3: AFLR3 Commands Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.72 seconds
-    * Cumulative time: 1.72 seconds
+    * Command took 0.66 seconds
+    * Cumulative time: 1.69 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -177,7 +177,7 @@ Command 4: CART3D ``intersect`` Commands Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.49 seconds
+    * Command took 0.52 seconds
     * Cumulative time: 2.21 seconds
 :STDOUT:
     * **PASS**
