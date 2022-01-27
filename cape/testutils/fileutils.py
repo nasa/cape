@@ -19,19 +19,28 @@ import sys
 
 
 # Regular expression for finding numbers
-expr_float = "([+-]?[0-9]+(\.[0-9]+)?([edED][+-][0-9]+)?)"
-expr_interval = "(?P<c1>[\[(])(?P<v1>%s),\s*(?P<v2>%s)(?P<c2>[)\]])" % (
-    expr_float, expr_float)
+_EXPR_FLOAT = "([+-]?[0-9]+(\.[0-9]+)?([edED][+-][0-9]+)?)"
+_EXPR_INTERVAL = "(?P<c1>[\[(])(?P<v1>%s),\s*(?P<v2>%s)(?P<c2>[)\]])" % (
+    _EXPR_FLOAT, _EXPR_FLOAT)
 
 # Compile float recognizer
-regex_float = re.compile(expr_float)
-regex_interval = re.compile(expr_interval)
+REGEX_FLOAT = re.compile(_EXPR_FLOAT)
+REGEX_INTERVAL = re.compile(_EXPR_INTERVAL)
+
+# Default options
+_rc = {
+    "MAX_LINES": 100000,
+    "NORMALIZE_WHITESPACE": False,
+    "REGULAR_EXPRESSION": False,
+    "ELLIPSIS": True,
+    "VALUE_INTERVAL": True,
+}
 
 
 # Process list of files
 def expand_file_list(fglobs, typ="f", error=True):
-    """Expand a list of file globs
-    
+    r"""Expand a list of file globs
+
     :Call:
         >>> fnames = expand_file_list(fglobs, typ="f", error=True)
         >>> fnames = expand_file_list(fglob, typ="f", error=True)
@@ -49,7 +58,7 @@ def expand_file_list(fglobs, typ="f", error=True):
         *fnames*: :class:`list`\ [:class:`str`]
             List of matches to *fglob*, without duplicates
     :Versions:
-        * 2019-07-03 ``@ddalle``: First version
+        * 2019-07-03 ``@ddalle``: Version 1.0
     """
     # Ensure lists
     if not fglobs:
@@ -105,7 +114,7 @@ def expand_file_list(fglobs, typ="f", error=True):
 
 # Compare file to target
 def compare_files(fn1, fn2, **kw):
-    """Compare two lines of text using various rules
+    r"""Compare two lines of text using various rules
     
     :Call:
         >>> q, i = compare_files(fn1, fn2)
@@ -133,10 +142,10 @@ def compare_files(fn1, fn2, **kw):
         *i*: ``None`` | :class:`int` > 0
             Line at which first difference occurs, if any
     :Versions:
-        * 2019-07-05 ``@ddalle``: First version
+        * 2019-07-05 ``@ddalle``: Version 1.0
     """
     # Maximum line count
-    imax = kw.pop("MAX_LINES", 100000)
+    imax = _getopt(kw, "MAX_LINES")
     # Check for duplicate file
     if fn1 == fn2:
         raise ValueError("Output file and target are the same file")
@@ -201,8 +210,8 @@ def compare_files(fn1, fn2, **kw):
 
 # Compare two lines
 def compare_lines(line1, line2, **kw):
-    """Compare two lines of text using various rules
-    
+    r"""Compare two lines of text using various rules
+
     :Call:
         >>> q = compare_lines(line1, line2)
     :Inputs:
@@ -225,13 +234,13 @@ def compare_lines(line1, line2, **kw):
         *q*: ``True`` | ``False``
             Whether or not two lines match according to options
     :Versions:
-        * 2019-07-05 ``@ddalle``: First version
+        * 2019-07-05 ``@ddalle``: Version 1.0
     """
     # Get options
-    normws = kw.get("NORMALIZE_WHITESPACE", False)
-    qregex = kw.get("REGULAR_EXPRESSION", False)
-    ellips = kw.get("ELLIPSIS", True)
-    valint = kw.get("VALUE_INTERVAL", True)
+    normws = _getopt(kw, "NORMALIZE_WHITESPACE")
+    qregex = _getopt(kw, "REGULAR_EXPRESSION")
+    ellips = _getopt(kw, "ELLIPSIS")
+    valint = _getopt(kw, "VALUE_INTERVAL")
     # Check for disallowed combinations
     if qregex and normws:
         raise ValueError(
@@ -278,12 +287,12 @@ def compare_lines(line1, line2, **kw):
             # Find the <valint> flag
             ia = line2.index("<valint>")
             # Get allowed interval from remaining characters
-            match = regex_interval.match(line2[ia+8:])
+            match = REGEX_INTERVAL.match(line2[ia+8:])
             # Check for invalid expression
             if not match:
                 raise ValueError("Invalid interval: %s" % line2[ia:])
             # Get value from *line1*
-            m1 = regex_float.match(line1[ia:])
+            m1 = REGEX_FLOAT.match(line1[ia:])
             # Check for valid float
             if not m1:
                 return False
@@ -310,5 +319,14 @@ def compare_lines(line1, line2, **kw):
     # At this point, just compare the lines
     return line1 == line2
             
-        
+
+# Get an option
+def _getopt(kw, opt):
+    # Check if specified
+    if opt in kw:
+        # Return user's value
+        return kw[opt]
+    else:
+        # Use default (default to ``None``)
+        return _rc.get(opt)
     
