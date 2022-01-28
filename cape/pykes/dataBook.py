@@ -198,6 +198,8 @@ class CaseProp(cdbook.CaseFM):
         :Versions:
             * 2022-01-28 ``@ddalle``: Version 1.0
         """
+        # Save a component name
+        self.comp = fname.split(os.sep)[0]
         # Generate full path
         fdat = os.path.join("outputs", fname)
         # Check for file
@@ -283,9 +285,9 @@ class CaseProp(cdbook.CaseFM):
                     if len(L) < 2:
                         continue
                     # Split variables on as things between quotes
-                    vals = re.findall('"\w[^"]+"', L[1])
+                    vals = re.findall('"\w[^"]*"', L[1])
                     # Append to the list
-                    keys += [normalize_colname(v.strip('"')) for v in vals]
+                    keys += [v.strip('"') for v in vals]
                 elif flag == 1:
                     # Count line
                     nhdr += 1
@@ -295,7 +297,7 @@ class CaseProp(cdbook.CaseFM):
                         flag = 2
                         continue
                     # Split variables on as things between quotes
-                    vals = re.findall('"[\w ]+"', l)
+                    vals = re.findall('"\w[^"]*"', l)
                     # Append to the list.
                     keys += [v.strip('"') for v in vals]
                 else:
@@ -323,6 +325,8 @@ class CaseProp(cdbook.CaseFM):
                 continue
             # Get coefficient name
             ycol = COLNAMES_KESTREL_COEFF.get(key, key)
+            # Normalize
+            ycol = normalize_colname(ycol)
             # Save coefficient
             inds.append(j)
             cols.append(ycol)
@@ -847,7 +851,7 @@ def normalize_colname(colname):
     col = col.replace("]", "")
     # Eliminate some chars
     col = re.sub("[({]", "_", col)
-    col = re.sub("[)}\s]", "", col)
+    col = re.sub("[)} ]", "", col)
     col = re.sub("[-/.]", "_", col)
     # Output
     return col
