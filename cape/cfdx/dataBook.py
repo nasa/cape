@@ -9717,18 +9717,28 @@ class CaseResid(object):
         if len(L0) > len(i):
             # Trim it.
             L0 = L0[:len(i)]
+        # Create options
+        kw_p = kw.get("LineOptions", {})
+        kw_p0 = kw.get("LineOptions0", dict(kw_p))
+        # Default options
+        kw_p0.setdefault("lw", 1.2)
+        kw_p0.setdefault("color", "b")
+        kw_p0.setdefault("ls", "-")
+        kw_p.setdefault("lw", 1.5)
+        kw_p.setdefault("color", "k")
+        kw_p.setdefault("ls", "-")
         # Plot the initial residual if there are any unsteady iterations.
         # (Using specific attribute like "L2Resid0")
         if L0[-1] > L1[-1]:
-            h['L0'] = plt.semilogy(i, L0, 'b-', lw=1.2)
+            h['L0'] = plt.semilogy(i, L0, **kw_p0)
         # Plot the residual.
         if np.all(I1):
             # Plot all residuals (no subiterations detected)
-            h['L1'] = plt.semilogy(i, L1, 'k-', lw=1.5)
+            h['L1'] = plt.semilogy(i, L1, **kw_p)
         else:
             # Plot first and last subiteration separately
-            h['L0'] = plt.semilogy(i[I0], L1[I0], 'b-', lw=1.2)
-            h['L1'] = plt.semilogy(i[I1], L1[I1], 'k-', lw=1.5)
+            h['L0'] = plt.semilogy(i[I0], L1[I0], **kw_p0)
+            h['L1'] = plt.semilogy(i[I1], L1[I1], **kw_p)
         # Labels
         h['x'] = plt.xlabel('Iteration Number')
         h['y'] = plt.ylabel(kw.get('YLabel', c))

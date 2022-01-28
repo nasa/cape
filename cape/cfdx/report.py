@@ -2459,7 +2459,10 @@ class Report(object):
         # Get statistics if possible.
         if nCur >= max(1, nMin+nStats):
             # Don't use iterations before *nMin*
-            nMax = min(nMax, nCur-nMin)
+            if nMax is None:
+                nMax = nCur - nMin
+            else:
+                nMax = min(nMax, nCur-nMin)
             # Go to the run directory.
             os.chdir(self.cntl.RootDir)
             os.chdir(self.cntl.x.GetFullFolderNames(i))
@@ -2757,7 +2760,10 @@ class Report(object):
             # Check if there are iterations.
             if nIter < 2: continue
             # Don't use iterations before *nMin*
-            nMax = min(nMax, nIter-nMin)
+            if nMax is None:
+                nMax = nIter - nMin
+            else:
+                nMax = min(nMax, nIter-nMin)
             # ... unless it's needed because *nIter* is too low
             if nMax < nStats:
                 # Try as hard as possible to get *nStats* in window
@@ -4258,8 +4264,8 @@ class Report(object):
                 "nFirst": nPlotFirst, "nLast": nPlotLast,
                 "FigWidth": figw, "FigHeight": figh}
             # Plot options
-            kw_p0 = opts.get_SubfigPlotOpt(sfig, "LineOptions", 0)
-            kw_p = dict(kw_n, **kw_p0)
+            kw_l = opts.get_SubfigPlotOpt(sfig, "LineOptions", 0)
+            kw_p = dict(kw_n, LineOptions=kw_l)
             # Check for any iterations to report
             if len(H.i) > 0:
                 # Determine which function to call
@@ -4286,10 +4292,10 @@ class Report(object):
                         # Plot multiple
                         for j, crj in enumerate(cr):
                             # Get options for this figure
-                            kw_pj = opts.get_SubfigPlotOpt(
+                            kw_l = opts.get_SubfigPlotOpt(
                                 sfig, "LineOptions", j)
                             # Merge options
-                            kw_p = dict(kw_n, **kw_pj)
+                            kw_p = dict(kw_n, LineOptions=kw_l)
                             # Plot
                             h = H.PlotResid(c=crj, n=nPlotIter, **kw_p)
                     else:
