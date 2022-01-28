@@ -176,6 +176,65 @@ class DBComp(cdbook.DBComp):
     pass
 
 
+# Iterative property history
+class CaseProp(cdbook.CaseFM):
+    r"""Iterative property history
+
+    :Call:
+        >>> prop = CaseProp(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file relative to ``outputs/`` folder
+    :Outputs:
+        *prop*: :class:`CaseProp`
+            Iterative history of properties in *fname*
+    :Versions:
+        * 2022-01-28 ``@ddalle``: Version 1.0
+    """
+    # Initialization method
+    def __init__(self, fname, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2022-01-28 ``@ddalle``: Version 1.0
+        """
+        # Generate full path
+        fdat = os.path.join("outputs", fname)
+        # Check for file
+        if not os.path.isfile(fdat):
+            return
+        # Read file
+        self.read_dat(fdat)
+
+    # Read a file
+    def read_dat(self, fdat):
+        r"""Read a data file in expected Kestrel format
+
+        :Call:
+            >>> prop.read_dat(fdat)
+        :Inputs:
+            *prop*: :class:`CaseProp`
+                Iterative property history
+            *fdat*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2022-01-28 ``@ddalle``: Version 1.0
+        """
+        # Figure out headers
+        nhdr, cols, coeffs, inds = self.read_colnames(fdat)
+        # Save entries
+        self._hdr = nhdr
+        self.cols = cols
+        self.coeffs = coeffs
+        self.inds = inds
+        # Read it
+        A = np.loadtxt(fdat, skiprows=nhdr, usecols=tuple(inds))
+        breakpoint()
+        # Save the values
+        for j, col in zip(inds, cols):
+            self.__dict__[col] = A[:,j]
+
+
 # Iterative F&M history
 class CaseFM(cdbook.CaseFM):
     r"""Iterative force & moment history for one component, one case
