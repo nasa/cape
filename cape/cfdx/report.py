@@ -1203,7 +1203,7 @@ class Report(object):
 
     # Point to the correct subfigure updater
     def SubfigSwitch(self, sfig, i, lines, q):
-        """Switch function to find the correct subfigure function
+        r"""Switch function to find the correct subfigure function
 
         This function may need to be defined for each CFD solver
 
@@ -4254,8 +4254,12 @@ class Report(object):
             # Read the Aero history.
             H = self.ReadCaseResid(sfig)
             # Options dictionary
-            kw_p = {"nFirst": nPlotFirst, "nLast": nPlotLast,
+            kw_n = {
+                "nFirst": nPlotFirst, "nLast": nPlotLast,
                 "FigWidth": figw, "FigHeight": figh}
+            # Plot options
+            kw_p0 = opts.get_SubfigPlotOpt(sfig, "LineOptions", 0)
+            kw_p = dict(kw_n, **kw_p0)
             # Check for any iterations to report
             if len(H.i) > 0:
                 # Determine which function to call
@@ -4278,7 +4282,19 @@ class Report(object):
                     # Get coefficient
                     cr = opts.get_SubfigOpt(sfig, "Residual")
                     # Plot it
-                    h = H.PlotResid(c=cr, n=nPlotIter, **kw_p)
+                    if isinstance(cr, (list, tuple)):
+                        # Plot multiple
+                        for j, crj in enumerate(cr):
+                            # Get options for this figure
+                            kw_pj = opts.get_SubfigPlotOpt(
+                                sfig, "LineOptions", j)
+                            # Merge options
+                            kw_p = dict(kw_n, **kw_pj)
+                            # Plot
+                            h = H.PlotResid(c=crj, n=nPlotIter, **kw_p)
+                    else:
+                        # Plot 
+                        h = H.PlotResid(c=cr, n=nPlotIter, **kw_p)
                 # Additional formatting
                 self.SubfigFormatAxes(sfig, h['ax'])
                 # Change back to report folder.
@@ -4307,7 +4323,8 @@ class Report(object):
                 lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                     % (frun, fpdf))
         # Set the caption.
-        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        if fcpt:
+            lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Ensure original directory

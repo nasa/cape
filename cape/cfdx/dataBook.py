@@ -9646,15 +9646,19 @@ class CaseResid(object):
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
             * 2015-10-21 ``@ddalle``: Copied from :func:`PlotL1`
+            * 2022-01-28 ``@ddalle``: Added *xcol*
         """
         # Make sure plotting modules are present.
         ImportPyPlot()
         # Initialize dictionary.
         h = {}
+        # Iteration field
+        xcol = kw.get("xcol", "i")
+        xval = self.__dict__[xcol]
         # Get iteration numbers.
         if n is None:
             # Use all iterations
-            n = self.i[-1]
+            n = xval[-1]
         # Default *nFirst*
         if nFirst is None:
             nFirst = 1
@@ -9665,7 +9669,7 @@ class CaseResid(object):
         # Last Iter 
         # ---------
         # Most likely last iteration
-        iB = self.i[-1]
+        iB = xval[-1]
         # Check for an input last iter
         if nLast is not None:
             # Attempt to use requested iter.
@@ -9673,23 +9677,23 @@ class CaseResid(object):
                 # Using an earlier iter; make sure to use one in the hist.
                 jB = self.GetIterationIndex(nLast)
                 # Find the iterations that are less than i.
-                iB = self.i[jB]
+                iB = xval[jB]
         # Get the index of *iB* in *FM.i*.
-        jB = np.where(self.i == iB)[0][-1]
+        jB = np.where(xval == iB)[0][-1]
         # ----------
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(self.i[0], iB-n+1, nFirst)
+        i0 = max(xval[0], iB-n+1, nFirst)
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = self.GetIterationIndex(i0)
         # Reselect *iA* in case initial value was not in *FM.i*.
-        i0 = int(self.i[j0])
+        i0 = int(xval[j0])
         # --------
         # Plotting
         # --------
         # Extract iteration numbers and residuals.
-        i  = self.i[j0:]
+        i  = xval[j0:]
         # Handling for multiple residuals at same iteration
         di = np.diff(i) != 0
         # First residual at each iteration and last residual at each iteration
