@@ -9616,7 +9616,7 @@ class CaseResid(object):
         
     # Plot function
     def PlotResid(self, c='L1Resid', n=None, nFirst=None, nLast=None, **kw):
-        """Plot a residual by name
+        r"""Plot a residual by name
         
         :Call:
             >>> h = hist.PlotResid(c='L1Resid', n=None, **kw)
@@ -9627,6 +9627,8 @@ class CaseResid(object):
                 Name of coefficient to plot
             *n*: :class:`int`
                 Only show the last *n* iterations
+            *LineOptions*: :class:`dict`
+                Plot options for the primary line(s)
             *nFirst*: :class:`int`
                 Plot starting at iteration *nStart*
             *nLast*: :class:`int`
