@@ -191,7 +191,7 @@ class CaseProp(cdbook.CaseFM):
     :Versions:
         * 2022-01-28 ``@ddalle``: Version 1.0
     """
-    # Initialization method
+   # --- __dunder__ ---
     def __init__(self, fname, **kw):
         r"""Initialization method
 
@@ -206,7 +206,7 @@ class CaseProp(cdbook.CaseFM):
         # Read file
         self.read_dat(fdat)
 
-    # Read a file
+   # --- Read ---
     def read_dat(self, fdat):
         r"""Read a data file in expected Kestrel format
 
@@ -220,101 +220,6 @@ class CaseProp(cdbook.CaseFM):
         :Versions:
             * 2022-01-28 ``@ddalle``: Version 1.0
         """
-        # Figure out headers
-        nhdr, cols, coeffs, inds = self.read_colnames(fdat)
-        # Save entries
-        self._hdr = nhdr
-        self.cols = cols
-        self.coeffs = coeffs
-        self.inds = inds
-        # Read it
-        A = np.loadtxt(fdat, skiprows=nhdr, usecols=tuple(inds))
-        breakpoint()
-        # Save the values
-        for j, col in zip(inds, cols):
-            self.__dict__[col] = A[:,j]
-
-
-# Iterative F&M history
-class CaseFM(cdbook.CaseFM):
-    r"""Iterative force & moment history for one component, one case
-
-    :Call:
-        >>> fm = CaseFM(comp=None)
-    :Inputs:
-        *comp*: :class:`str`
-            Name of component
-    :Outputs:
-        *fm*: :class:`CaseFM`
-            One-case iterative history
-    :Versions:
-        * 2021-11-08 ``@ddalle``: Version 1.0
-    """
-    # Initialization method
-    def __init__(self, comp=None):
-        r"""Initialization method
-
-        :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-        """
-        # Save inputs
-        self.comp = comp
-        # File name to read
-        fdat = self.create_fname_coeff_dat()
-        # Initialize attributes
-        self.init_data()
-        # Check for empty input
-        if not comp:
-            return
-        # Check if file exists
-        if not os.path.isfile(fdat):
-            return
-        # Read file
-        self.read_coeff_dat()
-
-   # --- Data ---
-    def init_data(self):
-        r"""Initialize standard force/moment attributes
-
-        :Call:
-            >>> fm.init_data()
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-        """
-        # Make all entries empty
-        self.i = np.zeros(0)
-        self.CA = np.zeros(0)
-        self.CY = np.zeros(0)
-        self.CN = np.zeros(0)
-        self.CLL = np.zeros(0)
-        self.CLM = np.zeros(0)
-        self.CLN = np.zeros(0)
-        # Save a default list of columns and components.
-        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        self.cols = ['i'] + self.coeffs
-
-    def read_coeff_dat(self, fdat=None):
-        r"""Read ``coeff.dat`` from expected data file
-
-        :Call:
-            >>> fm.read_coeff_dat(fdat=None)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-            *fdat*: {``None``} | :class:`str`
-                Optional specific file name
-        :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-        """
-        # Default file name
-        if fdat is None:
-            fdat = self.genr8_fname_coeff_dat()
-        # Check if found
-        if fdat is None or not os.path.isfile(fdat):
-            return
         # Figure out headers
         nhdr, cols, coeffs, inds = self.read_colnames(fdat)
         # Save entries
@@ -424,6 +329,100 @@ class CaseFM(cdbook.CaseFM):
             coeffs.append(ycol)
         # Output
         return nhdr, cols, coeffs, inds
+
+
+# Iterative F&M history
+class CaseFM(CaseProp):
+    r"""Iterative force & moment history for one component, one case
+
+    :Call:
+        >>> fm = CaseFM(comp=None)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of component
+    :Outputs:
+        *fm*: :class:`CaseFM`
+            One-case iterative history
+    :Versions:
+        * 2021-11-08 ``@ddalle``: Version 1.0
+    """
+    # Initialization method
+    def __init__(self, comp=None):
+        r"""Initialization method
+
+        :Versions:
+            * 2021-11-08 ``@ddalle``: Version 1.0
+        """
+        # Save inputs
+        self.comp = comp
+        # File name to read
+        fdat = self.create_fname_coeff_dat()
+        # Initialize attributes
+        self.init_data()
+        # Check for empty input
+        if not comp:
+            return
+        # Check if file exists
+        if not os.path.isfile(fdat):
+            return
+        # Read file
+        self.read_coeff_dat()
+
+   # --- Data ---
+    def init_data(self):
+        r"""Initialize standard force/moment attributes
+
+        :Call:
+            >>> fm.init_data()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Case force/moment history
+        :Versions:
+            * 2021-11-08 ``@ddalle``: Version 1.0
+        """
+        # Make all entries empty
+        self.i = np.zeros(0)
+        self.CA = np.zeros(0)
+        self.CY = np.zeros(0)
+        self.CN = np.zeros(0)
+        self.CLL = np.zeros(0)
+        self.CLM = np.zeros(0)
+        self.CLN = np.zeros(0)
+        # Save a default list of columns and components.
+        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
+        self.cols = ['i'] + self.coeffs
+
+    def read_coeff_dat(self, fdat=None):
+        r"""Read ``coeff.dat`` from expected data file
+
+        :Call:
+            >>> fm.read_coeff_dat(fdat=None)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Case force/moment history
+            *fdat*: {``None``} | :class:`str`
+                Optional specific file name
+        :Versions:
+            * 2021-11-08 ``@ddalle``: Version 1.0
+        """
+        # Default file name
+        if fdat is None:
+            fdat = self.genr8_fname_coeff_dat()
+        # Check if found
+        if fdat is None or not os.path.isfile(fdat):
+            return
+        # Figure out headers
+        nhdr, cols, coeffs, inds = self.read_colnames(fdat)
+        # Save entries
+        self._hdr = nhdr
+        self.cols = cols
+        self.coeffs = coeffs
+        self.inds = inds
+        # Read it
+        A = np.loadtxt(fdat, skiprows=nhdr, usecols=tuple(inds))
+        # Save the values
+        for j, col in zip(inds, cols):
+            self.__dict__[col] = A[:,j]
 
    # --- Files ---
     def create_fname_coeff_dat(self, comp=None):
