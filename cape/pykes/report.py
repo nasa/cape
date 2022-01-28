@@ -70,7 +70,7 @@ import numpy as np
 
 # Local import
 from ..cfdx import report as capereport
-from .dataBook import CaseFM, CaseResid
+from .dataBook import CaseFM, CaseProp, CaseResid
 
 
 # Class to interface with report generation and updating.
@@ -199,19 +199,19 @@ class Report(capereport.Report):
         # Check for multiple components
         if isinstance(compID, (list, np.ndarray)):
             # Read the first component
-            FM = CaseFM(compID[0])
+            FM = _read_case_prop(compID[0])
             # Loop through remaining components
             for compi in compID[1:]:
                 # Check for minus sign
-                if compi.startswith('-1'):
+                if compi.startswith('-'):
                     # Subtract the component
-                    FM -= CaseFM(compi.lstrip('-'))
+                    FM -= _read_case_prop(compi.lstrip('-'))
                 else:
                     # Add in the component
-                    FM += CaseFM(compi)
+                    FM += _read_case_prop(compi)
         else:
             # Read the iterative history for single component
-            FM = CaseFM(compID)
+            FM = _read_case_prop(compID)
         # Read the history for that component
         return FM
 
@@ -237,4 +237,14 @@ class Report(capereport.Report):
         """
         # Read the residual history
         return CaseResid()
+
+
+def _read_case_prop(comp):
+    # Check if it's a force & moment or not
+    if "/" in comp:
+        # Read as an "other-properties" object
+        return CaseProp(comp)
+    else:
+        # Read as an iterative force & moment hisotyr
+        return CaseFM(comp)
 

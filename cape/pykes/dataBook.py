@@ -199,9 +199,9 @@ class CaseProp(cdbook.CaseFM):
             * 2022-01-28 ``@ddalle``: Version 1.0
         """
         # Save a component name
-        self.comp = fname.split(os.sep)[0]
+        self.comp = fname.split("/")[0]
         # Generate full path
-        fdat = os.path.join("outputs", fname)
+        fdat = os.path.join("outputs", fname.replace("/", os.sep))
         # Check for file
         if not os.path.isfile(fdat):
             return
