@@ -1295,8 +1295,8 @@ def GetPltFile():
     # ======
     return fplt, nStats, nstrt, nplt
 # def GetPltFile
-    
-    
+
+
 # Get best file based on glob
 def GetFromGlob(fglb):
     r"""Find the most recently edited file matching a glob

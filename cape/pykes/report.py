@@ -69,8 +69,9 @@ import glob
 import numpy as np
 
 # Local import
-from ..cfdx import report as capereport
+from .case import link_plt
 from .dataBook import CaseFM, CaseProp, CaseResid
+from ..cfdx import report as capereport
 
 
 # Class to interface with report generation and updating.
@@ -237,6 +238,27 @@ class Report(capereport.Report):
         """
         # Read the residual history
         return CaseResid()
+            
+    # Function to link appropriate visualization files
+    def LinkVizFiles(self, sfig=None, i=None):
+        r"""Create links to appropriate visualization files
+        
+        :Call:
+            >>> R.LinkVizFiles(sfig, i)
+        :Inputs:
+            *R*: :class:`Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of the subfigure
+            *i*: :class:`int`
+                Case index
+        :See Also:
+            :func:`cape.pyfun.case.LinkPLT`
+        :Versions:
+            * 2016-02-06 ``@ddalle``: Version 1.0
+        """
+        # Defer to function from :mod:`pykes.case`
+        link_plt()
 
 
 def _read_case_prop(comp):

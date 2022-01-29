@@ -20,7 +20,7 @@ import shutil
 import sys
 
 # Third-party
-
+import yaml
 
 # Local imports
 from . import cmdgen
@@ -609,4 +609,113 @@ def write_starttime(tic, rc, j, fname="pykes_start.dat"):
     # Call the function from :mod:`cape.cfdx.case`
     cc.WriteStartTimeProg(tic, rc, j, fname, "run_kestrel.py")
 
+
+# --- File Management ---
+#Get best file based on glob
+def get_glob_latest(fglb):
+    r"""Find the most recently edited file matching a glob
+    
+    :Call:
+        >>> fname = get_glob_latest(fglb)
+    :Inputs:
+        *fglb*: :class:`str`
+            Glob for targeted file names
+    :Outputs:
+        *fname*: :class:`str`
+            Name of file matching glob that was most recently edited
+    :Versions:
+        * 2016-12-19 ``@ddalle``: Version 1.0
+        * 2022-01-28 ``@ddalle``: Version 1.1; was GetFromGlob()
+    """
+    # List of files matching requested glob
+    fglob = glob.glob(fglb)
+    # Check for empty glob
+    if len(fglob) == 0:
+        return
+    # Get modification times
+    t = [os.path.getmtime(f) for f in fglob]
+    # Extract file with maximum index
+    fname = fglob[t.index(max(t))]
+    # Output
+    return fname
+
+   
+# Link best file based on name and glob
+def link_glob_latest(fname, fglb):
+    r"""Link the most recent file to a generic Tecplot file name
+    
+    :Call:
+        >>> link_glob_latest(fname, fglb)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of unmarked file, like ``Components.i.plt``
+        *fglb*: :class:`str`
+            Glob for marked file names
+    :Versions:
+        * 2016-10-24 ``@ddalle``: Version 1.0
+        * 2022-01-28 ``@ddalle``: Version 1.1; was LinKFromGlob()
+    """
+    # Check for already-existing regular file
+    if os.path.isfile(fname) and not os.path.islink(fname):
+        return
+    # Remove the link if necessary
+    if os.path.islink(fname):
+        os.remove(fname)
+    # Extract file with maximum index
+    fsrc = get_glob_latest(fglb)
+    # Exit if no matches
+    if fsrc is None:
+        return
+    # Create the link if possible
+    if os.path.isfile(fsrc):
+        os.symlink(fsrc, fname)
+    
+
+# Link best Tecplot files
+def link_plt():
+    r"""Link the most recent Tecplot files to fixed file names
+    
+    :Call:
+        >>> link_plt(fdir=None)
+    :Inputs:
+        *fdir*: {``None``} | :class:`str`
+            Specific folder in which to find latest file
+    :Versions:
+        * 2022-01-28 ``@ddalle``: Version 1.0
+    """
+    # Read the options
+    rc = read_case_json()
+    j = get_phase(rc)
+    # Need the namelist to figure out planes, etc.
+    xml = read_xml(rc, j)
+    # Get the project root name
+    proj = xml.get_job_name()
+    # Name of file containing list of Tecplot exports
+    fmg = os.path.join("outputs", "visualization", "%s.mg" % proj)
+    # Exit if no such file
+    if not os.path.isfile(fmg):
+        return
+    # Try to read the .mg file containing info about each PLT
+    opts = yaml.load(open(fmg), Loader=yaml.CLoader)
+    # Loop through expected data sources
+    for data_source in opts.get("DataSources", []):
+        # Check type
+        if not isinstance(data_source, dict):
+            continue
+        # Check data type
+        if data_source.get("DataType") != "Tecplot":
+            continue
+        # Get solution
+        sol = data_source.get("Solution")
+        if not isinstance(sol, dict):
+            continue
+        # Get path
+        fpath = sol.get("Path")
+        if fpath is None or "%ts" not in fpath:
+            continue
+        # Substitute
+        fglob = re.sub("%ts", "*", fpath)
+        fname = re.sub("%ts", "", fpath)
+        # Link the latest
+        link_glob_latest(fname, fglob)
 

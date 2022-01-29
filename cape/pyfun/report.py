@@ -3,7 +3,7 @@ r"""
 ======================================================
 
 The pyFun module for generating automated results reports using 
-PDFLaTeX provides a single class :class:`pyFun.report.Report`, which is
+PDFLaTeX provides a single class :class:`Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
 that contains a file interface using :class:`cape.tex.Tex` combined 
@@ -89,7 +89,7 @@ class Report(capereport.Report):
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
-        *R*: :class:`pyFun.report.Report`
+        *R*: :class:`Report`
             Automated report interface
     :Versions:
         * 2015-03-07 ``@ddalle``: Started
@@ -116,7 +116,7 @@ class Report(capereport.Report):
         :Call:
             >>> lines = R.SubfigSwitch(sfig, i, lines)
         :Inputs:
-            *R*: :class:`pyFun.report.Report`
+            *R*: :class:`Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to update
@@ -255,7 +255,7 @@ class Report(capereport.Report):
         :Call:
             >>> R.ReadTecscript(fsrc)
         :Inputs:
-            *R*: :class:`pyFun.report.Report`
+            *R*: :class:`Report`
                 Automated report interface
             *fscr*: :class:`str`
                 Name of file to read
@@ -266,28 +266,23 @@ class Report(capereport.Report):
             
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
-        """Create links to appropriate visualization files
-        
-        Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
-        ``Components.i.dat`` and ``cutPlanes.dat`` are created.
+        r"""Create links to appropriate visualization files
         
         :Call:
             >>> R.LinkVizFiles(sfig, i)
         :Inputs:
-            *R*: :class:`pyFun.report.Report`
+            *R*: :class:`Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of the subfigure
             *i*: :class:`int`
                 Case index
         :See Also:
-            :func:`pyFun.case.LinkPLT`
+            :func:`cape.pyfun.case.LinkPLT`
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
         """
         # Defer to function from :func:`pyFun.case`
         LinkPLT()
-        
-        
 # class Report
 
