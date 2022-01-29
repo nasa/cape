@@ -16,6 +16,7 @@ created by :mod:`cape.pykes`.
 # Standard library
 import glob
 import os
+import re
 import shutil
 import sys
 

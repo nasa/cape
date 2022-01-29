@@ -267,6 +267,6 @@ def _read_case_prop(comp):
         # Read as an "other-properties" object
         return CaseProp(comp)
     else:
-        # Read as an iterative force & moment hisotyr
+        # Read as an iterative force & moment history
         return CaseFM(comp)
 
