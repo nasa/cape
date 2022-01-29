@@ -669,7 +669,7 @@ def link_glob_latest(fname, fglb):
         return
     # Create the link if possible
     if os.path.isfile(fsrc):
-        os.symlink(fsrc, fname)
+        os.symlink(os.path.basename(fsrc), fname)
     
 
 # Link best Tecplot files
@@ -714,9 +714,12 @@ def link_plt():
         fpath = sol.get("Path")
         if fpath is None or "%ts" not in fpath:
             continue
+        # Full path
+        frel = os.path.join(
+            "outputs", "visualization", fpath.replace("/", os.sep))
         # Substitute
-        fglob = re.sub("%ts", "*", fpath)
-        fname = re.sub("%ts", "", fpath)
+        fglob = re.sub("%ts", "[0-9]*", frel)
+        fname = re.sub("%ts", "", frel)
         # Link the latest
         link_glob_latest(fname, fglob)
 
