@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-28 at 01:45 PST
+   on 2022-01-29 at 01:45 PST
 
 Test ``02_csv_float``: PASS
 =============================
 
-This test PASSED on 2022-01-28 at 01:45 PST
+This test PASSED on 2022-01-29 at 01:45 PST
 
 This test is run in the folder:
 
@@ -170,7 +170,7 @@ Command 1: Clean CSV read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
+    * Command took 0.59 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -197,8 +197,8 @@ Command 2: Clean CSV read: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 1.09 seconds
+    * Command took 0.78 seconds
+    * Cumulative time: 1.38 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -225,8 +225,8 @@ Command 3: Specified :class:`float` types: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.41 seconds
-    * Cumulative time: 1.51 seconds
+    * Command took 0.43 seconds
+    * Cumulative time: 1.80 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -256,7 +256,7 @@ Command 4: Specified :class:`float` types: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.51 seconds
-    * Cumulative time: 2.02 seconds
+    * Cumulative time: 2.31 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -285,8 +285,8 @@ Command 5: Simple CSV read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.40 seconds
-    * Cumulative time: 2.42 seconds
+    * Command took 0.42 seconds
+    * Cumulative time: 2.73 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -314,7 +314,7 @@ Command 6: Simple CSV read: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.51 seconds
-    * Cumulative time: 2.94 seconds
+    * Cumulative time: 3.24 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -341,8 +341,8 @@ Command 7: Clean Python read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.43 seconds
-    * Cumulative time: 3.37 seconds
+    * Command took 0.44 seconds
+    * Cumulative time: 3.68 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -370,7 +370,7 @@ Command 8: Clean Python read: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.51 seconds
-    * Cumulative time: 3.88 seconds
+    * Cumulative time: 4.19 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -397,8 +397,8 @@ Command 9: Clean C read: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.45 seconds
-    * Cumulative time: 4.34 seconds
+    * Command took 0.46 seconds
+    * Cumulative time: 4.65 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -425,8 +425,8 @@ Command 10: Clean C read: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 4.90 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 5.20 seconds
 :STDOUT:
     * **PASS**
     * Target:
