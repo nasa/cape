@@ -1,19 +1,19 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
 :mod:`cape.units`: Unit Conversion Module
 ==========================================
 
-CAPE includes this unit-conversion module to interpret various units for inputs
-and post-processing.  Many CFD solvers, and some trajectory tools that are used
-to provide flight conditions, expect imperial units, which can be challenging
-to interpret and difficult to use in complications.
+CAPE includes this unit-conversion module to interpret various units for
+inputs and post-processing.  Many CFD solvers, and some trajectory tools
+that are used to provide flight conditions, expect imperial units, which
+can be challenging to interpret and difficult to use in complications.
 
-The main function of this module is called :func:`mks`, which takes a string as
-input and tries to convert it to a numerical output as multiple of meters,
-kilograms, and seconds (and Kelvins and amperes or several other fundamental
-units as needed). For example it will return 0.0254 if the input is ``"inch"``,
-which is the length of an inch in meters.
+The main function of this module is called :func:`mks`, which takes a
+string as input and tries to convert it to a numerical output as
+multiple of meters, kilograms, and seconds (and Kelvins and amperes or
+several other fundamental units as needed). For example it will return
+0.0254 if the input is ``"inch"``, which is the length of an inch in
+ meters.
 
     .. code-block:: pycon
     
@@ -21,17 +21,19 @@ which is the length of an inch in meters.
         0.0254
 
 This function also takes more complexly defined units using exponents,
-multiples and ratios, and SI prefixes.  For example, this converts thousand
-pounds per square foot to the appropriate mks unit, which is Pascals.
+multiples and ratios, and SI prefixes.  For example, this converts
+thousand pounds per square foot to the appropriate mks unit, which is
+Pascals.
 
     .. code-block:: pycon
     
         >>> mks("klbf/ft^2")
         4.7880e+04
 
-The module also contains several simple :class:`float` values, such as *psf*
-for the value of pounds per square feet in Pascals.  There is a :class:`dict`
-called *units_dict* that contains a full dictionary of recognized unit names.
+The module also contains several simple :class:`float` values, such as
+*psf* for the value of pounds per square feet in Pascals.  There is a
+:class:`dict` called *units_dict* that contains a full dictionary of
+recognized unit names.
 
     .. code-block:: pycon
     
@@ -55,28 +57,28 @@ if int(sys.version[0]) > 2:
 
 # List of SI prefixes
 prefix_dict = {
-   'Y' : 1e24 , # yotta
-   'Z' : 1e21 , # zetta
-   'E' : 1e18 , # exa
-   'P' : 1e15 , # peta
-   'T' : 1e12 , # tera
-   'G' : 1e9  , # giga
-   'M' : 1e6  , # mega
-   'k' : 1e3  , # kilo
-   'h' : 1e2  , # hecto
-   'D' : 1e1  , # deca
-   'da': 1e1  , # deca
-   'd' : 1e-1 , # deci
-   'c' : 1e-2 , # centi
-   'm' : 1e-3 , # milli
-   u'μ': 1e-6 , # micro
-   'u' : 1e-6 , # micro
-   'n' : 1e-9 , # nano
-   'p' : 1e-12, # pico
-   'f' : 1e-15, # femto
-   'a' : 1e-18, # atto
-   'z' : 1e-21, # zepto
-   'y' : 1e-24, # yocto
+    'Y': 1e24,   # yotta
+    'Z': 1e21,   # zetta
+    'E': 1e18,   # exa
+    'P': 1e15,   # peta
+    'T': 1e12,   # tera
+    'G': 1e9,    # giga
+    'M': 1e6,    # mega
+    'k': 1e3,    # kilo
+    'h': 1e2,    # hecto
+    'D': 1e1,    # deca
+    'd': 1e-1,   # deci
+    'c': 1e-2,   # centi
+    'm': 1e-3,   # milli
+    'u': 1e-6,   # micro
+    'n': 1e-9,   # nano
+    'p': 1e-12,  # pico
+    'f': 1e-15,  # femto
+    'a': 1e-18,  # atto
+    'z': 1e-21,  # zepto
+    'y': 1e-24,  # yocto
+    'da': 1e1,   # deca
+    u'μ': 1e-6,  # micro
 }
 # List of prefix names
 prefix_name = prefix_dict.keys()
@@ -157,98 +159,97 @@ mho  = A/V
 
 # Dictionary of basic units and their values in mks
 units_dict = {
-   '1'        : 1        , # number
-   'm'        : m        , # meter
-   'g'        : 1e-3*kg  , # gram
-   's'        : s        , # second
-   'K'        : K        , # Kelvin
-   'A'        : A        , # Ampere
-   'rad'      : rad      , # radian
-   'deg'      : deg      , # degree
-   'rev'      : rev      , # revolution
-   'rpm'      : rev/60/s , # revolutions per minute
-   'mol'      : mol      , # mol
-   'kmol'     : kmol     , # kmol
-   'NA'       : NA       , # Avagardro's number
-   u'å'       : 1e-10*m  , # angstrom
-   'in'       : inch     , # inch
-   'inch'     : inch     , # inch
-   'ft'       : ft       , # foot
-   'yd'       : yrd      , # yard
-   'yrd'      : yrd      , # yard
-   'mi'       : mi       , # mile
-   'nmi'      : nmi      , # nautical mile
-   'furlong'  : 660*ft   , # furlong
-   'acre'     : acre     , # acre
-   'ha'       : ha       , # hectare
-   'hectare'  : ha       , # hectare
-   'L'        : L        , # Litre
-   'gal'      : gal      , # gallon
-   'min'      : 60*s     , # minute
-   'hr'       : hr       , # hour
-   'day'      : day      , # day
-   'days'     : day      , # days
-   'fortnight': 14*day   , # fortnight
-   'yr'       : yr       , # year
-   'yrs'      : yr       , # year
-   'year'     : yr       , # year
-   'years'    : yr       , # year
-   'a'        : a        , # annum
-   'c'        : c        , # speed of light
-   'ly'       : ly       , # light year
-   'AU'       : AU       , # astronomical unit
-   'pc'       : pc       , # parsec
-   'mph'      : mi/hr    , # mile per hour
-   'fps'      : ft/s     , # foot per second
-   'kn'       : kn       , # knot (nautical mile per hour)
-   'kt'       : kn       , # knot (nautical mile per hour)
-   'kts'      : kn       , # knot (nautical mile per hour)
-   'g0'       : g0       , # reference acceleration due to gravity
-   'N'        : N        , # Newton
-   'dyn'      : 1e-5*N   , # dyne
-   'lb'       : lbf      , # pound (force)
-   'lbf'      : lbf      , # pound force
-   'oz'       : lbf/16   , # ounce (weight)
-   'kgf'      : kgf      , # kilogram force
-   'slug'     : slug     , # slug
-   'lbm'      : lbm      , # pound mass
-   'st'       : 14*lbm   , # stone
-   'stone'    : 14*lbm   , # stone
-   'Pa'       : Pa       , # Pascal
-   'atm'      : atm      , # atmosphere
-   'torr'     : torr     , # torr
-   'Torr'     : torr     , # torr
-   'psi'      : psi      , # pounds per square inch
-   'psf'      : psf      , # pounds per square foot
-   'ksi'      : 1e3*psi  , # kilopounds per square inch
-   'bar'      : 1e5*Pa   , # bar
-   'J'        : J        , # Joule
-   'erg'      : 1e-7*J   , # erg
-   'eV'       : eV       , # electron Volt
-   'cal'      : cal      , # calorie
-   'Btu'      : Btu      , # British thermal unit
-   'BTU'      : Btu      , # British thermal unit
-   'btu'      : Btu      , # British thermal unit
-   'W'        : W        , # Watt
-   'Wh'       : W*hr     , # Watt-hour
-   'hp'       : hp       , # horsepower
-   'R'        : R        , # Rankine
-   'Hz'       : 1/s      , # Herz
-   'C'        : C        , # Coulomb
-   'e'        : e        , # charge of an electron
-   'V'        : V        , # Volt
-   'F'        : F        , # Faraday
-   'ohm'      : ohm      , # Ohm
-   'Ohm'      : ohm      , # Ohm
-   'mho'      : mho      , # Siemens
-   'S'        : mho      , # Siemens
+    '1': 1,               # number
+    'm': m,               # meter
+    'g': 1e-3*kg,         # gram
+    's': s,               # second
+    'K': K,               # Kelvin
+    'A': A,               # Ampere
+    'rad': rad,           # radian
+    'deg': deg,           # degree
+    'rev': rev,           # revolution
+    'rpm': rev/60/s,      # revolutions per minute
+    'mol': mol,           # mol
+    'kmol': kmol,         # kmol
+    'NA': NA,             # Avagardro's number
+    u'å': 1e-10*m,        # angstrom
+    'in': inch,           # inch
+    'inch': inch,         # inch
+    'ft': ft,             # foot
+    'yd': yrd,            # yard
+    'yrd': yrd,           # yard
+    'mi': mi,             # mile
+    'nmi': nmi,           # nautical mile
+    'furlong': 660*ft,    # furlong
+    'acre': acre,         # acre
+    'ha': ha,             # hectare
+    'hectare': ha,        # hectare
+    'L': L,               # Litre
+    'gal': gal,           # gallon
+    'min': 60*s,          # minute
+    'hr': hr,             # hour
+    'day': day,           # day
+    'days': day,          # days
+    'fortnight': 14*day,  # fortnight
+    'yr': yr,             # year
+    'yrs': yr,            # year
+    'year': yr,           # year
+    'years': yr,          # year
+    'a': a,               # annum
+    'c': c,               # speed of light
+    'ly': ly,             # light year
+    'AU': AU,             # astronomical unit
+    'pc': pc,             # parsec
+    'mph': mi/hr,         # mile per hour
+    'fps': ft/s,          # foot per second
+    'kn': kn,             # knot (nautical mile per hour)
+    'kt': kn,             # knot (nautical mile per hour)
+    'kts': kn,            # knot (nautical mile per hour)
+    'g0': g0,             # reference acceleration due to gravity
+    'N': N,               # Newton
+    'dyn': 1e-5*N,        # dyne
+    'lb': lbf,            # pound (force)
+    'lbf': lbf,           # pound force
+    'oz': lbf/16,         # ounce (weight)
+    'kgf': kgf,           # kilogram force
+    'slug': slug,         # slug
+    'lbm': lbm,           # pound mass
+    'st': 14*lbm,         # stone
+    'stone': 14*lbm,      # stone
+    'Pa': Pa,             # Pascal
+    'atm': atm,           # atmosphere
+    'torr': torr,         # torr
+    'Torr': torr,         # torr
+    'psi': psi,           # pounds per square inch
+    'psf': psf,           # pounds per square foot
+    'ksi': 1e3*psi,       # kilopounds per square inch
+    'bar': 1e5*Pa,        # bar
+    'J': J,               # Joule
+    'erg': 1e-7*J,        # erg
+    'eV': eV,             # electron Volt
+    'cal': cal,           # calorie
+    'Btu': Btu,           # British thermal unit
+    'BTU': Btu,           # British thermal unit
+    'btu': Btu,           # British thermal unit
+    'W': W,               # Watt
+    'Wh': W*hr,           # Watt-hour
+    'hp': hp,             # horsepower
+    'R': R,               # Rankine
+    'Hz': 1/s,            # Herz
+    'C': C,               # Coulomb
+    'e': e,               # charge of an electron
+    'V': V,               # Volt
+    'F': F,               # Faraday
+    'ohm': ohm,           # Ohm
+    'Ohm': ohm,           # Ohm
+    'mho': mho,           # Siemens
+    'S': mho,             # Siemens
 }
-# Unit names
-units_name = units_dict.keys()
+
 
 # Primary function
 def mks(unit_lbl):
-    """Convert a string identifying a certain unit to numerical MKS value
+    r"""Convert a string for arbitrary nits to numerical MKS value
     
     :Call:
         >>> val = mks(unit_lbl)
@@ -264,7 +265,7 @@ def mks(unit_lbl):
         *val*: :class:`float`
             Units converted to numerical value assuming MKS system
     :Versions:
-        * 2018-04-12 ``@dalle``: First version
+        * 2018-04-12 ``@dalle``: Version 1.0
     """
     # Check for null input
     if unit_lbl is None:
@@ -282,16 +283,16 @@ def mks(unit_lbl):
     lbl = re.sub(u'¼', '0.25', lbl)
     lbl = re.sub(u'¾', '0.75', lbl)
     # Replace multiplication symbols with a space
-    lbl = re.sub(u'[\*×]', ' ', lbl)
+    lbl = re.sub(u'[\\*×]', ' ', lbl)
     # Substitute division signs (unlikely, right?)
-    lbl = re.sub(u'÷', '/', lbl)
+    lbl = re.sub(r'÷', '/', lbl)
     # Replace double asterisk with '^'
-    lbl = re.sub('\*\*', '^', lbl)
+    lbl = re.sub(r'\*\*', '^', lbl)
     
     # Remove extra spaces around '^' symbols
-    lbl = re.sub('\s*\/+\s*', '/', lbl)
+    lbl = re.sub(r'\s*\/+\s*', '/', lbl)
     # Place a space in front of each slash
-    lbl = re.sub('\/', ' /', lbl)
+    lbl = re.sub(r'\/', ' /', lbl)
     
     # Initialize the output value
     val = 1.0
@@ -330,17 +331,17 @@ def mks(unit_lbl):
         cur = lbli
         pfx = ''
         # Loop until the current symbol (w/o prefix) matches list
-        while (len(cur)>0) and (cur not in units_name):
+        while cur and (cur not in units_dict):
             # Move the first character into the prefix
             pfx = pfx + cur[0]
             cur = cur[1:]
             
         # Check for valid match
-        if cur in units_name:
+        if cur in units_dict:
             # Get the value
             vali = units_dict[cur]
         else:
-            # Unrecognized 
+            # Unrecognized
             print(Warning("Symbol '%s' is not a recognized unit" % lbli))
             # Assume 1.0
             vali = 1.0
@@ -354,7 +355,7 @@ def mks(unit_lbl):
             # Remaining part of prefix
             rpf = ''
             # Look for matches
-            while (len(cpf)>1) and (cpf not in prefix_name):
+            while (len(cpf) > 1) and (cpf not in prefix_name):
                 # Move the last character out of the current prefix
                 rpf = cpf[-1] + rpf
                 cpf = cpf[:-1]
@@ -366,7 +367,7 @@ def mks(unit_lbl):
                 # Unrecognized
                 print(Warning("Prefix '%s' was not recognized" % cpf))
         
-        # Multiply the final value 
+        # Multiply the final value
         val = val * vali**powi
         
     # output

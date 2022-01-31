@@ -16,7 +16,7 @@ solver used to create the solution file.
 """
 
 # Standard library
-import os
+
 
 # Third-party modules
 import numpy as np
@@ -83,7 +83,6 @@ class X(object):
         """
         return "<plot3d.X NG=%s>" % self.NG
   # >
-  
   
   # =======
   # Readers
@@ -244,10 +243,10 @@ class X(object):
                 # Read the number of grids
                 ng = io.fromfile_lb4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_lb4_i(f, ng*3).reshape((ng[0],3))
+                dims = io.fromfile_lb4_i(f, ng*3).reshape((ng[0], 3))
             else:
                 # Read the dimensions
-                dims = io.fromfile_lb4_i(f, 3).reshape((1,3))
+                dims = io.fromfile_lb4_i(f, 3).reshape((1, 3))
             # Total number of points
             npt = np.sum(np.prod(dims, axis=1))
             # Number of bytes in file if single-precision
@@ -260,10 +259,10 @@ class X(object):
                 # Read the number of grids
                 ng = io.fromfile_b4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_b4_i(f, ng*3).reshape((ng[0],3))
+                dims = io.fromfile_b4_i(f, ng*3).reshape((ng[0], 3))
             else:
                 # Read the dimensions
-                dims = io.fromfile_b4_i(f, 3).reshape((1,3))
+                dims = io.fromfile_b4_i(f, 3).reshape((1, 3))
         # Try to determine single/double precision
         if (self.filetype == "record"):
             # Number of points in the first grid
@@ -291,7 +290,8 @@ class X(object):
                 # With iblanks
                 self.iblank = True
             else:
-                raise ValueError("Could not determine precision of" +
+                raise ValueError(
+                    "Could not determine precision of" +
                     ("%s file" % ext))
         else:
             # Total number of points
@@ -338,13 +338,15 @@ class X(object):
             * 2016-10-14 ``@ddalle``: Version 1.0
         """
         # Open file
-        f = open(fname, 'rb');
+        f = open(fname, 'rb')
         # Try to interpret the first record
         qr4  = io.check_record(f, ">i4")
         qlr4 = io.check_record(f, "<i4")
         # Read the first four bytes using big/little
-        r4,  = np.fromfile(f, count=1, dtype=">i4"); f.seek(0)
-        lr4, = np.fromfile(f, count=1, dtype="<i4"); f.seek(0)
+        r4,  = np.fromfile(f, count=1, dtype=">i4")
+        f.seek(0)
+        lr4, = np.fromfile(f, count=1, dtype="<i4")
+        f.seek(0)
         # Process apparent little-endian record
         if qlr4:
             # Actually read the record
@@ -447,9 +449,9 @@ class X(object):
         R = io.fromfile_b4_i(f, self.NG*3)
         # Resize dimensions
         self.dims = np.resize(R, (self.NG, 3))
-        self.NJ = self.dims[:,0]
-        self.NK = self.dims[:,1]
-        self.NL = self.dims[:,2]
+        self.NJ = self.dims[:, 0]
+        self.NK = self.dims[:, 1]
+        self.NL = self.dims[:, 2]
         # Point counts
         npt = np.prod(self.dims, axis=1)
         mpt = np.sum(npt)
@@ -484,18 +486,18 @@ class X(object):
         R = io.fromfile_b4_i(f, self.NG*3)
         # Resize dimensions
         self.dims = np.resize(R, (self.NG, 3))
-        self.NJ = self.dims[:,0]
-        self.NK = self.dims[:,1]
-        self.NL = self.dims[:,2]
+        self.NJ = self.dims[:, 0]
+        self.NK = self.dims[:, 1]
+        self.NL = self.dims[:, 2]
         # Point counts
         npt = np.prod(self.dims, axis=1)
         mpt = np.sum(npt)
         # Initialize coordinates
-        self.X = np.zeros((3,mpt))
+        self.X = np.zeros((3, mpt))
         # Read coordinates
         R = io.fromfile_b4_f(f, mpt*3)
         # Save coordinates
-        self.X = R.reshape((mpt,3))
+        self.X = R.reshape((mpt, 3))
         # Close the file
         f.close()
     

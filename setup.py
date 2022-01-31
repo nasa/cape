@@ -59,10 +59,10 @@ for (ext, opts) in extopts.items():
     # Create extension
     _ext = Extension(
         str(ext) + str(PY_MAJOR_VERSION),
-        include_dirs = include_dirs,
-        extra_compile_args = cflags,
-        extra_link_args = ldflags,
-        sources = extsources)
+        include_dirs=include_dirs,
+        extra_compile_args=cflags,
+        extra_link_args=ldflags,
+        sources=extsources)
     # Add to list
     exts.append(_ext)
 

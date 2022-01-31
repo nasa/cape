@@ -145,6 +145,7 @@ class Cntl(object):
     _case_mod = case
     _zombie_files = ["*.out"]
    # >
+
    # =============
    # Configuration
    # =============
@@ -165,7 +166,7 @@ class Cntl(object):
         # Read settings
         self.opts = options.Options(fname=fname)
 
-        #Save the current directory as the root
+        # Save the current directory as the root
         self.RootDir = os.getcwd()
 
         # Import modules
@@ -343,12 +344,12 @@ class Cntl(object):
             print("  Case Function: cntl.%s(%s)" % (func, i))
             # Run the function
             exec("self.%s(self, %s)" % (func, i))
-  # >
+   # >
 
-  # ===============
-  # Files
-  # ===============
-  # <
+   # ===============
+   # Files
+   # ===============
+   # <
     # Absolutize
     def abspath(self, fname):
         r"""Absolutize a file name
@@ -739,7 +740,7 @@ class Cntl(object):
             return 'clean'
         elif kw.get('report'):
             # Get the report(s) to create.
-            if kw['report'] == True:
+            if kw['report']:
                 # First report
                 rep = self.opts.get_ReportList()[0]
             else:
@@ -1227,7 +1228,6 @@ class Cntl(object):
         # Output
         print("    exit(%s)" % ierr)
         return ierr
-
    # >
 
    # =============
@@ -2526,7 +2526,6 @@ class Cntl(object):
         fstrt = 'cape_start.dat'
         # Call with base file names
         return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
-
    # >
 
    # ========

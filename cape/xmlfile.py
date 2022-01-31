@@ -19,6 +19,7 @@ through multiple levels of elements and subelements.
 # Standard library
 import copy
 import os
+import re
 import sys
 import xml.etree.ElementTree as ET
 
