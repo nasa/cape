@@ -1246,7 +1246,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         # Number of iterations read
         if len(self.i) > 0:
             # Last iteration
-            n = self.i[-1]
+            n = int(self.i[-1])
         else:
             # Start from the beginning
             n = 0
@@ -1287,7 +1287,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         # Number of iterations read
         if len(self.i) > 0:
             # Last iteration
-            n = self.i[-1]
+            n = int(self.i[-1])
         else:
             # Start from the beginning
             n = 0
@@ -1328,7 +1328,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         # Number of iterations read
         if len(self.i) > 0:
             # Last iteration
-            n = self.i[-1]
+            n = int(self.i[-1])
         else:
             # Start from the beginning
             n = 0
@@ -1369,7 +1369,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         # Number of iterations read
         if len(self.i) > 0:
             # Last iteration
-            n = self.i[-1]
+            n = int(self.i[-1])
         else:
             # Start from the beginning
             n = 0
@@ -1410,7 +1410,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         # Number of iterations read
         if len(self.i) > 0:
             # Last iteration
-            n = self.i[-1]
+            n = int(self.i[-1])
         else:
             # Start from the beginning
             n = 0
@@ -1551,7 +1551,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 n = 0
             else:
                 # Use last current iter
-                n = max(self.i)
+                n = int(max(self.i))
         # Number of iterations to skip
         nIterSkip = max(0, n-i0+1)
         # Skip *nGrid* rows for each iteration
@@ -1655,7 +1655,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 n = 0
             else:
                 # Use last current iter
-                n = max(self.i)
+                n = int(max(self.i))
         # Individual grid type
         tg = type(grid).__name__
         # Individual grid
