@@ -559,6 +559,8 @@ class CasePointSensor(cape.cfdx.dataBook.CaseData):
             * 2015-11-30 ``@ddalle``: First version
         """
         # Get latest iteration.
+        if self.nPoint is None:
+            return
         if self.nPoint > 0:
             imax = self.data[0,-1,-1]
         else:

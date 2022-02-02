@@ -432,7 +432,8 @@ def RunWithRestarts(rc, i):
         # Update history
         PS.UpdateIterations()
         # Check for completion
-        if (n>=n1) or (j+1==it_fc): break
+        if (n>=n1) or (j+1==it_fc):
+            break
         # Clear check files as appropriate.
         manage.ClearCheck_iStart(nkeep=1, istart=n0)
     # Write the averaged triq file
@@ -442,7 +443,8 @@ def RunWithRestarts(rc, i):
     try:
         if PS.nIter > 0:
             PS.WriteHist()
-    except Exception: pass
+    except Exception:
+        pass
 
 # Run the nominal mode
 def RunFixed(rc, i):
