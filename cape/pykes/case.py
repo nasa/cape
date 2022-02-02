@@ -230,7 +230,7 @@ def resubmit_case(rc, j0):
         return True
     # If rerunning same phase, check the *Continue* option
     if j0 == j1:
-        if rc.get_Continue(j):
+        if rc.get_Continue(j0):
             # Don't submit new job (continue current one)
             return False
         else:
@@ -441,7 +441,7 @@ def get_phase(rc):
         * 2021-10-21 ``@ddalle``: Version 1.0
     """
     # Get the iteration from which a restart would commence
-    n = None
+    n = get_current_iter()
     # Start with phase 0 if ``None``
     if n is None:
         return rc.get_PhaseSequence(0)
