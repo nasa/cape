@@ -252,7 +252,8 @@ def ReadResidNGrids(fname):
         # Read the next line.
         line = f.readline().split()
         # Check for EndOfFile
-        if len(line) == 0: break
+        if len(line) == 0:
+            break
         # Read the next grid number.
         iGrid = int(line[0])
     # Close the file
@@ -1204,7 +1205,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         # Number of iterations read
         if len(self.i) > 0:
             # Last iteration
-            n = self.i[-1]
+            n = int(self.i[-1])
         else:
             # Start from the beginning
             n = 0
