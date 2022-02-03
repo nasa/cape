@@ -12,7 +12,6 @@ matching one or more specified patterns.
 
 # Standard library modules
 import os
-import json
 
 # Local partial imports
 from .testopts import read_json
@@ -23,6 +22,7 @@ rc = {
     "Glob": "*",
     "CrawlGlob": [],
 }
+
 
 # Options calss
 class TestCrawlerOpts(dict):
