@@ -403,9 +403,11 @@ class Cntl(ccntl.Cntl):
         # Project name
         proj = self.opts.get_ProjectName()
         # Set any flight conditions
+        # Get condition type
+        known_cond = xml.get_input("KnowCond")
         # Mach number
         mach = x.GetMach(i)
-        if mach is not None:
+        if mach is not None and (known_cond is None or "M" in known_cond):
             xml.set_mach(mach)
         # Angle of attack
         a = x.GetAlpha(i)
@@ -417,19 +419,19 @@ class Cntl(ccntl.Cntl):
             xml.set_beta(b)
         # Reynolds number
         rey = x.GetReynoldsNumber(i)
-        if rey is not None:
+        if rey is not None and (known_cond is None or "Re" in known_cond):
             xml.set_rey(rey)
         # Pressure
         p = x.GetPressure(i)
-        if p is not None:
+        if p is not None and (known_cond is None or "P" in known_cond):
             xml.set_pressure(p)
         # Temperature
         t = x.GetTemperature(i)
-        if t is not None:
+        if t is not None and (known_cond is None or "T" in known_cond):
             xml.set_temperature(t)
         # Velocity
         v = x.GetVelocity(i)
-        if v is not None:
+        if v is not None and (known_cond is None or "Vel" in known_cond):
             xml.set_velocity(v)
         # Find all *Path* and *File* elements
         elems1 = xml.findall_iter("Path")
