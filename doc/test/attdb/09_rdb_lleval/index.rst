@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-01-31 at 01:45 PST
+   on 2022-02-03 at 01:45 PST
 
 Test ``09_rdb_lleval``: PASS
 ==============================
 
-This test PASSED on 2022-01-31 at 01:45 PST
+This test PASSED on 2022-02-03 at 01:45 PST
 
 This test is run in the folder:
 
@@ -67,8 +67,8 @@ Command 2: Interpolate line loads: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.11 seconds
-    * Cumulative time: 1.81 seconds
+    * Command took 1.01 seconds
+    * Cumulative time: 1.71 seconds
 :STDOUT:
     * **PASS**
     * Target:
