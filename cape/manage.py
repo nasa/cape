@@ -132,6 +132,7 @@ directly with one function from this module.
 import os
 import shutil
 import glob
+import sys
 
 # Standard library, renamed
 import subprocess as sp
@@ -145,6 +146,11 @@ import numpy as np
 # Local modules, partial imports
 from .cfdx.options import Archive
 from .cfdx.bin     import check_output, tail
+
+
+# Type helpers
+if sys.version_info.major > 2:
+    unicode = str
 
 
 # Write date to archive
@@ -347,14 +353,14 @@ def process_ArchiveGroup(grp):
         * 2016-03-01 ``@ddalle``: Version 1.0
     """
     # Check type
-    if (type(grp) != dict) or (len(grp) != 1):
+    if not isinstance(grp, dict) or (len(grp) != 1):
         # Wront length
         raise ValueError(
             ("Received improper tar group: '%s'\n" % grp) +
             "Archive group must be a dict with one entry"
             )
     # Get group
-    fgrp = grp.keys()[0]
+    fgrp = list(grp.keys())[0]
     # Get value
     fpat = grp[fgrp]
     # Output
@@ -386,24 +392,23 @@ def process_ArchiveFile(f, n=1):
             Number of matching files to keep
     :Versions:
         * 2016-03-01 ``@ddalle``: Version 1.0
+        * 2022-02-02 ``@ddalle``: Version 1.1; python 3 fixes
     """
-    # Input type
-    tf = type(f).__name__
     # Check type
-    if tf == "dict":
+    if isinstance(f, dict):
         # Check length
         if len(f) != 1:
             raise ValueError(
-                "Received improper archive file description '%s'" % f)
-        # Get name and number
-        fname = f.keys()[0]
-        nkeep = f[fname]
-        # Check output name
-        if not type(nkeep).__name__.startswith('int'):
-            raise TypeError("Number of files to keep must be an integer")
-        # Output
-        return fname, nkeep
-    elif tf in ['str', 'unicode']:
+                "Expected file descriptor '%s' to have len=1, got %i"
+                % (f, len(f)))
+        # Loop through elements
+        for fname, nkeep in f.items():
+            # Check output name
+            if not type(nkeep).__name__.startswith('int'):
+                raise TypeError("Number of files to keep must be an integer")
+            # Output
+            return fname, nkeep
+    elif isinstance(f, (str, unicode)):
         # String file name; use default number of files to keep
         return f, n
     else:
@@ -937,7 +942,7 @@ def TailFiles(ftail, fsub=None, n=1, phantom=False):
         # Get source
         try:
             # Get name of source file
-            fsrc = ft.keys()[0]
+            fsrc = list(ft.keys())[0]
             # Get number and output file
             nf, fout = ft[fsrc]
             # Ensure correct types
@@ -2427,7 +2432,7 @@ def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
             # Use **try** to check if it's a valid instruction
             try:
                 # Get the name of the source file
-                fsrc = ftl.keys()[0]
+                fsrc = list(ftl.keys())[0]
                 # Unpack output file
                 nt, fout = ftl[fsrc]
             except Exception:
