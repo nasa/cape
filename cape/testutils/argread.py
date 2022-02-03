@@ -10,10 +10,11 @@ suite can still run if there is a problem import :mod:`cape`.
 
 """
 
+
 # Process options using any dash as keyword
 def readkeys(argv):
     """
-    Read list of command-line strings and convert to 
+    Read list of command-line strings and convert to
     
     :Call:
         >>> args, kwargs = readkeys(argv)
@@ -39,8 +40,6 @@ def readkeys(argv):
     args = []
     kwargs = {}
     old = []
-    # Get the number of arguments.
-    argc = len(argv)
     # Exit if no arguments
     if len(argv) < 1:
         return args, kwargs

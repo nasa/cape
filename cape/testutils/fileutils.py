@@ -14,13 +14,12 @@ wildcard patterns into lists of extant files/folders.
 import os
 import glob
 import re
-import shutil
 import sys
 
 
 # Regular expression for finding numbers
-_EXPR_FLOAT = "([+-]?[0-9]+(\.[0-9]+)?([edED][+-][0-9]+)?)"
-_EXPR_INTERVAL = "(?P<c1>[\[(])(?P<v1>%s),\s*(?P<v2>%s)(?P<c2>[)\]])" % (
+_EXPR_FLOAT = r"([+-]?[0-9]+(\.[0-9]+)?([edED][+-][0-9]+)?)"
+_EXPR_INTERVAL = r"(?P<c1>[\[(])(?P<v1>%s),\s*(?P<v2>%s)(?P<c2>[)\]])" % (
     _EXPR_FLOAT, _EXPR_FLOAT)
 
 # Compile float recognizer

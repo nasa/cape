@@ -30,7 +30,6 @@ options to the test crawler.
 # Standard library modules
 import os
 import sys
-import glob
 import math
 
 # Local modules
