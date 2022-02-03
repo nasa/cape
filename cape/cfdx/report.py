@@ -2767,7 +2767,7 @@ class Report(object):
             # ... unless it's needed because *nIter* is too low
             if nMax < nStats:
                 # Try as hard as possible to get *nStats* in window
-                nMax = max(0, nIter-nStats)
+                nMax = nStats if nIter >= nStats else nIter
             # Go to the run directory.
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
