@@ -428,7 +428,7 @@ class Cntl(ccntl.Cntl):
         if t is not None:
             xml.set_temperature(t)
         # Velocity
-        v = x.GetTemperature(i)
+        v = x.GetVelocity(i)
         if v is not None:
             xml.set_velocity(v)
         # Find all *Path* and *File* elements
