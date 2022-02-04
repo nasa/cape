@@ -722,4 +722,36 @@ def link_plt():
         fname = re.sub("%ts", "", frel)
         # Link the latest
         link_glob_latest(fname, fglob)
+    # Loop through any slices, surface extracts, or other VizMan outputs
+    for fname, fglob in _get_vizman_candidates():
+        link_glob_latest(fname, fglob)
+
+
+def _get_vizman_candidates():
+    # Initialize
+    glob_list = []
+    # Unstructured globs
+    base = os.path.join("outputs", "visualization", "Unstructured", "SurfaceExtract")
+    if os.path.isdir(base):
+        # Append both file candidates
+        fname = os.path.join(base, "UnstructuredSurf.")
+        fglob = os.path.join(base, "UnstructuredSurf_[0-9]*.")
+        glob_list.append((fname + "tec", fglob + "tec"))
+        glob_list.append((fname + "plt", fglob + "plt"))
+    # Check for cut planes
+    base = os.path.join(
+        "outputs", "visualization", "Unstructured", "coordPlane")
+    for fj in os.listdir(base):
+        # Full relative path
+        basej = os.path.join(base, fj)
+        # Check for regular files
+        if not os.path.isdir(basej):
+            continue
+        # Create candidates
+        fname = os.path.join(basej, "Unstructured.")
+        fglob = os.path.join(basej, "Unstructured_[0-9]*.")
+        glob_list.append((fname + "tec", fglob + "tec"))
+        glob_list.append((fname + "plt", fglob + "plt"))
+    # Output
+    return glob_list
 
