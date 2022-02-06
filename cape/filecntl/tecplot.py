@@ -703,20 +703,19 @@ class Tecscript(FileCntl):
             *n*: :class:`int`
                 Alter the instance *n* of this command
         :Versions:
-            * 2016-10-04 ``@ddalle``: First version
-            * 2017-01-05 ``@ddalle``: Changed *i* -> *n*
+            * 2016-10-04 ``@ddalle``: Version 1.0
+            * 2017-01-05 ``@ddalle``: Version 1.1; *i* -> *n*
+            * 2022-02-06 ``@ddalle``: Version 2.0; case insensitive
         """
-        # Get the indices of this command
-        I = self.GetIndexStartsWith('$!'+cmd)
-        # Make sure there are at least *i* matches
-        if n >= len(I):
+        # Find the command
+        ibeg, _ = self.GetCommand(cmd, n)
+        # Check if we found *n*
+        if ibeg is None:
             raise ValueError(
-                ("Requested to alter instance %s of command '%s'"%(n+1,cmd)) +
-                ("but layout only contains %i instances" % len(I)))
-        # Get the line number
-        j = I[n]
+                ("Tried to change command '%s' #%i, " % (cmd, n + 1)) +
+                ("but layout contains fewer instances"))
         # Set the line
-        self.lines[j] = "$!%s %s\n" % (cmd, val)
+        self.lines[ibeg] = "$!%s %s\n" % (cmd, val)
         
     # Read a parameter on header line
     def GetPar(self, cmd, n=0):
@@ -1205,6 +1204,7 @@ class Tecscript(FileCntl):
                 gmin = grps[i-1]+1
             # End index
             gmax = grps[i]
+            breakpoint()
             # Check for null group, single zone, or multiple zone
             if gmin > gmax:
                 # Null group; delete the command
