@@ -1204,7 +1204,6 @@ class Tecscript(FileCntl):
                 gmin = grps[i-1]+1
             # End index
             gmax = grps[i]
-            breakpoint()
             # Check for null group, single zone, or multiple zone
             if gmin > gmax:
                 # Null group; delete the command
