@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-02-04 at 01:46 PST
+   on 2022-02-05 at 01:46 PST
 
 Test ``01_subplot_col``: PASS
 ===============================
 
-This test PASSED on 2022-02-04 at 01:46 PST
+This test PASSED on 2022-02-05 at 01:46 PST
 
 This test is run in the folder:
 
