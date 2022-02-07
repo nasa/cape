@@ -902,7 +902,7 @@ class RunMatrix(dict):
         # Overall default key
         odefkey = defns.get('Default', {})
         # Process the mandatory fields.
-        odefkey.setdefault('Group', True)
+        odefkey.setdefault('Group', False)
         odefkey.setdefault('Type', "Group")
         odefkey.setdefault('Format', '%s')
         # Initialize the dictionaries.
@@ -1578,7 +1578,7 @@ class RunMatrix(dict):
             * 2014-10-03 ``@ddalle``: Added suffixes
         """
         # Process the key types.
-        types = [self.defns[k].get("Type","") for k in keys]
+        types = [self.defns[k].get("Type", "") for k in keys]
         # Check for a prefix.
         if "Config" in types:
             # Figure out which key it is
@@ -1593,7 +1593,8 @@ class RunMatrix(dict):
                 # Use the input/default prefix/config
                 dname = str(prefix)
             # Add underscore if more keys remaining.
-            if len(types) > 1: dname += "_"
+            if len(types) > 1:
+                dname += "_"
         elif prefix:
             # The prefix is likely to be the whole name.
             dname = str(prefix)
@@ -1607,19 +1608,17 @@ class RunMatrix(dict):
             # Get definitions for this key
             defns = self.defns.get(k, {})
             # Useful values
+            typ = defns.get("Type", "value")
             val = defns.get("Value", "float")
-            grp = defns.get("Group", True)
             fmt = defns.get("Format", "%s")
             qlbl = defns.get("Label", True)
             qpre = defns.get("Prefix", False)
             abbrev = defns.get("Abbreviation", k)
             # Get the value
             v = self[k][i]
-            # Skip text
-            if (val == "str") and (not qpre):
-                # Special considerations for labels
-                continue
             # Check for unlabeled values
+            if typ.lower() == "config":
+                continue
             if (not qlbl):
                 continue
             # Skip unentered values
