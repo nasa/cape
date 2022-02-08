@@ -9439,6 +9439,9 @@ class CaseFM(CaseData):
         :Versions:
             * 2017-09-29 ``@ddalle``: Version 1.0
         """
+        # Check for empty instance
+        if self.i.size == 0:
+            raise ValueError("No history found for comp '%s'\n" % self.comp)
         # Initialize output
         s = {}
         # Initialize statistics count

@@ -1556,8 +1556,7 @@ class RunMatrix(dict):
   # <
     # Function to assemble a folder name based on a list of keys and an index
     def _AssembleName(self, keys, prefix, i):
-        """
-        Assemble names using common code.
+        r"""Assemble group or case folder names
 
         :Call:
             >>> dname = x._AssembleName(keys, prefix, i)
@@ -1574,8 +1573,8 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Name containing value for each key in *keys*
         :Versions:
-            * 2014-06-05 ``@ddalle``: First version
-            * 2014-10-03 ``@ddalle``: Added suffixes
+            * 2014-06-05 ``@ddalle``: Version 1.0
+            * 2014-10-03 ``@ddalle``: Version 1.1; addsuffixes
         """
         # Process the key types.
         types = [self.defns[k].get("Type", "") for k in keys]
@@ -1611,21 +1610,27 @@ class RunMatrix(dict):
             typ = defns.get("Type", "value")
             val = defns.get("Value", "float")
             fmt = defns.get("Format", "%s")
+            grp = defns.get("Group", False)
             qlbl = defns.get("Label", True)
             qpre = defns.get("Prefix", False)
             abbrev = defns.get("Abbreviation", k)
             # Get the value
             v = self[k][i]
             # Check for unlabeled values
-            if typ.lower() == "config":
-                continue
             if (not qlbl):
                 continue
+            # Check for special keys
+            if grp and (typ.lower() == "config"):
+                continue
+            if typ.lower() == "label":
+                continue
             # Skip unentered values
-            if (i>=len(self.text[k])) or (not self.text[k][i].strip()):
+            if i >= len(self.text[k]):
+                continue
+            if not self.text[k][i].strip():
                 continue
             # Check for "SkipZero" flag
-            if (defns.get("SkipIfZero", False)) and (not v):
+            if defns.get("SkipIfZero", False) and (not v):
                 continue
             # Check for "make positive" option
             qnn  = defns.get("NonnegativeFormat", False)
