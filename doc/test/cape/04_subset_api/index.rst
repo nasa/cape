@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-02-07 at 01:40 PST
+   on 2022-02-08 at 01:40 PST
 
 Test ``04_subset_api``: PASS
 ==============================
 
-This test PASSED on 2022-02-07 at 01:40 PST
+This test PASSED on 2022-02-08 at 01:40 PST
 
 This test is run in the folder:
 
@@ -56,7 +56,7 @@ Command 1: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59 seconds
+    * Command took 0.60 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -86,8 +86,8 @@ Command 2: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.77 seconds
-    * Cumulative time: 1.37 seconds
+    * Command took 0.61 seconds
+    * Cumulative time: 1.21 seconds
 :STDOUT:
     * **PASS**
     * Target:
