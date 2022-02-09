@@ -156,33 +156,23 @@ def run_phase(rc, j):
         if not xml.get_restart():
             # It should be a restart (e.g. running Phase 0 2x)
             xml.set_restart()
-            xml.write()
     else:
         # This is *not* a restart
         if xml.get_restart():
             # This should not be a restart
             xml.set_restart(False)
-            xml.write()
     # Number of requested iters for the end of this phase
     nj = rc.get_PhaseIters(j)
-    # Mesh generation and verification status
-    if j == 0 and n is None:
-        # Run *intersect* and *verify*
-        cc.CaseIntersect(rc, job_name, n)
-        cc.CaseVerify(rc, job_name, n)
-        # Create volume mesh if necessary
-        cc.CaseAFLR3(rc, proj=job_name, n=n)
-        # Check for mesh-only phase
-        if nj is None:
-            # Create an output file to indicate completion
-            open("run.00.0", 'w').close()
-            return
-    # Prepare for restart if that's appropriate
-    set_restart_iter(rc)
+    # Expected number of ierations
+    mj = rc.get_nIter(j)
     # Save initial iteration number, but replacing ``None``
     n0 = 0 if n is None else n
     # Check if we should run this phase
     if nprev == 0 or n0 < nj:
+        # Reset number of iterations to current + nIter
+        xml.set_kcfd_iters(n0 + mj)
+        # Rewrite XML file
+        xml.write()
         # Get the ``csi`` command
         cmdi = cmdgen.csi(rc, j)
         # Run the command
@@ -193,9 +183,6 @@ def run_phase(rc, j):
         if n1 <= n0:
             raise SystemError(
                 "Running phase %i did not advance iteration count" % j)
-    else:
-        # No new iterations
-        n1 = n0
 
 
 def resubmit_case(rc, j0):
@@ -384,10 +371,6 @@ def finalize_files(rc, j=None):
     else:
         # Create an empty file
         open(fhist, 'w').close()
-
-
-def set_restart_iter(rc):
-    pass
 
 
 # Function to determine which PBS script to call

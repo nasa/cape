@@ -445,6 +445,8 @@ class Cntl(ccntl.Cntl):
                 continue
             # Reset to base name
             elem.text = os.path.basename(fname)
+        # Cumulative iteration tracker
+        m_j1 = 0
         # Loop through phases
         for j in self.opts.get_PhaseSequence():
             # Set the restart flag according to phase
@@ -452,12 +454,25 @@ class Cntl(ccntl.Cntl):
                 xml.set_restart(False)
             else:
                 xml.set_restart(True)
-            # Set number of iterations
-            xml.set_kcfd_iters(self.opts.get_nIter(j))
             # Get the items from *XML* section for this phase
             for xmlitem in self.opts.select_xml_phase(j):
                 # Set item
                 xml.set_section_item(**xmlitem)
+            # Cutoff iters for phase *j*
+            m_j = self.opts.get_PhaseIters(j)
+            # Number planned for one go at *j*
+            n_j = self.opts.get_nIter(j)
+            # Check for startup_iters
+            if j == 0:
+                # Startup iterations count toward total
+                n_startup = xml.get_input("StartupIterations")
+            else:
+                # Startup iterations are only for non-restart
+                n_startup = 0
+            # Set number of iterations
+            xml.set_kcfd_iters(m_j1 + n_j)
+            # Update actual count
+            m_j1 = max(m_j, m_j1 + n_startup + n_j)
             # Name of output file
             fxml = os.path.join(frun, "kestrel.%02i.xml" % j)
             # Write it
