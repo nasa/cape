@@ -10685,7 +10685,13 @@ class DataKit(ftypes.BaseData):
         # Get *mask* for plotting subset
         mask = kw.pop("mask", None)
         # Initialize plot options in order to reduce aliases, etc.
-        opts = pmpl.MPLOpts(**kw)
+        opts = pmpl.MPLOpts(_warnmode=0, **kw)
+        # Check for existing handle
+        h = kw.get("h")
+        # Initialize output
+        if h is None:
+            # Create an empty one
+            h = pmpl.MPLHandle()
         # Get *x* values to plot
         if typeutils.isstr(x):
             # Get values
@@ -10710,8 +10716,12 @@ class DataKit(ftypes.BaseData):
         else:
             # Assume it already is an array of values
             yv = y
-        # Just plot it
-        return pmpl.plot(xv, yv, **opts)
+        # Just plot it with minimal changes
+        hi = pmpl.plot(xv, yv, **opts)
+        # Append to handle
+        h.add(hi)
+        # Output
+        return h
 
     # Plot single line load
     def plot_linear(self, *a, **kw):
