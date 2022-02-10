@@ -4252,6 +4252,7 @@ class DataKit(ftypes.BaseData):
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
+            *xargs*: :class:`list`\ [:class:`str`]
                 List of input args to one condition of *col*
         :Versions:
             * 2019-12-30 ``@ddalle``: Version 1.0
@@ -10437,7 +10438,10 @@ class DataKit(ftypes.BaseData):
         # Get dimension of *col*
         ndim = self.get_ndim(col)
         # Check dimension
-        if ndim == 1:
+        if ndim is None:
+            # Column not found
+            raise KeyError("No col '%s' found" % col)
+        elif ndim == 1:
             # Scalar plot
             return self.plot_scalar(col, *a, **kw)
         elif ndim == 2:
@@ -10771,10 +10775,12 @@ class DataKit(ftypes.BaseData):
                 h.add(hi)
        # --- PNG ---
         # Plot the png image if appropriate
-        h = self.plot_png(col, fig=h.fig, h=h)
+        if kw.get("ShowPNG", True):
+            h = self.plot_png(col, fig=h.fig, h=h)
        # --- Seam Curve ---
         # Plot the seam curve if appropriate
-        h = self.plot_seam(col, fig=h.fig, h=h)
+        if kw.get("ShowSeam", True):
+            h = self.plot_seam(col, fig=h.fig, h=h)
        # --- Output ---
         # Return plot handle
         return h
@@ -11788,7 +11794,7 @@ class DataKit(ftypes.BaseData):
     # Document functions
     pmpl.MPLOpts._doc_keys_fn(plot, "plot", indent=12)
     pmpl.MPLOpts._doc_keys_fn(plot_contour, "contour", indent=12)
-    pmpl.MPLOpts._doc_keys_fn(plot_linear, "plot", indent=12)
+    pmpl.MPLOpts._doc_keys_fn(plot_linear, "plot_linear", indent=12)
     pmpl.MPLOpts._doc_keys_fn(plot_scalar, "plot", indent=12)
     pmpl.MPLOpts._doc_keys_fn(
         plot_contour, "axformat", fmt_key="axkeys", indent=12)
