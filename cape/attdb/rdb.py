@@ -9057,7 +9057,10 @@ class DataKit(ftypes.BaseData):
         if isinstance(V, list):
             # Index directly
             # (Lists always 1D)
-            if len(I) > 0 and isinstance(I[0], bool):
+            if I.ndim == 0:
+                # Scalar mask
+                return V[I]
+            elif len(I) > 0 and isinstance(I[0], bool):
                 # Apply boolean mask
                 return [v for i, v in enumerate(V) if mask[i]]
             else:
@@ -9321,7 +9324,7 @@ class DataKit(ftypes.BaseData):
             # Use all values
             V = self.get_all_values(col)
         # Convert list to array
-        if isinstance(mask, (list, int)):
+        if isinstance(mask, (list, int, np.int32, np.int64)):
             # Create an array instead of a list
             mask = np.array(mask)
         # Check mask type and dimension
