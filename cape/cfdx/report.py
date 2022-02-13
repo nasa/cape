@@ -2773,12 +2773,15 @@ class Report(object):
             os.chdir(frun)
             # Read the Aero history.
             FM = self.ReadCaseFM(comp)
+            # Check for missing history
+            if not hasattr(FM, "i") or FM.i.size == 0:
+                raise AttributeError(
+                    "Comp '%s' in subfig '%s' has no history found"
+                    % (comp, sfig))
             # Loop through the transformations.
             for topts in opts.get_DataBookTransformations(comp):
                 # Apply the transformation.
                 FM.TransformFM(topts, self.cntl.x, i)
-            # Get the statistics.
-            s = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nPlotLast)
             # Get the manual range to show
             dc = opts.get_SubfigOpt(sfig, "Delta", k)
             # Get the multiple of standard deviation to show
