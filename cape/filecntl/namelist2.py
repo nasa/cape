@@ -1,43 +1,47 @@
-"""
-:mod:`cape.filecntl.namelist2`: Fortran namelists with repeat sections 
+r"""
+:mod:`cape.filecntl.namelist2`: Fortran namelists with repeat sections
 =======================================================================
 
 This is a module built off of the :mod:`cape.filecntl.FileCntl` module
-customized for manipulating Fortran namelists.  Such files are split into
-sections which are called "name lists."  Each name list has syntax similar to
-the following.
+customized for manipulating Fortran namelists.  Such files are split
+into sections which are called "name lists."  Each name list has syntax
+similar to the following.
 
     .. code-block:: none
-    
+
         $FLOINP
             FSMACH = 4.0,
             ALPHA = 1.0,
             BETA = 0.0,
             $END
-    
-and this module is designed to recognize such sections.  The main feature of
-this module is methods to set specific properties of a namelist file, for
-example the Mach number or CFL number.
 
-The difference between this module and :class:`cape.filecntl.namelist.Namelist` is that
-this module can support multiple namelists with the same title.  This is
-particularly important for Overflow, which has ``GRDNAM``, ``BCINP``, and other
-sections defined for each structured grid.  These modules should be combined as
-the differing namelist syntaxes are actually part of one file convention.
+and this module is designed to recognize such sections.  The main
+feature of this module is methods to set specific properties of a
+namelist file, for example the Mach number or CFL number.
 
-This function provides a class :class:`cape.filecntl.namelist2.Namelist2` that can both
-read and set values in the namelist.  The key functions are
+The difference between this module and
+:class:`cape.filecntl.namelist.Namelist` is that this module can support
+multiple namelists with the same title.  This is particularly important
+for Overflow, which has ``GRDNAM``, ``BCINP``, and other sections
+defined for each structured grid.  These modules should be combined as
+the differing namelist syntaxes are actually part of one file
+ convention.
+
+This function provides a class
+:class:`cape.filecntl.namelist2.Namelist2` that can both read and set
+ values in the namelist.  The key functions are
 
     * :func:`Namelist2.GetKeyFromGroupName`
     * :func:`Namelist2.GetKeyFromGroupIndex`
     * :func:`Namelist2.SetKeyInGroupName`
     * :func:`Namelist2.SetKeyInGroupIndex`
-    
+
 The conversion from namelist text to Python is handled by
 :func:`Namelist2.ConvertToText`, and the reverse is handled by
-:func:`Namelist2.ConvertToVal`.  Conversions cannot quite be performed just by
-the Python functions :func:`print` and :func:`eval` because delimiters are not
-used in the same fashion.  Some of the conversions are tabulated below.
+:func:`Namelist2.ConvertToVal`. Conversions cannot quite be performed
+just by the Python functions :func:`print` and :func:`eval` because
+delimiters are not used in the same fashion. Some of the conversions are
+tabulated below.
 
     +----------------------+------------------------+
     | Namelist             | Python                 |
@@ -87,7 +91,7 @@ See also:
 """
 
 # Standard library modules
-import re
+
 
 # Third-party modules
 import numpy as np
@@ -98,9 +102,8 @@ from .filecntl import FileCntl
 
 # Subclass off of the file control class
 class Namelist2(FileCntl):
-    """
-    File control class for Fortran namelists with duplicate sections
-    
+    r"""File control class for Fortran namelists with duplicate sections
+
     :Call:
         >>> nml = Namelist2()
         >>> nml = Namelist2(fname)
@@ -117,14 +120,14 @@ class Namelist2(FileCntl):
         *nml.Groups*: :class:`np.ndarray`\ [:class:`str`]
             List of namelist/section/group titles
     :Versions:
-        * 2016-02-01 ``@ddalle``: First version
+        * 2016-02-01 ``@ddalle``: Version 1.0
     """
     # Initialization method
     def __init__(self, fname="overflow.inp"):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
         """
         # Read the file.
         self.Read(fname)
@@ -132,42 +135,42 @@ class Namelist2(FileCntl):
         self.fname = fname
         # Get the lists of indices of each namelist
         self.UpdateNamelist()
-        
+
     # Function to update the namelists
     def UpdateNamelist(self):
-        """Update the line indices for each namelist
-        
+        r"""Update the line indices for each namelist
+
         :Call:
             >>> nml.UpdateNamelist()
         :Inputs:
             *nml*: :class:`cape.filecntl.namelist2.Namelist2`
                 Interface to namelist with repeated lists
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
         """
         # Find the lines that start the lists
-        I = np.array(self.GetIndexSearch('\s*[&$]'), dtype=int)
+        I0 = np.array(self.GetIndexSearch(r'\s*[&$]'), dtype=int)
         # Find the lines that end with '/'
-        J0 = np.array(self.GetIndexSearch('.*/\s*$'), dtype=int)
+        J0 = np.array(self.GetIndexSearch(r'.*/\s*$'), dtype=int)
         # Of those, find those that are comments
-        J1 = np.array(self.GetIndexSearch('\s*!.*/\s*$'), dtype=int)
+        J1 = np.array(self.GetIndexSearch(r'\s*!.*/\s*$'), dtype=int)
         # These are the namelist end lines using '/'
         J = np.setdiff1d(J0, J1)
         # Get start and end keywords to each line
-        grpnm = np.array([self.lines[i].split()[0][1:] for i in I])
-        kwbeg = np.array([self.lines[i].split()[0][1:].lower()  for i in I])
-        kwend = np.array([self.lines[i].split()[-1][1:].lower() for i in I])
+        grpnm = np.array([self.lines[i].split()[0][1:] for i in I0])
+        kwbeg = np.array([self.lines[i].split()[0][1:].lower() for i in I0])
+        kwend = np.array([self.lines[i].split()[-1][1:].lower() for i in I0])
         # Save the start indices
-        self.ibeg = I[kwbeg != "end"]
+        self.ibeg = I0[kwbeg != "end"]
         # Save the end indices
-        self.iend = np.sort(np.hstack((I[kwend == "end"], J)))
+        self.iend = np.sort(np.hstack((I0[kwend == "end"], J)))
         # Save the names
         self.Groups = grpnm[kwbeg != "end"]
-        
+
     # Apply a whole bunch of options
     def ApplyDict(self, opts):
-        """Apply a whole dictionary of settings to the namelist
-        
+        r"""Apply a whole dictionary of settings to the namelist
+
         :Call:
             >>> nml.ApplyDict(opts)
         :Inputs:
@@ -176,7 +179,7 @@ class Namelist2(FileCntl):
             *opts*: :class:`dict`
                 Dictionary of namelist options
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: Version 1.0
         """
         # Loop through major keys.
         for grp in opts.keys():
@@ -189,7 +192,7 @@ class Namelist2(FileCntl):
                     igrp = int(igrp)-1
                 except Exception:
                     # Some sort of error
-                    raise ValueError("Illegal namelist group '%'" % grp)
+                    raise ValueError("Illegal namelist group '%s'" % grp)
             else:
                 # Assume first grip
                 ggrp = grp
@@ -202,11 +205,11 @@ class Namelist2(FileCntl):
             for k in opts[grp].keys():
                 # Set the value.
                 self.SetKeyInGroupName(ggrp, k, opts[grp][k], igrp=igrp)
-        
+
     # Add a group
     def InsertGroup(self, igrp, grp):
-        """Insert a group as group number *igrp*
-        
+        r"""Insert a group as group number *igrp*
+
         :Call:
             >>> nml.InsertGroup(igrp, grp)
         :Inputs:
@@ -217,7 +220,7 @@ class Namelist2(FileCntl):
             *grp*: :class:`str`
                 Name of the group to insert
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: Version 1.0
         """
         # Test for "append"
         if igrp >= len(self.ibeg) or igrp == -1:
@@ -242,11 +245,11 @@ class Namelist2(FileCntl):
         self.lines.insert(ibeg, " %s%s\n" % (gchar, grp))
         # Update the namelist info
         self.UpdateNamelist()
-        
+
     # Find a list by name (and index if repeated)
     def GetGroupByName(self, grp, igrp=0):
-        """Get index of group with a specific name
-        
+        r"""Get index of group with a specific name
+
         :Call:
             >>> i = nml.GetGroupByName(grp, igrp=0)
         :Inputs:
@@ -254,47 +257,49 @@ class Namelist2(FileCntl):
                 Interface to namelist with repeated lists
             *grp*: :class:`str`
                 Name of namelist group
-            *igrp*: :class:`int`
-                If namelist contains multiple copies, return match number *igrp*
+            *igrp*: {``0``} | :class:`int`
+                If multiple matches, return match number *igrp*
         :Outputs:
             *i*: :class:`int` | :class:`np.ndarray`\ [:class:`int`]
                 Group index of requested match
         :Versions:
-            * 2016-01-31 ``@ddalle``: First version
+            * 2016-01-31 ``@ddalle``: Version 1.0
         """
         # Search based on lower-case names
         grps = np.array([gi.lower() for gi in self.Groups])
         # Find the all indices that match
-        I = np.where(grps == grp.lower())[0]
+        I0 = np.where(grps == grp.lower())[0]
         # Process output
         if igrp is None:
             # Return all matches
-            return I
-        elif len(I) == 0:
+            return I0
+        elif len(I0) == 0:
             # No match
-            return KeyError("Namelist '%s' has no list '%s'" % 
-                (self.fname, grp))
-        elif len(I) < igrp:
+            return KeyError(
+                "Namelist '%s' has no list '%s'"
+                % (self.fname, grp))
+        elif len(I0) < igrp:
             # Not enough matches
-            return ValueError("Namelist '%s' has fewer than %i lists named '%s'"
+            return ValueError(
+                "Namelist '%s' has fewer than %i lists named '%s'"
                 % (self.fname, igrp, grp))
         else:
             # Return the requested match
-            return I[igrp]
-    
+            return I0[igrp]
+
     # Turn a namelist into a dict
     def ReadGroupIndex(self, igrp):
-        """Read group *igrp* and return a dictionary
-        
+        r"""Read group *igrp* and return a dictionary
+
         The output is a :class:`dict` such as the following
-        
+
             ``{'FSMACH': '0.8', 'ALPHA': '2.0'}``
-            
+
         If a parameter has an index specification, such as ``"PAR(2) = 1.0"``,
         the dictionary will have the following format for such keys.
-        
+
             ``{'PAR': {2: 1.0}}``
-        
+
         :Call:
             >>> d = nml.ReadGroupIndex(igrp)
         :Inputs:
@@ -306,7 +311,7 @@ class Namelist2(FileCntl):
             *d*: :class:`dict`\ [:class:`str`]
                 Raw (uncoverted) values of the dict
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
         """
         # Initialize the dictionary
         d = {}
@@ -341,11 +346,11 @@ class Namelist2(FileCntl):
             for k in di: d[k] = di[k]
         # Output
         return d
-        
+
     # Search for a specific key in a numbered section
     def GetKeyFromGroupIndex(self, igrp, key, i=None):
         """Get the value of a key from a specific section
-        
+
         :Call:
             >>> v = nml.GetKeyFromGroupIndex(igrp, key, i=i)
         :Inputs:
@@ -359,7 +364,7 @@ class Namelist2(FileCntl):
             *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
                 Evaluated value of the text for this key
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
             * 2016-08-29 ``@ddalle``: Added parameter index
         """
         # Get index of starting line
@@ -381,11 +386,11 @@ class Namelist2(FileCntl):
             if q: break
         # Output
         return v
-        
+
     # Search for a specific key by name
     def GetKeyFromGroupName(self, grp, key, igrp=0, i=None):
         """Get the value of a key from a section by group name
-        
+
         :Call:
             >>> v = nml.GetKeyFromGroupName(grp, key, igrp=0, i=None)
         :Inputs:
@@ -403,18 +408,18 @@ class Namelist2(FileCntl):
             *v*: :class:`any`
                 Converted value
         :Versions:
-            * 2016-01-31 ``@ddalle``: First version
+            * 2016-01-31 ``@ddalle``: Version 1.0
             * 2016-08-29 ``@ddalle``: Added parameter index
         """
         # Find matches
         j = self.GetGroupByName(grp, igrp)
         # Get the key from that list
         return self.GetKeyFromGroupIndex(j, key, i=i)
-        
+
     # Function to process a single line
     def ReadKeysFromLine(self, line):
-        """Read zero or more keys from a single text line
-        
+        r"""Read zero or more keys from a single text line
+
         :Call:
             >>> d = nml.ReadKeysFromLine(line)
         :Inputs:
@@ -426,7 +431,7 @@ class Namelist2(FileCntl):
             *d*: :class:`dict`\ [:class:`str`]
                 Unconverted values of each key
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
         """
         # Initialize dictionary
         d = {}
@@ -448,11 +453,11 @@ class Namelist2(FileCntl):
                     d[key][i] = val
         # Output
         return d
-    
+
     # Try to read a key from a line
     def GetKeyFromLine(self, line, key, i=None):
         """Read the value of a key from a line
-        
+
         :Call:
             >>> q, val = nml.GetKeyFromLine(line, key, i=None)
         :Inputs:
@@ -470,7 +475,7 @@ class Namelist2(FileCntl):
             *val*: :class:`str` | :class:`float` | :class:`int` | :class:`bool`
                 Value of the key, if found
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
             * 2016-01-30 ``@ddalle``: Case-insensitive
             * 2016-08-29 ``@ddalle``: Added index capability
         """
@@ -480,8 +485,6 @@ class Namelist2(FileCntl):
             return False, None
         # Initialize text remaining.
         tend = line
-        # Read the keys from this line one-by-one
-        q = False
         while tend != "":
             # Read the first key in the remaining text.
             try:
@@ -498,11 +501,11 @@ class Namelist2(FileCntl):
                 return True, self.ConvertToVal(vi)
         # If this point is reached, the key name is hiding in a comment or str
         return False, None
-        
+
     # Set a key
     def SetKeyInGroupName(self, grp, key, val, igrp=0, i=None):
         """Set the value of a key from a group by name
-        
+
         :Call:
             >>> nml.SetKeyInGroupName(grp, key, val, igrp=0, i=None)
         :Inputs:
@@ -519,22 +522,22 @@ class Namelist2(FileCntl):
             *i*: {``None``} | ``":"`` | :class:`int`
                 Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Versions:
-            * 2015-01-31 ``@ddalle``: First version
+            * 2015-01-31 ``@ddalle``: Version 1.0
             * 2016-08-29 ``@ddalle``: Added index capability
         """
         # Find matches
         j = self.GetGroupByName(grp, igrp)
         # Get the key from that list
         return self.SetKeyInGroupIndex(j, key, val, i=i)
-        
+
     # Set a key
     def SetKeyInGroupIndex(self, igrp, key, val, i=None):
-        """Set the value of a key in a group by index
-        
-        If the key is not set in the present text, add it as a new line.  The
-        contents of the file control's text (in *nml.lines*) will be edited, and
-        the list indices will be updated if a line is added.
-        
+        r"""Set the value of a key in a group by index
+
+        If the key is not set in the present text, add it as a new line.
+        The contents of the file control's text (in *nml.lines*) will be
+        edited, and the list indices will be updated if a line is added.
+
         :Call:
             >>> nml.SetKeyInGroupIndex(igrp, key, val, i=None)
         :Inputs:
@@ -549,7 +552,7 @@ class Namelist2(FileCntl):
             *i*: {``None``} | ``":"`` | :class:`int`
                 Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Versions:
-            * 2015-01-30 ``@ddalle``: First version
+            * 2015-01-30 ``@ddalle``: Version 1.0
             * 2016-08-29 ``@ddalle``: Added index capability
         """
         # Get index of starting and end lines
@@ -583,11 +586,11 @@ class Namelist2(FileCntl):
         # Update the namelist indices.
         self.ibeg[igrp+1:] += 1
         self.iend[igrp:]   += 1
-    
+
     # Set a key
     def SetKeyInLine(self, line, key, val, i=None):
         """Set the value of a key in a line if the key is already in the line
-        
+
         :Call:
             >>> q, line = nml.SetKeyInLine(line, key, val, i=None)
         :Inputs:
@@ -607,7 +610,7 @@ class Namelist2(FileCntl):
             *line*: :class:`str`
                 New version of the line with *key* reset to *val*
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Version 1.0
             * 2016-08-29 ``@ddalle``: Added index capability
         """
         # Check if the key is present in the line of the text.
@@ -628,11 +631,11 @@ class Namelist2(FileCntl):
                     ("Original error:\n") +
                     ("  '%s'" % e.message))
             # Check if the line is empty.
-            if ki is None: 
+            if ki is None:
                 # No match in this line.
                 return False, line
             # Check if the key matches the target.
-            if ki.lower() == key.lower() and ii==i:
+            if ki.lower() == key.lower() and ii == i:
                 # Match found; exit and remember remaining text
                 tbeg += tend[:tend.index(ki)]
                 tend = txt
@@ -660,12 +663,11 @@ class Namelist2(FileCntl):
                 # Set an index as well
                 line = "%s%s(%s) = %s,%s\n" % (tbeg, key, i, sval, tend)
         return True, line
-    
-            
+
     # Pop line
     def PopLine(self, line):
-        """Read the left-most key from a namelist line and return rest of line
-        
+        r"""Read the left-most key from line and return rest of line
+
         :Call:
             >>> txt, key, val, i = nml.PopLine(line)
         :Inputs:
@@ -683,8 +685,9 @@ class Namelist2(FileCntl):
             *i*: {``None``} | ``':"`` | :class:`int`
                 Vector index if specified
         :Versions:
-            * 2016-01-29 ``@ddalle``: First version
-            * 2016-08-29 ``@ddalle``: Added indices, e.g. BCPAR(2)
+            * 2016-01-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: Version 1.1
+                - Add indices, e.g. BCPAR(2)
         """
         # Strip line
         txt = line.strip()
@@ -741,8 +744,10 @@ class Namelist2(FileCntl):
                 # Unterminated string
                 raise ValueError(
                     "Namelist line '%s' could not be interpreted" % line)
+            # Find it
+            iq = txt[1:].index('"') + 1
             # Split of at this point
-            val = txt[:iq+1]
+            val = txt[1:iq]
             # Remaining text (?)
             if len(txt) > iq+1:
                 txt = txt[iq+1:]
@@ -754,8 +759,10 @@ class Namelist2(FileCntl):
                 # Unterminated string
                 raise ValueError(
                     "Namelist line '%s' could not be interpreted" % line)
+            # Find it
+            iq = txt[1:].index("'") + 1
             # Split of at this point
-            val = txt[:iq+1]
+            val = txt[1:iq]
             # Remaining text (?)
             if len(txt) > iq+1:
                 txt = txt[iq+1:]
@@ -770,13 +777,11 @@ class Namelist2(FileCntl):
             txt = subvals[-1] + '=' + '='.join(vals[2:])
         # Ouptut
         return txt, key, val, i
-        
-            
-        
+
     # Conversion
     def ConvertToVal(self, val):
-        """Convert a text file value to Python based on a series of rules
-        
+        r"""Convert text to Python based on a series of rules
+
         :Call:
             >>> v = nml.ConvertToVal(val)
         :Inputs:
@@ -785,10 +790,10 @@ class Namelist2(FileCntl):
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
         :Outputs:
-            *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
+            *v*: ``str`` | ``int`` | ``float`` | ``bool`` | ``list``
                 Evaluated value of the text
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 1.0
             * 2016-01-29 ``@ddalle``: Added boolean shortcuts, ``.T.``
         """
         # Check inputs.
@@ -821,11 +826,11 @@ class Namelist2(FileCntl):
         except Exception:
             # Give it back, whatever it was.
             return val
-            
+
     # Conversion to text
     def ConvertToText(self, v):
         """Convert a scalar value to text to write in the namelist file
-        
+
         :Call:
             >>> val = nml.ConvertToText(v)
         :Inputs:
@@ -837,7 +842,7 @@ class Namelist2(FileCntl):
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 1.0
         """
         # Get the type
         t = type(v).__name__
@@ -858,7 +863,7 @@ class Namelist2(FileCntl):
         else:
             # Use the built-in string converter
             return str(v)
-    
-    
+
+
 # class Namelist2
 

@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.filecntl`: Control interfaces to text-based file formats
 ====================================================================
 
@@ -11,7 +11,6 @@ The template module upon which most or all individual class are built
 is :mod:`cape.filecntl.filecntl`, which provides the template class
 :class:`cape.filecntl.filecntl.FileCntl`.  That class is also imported
 in this top-level :mod:`cape.filecntl` package.
-
 
 """
 

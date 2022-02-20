@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.filecntl.namelist`: Fortran namelists module 
+:mod:`cape.filecntl.namelist`: Fortran namelists module
 ========================================================
 
 This is a module built off of the :mod:`cape.filecntl.FileCntl` module
@@ -127,7 +127,7 @@ class Namelist(FileCntl):
         # Save the file name.
         self.fname = fname
         # Split into sections.
-        self.SplitToSections(reg="\&([\w_]+)")
+        self.SplitToSections(reg=r"\&([\w_]+)")
         
     # Copy the file
     def Copy(self, fname):
@@ -200,14 +200,14 @@ class Namelist(FileCntl):
             # If list, recurse
             if qV and len(val) > 2:
                 # Loop through values
-                for k,v in enumerate(val):
+                for k, v in enumerate(val):
                     # Repeat command with entry
                     self.SetVar(sec, name, v, k=k+1)
                 # Do not set one big list
                 return
             # Format: '   component = "something"'
             # Line regular expression: "XXXX=" but with white spaces
-            reg = '^\s*%s\s*[=\n]' % name
+            reg = r'^\s*%s\s*[=\n]' % name
             # Form the output line.
             line = tab
             line += '%s = %s\n' % (name, self.ConvertToText(val))
@@ -227,7 +227,7 @@ class Namelist(FileCntl):
                 # Convert to string as appropriate
                 sk = str(k)
             # Line regular expression: "XXXX([0-9]+)=" but with white spaces
-            reg = '^\s*%s\(%s\)\s*[=\n]' % (name, sk)
+            reg = r'^\s*%s\(%s\)\s*[=\n]' % (name, sk)
             # Form the output line.
             line = tab
             line += '%s(%s) = %s\n' % (name, sk, self.ConvertToText(val))
@@ -236,7 +236,7 @@ class Namelist(FileCntl):
         
     # Function to get the value of a variable
     def GetVar(self, sec, name, k=None):
-        """Get value of a variable
+        r"""Get value of a variable
         
         :Call:
             >>> val = nml.GetVar(sec, name)
@@ -263,7 +263,7 @@ class Namelist(FileCntl):
         # Check for index
         if k is None:
             # Line regular expression: "XXXX=" but with white spaces
-            reg = '^\s*%s\s*[=\n]' % name
+            reg = r'^\s*%s\s*[=\n]' % name
         else:
             # Index type
             tk = type(k).__name__
@@ -277,7 +277,7 @@ class Namelist(FileCntl):
                 # Convert to string as appropriate
                 sk = str(k)
             # Index: "XXXX(k)=" but with white spaces
-            reg = '^\s*%s\(%s\)\s*[=\n]' % (name, sk)
+            reg = r'^\s*%s\(%s\)\s*[=\n]' % (name, sk)
         # Find the line.
         lines = self.GetLineInSectionSearch(sec, reg, 1)
         # Exit if no match
@@ -289,10 +289,9 @@ class Namelist(FileCntl):
         # Convert to Python value
         return self.ConvertToVal(vals[1])
     
-    
     # Return a dictionary
     def ReturnDict(self):
-        """Return a dictionary of options that mirrors the namelist
+        r"""Return a dictionary of options that mirrors the namelist
         
         :Call:
             >>> opts = nml.ReturnDict()
@@ -329,7 +328,7 @@ class Namelist(FileCntl):
         
     # Apply a whole bunch of options
     def ApplyDict(self, opts):
-        """Apply a whole dictionary of settings to the namelist
+        r"""Apply a whole dictionary of settings to the namelist
         
         :Call:
             >>> nml.ApplyDict(opts)
@@ -350,7 +349,7 @@ class Namelist(FileCntl):
                 
     # Add a section
     def AddSection(self, sec):
-        """Add a section to the namelist interface
+        r"""Add a section to the namelist interface
         
         :Call:
             >>> nml.AddSection(sec)
@@ -373,7 +372,7 @@ class Namelist(FileCntl):
     
     # Conversion
     def ConvertToVal(self, val):
-        """Convert a text file value to Python based on a series of rules
+        r"""Convert text to Python based on a series of rules
         
         :Call:
             >>> v = nml.ConvertToVal(val)
@@ -383,11 +382,11 @@ class Namelist(FileCntl):
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
         :Outputs:
-            *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
+            *v*: ``str`` | ``int`` | ``float`` | ``bool`` | ``list``
                 Evaluated value of the text
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-            * 2016-01-29 ``@ddalle``: Added boolean shortcuts, ``.T.``
+            * 2015-10-16 ``@ddalle``: Version 1.0
+            * 2016-01-29 ``@ddalle``: Version 1.1; boolean shortcut .T.
         """
         # Check inputs.
         if type(val).__name__ not in ['str', 'unicode']:
@@ -424,17 +423,17 @@ class Namelist(FileCntl):
             
     # Conversion to text
     def ConvertToText(self, v):
-        """Convert a value to text to write in the namelist file
+        r"""Convert a value to text to write in the namelist file
         
         :Call:
             >>> val = nml.ConvertToText(v)
         :Inputs:
             *nml*: :class:`Namelist`
                 Namelist file control instance
-            *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
+            *v*: **any**
                 Evaluated value of the text
         :Outputs:
-            *val*: :class:`str` | :class:`unicode`
+            *val*: :class:`str`
                 Text of the value from file
         :Versions:
             * 2015-10-16 ``@ddalle``: First version

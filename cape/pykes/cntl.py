@@ -400,8 +400,6 @@ class Cntl(ccntl.Cntl):
         # Exit if not folder
         if not os.path.isdir(frun):
             return
-        # Project name
-        proj = self.opts.get_ProjectName()
         # Set any flight conditions
         # Get condition type
         known_cond = xml.get_input("KnowCond")
@@ -415,7 +413,7 @@ class Cntl(ccntl.Cntl):
             xml.set_alpha(a)
         # Sideslip angle
         b = x.GetBeta(i)
-        if b  is not None:
+        if b is not None:
             xml.set_beta(b)
         # Reynolds number
         rey = x.GetReynoldsNumber(i)
@@ -563,6 +561,7 @@ class Cntl(ccntl.Cntl):
         # Determine number of unique PBS scripts.
         if self.opts.get_nPBS() > 1:
             # If more than one, use unique PBS script for each run.
+            nPhase = self.opts.get_nPhase()
             nPBS = max(self.opts.get_nSeq(), nPhase)
         else:
             # Otherwise use a single PBS script.
