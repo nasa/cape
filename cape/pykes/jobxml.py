@@ -184,6 +184,8 @@ class JobXML(xmlfile.XMLFile):
         tag = kw.pop("tag", None)
         # Check for special type
         itemtype = kw.pop("section", None)
+        #if itemtype in ["BodyHierarchy"]:
+        #    breakpoint()
         # Check for special type
         if itemtype == "KCFD":
             # Full path to <KCFD> tag
@@ -209,8 +211,8 @@ class JobXML(xmlfile.XMLFile):
             # Filters by *name* attribute
             kw.setdefault("attrib", {"name": tag})
         elif itemtype:
-            # Unknown
-            print('    Unknown XML element "type" "%s"' % itemtype)
+            # Unknown... prepend tags
+            tags = itemtype.split(".") + tag.split('.')
         else:
             # Use specified tags and options (manual option)
             tags = tag.split(".")
