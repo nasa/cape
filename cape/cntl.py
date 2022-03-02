@@ -740,7 +740,7 @@ class Cntl(object):
             return 'clean'
         elif kw.get('report'):
             # Get the report(s) to create.
-            if kw['report']:
+            if kw['report'] is True:
                 # First report
                 rep = self.opts.get_ReportList()[0]
             else:
