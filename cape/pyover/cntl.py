@@ -1121,7 +1121,8 @@ class Cntl(capecntl.Cntl):
         # Get run name
         frun = self.x.GetFullFolderNames(i)
         # Check for the FAIL file.
-        q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        q = self.x.ERROR[i]
+        q = q or os.path.isfile(os.path.join(frun, 'FAIL'))
         q = q or os.path.isfile(os.path.join(frun, 'q.bomb'))
         # Check for 'nan_locations*.dat'
         if not q:

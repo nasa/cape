@@ -113,8 +113,8 @@ class XMLFile(object):
             else:
                 # Unreadable string
                 raise ValueError(
-                    "Received unreadable string starting with " +
-                    ("'%s...'" % arg0[:20]))
+                    "Received unreadable string or missing file " +
+                    ("'...%s'" % arg0[-30:]))
         else:
             raise TypeError(
                 ("XMLFile requires type 'str', 'XMLFile', 'ElementTree', ") +
