@@ -189,7 +189,8 @@ def triqfm(*a, **kw):
     ftri  = opts.get("tri",   opts.get("TriFile", opts.get("map")))
     fcfg  = opts.get("c",     opts.get("ConfigFile"))
     fo    = opts.get("o",     opts.get("OutputFile"))
-    comps = opts.get("comps", opts.get("Components", opts.get("CompID",comps)))
+    comps = opts.get(
+        "comps", opts.get("Components", opts.get("CompID", comps)))
     incm  = opts.get("incm",  opts.get("Momentum", False))
     # Freestream conditions
     mach = opts.get("m",    opts.get("mach",  opts.get("Mach",     1.0)))
@@ -204,7 +205,7 @@ def triqfm(*a, **kw):
     yMRP = float(opts.get("yMRP", kw.get("yMRP", 0.0)))
     zMRP = float(opts.get("zMRP", kw.get("zMRP", 0.0)))
     # Construct total MRP
-    MRP = opts.get("MRP", [xMRP,yMRP,zMRP])
+    MRP = opts.get("MRP", [xMRP, yMRP, zMRP])
     # If given as string input, we have to do some work
     if "MRP" in kw:
         # Split CLI text by comma

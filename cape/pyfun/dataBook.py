@@ -40,7 +40,8 @@ command-line calls.
 
 The available components mirror those described on the template data
 book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineLoad`, and
-:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be implemented for all CFD solvers.
+:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be
+implemented for all CFD solvers.
 
 :See Also:
     * :mod:`cape.cfdx.dataBook`

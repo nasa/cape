@@ -7,12 +7,13 @@ from FUN3D solutions. The database classes, :class:`DBTriqPointGroup`
 and :class:`DBTriqPoint`, are based on versions from the generic point
 sensor module :mod:`cape.cfdx.pointSensor`. These classes extract 
 surface solution data from a FUN3D boundary output file (usually with a
-name of ``pyfun_tec_boundary_timestep1000.plt`` or similar) using :class:`pyFun.plt` and :class:`cape.tri` by interpolating the surface 
-solution to the point on the discretized surface nearest the requested 
-point.
+name of ``pyfun_tec_boundary_timestep1000.plt`` or similar)
+using :class:`cape.pyfun.plt` and :class:`cape.tri` by interpolating the
+surface  solution to the point on the discretized surface nearest the
+requested  point.
 
-At present, there is no support for reading point sensor values directly from
-FUN3D output that can be requested from ``fun3d.nml``.
+At present, there is no support for reading point sensor values directly
+from FUN3D output that can be requested from ``fun3d.nml``.
 
 :See also:
     * :mod:`cape.cfdx.pointSensor`
@@ -23,24 +24,22 @@ FUN3D output that can be requested from ``fun3d.nml``.
     * :mod:`cape.tri`
 """
 
-# File interface
-import os, glob
-# Basic numerics
-import numpy as np
-# Date processing
-from datetime import datetime
+# Standard library
+import glob
+
+# Third party
+
 # Local modules
-from . import util
 from . import case
 from . import mapbc
-import cape.pyfun.plt
+from . import plt as pyfunplt
+from ..cfdx import dataBook as cdbook
+from ..cfdx import pointSensor as cptsensor
 
-# Basis module
-import cape.cfdx.dataBook
-import cape.cfdx.pointSensor
 
 # Placeholder variables for plotting functions.
 plt = 0
+
 
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
@@ -65,8 +64,9 @@ def ImportPyPlot():
         from matplotlib.text import Text
 # def ImportPyPlot
 
+
 # Data book for triq point sensors
-class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
+class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
     r"""Post-processed point sensor group data book
 
     :Call:
@@ -205,8 +205,6 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
         # Output
         return P
 
-
-
     # Read Triq file from this folder
     def ReadCaseTriq(self, **kw):
         r"""Read the the most recent Triq file from this folder
@@ -227,7 +225,7 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
         # Get the PLT file
         fplt, n, i0, i1 = case.GetPltFile()
         # Read PLT file
-        pplt = cape.pyfun.plt.Plt(fplt)
+        pplt = pyfunplt.Plt(fplt)
         # Check for mapbc file
         fglob = glob.glob("*.mapbc")
         # Check for more than one
@@ -252,8 +250,9 @@ class DBTriqPointGroup(cape.cfdx.pointSensor.DBTriqPointGroup):
   # >
 # class DBTriqPointGroup
 
+
 # Data book of point sensor data
-class DBTriqPoint(cape.cfdx.pointSensor.DBTriqPoint):
+class DBTriqPoint(cdbook.DBTriqPoint):
     r"""TriQ point sensor data book
 
     Plotting methods are inherited from 

@@ -26,7 +26,6 @@ a method like :func:`TriBase.WriteFast` for the compiled version and
 # Standard modules
 import os
 import sys
-import shutil
 import subprocess as sp
 from shutil import copy
 from collections import OrderedDict
@@ -93,11 +92,12 @@ def _readline(f, comment='#'):
     # Process stripped line
     lstrp = line.strip()
     # Check if otherwise empty or a comment
-    while (lstrp=='') or lstrp.startswith(comment):
+    while (lstrp == '') or lstrp.startswith(comment):
         # Read the next line.
         line = f.readline()
         # Check for empty line (EOF)
-        if line == '': return line
+        if line == '':
+            return line
         # Process stripped line
         lstrp = line.strip()
     # Return the line.
@@ -205,17 +205,19 @@ class TriBase(object):
   # ======
   # <
     # Initialization method
-    def __init__(self, fname=None, c=None,
-        tri=None, uh3d=None, surf=None, unv=None, cgns=None,
-        xml=None, json=None, mixsur=None, uh3dc=None,
-        nNode=None, Nodes=None, nTri=None, Tris=None,
-        nQuad=None, Quads=None, CompID=None):
-        """Initialization method"""
-        # Versions:
-        #  2014-05-23 @ddalle: Version 1.0
-        #  2014-06-02 @ddalle: Added UH3D reading capability
-        #  2015-11-19 @ddalle: Added XML reading and AFLR3 surfs
+    def __init__(
+            self, fname=None, c=None,
+            tri=None, uh3d=None, surf=None, unv=None, cgns=None,
+            xml=None, json=None, mixsur=None, uh3dc=None,
+            nNode=None, Nodes=None, nTri=None, Tris=None,
+            nQuad=None, Quads=None, CompID=None):
+        r"""Initialization method
 
+        :Versions:
+        * 2014-05-23 ``@ddalle``: Version 1.0
+        * 2014-06-02 ``@ddalle``: V1.1: Add UH3D reading capability
+        * 2015-11-19 ``@ddalle``: V2.0: Add XML reading and AFLR3 surfs
+        """
         # Save file name
         self.fname = fname
         # Check if file is specified.
@@ -273,7 +275,7 @@ class TriBase(object):
             self.nTri = nTri
             self.Tris = Tris
             self.nQuad = nQuad
-            self.Quads = Quad
+            self.Quads = Quads
             self.CompID = CompID
 
         # Check for UH3D component list
@@ -361,10 +363,9 @@ class TriBase(object):
             # Assume Cart3D triangulation file
             self.Read(fname)
 
-
     # Function to copy a triangulation and unlink it.
     def Copy(self):
-        """Copy a triangulation and unlink it
+        r"""Copy a triangulation and unlink it
 
         :Call:
             >>> tri2 = tri.Copy()
@@ -515,10 +516,9 @@ class TriBase(object):
         # Use previous function
         self.Read(fname, n=n)
 
-
     # Function to read a .tri file
     def ReadASCII(self, fname, n=1):
-        """Read a triangulation file from an ASCII file
+        r"""Read a triangulation file from an ASCII file
 
         :Call:
             >>> tri.ReadASCII(fname)
@@ -560,7 +560,7 @@ class TriBase(object):
 
         # No quads
         self.nQuad = 0
-        self.Quads = np.zeros((0,4))
+        self.Quads = np.zeros((0, 4))
 
         # Save extension
         self.ext = 'ascii'
@@ -570,7 +570,7 @@ class TriBase(object):
 
     # Read TRI file as a binary file
     def ReadTriBin(self, fname, ni=4, nf=4):
-        """Read binary unformatted triangulation file
+        r"""Read binary unformatted triangulation file
 
         :Call:
             >>> tri.ReadTriBin(fname)
@@ -681,7 +681,7 @@ class TriBase(object):
         # Read the states
         q = np.fromfile(fid, count=self.nNode*self.nq, dtype=ff)
         # Reshape and save
-        self.q = np.array(q.reshape((self.nNode,self.nq)), dtype='float')
+        self.q = np.array(q.reshape((self.nNode, self.nq)), dtype='float')
         # Close the file
         fid.close()
         # Count (used for averaging triq files)
@@ -694,7 +694,7 @@ class TriBase(object):
    # {
     # Get byte order
     def GetTriFileType(self, fname):
-        """Get the byte order and precision for a TRI file
+        r"""Get the byte order and precision for a TRI file
 
         The function works by setting attributes of the triangulation
 
@@ -785,7 +785,8 @@ class TriBase(object):
             self.filetype = 'ascii'
         except Exception:
             # No valid interpretation
-            raise ValueError("File did not match any of the following types:\n"
+            raise ValueError(
+                "File did not match any of the following types:\n"
                 + "  Double-precision little-endian Fortran unformatted\n"
                 + "  Single-precision little-endian Fortran unformatted\n"
                 + "  Double-precision big-endian Fortran unformatted\n"
@@ -827,7 +828,7 @@ class TriBase(object):
         # Read the nodes.
         Nodes = np.fromfile(f, dtype=float, count=nNode*3, sep=" ")
         # Reshape into a matrix.
-        self.Nodes = Nodes.reshape((nNode,3))
+        self.Nodes = Nodes.reshape((nNode, 3))
 
     # Function to read node coordinates from .triq+ file
     def ReadNodesSurf(self, f, nNode):
@@ -859,13 +860,13 @@ class TriBase(object):
         # Read the nodes.
         Nodes = np.fromfile(f, dtype=float, count=nNode*5, sep=" ")
         # Reshape into a matrix.
-        Nodes = Nodes.reshape((nNode,5))
+        Nodes = Nodes.reshape((nNode, 5))
         # Save nodes
-        self.Nodes = Nodes[:,:3]
+        self.Nodes = Nodes[:, :3]
         # Save boundary layer spacings
-        self.blds = Nodes[:,3]
+        self.blds = Nodes[:, 3]
         # Save boundary layer thicknesses
-        self.bldel = Nodes[:,4]
+        self.bldel = Nodes[:, 4]
    # }
 
    # +++++++++++
@@ -895,7 +896,7 @@ class TriBase(object):
         # Read the Tris
         Tris = np.fromfile(f, dtype=int, count=nTri*3, sep=" ")
         # Reshape into a matrix.
-        self.Tris = Tris.reshape((nTri,3))
+        self.Tris = Tris.reshape((nTri, 3))
 
     # Function to read triangles from .surf file
     def ReadTrisSurf(self, f, nTri):
@@ -926,20 +927,20 @@ class TriBase(object):
         self.nTri = nTri
         # Exit if no tris
         if nTri == 0:
-            self.Tris = np.zeros((0,3))
+            self.Tris = np.zeros((0, 3))
             self.CompID = np.zeros(0, dtype=int)
             self.BCs = np.zeros(0, dtype=int)
             return
         # Read the tris
         Tris = np.fromfile(f, dtype=int, count=nTri*6, sep=" ")
         # Reshape into a matrix
-        Tris = Tris.reshape((nTri,6))
+        Tris = Tris.reshape((nTri, 6))
         # Save the triangles
-        self.Tris = Tris[:,:3]
+        self.Tris = Tris[:, :3]
         # Save the component IDs.
-        self.CompID = Tris[:,3]
+        self.CompID = Tris[:, 3]
         # Save the boundary conditions.
-        self.BCs = Tris[:,5]
+        self.BCs = Tris[:, 5]
 
    # }
 
@@ -976,20 +977,20 @@ class TriBase(object):
         self.nQuad = nQuad
         # Exit if no tris
         if nQuad == 0:
-            self.Quads = np.zeros((0,3))
+            self.Quads = np.zeros((0, 3))
             self.CompIDQuad = np.zeros(0, dtype=int)
             self.BCsQuad = np.zeros(0, dtype=int)
             return
         # Read the tris
         Quads = np.fromfile(f, dtype=int, count=nQuad*7, sep=" ")
         # Reshape into a matrix
-        Quads = Quads.reshape((nQuad,7))
+        Quads = Quads.reshape((nQuad, 7))
         # Save the triangles
-        self.Quads = Quads[:,:4]
+        self.Quads = Quads[:, :4]
         # Save the component IDs.
-        self.CompIDQuad = Quads[:,4]
+        self.CompIDQuad = Quads[:, 4]
         # Save the boundary conditions.
-        self.BCsQuad = Quads[:,6]
+        self.BCsQuad = Quads[:, 6]
    # }
 
    # ++++++++
@@ -998,7 +999,7 @@ class TriBase(object):
    # {
     # Function to read the component identifiers
     def ReadCompID(self, f):
-        """Read component IDs from a .tri file.
+        r"""Read component IDs from a .tri file.
 
         :Call:
             >>> tri.ReadCompID(f)
@@ -1008,8 +1009,8 @@ class TriBase(object):
             *f*: :class:`str`
                 Open file handle
         :Effects:
-            Reads and creates *tri.CompID* if not at end of file.  Otherwise all
-            components are labeled ``1``.
+            Reads and creates *tri.CompID* if not at end of file.
+            Otherwise all components are labeled ``1``.
         :Versions:
             * 2014-06-16 ``@ddalle``: Version 1.0
         """
@@ -1028,7 +1029,7 @@ class TriBase(object):
    # {
     # Function to read node coordinates from .triq+ file
     def ReadQ(self, f, nNode, nq):
-        """Read node states from a ``.triq`` file.
+        r"""Read node states from a ``.triq`` file.
 
         :Call:
             >>> triq.ReadQ(f, nNode, nq)
@@ -1053,7 +1054,7 @@ class TriBase(object):
         # Read the nodes.
         q = np.fromfile(f, dtype=float, count=nNode*nq, sep=" ")
         # Reshape into a matrix.
-        self.q = q.reshape((nNode,nq))
+        self.q = q.reshape((nNode, nq))
    # }
 
   # >
@@ -1069,7 +1070,7 @@ class TriBase(object):
    # {
     # Fall-through function to write the triangulation to file.
     def Write(self, fname='Components.i.tri', **kw):
-        """Write triangulation to file using fastest method available
+        r"""Write triangulation to file using fastest method available
 
         :Call:
             >>> tri.WriteSlow(fname='Components.i.tri', v=True, **kw)
@@ -1271,7 +1272,8 @@ class TriBase(object):
         bc = kw.get('bytecount')
         fo = kw.get('fortran', kw.get('record'))
         # Check for at least one binary flag
-        if (not kw.get('bin')) and bo==None and bs==None and bc==None:
+        if (not kw.get('bin') and
+                bo is None and bs is None and bc is None):
             # Get the existing extension
             try:
                 return self.ext
@@ -2078,7 +2080,7 @@ class TriBase(object):
   # <
     # Read from a .uh3d file.
     def ReadUH3D(self, fname):
-        """Read a triangulation file (from ``*.uh3d``)
+        r"""Read a triangulation file (from ``*.uh3d``)
 
         :Call:
             >>> tri.ReadUH3D(fname)
@@ -2093,8 +2095,8 @@ class TriBase(object):
         """
         # Open the file
         fid = open(fname, 'r')
-        # Read the first line and discard.
-        line = fid.readline()
+        # Read the first line and discard
+        fid.readline()
         # Read the second line and split by commas.
         data = fid.readline().split(',')
         # Process the number of nodes and tris
@@ -2199,10 +2201,9 @@ class TriBase(object):
         if not qfile:
             fid.close()
 
-
     # Read surface file
     def ReadSurf(self, fname):
-        """Read an AFLR3 surface file
+        r"""Read an AFLR3 surface file
 
         :Call:
             >>> tri.ReadUH3D(fname)

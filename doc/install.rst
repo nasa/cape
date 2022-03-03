@@ -86,28 +86,11 @@ advanced features of Cape.
         .. note::
 
             There are various distributions of PDFLaTeX; the most common Linux
-            distribution is ``texlive``, which can be installed via your
-            system's version of ``sudo apt-get install texlive-full``.
+            distribution is ``texlive``, which is usually installed on high-
+            performance computing systems.
 
     * `SciPy <https://pypi.org/project/scipy/>`_
-
-        .. note::
-
-            To install, use
-
-            .. code-block:: console
-
-                $ python -m pip install scipy
-
     * `Vendorize <https://pypi.org/project/vendorize/>`_
-
-        .. note::
-
-            To install, use
-
-            .. code-block:: console
-
-                $ python -m pip install vendorize
 
 For visualizing flow solutions in these automated reports, |tecplot| is
 required, although ParaView support is also possible.
