@@ -25,8 +25,6 @@ conventions:
 """
 
 # Standard library modules
-import os
-import sys
 
 # Third-party modules
 import numpy as np
@@ -36,6 +34,7 @@ from . import convert
 from . import rdb
 from . import rdbaero
 from ..tnakit import kwutils
+from ..tnakit import typeutils
 
 
 # Sets of common variable names
@@ -49,6 +48,7 @@ _phiv_cols = rdbaero.AeroDataKit._tagcols["phiv"]
 
 # Basic coefficient list
 _coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+
 
 # Options class for adjustments
 class _FMEvalOpts(kwutils.KwargHandler):
@@ -695,8 +695,6 @@ def eval_UCLMX(db, col1, col2, col3, *a, **kw):
         * 2020-03-20 ``@ddalle``: :class:`DataKit` version
         * 2020-03-26 ``@ddalle``: Added *col* args
     """
-    # *xMRP* of original data
-    xmrp = db.xMRP / db.Lref
     # Number of original arguments
     nf = len(db.get_response_args(col1))
     # Get value for *xMRP*
@@ -739,8 +737,6 @@ def eval_UCLNX(db, col1, col2, col3, *a, **kw):
         * 2019-03-13 ``@ddalle``: First version
         * 2020-03-20 ``@ddalle``: :class:`DataKit` version
     """
-    # *xMRP* of original data
-    xmrp = db.xMRP / db.Lref
     # Number of original arguments
     nf = len(db.get_response_args(col1))
     # Get value for *xMRP*
@@ -1876,8 +1872,6 @@ class DBFM(rdbaero.AeroDataKit):
                 fm["CLN"] += CLN
         # Output
         return fm
-                
-        
 
    # --- Checkers ---
     # Check component list
@@ -2125,8 +2119,6 @@ class DBFM(rdbaero.AeroDataKit):
         trans = opts.get_option("Translators", {})
         # Initialize output
         fm = {}
-        # Number of points
-        n = None
         # Loop through coefficients
         for k, coeff in enumerate(_coeffs):
             # Get name of col to evaluate
