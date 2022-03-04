@@ -252,7 +252,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
 
 
 # Data book of point sensor data
-class DBTriqPoint(cdbook.DBTriqPoint):
+class DBTriqPoint(cptsensor.DBTriqPoint):
     r"""TriQ point sensor data book
 
     Plotting methods are inherited from 
