@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-04 at 01:40 PST
+   on 2022-03-05 at 01:41 PST
 
-Test ``01_bullet``: **FAIL** (command 1)
-==========================================
+Test ``01_bullet``: PASS
+==========================
 
-This test **FAILED** (command 1) on 2022-03-04 at 01:40 PST
+This test PASSED on 2022-03-05 at 01:41 PST
 
 This test is run in the folder:
 
@@ -25,8 +25,8 @@ The commands executed by this test are
         $ python2 test_databook.py
         $ python3 test_databook.py
 
-Command 1: Run Case 8 (**FAIL**)
----------------------------------
+Command 1: Run Case 8 (PASS)
+-----------------------------
 
 :Command:
     .. code-block:: console
@@ -34,33 +34,158 @@ Command 1: Run Case 8 (**FAIL**)
         $ pyfun -I 8
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.83 seconds
+    * Command took 41.21 seconds
 :STDOUT:
     * **PASS**
-    * Actual: (empty)
-:STDERR:
-    * **FAIL**
     * Actual:
 
-      .. code-block:: pytb
+      .. code-block:: none
 
-        Traceback (most recent call last):
-          File "/u/wk/ddalle/usr/cape/bin/pyfun", line 5, in <module>
-            from cape.pyfun.cli import main
-          File "/u/wk/ddalle/usr/cape/cape/pyfun/__init__.py", line 70, in <module>
-            from .cntl import Cntl
-          File "/u/wk/ddalle/usr/cape/cape/pyfun/cntl.py", line 57, in <module>
-            from . import dataBook
-          File "/u/wk/ddalle/usr/cape/cape/pyfun/dataBook.py", line 72, in <module>
-            from . import pointSensor
-          File "/u/wk/ddalle/usr/cape/cape/pyfun/pointSensor.py", line 255, in <module>
-            class DBTriqPoint(cdbook.DBTriqPoint):
-        AttributeError: 'module' object has no attribute 'DBTriqPoint'
+        Case Config/Run Directory  Status  Iterations  Que CPU Time 
+        ---- --------------------- ------- ----------- --- --------
+        8    bullet/m1.10a0.0b0.0  ---     /           .            
+          Case name: 'bullet/m1.10a0.0b0.0' (index 8)
+             Starting case 'bullet/m1.10a0.0b0.0'
+         > nodet --animation_freq 100
+             (PWD = 'bullet/m1.10a0.0b0.0/')
+             (STDOUT = 'fun3d.out')
+         > nodet --animation_freq 100
+             (PWD = 'bullet/m1.10a0.0b0.0/')
+             (STDOUT = 'fun3d.out')
+        
+        Submitted or ran 1 job(s).
+        
+        ---=1, 
         
 
+:STDERR:
+    * **PASS**
+
+Command 2: Show DONE Status (PASS)
+-----------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ pyfun -I 8 -c
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.70 seconds
+    * Cumulative time: 41.91 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        Case Config/Run Directory  Status  Iterations  Que CPU Time 
+        ---- --------------------- ------- ----------- --- --------
+        8    bullet/m1.10a0.0b0.0  DONE    200/200     .        0.1 
+        
+        DONE=1, 
+        
+
+:STDERR:
+    * **PASS**
+
+Command 3: Collect Aero (PASS)
+-------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ pyfun -I 8 --fm
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 1.14 seconds
+    * Cumulative time: 43.05 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+Command 4: Check DataBook (Python 2) (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.54 seconds
+    * Cumulative time: 43.59 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.461
+        
+
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.460,0.462]
+        
+
+:STDERR:
+    * **PASS**
+
+Command 5: Check DataBook (Python 3) (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.56 seconds
+    * Cumulative time: 44.15 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.461
+        
+
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.460,0.462]
+        
+
+:STDERR:
+    * **PASS**
 
