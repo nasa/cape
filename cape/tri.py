@@ -6935,7 +6935,7 @@ class Triq(TriBase):
   # <
     # Interpolate state
     def InterpSurfPoint(self, x, **kw):
-        """Interpolate *triq.q* to the nearest point on the surface
+        r"""Interpolate *triq.q* to the nearest point on the surface
 
         :Call:
             >>> x0, q = triq.InterpSurfPoint(x, **kw)

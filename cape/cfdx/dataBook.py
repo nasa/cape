@@ -85,9 +85,7 @@ for iterative histories of residuals.
 """
 
 # Standard library modules
-import fnmatch
 import os
-import re
 import time
 
 # Standard library: direct imports
@@ -113,6 +111,7 @@ plt = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
+
 
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
@@ -435,7 +434,6 @@ class DataBook(dict):
             # Return to starting position
             os.chdir(fpwd)
     
-
     # Find first force/moment component
     def GetRefComponent(self):
         r"""Get first component with type 'FM', 'Force', or 'Moment'
@@ -547,7 +545,6 @@ class DataBook(dict):
         # Read CaseResid object from PWD
         return CaseResid()
             
-        
     # Read case FM history
     def ReadCaseFM(self, comp):
         r"""Read a :class:`CaseFM` object
@@ -845,7 +842,8 @@ class DataBook(dict):
             q = True
         elif DBc['nIter'][j] < nIter:
             # Update
-            print("  Updating from iteration %i to %i."
+            print(
+                "  Updating from iteration %i to %i."
                 % (DBc['nIter'][j], nIter))
             q = True
         elif DBc['nStats'][j] < nStats:
@@ -897,6 +895,19 @@ class DataBook(dict):
         if tflight not in tcomp:
             # Append a transformation to reverse *CLL* and *CLN*
             tcomp.append(tflight)
+        # Save the Lref, current MRP to any "ShiftMRP" transformations
+        for topts in tcomp:
+            # Get type
+            ttyp = topts.get("Type")
+            # Only apply to "ShiftMRP"
+            if ttyp != "ShiftMRP":
+                continue
+            # Get current MRP and Lref
+            x0 = self.opts.get_RefPoint(compID)
+            Lref = self.opts.get_RefLength(compID)
+            # Set those as defaults in transformation
+            topts.setdefault("FromMRP", x0)
+            topts.setdefault("RefLength", Lref)
         # Loop through the transformations.
         for topts in tcomp:
             # Apply the transformation.
@@ -1315,7 +1326,7 @@ class DataBook(dict):
             # Status update
             print("Updating TriqPoint group '%s' ..." % comp)
             # Perform aupdate and get number of additions
-            n = self.UpdateTriqPointComp(comp, I)
+            self.UpdateTriqPointComp(comp, I)
     
     # Update TriqPoint data book for one component
     def UpdateTriqPointComp(self, comp, I=None):
@@ -2031,7 +2042,8 @@ def get_ylim(ha, pad=0.05):
     ymaxv = (1+pad)*ymax - pad*ymin
     # Output
     return yminv, ymaxv
-    
+
+
 # Function to automatically get inclusive data limits.
 def get_xlim(ha, pad=0.05):
     """Calculate appropriate *x*-limits to include all lines in a plot
@@ -9027,11 +9039,12 @@ class CaseFM(CaseData):
    # <
     # Transform force or moment reference frame
     def TransformFM(self, topts, x, i):
-        """Transform a force and moment history
+        r"""Transform a force and moment history
         
         Available transformations and their parameters are listed below.
         
             * "Euler321": "psi", "theta", "phi"
+            * "Euler123": "phi", "theta", "psi"
             * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
             
         RunMatrix variables are used to specify values to use for the
@@ -9042,12 +9055,14 @@ class CaseFM(CaseData):
                 topts = {"Type": "Euler321",
                     "psi": "Psi", "theta": "Theta", "phi": "Phi"}
         
-        will cause this function to perform a reverse Euler 3-2-1 transformation
-        using *x.Psi[i]*, *x.Theta[i]*, and *x.Phi[i]* as the angles.
+        will cause this function to perform a reverse Euler 3-2-1
+        transformation using *x.Psi[i]*, *x.Theta[i]*, and *x.Phi[i]* as
+        the angles.
         
-        Coefficient scaling can be used to fix incorrect reference areas or flip
-        axes.  The default is actually to flip *CLL* and *CLN* due to the
-        transformation from CFD axes to standard flight dynamics axes.
+        Coefficient scaling can be used to fix incorrect reference areas
+        or flip axes. The default is actually to flip *CLL* and *CLN*
+        due to the transformation from CFD axes to standard flight
+        dynamics axes.
         
             .. code-block:: python
             
@@ -9064,7 +9079,7 @@ class CaseFM(CaseData):
             *x*: :class:`cape.runmatrix.RunMatrix`
                 The run matrix used for this analysis
             *i*: :class:`int`
-                The index of the case to transform in the current run matrix
+                Run matrix case index
         :Versions:
             * 2014-12-22 ``@ddalle``: Version 1.0
         """
@@ -9072,8 +9087,7 @@ class CaseFM(CaseData):
         ttype = topts.get("Type", "")
         # Check it.
         if ttype in ["Euler321", "Euler123"]:
-            # Get the angle variable names.
-            # Use same as default in case it's obvious what they should be.
+            # Get the angle variable names
             kph = topts.get('phi', 0.0)
             kth = topts.get('theta', 0.0)
             kps = topts.get('psi', 0.0)
@@ -9164,7 +9178,6 @@ class CaseFM(CaseData):
                 Mb = np.dot(R, Mc)
                 # Extract.
                 self.CLM = Mb[1]
-                
         elif ttype in ["ScaleCoeffs"]:
             # Loop through coefficients.
             for c in topts:
@@ -9178,6 +9191,13 @@ class CaseFM(CaseData):
                     k = -1.0
                 # Scale.
                 setattr(self,c, k*getattr(self,c))
+        elif ttype in ["ShiftMRP"]:
+            # Get target MRP
+            x0 = topts.get("FromMRP")
+            x1 = topts.get("ToMRP")
+            Lref = topts.get("RefLength")
+            # Transform
+            self.ShiftMRP(Lref, x1, x0)
         else:
             raise IOError(
                 "Transformation type '%s' is not recognized." % ttype)
