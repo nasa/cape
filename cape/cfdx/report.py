@@ -2486,15 +2486,19 @@ class Report(object):
                     # Only apply to "ShiftMRP"
                     if ttyp == "ShiftMRP":
                         # Component to use for current MRP
-                        compID = self.cntl.opts.get_DataBookCompID(comp)[0]
+                        compID = self.cntl.opts.get_DataBookCompID(comp)
+                        if isinstance(compID, list):
+                            compID = compID[0]
                         # Get current MRP and Lref
                         x0 = self.cntl.opts.get_RefPoint(comp)
                         Lref = self.cntl.opts.get_RefLength(comp)
-                        # Expand if *x0* is a string
-                        x0 = self.cntl.opts.expand_Point(x0)
                         # Set those as defaults in transformation
-                        topts.setdefault("FromMRP", x0)
+                        x0 = topts.setdefault("FromMRP", x0)
+                        x1 = topts.setdefault("ToMRP", x0)
                         topts.setdefault("RefLength", Lref)
+                        # Expand if *x0* is a string
+                        topts["FromMRP"] = self.cntl.opts.expand_Point(x0)
+                        topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
                     # Apply the transformation
                     FM.TransformFM(topts, self.cntl.x, i)
                 # Get the statistics.
