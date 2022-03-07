@@ -2962,7 +2962,7 @@ class Cntl(object):
         r"""Calculate the value of each named ``"Point"`` for case *i*
         
         :Call:
-            >>> x = cntl.ExpandPoints(i)
+            >>> x = cntl.PreparePoints(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
@@ -2981,6 +2981,60 @@ class Cntl(object):
                 self.PreparePointsRotation(key, i)
             elif ktyp in ("translation", "translate"):
                 self.PreparePointsTranslation(key, i)
+
+    # Apply a translation to "Points"
+    def PreparePointsTranslation(self, key, i):
+        r"""Apply a translation to named config points for one col
+
+        :Call:
+            >>> cntl.PreparePointsTranslation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of the trajectory key
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2022-03-07 ``@ddalle``: Version 1.0
+        """
+        # Get the options for this key.
+        kopts = self.x.defns[key]
+        # Check for a direction
+        if 'Vector' not in kopts:
+            raise KeyError(
+                "Translation key '%s' does not have a 'Vector'." % key)
+        # Get the direction and its type
+        vec = kopts['Vector']
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists
+        if not isinstance(pts, list):
+            pts = [pts]
+        if not isinstance(ptsR, list):
+            ptsR = [ptsR]
+        # Check the type
+        if isinstance(vec, (list, np.ndarray)):
+            # Specified directly.
+            u = np.array(vec)
+        else:
+            # Named vector
+            u = np.array(self.opts.get_Point(vec))
+        # Form the translation vector
+        v = u * self.x[key][i]
+        # Loop through translation points.
+        for pt in pts:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x+v, pt)
+        # Loop through translation points.
+        for pt in ptsR:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x-v, pt)
 
     # Apply a configuration rotation
     def PreparePointsRotation(self, key, i):
@@ -3260,7 +3314,7 @@ class Cntl(object):
             # Apply transformation.
             self.opts.set_Point(x-v, pt)
 
-    # Apply a triangulation translation
+    # Apply a config.xml translation
     def PrepareConfigTranslation(self, key, i):
         r"""Apply a translation to a component or components
 
