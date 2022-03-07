@@ -905,6 +905,8 @@ class DataBook(dict):
             # Get current MRP and Lref
             x0 = self.opts.get_RefPoint(compID)
             Lref = self.opts.get_RefLength(compID)
+            # Expand if *x0* is a string
+            x0 = self.opts.expand_Point(x0)
             # Set those as defaults in transformation
             topts.setdefault("FromMRP", x0)
             topts.setdefault("RefLength", Lref)

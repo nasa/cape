@@ -2485,9 +2485,13 @@ class Report(object):
                     ttyp = topts.get("Type")
                     # Only apply to "ShiftMRP"
                     if ttyp == "ShiftMRP":
+                        # Component to use for current MRP
+                        compID = self.cntl.opts.get_DataBookCompID(comp)[0]
                         # Get current MRP and Lref
-                        x0 = self.cntl.opts.get_RefPoint(compID)
-                        Lref = self.cntl.opts.get_RefLength(compID)
+                        x0 = self.cntl.opts.get_RefPoint(comp)
+                        Lref = self.cntl.opts.get_RefLength(comp)
+                        # Expand if *x0* is a string
+                        x0 = self.cntl.opts.expand_Point(x0)
                         # Set those as defaults in transformation
                         topts.setdefault("FromMRP", x0)
                         topts.setdefault("RefLength", Lref)
