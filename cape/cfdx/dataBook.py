@@ -147,12 +147,10 @@ class DataBook(dict):
     r"""Interface to the data book for a given CFD run matrix
     
     :Call:
-        >>> DB = cape.cfdx.dataBook.DataBook(x, opts, **kw)
+        >>> DB = cape.cfdx.dataBook.DataBook(cntl, **kw)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            The current Cape trajectory (i.e. run matrix)
-        *opts*: :class:`cape.cfdx.options.Options`
-            Global Cape options instance
+        *cntl*: :class:`Cntl`
+            CAPE control class instance
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
         *targ*: {``None``} | :class:`str`
@@ -171,13 +169,14 @@ class DataBook(dict):
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: Version 1.0
+        * 2022-03-07 ``@ddalle``: Version 1.1; allow .cntl
     """
   # ======
   # Config
   # ======
   # <                           
     # Initialization method
-    def __init__(self, x, opts, RootDir=None, targ=None, **kw):
+    def __init__(self, cntl, RootDir=None, targ=None, **kw):
         r"""Initialization method
         
         :Versions:
@@ -190,6 +189,11 @@ class DataBook(dict):
         else:
             # Specified option
             self.RootDir = RootDir
+        # Unpack options and run matrix
+        x = cntl.x
+        opts = cntl.opts
+        # Save control instance (recursive, but that's ok)
+        self.cntl = cntl
         # Change safely to the root folder
         fpwd = os.getcwd()
         os.chdir(self.RootDir)

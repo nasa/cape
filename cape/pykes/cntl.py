@@ -280,7 +280,7 @@ class Cntl(ccntl.Cntl):
         if not (comp is None or isinstance(comp, list)):
             comp = [comp]
         # Read the data book.
-        self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
+        self.DataBook = dataBook.DataBook(self, comp=comp)
 
     # Function to read a report
     def ReadReport(self, rep):

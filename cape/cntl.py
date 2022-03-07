@@ -2979,6 +2979,8 @@ class Cntl(object):
             # Check type
             if ktyp in ("rotation", "rotate"):
                 self.PreparePointsRotation(key, i)
+            elif ktyp in ("translation", "translate"):
+                self.PreparePointsTranslation(key, i)
 
     # Apply a configuration rotation
     def PreparePointsRotation(self, key, i):

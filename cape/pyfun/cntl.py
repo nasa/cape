@@ -274,7 +274,7 @@ class Cntl(ccntl.Cntl):
         if comp is not None:
             comp = list(np.array(comp).flatten())
         # Read the data book.
-        self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
+        self.DataBook = dataBook.DataBook(self, comp=comp)
         # Save project name
         self.DataBook.proj = self.GetProjectRootName(None)
         # Return to original folder.
