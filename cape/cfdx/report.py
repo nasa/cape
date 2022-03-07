@@ -2481,7 +2481,17 @@ class Report(object):
                     continue
                 # Loop through the transformations.
                 for topts in opts.get_DataBookTransformations(comp):
-                    # Apply the transformation.
+                    # Get type
+                    ttyp = topts.get("Type")
+                    # Only apply to "ShiftMRP"
+                    if ttyp == "ShiftMRP":
+                        # Get current MRP and Lref
+                        x0 = self.cntl.opts.get_RefPoint(compID)
+                        Lref = self.cntl.opts.get_RefLength(compID)
+                        # Set those as defaults in transformation
+                        topts.setdefault("FromMRP", x0)
+                        topts.setdefault("RefLength", Lref)
+                    # Apply the transformation
                     FM.TransformFM(topts, self.cntl.x, i)
                 # Get the statistics.
                 S[comp] = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
