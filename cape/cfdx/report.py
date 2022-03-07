@@ -2485,6 +2485,8 @@ class Report(object):
                     ttyp = topts.get("Type")
                     # Only apply to "ShiftMRP"
                     if ttyp == "ShiftMRP":
+                        # Ensure points are calculated
+                        self.cntl.PreparePoints(i)
                         # Component to use for current MRP
                         compID = self.cntl.opts.get_DataBookCompID(comp)
                         if isinstance(compID, list):
