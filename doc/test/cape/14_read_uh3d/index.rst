@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-05 at 01:40 PST
+   on 2022-03-08 at 01:40 PST
 
 Test ``14_read_uh3d``: PASS
 =============================
 
-This test PASSED on 2022-03-05 at 01:40 PST
+This test PASSED on 2022-03-08 at 01:40 PST
 
 This test is run in the folder:
 
@@ -205,8 +205,8 @@ Command 2: Read UH3D: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.83 seconds
-    * Cumulative time: 1.25 seconds
+    * Command took 0.87 seconds
+    * Cumulative time: 1.29 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -244,8 +244,8 @@ Command 3: Check TRI CompIDs: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.38 seconds
-    * Cumulative time: 1.64 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 1.82 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -275,8 +275,8 @@ Command 4: Check TRI CompIDs: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 2.11 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 2.34 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -306,8 +306,8 @@ Command 5: Read PLT: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.39 seconds
-    * Cumulative time: 2.50 seconds
+    * Command took 0.49 seconds
+    * Cumulative time: 2.83 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -327,8 +327,8 @@ Command 6: Read PLT: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.70 seconds
-    * Cumulative time: 3.20 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 3.42 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
