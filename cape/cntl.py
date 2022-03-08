@@ -1364,7 +1364,7 @@ class Cntl(object):
         r"""Stop a case if running
 
         This function deletes a case's PBS job and removes the
-        ``RUNNING``file if it exists.
+        ``RUNNING`` file if it exists.
 
         :Call:
             >>> cntl.StopCase(i)

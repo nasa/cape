@@ -13,7 +13,7 @@ import cape.cfdx.dataBook
 cntl = cape.Cntl()
 
 # Read data book
-DB = cape.cfdx.dataBook.DataBook(cntl.x, cntl.opts)
+DB = cape.cfdx.dataBook.DataBook(cntl)
 
 # Display the data book
 print(DB)
