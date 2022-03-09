@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-08 at 01:40 PST
+   on 2022-03-09 at 01:40 PST
 
 Test ``03_cli_matrix``: PASS
 ==============================
 
-This test PASSED on 2022-03-08 at 01:40 PST
+This test PASSED on 2022-03-09 at 01:40 PST
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Missing JSON File (PASS)
     * Target: ``1``
 :Time Taken:
     * **PASS**
-    * Command took 0.77 seconds
+    * Command took 0.74 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -66,8 +66,8 @@ Command 2: JSON-only Matrix (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 1.33 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 1.24 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -103,8 +103,8 @@ Command 3: JSON-only with RegEx (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 1.86 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 1.84 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -137,7 +137,7 @@ Command 4: Mixed CSV and JSON (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
+    * Command took 0.63 seconds
     * Cumulative time: 2.47 seconds
 :STDOUT:
     * **PASS**
@@ -178,8 +178,8 @@ Command 5: Mixed CSV and JSON with RegEx (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 3.08 seconds
+    * Command took 0.55 seconds
+    * Cumulative time: 3.02 seconds
 :STDOUT:
     * **PASS**
     * Target:

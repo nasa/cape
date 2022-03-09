@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-08 at 01:40 PST
+   on 2022-03-09 at 01:40 PST
 
-Test ``10_databook``: **FAIL** (command 1)
-============================================
+Test ``10_databook``: PASS
+============================
 
-This test **FAILED** (command 1) on 2022-03-08 at 01:40 PST
+This test PASSED on 2022-03-09 at 01:40 PST
 
 This test is run in the folder:
 
@@ -41,7 +41,7 @@ The commands executed by this test are
         cntl = cape.Cntl()
         
         # Read data book
-        DB = cape.cfdx.dataBook.DataBook(cntl.x, cntl.opts)
+        DB = cape.cfdx.dataBook.DataBook(cntl)
         
         # Display the data book
         print(DB)
@@ -92,8 +92,8 @@ The commands executed by this test are
         print("Standard deviation: %(CN_std).4f" % S)
         print("Sampling error: %(CN_err).4f" % S)
 
-Command 1: Python 2 (**FAIL**)
--------------------------------
+Command 1: Python 2 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -101,15 +101,14 @@ Command 1: Python 2 (**FAIL**)
         $ python2 test01_db.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.55 seconds
+    * Command took 0.59 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -141,17 +140,56 @@ Command 1: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Python 3 (PASS)
+---------------------------
 
-        Traceback (most recent call last):
-          File "test01_db.py", line 16, in <module>
-            DB = cape.cfdx.dataBook.DataBook(cntl.x, cntl.opts)
-          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 193, in __init__
-            x = cntl.x
-        AttributeError: 'RunMatrix' object has no attribute 'x'
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_db.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.61 seconds
+    * Cumulative time: 1.20 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        <DataBook nComp=10, nCase=30>
+        cap
+        body
+        fins
+        arrow_no_base
+        arrow_total
+        fuselage
+        fin1
+        fin2
+        fin3
+        fin4
+        <DBComp fin1, nCase=30>
+        poweroff/m0.50a02.0
+        poweroff/m0.80a02.0
+        poweroff/m0.95a02.0
+        poweroff/m1.10a02.0
+        poweroff/m1.40a02.0
+        poweroff/m2.20a02.0
+        <dataBook.CaseFM('fin', i=500)>
+        Mean value: 1.4149
+        Min value: 0.6555
+        Max value: 2.0462
+        Standard deviation: 0.3095
+        Sampling error: 0.0190
         
 
+:STDERR:
+    * **PASS**
 
