@@ -234,14 +234,14 @@ class MATFile(BaseFile):
         elif typeutils.isstr(V):
             # Save as a scalar
             dtype = "str"
-            V1 = [V]
+            V1 = [V.strip()]
         elif isinstance(V, list):
             # Assume string
             dtype = "str"
             # Save length
             defn.set_option("Shape", (len(V), ))
-            # No change
-            V1 = V
+            # No change, execpt to strip white space
+            V1 = [v.strip() for v in V]
         else:
             # Array; get data type from instance
             dtype = V.dtype.name
@@ -253,19 +253,19 @@ class MATFile(BaseFile):
                 # Regular strings
                 dtype = "str"
                 # Convert to string (Python 2 only)
-                V1 = [str(v) for v in V]
+                V1 = [str(v).strip() for v in V]
             elif dtype.startswith("unicode"):
                 # Check Python version
                 if typeutils.PY_MAJOR_VERSION == 2:
                     # Strings using :class:`unicode`
                     dtype = "str"
                     # Convert to unicode strings
-                    V1 = [unicode(v) for v in V]
+                    V1 = [unicode(v).strip() for v in V]
                 else:
                     # Standard strings (which are unicode)
                     dtype = "str"
                     # Convert to Python 3 (unicode) strings
-                    V1 = [str(v) for v in V]
+                    V1 = [str(v).strip() for v in V]
             else:
                 # No change
                 V1 = V
