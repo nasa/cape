@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-09 at 01:45 PST
+   on 2022-03-10 at 01:45 PST
 
 Test ``05_rdb_llreg``: PASS
 =============================
 
-This test PASSED on 2022-03-09 at 01:45 PST
+This test PASSED on 2022-03-10 at 01:45 PST
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Regularize line load using griddata: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
+    * Command took 0.68 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -63,8 +63,8 @@ Command 2: Regularize line load using griddata: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 1.19 seconds
+    * Command took 0.62 seconds
+    * Cumulative time: 1.30 seconds
 :STDOUT:
     * **PASS**
     * Target:
