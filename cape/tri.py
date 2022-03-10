@@ -6944,6 +6944,12 @@ class Triq(TriBase):
                 Annotated triangulation interface
             *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
                 Array of *x*, *y*, and *z* coordinates of test point
+            *k*: {``None``} | :class:`int`
+                Pre-specified index of nearest triangle (0-based)
+            *k1*: {``None``} | :class:`int`
+                Pre-specified index of nearest triangle (1-based)
+            *z*: {``None``} | :class:`float`
+                Pre-specified projection distance of *x* to tri *k1*
             *kw*: :class:`dict`
                 Keyword arguments passed to :func:`Tri.GetNearestTri`
         :Outputs:
@@ -6953,18 +6959,30 @@ class Triq(TriBase):
                 Interpolated state from *triq.q*
         :Versions:
             * 2017-10-10 ``@ddalle``: Version 1.0
+            * 2018-10-12 ``@serogers``: Version 2.0; subtriangles
+            * 2022-03-10 ``@ddalle``: Version 2.1; skip GetNearestTri()
         """
-        # Get the nearest triangle to point *x*
-        T = self.GetNearestTri(x, **kw)
-        # Nearest triangle
-        k = T["k1"]
+        # Check options
+        k = kw.get("k")
+        z = kw.get("z")
+        k1 = kw.get("k1")
+        # Try to use 1-based *tri*
+        if k1 is not None and k is None:
+            k = k1 - 1
+        # Check if we already have nearest tri
+        if k is None or z is None:
+            # Get the nearest triangle to point *x*
+            T = self.GetNearestTri(x, **kw)
+            # Nearest triangle
+            k = T["k1"]
+            # Projection distance
+            z = T["z1"]
         # Extract the node numbers
         i0, i1, i2 = self.Tris[k] - 1
         # Get nodal coordinates
         x0 = self.Nodes[i0]
         x1 = self.Nodes[i1]
         x2 = self.Nodes[i2]
-
         # Use sub-triangles to compute weights
         # If the projected point xp is outside of the triangle,
         # then the sum of a0,a1,a2 will be greater than the total
@@ -6972,7 +6990,7 @@ class Triq(TriBase):
         # to account for this
         #
         # Projected point
-        xp = x - T["z1"]*self.e3[k]
+        xp = x - z * self.e3[k]
         # Dot products
         dp0 = np.cross(xp-x1, xp-x2)
         dp1 = np.cross(xp-x2, xp-x0)
