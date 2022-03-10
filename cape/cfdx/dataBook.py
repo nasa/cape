@@ -9256,10 +9256,10 @@ class CaseFM(CaseData):
             self.CLM += (xi[2]-x[2])/Lref*self.CA
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CA' in self.coeffs):
-            self.CLN += (x[1]-xi[1])/Lref*self.CA
+            self.CLN -= (xi[1]-x[1])/Lref*self.CA
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
-            self.CLN += (x[0]-xi[0])/Lref*self.CY
+            self.CLN += (xi[0]-x[0])/Lref*self.CY
    # >
    
    # ===========
