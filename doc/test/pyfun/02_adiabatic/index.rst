@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-10 at 01:41 PST
+   on 2022-03-11 at 01:41 PST
 
 Test ``02_adiabatic``: PASS
 =============================
 
-This test PASSED on 2022-03-10 at 01:41 PST
+This test PASSED on 2022-03-11 at 01:41 PST
 
 This test is run in the folder:
 
@@ -61,7 +61,7 @@ Command 2: Check Adiabatic BC Setting : all boundaries (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.01 seconds
-    * Cumulative time: 0.65 seconds
+    * Cumulative time: 0.64 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -214,8 +214,8 @@ Command 3: Create Input Files (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 1.26 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 1.17 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -236,7 +236,7 @@ Command 4: Check Adiabatic BC Setting : specified wall selection (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.01 seconds
-    * Cumulative time: 1.27 seconds
+    * Cumulative time: 1.18 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -387,8 +387,8 @@ Command 5: Create Input Files (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.66 seconds
-    * Cumulative time: 1.93 seconds
+    * Command took 0.54 seconds
+    * Cumulative time: 1.72 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -409,7 +409,7 @@ Command 6: Check Adiabatic BC Setting : no boundaries (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.01 seconds
-    * Cumulative time: 1.93 seconds
+    * Cumulative time: 1.72 seconds
 :STDOUT:
     * **PASS**
     * Target:
