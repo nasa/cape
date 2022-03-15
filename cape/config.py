@@ -124,6 +124,7 @@ a call such as ``mixsur < mixsur.i``.
 
 # Standard library
 import os
+import re
 
 # Standard library: direct imports
 import xml.etree.ElementTree as ET
