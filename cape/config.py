@@ -1456,6 +1456,8 @@ class ConfigJSON(object):
             List of parent(s) by name for each component
         *cfg.IDs*: :class:`list`\ [:class:`int`]
             List of unique component ID numbers
+        *cfg.name*: ``None`` | :class:`str`
+            Optional string to identify what is being represented
     :Versions:
         * 2016-10-21 ``@ddalle``: Version 1.0
     """
@@ -1476,6 +1478,7 @@ class ConfigJSON(object):
             # Empty options
             opts = util.odict()
         # Get major sections
+        self.article = None
         self.props = opts.get("Properties")
         self.tree  = opts.get("Tree")
         self.order = opts.get("Order")
@@ -2283,11 +2286,11 @@ class ConfigJSON(object):
             return prop["CompID"]
 
     # Get a property
-    def GetProperty(self, comp, k):
+    def GetProperty(self, comp, k, name=None):
         r"""Get a cascading property from a component or its parents
 
         :Call:
-            >>> v = cfg.GetProperty(comp, k)
+            >>> v = cfg.GetProperty(comp, k, name=None)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration interface
@@ -2295,28 +2298,60 @@ class ConfigJSON(object):
                 Name of component to query
             *k*: :class:`str`
                 Name of property to query
+            *name*: {``None``} | :class:`str`
+                Name to filter if *k* has multiple values; defaults to
+                *cfg.name* if applicable
         :Outputs:
             *v*: ``None`` | :class:`any`
                 Value of *k* from *comp* with fallback to parents
         :Versions:
             * 2016-10-21 ``@ddalle``: Version 1.0
+            * 2022-03-15 ``@ddalle``: Version 2.0; add *name*
         """
-        # Get component properties
-        opts = self.props.get(comp, {})
-        # Check type
-        if type(opts).__name__ not in ['dict', 'odcit']:
-            opts = {}
         # Check for the property
-        if k in opts:
-            return opts[k]
-        # Loop through parents
+        v, q = self._get_property(comp, k, name)
+        # Check for the property
+        if q:
+            return v
+        # Loop through parents until one is reached
         for parent in self.parents[comp]:
             # Get the value from that parent (note: this may recurse)
-            v = self.GetProperty(parent, k)
+            v = self.GetProperty(parent, k, name)
             # Check for success (otherwise try next parent if there is one)
             if v is not None:
                 return v
         # If this point is reached, could not find property in any parent
         return None
-# class ConfigJSON
+
+    def _get_property(self, comp, k, name=None):
+        # Get component properties
+        opts = self.props.get(comp, {})
+        # Check type
+        if opts is None:
+            # Default
+            opts = {}
+        elif not isinstance(opts, dict):
+            # Process a single option for *CompID*
+            opts = {"CompID": opts}
+        # Check for the property
+        if k not in opts:
+            # Not present
+            return None, False
+        # Get value
+        val = opts[k]
+        # Check if a dictionary
+        if not isinstance(val, dict):
+            # Return singleton value
+            return val, True
+        # Default *name*
+        if name is None:
+            name = self.name
+        # If no *name*, return the whole dict
+        if name is None:
+            return val, True
+        # Filter it
+        for namej, vj in val.items():
+            # Check it
+            if re.match(namej, name):
+                return vj, True
 
