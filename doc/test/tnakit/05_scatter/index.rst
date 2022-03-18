@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-11 at 01:46 PST
+   on 2022-03-16 at 01:46 PDT
 
 Test ``05_scatter``: PASS
 ===========================
 
-This test PASSED on 2022-03-11 at 01:46 PST
+This test PASSED on 2022-03-16 at 01:46 PDT
 
 This test is run in the folder:
 
@@ -36,7 +36,7 @@ Command 1: Scatter plot: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.91 seconds
+    * Command took 0.84 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -64,8 +64,8 @@ Command 2: Scatter plot: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.19 seconds
-    * Cumulative time: 2.10 seconds
+    * Command took 1.20 seconds
+    * Cumulative time: 2.05 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
