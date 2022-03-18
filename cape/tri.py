@@ -3268,7 +3268,7 @@ class TriBase(object):
             tri.CompID[k1:k2] = compn
         # Ignore negative triangles
         kKeep = (tri.CompID > 0)
-        tri.Tris   = tri.Tris[kKeep,:]
+        tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
         tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
@@ -3495,18 +3495,35 @@ class TriBase(object):
   # <
     # Function to read configuration file based on file extension
     def ReadConfig(self, c):
-        """Read a configuration file using extension to guess type
+        r"""Read a configuration file using extension to guess type
 
         :Call:
             >>> tri.ReadConfig(c)
+            >>> tri.ReadConfig(cfg)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
             *c*: :class:`str`
                 Configuration file name
+            *cfg*: :class:`ConfigJSON` | :class:`ConfigXML`
+                Pre-existing configuration
         :Versions:
             * 2016-10-21 ``@ddalle``: Version 1.0
+            * 2022-03-17 ``@ddalle``: Version 2.0; allow *cfg* input
         """
+        # Check for exisgint config
+        if isinstance(c, ConfigJSON):
+            # Pre-read JSON config
+            self.config = c
+            return
+        elif isinstance(c, ConfigXML):
+            # Pre-read XML config
+            self.config = c
+            return
+        elif isinstance(c, ConfigMIXSUR):
+            # Pre-read MIXSUR config
+            self.config = c
+            return
         # Split based on '.'
         fext = c.split('.')
         # Get the extension
@@ -3548,7 +3565,7 @@ class TriBase(object):
 
     # Function to read Config.xml
     def ReadConfigXML(self, c, restrict=False):
-        """Read a ``Config.xml`` file labeling and grouping of component IDs
+        r"""Read an XML file labeling and grouping of component IDs
 
         :Call:
             >>> tri.ReadConfigXML(c, restrict=False)
@@ -3570,7 +3587,7 @@ class TriBase(object):
 
     # Function to read Config.json
     def ReadConfigJSON(self, c):
-        """Read a ``Config.json`` file labeling and grouping of component IDs
+        """Read a JSON file labeling and grouping of component IDs
 
         :Call:
             >>> tri.ReadConfigJSON(c)
@@ -3604,7 +3621,7 @@ class TriBase(object):
 
     # Function to map component ID numbers to those in a Config.
     def ApplyConfig(self, cfg):
-        """Change component IDs to match a configuration file
+        r"""Change component IDs to match a configuration file
 
         Any component that is named in *tri.Conf* and *cfg.faces* has its
         component ID changed to match its intended value in *cfg*, which is an
