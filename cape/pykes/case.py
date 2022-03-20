@@ -170,7 +170,8 @@ def run_phase(rc, j):
     # Check if we should run this phase
     if nprev == 0 or n0 < nj:
         # Reset number of iterations to current + nIter
-        xml.set_kcfd_iters(n0 + mj)
+        # This doesn't work until we can figure out restart iter
+        #xml.set_kcfd_iters(n0 + mj)
         # Rewrite XML file
         xml.write()
         # Get the ``csi`` command
