@@ -3268,7 +3268,7 @@ class TriBase(object):
             tri.CompID[k1:k2] = compn
         # Ignore negative triangles
         kKeep = (tri.CompID > 0)
-        tri.Tris   = tri.Tris[kKeep,:]
+        tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
         tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
@@ -3495,18 +3495,35 @@ class TriBase(object):
   # <
     # Function to read configuration file based on file extension
     def ReadConfig(self, c):
-        """Read a configuration file using extension to guess type
+        r"""Read a configuration file using extension to guess type
 
         :Call:
             >>> tri.ReadConfig(c)
+            >>> tri.ReadConfig(cfg)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
             *c*: :class:`str`
                 Configuration file name
+            *cfg*: :class:`ConfigJSON` | :class:`ConfigXML`
+                Pre-existing configuration
         :Versions:
             * 2016-10-21 ``@ddalle``: Version 1.0
+            * 2022-03-17 ``@ddalle``: Version 2.0; allow *cfg* input
         """
+        # Check for exisgint config
+        if isinstance(c, ConfigJSON):
+            # Pre-read JSON config
+            self.config = c
+            return
+        elif isinstance(c, ConfigXML):
+            # Pre-read XML config
+            self.config = c
+            return
+        elif isinstance(c, ConfigMIXSUR):
+            # Pre-read MIXSUR config
+            self.config = c
+            return
         # Split based on '.'
         fext = c.split('.')
         # Get the extension
@@ -3548,7 +3565,7 @@ class TriBase(object):
 
     # Function to read Config.xml
     def ReadConfigXML(self, c, restrict=False):
-        """Read a ``Config.xml`` file labeling and grouping of component IDs
+        r"""Read an XML file labeling and grouping of component IDs
 
         :Call:
             >>> tri.ReadConfigXML(c, restrict=False)
@@ -3570,7 +3587,7 @@ class TriBase(object):
 
     # Function to read Config.json
     def ReadConfigJSON(self, c):
-        """Read a ``Config.json`` file labeling and grouping of component IDs
+        """Read a JSON file labeling and grouping of component IDs
 
         :Call:
             >>> tri.ReadConfigJSON(c)
@@ -3604,7 +3621,7 @@ class TriBase(object):
 
     # Function to map component ID numbers to those in a Config.
     def ApplyConfig(self, cfg):
-        """Change component IDs to match a configuration file
+        r"""Change component IDs to match a configuration file
 
         Any component that is named in *tri.Conf* and *cfg.faces* has its
         component ID changed to match its intended value in *cfg*, which is an
@@ -6944,6 +6961,12 @@ class Triq(TriBase):
                 Annotated triangulation interface
             *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
                 Array of *x*, *y*, and *z* coordinates of test point
+            *k*: {``None``} | :class:`int`
+                Pre-specified index of nearest triangle (0-based)
+            *k1*: {``None``} | :class:`int`
+                Pre-specified index of nearest triangle (1-based)
+            *z*: {``None``} | :class:`float`
+                Pre-specified projection distance of *x* to tri *k1*
             *kw*: :class:`dict`
                 Keyword arguments passed to :func:`Tri.GetNearestTri`
         :Outputs:
@@ -6953,18 +6976,30 @@ class Triq(TriBase):
                 Interpolated state from *triq.q*
         :Versions:
             * 2017-10-10 ``@ddalle``: Version 1.0
+            * 2018-10-12 ``@serogers``: Version 2.0; subtriangles
+            * 2022-03-10 ``@ddalle``: Version 2.1; skip GetNearestTri()
         """
-        # Get the nearest triangle to point *x*
-        T = self.GetNearestTri(x, **kw)
-        # Nearest triangle
-        k = T["k1"]
+        # Check options
+        k = kw.get("k")
+        z = kw.get("z")
+        k1 = kw.get("k1")
+        # Try to use 1-based *tri*
+        if k1 is not None and k is None:
+            k = k1 - 1
+        # Check if we already have nearest tri
+        if k is None or z is None:
+            # Get the nearest triangle to point *x*
+            T = self.GetNearestTri(x, **kw)
+            # Nearest triangle
+            k = T["k1"]
+            # Projection distance
+            z = T["z1"]
         # Extract the node numbers
         i0, i1, i2 = self.Tris[k] - 1
         # Get nodal coordinates
         x0 = self.Nodes[i0]
         x1 = self.Nodes[i1]
         x2 = self.Nodes[i2]
-
         # Use sub-triangles to compute weights
         # If the projected point xp is outside of the triangle,
         # then the sum of a0,a1,a2 will be greater than the total
@@ -6972,7 +7007,7 @@ class Triq(TriBase):
         # to account for this
         #
         # Projected point
-        xp = x - T["z1"]*self.e3[k]
+        xp = x - z * self.e3[k]
         # Dot products
         dp0 = np.cross(xp-x1, xp-x2)
         dp1 = np.cross(xp-x2, xp-x0)
