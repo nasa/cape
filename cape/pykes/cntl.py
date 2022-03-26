@@ -524,8 +524,11 @@ class Cntl(ccntl.Cntl):
                     continue
                 # Check for file in folder
                 if os.path.isfile(fdest):
-                    # Remove it
-                    os.remove(fdest)
+                    # Nothing to do
+                    coppiedfiles.add(fbase)
+                    # Warning
+                    print("    Not writing '%s'; file already exists")
+                    continue
                 # Check copy vs link
                 if fname in linkfiles:
                     # Link it
