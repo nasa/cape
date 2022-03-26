@@ -525,7 +525,7 @@ class Cntl(ccntl.Cntl):
                 # Check for file in folder
                 if os.path.isfile(fdest):
                     # Nothing to do
-                    coppiedfiles.add(fbase)
+                    copiedfiles.add(fbase)
                     # Warning
                     print("    Not writing '%s'; file already exists")
                     continue
