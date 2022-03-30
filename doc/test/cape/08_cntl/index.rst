@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-26 at 01:40 PDT
+   on 2022-03-30 at 01:40 PDT
 
 Test ``08_cntl``: PASS
 ========================
 
-This test PASSED on 2022-03-26 at 01:40 PDT
+This test PASSED on 2022-03-30 at 01:40 PDT
 
 This test is run in the folder:
 

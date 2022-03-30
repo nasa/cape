@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-03-26 at 01:40 PDT
+   on 2022-03-30 at 01:40 PDT
 
 Test ``05_argread``: PASS
 ===========================
 
-This test PASSED on 2022-03-26 at 01:40 PDT
+This test PASSED on 2022-03-30 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -124,7 +124,7 @@ Command 1: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.46 seconds
+    * Command took 0.56 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -162,8 +162,8 @@ Command 2: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 0.99 seconds
+    * Command took 0.70 seconds
+    * Cumulative time: 1.26 seconds
 :STDOUT:
     * **PASS**
     * Target:
