@@ -6994,6 +6994,9 @@ class Triq(TriBase):
             k = T["k1"]
             # Projection distance
             z = T["z1"]
+        else:
+            # Make sure basis vecotrs are present
+            self.GetBasisVectors()
         # Extract the node numbers
         i0, i1, i2 = self.Tris[k] - 1
         # Get nodal coordinates

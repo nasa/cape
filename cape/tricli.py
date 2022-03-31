@@ -23,7 +23,7 @@ from . import text as textutils
 from .config import ConfigXML, ConfigMIXSUR, ConfigJSON
 from .plt import Plt
 from .step import STEP
-from .tri import Tri
+from .tri import Tri, Triq
 
 
 # Template help messages
@@ -76,6 +76,12 @@ TRI_EXTS = [
     "lr4.tri",
     "r4.tri",
     "tri",
+    "lb4.triq",
+    "b4.triq",
+    "i.triq",
+    "lr4.triq",
+    "r4.triq",
+    "triq",
 ]
 
 # Help messages
@@ -385,6 +391,9 @@ zone.
     --plt
         Explicitly use binary ``.plt`` format for output
 
+    --triq
+        Manually specify that input file is a ``.triq`` file
+
     %(config)s
 
 :Versions:
@@ -627,6 +636,9 @@ def tri2plt(*a, **kw):
             XML surface config file
         *v*: ``True`` | {``False``}
             Verbose output while creating PLT instance
+        *triq*: ``True`` | ``False``
+            Manually specify ``triq`` file input (default determined by
+            file extension of *ftri*)
     :Versions:
         * 2016-04-05 ``@ddalle``: Version 1.0
         * 2021-10-01 ``@ddalle``: Version 2.0
@@ -636,6 +648,8 @@ def tri2plt(*a, **kw):
     qplt = kw.get("plt")
     # Get input file name
     ftri = _get_i(*a, **kw)
+    # Option for TRIQ
+    qtriq = kw.get("triq", ftri.endswith("triq"))
     # Get output file name
     if qdat:
         # Default to ".dat" extension
@@ -654,7 +668,12 @@ def tri2plt(*a, **kw):
         # Check file name
         qdat = fplt.endswith(".dat")
     # Read TRI file
-    tri = Tri(ftri)
+    if qtriq:
+        # Read with state
+        tri = Triq(ftri)
+    else:
+        # No state variables
+        tri = Tri(ftri)
     # Read Config file
     _read_triconfig(tri, *a, **kw)
     # Create PLT interface
