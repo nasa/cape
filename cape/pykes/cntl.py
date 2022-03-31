@@ -527,7 +527,7 @@ class Cntl(ccntl.Cntl):
                     # Nothing to do
                     copiedfiles.add(fbase)
                     # Warning
-                    print("    Not writing '%s'; file already exists")
+                    print("    Not writing '%s'; file already exists" % fbase)
                     continue
                 # Check copy vs link
                 if fname in linkfiles:

@@ -119,6 +119,10 @@ def run_kestrel():
             return 128
         # Clean up files
         finalize_files(rc, j)
+        # Write timing data
+        write_usertime(tic, rc, j)
+        # Attempt counter
+        nstart += 1
         # Check if case is resubmitted
         q = resubmit_case(rc, j)
         if q:
@@ -593,6 +597,31 @@ def write_starttime(tic, rc, j, fname="pykes_start.dat"):
     """
     # Call the function from :mod:`cape.cfdx.case`
     cc.WriteStartTimeProg(tic, rc, j, fname, "run_kestrel.py")
+    
+
+# Write time used
+def write_usertime(tic, rc, i, fname="pykes_time.dat"):
+    r"""Write time usage since time *tic* to file
+    
+    :Call:
+        >>> toc = write_usertime(tic, rc, i, fname="pykes_time.dat")
+    :Inputs:
+        *tic*: :class:`datetime.datetime`
+            Time from which timer will be measured
+        *rc*: :class:`pyCart.options.runControl.RunControl`
+            Options interface
+        *i*: :class:`int`
+            Phase number
+        *fname*: :class:`str`
+            Name of file containing CPU usage history
+    :Outputs:
+        *toc*: :class:`datetime.datetime`
+            Time at which time delta was measured
+    :Versions:
+        * 2022-03-31 ``@ddalle``: Version 1.0
+    """
+    # Call the function from :mod:`cape.case`
+    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_kestrel.py')
 
 
 # --- File Management ---
