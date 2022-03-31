@@ -308,7 +308,8 @@ def check_complete(rc):
     elif n < rc.get_LastIter():
         return False
     else:
-        return False
+        # All criteria met
+        return True 
 
 
 # --- File management ---
