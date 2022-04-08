@@ -3945,7 +3945,7 @@ class Cntl(object):
         # Get component option
         comp = kw.get("prop")
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob(["Prop"], comp)
+        comp = self.opts.get_DataBookByGlob(["CaseProp"], comp)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Make sure databook is present
