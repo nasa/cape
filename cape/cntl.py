@@ -712,6 +712,9 @@ class Cntl(object):
             # Update TriqFM data book
             self.UpdateTriqFM(**kw)
             return 'triqfm'
+        elif kw.get("prop"):
+            # Update CaseProp data book
+            self.UpdateCaseProp(**kw)
         elif kw.get('data', kw.get('db')):
             # Update all
             print("---- Updating FM DataBook components ----")
@@ -720,6 +723,8 @@ class Cntl(object):
             self.UpdateLL(**kw)
             print("---- Updating TriqFM DataBook components ----")
             self.UpdateTriqFM(**kw)
+            print("---- Updating CaseProp DataBook components ----")
+            self.UpdateCaseProp(**kw)
             # Output
             return "db"
         elif kw.get('archive'):
