@@ -1355,39 +1355,39 @@ class DataBook(dict):
         # Get component (note this automatically defaults to *comp*)
         compID = self.opts.get_DataBookCompID(comp)
         # Read the iterative history for single component
-        dbc = self.ReadDBCaseProp(compID)
+        prop = self.ReadCaseProp(compID)
         # Process the statistics.
-        s = dbc.GetStats(nStats, nMax)
+        s = prop.GetStats(nStats, nMax)
         # Get the corresponding residual drop
         # Save the data.
         if np.isnan(j):
             # Add to the number of cases
-            dbc.n += 1
+            DBc.n += 1
             # Append trajectory values
             for k in self.x.cols:
                 # Append
-                dbc[k] = np.append(dbc[k], self.x[k][i])
+                DBc[k] = np.append(DBc[k], self.x[k][i])
             # Append values.
-            for c in dbc.DataCols:
-                dbc[c] = np.append(dbc[c], s[c])
+            for c in DBc.DataCols:
+                DBc[c] = np.append(DBc[c], s[c])
             # Append iteration counts
-            if 'nIter' in dbc:
-                dbc['nIter']  = np.hstack((dbc['nIter'], [nIter]))
-            if 'nStats' in dbc:
-                dbc['nStats'] = np.hstack((dbc['nStats'], [s['nStats']]))
+            if 'nIter' in DBc:
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            if 'nStats' in DBc:
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
         else:
             # Save updated trajectory values
-            for k in dbc.xCols:
+            for k in DBc.xCols:
                 # Append to that column
-                dbc[k][j] = self.x[k][i]
+                DBc[k][j] = self.x[k][i]
             # Update data values.
             for c in DBc.DataCols:
-                dbc[c][j] = s[c]
+                DBc[c][j] = s[c]
             # Update the other statistics.
-            if 'nIter' in dbc:
-                dbc['nIter'][j]   = nIter
-            if 'nStats' in dbc:
-                dbc['nStats'][j]  = s['nStats']
+            if 'nIter' in DBc:
+                DBc['nIter'][j] = nIter
+            if 'nStats' in DBc:
+                DBc['nStats'][j] = s['nStats']
         # Go back.
         os.chdir(self.RootDir)
         # Output
@@ -1467,7 +1467,8 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j): continue
+            if np.isnan(j):
+                continue
             # Append to the list of data book indices.
             J.append(j)
         # Number of deletions
@@ -1476,8 +1477,8 @@ class DataBook(dict):
         if nj == 0:
             return nj
         # Report status
-        print("  Removing %s entries from FM component '%s'" % (nj, comp))
-        # Initialize mask of cases to keep.
+        print("  Removing %s entries from CaseProp component '%s'" % (nj, comp))
+        # Initialize mask of cases to keep
         mask = np.ones(nCase, dtype=bool)
         # Set values equal to false for cases to be deleted.
         mask[J] = False
@@ -9939,7 +9940,6 @@ class CaseFM(CaseData):
         s["nStats"] = ns
         # Output
         return s
-
    # >
 
    # ==========
