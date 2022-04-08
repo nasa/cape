@@ -60,10 +60,6 @@ method, for example
 """
 
 # Standard library
-import os
-import json
-import shutil
-import glob
 
 # Third-party
 import numpy as np

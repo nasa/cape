@@ -58,12 +58,12 @@ from . import argread
 from . import manage
 
 # Functions and classes from other modules
+from .config import ConfigXML, ConfigJSON
 from .runmatrix import RunMatrix
-from .config    import ConfigXML, ConfigJSON
 
 # Import triangulation
-from .tri  import Tri, ReadTriFile
 from .geom import RotatePoints
+from .tri import ReadTriFile
 
 
 # Decorator for moving directories
@@ -917,23 +917,28 @@ class Cntl(object):
         # Make sure it's as long as the header
         lrun = max(lrun, 21)
         # Print the right number of '-' chars
-        f = '-'; s = ' '
+        f, s = '-', ' '
         # Create the string stencil.
         if qJobID:
             # Print status with job numbers.
             stncl = ('%%-%is ' * 7) % (4, lrun, 7, 11, 3, 8, 7)
             # Print header row.
-            print(stncl % ("Case", "Config/Run Directory", "Status",
-                "Iterations", "Que", "CPU Time", "Job ID"))
+            print(
+                stncl % (
+                    "Case", "Config/Run Directory", "Status",
+                    "Iterations", "Que", "CPU Time", "Job ID"))
             # Print "---- --------" etc.
-            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s
-                + f*8 + s + f*7)
+            print(
+                f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s +
+                f*8 + s + f*7)
         else:
             # Print status without job numbers.
             stncl = ('%%-%is ' * 6) % (4, lrun, 7, 11, 3, 8)
             # Print header row.
-            print(stncl % ("Case", "Config/Run Directory", "Status",
-                "Iterations", "Que", "CPU Time"))
+            print(
+                stncl % (
+                    "Case", "Config/Run Directory", "Status",
+                    "Iterations", "Que", "CPU Time"))
             # Print "---- --------" etc.
             print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*8)
        # -------
@@ -3886,9 +3891,6 @@ class Cntl(object):
                 List of indices
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
-        :Outputs:
-            *d*: :class:`dict`\ [:class:`numpy.ndarray`]
-                Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2014-12-12 ``@ddalle``: Version 1.0
             * 2014-12-22 ``@ddalle``: Version 2.0
@@ -3901,7 +3903,7 @@ class Cntl(object):
         # Get component option
         comp = kw.get("fm", kw.get("aero"))
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comp)
+        comp = self.opts.get_DataBookByGlob(["FM", "Force", "Moment"], comp)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Check if we are deleting or adding.
@@ -3915,6 +3917,41 @@ class Cntl(object):
             self.ReadDataBook(comp=[])
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
+
+    # Function to collect statistics from generic-property component
+    @run_rootdir
+    def UpdateCaseProp(self, **kw):
+        r"""Update generic-property databook for one or more comp
+
+        :Call:
+            >>> cntl.UpdateCaseProp(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *prop*: {``None``} | :class:`str`
+                Wildcard to subset list of ``"Prop"`` components
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2022-04-08 ``@ddalle``: Version 1.0
+        """
+        # Get component option
+        comp = kw.get("prop")
+        # Get full list of components
+        comp = self.opts.get_DataBookByGlob(["Prop"], comp)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Make sure databook is present
+        self.ReadDataBook(comp=[])
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.DeleteCaseProp(I, comp=comp)
+        else:
+            # Read the results and update as necessary.
+            self.DataBook.UpdateCaseProp(I, comp=comp)
 
     # Update line loads
     @run_rootdir
