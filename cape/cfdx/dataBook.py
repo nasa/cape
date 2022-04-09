@@ -2824,7 +2824,7 @@ class DBBase(dict):
             # Fall back to the *comp* attribute
             name = self.comp
         # Call the object
-        DBc = DBBase(name, self.x, self.opts, check=check, lock=lock)
+        DBc = self.__class__(name, self.x, self.opts, check=check, lock=lock)
         # Ensure the same root directory is used
         DBc.RootDir = getattr(self,"RootDir", os.getcwd())
         # Output
@@ -3112,15 +3112,16 @@ class DBBase(dict):
             # Re-sort
             self.Sort()
         # Check for default file name
-        if fname is None: fname = self.fname
+        if fname is None:
+            fname = self.fname
         # check for a previous old file.
-        if os.path.isfile(fname+".old"):
-            # Remove it.
-            os.remove(fname+".old")
+        if os.path.isfile(fname + ".old"):
+            # Remove it
+            os.remove(fname + ".old")
         # Check for an existing data file.
         if os.path.isfile(fname):
             # Move it to ".old"
-            os.rename(fname, fname+".old")
+            os.rename(fname, fname + ".old")
         # DataBook delimiter
         delim = self.opts.get_Delimiter()
         # Go to home directory
