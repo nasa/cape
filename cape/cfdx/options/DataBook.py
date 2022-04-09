@@ -1324,20 +1324,8 @@ class DataBook(odict):
         elif coeff in ['CL', 'CN', 'CS']:
             # Stability-frame force/moment
             return ['mu', 'min', 'max', 'std', 'err']
-        elif coeff in ['Cp', 'dp', 'p', 'P', 'p/pinf']:
-            # Pressure data
-            return ['mu', 'std', 'min', 'max']
-        elif coeff in ['T', 'T/Tinf', 'a', 'a/ainf']:
-            # Temperature data
-            return ['mu', 'std', 'min', 'max']
-        elif coeff in ['U', 'V', 'W', 'u', 'v', 'w', 'VT', 'vT', 'vt']:
-            # Velocity data
-            return ['mu', 'std', 'min', 'max']
-        elif coeff in ['rho', 'rho/rhoinf']:
-            # Density data
-            return ['mu', 'std', 'min', 'max']
-        elif coeff in ['dCA', 'dCN', 'dCY', 'dCLL', 'dCLM', 'dCLN']:
-            # Sectional loads
+        else:
+            # Default for most states
             return ['mu', 'std', 'min', 'max']
         
     # Get additional float columns
@@ -1458,6 +1446,7 @@ class DataBook(odict):
                 List of coefficients and other columns for that coefficient
         :Versions:
             * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: Version 2.0; cooeff-spec suffixes
         """
         # Get the list of coefficients.
         coeffs = self.get_DataBookCoeffs(comp)
@@ -1468,9 +1457,14 @@ class DataBook(odict):
         # Process statistical columns.
         if nStats > 0:
             # Loop through columns.
-            for c in coeffs:
+            for coeff in coeffs:
+                # Get stat cols for this coeff
+                scols = self.get_DataBookCoeffStats(comp, coeff)
+                # Don't double-count the mean
+                if "mu" in scols:
+                    scols.remove("mu")
                 # Append all statistical columns.
-                cols += [c+'_min', c+'_max', c+'_std', c+'_err']
+                cols += [coeff + "_" + suf for suf in scols]
         # Output.
         return cols
         

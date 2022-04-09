@@ -164,6 +164,26 @@ class DataBook(cdbook.DataBook):
         """
         # Read CaseResid object from PWD
         return CaseFM(comp)
+
+    # Read case generic-property history
+    def ReadCaseProp(self, comp):
+        r"""Read a :class:`CaseProp` object
+
+        :Call:
+            >>> fm = db.ReadCaseProp(comp)
+        :Inputs:
+            *db*: :class:`DataBook`
+                Databook for one run matrix
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fm*: :class:`CaseFM`
+                Force and moment history
+        :Versions:
+            * 2022-04-08 ``@ddalle``: Version 1.0
+        """
+        # Read CaseResid object from PWD
+        return CaseProp(comp)
   # >
 
 

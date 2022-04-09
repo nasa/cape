@@ -1367,9 +1367,10 @@ class DataBook(dict):
             for k in self.x.cols:
                 # Append
                 DBc[k] = np.append(DBc[k], self.x[k][i])
-            # Append values.
+            # Append values
             for c in DBc.DataCols:
-                DBc[c] = np.append(DBc[c], s[c])
+                if c in s:
+                    DBc[c] = np.append(DBc[c], s[c])
             # Append iteration counts
             if 'nIter' in DBc:
                 DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
@@ -2611,7 +2612,8 @@ class DBBase(dict):
             # Get list of stats for this column
             cColi = self.opts.get_DataBookCoeffStats(self.comp, coeff)
             # Check for 'mu'
-            if 'mu' in cColi: cCols.append(coeff)
+            if 'mu' in cColi:
+                cCols.append(coeff)
         # Add list of statistics for each column
         for coeff in coeffs:
             # Get list of stats for this column
