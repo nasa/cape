@@ -715,6 +715,7 @@ class Cntl(object):
         elif kw.get("prop"):
             # Update CaseProp data book
             self.UpdateCaseProp(**kw)
+            return 'prop'
         elif kw.get('data', kw.get('db')):
             # Update all
             print("---- Updating FM DataBook components ----")
