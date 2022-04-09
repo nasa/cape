@@ -13,10 +13,12 @@ all options are controlled within one module.
 
 """
 
-# System modules
+# Standard library
 import fnmatch
+import os
+
 # Import options-specific utilities
-from .util import rc0, odict, getel, os
+from .util import rc0, odict
 
 
 # Class for data book
@@ -32,7 +34,7 @@ class DataBook(odict):
         *opts*: :class:`cape.options.DataBook.DataBook`
             Data book options interface
     :Versions:
-        * 2014-12-20 ``@ddalle``: First version
+        * 2014-12-20 ``@ddalle``: Version 1.0
     """
   # ======
   # Config
@@ -43,7 +45,7 @@ class DataBook(odict):
         """Data book options initialization method
         
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Store the data in *this* instance
         for k in kw:
@@ -86,7 +88,7 @@ class DataBook(odict):
             *sys*: ``True`` | {``False``}
                 Whether or not to replace ``None`` with system setting
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
             * 2017-09-05 ``@ddalle``: Added *sys* input
         """
         # Get umask
@@ -138,7 +140,7 @@ class DataBook(odict):
             *umask*: ``None`` | :class:`oct`
                 File permissions mask (``None`` only if *sys* is ``False``)
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Read the option.
         umask = self.get('umask')
@@ -174,7 +176,7 @@ class DataBook(odict):
             *dmask*: :class:`int` | ``None``
                 New folder permissions mask
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Get the umask
         umask = self.get_umask()
@@ -195,7 +197,7 @@ class DataBook(odict):
             *sys*: {``True``} | ``False``
                 Whether or not to use system setting as default
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
             * 2017-09-05 ``@ddalle``: Added *sys* input variable
         """
         # Get umask
@@ -224,7 +226,7 @@ class DataBook(odict):
             *comps*: :class:`list`
                 List of components
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
             * 2017-01-17 ``@ddalle``: Added *targ* input
         """
         # Get the value from the dictionary.
@@ -258,7 +260,7 @@ class DataBook(odict):
             *targs*: :class:`list`\ [:class:`str`]
                 List of targets for that component
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Get the component options.
         copts = self.get(comp, {})
@@ -266,7 +268,7 @@ class DataBook(odict):
         targs = copts.get('Targets', {})
         # Make sure it's a dict.
         if type(targs).__name__ not in ['dict']:
-            raise TypeError("Targets for component '%s' are not a dict." % comp)
+            raise TypeError("Targets for component '%s' are not a dict" % comp)
         # Output
         return targs
         
@@ -287,7 +289,7 @@ class DataBook(odict):
             *pts*: :class:`list`\ [:class:`str`]
                 List of points (by name) in the group
         :Versions:
-            * 2015-12-04 ``@ddalle``: First version
+            * 2015-12-04 ``@ddalle``: Version 1.0
             * 2016-02-17 ``@ddalle``: Moved to CAPE
         """
         # Check.
@@ -316,7 +318,7 @@ class DataBook(odict):
             *comps*: :class:`list`
                 List of components or line load groups
         :Versions:
-            * 2015-09-15 ``@ddalle``: First version
+            * 2015-09-15 ``@ddalle``: Version 1.0
         """
         # Get the value from the dictionary.
         comps = self.get('LineLoads', [])
@@ -351,7 +353,7 @@ class DataBook(odict):
             *nStats*: :class:`int`
                 Number of iterations to be used for statistics
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
         """
         # Global data book setting
         db_stats = self.get_key('nStats', 0)
@@ -374,7 +376,7 @@ class DataBook(odict):
             *nStats*: :class:`int`
                 Number of iterations to be used for statistics
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
         """
         self['nStats'] = nStats
         
@@ -392,7 +394,7 @@ class DataBook(odict):
             *nMin*: :class:`int`
                 Minimum iteration index to consider for statistics
         :Versions:
-            * 2015-02-28 ``@ddalle``: First version
+            * 2015-02-28 ``@ddalle``: Version 1.0
         """
         # Check for a value.
         db_nMin = self.get_key('nMin', 0)
@@ -420,7 +422,7 @@ class DataBook(odict):
             *nMin*: :class:`int`
                 Minimum iteration index to consider for statistics
         :Versions:
-            * 2015-02-28 ``@ddalle``: First version
+            * 2015-02-28 ``@ddalle``: Version 1.0
         """
         self['nMin'] = nStats
         
@@ -439,7 +441,7 @@ class DataBook(odict):
             *nMax*: :class:`int`
                 Maximum number of iterations to be used for statistics
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
         """
         # Read global option
         db_nMax = self.get_key('nMaxStats', rc0('db_max'))
@@ -463,7 +465,7 @@ class DataBook(odict):
             *nMax*: :class:`int`
                 Number of iterations to be used for statistics
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
         """
         self['nMaxStats'] = nMax
         
@@ -482,7 +484,7 @@ class DataBook(odict):
             *dn*: :class:`int`
                 Increment in candidate window sizes
         :Versions:
-            * 2017-09-29 ``@ddalle``: First version
+            * 2017-09-29 ``@ddalle``: Version 1.0
         """
         # Read global option
         db_dn = self.get_key('dnStats', self.get_nStats(comp))
@@ -506,10 +508,9 @@ class DataBook(odict):
             *dn*: :class:`int`
                 Increment in candidate window sizes
         :Versions:
-            * 2017-09-29 ``@ddalle``: First version
+            * 2017-09-29 ``@ddalle``: Version 1.0
         """
         self['nMaxStats'] = dn
-        
         
     # Get a specific iteration to end statistics at
     def get_nLastStats(self, comp=None):
@@ -527,7 +528,7 @@ class DataBook(odict):
             *nLast*: :class:`int`
                 Maximum iteration to use for statistics
         :Versions:
-            * 2015-03-04 ``@ddalle``: First version
+            * 2015-03-04 ``@ddalle``: Version 1.0
         """
         # Global option
         db_nLast = self.get('nLastStats')
@@ -551,7 +552,7 @@ class DataBook(odict):
             *nLast*: :class:`int`
                 Maximum iteration to use for statistics
         :Versions:
-            * 2015-03-04 ``@ddalle``: First version
+            * 2015-03-04 ``@ddalle``: Version 1.0
         """
         self['nLastStats'] = nLast
         
@@ -568,7 +569,7 @@ class DataBook(odict):
             *fdir*: :class:`str`
                 Relative path to data book folder
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
         """
         return self.get('Folder', 'data')
         
@@ -584,7 +585,7 @@ class DataBook(odict):
             *fdir*: :class:`str`
                 Relative path to data book folder
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
         """
         self['Folder'] = fdir
         
@@ -601,7 +602,7 @@ class DataBook(odict):
             *delim*: :class:`str`
                 Delimiter to use in data book files
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         return self.get('Delimiter', rc0('Delimiter'))
         
@@ -617,7 +618,7 @@ class DataBook(odict):
             *delim*: :class:`str`
                 Delimiter to use in data book files
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         self['Delimiter'] = delim
         
@@ -634,7 +635,7 @@ class DataBook(odict):
             *key*: :class:`str` | ``None`` | :class:`list`\ [:class:`str`]
                 Name of key to sort with
         :Versions:
-            * 2014-12-30 ``@ddalle``: First version
+            * 2014-12-30 ``@ddalle``: Version 1.0
         """
         return self.get('Sort')
         
@@ -650,7 +651,7 @@ class DataBook(odict):
             *key*: :class:`str` | ``None`` | :class:`list`\ [:class:`str`]
                 Name of key to sort with
         :Versions:
-            * 2014-12-30 ``@ddalle``: First version
+            * 2014-12-30 ``@ddalle``: Version 1.0
         """
         self['Sort'] = key
         
@@ -669,7 +670,7 @@ class DataBook(odict):
             *fpre*: :class:`str`
                 Name of prefix
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: Version 1.0
         """
         # Global data book setting
         db_pre = self.get('Prefix')
@@ -693,7 +694,7 @@ class DataBook(odict):
             *ext*: :class:`str`
                 File extension
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: Version 1.0
         """
         # Global data book setting
         db_ext = self.get('Extension', "dlds")
@@ -722,7 +723,7 @@ class DataBook(odict):
             *fmt*: ``None`` | :class:`str`
                 File format for additional output
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Get the options for the component.
         copts = self.get(comp, {})
@@ -748,7 +749,7 @@ class DataBook(odict):
             *fmt*: ``ascii`` | {``lb4``} | ``b4`` | ``lb8`` | ``b8``
                 File format for additional output
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Get the options for the component.
         copts = self.get(comp, {})
@@ -779,7 +780,7 @@ class DataBook(odict):
             *atol*: :class:`float`
                 Absolute tangential distance tolerance for TriqFM
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Read options for compoonent
         copts = self.get(comp, {})
@@ -803,7 +804,7 @@ class DataBook(odict):
             *rtol*: :class:`float`
                 Tangential distance tolerance relative to total BBox
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Read options for compoonent
         copts = self.get(comp, {})
@@ -827,7 +828,7 @@ class DataBook(odict):
             *rtol*: :class:`float`
                 Tangential distance tolerance relative to component BBox
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Read options for compoonent
         copts = self.get(comp, {})
@@ -851,7 +852,7 @@ class DataBook(odict):
             *antol*: :class:`float`
                 Absolute distance tolerance for TriqFM projection
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Read options for compoonent
         copts = self.get(comp, {})
@@ -876,7 +877,7 @@ class DataBook(odict):
             *rntol*: :class:`float`
                 Projection distance tolerance relative to total BBox
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Read options for compoonent
         copts = self.get(comp, {})
@@ -900,7 +901,7 @@ class DataBook(odict):
             *cntol*: :class:`float`
                 Projection distance tolerance relative to comp BBox
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Read options for compoonent
         copts = self.get(comp, {})
@@ -924,7 +925,7 @@ class DataBook(odict):
             *tols*: :class:`dict`\ [:class:`float`]
                 Dict of relative and absolute tolerances for CompID mapping
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Get the options
         atol  = self.get_DataBookAbsTol(comp)
@@ -960,7 +961,7 @@ class DataBook(odict):
             *fcfg*: :class:`str`
                 Name of configuration file
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Read options for compoonent
         copts = self.get(comp, {})
@@ -984,7 +985,7 @@ class DataBook(odict):
             *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
                 Component from pre-mapped tri file
         :Versions:
-            * 2017-04-07 ``@ddalle``: First version
+            * 2017-04-07 ``@ddalle``: Version 1.0
         """
         # Read options for compoonent
         copts = self.get(comp, {})
@@ -1011,7 +1012,7 @@ class DataBook(odict):
             *targets*: :class:`dict`\ [:class:`dict`]
                 Dictionary of targets
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
         """
         # Output
         return self.get('Targets', {})
@@ -1028,7 +1029,7 @@ class DataBook(odict):
             *targ*: :class:`str`
                 Name of the data book target
         :Outputs:
-            * 2015-12-15 ``@ddalle``: First version
+            * 2015-12-15 ``@ddalle``: Version 1.0
         """
         # Get the set of targets
         DBTs = self.get_DataBookTargets()
@@ -1056,7 +1057,7 @@ class DataBook(odict):
             *typ*: {``"generic"``} | ``"cape"``
                 Target type, generic CSV file or duplicate data book
         :Versions:
-            * 2016-06-27 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Version 1.0
         """
         # Get the set of targets
         DBTs = self.get_DataBookTargets()
@@ -1081,7 +1082,7 @@ class DataBook(odict):
             *typ*: {``"generic"``} | ``"cape"``
                 Target type, generic CSV file or duplicate data book
         :Versions:
-            * 2016-06-27 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Version 1.0
         """
         # Get the set of targets
         DBTs = self.get_DataBookTargets()
@@ -1091,7 +1092,6 @@ class DataBook(odict):
         # Get the type
         return DBTs[targ].get('Folder', 'data')
   # >
-  
   
   # ================
   # Component Config
@@ -1112,7 +1112,7 @@ class DataBook(odict):
             *comps*: :class:`list`\ [:class:`str`]
                 List of data book components with ``"Type"`` matching *typ*
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: Version 1.0
         """
         # Initialize components
         comps = []
@@ -1142,7 +1142,7 @@ class DataBook(odict):
             *comps*: :class:`str`
                 All components meeting one or more wild cards
         :Versions:
-            * 2017-04-25 ``@ddalle``: First version
+            * 2017-04-25 ``@ddalle``: Version 1.0
         """
         # Check for list of types
         if type(typ).__name__ not in ['ndarray', 'list']:
@@ -1194,7 +1194,7 @@ class DataBook(odict):
             *ctype*: {Force} | Moment | FM | PointSensor | LineLoad
                 Data book entry type
         :Versions:
-            * 2015-12-14 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Version 1.0
         """
         # Get the component options.
         copts = self.get(comp, {})
@@ -1216,7 +1216,7 @@ class DataBook(odict):
             *compID*: :class:`str` | :class:`int` | :class:`list`
                 Component or list of components to which this DB applies
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: Version 1.0
         """
         # Get the options for that component
         copts = self.get(comp, {})
@@ -1238,16 +1238,16 @@ class DataBook(odict):
             *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients for that component
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Get the component options.
         copts = self.get(comp, {})
         # Check for manually-specified coefficients
-        coeffs = copts.get("Coefficients", self.get("Coefficients", []))
+        coeffs = copts.get("Cols", self.get("Coefficients", []))
         # Check the type.
-        if type(coeffs).__name__ not in ['list']:
+        if not isinstance(coeffs, list):
             raise TypeError(
-                "Coefficients for component '%s' must be a list." % comp) 
+                "Coefficients for component '%s' must be a list." % comp)
         # Exit if that exists.
         if len(coeffs) > 0:
             return coeffs
@@ -1294,12 +1294,10 @@ class DataBook(odict):
             *sts*: :class:`list` (mu | std | min | max | err)
                 List of statistical properties for this coefficient
         :Versions:
-            * 2016-03-15 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: Version 1.0
         """
         # Get the component options
         copts = self.get(comp, {})
-        # Coefficients
-        coeffs = self.get_DataBookCoeffs(comp)
         # Get the coefficient
         sts = copts.get(coeff)
         # Process default if necessary
@@ -1326,20 +1324,8 @@ class DataBook(odict):
         elif coeff in ['CL', 'CN', 'CS']:
             # Stability-frame force/moment
             return ['mu', 'min', 'max', 'std', 'err']
-        elif coeff in ['Cp', 'dp', 'p', 'P', 'p/pinf']:
-            # Pressure data
-            return ['mu', 'std', 'min', 'max']
-        elif coeff in ['T', 'T/Tinf', 'a', 'a/ainf']:
-            # Temperature data
-            return ['mu', 'std', 'min', 'max']
-        elif coeff in ['U', 'V', 'W', 'u', 'v', 'w', 'VT', 'vT', 'vt']:
-            # Velocity data
-            return ['mu', 'std', 'min', 'max']
-        elif coeff in ['rho', 'rho/rhoinf']:
-            # Density data
-            return ['mu', 'std', 'min', 'max']
-        elif coeff in ['dCA', 'dCN', 'dCY', 'dCLL', 'dCLM', 'dCLN']:
-            # Sectional loads
+        else:
+            # Default for most states
             return ['mu', 'std', 'min', 'max']
         
     # Get additional float columns
@@ -1357,7 +1343,7 @@ class DataBook(odict):
             *fcols*: :class:`list`\ [:class:`str`]
                 List of additional float columns
         :Versions:
-            * 2016-03-15 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: Version 1.0
         """
         # Get the component options
         copts = self.get(comp, {})
@@ -1391,7 +1377,7 @@ class DataBook(odict):
             *fcols*: :class:`list`\ [:class:`str`]
                 List of additional float columns
         :Versions:
-            * 2016-03-15 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: Version 1.0
         """
         # Get the component options
         copts = self.get(comp, {})
@@ -1434,7 +1420,7 @@ class DataBook(odict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of coefficients and other columns for that coefficient
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Data columns (from CFD)
         dcols = self.get_DataBookDataCols(comp)
@@ -1459,7 +1445,8 @@ class DataBook(odict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of coefficients and other columns for that coefficient
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: Version 2.0; cooeff-spec suffixes
         """
         # Get the list of coefficients.
         coeffs = self.get_DataBookCoeffs(comp)
@@ -1470,9 +1457,14 @@ class DataBook(odict):
         # Process statistical columns.
         if nStats > 0:
             # Loop through columns.
-            for c in coeffs:
+            for coeff in coeffs:
+                # Get stat cols for this coeff
+                scols = self.get_DataBookCoeffStats(comp, coeff)
+                # Don't double-count the mean
+                if "mu" in scols:
+                    scols.remove("mu")
                 # Append all statistical columns.
-                cols += [c+'_min', c+'_max', c+'_std', c+'_err']
+                cols += [coeff + "_" + suf for suf in scols]
         # Output.
         return cols
         
@@ -1491,7 +1483,7 @@ class DataBook(odict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of coefficient target values
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Initialize output
         cols = []
@@ -1527,7 +1519,7 @@ class DataBook(odict):
             *pts*: :class:`list`\ [:class:`str`]
                 List of subcomponents
         :Versions:
-            * 2015-12-14 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Version 1.0
         """
         # Get component
         copts = self.get(comp, {})
@@ -1564,7 +1556,7 @@ class DataBook(odict):
             *tlist*: :class:`list`\ [:class:`dict`]
                 List of targets for that component
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Version 1.0
         """
         # Get the options for the component.
         copts = self.get(comp, {})
@@ -1594,7 +1586,7 @@ class DataBook(odict):
             *ftri*: {``None``} | :class:`str`
                 Name of tri file relative to root directory
         :Versions:
-            * 2017-03-05 ``@ddalle``: First version
+            * 2017-03-05 ``@ddalle``: Version 1.0
         """
         # Get the options for the component
         copts = self.get(comp, {})
@@ -1622,7 +1614,7 @@ class DataBook(odict):
             *fcfg*: {``None``} | :class:`str`
                 Name of config XML or JSON file, if any
         :Versions:
-            * 2017-03-05 ``@ddalle``: First version
+            * 2017-03-05 ``@ddalle``: Version 1.0
         """
         # Get the options for the component
         copts = self.get(comp, {})
@@ -1649,7 +1641,7 @@ class DataBook(odict):
             *fpatches*: :class:`list`\ [:class:`str`]
                 List of names of patches, if any
         :Versions:
-            * 2017-03-28 ``@ddalle``: First version
+            * 2017-03-28 ``@ddalle``: Version 1.0
         """
         # Get the options for the component
         copts = self.get(comp, {})
@@ -1677,7 +1669,7 @@ class DataBook(odict):
             *nCut*: :class:`int`
                 Number of cuts to include in line loads
         :Versions:
-            * 2015-09-15 ``@ddalle``: First version
+            * 2015-09-15 ``@ddalle``: Version 1.0
         """
         # Global data book setting
         db_nCut = self.get('nCut', rc0("db_nCut"))
@@ -1701,7 +1693,7 @@ class DataBook(odict):
             *qm*: ``True`` | {``False``}
                 Whether or not to include momentum
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: Version 1.0
         """
         # Global data book setting
         db_qm = self.get("Momentum", False)
@@ -1725,7 +1717,7 @@ class DataBook(odict):
             *qg*: {``True``} | ``False``
                 Option to use gauge forces (freestream pressure as reference)
         :Versions:
-            * 2017-03-29 ``@ddalle``: First version
+            * 2017-03-29 ``@ddalle``: Version 1.0
         """
         # Global data book setting
         db_qg = self.get("Gauge", True)
@@ -1749,7 +1741,7 @@ class DataBook(odict):
             *iTrim*: ``0`` | {``1``}
                 Trim setting; no output if ``None``
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: Version 1.0
         """
         # Global data book setting
         db_trim = self.get("Trim", 1)
@@ -1773,7 +1765,7 @@ class DataBook(odict):
             *typ*: {``"dlds"``} | ``"slds"`` | ``"clds"`` | :class:`str`
                 Value of the ``"SectionType"`` option
         :Versions:
-            * 2016-06-09 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: Version 1.0
         """
         # Global data book setting
         db_o = self.get("SectionType", 'dlds')
@@ -1813,7 +1805,7 @@ class DataBook(odict):
             *comps*: :class:`list`\ [:class:`str` | :class:`int`]
                 List of components (names or numbers) to plot
         :Versions:
-            * 2014-11-22 ``@ddalle``: First version
+            * 2014-11-22 ``@ddalle``: Version 1.0
         """
         # Get the value from the dictionary.
         comps = self.get('PlotComponents', ['entire'])
@@ -1839,7 +1831,7 @@ class DataBook(odict):
             *comps*: :class:`list`\ [:class:`str` | :class:`int`]
                 List of components (names or numbers) to plot
         :Versions:
-            * 2014-11-22 ``@ddalle``: First version
+            * 2014-11-22 ``@ddalle``: Version 1.0
         """
         # Make sure it's a list.
         if type(comps).__name__ not in ['list']:
@@ -1863,7 +1855,7 @@ class DataBook(odict):
             *comps*: :class:`list`\ [:class:`str` | :class:`int`]
                 List of components (names or numbers) to plot
         :Versions:
-            * 2014-11-23 ``@ddalle``: First version
+            * 2014-11-23 ``@ddalle``: Version 1.0
         """
         # Get the current list.
         comps_cur = self.get('Components', [])
@@ -1899,7 +1891,7 @@ class DataBook(odict):
             *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients to plot
         :Versions:
-            * 2014-11-22 ``@ddalle``: First version
+            * 2014-11-22 ``@ddalle``: Version 1.0
         """
         # Get the value from the dictionary.
         coeffs = self.get('Coefficients', ['CA', 'CY', 'CN', 'L1'])
@@ -1938,7 +1930,7 @@ class DataBook(odict):
             *nPlot*: :class:`int`
                 Number of iterations to plot (maximum)
         :Versions:
-            * 2014-11-23 ``@ddalle``: First version
+            * 2014-11-23 ``@ddalle``: Version 1.0
         """
         # Get the default.
         nPlot = self.get('nPlot')
@@ -1964,7 +1956,7 @@ class DataBook(odict):
             *nLast*: :class:`int`
                 Last iteration to plot for coefficient plots
         :Versions:
-            * 2015-03-04 ``@ddalle``: First version
+            * 2015-03-04 ``@ddalle``: Version 1.0
         """
         # Get the default.
         nLast = self.get('nLast')
@@ -1990,7 +1982,7 @@ class DataBook(odict):
             *nFirst*: :class:`int`
                 First iteration to plot for coefficient plots
         :Versions:
-            * 2015-03-04 ``@ddalle``: First version
+            * 2015-03-04 ``@ddalle``: Version 1.0
         """
         # Get the default.
         nFirst = self.get('nFirst')
@@ -2020,7 +2012,7 @@ class DataBook(odict):
             *nAvg*: :class:`int`
                 Number of iterations to use for averaging
         :Versions:
-            * 2014-11-23 ``@ddalle``: First version
+            * 2014-11-23 ``@ddalle``: Version 1.0
         """
         # Get the default.
         nAvg = self.get('nAverage', rc0('nAvg'))
@@ -2046,7 +2038,7 @@ class DataBook(odict):
             *nRow*: :class:`int`
                 Number of rows of plots
         :Versions:
-            * 2014-11-23 ``@ddalle``: First version
+            * 2014-11-23 ``@ddalle``: Version 1.0
         """
         # Get the default.
         nRow = self.get('nRow', rc0('nRow'))
@@ -2072,7 +2064,7 @@ class DataBook(odict):
             *nCol*: :class:`int`
                 Number of columns of plots
         :Versions:
-            * 2014-11-23 ``@ddalle``: First version
+            * 2014-11-23 ``@ddalle``: Version 1.0
         """
         # Get the default.
         nCol = self.get('nCol', rc0('nCol'))
@@ -2098,7 +2090,7 @@ class DataBook(odict):
             *sTag*: :
                 Number of columns of plots
         :Versions:
-            * 2014-11-23 ``@ddalle``: First version
+            * 2014-11-23 ``@ddalle``: Version 1.0
         """
         # Get the default.
         sTag = self.get('Restriction', '')
@@ -2127,7 +2119,7 @@ class DataBook(odict):
             *dC*: :class:`float` or ``None``
                 Offset to plot from mean with dotted line
         :Versions:
-            * 2014-11-23 ``@ddalle``: First version
+            * 2014-11-23 ``@ddalle``: Version 1.0
         """
         # Check for recognized coefficient
         if coeff not in ['CA','CY','CN','CLL','CLM','CLN']:
@@ -2163,7 +2155,7 @@ class DataBook(odict):
             *w*: :class:`float`
                 Figure width
         :Versions:
-            * 2015-03-09 ``@ddalle``: First version
+            * 2015-03-09 ``@ddalle``: Version 1.0
         """
         # Get the width.
         return self.get('FigWidth', rc0('FigWidth'))
@@ -2181,7 +2173,7 @@ class DataBook(odict):
             *h*: :class:`float`
                 Figure height
         :Versions:
-            * 2015-03-09 ``@ddalle``: First version
+            * 2015-03-09 ``@ddalle``: Version 1.0
         """
         # Get the width.
         return self.get('FigHeight', rc0('FigHeight'))
@@ -2202,7 +2194,7 @@ class DBTarget(odict):
         *opts*: :class:`cape.options.DataBook.DBTarget`
             Data book target options interface
     :Versions:
-        * 2014-12-01 ``@ddalle``: First version
+        * 2014-12-01 ``@ddalle``: Version 1.0
     """
     
     # Get the maximum number of refinements
@@ -2218,7 +2210,7 @@ class DBTarget(odict):
             *Name*: :class:`str`
                 Identifier for the target
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         return self.get('Name', 'Target')
         
@@ -2235,7 +2227,7 @@ class DBTarget(odict):
             *lbl*: :class:`str`
                 Label for the data book target to be used in plots and reports 
         :Versions:
-            * 2015-06-04 ``@ddalle``: First version
+            * 2015-06-04 ``@ddalle``: Version 1.0
         """
         # Default to target identifier
         return self.get('Label', self.get_TargetName())
@@ -2255,7 +2247,7 @@ class DBTarget(odict):
             *comps*: :class:`list`\ [:class:`str`]
                 List of components (``None`` if not specified)
         :Versions:
-            * 2015-06-03 ``@ddalle``: First version
+            * 2015-06-03 ``@ddalle``: Version 1.0
         """
         # Get the list
         comps = self.get('Components')
@@ -2280,7 +2272,7 @@ class DBTarget(odict):
             *fname*: :class:`str`
                 Name of the file
         :Versions:
-            * 2014-12-20 ``@ddalle``: First version
+            * 2014-12-20 ``@ddalle``: Version 1.0
         """
         return self.get('File', 'Target.dat')
         
@@ -2297,7 +2289,7 @@ class DBTarget(odict):
             *fdir*: :class:`str`
                 Name of the directory (relative to root directory)
         :Versions:
-            * 2016-06-27 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Version 1.0
         """
         return self.get('Folder', 'data')
         
@@ -2314,7 +2306,7 @@ class DBTarget(odict):
             *typ*: {``"generic"``} | ``"cape"``
                 Target type, generic CSV file or duplicate data book
         :Versions:
-            * 2016-06-27 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Version 1.0
         """
         return self.get('Type', 'generic')
         
@@ -2333,7 +2325,7 @@ class DBTarget(odict):
             *tol*: :class:`float`
                 Tolerance to consider as matching value for a trajectory key
         :Versions:
-            * 2015-12-16 ``@ddalle``: First version
+            * 2015-12-16 ``@ddalle``: Version 1.0
         """
         # Get tolerance option set
         tolopts = self.get("Tolerances", {})
@@ -2353,7 +2345,7 @@ class DBTarget(odict):
             *delim*: :class:`str`
                 Delimiter text
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         return self.get('Delimiter', rc0('Delimiter'))
         
@@ -2370,7 +2362,7 @@ class DBTarget(odict):
             *comchar*: :class:`str`
                 Comment character (may be multiple characters)
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         return self.get('Comment', '#')
     
@@ -2387,7 +2379,7 @@ class DBTarget(odict):
             *comchar*: :class:`str`
                 Comment character (may be multiple characters)
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
+            * 2014-12-21 ``@ddalle``: Version 1.0
         """
         return self.get('RunMatrix', {})    
 # class DBTarget

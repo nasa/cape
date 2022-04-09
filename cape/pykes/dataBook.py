@@ -89,7 +89,8 @@ class DataBook(cdbook.DataBook):
             * 2021-11-08 ``@ddalle``: Version 1.0
         """
         # Read the data book
-        self[comp] = DBComp(comp, self.x, self.opts,
+        self[comp] = DBComp(
+            comp, self.x, self.opts,
             targ=self.targ, check=check, lock=lock)
 
     # Local version of data book
@@ -163,6 +164,26 @@ class DataBook(cdbook.DataBook):
         """
         # Read CaseResid object from PWD
         return CaseFM(comp)
+
+    # Read case generic-property history
+    def ReadCaseProp(self, comp):
+        r"""Read a :class:`CaseProp` object
+
+        :Call:
+            >>> fm = db.ReadCaseProp(comp)
+        :Inputs:
+            *db*: :class:`DataBook`
+                Databook for one run matrix
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fm*: :class:`CaseFM`
+                Force and moment history
+        :Versions:
+            * 2022-04-08 ``@ddalle``: Version 1.0
+        """
+        # Read CaseResid object from PWD
+        return CaseProp(comp)
   # >
 
 
@@ -233,7 +254,7 @@ class CaseProp(cdbook.CaseFM):
         A = np.loadtxt(fdat, skiprows=nhdr, usecols=tuple(inds))
         # Save the values
         for j, col in zip(inds, cols):
-            self.__dict__[col] = A[:,j]
+            self.__dict__[col] = A[:, j]
 
    # --- Header ---
     def read_colnames(self, fname):
@@ -285,7 +306,7 @@ class CaseProp(cdbook.CaseFM):
                     if len(L) < 2:
                         continue
                     # Split variables on as things between quotes
-                    vals = re.findall('"\w[^"]*"', L[1])
+                    vals = re.findall(r'"\w[^"]*"', L[1])
                     # Append to the list
                     keys += [v.strip('"') for v in vals]
                 elif flag == 1:
@@ -297,7 +318,7 @@ class CaseProp(cdbook.CaseFM):
                         flag = 2
                         continue
                     # Split variables on as things between quotes
-                    vals = re.findall('"\w[^"]*"', l)
+                    vals = re.findall(r'"\w[^"]*"', l)
                     # Append to the list.
                     keys += [v.strip('"') for v in vals]
                 else:
@@ -426,7 +447,7 @@ class CaseFM(CaseProp):
         A = np.loadtxt(fdat, skiprows=nhdr, usecols=tuple(inds))
         # Save the values
         for j, col in zip(inds, cols):
-            self.__dict__[col] = A[:,j]
+            self.__dict__[col] = A[:, j]
 
    # --- Files ---
     def create_fname_coeff_dat(self, comp=None):
@@ -555,9 +576,9 @@ class CaseResid(cdbook.CaseResid):
         for j, col in zip(inds, cols):
             # Check if *coeff*
             if col in coeffs:
-                self.save_coeff(col, A[:,j])
+                self.save_coeff(col, A[:, j])
             else:
-                self.save_col(col, A[:,j])
+                self.save_col(col, A[:, j])
 
     def read_turb_dat(self, fdat=None):
         r"""Read ``cfd.turb.dat`` from expected data file
@@ -588,9 +609,9 @@ class CaseResid(cdbook.CaseResid):
             col1 = COLNAMES_TURB.get(col, col)
             # Check if *coeff*
             if col in coeffs:
-                self.save_coeff(col1, A[:,j])
+                self.save_coeff(col1, A[:, j])
             else:
-                self.save_col(col1, A[:,j])
+                self.save_col(col1, A[:, j])
 
     def save_coeff(self, col, v):
         r"""Save data to coefficient attribute called *col*
@@ -688,7 +709,7 @@ class CaseResid(cdbook.CaseResid):
                     if len(L) < 2:
                         continue
                     # Split variables on as things between quotes
-                    vals = re.findall('"[\w ]+"', L[1])
+                    vals = re.findall(r'"[\w ]+"', L[1])
                     # Append to the list
                     keys += [v.strip('"') for v in vals]
                 elif flag == 1:

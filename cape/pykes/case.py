@@ -99,7 +99,7 @@ def run_kestrel():
     # Initialize number of calls
     nstart = 0
     # Loop until complete or aborted by resubmission
-    while not check_complete(rc) and nstart < NSTART_MAX:
+    while nstart < NSTART_MAX:
         # Get phase number
         j = get_phase(rc)
         # Write the start time
@@ -123,6 +123,9 @@ def run_kestrel():
         write_usertime(tic, rc, j)
         # Attempt counter
         nstart += 1
+        # Explicit exit
+        if check_complete(rc):
+            break
         # Check if case is resubmitted
         q = resubmit_case(rc, j)
         if q:
