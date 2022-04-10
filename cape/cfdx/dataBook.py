@@ -371,6 +371,28 @@ class DataBook(dict):
             comp, self.x, self.opts,
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
+    # Initialize a DBComp object
+    def ReadDBPyFunc(self, comp, check=False, lock=False):
+        r"""Initialize data book for one PyFunc component
+
+        :Call:
+            >>> DB.ReadDBPyFunc(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check for LOCK file
+            *lock*: ``True`` | {``False``}
+                Whether or not to create LOCK file
+        :Versions:
+            * 2022-04-10 ``@ddalle``: Version 1.0
+        """
+        self[comp] = DBPyFunc(
+            comp, self.x, self.opts,
+            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
+    
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
         r"""Read a line load data
@@ -1837,6 +1859,209 @@ class DataBook(dict):
             n += nj
         # Output
         return n
+   # ]
+
+   # [
+    # Update python function databook
+    def UpdateDBPyFunc(self, I, comp=None):
+        r"""Update a scalar Python function output databook
+
+        :Call:
+            >>> DB.UpdateDBPyFunc(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+                Instance of data book class
+            *comp*: {``None``} | :class:`str`
+                Name of TriqFM data book component (default is all)
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+        :Versions:
+            * 2022-04-10 ``@ddalle``: Version 1.0
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("PyFunc", comp)
+        # Loop through components
+        for comp in comps:
+            # Status update
+            print("Updating CaseProp component '%s' ..." % comp)
+            # Perform update and get number of deletions
+            n = self.UpdateDBPyFuncComp(comp, I)
+            # Check for updates
+            if n == 0:
+                # Unlock
+                self[comp].Unlock()
+                continue
+            print("Added or updated %s entries" % n)
+            # Write the updated results
+            self[comp].Sort()
+            self[comp].Write(merge=True, unlock=True)
+
+    # Update Prop data book for one component
+    def UpdateDBPyFuncComp(self, comp, I=None):
+        r"""Update a PyFunc component of the databook
+
+        :Call:
+            >>> DB.UpdateDBPyFuncComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of TriqFM data book component
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
+        :Versions:
+            * 2022-04-10 ``@ddalle``: Version 1.0
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "CaseProp":
+            raise ValueError(
+                "Component '%s' is not a CaseProp component" % comp)
+        # Read the component if necessary
+        if comp not in self:
+            self.ReadDBPyFunc(comp, check=False, lock=False)
+        # Initialize count
+        n = 0
+        # Loop through indices
+        for i in I:
+            # Update the data book for that case
+            n += self.UpdateDBPyFuncCase(i, comp)
+        # Output
+        return n
+
+    # Update PyFUnc databook for one case of one component
+    def UpdateDBPyFuncCase(self, i, comp):
+        r"""Update or add a case to a PyFunc data book
+
+        The history of a run directory is processed if either one of
+        three criteria are met.
+
+            1. The case is not already in the data book
+            2. The most recent iteration is greater than the data book
+               value
+            3. The number of iterations used to create statistics has
+               changed
+
+        :Call:
+            >>> n = DB.UpdateCasePropCase(i, comp)
+        :Inputs:
+            *DB*: :class:`DataBook`
+                Instance of the data book class
+            *i*: :class:`int`
+                RunMatrix index
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
+        :Versions:
+            * 2022-04-08 ``@ddalle``: Version 1.0
+        """
+        if comp not in self:
+            raise KeyError("No PyFunc databook component '%s'" % comp)
+        # Get the first data book component
+        DBc = self[comp]
+        # Try to find a match existing in the data book
+        j = DBc.FindMatch(i)
+        # Get the name of the folder
+        frun = self.x.GetFullFolderNames(i)
+        # Status update
+        print(frun)
+        # Go home.
+        os.chdir(self.RootDir)
+        # Check if the folder exists
+        if not os.path.isdir(frun):
+            # Nothing to do
+            return 0
+        # Go to the folder
+        os.chdir(frun)
+        # Get the current iteration number
+        nIter = self.GetCurrentIter()
+        # Get the number of iterations used for stats.
+        nStats = self.opts.get_nStats()
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_nMin()
+        # Process whether or not to update.
+        if (not nIter) or (nIter < nMin + nStats):
+            # Not enough iterations (or zero iterations)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif np.isnan(j):
+            # No current entry.
+            print("  Adding new databook entry at iteration %i." % nIter)
+            q = True
+        elif DBc['nIter'][j] < nIter:
+            # Update
+            print(
+                "  Updating from iteration %i to %i."
+                % (DBc['nIter'][j], nIter))
+            q = True
+        elif DBc['nStats'][j] < nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            print("  Databook up to date.")
+            q = False
+        # Check for an update
+        if (not q):
+            return 0
+        # Maximum number of iterations allowed
+        nMaxStats = self.opts.get_nMaxStats()
+        # Limit max stats if instructed to do so
+        if nMaxStats is None:
+            # No max
+            nMax = None
+        else:
+            # Specified max, but don't use data before *nMin*
+            nMax = min(nIter - nMin, nMaxStats)
+       # --- Read Iterative History ---
+        # Get component (note this automatically defaults to *comp*)
+        compID = self.opts.get_DataBookCompID(comp)
+        # Read the iterative history for single component
+        prop = self.ReadCaseProp(compID)
+        # Process the statistics.
+        s = prop.GetStats(nStats, nMax)
+        # Get the corresponding residual drop
+        # Save the data.
+        if np.isnan(j):
+            # Add to the number of cases
+            DBc.n += 1
+            # Append trajectory values
+            for k in self.x.cols:
+                # Append
+                DBc[k] = np.append(DBc[k], self.x[k][i])
+            # Append values
+            for c in DBc.DataCols:
+                if c in s:
+                    DBc[c] = np.append(DBc[c], s[c])
+            # Append iteration counts
+            if 'nIter' in DBc:
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            if 'nStats' in DBc:
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+        else:
+            # Save updated trajectory values
+            for k in DBc.xCols:
+                # Append to that column
+                DBc[k][j] = self.x[k][i]
+            # Update data values.
+            for c in DBc.DataCols:
+                DBc[c][j] = s[c]
+            # Update the other statistics.
+            if 'nIter' in DBc:
+                DBc['nIter'][j] = nIter
+            if 'nStats' in DBc:
+                DBc['nStats'][j] = s['nStats']
+        # Go back.
+        os.chdir(self.RootDir)
+        # Output
+        return 1
+
    # ]
   # >
 
@@ -8767,7 +8992,7 @@ class CaseData(object):
         return h
 
     # Plot coefficient histogram
-    def PlotValueHist(self, c, nAvg=100, nLast=None, **kw):
+    def PlotValueHist(self, coeff, nAvg=100, nLast=None, **kw):
         """Plot a histogram of the iterative history of some value *c*
 
         :Call:
@@ -9104,8 +9329,10 @@ class CaseData(object):
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
         # ------
         # Labels
         # ------

@@ -716,6 +716,10 @@ class Cntl(object):
             # Update CaseProp data book
             self.UpdateCaseProp(**kw)
             return 'prop'
+        elif kw.get("dbpy"):
+            # Update PyFunc data book
+            self.UpdateDBPyFunc(**kw)
+            return "dbpy"
         elif kw.get('data', kw.get('db')):
             # Update all
             print("---- Updating FM DataBook components ----")
@@ -3958,6 +3962,41 @@ class Cntl(object):
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateCaseProp(I, comp=comp)
+
+    # Function to collect statistics from generic-property component
+    @run_rootdir
+    def UpdateDBPyFunc(self, **kw):
+        r"""Update Python function databook for one or more comp
+
+        :Call:
+            >>> cntl.UpdateDBPyFunc(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *prop*: {``None``} | :class:`str`
+                Wildcard to subset list of ``"Prop"`` components
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2022-04-10 ``@ddalle``: Version 1.0
+        """
+        # Get component option
+        comp = kw.get("prop")
+        # Get full list of components
+        comp = self.opts.get_DataBookByGlob(["PyFunc"], comp)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Make sure databook is present
+        self.ReadDataBook(comp=[])
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.DeleteDBPyFunc(I, comp=comp)
+        else:
+            # Read the results and update as necessary.
+            self.DataBook.UpdateDBPyFunc(I, comp=comp)
 
     # Update line loads
     @run_rootdir
