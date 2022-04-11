@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-09 at 01:45 PDT
+   on 2022-04-11 at 01:44 PDT
 
 Test ``02_bullet_py3``: PASS
 ==============================
 
-This test PASSED on 2022-04-09 at 01:45 PDT
+This test PASSED on 2022-04-11 at 01:44 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Case 1 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 100.31 seconds
+    * Command took 95.23 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -90,8 +90,8 @@ Command 2: Show DONE Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.78 seconds
-    * Cumulative time: 101.09 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 95.84 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -100,7 +100,7 @@ Command 2: Show DONE Status (PASS)
 
         Case Config/Run Directory  Status  Iterations  Que CPU Time 
         ---- --------------------- ------- ----------- --- --------
-        1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .        0.7 
+        1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .        0.6 
         
         DONE=1, 
         
@@ -133,8 +133,8 @@ Command 3: Collect Aero (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.25 seconds
-    * Cumulative time: 102.34 seconds
+    * Command took 0.99 seconds
+    * Cumulative time: 96.83 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -154,8 +154,8 @@ Command 4: Check DataBook (Python 2) (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 102.95 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 97.31 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -189,8 +189,8 @@ Command 5: Check DataBook (Python 3) (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.64 seconds
-    * Cumulative time: 103.59 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 97.89 seconds
 :STDOUT:
     * **PASS**
     * Actual:
