@@ -6437,6 +6437,106 @@ class DBProp(DBBase):
 # class DBProp
 
 
+# Data book for an individual component
+class DBPyFunc(DBBase):
+    r"""Individual scalar Python output component data book
+
+    This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
+
+    :Call:
+        >>> dbk = DBPyFunc(comp, x, opts, targ=None, **kw)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of the component
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix for processing variable types
+        *opts*: :class:`cape.cfdx.options.Options`
+            Global pyCart options instance
+        *targ*: {``None``} | :class:`str`
+            If used, read a duplicate data book as a target named *targ*
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
+    :Outputs:
+        *dbk*: :class:`DBProp`
+            An individual generic-property component data book
+    :Versions:
+        * 2014-12-20 ``@ddalle``: Started
+        * 2014-12-22 ``@ddalle``: Version 1.0 (:class:`DBComp`)
+        * 2016-06-27 ``@ddalle``: Version 1.1
+        * 2022-04-10 ``@ddalle``: Version 1.0
+    """
+  # ========
+  # Config
+  # ========
+  # <
+    # Initialization method
+    def __init__(self, comp, x, opts, targ=None, check=False, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2014-12-21 ``@ddalle``: Version 1.0
+        """
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.comp = comp
+        self.name = comp
+        # Root directory
+        self.RootDir = kw.get("RootDir", os.getcwd())
+        # Opitons
+        lock = kw.get("lock", False)
+
+        # Get the directory.
+        if targ is None:
+            # Primary data book directory
+            fdir = opts.get_DataBookDir()
+        else:
+            # Secondary data book directory
+            fdir = opts.get_DataBookTargetDir(targ)
+
+        # Construct the file name.
+        fcomp = 'pyfunc_%s.csv' % comp
+        # Folder name for compatibility.
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Construct the full file name.
+        fname = os.path.join(fdir, fcomp)
+        # Save the file name.
+        self.fname = fname
+        self.fdir = fdir
+
+        # Process columns
+        self.ProcessColumns()
+
+        # Read the file or initialize empty arrays.
+        self.Read(self.fname, check=check, lock=lock)
+
+        # Save the target translations
+        self.targs = opts.get_CompTargets(comp)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(comp)
+
+    # Command-line representation
+    def __repr__(self):
+        """Representation method
+
+        :Versions:
+            * 2014-12-27 ``@ddalle``: Version 1.0
+        """
+        # Initialize string
+        lbl = "<DBComp %s, " % self.comp
+        # Add the number of conditions.
+        lbl += "nCase=%i>" % self.n
+        # Output
+        return lbl
+    # String conversion
+    __str__ = __repr__
+  # >
+# class DBProp
+
+
 # Data book for a TriqFM component
 class DBTriqFM(DataBook):
     """Force and moment component extracted from surface triangulation
