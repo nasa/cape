@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-11 at 01:40 PDT
+   on 2022-04-12 at 01:40 PDT
 
 Test ``02_cli``: PASS
 =======================
 
-This test PASSED on 2022-04-11 at 01:40 PDT
+This test PASSED on 2022-04-12 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -41,7 +41,7 @@ Command 1: Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.58 seconds
+    * Command took 0.57 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -91,7 +91,7 @@ Command 2: Filter (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
+    * Command took 0.57 seconds
     * Cumulative time: 1.14 seconds
 :STDOUT:
     * **PASS**
@@ -132,8 +132,8 @@ Command 3: Constraints (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 1.71 seconds
+    * Command took 0.47 seconds
+    * Cumulative time: 1.61 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -169,8 +169,8 @@ Command 4: Glob (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.46 seconds
-    * Cumulative time: 2.17 seconds
+    * Command took 0.41 seconds
+    * Cumulative time: 2.02 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -208,8 +208,8 @@ Command 5: Regular Expression (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
-    * Cumulative time: 2.62 seconds
+    * Command took 0.40 seconds
+    * Cumulative time: 2.42 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -245,8 +245,8 @@ Command 6: Index List (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
-    * Cumulative time: 3.06 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 2.93 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -282,8 +282,8 @@ Command 7: Compound Subsets (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.62 seconds
-    * Cumulative time: 3.68 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 3.45 seconds
 :STDOUT:
     * **PASS**
     * Target:
