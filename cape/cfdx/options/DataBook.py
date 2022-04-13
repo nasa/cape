@@ -760,6 +760,36 @@ class DataBook(odict):
         # Output
         return fmt
   # >
+
+  # =======
+  # PyFunc
+  # =======
+  # <
+    def get_DataBookFunction(self, comp):
+        r"""Get function name for PyFunc component
+        
+        :Call:
+            >>> funcname = opts.get_DataBookFunction(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Data book component name
+        :Outputs:
+            *funcname*: :class:`str`
+                Name of function to use for this component
+        :Versions:
+            * 2022-04-13 ``@ddalle``: Version 1.0
+        """
+        # Get the options for the component.
+        copts = self.get(comp, {})
+        # Get the global option
+        funcname = self.get("Function")
+        # Get the component-specific option
+        funcname = copts.get("Function", funcname)
+        # Output
+        return funcname
+  # >
   
   # ======
   # TriqFM

@@ -813,10 +813,10 @@ class Cntl(object):
             # Update CaseProp data book
             self.UpdateCaseProp(**kw)
             return 'prop'
-        elif kw.get("dbpy"):
+        elif kw.get("dbpyfunc"):
             # Update PyFunc data book
             self.UpdateDBPyFunc(**kw)
-            return "dbpy"
+            return "dbpyfunc"
         elif kw.get('data', kw.get('db')):
             # Update all
             print("---- Updating FM DataBook components ----")

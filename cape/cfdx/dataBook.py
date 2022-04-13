@@ -389,9 +389,10 @@ class DataBook(dict):
         :Versions:
             * 2022-04-10 ``@ddalle``: Version 1.0
         """
+        # Read databook component
         self[comp] = DBPyFunc(
-            comp, self.x, self.opts,
-            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
+            comp, self.cntl,
+            targ=self.targ, check=check, lock=lock)
     
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
@@ -1999,10 +2000,6 @@ class DataBook(dict):
                 "  Updating from iteration %i to %i."
                 % (DBc['nIter'][j], nIter))
             q = True
-        elif DBc['nStats'][j] < nStats:
-            # Change statistics
-            print("  Recomputing statistics using %i iterations." % nStats)
-            q = True
         else:
             # Up-to-date
             print("  Databook up to date.")
@@ -2010,23 +2007,11 @@ class DataBook(dict):
         # Check for an update
         if (not q):
             return 0
-        # Maximum number of iterations allowed
-        nMaxStats = self.opts.get_nMaxStats()
-        # Limit max stats if instructed to do so
-        if nMaxStats is None:
-            # No max
-            nMax = None
-        else:
-            # Specified max, but don't use data before *nMin*
-            nMax = min(nIter - nMin, nMaxStats)
-       # --- Read Iterative History ---
-        # Get component (note this automatically defaults to *comp*)
-        compID = self.opts.get_DataBookCompID(comp)
-        # Read the iterative history for single component
-        prop = self.ReadCaseProp(compID)
-        # Process the statistics.
-        s = prop.GetStats(nStats, nMax)
-        # Get the corresponding residual drop
+        # Execute the appropriate function
+        v = self.ExecDBPyFunc(i)
+        # Check for success
+        if v is None:
+            return 0
         # Save the data.
         if np.isnan(j):
             # Add to the number of cases
@@ -2036,32 +2021,126 @@ class DataBook(dict):
                 # Append
                 DBc[k] = np.append(DBc[k], self.x[k][i])
             # Append values
-            for c in DBc.DataCols:
-                if c in s:
-                    DBc[c] = np.append(DBc[c], s[c])
+            for j1, c in enumerate(DBc.DataCols):
+                DBc[c] = np.append(DBc[c], v[j1])
             # Append iteration counts
             if 'nIter' in DBc:
                 DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-            if 'nStats' in DBc:
-                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
         else:
             # Save updated trajectory values
             for k in DBc.xCols:
                 # Append to that column
                 DBc[k][j] = self.x[k][i]
             # Update data values.
-            for c in DBc.DataCols:
-                DBc[c][j] = s[c]
+            for j1, c in enumerate(DBc.DataCols):
+                DBc[c][j] = v[j1]
             # Update the other statistics.
             if 'nIter' in DBc:
                 DBc['nIter'][j] = nIter
-            if 'nStats' in DBc:
-                DBc['nStats'][j] = s['nStats']
         # Go back.
         os.chdir(self.RootDir)
         # Output
         return 1
 
+    # Function to delete entries by index
+    def DeleteDBPyFunc(self, I, comp=None):
+        r"""Delete list of cases from PyFunc databook
+
+        :Call:
+            >>> DB.DeleteDBPyFunc(I)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *comp*: {``None``} | :class:`list` | :class:`str`
+                Component or list of components
+        :Versions:
+            * 2022-04-12 ``@ddalle``: Version 1.0
+        """
+        # Default.
+        if I is None:
+            return
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("PyFunc", comp)
+        # Loop through components
+        for comp in comps:
+            # Check type
+            tcomp = self.opts.get_DataBookType(comp)
+            # Filter
+            if tcomp not in ["PyFunc"]:
+                continue
+            # Perform deletions
+            nj = self.DeleteDBPyFuncComp(I, comp)
+            # Write the component
+            if nj > 0:
+                # Write cleaned-up data book
+                self[comp].Write(unlock=True)
+            else:
+                # Unlock
+                self[comp].Unlock()
+
+    # Function to delete entries by index
+    def DeleteDBPyFuncComp(self, I, comp):
+        r"""Delete list of cases from PyFunc databook comp
+
+        :Call:
+            >>> n = DB.DeleteDBPyFuncComp(I, comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *n*: :class:`int`
+                Number of deleted entries
+        :Versions:
+            * 2022-04-12 ``@ddalle``: Version 1.0
+        """
+        # Read if necessary
+        if comp not in self:
+            self.ReadDBPyFunc(comp, check=True, lock=True)
+        # Check if it's present
+        if comp not in self:
+            print("WARNING: No aero data book component '%s'" % comp)
+        # Get the first data book component.
+        DBc = self[comp]
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if np.isnan(j):
+                continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Number of deletions
+        nj = len(J)
+        # Exit if no deletions
+        if nj == 0:
+            return nj
+        # Report status
+        print("  Removing %s entries from CaseProp component '%s'" % (nj, comp))
+        # Initialize mask of cases to keep
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Extract data book component.
+        DBc = self[comp]
+        # Loop through data book columns.
+        for c in DBc:
+            # Apply the mask
+            DBc[c] = DBc[c][mask]
+        # Update the number of entries.
+        DBc.n = len(DBc[DBc.keys()[0]])
+        # Output
+        return nj
    # ]
   # >
 
@@ -6444,7 +6523,7 @@ class DBPyFunc(DBBase):
     This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
 
     :Call:
-        >>> dbk = DBPyFunc(comp, x, opts, targ=None, **kw)
+        >>> dbk = DBPyFunc(comp, x, opts, funcname, targ=None, **kw)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -6452,6 +6531,8 @@ class DBPyFunc(DBBase):
             RunMatrix for processing variable types
         *opts*: :class:`cape.cfdx.options.Options`
             Global pyCart options instance
+        *funcname*: :class:`str`
+            Name of function to execute
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
         *check*: ``True`` | {``False``}
@@ -6472,29 +6553,30 @@ class DBPyFunc(DBBase):
   # ========
   # <
     # Initialization method
-    def __init__(self, comp, x, opts, targ=None, check=False, **kw):
+    def __init__(self, comp, cntl, targ=None, check=False, **kw):
         """Initialization method
 
         :Versions:
             * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Save relevant inputs
-        self.x = x
-        self.opts = opts
+        self.cntl = cntl
+        self.x = cntl.x
+        self.opts = cntl.opts
         self.comp = comp
         self.name = comp
         # Root directory
-        self.RootDir = kw.get("RootDir", os.getcwd())
+        self.RootDir = kw.get("RootDir", cntl.RootDir)
         # Opitons
         lock = kw.get("lock", False)
 
         # Get the directory.
         if targ is None:
             # Primary data book directory
-            fdir = opts.get_DataBookDir()
+            fdir = cntl.opts.get_DataBookDir()
         else:
             # Secondary data book directory
-            fdir = opts.get_DataBookTargetDir(targ)
+            fdir = cntl.opts.get_DataBookTargetDir(targ)
 
         # Construct the file name.
         fcomp = 'pyfunc_%s.csv' % comp
@@ -6513,28 +6595,64 @@ class DBPyFunc(DBBase):
         # Read the file or initialize empty arrays.
         self.Read(self.fname, check=check, lock=lock)
 
+        # Get function name
+        self.funcname = cntl.opts.get_DataBookFunction(comp)
         # Save the target translations
-        self.targs = opts.get_CompTargets(comp)
+        self.targs = cntl.opts.get_CompTargets(comp)
         # Divide columns into parts
-        self.DataCols = opts.get_DataBookDataCols(comp)
-
-    # Command-line representation
-    def __repr__(self):
-        """Representation method
-
-        :Versions:
-            * 2014-12-27 ``@ddalle``: Version 1.0
-        """
-        # Initialize string
-        lbl = "<DBComp %s, " % self.comp
-        # Add the number of conditions.
-        lbl += "nCase=%i>" % self.n
-        # Output
-        return lbl
-    # String conversion
-    __str__ = __repr__
+        self.DataCols = cntl.opts.get_DataBookDataCols(comp)
   # >
-# class DBProp
+
+  # =========
+  # Function
+  # =========
+  # <
+    # Execute the function
+    def ExecDBPyFunc(self, i):
+        r"""Execute main PyFunc function and return results
+
+        :Call:
+            >>> v = db.ExecDBPyFunc(i)
+        :Inputs:
+            *db*: :class:`DBPyFunc`
+                Databook component of type ``"PyFunc"``
+            *i*: :class:`int`
+                Run matrix case index
+        :Outputs:
+            *v*: :class:`tuple`
+                Outputs from *db.funcname* in folder of case *i*
+        :Versions:
+            * 2022-04-13 ``@ddalle``: Version 1.0
+        """
+        # Get folder for case *i*
+        frun = self.x.GetFullFolderNames(i)
+        # Remember current locaiton
+        fpwd = os.getcwd()
+        # Use a try/catch block like @run_rootdir
+        try:
+            # Got to run folder
+            os.chdir(self.cntl.RootDir)
+            os.chdir(frun)
+            # Execute the funciton
+            v = self.cntl.exec_modfunction(self.funcname)
+        except Exception:
+            # Tell user about it, but don't fail
+            print(
+                "    Function '%s' for case %i raised an exception" %
+                (self.funcname, i))
+            # Null output
+            v = None
+        finally:
+            # Return to original location
+            os.chdir(fpwd)
+        # Ensure tuple (for unpacking later)
+        if v is not None and not isinstance(v, tuple):
+            v = v,
+        # Output
+        return v
+
+  # >
+# class DBPyFunc
 
 
 # Data book for a TriqFM component

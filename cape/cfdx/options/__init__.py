@@ -2733,6 +2733,10 @@ class Options(odict):
     # CompID from raw TRIQ file
     def get_DataBookConfigCompID(self, comp):
         return self["DataBook"].get_DataBookConfigCompID(comp)
+
+    # Function name for PyFunc type
+    def get_DataBookFunction(self, comp):
+        return self["DataBook"].get_DataBookFunction(comp)
     
     # Copy over the documentation.
     for k in ['DataBookComponents', 
@@ -2752,7 +2756,8 @@ class Options(odict):
             'DataBookAbsProjTol',  'DataBookAbsTol',
             'DataBookRelProjTol',  'DataBookRelTol',
             'DataBookCompProjTol', 'DataBookCompTol',
-            'DataBookConfigFile',  'DataBookConfigCompID'
+            'DataBookConfigFile',  'DataBookConfigCompID',
+            "DataBookFunction"
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
