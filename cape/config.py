@@ -608,10 +608,10 @@ class ConfigXML(object):
         # Process input values
         R = {
             "Type": "Rotate",
-            "Center":  kw.get("Center", [0.0, 0.0, 0.0]),
-            "Axis":    kw.get("Axis",   [0.0, 1.0, 0.0]),
-            "Angle":   kw.get("Angle",  0.0),
-            "Frame":   kw.get("Frame")
+            "Center":  kw.get("Center"),
+            "Axis":    kw.get("Axis"),
+            "Angle":   kw.get("Angle"),
+            "Frame":   kw.get("Frame"),
         }
         # Apply changes as appropriate
         if i == n:
@@ -621,11 +621,10 @@ class ConfigXML(object):
             # Ensure type
             T[i]["Type"] = "Rotate"
             # Only apply either blank settings or directly-specified values
-            for k in ["Center", "Axis", "Angle", "Frame"]:
-                # Check if parameter in *T[i]*
-                T[i].setdefault(k, R[k])
+            for k, v in R.items():
                 # Check if we should overwrite current settings
-                if k in kw: T[i][k] = R[k]
+                if v is not None:
+                    T[i][k] = v
 
     # Set transformation
     def SetTranslation(self, comp, i=None, **kw):
