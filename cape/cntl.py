@@ -147,7 +147,7 @@ class Cntl(object):
    # >
 
    # =============
-   # Configuration
+   # __DUNDER__
    # =============
    # <
     # Initialization method
@@ -170,6 +170,7 @@ class Cntl(object):
         self.RootDir = os.getcwd()
 
         # Import modules
+        self.modules = {}
         self.ImportModules()
 
         # Process the trajectory.
@@ -193,7 +194,12 @@ class Cntl(object):
         """
         # Display basic information
         return "<cape.Cntl(nCase=%i)>" % self.x.nCase
+   # >
 
+   # ==================
+   # Module Interface
+   # ==================
+   # <
     # Function to import user-specified modules
     def ImportModules(self):
         r"""Import user-defined modules if specified in the options
@@ -225,33 +231,102 @@ class Cntl(object):
         :Versions:
             * 2014-10-08 ``@ddalle``: Version 1.0 (:mod:`pycart`)
             * 2015-09-20 ``@ddalle``: Version 1.0
+            * 2022-04-12 ``@ddalle``: Version 2.0; use *self.modules*
         """
-        # Get Modules.
-        lmod = self.opts.get("Modules", [])
-        # Ensure list.
-        if not lmod:
-            # Empty --> empty list
-            lmod = []
-        elif not isinstance(lmod, list):
-            # Single string
-            lmod = [lmod]
-        # Loop through modules.
-        for imod in lmod:
-            # Check for dictionary
-            if isinstance(imod, dict):
+        # Get module soption
+        module_list = self.opts.get("Modules")
+        # Exit if none
+        if not module_list:
+            return
+        # Ensure list
+        if not isinstance(module_list, list):
+            raise TypeError(
+                'Expected "Modules" option to be a list; got "%s"' %
+                type(module_list).__name__)
+        # Loop through modules
+        for module_spec in module_list:
+            # Check for list
+            if isinstance(module_spec, list):
+                # Check length
+                if len(module_spec) != 2:
+                    raise IndexError(
+                        'Expected "list" type in "Modules" to have' +
+                        ('len=2, got %i' % len(module_spec)))
                 # Get the file name and import name separately
-                fmod = imod.keys()[0]
-                nmod = imod[fmod]
+                import_name, as_name = module_spec
                 # Status update
-                print("Importing module '%s' as '%s'" % (fmod, imod))
+                print("Importing module '%s' as '%s'" % (import_name, as_name))
             else:
                 # Import as the default name
-                fmod = imod
-                nmod = imod
+                import_name = module_spec
+                as_name = module_spec
                 # Status update
-                print("Importing module '%s'" % imod)
+                print("Importing module '%s'" % import_name)
             # Load the module by its name
-            self.__dict__[fmod] = importlib.import_module(nmod)
+            self.modules[as_name] = importlib.import_module(import_name)
+
+    # Execute a function
+    def exec_modfunction(self, funcname, a=None, kw=None, name=None):
+        r"""Execute a function from *cntl.modules*
+
+        :Call:
+            >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall control interface
+            *func*: :class:`str`
+                Name of function to execute, e.g. ``"mymod.myfunc"``
+            *a*: {``None``} | :class:`tuple`
+                Positional arguments to called function
+            *kw*: {``None``} | :class:`dict`
+                Keyworkd arguments to called function
+            *name*: {``None``} | :class:`str`
+                Hook name to use in status update
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2022-04-12 ``@ddalle``: Version 1.0
+        """
+        # Status update if appropriate
+        if name:
+            print("  %s: %s" % (name, funcname))
+        # Default args and kwargs
+        if a is None:
+            a = tuple()
+        elif not isinstance(a, tuple):
+            a = a,
+        if kw is None:
+            kw = {}
+        # Split name into module(s) and function name
+        funcparts = funcname.split(".")
+        # Has to be at least two parts
+        if len(funcparts) < 2:
+            raise ValueError(
+                "Function spec '%s' must contain at least one '.'" % funcname)
+        # Get module name
+        modname = funcparts.pop(0)
+        mod = self.modules.get(modname)
+        # Cumulative spec
+        spec = modname
+        # Check for module
+        if mod is None:
+            raise KeyError('No module "%s" in Cntl instance' % modname)
+        # Loop through remaining specs
+        func = mod
+        for j, part in enumerate(funcparts):
+            # Get next spec
+            mod = func
+            func = mod.__dict__.get(part)
+            spec = spec + "." + part
+            # Check if found
+            if func is None:
+                raise AttributeError("No spec '%s' found" % spec)
+        # Check if final spec is callable
+        if not callable(func):
+            raise TypeError("Spec '%s' is not callable" % spec)
+        # Execute it and return value
+        return func(*a, **kw)
 
     # Function to apply initialization function
     def InitFunction(self):
@@ -283,10 +358,8 @@ class Cntl(object):
         lfunc = list(np.array(lfunc).flatten())
         # Loop through functions
         for func in lfunc:
-            # Status update
-            print("  InitFunction: %s()" % func)
-            # Run the function
-            exec("self.%s(self)" % func)
+            # Execute function
+            return self.exec_modfunction(func, self, name="InitFunction")
 
     # Call function to apply settings for case *i*
     def CaseFunction(self, i):

@@ -126,6 +126,7 @@ class Cntl(capecntl.Cntl):
         self.RootDir = os.getcwd()
         
         # Import modules
+        self.modules = {}
         self.ImportModules()
         
         # Process the trajectory.
