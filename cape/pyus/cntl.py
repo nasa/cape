@@ -42,31 +42,15 @@ also available here.
 
 # System modules
 import os
-import json
 import shutil
-import subprocess as sp
-
-# Standard library direct inports
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
-# Unmodified CAPE modules
-from cape import convert
-
 # CAPE classes and specific imports
 import cape.cntl
-
-# Partial CAPE imports
-from cape.util import RangeString
-
-# Full cape.pyus modules
 from . import options
 from . import case
-
-# Functions and classes from local modules
-from .inputInp   import InputInp
 from .runmatrix import RunMatrix
 
 # Get the root directory of the module.
@@ -74,6 +58,7 @@ _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyUSFolder = os.path.split(_fname)[0]
+
 
 # Class to read input files
 class Cntl(cape.cntl.Cntl):
@@ -184,8 +169,9 @@ class Cntl(cape.cntl.Cntl):
             *i*: :class:`int`
                 Index of case to prepare/analyze
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
-            * 2020-04-13 ``@ddalle``: Forked from :mod:`cape.pyfun`
+            * 2015-10-19 ``@ddalle``: Version 1.0 (pyfun)
+            * 2020-04-13 ``@ddalle``: Version 1.0
+            * 2022-04-13 ``@ddalle``: Version 1.1; exec_modfunction()
         """
         # Get the existing status
         n = self.CheckCase(i)
@@ -232,8 +218,11 @@ class Cntl(cape.cntl.Cntl):
         self.ReadInputInp()
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
-            # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
+            # Form args and kwargs
+            a = (self, self.x[key][i])
+            kw = dict(i=i)
+            # Apply it
+            self.exec_modfunction(func, a, kw, name="RunMatrixCaseFunction")
         # Write the "input.inp" file(s)
         self.PrepareInputInp(i)
         # Write a JSON file with

@@ -1125,6 +1125,7 @@ class Cntl(ccntl.Cntl):
                 Case index
         :Versions:
             * 2015-10-19 ``@ddalle``: Version 1.0
+            * 2022-04-13 ``@ddalle``: Version 1.1; exec_modfunction()
         """
        # ---------
        # Case info
@@ -1210,11 +1211,6 @@ class Cntl(ccntl.Cntl):
                 shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
             # Surface configuration file
             fxml = self.opts.get_ConfigFile()
-            # Get file type from primary input tri file
-            try:
-                ftri_ext = self.tri.ext
-            except AttributeError:
-                ftri_ext = "ascii"
             # Write it if necessary
             if fxml:
                 # Absolute file name
@@ -1262,13 +1258,18 @@ class Cntl(ccntl.Cntl):
         for key in keys:
             # Get the function for this *MeshFunction*
             func = self.x.defns[key]['Function']
-            # Apply it.
-            exec("%s(self.%s,i=%i)" % (func, self.x[key][i], i))
+            # Form args and kwargs
+            a = (self, self.x[key][i])
+            kw = dict(i=i)
+            # Apply it
+            self.exec_modfunction(func, a, kw, name="RunMatrixMeshFunction")
         # Check for jumpstart (creating mesh before starting job)
         if qmsh:
             # Do not create already-created mesh
             pass
         elif self.opts.get_PreMesh(0) and self.opts.get_aflr3():
+            # Get options
+            rc = self.opts["RunControl"]
             # Run ``intersect`` if appropriate
             case.CaseIntersect(rc, fproj, 0)
             # Run ``verify`` if appropriate
@@ -1348,8 +1349,11 @@ class Cntl(ccntl.Cntl):
             self.ReadRubberData()
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
-            # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
+            # Form args and kwargs
+            a = (self, self.x[key][i])
+            kw = dict(i=i)
+            # Apply it
+            self.exec_modfunction(func, a, kw, name="RunMatrixCaseFunction")
         # Prepare the rubber.data file
         self.PrepareRubberData(i)
         # Write the cntl.nml file(s).
@@ -1628,8 +1632,8 @@ class Cntl(ccntl.Cntl):
             *i*: :class:`int`
                 Case number
         :Versions:
-            * 2017-04-05 ``@ddalle``: Version 1.0
-            * 2017-06-07 ``@ddalle``: Copied from :func:`CaseFunction`
+            * 2017-06-07 ``@ddalle``: Version 1.0
+            * 2022-04-13 ``@ddalle``: Version 2.0; exec_modfunction()
         :See also:
             * :func:`cape.cntl.Cntl.CaseFunction`
             * :func:`cape.pyfun.cntl.Cntl.PrepareCase`
@@ -1641,15 +1645,15 @@ class Cntl(ccntl.Cntl):
         lfunc = list(np.array(lfunc).flatten())
         # Loop through functions
         for func in lfunc:
-            # Status update
-            print("  Namelist Function: cntl.%s(%s)" % (func, i))
-            # Run the function
-            exec("self.%s(self, %s)" % (func, i))
+            # Form args and kwargs
+            a = (self, i)
+            kw = dict()
+            # Apply it
+            self.exec_modfunction(func, a, kw, name="NamelistFunction")
 
     # Set up a namelist config
     def PrepareNamelistConfig(self):
         r"""Write the lines for the force/moment output in a namelist
-        file
 
         :Call:
             >>> cntl.PrepareNamelistConfig()
@@ -1666,7 +1670,8 @@ class Cntl(ccntl.Cntl):
         # Number
         n = len(comps)
         # Quit if nothing to do
-        if n == 0: return
+        if n == 0:
+            return
         # Extract namelist
         nml = self.Namelist
         # Loop through specified components.

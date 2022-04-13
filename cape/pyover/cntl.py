@@ -374,8 +374,11 @@ class Cntl(capecntl.Cntl):
         self.ReadNamelist()
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
-            # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
+            # Form args and kwargs
+            a = (self, self.x[key][i])
+            kw = dict(i=i)
+            # Apply it
+            self.exec_modfunction(func, a, kw, name="RunMatrixCaseFunction")
         # Prepare the Config.xml translations and rotations
         self.PrepareConfig(i)
         # Write the over.namelist file(s).

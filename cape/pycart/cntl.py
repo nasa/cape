@@ -561,7 +561,8 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
-            * 2014-09-30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: Version 1.0
+            * 2022-04-13 ``@ddalle``: Version 1.1; exec_modfunction()
         """
         # Get the existing status.
         n = self.CheckCase(i)
@@ -586,8 +587,9 @@ class Cntl(capecntl.Cntl):
         # Different processes for GroupMesh and CaseMesh
         if self.opts.get_GroupMesh():
             # Copy the required files.
-            for fname in ['input.c3d', 'preSpec.c3d.cntl', 
-                    'Mesh.c3d.Info', 'Config.xml']:
+            for fname in (
+                    'input.c3d', 'preSpec.c3d.cntl',
+                    'Mesh.c3d.Info', 'Config.xml'):
                 # Source path.
                 fsrc = os.path.join(os.path.abspath('..'), fname)
                 # Check for the file.
@@ -595,8 +597,9 @@ class Cntl(capecntl.Cntl):
                     # Copy it.
                     shutil.copy(fsrc, fname)
             # Create links that are available.
-            for fname in ['Mesh.c3d', 'Mesh.mg.c3d', 'Mesh.R.c3d',
-                    'Components.i.tri', 'Components.tri', 'Components.c.tri']:
+            for fname in (
+                    'Mesh.c3d', 'Mesh.mg.c3d', 'Mesh.R.c3d',
+                    'Components.i.tri', 'Components.tri', 'Components.c.tri'):
                 # Source path.
                 fsrc = os.path.join(os.path.abspath('..'), fname)
                 # Remove the file if it's present.
@@ -625,8 +628,11 @@ class Cntl(capecntl.Cntl):
         self.ReadAeroCsh()
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
-            # Apply it.
-            exec("self.%s(self,%s,i=%i)" % (func, self.x[key][i], i))
+            # Form args and kwargs
+            a = (self, self.x[key][i])
+            kw = dict(i=i)
+            # Apply it
+            self.exec_modfunction(func, a, kw, name="RunMatrixCaseFunction")
         # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
         self.PrepareAeroCsh(i)
@@ -682,7 +688,7 @@ class Cntl(capecntl.Cntl):
             # Get the group index.
             j = self.x.GetGroupIndex(i)
             # Status update
-            print("  Group name: '%s' (index %i)" % (fgrp,j))
+            print("  Group name: '%s' (index %i)" % (fgrp, j))
             # Go there.
             os.chdir(fgrp)
         else:
@@ -690,7 +696,7 @@ class Cntl(capecntl.Cntl):
             if not os.path.isdir(frun):
                 self.mkdir(frun)
             # Status update.
-            print("  Case name: '%s' (index %i)" % (frun,i))
+            print("  Case name: '%s' (index %i)" % (frun, i))
             # Go there.
             os.chdir(frun)
         # ----------
@@ -738,8 +744,11 @@ class Cntl(capecntl.Cntl):
         for key in keys:
             # Get the function for this *MeshFunction*
             func = self.x.defns[key]['Function']
-            # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
+            # Form args and kwargs
+            a = (self, self.x[key][i])
+            kw = dict(i=i)
+            # Apply it
+            self.exec_modfunction(func, a, kw, name="RunMatrixMeshFunction")
         # RunControl options (for consistency)
         rc = self.opts['RunControl']
         # Run autoInputs if necessary.

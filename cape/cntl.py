@@ -328,6 +328,43 @@ class Cntl(object):
         # Execute it and return value
         return func(*a, **kw)
 
+    def _exec_funclist(self, funclist, a=None, kw=None, name=None):
+        r"""Execute a list of functions in one category
+
+        :Call:
+            >>>  cntl._exec_funclist(funclist, a, kw, name=None)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall control interface
+            *funclist*: :class:`list`\ [:class:`str`]
+                List of function specs to execute
+            *a*: {``None``} | :class:`tuple`
+                Positional arguments to called function
+            *kw*: {``None``} | :class:`dict`
+                Keyworkd arguments to called function
+            *name*: {``None``} | :class:`str`
+                Hook name to use in status update
+        :Versions:
+            * 2022-04-12 ``@ddalle``: Version 1.0
+        """
+        # Exit if none
+        if not funclist:
+            return
+        # Ensure list
+        if not isinstance(funclist, list):
+            if name:
+                raise TypeError(
+                    ('Option "%s" must be a list; got ' % name) +
+                    ("'%s'" % type(funclist).__name__))
+            else:
+                raise TypeError(
+                    "Expected list of functions; got " +
+                    ("'%s'" % type(funclist).__name__))
+        # Loop through functions
+        for func in funclist:
+            # Execute function
+            self.exec_modfunction(func, a, kw, name)
+
     # Function to apply initialization function
     def InitFunction(self):
         r"""Run one or more functions a "initialization" hook
@@ -351,15 +388,12 @@ class Cntl(object):
                 Overall control interface
         :Versions:
             * 2017-04-04 ``@ddalle``: Version 1.0
+            * 2022-04-12 ``@ddalle``: Version 2.0; use _exec_funclist()
         """
         # Get input functions
-        lfunc = self.opts.get("InitFunction", [])
-        # Ensure list
-        lfunc = list(np.array(lfunc).flatten())
-        # Loop through functions
-        for func in lfunc:
-            # Execute function
-            return self.exec_modfunction(func, self, name="InitFunction")
+        funclist = self.opts.get("InitFunction")
+        # Execute each
+        self._exec_funclist(funclist, self, name="InitFunction")
 
     # Call function to apply settings for case *i*
     def CaseFunction(self, i):
@@ -408,15 +442,9 @@ class Cntl(object):
             * :func:`cape.pyover.cntl.Cntl.ApplyCase`
         """
         # Get input functions
-        lfunc = self.opts.get("CaseFunction", [])
-        # Ensure list
-        lfunc = list(np.array(lfunc).flatten())
-        # Loop through functions
-        for func in lfunc:
-            # Status update
-            print("  Case Function: cntl.%s(%s)" % (func, i))
-            # Run the function
-            exec("self.%s(self, %s)" % (func, i))
+        funclist = self.opts.get("CaseFunction")
+        # Execute each
+        self._exec_funclist(funclist, (self, i), name="CaseFunction")
    # >
 
    # ===============
@@ -687,12 +715,8 @@ class Cntl(object):
             kwx.append(kw['x'])
         # Apply all scripts
         for fx in kwx:
-            if sys.version_info.major == 2:
-                # Built-in function
-                execfile(fx)
-            else:
-                # Open file and execute it
-                exec(open(fx).read())
+            # Open file and execute it
+            exec(open(fx).read())
 
         # Output
         return a, kw
@@ -3316,11 +3340,15 @@ class Cntl(object):
         :Versions:
             * 2015-09-11 ``@ddalle``: Version 1.0
             * 2016-04-05 ``@ddalle``: Version 1.1, pycart -> cape
+            * 2022-04-13 ``@ddalle``: Version 2.0; exec_modfunction()
         """
         # Get the function for this *TriFunction*
         func = self.x.defns[key]['Function']
-        # Apply it.
-        exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
+        # Form args and kwargs
+        a = (self, self.x[key][i])
+        kw = dict(i=i)
+        # Apply it
+        self.exec_modfunction(func, a, kw, name="TriFunction")
 
     # Apply a special configuration function
     def PrepareConfigFunction(self, key, i):
@@ -3337,11 +3365,15 @@ class Cntl(object):
                 Index of the case to check (0-based)
         :Versions:
             * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2022-04-13 ``@ddalle``: Version 2.0; exec_modfunction()
         """
-        # Get the function for this *TriFunction*
+        # Get the function for this *ConfigFunction*
         func = self.x.defns[key]['Function']
-        # Apply it.
-        exec("%s(self,%s,i=%i)" % (func, self.x[key][i], i))
+        # Form args and kwargs
+        a = (self, self.x[key][i])
+        kw = dict(i=i)
+        # Apply it
+        self.exec_modfunction(func, a, kw, name="ConfigFunction")
 
     # Apply a triangulation translation
     def PrepareTriTranslation(self, key, i):
