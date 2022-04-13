@@ -345,7 +345,7 @@ class DataBook(dict):
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
         self[comp] = DBComp(
-            comp, self.x, self.opts,
+            comp, self.cntl,
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
     # Initialize a DBComp object
@@ -368,7 +368,7 @@ class DataBook(dict):
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
         self[comp] = DBProp(
-            comp, self.x, self.opts,
+            comp, self.cntl,
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
     # Initialize a DBComp object
@@ -1918,9 +1918,9 @@ class DataBook(dict):
             # Use all trajectory points
             I = range(self.x.nCase)
         # Check type
-        if self.opts.get_DataBookType(comp) != "CaseProp":
+        if self.opts.get_DataBookType(comp) != "PyFunc":
             raise ValueError(
-                "Component '%s' is not a CaseProp component" % comp)
+                "Component '%s' is not a PyFunc component" % comp)
         # Read the component if necessary
         if comp not in self:
             self.ReadDBPyFunc(comp, check=False, lock=False)
@@ -2008,7 +2008,7 @@ class DataBook(dict):
         if (not q):
             return 0
         # Execute the appropriate function
-        v = self.ExecDBPyFunc(i)
+        v = DBc.ExecDBPyFunc(i)
         # Check for success
         if v is None:
             return 0
@@ -2778,14 +2778,12 @@ class DBBase(dict):
     Individual item data book basis class
 
     :Call:
-        >>> DBi = DBBase(comp, x, opts, check=False, lock=False)
+        >>> DBi = DBBase(comp, cntl, check=False, lock=False)
     :Inputs:
         *comp*: :class:`str`
             Name of the component or other item name
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix/run matrix interface
-        *opts*: :class:`cape.cfdx.options.Options`
-            Options interface
+        *cntl*: :class:`Cntl`
+            CAPE control class instance
         *check*: ``True`` | {``False``}
             Whether or not to check LOCK status
         *lock*: ``True`` | {``False``}
@@ -2802,16 +2800,21 @@ class DBBase(dict):
   # ======
   # <
     # Initialization method
-    def __init__(self, comp, x, opts, check=False, lock=False, **kw):
+    def __init__(self, comp, cntl, check=False, lock=False, **kw):
         """Initialization method
 
         :Versions:
             * 2014-12-21 ``@ddalle``: Version 1.0
-            * 2016-03-15 ``@ddalle``: Generalized column names
+            * 2016-03-15 ``@ddalle``: Version 1.1; general column names
+            * 2022-04-13 ``@ddalle``: Version 1.2; use *cntl*
         """
+        # Unpack
+        x = cntl.x
+        opts = cntl.opts
         # Save relevant inputs
         self.x = x.Copy()
         self.opts = opts
+        self.cntl = cntl
         self.comp = comp
         self.name = comp
         # Root directory
@@ -3128,7 +3131,7 @@ class DBBase(dict):
             # Fall back to the *comp* attribute
             name = self.comp
         # Call the object
-        DBc = self.__class__(name, self.x, self.opts, check=check, lock=lock)
+        DBc = self.__class__(name, self.cntl, check=check, lock=lock)
         # Ensure the same root directory is used
         DBc.RootDir = getattr(self,"RootDir", os.getcwd())
         # Output
@@ -3905,10 +3908,16 @@ class DBBase(dict):
                 I = self.ArgSort(self.xCols[0])
         # Sort all fields.
         for k in self:
+            # Get values
+            v = self[k]
             # Skip if not a list
-            if type(self[k]).__name__ != "ndarray": continue
-            # Sort it.
-            self[k] = self[k][I]
+            if not isinstance(v, np.ndarray):
+                continue
+            # Sort it
+            if v.ndim == 1:
+                self[k] = v[I]
+            elif v.ndim == 2:
+                self[k] = v[:, I]
 
     # Find the index of the point in the trajectory.
     def GetRunMatrixIndex(self, j):
@@ -6326,14 +6335,12 @@ class DBComp(DBBase):
     This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
 
     :Call:
-        >>> DBi = DBComp(comp, x, opts, targ=None, check=None, lock=None)
+        >>> DBi = DBComp(comp, cntl, targ=None, check=None, lock=None)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix for processing variable types
-        *opts*: :class:`cape.cfdx.options.Options`
-            Global pyCart options instance
+        *cntl*: :class:`Cntl`
+            CAPE control class instance
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
         *check*: ``True`` | {``False``}
@@ -6353,12 +6360,16 @@ class DBComp(DBBase):
   # ========
   # <
     # Initialization method
-    def __init__(self, comp, x, opts, targ=None, check=False, lock=False, **kw):
+    def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
         """Initialization method
 
         :Versions:
             * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2022-04-13 ``@ddalle``: verison 2.0; use *cntl*
         """
+        # Unpack *cntl*
+        x = cntl.x
+        opts = cntl.opts
         # Save relevant inputs
         self.x = x
         self.opts = opts
@@ -6423,14 +6434,12 @@ class DBProp(DBBase):
     This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
 
     :Call:
-        >>> dbk = DBProp(comp, x, opts, targ=None, **kw)
+        >>> dbk = DBProp(comp, cntl, targ=None, **kw)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix for processing variable types
-        *opts*: :class:`cape.cfdx.options.Options`
-            Global pyCart options instance
+        *cntl*: :class:`Cntl`
+            CAPE control instance
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
         *check*: ``True`` | {``False``}
@@ -6451,12 +6460,15 @@ class DBProp(DBBase):
   # ========
   # <
     # Initialization method
-    def __init__(self, comp, x, opts, targ=None, check=False, **kw):
+    def __init__(self, comp, cntl, targ=None, check=False, **kw):
         """Initialization method
 
         :Versions:
             * 2014-12-21 ``@ddalle``: Version 1.0
         """
+        # Unpack *cntl*
+        x = cntl.x
+        opts = cntl.opts
         # Save relevant inputs
         self.x = x
         self.opts = opts

@@ -153,7 +153,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             * 2017-04-13 ``@ddalle``: Self-contained and renameed
         """
         # Read the data book
-        self[comp] = DBComp(comp, self.x, self.opts,
+        self[comp] = DBComp(comp, self.cntl,
             targ=self.targ, check=check, lock=lock)
 
     # Local version of data book
@@ -364,7 +364,7 @@ class DBComp(cape.cfdx.dataBook.DBComp):
     This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
 
     :Call:
-        >>> DBc = DBComp(comp, x, opts)
+        >>> DBc = DBComp(comp, cntl)
     :Inputs:
         *comp*: :class:`str`
             Name of the component

@@ -1330,6 +1330,8 @@ class DataBook(odict):
         copts = self.get(comp, {})
         # Get the coefficient
         sts = copts.get(coeff)
+        # Get type
+        typ = self.get_DataBookType(comp)
         # Process default if necessary
         if sts is not None:
             # Non-default; check the type
@@ -1354,6 +1356,8 @@ class DataBook(odict):
         elif coeff in ['CL', 'CN', 'CS']:
             # Stability-frame force/moment
             return ['mu', 'min', 'max', 'std', 'err']
+        elif typ in ["PyFunc"]:
+            return ["mu"]
         else:
             # Default for most states
             return ['mu', 'std', 'min', 'max']
@@ -1424,7 +1428,7 @@ class DataBook(odict):
         elif icols_db is not None:
             # Data book option
             return icols_db
-        elif ctyp in ["TriqPoint", "PointSensor"]:
+        elif ctyp in ["TriqPoint", "PointSensor", "PyFunc"]:
             # Limited default
             return ['nIter']
         else:

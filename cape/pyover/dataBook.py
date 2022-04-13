@@ -403,7 +403,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.ReadDBComp(comp, x, opts, check=False, lock=False)
+            >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
@@ -418,7 +418,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
-        self[comp] = DBComp(comp, self.x, self.opts,
+        self[comp] = DBComp(comp, self.cntl,
             targ=self.targ, check=check, lock=lock)
         
     # Local version of data book
