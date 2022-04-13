@@ -840,7 +840,7 @@ class DataBook(dict):
             # Apply the mask
             DBc[c] = DBc[c][mask]
         # Update the number of entries.
-        DBc.n = len(DBc[DBc.keys()[0]])
+        DBc.n = len(DBc[c])
         # Output
         return nj
 
