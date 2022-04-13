@@ -3650,14 +3650,9 @@ class Cntl(object):
         v0  = cen;  v1  = ax + cen
         v0R = cenR; v1R = axR + cenR
         # Ensure a dictionary for reference points
-        if type(xT).__name__ != 'dict':
+        if not isinstance(xT, dict):
             # Initialize dict (can't use an iterator to do this in old Python)
-            yT = {}
-            # Loop through components affected by this translation
-            for comp in compsT+compsTR:
-                yT[comp] = xT
-            # Move the variable name
-            xT = yT
+            xT = {comp: xT for comp in compsT + compsTR}
         # Create full dictionary
         for comp in compsT+compsTR:
             # Get ref point for this component
