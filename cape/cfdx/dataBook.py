@@ -840,7 +840,7 @@ class DataBook(dict):
             # Apply the mask
             DBc[c] = DBc[c][mask]
         # Update the number of entries.
-        DBc.n = len(DBc[DBc.keys()[0]])
+        DBc.n = len(DBc[c])
         # Output
         return nj
 
@@ -1335,9 +1335,9 @@ class DataBook(dict):
         # Get the current iteration number
         nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
-        nStats = self.opts.get_nStats()
+        nStats = self.opts.get_nStats(comp)
         # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_nMin()
+        nMin = self.opts.get_nMin(comp)
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)

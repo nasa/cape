@@ -3687,6 +3687,9 @@ class Cntl(object):
         # Get the components to translate based on a lever armg
         compsT  = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])
+        # Options to modify GMP
+        freeze_ax = kopts.get("FreezeGMPAxis", False)
+        freeze_cen = kopts.get("FreezeGMPCenter", False)
         # Ensure list
         if type(comps).__name__   != 'list': comps = [comps]
         if type(compsR).__name__  != 'list': compsR = [compsR]
@@ -3755,14 +3758,9 @@ class Cntl(object):
         v0  = cen;  v1  = ax + cen
         v0R = cenR; v1R = axR + cenR
         # Ensure a dictionary for reference points
-        if type(xT).__name__ != 'dict':
+        if not isinstance(xT, dict):
             # Initialize dict (can't use an iterator to do this in old Python)
-            yT = {}
-            # Loop through components affected by this translation
-            for comp in compsT+compsTR:
-                yT[comp] = xT
-            # Move the variable name
-            xT = yT
+            xT = {comp: xT for comp in compsT + compsTR}
         # Create full dictionary
         for comp in compsT+compsTR:
             # Get ref point for this component
@@ -3781,14 +3779,27 @@ class Cntl(object):
         # ---------------------
         # Apply transformations
         # ---------------------
+        # Check for freeze options
+        if freeze_ax:
+            gmp_ax = None
+            gmp_axR = None
+        else:
+            gmp_ax = ax
+            gmp_axR = axR
+        if freeze_cen:
+            gmp_cen = None
+            gmp_cenR = None
+        else:
+            gmp_cen = cen
+            gmp_cenR = cenR
         # Set the positive rotations.
         for comp in comps:
             self.config.SetRotation(comp, i=I.get(comp),
-                Angle=theta, Center=cen, Axis=ax, Frame=frm)
+                Angle=theta, Center=gmp_cen, Axis=gmp_ax, Frame=frm)
         # Set the negative rotations.
         for comp in compsR:
             self.config.SetRotation(comp, i=I.get(comp),
-                Angle=ka*theta, Center=cenR, Axis=axR, Frame=frm)
+                Angle=ka*theta, Center=gmp_cenR, Axis=gmp_axR, Frame=frm)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
