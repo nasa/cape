@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-12 at 01:40 PDT
+   on 2022-04-14 at 01:40 PDT
 
-Test ``08_cntl``: PASS
-========================
+Test ``08_cntl``: **FAIL** (command 1)
+========================================
 
-This test PASSED on 2022-04-12 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-04-14 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -38,8 +38,8 @@ The commands executed by this test are
         # print results
         print(cntl)
 
-Command 1: Python 2 (PASS)
----------------------------
+Command 1: Python 2 (**FAIL**)
+-------------------------------
 
 :Command:
     .. code-block:: console
@@ -52,39 +52,18 @@ Command 1: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.49 seconds
+    * Command took 0.50 seconds
 :STDOUT:
-    * **PASS**
-    * Target:
+    * **FAIL**
+    * Actual:
 
       .. code-block:: none
 
         Importing module 'dac'
-          InitFunction: dac.InitCntl()
+          InitFunction: dac.InitCntl
         <cape.Cntl(nCase=20)>
         
 
-:STDERR:
-    * **PASS**
-
-Command 2: Python 3 (PASS)
----------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_cntl.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 0.96 seconds
-:STDOUT:
-    * **PASS**
     * Target:
 
       .. code-block:: none

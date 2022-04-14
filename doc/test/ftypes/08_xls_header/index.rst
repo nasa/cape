@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-12 at 01:45 PDT
+   on 2022-04-14 at 01:45 PDT
 
 Test ``08_xls_header``: PASS
 ==============================
 
-This test PASSED on 2022-04-12 at 01:45 PDT
+This test PASSED on 2022-04-14 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -76,7 +76,7 @@ Command 1: Auto-Workbook with Arrays: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
+    * Command took 0.50 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -110,8 +110,8 @@ Command 2: Auto-Workbook with Arrays: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.77 seconds
-    * Cumulative time: 1.37 seconds
+    * Command took 0.56 seconds
+    * Cumulative time: 1.06 seconds
 :STDOUT:
     * **PASS**
     * Target:

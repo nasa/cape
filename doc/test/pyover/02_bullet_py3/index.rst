@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-12 at 01:45 PDT
+   on 2022-04-14 at 01:44 PDT
 
-Test ``02_bullet_py3``: PASS
-==============================
+Test ``02_bullet_py3``: **FAIL** (command 3)
+==============================================
 
-This test PASSED on 2022-04-12 at 01:45 PDT
+This test **FAILED** (command 3) on 2022-04-14 at 01:44 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Case 1 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 102.13 seconds
+    * Command took 95.50 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -90,8 +90,8 @@ Command 2: Show DONE Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.82 seconds
-    * Cumulative time: 102.95 seconds
+    * Command took 0.62 seconds
+    * Cumulative time: 96.12 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -100,7 +100,7 @@ Command 2: Show DONE Status (PASS)
 
         Case Config/Run Directory  Status  Iterations  Que CPU Time 
         ---- --------------------- ------- ----------- --- --------
-        1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .        0.7 
+        1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .        0.6 
         
         DONE=1, 
         
@@ -119,8 +119,8 @@ Command 2: Show DONE Status (PASS)
 :STDERR:
     * **PASS**
 
-Command 3: Collect Aero (PASS)
--------------------------------
+Command 3: Collect Aero (**FAIL**)
+-----------------------------------
 
 :Command:
     .. code-block:: console
@@ -128,85 +128,45 @@ Command 3: Collect Aero (PASS)
         $ python3 -m cape.pyover -I 1 --fm
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.02 seconds
-    * Cumulative time: 103.97 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 96.70 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **PASS**
-
-Command 4: Check DataBook (Python 2) (PASS)
---------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test_databook.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 104.46 seconds
-:STDOUT:
-    * **PASS**
+    * **FAIL**
     * Actual:
 
-      .. code-block:: none
+      .. code-block:: pytb
 
-        CN = 0.221
+        Traceback (most recent call last):
+          File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+            "__main__", mod_spec)
+          File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+            exec(code, run_globals)
+          File "/u/wk/ddalle/usr/cape/cape/pyover/__main__.py", line 12, in <module>
+            sys.exit(cli.main())
+          File "/u/wk/ddalle/usr/cape/cape/pyover/cli.py", line 62, in main
+            cntl.cli(*a, **kw)
+          File "/u/wk/ddalle/usr/cape/cape/pyover/cntl.py", line 189, in cli
+            cmd = self.cli_cape(*a, **kw)
+          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 802, in cli_cape
+            self.UpdateFM(**kw)
+          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 100, in wrapper_func
+            v = func(self, *args, **kwargs)
+          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 4045, in UpdateFM
+            self.DataBook.UpdateDataBook(I, comp=comp)
+          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 749, in UpdateDataBook
+            self[comp].Write(merge=True, unlock=True)
+          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 3416, in Write
+            DBc = self.ReadCopy(check=True, lock=True)
+          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 3134, in ReadCopy
+            DBc = self.__class__(name, self.cntl, check=check, lock=lock)
+        AttributeError: 'DBComp' object has no attribute 'cntl'
         
 
-    * Target:
-
-      .. code-block:: none
-
-        CN = <valint>[0.190,0.226]
-        
-
-:STDERR:
-    * **PASS**
-
-Command 5: Check DataBook (Python 3) (PASS)
---------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test_databook.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 105.22 seconds
-:STDOUT:
-    * **PASS**
-    * Actual:
-
-      .. code-block:: none
-
-        CN = 0.221
-        
-
-    * Target:
-
-      .. code-block:: none
-
-        CN = <valint>[0.190,0.226]
-        
-
-:STDERR:
-    * **PASS**
 
