@@ -6373,6 +6373,7 @@ class DBComp(DBBase):
         # Save relevant inputs
         self.x = x
         self.opts = opts
+        self.cntl = cntl
         self.comp = comp
         self.name = comp
         # Root directory
@@ -6472,6 +6473,7 @@ class DBProp(DBBase):
         # Save relevant inputs
         self.x = x
         self.opts = opts
+        self.cntl = cntl
         self.comp = comp
         self.name = comp
         # Root directory
@@ -6572,9 +6574,9 @@ class DBPyFunc(DBBase):
             * 2014-12-21 ``@ddalle``: Version 1.0
         """
         # Save relevant inputs
-        self.cntl = cntl
         self.x = cntl.x
         self.opts = cntl.opts
+        self.cntl = cntl
         self.comp = comp
         self.name = comp
         # Root directory
