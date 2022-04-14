@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-12 at 01:40 PDT
+   on 2022-04-14 at 01:40 PDT
 
-Test ``02_bullet_py3``: PASS
-==============================
+Test ``02_bullet_py3``: **FAIL** (command 3)
+==============================================
 
-This test PASSED on 2022-04-12 at 01:40 PDT
+This test **FAILED** (command 3) on 2022-04-14 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -38,7 +38,7 @@ Command 1: Run Matrix Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.76 seconds
+    * Command took 0.70 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -72,15 +72,15 @@ Command 2: Run Case 0 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 7.34 seconds
-    * Cumulative time: 8.10 seconds
+    * Command took 6.16 seconds
+    * Cumulative time: 6.86 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 3: Collect Aero Data (PASS)
-------------------------------------
+Command 3: Collect Aero Data (**FAIL**)
+----------------------------------------
 
 :Command:
     .. code-block:: console
@@ -88,13 +88,13 @@ Command 3: Collect Aero Data (PASS)
         $ python3 -m cape.pycart -I 0 --aero
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.68 seconds
-    * Cumulative time: 8.78 seconds
+    * Command took 0.66 seconds
+    * Cumulative time: 7.53 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -108,40 +108,35 @@ Command 3: Collect Aero Data (PASS)
         
 
 :STDERR:
-    * **PASS**
-
-Command 4: Test DataBook Value (PASS)
---------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test_databook.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.55 seconds
-    * Cumulative time: 9.33 seconds
-:STDOUT:
-    * **PASS**
+    * **FAIL**
     * Actual:
 
-      .. code-block:: none
+      .. code-block:: pytb
 
-        CA = 0.746
+        Traceback (most recent call last):
+          File "/usr/lib64/python3.6/runpy.py", line 193, in _run_module_as_main
+            "__main__", mod_spec)
+          File "/usr/lib64/python3.6/runpy.py", line 85, in _run_code
+            exec(code, run_globals)
+          File "/u/wk/ddalle/usr/cape/cape/pycart/__main__.py", line 12, in <module>
+            sys.exit(cli.main())
+          File "/u/wk/ddalle/usr/cape/cape/pycart/cli.py", line 62, in main
+            cntl.cli(*a, **kw)
+          File "/u/wk/ddalle/usr/cape/cape/pycart/cntl.py", line 178, in cli
+            cmd = self.cli_cape(*a, **kw)
+          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 802, in cli_cape
+            self.UpdateFM(**kw)
+          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 100, in wrapper_func
+            v = func(self, *args, **kwargs)
+          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 4045, in UpdateFM
+            self.DataBook.UpdateDataBook(I, comp=comp)
+          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 749, in UpdateDataBook
+            self[comp].Write(merge=True, unlock=True)
+          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 3416, in Write
+            DBc = self.ReadCopy(check=True, lock=True)
+          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 3134, in ReadCopy
+            DBc = self.__class__(name, self.cntl, check=check, lock=lock)
+        AttributeError: 'DBComp' object has no attribute 'cntl'
         
 
-    * Target:
-
-      .. code-block:: none
-
-        CA = <valint>[0.744,0.746]
-        
-
-:STDERR:
-    * **PASS**
 
