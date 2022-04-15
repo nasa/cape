@@ -728,7 +728,7 @@ class ConfigXML(object):
         f.close()
 
     # Copy the handle
-    def WriteXML(self, fname=None):
+    def WriteXML(self, fname=None, name=None):
         r"""Write the configuration to file
 
         :Call:
@@ -1817,19 +1817,19 @@ class ConfigJSON(object):
         return comps
 
     # Write configuration
-    def WriteXML(self, fname="Config.xml", Name=None, Source=None):
+    def WriteXML(self, fname="Config.xml", name=None, source=None):
         r"""Write a GMP-type ``Config.xml`` file
 
         :Call:
-            >>> cfg.WriteXML(fname="Config.xml", Name=None, Source=None)
+            >>> cfg.WriteXML(fname="Config.xml", name=None, source=None)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration instance
             *fname*: {``"Config.xml"``} | :class:`str`
                 Name of file to write
-            *Name*: {``None``} | :class:`str`
-                Name of the configuration, defaults to *fname*
-            *Source*: {``"Components.i.tri"``} | :class:`str`
+            *name*: {``None``} | :class:`str`
+                Name of the configuration, defaults to *cfg.name*
+            *source*: {``"Components.i.tri"``} | :class:`str`
                 Name of the "source" tri file, has no effect
         :Versions:
             * 2016-11-06 ``@ddalle``: Version 1.0
@@ -1839,14 +1839,20 @@ class ConfigJSON(object):
         # Write opening handle
         f.write('<?xml version="1.0" encoding="utf-8"?>\n\n')
         # Get the name and source
-        if Name   is None: Name = fname
-        if Source is None: Source = "Components.i.tri"
+        if name is None:
+            name = self.name
+        if source is None:
+            source = "Components.i.tri"
         # Write the "configuration" element
-        f.write('<Configuration Name="%s" Source="%s">\n\n' % (Name,Source))
+        cname = os.path.basepath(fname)
+        f.write('<Configuration Name="%s" Source="%s">\n\n' % (cname, source))
         # Get sorted faces
         faces = self.SortCompIDs()
         # Loop through the elements
         for face in faces:
+            # Check if not present for this config *name*
+            if not self.GetProperty(face, "Present", name=name, vdef=True):
+                continue
             # Get the compID
             compID = self.faces.get(face)
             # Don't mess around with ``None``
@@ -2286,11 +2292,11 @@ class ConfigJSON(object):
             return prop["CompID"]
 
     # Get a property
-    def GetProperty(self, comp, k, name=None):
+    def GetProperty(self, comp, k, name=None, vdef=None):
         r"""Get a cascading property from a component or its parents
 
         :Call:
-            >>> v = cfg.GetProperty(comp, k, name=None)
+            >>> v = cfg.GetProperty(comp, k, name=None, vdef=None)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration interface
@@ -2301,12 +2307,14 @@ class ConfigJSON(object):
             *name*: {``None``} | :class:`str`
                 Name to filter if *k* has multiple values; defaults to
                 *cfg.name* if applicable
+            *vdef*: {``None``} | **any**
         :Outputs:
-            *v*: ``None`` | :class:`any`
+            *v*: *vdef* | **any**
                 Value of *k* from *comp* with fallback to parents
         :Versions:
             * 2016-10-21 ``@ddalle``: Version 1.0
             * 2022-03-15 ``@ddalle``: Version 2.0; add *name*
+            * 2022-04-14 ``@ddalle``: Version 2.1; add *vdef*
         """
         # Check for the property
         v, q = self._get_property(comp, k, name)
@@ -2321,7 +2329,7 @@ class ConfigJSON(object):
             if v is not None:
                 return v
         # If this point is reached, could not find property in any parent
-        return None
+        return vdef
 
     def _get_property(self, comp, k, name=None):
         # Get component properties
