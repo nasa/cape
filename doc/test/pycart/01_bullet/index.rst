@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-14 at 01:40 PDT
+   on 2022-04-15 at 01:40 PDT
 
-Test ``01_bullet``: **FAIL** (command 3)
-==========================================
+Test ``01_bullet``: PASS
+==========================
 
-This test **FAILED** (command 3) on 2022-04-14 at 01:40 PDT
+This test PASSED on 2022-04-15 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Matrix Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.62 seconds
+    * Command took 0.60 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -73,15 +73,15 @@ Command 2: Run Case 0 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 5.97 seconds
-    * Cumulative time: 6.59 seconds
+    * Command took 5.95 seconds
+    * Cumulative time: 6.54 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 3: Collect Aero Data (**FAIL**)
-----------------------------------------
+Command 3: Collect Aero Data (PASS)
+------------------------------------
 
 :Command:
     .. code-block:: console
@@ -89,13 +89,13 @@ Command 3: Collect Aero Data (**FAIL**)
         $ pycart -I 0 --aero
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.79 seconds
-    * Cumulative time: 7.38 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 7.14 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -109,31 +109,75 @@ Command 3: Collect Aero Data (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
+    * **PASS**
+
+Command 4: Test DataBook Value (PASS)
+--------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.48 seconds
+    * Cumulative time: 7.62 seconds
+:STDOUT:
+    * **PASS**
     * Actual:
 
-      .. code-block:: pytb
+      .. code-block:: none
 
-        Traceback (most recent call last):
-          File "/u/wk/ddalle/usr/cape/bin/pycart", line 8, in <module>
-            sys.exit(main())
-          File "/u/wk/ddalle/usr/cape/cape/pycart/cli.py", line 62, in main
-            cntl.cli(*a, **kw)
-          File "/u/wk/ddalle/usr/cape/cape/pycart/cntl.py", line 178, in cli
-            cmd = self.cli_cape(*a, **kw)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 802, in cli_cape
-            self.UpdateFM(**kw)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 100, in wrapper_func
-            v = func(self, *args, **kwargs)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 4045, in UpdateFM
-            self.DataBook.UpdateDataBook(I, comp=comp)
-          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 749, in UpdateDataBook
-            self[comp].Write(merge=True, unlock=True)
-          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 3416, in Write
-            DBc = self.ReadCopy(check=True, lock=True)
-          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 3134, in ReadCopy
-            DBc = self.__class__(name, self.cntl, check=check, lock=lock)
-        AttributeError: 'DBComp' object has no attribute 'cntl'
+        CA = 0.746
         
 
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.744,0.746]
+        
+
+:STDERR:
+    * **PASS**
+
+Command 5: Test DataBook Value (PASS)
+--------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.55 seconds
+    * Cumulative time: 8.16 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.746
+        
+
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.744,0.746]
+        
+
+:STDERR:
+    * **PASS**
 

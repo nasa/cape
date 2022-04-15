@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-14 at 01:40 PDT
+   on 2022-04-15 at 01:40 PDT
 
-Test ``13_config_xml``: PASS
-==============================
+Test ``13_config_xml``: **FAIL** (command 5)
+==============================================
 
-This test PASSED on 2022-04-14 at 01:40 PDT
+This test **FAILED** (command 5) on 2022-04-15 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -92,7 +92,7 @@ Command 1: Read JSON Configuration: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
+    * Command took 0.54 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -112,8 +112,8 @@ Command 2: Read JSON Configuration: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.72 seconds
-    * Cumulative time: 1.24 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 1.04 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -133,8 +133,8 @@ Command 3: Read XML Configuration: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 1.73 seconds
+    * Command took 0.36 seconds
+    * Cumulative time: 1.40 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -154,15 +154,15 @@ Command 4: Read XML Configuration: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.73 seconds
-    * Cumulative time: 2.46 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 1.88 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 5: Compare XML Configurations: Python 2 (PASS)
--------------------------------------------------------
+Command 5: Compare XML Configurations: Python 2 (**FAIL**)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -170,15 +170,16 @@ Command 5: Compare XML Configurations: Python 2 (PASS)
         $ python2 test03_config_xml.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 2.93 seconds
+    * Command took 0.60 seconds
+    * Cumulative time: 2.48 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -271,117 +272,15 @@ Command 5: Compare XML Configurations: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 6: Compare XML Configurations: Python 3 (PASS)
--------------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_config_xml.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.68 seconds
-    * Cumulative time: 3.61 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-          No parent for component 'bullet_total'
-        <?xml version="1.0" encoding="utf-8"?>
-        
-        
-        
-        <Configuration Name="bullet sample" Source="bullet.tri">
-        
-        
-        
-          <Component Name="cap" Parent="bullet_no_base" Type="tri">
-        
-            <Data>Face Label=1</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="body" Parent="bullet_no_base" Type="tri">
-        
-            <Data>Face Label=2</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="base" Parent="bullet_total" Type="tri">
-        
-            <Data>Face Label=3</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin1" Parent="fins" Type="tri">
-        
-            <Data>Face Label=11</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin2" Parent="fins" Type="tri">
-        
-            <Data>Face Label=12</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin3" Parent="fins" Type="tri">
-        
-            <Data>Face Label=13</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin4" Parent="fins" Type="tri">
-        
-            <Data>Face Label=14</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="bullet_no_base" Parent="bullet_total" Type="container">
-        
-          </Component>
-        
-        
-        
-          <Component Name="bullet_total" Type="container">
-        
-          </Component>
-        
-        
-        
-          <Component Name="fins" Parent="bullet_no_base" Type="container">
-        
-          </Component>
-        
-        
-        
-        </Configuration>
-        
+        Traceback (most recent call last):
+          File "test03_config_xml.py", line 11, in <module>
+            cfgj.WriteXML("arrow2.xml", Name="bullet sample", Source="bullet.tri")
+        TypeError: WriteXML() got an unexpected keyword argument 'Name'
         
 
-:STDERR:
-    * **PASS**
 

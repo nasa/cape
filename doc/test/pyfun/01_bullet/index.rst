@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-14 at 01:41 PDT
+   on 2022-04-15 at 01:41 PDT
 
-Test ``01_bullet``: **FAIL** (command 3)
-==========================================
+Test ``01_bullet``: PASS
+==========================
 
-This test **FAILED** (command 3) on 2022-04-14 at 01:41 PDT
+This test PASSED on 2022-04-15 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Case 8 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 45.79 seconds
+    * Command took 39.51 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -80,8 +80,8 @@ Command 2: Show DONE Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.81 seconds
-    * Cumulative time: 46.60 seconds
+    * Command took 0.78 seconds
+    * Cumulative time: 40.30 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -98,8 +98,8 @@ Command 2: Show DONE Status (PASS)
 :STDERR:
     * **PASS**
 
-Command 3: Collect Aero (**FAIL**)
------------------------------------
+Command 3: Collect Aero (PASS)
+-------------------------------
 
 :Command:
     .. code-block:: console
@@ -107,41 +107,85 @@ Command 3: Collect Aero (**FAIL**)
         $ pyfun -I 8 --fm
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.91 seconds
-    * Cumulative time: 47.51 seconds
+    * Command took 0.77 seconds
+    * Cumulative time: 41.07 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **FAIL**
+    * **PASS**
+
+Command 4: Check DataBook (Python 2) (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.50 seconds
+    * Cumulative time: 41.56 seconds
+:STDOUT:
+    * **PASS**
     * Actual:
 
-      .. code-block:: pytb
+      .. code-block:: none
 
-        Traceback (most recent call last):
-          File "/u/wk/ddalle/usr/cape/bin/pyfun", line 8, in <module>
-            sys.exit(main())
-          File "/u/wk/ddalle/usr/cape/cape/pyfun/cli.py", line 62, in main
-            cntl.cli(*a, **kw)
-          File "/u/wk/ddalle/usr/cape/cape/pyfun/cntl.py", line 232, in cli
-            cmd = self.cli_cape(*a, **kw)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 802, in cli_cape
-            self.UpdateFM(**kw)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 100, in wrapper_func
-            v = func(self, *args, **kwargs)
-          File "/u/wk/ddalle/usr/cape/cape/cntl.py", line 4045, in UpdateFM
-            self.DataBook.UpdateDataBook(I, comp=comp)
-          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 749, in UpdateDataBook
-            self[comp].Write(merge=True, unlock=True)
-          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 3416, in Write
-            DBc = self.ReadCopy(check=True, lock=True)
-          File "/u/wk/ddalle/usr/cape/cape/cfdx/dataBook.py", line 3134, in ReadCopy
-            DBc = self.__class__(name, self.cntl, check=check, lock=lock)
-        AttributeError: 'DBComp' object has no attribute 'cntl'
+        CA = 0.461
         
 
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.460,0.462]
+        
+
+:STDERR:
+    * **PASS**
+
+Command 5: Check DataBook (Python 3) (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test_databook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.77 seconds
+    * Cumulative time: 42.33 seconds
+:STDOUT:
+    * **PASS**
+    * Actual:
+
+      .. code-block:: none
+
+        CA = 0.461
+        
+
+    * Target:
+
+      .. code-block:: none
+
+        CA = <valint>[0.460,0.462]
+        
+
+:STDERR:
+    * **PASS**
 
