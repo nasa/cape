@@ -1840,19 +1840,16 @@ class ConfigJSON(object):
         f.write('<?xml version="1.0" encoding="utf-8"?>\n\n')
         # Get the name and source
         if name is None:
-            name = self.name
+            name = getattr(self, "name", os.path.basename(fname))
         if source is None:
             source = "Components.i.tri"
         # Write the "configuration" element
-        cname = os.path.basepath(fname)
+        cname = os.path.basename(fname)
         f.write('<Configuration Name="%s" Source="%s">\n\n' % (cname, source))
         # Get sorted faces
         faces = self.SortCompIDs()
         # Loop through the elements
         for face in faces:
-            # Check if not present for this config *name*
-            if not self.GetProperty(face, "Present", name=name, vdef=True):
-                continue
             # Get the compID
             compID = self.faces.get(face)
             # Don't mess around with ``None``
@@ -1907,8 +1904,11 @@ class ConfigJSON(object):
                 else:
                     # Take first entry
                     parent = parent[0]
+            # Check if not present for this config *name*
+            present = self.GetProperty(face, "Present", name=name, vdef=True)
             # Common portion of face label
-            f.write('  <Component Name="%s" ' % face)
+            if present:
+                f.write('  <Component Name="%s" ' % face)
             # Check for parent
             if parent is not None:
                 f.write('Parent="%s" ' % parent)
@@ -1916,7 +1916,10 @@ class ConfigJSON(object):
                 if parent not in faces:
                     faces.append(parent)
             # Write the right type of component
-            if q:
+            if not present:
+                # Do not write to file
+                pass
+            elif q:
                 # Write single-face
                 f.write('Type="tri">\n')
                 f.write('    <Data>Face Label=%i</Data>\n' % compID)
@@ -2308,6 +2311,7 @@ class ConfigJSON(object):
                 Name to filter if *k* has multiple values; defaults to
                 *cfg.name* if applicable
             *vdef*: {``None``} | **any**
+                Default value
         :Outputs:
             *v*: *vdef* | **any**
                 Value of *k* from *comp* with fallback to parents
