@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-15 at 01:40 PDT
+   on 2022-04-16 at 01:40 PDT
 
 Test ``08_cntl``: **FAIL** (command 1)
 ========================================
 
-This test **FAILED** (command 1) on 2022-04-15 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-04-16 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -52,7 +52,7 @@ Command 1: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.46 seconds
+    * Command took 0.57 seconds
 :STDOUT:
     * **FAIL**
     * Actual:
