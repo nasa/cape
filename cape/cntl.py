@@ -290,7 +290,7 @@ class Cntl(object):
         """
         # Status update if appropriate
         if name:
-            print("  %s: %s" % (name, funcname))
+            print("  %s: %s()" % (name, funcname))
         # Default args and kwargs
         if a is None:
             a = tuple()
