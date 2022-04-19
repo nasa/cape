@@ -87,8 +87,7 @@ for iterative histories of residuals.
 # Standard library modules
 import os
 import time
-
-# Standard library: direct imports
+import traceback
 from datetime import datetime
 
 # Third-party modules
@@ -99,11 +98,9 @@ import cape.tri
 import cape.plt
 
 # Local modules
-from .. import util
-
-# CAPE modules: direct imports
-from .options import odict
 from . import case
+from .. import util
+from .options import odict
 
 
 # Placeholder variables for plotting functions.
@@ -6648,12 +6645,13 @@ class DBPyFunc(DBBase):
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
             # Execute the funciton
-            v = self.cntl.exec_modfunction(self.funcname)
-        except Exception:
+            v = self.cntl.exec_modfunction(self.funcname, (self.cntl, i))
+        except Exception as e:
             # Tell user about it, but don't fail
             print(
-                "    Function '%s' for case %i raised an exception" %
+                "    Function '%s' for case %i raised an exception:" %
                 (self.funcname, i))
+            traceback.print_exception(e.__class__, e, e.__traceback__, limit=2)
             # Null output
             v = None
         finally:
