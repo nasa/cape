@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-16 at 01:40 PDT
+   on 2022-04-19 at 01:40 PDT
 
-Test ``13_config_xml``: **FAIL** (command 5)
-==============================================
+Test ``13_config_xml``: PASS
+==============================
 
-This test **FAILED** (command 5) on 2022-04-16 at 01:40 PDT
+This test PASSED on 2022-04-19 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -112,8 +112,8 @@ Command 2: Read JSON Configuration: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.71 seconds
-    * Cumulative time: 1.25 seconds
+    * Command took 0.57 seconds
+    * Cumulative time: 1.12 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -133,8 +133,8 @@ Command 3: Read XML Configuration: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 1.74 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 1.63 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -154,15 +154,15 @@ Command 4: Read XML Configuration: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 2.25 seconds
+    * Command took 0.50 seconds
+    * Cumulative time: 2.13 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 5: Compare XML Configurations: Python 2 (**FAIL**)
------------------------------------------------------------
+Command 5: Compare XML Configurations: Python 2 (PASS)
+-------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -175,11 +175,11 @@ Command 5: Compare XML Configurations: Python 2 (**FAIL**)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.40 seconds
-    * Cumulative time: 2.65 seconds
+    * Command took 0.38 seconds
+    * Cumulative time: 2.50 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual:
+    * **PASS**
+    * Target:
 
       .. code-block:: none
 
@@ -270,6 +270,27 @@ Command 5: Compare XML Configurations: Python 2 (**FAIL**)
         
         
 
+:STDERR:
+    * **PASS**
+
+Command 6: Compare XML Configurations: Python 3 (PASS)
+-------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_config_xml.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.56 seconds
+    * Cumulative time: 3.06 seconds
+:STDOUT:
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -279,7 +300,7 @@ Command 5: Compare XML Configurations: Python 2 (**FAIL**)
         
         
         
-        <Configuration Name="bullet sample" Source="bullet.tri">
+        <Configuration Name="arrow2.xml" Source="bullet.tri">
         
         
         
