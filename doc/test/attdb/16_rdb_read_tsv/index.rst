@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-19 at 01:46 PDT
+   on 2022-04-20 at 01:46 PDT
 
 Test ``16_rdb_read_tsv``: PASS
 ================================
 
-This test PASSED on 2022-04-19 at 01:46 PDT
+This test PASSED on 2022-04-20 at 01:46 PDT
 
 This test is run in the folder:
 
@@ -38,7 +38,7 @@ Command 1: Simple dense TSV reader: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.55 seconds
+    * Command took 0.58 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -68,7 +68,7 @@ Command 2: Simple dense TSV reader: Python 3 (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.75 seconds
-    * Cumulative time: 1.30 seconds
+    * Cumulative time: 1.33 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -97,8 +97,8 @@ Command 3: Main TSV reader: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.59 seconds
-    * Cumulative time: 1.90 seconds
+    * Command took 0.58 seconds
+    * Cumulative time: 1.91 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -127,8 +127,8 @@ Command 4: Main TSV reader: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 2.65 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 2.42 seconds
 :STDOUT:
     * **PASS**
     * Target:
