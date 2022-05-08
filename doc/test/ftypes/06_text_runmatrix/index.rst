@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-20 at 01:45 PDT
+   on 2022-05-07 at 01:45 PDT
 
 Test ``06_text_runmatrix``: PASS
 ==================================
 
-This test PASSED on 2022-04-20 at 01:45 PDT
+This test PASSED on 2022-05-07 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -93,8 +93,8 @@ Command 2: First-column BoolMap: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.77 seconds
-    * Cumulative time: 1.35 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 1.11 seconds
 :STDOUT:
     * **PASS**
     * Target:

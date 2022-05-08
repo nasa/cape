@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-04-20 at 01:45 PDT
+   on 2022-05-07 at 01:45 PDT
 
 Test ``02_bullet_py3``: PASS
 ==============================
 
-This test PASSED on 2022-04-20 at 01:45 PDT
+This test PASSED on 2022-05-07 at 01:45 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Case 1 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 100.03 seconds
+    * Command took 98.05 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -91,7 +91,7 @@ Command 2: Show DONE Status (PASS)
 :Time Taken:
     * **PASS**
     * Command took 0.61 seconds
-    * Cumulative time: 100.64 seconds
+    * Cumulative time: 98.66 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -100,7 +100,7 @@ Command 2: Show DONE Status (PASS)
 
         Case Config/Run Directory  Status  Iterations  Que CPU Time 
         ---- --------------------- ------- ----------- --- --------
-        1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .        0.7 
+        1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .        0.6 
         
         DONE=1, 
         
@@ -133,8 +133,8 @@ Command 3: Collect Aero (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.76 seconds
-    * Cumulative time: 101.40 seconds
+    * Command took 0.98 seconds
+    * Cumulative time: 99.64 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -154,8 +154,8 @@ Command 4: Check DataBook (Python 2) (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 101.89 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 100.15 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -189,8 +189,8 @@ Command 5: Check DataBook (Python 3) (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 102.45 seconds
+    * Command took 0.75 seconds
+    * Cumulative time: 100.90 seconds
 :STDOUT:
     * **PASS**
     * Actual:
