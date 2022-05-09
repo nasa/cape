@@ -41,7 +41,7 @@ THIS AGREEMENT.
        constitute a Modification.
     G. "Original Software" means the computer software first released under
        this Agreement by Government Agency with Government Agency designation
-       NASA Ames Research Center and entitled "CAPE" including source code,
+       **NASA Ames Research Center** and entitled "CAPE" including source code,
        object code and accompanying documentation, if any.
     H. "Recipient" means anyone who acquires the Subject Software under this
        Agreement, including all Contributors.
