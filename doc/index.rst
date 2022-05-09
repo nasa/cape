@@ -1,6 +1,12 @@
-   
+
 CAPE Documentation
 ====================
+
+.. toctree::
+    :caption: LICENSE
+    :maxdepth: 1
+
+    LICENSE
 
 Welcome to CAPE, a computational aerosciences processing environment for
 efficient interaction with several high-fidelity aerodynamics codes. This
