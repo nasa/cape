@@ -30,10 +30,10 @@ here are the links to the example pages for the main solvers:
 Currently, CAPE has interfaces for `Cart3D
 <http://people.nas.nasa.gov/~aftosmis/cart3d/>`_, `OVERFLOW
 <http://overflow.arc.nasa.gov>`_, and `FUN3D <http://fun3d.larc.nasa.gov/>`_.
-The Cart3D interface, :mod:`cape.pycart` has been used for several NASA projects.
-One example was the creation of an aerodynamic database for booster separation
-for the Space Launch System, which included over 10,000 different adaptive
-Cart3D runs in a 12-dimensional run matrix.
+The Cart3D interface, :mod:`cape.pycart` has been used for several NASA
+projects. One example was the creation of an aerodynamic database for booster
+separation for the Space Launch System, which included over 10,000 different
+adaptive Cart3D runs in a 12-dimensional run matrix.
 
 The FUN3D interface, :mod:`cape.pyfun`, reuses most of the code used to build
 :mod:`cape.pycart`; and the OVERFLOW interface, :mod:`cape.pyover` was
@@ -73,17 +73,17 @@ The following bullet list of capabilities is common to all interfaces including
 any that will be added in the future.
 
     * Automatically create parametrically-named folders for cases in a matrix
-    
+
     * Copy input files to run folders and edit them according to run matrix
       variables and multiple phases of global input settings
-      
+
     * Create PBS scripts and submit them automatically
-    
+
     * Built-in variables such as Mach number, angle of attack, sideslip,
       Reynolds number, and temperature
-    
+
     * Automated averaging of iterative histories and statistics for databases
-    
+
     * Automated reports using LaTeX (usually supports Tecplot and ParaView
       images)
 
@@ -91,17 +91,17 @@ any that will be added in the future.
 The Cart3D interface, pyCart, has quite a few capabilities.  Some highlights
 and critical aspects are listed below.
 
-    * Copy Cart3D input files to run files and edit them according to run matrix
-      variables and global input settings
-      
+    * Copy Cart3D input files to run files and edit them according to run
+      matrix variables and global input settings
+
     * Simplified interface for refining initial volume mesh using component
       names
-    
+
     * Rotate components (such as fins or separating bodies) using Euler angles
       or a hinge axis
-    
+
     * Automated reports of iterative histories and Tecplot layouts
-    
+
     * Interface for custom functions for more advanced run matrix variables
       such as thrust settings
 
@@ -125,13 +125,13 @@ pyCart.  Some capabilities are highlighted below.
 
     * Copy FUN3D input files to run files and edit them according to run matrix
       variables and global input settings
-    
+
     * Interface with AFLR3 for volume mesh generation, which can be used to
       have multiple bodies in different relative positions for each case in a
       run matrix
-    
+
     * Interface to Chimera Grid Tools ``triload`` to calculate sectional loads
-    
+
 The basic usage for this module is to create a file called :file:`pyFun.json`
 and use the script ``pyfun``.  The required FUN3D input files are described
 below.
@@ -140,7 +140,7 @@ below.
     * Mesh file; a recommended format is AFLR3, :file:`*.ugrid`
     * Boundary condition file, :file:`*.mapbc`
     * Run matrix, either specified within :file:`pyFun.json` or a file
-    
+
 **pyOver Capabilities**
 The OVERFLOW interface, pyOver, is also new but will have a rapidly expanding
 set of capabilities.  Much of the database and report capabilities are
@@ -148,13 +148,13 @@ inherited from pyCart.  Some highlights are below.
 
     * Copy OVERFLOW input namelists and edit them according to run matrix
       variables and multiple phases of input settings
-      
+
     * Highly generalized interface to OVERFLOW namelists that doesn't need
       great amounts of user preparation
-    
+
     * Built-in interface to OVERFLOW *q* files with simple access to
       coefficients and dimensional states
-      
+
 The basic usage for this module involves a file :file:`pyOver.json`, and the
 primary script is ``pyover``.  Required input files depend on whether the case
 is being run in DCF or Pegasus5 mode.  In this module, the user is responsible
@@ -168,7 +168,7 @@ defined.  In general the required files are the following.
 .. toctree::
     :maxdepth: 2
     :numbered:
-    
+
     install
     moreinfo/index
     common/index
@@ -184,7 +184,7 @@ defined.  In general the required files are the following.
 
     .. toctree::
         :maxdepth: 2
-    
+
         api/index
         api/cape/index
         api/pycart/index
@@ -192,9 +192,9 @@ defined.  In general the required files are the following.
         api/pyover/index
         api/attdb/index
         api/tnakit/index
-    
+
     **Testing**
-    
+
     .. toctree::
         :maxdepth: 3
 
