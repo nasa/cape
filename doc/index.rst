@@ -207,3 +207,10 @@ defined.  In general the required files are the following.
     * ``@jmeeroff``: Jamie Meeroff <jamie.g.meeroff@nasa.gov>
     * ``@aburkhea``: Aaron Burkhead <aaron.c.burkhead@nasa.gov>
     * ``@dschauer``: Guy Schauerhamer <daniel.g.schauerhamer@nasa.gov>
+
+**Contributing**
+
+.. toctree::
+    :maxdepth: 2
+
+    contributing/index
