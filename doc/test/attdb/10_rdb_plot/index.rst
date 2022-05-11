@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``10_rdb_plot``: PASS
-============================
+Test ``10_rdb_plot``: **FAIL** (command 1)
+============================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -24,8 +24,8 @@ The commands executed by this test are
         $ python2 test02_ll.py
         $ python3 test02_ll.py
 
-Command 1: Prep plot args: Python 2 (PASS)
--------------------------------------------
+Command 1: Prep plot args: Python 2 (**FAIL**)
+-----------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -33,14 +33,15 @@ Command 1: Prep plot args: Python 2 (PASS)
         $ python2 test01_pre.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.55 seconds
+    * Command took 0.17 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -66,122 +67,16 @@ Command 1: Prep plot args: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Prep plot args: Python 3 (PASS)
--------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_pre.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.75 seconds
-    * Cumulative time: 1.31 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Version 1: scalar by scalar args
-          col  = 'bullet.CN'
-          I    = []
-          mach =  0.90
-          aoa  =  1.90
-          beta = -0.10
-        Version 2: scalar by array indices
-          col  = 'bullet.CN'
-          I    = 200, 238
-          mach =  0.80,  0.80
-          aoa  =  0.75,  1.50
-          beta =  1.25, -2.00
-        Version 3:
-          col = 'bullet.dCN'
-          I    = 240, 251
-          mach =  0.80,  0.80
-          aoa  =  1.50,  1.50
-          beta = -1.50,  1.25
+        Traceback (most recent call last):
+          File "test01_pre.py", line 8, in <module>
+            import cape.attdb.dbfm as dbfm
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: Plot line load: Python 2 (PASS)
--------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_ll.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.83 seconds
-    * Cumulative time: 2.14 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Index: 535
-        
-
-:STDERR:
-    * **PASS**
-
-:PNG:
-    * **PASS**
-    * Difference fraction: 0.0105
-    * Target:
-
-        .. image:: PNG-target-02-00.png
-            :width: 4.5in
-
-Command 4: Plot line load: Python 3 (PASS)
--------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_ll.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 1.43 seconds
-    * Cumulative time: 3.57 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Index: 535
-        
-
-:STDERR:
-    * **PASS**
-
-:PNG:
-    * **PASS**
-    * Difference fraction: 0.0101
-    * Target:
-
-        .. image:: PNG-target-03-00.png
-            :width: 4.5in
 

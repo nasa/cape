@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``08_dbfm_eval``: PASS
-=============================
+Test ``08_dbfm_eval``: **FAIL** (command 1)
+=============================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -28,8 +28,8 @@ The commands executed by this test are
         $ python2 test04_aoap.py
         $ python3 test04_aoap.py
 
-Command 1: Evaluate FM cols: Python 2 (PASS)
----------------------------------------------
+Command 1: Evaluate FM cols: Python 2 (**FAIL**)
+-------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -37,14 +37,15 @@ Command 1: Evaluate FM cols: Python 2 (PASS)
         $ python2 test01_fm.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
+    * Command took 0.17 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -61,251 +62,16 @@ Command 1: Evaluate FM cols: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Evaluate FM cols: Python 3 (PASS)
----------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_fm.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 1.08 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        alpha: 1.50
-        beta: 0.50
-        bullet.CA: 0.24
-        bullet.CY: 0.02
-        bullet.CN: 0.07
-        bullet.CLL: 0.00
-        bullet.CLM: 0.22
-        bullet.CLN: 0.07
+        Traceback (most recent call last):
+          File "test01_fm.py", line 8, in <module>
+            import cape.attdb.dbfm as dbfm
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: Evaluate *CLMX* and *CLNX*: Python 2 (PASS)
--------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_CLMX.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 1.61 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach : 0.90
-        alpha: 1.50
-        beta : 0.50
-        xMRP : 2.00
-        bullet.CLM : 0.218
-        bullet.CLMX: 0.352
-        bullet.CLN : 0.073
-        bullet.CLNX: 0.117
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: Evaluate *CLMX* and *CLNX*: Python 3 (PASS)
--------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_CLMX.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.54 seconds
-    * Cumulative time: 2.14 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach : 0.90
-        alpha: 1.50
-        beta : 0.50
-        xMRP : 2.00
-        bullet.CLM : 0.218
-        bullet.CLMX: 0.352
-        bullet.CLN : 0.073
-        bullet.CLNX: 0.117
-        
-
-:STDERR:
-    * **PASS**
-
-Command 5: Evaluate *q* and *T*: Python 2 (PASS)
--------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test03_q.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 2.66 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        q: 1250.00
-        T: 475.33
-        
-
-:STDERR:
-    * **PASS**
-
-Command 6: Evaluate *q* and *T*: Python 3 (PASS)
--------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_q.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 3.19 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        q: 1250.00
-        T: 475.33
-        
-
-:STDERR:
-    * **PASS**
-
-Command 7: Process *aoap* and *phip*: Python 2 (PASS)
-------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test04_aoap.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.41 seconds
-    * Cumulative time: 3.60 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        aoa : 1.50
-        beta: 0.50
-        aoap: 1.5811
-        phip: 18.4373
-        bullet.CA : 0.241 0.241 0.241
-        bullet.CY : 0.022 0.022 0.022
-        bullet.CN : 0.067 0.067 0.067
-        bullet.CLL: 0.000 0.000 0.000
-        bullet.CLM: 0.218 0.218 0.218
-        bullet.CLN: 0.073 0.073 0.073
-        aoap: size=578, dtype=float64
-        phip: size=578, dtype=float64
-        
-
-:STDERR:
-    * **PASS**
-
-Command 8: Process *aoap* and *phip*: Python 3 (PASS)
-------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test04_aoap.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 4.11 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        aoa : 1.50
-        beta: 0.50
-        aoap: 1.5811
-        phip: 18.4373
-        bullet.CA : 0.241 0.241 0.241
-        bullet.CY : 0.022 0.022 0.022
-        bullet.CN : 0.067 0.067 0.067
-        bullet.CLL: 0.000 0.000 0.000
-        bullet.CLM: 0.218 0.218 0.218
-        bullet.CLN: 0.073 0.073 0.073
-        aoap: size=578, dtype=float64
-        phip: size=578, dtype=float64
-        
-
-:STDERR:
-    * **PASS**
 

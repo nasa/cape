@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:40 PDT
+   on 2022-05-11 at 01:40 PDT
 
-Test ``03_cli_matrix``: PASS
-==============================
+Test ``03_cli_matrix``: **FAIL** (command 2)
+==============================================
 
-This test PASSED on 2022-05-09 at 01:40 PDT
+This test **FAILED** (command 2) on 2022-05-11 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Missing JSON File (PASS)
     * Target: ``1``
 :Time Taken:
     * **PASS**
-    * Command took 0.65 seconds
+    * Command took 0.23 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -52,8 +52,8 @@ Command 1: Missing JSON File (PASS)
         
 
 
-Command 2: JSON-only Matrix (PASS)
------------------------------------
+Command 2: JSON-only Matrix (**FAIL**)
+---------------------------------------
 
 :Command:
     .. code-block:: console
@@ -61,15 +61,16 @@ Command 2: JSON-only Matrix (PASS)
         $ cape -c -f cape-json.json
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.58 seconds
-    * Cumulative time: 1.23 seconds
+    * Command took 0.21 seconds
+    * Cumulative time: 0.44 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -87,116 +88,16 @@ Command 2: JSON-only Matrix (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 3: JSON-only with RegEx (PASS)
----------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ cape -c -f cape-json.json --re a0
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.59 seconds
-    * Cumulative time: 1.82 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory   Status  Iterations  Que CPU Time 
-        ---- ---------------------- ------- ----------- --- --------
-        0    poweroff/m0.80a0.0b0.0 ---     /           .            
-        2    poweroff/m0.90a0.0b0.0 ---     /           .            
-        4    poweroff/m1.05a0.0b0.0 ---     /           .            
-        
-        ---=3, 
+        Traceback (most recent call last):
+          File "/u/wk/ddalle/usr/cape/bin/cape", line 5, in <module>
+            from cape.cfdx.cli import main
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 4: Mixed CSV and JSON (PASS)
--------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ cape -c -f cape-mixed.json
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.54 seconds
-    * Cumulative time: 2.36 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        0    poweroff/m0.5a0.0b4.0 ---     /           .            
-        1    poweroff/m0.5a2.0b4.0 ---     /           .            
-        2    poweroff/m0.8a0.0b4.0 ---     /           .            
-        3    poweroff/m0.8a2.0b4.0 ---     /           .            
-        4    poweroff/m1.1a0.0b4.0 ---     /           .            
-        5    poweroff/m1.1a2.0b4.0 ---     /           .            
-        6    poweroff/m1.5a0.0b4.0 ---     /           .            
-        7    poweroff/m1.5a2.0b4.0 ---     /           .            
-        8    poweroff/m2.5a0.0b4.0 ---     /           .            
-        9    poweroff/m2.5a2.0b4.0 ---     /           .            
-        
-        ---=10, 
-        
-
-:STDERR:
-    * **PASS**
-
-Command 5: Mixed CSV and JSON with RegEx (PASS)
-------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ cape -c -f cape-mixed.json --re a2
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.59 seconds
-    * Cumulative time: 2.95 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        1    poweroff/m0.5a2.0b4.0 ---     /           .            
-        3    poweroff/m0.8a2.0b4.0 ---     /           .            
-        5    poweroff/m1.1a2.0b4.0 ---     /           .            
-        7    poweroff/m1.5a2.0b4.0 ---     /           .            
-        9    poweroff/m2.5a2.0b4.0 ---     /           .            
-        
-        ---=5, 
-        
-
-:STDERR:
-    * **PASS**
 

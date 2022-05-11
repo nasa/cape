@@ -1,31 +1,19 @@
 :Compare Files:
-    * **PASS**
+    * **FAIL**
+    * Actual:
+        - :download:`FILE-00-00.txt`
+
     * Target:
         - :download:`FILE-target-00-00.txt`
 
-:Compare Files:
-    * **PASS**
-    * Target:
-        - :download:`FILE-target-01-00.txt`
-
-:Compare Files:
-    * **PASS**
-    * Target:
-        - :download:`FILE-target-02-00.txt`
-
-:Compare Files:
-    * **PASS**
-    * Target:
-        - :download:`FILE-target-03-00.txt`
-
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``11_rdb_writecsv``: PASS
-================================
+Test ``11_rdb_writecsv``: **FAIL** (command 1)
+================================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -44,8 +32,8 @@ The commands executed by this test are
         $ python2 test02_csv_default.py
         $ python3 test02_csv_default.py
 
-Command 1: Simple dense CSV writer: Python 2 (PASS)
-----------------------------------------------------
+Command 1: Simple dense CSV writer: Python 2 (**FAIL**)
+--------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -53,77 +41,25 @@ Command 1: Simple dense CSV writer: Python 2 (PASS)
         $ python2 test01_csv_dense.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.58 seconds
+    * Command took 0.07 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Simple dense CSV writer: Python 3 (PASS)
-----------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
+        Traceback (most recent call last):
+          File "test01_csv_dense.py", line 5, in <module>
+            import cape.attdb.rdb as rdb
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+        
 
-        $ python3 test01_csv_dense.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.55 seconds
-    * Cumulative time: 1.13 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-Command 3: CSV writer with defaults: Python 2 (PASS)
------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_csv_default.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 1.64 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-Command 4: CSV writer with defaults: Python 3 (PASS)
------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_csv_default.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.59 seconds
-    * Cumulative time: 2.23 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
 

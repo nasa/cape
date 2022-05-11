@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``05_rdb_llreg``: PASS
-=============================
+Test ``05_rdb_llreg``: **FAIL** (command 1)
+=============================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_griddata.py
         $ python3 test01_griddata.py
 
-Command 1: Regularize line load using griddata: Python 2 (PASS)
-----------------------------------------------------------------
+Command 1: Regularize line load using griddata: Python 2 (**FAIL**)
+--------------------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -31,14 +31,15 @@ Command 1: Regularize line load using griddata: Python 2 (PASS)
         $ python2 test01_griddata.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.68 seconds
+    * Command took 0.17 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -47,33 +48,16 @@ Command 1: Regularize line load using griddata: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Regularize line load using griddata: Python 3 (PASS)
-----------------------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_griddata.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.82 seconds
-    * Cumulative time: 1.50 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        reg.bullet.dCN.shape = [51, 578]
+        Traceback (most recent call last):
+          File "test01_griddata.py", line 8, in <module>
+            import cape.attdb.rdb as rdb
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
 

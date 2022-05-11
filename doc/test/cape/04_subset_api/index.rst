@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:40 PDT
+   on 2022-05-11 at 01:40 PDT
 
-Test ``04_subset_api``: PASS
-==============================
+Test ``04_subset_api``: **FAIL** (command 1)
+==============================================
 
-This test PASSED on 2022-05-09 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -42,8 +42,8 @@ The commands executed by this test are
         print(list(cntl.x.GetIndices(I=range(15,20), cons=["Mach%1==0.5"])))
         
 
-Command 1: Python 2 (PASS)
----------------------------
+Command 1: Python 2 (**FAIL**)
+-------------------------------
 
 :Command:
     .. code-block:: console
@@ -51,14 +51,15 @@ Command 1: Python 2 (PASS)
         $ python2 test01_subset.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.52 seconds
+    * Command took 0.13 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -70,36 +71,16 @@ Command 1: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Python 3 (PASS)
----------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_subset.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.76 seconds
-    * Cumulative time: 1.28 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        [2, 3, 6, 7, 10, 11, 14, 15, 18, 19]
-        [0, 1, 2, 3, 4, 5, 6, 7]
-        [2, 3, 14, 15, 18, 19]
-        [15, 16, 17, 18, 19]
+        Traceback (most recent call last):
+          File "test01_subset.py", line 5, in <module>
+            import cape
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
 

@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``06_text_runmatrix``: PASS
-==================================
+Test ``06_text_runmatrix``: **FAIL** (command 1)
+==================================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -44,8 +44,8 @@ The commands executed by this test are
             print("%8s: %s" % (col, db[col][i]))
         
 
-Command 1: First-column BoolMap: Python 2 (PASS)
--------------------------------------------------
+Command 1: First-column BoolMap: Python 2 (**FAIL**)
+-----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -53,14 +53,15 @@ Command 1: First-column BoolMap: Python 2 (PASS)
         $ python2 test01_minimal.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
+    * Command took 0.08 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -77,41 +78,16 @@ Command 1: First-column BoolMap: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: First-column BoolMap: Python 3 (PASS)
--------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_minimal.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 0.97 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-           _col1: p
-            mach: 2.1
-           alpha: 4.0
-            beta: 1.5
-          config: poweroff
-           Label: 
-            user: @user3
-           ERROR: False
-            PASS: True
+        Traceback (most recent call last):
+          File "test01_minimal.py", line 5, in <module>
+            import cape.attdb.ftypes.textdata as td
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
 

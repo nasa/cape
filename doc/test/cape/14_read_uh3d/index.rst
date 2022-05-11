@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:40 PDT
+   on 2022-05-11 at 01:40 PDT
 
-Test ``14_read_uh3d``: PASS
-=============================
+Test ``14_read_uh3d``: **FAIL** (command 1)
+=============================================
 
-This test PASSED on 2022-05-09 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -153,8 +153,8 @@ The commands executed by this test are
         # Read triangulation output from test01
         plt = cape.plt.Plt(fname=PLTFILE)
 
-Command 1: Read UH3D: Python 2 (PASS)
---------------------------------------
+Command 1: Read UH3D: Python 2 (**FAIL**)
+------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -162,14 +162,15 @@ Command 1: Read UH3D: Python 2 (PASS)
         $ python2 test01_read_uh3d.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.62 seconds
+    * Command took 0.10 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -189,148 +190,16 @@ Command 1: Read UH3D: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Read UH3D: Python 3 (PASS)
---------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_read_uh3d.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.85 seconds
-    * Cumulative time: 1.47 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Reading source triangulation
-        Writing ConfigXML file
-          arrow.xml
-          No parent for component 'bullet_total'
-        Mapping AFLR3 boundary conditions
-        Writing AFLR3 boundary conditions summary
-        Mapping FUN3D boundary conditions
-        Writing surface TRI file
-         Writing arrow-tri10k.lr4.tri
-        Writing combined surface PLT file
-          Creating PLT interface
-          Writing arrow-tri10k.plt
+        Traceback (most recent call last):
+          File "test01_read_uh3d.py", line 8, in <module>
+            import cape.tri
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: Check TRI CompIDs: Python 2 (PASS)
-----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_tri_ids.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.37 seconds
-    * Cumulative time: 1.85 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        CompIDs from TRI file
-        [ 1  2  3 11 12 13 14]
-        CompIDs from JSON file
-        [ 1  2  3 11 12 13 14]
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: Check TRI CompIDs: Python 3 (PASS)
-----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_tri_ids.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 2.32 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        CompIDs from TRI file
-        [ 1  2  3 11 12 13 14]
-        CompIDs from JSON file
-        [ 1  2  3 11 12 13 14]
-        
-
-:STDERR:
-    * **PASS**
-
-Command 5: Read PLT: Python 2 (PASS)
--------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test03_read_plt.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.45 seconds
-    * Cumulative time: 2.78 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-Command 6: Read PLT: Python 3 (PASS)
--------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_read_plt.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.54 seconds
-    * Cumulative time: 3.32 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
 

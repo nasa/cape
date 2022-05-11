@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``09_rdb_lleval``: PASS
-==============================
+Test ``09_rdb_lleval``: **FAIL** (command 1)
+==============================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_eval.py
         $ python3 test01_eval.py
 
-Command 1: Interpolate line loads: Python 2 (PASS)
----------------------------------------------------
+Command 1: Interpolate line loads: Python 2 (**FAIL**)
+-------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -31,14 +31,15 @@ Command 1: Interpolate line loads: Python 2 (PASS)
         $ python2 test01_eval.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.75 seconds
+    * Command took 0.33 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -51,37 +52,16 @@ Command 1: Interpolate line loads: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Interpolate line loads: Python 3 (PASS)
----------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_eval.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 1.13 seconds
-    * Cumulative time: 1.87 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        mach: 0.90
-        alpha: 1.50
-        beta: 0.50
-        bullet.dCN.size: 51
-        bullet.dCN.xargs: ['bullet.x']
+        Traceback (most recent call last):
+          File "test01_eval.py", line 14, in <module>
+            import cape.attdb.dbfm as dbfm
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
 

@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:40 PDT
+   on 2022-05-11 at 01:40 PDT
 
-Test ``06_atm``: PASS
-=======================
+Test ``06_atm``: **FAIL** (command 1)
+=======================================
 
-This test PASSED on 2022-05-09 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -91,8 +91,8 @@ The commands executed by this test are
         # Print results
         print("%0.2e" % Tref)
 
-Command 1: Standard Atmosphere: Python 2 (PASS)
-------------------------------------------------
+Command 1: Standard Atmosphere: Python 2 (**FAIL**)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -100,14 +100,15 @@ Command 1: Standard Atmosphere: Python 2 (PASS)
         $ python2 test01_atm76.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.44 seconds
+    * Command took 0.10 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -121,150 +122,16 @@ Command 1: Standard Atmosphere: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Standard Atmosphere: Python 3 (PASS)
-------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_atm76.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 0.96 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        101325.00
-        79498.14
-        2187.96
-        1.23
-        332.50
-        222.54
+        Traceback (most recent call last):
+          File "test01_atm76.py", line 5, in <module>
+            import cape.atm
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: Sutherland's Law: Python 2 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_sutherlandMKS.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.36 seconds
-    * Cumulative time: 1.32 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        1.79e-05
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: Sutherland's Law: Python 3 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_sutherlandMKS.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 1.79 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        1.79e-05
-        
-
-:STDERR:
-    * **PASS**
-
-Command 5: Temperature from Enthalpy: Python 2 (PASS)
-------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test03_h.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.46 seconds
-    * Cumulative time: 2.25 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        1.18e+03
-        
-
-:STDERR:
-    * **PASS**
-
-Command 6: Temperature from Enthalpy: Python 3 (PASS)
-------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_h.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.73 seconds
-    * Cumulative time: 2.99 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        1.18e+03
-        
-
-:STDERR:
-    * **PASS**
 

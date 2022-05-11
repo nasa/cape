@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:40 PDT
+   on 2022-05-11 at 01:40 PDT
 
-Test ``09_cmd``: PASS
-=======================
+Test ``09_cmd``: **FAIL** (command 1)
+=======================================
 
-This test PASSED on 2022-05-09 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -77,8 +77,8 @@ The commands executed by this test are
         print(' '.join(cmd1))
         print(' '.join(cmd2))
 
-Command 1: AFLR3 Commands Python 2 (PASS)
-------------------------------------------
+Command 1: AFLR3 Commands Python 2 (**FAIL**)
+----------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -86,14 +86,15 @@ Command 1: AFLR3 Commands Python 2 (PASS)
         $ python2 test01_cmd.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
+    * Command took 0.14 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -103,92 +104,16 @@ Command 1: AFLR3 Commands Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: CART3D ``intersect`` Commands Python 2 (PASS)
----------------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_cmd.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.51 seconds
-    * Cumulative time: 0.99 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        intersect -i Components.tri -o Components.i.tri -ascii -T
-        intersect -i Components.tri -o Components.i.tri -ascii -T
+        Traceback (most recent call last):
+          File "test01_cmd.py", line 5, in <module>
+            import cape
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: AFLR3 Commands Python 3 (PASS)
-------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_cmd.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 1.48 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        somekey=c
-        aflr3 -i pyfun.surf -o pyfun.lb8.ugrid -blr 10 -someflag 2 somekey=c
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: CART3D ``intersect`` Commands Python 3 (PASS)
----------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_cmd.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 1.96 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        intersect -i Components.tri -o Components.i.tri -ascii -T
-        intersect -i Components.tri -o Components.i.tri -ascii -T
-        
-
-:STDERR:
-    * **PASS**
 

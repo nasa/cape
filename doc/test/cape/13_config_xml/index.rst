@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:40 PDT
+   on 2022-05-11 at 01:40 PDT
 
-Test ``13_config_xml``: PASS
-==============================
+Test ``13_config_xml``: **FAIL** (command 1)
+==============================================
 
-This test PASSED on 2022-05-09 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -78,8 +78,8 @@ The commands executed by this test are
                 else:
                     print(line)
 
-Command 1: Read JSON Configuration: Python 2 (PASS)
-----------------------------------------------------
+Command 1: Read JSON Configuration: Python 2 (**FAIL**)
+--------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -87,301 +87,25 @@ Command 1: Read JSON Configuration: Python 2 (PASS)
         $ python2 test01_config_xml.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.55 seconds
+    * Command took 0.13 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Read JSON Configuration: Python 3 (PASS)
-----------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_config_xml.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.74 seconds
-    * Cumulative time: 1.29 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-Command 3: Read XML Configuration: Python 2 (PASS)
----------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_config_xml.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.44 seconds
-    * Cumulative time: 1.73 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-Command 4: Read XML Configuration: Python 3 (PASS)
----------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_config_xml.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 2.26 seconds
-:STDOUT:
-    * **PASS**
-:STDERR:
-    * **PASS**
-
-Command 5: Compare XML Configurations: Python 2 (PASS)
--------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test03_config_xml.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.41 seconds
-    * Cumulative time: 2.67 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-          No parent for component 'bullet_total'
-        <?xml version="1.0" encoding="utf-8"?>
-        
-        
-        
-        <Configuration Name="arrow2.xml" Source="bullet.tri">
-        
-        
-        
-          <Component Name="cap" Parent="bullet_no_base" Type="tri">
-        
-            <Data>Face Label=1</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="body" Parent="bullet_no_base" Type="tri">
-        
-            <Data>Face Label=2</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="base" Parent="bullet_total" Type="tri">
-        
-            <Data>Face Label=3</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin1" Parent="fins" Type="tri">
-        
-            <Data>Face Label=11</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin2" Parent="fins" Type="tri">
-        
-            <Data>Face Label=12</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin3" Parent="fins" Type="tri">
-        
-            <Data>Face Label=13</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin4" Parent="fins" Type="tri">
-        
-            <Data>Face Label=14</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="bullet_no_base" Parent="bullet_total" Type="container">
-        
-          </Component>
-        
-        
-        
-          <Component Name="bullet_total" Type="container">
-        
-          </Component>
-        
-        
-        
-          <Component Name="fins" Parent="bullet_no_base" Type="container">
-        
-          </Component>
-        
-        
-        
-        </Configuration>
-        
+        Traceback (most recent call last):
+          File "test01_config_xml.py", line 5, in <module>
+            import cape.config
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 6: Compare XML Configurations: Python 3 (PASS)
--------------------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_config_xml.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.46 seconds
-    * Cumulative time: 3.13 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-          No parent for component 'bullet_total'
-        <?xml version="1.0" encoding="utf-8"?>
-        
-        
-        
-        <Configuration Name="arrow2.xml" Source="bullet.tri">
-        
-        
-        
-          <Component Name="cap" Parent="bullet_no_base" Type="tri">
-        
-            <Data>Face Label=1</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="body" Parent="bullet_no_base" Type="tri">
-        
-            <Data>Face Label=2</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="base" Parent="bullet_total" Type="tri">
-        
-            <Data>Face Label=3</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin1" Parent="fins" Type="tri">
-        
-            <Data>Face Label=11</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin2" Parent="fins" Type="tri">
-        
-            <Data>Face Label=12</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin3" Parent="fins" Type="tri">
-        
-            <Data>Face Label=13</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="fin4" Parent="fins" Type="tri">
-        
-            <Data>Face Label=14</Data>
-        
-          </Component>
-        
-        
-        
-          <Component Name="bullet_no_base" Parent="bullet_total" Type="container">
-        
-          </Component>
-        
-        
-        
-          <Component Name="bullet_total" Type="container">
-        
-          </Component>
-        
-        
-        
-          <Component Name="fins" Parent="bullet_no_base" Type="container">
-        
-          </Component>
-        
-        
-        
-        </Configuration>
-        
-        
-
-:STDERR:
-    * **PASS**
 

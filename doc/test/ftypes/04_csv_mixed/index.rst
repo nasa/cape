@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``04_csv_mixed``: PASS
-=============================
+Test ``04_csv_mixed``: **FAIL** (command 1)
+=============================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -75,8 +75,8 @@ The commands executed by this test are
             print("%8s: %s (%s)" % (col, dtype, clsname))
         
 
-Command 1: Minimal Definitions: Python 2 (PASS)
-------------------------------------------------
+Command 1: Minimal Definitions: Python 2 (**FAIL**)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -84,14 +84,15 @@ Command 1: Minimal Definitions: Python 2 (PASS)
         $ python2 test01_minimal.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.50 seconds
+    * Command took 0.13 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -105,104 +106,16 @@ Command 1: Minimal Definitions: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Minimal Definitions: Python 3 (PASS)
-------------------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_minimal.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.55 seconds
-    * Cumulative time: 1.05 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 2.1
-           alpha: 4.0
-            beta: 1.5
-          config: poweroff
-           Label: 
-            user: @user3
+        Traceback (most recent call last):
+          File "test01_minimal.py", line 5, in <module>
+            import cape.attdb.ftypes.csvfile as csvfile
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: Specified dtypes: Python 2 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 1.62 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float16 (ndarray)
-           alpha: float32 (ndarray)
-            beta: float32 (ndarray)
-          config: str (list)
-           Label: str (list)
-            user: str (list)
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: Specified dtypes: Python 3 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.78 seconds
-    * Cumulative time: 2.40 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float16 (ndarray)
-           alpha: float32 (ndarray)
-            beta: float32 (ndarray)
-          config: str (list)
-           Label: str (list)
-            user: str (list)
-        
-
-:STDERR:
-    * **PASS**
 

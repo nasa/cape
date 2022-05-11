@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``07_xls_aerodb``: PASS
-==============================
+Test ``07_xls_aerodb``: **FAIL** (command 1)
+==============================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -113,8 +113,8 @@ The commands executed by this test are
             print("%8s: %s (%s)" % (col, dtype, clsname))
         
 
-Command 1: XLSX File: Python 2 (PASS)
---------------------------------------
+Command 1: XLSX File: Python 2 (**FAIL**)
+------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -122,14 +122,15 @@ Command 1: XLSX File: Python 2 (PASS)
         $ python2 test01_xlsx.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.60 seconds
+    * Command took 0.07 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -148,195 +149,16 @@ Command 1: XLSX File: Python 2 (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: XLSX File: Python 3 (PASS)
---------------------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_xlsx.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.56 seconds
-    * Cumulative time: 1.16 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 0.80
-           alpha: 1.00
-          config: poweroff
-           Label: 
-              CA: 0.34
-              CY: -0.00
-              CN: 0.15
-             CLM: -0.11
-         nOrders: 4.49
-           nIter: 200.00
-          nStats: 100.00
+        Traceback (most recent call last):
+          File "test01_xlsx.py", line 5, in <module>
+            import cape.attdb.ftypes.xlsfile as xlsfile
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: XLS File: Python 2 (PASS)
--------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test02_xls.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.41 seconds
-    * Cumulative time: 1.57 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 0.80
-           alpha: 1.00
-          config: poweroff
-           Label: 
-              CA: 0.34
-              CY: -0.00
-              CN: 0.15
-             CLM: -0.11
-         nOrders: 4.49
-           nIter: 200.00
-          nStats: 100.00
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: XLS File: Python 3 (PASS)
--------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test02_xls.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.53 seconds
-    * Cumulative time: 2.09 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: 0.80
-           alpha: 1.00
-          config: poweroff
-           Label: 
-              CA: 0.34
-              CY: -0.00
-              CN: 0.15
-             CLM: -0.11
-         nOrders: 4.49
-           nIter: 200.00
-          nStats: 100.00
-        
-
-:STDERR:
-    * **PASS**
-
-Command 5: Specified dtypes: Python 2 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python2 test03_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.49 seconds
-    * Cumulative time: 2.58 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float32 (ndarray)
-           alpha: float16 (ndarray)
-          config: unicode (list)
-           Label: unicode (list)
-              CA: float64 (ndarray)
-              CY: float64 (ndarray)
-              CN: float64 (ndarray)
-             CLM: float64 (ndarray)
-         nOrders: float64 (ndarray)
-           nIter: float64 (ndarray)
-          nStats: int32 (ndarray)
-        
-
-:STDERR:
-    * **PASS**
-
-Command 6: Specified dtypes: Python 3 (PASS)
----------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test03_dtypes.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.64 seconds
-    * Cumulative time: 3.22 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-            mach: float32 (ndarray)
-           alpha: float16 (ndarray)
-          config: str (list)
-           Label: str (list)
-              CA: float64 (ndarray)
-              CY: float64 (ndarray)
-              CN: float64 (ndarray)
-             CLM: float64 (ndarray)
-         nOrders: float64 (ndarray)
-           nIter: float64 (ndarray)
-          nStats: int32 (ndarray)
-        
-
-:STDERR:
-    * **PASS**
 

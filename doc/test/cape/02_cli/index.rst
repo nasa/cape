@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:40 PDT
+   on 2022-05-11 at 01:40 PDT
 
-Test ``02_cli``: PASS
-=======================
+Test ``02_cli``: **FAIL** (command 1)
+=======================================
 
-This test PASSED on 2022-05-09 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -27,8 +27,8 @@ The commands executed by this test are
         $ cape -c -I 2:5,7,18:
         $ cape -c -I 15: --cons Mach%1=0.5 --re b2
 
-Command 1: Status (PASS)
--------------------------
+Command 1: Status (**FAIL**)
+-----------------------------
 
 :Command:
     .. code-block:: console
@@ -36,14 +36,15 @@ Command 1: Status (PASS)
         $ cape -c
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
+    * Command took 0.26 seconds
 :STDOUT:
-    * **PASS**
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -75,230 +76,16 @@ Command 1: Status (PASS)
         
 
 :STDERR:
-    * **PASS**
+    * **FAIL**
+    * Actual:
 
-Command 2: Filter (PASS)
--------------------------
+      .. code-block:: pytb
 
-:Command:
-    .. code-block:: console
-
-        $ cape -c --filter b2
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.63 seconds
-    * Cumulative time: 1.23 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m0.5a0.0b2.0 ---     /           .            
-        3    poweroff/m0.5a2.0b2.0 ---     /           .            
-        6    poweroff/m0.8a0.0b2.0 ---     /           .            
-        7    poweroff/m0.8a2.0b2.0 ---     /           .            
-        10   poweroff/m1.1a0.0b2.0 ---     /           .            
-        11   poweroff/m1.1a2.0b2.0 ---     /           .            
-        14   poweroff/m1.5a0.0b2.0 ---     /           .            
-        15   poweroff/m1.5a2.0b2.0 ---     /           .            
-        18   poweroff/m2.5a0.0b2.0 ---     /           .            
-        19   poweroff/m2.5a2.0b2.0 ---     /           .            
-        
-        ---=10, 
+        Traceback (most recent call last):
+          File "/u/wk/ddalle/usr/cape/bin/cape", line 5, in <module>
+            from cape.cfdx.cli import main
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-:STDERR:
-    * **PASS**
-
-Command 3: Constraints (PASS)
-------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ cape -c --cons 'beta==2,Mach%1==0.5'
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.52 seconds
-    * Cumulative time: 1.75 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m0.5a0.0b2.0 ---     /           .            
-        3    poweroff/m0.5a2.0b2.0 ---     /           .            
-        14   poweroff/m1.5a0.0b2.0 ---     /           .            
-        15   poweroff/m1.5a2.0b2.0 ---     /           .            
-        18   poweroff/m2.5a0.0b2.0 ---     /           .            
-        19   poweroff/m2.5a2.0b2.0 ---     /           .            
-        
-        ---=6, 
-        
-
-:STDERR:
-    * **PASS**
-
-Command 4: Glob (PASS)
------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ cape -c --glob 'poweroff/m0*'
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.47 seconds
-    * Cumulative time: 2.22 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        0    poweroff/m0.5a0.0b0.0 ---     /           .            
-        1    poweroff/m0.5a2.0b0.0 ---     /           .            
-        2    poweroff/m0.5a0.0b2.0 ---     /           .            
-        3    poweroff/m0.5a2.0b2.0 ---     /           .            
-        4    poweroff/m0.8a0.0b0.0 ---     /           .            
-        5    poweroff/m0.8a2.0b0.0 ---     /           .            
-        6    poweroff/m0.8a0.0b2.0 ---     /           .            
-        7    poweroff/m0.8a2.0b2.0 ---     /           .            
-        
-        ---=8, 
-        
-
-:STDERR:
-    * **PASS**
-
-Command 5: Regular Expression (PASS)
--------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ cape -c --re 'm.\.5.*b2'
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.44 seconds
-    * Cumulative time: 2.66 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m0.5a0.0b2.0 ---     /           .            
-        3    poweroff/m0.5a2.0b2.0 ---     /           .            
-        14   poweroff/m1.5a0.0b2.0 ---     /           .            
-        15   poweroff/m1.5a2.0b2.0 ---     /           .            
-        18   poweroff/m2.5a0.0b2.0 ---     /           .            
-        19   poweroff/m2.5a2.0b2.0 ---     /           .            
-        
-        ---=6, 
-        
-
-:STDERR:
-    * **PASS**
-
-Command 6: Index List (PASS)
------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ cape -c -I 2:5,7,18:
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.57 seconds
-    * Cumulative time: 3.23 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m0.5a0.0b2.0 ---     /           .            
-        3    poweroff/m0.5a2.0b2.0 ---     /           .            
-        4    poweroff/m0.8a0.0b0.0 ---     /           .            
-        7    poweroff/m0.8a2.0b2.0 ---     /           .            
-        18   poweroff/m2.5a0.0b2.0 ---     /           .            
-        19   poweroff/m2.5a2.0b2.0 ---     /           .            
-        
-        ---=6, 
-        
-
-:STDERR:
-    * **PASS**
-
-Command 7: Compound Subsets (PASS)
------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ cape -c -I 15: --cons Mach%1=0.5 --re b2
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 3.84 seconds
-:STDOUT:
-    * **PASS**
-    * Target:
-
-      .. code-block:: none
-
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        15   poweroff/m1.5a2.0b2.0 ---     /           .            
-        18   poweroff/m2.5a0.0b2.0 ---     /           .            
-        19   poweroff/m2.5a2.0b2.0 ---     /           .            
-        
-        ---=3, 
-        
-
-:STDERR:
-    * **PASS**
 

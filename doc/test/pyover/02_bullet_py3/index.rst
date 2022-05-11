@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-09 at 01:45 PDT
+   on 2022-05-11 at 01:41 PDT
 
-Test ``02_bullet_py3``: PASS
-==============================
+Test ``02_bullet_py3``: **FAIL** (command 4)
+==============================================
 
-This test PASSED on 2022-05-09 at 01:45 PDT
+This test **FAILED** (command 4) on 2022-05-11 at 01:41 PDT
 
 This test is run in the folder:
 
@@ -39,7 +39,7 @@ Command 1: Run Case 1 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 98.38 seconds
+    * Command took 96.18 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -90,8 +90,8 @@ Command 2: Show DONE Status (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.64 seconds
-    * Cumulative time: 99.02 seconds
+    * Command took 0.61 seconds
+    * Cumulative time: 96.79 seconds
 :STDOUT:
     * **PASS**
     * Actual:
@@ -133,15 +133,15 @@ Command 3: Collect Aero (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 1.02 seconds
-    * Cumulative time: 100.05 seconds
+    * Command took 1.01 seconds
+    * Cumulative time: 97.80 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
     * **PASS**
 
-Command 4: Check DataBook (Python 2) (PASS)
---------------------------------------------
+Command 4: Check DataBook (Python 2) (**FAIL**)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -149,22 +149,16 @@ Command 4: Check DataBook (Python 2) (PASS)
         $ python2 test_databook.py
 
 :Return Code:
-    * **PASS**
-    * Output: ``0``
+    * **FAIL**
+    * Output: ``1``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.61 seconds
-    * Cumulative time: 100.65 seconds
+    * Command took 0.16 seconds
+    * Cumulative time: 97.95 seconds
 :STDOUT:
-    * **PASS**
-    * Actual:
-
-      .. code-block:: none
-
-        CN = 0.221
-        
-
+    * **FAIL**
+    * Actual: (empty)
     * Target:
 
       .. code-block:: none
@@ -173,40 +167,16 @@ Command 4: Check DataBook (Python 2) (PASS)
         
 
 :STDERR:
-    * **PASS**
-
-Command 5: Check DataBook (Python 3) (PASS)
---------------------------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test_databook.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.79 seconds
-    * Cumulative time: 101.45 seconds
-:STDOUT:
-    * **PASS**
+    * **FAIL**
     * Actual:
 
-      .. code-block:: none
+      .. code-block:: pytb
 
-        CN = 0.221
+        Traceback (most recent call last):
+          File "test_databook.py", line 5, in <module>
+            import cape.pyover
+          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
+        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
         
 
-    * Target:
-
-      .. code-block:: none
-
-        CN = <valint>[0.190,0.226]
-        
-
-:STDERR:
-    * **PASS**
 
