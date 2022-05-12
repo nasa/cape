@@ -5,7 +5,7 @@
 proc ModulesHelp { } {
 	global version modroot
 
-	puts stderr"\n\tThis module configures PYCART\n"
+	puts stderr"\n\tThis module configures CAPE\n"
 }
 
 # Explain the file.
