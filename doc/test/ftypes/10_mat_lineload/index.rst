@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:17 PDT
 
-Test ``10_mat_lineload``: **FAIL** (command 1)
-================================================
+Test ``10_mat_lineload``: PASS
+================================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:17 PDT
 
 This test is run in the folder:
 
@@ -94,8 +94,8 @@ The commands executed by this test are
             print("%-10s: %s" % (col, db[col].shape))
         
 
-Command 1: Clean MAT read: Python 2 (**FAIL**)
------------------------------------------------
+Command 1: Clean MAT read: Python 2 (PASS)
+-------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -103,15 +103,14 @@ Command 1: Clean MAT read: Python 2 (**FAIL**)
         $ python2 test01_read.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.13 seconds
+    * Command took 0.59 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -130,16 +129,119 @@ Command 1: Clean MAT read: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Clean MAT read: Python 3 (PASS)
+-------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_read.py", line 8, in <module>
-            import cape.attdb.ftypes.matfile as matfile
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_read.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.54 seconds
+    * Cumulative time: 1.13 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        mach      : (6,)
+        alpha     : (6,)
+        beta      : (6,)
+        aoap      : (6,)
+        phip      : (6,)
+        q         : (6,)
+        T         : (6,)
+        bullet.x  : (101,)
+        bullet.dCA: (101, 6)
+        bullet.dCY: (101, 6)
+        bullet.dCN: (101, 6)
         
 
+:STDERR:
+    * **PASS**
+
+Command 3: MATFile write: Python 2 (PASS)
+------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_write.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.44 seconds
+    * Cumulative time: 1.58 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        MACH      : (6,)
+        T         : (6,)
+        alpha     : (6,)
+        aoap      : (6,)
+        beta      : (6,)
+        bullet.dCA: (101, 6)
+        bullet.dCN: (101, 6)
+        bullet.dCY: (101, 6)
+        bullet.x  : (101,)
+        phip      : (6,)
+        q         : (6,)
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: MATFile write: Python 3 (PASS)
+------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_write.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.51 seconds
+    * Cumulative time: 2.09 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha     : (6,)
+        beta      : (6,)
+        aoap      : (6,)
+        phip      : (6,)
+        q         : (6,)
+        T         : (6,)
+        bullet.x  : (101,)
+        bullet.dCA: (101, 6)
+        bullet.dCY: (101, 6)
+        bullet.dCN: (101, 6)
+        MACH      : (6,)
+        
+
+:STDERR:
+    * **PASS**
 

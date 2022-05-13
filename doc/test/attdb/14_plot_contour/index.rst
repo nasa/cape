@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:18 PDT
 
-Test ``14_plot_contour``: **FAIL** (command 1)
-================================================
+Test ``14_plot_contour``: PASS
+================================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:18 PDT
 
 This test is run in the folder:
 
@@ -26,8 +26,8 @@ The commands executed by this test are
         $ python2 test03_response.py
         $ python3 test03_response.py
 
-Command 1: Contours from indices: Python 2 (**FAIL**)
-------------------------------------------------------
+Command 1: Contours from indices: Python 2 (PASS)
+--------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -35,37 +35,167 @@ Command 1: Contours from indices: Python 2 (**FAIL**)
         $ python2 test01_mask.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.20 seconds
+    * Command took 5.60 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **FAIL**
-    * Actual:
-
-      .. code-block:: pytb
-
-        Traceback (most recent call last):
-          File "test01_mask.py", line 11, in <module>
-            import cape.attdb.rdb as rdb
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
-        
-
+    * **PASS**
 
 :PNG:
-    * **FAIL**
-    * Actual:
-
-        .. image:: PNG-00-00.png
-            :width: 4.5in
-
+    * **PASS**
+    * Difference fraction: 0.0000
     * Target:
 
         .. image:: PNG-target-00-00.png
+            :width: 4.5in
+
+Command 2: Contours from indices: Python 3 (PASS)
+--------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_mask.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 3.90 seconds
+    * Cumulative time: 9.50 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-01-00.png
+            :width: 4.5in
+
+Command 3: Contours levels: Python 2 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_levels.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 5.52 seconds
+    * Cumulative time: 15.01 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-02-00.png
+            :width: 4.5in
+
+Command 4: Contours levels: Python 3 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_levels.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 3.66 seconds
+    * Cumulative time: 18.67 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-03-00.png
+            :width: 4.5in
+
+Command 5: Contours from response: Python 2 (PASS)
+---------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test03_response.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 5.50 seconds
+    * Cumulative time: 24.17 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-04-00.png
+            :width: 4.5in
+
+Command 6: Contours from response: Python 3 (PASS)
+---------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_response.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 4.04 seconds
+    * Cumulative time: 28.21 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+:PNG:
+    * **PASS**
+    * Difference fraction: 0.0000
+    * Target:
+
+        .. image:: PNG-target-05-00.png
             :width: 4.5in
 

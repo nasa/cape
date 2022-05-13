@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:40 PDT
+   on 2022-05-13 at 15:12 PDT
 
-Test ``06_atm``: **FAIL** (command 1)
-=======================================
+Test ``06_atm``: PASS
+=======================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
+This test PASSED on 2022-05-13 at 15:12 PDT
 
 This test is run in the folder:
 
@@ -91,8 +91,8 @@ The commands executed by this test are
         # Print results
         print("%0.2e" % Tref)
 
-Command 1: Standard Atmosphere: Python 2 (**FAIL**)
-----------------------------------------------------
+Command 1: Standard Atmosphere: Python 2 (PASS)
+------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -100,15 +100,14 @@ Command 1: Standard Atmosphere: Python 2 (**FAIL**)
         $ python2 test01_atm76.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.10 seconds
+    * Command took 0.52 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -122,16 +121,150 @@ Command 1: Standard Atmosphere: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Standard Atmosphere: Python 3 (PASS)
+------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_atm76.py", line 5, in <module>
-            import cape.atm
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_atm76.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.71 seconds
+    * Cumulative time: 1.22 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        101325.00
+        79498.14
+        2187.96
+        1.23
+        332.50
+        222.54
         
 
+:STDERR:
+    * **PASS**
+
+Command 3: Sutherland's Law: Python 2 (PASS)
+---------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_sutherlandMKS.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.49 seconds
+    * Cumulative time: 1.71 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        1.79e-05
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: Sutherland's Law: Python 3 (PASS)
+---------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_sutherlandMKS.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.48 seconds
+    * Cumulative time: 2.20 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        1.79e-05
+        
+
+:STDERR:
+    * **PASS**
+
+Command 5: Temperature from Enthalpy: Python 2 (PASS)
+------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test03_h.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.45 seconds
+    * Cumulative time: 2.65 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        1.18e+03
+        
+
+:STDERR:
+    * **PASS**
+
+Command 6: Temperature from Enthalpy: Python 3 (PASS)
+------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_h.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.54 seconds
+    * Cumulative time: 3.18 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        1.18e+03
+        
+
+:STDERR:
+    * **PASS**
 

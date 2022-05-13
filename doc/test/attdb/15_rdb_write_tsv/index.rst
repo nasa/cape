@@ -1,19 +1,31 @@
 :Compare Files:
-    * **FAIL**
-    * Actual:
-        - :download:`FILE-00-00.txt`
-
+    * **PASS**
     * Target:
         - :download:`FILE-target-00-00.txt`
 
+:Compare Files:
+    * **PASS**
+    * Target:
+        - :download:`FILE-target-01-00.txt`
+
+:Compare Files:
+    * **PASS**
+    * Target:
+        - :download:`FILE-target-02-00.txt`
+
+:Compare Files:
+    * **PASS**
+    * Target:
+        - :download:`FILE-target-03-00.txt`
+
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:18 PDT
 
-Test ``15_rdb_write_tsv``: **FAIL** (command 1)
-=================================================
+Test ``15_rdb_write_tsv``: PASS
+=================================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:18 PDT
 
 This test is run in the folder:
 
@@ -32,8 +44,8 @@ The commands executed by this test are
         $ python2 test02_tsv_default.py
         $ python3 test02_tsv_default.py
 
-Command 1: Simple dense TSV writer: Python 2 (**FAIL**)
---------------------------------------------------------
+Command 1: Simple dense TSV writer: Python 2 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -41,25 +53,77 @@ Command 1: Simple dense TSV writer: Python 2 (**FAIL**)
         $ python2 test01_tsv_dense.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.12 seconds
+    * Command took 0.62 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Simple dense TSV writer: Python 3 (PASS)
+----------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_tsv_dense.py", line 5, in <module>
-            import cape.attdb.rdb as rdb
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
-        
+:Command:
+    .. code-block:: console
 
+        $ python3 test01_tsv_dense.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.80 seconds
+    * Cumulative time: 1.42 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+Command 3: TSV writer with defaults: Python 2 (PASS)
+-----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_tsv_default.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.43 seconds
+    * Cumulative time: 1.85 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
+
+Command 4: TSV writer with defaults: Python 3 (PASS)
+-----------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_tsv_default.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.51 seconds
+    * Cumulative time: 2.36 seconds
+:STDOUT:
+    * **PASS**
+:STDERR:
+    * **PASS**
 

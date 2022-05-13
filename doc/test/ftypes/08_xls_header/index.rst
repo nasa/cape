@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:17 PDT
 
-Test ``08_xls_header``: **FAIL** (command 1)
-==============================================
+Test ``08_xls_header``: PASS
+==============================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:17 PDT
 
 This test is run in the folder:
 
@@ -62,8 +62,8 @@ The commands executed by this test are
                 print("    %-21s: list (len=%i, type=%s)" % (col, n, dtype))
         
 
-Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
-----------------------------------------------------------
+Command 1: Auto-Workbook with Arrays: Python 2 (PASS)
+------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -71,15 +71,14 @@ Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
         $ python2 test01_workbook.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.24 seconds
+    * Command took 0.41 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -95,16 +94,40 @@ Command 1: Auto-Workbook with Arrays: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Auto-Workbook with Arrays: Python 3 (PASS)
+------------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_workbook.py", line 8, in <module>
-            import cape.attdb.ftypes.xlsfile as xlsfile
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_workbook.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.52 seconds
+    * Cumulative time: 0.93 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+            colnames.mach        : array (shape=75, dtype=float64)
+            colnames.alpha       : array (shape=75, dtype=float64)
+            colnames.beta        : array (shape=75, dtype=float64)
+            colnames.config      : list (len=75, type=str)
+            cols_with_array.mach : array (shape=3, dtype=float64)
+            cols_with_array.alpha: array (shape=3, dtype=float64)
+            cols_with_array.beta : array (shape=3, dtype=float64)
+            cols_with_array.DCN  : array (shape=3x3, dtype=float64)
         
 
+:STDERR:
+    * **PASS**
 

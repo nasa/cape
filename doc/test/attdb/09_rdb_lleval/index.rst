@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:17 PDT
 
-Test ``09_rdb_lleval``: **FAIL** (command 1)
-==============================================
+Test ``09_rdb_lleval``: PASS
+==============================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:17 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_eval.py
         $ python3 test01_eval.py
 
-Command 1: Interpolate line loads: Python 2 (**FAIL**)
--------------------------------------------------------
+Command 1: Interpolate line loads: Python 2 (PASS)
+---------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -31,15 +31,14 @@ Command 1: Interpolate line loads: Python 2 (**FAIL**)
         $ python2 test01_eval.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.33 seconds
+    * Command took 0.60 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -52,16 +51,37 @@ Command 1: Interpolate line loads: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Interpolate line loads: Python 3 (PASS)
+---------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_eval.py", line 14, in <module>
-            import cape.attdb.dbfm as dbfm
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_eval.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.97 seconds
+    * Cumulative time: 1.57 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        mach: 0.90
+        alpha: 1.50
+        beta: 0.50
+        bullet.dCN.size: 51
+        bullet.dCN.xargs: ['bullet.x']
         
 
+:STDERR:
+    * **PASS**
 

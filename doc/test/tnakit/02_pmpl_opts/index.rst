@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:18 PDT
 
-Test ``02_pmpl_opts``: **FAIL** (command 1)
-=============================================
+Test ``02_pmpl_opts``: PASS
+=============================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:18 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_PlotOptions.py
         $ python3 test01_PlotOptions.py
 
-Command 1: :class:`MPLOpts` *PlotOptions*: Python 2 (**FAIL**)
----------------------------------------------------------------
+Command 1: :class:`MPLOpts` *PlotOptions*: Python 2 (PASS)
+-----------------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -31,15 +31,14 @@ Command 1: :class:`MPLOpts` *PlotOptions*: Python 2 (**FAIL**)
         $ python2 test01_PlotOptions.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.14 seconds
+    * Command took 0.43 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -62,16 +61,47 @@ Command 1: :class:`MPLOpts` *PlotOptions*: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: :class:`MPLOpts` *PlotOptions*: Python 3 (PASS)
+-----------------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_PlotOptions.py", line 5, in <module>
-            from cape.tnakit.plot_mpl import MPLOpts, rstutils
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_PlotOptions.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.50 seconds
+    * Cumulative time: 0.93 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        PlotOptions:
+            :Index: 2
+            :Rotate: ``False``
+            :color:
+                +------------------+
+                | ``"b"``          |
+                +------------------+
+                | ``"k"``          |
+                +------------------+
+                | ``"darkorange"`` |
+                +------------------+
+                | ``"g"``          |
+                +------------------+
+            :ls: ``"--"``
+            :zorder: 8
         
 
+:STDERR:
+    * **PASS**
 

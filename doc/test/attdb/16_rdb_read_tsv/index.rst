@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:18 PDT
 
-Test ``16_rdb_read_tsv``: **FAIL** (command 1)
-================================================
+Test ``16_rdb_read_tsv``: PASS
+================================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:18 PDT
 
 This test is run in the folder:
 
@@ -24,8 +24,8 @@ The commands executed by this test are
         $ python2 test02_tsv_default.py
         $ python3 test02_tsv_default.py
 
-Command 1: Simple dense TSV reader: Python 2 (**FAIL**)
---------------------------------------------------------
+Command 1: Simple dense TSV reader: Python 2 (PASS)
+----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -33,15 +33,14 @@ Command 1: Simple dense TSV reader: Python 2 (**FAIL**)
         $ python2 test01_tsv_dense.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.10 seconds
+    * Command took 0.54 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -52,16 +51,95 @@ Command 1: Simple dense TSV reader: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Simple dense TSV reader: Python 3 (PASS)
+----------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_tsv_dense.py", line 5, in <module>
-            import cape.attdb.rdb as rdb
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_tsv_dense.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.50 seconds
+    * Cumulative time: 1.04 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha: float64
+        beta: float64
+        CN: float64
         
 
+:STDERR:
+    * **PASS**
+
+Command 3: Main TSV reader: Python 2 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_tsv_default.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.44 seconds
+    * Cumulative time: 1.47 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha: float64
+        beta: float64
+        CN: float64
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: Main TSV reader: Python 3 (PASS)
+--------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_tsv_default.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.72 seconds
+    * Cumulative time: 2.19 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        alpha: float64
+        beta: float64
+        CN: float64
+        
+
+:STDERR:
+    * **PASS**
 

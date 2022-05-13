@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:40 PDT
+   on 2022-05-13 at 15:12 PDT
 
-Test ``07_case``: **FAIL** (command 1)
-========================================
+Test ``07_case``: PASS
+========================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
+This test PASSED on 2022-05-13 at 15:12 PDT
 
 This test is run in the folder:
 
@@ -129,8 +129,8 @@ The commands executed by this test are
         case.WriteUserTimeProg(tic, rc, 0, ftime, "cape")
         
 
-Command 1: Conditions: Python 2 (**FAIL**)
--------------------------------------------
+Command 1: Conditions: Python 2 (PASS)
+---------------------------------------
 
 :Command:
     .. code-block:: console
@@ -138,15 +138,14 @@ Command 1: Conditions: Python 2 (**FAIL**)
         $ python2 test01_conds.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.14 seconds
+    * Command took 0.55 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -157,16 +156,155 @@ Command 1: Conditions: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Conditions: Python 3 (PASS)
+---------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_conds.py", line 5, in <module>
-            import cape.cfdx.case
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_conds.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.77 seconds
+    * Cumulative time: 1.32 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        0.4
+        4.0
+        -0.2
         
 
+:STDERR:
+    * **PASS**
+
+Command 3: ``case.json``: Python 2 (PASS)
+------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_case.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.41 seconds
+    * Cumulative time: 1.73 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        [0, 1, 2]
+        750
+        1000
+        1000
+        False
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: ``case.json``: Python 3 (PASS)
+------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_case.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.49 seconds
+    * Cumulative time: 2.22 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        [0, 1, 2]
+        750
+        1000
+        1000
+        False
+        
+
+:STDERR:
+    * **PASS**
+
+Command 5: Timing: Python 2 (PASS)
+-----------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test03_timing.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.45 seconds
+    * Cumulative time: 2.67 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        4 cores, 0.0000 seconds
+        
+
+:STDERR:
+    * **PASS**
+
+Command 6: Timing: Python 3 (PASS)
+-----------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test03_timing.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.55 seconds
+    * Cumulative time: 3.21 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        4 cores, 0.0000 seconds
+        
+
+:STDERR:
+    * **PASS**
 

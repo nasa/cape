@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:40 PDT
+   on 2022-05-13 at 15:12 PDT
 
-Test ``10_databook``: **FAIL** (command 1)
-============================================
+Test ``10_databook``: PASS
+============================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
+This test PASSED on 2022-05-13 at 15:12 PDT
 
 This test is run in the folder:
 
@@ -92,8 +92,8 @@ The commands executed by this test are
         print("Standard deviation: %(CN_std).4f" % S)
         print("Sampling error: %(CN_err).4f" % S)
 
-Command 1: Python 2 (**FAIL**)
--------------------------------
+Command 1: Python 2 (PASS)
+---------------------------
 
 :Command:
     .. code-block:: console
@@ -101,15 +101,14 @@ Command 1: Python 2 (**FAIL**)
         $ python2 test01_db.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.28 seconds
+    * Command took 0.58 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -141,16 +140,56 @@ Command 1: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Python 3 (PASS)
+---------------------------
 
-        Traceback (most recent call last):
-          File "test01_db.py", line 8, in <module>
-            import cape
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_db.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.76 seconds
+    * Cumulative time: 1.35 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        <DataBook nComp=10, nCase=30>
+        cap
+        body
+        fins
+        arrow_no_base
+        arrow_total
+        fuselage
+        fin1
+        fin2
+        fin3
+        fin4
+        <DBComp fin1, nCase=30>
+        poweroff/m0.50a02.0
+        poweroff/m0.80a02.0
+        poweroff/m0.95a02.0
+        poweroff/m1.10a02.0
+        poweroff/m1.40a02.0
+        poweroff/m2.20a02.0
+        <dataBook.CaseFM('fin', i=500)>
+        Mean value: 1.4149
+        Min value: 0.6555
+        Max value: 2.0462
+        Standard deviation: 0.3095
+        Sampling error: 0.0190
         
 
+:STDERR:
+    * **PASS**
 

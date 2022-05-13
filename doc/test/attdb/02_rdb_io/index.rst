@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:17 PDT
 
-Test ``02_rdb_io``: **FAIL** (command 1)
-==========================================
+Test ``02_rdb_io``: PASS
+==========================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:17 PDT
 
 This test is run in the folder:
 
@@ -22,8 +22,8 @@ The commands executed by this test are
         $ python2 test01_csv_to_mat.py
         $ python3 test01_csv_to_mat.py
 
-Command 1: CSV read; MAT write/read: Python 2 (**FAIL**)
----------------------------------------------------------
+Command 1: CSV read; MAT write/read: Python 2 (PASS)
+-----------------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -31,15 +31,14 @@ Command 1: CSV read; MAT write/read: Python 2 (**FAIL**)
         $ python2 test01_csv_to_mat.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.08 seconds
+    * Command took 0.41 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -49,16 +48,34 @@ Command 1: CSV read; MAT write/read: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: CSV read; MAT write/read: Python 3 (PASS)
+-----------------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_csv_to_mat.py", line 5, in <module>
-            import cape.attdb.rdb as rdb
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_csv_to_mat.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.52 seconds
+    * Cumulative time: 0.93 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        Case 13: m0.95a5.00 CA=0.526
+        Case 13: m0.95a5.00 CA=0.526
         
 
+:STDERR:
+    * **PASS**
 

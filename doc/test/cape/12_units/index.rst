@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:40 PDT
+   on 2022-05-13 at 15:12 PDT
 
-Test ``12_units``: **FAIL** (command 1)
-=========================================
+Test ``12_units``: PASS
+=========================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:40 PDT
+This test PASSED on 2022-05-13 at 15:12 PDT
 
 This test is run in the folder:
 
@@ -154,8 +154,8 @@ The commands executed by this test are
         print("  %.4f" % (mks(s1)))
         
 
-Command 1: Unit Conversions: Python 2 (**FAIL**)
--------------------------------------------------
+Command 1: Unit Conversions: Python 2 (PASS)
+---------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -163,15 +163,14 @@ Command 1: Unit Conversions: Python 2 (**FAIL**)
         $ python2 test01_units.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.13 seconds
+    * Command took 0.55 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -199,16 +198,52 @@ Command 1: Unit Conversions: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Unit Conversions: Python 3 (PASS)
+---------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_units.py", line 5, in <module>
-            from cape.units import mks
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_units.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.71 seconds
+    * Cumulative time: 1.27 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        01 (length): 1.00 in --> m
+          0.02540
+        02 (imperial w/ mks prefix): 1.00 khp --> W
+          745699.87238
+        03 (area): 1.00 hectare --> m^2
+          10000.000
+        04 (slash): 1.00 ft/mhr --> m/s
+          0.08467
+        05 (micro): 1.00 um --> m
+          1.00e-06
+        06 (double-prefix): 1.00 nGm --> m
+          1.00e+00
+        07 (asterisk): 5.00 ft*lbf --> N*m
+          6.7791
+        08 (space): 5.00 ft*lbf --> N*m
+          6.7791
+        09 (exponent): 100.00 in^3 --> L
+          1.6387
+        10 (number): 12.00 slug --> kg
+          175.1268
         
 
+:STDERR:
+    * **PASS**
 

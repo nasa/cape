@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-11 at 01:41 PDT
+   on 2022-05-13 at 15:17 PDT
 
-Test ``03_csv_num``: **FAIL** (command 1)
-===========================================
+Test ``03_csv_num``: PASS
+===========================
 
-This test **FAILED** (command 1) on 2022-05-11 at 01:41 PDT
+This test PASSED on 2022-05-13 at 15:17 PDT
 
 This test is run in the folder:
 
@@ -69,8 +69,8 @@ The commands executed by this test are
             print("%-5s: %s" % (col, db[col].dtype.name))
         
 
-Command 1: Clean CSV read: Python 2 (**FAIL**)
------------------------------------------------
+Command 1: Clean CSV read: Python 2 (PASS)
+-------------------------------------------
 
 :Command:
     .. code-block:: console
@@ -78,15 +78,14 @@ Command 1: Clean CSV read: Python 2 (**FAIL**)
         $ python2 test01_clean.py
 
 :Return Code:
-    * **FAIL**
-    * Output: ``1``
+    * **PASS**
+    * Output: ``0``
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.07 seconds
+    * Command took 0.61 seconds
 :STDOUT:
-    * **FAIL**
-    * Actual: (empty)
+    * **PASS**
     * Target:
 
       .. code-block:: none
@@ -95,16 +94,97 @@ Command 1: Clean CSV read: Python 2 (**FAIL**)
         
 
 :STDERR:
-    * **FAIL**
-    * Actual:
+    * **PASS**
 
-      .. code-block:: pytb
+Command 2: Clean CSV read: Python 3 (PASS)
+-------------------------------------------
 
-        Traceback (most recent call last):
-          File "test01_clean.py", line 5, in <module>
-            import cape.attdb.ftypes.csvfile as csvfile
-          File "/u/wk/ddalle/usr/cape/cape/__init__.py", line 87
-        SyntaxError: Non-ASCII character '\xc2' in file /u/wk/ddalle/usr/cape/cape/__init__.py on line 88, but no encoding declared; see http://www.python.org/peps/pep-0263.html for details
+:Command:
+    .. code-block:: console
+
+        $ python3 test01_clean.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.78 seconds
+    * Cumulative time: 1.39 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        run257.03_m0.974a2.0b-0.0
         
 
+:STDERR:
+    * **PASS**
+
+Command 3: Specified :class:`float` types: Python 2 (PASS)
+-----------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python2 test02_dtypes.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.47 seconds
+    * Cumulative time: 1.86 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        run  : int32
+        pt   : int32
+        mach : float64
+        alpha: float64
+        beta : float64
+        
+
+:STDERR:
+    * **PASS**
+
+Command 4: Specified :class:`float` types: Python 3 (PASS)
+-----------------------------------------------------------
+
+:Command:
+    .. code-block:: console
+
+        $ python3 test02_dtypes.py
+
+:Return Code:
+    * **PASS**
+    * Output: ``0``
+    * Target: ``0``
+:Time Taken:
+    * **PASS**
+    * Command took 0.51 seconds
+    * Cumulative time: 2.37 seconds
+:STDOUT:
+    * **PASS**
+    * Target:
+
+      .. code-block:: none
+
+        run  : int32
+        pt   : int32
+        mach : float64
+        alpha: float64
+        beta : float64
+        
+
+:STDERR:
+    * **PASS**
 
