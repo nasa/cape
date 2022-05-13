@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 
 The :mod:`cape` module contains the top-level interface setup of various

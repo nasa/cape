@@ -52,7 +52,7 @@ A sample graphic of the surface pressure made with Tecplot is shown below.
         
 Phase Control
 -------------
-The ``"RunControl"`` section of ``pyCart.json` contains additional
+The ``"RunControl"`` section of ``pyCart.json`` contains additional
 information compared to previous examples for control of the mesh adaptation
 settings.  Here is a skeleton of the contents of that file.
 
@@ -180,7 +180,7 @@ refined. In a ``"p"`` cycle, any cell which is the finest in the current mesh
 may not be refined.
 
 These ``"Adaptaion"`` settings are propagated to the Cart3D package of software
-by editing lines of the ``aero.csh` file.
+by editing lines of the ``aero.csh`` file.
 
 The ``"Functional"`` section defines the scalar output function that is used to
 drive mesh refinement.  Roughly, the mesh refinement algorithm automatically

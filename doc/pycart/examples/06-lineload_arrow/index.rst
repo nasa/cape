@@ -31,7 +31,7 @@ you can easily delete the ``work/`` folder and restart the tutorial at any
 time.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
-faces and seven components.  The surface triangulation, ``arrow.tri`, is
+faces and seven components.  The surface triangulation, ``arrow.tri``, is
 shown below.
 
     .. figure:: ../02-arrow/arrow01.png
@@ -64,7 +64,7 @@ To get a ``triq`` file with averaged results, we have to run ``flowCart`` a few
 iterations at a time and manually perform averaging.  The ``-stats`` option
 performs a similar task, but it is not quite consistent with what's needed for
 an averaged line load.  To get pyCart to perform this unusual task, we have the
-following ``"RunControl"`` section in ``pyCart.json`.
+following ``"RunControl"`` section in ``pyCart.json``.
 
     .. code-block:: javascript
     
@@ -179,7 +179,7 @@ Calculating Line Loads
 ----------------------
 The purpose of this example was to create line loads, so let's investigate that
 part.  To instruct pyCart which components on which to compute line loads, we
-go to the ``"DataBook"`` section of ``pyCart.json`.
+go to the ``"DataBook"`` section of ``pyCart.json``.
 
     .. code-block:: javascript
     
@@ -246,14 +246,14 @@ of a ``lineload`` folder in each case directory.  In the
 raw computation of line loads created by the Chimera Grid Tools utility
 ``triloadCmd``.
 
-The file ``triload.ll_arrow.i` is the input to ``triloadCmd`` that is
+The file ``triload.ll_arrow.i`` is the input to ``triloadCmd`` that is
 automatically created by pyCart.  The main output file is
-``LineLoad_ll_arrow.slds`, which contains the non-dimensionalized forces
+``LineLoad_ll_arrow.slds``, which contains the non-dimensionalized forces
 on each of the 100 slices.
 
 These raw files are then read by pyCart and processed into a databook in the
 ``data/`` folder (locations specified by the *DataBook>Folder* option in
-``pyCart.json`).  Below is a file tree of the ``06_lineload_arrow/data``
+``pyCart.json``).  Below is a file tree of the ``06_lineload_arrow/data``
 folder.
 
     .. code-block:: none
@@ -274,7 +274,7 @@ folder.
 The top-level ``ll_ll_arrow.csv`` file is a status file that stores which cases
 have computed line loads and what iteration at which they have been computed.
 It looks a lot like a force and moment databook file (e.g.
-``aero_arrow_no_base.csv`) except that there are no data columns (since
+``aero_arrow_no_base.csv``) except that there are no data columns (since
 those are stored in the line load folders.
 
 In the ``data/lineload/`` directory, there are two files with unusual file
