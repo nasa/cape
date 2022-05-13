@@ -11,15 +11,11 @@ rocket engines.  In addition, component rotations and intersections are
 demonstrated, and a detailed report including a customized Tecplot layout are
 also included.
 
-This example is found in the file
-
-    ``pycart08-thrust.tar.gz``
-
-To get started, download this file and run the following easy commands:
+To get started, clone this repository and run the following easy commands:
 
     .. code-block:: console
 
-        $ tar -xzf pycart08-thrust.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pycart08-thrust.git
         $ cd pycart08-thrust
         $ ./copy-files.py
         $ cd work/
@@ -52,8 +48,8 @@ arrow.  In this example, we add a pitch angle to the engine so that it is
 rotated by an amount set in the run matrix, and this rotation is performed
 prior to the intersection.
 
-This example can be found in ``$PYCART/examples/pycart/08_thrust``, and as
-always the :file:`pyCart.json` file in that folder is a good supplement to this
+This example can be found in ``pycart08-thrust``, and as
+always the ``pyCart.json`` file in that folder is a good supplement to this
 document.  :numref:`fig-pycart-ex08-slice-y0` shows the main product of the
 example.
 
@@ -223,8 +219,8 @@ to make a specified number *n* of refinements.
 :numref:`fig-pycart-ex08-c-png` shows the original surface triangulation after
 rotations but before performing the intersection  operation.  It contains the
 same component breakdown as the original input files and is labeled
-:file:`Components.c.tri` in the folder.  pyCart also writes the file
-:file:`Components.tri` which contains the same nodes and triangles but only has
+``Components.c.tri`` in the folder.  pyCart also writes the file
+``Components.tri`` which contains the same nodes and triangles but only has
 two components, and a visualization is shown in :numref:`fig-pycart-ex08--png`.
 
     .. _fig-pycart-ex08-c-png:
@@ -232,17 +228,17 @@ two components, and a visualization is shown in :numref:`fig-pycart-ex08--png`.
         :width: 3.2 in
         
         Raw self-intersecting surface with original component IDs,
-        :file:`Components.c.tri`
+        ``Components.c.tri``
         
     .. _fig-pycart-ex08--png:
     .. figure:: Components.png
         :width: 3.2 in
         
         Self-intersecting surface with one component ID for each closed volume,
-        :file:`Components.tri`
+        ``Components.tri``
         
 Then a call is made to Cart3D's ``intersect`` tool such that the input is
-:file:`Components.tri`, and the output is :file:`Components.o.tri`, which is
+``Components.tri``, and the output is ``Components.o.tri``, which is
 shown in :numref:`fig-pycart-ex08-o-png`.
         
     .. _fig-pycart-ex08-o-png:
@@ -250,24 +246,24 @@ shown in :numref:`fig-pycart-ex08-o-png`.
         :width: 3.2 in
         
         Intersected or trimmed surface with one component ID for each original
-        closed volume, :file:`Components.o.tri`
+        closed volume, ``Components.o.tri``
         
 In order to get the original components requested by the user, pyCart then
 performs an additional step of remapping the component IDs to create
-:file:`Components.i.tri`, shown in :numref:`fig-pycart-ex08-i-png`.  Each
+``Components.i.tri``, shown in :numref:`fig-pycart-ex08-i-png`.  Each
 triangle has the component ID copied from the closest triangle of
-:file:`Components.c.tri`.
+``Components.c.tri``.
         
     .. _fig-pycart-ex08-i-png:
     .. figure:: Components_i.png
         :width: 3.2in
         
         Intersected or trimmed surface with original component IDs mapped,
-        :file:`Components.i.tri`
+        ``Components.i.tri``
 
 Results and Report Generation
 -----------------------------
-The run matrix in ``$PYCART/examples/pycart/08_thrust/matrix.csv`` has only one
+The run matrix in ``pycart08-thrust/matrix.csv`` has only one
 case, which has a Mach number of 1.5, an angle of attack of 2 degrees.  The
 engine is pitched downward 4.5 degrees and a thrust coefficient of 8.5.  A
 status while running the case would look something like the following.
@@ -283,7 +279,7 @@ status while running the case would look something like the following.
 
 :numref:`fig-pycart-ex08-slice-y0-mesh` shows a flow visualization of this case
 that is generated using the ``"slice-y0-mesh"`` subfigure from
-:file:`pyCart.json`.  (The results of the ``"slice-y0"`` subfigure is shown in
+``pyCart.json``.  (The results of the ``"slice-y0"`` subfigure is shown in
 :numref:`fig-pycart-ex08-slice-y0`.)  These figures show some of the more
 advanced procedures from customizing a Tecplot layout.
 
@@ -296,7 +292,7 @@ advanced procedures from customizing a Tecplot layout.
         number slice showing volume mesh
         
 The process for this example begins with opening the output flow visualization
-files created by Cart3D: :file:`Components.i.plt` and :file:`cutPlanes.plt`.
+files created by Cart3D: ``Components.i.plt`` and ``cutPlanes.plt``.
 Actually those files are in the ``adapt03/`` folder in this case, but pyCart
 automatically creates symbolic links to the most recent ``plt`` files.
 
@@ -407,3 +403,4 @@ problems if the Mach number is lower than about 1.2, so the actual JSON file
 contains three different color map specifications.  Which one gets applied is
 determined by the *Constraints* key, which is visible in the code snippet show
 above.
+

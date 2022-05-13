@@ -1,18 +1,17 @@
 
 .. _pyfun-ex01-arrow:
 
-Demo 1: Basic Viscous Usage on Arrow with Fins
-===============================================
+Demo 1: Basic Viscous FUN3D Usage on Arrow with Fins
+====================================================
 
-This example is found in the file
+This is a simple pyfun example that runs FUN3D on a fixed grid on an arrow
+shape with four fins.
 
-    ``pyfun01-bullet.tar.gz``
-
-To get started, download this file and run the following easy commands:
+To get started, clone the repo and run a couple of commands.
 
     .. code-block:: console
 
-        $ tar -xzf pyfun01-bullet.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pyfun01-arrow.git
         $ cd pyfun01-bullet
         $ ./copy-files.py
         $ cd work/
@@ -23,7 +22,7 @@ you can easily delete the ``work/`` folder and restart the tutorial at any
 time.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
-faces and seven components.  The surface triangulation, :file:`arrow.tri`, is
+faces and seven components.  The surface triangulation, ``arrow.tri```, is
 shown below.
 
     .. figure:: arrow01.png
