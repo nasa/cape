@@ -6,15 +6,12 @@ OVERFLOW Bullet Example
 ------------------------
 
 This pyOver example looks at the process from grid generation to execution and
-post-processing for a simple bullet geometry. This example is found in the file
-
-    ``pyover01-bullet.tar.gz``
-
-After untarring this file and entering the resulting folder using
+post-processing for a simple bullet geometry. To start, clone the repo and
+enter the resulting folder
 
     .. code-block:: console
 
-        $ tar -xzvf pyover01-bullet.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pyover01-bullet.git
         $ cd pyover01-bullet
 
 the folder has the required input files, but it's recommended to copy them to a
@@ -61,7 +58,7 @@ Some aspects of the grid generation example may rely on recent features of
 Chimera Grid Tools.
 
 Starting from the base directory for the example,
-``$CAPE/examples/pyover/01_bullet/``, the grid generation takes place in the
+``pyover01-bullet/``, the grid generation takes place in the
 ``dcf/`` folder.  The initial contents of this folder include a ``geom/``
 folder that contains the basic definitions for the geometry and some TCL
 scripts for generating the grid.

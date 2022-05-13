@@ -104,7 +104,7 @@ regex_line_parts = re.compile(r"\s*[^\s,]*\s*,|\s*[^\s,]+")
 
 # Regular expression for determining float formats
 regex_float = re.compile(
-    "[+-]?[0-9]*\.(?P<dec>[0-9]+)(?P<exp>[DdEe][+-][0-9]{1,3})")
+    r"[+-]?[0-9]*\.(?P<dec>[0-9]+)(?P<exp>[DdEe][+-][0-9]{1,3})")
 
 
 # RunMatrix class
@@ -147,7 +147,7 @@ class RunMatrix(dict):
         *x[key]*: :class:`numpy.ndarray`, *dtype=float*
             Vector of values of each variable specified in *keys*
     :Versions:
-        2014-05-28 ``@ddalle``: First version
+        2014-05-28 ``@ddalle``: Version 1.0
         2014-06-05 ``@ddalle``: Generalized for user-defined keys
     """
   # =============
@@ -380,8 +380,6 @@ class RunMatrix(dict):
         """
         # Extract the keys.
         keys = self.cols
-        # Number of variables
-        nVar = len(keys)
         # Read lines of file
         with open(fname, "r") as f:
             # Get contents
@@ -395,7 +393,7 @@ class RunMatrix(dict):
             # Strip the line.
             line = line.strip()
             # Check for empty line or comment
-            if line.startswith('#') or len(line)==0:
+            if line.startswith('#') or line == '':
                 continue
             # Save line number
             linenos.append(nline)
@@ -408,7 +406,7 @@ class RunMatrix(dict):
             for i in range(len(grp2)):
                 line = line.replace(grp2[i], "grp2-%s" % i)
             # Separate by any white spaces and/or at most one comma
-            v = re.split("\s*,\s*|\s+", line)
+            v = re.split(r"\s*,\s*|\s+", line)
             # Substitute back in original literals
             for i in range(len(grp1)):
                 # Replacement text
@@ -475,7 +473,7 @@ class RunMatrix(dict):
             *fname*: {*x.fname*} | :class:`str`
                 Name of trajectory file to write
         :Versions:
-            * 2019-06-14 ``@ddalle``: First version
+            * 2019-06-14 ``@ddalle``: Version 1.0
         """
         # Default file name
         if fname is None:
@@ -506,7 +504,7 @@ class RunMatrix(dict):
             *fname*: :class:`str`
                 Name of file to create
         :Versions:
-            * 2014-11-18 ``@ddalle``: First version
+            * 2014-11-18 ``@ddalle``: Version 1.0
         """
         # Open the file.
         f = open(fname, 'w')
@@ -568,7 +566,7 @@ class RunMatrix(dict):
             *align*: {``"right"``} | ``"left"``
                 Alignment option relative to white space
         :Versions:
-            * 2019-06-14 ``@ddalle``: First version
+            * 2019-06-14 ``@ddalle``: Version 1.0
         """
         # Alter the text first
         self._set_line_value(k, i, v, align=align)
@@ -608,7 +606,7 @@ class RunMatrix(dict):
             *flag*: {``"p"``} | ``"P"``| ``"$p"`` | ``"PASS"``
                 Marker to use to denote status
         :Versions:
-            * 2019-06-14 ``@ddalle``: First version
+            * 2019-06-14 ``@ddalle``: Version 1.0
         """
         # Check for line number
         if i > len(self.linenos):
@@ -666,7 +664,7 @@ class RunMatrix(dict):
             *flag*: {``"E"``} | ``"e"``| ``"$E"`` | ``"ERROR"``
                 Marker to use to denote status
         :Versions:
-            * 2019-06-14 ``@ddalle``: First version
+            * 2019-06-14 ``@ddalle``: Version 1.0
         """
         # Check for line number
         if i > len(self.linenos):
@@ -717,7 +715,7 @@ class RunMatrix(dict):
             *i*: :class:`int`
                 Index of the run case to print
         :Versions:
-            * 2019-06-14 ``@ddalle``: First version
+            * 2019-06-14 ``@ddalle``: Version 1.0
         """
         # Check for line number
         if i > len(self.linenos):
@@ -768,7 +766,7 @@ class RunMatrix(dict):
             *align*: {``"right"``} | ``"left"``
                 Alignment option relative to white space
         :Versions:
-            * 2019-06-14 ``@ddalle``: First version
+            * 2019-06-14 ``@ddalle``: Version 1.0
         """
         # Check if key is present
         if k not in self.cols:
@@ -863,8 +861,6 @@ class RunMatrix(dict):
         parts[j] = prefix + otxt + suffix
         # Reset line
         self.lines[nline] = "".join(parts) + "\n"
-
-
    # ]
   # >
 
@@ -874,12 +870,12 @@ class RunMatrix(dict):
   # <
     # Function to process the role that each key name plays.
     def ProcessKeyDefinitions(self, defns):
-        """
-        Process definitions for the function of each trajectory variable
+        r"""Process definitions for each trajectory variable
 
         Many variables have default definitions, such as ``'Mach'``,
-        ``'alpha'``, etc.  For user-defined trajectory keywords, defaults will
-        be used for aspects of the definition that are missing from the inputs.
+        ``'alpha'``, etc.  For user-defined trajectory keywords,
+        defaults will be used for aspects of the definition that are
+        missing from the inputs.
 
         :Call:
             >>> x.ProcessKeyDefinitions(defns)
@@ -890,14 +886,14 @@ class RunMatrix(dict):
                 Dictionary of keyword definitions or partial definitions
         :Effects:
             *x.text*: :class:`dict`
-                Text for each variable and each break point is initialized
+                Text for each variable and each break point initialized
             *x.defns*: :class:`dict`
-                Definition dictionary is created after processing defaults
+                Definitionscreated after processing defaults
             *x.abbrv*: :class:`dict`
                 Dictionary of abbreviations for each trajectory key
         :Versions:
-            * 2014-06-05 ``@ddalle``: First version
-            * 2014-06-17 ``@ddalle``: Overhauled to read from ``defns`` dict
+            * 2014-06-05 ``@ddalle``: Version 1.0
+            * 2014-06-17 ``@ddalle``: Version 2.0; use ``defns`` dict
         """
         # Overall default key
         odefkey = defns.get('Default', {})
@@ -1068,8 +1064,8 @@ class RunMatrix(dict):
                     "Format": "%s",
                     "Abbreviation": "g"
                 }
-            elif key.lower() in ['p0', 'p_total', 'total_pressure'
-                    ] or key.startswith('p0'):
+            elif key.startswith('p0') or key.lower() in (
+                    'p0', 'p_total', 'total_pressure'):
                 # Surface stagnation pressure ratio
                 defkey = {
                     "Group": False,
@@ -1193,10 +1189,10 @@ class RunMatrix(dict):
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Instance of the pyCart trajectory class
         :Effects:
-            Creates fields that save the properties of the groups.  These fields
-            are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
+            Creates fields that save the properties of the groups.
+            These fields are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
         :Versions:
-            * 2014-06-05 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: Version 1.0
         """
         # Initialize matrix of group-generating key values.
         x = []
@@ -1245,7 +1241,7 @@ class RunMatrix(dict):
 
     # Get all keys by type
     def GetKeysByType(self, KeyType):
-        """Get all keys by type
+        r"""Get all keys by type
 
         :Call:
             >>> keys = x.GetKeysByType(KeyType)
@@ -1255,20 +1251,20 @@ class RunMatrix(dict):
                 Instance of pyCart trajectory class
             *KeyType*: :class:`str`
                 Key type to search for
-            *KeyTypes*: :class:`list` (:class:`str`)
+            *KeyTypes*: :class:`list`\ [:class:`str`]
                 List of key types to search for
         :Outputs:
             *keys*: :class:`numpy.ndarray` (:class:`str`)
                 List of keys such that ``x[key]['Type']`` matches *KeyType*
         :Versions:
-            * 2014-10-07 ``@ddalle``: First version
+            * 2014-10-07 ``@ddalle``: Version 1.0
         """
         # List of key types
         KT = np.array([self.defns[k]['Type'] for k in self.cols])
         # Class of input
         kt = type(KeyType).__name__
         # Depends on the type of what we are searching for
-        if kt.startswith('str') or kt=='unicode':
+        if kt.startswith('str') or kt == 'unicode':
             # Return matches
             return np.array(self.cols)[KT == KeyType]
         elif kt not in ['list', 'ndarray']:
@@ -1298,7 +1294,7 @@ class RunMatrix(dict):
             *key*: :class:`str` | ``None``
                 First key such that ``x.defns[key]['Type']`` matches *KeyType*
         :Versions:
-            * 2018-04-13 ``@ddalle``: First version
+            * 2018-04-13 ``@ddalle``: Version 1.0
         """
         # Loop through keys
         for k in self.cols:
@@ -1325,7 +1321,7 @@ class RunMatrix(dict):
             *keys*: :class:`numpy.ndarray` (:class:`str`)
                 List of keys such that ``x[key]['Value']`` matches *val*
         :Versions:
-            * 2014-10-07 ``@ddalle``: First version
+            * 2014-10-07 ``@ddalle``: Version 1.0
         """
         # List of key types
         KV = np.array([self.defns[k]['Value'] for k in self.cols])
@@ -1351,8 +1347,9 @@ class RunMatrix(dict):
         """
         # Check inputs.
         if not type(i).__name__.startswith('int'):
-            raise TypeError("Input to :func:`RunMatrix.GetGroupIndex` must"
-                + " be :class:`int`.")
+            raise TypeError(
+                "Input to :func:`RunMatrix.GetGroupIndex` must " +
+                "be :class:`int`.")
         # Get name of group for case *i*.
         grp = self.GetGroupFolderNames(i)
         # Get the list of all unique groups.
@@ -1380,7 +1377,7 @@ class RunMatrix(dict):
             *k*: :class:`str`
                 Key meeting those requirements
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Process key
         if key is None:
@@ -1399,11 +1396,10 @@ class RunMatrix(dict):
             elif self.defns[key]['Type'] != typ:
                 # Wrong type
                 raise ValueError(
-                    ("Requested key '%s' with type '%s', but " % (key,typ)) +
+                    ("Requested key '%s' with type '%s', but " % (key, typ)) +
                     ("actual type is '%s'" % (self.defns[key]['Type'])))
             # Output the key
             return key
-
   # >
 
   # ================
@@ -1412,7 +1408,7 @@ class RunMatrix(dict):
   # <
     # Find a value
     def GetValue(self, k, I=None):
-        """Get value from a trajectory key, including specially named keys
+        r"""Get value(s) from a trajectory key, including derived keys
 
         :Call:
             >>> V = x.GetValue(k)
@@ -1433,7 +1429,7 @@ class RunMatrix(dict):
             *v*: :class:`np.any`
                 Value for individual case *i*
         :Versions:
-            * 2018-10-03 ``@ddalle``: First version
+            * 2018-10-03 ``@ddalle``: Version 1.0
             * 2019-06-19 ``@ddalle``: Hooked to :func:`GetValue_Derived`
         """
         if k in self.cols:
@@ -1488,7 +1484,7 @@ class RunMatrix(dict):
 
     # Get value from matrix
     def GetValue_Derived(self, k, I=None):
-        """Get value from a trajectory key, including specially named keys
+        """Get value from a trajectory key, including derived keys
 
         :Call:
             >>> V = x.GetValue(k)
@@ -1509,7 +1505,7 @@ class RunMatrix(dict):
             *v*: :class:`np.any`
                 Value for individual case *i*
         :Versions:
-            * 2019-06-19 ``@ddalle``: First version (*CT* only)
+            * 2019-06-19 ``@ddalle``: Version 1.0 (*CT* only)
         """
         # Get definitions
         defns = self.defns.get(k, {})
@@ -1598,7 +1594,8 @@ class RunMatrix(dict):
             # The prefix is likely to be the whole name.
             dname = str(prefix)
             # Add underscore if there are keys.
-            if (keys is not None) and (len(keys)>0): dname += "_"
+            if (keys is not None) and (len(keys) > 0):
+                dname += "_"
         else:
             # Initialize an empty string.
             dname = ""
@@ -1608,11 +1605,9 @@ class RunMatrix(dict):
             defns = self.defns.get(k, {})
             # Useful values
             typ = defns.get("Type", "value")
-            val = defns.get("Value", "float")
             fmt = defns.get("Format", "%s")
             grp = defns.get("Group", False)
             qlbl = defns.get("Label", True)
-            qpre = defns.get("Prefix", False)
             abbrev = defns.get("Abbreviation", k)
             # Get the value
             v = self[k][i]
@@ -1668,10 +1663,9 @@ class RunMatrix(dict):
         # Return the result.
         return dname
 
-
     # Get PBS name
     def GetPBSName(self, i, pre=None):
-        """Get PBS name for a given case
+        r"""Get PBS name for a given case
 
         :Call:
             >>> lbl = x.GetPBSName(i, pre=None)
@@ -1686,7 +1680,7 @@ class RunMatrix(dict):
             *lbl*: :class:`str`
                 Short name for the PBS job, visible via `qstat`
         :Versions:
-            * 2014-09-30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: Version 1.0
             * 2016-12-20 ``@ddalle``: Moved to *x* and added prefix
         """
         # Initialize label.
@@ -1729,8 +1723,7 @@ class RunMatrix(dict):
 
     # Function to return the full folder names.
     def GetFullFolderNames(self, i=None, prefix=None):
-        """
-        List full folder names for each of the cases in a trajectory.
+        r"""Get full folder names for one or more cases
 
         The folder names will be of the form
 
@@ -1740,11 +1733,11 @@ class RunMatrix(dict):
 
             ``Grid_d1.0/F_m2.0a0.0b-0.5/``
 
-        if there is a key called ``"delta"`` with abbreviation ``'d'`` that
-        requires a separate mesh each time the value of that key changes.  All
-        keys in the trajectory file are included in the folder name at one of
-        the two levels.  The number of digits used will match the number of
-        digits in the trajectory file.
+        if there is a key called ``"delta"`` with abbreviation ``'d'``
+        that requires a separate mesh each time the value of that key
+        changes. All keys in the trajectory file are included in the
+        folder name at one of the two levels. The number of digits used
+        will match the number of digits in the trajectory file.
 
         :Call:
             >>> dname = x.GetFullFolderNames()
@@ -1761,7 +1754,7 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014-06-05 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: Version 1.0
         """
         # Get the two components.
         glist = self.GetGroupFolderNames(i)
@@ -1769,15 +1762,15 @@ class RunMatrix(dict):
         # Check for list or not.
         if type(glist) is list:
             # Return the list of combined strings.
-            return [os.path.join(glist[i],flist[i]) for i in range(len(glist))]
+            return [
+                os.path.join(glist[i], flist[i]) for i in range(len(glist))]
         else:
             # Just join the one.
             return os.path.join(glist, flist)
 
     # Function to list directory names
     def GetFolderNames(self, i=None, prefix=None):
-        """
-        List folder names for each of the cases in a trajectory.
+        r"""Get case folder name(s) for one or more cases
 
         The folder names will be of the form
 
@@ -1809,8 +1802,8 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014-05-28 ``@ddalle``: First version
-            * 2014-06-05 ``@ddalle``: Refined to variables that use common grid
+            * 2014-05-28 ``@ddalle``: Version 1.0
+            * 2014-06-05 ``@ddalle``: Version 1.1; case folder only
         """
         # Process the prefix.
         if prefix is None: prefix = self.prefix
@@ -1836,8 +1829,7 @@ class RunMatrix(dict):
 
     # Function to get grid folder names
     def GetGroupFolderNames(self, i=None):
-        """
-        Get names of folders that require separate meshes
+        r"""Get names of folders that require separate meshes
 
         :Call:
             >>> x.GetGroupFolderNames()
@@ -1852,11 +1844,9 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014-06-05 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: Version 1.0
         """
-        # Check for prefix variables.
-        #if
-        # Set the prefix.
+        # Set the prefix
         prefix = self.GroupPrefix
         # Process the index list.
         if i is None: i = range(self.nCase)
@@ -1880,8 +1870,7 @@ class RunMatrix(dict):
 
     # Function to get grid folder names
     def GetUniqueGroupFolderNames(self, i=None):
-        """
-        Get unique names of folders that require separate meshes
+        r"""Get unique names of folders that require separate meshes
 
         :Call:
             >>> x.GetUniqueGroupFolderNames()
@@ -1895,7 +1884,7 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014-09-03 ``@ddalle``: First version
+            * 2014-09-03 ``@ddalle``: Version 1.0
         """
         # Get all group folder names
         dlist = self.GetGroupFolderNames()
@@ -1908,7 +1897,6 @@ class RunMatrix(dict):
         else:
             # Return the whole list
             return dlist
-
   # >
 
   # =======
@@ -1917,20 +1905,22 @@ class RunMatrix(dict):
   # <
     # Function to filter cases
     def Filter(self, cons, I=None):
-        """Filter cases according to a set of constraints
+        r"""Filter cases according to a set of constraints
 
         The constraints are specified as a list of strings that contain
         inequalities of variables that are in *x.cols*.
 
-        For example, if *m* is the name of a key (presumably meaning Mach
-        number), and *a* is a variable presumably representing angle of attack,
-        the following example finds the indices of all cases with Mach number
-        greater than 1.5 and angle of attack equal to ``2.0``.
+        For example, if *m* is the name of a key (presumably meaning
+        Mach number), and *a* is a variable presumably representing
+        angle of attack, the following example finds the indices of all
+        cases with Mach number greater than 1.5 and angle of attack
+        equal to ``2.0``.
 
             >>> i = x.Filter(['m>1.5', 'a==2.0'])
 
-        A warning will be produces if one of the constraints does not correspond
-        to a trajectory variable or cannot be evaluated for any other reason.
+        A warning will be produces if one of the constraints does not
+        correspond to a trajectory variable or cannot be evaluated for
+        any other reason.
 
         :Call:
             >>> i = x.Filter(cons)
@@ -1938,12 +1928,12 @@ class RunMatrix(dict):
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Instance of the pyCart trajectory class
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of initial indices to consider
         :Outputs:
-            *i*: :class:`numpy.ndarray` (:class:`int`)
+            *i*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
             * 2014-12-09 ``@ddalle``: Version 1.0
@@ -1997,7 +1987,7 @@ class RunMatrix(dict):
 
     # Function to filter by checking if string is in the name
     def FilterString(self, txt, I=None):
-        """Filter cases by whether or not they contain a substring
+        r"""Filter cases by whether or not they contain a substring
 
         :Call:
             >>> i = x.FilterString(txt)
@@ -2007,13 +1997,13 @@ class RunMatrix(dict):
                 Instance of the pyCart trajectory class
             *txt*: :class:`str`
                 Substring to use as filter
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of initial indices to consider
         :Outputs:
-            *i*: :class:`numpy.ndarray` (:class:`int`)
+            *i*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
-            * 2015-11-02 ``@ddalle``: First version
+            * 2015-11-02 ``@ddalle``: Version 1.0
         """
         # Initialize the conditions.
         if I is None:
@@ -2036,13 +2026,13 @@ class RunMatrix(dict):
 
     # Function to filter by checking if string is in the name
     def FilterWildcard(self, txt, I=None):
-        """Filter cases by whether or not they contain a substring
+        r"""Filter cases by whether or not they contain a substring
 
         This function uses file wild cards, so for example
-        ``x.FilterWildcard('*m?.0*')`` matches any case whose name contains
-        ``m1.0`` or ``m2.0``, etc.  To make sure the ``?`` is a number, use
-        ``*m[0-9].0``.  To obtain a filter that matches both ``m10.0`` and
-        ``m1.0``, see :func:`FilterRegex`.
+        ``x.FilterWildcard('*m?.0*')`` matches any case whose name
+        contains ``m1.0`` or ``m2.0``, etc.  To make sure the ``?`` is a
+        number, use ``*m[0-9].0``.  To obtain a filter that matches both
+        ``m10.0`` and ``m1.0``, see :func:`FilterRegex`.
 
         :Call:
             >>> i = x.FilterWildcard(txt)
@@ -2052,13 +2042,13 @@ class RunMatrix(dict):
                 Instance of the pyCart trajectory class
             *txt*: :class:`str`
                 Wildcard to use as filter
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of initial indices to consider
         :Outputs:
-            *i*: :class:`numpy.ndarray` (:class:`int`)
+            *i*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
-            * 2015-11-02 ``@ddalle``: First version
+            * 2015-11-02 ``@ddalle``: Version 1.0
         """
         # Initialize the conditions.
         if I is None:
@@ -2081,7 +2071,7 @@ class RunMatrix(dict):
 
     # Function to filter by checking if string is in the name
     def FilterRegex(self, txt, I=None):
-        """Filter cases by whether or not they match a regular expression
+        r"""Filter cases by a regular expression
 
         :Call:
             >>> i = x.FilterRegex(txt)
@@ -2091,13 +2081,13 @@ class RunMatrix(dict):
                 Instance of the pyCart trajectory class
             *txt*: :class:`str`
                 Wildcard to use as filter
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 List of initial indices to consider
         :Outputs:
-            *i*: :class:`numpy.ndarray` (:class:`int`)
+            *i*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
-            * 2015-11-02 ``@ddalle``: First version
+            * 2015-11-02 ``@ddalle``: Version 1.0
         """
         # Initialize the conditions.
         if I is None:
@@ -2118,10 +2108,9 @@ class RunMatrix(dict):
         # Output
         return np.where(i)[0]
 
-
     # Function to expand indices
     def ExpandIndices(self, itxt):
-        """Expand string of subscripts into a list of indices
+        r"""Expand string of subscripts into a list of indices
 
         :Call:
             >>> I = x.ExpandIndices(itxt)
@@ -2131,7 +2120,7 @@ class RunMatrix(dict):
             *itxt*: :class:`str` or :class:`unicode`
                 Text of subscripts, separated by ';'
         :Outputs:
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`list`\ [:class:`int`]
                 Array of indices matching any of the input indices
         :Examples:
             >>> x.ExpandIndices(':5')
@@ -2139,7 +2128,7 @@ class RunMatrix(dict):
             >>> x.ExpandIndices(':4;7,8')
             [0, 1, 2, 3, 7, 8]
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: Version 1.0
             * 2018-10-19 ``@ddalle``: Multi ranges, ``1:4,5,6:10``
         """
         # Get type
@@ -2187,7 +2176,7 @@ class RunMatrix(dict):
                         # Convert to integer
                         b = int(b)
                     # Add a range
-                    I += range(a,b)
+                    I += list(range(a, b))
                 else:
                     # Individual case
                     I.append(int(i))
@@ -2199,7 +2188,7 @@ class RunMatrix(dict):
 
     # Get indices
     def GetIndices(self, **kw):
-        """Get indices from either list or constraints or both
+        r"""Get indices from either list or constraints or both
 
         :Call:
             >>> I = x.GetIndices(I=None, cons=[], **kw)
@@ -2208,7 +2197,7 @@ class RunMatrix(dict):
                 Instance of the pyCart trajectory class
             *I*: :class:`list` | :class:`str`
                 Array of indices or text of indices
-            *cons*: :class:`list` (:class:`str`) | :class:`str`
+            *cons*: :class:`list`\ [:class:`str`] | :class:`str`
                 List of constraints or text list using commas
             *re*: :class:`str`
                 Regular expression to test against folder names
@@ -2217,11 +2206,11 @@ class RunMatrix(dict):
             *glob*: :class:`str`
                 Wild card to test against folder names
         :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of indices
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
-            * 2016-02-17 ``@ddalle``: Upgraded to handle text
+            * 2015-03-10 ``@ddalle``: Version 1.0
+            * 2016-02-17 ``@ddalle``: Version 2.0; handle text
         """
         # Get special kwargs
         I = kw.get("I")
@@ -2250,7 +2239,6 @@ class RunMatrix(dict):
             I = self.FilterString(kw.get('filter'), I)
         # Output
         return I
-
   # >
 
   # =========
@@ -2259,7 +2247,7 @@ class RunMatrix(dict):
   # <
     # Find a match
     def FindMatches(self, y, i, keys=None, **kw):
-        """Find index or indices of cases matching another trajectory case
+        r"""Find indices of cases matching another trajectory case
 
         :Call:
             >>> I = x.FindMatches(y, i, keys=None)
@@ -2270,7 +2258,7 @@ class RunMatrix(dict):
                 Target run matrix conditions interface
             *i*: :class:`int`
                 Case number of case in *y*
-            *keys*: {``None``} | :class:`list` (:class:`str`)
+            *keys*: {``None``} | :class:`list`\ [:class:`str`]
                 List of keys to test for equivalence
             *tol*: {``1e-8``} | :class:`float` >= 0
                 Tolerance for two values to be ideintal
@@ -2280,7 +2268,7 @@ class RunMatrix(dict):
             *I*: :class:`np.ndarray` (:class:`int`)
                 List of indices matching all constraints
         :Versions:
-            * 2017-07-21 ``@ddalle``: First version
+            * 2017-07-21 ``@ddalle``: Version 1.0
         """
         # Check for empty matrix
         if self.nCase == 0:
@@ -2297,7 +2285,7 @@ class RunMatrix(dict):
                 if not defn.get("Label", True):
                     # Do not include keys that don't affect folder name
                     continue
-                elif defn.get("Group", False) and defn.get("Value")=="str":
+                elif defn.get("Group", False) and defn.get("Value") == "str":
                     # Do not include (text) group keys
                     continue
                 # Include this key
@@ -2309,7 +2297,7 @@ class RunMatrix(dict):
         # Loop through keys
         for k in keys:
             # Check for specific tolerance
-            ktol = kw.get("%stol"%k, tol)
+            ktol = kw.get("%stol" % k, tol)
             # Get values from this trajectory
             V = self.GetValue(k)
             # Get values from target trajectory
@@ -2323,16 +2311,16 @@ class RunMatrix(dict):
                 continue
             elif t.startswith("float"):
                 # Use tolerance
-                I = np.logical_and(I, np.abs(V-v)<=ktol)
+                I = np.logical_and(I, np.abs(V-v) <= ktol)
             else:
                 # Use exact match
-                I = np.logical_and(I, V==v)
+                I = np.logical_and(I, V == v)
         # Output
         return np.where(I)[0]
 
     # Find the first match
     def FindMatch(self, y, i, keys=None, **kw):
-        """Find the first case index (if any) matching another trajectory case
+        r"""Find first case (if any) matching another trajectory case
 
         :Call:
             >>> j = x.FindMatch(y, i, keys=None)
@@ -2343,7 +2331,7 @@ class RunMatrix(dict):
                 Target run matrix conditions interface
             *i*: :class:`int`
                 Case number of case in *y*
-            *keys*: {``None``} | :class:`list` (:class:`str`)
+            *keys*: {``None``} | :class:`list`\ [:class:`str`]
                 List of keys to test for equivalence
             *tol*: {``1e-8``} | :class:`float` >= 0
                 Tolerance for two values to be ideintal
@@ -2353,7 +2341,7 @@ class RunMatrix(dict):
             *j*: ``None`` | :class:`int`
                 Index of first matching case, if any
         :Versions:
-            * 2017-07-21 ``@ddalle``: First version
+            * 2017-07-21 ``@ddalle``: Version 1.0
         """
         # Find all matches
         I = self.FindMatches(y, i, keys=keys, **kw)
@@ -2372,15 +2360,15 @@ class RunMatrix(dict):
   # <
     # Function to get sweep based on constraints
     def GetSweep(self, M, **kw):
-        """
-        Return a list of indices meeting sweep constraints
+        r"""Return a list of indices meeting sweep constraints
 
-        The sweep uses the index of the first entry of ``True`` in *M*, i.e.
-        ``i0=np.where(M)[0][0]``.  Then the sweep contains all other points that
-        meet all criteria with respect to trajectory point *i0*.
+        The sweep uses the index of the first entry of ``True`` in *M*,
+        i.e. ``i0=np.where(M)[0][0]``.  Then the sweep contains all
+        other points that  meet all criteria with respect to trajectory
+        point *i0*.
 
-        For example, using ``EqCons=['mach']`` will cause the method to return
-        points with *x.mach* matching *x.mach[i0]*.
+        For example, using ``EqCons=['mach']`` will cause the method to
+        return points with *x.mach* matching *x.mach[i0]*.
 
         :Call:
             >>> I = x.GetSweep(M, **kw)
@@ -2393,7 +2381,7 @@ class RunMatrix(dict):
                 Index of case to use as seed of sweep
             *SortVar*: :class:`str`
                 Variable by which to sort each sweep
-            *EqCons*: :class:`list` (:class:`str`)
+            *EqCons*: :class:`list`\ [:class:`str`]
                 List of trajectory keys which must match (exactly) the first
                 point in the sweep
             *TolCons*: :class:`dict` (:class:`float`)
@@ -2404,10 +2392,10 @@ class RunMatrix(dict):
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
         :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of trajectory point indices in the sweep
         :Versions:
-            * 2015-05-24 ``@ddalle``: First version
+            * 2015-05-24 ``@ddalle``: Version 1.0
             * 2017-06-27 ``@ddalle``: Added special variables
         """
         # Check for an *i0* point.
@@ -2420,7 +2408,7 @@ class RunMatrix(dict):
         EqCons  = kw.get('EqCons',  [])
         TolCons = kw.get('TolCons', {})
         # Ensure no NoneType
-        if EqCons  is None: EqCons = []
+        if EqCons is None: EqCons = []
         if TolCons is None: TolCons = {}
         # Get the first index.
         i0 = kw.get("i0", np.where(M)[0][0])
@@ -2492,7 +2480,7 @@ class RunMatrix(dict):
                 # Get total angle of attack
                 aoav = self.GetAlphaTotal()
                 # Test and combine with any "aoav=0" cases
-                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+                qk = np.logical_or(qk, np.abs(aoav) <= 1e-10)
             # Combine constraint
             m = np.logical_and(m, qk)
         # Loop through tolerance-based constraints.
@@ -2537,7 +2525,7 @@ class RunMatrix(dict):
                 # Get total angle of attack
                 aoav = self.GetAlphaTotal()
                 # Test and combine with any "aoav=0" cases
-                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+                qk = np.logical_or(qk, np.abs(aoav) <= 1e-10)
             # Combine constraints
             m = np.logical_and(m, qk)
         # Initialize output.
@@ -2580,14 +2568,13 @@ class RunMatrix(dict):
 
     # Function to get sweep based on constraints
     def GetCoSweep(self, x0, i0, **kw):
-        """
-        Return a list of indices meeting sweep constraints
+        r"""Return a list of indices meeting sweep constraints
 
-        The sweep uses point *i0* of co-trajectory *x0* as the reference for the
-        constraints.
+        The sweep uses point *i0* of co-trajectory *x0* as the reference
+        for the constraints.
 
-        For example, using ``EqCons=['mach']`` will cause the method to return
-        points with *x.mach* matching *x0.mach[i0]*.
+        For example, using ``EqCons=['mach']`` will cause the method to
+        return points with *x.mach* matching *x0.mach[i0]*.
 
         :Call:
             >>> I = x.GetSweep(x0, i0, **kw)
@@ -2597,29 +2584,27 @@ class RunMatrix(dict):
             *x0*: :class:`cape.runmatrix.RunMatrix`
                 Another instance of the pyCart trajectory class
             *i0*: :class:`int`
-                Index of point in *x0* to use as reference for constraints
+                Index of reference point in *x0* for constraints
             *SortVar*: :class:`str`
                 Variable by which to sort each sweep
-            *EqCons*: :class:`list` (:class:`str`)
-                List of trajectory keys which must match (exactly) the first
-                point in the sweep
-            *TolCons*: :class:`dict` (:class:`float`)
-                Dictionary whose keys are trajectory keys which must match the
-                first point in the sweep to a specified tolerance and whose
-                values are the specified tolerances
+            *EqCons*: :class:`list`\ [:class:`str`]
+                List of trajectory keys which must match (exactly) the
+                first point in the sweep
+            *TolCons*: :class:`dict`\ [:class:`float`]
+                Dictionary whose keys are trajectory keys which must
+                match the first point in the sweep to a specified
+                tolerance and whose values are the specified tolerances
             *IndexTol*: :class:`int`
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of *x* indices to consider in the sweep
         :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of *x* indices in the sweep
         :Versions:
-            * 2015-06-03 ``@ddalle``: First version
+            * 2015-06-03 ``@ddalle``: Version 1.0
         """
-        # Handle to all indices
-        I0 = np.arange(self.nCase)
         # Check for list of indices
         I = kw.get('I')
         # Initial mask
@@ -2634,10 +2619,10 @@ class RunMatrix(dict):
         # Sort key.
         xk = kw.get('SortVar')
         # Get constraints
-        EqCons  = kw.get('EqCons',  [])
+        EqCons = kw.get('EqCons',  [])
         TolCons = kw.get('TolCons', {})
         # Ensure no NoneType
-        if EqCons  is None: EqCons = []
+        if EqCons is None: EqCons = []
         if TolCons is None: TolCons = {}
         # Check for an IndexTol.
         itol = kw.get('IndexTol', self.nCase)
@@ -2759,57 +2744,56 @@ class RunMatrix(dict):
 
     # Function to get set of sweeps based on criteria
     def GetSweeps(self, **kw):
-        """
-        Return a list of index sets in which each list contains cases that
-        satisfy specified criteria.
+        r"""
+        Return a list of index sets in which each list contains cases
+        that match according to specified criteria
 
-        For example, using ``EqCons=['mach']`` will cause the method to return
-        lists of points with the same Mach number.
+        For example, using ``EqCons=['mach']`` will cause the method to
+        return lists of points with the same Mach number.
 
         :Call:
             >>> J = x.GetSweeps(**kw)
         :Inputs:
-            *cons*: :class:`list` (:class:`str`)
+            *cons*: :class:`list`\ [:class:`str`]
                 List of global constraints; only points satisfying these
                 constraints will be in one of the output sweeps
-            *I*: :class:`numpy.ndarray` (:class:`int`)
+            *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices to restrict to
             *SortVar*: :class:`str`
                 Variable by which to sort each sweep
-            *EqCons*: :class:`list` (:class:`str`)
-                List of trajectory keys which must match (exactly) the first
-                point in the sweep
-            *TolCons*: :class:`dict` (:class:`float`)
-                Dictionary whose keys are trajectory keys which must match the
-                first point in the sweep to a specified tolerance and whose
-                values are the specified tolerances
+            *EqCons*: :class:`list`\ [:class:`str`]
+                List of trajectory keys which must match (exactly) the
+                first point in the sweep
+            *TolCons*: :class:`dict`\ [:class:`float`]
+                Dictionary whose keys are trajectory keys which must
+                match the first point in the sweep to a specified
+                tolerance and whose values are the specified tolerances
             *IndexTol*: :class:`int`
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
         :Outputs:
-            *J*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+            *J*: :class:`list` (:class:`np.ndarray`\ [:class:`int`])
                 List of trajectory point sweeps
         :Versions:
-            * 2015-05-25 ``@ddalle``: First version
+            * 2015-05-25 ``@ddalle``: Version 1.0
         """
         # Expand global index constraints.
         I0 = self.GetIndices(I=kw.get('I'), cons=kw.get('cons'))
         # Initialize mask (list of ``False`` with *nCase* entries)
         M = np.arange(self.nCase) < 0
-        # Set the mask to ``True`` for any cases passing global constraints.
+        # Set the mask to ``True`` for cases passing global constraints
         M[I0] = True
         # Set initial mask
-        # (This is to allow cases that meet initial constraints to appear in
-        #  multiple sweeps while still disallowing cases that don't meet cons)
+        # (This is to allow cases that meet initial constraints to
+        #  appear in multiple sweeps while still disallowing cases that
+        #  don't meet cons)
         M0 = M.copy()
         # Initialize output.
         J = []
-        # Initialize target output
-        JT = []
         # Safety check: no more than *nCase* sets.
         i = 0
         # Loop through cases.
-        while np.any(M) and i<self.nCase:
+        while np.any(M) and i < self.nCase:
             # Increase number of sweeps.
             i += 1
             # Seed for this sweep
@@ -2823,7 +2807,6 @@ class RunMatrix(dict):
             M[I] = False
         # Output
         return J
-
   # >
 
   # =================
@@ -2836,7 +2819,7 @@ class RunMatrix(dict):
    # [
     # Get angle of attack
     def GetAlpha(self, i=None):
-        """Get the angle of attack
+        r"""Get the angle of attack
 
         :Call:
             >>> alpha = x.GetAlpha(i=None)
@@ -2849,7 +2832,7 @@ class RunMatrix(dict):
             *alpha*: :class:`float` | :class:`np.ndarray`
                 Angle of attack in degrees
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
+            * 2016-03-24 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -2886,7 +2869,7 @@ class RunMatrix(dict):
 
     # Get maneuver angle of attack
     def GetAlphaManeuver(self, i=None):
-        """Get the signed total angle of attack
+        r"""Get the signed total angle of attack
 
         :Call:
             >>> am = x.GetAlphaManeuver(i)
@@ -2899,7 +2882,7 @@ class RunMatrix(dict):
             *am*: :class:`float`
                 Signed maneuver angle of attack [deg]
         :Versions:
-            * 2017-06-27 ``@ddalle``: First version
+            * 2017-06-27 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -2947,10 +2930,9 @@ class RunMatrix(dict):
         # no info
         return None
 
-
     # Get total angle of attack
     def GetAlphaTotal(self, i=None):
-        """Get the total angle of attack
+        r"""Get the total angle of attack
 
         :Call:
             >>> av = x.GetAlphaTotal(i)
@@ -2963,7 +2945,7 @@ class RunMatrix(dict):
             *av*: :class:`float`
                 Total angle of attack in degrees
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
+            * 2016-03-24 ``@ddalle``: Version 1.0
             * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
         # Default list
@@ -3014,7 +2996,7 @@ class RunMatrix(dict):
 
     # Get angle of sideslip
     def GetBeta(self, i=None):
-        """Get the sideslip angle
+        r"""Get the sideslip angle
 
         :Call:
             >>> beta = x.GetBeta(i)
@@ -3027,8 +3009,8 @@ class RunMatrix(dict):
             *beta*: :class:`float`
                 Angle of sideslip in degrees
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
-            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
+            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2017-06-25 ``@ddalle``: Version 1.1; default i=None
         """
         # Default list
         if i is None:
@@ -3065,7 +3047,7 @@ class RunMatrix(dict):
 
     # Get velocity roll angle
     def GetPhi(self, i=None):
-        """Get the velocity roll angle
+        r"""Get the velocity roll angle
 
         :Call:
             >>> phiv = x.GetPhi(i)
@@ -3078,7 +3060,7 @@ class RunMatrix(dict):
             *phiv*: :class:`float`
                 Velocity roll angle in degrees
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
+            * 2016-03-24 ``@ddalle``: Version 1.0
             * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
         # Default list
@@ -3116,7 +3098,7 @@ class RunMatrix(dict):
 
     # Get maneuver angle of attack
     def GetPhiManeuver(self, i=None):
-        """Get the signed maneuver roll angle
+        r"""Get the signed maneuver roll angle
 
         :Call:
             >>> phim = x.GetPhiManeuver(i)
@@ -3129,7 +3111,7 @@ class RunMatrix(dict):
             *phim*: :class:`float`
                 Signed maneuver roll angle [deg]
         :Versions:
-            * 2017-06-27 ``@ddalle``: First version
+            * 2017-06-27 ``@ddalle``: Version 1.0
             * 2017-07-20 ``@ddalle``: Added default *i* = ``None``
         """
         # Default list
@@ -3185,7 +3167,7 @@ class RunMatrix(dict):
    # [
     # Get Reynolds number
     def GetReynoldsNumber(self, i=None, units=None):
-        """Get Reynolds number (per foot)
+        r"""Get Reynolds number (per foot)
 
         :Call:
             >>> Re = x.GetReynoldsNumber(i=None, units=None)
@@ -3200,7 +3182,7 @@ class RunMatrix(dict):
             *Re*: :class:`float`
                 Reynolds number [1/inch | 1/ft]
         :Versions:
-            * 2016-03-23 ``@ddalle``: First version
+            * 2016-03-23 ``@ddalle``: Version 1.0
             * 2017-07-19 ``@ddalle``: Added default conditions
         """
         # Default list
@@ -3339,7 +3321,7 @@ class RunMatrix(dict):
 
     # Get Mach number
     def GetMach(self, i=None):
-        """Get Mach number
+        r"""Get Mach number
 
         :Call:
             >>> M = x.GetMach(i)
@@ -3352,7 +3334,7 @@ class RunMatrix(dict):
             *M*: :class:`float`
                 Mach number
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
+            * 2016-03-24 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -3400,7 +3382,7 @@ class RunMatrix(dict):
             a = np.sqrt(gam*R*T)
             # Calculate Mach
             M = U/a
-        elif kM and kp and kr:
+        elif kV and kp and kr:
             # Velocity, pressure, and density
             U   = self.GetVelocity(i, units="m/s")
             p   = self.GetPressure(i, units="Pa")
@@ -3435,7 +3417,7 @@ class RunMatrix(dict):
    # [
     # Get unitized value
     def GetKeyValue(self, k, i=None, units=None, udef="1"):
-        """Get the value of one key with appropriate dimensionalization
+        r"""Get the value of one key with appropriate dimensionalization
 
         :Call:
             >>> v = x.GetKeyValue(k, i=None, units=None, udef="1")
@@ -3452,7 +3434,7 @@ class RunMatrix(dict):
             *v*: :class:`float`
                 Value of key *k* for case *i* in units of *units*
         :Versions:
-            * 2018-04-13 ``@ddalle``: First version
+            * 2018-04-13 ``@ddalle``: Version 1.0
         """
         # Check if key exists
         if k not in self.cols:
@@ -3483,7 +3465,7 @@ class RunMatrix(dict):
 
     # Get freestream density
     def GetDensity(self, i=None, units=None):
-        """Get freestream density
+        r"""Get freestream density
 
         :Call:
             >>> rho = x.GetDensity(i)
@@ -3498,7 +3480,7 @@ class RunMatrix(dict):
             *r*: :class:`float`
                 freestream density [ ]
         :Versions:
-            * 2018-04-13 ``@jmeeroff``: First version
+            * 2018-04-13 ``@jmeeroff``: Version 1.0
         """
         # Default list
         if i is None:
@@ -3566,9 +3548,9 @@ class RunMatrix(dict):
             M  = self.GetMach(i)
             Re = self.GetReynoldsNumber(i, units="1/m")
             T  = self.GetTemperature(i, units="K")
-            #speed of sound first
+            # speed of sound first
             a = np.sqrt(gam*R*T)
-            #now velocity
+            # now velocity
             U = a*M
             # Get viscocity
             mu = self.GetViscosity(i)
@@ -3587,7 +3569,7 @@ class RunMatrix(dict):
 
     # Get velocity
     def GetVelocity(self, i=None, units=None):
-        """Get velocity
+        r"""Get velocity
 
         :Call:
             >>> U = x.GetVelocity(i)
@@ -3602,7 +3584,7 @@ class RunMatrix(dict):
             *r*: :class:`float`
                 velocity [ m/s | ft/s | *units* ]
         :Versions:
-            * 2018-04-13 ``@jmeeroff``: First version
+            * 2018-04-13 ``@jmeeroff``: Version 1.0
             * 2018-04-17 ``@ddalle``: Second method for units
         """
         # Default list
@@ -3675,10 +3657,9 @@ class RunMatrix(dict):
             # Apply expected units
             return U / mks(units)
 
-
     # Get freestream temperature
     def GetTemperature(self, i=None, units=None):
-        """Get static freestream temperature
+        r"""Get static freestream temperature
 
         :Call:
             >>> T = x.GetTemperature(i)
@@ -3693,7 +3674,7 @@ class RunMatrix(dict):
             *T*: :class:`float`
                 Static temperature [R | K]
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
+            * 2016-03-24 ``@ddalle``: Version 1.0
             * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
             * 2018-04-13 ``@ddalle``: Units
         """
@@ -3785,7 +3766,7 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Freestream stagnation temperature [ R | K | *units* ]
         :Versions:
-            * 2016-08-30 ``@ddalle``: First version
+            * 2016-08-30 ``@ddalle``: Version 1.0
             * 2017-07-20 ``@ddalle``: Added default cases
             * 2018-04-17 ``@ddalle``: Units
         """
@@ -3838,7 +3819,7 @@ class RunMatrix(dict):
             *p*: :class:`float`
                 Static pressure [ psf | Pa | *units* ]
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
+            * 2016-03-24 ``@ddalle``: Version 1.0
             * 2017-07-20 ``@ddalle``: Added default cases
             * 2018-04-17 ``@ddalle``: Units
         """
@@ -3955,7 +3936,7 @@ class RunMatrix(dict):
             *q*: :class:`float`
                 Dynamic pressure [ psf | Pa | *units* ]
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
+            * 2016-03-24 ``@ddalle``: Version 1.0
             * 2017-07-20 ``@ddalle``: Added default cases
             * 2018-04-17 ``@ddalle``: Units
         """
@@ -4064,7 +4045,7 @@ class RunMatrix(dict):
             *q*: :class:`float`
                 Dynamic pressure [psf | Pa | *units*]
         :Versions:
-            * 2018-04-13 ``@ddalle``: First version
+            * 2018-04-13 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -4098,10 +4079,9 @@ class RunMatrix(dict):
             # Convert to requested units
             return mu / mks(units)
 
-
     # Get freestream stagnation pressure
     def GetTotalPressure(self, i=None, units=None):
-        """Get freestream stagnation pressure (in psf or Pa)
+        r"""Get freestream stagnation pressure (in psf or Pa)
 
         :Call:
             >>> p0 = x.GetTotalPressure(i)
@@ -4116,7 +4096,7 @@ class RunMatrix(dict):
             *p0*: :class:`float`
                 Stagnation pressure [psf | Pa]
         :Versions:
-            * 2016-08-30 ``@ddalle``: First version
+            * 2016-08-30 ``@ddalle``: Version 1.0
             * 2017-07-20 ``@ddalle``: Added default cases
             * 2018-04-17 ``@ddalle``: Added units
         """
@@ -4154,7 +4134,6 @@ class RunMatrix(dict):
         else:
             # Apply expected units
             return p0 / mks(units)
-
    # ]
 
    # -------------------------
@@ -4163,7 +4142,7 @@ class RunMatrix(dict):
    # [
     # Get parameter from freestream state
     def GetGasProperty(self, k, vdef=None):
-        """Get property from the ``"Freestream"`` section
+        r"""Get property from the ``"Freestream"`` section
 
         :Call:
             >>> v = x.GetGasProperty(k, vdef=None)
@@ -4178,14 +4157,14 @@ class RunMatrix(dict):
             *v*: :class:`float` | :class:`str` | :class:`any`
                 Value of the
         :Versions:
-            * 2016-03-24 ``@ddalle``: First version
+            * 2016-03-24 ``@ddalle``: Version 1.0
         """
         # Get the parameter
         return self.gas.get(k, vdef)
 
     # Get ratio of specific heats
     def GetGamma(self, i=None):
-        """Get freestream ratio of specific heats
+        r"""Get freestream ratio of specific heats
 
         :Call:
             >>> gam = x.GetGamma(i)
@@ -4198,7 +4177,7 @@ class RunMatrix(dict):
             *gam*: :class:`float`
                 Ratio of specific heats
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Version 1.0
             * 2017-07-20 ``@ddalle``: Added default cases
         """
         # Default list
@@ -4212,11 +4191,11 @@ class RunMatrix(dict):
             return self.gas.get("Gamma", 1.4)
         else:
             # Use the trajectory value
-            return self[k][i]
+            return self[kg][i]
 
     # Get molecular weight
     def GetMolecularWeight(self, i=None, units=None):
-        """Get averaged freestream gas molecular weight
+        r"""Get averaged freestream gas molecular weight
 
         :Call:
             >>> W = x.GetMolecularWeight(i=None, units=None)
@@ -4231,7 +4210,7 @@ class RunMatrix(dict):
             *W*: :class:`float`
                 Molecular weight [kg/kmol | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: First version
+            * 2018-04-13 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -4267,7 +4246,7 @@ class RunMatrix(dict):
 
     # Get normalized gas constant
     def GetNormalizedGasConstant(self, i=None, units=None):
-        """Get averaged freestream gas molecular weight
+        r"""Get averaged freestream gas molecular weight
 
         :Call:
             >>> R = x.GetNormalizedGasConstant(i=None, units=None)
@@ -4282,7 +4261,7 @@ class RunMatrix(dict):
             *R*: :class:`float`
                 Normalized gas constant [J/kg*K | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: First version
+            * 2018-04-13 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -4326,7 +4305,7 @@ class RunMatrix(dict):
 
     # Sutherland's law reference viscosity
     def GetSutherland_mu0(self, i=None, units=None):
-        """Get reference viscosity for Sutherland's Law
+        r"""Get reference viscosity for Sutherland's Law
 
         :Call:
             >>> mu0 = x.GetSutherland_mu0(i=None, units=None)
@@ -4341,7 +4320,7 @@ class RunMatrix(dict):
             *mu0*: :class:`float`
                 Reference viscosity [ kg/m*s | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: First version
+            * 2018-04-13 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -4373,7 +4352,7 @@ class RunMatrix(dict):
 
     # Sutherland's law reference temperature
     def GetSutherland_T0(self, i=None, units=None):
-        """Get reference temperature for Sutherland's Law
+        r"""Get reference temperature for Sutherland's Law
 
         :Call:
             >>> T0 = x.GetSutherland_T0(i=None, units=None)
@@ -4388,7 +4367,7 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Reference temperature [ K | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: First version
+            * 2018-04-13 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -4418,7 +4397,7 @@ class RunMatrix(dict):
 
     # Sutherland's law reference temperature
     def GetSutherland_C(self, i=None, units=None):
-        """Get reference temperature for Sutherland's Law
+        r"""Get reference temperature for Sutherland's Law
 
         :Call:
             >>> C = x.GetSutherland_C(i=None, units=None)
@@ -4433,7 +4412,7 @@ class RunMatrix(dict):
             *C*: :class:`float`
                 Reference temperature [ K | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: First version
+            * 2018-04-13 ``@ddalle``: Version 1.0
         """
         # Default list
         if i is None:
@@ -4460,7 +4439,6 @@ class RunMatrix(dict):
         else:
             # Reduce by requested units
             return C * cdef / mks(units)
-
    # ]
   # >
 
@@ -4470,7 +4448,7 @@ class RunMatrix(dict):
   # <
     # Get generic input for SurfBC key
     def GetSurfBC_ParamType(self, key, k, comp=None):
-        """Get generic parameter value and type for a surface BC key
+        r"""Get generic parameter value and type for a surface BC key
 
         :Call:
             >>> v, t = x.GetSurfBC_ParamType(key, k, comp=None)
@@ -4491,7 +4469,7 @@ class RunMatrix(dict):
             *t*: :class:`str`
                 Name of the type of *v* (``type(v).__name__``)
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Get the raw parameter
         v = self.defns[key].get(k)
@@ -4507,7 +4485,7 @@ class RunMatrix(dict):
 
     # Process input for generic type
     def GetSurfBC_Val(self, i, key, v, t, vdef=None, **kw):
-        """Default processing for processing a key by value
+        r"""Default processing for processing a key by value
 
         :Call:
             >>> V = x.GetSurfBC_Val(i, key, v, t, vdef=None)
@@ -4526,7 +4504,7 @@ class RunMatrix(dict):
             *V*: :class:`any`
                 Processed key, for example ``x[key][i]``
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Process the type and value
         if v is None:
@@ -4551,7 +4529,7 @@ class RunMatrix(dict):
 
     # Process input for generic SurfBC key/param
     def GetSurfBC_Param(self, i, key, k, comp=None, vdef=None, **kw):
-        """Process a single parameter of a SurfBC key
+        r"""Process a single parameter of a SurfBC key
 
         :Call:
             >>> v = x.GetSurfBC_Param(i, key, k, comp=None, vdef=None, **kw)
@@ -4577,7 +4555,7 @@ class RunMatrix(dict):
             *v*: ``None`` | :class:`any`
                 Value of the parameter
         :Versions:
-            * 2016-08-31 ``@ddalle``: First version
+            * 2016-08-31 ``@ddalle``: Version 1.0
         """
         # Process keywords
         typ = kw.get('typ', 'SurfBC')
@@ -4590,7 +4568,7 @@ class RunMatrix(dict):
 
     # Get thrust for SurfCT input
     def GetSurfCT_Thrust(self, i, key=None, comp=None):
-        """Get thrust input for surface *CT* key
+        r"""Get thrust input for surface *CT* key
 
         :Call:
             >>> CT = x.GetSurfCT_Thrust(i, key=None, comp=None)
@@ -4609,7 +4587,7 @@ class RunMatrix(dict):
             *CT*: :class:`float`
                 Thrust parameter, either thrust or coefficient
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
             * 2016-08-29 ``@ddalle``: Added component capability
         """
         # Process as SurfCT key
@@ -4617,7 +4595,7 @@ class RunMatrix(dict):
 
     # Get reference dynamic pressure
     def GetSurfCT_RefDynamicPressure(self, i, key=None, comp=None):
-        """Get reference dynamic pressure for surface *CT* key
+        r"""Get reference dynamic pressure for surface *CT* key
 
         :Call:
             >>> qinf = x.GetSurfCT_RefDynamicPressure(i, key=None, comp=None)
@@ -4634,7 +4612,7 @@ class RunMatrix(dict):
             *qinf*: :class:`float`
                 Reference dynamic pressure to use, this divides the *CT* value
         :Versions:
-            * 2016-04-12 ``@ddalle``: First version
+            * 2016-04-12 ``@ddalle``: Version 1.0
             * 2016-08-29 ``@ddalle``: Added component capability
         """
         # Special translations
@@ -4649,7 +4627,7 @@ class RunMatrix(dict):
 
     # Get total temperature
     def GetSurfCT_RefPressure(self, i, key=None, comp=None):
-        """Get reference pressure input for surface *CT* total pressure
+        r"""Get reference pressure input for surface *CT* total pressure
 
         :Call:
             >>> Tref = x.GetSurfCT_RefPressure(i, key=None, comp=None)
@@ -4666,17 +4644,17 @@ class RunMatrix(dict):
             *pref*: :class:`float`
                 Reference pressure for normalizing *T0*
         :Versions:
-            * 2016-04-13 ``@ddalle``: First version
+            * 2016-04-13 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_RefPressure(i, key, comp=comp, typ="SurfCT")
 
     # Get pressure calibration factor
     def GetSurfCT_PressureCalibration(self, i, key=None, comp=None):
-        """Get pressure calibration factor for *CT* key
+        r"""Get pressure calibration factor for *CT* key
 
         :Call:
-            >>> fp = x.GetSurfCT_PressureCalibration(i, key=None, comp=None)
+            >>> fp = x.GetSurfCT_PressureCalibration(i, key, comp=None)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -4690,26 +4668,26 @@ class RunMatrix(dict):
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
-        return self.GetSurfBC_PressureCalibration(i, key,
-            comp=comp, typ="SurfCT")
+        return self.GetSurfBC_PressureCalibration(
+            i, key, comp=comp, typ="SurfCT")
 
     # Get pressure additive calibration
     def GetSurfCT_PressureOffset(self, i, key=None, comp=None):
-        """Get offset used for calibration of static or stagnation pressure
+        r"""Get offset used for calibration of static or stagn pressure
 
         The value used by :mod:`cape` is given by
 
         .. math::
 
-            \\tilde{p} = \\frac{b + ap}{p_\\mathit{ref}}
+            \tilde{p} = \frac{b + ap}{p_\mathit{ref}}
 
-        where :math:`\\tilde{p}` is the value used in the namelist, *b* is the
-        value from this function, *a* is the result of
-        :func:`GetSurfBC_PressureCalibration`, *p* is the input value from the
-        JSON file, and :math:`p_\\mathit{ref}` is the value from
+        where :math:`\tilde{p}` is the value used in the namelist, *b*
+        is the value from this function, *a* is the result of
+        :func:`GetSurfBC_PressureCalibration`, *p* is the input value
+        from the JSON file, and :math:`p_\mathit{ref}` is the value from
         :func:`GetSurfBC_RefPressure`.  In code, this is
 
         .. code-block:: python
@@ -4731,14 +4709,14 @@ class RunMatrix(dict):
             *bp*: {``0.0``} | :class:`float`
                 Stagnation or static pressure offset
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_PressureOffset(i, key, comp=comp, typ="SurfCT")
 
     # Get stagnation pressure input for SurfBC input
     def GetSurfCT_TotalPressure(self, i, key=None, comp=None):
-        """Get stagnation pressure input for surface *CT* key
+        r"""Get stagnation pressure input for surface *CT* key
 
         :Call:
             >>> p0 = x.GetSurfCT_TotalPressure(i, key=None, comp=None, **kw)
@@ -4757,17 +4735,17 @@ class RunMatrix(dict):
             *p0*: :class:`float`
                 Stagnation pressure parameter, usually *p0/pinf*
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_TotalPressure(i, key, comp=comp, typ="SurfCT")
 
     # Get total temperature
     def GetSurfCT_TotalTemperature(self, i, key=None, comp=None):
-        """Get total temperature input for surface *CT* key
+        r"""Get total temperature input for surface *CT* key
 
         :Call:
-            >>> T0 = x.GetSurfCT_TotalTemperature(i, key=None, comp=None)
+            >>> T0 = x.GetSurfCT_TotalTemperature(i, key, comp=None)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -4781,15 +4759,15 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Total temperature of thrust conditions
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
-        return self.GetSurfBC_TotalTemperature(i, key,
-            comp=comp, typ="SurfCT")
+        return self.GetSurfBC_TotalTemperature(
+            i, key, comp=comp, typ="SurfCT")
 
     # Get pressure calibration factor
     def GetSurfCT_TemperatureCalibration(self, i, key=None, comp=None):
-        """Get temperature calibration factor for *CT* key
+        r"""Get temperature calibration factor for *CT* key
 
         :Call:
             >>> fT = x.GetSurfCT_Temperature(i, key=None, comp=None)
@@ -4806,34 +4784,34 @@ class RunMatrix(dict):
             *fT*: {``1.0``} | :class:`float`
                 Temperature calibration factor
         :Versions:
-            * 2016-08-30 ``@ddalle``: First version
+            * 2016-08-30 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
-        return self.GetSurfBC_TemperatureCalibration(i, key,
-            comp=comp, typ="SurfCT")
+        return self.GetSurfBC_TemperatureCalibration(
+            i, key, comp=comp, typ="SurfCT")
 
     # Get pressure additive calibration
     def GetSurfCT_TemperatureOffset(self, i, key=None, comp=None):
-        """Get offset used for calibration of static or stagnation temperature
+        r"""Get offset for calibration of static or stag temperature
 
         The value used by :mod:`cape` is given by
 
         .. math::
 
-            \\tilde{T} = \\frac{b + aT}{T_\\mathit{ref}}
+            \tilde{T} = \frac{b + aT}{T_\mathit{ref}}
 
-        where :math:`\\tilde{T}` is the value used in the namelist, *b* is the
-        value from this function, *a* is the result of
-        :func:`GetSurfBC_TemperatureCalibration`, *T* is the input value from
-        the JSON file, and :math:`T_\\mathit{ref}` is the value from
-        :func:`GetSurfBC_RefTemperature`.  In code, this is
+        where :math:`\tilde{T}` is the value used in the namelist, *b*
+        is the value from this function, *a* is the result of
+        :func:`GetSurfBC_TemperatureCalibration`, *T* is the input value
+        from the JSON file, and :math:`T_\mathit{ref}` is the value
+        from :func:`GetSurfBC_RefTemperature`.  In code, this is
 
         .. code-block:: python
 
             T_tilde = (bt + ft*T) / Tref
 
         :Call:
-            >>> bt = x.GetSurfCT_TemperatureOffset(i, key=None, comp=None)
+            >>> bt = x.GetSurfCT_TemperatureOffset(i, key, comp=None)
         :Inputs:
             *x*: :Class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -4847,18 +4825,18 @@ class RunMatrix(dict):
             *bt*: {``0.0``} | :class:`float`
                 Stagnation or static temperature offset
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
-        return self.GetSurfBC_TemperatureOffset(i, key,
-            comp=comp, typ="SurfCT")
+        return self.GetSurfBC_TemperatureOffset(
+            i, key, comp=comp, typ="SurfCT")
 
     # Get total temperature
     def GetSurfCT_RefTemperature(self, i, key=None, comp=None):
-        """Get reference temperature input for surface *CT* total temperature
+        r"""Reference temperature input for surf *CT* total temperature
 
         :Call:
-            >>> Tref = x.GetSurfCT_RefTemperature(i, key=None, comp=None)
+            >>> Tref = x.GetSurfCT_RefTemperature(i, key, comp=None)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -4872,14 +4850,14 @@ class RunMatrix(dict):
             *Tref*: :class:`float`
                 Reference temperature for normalizing *T0*
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_RefTemperature(i, key, comp=comp, typ="SurfCT")
 
     # Get Mach number
     def GetSurfCT_Mach(self, i, key=None, comp=None):
-        """Get Mach number input for surface *CT* key
+        r"""Get Mach number input for surface *CT* key
 
         :Call:
             >>> M = x.GetSurfCT_TotalTemperature(i, key=None, comp=None)
@@ -4896,14 +4874,14 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Total temperature of thrust conditions
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Mach(i, key, comp=comp, typ="SurfCT")
 
     # Get exit Mach number input for SurfCT input
     def GetSurfCT_ExitMach(self, i, key=None, comp=None):
-        """Get Mach number input for surface *CT* key
+        r"""Get Mach number input for surface *CT* key
 
         :Call:
             >>> M2 = x.GetSurfCT_ExitMach(i, key=None, comp=None)
@@ -4920,7 +4898,7 @@ class RunMatrix(dict):
             *M2*: :class:`float`
                 Nozzle exit Mach number
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'ExitMach', comp=comp)
@@ -4937,7 +4915,7 @@ class RunMatrix(dict):
 
     # Get area ratio
     def GetSurfCT_AreaRatio(self, i, key=None, comp=None):
-        """Get area ratio for surface *CT* key
+        r"""Get area ratio for surface *CT* key
 
         :Call:
             >>> AR = x.GetSurfCT_AreaRatio(i, key=None, comp=None)
@@ -4954,7 +4932,7 @@ class RunMatrix(dict):
             *AR*: :class:`float`
                 Area ratio
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'AreaRatio', comp=comp)
@@ -4971,7 +4949,7 @@ class RunMatrix(dict):
 
     # Get area ratio
     def GetSurfCT_ExitArea(self, i, key=None, comp=None):
-        """Get exit area for surface *CT* key
+        r"""Get exit area for surface *CT* key
 
         :Call:
             >>> A2 = x.GetSurfCT_ExitArea(i, key=None, comp=None)
@@ -4988,7 +4966,7 @@ class RunMatrix(dict):
             *A2*: :class:`float`
                 Exit area
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'ExitArea', comp=comp)
@@ -5005,7 +4983,7 @@ class RunMatrix(dict):
 
     # Get reference area
     def GetSurfCT_RefArea(self, i, key=None, comp=None):
-        """Get reference area for surface *CT* key, this divides *CT* value
+        r"""Get ref area for surface *CT* key, this divides *CT* value
 
         If this is ``None``, it defaults to the vehicle reference area
 
@@ -5024,7 +5002,7 @@ class RunMatrix(dict):
             *ARef*: {``None``} | :class:`float`
                 Reference area; if ``None``, use the vehicle area
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'RefArea', comp=comp)
@@ -5041,7 +5019,7 @@ class RunMatrix(dict):
 
     # Get component ID(s) for input SurfCT key
     def GetSurfCT_CompID(self, i, key=None, comp=None):
-        """Get component ID input for surface *CT* key
+        r"""Get component ID input for surface *CT* key
 
         :Call:
             >>> compID = x.GetSurfCT_CompID(i, key=None, comp=None)
@@ -5058,14 +5036,14 @@ class RunMatrix(dict):
             *compID*: :class:`list` (:class:`int` | :class:`str`)
                 Surface boundary condition Mach number
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_CompID(i, key, comp=comp, typ="SurfCT")
 
     # Get gas ID(s) input for SurfBC key
     def GetSurfCT_PlenumID(self, i, key=None, comp=None, **kw):
-        """Get gas ID input for surface *CT* key
+        r"""Get gas ID input for surface *CT* key
 
         :Call:
             >>> pID = x.GetSurfCT_PlenumID(i, key=None, comp=None, **kw)
@@ -5084,14 +5062,14 @@ class RunMatrix(dict):
             *pID*: :class:`int`
                 Gas number for plenum boundary condition
         :Versions:
-            * 2018-10-18 ``@ddalle``: First version
+            * 2018-10-18 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_PlenumID(i, key, comp=comp, typ="SurfCT")
 
     # Get mass species
     def GetSurfCT_Species(self, i, key=None, comp=None):
-        """Get species input for surface *CT* key
+        r"""Get species input for surface *CT* key
 
         :Call:
             >>> Y = x.GetSurfCT_Species(i, key=None, comp=None)
@@ -5108,14 +5086,14 @@ class RunMatrix(dict):
             *Y*: :class:`list` (:class:`float`)
                 Vector of mass fractions
         :Versions:
-            * 2016-08-30 ``@ddalle``: First version
+            * 2016-08-30 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Species(i, key, comp=comp, typ="SurfCT")
 
     # Get grid name(s)/number(s) for input SurfCT key
     def GetSurfCT_Grids(self, i, key=None, comp=None):
-        """Get list of grids for surface *CT* key
+        r"""Get list of grids for surface *CT* key
 
         :Call:
             >>> compID = x.GetSurfCT_Grids(i, key=None, comp=None)
@@ -5132,14 +5110,14 @@ class RunMatrix(dict):
             *compID*: :class:`list` (:class:`int` | :class:`str`)
                 Surface boundary condition Mach number
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Grids(i, key, comp=comp, typ="SurfCT")
 
     # Get ratio of specific heats for SurfCT key
     def GetSurfCT_Gamma(self, i, key=None, comp=None):
-        """Get ratio of specific heats input for surface *CT* key
+        r"""Get ratio of specific heats input for surface *CT* key
 
         :Call:
             >>> gam = x.GetSurfCT_Gamma(i, key=None, comp=None)
@@ -5156,17 +5134,17 @@ class RunMatrix(dict):
             *gam*: {``1.4``} | :class:`float`
                 Ratio of specific heats
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Version 1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Gamma(i, key, comp=comp, typ="SurfCT")
 
     # Get stagnation pressure input for SurfBC input
     def GetSurfBC_TotalPressure(self, i, key=None, comp=None, **kw):
-        """Get stagnation pressure input for surface BC key
+        r"""Get stagnation pressure input for surface BC key
 
         :Call:
-            >>> p0 = x.GetSurfBC_TotalPressure(i, key=None, comp=None, **kw)
+            >>> p0 = x.GetSurfBC_TotalPressure(i, key, comp=None, **kw)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5182,7 +5160,7 @@ class RunMatrix(dict):
             *p0*: :class:`float`
                 Stagnation pressure parameter, usually *p0/pinf*
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5195,10 +5173,10 @@ class RunMatrix(dict):
 
     # Get reference pressure
     def GetSurfBC_RefPressure(self, i, key=None, comp=None, **kw):
-        """Get reference pressure for surface BC key
+        r"""Get reference pressure for surface BC key
 
         :Call:
-            >>> pinf = x.GetSurfBC_RefPressure(i, key=None, comp=None, **kw)
+            >>> pinf = x.GetSurfBC_RefPressure(i, key, comp=None, **kw)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5214,7 +5192,7 @@ class RunMatrix(dict):
             *pinf*: :class:`float`
                 Reference pressure to use, this divides the *p0* value
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5243,10 +5221,10 @@ class RunMatrix(dict):
 
     # Get pressure scaling
     def GetSurfBC_PressureCalibration(self, i, key=None, comp=None, **kw):
-        """Get total pressure scaling factor used for calibration
+        r"""Get total pressure scaling factor used for calibration
 
         :Call:
-            >>> fp = x.GetSurfBC_PressureCalibration(i,key=None,comp=None,**kw)
+            >>> fp = x.GetSurfBC_PressureCalibration(i, key, comp, **kw)
         :Inputs:
             *x*: :Class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5262,7 +5240,7 @@ class RunMatrix(dict):
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
         :Versions:
-            * 2016-04-12 ``@ddalle``: First version
+            * 2016-04-12 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5275,26 +5253,26 @@ class RunMatrix(dict):
 
     # Get pressure additive calibration
     def GetSurfBC_PressureOffset(self, i, key=None, comp=None, **kw):
-        """Get offset used for calibration of static or stagnation pressure
+        r"""Get offset used for calibration of static or stagn pressure
 
         The value used by :mod:`cape` is given by
 
         .. math::
 
-            \\tilde{p} = \\frac{b + ap}{p_\\mathit{ref}}
+            \tilde{p} = \frac{b + ap}{p_\mathit{ref}}
 
-        where :math:`\\tilde{p}` is the value used in the namelist, *b* is the
-        value from this function, *a* is the result of
-        :func:`GetSurfBC_PressureCalibration`, *p* is the input value from the
-        JSON file, and :math:`p_\\mathit{ref}` is the value from
-        :func:`GetSurfBC_RefPressure`.  In code, this is
+        where :math:`\tilde{p}` is the value used in the namelist, *b*
+        is the value from this function, *a* is the result of
+        :func:`GetSurfBC_PressureCalibration`, *p* is the input value
+        from the JSON file, and :math:`p_\mathit{ref}` is the value from
+        :func:`GetSurfBC_RefPressure`. In code, this is
 
         .. code-block:: python
 
             p_tilde = (bp + fp*p) / pref
 
         :Call:
-            >>> bp = x.GetSurfBC_PressureOffset(i, key=None, comp=None, **kw)
+            >>> bp = x.GetSurfBC_PressureOffset(i, key, comp=None, **kw)
         :Inputs:
             *x*: :Class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5310,7 +5288,7 @@ class RunMatrix(dict):
             *bp*: {``0.0``} | :class:`float`
                 Stagnation or static pressure offset
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5339,10 +5317,10 @@ class RunMatrix(dict):
 
     # Get stagnation temperature input for SurfBC input
     def GetSurfBC_TotalTemperature(self, i, key=None, comp=None, **kw):
-        """Get stagnation pressure input for surface BC key
+        r"""Get stagnation pressure input for surface BC key
 
         :Call:
-            >>> T0 = x.GetSurfBC_TotalTemperature(i, key=None, comp=None, **kw)
+            >>> T0 = x.GetSurfBC_TotalTemperature(i, key, comp, **kw)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5358,7 +5336,7 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Stagnation temperature parameter, usually *T0/Tinf*
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5372,15 +5350,16 @@ class RunMatrix(dict):
             "stagnation": "GetTotalTemperature",
         }
         # Get the value
-        return self.GetSurfBC_Param(i, key, 'TotalTemperature',
+        return self.GetSurfBC_Param(
+            i, key, 'TotalTemperature',
             comp=comp, typ=typ, vdef=0.0, **kw_funcs)
 
     # Get reference temperature
     def GetSurfBC_RefTemperature(self, i, key=None, comp=None, **kw):
-        """Get reference temperature for surface BC key
+        r"""Get reference temperature for surface BC key
 
         :Call:
-            >>> Tinf = x.GetSurfBC_RefTemperature(i, key=None, comp=None, **kw)
+            >>> Tinf = x.GetSurfBC_RefTemperature(i, key, comp, **kw)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5394,9 +5373,9 @@ class RunMatrix(dict):
                 RunMatrix key type to process
         :Outputs:
             *Tinf*: :class:`float`
-                Reference temperature to use, this divides the *T0* value
+                Reference temperature, this divides the *T0* value
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5410,15 +5389,16 @@ class RunMatrix(dict):
             "stagnation": "GetTotalTemperature",
         }
         # Get the value
-        return self.GetSurfBC_Param(i, key, 'RefTemperature',
+        return self.GetSurfBC_Param(
+            i, key, 'RefTemperature',
             comp=comp, typ=typ, vdef=0.0, **kw_funcs)
 
     # Get pressure scaling
     def GetSurfBC_TemperatureCalibration(self, i, key=None, comp=None, **kw):
-        """Get total/static temperature scaling factor used for calibration
+        r"""Get total/static temperature scaling factor for calibration
 
         :Call:
-           >>> fT=x.GetSurfBC_TemperatureCalibration(i,key=None,comp=None,**kw)
+           >>> fT=x.GetSurfBC_TemperatureCalibration(i ,key, comp, **kw)
         :Inputs:
             *x*: :Class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5434,31 +5414,32 @@ class RunMatrix(dict):
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
         :Versions:
-            * 2016-08-30 ``@ddalle``: First version
+            * 2016-08-30 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
         # Process key
         key = self.GetKeyName(typ, key)
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key,'TemperatureCalibration',comp=comp)
+        v, t = self.GetSurfBC_ParamType(
+            key, 'TemperatureCalibration', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t, vdef=1.0)
 
     # Get pressure additive calibration
     def GetSurfBC_TemperatureOffset(self, i, key=None, comp=None, **kw):
-        """Get offset used for calibration of static or stagnation temperature
+        r"""Get offset for calibration of static or stag temperature
 
         The value used by :mod:`cape` is given by
 
         .. math::
 
-            \\tilde{T} = \\frac{b + aT}{T_\\mathit{ref}}
+            \tilde{T} = \frac{b + aT}{T_\mathit{ref}}
 
-        where :math:`\\tilde{T}` is the value used in the namelist, *b* is the
-        value from this function, *a* is the result of
-        :func:`GetSurfBC_TemperatureCalibration`, *T* is the input value from
-        the JSON file, and :math:`T_\\mathit{ref}` is the value from
+        where :math:`\tilde{T}` is the value used in the namelist, *b*
+        is the value from this function, *a* is the result of
+        :func:`GetSurfBC_TemperatureCalibration`, *T* is the input value
+        from the JSON file, and :math:`T_\mathit{ref}` is the value from
         :func:`GetSurfBC_RefTemperature`.  In code, this is
 
         .. code-block:: python
@@ -5466,7 +5447,7 @@ class RunMatrix(dict):
             T_tilde = (bt + ft*T) / Tref
 
         :Call:
-            >>> bt = x.GetSurfBC_TemperatureOffset(i,key=None, comp=None, **kw)
+            >>> bt = x.GetSurfBC_TemperatureOffset(i, key, comp, **kw)
         :Inputs:
             *x*: :Class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5482,7 +5463,7 @@ class RunMatrix(dict):
             *bt*: {``0.0``} | :class:`float`
                 Stagnation or static temperature offset
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5498,12 +5479,13 @@ class RunMatrix(dict):
             "stagnation": "GetTotalTemperature",
         }
         # Get the value
-        return self.GetSurfBC_Param(i, key, 'TemperatureOffset',
+        return self.GetSurfBC_Param(
+            i, key, 'TemperatureOffset',
             typ=typ, vdef=0.0, **kw_funcs)
 
     # Get Mach number input for SurfBC input
     def GetSurfBC_Mach(self, i, key=None, comp=None, **kw):
-        """Get Mach number input for surface BC key
+        r"""Get Mach number input for surface BC key
 
         :Call:
             >>> M = x.GetSurfBC_Mach(i, key=None, comp=None, **kw)
@@ -5522,7 +5504,7 @@ class RunMatrix(dict):
             *M*: :class:`float`
                 Surface boundary condition Mach number
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5535,7 +5517,7 @@ class RunMatrix(dict):
 
     # Get ratio of specific heats input for SurfBC key
     def GetSurfBC_Gamma(self, i, key=None, comp=None, **kw):
-        """Get ratio of specific heats for surface BC key
+        r"""Get ratio of specific heats for surface BC key
 
         :Call:
             >>> gam = x.GetSurfBC_Gamma(i, key=None, comp=None, **kw)
@@ -5552,7 +5534,7 @@ class RunMatrix(dict):
             *gam*: :class:`float`
                 Surface boundary condition ratio of specific heats
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Version 1.0
             * 2016-08-29 ``@ddalle``: Added *comp*
         """
         # Type
@@ -5566,25 +5548,25 @@ class RunMatrix(dict):
 
     # Get species
     def GetSurfBC_Species(self, i, key=None, comp=None, **kw):
-        """Get species information for a surface BC key
+        r"""Get species information for a surface BC key
 
         The species can be specified using several different manners.
 
-        The first and most common approach is to simply set a fixed list, for
-        example setting ``"Species"`` to ``[0.0, 1.0, 0.0]`` to specify use of
-        the second species, or ``[0.2, 0.8, 0.1]`` to specify a mix of three
-        difference species.
+        The first and most common approach is to simply set a fixed
+        list, for example setting ``"Species"`` to ``[0.0, 1.0, 0.0]``
+        to specify use of the second species, or ``[0.2, 0.8, 0.1]`` to
+        specify a mix of three different species.
 
-        A second method is to specify an integer.  For example, if ``"Species"``
-        is set to ``2`` and ``"nSpecies"`` is set to ``4``, the output will be
-        ``[0.0, 1.0, 0.0, 0.0]``.
+        A second method is to specify an integer.  For example, if
+        ``"Species"`` is set to ``2`` and ``"nSpecies"`` is set to
+        ``4``, the output will be ``[0.0, 1.0, 0.0, 0.0]``.
 
-        The third method is a generalization of the first.  An alternative to
-        simply setting a fixed list of numeric species mass fractions, the
-        entries in the list can depend on the values of other trajectory keys.
-        For example, setting ``"Species"`` to ``['YH2', 'YO2']`` will translate
-        the mass fractions according to the values of trajectory keys ``"YH2"``
-        and ``"YO2"``.
+        The third method is a generalization of the first.  An
+        alternative to simply setting a fixed list of numeric species
+        mass fractions, the entries in the list can depend on the values
+        of other trajectory keys.  For example, setting ``"Species"`` to
+        ``['YH2', 'YO2']`` will translate the mass fractions according
+        to the values of trajectory keys ``"YH2"`` and ``"YO2"``.
 
         :Call:
             >>> Y = x.GetSurfBC_Species(i, key=None, comp=None, **kw)
@@ -5603,7 +5585,7 @@ class RunMatrix(dict):
             *Y*: :class:`list` (:class:`float`)
                 List of species mass fractions for boundary condition
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5616,11 +5598,11 @@ class RunMatrix(dict):
         # Type
         tY = type(Y).__name__
         # Check for integer
-        if tY == 'int':
+        if tY.startswith('int'):
             # Get number of species
             nY = self.GetSurfBC_nSpecies(i, key, comp=comp, typ=typ)
             # Make list with one nonzero component
-            Y = [float(i+1==Y) for i in range(nY)]
+            Y = [float(i + 1 == Y) for i in range(nY)]
         elif tY != 'list':
             # Must be list or int
             raise TypeError("Species specification must be int or list")
@@ -5638,7 +5620,7 @@ class RunMatrix(dict):
 
     # Get number of species
     def GetSurfBC_nSpecies(self, i, key=None, comp=None, **kw):
-        """Get number of species for a surface BC key
+        r"""Get number of species for a surface BC key
 
         :Call:
             >>> nY = x.GetSurfBC_nSpecies(i, key=None, comp=None, **kw)
@@ -5657,7 +5639,7 @@ class RunMatrix(dict):
             *nY*: {``1``} | :class:`int`
                 Number of species
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5668,10 +5650,9 @@ class RunMatrix(dict):
         # Default process
         return self.GetSurfBC_Val(i, key, v, t)
 
-
     # Get component ID(s) input for SurfBC key
     def GetSurfBC_CompID(self, i, key=None, comp=None, **kw):
-        """Get component ID input for surface BC key
+        r"""Get component ID input for surface BC key
 
         :Call:
             >>> compID = x.GetSurfBC_CompID(i, key=None, comp=None, **kw)
@@ -5690,7 +5671,7 @@ class RunMatrix(dict):
             *compID*: :class:`list` | :class:`str` | :class:`dict`
                 Surface boundary condition component ID(s)
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5701,10 +5682,9 @@ class RunMatrix(dict):
         # Do not process this one
         return v
 
-
     # Get gas ID(s) input for SurfBC key
     def GetSurfBC_PlenumID(self, i, key=None, comp=None, **kw):
-        """Get gas ID input for surface BC key
+        r"""Get gas ID input for surface BC key
 
         :Call:
             >>> pID = x.GetSurfBC_PlenumID(i, key=None, comp=None, **kw)
@@ -5723,7 +5703,7 @@ class RunMatrix(dict):
             *pID*: :class:`int`
                 Gas number for plenum boundary condition
         :Versions:
-            * 2018-10-18 ``@ddalle``: First version
+            * 2018-10-18 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5736,7 +5716,7 @@ class RunMatrix(dict):
 
     # Get column index input for SurfBC key
     def GetSurfBC_BCIndex(self, i, key=None, comp=None, **kw):
-        """Get namelist/column/etc. index for a surface BC key
+        r"""Get namelist/column/etc. index for a surface BC key
 
         :Call:
             >>> inds = x.GetSurfBC_BCIndex(i, key=None, comp=None)
@@ -5755,7 +5735,7 @@ class RunMatrix(dict):
             *inds*: :class:`list` | :class:`str` | :class:`dict`
                 Column index for each grid or component
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5768,7 +5748,7 @@ class RunMatrix(dict):
 
     # Get component ID(s) input for SurfBC key
     def GetSurfBC_Grids(self, i, key=None, comp=None, **kw):
-        """Get list of grids for surface BC key
+        r"""Get list of grids for surface BC key
 
         :Call:
             >>> grids = x.GetSurfBC_Grids(i, key=None, comp=None)
@@ -5787,7 +5767,7 @@ class RunMatrix(dict):
             *grids*: :class:`list` (:class:`int` | :class:`str`)
                 Surface boundary condition grids
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Version 1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5797,6 +5777,4 @@ class RunMatrix(dict):
         v, t = self.GetSurfBC_ParamType(key, 'Grids', comp=comp)
         # Process
         return self.GetSurfBC_Val(i, key, v, t)
-
   # >
-# class RunMatrix

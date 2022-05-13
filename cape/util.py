@@ -3,20 +3,19 @@ r"""
 =================================
 
 This module provides several utilities used throughout the Cape system,
-including :func:`SigmaMean` to compute statistical sampling error for iterative
-histories and :func:`readline` to process special space-or-comma-separated lines
-for run matrix files.
+including :func:`SigmaMean` to compute statistical sampling error for
+iterative histories and :func:`readline` to process special
+space-or-comma-separated lines for run matrix files.
 
 """
 
-# Numerics
-import numpy as np
-# File system
-import subprocess as sp
-# Import path utilities
-import os.path, sys
-# Text
+# Standard library
+import os.path
 import re
+import shutil
+
+# Third-party
+import numpy as np
 
 # Would like to use scipy, but let's not have a strict dependency
 try:
@@ -32,9 +31,10 @@ CAPE_TEMPLATES = os.path.join(CAPE_FOLDER, "templates")
 PARAVIEW_TEMPLATES = os.path.join(CAPE_TEMPLATES, "paraview")
 TECPLOT_TEMPLATES = os.path.join(CAPE_TEMPLATES, "tecplot")
 
+
 # Stack vectors
 def stackcol(cols):
-    """Create a matrix out of vectors that are assumed to be columns
+    r"""Create a matrix out of vectors that are assumed to be columns
 
     :Call:
         >>> A = stackcols(cols)
@@ -72,7 +72,7 @@ def SplitLineGeneral(line):
         * 2016-12-29 ``@ddalle``: Version 1.0
     """
     # Split using regular expressions (after stripping white space)
-    V = re.split("[\s\,]+", line.strip())
+    V = re.split(r"[\s\,]+", line.strip())
     # Check for empty
     if (len(V) == 1) and (V[0] == ""):
         # Return an empty state instead
@@ -80,6 +80,7 @@ def SplitLineGeneral(line):
     else:
         # Return the list
         return V
+
 
 # Convert a list of numbers to a compact string
 def RangeString(rng):
@@ -108,7 +109,7 @@ def RangeString(rng):
     ibeg = rng[0]
     iend = rng[0]
     # Loop through the grid numbers, which are ascending and unique.
-    for i in range(1,n):
+    for i in range(1, n):
         # Get the compID
         icur = rng[i]
         # Check if this is one greater than the previous one
@@ -133,9 +134,10 @@ def RangeString(rng):
     # Output
     return ",".join(txt)
 
+
 # Eliminate unused nodes
 def TrimUnused(T):
-    """Remove any node numbers that are not used
+    r"""Remove any node numbers that are not used
 
     For example:
 
@@ -175,6 +177,7 @@ def TrimUnused(T):
     # Output
     return np.reshape(U, T.shape)
 
+
 # Convert matrix of truth values to BC lists
 def GetBCBlock2(I):
     r"""Get largest rectangle of boundary conditions
@@ -211,9 +214,9 @@ def GetBCBlock2(I):
     # Get first column with finds
     ks = np.where(np.any(I, axis=0))[0][0]
     # Loop through columns
-    for k in range(ks,nk):
+    for k in range(ks, nk):
         # Get indices of matches
-        J = np.where(I[:,k])[0]
+        J = np.where(I[:, k])[0]
         # Check for matches in this column
         if len(J) == 0:
             ke = k - 1
@@ -248,15 +251,16 @@ def GetBCBlock2(I):
     # Return
     return js, je+1, ks, ke+1
 
+
 # Function to get uncertainty in the mean
 def SigmaMean(x):
-    """Calculate standard deviation of mean of an array of values
+    r"""Calculate standard deviation of mean of an array of values
 
-    Specifically, this returns the standard deviation of an array generated in
-    the following way.  If you created 100 sets with the same statistical
-    properties as *x* and created an array *X* which contained the means of each
-    of those 100 sets, the purpose of this function is to estimate what the
-    standard deviation of *X* would be.
+    Specifically, this returns the standard deviation of an array
+    generated in the following way.  If you created 100 sets with the
+    same statistical properties as *x* and created an array *X* which
+    contained the means of each of those 100 sets, the purpose of this
+    function is to estimate what the standard deviation of *X* would be.
 
     :Call:
         >>> sig = cape.util.SigmaMean(x)
@@ -282,16 +286,17 @@ def SigmaMean(x):
     # Output
     return si * np.sqrt(float(ni)/float(n))
 
+
 # Use Welch's method (or a crude estimate) to get a primary frequency
 def GetBestFrequency(y, fs=1.0, **kw):
-    """Get best frequency using :func:`scipy.signal.welch` if available
+    r"""Get best frequency using :func:`scipy.signal.welch` if available
 
-    If SciPy is not available, use a crude count of how many times the signal
-    crosses the mean value (with a window to avoid overcounting small
-    oscillations right around the mean value).  The dimensions of this output
-    are such that the signal matches sinusoids such as :math:`\sin(\omega x)`.
-    To meet this format, the output is 2 times the peak frequency from
-    :func:`scipy.signal.welch`.
+    If SciPy is not available, use a crude count of how many times the
+    signal crosses the mean value (with a window to avoid overcounting
+    small oscillations right around the mean value).  The dimensions of
+    this output are such that the signal matches sinusoids such as
+    :math:`\sin(\omega x)`. To meet this format, the output is 2 times
+    the peak frequency from :func:`scipy.signal.welch`.
 
     :Call:
         >>> w = GetBestFrequency(y, fs=1.0)
@@ -309,7 +314,7 @@ def GetBestFrequency(y, fs=1.0, **kw):
     # Length of signal
     n = len(y)
     # Number of points per segment
-    npwerseg = kw.get("nperseg", min(n,256))
+    nperseg = kw.get("nperseg", min(n, 256))
     # Attempt to use Welch's method from SciPy method
     try:
         # Estimate power spectral density
@@ -328,21 +333,22 @@ def GetBestFrequency(y, fs=1.0, **kw):
     I[y > m+0.15*sig] = 1
     I[y < m-0.15*sig] = -1
     # Eliminate zeros from the array (samples close to the mean)
-    J = I[I!=0]
+    J = I[I != 0]
     # Count crossings (j_i * j_{i+1} == -1)
     k = np.count_nonzero(J[1:]*J[:-1] == -1)
     # Convert to a frequency
-    return float(k)*np.pi/n
+    return float(k) * np.pi / n
+
 
 # Function to fit a line plus a sinusoid
 def FitLinearSinusoid(x, y, w):
-    """Find the best fit of a line plus a sinusoid with a specified frequency
+    r"""Find best fit of a line plus a sinusoid with a given frequency
 
     The function returns the best fit for
 
         .. math::
 
-                y = a_0 + a_1x + a_2\\cos(\\omega x) + a_3\\sin(\\omega x)
+                y = a_0 + a_1x + a_2\cos(\omega x) + a_3\sin(\omega x)
 
     :Call:
         >>> a = FitLinearSinusoid(x, y, w)
@@ -406,26 +412,27 @@ def FitLinearSinusoid(x, y, w):
         a = np.linalg.solve(A, Y)
     except Exception:
         # This can easily happen for flat signals
-        A = np.array([[n,x1],[x1,x2]])
+        A = np.array([[n, x1], [x1, x2]])
         Y = np.array([y1, yx1])
         # Simpler linear system (ignore sinusoid)
         try:
-            a = np.hstack((np.linalg.solve(A,Y), [0.,0.0]))
+            a = np.hstack((np.linalg.solve(A, Y), [0., 0.0]))
         except Exception:
             # That shouldn't happen, but just use the mean if needed
             a = np.array([y1/n, 0.0, 0.0, 0.0])
     # Output
     return a
 
+
 # Function to select the best best line+sine fit
 def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
-    """Find the best window size to minimize the slope of a linear/sine fit
+    r"""Find best window size to minimize the slope of a linear+sine fit
 
     :Call:
         >>> F = SearchSinusoidFitRange(x, y, nAvg, nMax, dn=None, **kw)
     :Inputs:
         *x*: :class:`np.ndarray`
-            Array of independent variable samples (e.g. iteration number)
+            Independent variable samples (e.g. iteration numbers)
         *y*: :class:`np.ndarray`
             Signal to be fit
         *nAvg*: :class:`int`
@@ -476,8 +483,6 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     # Last iteration available
     i_last = x[-1]
     # Figure out first iteration allowed for use
-    # It's either *nMin* specified by user or *nMax* back from end
-    i_first = max(nMin, i_last - nMax)
     # Number of possible windows
     n_windows = max(1, int((nMax - nAvg) // dn) + 1)
     # Create an array of allowed cutoff iterations
@@ -488,7 +493,6 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     N = np.append(N, N[-1])
     # Initialize candidates
     F = {}
-    n = np.zeros(n_windows)
     u = np.zeros(n_windows)
     # Loop through windows
     for i in range(n_windows):
@@ -504,13 +508,13 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
 
 # Function to calculate best linear/sinusoidal fit within a range of windows
 def SearchSinusoidFit(x, y, N1, N2, **kw):
-    """Find the best window size to minimize the slope of a linear/sine fit
+    r"""Find best window size to minimize the slope of a linear+sine fit
 
     :Call:
         >>> F = SearchSinusoidFit(x, y, N1, N2, **kw)
     :Inputs:
         *x*: :class:`np.ndarray`
-            Array of independent variable samples (e.g. iteration number)
+            I\ndependent variable samples (e.g. iteration numbers)
         *y*: :class:`np.ndarray`
             Signal to be fit
         *N1*: :class:`int`
@@ -624,7 +628,7 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
 
 # Function to calculate window with lowest linear fit
 def BisectLinearFit(I, x, N1, N2, **kw):
-    r"""Calculate window size that results in
+    r"""Find window size that results in minimum linear-fit slope
 
     :Call:
         >>> N, dx = BisectLinearFit(I, x, N1, N2, **kw)
@@ -657,7 +661,7 @@ def BisectLinearFit(I, x, N1, N2, **kw):
     a1, a0 = np.polyfit(I[-N1:], x[-N1:], 1)
     a2, a0 = np.polyfit(I[-N2:], x[-N2:], 1)
     a,  a0 = np.polyfit(I[-N:],  x[-N:],  1)
-    print("k=%2i, a1=%6.4f, a2=%6.4f, a=%6.4f" % (0,a1,a2,a))
+    print("k=%2i, a1=%6.4f, a2=%6.4f, a=%6.4f" % (0, a1, a2, a))
     print("       N1=%-5i,  N2=%-5i,  N=%-5i" % (N1, N2, N))
     # Check signs
     if a*a2 <= 0:
@@ -693,7 +697,7 @@ def BisectLinearFit(I, x, N1, N2, **kw):
         N = int(N1 - a1/(a2-a1)*(N2-N1))
         # Calculate new fit
         a, a0 = np.polyfit(I[-N:], x[-N:], 1)
-        print("k=%2i, a1=%6.4f, a2=%6.4f, a=%6.4f" % (k,a1,a2,a))
+        print("k=%2i, a1=%6.4f, a2=%6.4f, a=%6.4f" % (k, a1, a2, a))
         print("       N1=%-5i,  N2=%-5i,  N=%-5i" % (N1, N2, N))
         # Check side
         if a*a1 <= 0:
@@ -708,7 +712,7 @@ def BisectLinearFit(I, x, N1, N2, **kw):
 
 # Function to get a non comment line
 def readline(f, comment='#'):
-    """Read line that is nonempty and not a comment
+    r"""Read line that is nonempty and not a comment
 
     :Call:
         >>> line = readline(f, comment='#')
@@ -730,11 +734,12 @@ def readline(f, comment='#'):
     # Process stripped line
     lstrp = line.strip()
     # Check if otherwise empty or a comment
-    while (lstrp=='') or lstrp.startswith(comment):
+    while (lstrp == '') or lstrp.startswith(comment):
         # Read the next line.
         line = f.readline()
         # Check for empty line (EOF)
-        if line == '': return line
+        if line == '':
+            return line
         # Process stripped line
         lstrp = line.strip()
     # Return the line.
@@ -745,7 +750,7 @@ def readline(f, comment='#'):
 def GetTecplotCommand():
     r"""Return the Tecplot 360 command on the current system
 
-    The preference is 
+    The preference is
     
         1. ``"tec360EX"`
         2. ``"tec360"``
@@ -761,16 +766,13 @@ def GetTecplotCommand():
     :Versions:
         * 2015-03-02 ``@ddalle``: Version 1.0
         * 2021-03-01 ``@ddalle``: Version 1.1; avoid ``/dev/null``
+        * 2022-05-11 ``@ddalle``: Version 2.0; use shutil.which()
     """
     # Loop through list of possible commands
     for cmd in ['tec360EX', 'tec360', 'tecplot']:
         # Use `which` to see where the command might be.
-        ierr = sp.call(['which', cmd], stdout=sp.PIPE, stderr=sp.PIPE)
-        # Check
-        if ierr:
-            continue
-        # If this point is reached, we found the command.
-        return cmd
+        if shutil.which(cmd):
+            return cmd
     # If this point is reached, no command was found.
     raise SystemError('No Tecplot360 command found')
 
@@ -859,8 +861,8 @@ def get_ylim(ha, ypad=0.05, **kw):
             # Get the path.
             P = h.get_paths()[0]
             # Get the coordinates.
-            ymin = min(ymin, min(P.vertices[:,1]))
-            ymax = max(ymax, max(P.vertices[:,1]))
+            ymin = min(ymin, min(P.vertices[:, 1]))
+            ymax = max(ymax, max(P.vertices[:, 1]))
     # Process margins
     ym = kw.get('ym', ypad)
     yp = kw.get('yp', ypad)
@@ -874,6 +876,7 @@ def get_ylim(ha, ypad=0.05, **kw):
     ymaxv = (1+yp)*ymax - yp*ymin
     # Output
     return yminv, ymaxv
+
 
 # Function to automatically get inclusive data limits.
 def get_xlim(ha, xpad=0.05, **kw):
@@ -919,8 +922,8 @@ def get_xlim(ha, xpad=0.05, **kw):
             # Get the path.
             P = h.get_paths()[0]
             # Get the coordinates.
-            xmin = min(xmin, min(P.vertices[:,0]))
-            xmax = max(xmax, max(P.vertices[:,0]))
+            xmin = min(xmin, min(P.vertices[:, 0]))
+            xmax = max(xmax, max(P.vertices[:, 0]))
     # Process margins
     xm = kw.get('xm', xpad)
     xp = kw.get('xp', xpad)
@@ -935,9 +938,10 @@ def get_xlim(ha, xpad=0.05, **kw):
     # Output
     return xminv, xmaxv
 
+
 # Function to automatically get inclusive data limits.
 def get_ylim_ax(ha, ypad=0.05, **kw):
-    """Calculate appropriate *y*-limits to include all lines in a plot
+    r"""Calculate appropriate *y*-limits to include all lines in a plot
 
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
     :class:`matplotlib.collections.PolyCollection` are checked.
@@ -986,10 +990,10 @@ def get_ylim_ax(ha, ypad=0.05, **kw):
             # Get the path.
             P = h.get_paths()[0]
             # Get the coordinates.
-            xmin = min(xmin, min(P.vertices[:,0]))
-            xmax = max(xmax, max(P.vertices[:,0]))
-            ymin = min(ymin, min(P.vertices[:,1]))
-            ymax = max(ymax, max(P.vertices[:,1]))
+            xmin = min(xmin, min(P.vertices[:, 0]))
+            xmax = max(xmax, max(P.vertices[:, 0]))
+            ymin = min(ymin, min(P.vertices[:, 1]))
+            ymax = max(ymax, max(P.vertices[:, 1]))
     # Process margins
     ym = kw.get('ym', ypad)
     yp = kw.get('yp', ypad)
@@ -1004,9 +1008,10 @@ def get_ylim_ax(ha, ypad=0.05, **kw):
     # Output
     return yminv, ymaxv
 
+
 # Function to automatically get inclusive data limits.
 def get_xlim_ax(ha, xpad=0.05, **kw):
-    """Calculate appropriate *x*-limits to include all lines in a plot
+    r"""Calculate appropriate *x*-limits to include all lines in a plot
 
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
     checked.
@@ -1054,10 +1059,10 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
             # Get the path.
             P = h.get_paths()[0]
             # Get the coordinates.
-            xmin = min(xmin, min(P.vertices[:,0]))
-            xmax = max(xmax, max(P.vertices[:,0]))
-            ymin = min(ymin, min(P.vertices[:,1]))
-            ymax = max(ymax, max(P.vertices[:,1]))
+            xmin = min(xmin, min(P.vertices[:, 0]))
+            xmax = max(xmax, max(P.vertices[:, 0]))
+            ymin = min(ymin, min(P.vertices[:, 1]))
+            ymax = max(ymax, max(P.vertices[:, 1]))
     # Process margins
     xm = kw.get('xm', xpad)
     xp = kw.get('xp', xpad)
@@ -1071,7 +1076,4 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
     xmaxv = xmax + xp*max(xmax-xmin, ymax-ymin)
     # Output
     return xminv, xmaxv
-
-
-
 
