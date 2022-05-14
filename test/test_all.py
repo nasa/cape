@@ -63,6 +63,9 @@ def crawl():
         # Only folders
         if not os.path.isdir(family):
             continue
+        elif family.startswith("0"):
+            # pytest folder
+            continue
         # Enter folder
         os.chdir(family)
         # Run the tests

@@ -17,6 +17,9 @@ IERR=$?
 # Track coverage report
 rm test/htmlcov/.gitignore
 
+# Create sphinx docs of results
+python3 -m testutils write-rst
+
 # Return pytest's status
 exit $IERR
 
