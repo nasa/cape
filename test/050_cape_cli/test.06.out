@@ -1,0 +1,10 @@
+Case Config/Run Directory  Status  Iterations  Que CPU Time 
+---- --------------------- ------- ----------- --- --------
+2    poweroff/m0.5a0.0b2.0 ---     /           .            
+3    poweroff/m0.5a2.0b2.0 ---     /           .            
+4    poweroff/m0.8a0.0b0.0 ---     /           .            
+7    poweroff/m0.8a2.0b2.0 ---     /           .            
+18   poweroff/m2.5a0.0b2.0 ---     /           .            
+19   poweroff/m2.5a2.0b2.0 ---     /           .            
+
+---=6, 

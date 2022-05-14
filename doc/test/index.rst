@@ -11,13 +11,14 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 1
-    :time: 3.908
-    :timestamp: 2022-05-13T23:32:36.972639
+    :tests: 2
+    :time: 6.801
+    :timestamp: 2022-05-14T15:49:45.140288
     :hostname: system76-pc
 
 .. toctree::
 
     001_cape-001_import/index
+    050_cape_cli-001_cli/index
 
 
