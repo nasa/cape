@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">1667 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">292<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">1375<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">294<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">1373<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -219,8 +219,8 @@
     <p class="pln"><span class="n"><a id="t160" href="#t160">160</a></span><span class="t">        <span class="com"># Check if file exists</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t161" href="#t161">161</a></span><span class="t">        <span class="key">if</span> <span class="key">not</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">isfile</span><span class="op">(</span><span class="nam">fname</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t162" href="#t162">162</a></span><span class="t">            <span class="com"># Raise error but suppress traceback</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t163" href="#t163">163</a></span><span class="t">            <span class="nam">os</span><span class="op">.</span><span class="nam">sys</span><span class="op">.</span><span class="nam">tracebacklimit</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t164" href="#t164">164</a></span><span class="t">            <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span><span class="str">"No cape control file '%s' found"</span> <span class="op">%</span> <span class="nam">fname</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t163" href="#t163">163</a></span><span class="t">            <span class="nam">os</span><span class="op">.</span><span class="nam">sys</span><span class="op">.</span><span class="nam">tracebacklimit</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t164" href="#t164">164</a></span><span class="t">            <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span><span class="str">"No cape control file '%s' found"</span> <span class="op">%</span> <span class="nam">fname</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t165" href="#t165">165</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t166" href="#t166">166</a></span><span class="t">        <span class="com"># Read settings</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t167" href="#t167">167</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">opts</span> <span class="op">=</span> <span class="nam">options</span><span class="op">.</span><span class="nam">Options</span><span class="op">(</span><span class="nam">fname</span><span class="op">=</span><span class="nam">fname</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -4860,7 +4860,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.2</a>,
-            created at 2022-05-14 15:49 -0700
+            created at 2022-05-14 23:47 -0700
         </p>
     </div>
 </footer>

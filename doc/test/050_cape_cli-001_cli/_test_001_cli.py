@@ -14,6 +14,7 @@ CMD_LIST = (
     "cape -c --cons 'beta==2,Mach%1==0.5'",
     "cape -c --glob 'poweroff/m0*'",
     "cape -c --re 'm.\\.5.*b2'",
+    "cape -c -I 2:5,7,18:",
     "cape -c -I 15: --cons Mach%1=0.5 --re b2",
 )
 
@@ -37,4 +38,5 @@ def test_c():
         # Name of file with target output
         ftarg = "test.%02i.out" % (j + 1)
         # Check outout
-        testutils.compare_files(stdout, ftarg)
+        result = testutils.compare_files(stdout, ftarg)
+        assert result.line1 == result.line2
