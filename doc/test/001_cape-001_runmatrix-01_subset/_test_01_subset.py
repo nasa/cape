@@ -23,6 +23,6 @@ def test_01_subset():
     cases = list(cntl.x.FilterRegex(r"m.\.5.*b2"))
     assert cases == [2, 3, 14, 15, 18, 19]
     # Test -I and --cons
-    cases = list(cntl.x.GetIndices(I=range(15,20), cons=["Mach%1==0.5"]))
+    cases = list(cntl.x.GetIndices(I=range(15, 20), cons=["Mach%1==0.5"]))
     assert cases == [15, 16, 17, 18, 19]
 

@@ -708,8 +708,10 @@ class Cntl(object):
             # Turn into a single list
             kw['I'] = self.x.ExpandIndices(kw['I'])
 
-        # Get list of scripts in the "_old" section
-        kwx = [ki['x'] for ki in kw.get('_old', {}) if 'x' in ki]
+        # Get list of scripts in the "__replaced__" section
+        kwx = [
+            valj for optj, valj in kw.get('__replaced__', []) if optj == "x"
+        ]
         # Append the last "-x" input
         if 'x' in kw:
             kwx.append(kw['x'])
@@ -1260,7 +1262,7 @@ class Cntl(object):
     # Remove PASS and ERROR markers
     @run_rootdir
     def UnmarkCase(self, **kw):
-        """Remove **PASS** or **ERROR** marking from one or more cases
+        r"""Remove **PASS** or **ERROR** marking from one or more cases
 
         :Call:
             >>> cntl.UnmarkCase(**kw)
@@ -2781,12 +2783,13 @@ class Cntl(object):
             else:
                 # Just convert to string
                 return v
+
         # Convert keyword to string
         def convertkey(cmdi, k, v):
-            if v == False:
+            if v is False:
                 # Add --no- prefix
                 cmdi.append('--no-%s' % k)
-            elif v == True:
+            elif v is True:
                 # No extra value
                 if len(k) == 1:
                     cmdi.append('-%s' % k)
@@ -2800,6 +2803,7 @@ class Cntl(object):
                 else:
                     cmdi.append('--%s' % k)
                     cmdi.append('%s' % convertval(v))
+
         # -------------------
         # Command preparation
         # -------------------
@@ -2828,21 +2832,17 @@ class Cntl(object):
         for ai in a: cmdi.append(a)
         # Turn off all QSUB operations unless --qsub given explicitly
         if 'qsub' not in kw: kw['qsub'] = False
-        # Loop through _old arguments
-        for d in kw.get("_old", []):
+        # Loop through __replaced__ arguments
+        for optsj in kw.get("__replaced__", []):
             # Check type
-            if type(d).__name__ != "dict": continue
-            # Number of keys
-            K = d.keys()
-            nk = len(K)
-            # Check number of keys
-            if nk != 1: continue
+            if not isinstance(optsj, tuple) or len(optsj) != 2:
+                continue
             # Convert to string
-            convertkey(cmdi, K[0], d[K[0]])
+            convertkey(cmdi, optsj[0], optsj[1])
         # Loop through keyword arguments
         for k in kw:
             # Check for skipped keys
-            if k in ['batch', 'flags', 'keys', 'prog', '_old']:
+            if k in ['batch', 'flags', 'keys', 'prog', '__replaced__']:
                 continue
             # Convert to string
             convertkey(cmdi, k, kw[k])

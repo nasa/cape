@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
 :mod:`cape.argread`: Command-Line Argument Processor
@@ -37,417 +37,441 @@ The first example sets *c* to ``True`` and *f* to ``"mytar.tar"``; the
 second command sets *cf* to ``"mytar.tar"``.
 """
 
-# Process options using any dash as keyword
-def readkeys(argv):
-    r"""Read options from ``sys.argv``
-
-    Read list of strings from ``sys.argv`` with any hyphen or
-    double-hyphen as an indicator of a keyword.
-
-    :Call:
-        >>> args, kwargs = argread.readkeys(argv)
-    :Inputs:
-        *argv*: :class:`list`\ [:class:`str`]
-            List of string inputs; first entry is ignored
-    :Outputs:
-        *args*: :class:`list`
-            List of general inputs with no keyword names
-        *kwargs*: :class:`dict`
-            Dictionary of inputs specified with option flags
-        *kwargs['_old']*: :class:`list`\ [:class:`dict`]
-            List of single-argument dicts that were overwritten
-    :Examples:
-        The following shows an example with only general inputs and no
-        options
-
-            >>> a, kw = readkeys(['ex.sh', 'a.1', '1'])
-            >>> a
-            ['a.1', '1']
-            >>> kw
-            {}
-
-        This example shows one general input followed by two options.
-        One of the options has an argument associated with it, and the
-        other does not.
-
-            >>> a, kw = readkeys(['ex.sh', 'a.1', '-i', 'in.tri', '-v'])
-            >>> a
-            ['a.1']
-            >>> kw
-            {'i': 'in.tri', 'v': True}
-
-        Double-hyphens are interpreted as hyphens.
-
-            >>> a, kw = readkeys(['ex.sh', '--h', '--i', 'in.tri', 'a'])
-            >>> a
-            ['a']
-            >>> kw
-            {'h': True, 'i': 'in.tri'}
-
-        Overwritten settings are saved in ``kw['_old']``.
-
-            >>> a, kw = readkeys(['ex.sh', '-f', 'in.1', '-f', 'in.2'])
-            >>> kw
-            {'_old': [{'f': 'in.1'}], 'f': 'in.2'}
-
-    :Versions:
-        * 2014-06-10 ``@ddalle``: Version 1.0
-        * 2017-04-10 ``@ddalle``: Version 1.1: ``--no-v`` -> v=False
-    """
-    # Check the input.
-    if not isinstance(argv, list):
-        raise TypeError('Input must be a list of strings.')
-    # Initialize outputs.
-    args = []
-    kwargs = {}
-    old = []
-    # Get the number of arguments.
-    argc = len(argv)
-    # Argument counter (don't process argv[0]).
-    iarg = 1
-    # Loop until the last argument has been reached.
-    for i in range(argc):
-        # Check for last input.
-        if iarg >= argc:
-            break
-        # Read the argument. (convert to str if needed)
-        a = str(argv[iarg])
-        # Check for hyphens.
-        if not a.startswith('-'):
-            # General input.
-            args.append(a)
-            # Go to the next input.
-            iarg += 1
-        else:
-            # Key name starts after '-'s
-            k = a.lstrip('-')
-            # Check for something like "no-restart" -> restart=False
-            if k.startswith('no-'):
-                # Strip the key
-                kq = k[3:]
-                q = False
-            else:
-                # Regular key default value is tru
-                kq = k
-                q = True
-            # Check if already processed
-            if k in kwargs:
-                # Append the current value to the *old* list
-                old.append({k: kwargs[k]})
-            # Check for negative
-            if (not q) and kq in kwargs:
-                # Append the negative
-                old.append({kq: kwargs[kq]})
-            # Increase the arg count.
-            iarg += 1
-            # Check for more arguments.
-            if iarg >= argc:
-                # No option value.
-                kwargs[kq] = q
-            else:
-                # Read the next argument.
-                v = argv[iarg]
-                # Check if it's another option.
-                if v.startswith('-'):
-                    # No option value.
-                    kwargs[kq] = q
-                else:
-                    # Store the option value.
-                    kwargs[k] = v
-                    # Go to the next argument.
-                    iarg += 1
-    # Set the *old* flag
-    kwargs["_old"] = old
-    # Return the args and kwargs
-    return args, kwargs
+# Standard library
+import re
+import sys
 
 
-# Process options using any dash as keyword
-def readflags(argv):
-    r"""Read options from ``sys.argv``
+# Create fake "unicode" type for checking strings in all versions
+if sys.version_info.major > 2:
+    unicode = str
 
-    Read list of strings from ``sys.argv`` with double-hyphen as an
-    indicator of a keyword and a single-hyphen as a list of stackable
-    flags.
+# Create a "string" type
+strlike = (str, unicode)
+
+
+# Regular expression for options like "cdfr=1.3"
+REGEX_EQUALKEY = re.compile(r"(\w+)=([^=].*)")
+
+
+# Read keys
+def readkeys(argv=None):
+    r"""Parse args where ``-cj`` becomes ``cj=True``
 
     :Call:
-        >>> args, kwargs = argread.readflags(argv)
+        >>> a, kw = readkeys(argv=None)
     :Inputs:
-        *argv*: :class:`list`\ [:class:`str`]
-            List of string inputs; first entry is ignored
+        *argv*: {``None``} | :class:`list`\ [:class:`str`]
+            List of args other than ``sys.argv``
     :Outputs:
-        *args*: :class:`list`
-            List of general inputs with no keyword names
-        *kwargs*: :class:`dict`
-            Dictionary of inputs specified with option flags
-    :Examples:
-        The following shows an example with a stacked flag.
-
-            >>> (a, kw) = readflags(['ex.sh', 'arg.file', '-lvi']
-            >>> a
-            ['arg.file']
-            >>> kw
-            {'l': True, 'v': True, 'i': True}
-
-        This example shows the difference between single- and
-        double-hyphens.
-
-            >>> (a, kw) = readflags(['ex.sh', '-lv', '--in', 'i.tri'])
-            >>> a
-            []
-            >>> kw
-            {'l': True, 'v': True, 'in': 'i.tri'}
-
-        The following shows a stacked flag followed by a raw input.
-
-            >>> a, kw = readflagstar(['ex.sh', '-tvf', 'fname.dat'])
-            >>> a
-            ['fname.dat']
-            >>> kw
-            {'t': True, 'v': True, 'f': True}
-
+        *a*: :class:`list`\ [:class:`str`]
+            List of positional args
+        *kw*: :class:`dict`\ [:class:`str` | :class:`bool`]
+            Keyword arguments
     :Versions:
-        * 2014-06-10 ``@ddalle``: Version 1.0
-        * 2017-04-10 ``@ddalle``: Version 1.1: ``--no-v`` -> v=False
+        * 2021-12-01 ``@ddalle``: Version 1.0
     """
-    # Check the input.
-    if type(argv) is not list:
-        raise TypeError('Input must be a list of strings.')
-    # Initialize outputs.
-    args = []
-    old = []
-    kwargs = {}
-    # Get the number of arguments.
-    argc = len(argv)
-    # Argument counter (don't process argv[0]).
-    iarg = 1
-    # Loop until the last argument has been reached.
-    for i in range(argc):
-        # Check for last input.
-        if iarg >= argc:
-            break
-        # Read the argument. (convert to str if needed)
-        a = str(argv[iarg])
-        # Check for hyphens.
-        if a.startswith('--'):
-            # Key name starts after '-'s
-            k = a.lstrip('-')
-            # Check for something like "no-restart" -> restart=False
-            if k.startswith('no-'):
-                # Strip the key
-                kq = k[3:]
-                q = False
-            else:
-                # Regular key default value is tru
-                kq = k
-                q = True
-            # Check if already processed
-            if k in kwargs:
-                # Append the current value to the *old* list
-                old.append({k: kwargs[k]})
-            # Check for negative
-            if (not q) and kq in kwargs:
-                # Append the negative
-                old.append({kq: kwargs[kq]})
-            # Increase the arg count.
-            iarg += 1
-            # Check for more arguments.
-            if iarg >= argc:
-                # No option value.
-                kwargs[kq] = q
-            else:
-                # Read the next argument.
-                v = argv[iarg]
-                # Check if it's another option.
-                if v.startswith('-'):
-                    # No option value.
-                    kwargs[kq] = q
-                else:
-                    # Store the option value.
-                    kwargs[k] = v
-                    # Go to the next argument.
-                    iarg += 1
-        elif a.startswith('-'):
-            # List of flags starts after '-'.
-            f = a[1:]
-            # Move to next input.
-            iarg += 1
-            # Check the length.
-            if len(f) == 0:
-                # Empty flag.
-                kwargs[''] = True
-            else:
-                # List of flags.
-                for j in range(len(f)):
-                    kwargs[f[j]] = True
-        else:
-            # General input.
-            args.append(a)
-            # Go to the next input.
-            iarg += 1
-        # Check for last input.
-        if iarg >= argc: break
-    # Set the *old* flag
-    kwargs["_old"] = old
-    # Return the args and kwargs
-    return (args, kwargs)
+    # Create parser
+    parser = ArgumentReader(single_dash_split=False)
+    # Parse args
+    return parser.parse(argv)
 
 
-# Process options using any dash as keyword
-def readflagstar(argv):
-    r"""Read options from ``sys.argv``
-
-    Read list of strings from ``sys.argv`` with double-hyphen as an
-    indicator of a keyword and a single-hyphen as a list of stackable
-    flags.  This version behaves like ``tar`` in that the last flag in a
-    group can be used with a following value.
+# Read flags
+def readflags(argv=None):
+    r"""Parse args where ``-cj`` becomes ``c=True, j=True``
 
     :Call:
-        >>> args, kwargs = argread.readflagstar(argv)
+        >>> a, kw = readflags(argv=None)
     :Inputs:
-        *argv*: :class:`list`\ [:class:`str`]
-            List of string inputs; first entry is ignored
+        *argv*: {``None``} | :class:`list`\ [:class:`str`]
+            List of args other than ``sys.argv``
     :Outputs:
-        *args*: :class:`list`
-            List of general inputs with no keyword names
-        *kwargs*: :class:`dict`
-            Dictionary of inputs specified with option flags
-    :Examples:
-        The following shows an example with a stacked flag.
-
-            >>> (a, kw) = readflagstar(['ex.sh', 'arg.file', '-lvi']
-            >>> a
-            ['arg.file']
-            >>> kw
-            {'l': True, 'v': True, 'i': True}
-
-        This example shows the difference between single- and
-        double-hyphens.
-
-            >>> (a, kw) = readflagstar(['ex.sh', '-lv', '--in', 'i.tri'])
-            >>> a
-            []
-            >>> kw
-            {'l': True, 'v': True, 'in': 'i.tri'}
-
-        The following shows a stacked flag with a value for the last
-        option.
-
-            >>> a, kw = readflagstar(['ex.sh', '-tvf', 'fname.dat'])
-            >>> a
-            []
-            >>> kw
-            {'t': True, 'v': True, 'f': 'fname.dat'}
-
+        *a*: :class:`list`\ [:class:`str`]
+            List of positional args
+        *kw*: :class:`dict`\ [:class:`str` | :class:`bool`]
+            Keyword arguments
     :Versions:
-        * 2014-10-10 ``@ddalle``: Version 1.0
-        * 2017-04-10 ``@ddalle``: Version 1.1: ``--no-v`` -> v=False
+        * 2021-12-01 ``@ddalle``: Version 1.0
     """
-    # Check the input.
-    if type(argv) is not list:
-        raise TypeError('Input must be a list of strings.')
-    # Initialize outputs.
-    args = []
-    old = []
-    kwargs = {}
-    # Get the number of arguments.
-    argc = len(argv)
-    # Argument counter (don't process argv[0]).
-    iarg = 1
-    # Loop until the last argument has been reached.
-    for i in range(argc):
-        # Check for last input.
-        if iarg >= argc:
-            break
-        # Read the argument. (convert to str if needed)
-        a = str(argv[iarg])
-        # Check for hyphens.
-        if a.startswith('--'):
-            # Key name starts after '-'s
-            k = a.lstrip('-')
-            # Check for something like "no-restart" -> restart=False
-            if k.startswith('no-'):
-                # Strip the key
-                kq = k[3:]
-                q = False
-            else:
-                # Regular key default value is tru
-                kq = k
-                q = True
-            # Check if already processed
-            if k in kwargs:
-                # Append the current value to the *old* list
-                old.append({k: kwargs[k]})
-            # Check for negative
-            if (not q) and kq in kwargs:
-                # Append the negative
-                old.append({kq: kwargs[kq]})
-            # Increase the arg count.
-            iarg += 1
-            # Check for more arguments.
-            if iarg >= argc:
-                # No option value.
-                kwargs[kq] = q
-            else:
-                # Read the next argument.
-                v = argv[iarg]
-                # Check if it's another option.
-                if v.startswith('-'):
-                    # No option value.
-                    kwargs[kq] = q
-                else:
-                    # Store the option value.
-                    kwargs[k] = v
-                    # Go to the next argument.
-                    iarg += 1
-        elif a.startswith('-'):
-            # List of flags starts after '-'.
-            f = a[1:]
-            # Move to next input.
-            iarg += 1
-            # Check for a blank following command.
-            if iarg < argc and (not str(argv[iarg]).startswith('-')):
-                # Read the next argument.
-                a = str(argv[iarg])
-                # Increase the argument count again.
-                iarg += 1
-                # Check the length.
-                if len(f) == 0:
-                    # Empty flag.
-                    kwargs[''] = a
-                else:
+    # Create parser
+    parser = ArgumentReader(
+        single_dash_split=True,
+        single_dash_lastkey=False)
+    # Parse args
+    return parser.parse(argv)
 
-                    #  Example: "tar -xf f.tar"
-                    #      ==>   {"x":True, "f":'f.tar'}
-                    # Save the last flag with a value
-                    k = f[-1]
-                    # Check if already processed
-                    if k in kwargs:
-                        # Append the current value to the *old* list
-                        old.append({k: kwargs[k]})
-                    # Save the new value
-                    kwargs[k] = a
-                    # List of flags for any preceding chars
-                    for j in range(len(f)-1):
-                        kwargs[f[j]] = True
-            else:
-                # Check the length.
-                if len(f) == 0:
-                    # Empty flag.
-                    kwargs[''] = True
-                else:
-                    # List of flags.
-                    for j in range(len(f)):
-                        kwargs[f[j]] = True
+
+# Read flags like ``tar`
+def readflagstar(argv=None):
+    r"""Parse args where ``-cf a`` becomes ``c=True, f="a"``
+
+    :Call:
+        >>> a, kw = readflags(argv=None)
+    :Inputs:
+        *argv*: {``None``} | :class:`list`\ [:class:`str`]
+            List of args other than ``sys.argv``
+    :Outputs:
+        *a*: :class:`list`\ [:class:`str`]
+            List of positional args
+        *kw*: :class:`dict`\ [:class:`str` | :class:`bool`]
+            Keyword arguments
+    :Versions:
+        * 2021-12-01 ``@ddalle``: Version 1.0
+    """
+    # Create parser
+    parser = ArgumentReader(
+        single_dash_split=True,
+        single_dash_lastkey=True)
+    # Parse args
+    return parser.parse(argv)
+
+
+# Argument read class
+class ArgumentReader(object):
+    __slots__ = (
+        "argv",
+        "args",
+        "kwargs",
+        "prog",
+        "kwargs_sequence",
+        "kwargs_replaced",
+        "kwargs_single_dash",
+        "kwargs_double_dash",
+        "kwargs_equal_sign",
+        "param_sequence",
+        "single_dash_split",
+        "single_dash_lastkey",
+        "equal_sign_key")
+
+    r"""Class to parse arguments
+
+    :Call:
+        >>> parser = ArgumentReader(**kw)
+    :Inputs:
+        *single_dash_split*: ``True`` | {``False``}
+            Option to split ``-cj`` into ``c=True, j=True``
+        *single_dash_lastkey*: ``True`` | {``False``}
+            Option to interpret ``-cf 1`` as ``c=True, f="1"``
+        *equal_sign_key*: {``True``} | ``False``
+            Option to interpret ``a=1`` as ``a="1"`` (keyword)
+    :Outputs:
+        *parser*: :class:`ArgumentReader`
+            Instance of command-line argument parser
+    :Versions:
+        * 2021-12-03 ``@ddalle``: Version 1.0
+    """
+    def __init__(self, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2021-11-21 ``@ddalle``: Version 1.0
+        """
+        # Initialize attributes
+        self.argv = []
+        self.prog = None
+        self.args = []
+        self.kwargs = {}
+        self.kwargs_sequence = []
+        self.kwargs_replaced = []
+        self.kwargs_single_dash = {}
+        self.kwargs_double_dash = {}
+        self.kwargs_equal_sign = {}
+        self.param_sequence = []
+        # Parse modes
+        self.single_dash_split = kw.pop("single_dash_split", False)
+        self.single_dash_lastkey = kw.pop("single_dash_lastkey", False)
+        self.equal_sign_key = kw.pop("equal_sign_key", True)
+
+    def parse(self, argv=None, **kw):
+        r"""Parse args
+
+        :Call:
+            >>> a, kw = parser.parse(argv=None)
+        :Inputs:
+            *parser*: :class:`ArgumentReader`
+                Command-line argument parser
+            *argv*: {``None``} | :class:`list`\ [:class:`str`]
+                Optional arguments to parse, else ``sys.argv``
+        :Outputs:
+            *a*: :class:`list`
+                List of positional arguments
+            *kw*: :class:`dict`
+                Dictionary of options and their values
+            *kw["__replaced__"]*: :class:`list`\ [(:class:`str`, *any*)]
+                List of any options replaced by later values
+        :Versions:
+            * 2021-11-21 ``@ddalle``: Version 0.1; started
+        """
+        # Process optional args
+        if argv is None:
+            # Copy *sys.argv*
+            argv = list(sys.argv)
+        elif not isinstance(argv, list):
+            # Wrong type
+            raise TypeError(
+                "Expected arg 'argv' to be type 'list'; " +
+                "got '%s'" % type(argv).__name__)
         else:
-            # General input.
-            args.append(a)
-            # Go to the next input.
-            iarg += 1
-        # Check for last input.
-        if iarg >= argc: break
-    # Set the *old* flag
-    kwargs["_old"] = old
-    # Return the args and kwargs
-    return args, kwargs
+            # Check each arg is a string
+            for j, arg in enumerate(argv):
+                # Check type
+                if isinstance(arg, strlike):
+                    continue
+                # Bad type
+                raise TypeError(
+                    ("Argument %i: expected type 'list' " % j) +
+                    ("but got '%s'" % type(arg).__name__))
+            # Copy args
+            argv = list(argv)
+        # Save copy of args to *self*
+        self.argv = list(argv)
+        # (Re)initialize attributes storing parsed arguments
+        self.args = []
+        self.kwargs = {}
+        self.kwargs_sequence = []
+        self.kwargs_replaced = []
+        self.kwargs_single_dash = {}
+        self.kwargs_double_dash = {}
+        self.kwargs_equal_sign = {}
+        self.param_sequence = []
+        # Check for command name
+        if len(argv) == 0:
+            raise IndexError("Expected at least one argv entry (program name)")
+        # Save command name
+        self.prog = argv.pop(0)
+        # Global parse modes
+        splitflags = kw.get("single_dash_split")
+        lastflag = kw.get("single_dash_lastkey")
+        equalkey = kw.get("equal_sign_key")
+        # Save if needed
+        if splitflags is not None:
+            self.single_dash_split = not not splitflags
+        if lastflag is not None:
+            self.single_dash_lastkey = not not lastflag
+        if equalkey is not None:
+            self.equal_sign_key = not not equalkey
+        # Loop until args are gone
+        while argv:
+            # Extract first argument
+            arg = argv.pop(0)
+            # Parse argument
+            prefix, key, val, flags = self._parse_arg(arg)
+            # Check for flags
+            if flags:
+                # Set all to ``True``
+                for flag in flags:
+                    self.save_single_dash(flag, True)
+            # Check option/arg type
+            if prefix == "":
+                # Positional parameter
+                self.save_arg(val)
+                continue
+            elif prefix == "=":
+                # Equal-sign option
+                self.save_equal_key(key, val)
+                continue
+            elif key is None:
+                # This can happen when only flags, like ``"-lh"``
+                continue
+            # Determine save function based on prefix
+            if prefix == "-":
+                save = self.save_single_dash
+            else:
+                save = self.save_double_dash
+            # Check for "--no-mykey"
+            if key.startswith("no-"):
+                # This is interpreted "mykey=False"
+                save(key[3:], False)
+                continue
+            # Check if next arg is available
+            if len(argv) == 0:
+                # No following arg to check
+                save(key, True)
+                continue
+            # Check next arg
+            prefix1, _, val1, _ = self._parse_arg(argv[0])
+            # If it is not a key, save the value
+            if prefix1 == "":
+                # Save value like ``--extend 2``
+                save(key, val1)
+                # Pop argument
+                argv.pop(0)
+            else:
+                # Save ``True`` for ``--qsub``
+                save(key, True)
+        # Form output
+        a = list(self.args)
+        kw = dict(self.kwargs)
+        kw["__replaced__"] = [tuple(opt) for opt in self.kwargs_replaced]
+        # Output
+        return a, kw
+
+    # Parse a single arg
+    def _parse_arg(self, arg):
+        r"""Parse type for a single CLI arg
+
+        :Call:
+            >>> prefix, key, val, flags = parser._parse_arg(arg)
+        :Inputs:
+            *parser*: :class:`ArgumentReader`
+                Command-line argument parser
+            *arg*: :class:`str`
+                Single arg to parse, usually from ``sys.argv``
+        :Outputs:
+            *prefix*: ``""`` | ``"-'`` | ``"--"`` | ``"="``
+                Argument prefix
+            *key*: ``None`` | :class:`str`
+                Option name if *arg* is ``--key`` or ``key=val``
+            *val*: ``None`` | :class:`str`
+                Option value or positional parameter value
+            *flags* ``None`` | :class:`str`
+                List of single-character flags, e.g. for ``-lh``
+        :Versions:
+            * 2021-11-23 ``@ddalle``: Version 1.0
+        """
+        # Global settings
+        splitflags = self.single_dash_split
+        lastflag = self.single_dash_lastkey
+        equalkey = self.equal_sign_key
+        # Check for options like "cdfr=1.2"
+        if equalkey:
+            # Test the arg
+            match = REGEX_EQUALKEY.match(arg)
+        else:
+            # Do not test
+            match = None
+        # Check if it starts with a hyphen
+        if match:
+            # Already processed key and value
+            key, val = match.groups()
+            flags = None
+            prefix = "="
+        elif not arg.startswith("-"):
+            # Positional parameter
+            key = None
+            val = arg
+            flags = None
+            prefix = ""
+        elif arg.startswith("--"):
+            # A normal, long-form key
+            key = arg.lstrip("-")
+            val = None
+            flags = None
+            prefix = "--"
+        elif splitflags:
+            # Single-dash option, like '-d' or '-cvf'
+            prefix = "-"
+            val = None
+            # Check for special handling of last flag
+            if len(arg) == 1:
+                # No flags, no key
+                flags = ""
+                key = ""
+            elif len(arg) == 2:
+                # No flags, one key
+                flags = ""
+                key = arg[-1]
+            elif lastflag:
+                # Last "flag" is special
+                flags = arg[1:-1]
+                key = arg[-1]
+            else:
+                # Just list of flags
+                flags = arg[1:]
+                key = None
+        else:
+            # Single-dash opton
+            prefix = "-"
+            key = arg[1:]
+            val = None
+            flags = None
+        # Output
+        return prefix, key, val, flags
+
+    def save_arg(self, arg):
+        r"""Save a positional argument
+
+        :Call:
+            >>> parser.save_arg(arg, narg=None)
+        :Inputs:
+            *parser*: :class:`ArgumentReader`
+                Command-line argument parser
+            *arg*: :class:`str`
+                Name/value of next parameter
+        :Versions:
+            * 2021-11-23 ``@ddalle``: Version 1.0
+        """
+        self._save(None, arg)
+
+    def save_double_dash(self, k, v=True):
+        r"""Save a double-dash keyword and value
+
+        :Call:
+            >>> parser.save_double_dash(k, v=True)
+        :Inputs:
+            *parser*: :class:`ArgumentReader`
+                Command-line argument parser
+            *k*: :class:`str`
+                Name of key to save
+            *v*: {``True``} | ``False`` | :class:`str`
+                Value to save
+        :Versions:
+            * 2021-11-23 ``@ddalle``: Version 1.0
+        """
+        self._save(k, v)
+        self.kwargs_double_dash[k] = v
+
+    def save_equal_key(self, k, v):
+        r"""Save an equal-sign key/value pair, like ``"mach=0.9"``
+
+        :Call:
+            >>> parser.save_equal_key(k, v)
+        :Inputs:
+            *parser*: :class:`ArgumentReader`
+                Command-line argument parser
+            *k*: :class:`str`
+                Name of key to save
+            *v*: :class:`str`
+                Value to save
+        :Versions:
+            * 2021-11-23 ``@ddalle``: Version 1.0
+        """
+        self._save(k, v)
+        self.kwargs_equal_sign[k] = v
+
+    def save_single_dash(self, k, v=True):
+        r"""Save a single-dash keyword and value
+
+        :Call:
+            >>> parser.save_single_dash(k, v=True)
+        :Inputs:
+            *parser*: :class:`ArgumentReader`
+                Command-line argument parser
+            *k*: :class:`str`
+                Name of key to save
+            *v*: {``True``} | ``False`` | :class:`str`
+                Value to save
+        :Versions:
+            * 2021-11-23 ``@ddalle``: Version 1.0
+        """
+        self._save(k, v)
+        self.kwargs_single_dash[k] = v
+
+    def _save(self, k, v):
+        # Append to universal list of args
+        self.param_sequence.append((k, v))
+        # Check option vs arg
+        if k is None:
+            # Save arg
+            self.args.append(v)
+        else:
+            # Universal keyword arg sequence
+            self.kwargs_sequence.append((k, v))
+            # Check if a previous key
+            if k in self.kwargs:
+                # Save to "replaced" options
+                self.kwargs_replaced.append((k, self.kwargs[k]))
+            # Save to current kwargs
+            self.kwargs[k] = v
 
