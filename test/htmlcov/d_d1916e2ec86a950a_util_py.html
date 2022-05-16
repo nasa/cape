@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/util.py: 9%</title>
+    <title>Coverage for cape/util.py: 10%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/util.py</b>:
-            <span class="pc_cov">9%</span>
+            <span class="pc_cov">10%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">334 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">29<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">305<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">35<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">299<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -333,17 +333,17 @@
     <p class="pln"><span class="n"><a id="t274" href="#t274">274</a></span><span class="t"><span class="str">        * 2015-02-21 ``@ddalle``: Version 1.0</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t275" href="#t275">275</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t276" href="#t276">276</a></span><span class="t">    <span class="com"># Length of list</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t277" href="#t277">277</a></span><span class="t">    <span class="nam">n</span> <span class="op">=</span> <span class="nam">len</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t277" href="#t277">277</a></span><span class="t">    <span class="nam">n</span> <span class="op">=</span> <span class="nam">len</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t278" href="#t278">278</a></span><span class="t">    <span class="com"># Best length to break list into</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t279" href="#t279">279</a></span><span class="t">    <span class="nam">ni</span> <span class="op">=</span> <span class="nam">int</span><span class="op">(</span><span class="nam">np</span><span class="op">.</span><span class="nam">sqrt</span><span class="op">(</span><span class="nam">n</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t279" href="#t279">279</a></span><span class="t">    <span class="nam">ni</span> <span class="op">=</span> <span class="nam">int</span><span class="op">(</span><span class="nam">np</span><span class="op">.</span><span class="nam">sqrt</span><span class="op">(</span><span class="nam">n</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">    <span class="com"># Number of sublists</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">    <span class="nam">mi</span> <span class="op">=</span> <span class="nam">n</span> <span class="op">//</span> <span class="nam">ni</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">    <span class="nam">mi</span> <span class="op">=</span> <span class="nam">n</span> <span class="op">//</span> <span class="nam">ni</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t">    <span class="com"># Split into chunks</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">    <span class="nam">X</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">array</span><span class="op">(</span><span class="op">[</span><span class="nam">np</span><span class="op">.</span><span class="nam">mean</span><span class="op">(</span><span class="nam">x</span><span class="op">[</span><span class="nam">i</span><span class="op">*</span><span class="nam">ni</span><span class="op">:</span><span class="op">(</span><span class="nam">i</span><span class="op">+</span><span class="num">1</span><span class="op">)</span><span class="op">*</span><span class="nam">ni</span><span class="op">]</span><span class="op">)</span> <span class="key">for</span> <span class="nam">i</span> <span class="key">in</span> <span class="nam">range</span><span class="op">(</span><span class="nam">mi</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t">    <span class="nam">X</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">array</span><span class="op">(</span><span class="op">[</span><span class="nam">np</span><span class="op">.</span><span class="nam">mean</span><span class="op">(</span><span class="nam">x</span><span class="op">[</span><span class="nam">i</span><span class="op">*</span><span class="nam">ni</span><span class="op">:</span><span class="op">(</span><span class="nam">i</span><span class="op">+</span><span class="num">1</span><span class="op">)</span><span class="op">*</span><span class="nam">ni</span><span class="op">]</span><span class="op">)</span> <span class="key">for</span> <span class="nam">i</span> <span class="key">in</span> <span class="nam">range</span><span class="op">(</span><span class="nam">mi</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t284" href="#t284">284</a></span><span class="t">    <span class="com"># Standard deviation of the sub-means</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t285" href="#t285">285</a></span><span class="t">    <span class="nam">si</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">std</span><span class="op">(</span><span class="nam">X</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t285" href="#t285">285</a></span><span class="t">    <span class="nam">si</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">std</span><span class="op">(</span><span class="nam">X</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t286" href="#t286">286</a></span><span class="t">    <span class="com"># Output</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t287" href="#t287">287</a></span><span class="t">    <span class="key">return</span> <span class="nam">si</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">sqrt</span><span class="op">(</span><span class="nam">float</span><span class="op">(</span><span class="nam">ni</span><span class="op">)</span><span class="op">/</span><span class="nam">float</span><span class="op">(</span><span class="nam">n</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t287" href="#t287">287</a></span><span class="t">    <span class="key">return</span> <span class="nam">si</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">sqrt</span><span class="op">(</span><span class="nam">float</span><span class="op">(</span><span class="nam">ni</span><span class="op">)</span><span class="op">/</span><span class="nam">float</span><span class="op">(</span><span class="nam">n</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t288" href="#t288">288</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t289" href="#t289">289</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t290" href="#t290">290</a></span><span class="t"><span class="com"># Use Welch's method (or a crude estimate) to get a primary frequency</span>&nbsp;</span><span class="r"></span></p>
@@ -1141,7 +1141,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.2</a>,
-            created at 2022-05-13 23:27 -0700
+            created at 2022-05-16 10:33 -0700
         </p>
     </div>
 </footer>

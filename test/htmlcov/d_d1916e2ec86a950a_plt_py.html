@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/plt.py: 0%</title>
+    <title>Coverage for cape/plt.py: 3%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/plt.py</b>:
-            <span class="pc_cov">0%</span>
+            <span class="pc_cov">3%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">589 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">0<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">589<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">17<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">572<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -59,7 +59,7 @@
 <main id="source">
     <p class="pln"><span class="n"><a id="t1" href="#t1">1</a></span><span class="t"><span class="com">#!/usr/bin/env python</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t2" href="#t2">2</a></span><span class="t"><span class="com"># -*- coding: utf-8 -*-</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t3" href="#t3">3</a></span><span class="t"><span class="str">r"""</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t3" href="#t3">3</a></span><span class="t"><span class="str">r"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t4" href="#t4">4</a></span><span class="t"><span class="str">:mod:`cape.plt`: Python interface to Tecplot PLT files</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t5" href="#t5">5</a></span><span class="t"><span class="str">========================================================</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t6" href="#t6">6</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -85,15 +85,15 @@
     <p class="pln"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t"><span class="com"># Basic numerics</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t"><span class="com"># Useful tool for more complex binary I/O methods</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t"><span class="key">import</span> <span class="nam">cape</span><span class="op">.</span><span class="nam">io</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t"><span class="key">import</span> <span class="nam">cape</span><span class="op">.</span><span class="nam">tri</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t"><span class="key">import</span> <span class="nam">cape</span><span class="op">.</span><span class="nam">util</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t"><span class="key">import</span> <span class="nam">cape</span><span class="op">.</span><span class="nam">io</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t"><span class="key">import</span> <span class="nam">cape</span><span class="op">.</span><span class="nam">tri</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t"><span class="key">import</span> <span class="nam">cape</span><span class="op">.</span><span class="nam">util</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t"><span class="com"># Convert a PLT to TRIQ</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t"><span class="key">def</span> <span class="nam">Plt2Triq</span><span class="op">(</span><span class="nam">fplt</span><span class="op">,</span> <span class="nam">ftriq</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t"><span class="key">def</span> <span class="nam">Plt2Triq</span><span class="op">(</span><span class="nam">fplt</span><span class="op">,</span> <span class="nam">ftriq</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">    <span class="str">"""Convert a Tecplot PLT file to a Cart3D annotated triangulation (TRIQ)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -132,7 +132,7 @@
     <p class="mis show_mis"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t">    <span class="nam">triq</span><span class="op">.</span><span class="nam">Write</span><span class="op">(</span><span class="nam">ftriq</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t75" href="#t75">75</a></span><span class="t"><span class="com"># Get an object from a list</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t"><span class="key">def</span> <span class="nam">getind</span><span class="op">(</span><span class="nam">V</span><span class="op">,</span> <span class="nam">k</span><span class="op">,</span> <span class="nam">j</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t"><span class="key">def</span> <span class="nam">getind</span><span class="op">(</span><span class="nam">V</span><span class="op">,</span> <span class="nam">k</span><span class="op">,</span> <span class="nam">j</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t77" href="#t77">77</a></span><span class="t">    <span class="str">"""Get an index of a variable in a list if possible</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t78" href="#t78">78</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t79" href="#t79">79</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -159,7 +159,7 @@
     <p class="mis show_mis"><span class="n"><a id="t100" href="#t100">100</a></span><span class="t">        <span class="key">return</span> <span class="nam">j</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t101" href="#t101">101</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t"><span class="com"># Tecplot class</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t"><span class="key">class</span> <span class="nam">Plt</span><span class="op">(</span><span class="nam">object</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t"><span class="key">class</span> <span class="nam">Plt</span><span class="op">(</span><span class="nam">object</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t">    <span class="str">"""Interface for Tecplot PLT files</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -193,7 +193,7 @@
     <p class="pln"><span class="n"><a id="t134" href="#t134">134</a></span><span class="t"><span class="str">        * 2017-08-24 ``@ddalle``: Added ASCII input capability</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t135" href="#t135">135</a></span><span class="t"><span class="str">    """</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t136" href="#t136">136</a></span><span class="t">    <span class="com"># Initialization method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t137" href="#t137">137</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">dat</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">triq</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t137" href="#t137">137</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">dat</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">triq</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t138" href="#t138">138</a></span><span class="t">        <span class="str">"""Initialization method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t139" href="#t139">139</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t140" href="#t140">140</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -219,7 +219,7 @@
     <p class="mis show_mis"><span class="n"><a id="t160" href="#t160">160</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">Tris</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t161" href="#t161">161</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t162" href="#t162">162</a></span><span class="t">    <span class="com"># Tec Boundary reader</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t163" href="#t163">163</a></span><span class="t">    <span class="key">def</span> <span class="nam">Read</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t163" href="#t163">163</a></span><span class="t">    <span class="key">def</span> <span class="nam">Read</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t164" href="#t164">164</a></span><span class="t">        <span class="str">"""Read a Fun3D boundary Tecplot binary file</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t165" href="#t165">165</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t166" href="#t166">166</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -395,7 +395,7 @@
     <p class="mis show_mis"><span class="n"><a id="t336" href="#t336">336</a></span><span class="t">        <span class="nam">f</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t337" href="#t337">337</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t338" href="#t338">338</a></span><span class="t">    <span class="com"># Write Tec Boundary</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t339" href="#t339">339</a></span><span class="t">    <span class="key">def</span> <span class="nam">Write</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">Vars</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t339" href="#t339">339</a></span><span class="t">    <span class="key">def</span> <span class="nam">Write</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">Vars</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t340" href="#t340">340</a></span><span class="t">        <span class="str">"""Write a Fun3D boundary Tecplot binary file</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t341" href="#t341">341</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t342" href="#t342">342</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -527,7 +527,7 @@
     <p class="mis show_mis"><span class="n"><a id="t468" href="#t468">468</a></span><span class="t">        <span class="nam">f</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t469" href="#t469">469</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t470" href="#t470">470</a></span><span class="t">    <span class="com"># Tec Boundary reader</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t471" href="#t471">471</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadDat</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t471" href="#t471">471</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadDat</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t472" href="#t472">472</a></span><span class="t">        <span class="str">"""Read an ASCII Tecplot data file</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t473" href="#t473">473</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t474" href="#t474">474</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -655,7 +655,7 @@
     <p class="mis show_mis"><span class="n"><a id="t596" href="#t596">596</a></span><span class="t">        <span class="nam">f</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t597" href="#t597">597</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t598" href="#t598">598</a></span><span class="t">    <span class="com"># Write ASCII file </span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t599" href="#t599">599</a></span><span class="t">    <span class="key">def</span> <span class="nam">WriteDat</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">Vars</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t599" href="#t599">599</a></span><span class="t">    <span class="key">def</span> <span class="nam">WriteDat</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">Vars</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t600" href="#t600">600</a></span><span class="t">        <span class="str">"""Write Tecplot PLT file to ASCII format (``.dat``)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t601" href="#t601">601</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t602" href="#t602">602</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -720,7 +720,7 @@
     <p class="mis show_mis"><span class="n"><a id="t661" href="#t661">661</a></span><span class="t">        <span class="nam">f</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t662" href="#t662">662</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t663" href="#t663">663</a></span><span class="t">    <span class="com"># SZPLOT Boundary reader</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t664" href="#t664">664</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadSzplt</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t664" href="#t664">664</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadSzplt</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t665" href="#t665">665</a></span><span class="t">        <span class="key">raise</span> <span class="nam">NotImplementedError</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t666" href="#t666">666</a></span><span class="t">        <span class="com"># Open the file</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t667" href="#t667">667</a></span><span class="t">        <span class="nam">f</span> <span class="op">=</span> <span class="nam">open</span><span class="op">(</span><span class="nam">fname</span><span class="op">,</span> <span class="str">'rb'</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -734,7 +734,7 @@
     <p class="mis show_mis"><span class="n"><a id="t675" href="#t675">675</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">rev</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">fromfile</span><span class="op">(</span><span class="nam">f</span><span class="op">,</span> <span class="nam">count</span><span class="op">=</span><span class="num">1</span><span class="op">,</span> <span class="nam">dtype</span><span class="op">=</span><span class="str">'|S34'</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t676" href="#t676">676</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t677" href="#t677">677</a></span><span class="t">    <span class="com"># Create from a TRIQ</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t678" href="#t678">678</a></span><span class="t">    <span class="key">def</span> <span class="nam">ConvertTriq</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">triq</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t678" href="#t678">678</a></span><span class="t">    <span class="key">def</span> <span class="nam">ConvertTriq</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">triq</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t679" href="#t679">679</a></span><span class="t">        <span class="str">"""Create a PLT object by reading data from a Tri/Triq object</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t680" href="#t680">680</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t681" href="#t681">681</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -915,7 +915,7 @@
     <p class="mis show_mis"><span class="n"><a id="t856" href="#t856">856</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">t</span> <span class="op">=</span> <span class="nam">list</span><span class="op">(</span><span class="nam">t</span><span class="op">*</span><span class="nam">np</span><span class="op">.</span><span class="nam">ones</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">nZone</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t857" href="#t857">857</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t858" href="#t858">858</a></span><span class="t">    <span class="com"># Create a triq file</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t859" href="#t859">859</a></span><span class="t">    <span class="key">def</span> <span class="nam">CreateTriq</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t859" href="#t859">859</a></span><span class="t">    <span class="key">def</span> <span class="nam">CreateTriq</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t860" href="#t860">860</a></span><span class="t">        <span class="str">"""Create a Cart3D annotated triangulation (``triq``) interface</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t861" href="#t861">861</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t862" href="#t862">862</a></span><span class="t"><span class="str">        The primary purpose is creating a properly-formatted triangulation for</span>&nbsp;</span><span class="r"></span></p>
@@ -1196,7 +1196,7 @@
     <p class="mis show_mis"><span class="n"><a id="t1137" href="#t1137">1137</a></span><span class="t">        <span class="key">return</span> <span class="nam">triq</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1138" href="#t1138">1138</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1139" href="#t1139">1139</a></span><span class="t">    <span class="com"># Create a triq file</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1140" href="#t1140">1140</a></span><span class="t">    <span class="key">def</span> <span class="nam">CreateTri</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1140" href="#t1140">1140</a></span><span class="t">    <span class="key">def</span> <span class="nam">CreateTri</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1141" href="#t1141">1141</a></span><span class="t">        <span class="str">r"""Create a Cart3D triangulation (``.tri``) file</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1142" href="#t1142">1142</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1143" href="#t1143">1143</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1310,7 +1310,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.2</a>,
-            created at 2022-05-13 23:27 -0700
+            created at 2022-05-16 10:32 -0700
         </p>
     </div>
 </footer>

@@ -1,0 +1,299 @@
+{
+    // Universal commands
+    "InputCntl": "input.cntl",
+
+	// Iteration control and command-line inputs
+	"RunControl": {
+        // Run sequence
+        "PhaseSequece": [0],
+        "PhaseIters": [200],
+        // System configuration
+	    "nProc": 4,
+        "MPI": 0,
+        "Adaptive": 0,
+	    // Options for ``flowCart``
+	    "flowCart": {
+            "it_fc": 200,
+            "cfl": 1.1,
+            "mg_fc": 3,
+            "y_is_spanwise": true
+        },
+        // Defines the flow domain automatically
+        "autoInputs": {"r": 6},
+        // Volume mesh options
+        "cubes": {
+            "maxR": 8,
+            "pre": "preSpec.c3d.cntl",
+            "cubes_a": 8,
+            "cubes_b": 2,
+            "reorder": true
+        }
+	},
+
+	// Mesh settings
+    "Mesh": {
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        // File to name each integer CompID and group them into families
+        "File": "arrow.xml",
+        // Declare forces and moments
+        "Force": [
+            "cap",
+            "body",
+            "fins",
+            "arrow_no_base",
+            "arrow_total",
+            "fin1",
+            "fin2",
+            "fin3",
+            "fin4"
+        ],
+        "RefPoint": {
+            "arrow_no_base": "MRP",
+            "arrow_total": "MRP", 
+            "fins": "MRP",
+            "fin1": "MRP",
+            "fin2": "MRP",
+            "fin3": "MRP",
+            "fin4": "MRP"
+        },
+        // Define some points for easier reference
+        "Points": {
+            "MRP": [3.5, 0.0, 0.0]
+        },
+        // Reference quantities
+        "RefArea": 3.14159,
+        "RefLength": 2.0
+    },
+    
+    // Database info
+    "DataBook": {
+        // List of data book components
+        "Components": [
+            "cap",
+            "body",
+            "fins",
+            "arrow_no_base",
+            "arrow_total",
+            "fuselage",
+            "fin1",
+            "fin2",
+            "fin3",
+            "fin4"
+        ],
+        // Location of data book
+        "Folder": "data/",
+        // Parameters for collecting data
+        "nFirst": 0,
+        "nStats": 100,
+        "nMin": 100,
+        // Basic component
+        "arrow_no_base": {"Type": "FM"},
+        "arrow_total":  {"Type": "FM"},
+        "fins": {"Type": "FM"},
+        "fin1": {"Type": "FM"},
+        "fin2": {"Type": "FM"},
+        "fin3": {"Type": "FM"},
+        "fin4": {"Type": "FM"},
+        "fuselage": {
+            "Type": "FM",
+            "CompID": ["arrow_no_base", "-fins"]
+        }
+    },
+    
+    // Report info
+    "Report": {
+        // List of reports
+        "Reports": ["mach", "mach-carpet", "alpha", "alpha-carpet"],
+        // Define the report
+        "mach": {
+            "Title": "Cart3D Force \\& Moment Mach Sweep",
+            "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+            "Restriction": "pyCart Example - Distribution Unlimited",
+            "Sweeps": "mach"
+        },
+        "mach-carpet": {
+            "Title": "Cart3D Force \\& Moment Mach Sweep",
+            "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+            "Restriction": "pyCart Example - Distribution Unlimited",
+            "Sweeps": "mach-carpet"
+        },
+        "alpha": {
+            "Title": "Cart3D Force \\& Moment Mach Sweep",
+            "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+            "Restriction": "pyCart Example - Distribution Unlimited",
+            "Sweeps": "alpha"
+        },
+        "alpha-carpet": {
+            "Title": "Cart3D Force \\& Moment Mach Sweep",
+            "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+            "Restriction": "pyCart Example - Distribution Unlimited",
+            "Sweeps": "alpha-carpet"
+        },
+        // Define the sweeps
+        "Sweeps": {
+            // Mach sweep
+            "mach": {
+                "Figures": ["SweepTables", "MachSweep"],
+                "EqCons": ["alpha"],
+                "XAxis": "mach"
+            },
+            // Mach sweep with alpha carpet
+            "mach-carpet": {
+                "Figures": ["SweepTables", "MachSweep"],
+                "EqCons": [],
+                "CarpetEqCons": ["alpha"],
+                "XAxis": "mach"
+            },
+            // Alpha sweep
+            "alpha": {
+                "Figures": ["SweepTables", "AlphaSweep"],
+                "EqCons": ["mach"],
+                "XAxis": "alpha"
+            },
+            // Alpha sweep with Mach carpet
+            "alpha-carpet": {
+                "Figures": ["SweepTables", "AlphaSweep"],
+                "EqCons": [],
+                "CarpetEqCons": ["mach"],
+                "XAxis": "alpha"
+            }
+        },
+        // Define the figures
+        "Figures": {
+            "SweepTables": {
+                "Alignment": "left",
+                "Subfigures": ["SweepConds", "SweepList"]
+            },
+            "MachSweep": {
+                "Header": "Mach sweeps of force \\& moment coefficients",
+                "Alignment": "center",
+                "Subfigures": [
+                    "mach_arrow_CA",  "mach_arrow_CY",  "mach_arrow_CN",
+                    "mach_fuse_CLM",  "mach_fins_CLM",  "mach_arrow_CLM",
+                    "mach_cap_CA",    "mach_fins_CN",   "mach_body_CN"
+                ]
+            },
+            "AlphaSweep": {
+                "Header": "Mach sweeps of force \\& moment coefficients",
+                "Alignment": "center",
+                "Subfigures": [
+                    "aoa_arrow_CA",  "aoa_arrow_CY",  "aoa_arrow_CN",
+                    "aoa_fuse_CLM",  "aoa_fins_CLM",  "aoa_arrow_CLM",
+                    "aoa_cap_CA",    "aoa_fins_CN",   "aoa_body_CN"
+                ]
+            }
+        },
+        // Definitions for subfigures
+        "Subfigures": {
+            // Table of trajectory variables
+            "SweepConds": {
+                "Type": "Conditions",
+                "Header": "Conditions",
+                "Width": 0.5,
+                "Alignment": "t"
+            },
+            "SweepList": {
+                "Type": "SweepCases",
+                "Header": "List of cases",
+                "Width": 0.5,
+                "Alignment": "t"
+            },
+            // Mach sweep
+            "mach_arrow": {
+                "Type": "SweepCoeff",
+                "Width": 0.33,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2,
+                "LineOptions": {
+                    "marker": "o",
+                    "color": ["b", "g", "m", "darkorange", "purple"],
+                    "ls": "-"
+                },
+                "Component": "arrow_no_base",
+                "XLabel": "Mach number"
+            },
+            "mach_arrow_CA": {"Type": "mach_arrow", "Coefficient": "CA"},
+            "mach_arrow_CY": {"Type": "mach_arrow", "Coefficient": "CY"},
+            "mach_arrow_CN": {"Type": "mach_arrow", "Coefficient": "CN"},
+            "mach_arrow_CLM": {"Type": "mach_arrow", "Coefficient": "CLM"},
+            "mach_fuse_CLM": {
+                "Type": "mach_arrow",
+                "Component": "fuselage",
+                "Coefficient": "CLM"
+            },
+            "mach_fins_CLM": {
+                "Type": "mach_arrow",
+                "Component": "fins",
+                "Coefficient": "CLM"
+            },
+            "mach_fins_CN": {
+                "Type": "mach_arrow",
+                "Component": ["fin1", "fin2", "fin3", "fin4"],
+                "Coefficient": "CN"
+            },
+            "mach_cap_CA": {
+                "Type": "mach_arrow",
+                "Component": "cap",
+                "Coefficient": "CA"
+            },
+            "mach_body_CN": {
+                "Type": "mach_arrow",
+                "Component": "body",
+                "Coefficient": "CN"
+            },
+            // Alpha sweep
+            "aoa_arrow": {
+                "Type": "mach_arrow",
+                "XLabel": "Angle of attack [deg]"
+            },
+            "aoa_arrow_CA": {"Type": "aoa_arrow", "Coefficient": "CA"},
+            "aoa_arrow_CY": {"Type": "aoa_arrow", "Coefficient": "CY"},
+            "aoa_arrow_CN": {"Type": "aoa_arrow", "Coefficient": "CN"},
+            "aoa_arrow_CLM": {"Type": "aoa_arrow", "Coefficient": "CLM"},
+            "aoa_fuse_CLM": {
+                "Type": "aoa_arrow",
+                "Component": "fuselage",
+                "Coefficient": "CLM"
+            },
+            "aoa_fins_CLM": {
+                "Type": "aoa_arrow",
+                "Component": "fins",
+                "Coefficient": "CLM"
+            },
+            "aoa_fins_CN": {
+                "Type": "aoa_arrow",
+                "Component": ["fin1", "fin2", "fin3", "fin4"],
+                "Coefficient": "CN"
+            },
+            "aoa_cap_CA": {
+                "Type": "aoa_arrow",
+                "Component": "cap",
+                "Coefficient": "CA"
+            },
+            "aoa_body_CN": {
+                "Type": "aoa_arrow",
+                "Component": "body",
+                "Coefficient": "CN"
+            }
+        }
+    },
+    
+    // RunMatrix (i.e. run matrix) description
+    "RunMatrix": {
+        "Keys": ["mach", "alpha", "config", "Label"],
+        "File": "matrix.csv",
+        "GroupMesh": true,
+        "GroupPrefix": "poweroff",
+        "Definitions": {
+            "mach": {
+                "Format": "%0.2f"
+            },
+            "alpha": {
+                "Format": "%04.1f"
+            }
+        }
+    }
+}
