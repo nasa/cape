@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-13 at 15:12 PDT
+   on 2022-05-16 at 01:40 PDT
 
 Test ``13_config_xml``: PASS
 ==============================
 
-This test PASSED on 2022-05-13 at 15:12 PDT
+This test PASSED on 2022-05-16 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -92,7 +92,7 @@ Command 1: Read JSON Configuration: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.40 seconds
+    * Command took 0.39 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -112,8 +112,8 @@ Command 2: Read JSON Configuration: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 0.88 seconds
+    * Command took 0.47 seconds
+    * Cumulative time: 0.86 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -133,8 +133,8 @@ Command 3: Read XML Configuration: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.37 seconds
-    * Cumulative time: 1.25 seconds
+    * Command took 0.46 seconds
+    * Cumulative time: 1.32 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -154,8 +154,8 @@ Command 4: Read XML Configuration: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 1.73 seconds
+    * Command took 0.53 seconds
+    * Cumulative time: 1.85 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -175,8 +175,8 @@ Command 5: Compare XML Configurations: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.38 seconds
-    * Cumulative time: 2.12 seconds
+    * Command took 0.48 seconds
+    * Cumulative time: 2.33 seconds
 :STDOUT:
     * **PASS**
     * Target:
@@ -287,8 +287,8 @@ Command 6: Compare XML Configurations: Python 3 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 2.60 seconds
+    * Command took 0.52 seconds
+    * Cumulative time: 2.85 seconds
 :STDOUT:
     * **PASS**
     * Target:

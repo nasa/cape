@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-13 at 15:12 PDT
+   on 2022-05-16 at 01:40 PDT
 
 Test ``01_import``: PASS
 ==========================
 
-This test PASSED on 2022-05-13 at 15:12 PDT
+This test PASSED on 2022-05-16 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -47,7 +47,7 @@ Command 1 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.56 seconds
+    * Command took 0.47 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
@@ -67,8 +67,8 @@ Command 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.71 seconds
-    * Cumulative time: 1.28 seconds
+    * Command took 0.51 seconds
+    * Cumulative time: 0.97 seconds
 :STDOUT:
     * **PASS**
 :STDERR:
