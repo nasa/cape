@@ -11,9 +11,9 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 20
-    :time: 8.954
-    :timestamp: 2022-05-15T14:54:19.477505
+    :tests: 26
+    :time: 9.434
+    :timestamp: 2022-05-15T23:32:13.408154
     :hostname: system76-pc
 
 .. toctree::
@@ -26,6 +26,8 @@ Test report for :mod:`cape`
     001_cape-002_argread-04_argv/index
     001_cape-002_argread-05_exceptions/index
     001_cape-002_argread-06_cls/index
+    001_cape-003_atm-atm76/index
+    001_cape-004_case-01_case/index
     050_cape_cli-001_cli/index
     051_cape_cli-001_cli_matrix/index
 

@@ -1,7 +1,9 @@
 
+# Standard library
 import sys
 
-import argread
+# Local
+from cape import argread
 
 
 def test_readkeys01():
