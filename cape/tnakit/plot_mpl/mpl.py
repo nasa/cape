@@ -114,6 +114,12 @@ def _import_pyplot():
         return
 
 
+# Close a figure
+def close(fig=None):
+    _import_pyplot()
+    plt.close(fig)
+
+
 # Figure part
 def figure(**kw):
     r"""Get or create figure handle and format it

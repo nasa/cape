@@ -34,7 +34,8 @@ from .mplopts import MPLOpts
 from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
     axes_autoscale_height,
-    axlabel, auto_xlim, auto_ylim, get_figure, get_axes,
+    axlabel, auto_xlim, auto_ylim, 
+    close, get_figure, get_axes,
     figure, grid, imshow, spine, spines)
 
 
@@ -1261,6 +1262,24 @@ class MPLHandle(object):
         for (k, v) in h1.__dict__.items():
             # Save using dedicated method
             self.save(k, v)
+
+    # Close the figure
+    def close(self):
+        r"""Close the open figure, if any
+
+        :Call:
+            >>> h.close()
+        :Inputs:
+            *h*: :class:`MPLHandle`
+                Matplotlib object handle
+        :Versions:
+            * 2022-05-17 ``@ddalle``: Version 1.0
+        """
+        # Check if a figure is present
+        if self.fig is None:
+            return
+        # Close it
+        close(self.fig.number)
 
     # Save one attribute
     def save(self, attr, v):

@@ -13,30 +13,42 @@ import cape.attdb.rdb as rdb
 
 # This folder
 FDIR = os.path.dirname(__file__)
-# Data file
 MAT_FILE = "bullet-mab.mat"
-PNG_FILE = "bullet-xz.png"
-TEST_FILES = (MAT_FILE, PNG_FILE)
+SMY_FILE = "arrow.smy"
+TEST_FILES = (MAT_FILE, SMY_FILE)
 
 
-# Test line load with PNG for seam
+# Test a line load plot with seam curves
 @testutils.run_sandbox(__file__, TEST_FILES)
-def test_01_plot_pngseam():
+def test_01_plot_seam():
     # Read a line load datbase
     db = rdb.DataKit(MAT_FILE)
     # Need to set col for x-axis
     db.set_output_xargs("bullet.dCN", ["bullet.x"])
-    # Name of image file to show
-    fpng = PNG_FILE
-    # Set a PNG
-    db.make_png("xz", fpng, ["bullet.dCN"], ImageXMin=-0.15, ImageXMax=4.12)
+    # Name of seam curve file
+    fseam = SMY_FILE
+    # Seam title
+    seam = "smy"
+    # Seam col names
+    xcol = "smy.x"
+    ycol = "smy.z"
+    # Cols for this seam curve
+    cols = ["bullet.dCN"]
+    # Set up a seam curve
+    db.make_seam(seam, fseam, xcol, ycol, cols)
+    # Divide seam curves by two (what happened?)
+    db["smy.x"] *= 0.5
+    db["smy.z"] *= 0.5
     # Initial plot of a column
     h = db.plot("bullet.dCN", 1, XLabel="x/Lref", YLabel="dCN/d(x/Lref)")
-    # PNG file name
+    # Image file name
     fimg = "python%i-bullet-ll.png" % sys.version_info.major
     # Save figure
     h.fig.savefig(fimg)
     h.close()
-    # Test it
+    # Compare files
     testutils.assert_png(fimg, os.path.join(FDIR, fimg), tol=0.93)
 
+
+if __name__ == "__main__":
+    test_01_plot_seam()

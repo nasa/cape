@@ -91,6 +91,7 @@ def test_02_plot_ll():
     ftarg = os.path.join(fdir, fpng)
     # Save result
     h.fig.savefig(fpng, dpi=90)
+    h.close()
     # Compare image
     assert testutils.assert_png(fabs, ftarg, tol=0.93)
 

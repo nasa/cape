@@ -36,6 +36,7 @@ def test_01_plot_pngseam():
     fimg = "python%i-bullet-ll.png" % sys.version_info.major
     # Save figure
     h.fig.savefig(fimg)
+    h.close()
     # Test it
     testutils.assert_png(fimg, os.path.join(FDIR, fimg), tol=0.93)
 
