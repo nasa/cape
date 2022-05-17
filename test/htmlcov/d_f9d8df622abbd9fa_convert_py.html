@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/attdb/convert.py: 0%</title>
+    <title>Coverage for cape/attdb/convert.py: 17%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/attdb/convert.py</b>:
-            <span class="pc_cov">0%</span>
+            <span class="pc_cov">17%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">78 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">0<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">78<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">13<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">65<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -58,7 +58,7 @@
 </header>
 <main id="source">
     <p class="pln"><span class="n"><a id="t1" href="#t1">1</a></span><span class="t"><span class="com">#!/usr/bin/env python</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t2" href="#t2">2</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t2" href="#t2">2</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t3" href="#t3">3</a></span><span class="t"><span class="str">---------------------------------------------------------</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t4" href="#t4">4</a></span><span class="t"><span class="str">ATT Database Conversion Utilities: :mod:`attdb.convert`</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t5" href="#t5">5</a></span><span class="t"><span class="str">---------------------------------------------------------</span>&nbsp;</span><span class="r"></span></p>
@@ -85,13 +85,13 @@
     <p class="pln"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t"><span class="com"># Numerics</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t"><span class="com"># Degrees to radians</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t"><span class="nam">deg</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">pi</span> <span class="op">/</span> <span class="num">180.0</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t"><span class="nam">deg</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">pi</span> <span class="op">/</span> <span class="num">180.0</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t"><span class="com"># Step function</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t"><span class="key">def</span> <span class="nam">fstep</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t"><span class="key">def</span> <span class="nam">fstep</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">    <span class="str">"""Return -1 for negative numbers and +1 for nonnegative inputs</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -108,7 +108,7 @@
     <p class="mis show_mis"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t">    <span class="key">return</span> <span class="op">-</span><span class="num">1</span> <span class="op">+</span> <span class="num">2</span><span class="op">*</span><span class="nam">np</span><span class="op">.</span><span class="nam">ceil</span><span class="op">(</span><span class="num">0.5</span><span class="op">+</span><span class="num">0.5</span><span class="op">*</span><span class="nam">np</span><span class="op">.</span><span class="nam">sign</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t"><span class="com"># Floor Step function</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t"><span class="key">def</span> <span class="nam">fstep1</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t"><span class="key">def</span> <span class="nam">fstep1</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">    <span class="str">"""Return -1 for nonpositive numbers and +1 for negative inputs</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -125,7 +125,7 @@
     <p class="mis show_mis"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">    <span class="key">return</span> <span class="op">-</span><span class="num">1</span> <span class="op">+</span> <span class="num">2</span><span class="op">*</span><span class="nam">np</span><span class="op">.</span><span class="nam">floor</span><span class="op">(</span><span class="num">0.5</span><span class="op">+</span><span class="num">0.5</span><span class="op">*</span><span class="nam">np</span><span class="op">.</span><span class="nam">sign</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t"><span class="com"># Convert (total angle of attack, total roll angle) to (aoa, aos)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaTPhi2AlphaBeta</span><span class="op">(</span><span class="nam">alpha_t</span><span class="op">,</span> <span class="nam">phi</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaTPhi2AlphaBeta</span><span class="op">(</span><span class="nam">alpha_t</span><span class="op">,</span> <span class="nam">phi</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t">    <span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t"><span class="str">    Convert total angle of attack and total roll angle to angle of attack and</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t72" href="#t72">72</a></span><span class="t"><span class="str">    sideslip angle.</span>&nbsp;</span><span class="r"></span></p>
@@ -160,7 +160,7 @@
     <p class="pln"><span class="n"><a id="t101" href="#t101">101</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t"><span class="com"># Convert (aoa, aos) to (total angle of attack, total roll angle)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaBeta2AlphaTPhi</span><span class="op">(</span><span class="nam">alpha</span><span class="op">,</span> <span class="nam">beta</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaBeta2AlphaTPhi</span><span class="op">(</span><span class="nam">alpha</span><span class="op">,</span> <span class="nam">beta</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t">    <span class="str">"""Convert angle of attack and sideslip to total angle of attack and roll</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t107" href="#t107">107</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -193,7 +193,7 @@
     <p class="mis show_mis"><span class="n"><a id="t134" href="#t134">134</a></span><span class="t">    <span class="key">return</span> <span class="nam">alpha_t</span><span class="op">,</span> <span class="nam">phi</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t135" href="#t135">135</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t136" href="#t136">136</a></span><span class="t"><span class="com"># Convert (aoa, aos) to (maneuver angle of attack, maneuver roll angle)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t137" href="#t137">137</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaBeta2AlphaMPhi</span><span class="op">(</span><span class="nam">alpha</span><span class="op">,</span> <span class="nam">beta</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t137" href="#t137">137</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaBeta2AlphaMPhi</span><span class="op">(</span><span class="nam">alpha</span><span class="op">,</span> <span class="nam">beta</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t138" href="#t138">138</a></span><span class="t">    <span class="str">"""Convert angle of attack and sideslip to maneuver axis</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t139" href="#t139">139</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t140" href="#t140">140</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -230,7 +230,7 @@
     <p class="mis show_mis"><span class="n"><a id="t171" href="#t171">171</a></span><span class="t">    <span class="key">return</span> <span class="nam">alpha_m</span><span class="op">,</span> <span class="nam">phi_m</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t172" href="#t172">172</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t173" href="#t173">173</a></span><span class="t"><span class="com"># Convert (total angle of attack, total roll angle) to (aoam, phim)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t174" href="#t174">174</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaTPhi2AlphaMPhi</span><span class="op">(</span><span class="nam">alpha_t</span><span class="op">,</span> <span class="nam">phi</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t174" href="#t174">174</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaTPhi2AlphaMPhi</span><span class="op">(</span><span class="nam">alpha_t</span><span class="op">,</span> <span class="nam">phi</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t175" href="#t175">175</a></span><span class="t">    <span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t176" href="#t176">176</a></span><span class="t"><span class="str">    Convert total angle of attack and total roll angle to angle of attack and</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t177" href="#t177">177</a></span><span class="t"><span class="str">    sideslip angle.</span>&nbsp;</span><span class="r"></span></p>
@@ -269,7 +269,7 @@
     <p class="mis show_mis"><span class="n"><a id="t210" href="#t210">210</a></span><span class="t">    <span class="key">return</span> <span class="nam">alpha_m</span><span class="op">,</span> <span class="nam">phi_m</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t212" href="#t212">212</a></span><span class="t"><span class="com"># Convert (aoam, phim) to (aoav, phiv)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaMPhi2AlphaTPhi</span><span class="op">(</span><span class="nam">alpha_m</span><span class="op">,</span> <span class="nam">phi_m</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t"><span class="key">def</span> <span class="nam">AlphaMPhi2AlphaTPhi</span><span class="op">(</span><span class="nam">alpha_m</span><span class="op">,</span> <span class="nam">phi_m</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t214" href="#t214">214</a></span><span class="t">    <span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t"><span class="str">    Convert total angle of attack and total roll angle to angle of attack and</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t216" href="#t216">216</a></span><span class="t"><span class="str">    sideslip angle.</span>&nbsp;</span><span class="r"></span></p>
@@ -305,7 +305,7 @@
     <p class="pln"><span class="n"><a id="t246" href="#t246">246</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t247" href="#t247">247</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t248" href="#t248">248</a></span><span class="t"><span class="com"># Sutherland's law (FPS)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t249" href="#t249">249</a></span><span class="t"><span class="key">def</span> <span class="nam">SutherlandFPS</span><span class="op">(</span><span class="nam">T</span><span class="op">,</span> <span class="nam">mu0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">T0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">C</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t249" href="#t249">249</a></span><span class="t"><span class="key">def</span> <span class="nam">SutherlandFPS</span><span class="op">(</span><span class="nam">T</span><span class="op">,</span> <span class="nam">mu0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">T0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">C</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t250" href="#t250">250</a></span><span class="t">    <span class="str">"""Calculate viscosity using Sutherland's law using imperial units</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t251" href="#t251">251</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t252" href="#t252">252</a></span><span class="t"><span class="str">    This returns</span>&nbsp;</span><span class="r"></span></p>
@@ -342,7 +342,7 @@
     <p class="pln"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t"><span class="com"># def SutherlandFPS</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t284" href="#t284">284</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t285" href="#t285">285</a></span><span class="t"><span class="com"># Get Reynolds number</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t286" href="#t286">286</a></span><span class="t"><span class="key">def</span> <span class="nam">ReynoldsPerFoot</span><span class="op">(</span><span class="nam">p</span><span class="op">,</span> <span class="nam">T</span><span class="op">,</span> <span class="nam">M</span><span class="op">,</span> <span class="nam">R</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">gam</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">mu0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">T0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">C</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t286" href="#t286">286</a></span><span class="t"><span class="key">def</span> <span class="nam">ReynoldsPerFoot</span><span class="op">(</span><span class="nam">p</span><span class="op">,</span> <span class="nam">T</span><span class="op">,</span> <span class="nam">M</span><span class="op">,</span> <span class="nam">R</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">gam</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">mu0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">T0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">C</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t287" href="#t287">287</a></span><span class="t">    <span class="str">"""Calculate Reynolds number per foot using Sutherland's Law</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t288" href="#t288">288</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t289" href="#t289">289</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -391,7 +391,7 @@
     <p class="pln"><span class="n"><a id="t332" href="#t332">332</a></span><span class="t"><span class="com"># def ReynoldsPerFoot</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t333" href="#t333">333</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t334" href="#t334">334</a></span><span class="t"><span class="com"># Calculate pressure from Reynolds number</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t335" href="#t335">335</a></span><span class="t"><span class="key">def</span> <span class="nam">PressureFPSFromRe</span><span class="op">(</span><span class="nam">Re</span><span class="op">,</span> <span class="nam">T</span><span class="op">,</span> <span class="nam">M</span><span class="op">,</span> <span class="nam">R</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">gam</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">mu0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">T0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">C</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t335" href="#t335">335</a></span><span class="t"><span class="key">def</span> <span class="nam">PressureFPSFromRe</span><span class="op">(</span><span class="nam">Re</span><span class="op">,</span> <span class="nam">T</span><span class="op">,</span> <span class="nam">M</span><span class="op">,</span> <span class="nam">R</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">gam</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">mu0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">T0</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">C</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t336" href="#t336">336</a></span><span class="t">    <span class="str">"""Calculate pressure from Reynolds number</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t337" href="#t337">337</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t338" href="#t338">338</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -442,7 +442,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.2</a>,
-            created at 2022-05-13 23:27 -0700
+            created at 2022-05-17 11:49 -0700
         </p>
     </div>
 </footer>

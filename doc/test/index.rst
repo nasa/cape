@@ -11,9 +11,9 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 61
-    :time: 9.695
-    :timestamp: 2022-05-16T23:53:00.921199
+    :tests: 71
+    :time: 11.829
+    :timestamp: 2022-05-17T15:09:26.615417
     :hostname: system76-pc
 
 .. toctree::
@@ -41,6 +41,12 @@ Test report for :mod:`cape`
     002_attdb-003_regularize-01_regularize/index
     002_attdb-004_llreg-01_llreg/index
     002_attdb-005_llintegrate-01_trapz/index
+    002_attdb-006_dbfm_regularize-01_fmreg/index
+    002_attdb-007_dbfm_eval-01_eval/index
+    002_attdb-008_ll_eval-01_lleval/index
+    002_attdb-009_rdb_plot-01_rdbplot/index
+    002_attdb-010_writecsv-01_writecsv/index
+    002_attdb-011_plot_png-01_plotllpng/index
     041_uh3d-01_readuh3d/index
     050_cape_cli-001_cli/index
     051_cape_cli-001_cli_matrix/index
