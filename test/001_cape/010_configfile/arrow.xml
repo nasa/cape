@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Configuration Name="bullet sample" Source="bullet.tri">
+
+ <!-- body -->
+  <Component Name="cap" Parent="bullet_no_base" Type="tri">
+    <Data>Face Label=1</Data>
+  </Component>
+
+  <Component Name="body" Parent="bullet_no_base" Type="tri">
+    <Data>Face Label=2</Data>
+  </Component>
+
+  <Component Name="base" Parent="bullet_total" Type="tri">
+    <Data>Face Label=3</Data>
+  </Component>
+ <!-- body -->
+
+ <!-- fins -->
+  <Component Name="fin1" Parent="fins" Type="tri">
+    <Data>Face Label=11</Data>
+  </Component>
+
+  <Component Name="fin2" Parent="fins" Type="tri">
+    <Data>Face Label=12</Data>
+  </Component>
+
+  <Component Name="fin3" Parent="fins" Type="tri">
+    <Data>Face Label=13</Data>
+  </Component>
+
+  <Component Name="fin4" Parent="fins" Type="tri">
+    <Data>Face Label=14</Data>
+  </Component>
+ <!-- fins -->
+
+ <!-- Containers -->
+  <Component Name="bullet_no_base" Parent="bullet_total" Type="container">
+  </Component>
+
+  <Component Name="bullet_total" Type="container">
+  </Component>
+
+  <Component Name="fins" Parent="bullet_no_base" Type="container">
+  </Component>
+ <!-- Containers -->
+
+</Configuration>

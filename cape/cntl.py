@@ -702,7 +702,6 @@ class Cntl(object):
         cons += kw.get('constraints', '').split(',')
         # Set the constraints back into the keywords.
         kw['cons'] = [con.strip() for con in cons]
-
         # Process index list.
         if 'I' in kw:
             # Turn into a single list

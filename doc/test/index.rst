@@ -11,9 +11,9 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 35
-    :time: 4.633
-    :timestamp: 2022-05-16T14:08:10.463995
+    :tests: 53
+    :time: 9.735
+    :timestamp: 2022-05-16T20:33:06.767749
     :hostname: system76-pc
 
 .. toctree::
@@ -32,5 +32,11 @@ Test report for :mod:`cape`
     001_cape-005_cntl-01_cntl/index
     001_cape-006_cmdgen-01_cmdgen/index
     001_cape-007_databook-01_databook/index
+    001_cape-008_runmatrix_cli-01_passfail/index
+    001_cape-009_units-01_units/index
+    001_cape-010_configfile-01_xml/index
+    041_uh3d-01_readuh3d/index
+    050_cape_cli-001_cli/index
+    051_cape_cli-001_cli_matrix/index
 
 
