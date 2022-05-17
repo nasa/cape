@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/attdb/ftypes/xlsfile.py: 0%</title>
+    <title>Coverage for cape/attdb/ftypes/xlsfile.py: 12%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/attdb/ftypes/xlsfile.py</b>:
-            <span class="pc_cov">0%</span>
+            <span class="pc_cov">12%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">436 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">0<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">436<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">53<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">383<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -59,7 +59,7 @@
 <main id="source">
     <p class="pln"><span class="n"><a id="t1" href="#t1">1</a></span><span class="t"><span class="com">#!/usr/bin/env python</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t2" href="#t2">2</a></span><span class="t"><span class="com"># -*- coding: utf-8 -*-</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t3" href="#t3">3</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t3" href="#t3">3</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t4" href="#t4">4</a></span><span class="t"><span class="str">:mod:`cape.attdb.ftypes.xls`: Excel spreadsheet data interface</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t5" href="#t5">5</a></span><span class="t"><span class="str">===============================================================</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t6" href="#t6">6</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -88,33 +88,33 @@
     <p class="pln"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t"><span class="com"># Standard library</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t"><span class="key">import</span> <span class="nam">sys</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t"><span class="key">import</span> <span class="nam">copy</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t"><span class="key">import</span> <span class="nam">sys</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t"><span class="key">import</span> <span class="nam">copy</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t"><span class="com"># Third-party modules</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t"><span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">    <span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span><span class="op">.</span><span class="nam">major</span> <span class="op">==</span> <span class="num">2</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t"><span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">    <span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span><span class="op">.</span><span class="nam">major</span> <span class="op">==</span> <span class="num">2</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">        <span class="key">import</span> <span class="nam">xlrd2</span> <span class="key">as</span> <span class="nam">xlrd</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">    <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">        <span class="key">import</span> <span class="nam">xlrd3</span> <span class="key">as</span> <span class="nam">xlrd</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">        <span class="key">import</span> <span class="nam">xlrd3</span> <span class="key">as</span> <span class="nam">xlrd</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t43" href="#t43">43</a></span><span class="t">    <span class="nam">xlrd</span> <span class="op">=</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t44" href="#t44">44</a></span><span class="t"><span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t45" href="#t45">45</a></span><span class="t">    <span class="key">import</span> <span class="nam">xlsxwriter</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t44" href="#t44">44</a></span><span class="t"><span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t45" href="#t45">45</a></span><span class="t">    <span class="key">import</span> <span class="nam">xlsxwriter</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t46" href="#t46">46</a></span><span class="t"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t47" href="#t47">47</a></span><span class="t">    <span class="nam">xlsxwriter</span> <span class="op">=</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t48" href="#t48">48</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t"><span class="com"># Local imports</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t"><span class="key">from</span> <span class="op">...</span><span class="nam">tnakit</span> <span class="key">import</span> <span class="nam">typeutils</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">basefile</span> <span class="key">import</span> <span class="nam">BaseFile</span><span class="op">,</span> <span class="nam">BaseFileDefn</span><span class="op">,</span> <span class="nam">BaseFileOpts</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t"><span class="key">from</span> <span class="op">...</span><span class="nam">tnakit</span> <span class="key">import</span> <span class="nam">typeutils</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">basefile</span> <span class="key">import</span> <span class="nam">BaseFile</span><span class="op">,</span> <span class="nam">BaseFileDefn</span><span class="op">,</span> <span class="nam">BaseFileOpts</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t"><span class="com"># Options</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t"><span class="key">class</span> <span class="nam">XLSFileOpts</span><span class="op">(</span><span class="nam">BaseFileOpts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t"><span class="key">class</span> <span class="nam">XLSFileOpts</span><span class="op">(</span><span class="nam">BaseFileOpts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t">   <span class="com"># --- Global Options ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t">    <span class="com"># Option list</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">    <span class="nam">_optlist</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">    <span class="nam">_optlist</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t">        <span class="str">"ColSpec"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t60" href="#t60">60</a></span><span class="t">        <span class="str">"MaxCols"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t61" href="#t61">61</a></span><span class="t">        <span class="str">"MaxRows"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -129,7 +129,7 @@
     <p class="pln"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t72" href="#t72">72</a></span><span class="t">    <span class="com"># Alternate names</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t">    <span class="nam">_optmap</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t">    <span class="nam">_optmap</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t">        <span class="str">"WorksheetOpts"</span><span class="op">:</span> <span class="str">"WorksheetOptions"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t75" href="#t75">75</a></span><span class="t">        <span class="str">"colspec"</span><span class="op">:</span> <span class="str">"ColSpec"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t">        <span class="str">"maxcols"</span><span class="op">:</span> <span class="str">"MaxCols"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -148,7 +148,7 @@
     <p class="pln"><span class="n"><a id="t89" href="#t89">89</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t90" href="#t90">90</a></span><span class="t">   <span class="com"># --- Types ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t91" href="#t91">91</a></span><span class="t">    <span class="com"># Allowed types</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t">    <span class="nam">_opttypes</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t">    <span class="nam">_opttypes</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t93" href="#t93">93</a></span><span class="t">        <span class="str">"ColSpec"</span><span class="op">:</span> <span class="op">(</span><span class="nam">list</span><span class="op">,</span> <span class="nam">tuple</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t94" href="#t94">94</a></span><span class="t">        <span class="str">"MaxCols"</span><span class="op">:</span> <span class="nam">int</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t95" href="#t95">95</a></span><span class="t">        <span class="str">"MaxRows"</span><span class="op">:</span> <span class="nam">int</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -164,14 +164,14 @@
     <p class="pln"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t107" href="#t107">107</a></span><span class="t"><span class="com"># Combine options with parent class</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t"><span class="nam">XLSFileOpts</span><span class="op">.</span><span class="nam">combine_optdefs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t"><span class="nam">XLSFileOpts</span><span class="op">.</span><span class="nam">combine_optdefs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t109" href="#t109">109</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t"><span class="com"># Options</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t"><span class="key">class</span> <span class="nam">XLSSheetOpts</span><span class="op">(</span><span class="nam">XLSFileOpts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t"><span class="key">class</span> <span class="nam">XLSSheetOpts</span><span class="op">(</span><span class="nam">XLSFileOpts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t113" href="#t113">113</a></span><span class="t">   <span class="com"># --- Global Options ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t114" href="#t114">114</a></span><span class="t">    <span class="com"># Disallowed options</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t115" href="#t115">115</a></span><span class="t">    <span class="nam">_optrm</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t115" href="#t115">115</a></span><span class="t">    <span class="nam">_optrm</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t116" href="#t116">116</a></span><span class="t">        <span class="str">"ExpandScalars"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t117" href="#t117">117</a></span><span class="t">        <span class="str">"Definitions"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t118" href="#t118">118</a></span><span class="t">        <span class="str">"SkipSheets"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -181,38 +181,38 @@
     <p class="pln"><span class="n"><a id="t122" href="#t122">122</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t123" href="#t123">123</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t124" href="#t124">124</a></span><span class="t">    <span class="com"># Reduce option list</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t125" href="#t125">125</a></span><span class="t">    <span class="nam">_optlist</span> <span class="op">=</span> <span class="nam">set</span><span class="op">.</span><span class="nam">difference</span><span class="op">(</span><span class="nam">XLSFileOpts</span><span class="op">.</span><span class="nam">_optlist</span><span class="op">,</span> <span class="nam">_optrm</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t125" href="#t125">125</a></span><span class="t">    <span class="nam">_optlist</span> <span class="op">=</span> <span class="nam">set</span><span class="op">.</span><span class="nam">difference</span><span class="op">(</span><span class="nam">XLSFileOpts</span><span class="op">.</span><span class="nam">_optlist</span><span class="op">,</span> <span class="nam">_optrm</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t126" href="#t126">126</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t127" href="#t127">127</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t128" href="#t128">128</a></span><span class="t"><span class="com"># Definition</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t129" href="#t129">129</a></span><span class="t"><span class="key">class</span> <span class="nam">XLSFileDefn</span><span class="op">(</span><span class="nam">BaseFileDefn</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t129" href="#t129">129</a></span><span class="t"><span class="key">class</span> <span class="nam">XLSFileDefn</span><span class="op">(</span><span class="nam">BaseFileDefn</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t130" href="#t130">130</a></span><span class="t">   <span class="com"># --- Global Options ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t131" href="#t131">131</a></span><span class="t">    <span class="com"># Option list</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t132" href="#t132">132</a></span><span class="t">    <span class="nam">_optlist</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t132" href="#t132">132</a></span><span class="t">    <span class="nam">_optlist</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t133" href="#t133">133</a></span><span class="t">        <span class="str">"ColWidth"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t134" href="#t134">134</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t135" href="#t135">135</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t136" href="#t136">136</a></span><span class="t">    <span class="com"># Alternate names</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t137" href="#t137">137</a></span><span class="t">    <span class="nam">_optmap</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t137" href="#t137">137</a></span><span class="t">    <span class="nam">_optmap</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t138" href="#t138">138</a></span><span class="t">        <span class="str">"colwidth"</span><span class="op">:</span> <span class="str">"ColWidth"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t139" href="#t139">139</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t140" href="#t140">140</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t141" href="#t141">141</a></span><span class="t">   <span class="com"># --- Types ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t142" href="#t142">142</a></span><span class="t">    <span class="com"># Allowed types</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t143" href="#t143">143</a></span><span class="t">    <span class="nam">_opttypes</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t143" href="#t143">143</a></span><span class="t">    <span class="nam">_opttypes</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t144" href="#t144">144</a></span><span class="t">        <span class="str">"ColWidth"</span><span class="op">:</span> <span class="nam">int</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t145" href="#t145">145</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t146" href="#t146">146</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t147" href="#t147">147</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t148" href="#t148">148</a></span><span class="t"><span class="com"># Options for CSVFile.write_csv()</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t149" href="#t149">149</a></span><span class="t"><span class="key">class</span> <span class="nam">_WriteXLSOpts</span><span class="op">(</span><span class="nam">XLSSheetOpts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t149" href="#t149">149</a></span><span class="t"><span class="key">class</span> <span class="nam">_WriteXLSOpts</span><span class="op">(</span><span class="nam">XLSSheetOpts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t150" href="#t150">150</a></span><span class="t">  <span class="com"># ===================</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t151" href="#t151">151</a></span><span class="t">  <span class="com"># Class Attributes</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t152" href="#t152">152</a></span><span class="t">  <span class="com"># ===================</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t153" href="#t153">153</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t154" href="#t154">154</a></span><span class="t">   <span class="com"># --- Global Options ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t155" href="#t155">155</a></span><span class="t">    <span class="com"># List of options</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t156" href="#t156">156</a></span><span class="t">    <span class="nam">_optlist</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t156" href="#t156">156</a></span><span class="t">    <span class="nam">_optlist</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t157" href="#t157">157</a></span><span class="t">        <span class="str">"ColMasks"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t158" href="#t158">158</a></span><span class="t">        <span class="str">"SheetCols"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t159" href="#t159">159</a></span><span class="t">        <span class="str">"SheetNames"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -225,7 +225,7 @@
     <p class="pln"><span class="n"><a id="t166" href="#t166">166</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t167" href="#t167">167</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t168" href="#t168">168</a></span><span class="t">    <span class="com"># Alternate names</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">    <span class="nam">_optmap</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">    <span class="nam">_optmap</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t170" href="#t170">170</a></span><span class="t">        <span class="str">"colmasks"</span><span class="op">:</span> <span class="str">"ColMasks"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t171" href="#t171">171</a></span><span class="t">        <span class="str">"sheets"</span><span class="op">:</span> <span class="str">"SheetNames"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t172" href="#t172">172</a></span><span class="t">        <span class="str">"sheetcols"</span><span class="op">:</span> <span class="str">"SheetCols"</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -241,7 +241,7 @@
     <p class="pln"><span class="n"><a id="t182" href="#t182">182</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t183" href="#t183">183</a></span><span class="t">   <span class="com"># --- Types ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t184" href="#t184">184</a></span><span class="t">    <span class="com"># Types allowed</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t185" href="#t185">185</a></span><span class="t">    <span class="nam">_opttypes</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t185" href="#t185">185</a></span><span class="t">    <span class="nam">_opttypes</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t186" href="#t186">186</a></span><span class="t">        <span class="str">"ColMasks"</span><span class="op">:</span> <span class="nam">dict</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t187" href="#t187">187</a></span><span class="t">        <span class="str">"SheetCols"</span><span class="op">:</span> <span class="nam">dict</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t188" href="#t188">188</a></span><span class="t">        <span class="str">"SheetNames"</span><span class="op">:</span> <span class="nam">list</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
@@ -254,7 +254,7 @@
     <p class="pln"><span class="n"><a id="t195" href="#t195">195</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t196" href="#t196">196</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t197" href="#t197">197</a></span><span class="t">   <span class="com"># --- Defaults ---</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t198" href="#t198">198</a></span><span class="t">    <span class="nam">_rc</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t198" href="#t198">198</a></span><span class="t">    <span class="nam">_rc</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t199" href="#t199">199</a></span><span class="t">        <span class="str">"SheetNames"</span><span class="op">:</span> <span class="op">[</span><span class="str">"Sheet1"</span><span class="op">]</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t200" href="#t200">200</a></span><span class="t">        <span class="str">"TransposeCols"</span><span class="op">:</span> <span class="nam">set</span><span class="op">(</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t201" href="#t201">201</a></span><span class="t">    <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
@@ -262,16 +262,16 @@
     <p class="pln"><span class="n"><a id="t203" href="#t203">203</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t204" href="#t204">204</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t205" href="#t205">205</a></span><span class="t"><span class="com"># Combine options</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t206" href="#t206">206</a></span><span class="t"><span class="nam">_WriteXLSOpts</span><span class="op">.</span><span class="nam">combine_optdefs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t207" href="#t207">207</a></span><span class="t"><span class="nam">XLSFileOpts</span><span class="op">.</span><span class="nam">combine_optdefs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t208" href="#t208">208</a></span><span class="t"><span class="nam">XLSFileDefn</span><span class="op">.</span><span class="nam">combine_optdefs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t206" href="#t206">206</a></span><span class="t"><span class="nam">_WriteXLSOpts</span><span class="op">.</span><span class="nam">combine_optdefs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t207" href="#t207">207</a></span><span class="t"><span class="nam">XLSFileOpts</span><span class="op">.</span><span class="nam">combine_optdefs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t208" href="#t208">208</a></span><span class="t"><span class="nam">XLSFileDefn</span><span class="op">.</span><span class="nam">combine_optdefs</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t209" href="#t209">209</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t210" href="#t210">210</a></span><span class="t"><span class="com"># Add definition support to option</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t"><span class="nam">XLSFileOpts</span><span class="op">.</span><span class="nam">set_defncls</span><span class="op">(</span><span class="nam">XLSFileDefn</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t"><span class="nam">XLSFileOpts</span><span class="op">.</span><span class="nam">set_defncls</span><span class="op">(</span><span class="nam">XLSFileDefn</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t212" href="#t212">212</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t214" href="#t214">214</a></span><span class="t"><span class="com"># Class for handling data from XLS files</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t"><span class="key">class</span> <span class="nam">XLSFile</span><span class="op">(</span><span class="nam">BaseFile</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t"><span class="key">class</span> <span class="nam">XLSFile</span><span class="op">(</span><span class="nam">BaseFile</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t216" href="#t216">216</a></span><span class="t">    <span class="str">r"""Class for reading ``.xls`` and ``.xlsx`` files</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t217" href="#t217">217</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t218" href="#t218">218</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -305,9 +305,9 @@
     <p class="pln"><span class="n"><a id="t246" href="#t246">246</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t247" href="#t247">247</a></span><span class="t">   <span class="com"># --- Options ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t248" href="#t248">248</a></span><span class="t">    <span class="com"># Class for options</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t249" href="#t249">249</a></span><span class="t">    <span class="nam">_optscls</span> <span class="op">=</span> <span class="nam">XLSFileOpts</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t249" href="#t249">249</a></span><span class="t">    <span class="nam">_optscls</span> <span class="op">=</span> <span class="nam">XLSFileOpts</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t250" href="#t250">250</a></span><span class="t">    <span class="com"># Definition class</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t251" href="#t251">251</a></span><span class="t">    <span class="nam">_defncls</span> <span class="op">=</span> <span class="nam">XLSFileDefn</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t251" href="#t251">251</a></span><span class="t">    <span class="nam">_defncls</span> <span class="op">=</span> <span class="nam">XLSFileDefn</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t252" href="#t252">252</a></span><span class="t">  <span class="com"># ></span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t253" href="#t253">253</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t254" href="#t254">254</a></span><span class="t">  <span class="com"># =============</span>&nbsp;</span><span class="r"></span></p>
@@ -315,7 +315,7 @@
     <p class="pln"><span class="n"><a id="t256" href="#t256">256</a></span><span class="t">  <span class="com"># =============</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t257" href="#t257">257</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t258" href="#t258">258</a></span><span class="t">    <span class="com"># Initialization method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t259" href="#t259">259</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">sheet</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t259" href="#t259">259</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">sheet</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t260" href="#t260">260</a></span><span class="t">        <span class="str">r"""Initialization method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t261" href="#t261">261</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t262" href="#t262">262</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -355,7 +355,7 @@
     <p class="pln"><span class="n"><a id="t296" href="#t296">296</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t297" href="#t297">297</a></span><span class="t">   <span class="com"># --- Worksheet Options ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t298" href="#t298">298</a></span><span class="t">    <span class="com"># Get options for a specific worksheet, combining *kw*</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t299" href="#t299">299</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_worksheet_opts</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">sheet</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t299" href="#t299">299</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_worksheet_opts</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">sheet</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t300" href="#t300">300</a></span><span class="t">        <span class="str">r"""Get or create specific options for each worksheet</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t301" href="#t301">301</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t302" href="#t302">302</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -409,7 +409,7 @@
     <p class="pln"><span class="n"><a id="t350" href="#t350">350</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t351" href="#t351">351</a></span><span class="t">   <span class="com"># --- Control ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t352" href="#t352">352</a></span><span class="t">    <span class="com"># Reader</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t353" href="#t353">353</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">sheet</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t353" href="#t353">353</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">sheet</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t354" href="#t354">354</a></span><span class="t">        <span class="str">r"""Read an ``.xls`` or ``.xlsx`` file</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t355" href="#t355">355</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t356" href="#t356">356</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -472,7 +472,7 @@
     <p class="mis show_mis"><span class="n"><a id="t413" href="#t413">413</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">read_xls_workbook</span><span class="op">(</span><span class="nam">wb</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t414" href="#t414">414</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t415" href="#t415">415</a></span><span class="t">    <span class="com"># Read a worksheet</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t416" href="#t416">416</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls_workbook</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">wb</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t416" href="#t416">416</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls_workbook</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">wb</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t417" href="#t417">417</a></span><span class="t">        <span class="str">r"""Read ``.xls`` or ``.xlsx`` workbook with multiple worksheets</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t418" href="#t418">418</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t419" href="#t419">419</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -547,7 +547,7 @@
     <p class="mis show_mis"><span class="n"><a id="t488" href="#t488">488</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">opts</span><span class="op">[</span><span class="str">"Prefix"</span><span class="op">]</span> <span class="op">=</span> <span class="nam">_prefix</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t489" href="#t489">489</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t490" href="#t490">490</a></span><span class="t">    <span class="com"># Read a worksheet</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t491" href="#t491">491</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls_worksheet</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t491" href="#t491">491</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls_worksheet</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t492" href="#t492">492</a></span><span class="t">        <span class="str">r"""Read one worksheet of an ``.xls`` or ``.xlsx`` file</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t493" href="#t493">493</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t494" href="#t494">494</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -573,7 +573,7 @@
     <p class="pln"><span class="n"><a id="t514" href="#t514">514</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t515" href="#t515">515</a></span><span class="t">   <span class="com"># --- Header ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t516" href="#t516">516</a></span><span class="t">    <span class="com"># Read worksheet header</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t517" href="#t517">517</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls_header</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t517" href="#t517">517</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls_header</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t518" href="#t518">518</a></span><span class="t">        <span class="str">r"""Read header row from a worksheet</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t519" href="#t519">519</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t520" href="#t520">520</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -764,7 +764,7 @@
     <p class="mis show_mis"><span class="n"><a id="t705" href="#t705">705</a></span><span class="t">        <span class="key">return</span> <span class="nam">cols</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t706" href="#t706">706</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t707" href="#t707">707</a></span><span class="t">    <span class="com"># Default *skiprows* and *skipcols*</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t708" href="#t708">708</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_autoskip</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t708" href="#t708">708</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_autoskip</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t709" href="#t709">709</a></span><span class="t">        <span class="str">r"""Automatically determine number of rows and columns to skip</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t710" href="#t710">710</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t711" href="#t711">711</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -798,7 +798,7 @@
     <p class="mis show_mis"><span class="n"><a id="t739" href="#t739">739</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_worksheet_opts</span><span class="op">(</span><span class="nam">ws</span><span class="op">.</span><span class="nam">name</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t740" href="#t740">740</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t741" href="#t741">741</a></span><span class="t">    <span class="com"># Get all skip and max options</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t742" href="#t742">742</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_skip</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t742" href="#t742">742</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_skip</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t743" href="#t743">743</a></span><span class="t">        <span class="str">r"""Determine number of rows and columns to skip</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t744" href="#t744">744</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t745" href="#t745">745</a></span><span class="t"><span class="str">        This method saves a marginal amount of time by search for the</span>&nbsp;</span><span class="r"></span></p>
@@ -863,7 +863,7 @@
     <p class="pln"><span class="n"><a id="t804" href="#t804">804</a></span><span class="t">        <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t805" href="#t805">805</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t806" href="#t806">806</a></span><span class="t">    <span class="com"># Process *maxrows*</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t807" href="#t807">807</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_maxrows</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t807" href="#t807">807</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_maxrows</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t808" href="#t808">808</a></span><span class="t">        <span class="str">r"""Automatically determine maximum number of cols</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t809" href="#t809">809</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t810" href="#t810">810</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -904,7 +904,7 @@
     <p class="mis show_mis"><span class="n"><a id="t845" href="#t845">845</a></span><span class="t">        <span class="key">return</span> <span class="nam">maxrows</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t846" href="#t846">846</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t847" href="#t847">847</a></span><span class="t">    <span class="com"># Process *maxcols*</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t848" href="#t848">848</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_maxcols</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t848" href="#t848">848</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_maxcols</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t849" href="#t849">849</a></span><span class="t">        <span class="str">r"""Automatically determine maximum number of cols</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t850" href="#t850">850</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t851" href="#t851">851</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -945,7 +945,7 @@
     <p class="mis show_mis"><span class="n"><a id="t886" href="#t886">886</a></span><span class="t">        <span class="key">return</span> <span class="nam">maxcols</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t887" href="#t887">887</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t888" href="#t888">888</a></span><span class="t">    <span class="com"># Process *skiprows*</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t889" href="#t889">889</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_skiprows</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t889" href="#t889">889</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_skiprows</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t890" href="#t890">890</a></span><span class="t">        <span class="str">r"""Automatically determine number of rows to skip</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t891" href="#t891">891</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t892" href="#t892">892</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1007,7 +1007,7 @@
     <p class="mis show_mis"><span class="n"><a id="t948" href="#t948">948</a></span><span class="t">        <span class="key">return</span> <span class="nam">skiprows</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t949" href="#t949">949</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t950" href="#t950">950</a></span><span class="t">    <span class="com"># Process *skipcols*</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t951" href="#t951">951</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_skipcols</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t951" href="#t951">951</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_skipcols</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t952" href="#t952">952</a></span><span class="t">        <span class="str">r"""Automatically determine number of cols to skip</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t953" href="#t953">953</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t954" href="#t954">954</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1068,7 +1068,7 @@
     <p class="mis show_mis"><span class="n"><a id="t1009" href="#t1009">1009</a></span><span class="t">        <span class="key">return</span> <span class="nam">skipcols</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1010" href="#t1010">1010</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1011" href="#t1011">1011</a></span><span class="t">    <span class="com"># Process *subrows*</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1012" href="#t1012">1012</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_subrows</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1012" href="#t1012">1012</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_subrows</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1013" href="#t1013">1013</a></span><span class="t">        <span class="str">r"""Determine number of rows to skip *below* header row</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1014" href="#t1014">1014</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1015" href="#t1015">1015</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1130,7 +1130,7 @@
     <p class="mis show_mis"><span class="n"><a id="t1071" href="#t1071">1071</a></span><span class="t">        <span class="key">return</span> <span class="nam">subrows</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1072" href="#t1072">1072</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1073" href="#t1073">1073</a></span><span class="t">    <span class="com"># Process *subcols*</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1074" href="#t1074">1074</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_subcols</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1074" href="#t1074">1074</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_subcols</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1075" href="#t1075">1075</a></span><span class="t">        <span class="str">r"""Determine number of cols to skip *after* first column</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1076" href="#t1076">1076</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1077" href="#t1077">1077</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1177,7 +1177,7 @@
     <p class="pln"><span class="n"><a id="t1118" href="#t1118">1118</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1119" href="#t1119">1119</a></span><span class="t">   <span class="com"># --- Data ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1120" href="#t1120">1120</a></span><span class="t">    <span class="com"># Read data</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1121" href="#t1121">1121</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls_coldata</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="nam">cols</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1121" href="#t1121">1121</a></span><span class="t">    <span class="key">def</span> <span class="nam">read_xls_coldata</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="nam">cols</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1122" href="#t1122">1122</a></span><span class="t">        <span class="str">r"""Read column data from one ``.xls`` or ``.xlsx`` worksheet</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1123" href="#t1123">1123</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1124" href="#t1124">1124</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1284,7 +1284,7 @@
     <p class="pln"><span class="n"><a id="t1225" href="#t1225">1225</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1226" href="#t1226">1226</a></span><span class="t">   <span class="com"># --- Write Drivers ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1227" href="#t1227">1227</a></span><span class="t">    <span class="com"># Write a workbook</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1228" href="#t1228">1228</a></span><span class="t">    <span class="key">def</span> <span class="nam">write_xls</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">cols</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1228" href="#t1228">1228</a></span><span class="t">    <span class="key">def</span> <span class="nam">write_xls</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">cols</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1229" href="#t1229">1229</a></span><span class="t">        <span class="str">r"""Write data to one or more worksheets</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1230" href="#t1230">1230</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1231" href="#t1231">1231</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1357,7 +1357,7 @@
     <p class="mis show_mis"><span class="n"><a id="t1298" href="#t1298">1298</a></span><span class="t">            <span class="nam">wb</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1299" href="#t1299">1299</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1300" href="#t1300">1300</a></span><span class="t">    <span class="com"># Write a workbook</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1301" href="#t1301">1301</a></span><span class="t">    <span class="key">def</span> <span class="nam">_write_xls</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">wb</span><span class="op">,</span> <span class="nam">cols</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1301" href="#t1301">1301</a></span><span class="t">    <span class="key">def</span> <span class="nam">_write_xls</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">wb</span><span class="op">,</span> <span class="nam">cols</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1302" href="#t1302">1302</a></span><span class="t">        <span class="str">r"""Write data to one or more worksheets</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1303" href="#t1303">1303</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1304" href="#t1304">1304</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1498,7 +1498,7 @@
     <p class="pln"><span class="n"><a id="t1439" href="#t1439">1439</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1440" href="#t1440">1440</a></span><span class="t">   <span class="com"># --- Worksheet Writers ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1441" href="#t1441">1441</a></span><span class="t">    <span class="com"># Write worksheet</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1442" href="#t1442">1442</a></span><span class="t">    <span class="key">def</span> <span class="nam">_write_xls_worksheet</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="nam">cols</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1442" href="#t1442">1442</a></span><span class="t">    <span class="key">def</span> <span class="nam">_write_xls_worksheet</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">ws</span><span class="op">,</span> <span class="nam">cols</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1443" href="#t1443">1443</a></span><span class="t">        <span class="str">r"""Write data to one worksheet</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1444" href="#t1444">1444</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1445" href="#t1445">1445</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1594,7 +1594,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.2</a>,
-            created at 2022-05-13 23:27 -0700
+            created at 2022-05-16 23:12 -0700
         </p>
     </div>
 </footer>
