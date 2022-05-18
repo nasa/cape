@@ -2140,6 +2140,9 @@ class RunMatrix(dict):
         elif t in ['str', 'unicode']:
             # Split.
             ITXT = itxt.split(',')
+        elif t.startswith("int"):
+            # Got a scalar
+            return [itxt]
         else:
             # Invalid format
             return []

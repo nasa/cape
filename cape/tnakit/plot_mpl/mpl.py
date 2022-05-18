@@ -114,6 +114,12 @@ def _import_pyplot():
         return
 
 
+# Close a figure
+def close(fig=None):
+    _import_pyplot()
+    plt.close(fig)
+
+
 # Figure part
 def figure(**kw):
     r"""Get or create figure handle and format it
@@ -2340,7 +2346,7 @@ def _legend(ax=None, **kw):
     # Get Number of rows
     nrow = (ntext // ncol) + (ntext % ncol > 0)
     # Default font size
-    if nrow > 5:
+    if nrow > 5 or ncol > 2:
         # Smaller font
         fsize = 7
     else:
