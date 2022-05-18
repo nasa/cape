@@ -103,4 +103,3 @@ def test_03_response_contour():
     h.close()
     # Test it
     testutils.assert_png(fimg, op.join(FDIR, fimg), tol=0.93)
-
