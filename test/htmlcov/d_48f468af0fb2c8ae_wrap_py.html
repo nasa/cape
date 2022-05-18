@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/tnakit/textutils/wrap.py: 59%</title>
+    <title>Coverage for cape/tnakit/textutils/wrap.py: 63%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/tnakit/textutils/wrap.py</b>:
-            <span class="pc_cov">59%</span>
+            <span class="pc_cov">63%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">78 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">46<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">32<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">49<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">29<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -105,9 +105,9 @@
     <p class="pln"><span class="n"><a id="t46" href="#t46">46</a></span><span class="t">    <span class="com"># Process width for first line</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t47" href="#t47">47</a></span><span class="t">    <span class="key">if</span> <span class="nam">cwidth1</span> <span class="key">is</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t48" href="#t48">48</a></span><span class="t">        <span class="nam">cwidth1</span> <span class="op">=</span> <span class="nam">cwidth</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t">    <span class="key">elif</span> <span class="key">not</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">cwidth1</span><span class="op">,</span> <span class="nam">int</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t49" href="#t49">49</a></span><span class="t">    <span class="key">elif</span> <span class="key">not</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">cwidth1</span><span class="op">,</span> <span class="nam">int</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t50" href="#t50">50</a></span><span class="t">        <span class="key">raise</span> <span class="nam">TypeError</span><span class="op">(</span><span class="str">"Max width for line 1 must be int"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">    <span class="key">elif</span> <span class="nam">cwidth1</span> <span class="op">&lt;</span> <span class="num">1</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t51" href="#t51">51</a></span><span class="t">    <span class="key">elif</span> <span class="nam">cwidth1</span> <span class="op">&lt;</span> <span class="num">1</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t52" href="#t52">52</a></span><span class="t">        <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span><span class="str">"Max width for line 1 must be positive"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t53" href="#t53">53</a></span><span class="t">    <span class="com"># Process indent for first line</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">    <span class="key">if</span> <span class="nam">indent1</span> <span class="key">is</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -124,7 +124,7 @@
     <p class="pln"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">    <span class="com"># Check for null indent</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">    <span class="key">if</span> <span class="op">(</span><span class="nam">indent</span> <span class="op">==</span> <span class="num">0</span><span class="op">)</span> <span class="key">and</span> <span class="op">(</span><span class="nam">indent1</span> <span class="op">==</span> <span class="num">0</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">        <span class="com"># No alteration required</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t">        <span class="key">return</span> <span class="nam">lines</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t">        <span class="key">return</span> <span class="nam">lines</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t">    <span class="com"># Turn indents into spaces</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t">    <span class="nam">tab1</span> <span class="op">=</span> <span class="str">" "</span> <span class="op">*</span> <span class="nam">indent1</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t">    <span class="nam">tab0</span> <span class="op">=</span> <span class="str">" "</span> <span class="op">*</span> <span class="nam">indent</span>&nbsp;</span><span class="r"></span></p>
@@ -242,7 +242,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.2</a>,
-            created at 2022-05-13 23:27 -0700
+            created at 2022-05-18 14:56 -0700
         </p>
     </div>
 </footer>

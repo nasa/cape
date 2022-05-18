@@ -11,9 +11,9 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 95
-    :time: 12.717
-    :timestamp: 2022-05-18T11:12:14.788205
+    :tests: 104
+    :time: 12.889
+    :timestamp: 2022-05-18T15:12:02.241754
     :hostname: system76-pc
 
 .. toctree::
@@ -58,6 +58,14 @@ Test report for :mod:`cape`
     002_attdb-019_csv_noheader-01_csvnoheader/index
     002_attdb-020_text_runmatrix-01_textdatamatrix/index
     002_attdb-021_xlsfile-01_xlsfile/index
+    002_attdb-021_xlsfile-02_workbook/index
+    002_attdb-022_matfile-01_matfile/index
+    002_attdb-022_matfile-02_mat_lineload/index
+    003_tnakit-001_subplot_col-01_plotcol/index
+    003_tnakit-002_pmpl_opts-01_plotopts/index
+    003_tnakit-003_plotcontour-01_contourplot/index
+    003_tnakit-004_axlabel-01_axlabel/index
+    003_tnakit-005_scatter-01_scatterplot/index
     041_uh3d-01_readuh3d/index
     050_cape_cli-001_cli/index
     051_cape_cli-001_cli_matrix/index
