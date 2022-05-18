@@ -11,9 +11,9 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 75
-    :time: 13.128
-    :timestamp: 2022-05-17T15:48:13.097301
+    :tests: 79
+    :time: 12.348
+    :timestamp: 2022-05-18T00:01:50.751895
     :hostname: system76-pc
 
 .. toctree::
@@ -49,6 +49,8 @@ Test report for :mod:`cape`
     002_attdb-011_plot_png-01_plotllpng/index
     002_attdb-012_plot_seam-01_plot_seam/index
     002_attdb-013_plot_contour-01_plot_contour/index
+    002_attdb-014_write_tsv-01_tsv/index
+    002_attdb-015_read_tsv-01_readtsv/index
     041_uh3d-01_readuh3d/index
     050_cape_cli-001_cli/index
     051_cape_cli-001_cli_matrix/index
