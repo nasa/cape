@@ -3,7 +3,7 @@
 # Third-party
 import testutils
 
-# Local imports 
+# Local imports
 import cape.attdb.rdb as rdb
 
 

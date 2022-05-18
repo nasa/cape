@@ -11,9 +11,9 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 79
-    :time: 12.348
-    :timestamp: 2022-05-18T00:01:50.751895
+    :tests: 95
+    :time: 12.717
+    :timestamp: 2022-05-18T11:12:14.788205
     :hostname: system76-pc
 
 .. toctree::
@@ -36,6 +36,7 @@ Test report for :mod:`cape`
     001_cape-009_units-01_units/index
     001_cape-010_configfile-01_xml/index
     002_attdb-001_importattdb/index
+    002_attdb-002_importftypes/index
     002_attdb-001_rdb_io-01_io/index
     002_attdb-002_rdb_find-01_find/index
     002_attdb-003_regularize-01_regularize/index
@@ -51,6 +52,12 @@ Test report for :mod:`cape`
     002_attdb-013_plot_contour-01_plot_contour/index
     002_attdb-014_write_tsv-01_tsv/index
     002_attdb-015_read_tsv-01_readtsv/index
+    002_attdb-016_csv_float-01_csvfloat/index
+    002_attdb-017_csv_num-01_csvnum/index
+    002_attdb-018_csv_mixed-01_csvmixed/index
+    002_attdb-019_csv_noheader-01_csvnoheader/index
+    002_attdb-020_text_runmatrix-01_textdatamatrix/index
+    002_attdb-021_xlsfile-01_xlsfile/index
     041_uh3d-01_readuh3d/index
     050_cape_cli-001_cli/index
     051_cape_cli-001_cli_matrix/index
