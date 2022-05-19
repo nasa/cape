@@ -43,8 +43,8 @@
             </div>
         </div>
         <h2>
-            <span class="text">511 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">348<span class="text"> run</span></button>
+            <span class="text">504 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">341<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">163<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
@@ -792,7 +792,7 @@
     <p class="pln"><span class="n"><a id="t733" href="#t733">733</a></span><span class="t">   <span class="com"># --- Filtering ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t734" href="#t734">734</a></span><span class="t">    <span class="com"># Remove ``None`` keys</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t735" href="#t735">735</a></span><span class="t">    <span class="op">@</span><span class="nam">classmethod</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t736" href="#t736">736</a></span><span class="t">    <span class="key">def</span> <span class="nam">denone</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">opts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t736" href="#t736">736</a></span><span class="t">    <span class="key">def</span> <span class="nam">denone</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">opts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t737" href="#t737">737</a></span><span class="t">        <span class="str">r"""Remove any keys whose value is ``None``</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t738" href="#t738">738</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t739" href="#t739">739</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -873,7 +873,7 @@
     <p class="pln"><span class="n"><a id="t814" href="#t814">814</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t815" href="#t815">815</a></span><span class="t">    <span class="com"># Get rule for phase beyond end of list</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t816" href="#t816">816</a></span><span class="t">    <span class="op">@</span><span class="nam">classmethod</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t817" href="#t817">817</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_listtype</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">k</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t817" href="#t817">817</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_listtype</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">k</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t818" href="#t818">818</a></span><span class="t">        <span class="str">r"""Get "ring" or "holdlast"  option for named key</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t819" href="#t819">819</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t820" href="#t820">820</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1087,7 +1087,7 @@
     <p class="pln"><span class="n"><a id="t1028" href="#t1028">1028</a></span><span class="t">   <span class="com"># --- Option Lists by Option ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1029" href="#t1029">1029</a></span><span class="t">    <span class="com"># Get list of option that affect a section</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1030" href="#t1030">1030</a></span><span class="t">    <span class="op">@</span><span class="nam">classmethod</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1031" href="#t1031">1031</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_optlist_section</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">sec</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1031" href="#t1031">1031</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_optlist_section</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">sec</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1032" href="#t1032">1032</a></span><span class="t">        <span class="str">r"""Get list of options that affect one section</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1033" href="#t1033">1033</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1034" href="#t1034">1034</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1110,7 +1110,7 @@
     <p class="pln"><span class="n"><a id="t1051" href="#t1051">1051</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1052" href="#t1052">1052</a></span><span class="t">    <span class="com"># Get list of options that a list of options</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1053" href="#t1053">1053</a></span><span class="t">    <span class="op">@</span><span class="nam">classmethod</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1054" href="#t1054">1054</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_optlist_list</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">opts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1054" href="#t1054">1054</a></span><span class="t">    <span class="key">def</span> <span class="nam">_get_optlist_list</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">opts</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1055" href="#t1055">1055</a></span><span class="t">        <span class="str">r"""Get list of options that affect a list of options</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1056" href="#t1056">1056</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1057" href="#t1057">1057</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1612,7 +1612,7 @@
     <p class="pln"><span class="n"><a id="t1553" href="#t1553">1553</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1554" href="#t1554">1554</a></span><span class="t">   <span class="com"># --- Class Attribute ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1555" href="#t1555">1555</a></span><span class="t">    <span class="op">@</span><span class="nam">classmethod</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1556" href="#t1556">1556</a></span><span class="t">    <span class="key">def</span> <span class="nam">_getattr_class</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">attr</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1556" href="#t1556">1556</a></span><span class="t">    <span class="key">def</span> <span class="nam">_getattr_class</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">attr</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1557" href="#t1557">1557</a></span><span class="t">        <span class="str">r"""Get a class attribute with additional rules</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1558" href="#t1558">1558</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1559" href="#t1559">1559</a></span><span class="t"><span class="str">        1. If *attr* is in *cls.__dict__*, return it</span>&nbsp;</span><span class="r"></span></p>
@@ -1654,7 +1654,7 @@
     <p class="pln"><span class="n"><a id="t1595" href="#t1595">1595</a></span><span class="t">   <span class="com"># --- Option Addition ---</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1596" href="#t1596">1596</a></span><span class="t">    <span class="com"># Add an option to the list</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1597" href="#t1597">1597</a></span><span class="t">    <span class="op">@</span><span class="nam">classmethod</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1598" href="#t1598">1598</a></span><span class="t">    <span class="key">def</span> <span class="nam">_add_option</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">opt</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1598" href="#t1598">1598</a></span><span class="t">    <span class="key">def</span> <span class="nam">_add_option</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">opt</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1599" href="#t1599">1599</a></span><span class="t">        <span class="str">r"""Add an option to a class's option list</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1600" href="#t1600">1600</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1601" href="#t1601">1601</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1685,7 +1685,7 @@
     <p class="pln"><span class="n"><a id="t1626" href="#t1626">1626</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1627" href="#t1627">1627</a></span><span class="t">    <span class="com"># Declare an option's type</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1628" href="#t1628">1628</a></span><span class="t">    <span class="op">@</span><span class="nam">classmethod</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1629" href="#t1629">1629</a></span><span class="t">    <span class="key">def</span> <span class="nam">_add_opttype</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">opt</span><span class="op">,</span> <span class="nam">opttype</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1629" href="#t1629">1629</a></span><span class="t">    <span class="key">def</span> <span class="nam">_add_opttype</span><span class="op">(</span><span class="nam">cls</span><span class="op">,</span> <span class="nam">opt</span><span class="op">,</span> <span class="nam">opttype</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1630" href="#t1630">1630</a></span><span class="t">        <span class="str">r"""Declare a particular option's required type</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1631" href="#t1631">1631</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1632" href="#t1632">1632</a></span><span class="t"><span class="str">        Checks on *opttype* are not performed.  This method extends the</span>&nbsp;</span><span class="r"></span></p>
@@ -1923,8 +1923,8 @@
 <footer>
     <div class="content">
         <p>
-            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.2</a>,
-            created at 2022-05-17 15:22 -0700
+            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.2</a>,
+            created at 2022-05-18 23:09 -0700
         </p>
     </div>
 </footer>

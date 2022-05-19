@@ -7,14 +7,14 @@ Test report for :mod:`cape`
 
 **Test summary**:
 
-    :name: pytest
     :errors: 0
     :failures: 0
+    :hostname: linux281.nas.nasa.gov
+    :name: pytest
     :skipped: 0
-    :tests: 104
-    :time: 12.889
-    :timestamp: 2022-05-18T15:12:02.241754
-    :hostname: system76-pc
+    :tests: 106
+    :time: 39.861
+    :timestamp: 2022-05-18T23:15:21.455068
 
 .. toctree::
 
@@ -69,5 +69,6 @@ Test report for :mod:`cape`
     041_uh3d-01_readuh3d/index
     050_cape_cli-001_cli/index
     051_cape_cli-001_cli_matrix/index
+    901_pycart-001_bullet-001_pycartcli/index
 
 

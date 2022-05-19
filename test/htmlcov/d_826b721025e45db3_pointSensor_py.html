@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/cfdx/pointSensor.py: 0%</title>
+    <title>Coverage for cape/cfdx/pointSensor.py: 19%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/cfdx/pointSensor.py</b>:
-            <span class="pc_cov">0%</span>
+            <span class="pc_cov">19%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">228 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">0<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">228<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">43<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">185<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -121,26 +121,26 @@
     <p class="pln"><span class="n"><a id="t62" href="#t62">62</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t"><span class="com"># Standard library</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t"><span class="key">import</span> <span class="nam">os</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t"><span class="key">import</span> <span class="nam">glob</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t"><span class="key">import</span> <span class="nam">os</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t"><span class="key">import</span> <span class="nam">glob</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t"><span class="com"># Third-party modules</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t"><span class="key">import</span> <span class="nam">numpy</span> <span class="key">as</span> <span class="nam">np</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t"><span class="com"># CAEP modules</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t72" href="#t72">72</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="op">.</span> <span class="key">import</span> <span class="nam">util</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t"><span class="key">from</span> <span class="op">.</span> <span class="key">import</span> <span class="nam">case</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t"><span class="key">from</span> <span class="op">.</span> <span class="key">import</span> <span class="nam">dataBook</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t72" href="#t72">72</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="op">.</span> <span class="key">import</span> <span class="nam">util</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t"><span class="key">from</span> <span class="op">.</span> <span class="key">import</span> <span class="nam">case</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t"><span class="key">from</span> <span class="op">.</span> <span class="key">import</span> <span class="nam">dataBook</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t75" href="#t75">75</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t"><span class="com"># CAPE modules: direct import</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t77" href="#t77">77</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">options</span>   <span class="key">import</span> <span class="nam">odict</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t77" href="#t77">77</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">options</span>   <span class="key">import</span> <span class="nam">odict</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t78" href="#t78">78</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t79" href="#t79">79</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t80" href="#t80">80</a></span><span class="t"><span class="com"># Placeholder variables for plotting functions.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t81" href="#t81">81</a></span><span class="t"><span class="nam">plt</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t81" href="#t81">81</a></span><span class="t"><span class="nam">plt</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t82" href="#t82">82</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t83" href="#t83">83</a></span><span class="t"><span class="com"># Dedicated function to load Matplotlib only when needed.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t84" href="#t84">84</a></span><span class="t"><span class="key">def</span> <span class="nam">ImportPyPlot</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t84" href="#t84">84</a></span><span class="t"><span class="key">def</span> <span class="nam">ImportPyPlot</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t85" href="#t85">85</a></span><span class="t">    <span class="str">"""Import :mod:`matplotlib.pyplot` if not loaded</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t86" href="#t86">86</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t87" href="#t87">87</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -164,7 +164,7 @@
     <p class="pln"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t107" href="#t107">107</a></span><span class="t"><span class="com"># Data book for group of point sensors</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t"><span class="key">class</span> <span class="nam">DBPointSensorGroup</span><span class="op">(</span><span class="nam">dataBook</span><span class="op">.</span><span class="nam">DBBase</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t"><span class="key">class</span> <span class="nam">DBPointSensorGroup</span><span class="op">(</span><span class="nam">dataBook</span><span class="op">.</span><span class="nam">DBBase</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t109" href="#t109">109</a></span><span class="t">    <span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t"><span class="str">    Point sensor group data book</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
@@ -192,7 +192,7 @@
     <p class="pln"><span class="n"><a id="t133" href="#t133">133</a></span><span class="t">  <span class="com"># ==========</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t134" href="#t134">134</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t135" href="#t135">135</a></span><span class="t">    <span class="com"># Initialization method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t136" href="#t136">136</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">x</span><span class="op">,</span> <span class="nam">opts</span><span class="op">,</span> <span class="nam">name</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t136" href="#t136">136</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">x</span><span class="op">,</span> <span class="nam">opts</span><span class="op">,</span> <span class="nam">name</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t137" href="#t137">137</a></span><span class="t">        <span class="str">"""Initialization method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t138" href="#t138">138</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t139" href="#t139">139</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -216,7 +216,7 @@
     <p class="mis show_mis"><span class="n"><a id="t157" href="#t157">157</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">ReadPointSensor</span><span class="op">(</span><span class="nam">pt</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t158" href="#t158">158</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t159" href="#t159">159</a></span><span class="t">    <span class="com"># Representation method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t160" href="#t160">160</a></span><span class="t">    <span class="key">def</span> <span class="nam">__repr__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t160" href="#t160">160</a></span><span class="t">    <span class="key">def</span> <span class="nam">__repr__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t161" href="#t161">161</a></span><span class="t">        <span class="str">"""Representation method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t162" href="#t162">162</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t163" href="#t163">163</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -228,10 +228,10 @@
     <p class="mis show_mis"><span class="n"><a id="t169" href="#t169">169</a></span><span class="t">        <span class="nam">lbl</span> <span class="op">+=</span> <span class="str">"nPoint=%i>"</span> <span class="op">%</span> <span class="nam">len</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">pts</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t170" href="#t170">170</a></span><span class="t">        <span class="com"># Output</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t171" href="#t171">171</a></span><span class="t">        <span class="key">return</span> <span class="nam">lbl</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t172" href="#t172">172</a></span><span class="t">    <span class="nam">__str__</span> <span class="op">=</span> <span class="nam">__repr__</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t172" href="#t172">172</a></span><span class="t">    <span class="nam">__str__</span> <span class="op">=</span> <span class="nam">__repr__</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t173" href="#t173">173</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t174" href="#t174">174</a></span><span class="t">    <span class="com"># Read a point sensor</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t175" href="#t175">175</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadPointSensor</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t175" href="#t175">175</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadPointSensor</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t176" href="#t176">176</a></span><span class="t">        <span class="str">"""Read a point sensor</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t177" href="#t177">177</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t178" href="#t178">178</a></span><span class="t"><span class="str">        This function needs to be customized for each derived class so that the</span>&nbsp;</span><span class="r"></span></p>
@@ -256,7 +256,7 @@
     <p class="pln"><span class="n"><a id="t197" href="#t197">197</a></span><span class="t">  <span class="com"># ======</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t198" href="#t198">198</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t199" href="#t199">199</a></span><span class="t">    <span class="com"># Output method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t200" href="#t200">200</a></span><span class="t">    <span class="key">def</span> <span class="nam">Write</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">merge</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="nam">unlock</span><span class="op">=</span><span class="key">True</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t200" href="#t200">200</a></span><span class="t">    <span class="key">def</span> <span class="nam">Write</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">merge</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="nam">unlock</span><span class="op">=</span><span class="key">True</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t201" href="#t201">201</a></span><span class="t">        <span class="str">"""Write to file each point sensor data book in a group</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t202" href="#t202">202</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t203" href="#t203">203</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -284,7 +284,7 @@
     <p class="pln"><span class="n"><a id="t225" href="#t225">225</a></span><span class="t">  <span class="com"># ==========</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t226" href="#t226">226</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t227" href="#t227">227</a></span><span class="t">    <span class="com"># Read case point data</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t228" href="#t228">228</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCasePoint</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t228" href="#t228">228</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCasePoint</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t229" href="#t229">229</a></span><span class="t">        <span class="str">"""Read point data from current run folder</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t230" href="#t230">230</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t231" href="#t231">231</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -311,7 +311,7 @@
     <p class="pln"><span class="n"><a id="t252" href="#t252">252</a></span><span class="t">  <span class="com"># =============</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t253" href="#t253">253</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t254" href="#t254">254</a></span><span class="t">    <span class="com"># Sort data book</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t255" href="#t255">255</a></span><span class="t">    <span class="key">def</span> <span class="nam">Sort</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t255" href="#t255">255</a></span><span class="t">    <span class="key">def</span> <span class="nam">Sort</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t256" href="#t256">256</a></span><span class="t">        <span class="str">"""Sort each point sensor data book in a group</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t257" href="#t257">257</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t258" href="#t258">258</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -336,7 +336,7 @@
     <p class="pln"><span class="n"><a id="t277" href="#t277">277</a></span><span class="t">   <span class="com"># -------</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t278" href="#t278">278</a></span><span class="t">   <span class="com"># [</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t279" href="#t279">279</a></span><span class="t">    <span class="com"># Process list of components</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">    <span class="key">def</span> <span class="nam">ProcessComps</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t280" href="#t280">280</a></span><span class="t">    <span class="key">def</span> <span class="nam">ProcessComps</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t281" href="#t281">281</a></span><span class="t">        <span class="str">"""Process list of points</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t282" href="#t282">282</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t283" href="#t283">283</a></span><span class="t"><span class="str">        This performs several conversions:</span>&nbsp;</span><span class="r"></span></p>
@@ -381,7 +381,7 @@
     <p class="pln"><span class="n"><a id="t322" href="#t322">322</a></span><span class="t">   <span class="com"># -----------</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t323" href="#t323">323</a></span><span class="t">   <span class="com"># [</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t324" href="#t324">324</a></span><span class="t">    <span class="com"># Update data book</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t325" href="#t325">325</a></span><span class="t">    <span class="key">def</span> <span class="nam">Update</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">I</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">pt</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t325" href="#t325">325</a></span><span class="t">    <span class="key">def</span> <span class="nam">Update</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">I</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">pt</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t326" href="#t326">326</a></span><span class="t">        <span class="str">"""Update the data book for a list of cases from the run matrix</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t327" href="#t327">327</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t328" href="#t328">328</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -437,7 +437,7 @@
     <p class="mis show_mis"><span class="n"><a id="t378" href="#t378">378</a></span><span class="t">            <span class="nam">self</span><span class="op">[</span><span class="nam">pt</span><span class="op">]</span><span class="op">.</span><span class="nam">Write</span><span class="op">(</span><span class="nam">merge</span><span class="op">=</span><span class="key">True</span><span class="op">,</span> <span class="nam">unlock</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t379" href="#t379">379</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t380" href="#t380">380</a></span><span class="t">    <span class="com"># Update a case (alternate grouping)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t381" href="#t381">381</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateCase</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">,</span> <span class="nam">pt</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t381" href="#t381">381</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateCase</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">,</span> <span class="nam">pt</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t382" href="#t382">382</a></span><span class="t">        <span class="str">"""Update all points for one case</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t383" href="#t383">383</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t384" href="#t384">384</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -475,7 +475,7 @@
     <p class="mis show_mis"><span class="n"><a id="t416" href="#t416">416</a></span><span class="t">        <span class="key">return</span> <span class="nam">n</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t417" href="#t417">417</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t418" href="#t418">418</a></span><span class="t">    <span class="com"># Update or add an entry for one component</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t419" href="#t419">419</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateCaseComp</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t419" href="#t419">419</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateCaseComp</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t420" href="#t420">420</a></span><span class="t">        <span class="str">"""Update or add a case to a point data book</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t421" href="#t421">421</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t422" href="#t422">422</a></span><span class="t"><span class="str">        The history of a run directory is processed if either one of three</span>&nbsp;</span><span class="r"></span></p>
@@ -590,7 +590,7 @@
     <p class="pln"><span class="n"><a id="t531" href="#t531">531</a></span><span class="t">   <span class="com"># -------</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t532" href="#t532">532</a></span><span class="t">   <span class="com"># [</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t533" href="#t533">533</a></span><span class="t">    <span class="com"># Function to delete entries by index</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t534" href="#t534">534</a></span><span class="t">    <span class="key">def</span> <span class="nam">DeleteCases</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">I</span><span class="op">,</span> <span class="nam">pt</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t534" href="#t534">534</a></span><span class="t">    <span class="key">def</span> <span class="nam">DeleteCases</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">I</span><span class="op">,</span> <span class="nam">pt</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t535" href="#t535">535</a></span><span class="t">        <span class="str">"""Delete list of cases from point sensor data book</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t536" href="#t536">536</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t537" href="#t537">537</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -624,7 +624,7 @@
     <p class="mis show_mis"><span class="n"><a id="t565" href="#t565">565</a></span><span class="t">                <span class="nam">self</span><span class="op">[</span><span class="nam">comp</span><span class="op">]</span><span class="op">.</span><span class="nam">Unlock</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t566" href="#t566">566</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t567" href="#t567">567</a></span><span class="t">    <span class="com"># Function to delete entries by index</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t568" href="#t568">568</a></span><span class="t">    <span class="key">def</span> <span class="nam">DeleteCasesComp</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">I</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t568" href="#t568">568</a></span><span class="t">    <span class="key">def</span> <span class="nam">DeleteCasesComp</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">I</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t569" href="#t569">569</a></span><span class="t">        <span class="str">"""Delete list of cases from data book</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t570" href="#t570">570</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t571" href="#t571">571</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -690,7 +690,7 @@
     <p class="pln"><span class="n"><a id="t631" href="#t631">631</a></span><span class="t">  <span class="com"># ============</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t632" href="#t632">632</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t633" href="#t633">633</a></span><span class="t">    <span class="com"># Sorting method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t634" href="#t634">634</a></span><span class="t">    <span class="key">def</span> <span class="nam">Sort</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t634" href="#t634">634</a></span><span class="t">    <span class="key">def</span> <span class="nam">Sort</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t635" href="#t635">635</a></span><span class="t">        <span class="str">"""Sort point sensor group</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t636" href="#t636">636</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t637" href="#t637">637</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -706,7 +706,7 @@
     <p class="mis show_mis"><span class="n"><a id="t647" href="#t647">647</a></span><span class="t">            <span class="nam">self</span><span class="op">[</span><span class="nam">pt</span><span class="op">]</span><span class="op">.</span><span class="nam">Sort</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t648" href="#t648">648</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t649" href="#t649">649</a></span><span class="t">    <span class="com"># Match the databook copy of the trajectory</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t650" href="#t650">650</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateRunMatrix</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t650" href="#t650">650</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateRunMatrix</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t651" href="#t651">651</a></span><span class="t">        <span class="str">"""Match the trajectory to the cases in the data book</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t652" href="#t652">652</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t653" href="#t653">653</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -732,7 +732,7 @@
     <p class="pln"><span class="n"><a id="t673" href="#t673">673</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t674" href="#t674">674</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t675" href="#t675">675</a></span><span class="t"><span class="com"># Class for surface pressures pulled from triq</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t676" href="#t676">676</a></span><span class="t"><span class="key">class</span> <span class="nam">DBTriqPointGroup</span><span class="op">(</span><span class="nam">DBPointSensorGroup</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t676" href="#t676">676</a></span><span class="t"><span class="key">class</span> <span class="nam">DBTriqPointGroup</span><span class="op">(</span><span class="nam">DBPointSensorGroup</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t677" href="#t677">677</a></span><span class="t">    <span class="str">"""Post-processed point sensor group data book</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t678" href="#t678">678</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t679" href="#t679">679</a></span><span class="t"><span class="str">    :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -759,7 +759,7 @@
     <p class="pln"><span class="n"><a id="t700" href="#t700">700</a></span><span class="t">  <span class="com"># ==========</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t701" href="#t701">701</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t702" href="#t702">702</a></span><span class="t">    <span class="com"># Initialization method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t703" href="#t703">703</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">x</span><span class="op">,</span> <span class="nam">opts</span><span class="op">,</span> <span class="nam">name</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t703" href="#t703">703</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">x</span><span class="op">,</span> <span class="nam">opts</span><span class="op">,</span> <span class="nam">name</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t704" href="#t704">704</a></span><span class="t">        <span class="str">"""Initialization method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t705" href="#t705">705</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t706" href="#t706">706</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -783,7 +783,7 @@
     <p class="mis show_mis"><span class="n"><a id="t724" href="#t724">724</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">ReadPointSensor</span><span class="op">(</span><span class="nam">pt</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t725" href="#t725">725</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t726" href="#t726">726</a></span><span class="t">    <span class="com"># Representation method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t727" href="#t727">727</a></span><span class="t">    <span class="key">def</span> <span class="nam">__repr__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t727" href="#t727">727</a></span><span class="t">    <span class="key">def</span> <span class="nam">__repr__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t728" href="#t728">728</a></span><span class="t">        <span class="str">"""Representation method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t729" href="#t729">729</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t730" href="#t730">730</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -795,10 +795,10 @@
     <p class="mis show_mis"><span class="n"><a id="t736" href="#t736">736</a></span><span class="t">        <span class="nam">lbl</span> <span class="op">+=</span> <span class="str">"nPoint=%i>"</span> <span class="op">%</span> <span class="nam">len</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">pts</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t737" href="#t737">737</a></span><span class="t">        <span class="com"># Output</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t738" href="#t738">738</a></span><span class="t">        <span class="key">return</span> <span class="nam">lbl</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t739" href="#t739">739</a></span><span class="t">    <span class="nam">__str__</span> <span class="op">=</span> <span class="nam">__repr__</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t739" href="#t739">739</a></span><span class="t">    <span class="nam">__str__</span> <span class="op">=</span> <span class="nam">__repr__</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t740" href="#t740">740</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t741" href="#t741">741</a></span><span class="t">    <span class="com"># Read a point sensor</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t742" href="#t742">742</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadPointSensor</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t742" href="#t742">742</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadPointSensor</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t743" href="#t743">743</a></span><span class="t">        <span class="str">"""Read a point sensor</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t744" href="#t744">744</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t745" href="#t745">745</a></span><span class="t"><span class="str">        This function needs to be customized for each derived class so that the</span>&nbsp;</span><span class="r"></span></p>
@@ -823,7 +823,7 @@
     <p class="pln"><span class="n"><a id="t764" href="#t764">764</a></span><span class="t">  <span class="com"># ==========</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t765" href="#t765">765</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t766" href="#t766">766</a></span><span class="t">    <span class="com"># Read case point data</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t767" href="#t767">767</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCasePoint</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t767" href="#t767">767</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCasePoint</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">pt</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t768" href="#t768">768</a></span><span class="t">        <span class="str">"""Read point data from current run folder</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t769" href="#t769">769</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t770" href="#t770">770</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -844,7 +844,7 @@
     <p class="pln"><span class="n"><a id="t785" href="#t785">785</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t786" href="#t786">786</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t787" href="#t787">787</a></span><span class="t">    <span class="com"># Read Triq file from this folder</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t788" href="#t788">788</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCaseTriq</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t788" href="#t788">788</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCaseTriq</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t789" href="#t789">789</a></span><span class="t">        <span class="str">"""Read the the most recent Triq file from this folder</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t790" href="#t790">790</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t791" href="#t791">791</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -867,7 +867,7 @@
     <p class="pln"><span class="n"><a id="t808" href="#t808">808</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t809" href="#t809">809</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t810" href="#t810">810</a></span><span class="t"><span class="com"># Data book of point sensors</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t811" href="#t811">811</a></span><span class="t"><span class="key">class</span> <span class="nam">DBPointSensor</span><span class="op">(</span><span class="nam">dataBook</span><span class="op">.</span><span class="nam">DBBase</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t811" href="#t811">811</a></span><span class="t"><span class="key">class</span> <span class="nam">DBPointSensor</span><span class="op">(</span><span class="nam">dataBook</span><span class="op">.</span><span class="nam">DBBase</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t812" href="#t812">812</a></span><span class="t">    <span class="str">"""Point sensor data book</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t813" href="#t813">813</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t814" href="#t814">814</a></span><span class="t"><span class="str">    Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,</span>&nbsp;</span><span class="r"></span></p>
@@ -902,7 +902,7 @@
     <p class="pln"><span class="n"><a id="t843" href="#t843">843</a></span><span class="t">  <span class="com"># ========</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t844" href="#t844">844</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t845" href="#t845">845</a></span><span class="t">    <span class="com"># Initialization method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t846" href="#t846">846</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">x</span><span class="op">,</span> <span class="nam">opts</span><span class="op">,</span> <span class="nam">pt</span><span class="op">,</span> <span class="nam">name</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">check</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="nam">lock</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t846" href="#t846">846</a></span><span class="t">    <span class="key">def</span> <span class="nam">__init__</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">x</span><span class="op">,</span> <span class="nam">opts</span><span class="op">,</span> <span class="nam">pt</span><span class="op">,</span> <span class="nam">name</span><span class="op">=</span><span class="key">None</span><span class="op">,</span> <span class="nam">check</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="nam">lock</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="op">**</span><span class="nam">kw</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t847" href="#t847">847</a></span><span class="t">        <span class="str">"""Initialization method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t848" href="#t848">848</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t849" href="#t849">849</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -945,7 +945,7 @@
     <p class="mis show_mis"><span class="n"><a id="t886" href="#t886">886</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">Read</span><span class="op">(</span><span class="nam">fname</span><span class="op">,</span> <span class="nam">check</span><span class="op">=</span><span class="nam">check</span><span class="op">,</span> <span class="nam">lock</span><span class="op">=</span><span class="nam">lock</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t887" href="#t887">887</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t888" href="#t888">888</a></span><span class="t">    <span class="com"># Representation method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t889" href="#t889">889</a></span><span class="t">    <span class="key">def</span> <span class="nam">__repr__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t889" href="#t889">889</a></span><span class="t">    <span class="key">def</span> <span class="nam">__repr__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t890" href="#t890">890</a></span><span class="t">        <span class="str">"""Representation method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t891" href="#t891">891</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t892" href="#t892">892</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -957,10 +957,10 @@
     <p class="mis show_mis"><span class="n"><a id="t898" href="#t898">898</a></span><span class="t">        <span class="nam">lbl</span> <span class="op">+=</span> <span class="str">"nCase=%i>"</span> <span class="op">%</span> <span class="nam">self</span><span class="op">.</span><span class="nam">n</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t899" href="#t899">899</a></span><span class="t">        <span class="com"># Output</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t900" href="#t900">900</a></span><span class="t">        <span class="key">return</span> <span class="nam">lbl</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t901" href="#t901">901</a></span><span class="t">    <span class="nam">__str__</span> <span class="op">=</span> <span class="nam">__repr__</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t901" href="#t901">901</a></span><span class="t">    <span class="nam">__str__</span> <span class="op">=</span> <span class="nam">__repr__</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t902" href="#t902">902</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t903" href="#t903">903</a></span><span class="t">    <span class="com"># Read a copy</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t904" href="#t904">904</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCopy</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">check</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="nam">lock</span><span class="op">=</span><span class="key">False</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t904" href="#t904">904</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCopy</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">check</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="nam">lock</span><span class="op">=</span><span class="key">False</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t905" href="#t905">905</a></span><span class="t">        <span class="str">"""Read a copied database object</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t906" href="#t906">906</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t907" href="#t907">907</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -990,7 +990,7 @@
     <p class="pln"><span class="n"><a id="t931" href="#t931">931</a></span><span class="t">  <span class="com"># =========</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t932" href="#t932">932</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t933" href="#t933">933</a></span><span class="t">    <span class="com"># Process a case</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t934" href="#t934">934</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateCase</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t934" href="#t934">934</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateCase</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t935" href="#t935">935</a></span><span class="t">        <span class="str">"""Prepare to update one point sensor case if necessary</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t936" href="#t936">936</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t937" href="#t937">937</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1010,7 +1010,7 @@
     <p class="pln"><span class="n"><a id="t951" href="#t951">951</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t952" href="#t952">952</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t953" href="#t953">953</a></span><span class="t"><span class="com"># Data book of TriQ point sensors</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t954" href="#t954">954</a></span><span class="t"><span class="key">class</span> <span class="nam">DBTriqPoint</span><span class="op">(</span><span class="nam">DBPointSensor</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t954" href="#t954">954</a></span><span class="t"><span class="key">class</span> <span class="nam">DBTriqPoint</span><span class="op">(</span><span class="nam">DBPointSensor</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t955" href="#t955">955</a></span><span class="t">    <span class="str">"""TriQ point sensor data book</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t956" href="#t956">956</a></span><span class="t"><span class="str">    </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t957" href="#t957">957</a></span><span class="t"><span class="str">    Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,</span>&nbsp;</span><span class="r"></span></p>
@@ -1041,7 +1041,7 @@
     <p class="pln"><span class="n"><a id="t982" href="#t982">982</a></span><span class="t">  <span class="com"># ========</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t983" href="#t983">983</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t984" href="#t984">984</a></span><span class="t">    <span class="com"># Representation method</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t985" href="#t985">985</a></span><span class="t">    <span class="key">def</span> <span class="nam">__repr__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t985" href="#t985">985</a></span><span class="t">    <span class="key">def</span> <span class="nam">__repr__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t986" href="#t986">986</a></span><span class="t">        <span class="str">"""Representation method</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t987" href="#t987">987</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t988" href="#t988">988</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
@@ -1053,10 +1053,10 @@
     <p class="mis show_mis"><span class="n"><a id="t994" href="#t994">994</a></span><span class="t">        <span class="nam">lbl</span> <span class="op">+=</span> <span class="str">"nCase=%i>"</span> <span class="op">%</span> <span class="nam">self</span><span class="op">.</span><span class="nam">n</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t995" href="#t995">995</a></span><span class="t">        <span class="com"># Output</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t996" href="#t996">996</a></span><span class="t">        <span class="key">return</span> <span class="nam">lbl</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t997" href="#t997">997</a></span><span class="t">    <span class="nam">__str__</span> <span class="op">=</span> <span class="nam">__repr__</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t997" href="#t997">997</a></span><span class="t">    <span class="nam">__str__</span> <span class="op">=</span> <span class="nam">__repr__</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t998" href="#t998">998</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t999" href="#t999">999</a></span><span class="t">    <span class="com"># Read a copy</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1000" href="#t1000">1000</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCopy</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">check</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="nam">lock</span><span class="op">=</span><span class="key">False</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1000" href="#t1000">1000</a></span><span class="t">    <span class="key">def</span> <span class="nam">ReadCopy</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">check</span><span class="op">=</span><span class="key">False</span><span class="op">,</span> <span class="nam">lock</span><span class="op">=</span><span class="key">False</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1001" href="#t1001">1001</a></span><span class="t">        <span class="str">"""Read a copied database object</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1002" href="#t1002">1002</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1003" href="#t1003">1003</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1087,7 +1087,7 @@
     <p class="pln"><span class="n"><a id="t1028" href="#t1028">1028</a></span><span class="t">  <span class="com"># =========</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1029" href="#t1029">1029</a></span><span class="t">  <span class="com"># &lt;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1030" href="#t1030">1030</a></span><span class="t">    <span class="com"># Process a case</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1031" href="#t1031">1031</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateCase</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1031" href="#t1031">1031</a></span><span class="t">    <span class="key">def</span> <span class="nam">UpdateCase</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1032" href="#t1032">1032</a></span><span class="t">        <span class="str">"""Prepare to update one point sensor case if necessary</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1033" href="#t1033">1033</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1034" href="#t1034">1034</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -1109,8 +1109,8 @@
 <footer>
     <div class="content">
         <p>
-            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.2</a>,
-            created at 2022-05-13 23:27 -0700
+            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.2</a>,
+            created at 2022-05-18 23:09 -0700
         </p>
     </div>
 </footer>
