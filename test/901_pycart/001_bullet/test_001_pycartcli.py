@@ -9,17 +9,6 @@ import testutils
 import cape.pycart.cntl
 
 
-# List of commands to try
-CMD_LIST = (
-    "pycart -c",
-    "cape -c --filter b2",
-    "cape -c --cons 'beta==2,Mach%1==0.5'",
-    "cape -c --glob 'poweroff/m0*'",
-    "cape -c --re 'm.\\.5.*b2'",
-    "cape -c -I 2:5,7,18:",
-    "cape -c -I 15: --cons Mach%1=0.5 --re b2",
-)
-
 # List of file globs to copy into sandbox
 TEST_FILES = (
     "pyCart.json",
@@ -51,4 +40,10 @@ def test_02_run():
     cntl.SubmitJobs(I="0")
     # Collect aero
     cntl.cli(fm=True, I="0")
+    # Read databook
+    cntl.ReadDataBook()
+    # Get value
+    CA = cntl.DataBook["bullet_no_base"]["CA"][0]
+    # Test value
+    assert abs(CA - 0.745) <= 0.001
 
