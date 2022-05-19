@@ -102,9 +102,6 @@ def main():
     os.system("git add %s" % TEST_DOCDIR)
     os.system("git add %s" % COVERAGE_DIR)
     os.system("git commit -m '%s'" % msg)
-    # Find current branch
-    branch, _, _ = testutils.call_o(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"])
     # Share results
     testutils.call(["git", "push", "hub", branch])
     # Get current SHA-1
