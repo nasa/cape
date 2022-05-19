@@ -19,8 +19,6 @@ from testutils.sphinxreport import JUnitXMLReport
 
 # Folder containing this document
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-# Parent folder
-CAPE_DIR = os.path.dirname(THIS_DIR)
 
 # Pytest files
 COVERAGE_DIR = os.path.join("test", "htmlcov")
@@ -48,10 +46,14 @@ def main():
     fpwd = os.getcwd()
     # Enter test folder
     os.chdir(THIS_DIR)
+    # Find current branch
+    branch, _, _ = testutils.call_o(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    branch = branch.strip()
     # Get up to date
-    os.system("git pull hub main")
+    testutils.call(["git", "pull", "hub", branch])
     # Test current commit
-    sha1 = os.popen("git rev-parse HEAD", "r").read()
+    sha1, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
     # Read last commit
     with open(LAST_COMMIT_FILE, "r") as fp:
         sha1_last = fp.read()
@@ -63,7 +65,7 @@ def main():
         "python3", "-m", "pytest",
         "--ignore-glob", "test/[a-z]*",
         "--junitxml=%s" % JUNIT_FILE,
-        "--cov=CAPE",
+        "--cov=cape",
         "--cov-report", "html:%s" % COVERAGE_DIR
     ]
     # Execute the tests
@@ -77,11 +79,9 @@ def main():
     # Extract results
     testsuite, = report.tree.findall("testsuite")
     # Count tests, failures, and errors
-    ntest = int(testsuite["tests"])
-    nerr = int(testsuite["errors"])
-    nfail = int(testsuite["failures"])
-    # Go to CAPE root folder
-    os.chdir(CAPE_DIR)
+    ntest = int(testsuite.attrib["tests"])
+    nerr = int(testsuite.attrib["errors"])
+    nfail = int(testsuite.attrib["failures"])
     # Initialize commit message
     msg = "Auto-commit of all tests:"
     # Write commit message
@@ -100,10 +100,11 @@ def main():
         msg += " PASS"
     # Add test results
     os.system("git add %s" % TEST_DOCDIR)
+    os.system("git add %s" % COVERAGE_DIR)
     os.system("git commit -m '%s'" % msg)
     # Find current branch
     branch, _, _ = testutils.call_o(
-        ["git", "rev-parse", "--abrev-ref", "HEAD"])
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"])
     # Share results
     testutils.call(["git", "push", "hub", branch])
     # Get current SHA-1

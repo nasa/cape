@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/cfdx/options/Config.py: 33%</title>
+    <title>Coverage for cape/cfdx/options/Config.py: 39%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/cfdx/options/Config.py</b>:
-            <span class="pc_cov">33%</span>
+            <span class="pc_cov">39%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">147 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">48<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">99<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">57<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">90<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -130,7 +130,7 @@
     <p class="pln"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t72" href="#t72">72</a></span><span class="t"><span class="str">            * 2016-04-18 ``@ddalle``: First version</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t"><span class="str">        """</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t">        <span class="nam">self</span><span class="op">[</span><span class="str">'Points'</span><span class="op">]</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_Points</span><span class="op">.</span><span class="nam">copy</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t">        <span class="nam">self</span><span class="op">[</span><span class="str">'Points'</span><span class="op">]</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_Points</span><span class="op">.</span><span class="nam">copy</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t75" href="#t75">75</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t">    <span class="com"># Get configuration file name</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t77" href="#t77">77</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_ConfigFile</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -492,7 +492,7 @@
     <p class="run"><span class="n"><a id="t433" href="#t433">433</a></span><span class="t">        <span class="nam">P</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">'Points'</span><span class="op">,</span> <span class="op">{</span><span class="op">}</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t434" href="#t434">434</a></span><span class="t">        <span class="com"># If it's already a vector, use it.</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t435" href="#t435">435</a></span><span class="t">        <span class="key">if</span> <span class="nam">type</span><span class="op">(</span><span class="nam">name</span><span class="op">)</span><span class="op">.</span><span class="nam">__name__</span> <span class="key">in</span> <span class="op">[</span><span class="str">'list'</span><span class="op">,</span> <span class="str">'ndarray'</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t436" href="#t436">436</a></span><span class="t">            <span class="key">return</span> <span class="nam">name</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t436" href="#t436">436</a></span><span class="t">            <span class="key">return</span> <span class="nam">name</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t437" href="#t437">437</a></span><span class="t">        <span class="com"># Check input consistency.</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t438" href="#t438">438</a></span><span class="t">        <span class="key">if</span> <span class="nam">name</span> <span class="key">not</span> <span class="key">in</span> <span class="nam">P</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t439" href="#t439">439</a></span><span class="t">            <span class="key">raise</span> <span class="nam">IOError</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
@@ -561,7 +561,7 @@
     <p class="run"><span class="n"><a id="t502" href="#t502">502</a></span><span class="t">        <span class="key">if</span> <span class="nam">typ</span><span class="op">.</span><span class="nam">startswith</span><span class="op">(</span><span class="str">'str'</span><span class="op">)</span> <span class="key">or</span> <span class="nam">typ</span> <span class="op">==</span> <span class="str">'unicode'</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t503" href="#t503">503</a></span><span class="t">            <span class="com"># Single point name</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t504" href="#t504">504</a></span><span class="t">            <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_Point</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t505" href="#t505">505</a></span><span class="t">        <span class="key">elif</span> <span class="nam">typ</span> <span class="key">in</span> <span class="op">[</span><span class="str">'list'</span><span class="op">,</span> <span class="str">'ndarray'</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t505" href="#t505">505</a></span><span class="t">        <span class="key">elif</span> <span class="nam">typ</span> <span class="key">in</span> <span class="op">[</span><span class="str">'list'</span><span class="op">,</span> <span class="str">'ndarray'</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t506" href="#t506">506</a></span><span class="t">            <span class="com"># Check length</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t507" href="#t507">507</a></span><span class="t">            <span class="nam">n</span> <span class="op">=</span> <span class="nam">len</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t508" href="#t508">508</a></span><span class="t">            <span class="com"># Check length</span>&nbsp;</span><span class="r"></span></p>
@@ -574,17 +574,17 @@
     <p class="mis show_mis"><span class="n"><a id="t515" href="#t515">515</a></span><span class="t">                    <span class="key">return</span> <span class="nam">x</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t516" href="#t516">516</a></span><span class="t">            <span class="com"># Otherwise, this is a list of points</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t517" href="#t517">517</a></span><span class="t">            <span class="key">return</span> <span class="op">[</span><span class="nam">self</span><span class="op">.</span><span class="nam">get_Point</span><span class="op">(</span><span class="nam">xk</span><span class="op">)</span> <span class="key">for</span> <span class="nam">xk</span> <span class="key">in</span> <span class="nam">x</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t518" href="#t518">518</a></span><span class="t">        <span class="key">elif</span> <span class="nam">typ</span> <span class="op">!=</span> <span class="str">'dict'</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t518" href="#t518">518</a></span><span class="t">        <span class="key">elif</span> <span class="nam">typ</span> <span class="op">!=</span> <span class="str">'dict'</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t519" href="#t519">519</a></span><span class="t">            <span class="com"># Unrecognized</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t520" href="#t520">520</a></span><span class="t">            <span class="key">raise</span> <span class="nam">TypeError</span><span class="op">(</span><span class="str">"Cannot expand points of type '%s'"</span> <span class="op">%</span> <span class="nam">typ</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t521" href="#t521">521</a></span><span class="t">        <span class="com"># Initialize output dictionary</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t522" href="#t522">522</a></span><span class="t">        <span class="nam">X</span> <span class="op">=</span> <span class="nam">x</span><span class="op">.</span><span class="nam">copy</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t522" href="#t522">522</a></span><span class="t">        <span class="nam">X</span> <span class="op">=</span> <span class="nam">x</span><span class="op">.</span><span class="nam">copy</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t523" href="#t523">523</a></span><span class="t">        <span class="com"># Loop through keys.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t524" href="#t524">524</a></span><span class="t">        <span class="key">for</span> <span class="nam">k</span> <span class="key">in</span> <span class="nam">X</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t524" href="#t524">524</a></span><span class="t">        <span class="key">for</span> <span class="nam">k</span> <span class="key">in</span> <span class="nam">X</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t525" href="#t525">525</a></span><span class="t">            <span class="com"># Expand the value of that point.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t526" href="#t526">526</a></span><span class="t">            <span class="nam">X</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_Point</span><span class="op">(</span><span class="nam">x</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t526" href="#t526">526</a></span><span class="t">            <span class="nam">X</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_Point</span><span class="op">(</span><span class="nam">x</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t527" href="#t527">527</a></span><span class="t">        <span class="com"># Output</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t528" href="#t528">528</a></span><span class="t">        <span class="key">return</span> <span class="nam">X</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t528" href="#t528">528</a></span><span class="t">        <span class="key">return</span> <span class="nam">X</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t529" href="#t529">529</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t530" href="#t530">530</a></span><span class="t">    <span class="com"># Get moment reference point for a given component.</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t531" href="#t531">531</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_RefPoint</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">comp</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -622,7 +622,7 @@
     <p class="pln"><span class="n"><a id="t563" href="#t563">563</a></span><span class="t">                    <span class="nam">RefP</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">'entire'</span><span class="op">,</span> <span class="op">[</span><span class="num">0.0</span><span class="op">,</span> <span class="num">0.0</span><span class="op">,</span> <span class="num">0.0</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t564" href="#t564">564</a></span><span class="t">            <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t565" href="#t565">565</a></span><span class="t">                <span class="com"># Return the whole dict.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t566" href="#t566">566</a></span><span class="t">                <span class="nam">x</span> <span class="op">=</span> <span class="nam">RefP</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t566" href="#t566">566</a></span><span class="t">                <span class="nam">x</span> <span class="op">=</span> <span class="nam">RefP</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t567" href="#t567">567</a></span><span class="t">        <span class="key">elif</span> <span class="nam">RefP</span> <span class="key">is</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t568" href="#t568">568</a></span><span class="t">            <span class="com"># Use default</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t569" href="#t569">569</a></span><span class="t">            <span class="key">return</span> <span class="op">[</span><span class="num">0.0</span><span class="op">,</span> <span class="num">0.0</span><span class="op">,</span> <span class="num">0.0</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
@@ -683,7 +683,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.2</a>,
-            created at 2022-05-19 10:58 -0700
+            created at 2022-05-19 13:40 -0700
         </p>
     </div>
 </footer>

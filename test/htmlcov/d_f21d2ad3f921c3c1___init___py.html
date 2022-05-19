@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/cfdx/options/__init__.py: 43%</title>
+    <title>Coverage for cape/cfdx/options/__init__.py: 44%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/cfdx/options/__init__.py</b>:
-            <span class="pc_cov">43%</span>
+            <span class="pc_cov">44%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">1543 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">664<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">879<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">672<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">871<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -1082,8 +1082,8 @@
     <p class="pln"><span class="n"><a id="t1023" href="#t1023">1023</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1024" href="#t1024">1024</a></span><span class="t">    <span class="com"># Get AFLR3 boundary condition file</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1025" href="#t1025">1025</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_aflr3_BCFile</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">j</span><span class="op">=</span><span class="num">0</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1026" href="#t1026">1026</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_RunControl</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1027" href="#t1027">1027</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span><span class="op">[</span><span class="str">'RunControl'</span><span class="op">]</span><span class="op">.</span><span class="nam">get_aflr3_BCFile</span><span class="op">(</span><span class="nam">j</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1026" href="#t1026">1026</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_RunControl</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1027" href="#t1027">1027</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span><span class="op">[</span><span class="str">'RunControl'</span><span class="op">]</span><span class="op">.</span><span class="nam">get_aflr3_BCFile</span><span class="op">(</span><span class="nam">j</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1028" href="#t1028">1028</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1029" href="#t1029">1029</a></span><span class="t">    <span class="com"># Set AFLR3 boundary condition file</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1030" href="#t1030">1030</a></span><span class="t">    <span class="key">def</span> <span class="nam">set_aflr3_BCFile</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fname</span><span class="op">,</span> <span class="nam">j</span><span class="op">=</span><span class="num">0</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -1230,8 +1230,8 @@
     <p class="pln"><span class="n"><a id="t1171" href="#t1171">1171</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1172" href="#t1172">1172</a></span><span class="t">    <span class="com"># Get intersect flag</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1173" href="#t1173">1173</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_intersect</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1174" href="#t1174">1174</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_RunControl</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1175" href="#t1175">1175</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span><span class="op">[</span><span class="str">'RunControl'</span><span class="op">]</span><span class="op">.</span><span class="nam">get_intersect</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1174" href="#t1174">1174</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_RunControl</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1175" href="#t1175">1175</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span><span class="op">[</span><span class="str">'RunControl'</span><span class="op">]</span><span class="op">.</span><span class="nam">get_intersect</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1176" href="#t1176">1176</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1177" href="#t1177">1177</a></span><span class="t">    <span class="com"># Copy documentation</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1178" href="#t1178">1178</a></span><span class="t">    <span class="key">for</span> <span class="nam">k</span> <span class="key">in</span> <span class="op">[</span><span class="str">'intersect'</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -2103,8 +2103,8 @@
     <p class="pln"><span class="n"><a id="t2044" href="#t2044">2044</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t2045" href="#t2045">2045</a></span><span class="t">    <span class="com"># Reset points</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t2046" href="#t2046">2046</a></span><span class="t">    <span class="key">def</span> <span class="nam">reset_Points</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t2047" href="#t2047">2047</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_Config</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t2048" href="#t2048">2048</a></span><span class="t">        <span class="nam">self</span><span class="op">[</span><span class="str">'Config'</span><span class="op">]</span><span class="op">.</span><span class="nam">reset_Points</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t2047" href="#t2047">2047</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_Config</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t2048" href="#t2048">2048</a></span><span class="t">        <span class="nam">self</span><span class="op">[</span><span class="str">'Config'</span><span class="op">]</span><span class="op">.</span><span class="nam">reset_Points</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t2049" href="#t2049">2049</a></span><span class="t">    <span class="nam">reset_Points</span><span class="op">.</span><span class="nam">__doc__</span> <span class="op">=</span> <span class="nam">Config</span><span class="op">.</span><span class="nam">reset_Points</span><span class="op">.</span><span class="nam">__doc__</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t2050" href="#t2050">2050</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t2051" href="#t2051">2051</a></span><span class="t">    <span class="com"># Get components</span>&nbsp;</span><span class="r"></span></p>
@@ -2199,8 +2199,8 @@
     <p class="pln"><span class="n"><a id="t2140" href="#t2140">2140</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t2141" href="#t2141">2141</a></span><span class="t">    <span class="com"># Get triangulation file(s)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t2142" href="#t2142">2142</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_TriFile</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t2143" href="#t2143">2143</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_Mesh</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t2144" href="#t2144">2144</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span><span class="op">[</span><span class="str">'Mesh'</span><span class="op">]</span><span class="op">.</span><span class="nam">get_TriFile</span><span class="op">(</span><span class="nam">i</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t2143" href="#t2143">2143</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">_Mesh</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t2144" href="#t2144">2144</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span><span class="op">[</span><span class="str">'Mesh'</span><span class="op">]</span><span class="op">.</span><span class="nam">get_TriFile</span><span class="op">(</span><span class="nam">i</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t2145" href="#t2145">2145</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t2146" href="#t2146">2146</a></span><span class="t">    <span class="com"># Get mesh file(s)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t2147" href="#t2147">2147</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_MeshFile</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -3099,7 +3099,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.2</a>,
-            created at 2022-05-19 10:58 -0700
+            created at 2022-05-19 13:40 -0700
         </p>
     </div>
 </footer>

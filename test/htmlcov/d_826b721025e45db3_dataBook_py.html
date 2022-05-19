@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">3579 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">597<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">2982<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">601<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">2978<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -10582,13 +10582,13 @@
     <p class="pln"><span class="n"><a id="t10523" href="#t10523">10523</a></span><span class="t"><span class="str">            * 2015-01-01 ``@ddalle``: First versoin</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t10524" href="#t10524">10524</a></span><span class="t"><span class="str">        """</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t10525" href="#t10525">10525</a></span><span class="t">        <span class="com"># Process the number of usable iterations available.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t10526" href="#t10526">10526</a></span><span class="t">        <span class="nam">i</span> <span class="op">=</span> <span class="nam">max</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">nIter</span><span class="op">-</span><span class="nam">nStats</span><span class="op">,</span> <span class="num">0</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t10526" href="#t10526">10526</a></span><span class="t">        <span class="nam">i</span> <span class="op">=</span> <span class="nam">max</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">nIter</span><span class="op">-</span><span class="nam">nStats</span><span class="op">,</span> <span class="num">0</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t10527" href="#t10527">10527</a></span><span class="t">        <span class="com"># Get the maximum residual.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t10528" href="#t10528">10528</a></span><span class="t">        <span class="nam">L1Max</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">log10</span><span class="op">(</span><span class="nam">np</span><span class="op">.</span><span class="nam">max</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">L1Resid</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t10528" href="#t10528">10528</a></span><span class="t">        <span class="nam">L1Max</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">log10</span><span class="op">(</span><span class="nam">np</span><span class="op">.</span><span class="nam">max</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">L1Resid</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t10529" href="#t10529">10529</a></span><span class="t">        <span class="com"># Get the average terminal residual.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t10530" href="#t10530">10530</a></span><span class="t">        <span class="nam">L1End</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">log10</span><span class="op">(</span><span class="nam">np</span><span class="op">.</span><span class="nam">mean</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">L1Resid</span><span class="op">[</span><span class="nam">i</span><span class="op">:</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t10530" href="#t10530">10530</a></span><span class="t">        <span class="nam">L1End</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">log10</span><span class="op">(</span><span class="nam">np</span><span class="op">.</span><span class="nam">mean</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">L1Resid</span><span class="op">[</span><span class="nam">i</span><span class="op">:</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t10531" href="#t10531">10531</a></span><span class="t">        <span class="com"># Return the drop</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t10532" href="#t10532">10532</a></span><span class="t">        <span class="key">return</span> <span class="nam">L1Max</span> <span class="op">-</span> <span class="nam">L1End</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t10532" href="#t10532">10532</a></span><span class="t">        <span class="key">return</span> <span class="nam">L1Max</span> <span class="op">-</span> <span class="nam">L1End</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t10533" href="#t10533">10533</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t10534" href="#t10534">10534</a></span><span class="t">    <span class="com"># Number of orders of unsteady residual drop</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t10535" href="#t10535">10535</a></span><span class="t">    <span class="key">def</span> <span class="nam">GetNOrdersUnsteady</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">n</span><span class="op">=</span><span class="num">1</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -10897,7 +10897,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.2</a>,
-            created at 2022-05-19 10:58 -0700
+            created at 2022-05-19 13:40 -0700
         </p>
     </div>
 </footer>
