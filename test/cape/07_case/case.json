@@ -1,7 +1,0 @@
-{
-    "PhaseSequence": [0, 1, 2],
-    "PhaseIters": [500, 750, 1000],
-    "nProc": 4,
-    "MPI": false,
-    "qsub": false
-}

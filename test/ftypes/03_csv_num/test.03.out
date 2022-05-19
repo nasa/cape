@@ -1,5 +1,0 @@
-run  : int32
-pt   : int32
-mach : float64
-alpha: float64
-beta : float64

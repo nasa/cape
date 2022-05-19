@@ -1,7 +1,0 @@
-Case Config/Run Directory  Status  Iterations  Que CPU Time 
----- --------------------- ------- ----------- --- --------
-4    poweroff/m1.1a0.0b0.0 ERROR   /           .            
-5    poweroff/m1.1a2.0b0.0 ERROR   /           .            
-6    poweroff/m1.5a0.0b0.0 ERROR   /           .            
-
-ERROR=3, 

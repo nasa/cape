@@ -1,9 +1,0 @@
-# mach, alpha, beta, config, Label, user
-  1.20,  0.00,  0.00, poweron,  , @user1
-  1.35,  0.00,  0.00, poweron,  , @user2
-  1.50,  0.00,  0.00, poweron,  , @user3
-  1.75, -0.50,  0.00, poweron,  , @user4
-  2.10, -0.50,  0.00, poweron,  , @user1
-  2.50, -0.50,  0.00, poweron,  , @user2
-  2.10,  4.00,  1.50, poweroff,  , @user3
-  1.75,  4.00,  1.50, poweroff,  , @user4
