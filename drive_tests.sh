@@ -12,8 +12,8 @@ module load mpi
 module load overflow
 
 # Go to appropriate folder
-cd /u/wk/ddalle/usr/cape/test
+cd /u/wk/ddalle/usr/cape
 
 # Run test crawler and document results
-python3 test_all.py
+python3 drive_pytest.py
 
