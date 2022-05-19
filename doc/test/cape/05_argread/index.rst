@@ -1,11 +1,11 @@
 
 .. This documentation written by TestDriver()
-   on 2022-05-16 at 01:40 PDT
+   on 2022-05-19 at 01:40 PDT
 
-Test ``05_argread``: PASS
-===========================
+Test ``05_argread``: **FAIL** (command 1)
+===========================================
 
-This test PASSED on 2022-05-16 at 01:40 PDT
+This test **FAILED** (command 1) on 2022-05-19 at 01:40 PDT
 
 This test is run in the folder:
 
@@ -110,8 +110,8 @@ The commands executed by this test are
         print(a)
         printdict(kw)
 
-Command 1: Python 2 (PASS)
----------------------------
+Command 1: Python 2 (**FAIL**)
+-------------------------------
 
 :Command:
     .. code-block:: console
@@ -124,48 +124,27 @@ Command 1: Python 2 (PASS)
     * Target: ``0``
 :Time Taken:
     * **PASS**
-    * Command took 0.38 seconds
+    * Command took 0.47 seconds
 :STDOUT:
-    * **PASS**
-    * Target:
+    * **FAIL**
+    * Actual:
 
       .. code-block:: none
 
         ['run']
-        {'_old': [], 'c': True, 'filter': 'b2'}
+        {'__replaced__': [], 'c': True, 'filter': 'b2'}
         ['run']
-        {'_old': [], 'c': True, 'filter': 'b2'}
+        {'__replaced__': [], 'c': True, 'filter': 'b2'}
         []
-        {'_old': [{'aero': 'body'}, {'aero': 'base'}], 'aero': 'fin', 'c': True}
+        {'__replaced__': [('aero', 'body'), ('aero', 'base')], 'aero': 'fin', 'c': True}
         ['run']
-        {'_old': [], 'c': True, 'filter': 'b2'}
+        {'__replaced__': [], 'c': True, 'filter': 'b2'}
         ['run', 'b2']
-        {'_old': [], 'c': True, 'f': True, 'r': True}
+        {'__replaced__': [], 'c': True, 'f': True, 'r': True}
         ['run']
-        {'_old': [], 'c': True, 'f': True, 'r': 'b2'}
+        {'__replaced__': [], 'c': True, 'f': True, 'r': 'b2'}
         
 
-:STDERR:
-    * **PASS**
-
-Command 2: Python 3 (PASS)
----------------------------
-
-:Command:
-    .. code-block:: console
-
-        $ python3 test01_argread.py
-
-:Return Code:
-    * **PASS**
-    * Output: ``0``
-    * Target: ``0``
-:Time Taken:
-    * **PASS**
-    * Command took 0.48 seconds
-    * Cumulative time: 0.86 seconds
-:STDOUT:
-    * **PASS**
     * Target:
 
       .. code-block:: none
