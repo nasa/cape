@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/filecntl/filecntl.py: 27%</title>
+    <title>Coverage for cape/filecntl/filecntl.py: 29%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/filecntl/filecntl.py</b>:
-            <span class="pc_cov">27%</span>
+            <span class="pc_cov">29%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">421 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">114<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">307<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">123<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">298<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -1705,24 +1705,24 @@
     <p class="pln"><span class="n"><a id="t1646" href="#t1646">1646</a></span><span class="t"><span class="str">            * 2014-02-28 ``@ddalle``: First version</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1647" href="#t1647">1647</a></span><span class="t"><span class="str">        """</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1648" href="#t1648">1648</a></span><span class="t">        <span class="com"># Set the update status.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1649" href="#t1649">1649</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">UpdateLines</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1649" href="#t1649">1649</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">UpdateLines</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1650" href="#t1650">1650</a></span><span class="t">        <span class="com"># Initialize matches</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1651" href="#t1651">1651</a></span><span class="t">        <span class="nam">i</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1651" href="#t1651">1651</a></span><span class="t">        <span class="nam">i</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1652" href="#t1652">1652</a></span><span class="t">        <span class="com"># Number of matches</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1653" href="#t1653">1653</a></span><span class="t">        <span class="nam">m</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1653" href="#t1653">1653</a></span><span class="t">        <span class="nam">m</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1654" href="#t1654">1654</a></span><span class="t">        <span class="com"># Loop through the lines.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1655" href="#t1655">1655</a></span><span class="t">        <span class="key">for</span> <span class="nam">k</span> <span class="key">in</span> <span class="nam">range</span><span class="op">(</span><span class="nam">len</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">lines</span><span class="op">)</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1655" href="#t1655">1655</a></span><span class="t">        <span class="key">for</span> <span class="nam">k</span> <span class="key">in</span> <span class="nam">range</span><span class="op">(</span><span class="nam">len</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">lines</span><span class="op">)</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1656" href="#t1656">1656</a></span><span class="t">            <span class="com"># Check for maximum matches.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1657" href="#t1657">1657</a></span><span class="t">            <span class="key">if</span> <span class="nam">n</span> <span class="key">and</span> <span class="op">(</span><span class="nam">m</span> <span class="op">>=</span> <span class="nam">n</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1657" href="#t1657">1657</a></span><span class="t">            <span class="key">if</span> <span class="nam">n</span> <span class="key">and</span> <span class="op">(</span><span class="nam">m</span> <span class="op">>=</span> <span class="nam">n</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1658" href="#t1658">1658</a></span><span class="t">                <span class="key">break</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1659" href="#t1659">1659</a></span><span class="t">            <span class="com"># Check for a match.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1660" href="#t1660">1660</a></span><span class="t">            <span class="key">if</span> <span class="nam">re</span><span class="op">.</span><span class="nam">search</span><span class="op">(</span><span class="nam">reg</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">lines</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1660" href="#t1660">1660</a></span><span class="t">            <span class="key">if</span> <span class="nam">re</span><span class="op">.</span><span class="nam">search</span><span class="op">(</span><span class="nam">reg</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">lines</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1661" href="#t1661">1661</a></span><span class="t">                <span class="com"># Add to match list</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1662" href="#t1662">1662</a></span><span class="t">                <span class="nam">i</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">k</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1662" href="#t1662">1662</a></span><span class="t">                <span class="nam">i</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">k</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1663" href="#t1663">1663</a></span><span class="t">                <span class="com"># Increase count</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1664" href="#t1664">1664</a></span><span class="t">                <span class="nam">m</span> <span class="op">+=</span> <span class="num">1</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1664" href="#t1664">1664</a></span><span class="t">                <span class="nam">m</span> <span class="op">+=</span> <span class="num">1</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1665" href="#t1665">1665</a></span><span class="t">        <span class="com"># Done</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1666" href="#t1666">1666</a></span><span class="t">        <span class="key">return</span> <span class="nam">i</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1666" href="#t1666">1666</a></span><span class="t">        <span class="key">return</span> <span class="nam">i</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1667" href="#t1667">1667</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1668" href="#t1668">1668</a></span><span class="t">    <span class="com"># Get index a line that starts with a literal</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1669" href="#t1669">1669</a></span><span class="t">    <span class="key">def</span> <span class="nam">GetIndexInSectionStartsWith</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">sec</span><span class="op">,</span> <span class="nam">start</span><span class="op">,</span> <span class="nam">n</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -1817,7 +1817,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.2</a>,
-            created at 2022-05-18 23:15 -0700
+            created at 2022-05-18 23:50 -0700
         </p>
     </div>
 </footer>

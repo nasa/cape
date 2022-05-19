@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/pyover/options/overnml.py: 0%</title>
+    <title>Coverage for cape/pyover/options/overnml.py: 54%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/pyover/options/overnml.py</b>:
-            <span class="pc_cov">0%</span>
+            <span class="pc_cov">54%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">24 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">0<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">24<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">13<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">11<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -79,14 +79,14 @@
     <p class="pln"><span class="n"><a id="t20" href="#t20">20</a></span><span class="t"><span class="str">"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t21" href="#t21">21</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t22" href="#t22">22</a></span><span class="t"><span class="com"># Ipmort options-specific utilities</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">util</span> <span class="key">import</span> <span class="nam">rc0</span><span class="op">,</span> <span class="nam">odict</span><span class="op">,</span> <span class="nam">getel</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t"><span class="key">from</span> <span class="op">.</span><span class="nam">util</span> <span class="key">import</span> <span class="nam">rc0</span><span class="op">,</span> <span class="nam">odict</span><span class="op">,</span> <span class="nam">getel</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t"><span class="com"># Class for namelist settings</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t"><span class="key">class</span> <span class="nam">OverNml</span><span class="op">(</span><span class="nam">odict</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t"><span class="key">class</span> <span class="nam">OverNml</span><span class="op">(</span><span class="nam">odict</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t">    <span class="str">"""Dictionary-based interface for OVERFLOW namelists"""</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t">    <span class="com"># Get the GLOBAL namelist</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_GLOBAL</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t30" href="#t30">30</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_GLOBAL</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t31" href="#t31">31</a></span><span class="t">        <span class="str">"""Return the ``GLOBAL`` namelist</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t32" href="#t32">32</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -113,7 +113,7 @@
     <p class="mis show_mis"><span class="n"><a id="t54" href="#t54">54</a></span><span class="t">            <span class="key">return</span> <span class="nam">odict</span><span class="op">(</span><span class="op">**</span><span class="nam">d</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t">    <span class="com"># Get the FLOINP namelist</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_FLOINP</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_FLOINP</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">        <span class="str">"""Return the ``FLOINP`` namelist</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t60" href="#t60">60</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -140,7 +140,7 @@
     <p class="mis show_mis"><span class="n"><a id="t81" href="#t81">81</a></span><span class="t">            <span class="key">return</span> <span class="nam">odict</span><span class="op">(</span><span class="op">**</span><span class="nam">d</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t82" href="#t82">82</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t83" href="#t83">83</a></span><span class="t">    <span class="com"># Reduce to a single run sequence</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t84" href="#t84">84</a></span><span class="t">    <span class="key">def</span> <span class="nam">select_namelist</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="num">0</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t84" href="#t84">84</a></span><span class="t">    <span class="key">def</span> <span class="nam">select_namelist</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="num">0</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t85" href="#t85">85</a></span><span class="t">        <span class="str">"""Reduce namelist options to a single instance (i.e. sample lists)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t86" href="#t86">86</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t87" href="#t87">87</a></span><span class="t"><span class="str">        :Call:</span>&nbsp;</span><span class="r"></span></p>
@@ -158,22 +158,22 @@
     <p class="pln"><span class="n"><a id="t99" href="#t99">99</a></span><span class="t"><span class="str">            * 2016-02-01 ``@ddalle``: Copied from pyFun</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t100" href="#t100">100</a></span><span class="t"><span class="str">        """</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t101" href="#t101">101</a></span><span class="t">        <span class="com"># Initialize output</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t">        <span class="nam">d</span> <span class="op">=</span> <span class="op">{</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t">        <span class="nam">d</span> <span class="op">=</span> <span class="op">{</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t">        <span class="com"># Loop through keys</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t">        <span class="key">for</span> <span class="nam">sec</span> <span class="key">in</span> <span class="nam">self</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t">        <span class="key">for</span> <span class="nam">sec</span> <span class="key">in</span> <span class="nam">self</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t">            <span class="com"># Get the list</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t">            <span class="nam">L</span> <span class="op">=</span> <span class="nam">getel</span><span class="op">(</span><span class="nam">self</span><span class="op">[</span><span class="nam">sec</span><span class="op">]</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t">            <span class="nam">L</span> <span class="op">=</span> <span class="nam">getel</span><span class="op">(</span><span class="nam">self</span><span class="op">[</span><span class="nam">sec</span><span class="op">]</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t107" href="#t107">107</a></span><span class="t">            <span class="com"># Initialize this list.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t">            <span class="nam">d</span><span class="op">[</span><span class="nam">sec</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t">            <span class="nam">d</span><span class="op">[</span><span class="nam">sec</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span><span class="op">}</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t109" href="#t109">109</a></span><span class="t">            <span class="com"># Loop through subkeys</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t">            <span class="key">for</span> <span class="nam">k</span> <span class="key">in</span> <span class="nam">L</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t">            <span class="key">for</span> <span class="nam">k</span> <span class="key">in</span> <span class="nam">L</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t">                <span class="com"># Select the key and assign it.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t">                <span class="nam">d</span><span class="op">[</span><span class="nam">sec</span><span class="op">]</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span> <span class="op">=</span> <span class="nam">getel</span><span class="op">(</span><span class="nam">L</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t">                <span class="nam">d</span><span class="op">[</span><span class="nam">sec</span><span class="op">]</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span> <span class="op">=</span> <span class="nam">getel</span><span class="op">(</span><span class="nam">L</span><span class="op">[</span><span class="nam">k</span><span class="op">]</span><span class="op">,</span> <span class="nam">i</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t113" href="#t113">113</a></span><span class="t">        <span class="com"># Output</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t114" href="#t114">114</a></span><span class="t">        <span class="key">return</span> <span class="nam">d</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t114" href="#t114">114</a></span><span class="t">        <span class="key">return</span> <span class="nam">d</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t115" href="#t115">115</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t116" href="#t116">116</a></span><span class="t">    <span class="com"># Get value by name</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t117" href="#t117">117</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_namelist_var</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">sec</span><span class="op">,</span> <span class="nam">key</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t117" href="#t117">117</a></span><span class="t">    <span class="key">def</span> <span class="nam">get_namelist_var</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">sec</span><span class="op">,</span> <span class="nam">key</span><span class="op">,</span> <span class="nam">i</span><span class="op">=</span><span class="key">None</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t118" href="#t118">118</a></span><span class="t">        <span class="str">"""Select a namelist key from a specified section</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t119" href="#t119">119</a></span><span class="t"><span class="str">        </span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t120" href="#t120">120</a></span><span class="t"><span class="str">        Roughly, this returns ``opts[sec][key]``.</span>&nbsp;</span><span class="r"></span></p>
@@ -209,7 +209,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.2</a>,
-            created at 2022-05-18 23:09 -0700
+            created at 2022-05-18 23:50 -0700
         </p>
     </div>
 </footer>

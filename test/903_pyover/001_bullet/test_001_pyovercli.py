@@ -6,7 +6,7 @@ import sys
 import testutils
 
 # Local imports
-import cape.pypyovercart.cntl
+import cape.pyover.cntl
 
 
 # List of file globs to copy into sandbox
@@ -21,7 +21,7 @@ TEST_DIRS = (
 
 
 # Run a case
-@testutils.run_sandbox(__file__, fresh=False)
+@testutils.run_sandbox(__file__, TEST_FILES, TEST_DIRS)
 def test_01_run():
     # Instantiate
     cntl = cape.pyover.cntl.Cntl()
@@ -30,10 +30,10 @@ def test_01_run():
 
 
 # Test 'pyover -c'
-@testutils.run_sandbox(__file__, TEST_FILES)
+@testutils.run_sandbox(__file__, fresh=False)
 def test_02_c():
     # Split command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyover", "-c"]
+    cmdlist = [sys.executable, "-m", "cape.pyover", "-c", "-I", "1"]
     # Run the command
     stdout, _, _ = testutils.call_o(cmdlist)
     # Check outout
@@ -41,7 +41,7 @@ def test_02_c():
     assert result.line1 == result.line2
 
 
-# Run a case
+# Collect aero
 @testutils.run_sandbox(__file__, fresh=False)
 def test_03_fm():
     # Instantiate

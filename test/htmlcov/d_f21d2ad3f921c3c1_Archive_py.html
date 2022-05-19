@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for cape/cfdx/options/Archive.py: 54%</title>
+    <title>Coverage for cape/cfdx/options/Archive.py: 56%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -13,7 +13,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>cape/cfdx/options/Archive.py</b>:
-            <span class="pc_cov">54%</span>
+            <span class="pc_cov">56%</span>
         </h1>
         <div id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -44,8 +44,8 @@
         </div>
         <h2>
             <span class="text">195 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">106<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">89<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">110<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">85<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -543,7 +543,7 @@
     <p class="pln"><span class="n"><a id="t484" href="#t484">484</a></span><span class="t">            <span class="com"># Check input type</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t485" href="#t485">485</a></span><span class="t">            <span class="key">if</span> <span class="nam">tp</span> <span class="key">not</span> <span class="key">in</span> <span class="op">[</span><span class="str">'list'</span><span class="op">,</span> <span class="str">'ndarray'</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t486" href="#t486">486</a></span><span class="t">                <span class="com"># Ensure list</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t487" href="#t487">487</a></span><span class="t">                <span class="nam">fpre</span> <span class="op">=</span> <span class="op">[</span><span class="nam">fpre</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t487" href="#t487">487</a></span><span class="t">                <span class="nam">fpre</span> <span class="op">=</span> <span class="op">[</span><span class="nam">fpre</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t488" href="#t488">488</a></span><span class="t">            <span class="com"># Append each file to the list</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t489" href="#t489">489</a></span><span class="t">            <span class="key">for</span> <span class="nam">fi</span> <span class="key">in</span> <span class="nam">fpre</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t490" href="#t490">490</a></span><span class="t">                <span class="com"># Check if the file is already there</span>&nbsp;</span><span class="r"></span></p>
@@ -901,7 +901,7 @@
     <p class="pln"><span class="n"><a id="t842" href="#t842">842</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t843" href="#t843">843</a></span><span class="t"><span class="str">            * 2017-12-13 ``@ddalle``: First version</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t844" href="#t844">844</a></span><span class="t"><span class="str">        """</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t845" href="#t845">845</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">add_to_key</span><span class="op">(</span><span class="str">"SkeletonFiles"</span><span class="op">,</span> <span class="nam">fskel</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t845" href="#t845">845</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">add_to_key</span><span class="op">(</span><span class="str">"SkeletonFiles"</span><span class="op">,</span> <span class="nam">fskel</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t846" href="#t846">846</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t847" href="#t847">847</a></span><span class="t">    <span class="com"># Add to list of skeleton files</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t848" href="#t848">848</a></span><span class="t">    <span class="key">def</span> <span class="nam">add_ArchiveSkeletonDirs</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fskel</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -933,7 +933,7 @@
     <p class="pln"><span class="n"><a id="t874" href="#t874">874</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t875" href="#t875">875</a></span><span class="t"><span class="str">            * 2017-12-13 ``@ddalle``: First version</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t876" href="#t876">876</a></span><span class="t"><span class="str">        """</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t877" href="#t877">877</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">add_to_key</span><span class="op">(</span><span class="str">"SkeletonTailFiles"</span><span class="op">,</span> <span class="nam">fskel</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t877" href="#t877">877</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">add_to_key</span><span class="op">(</span><span class="str">"SkeletonTailFiles"</span><span class="op">,</span> <span class="nam">fskel</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t878" href="#t878">878</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t879" href="#t879">879</a></span><span class="t">    <span class="com"># Add to list of folders to tar before deleting</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t880" href="#t880">880</a></span><span class="t">    <span class="key">def</span> <span class="nam">add_ArchiveSkeletonTarDirs</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">fskel</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -1175,7 +1175,7 @@
     <p class="pln"><span class="n"><a id="t1116" href="#t1116">1116</a></span><span class="t"><span class="str">        :Versions:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1117" href="#t1117">1117</a></span><span class="t"><span class="str">            * 2016-12-09 ``@ddalle``: First version</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1118" href="#t1118">1118</a></span><span class="t"><span class="str">        """</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t1119" href="#t1119">1119</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">add_to_key</span><span class="op">(</span><span class="str">"ArchiveFiles"</span><span class="op">,</span> <span class="nam">farch</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t1119" href="#t1119">1119</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">add_to_key</span><span class="op">(</span><span class="str">"ArchiveFiles"</span><span class="op">,</span> <span class="nam">farch</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1120" href="#t1120">1120</a></span><span class="t">   <span class="com"># ></span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1121" href="#t1121">1121</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1122" href="#t1122">1122</a></span><span class="t">   <span class="com"># -------------------------</span>&nbsp;</span><span class="r"></span></p>
@@ -1407,7 +1407,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.2</a>,
-            created at 2022-05-18 23:15 -0700
+            created at 2022-05-18 23:47 -0700
         </p>
     </div>
 </footer>
