@@ -2821,12 +2821,16 @@ def _spines(ax, **kw):
     # Option to turn off all tick labels
     qtl = kw.pop("TickLabels", None)
     # Only valid options are ``None`` and ``False``
-    if qtl is not False: qtl = None
+    if qtl is not False:
+        qtl = None
+    # Option for both x and y
+    qtlX = kw.pop("XTickLabels", qtl)
+    qtlY = kw.pop("YTickLabels", qtl)
     # Options for labels on each spine
-    qtlL = kw.pop("LeftTickLabels",   qtl)
-    qtlR = kw.pop("RightTickLabels",  qtl)
-    qtlB = kw.pop("BottomTickLabels", qtl)
-    qtlT = kw.pop("TopTickLabels",    qtl)
+    qtlL = kw.pop("LeftTickLabels", qtlY)
+    qtlR = kw.pop("RightTickLabels", qtlY)
+    qtlB = kw.pop("BottomTickLabels", qtlX)
+    qtlT = kw.pop("TopTickLabels",  qtlX)
     # Turn on/off labels
     if qtlL is not None:
         ax.tick_params(labelleft=qtlL)
