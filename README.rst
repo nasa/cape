@@ -7,7 +7,8 @@ Execution.
 
 CAPE has two main purposes:
 
-1. To execute and post-process three different CFD solvers:
+1. To execute and post-process three different Computational Fluid Dynamics
+(CFD) solvers:
 
     A. Cart3D
     B. FUN3D
@@ -16,6 +17,32 @@ CAPE has two main purposes:
 2. Create and use "datakits" a combination of database and toolkit. These are
    data structures particularly well-suited to databases created from
    aerosciences data.
+
+This package has been used by NASA teams to create large databases (in some
+instances including over 10,000 CFD solutions) for flight programs such as
+Space Launch System.
+
+The main benefit of using CAPE for CFD run matrices is having a single tool to
+do many of the steps:
+
+    * create separate folders for each CFD case,
+    * copy files and make any modifications such as setting flight conditions
+      in input files,
+    * submit jobs to high-performance computing scheduling system such as PBS,
+    * monitor the status of those jobs,
+    * create PDF reports of results from one or more solutions,
+    * extract data and conduct other post-processing,
+    * archive (and unarchive, if necessary) solution files.
+
+This software is released under the NASA Open Source Agreement Version 1.3 (see
+``LICENSE.rst``). While the software is freely available to everyone, user
+registration is *requested* by emailing the author(s).
+
+A collection of tutorials and examples can be found at
+
+    https://github.com/nasa-ddalle/
+
+
 
 Installation
 --------------
