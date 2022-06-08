@@ -1423,14 +1423,18 @@ class Cntl(ccntl.Cntl):
 
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
-            # Ensure the presence of the triangulation
-            self.ReadTri()
+            # Check option for auto flow initialization
+            if self.x.defns[k].get("AutoFlowInit", True):
+                # Ensure the presence of the triangulation
+                self.ReadTri()
             # Apply the appropriate methods
             self.SetSurfBC(k, i)
         # Set the surface BCs that use thrust as input
         for k in self.x.GetKeysByType('SurfCT'):
-            # Ensure the presence of the triangulation
-            self.ReadTri()
+            # Check option for auto flow initialization
+            if self.x.defns[k].get("AutoFlowInit", True):
+                # Ensure the presence of the triangulation
+                self.ReadTri()
             # Apply the appropriate methods
             self.SetSurfBC(k, i, CT=True)
         # File name
@@ -2195,8 +2199,11 @@ class Cntl(ccntl.Cntl):
                 directly)
         :Versions:
             * 2016-03-29 ``@ddalle``: Version 1.0
-            * 2016-04-13 ``@ddalle``: Added SurfCT compatibility
+            * 2016-04-13 ``@ddalle``: Version 1.1; SurfCT compatibility
+            * 2022-06-08 ``@ddalle``: Version 1.2; check auto flow init
         """
+        # Auto flow initialization
+        flow_init = self.x.defns[key].get("AutoFlowInit", True)
         # Get equations type
         eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the BC inputs
@@ -2221,8 +2228,6 @@ class Cntl(ccntl.Cntl):
         sec = 'boundary_conditions'
         # Loop through the components
         for face in compIDs:
-            # Increase volume number
-            n += 1
             # Convert to ID (if needed) and get the BC number to set
             compID = self.MapBC.GetCompID(face)
             surfID = self.MapBC.GetSurfID(compID)
@@ -2246,6 +2251,11 @@ class Cntl(ccntl.Cntl):
                 # Set the BC
                 nml.SetVar(sec, 'total_pressure_ratio',    p0, surfID)
                 nml.SetVar(sec, 'total_temperature_ratio', T0, surfID)
+            # Skip to next face if no flow initialization
+            if not flow_init:
+                continue
+            # Increase volume number
+            n += 1
             # Get the flow initialization volume
             try:
                 x1, x2, r = self.GetSurfBCVolume(key, compID)
@@ -2272,7 +2282,8 @@ class Cntl(ccntl.Cntl):
             nml.SetVar('flow_initialization', 'point1', x1, (None, n))
             nml.SetVar('flow_initialization', 'point2', x2, (None, n))
         # Update number of volumes
-        nml.SetNFlowInitVolumes(n)
+        if flow_init:
+            nml.SetNFlowInitVolumes(n)
 
     # Get surface BC inputs
     def GetSurfBCState(self, key, i, comp=None):
