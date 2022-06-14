@@ -1587,15 +1587,24 @@ class DBCoeff(dict):
             # Interpolate to current *skey* value
             xmin = (1-f)*xmin0 + f*xmin1
             xmax = (1-f)*xmax0 + f*xmax1
-            # Get the progress fraction at current inter-slice *skey* value
-            fj = (x[j+1] - xmin) / (xmax-xmin)
+            # Get progress fraction at current inter-slice *skey* value
+            if xmax - xmin < 1e-8:
+                fj = 0.0
+            else:
+                fj = (x[j+1] - xmin) / (xmax-xmin)
             # Check for extrapolation
             if not extrap and ((fj < -1e-3) or (fj - 1 > 1e-3)):
                 # Raise extrapolation error
+                print("Extrapolation dectected:")
+                print("  arg 0: %s=%.4e" % (skey, x[0]))
+                for j1, k1 in enumerate(args):
+                    print("  arg %i: %s=%.4e" % (j1+1, k1, x[j1+1]))
+                sys.tracebacklimit = 2
                 raise ValueError(
-                    ("Lookup value %.4e is outside " % x[j+1]) +
-                    ("scheduled bounds [%.4e, %.4e]" % (xmin, xmax)))
-            # Get lookup points at slices *i0* and *i1* using this prog frac
+                    ("Value %.2e " % x[j+1]) +
+                    ("for arg %i (%s) is outside " % (j, k)) +
+                    ("bounds [%.2e, %.2e]" % (xmin, xmax)))
+            # Lookup points at slices *i0* and *i1* using this prog frac
             x0[j] = (1-fj)*xmin0 + fj*xmax0
             x1[j] = (1-fj)*xmin1 + fj*xmax1
         # Output
