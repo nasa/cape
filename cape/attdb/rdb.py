@@ -7605,7 +7605,7 @@ class DataKit(ftypes.BaseData):
                 1D array of data values
             *v*: :class:`float`
                 Value at which to lookup
-            *tol*: {``1e-8``} | :class:`float` >= 0
+            *tol*: {``1e-5``} | :class:`float` >= 0
                 Tolerance for left and right bounds
         :Outputs:
             *i0*: ``None`` | :class:`int`
