@@ -39,7 +39,6 @@ import json
 import os
 import re
 import shutil
-import sys
 import time
 
 # Standard library partial imports
