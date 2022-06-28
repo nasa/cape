@@ -15,9 +15,6 @@ python3 -m pytest \
 # Save result
 IERR=$?
 
-# Track coverage report
-rm test/htmlcov/.gitignore
-
 # Create sphinx docs of results
 python3 -m testutils write-rst
 
