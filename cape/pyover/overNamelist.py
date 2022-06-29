@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pyover.overNamelist`: OVERFLOW namelist module 
 ==============================================================
 
@@ -50,11 +50,14 @@ See also:
 
 """
 
-# Numerics
+# Standard library
+import os 
+
+# Third-party
 import numpy as np
 
-# Import the base file control class.
-import cape.filecntl.namelist2
+# Local imports
+from ..filecntl import namelist2
 
 # Function to compare boundary indices
 def gti(a, b):
@@ -241,7 +244,7 @@ def mini(a, b):
 
 
 # Base this class off of the main file control class.
-class OverNamelist(cape.filecntl.namelist2.Namelist2):
+class OverNamelist(namelist2.Namelist2):
     """
     File control class for :file:`over.namelist`
             
@@ -265,6 +268,9 @@ class OverNamelist(cape.filecntl.namelist2.Namelist2):
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="over.namelist"):
         """Initialization method"""
+        # Check for file
+        if not os.path.isfile(fname):
+            raise ValueError("No file '%s' to read" % fname)
         # Read the file.
         self.Read(fname)
         # Save the file name.
