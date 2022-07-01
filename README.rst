@@ -49,9 +49,17 @@ Installation
 
 The simplest method to install CAPE is to use ``pip``:
 
-.. code-block:: console
+:Linux/MacOS:
 
-    $ python3 -m pip install git+https://github.com/nasa/cape.git#egg=cape
+    .. code-block:: console
+
+        $ python3 -m pip install git+https://github.com/nasa/cape.git#egg=cape
+
+:Windows:
+
+    .. code-block:: console
+
+        $ py -m pip install git+https://github.com/nasa/cape.git#egg=cape
 
 **Notes**:
 
@@ -63,6 +71,56 @@ The simplest method to install CAPE is to use ``pip``:
         required.
     4.  If installing a new version of CAPE where one might already be present,
         add the option ``--upgrade``.
+
+Manual
+--------
+
+CAPE has a fairly extensive user's manual, but at the moment it is not easily
+accessible on GitHub. Until this is resolved, you may just email the developer
+for a copy of the PDF version of the manual.
+
+To build your own version(s) of the documentation, you can clone this repo
+
+.. code-block:: console
+
+   $ git clone https://github.com/nasa/cape.git
+
+Then install the Python documentation package Sphinx:
+
+:Linux/MacOS:
+
+    .. code-block:: console
+
+        $ python3 -m pip install sphinx
+
+:Windows:
+
+    .. code-block:: console
+
+        $ py -m pip install sphinx
+
+Finally, enter the ``doc/`` folder and build the documentation in one of two
+main formats:
+
+:Linux/MacOS:
+
+    .. code-block:: console
+
+       $ cd doc
+       $ make html
+       $ make latexpdf
+       
+:Windows:
+
+    .. code-block:: console
+
+       $ cd doc
+       $ sphinx-build -b html . _build/html
+       $ sphinx-build -b latexpdf . _build/latex
+
+This will create a series of static HTML pages in ``_build/html`` or a single
+manual file ``_build/latexpdf/cape.pdf``.
+
 
 **Notices**
 
