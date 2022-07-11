@@ -15,16 +15,12 @@ Demo 6: Line Loads on the Arrow Example
     <https://software.nasa.gov/software/ARC-16025-1A>`_.
 
 Using the geometry from :ref:`Example 2 <pycart-ex-arrow>`, this case continues
-the analysis and adds computation of sectional loads. This example is found in
-the file
-
-    ``pycart06-lineload_arrow.tar.gz``
-
-To get started, download this file and run the following easy commands:
+the analysis and adds computation of sectional loads. To get started, clone
+this repository and run the following easy commands:
 
     .. code-block:: console
 
-        $ tar -xzf pycart06-lineload_arrow.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pycart05-adapt_bJet.git
         $ cd pycart06-lineload_arrow
         $ ./copy-files.py
         $ cd work/
@@ -35,7 +31,7 @@ you can easily delete the ``work/`` folder and restart the tutorial at any
 time.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
-faces and seven components.  The surface triangulation, :file:`arrow.tri`, is
+faces and seven components.  The surface triangulation, ``arrow.tri``, is
 shown below.
 
     .. figure:: ../02-arrow/arrow01.png
@@ -68,7 +64,7 @@ To get a ``triq`` file with averaged results, we have to run ``flowCart`` a few
 iterations at a time and manually perform averaging.  The ``-stats`` option
 performs a similar task, but it is not quite consistent with what's needed for
 an averaged line load.  To get pyCart to perform this unusual task, we have the
-following ``"RunControl"`` section in :file:`pyCart.json`.
+following ``"RunControl"`` section in ``pyCart.json``.
 
     .. code-block:: javascript
     
@@ -183,7 +179,7 @@ Calculating Line Loads
 ----------------------
 The purpose of this example was to create line loads, so let's investigate that
 part.  To instruct pyCart which components on which to compute line loads, we
-go to the ``"DataBook"`` section of :file:`pyCart.json`.
+go to the ``"DataBook"`` section of ``pyCart.json``.
 
     .. code-block:: javascript
     
@@ -250,14 +246,14 @@ of a ``lineload`` folder in each case directory.  In the
 raw computation of line loads created by the Chimera Grid Tools utility
 ``triloadCmd``.
 
-The file :file:`triload.ll_arrow.i` is the input to ``triloadCmd`` that is
+The file ``triload.ll_arrow.i`` is the input to ``triloadCmd`` that is
 automatically created by pyCart.  The main output file is
-:file:`LineLoad_ll_arrow.slds`, which contains the non-dimensionalized forces
+``LineLoad_ll_arrow.slds``, which contains the non-dimensionalized forces
 on each of the 100 slices.
 
 These raw files are then read by pyCart and processed into a databook in the
 ``data/`` folder (locations specified by the *DataBook>Folder* option in
-:file:`pyCart.json`).  Below is a file tree of the ``06_lineload_arrow/data``
+``pyCart.json``).  Below is a file tree of the ``06_lineload_arrow/data``
 folder.
 
     .. code-block:: none
@@ -278,7 +274,7 @@ folder.
 The top-level ``ll_ll_arrow.csv`` file is a status file that stores which cases
 have computed line loads and what iteration at which they have been computed.
 It looks a lot like a force and moment databook file (e.g.
-:file:`aero_arrow_no_base.csv`) except that there are no data columns (since
+``aero_arrow_no_base.csv``) except that there are no data columns (since
 those are stored in the line load folders.
 
 In the ``data/lineload/`` directory, there are two files with unusual file
@@ -302,7 +298,7 @@ results nondimensional but also removes dependence on the number of cuts.
 Creating Plots and Automated Reports
 ------------------------------------
 Line load plots are fairly easy to set up.  First let's just create the report
-and then describe the ``"Report"`` section of :file:`pyCart.json`.  
+and then describe the ``"Report"`` section of ``pyCart.json``.  
 
     .. code-block:: console
     
@@ -310,7 +306,6 @@ and then describe the ``"Report"`` section of :file:`pyCart.json`.
         poweroff/m1.25a0.0b0.0
           CaseConds: New subfig at iteration 200.0
           FMTable: New subfig at iteration 200.0
-        /usr/lib/python2.7/dist-packages/numpy/core/_methods.py:105: RuntimeWarning: overflow encountered in multiply
           x = um.multiply(x, x, out=x)
           arrow_CA: New subfig at iteration 200.0
           arrow_CY: New subfig at iteration 200.0
@@ -371,7 +366,7 @@ Cart3D).
 
 The last two plots are line load plots.  Let's discuss the JSON syntax to set
 up each of these plots and also how these subfigures are assembled into a
-report.  The basic skeleton of the ``"Report"`` section of :file:`pyCart.json`
+report.  The basic skeleton of the ``"Report"`` section of ``pyCart.json``
 is shown below.
 
     .. code-block:: javascript
@@ -414,16 +409,16 @@ for the report including a list of figures, a section defining each figure, and
 a section defining the subfigures.  A figure is a collection of subfigures plus
 an alignment option and optional header.
 
-Creating this report creates a file called :file:`report-case.pdf` in the
+Creating this report creates a file called ``report-case.pdf` in the
 ``report/`` folder.  The individual plots created for the report are stored in
 folders such as ``report/poweroff/m1.25a2.0/a0.0/``, with each subfigure having
 a file name corresponding to the title of the subfigure (e.g.
-:file:`arrow_CA.pdf`).
+``arrow_CA.pdf``).
 
 Line Load Subfigures
 ^^^^^^^^^^^^^^^^^^^^
 The focus of this section is on the subfigures, and in particular the plots.
-To learn more about the two tables, the actual example :file:`pyCart.json` file
+To learn more about the two tables, the actual example ``pyCart.json`` file
 is relatively easy to understand.  Defining syntax for the line load plots is
 shown below.
 
@@ -560,3 +555,4 @@ There are also many different options for each of these plots, and it is also
 possible to plot line loads from other databases on top of those of the most
 recent case for comparison.  See the :ref:`JSON page <pycart-json-Report>` for
 a thorough description of options.
+

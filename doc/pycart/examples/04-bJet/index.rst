@@ -5,16 +5,12 @@ Demo 4: Business Jet, Data Book, and Automated Reports
 ======================================================
 
 The following example uses a more complex geometry to demonstrate Cart3D's
-capabilities and the ease with which complex geometries can be analyzed. This
-example is found in the file
-
-    ``pycart04-bJet.tar.gz``
-
-To get started, download this file and run the following easy commands:
+capabilities and the ease with which complex geometries can be analyzed. To get
+started, clone this repo and run the following easy commands:
 
     .. code-block:: console
 
-        $ tar -xzf pycart04-bJet.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pycart04-bJet.git
         $ cd pycart04-bJet
         $ ./copy-files.py
         $ cd work/
@@ -60,7 +56,7 @@ Phase Control
 This is an example with more complex geometry, obviously, but it also is an
 example of a two-phase solution procedure.  This can be seen in the sample
 output above because there are two ``flowCart`` commands. The following is a
-snippet from the :file:`pyCart.json` file.
+snippet from the ``pyCart.json`` file.
 
     .. code-block:: javascript
     
@@ -118,7 +114,7 @@ use the same option for all phases.
 
 Configuration
 -------------
-Let's also look at the ``"Config"`` section of :file:`pyCart.json`.
+Let's also look at the ``"Config"`` section of ``pyCart.json``.
 
     .. code-block:: javascript
     
@@ -148,7 +144,7 @@ section specifies which components will also have aerodynamic moments reported.
 An interesting feature demonstrated in this example is how the moment reference
 point is not defined directly for each component. Instead, a common reference
 point is defined in the *Points* variable, and pyCart automatically refers to
-this point when creating Cart3D's standard :file:`input.cntl` input file. This
+this point when creating Cart3D's standard ``input.cntl`` input file. This
 saves a little bit of effort if a reference point happens to move a little bit,
 but it is also useful in cases where reference points may shift from case to
 case---for example when studying a separation problem or moving fins.
@@ -160,9 +156,9 @@ particular, we'll look at automated calculation of mean values and standard
 deviations of aerodynamic forces and moments.
 
 Much like the ``"Config"``, section, the data book, which is controlled by the
-``"DataBook"`` section of :file:`pyCart.json`, needs a list of components to
+``"DataBook"`` section of ``pyCart.json``, needs a list of components to
 keep track of.  In the JSON file snippet below taken from the
-:file:`pyCart.json` file from the business jet example, we're tracking five
+``pyCart.json`` file from the business jet example, we're tracking five
 components, and we are recording both the forces and moments for each.
 
     .. code-block:: javascript
@@ -215,7 +211,7 @@ and checks if any case meets the criteria to be entered into the databook.
 Every case must be run at least *nMin* + *nStats* iterations. This creates a
 few files in the ``data/`` folder. Specifically, there is a ``aero_$COMP.csv``
 file for each *COMP* in the ``"Components"`` field. As an example, the contents
-of :file:`aero_fuselage.csv` are the following.
+of ``aero_fuselage.csv`` are the following.
 
     .. code-block:: none
     
@@ -281,7 +277,7 @@ plot is below.
     L1 density residual history for ``poweroff/m0.84a0.0b0.0``
     
 The settings for this automated report are specified in the ``"Report"``
-section of :file:`pyCart.json`.
+section of ``pyCart.json``.
 
     .. code-block:: javascript
         

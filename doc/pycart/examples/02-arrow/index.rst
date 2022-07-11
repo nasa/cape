@@ -5,16 +5,13 @@ Demo 2: Closer Analysis of Simple Arrow Shape
 =============================================
 
 The second example is similar to the first pyCart demo except that four fins
-have been added and more details of the input files are explained. This example
-is found in the file
-
-    ``pycart02-arrow.tar.gz``
-
-To get started, download this file and run the following easy commands:
+have been added and more details of the input files are explained. To get
+started, clone the following repo and enter the folder and run a couple of
+commands:
 
     .. code-block:: console
 
-        $ tar -xzf pycart02-arrow.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pycart02-arrow.git
         $ cd pycart02-arrow
         $ ./copy-files.py
         $ cd work/
@@ -25,7 +22,7 @@ you can easily delete the ``work/`` folder and restart the tutorial at any
 time.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
-faces and seven components.  The surface triangulation, :file:`arrow.tri`, is
+faces and seven components.  The surface triangulation, ``arrow.tri``, is
 shown below.
 
     .. figure:: arrow01.png
@@ -76,7 +73,7 @@ Let's look at the files in this folder.
     
 JSON Settings
 ^^^^^^^^^^^^^
-The :file:`pyCart.json` file contains the master settings divided into several
+The ``pyCart.json`` file contains the master settings divided into several
 sections, which we will discuss in more detail.  The overall contents of the
 file look something like the following, with the ``...`` replaced by more
 content.
@@ -143,7 +140,7 @@ various Cart3D programs.
 The ``"flowCart"`` section contains command-line inputs for running
 ``flowCart``, which is the main flow solver of Cart3D, or ``mpix_flowCart``,
 which is the MPI version of the same. Many of the variable names, such as
-*it_fc*, are copied from Cart3D's template :file:`aero.csh` scripts or
+*it_fc*, are copied from Cart3D's template ``aero.csh`` scripts or
 command-line inputs to Cart3D's ``flowCart``. The three main options (which are
 required for any pyCart project) are *PhaseSequence*, *PhaseIters*, and
 *it_fc*.
@@ -223,11 +220,11 @@ moment reference points to use, and similar definitions. The XML file allows
 Cart3D and pyCart to refer to define groups of components and refer to
 components by name instead of memorizing their numbers. The *Force* option
 specifies a list of components on which ``flowCart`` should track the force at
-each iteration. This creates files :file:`cap.dat`, :file:`body.dat`,
-:file:`fins.dat`, etc. Then *RefPoint* specifies the list of components for
-which to also track the moments, and the moment reference point to use for each
-such component. In this case, the moments will be reported alongside the forces
-in :file:`bullet_no_base.dat`.
+each iteration. This creates files ``cap.dat``, ``body.dat``, ``fins.dat``,
+etc. Then *RefPoint* specifies the list of components for which to also track
+the moments, and the moment reference point to use for each such component. In
+this case, the moments will be reported alongside the forces in
+``bullet_no_base.dat``.
 
 The *RefArea* and *RefLength* parameters are used here to specify global
 reference values, but it is possible to use different reference lengths or
@@ -257,10 +254,10 @@ accurately, once for each group, but this example has only one group).  The
 *GroupPrefix* gives a name for the folder in which to put all the cases, which
 explains why a typical case is named ``poweroff/m1.50a2.00r0.00``, for example.
 
-There are two more sections in the :file:`pyCart.json`, which describe various
+There are two more sections in the ``pyCart.json``, which describe various
 products.
 
-Triangulation File: :file:`arrow.tri`
+Triangulation File: ``arrow.tri``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The surface geometry is defined in an ASCII file in a straightforward Cart3D
 format.  A summary of the contents is shown below.
@@ -291,11 +288,11 @@ that defines the component ID of each triangle.  Thus triangle 1 is part of
 component 1, triangle 2 is part of component 1, and the last triangle is part of
 component 11.
 
-Component Names: :file:`arrow.xml`
+Component Names: ``arrow.xml``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Cart3D uses an optional XML file that associates names with each component.  It
 uses a standard XML format with component IDs (the numbers at the end of the
-:file:`.tri` file discussed above) with a ``Face Label`` value inside a
+``.tri`` file discussed above) with a ``Face Label`` value inside a
 ``<Data>`` tag.  It also allows for the definition of a "container" component
 that is the combination of several other components.  This makes it possible to 
 track ``fin1`` separately while also tracking all the ``fins`` as a group.  The
@@ -351,7 +348,7 @@ contents of the file are shown below.
         
         </Configuration>
 
-Run Matrix File: :file:`matrix.csv`
+Run Matrix File: ``matrix.csv``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The conditions at which Cart3D are read from this file, which is a simple list
 of conditions.
@@ -385,10 +382,10 @@ Let's run one case, but not the first case.  We can do this by using the
           Reading tri file(s) from root directory.
              Writing triangulation: 'Components.i.tri'
          > autoInputs -r 8 -t Components.i.tri -maxR 10
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff')
+             (PWD = 'pycart02-arrow/poweroff')
              (STDOUT = 'autoInputs.out')
          > cubes -pre preSpec.c3d.cntl -maxR 10 -reorder -a 10 -b 2
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff')
+             (PWD = 'pycart02-arrow/poweroff')
              (STDOUT = 'cubes.out')
          > mgPrep -n 3
              (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff')
@@ -396,7 +393,7 @@ Let's run one case, but not the first case.  We can do this by using the
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r15.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r15.0')
+             (PWD = 'poweroff/m1.75a1.0r15.0')
              (STDOUT = 'flowCart.out')
         
         Submitted or ran 1 job(s).
@@ -430,20 +427,20 @@ a constraint.  Let's run the remaining Mach 1.75 cases using that capability.
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r0.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r0.0')
+             (PWD = 'poweroff/m1.75a1.0r0.0')
              (STDOUT = 'flowCart.out')
         1    poweroff/m1.75a1.0r15.0 DONE    200/200     .   0.0
         2    poweroff/m1.75a1.0r30.0 ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r30.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r30.0')
+             (PWD = 'poweroff/m1.75a1.0r30.0')
              (STDOUT = 'flowCart.out')
         3    poweroff/m1.75a1.0r45.0 ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r45.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r45.0')
+             (PWD = 'poweroff/m1.75a1.0r45.0')
              (STDOUT = 'flowCart.out')
         
         Submitted or ran 3 job(s).
@@ -469,19 +466,19 @@ files that define the mesh in the ``poweroff/`` folder.
         Config.xml        m1.75a1.0r15.0  Mesh.mg.c3d   
         cubes.out         m1.75a1.0r30.0  Mesh.R.c3d   
 
-The :file:`.out` files save STDIO printouts from the mesh-generation commands.
-The :file:`Mesh.mg.c3d` is the actual mesh file, including multigrid levels
-(i.e., coarsened grids). Our surface triangulation, :file:`arrow.tri` is copied
-to :file:`Components.i.tri` in this folder; and the configuration file
-:file:`arrow.xml` is copied to :file:`Config.xml`. The single mesh without
-multigrid levels is :file:`Mesh.R.c3d`, and the remaining files are created by
+The ``.out`` files save STDIO printouts from the mesh-generation commands.
+The ``Mesh.mg.c3d`` is the actual mesh file, including multigrid levels
+(i.e., coarsened grids). Our surface triangulation, ``arrow.tri`` is copied
+to ``Components.i.tri`` in this folder; and the configuration file
+``arrow.xml`` is copied to ``Config.xml``. The single mesh without
+multigrid levels is ``Mesh.R.c3d``, and the remaining files are created by
 ``autoInputs``.
 
-The contents of :file:`input.c3d` set the minimum and maximum *x*, *y*, and *z*
+The contents of ``input.c3d`` set the minimum and maximum *x*, *y*, and *z*
 coordinates for the domain on which Cart3D is solved, and is a pretty unique
 file.  In this case, it is created automatically by ``autoInputs`` based on the
-physical size of the :file:`Components.i.tri` surface.  The other auto-created
-file, :file:`preSpec.c3d.cntl` defines regions in which the volume mesh should
+physical size of the ``Components.i.tri`` surface.  The other auto-created
+file, ``preSpec.c3d.cntl`` defines regions in which the volume mesh should
 have increased resolution.  Calling ``cubes`` also generates regions of
 increased resolution based on distance from the surface, but this file can be
 used to request more detail.  In addition to some header lines, the contents
@@ -526,22 +523,22 @@ Now let's look at the files in a run folder.
 
 Obviously, there are quite a few files, although many of them are links. For
 example, the files that are listed here and in the parent folder discussed
-above are either links or copies. The :file:`input.c3d` and
-:file:`preSpec.c3d.cntl` files are copied because they are small.
+above are either links or copies. The ``input.c3d`` and
+``preSpec.c3d.cntl`` files are copied because they are small.
 
 Most of the files ending with ``.dat`` are iterative history files. Some of
 these are standard results of running ``flowCart``, and others are specifically
-requested. The most special of these is :file:`history.dat`, which contains the
+requested. The most special of these is ``history.dat``, which contains the
 residual history. In pyCart, this file is used to determine how many iterations
 have been run. With the exception of some comment lines, each line reports one
 iteration number and the residual at that iteration.
 
-The files :file:`forces.dat` and :file:`moments.dat` report the forces and
+The files ``forces.dat`` and ``moments.dat`` report the forces and
 moments on the ``entire`` component, i.e. the entire triangulation. These files
 are always produced, report results before any axis changes, and are ignored by
-pyCart. Four other files, :file:`body.dat`, :file:`bullet_no_base.dat`,
-:file:`bullet_total.dat`, and :file:`cap.dat`, are specifically requested.
-Cart3D produces them because the :file:`input.cntl` file contains lines ``Force
+pyCart. Four other files, ``body.dat``, ``bullet_no_base.dat``,
+``bullet_total.dat``, and ``cap.dat``, are specifically requested.
+Cart3D produces them because the ``input.cntl`` file contains lines ``Force
 body``, ``Force cap``, etc. in the ``$__Force_Moment_Processing:`` section.
 Although we did not request ``entire`` in our pyCart setup, it got produced
 here because the template ``input.cntl`` file contains the line ``Force
@@ -585,13 +582,13 @@ run ``flowCart``.
 The script includes some PBS settings (which are not used in this example), a
 command to change to the correct folder using an absolute path, whatever shell
 commands are specified in the JSON file, and a command to determine the correct
-Cart3D command.  The file :file:`case.json` contains all of the
-:file:`pyCart.json` settings from the ``"flowCart"`` section, because they are
+Cart3D command.  The file ``case.json`` contains all of the
+``pyCart.json`` settings from the ``"flowCart"`` section, because they are
 needed to determine the command-line inputs.
 
 That covers the essential files for this example.  The very import
-:file:`input.cntl` file (which in this case is just a link to
-:file:`input.00.cntl`) is worthy of far more discussion, and there are several
+``input.cntl`` file (which in this case is just a link to
+``input.00.cntl``) is worthy of far more discussion, and there are several
 other files that have varying degrees of utility, but that will have to come at
 a different time and place.
 

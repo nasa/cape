@@ -7,15 +7,12 @@ Demo 7: Data Book Plots and Reports
 Using the geometry from :ref:`Example 2 <pycart-ex-arrow>` and :ref:`Example 7
 <pycart-ex-lineload-arrow>`, this example computes forces and moments on a
 larger number of cases in order to continues the analysis and adds computation
-of sectional loads. This example is found in the file
-
-    ``pycart07-data_arrow.tar.gz``
-
-To get started, download this file and run the following easy commands:
+of sectional loads. To get started, clone this repoand run the following easy
+commands:
 
     .. code-block:: console
 
-        $ tar -xzf pycart07-data_arrow.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pycart07-data_arrow.git
         $ cd pycart07-data_arrow
         $ ./copy-files.py
         $ cd work/
@@ -311,7 +308,7 @@ example plot is provided in :numref:`fig-pycart-ex07-a2-fuselage-CLM` and
 The inputs that led to these two figures (*mach_fuse_CLM* for
 :numref:`fig-pycart-ex07-a2-fuselage-CLM`; *mach_fins_CN* for
 :numref:`fig-pycart-ex07-a2-fins-CN`) are shown below.  This is an excerpt from
-the *Report>Subfigures* section of :file:`pyCart.json`.
+the *Report>Subfigures* section of ``pyCart.json``.
 
     .. code-block:: javascript
     
@@ -367,7 +364,7 @@ Carpet Plots
 ^^^^^^^^^^^^
 In order to get into the plots quicker, the previous subsection skipped the
 definition of the actual sweeps.  The *Report>Sweeps* definition from
-:file:`pyCart.json` is shown below.
+``pyCart.json`` is shown below.
 
     .. code-block:: javascript
 
@@ -421,7 +418,7 @@ cases.
 
 Also, the ``"Figures"`` key works in the same way within ``"Sweeps"`` as it
 does in regular reports.  See the previous examples and the example
-:file:`pyCart.json` for more information on how to define figures.  Finally,
+``pyCart.json`` for more information on how to define figures.  Finally,
 the *XAxis* key simply designates a run matrix variable (trajectory key) to use
 as the independent variable in the plots.
 
@@ -491,3 +488,4 @@ The trends with angle of attack are relatively straightforward.  In this narrow
 range of angle of attack, it anticipated that the normal force would be linear
 with *alpha*.  Interestingly, the fuselage *CLM* vs *alpha* curve has a stable
 slope only at Mach 0.5 (and kind of 0.8).
+

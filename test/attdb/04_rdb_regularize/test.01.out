@@ -1,3 +1,0 @@
-max error(regalpha) = 0.00
-max error(regbeta)  = 0.00
-monotonic(regCN): True

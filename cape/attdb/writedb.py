@@ -217,8 +217,8 @@ def write_db(modname, **kw):
     prefix = kw.pop("prefix", None)
     # Get non-default function name
     func = kw.pop("write_func", kw.pop("func", None))
-    # Remove _old
-    kw.pop("_old", None)
+    # Remove __replaced__
+    kw.pop("__replaced__", None)
     # Read module
     mod = import_module(modname, prefix)
     # Call the template function from

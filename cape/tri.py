@@ -3021,6 +3021,11 @@ class TriBase(object):
         self.Nodes = np.vstack((self.Nodes, tri.Nodes))
         # Concatenate the triangle node index matrix.
         self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
+        # Concatenate *q* values if appropriate
+        try:
+            self.q = np.vstack((self.q, tri.q))
+        except AttributeError:
+            pass
         # Get the current component ID lists from both tries.
         CompID0 = np.unique(self.CompID)
         CompID1 = np.unique(tri.CompID)

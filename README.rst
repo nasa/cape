@@ -7,7 +7,8 @@ Execution.
 
 CAPE has two main purposes:
 
-1. To execute and post-process three different CFD solvers:
+1. To execute and post-process three different Computational Fluid Dynamics
+(CFD) solvers:
 
     A. Cart3D
     B. FUN3D
@@ -17,14 +18,48 @@ CAPE has two main purposes:
    data structures particularly well-suited to databases created from
    aerosciences data.
 
+This package has been used by NASA teams to create large databases (in some
+instances including over 10,000 CFD solutions) for flight programs such as
+Space Launch System.
+
+The main benefit of using CAPE for CFD run matrices is having a single tool to
+do many of the steps:
+
+    * create separate folders for each CFD case,
+    * copy files and make any modifications such as setting flight conditions
+      in input files,
+    * submit jobs to high-performance computing scheduling system such as PBS,
+    * monitor the status of those jobs,
+    * create PDF reports of results from one or more solutions,
+    * extract data and conduct other post-processing,
+    * archive (and unarchive, if necessary) solution files.
+
+This software is released under the NASA Open Source Agreement Version 1.3 (see
+``LICENSE.rst``). While the software is freely available to everyone, user
+registration is *requested* by emailing the author(s).
+
+A collection of tutorials and examples can be found at
+
+    https://github.com/nasa-ddalle/
+
+
+
 Installation
 --------------
 
 The simplest method to install CAPE is to use ``pip``:
 
-.. code-block:: console
+:Linux/MacOS:
 
-    $ python3 -m pip install git+https://github.com/nasa/cape.git#egg=cape
+    .. code-block:: console
+
+        $ python3 -m pip install git+https://github.com/nasa/cape.git#egg=cape
+
+:Windows:
+
+    .. code-block:: console
+
+        $ py -m pip install git+https://github.com/nasa/cape.git#egg=cape
 
 **Notes**:
 
@@ -36,6 +71,56 @@ The simplest method to install CAPE is to use ``pip``:
         required.
     4.  If installing a new version of CAPE where one might already be present,
         add the option ``--upgrade``.
+
+Manual
+--------
+
+CAPE has a fairly extensive user's manual, but at the moment it is not easily
+accessible on GitHub. Until this is resolved, you may just email the developer
+for a copy of the PDF version of the manual.
+
+To build your own version(s) of the documentation, you can clone this repo
+
+.. code-block:: console
+
+   $ git clone https://github.com/nasa/cape.git
+
+Then install the Python documentation package Sphinx:
+
+:Linux/MacOS:
+
+    .. code-block:: console
+
+        $ python3 -m pip install sphinx
+
+:Windows:
+
+    .. code-block:: console
+
+        $ py -m pip install sphinx
+
+Finally, enter the ``doc/`` folder and build the documentation in one of two
+main formats:
+
+:Linux/MacOS:
+
+    .. code-block:: console
+
+       $ cd doc
+       $ make html
+       $ make latexpdf
+       
+:Windows:
+
+    .. code-block:: console
+
+       $ cd doc
+       $ sphinx-build -b html . _build/html
+       $ sphinx-build -b latexpdf . _build/latex
+
+This will create a series of static HTML pages in ``_build/html`` or a single
+manual file ``_build/latexpdf/cape.pdf``.
+
 
 **Notices**
 

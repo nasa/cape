@@ -3,15 +3,12 @@ Demo 5: Mesh Adaptation on a Business Jet
 =========================================
 
 The following example uses a more complex geometry in combination with Cart3D's
-adaptive meshing capability. This example is found in the file
-
-    ``pycart05-adapt_bJet.tar.gz``
-
-To get started, download this file and run the following easy commands:
+adaptive meshing capability. To get started, download this file and run the
+following easy commands:
 
     .. code-block:: console
 
-        $ tar -xzf pycart05-adapt_bJet.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pycart05-adapt_bJet.git
         $ cd pycart05-adapt_bJet
         $ ./copy-files.py
         $ cd work/
@@ -55,7 +52,7 @@ A sample graphic of the surface pressure made with Tecplot is shown below.
         
 Phase Control
 -------------
-The ``"RunControl"`` section of :file:`pyCart.json` contains additional
+The ``"RunControl"`` section of ``pyCart.json`` contains additional
 information compared to previous examples for control of the mesh adaptation
 settings.  Here is a skeleton of the contents of that file.
 
@@ -183,7 +180,7 @@ refined. In a ``"p"`` cycle, any cell which is the finest in the current mesh
 may not be refined.
 
 These ``"Adaptaion"`` settings are propagated to the Cart3D package of software
-by editing lines of the :file:`aero.csh` file.
+by editing lines of the ``aero.csh`` file.
 
 The ``"Functional"`` section defines the scalar output function that is used to
 drive mesh refinement.  Roughly, the mesh refinement algorithm automatically
@@ -210,7 +207,7 @@ the axis number of the coefficient of interest (``0`` for the *x* axis, etc.),
 the *frame* specifies either stability axes if ``0`` or body axes if ``1``, the
 *compID* is the name or number of the component to use, and *weight* is the
 weight with which that coefficient contributes to the overall functional.  This
-output functional gets defined in the :file:`input.cntl` file.  The relevant
+output functional gets defined in the ``input.cntl`` file.  The relevant
 lines are shown below.
 
     .. code-block:: none

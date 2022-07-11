@@ -1,9 +1,0 @@
-   _col1: p
-    mach: 2.1
-   alpha: 4.0
-    beta: 1.5
-  config: poweroff
-   Label: 
-    user: @user3
-   ERROR: False
-    PASS: True

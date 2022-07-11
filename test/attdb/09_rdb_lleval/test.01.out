@@ -1,5 +1,0 @@
-mach: 0.90
-alpha: 1.50
-beta: 0.50
-bullet.dCN.size: 51
-bullet.dCN.xargs: ['bullet.x']

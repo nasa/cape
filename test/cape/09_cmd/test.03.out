@@ -1,2 +1,0 @@
-somekey=c
-aflr3 -i pyfun.surf -o pyfun.lb8.ugrid -blr 10 -someflag 2 somekey=c

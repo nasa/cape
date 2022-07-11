@@ -752,9 +752,9 @@ def GetTecplotCommand():
 
     The preference is
     
-        1. ``"tec360EX"`
-        2. ``"tec360"``
-        3. ``"tecplot"``.
+        1. ``"tec360EX"``
+        2. ``"tec360"```
+        3. ``"tecplot"``
 
     An exception is raised if none of these commands can be found.
 

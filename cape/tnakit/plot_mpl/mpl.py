@@ -114,6 +114,12 @@ def _import_pyplot():
         return
 
 
+# Close a figure
+def close(fig=None):
+    _import_pyplot()
+    plt.close(fig)
+
+
 # Figure part
 def figure(**kw):
     r"""Get or create figure handle and format it
@@ -2340,7 +2346,7 @@ def _legend(ax=None, **kw):
     # Get Number of rows
     nrow = (ntext // ncol) + (ntext % ncol > 0)
     # Default font size
-    if nrow > 5:
+    if nrow > 5 or ncol > 2:
         # Smaller font
         fsize = 7
     else:
@@ -2815,12 +2821,16 @@ def _spines(ax, **kw):
     # Option to turn off all tick labels
     qtl = kw.pop("TickLabels", None)
     # Only valid options are ``None`` and ``False``
-    if qtl is not False: qtl = None
+    if qtl is not False:
+        qtl = None
+    # Option for both x and y
+    qtlX = kw.pop("XTickLabels", qtl)
+    qtlY = kw.pop("YTickLabels", qtl)
     # Options for labels on each spine
-    qtlL = kw.pop("LeftTickLabels",   qtl)
-    qtlR = kw.pop("RightTickLabels",  qtl)
-    qtlB = kw.pop("BottomTickLabels", qtl)
-    qtlT = kw.pop("TopTickLabels",    qtl)
+    qtlL = kw.pop("LeftTickLabels", qtlY)
+    qtlR = kw.pop("RightTickLabels", qtlY)
+    qtlB = kw.pop("BottomTickLabels", qtlX)
+    qtlT = kw.pop("TopTickLabels",  qtlX)
     # Turn on/off labels
     if qtlL is not None:
         ax.tick_params(labelleft=qtlL)

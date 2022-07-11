@@ -6,12 +6,13 @@
 # E114: Comment indentation is not a multiple of four
 # E221: Multiple spaces before operator
 # E701: Multiple statements on one line (colon)
+# E731: Don not assign a lambda expression
 # E741: Ambiguous variable name
 # W391: Blank line at end of file
 # W504: Line break after binary operator (in default 'ignore' list)
 # N802: Function name should be lowercase
 # N806: Variable in function should be lowercase
-ignore = W293, E226, E241, E114, E221, E701, E741, W391, W504, N802, N806
+ignore = W293, E226, E241, E114, E221, E701, E731, E741, W391, W504, N802, N806
 # Folders to avoid if used from command line
 exclude =
     .git

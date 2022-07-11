@@ -10,15 +10,12 @@ cases that come with the OVERFLOW source code. This example starts with the
 grids and inputs files that are created within the OVERFLOW examples, and
 documents how to create the pyOver setup, run matrix, how to run several
 OVERFLOW cases, covers some post-processing. This example is located in a
-separate tarball called
+git repo. After cloning this repo, enter the resulting folder
 
-    ``pyover02-powered_nacelle.tar.gz``
-
-After untarring this file and entering the resulting folder using
 
     .. code-block:: console
 
-        $ tar -xzvf pyover02-powered_nacelle.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pyover02-powered_nacelle.git
         $ cd pyover02-powered_nacelle
 
 the folder has the required input files, but it's recommended to copy them to a
@@ -55,13 +52,13 @@ will run in a matter of seconds:
           Case name: 'flowthrough/m0.8' (index 1)
              Starting case 'flowthrough/m0.8'
          > overrunmpi -np 8 run 01
-             (PWD = '/examples/pyover/02_powered_nacelle/flowthrough/m0.8')
+             (PWD = 'flowthrough/m0.8')
              (STDOUT = 'overrun.out')
            Wall time used: 0.00 hrs (phase 0)
            Wall time used: 0.00 hrs
            Previous phase: 0.00 hrs
          > overrunmpi -np 8 run 02
-             (PWD = '/examples/pyover/02_powered_nacelle/flowthrough/m0.8')
+             (PWD = 'flowthrough/m0.8')
              (STDOUT = 'overrun.out')
            Wall time used: 0.00 hrs (phase 1)
         
@@ -129,10 +126,10 @@ of OVERFLOW, but setting *mpicmd* to ``null`` is required because we want
 pyOver to use the ``overrunmpi`` script, as specified by the *cmd* value in
 the *overrun* section.
 
-Note that the actual number of iterations in one run of each phase is not set in the
-*RunControl* section above. These are controlled by the OVERFLOW input
+Note that the actual number of iterations in one run of each phase is not set
+in the *RunControl* section above. These are controlled by the OVERFLOW input
 variable *NSTEPS* in the *GLOBAL* namelist. In the first phase we are also
-running full-multi-grid (FMG) iterations with FMGCYC = [[300,300]] and
+running full-multi-grid (FMG) iterations with ``FMGCYC = [[300, 300]]`` and
 *NSTEPS[0]* = 0, thus 600 total iterations in the first phase. 
 
 Here are the sections in ``flowthrough.json`` that control the *GLOBAL*

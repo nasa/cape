@@ -1587,15 +1587,24 @@ class DBCoeff(dict):
             # Interpolate to current *skey* value
             xmin = (1-f)*xmin0 + f*xmin1
             xmax = (1-f)*xmax0 + f*xmax1
-            # Get the progress fraction at current inter-slice *skey* value
-            fj = (x[j+1] - xmin) / (xmax-xmin)
+            # Get progress fraction at current inter-slice *skey* value
+            if xmax - xmin < 1e-8:
+                fj = 0.0
+            else:
+                fj = (x[j+1] - xmin) / (xmax-xmin)
             # Check for extrapolation
             if not extrap and ((fj < -1e-3) or (fj - 1 > 1e-3)):
                 # Raise extrapolation error
+                print("Extrapolation dectected:")
+                print("  arg 0: %s=%.4e" % (skey, x[0]))
+                for j1, k1 in enumerate(args):
+                    print("  arg %i: %s=%.4e" % (j1+1, k1, x[j1+1]))
+                sys.tracebacklimit = 2
                 raise ValueError(
-                    ("Lookup value %.4e is outside " % x[j+1]) +
-                    ("scheduled bounds [%.4e, %.4e]" % (xmin, xmax)))
-            # Get lookup points at slices *i0* and *i1* using this prog frac
+                    ("Value %.2e " % x[j+1]) +
+                    ("for arg %i (%s) is outside " % (j, k)) +
+                    ("bounds [%.2e, %.2e]" % (xmin, xmax)))
+            # Lookup points at slices *i0* and *i1* using this prog frac
             x0[j] = (1-fj)*xmin0 + fj*xmax0
             x1[j] = (1-fj)*xmin1 + fj*xmax1
         # Output
@@ -1671,7 +1680,7 @@ class DBCoeff(dict):
         return self._bkpt(V, v)
 
     # Get break point from vector
-    def _bkpt_index(self, V, v):
+    def _bkpt_index(self, V, v, tol=1e-5):
         """Get interpolation weights for 1D interpolation
 
         :Call:
@@ -1683,6 +1692,8 @@ class DBCoeff(dict):
                 1D array of data values
             *v*: :class:`float`
                 Value at which to lookup
+            *tol*: {``1e-5``} | :class:`float` >= 0
+                Tolerance for left and right bounds
         :Outputs:
             *i0*: ``None`` | :class:`int`
                 Lower bound index, if ``None``, extrapolation below
@@ -1699,12 +1710,15 @@ class DBCoeff(dict):
         vmin = np.min(V)
         vmax = np.max(V)
         # Check for extrapolation cases
-        if v < vmin - 1e-8*(vmax-vmin):
+        if n == 1:
+            # Only one point
+            return 0, None, 1.0
+        if v < vmin - tol*(vmax-vmin):
             # Extrapolation left
-            return None, 0, 1.0
-        elif v > vmax + 1e-8*(vmax-vmin):
+            return None, 0, (v-V[0])/(V[1]-V[0])
+        if v > vmax + tol*(vmax-vmin):
             # Extrapolation right
-            return n-1, None, 1.0
+            return n-1, None, (v-V[-2])/(V[-1]-V[-2])
         # Otherwise, count up values below
         i0 = np.sum(V[:-1] <= v) - 1
         i1 = i0 + 1
@@ -1878,6 +1892,8 @@ class DBCoeff(dict):
         """
         # Check for break-point evaluation flag
         bkpt = kw.get("bkpt", kw.get("breakpoint", False))
+        # Extrapolation option
+        extrap = kw.get("extrap", "hold")
         # Possible values
         try:
             # Extract coefficient
@@ -1931,13 +1947,33 @@ class DBCoeff(dict):
             # Check for problems
             if i0 is None:
                 # Below
-                raise ValueError(
-                    ("Value %s=%.4e " % (k, xi)) +
-                    ("below lower bound (%.4e)" % Vk[0]))
+                # Above bounds
+                if extrap in ["hold", "holdlast", "last"]:
+                    # Hold last value
+                    i0, i1 = i1, i1 + 1
+                    f = 0.0
+                elif extrap in ["linear"]:
+                    # Just use last interval (*f* already computed)
+                    i0, i1 = i1, i1 + 1
+                else:
+                    # No extrapolation
+                    raise ValueError(
+                        ("Value %s=%.4e " % (k, xi)) +
+                        ("below lower bound (%.4e)" % Vk[0]))
             elif i1 is None:
-                raise ValueError(
-                    ("Value %s=%.4e " % (k, xi)) +
-                    ("above upper bound (%.4e)" % Vk[-1]))
+                # Above bounds
+                if extrap in ["hold", "holdlast", "last"]:
+                    # Hold last value
+                    i0, i1 = i0 - 1, i0
+                    f = 1.0
+                elif extrap in ["linear"]:
+                    # Just use last interval (*f* already computed)
+                    i0, i1 = i0 - 1, i0
+                else:
+                    # No extrapolation
+                    raise ValueError(
+                        ("Value %s=%.4e " % (k, xi)) +
+                        ("above upper bound (%.4e)" % Vk[-1]))
             # Save values
             I0.append(i0)
             I1.append(i1)

@@ -4,15 +4,14 @@
 Demo 2: Inviscid Bullet with Reports
 ====================================
 
-This example is found in the file
+This is a second CAPE/pyfun demo using a bullet shape and demonstrating how to
+use the inviscid solver in FUN3D.
 
-    ``pyfun02-bullet.tar.gz``
-
-To get started, download this file and run the following easy commands:
+To get started, clone the repo and run a few short commands:
 
     .. code-block:: console
 
-        $ tar -xzf pyfun02-bullet.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pyfun02-bullet.git
         $ cd pyfun02-bullet
         $ ./copy-files.py
         $ cd work/
@@ -30,7 +29,7 @@ reading those examples since most of the process is the same for each solver.
 
 The geometry used for this shape is a capped cylinder and little or nothing
 else. An inviscid volume mesh was created using AFLR3. The surface
-triangulation, :file:`bullet.tri`, is shown below.
+triangulation, ``bullet.tri``, is shown below.
 
     .. figure:: bullet01.png
         :width: 4in
@@ -55,8 +54,8 @@ case, the run matrix is defined within the ``pyFun.json`` file.
 Running Cases
 -------------
 Assuming the present working directory is in this demo folder, i.e.
-``$PYCART/examples/pycart/02_bullet``, a good first test command is the
-following, which checks the status of each case in the matrix.
+``pyfun02_bullet``, a good first test command is the following, which checks
+the status of each case in the matrix.
 
     .. code-block:: console
     
@@ -85,10 +84,10 @@ Running case number 3 (note zero-based indexing) has the following output.
           Case name: 'bullet/m0.80a30.0b0.0' (index 3)
              Starting case 'bullet/m0.80a30.0b0.0'
          > nodet --animation_freq 100
-             (PWD = 'pycart/examples/pyfun/02_bullet/bullet/m0.80a30.0b0.0')
+             (PWD = 'bullet/m0.80a30.0b0.0')
              (STDOUT = 'fun3d.out')
          > nodet --animation_freq 100
-             (PWD = 'pycart/examples/pyfun/02_bullet/bullet/m0.80a30.0b0.0')
+             (PWD = 'bullet/m0.80a30.0b0.0')
              (STDOUT = 'fun3d.out')
         
         Submitted or ran 1 job(s).
@@ -106,8 +105,8 @@ We can then check how much CPU time that used.
         
         DONE=1, 
         
-In the master input file :file:`pyFun.json`, the key section is the ``"Fun3D"``
-section, which modifies the template namelist :file:`fun3d.nml`.  The example
+In the master input file ``pyFun.json``, the key section is the ``"Fun3D"``
+section, which modifies the template namelist ``fun3d.nml``.  The example
 is set up to run two phases.  The first phase has a starting CFL number of 0.1
 which ramps up to 100.0.  The second phase has a constant CFL number of 100.0.
 
@@ -180,7 +179,7 @@ In particular, this allows pyFun to set the correct namelist parameters to
 track the forces and moments on each component.  This is important because
 FUN3D internally renumbers all the components 1,2,...,*N* according to the
 lines of the ``.mapbc`` file.  The present setup in the *Config* section of
-:file:`pyFun.json` prevents the need to figure out the component number(s) for
+``pyFun.json`` prevents the need to figure out the component number(s) for
 each component.
 
 Before moving on to the next session, let's also run case 17 so we can complete
@@ -193,7 +192,7 @@ just a few more in order to do more experimenting.
 
 Automated Single-Case Report
 ----------------------------
-This example is set up to create a report called :file:`report-case.pdf` in the
+This example is set up to create a report called ``report-case.pdf`` in the
 ``report/`` folder.  It includes a couple of summary tables, 8 iterative
 history plots, and a flow visualization slide that works with Paraview.
 :numref:`fig-pyfun-ex02-slice-y0` shows an example of this Paraview image from
@@ -253,7 +252,7 @@ The Paraview subfigure settings from the JSON file are shown below.
             "ImageFile": "slice-y0.png"
         }
 
-This points pyFun to the Python script :file:`slice-y0.py`.  The image is
+This points pyFun to the Python script ``slice-y0.py``.  The image is
 created by the system command ``pvpython slice-y0.py`` in each case folder.
 This :download:`slice-y0.py` was created by recording a Python script in
 ParaView interactively and then modifying the resulting script later.  At the
@@ -311,7 +310,7 @@ aerodynamic database for all but two of the 24 conditions in the
 ``data/bullet`` folder.  The contents of an aero data book file are the same
 here as for Cart3D, and a selection of text from the main ``bullet_no_base``
 file can be seen below.  These aero data book files have the file name
-:file:`aero_$COMP.csv` for an arbitrary component *COMP*.
+``aero_$COMP.csv`` for an arbitrary component *COMP*.
 
     .. code-block:: none
         
@@ -324,7 +323,7 @@ file can be seen below.  These aero data book files have the file name
         1.75,30,0,1250,475.33,bullet,,0.6291,-0.0010,2.8408,...,4.5099,200,50
 
 This is a relatively simple data book definition, as shown in the *DataBook*
-section of :file:`pyFun.json`, reproduced below.  We include five data book
+section of ``pyFun.json``, reproduced below.  We include five data book
 components here, and all are restricted to be just forces to make some of the
 files smaller.  Normally, a user would not include the lines such as ``"cap":
 {"Type": "Force"}``.  Without a user-specified type, components have the type
@@ -388,11 +387,11 @@ Running the command ``pyfun --aero`` will fill in the other two cases.
         bullet/m1.75a10.0b0.0
         bullet/m1.75a30.0b0.0
 
-The :file:`pyFun.json` ``"Report"`` section also includes a Mach sweep figure.
+The ``pyFun.json`` ``"Report"`` section also includes a Mach sweep figure.
 Details of the Mach sweep (with an angle of attack carpet plot) are the same as
 in the Cart3D example :ref:`pycart-ex-data-arrow`, but
 :numref:`fig-pyfun-ex02-mach-cap-CN` gives an example of one of the plots from
-the resulting :file:`report-mach.pdf`.
+the resulting ``report-mach.pdf``.
 
     .. _fig-pyfun-ex02-mach-cap-CN:
     .. figure:: b0/mach_cap_CN.*

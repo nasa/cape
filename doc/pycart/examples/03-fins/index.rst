@@ -15,15 +15,12 @@ This allows for the fins to be rotated about some hinge axis, and then once the
 fins are in the correct position, Cart3D's ``intersect`` tool can be used to
 transform this self-intersecting surface into a single water-tight geometry.
 
-This example is found in the file
 
-    ``pycart03-fins.tar.gz``
-
-To get started, download this file and run the following easy commands:
+To get started, clone this repo and run the following easy commands:
 
     .. code-block:: console
 
-        $ tar -xzf pycart03-fins.tar.gz
+        $ git clone https://github.com/nasa-ddalle/pycart03-fins.git
         $ cd pycart03-fins
         $ ./copy-files.py
         $ cd work/
@@ -63,28 +60,28 @@ The output is pretty similar to a case without the fin deflections, but there
 are a few differences that are helpful to explain. The first is the name of the
 case, ``poweroff_d2+05_d4-15/m1.75a1.0r30.0``, which is especially different in
 that the name of the folder contains the fin deflections. That is all
-controlled in the pyCart input file :file:`fins.json`, and we will discuss it
+controlled in the pyCart input file ``fins.json``, and we will discuss it
 shortly. This example is configured with the fin deflections in the folder name
 because each set of cases with same fin positions can use the same mesh.
 
 The next difference is that pyCart reports writing two triangulation files,
-:file:`Components.tri` and :file:`Components.c.tri`, instead of the usual
-:file:`Components.i.tri`.  The reason for this pair of files is that
+``Components.tri`` and ``Components.c.tri``, instead of the usual
+``Components.i.tri``.  The reason for this pair of files is that
 ``intersect`` requires each body to have a single component ID, which destroys
 the surface component naming that is defined in our inputs (like splitting off
 the nose cap, body, and base of the bullet shape into separate components).  So
-:file:`Components.tri` has only five components (the bullet shape and one for
-each fin) while :file:`Components.c.tri` has seven components.
+``Components.tri`` has only five components (the bullet shape and one for
+each fin) while ``Components.c.tri`` has seven components.
 
 Then ``intersect`` is run with the command run above, which generates
-:file:`Components.o.tri`. This file also has only five component IDs, and these
+``Components.o.tri``. This file also has only five component IDs, and these
 are mapped back into the original component ID numbering by comparing to
-:file:`Components.c.tri` to generate the final triangulation
-:file:`Components.i.tri` with its seven component IDs.
+``Components.c.tri`` to generate the final triangulation
+``Components.i.tri`` with its seven component IDs.
 
 Otherwise, the solution proceeds in the same manner as a non-intersecting case. 
 Let's take a closer look at the ``"Mesh"`` and ``"RunMatrix"`` sections of the
-pyCart input file :file:`fins.json` to explain how this was set up.
+pyCart input file ``fins.json`` to explain how this was set up.
 
     .. code-block:: javascript
     
@@ -105,7 +102,7 @@ The ``"Mesh"`` section is relatively simple but contains a little bit more
 information than the default section. The individual water-tight volumes are
 split into separate ``tri`` files, which provides pyCart two layers of
 information about how to split up the surface. Each ``tri`` file may contain
-multiple component IDs (in this case, only :file:`bullet.tri` contains more
+multiple component IDs (in this case, only ``bullet.tri`` contains more
 than one component ID), but each file should contain a single closed surface.
 Then pyCart combines all these triangulations before intersecting them. If
 *intersect* is not set to ``true``, using multiple triangulation files has
@@ -158,15 +155,15 @@ The last parameter, *Definitions*, is the interesting part of this example.
 Because *Mach*, *alpha_t*, and *phi* are such common input variables (called
 "trajectory keys" in CAPE terminology) that we can rely on the default
 definitions.  (Default trajectory key definitions can be altered by editing the
-file ``$PYCART/settings/pyCart.default.json``.)  The other two parameters are
-fin rotations, which require customization.
+file ``$CAPE/pycart/options/pyCart.default.json``.)  The other two parameters
+are fin rotations, which require customization.
 
 The trajectory key *d2* is set up to rotate fin #2. We set *Group* to ``true``
 because cases with the same fin deflections can use the same mesh. The *Type*
 is set to ``"rotation"``, which pyCart recognizes and reduces some of our work
 in defining it here. We set *CompID* to ``"fin2"``, which tells pyCart to
 rotate any triangles in the component defined as ``"fin2"`` in the
-:file:`Config.xml` file. Then *Vector* gives a list of two points that define a
+``Config.xml`` file. Then *Vector* gives a list of two points that define a
 vector about which to rotate the points.
 
 Finally, *Format* sets a ``printf`` style format string for how the value is

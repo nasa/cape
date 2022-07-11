@@ -9,6 +9,12 @@ __pychache__
 *.egg-info
 /dist
 
+# Test files
+.coverage
+work/
+/test/junit.xml
+/test/log.json
+
 # Local settings
 .vscode
 
