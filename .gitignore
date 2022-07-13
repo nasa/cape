@@ -27,6 +27,7 @@ work/
 ~*
 *~
 *#
+*.DS_Store
 
 # Working test folders
 test/*/*/work
