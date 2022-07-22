@@ -133,6 +133,6 @@ setup(
             "pyfun-plt2triq=cape.pyfun.tricli:main_plt2triq",
         ],
     },
-    version="1.0b2",
+    version="1.0b3",
     description="CAPE computational aerosciences package",
     ext_modules=exts)
