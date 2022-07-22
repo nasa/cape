@@ -4307,7 +4307,7 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        n = len(self[self.keys()[0]])
+        n = len(self[list(self.keys())[0]])
         J = np.arange(n) > -1
         # De-None-ify
         if GlobCons is None: GlobCons = []

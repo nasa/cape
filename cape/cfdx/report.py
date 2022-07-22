@@ -3452,7 +3452,7 @@ class Report(object):
             # Coefficient index
             k = i % nCoeff
             # Sweep index
-            j = i / nCoeff
+            j = i // nCoeff
             # Get the component and coefficient.
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
@@ -3478,13 +3478,13 @@ class Report(object):
             # Append carpet constraints to label if appropriate.
             for kx in CEq:
                 # Value of the key or modified key for all points.
-                V = eval('x.%s' % kx)
+                V = x[kx]
                 # Print the subsweep equality constraint in the label.
                 clbl += ", %s=%s" % (kx, V[Jj[0]])
             # More carpet constraints
             for kx in CTol:
                 # Value of the key or modified key for all points.
-                V = eval('x.%s' % kx)
+                V = x[xk]
                 # Print the subsweep tolerance constraint in the label.
                 clbl += u", %s=%s\u00B1%s" % (kx, V[Jj[0]], CTol[kx])
             # Add appendix to label.
