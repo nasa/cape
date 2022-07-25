@@ -403,7 +403,7 @@ class Cntl(ccntl.Cntl):
             return
         # Set any flight conditions
         # Get condition type
-        known_cond = xml.get_input("KnowCond")
+        known_cond = xml.get_input("KnownCond")
         # Mach number
         mach = x.GetMach(i)
         if mach is not None and (known_cond is None or "M" in known_cond):
@@ -446,6 +446,16 @@ class Cntl(ccntl.Cntl):
             elem.text = os.path.basename(fname)
         # Cumulative iteration tracker
         m_j1 = 0
+        # Find run matrix keys for XML input tags
+        keys = self.x.GetKeysByType("XMLInput")
+        # Loop through any
+        for key in keys:
+            # Get value
+            v = self.x.GetValue(key, i)
+            # Get input name
+            name = self.x.defns[key].get("Name")
+            # Set it
+            xml.set_input(name, v)
         # Loop through phases
         for j in self.opts.get_PhaseSequence():
             # Set the restart flag according to phase
