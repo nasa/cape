@@ -1732,12 +1732,13 @@ class Cntl(ccntl.Cntl):
                 FUN3D settings interface
         :Versions:
             * 2018-10-24 ``@ddalle``: Version 1.0
+            * 2019-??-?? ``@jmeeroff``: Version 1.1; auto wall
+            * 2022-07-13 ``@ddalle``: Version 1.2; "auto" flag
         """
-        # Get equations type
-        eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
-        # Check for default
-        if eqn_type and (eqn_type.lower() != "generic"):
-            # Let's not do anything for now
+        # Get default type
+        auto_bcs = self.GetNamelistVar("boundary_conditions", "auto")
+        # Check for auto bcs
+        if not auto_bcs:
             return
         # Namelist handle
         nml = self.Namelist
@@ -1751,7 +1752,7 @@ class Cntl(ccntl.Cntl):
             # Get the boundary type
             BC = self.MapBC.BCs[k]
             # Check for viscous wall
-            if BC in [4000, 4100, 4110]:
+            if BC in [3000, 4000, 4100, 4110]:
                 # Get current options
                 flag = nml.GetVar(bcs, wtf, k+1)
                 vwrf = nml.GetVar(bcs, wrf, k+1)

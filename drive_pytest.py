@@ -71,7 +71,7 @@ def main():
     # Execute the tests
     ierr = testutils.call(cmdlist)
     # Track the coverage report
-    os.remove(os.path.join(COVERAGE_DIR, ".gitignore"))
+    #os.remove(os.path.join(COVERAGE_DIR, ".gitignore"))
     # Read test results
     report = JUnitXMLReport(JUNIT_FILE)
     # Write report
@@ -100,7 +100,7 @@ def main():
         msg += " PASS"
     # Add test results
     os.system("git add %s" % TEST_DOCDIR)
-    os.system("git add %s" % COVERAGE_DIR)
+    #os.system("git add %s" % COVERAGE_DIR)
     os.system("git commit -m '%s'" % msg)
     # Share results
     testutils.call(["git", "push", "hub", branch])

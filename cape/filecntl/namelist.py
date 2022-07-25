@@ -85,7 +85,10 @@ See also:
 
 """
 
-# Import the base file control class.
+# Third-party
+import numpy as np
+
+# Local imports
 from .filecntl import FileCntl
 
 
@@ -285,7 +288,8 @@ class Namelist(FileCntl):
         # Split on the equal sign
         vals = lines[0].split('=')
         # Check for a match
-        if len(vals) < 1: return None
+        if len(vals) < 1:
+            return None
         # Convert to Python value
         return self.ConvertToVal(vals[1])
     
@@ -387,6 +391,7 @@ class Namelist(FileCntl):
         :Versions:
             * 2015-10-16 ``@ddalle``: Version 1.0
             * 2016-01-29 ``@ddalle``: Version 1.1; boolean shortcut .T.
+            * 2022-07-11 ``@ddalle``: Version 1.2; parse '12 * 3.7'
         """
         # Check inputs.
         if type(val).__name__ not in ['str', 'unicode']:
@@ -402,6 +407,26 @@ class Namelist(FileCntl):
             if ('"' in val) or ("'" in val):
                 # It's a string.  Remove the quotes.
                 return eval(val)
+            elif '*' in val:
+                # Vector response
+                val1, val2 = val.split('*', maxsplit=1)
+                # Attempt to convert LHS to int
+                n = self.ConvertToVal(val1)
+                # Check if int
+                if not isinstance(n, int):
+                    print(
+                        "Left-hand side of * in namelist value " +
+                        ("'%s' is not an int" % val))
+                    return val
+                # Recurse on the right-hand side of the ``*``
+                v = self.ConvertToVal(val2)
+                # Check type
+                if isinstance(v, (float, int, bool)):
+                    # Array
+                    return np.full(n, v)
+                else:
+                    # Simple list
+                    return n * [v]
             elif val.lower() in [".false.", ".f."]:
                 # Boolean
                 return False
