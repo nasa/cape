@@ -483,7 +483,10 @@ class Cntl(ccntl.Cntl):
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Read the file
-        BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
+        try:
+            BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
+        except OSError:
+            return
         # Save it.
         if q:
             # Read to main slot.
