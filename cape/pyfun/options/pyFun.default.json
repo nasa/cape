@@ -90,16 +90,15 @@
         "Prefix": "",
         // Prefix for the groups of conditions using the same mesh
         "GroupPrefix": "",
-        # Default properties for a new variable
-        # This also serves as the template for new variables
+        // Default properties for a new variable
+        // This also serves as the template for new variables
         "Definitions": {
-            # Default parameter
+            // Default parameter
             "Default": {
-                "Group": true,
-                "Type": "Group",
-                "Script": ""
+                "Group": false,
+                "Type": "value"
             }
-        # Predefined parameter: Mach
+        // Predefined parameter: Mach
         }
     }
 }

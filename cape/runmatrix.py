@@ -909,6 +909,8 @@ class RunMatrix(dict):
         for key in self.cols:
             # Initialize the text for this key.
             self.text[key] = []
+            # Check if the input has that key defined.
+            optkey = defns.get(key, {})
             # Process defaults.
             if key.lower() in ['m', 'mach']:
                 # Mach number; non group
@@ -1115,7 +1117,7 @@ class RunMatrix(dict):
                     "Format": "%s",
                     "Abbreviation": ""
                 }
-            elif key.lower() in ['value']:
+            elif optkey.get("Type") in ['value', "Value"]:
                 # Just holding a value
                 defkey = {
                     "Group": False,
@@ -1167,8 +1169,6 @@ class RunMatrix(dict):
                 defkey = odefkey
                 # Set the abbreviation to the full name.
                 defkey["Abbreviation"] = key
-            # Check if the input has that key defined.
-            optkey = defns.get(key, {})
             # Loop through properties.
             for k in defkey.keys():
                 optkey.setdefault(k, defkey[k])
