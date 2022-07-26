@@ -736,6 +736,60 @@ class Cntl(ccntl.Cntl):
         # Output
         return rc
 
+    # Extend a case
+    def ExtendCase(self, i, n=1, j=None, imax=None):
+        r"""Add iterations to case *i* by repeating the last phase
+
+        :Call:
+            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
+        :Inputs:
+            *cntl*: :class:`cape.pykes.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Run index
+            *n*: {``1``} | positive :class:`int`
+                Add *n* times *steps* to the total iteration count
+            *j*: {``None``} | nonnegative :class:`int`
+                Apply to phase *j*, by default use the last phase
+            *imax*: {``None``} | nonnegative :class:`int`
+                Use *imax* as the maximum iteration count
+        :Versions:
+            * 2022-07-26 ``@ddalle``: Version 1.0
+        """
+        # Ignore cases marked PASS
+        if self.x.PASS[i]:
+            return
+        # Read the ``case.json`` file
+        rc = self.ReadCaseJSON(i)
+        # Exit if none
+        if rc is None:
+            return
+        # Process phase number (can extend middle phases)
+        if j is None:
+            # Use the last phase number currently in use from "case.json"
+            j = rc.get_PhaseSequence(-1)
+        # Get the number of steps
+        NSTEPS = rc.get_nIter(j)
+        # Get the current iteration count
+        ni = self.CheckCase(i)
+        # Get the current cutoff for phase *j*
+        N = max(ni, rc.get_PhaseIters(j))
+        # Determine output number of steps
+        if imax is None:
+            # Unlimited by input; add one or more nominal runs
+            N1 = N + n*NSTEPS
+        else:
+            # Add nominal runs but not beyond *imax*
+            N1 = min(int(imax), int(N + n*NSTEPS))
+            # Don't go backwards, though...
+            N1 = max(N, N1)
+        # Reset the number of steps
+        rc.set_PhaseIters(N1, j)
+        # Status update
+        print("  Phase %i: %s --> %s" % (j, N, N1))
+        # Write new options
+        self.WriteCaseJSON(i, rc=rc)
+
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
