@@ -223,24 +223,28 @@ class Cntl(ccntl.Cntl):
             # Check all
             print("---- Checking FM DataBook components ----")
             self.CheckFM(**kw)
-            print("---- Checking LineLoad DataBook components ----")
-            self.CheckLL(**kw)
-            print("---- Checking TriqFM DataBook components ----")
-            self.CheckTriqFM(**kw)
-            print("---- Checking TriqPoint DataBook components ----")
-            self.CheckTriqPoint(**kw)
+            #print("---- Checking LineLoad DataBook components ----")
+            #self.CheckLL(**kw)
+            #print("---- Checking TriqFM DataBook components ----")
+            #self.CheckTriqFM(**kw)
+            #print("---- Checking TriqPoint DataBook components ----")
+            #self.CheckTriqPoint(**kw)
             # Quit
             return
         elif kw.get('data', kw.get('db')):
             # Update all
             print("---- Updating FM DataBook components ----")
             self.UpdateFM(**kw)
-            print("---- Updating LineLoad DataBook components ----")
-            self.UpdateLineLoad(**kw)
-            print("---- Updating TriqFM DataBook components ----")
-            self.UpdateTriqFM(**kw)
-            print("---- Updating TriqPoint DataBook components ----")
-            self.UpdateTriqPoint(**kw)
+            #print("---- Updating LineLoad DataBook components ----")
+            #self.UpdateLineLoad(**kw)
+            #print("---- Updating TriqFM DataBook components ----")
+            #self.UpdateTriqFM(**kw)
+            #print("---- Updating TriqPoint DataBook components ----")
+            #self.UpdateTriqPoint(**kw)
+            print("---- Updating CaseProp DataBook components ----")
+            self.UpdateCaseProp(**kw)
+            print("---- Updating PyFunc DataBook components ----")
+            self.UpdateDBPyFunc(**kw)
             # Output
             return
         # Call the common interface
@@ -737,6 +741,7 @@ class Cntl(ccntl.Cntl):
         return rc
 
     # Extend a case
+    @ccntl.run_rootdir
     def ExtendCase(self, i, n=1, j=None, imax=None):
         r"""Add iterations to case *i* by repeating the last phase
 
@@ -785,6 +790,16 @@ class Cntl(ccntl.Cntl):
             N1 = max(N, N1)
         # Reset the number of steps
         rc.set_PhaseIters(N1, j)
+        # Get name of case
+        frun = self.x.GetFullFolderNames(i)
+        # Go to case folder
+        os.chdir(frun)
+        # Read the XML file for the last phae
+        xml = case.read_xml(rc, j)
+        # Set iterations there, too
+        xml.set_kcfd_iters(N1)
+        # Rewrite
+        xml.write()
         # Status update
         print("  Phase %i: %s --> %s" % (j, N, N1))
         # Write new options
