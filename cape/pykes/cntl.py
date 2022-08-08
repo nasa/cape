@@ -49,6 +49,7 @@ import shutil
 # Local imports
 from . import case
 from . import dataBook
+from . import manage
 from . import options
 from . import report
 from .jobxml import JobXML
@@ -1030,4 +1031,65 @@ class Cntl(ccntl.Cntl):
                 print("      %s" % fabs)
         # Output
         return meshfiles
+  # >
+
+  # =========
+  # Archiving
+  # =========
+  # <
+    # Individual case archive function
+    def ArchivePWD(self, phantom=False):
+        r"""Archive a single case in the current folder ($PWD)
+
+        :Call:
+            >>> cntl.ArchivePWD(phantom=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if
+                ``False``
+        :Versions:
+            * 2017-03-10 ``@ddalle``: First :mod:`cape.pyfun` version
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
+        """
+        # Archive using the local module
+        manage.ArchiveFolder(self.opts, phantom=phantom)
+
+    # Individual case archive function
+    def SkeletonPWD(self, phantom=False):
+        r"""Delete most files in current folder, leaving only a skeleton
+
+        :Call:
+            >>> cntl.SkeletonPWD(phantom=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if
+                ``False``
+        :Versions:
+            * 2017-12-14 ``@ddalle``: Version 1.0
+        """
+        # Archive using the local module
+        manage.SkeletonFolder(self.opts, phantom=phantom)
+
+    # Individual case archive function
+    def CleanPWD(self, phantom=False):
+        r"""Archive a single case in the current folder ($PWD)
+
+        :Call:
+            >>> cntl.CleanPWD(phantom=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if
+                ``False``
+        :Versions:
+            * 2017-03-10 ``@ddalle``: Version 1.0
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
+        """
+        # Archive using the local module
+        manage.CleanFolder(self.opts, phantom=phantom)
   # >
