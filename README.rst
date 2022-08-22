@@ -42,6 +42,9 @@ A collection of tutorials and examples can be found at
 
     https://github.com/nasa-ddalle/
 
+Full documentation can be found at
+
+    https://nasa.github.io/cape-doc
 
 
 Installation
