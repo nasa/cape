@@ -12378,7 +12378,7 @@ class DataKit(ftypes.BaseData):
             bkpts[colreg] = np.array(T)
        # --- Regularized Arg Values ---
         # Save the lookup values
-        for arg in args:
+        for arg in [maincol] + subcols + args:
             # Translate column name
             argreg = self._translate_colname(arg, *tr_args)
             # Save values
