@@ -12139,6 +12139,8 @@ class DataKit(ftypes.BaseData):
                 Universal prefix or *col*-specific prefixes
             *suffix*: :class:`str` | :class:`dict`
                 Universal suffix or *col*-specific suffixes
+            *v*, *verbose*: ``True`` | {``False``}
+                Verbosity flag
         :Versions:
             * 2020-03-10 ``@ddalle``: Version 1.0
         """
@@ -12149,6 +12151,8 @@ class DataKit(ftypes.BaseData):
         suffix = kw.get("suffix")
         # Overall mask
         mask = kw.get("mask")
+        # Verbosity option
+        verbose = kw.get("verbose", kw.get("v", False))
         # Translator args
         tr_args = (trans, prefix, suffix)
        # --- Status Checks ---
@@ -12257,12 +12261,21 @@ class DataKit(ftypes.BaseData):
         nX = X[args[0]].size
        # --- Regularization ---
         # Perform interpolations
-        for col in cols:
+        for jcol, col in enumerate(cols):
             # Translate column name
             colreg = self._translate_colname(col, *tr_args)
             # Status update
-            if kw.get("v"):
-                print("  Regularizing col '%s' -> '%s'" % (col, colreg))
+            if verbose:
+                # Format message
+                if col == colreg:
+                    msg = "  Regularizing col '%s'" % col
+                else:
+                    msg = "  Regularizing col '%s' -> '%s'" % (col, colreg)
+                # Add progress
+                msg += " (%i/%i)\n" % (jcol + 1, len(cols))
+                # Display message
+                sys.stdout.write(msg)
+                sys.stdout.flush()
             # Check for slices
             if scol is None:
                 # Create inputs
@@ -12291,7 +12304,7 @@ class DataKit(ftypes.BaseData):
                 # Loop through slices
                 for i in range(nslice):
                     # Status update
-                    if kw.get("v"):
+                    if verbose:
                         # Get main key value
                         m = slices[maincol][i]
                         # Get value in fixed number of characters
@@ -12325,7 +12338,7 @@ class DataKit(ftypes.BaseData):
                         # Linear output
                         V[:,I] = np.dot(Y, W.T)
                 # Clean up prompt
-                if kw.get("v"):
+                if verbose:
                     sys.stdout.write("%72s\r" % "")
                     sys.stdout.flush()
             # Save the values
@@ -12358,7 +12371,7 @@ class DataKit(ftypes.BaseData):
             # Initialize break points
             T = []
             # Status update
-            if kw.get("v"):
+            if verbose:
                 print("  Mapping key '%s'" % col)
             # Loop through slice values
             for m in bkpts[maincol]:
