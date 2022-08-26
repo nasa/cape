@@ -8,13 +8,13 @@ Test report for :mod:`cape`
 **Test summary**:
 
     :errors: 0
-    :failures: 0
+    :failures: 1
     :hostname: linux281.nas.nasa.gov
     :name: pytest
     :skipped: 0
     :tests: 112
-    :time: 171.660
-    :timestamp: 2022-08-23T01:40:06.477024
+    :time: 178.116
+    :timestamp: 2022-08-26T01:40:05.357524
 
 .. toctree::
 
