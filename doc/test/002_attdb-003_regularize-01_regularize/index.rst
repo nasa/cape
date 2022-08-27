@@ -45,7 +45,7 @@ Failure contents:
     
     test/002_attdb/003_regularize/test_01_regularize.py:24: 
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    cape/attdb/rdb.py:12383: in regularize_by_griddata
+    cape/attdb/rdb.py:12396: in regularize_by_griddata
         argreg = self._translate_colname(arg, *tr_args)
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     
