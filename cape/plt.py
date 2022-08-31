@@ -25,13 +25,22 @@ See also:
 
 """
 
-# Basic numerics
+# Standard library
+import re
+
+# Third-party
 import numpy as np
 
 # Useful tool for more complex binary I/O methods
 import cape.io
 import cape.tri
 import cape.util
+
+
+# Text patterns
+REGEX_VARS = re.compile("variables", re.IGNORECASE)
+REGEX_ZONE = re.compile("zone", re.IGNORECASE)
+
 
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):
@@ -479,7 +488,8 @@ class Plt(object):
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2017-08-24 ``@ddalle``: First version
+            * 2017-08-24 ``@ddalle``: Version 1.0
+            * 2022-08-30 ``@ddalle``: Version 1.1; default title
         """
         # Open the file
         f = open(fname, 'r')
@@ -487,12 +497,20 @@ class Plt(object):
         self.line2 = np.zeros(2, dtype="i4")
         # Read the title line
         line = f.readline().strip()
-        # Save the title
-        self.title = line.split("=")[1].strip('"')
-        # Read the variables line
-        line = f.readline().strip()
+        # Check for a title
+        if REGEX_VARS.match(line):
+            # No title
+            self.title = "Untitled"
+        else:
+            # Save the title
+            self.title = line.split("=")[1].strip('"')
+            # Read the variables line
+            line = f.readline().strip()
+        # Read variable names
+        varpart = line.split("=")[1]
+        varlist = re.split("[\s,]+", varpart.strip())
         # Save the variable list
-        self.Vars = line.split("=")[1].split()
+        self.Vars = [varname.strip('"') for varname in varlist]
         # Get number of variables (, unpacks the list)
         nVar = len(self.Vars)
         self.nVar = nVar
@@ -517,7 +535,7 @@ class Plt(object):
         # Read the title line
         line = f.readline().strip()
         # Read until no more zones
-        while line.startswith("zone"):
+        while REGEX_ZONE.match(line):
             # Increase zone count
             self.nZone += 1
             # Split line by commas
@@ -551,6 +569,8 @@ class Plt(object):
             else:
                 # Some other zone type?
                 self.ZoneType.append(0)
+            # Element type
+            et = D.get("et", "").lower()
             # Check some other aspect about the zone
             vl = int(D.get("varloc", 1))
             # Check for var location
@@ -562,14 +582,14 @@ class Plt(object):
                 # Read variable locations... {0: "node", 1: "cell"}
                 self.VarLocs.append(np.zeros(self.nVar, dtype="int"))
             # Number of points, elements
-            nPt   = int(D.get("i", 0))
-            nElem = int(D.get("j", 0))
+            nPt   = int(D.get("i", D.get("n", 0)))
+            nElem = int(D.get("j", D.get("e", 0)))
             self.nPt.append(nPt)
             self.nElem.append(nElem)
             # Read the actual data
             qi = np.fromfile(f, count=(nVar*nPt), sep=" ")
             # Reshape
-            qi = np.transpose(np.reshape(qi, (nVar, nPt)))
+            qi = np.reshape(qi, (nPt, nVar))
             self.q.append(qi)
             # Save mins and maxes
             qmini = np.min(qi, axis=0)
@@ -577,13 +597,21 @@ class Plt(object):
             # Append min and max values
             self.qmin = np.vstack((self.qmin, [qmini]))
             self.qmax = np.vstack((self.qmax, [qmaxi]))
+            # Check shape
+            if et == "triangle":
+                nPtElem = 3
+            else:
+                nPtElem = 4
             # Read the tris
-            ii = np.fromfile(f, count=(4*nElem), sep=" ", dtype="int")
+            ii = np.fromfile(f, count=(nPtElem*nElem), sep=" ", dtype="int")
             # Reshape and save
-            self.Tris.append(np.reshape(ii-1, (nElem,4)))
+            self.Tris.append(np.reshape(ii-1, (nElem, nPtElem)))
             # Read next line (empty or title of next zone)
             line = f.readline().strip()
-        
+            # Check for variable list
+            if REGEX_VARS.match(line):
+                # Read another line
+                line = f.readline().strip()
         # Convert arrays
         self.nPt = np.array(self.nPt)
         self.nElem = np.array(self.nElem)
