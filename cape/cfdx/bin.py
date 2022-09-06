@@ -77,10 +77,10 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
     """
     # Process the shell option
     shell = bool(shell)
-    # Print the command.
-    print(" > " + " ".join(cmdi))
     # Print the current location.
     if v:
+        # Print the command.
+        print(" > " + " ".join(cmdi))
         # Get abbreviated path
         cwd_parts = os.getcwd().split(os.sep)
         # Just use the last two folders
@@ -307,7 +307,7 @@ def tecmcr(mcr="export-lay.mcr", **kwargs):
     # Get command.
     cmdi = cmd.tecmcr(mcr, **kwargs)
     # Run the command.
-    callf(cmdi, f="tecmcr.out")
+    callf(cmdi, f="tecmcr.out", v=kwargs.get("v", True))
     # Remove the log file; it's useless
     os.remove("tecmcr.out")
 # Docstring
