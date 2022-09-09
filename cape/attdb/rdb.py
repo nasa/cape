@@ -2548,7 +2548,7 @@ class DataKit(ftypes.BaseData):
         # Number of args
         narg = self._infer_response_narg(col, vals)
         # Special column name pattern, like "CYR_x.dy"
-        regex = re.compile("%s_x.(\w+)" % col)
+        regex = re.compile(r"%s_x.(\w+)" % col)
         # Loop through current cols to see if we can find args
         xcols = []
         for xcol in self.cols:
@@ -12390,8 +12390,13 @@ class DataKit(ftypes.BaseData):
             # Save break points
             bkpts[colreg] = np.array(T)
        # --- Regularized Arg Values ---
+        # Figure out which columns to regularize
+        if maincol:
+            regargs = [maincol] + subcols + args
+        else:
+            regargs = subcols + args
         # Save the lookup values
-        for arg in [maincol] + subcols + args:
+        for arg in regargs:
             # Translate column name
             argreg = self._translate_colname(arg, *tr_args)
             # Save values
