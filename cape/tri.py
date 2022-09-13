@@ -5323,7 +5323,7 @@ class TriBase(object):
         zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
         zi = np.abs(zi)
         # Get minimum projection distance
-        kmin = np.argmin(zi)
+        kmin = np.nanargmin(zi)
         zmin = zi[kmin]
         # Process max tol
         ztol = kw.get("ztol", ztoldef)
@@ -5367,7 +5367,7 @@ class TriBase(object):
         # Get total distance from point to each triangle
         D = np.sqrt(zi**2 + DI**2)
         # Get index of minimum distance
-        i1 = np.argmin(D)
+        i1 = np.nanargmin(D)
         k1 = K[i1]
         # Find the component ID
         c1 = self.CompID[k1]
@@ -5388,7 +5388,7 @@ class TriBase(object):
             if len(J) == 0:
                 return T
             # Find nearest match from remaining triangles
-            i = np.argmin(D[J])
+            i = np.nanargmin(D[J])
             j = J[i]
             k = K[j]
             c = self.CompID[k]
