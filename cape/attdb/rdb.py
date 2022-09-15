@@ -9463,6 +9463,15 @@ class DataKit(ftypes.BaseData):
                 List of columns names to match
             *a*: :class:`tuple`\ [:class:`float`]
                 Values of the arguments
+            *gtcons*, *GreaterThanCons*: {``{}``} | :class:`dict`
+                Dictionary of greater-than cons, e.g ``{"mach": 1.0}``
+                to apply ``db["mach"] > 1.0``
+            *gtecons*, *GreaterThanEqualCons*: {``{}``} | :class:`dict`
+                Dict of greater-than-or-equal-to constraints
+            *ltcons*, *LessThanCons*: {``{}``} | :class:`dict`
+                Dict of less-than constraints
+            *ltecons*, *LessThanEqualCons*: {``{}``} | :class:`dict`
+                Dict of less-than-or-equal-to constraints
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
                 Subset of *db* to consider
             *tol*: {``1e-4``} | :class:`float` >= 0
@@ -9486,6 +9495,7 @@ class DataKit(ftypes.BaseData):
             * 2019-03-11 ``@ddalle``: Version 1.0 (:class:`DBCoeff`)
             * 2019-12-26 ``@ddalle``: Version 1.0
             * 2020-02-20 ``@ddalle``: Version 2.0; *mask*, *once* kwargs
+            * 2022-09-15 ``@ddalle``: Version 3.0; *gtcons*, etc.
         """
        # --- Input Checks ---
         # Find a valid argument
@@ -9577,6 +9587,16 @@ class DataKit(ftypes.BaseData):
                 else:
                     # Use a tolerance
                     Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
+            # Loop through less-than cons
+            for k, vk in ltcons.items():
+                # Get DB values for *k*
+                Xk = self.get_all_values(k)
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Compound constraint
+                Mi = np.logical_and(Mi, Xk < vk)
             # Loop through greater-than cons
             for k, vk in gtcons.items():
                 # Get DB values for *k*
@@ -9587,6 +9607,30 @@ class DataKit(ftypes.BaseData):
                     Xk = np.asarray(Xk)
                 # Compound constraint
                 Mi = np.logical_and(Mi, Xk > vk)
+            # Loop through less-than-equals cons
+            for k, vk in ltecons.items():
+                # Get DB values for *k*
+                Xk = self.get_all_values(k)
+                # Get tolerance for this key
+                xtol = tols.get(k, tol)
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Compound constraint
+                Mi = np.logical_and(Mi, Xk <= vk + xtol)
+            # Loop through greater-than-equals cons
+            for k, vk in ltecons.items():
+                # Get DB values for *k*
+                Xk = self.get_all_values(k)
+                # Get tolerance for this key
+                xtol = tols.get(k, tol)
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Compound constraint
+                Mi = np.logical_and(Mi, Xk >= vk - xtol)
             # Check if any cases
             found = np.any(Mi)
             # Got to next test point if no match
