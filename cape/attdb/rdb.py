@@ -9483,9 +9483,9 @@ class DataKit(ftypes.BaseData):
             *Imap*: :class:`list`\ [:class:`np.ndarray`]
                 List of *db* indices for each test point in *J*
         :Versions:
-            * 2019-03-11 ``@ddalle``: Version 1.0
-            * 2019-12-26 ``@ddalle``: From :func:`DBCoeff.FindMatches`
-            * 2020-02-20 ``@ddalle``: Added *mask*, *once* kwargs
+            * 2019-03-11 ``@ddalle``: Version 1.0 (:class:`DBCoeff`)
+            * 2019-12-26 ``@ddalle``: Version 1.0
+            * 2020-02-20 ``@ddalle``: Version 2.0; *mask*, *once* kwargs
         """
        # --- Input Checks ---
         # Find a valid argument
@@ -9510,6 +9510,11 @@ class DataKit(ftypes.BaseData):
         once = kw.pop("once", False)
         # Option for mapped matches
         mapped = kw.pop("mapped", False)
+        # Inequality constraints
+        ltcons = kw.pop("LessThanCons", kw.pop("ltcons", {}))
+        gtcons = kw.pop("GreaterThanCons", kw.pop("gtcons", {}))
+        ltecons = kw.pop("LessThanEqualCons", kw.pop("ltecons", {}))
+        gtecons = kw.pop("GreaterThanEqualCons", kw.pop("gtecons", {}))
         # Number of values
         n0 = len(V)
        # --- Mask Prep ---
@@ -9572,6 +9577,16 @@ class DataKit(ftypes.BaseData):
                 else:
                     # Use a tolerance
                     Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
+            # Loop through greater-than cons
+            for k, vk in gtcons.items():
+                # Get DB values for *k*
+                Xk = self.get_all_values(k)
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Compound constraint
+                Mi = np.logical_and(Mi, Xk > vk)
             # Check if any cases
             found = np.any(Mi)
             # Got to next test point if no match
