@@ -9620,7 +9620,7 @@ class DataKit(ftypes.BaseData):
                 # Compound constraint
                 Mi = np.logical_and(Mi, Xk <= vk + xtol)
             # Loop through greater-than-equals cons
-            for k, vk in ltecons.items():
+            for k, vk in gtecons.items():
                 # Get DB values for *k*
                 Xk = self.get_all_values(k)
                 # Get tolerance for this key
