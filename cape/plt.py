@@ -11,14 +11,14 @@ software.
 
 This class cannot read any generic ``.plt`` file; it focuses on surface grids
 with a mix of triangles and quads.  In particular it is closely paired with
-the :mod:`cape.tri` triangulation module.  The initial driving cause for
+the :mod:`trifile` triangulation module.  The initial driving cause for
 creating this module was to read FUN3D boundary solution files and convert them
 to annotated Cart3D ``triq`` format for input to ``triload`` and other
-post-processing based on the :mod:`cape.tri` module.
+post-processing based on the :mod:`trifile` module.
 
 See also:
 
-    * :mod:`cape.tri`
+    * :mod:`trifile`
     * :mod:`cape.pyfun.plt`
     * :mod:`pc_Tri2Plt`
     * :mod:`pc_Plt2Tri`
@@ -31,15 +31,28 @@ import re
 # Third-party
 import numpy as np
 
-# Useful tool for more complex binary I/O methods
-import cape.io
-import cape.tri
-import cape.util
+# Local imports
+from . import io as capeio
+from . import tri as trifile
+from . import util as capeutil
 
 
 # Text patterns
 REGEX_VARS = re.compile("variables", re.IGNORECASE)
 REGEX_ZONE = re.compile("zone", re.IGNORECASE)
+
+# Zone types
+ORDERED = 0
+FELINESEG = 1
+FETRIANGLE = 2
+FEQUADRILATERAL = 3
+FETETRAHEDRON = 4
+FEBRICK = 5
+FEPOLYGON = 6
+FEPOLYHEDRON = 7
+
+# Other options
+N_AUX_MAX = 100
 
 
 # Convert a PLT to TRIQ
@@ -119,7 +132,7 @@ class Plt(object):
             Name of binary PLT file to read
         *dat*: {``None``} | :class:`str`
             Name of ASCII file to read
-        *triq*: {``None``} | :class:`cape.tri.Triq`
+        *triq*: {``None``} | :class:`trifile.Triq`
             Annotated triangulation interface
     :Outputs:
         *plt*: :class:`cape.plt.Plt`
@@ -200,14 +213,14 @@ class Plt(object):
         # Throw away the next two integers
         self.line2 = np.fromfile(f, count=2, dtype='i4')
         # Read the title
-        self.title = cape.io.read_lb4_s(f)
+        self.title = capeio.read_lb4_s(f)
         # Get number of variables (, unpacks the list)
         self.nVar, = np.fromfile(f, count=1, dtype='i4')
         # Loop through variables
         self.Vars = []
         for i in range(self.nVar):
             # Read the name of variable *i*
-            self.Vars.append(cape.io.read_lb4_s(f))
+            self.Vars.append(capeio.read_lb4_s(f))
         # Initialize zones
         self.nZone = 0
         self.Zones = []
@@ -217,6 +230,7 @@ class Plt(object):
         self.VarLocs = []
         self.t = []
         self.ZoneType = []
+        self.ZoneAux = []
         self.nPt = []
         self.nElem = []
         # This number should be 299.0
@@ -231,7 +245,7 @@ class Plt(object):
                 # Increase zone count
                 self.nZone += 1
                 # Read zone name
-                zone = cape.io.read_lb4_s(f).strip('"')
+                zone = capeio.read_lb4_s(f).strip('"')
                 # Save it
                 self.Zones.append(zone)
                 # Parent zone
@@ -246,7 +260,12 @@ class Plt(object):
                 # Read a -1 and then the zone type
                 i, zt = np.fromfile(f, count=2, dtype='i4')
                 self.ZoneType.append(zt)
-                # Check some other aspect about the zone
+                # Check zone type
+                if zt == ORDERED:
+                    raise ValueError("Ordered zone type not implemented")
+                # Read option related fo variable location
+                # 0: data at notes
+                # 1: specify for each var
                 vl, = np.fromfile(f, count=1, dtype='i4')
                 # Check for var location
                 self.QVarLoc.append(vl)
@@ -257,17 +276,52 @@ class Plt(object):
                     # Read variable locations... {0: "node", 1: "cell"}
                     self.VarLocs.append(
                         np.fromfile(f, dtype='i4', count=self.nVar))
-                # Two miscellaneous options about user-defined face something
-                np.fromfile(f, dtype='i4', count=2)
-                # Number of points, elements
-                nPt, nElem = np.fromfile(f, count=2, dtype='i4')
+                # Two options about face neighbors
+                neighbor_opt, n_neighbor = np.fromfile(f, dtype='i4', count=2)
+                if n_neighbor > 0:
+                    raise ValueError("Local face neighbors not implemented")
+                # Number of points
+                nPt, = np.fromfile(f, count=1, dtype="i4")
+                # Check polygon/polyhedron
+                if zt in (FEPOLYGON, FEPOLYHEDRON):
+                    raise ValueError(
+                        "Arbitrary polygon/polyhedron zones not implemented")
+                # Number of elements
+                nElem, = np.fromfile(f, count=1, dtype="i4")
+                # Cell dims
+                celldims = np.fromfile(f, count=3, dtype="i4")
+                if np.any(celldims):
+                    raise ValueError(
+                        "In zone %i, expected cell dims to be zero" % self.nZone)
+                # Save point and element count
                 self.nPt.append(nPt)
                 self.nElem.append(nElem)
+                # Intitialize aux data
+                auxdict = {}
+                self.ZoneAux.append(auxdict)
+                # Check optio nfor aux name/value paris
+                for naux in range(N_AUX_MAX):
+                    # Read aux flag
+                    aux, = np.fromfile(f, count=1, dtype="i4")
+                    # Check flag
+                    if aux == 0:
+                        break
+                    # Read name
+                    auxname = capeio.read_lb4_s(f)
+                    # Read data type (must be 0)
+                    auxtype = np.fromfile(f, count=1, dtype="i4")
+                    if auxtype != 0:
+                        raise ValueError(
+                            "Aux data type %i in zone %i not supported"
+                            % (auxtype, self.nZone))
+                    # Read string property
+                    auxval = capeio.read_lb4_s(f)
+                    # Save it
+                    auxdict[auxname] = auxval
                 # Read some zeros at the end.
-                np.fromfile(f, count=4, dtype='i4')
             elif marker == 799.0:
                 # Auxiliary data
-                name = cape.io.read_lb4_s(f).strip('"')
+                name = capeio.read_lb4_s(f).strip('"')
                 # Read format
                 fmt, = np.fromfile(f, count=1, dtype='i4')
                 # Check value of *fmt*
@@ -276,7 +330,7 @@ class Plt(object):
                         ("Dataset Auxiliary data value format is %i; " % fmt) +
                         ("expected 0"))
                 # Read value
-                val = cape.io.read_lb4_s(f).strip('"')
+                val = capeio.read_lb4_s(f).strip('"')
             else:
                 # Unknown marker
                 raise ValueError(
@@ -381,98 +435,98 @@ class Plt(object):
         # Write it
         s.tofile(f)
         # Write specifier
-        cape.io.tofile_ne4_i(f, [1, 0])
+        capeio.tofile_ne4_i(f, [1, 0])
         # Write title
-        cape.io.tofile_ne4_s(f, self.title)
+        capeio.tofile_ne4_s(f, self.title)
         # Write number of variables
-        cape.io.tofile_ne4_i(f, nVar)
+        capeio.tofile_ne4_i(f, nVar)
         # Loop through variable names
         for var in Vars:
-            cape.io.tofile_ne4_s(f, var)
+            capeio.tofile_ne4_s(f, var)
         # Write zones
         for i in IZone:
             # Write goofy zone marker
-            cape.io.tofile_ne4_f(f, 299.0)
+            capeio.tofile_ne4_f(f, 299.0)
             # Write zone name
-            cape.io.tofile_ne4_s(f, '"%s"' % self.Zones[i])
+            capeio.tofile_ne4_s(f, '"%s"' % self.Zones[i])
             # Write parent zone (usually -1)
             try:
-                cape.io.tofile_ne4_i(f, self.ParentZone[i])
+                capeio.tofile_ne4_i(f, self.ParentZone[i])
             except Exception:
-                cape.io.tofile_ne4_i(f, -1)
+                capeio.tofile_ne4_i(f, -1)
             # Write the StrandID
             try:
-                cape.io.tofile_ne4_i(f, self.StrandID[i])
+                capeio.tofile_ne4_i(f, self.StrandID[i])
             except Exception:
-                cape.io.tofile_ne4_i(f, 1000+i)
+                capeio.tofile_ne4_i(f, 1000+i)
             # Write the time
             try:
-                cape.io.tofile_ne8_f(f, self.t[i])
+                capeio.tofile_ne8_f(f, self.t[i])
             except Exception:
-                cape.io.tofile_ne8_f(f, 0.0)
+                capeio.tofile_ne8_f(f, 0.0)
             # Write -1
-            cape.io.tofile_ne4_i(f, -1)
+            capeio.tofile_ne4_i(f, -1)
             # Write the zone type (3 for triangles)
             try:
-                cape.io.tofile_ne4_i(f, self.ZoneType[i])
+                capeio.tofile_ne4_i(f, self.ZoneType[i])
             except Exception:
-                cape.io.tofile_ne4_i(f, 3)
+                capeio.tofile_ne4_i(f, 3)
             # Write a bunch of zeros
             try:
                 # Check for variable locations (node- or cell-centered)
                 if self.QVarLoc[i]:
                     # Variable locations are marked
-                    cape.io.tofile_ne4_i(1)
+                    capeio.tofile_ne4_i(1)
                     # Try to write the markers
                     try:
-                        cape.io.tofile_ne4_i(self.VarLocs[i][IVar])
+                        capeio.tofile_ne4_i(self.VarLocs[i][IVar])
                     except Exception:
-                        cape.io.tofile_ne4_i(np.zeros(nVar))
+                        capeio.tofile_ne4_i(np.zeros(nVar))
                 else:
                     # Write a zero and move on
-                    cape.io.tofile_ne4_i(f, 0)
+                    capeio.tofile_ne4_i(f, 0)
             except Exception:
                 # Default to marking all variables node-centered
-                cape.io.tofile_ne4_i(f, 1)
-                cape.io.tofile_ne4_i(f, np.zeros(nVar))
+                capeio.tofile_ne4_i(f, 1)
+                capeio.tofile_ne4_i(f, np.zeros(nVar))
             # Two unused or weird variables
-            cape.io.tofile_ne4_i(f, np.zeros(2))
+            capeio.tofile_ne4_i(f, np.zeros(2))
             # Write number of pts, elements
-            cape.io.tofile_ne4_i(f, [self.nPt[i], self.nElem[i]])
+            capeio.tofile_ne4_i(f, [self.nPt[i], self.nElem[i]])
             # Write some more zeros
-            cape.io.tofile_ne4_i(f, np.zeros(4))
+            capeio.tofile_ne4_i(f, np.zeros(4))
         # Write end-of-header marker
-        cape.io.tofile_ne4_f(f, 357.0)
+        capeio.tofile_ne4_f(f, 357.0)
         # Loop through the zones again
         for n in IZone:
             # Write marker
-            cape.io.tofile_ne4_f(f, 299.0)
+            capeio.tofile_ne4_f(f, 299.0)
             # Extract sizes
             npt = self.nPt[n]
             nelem = self.nElem[n]
             # Write variable types (usually 1 for float type, I think)
             try:
-                cape.io.tofile_ne4_i(f, self.fmt[n][IVar])
+                capeio.tofile_ne4_i(f, self.fmt[n][IVar])
             except Exception:
-                cape.io.tofile_ne4_i(f, np.ones(nVar))
+                capeio.tofile_ne4_i(f, np.ones(nVar))
             # Just set things as passive variables like FUN3D
-            cape.io.tofile_ne4_i(f, 1)
-            cape.io.tofile_ne4_i(f, np.zeros(nVar))
+            capeio.tofile_ne4_i(f, 1)
+            capeio.tofile_ne4_i(f, np.zeros(nVar))
             # Just set things to share with -1, because that makes sense
             # somehow.  I guess it is a commercial format, so go figure.
-            cape.io.tofile_ne4_i(f, 1)
-            cape.io.tofile_ne4_i(f, -1*np.ones(nVar))
+            capeio.tofile_ne4_i(f, 1)
+            capeio.tofile_ne4_i(f, -1*np.ones(nVar))
             # Save the *zshare* value
-            cape.io.tofile_ne4_i(f, -1)
+            capeio.tofile_ne4_i(f, -1)
             # Form matrix of qmin[0], qmax[0], qmin[1], ...
             qex = np.vstack((self.qmin[n][IVar],
                 self.qmax[n][IVar])).transpose()
             # Save *qmin* and *qmax*
-            cape.io.tofile_ne8_f(f, qex)
+            capeio.tofile_ne8_f(f, qex)
             # Save the actual data
-            cape.io.tofile_ne4_f(f, np.transpose(self.q[n][:,IVar]))
+            capeio.tofile_ne4_f(f, np.transpose(self.q[n][:,IVar]))
             # Write the tris (this may need to be generalized!)
-            cape.io.tofile_ne4_i(f, self.Tris[n])
+            capeio.tofile_ne4_i(f, self.Tris[n])
         # Close the file
         f.close()
     
@@ -711,7 +765,7 @@ class Plt(object):
         :Inputs:
             *plt*: :class:`cape.plt.Plt`
                 Tecplot PLT interface
-            *triq*: :class:`cape.tri.Triq`
+            *triq*: :class:`trifile.Triq`
                 Surface triangulation with or without solution (*triq.q*)
             *CompIDs*: :class:`list` (:class:`int`)
                 List of CompIDs to consider
@@ -858,7 +912,7 @@ class Plt(object):
             self.nElem.append(K.size)
             # Downselect the node indices so they are numbered 1 to *n*
             # (Also shift to zero-based)
-            T = cape.util.TrimUnused(Tris) - 1
+            T = capeutil.TrimUnused(Tris) - 1
             # Form the state matrix for this zone
             if nq > 0:
                 # Include *q* variables
@@ -916,7 +970,7 @@ class Plt(object):
             *rms*: ``True`` | {``False``}
                 Use root-mean-square variation instead of nominal value
         :Outputs:
-            *triq*: :class:`cape.tri.Triq`
+            *triq*: :class:`trifile.Triq`
                 Annotated Cart3D triangulation interface
         :Versions:
             * 2016-12-19 ``@ddalle``: First version
@@ -1160,7 +1214,7 @@ class Plt(object):
         Nodes = Nodes[:npt,:]
         q = q[:npt,:]
         # Create the triangulation
-        triq = cape.tri.Triq(Nodes=Nodes, Tris=Tris, q=q, CompID=CompID)
+        triq = trifile.Triq(Nodes=Nodes, Tris=Tris, q=q, CompID=CompID)
         # Output
         return triq
 
@@ -1176,7 +1230,7 @@ class Plt(object):
             *CompID*: {``range(len(plt.nZone))``} | :class:`list`
                 Optional list of zone numbers to use
         :Outputs:
-            *tri*: :class:`cape.tri.Tri`
+            *tri*: :class:`trifile.Tri`
                 Cart3D triangulation interface
         :Versions:
             * 2016-12-19 ``@ddalle``: Version 1.0
@@ -1269,7 +1323,7 @@ class Plt(object):
         # Downselect nodes
         Nodes = Nodes[:npt,:]
         # Create the triangulation
-        tri = cape.tri.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
+        tri = trifile.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
         # Output
         return tri
 # class Plt
