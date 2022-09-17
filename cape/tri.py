@@ -2254,15 +2254,17 @@ class TriBase(object):
         print("  Reading number of points, edges, and tris")
         # grep command to get number of points
         # Line type: "    iNode     1      1     11\n"
-        cmdi = ['egrep "^\s+[0-9]+\s+1\s+1\s+11\s*" %s | tail -1' % fname]
+        cmdi = [r'egrep "^\s+[0-9]+\s+1\s+1\s+11\s*" %s | tail -1' % fname]
         # Get last line with a point
         line = sp.Popen(cmdi, stdout=sp.PIPE, shell=True).communicate()[0]
         # Get number of nodes
         nNode = int(line.split()[0])
         # Command to get number of edges
         # Line type: "   iEdge  11  2  1  7  2"
-        cmdi = ['egrep "^\s+[0-9]+\s+11\s+2\s+1\s+7\s+2\s*$" %s | tail -1'
-        % fname]
+        cmdi = [
+            r'egrep "^\s+[0-9]+\s+11\s+2\s+1\s+7\s+2\s*$" %s | tail -1'
+            % fname
+        ]
         # Get the last line with an edge declaration
         line = sp.Popen(cmdi, stdout=sp.PIPE, shell=True).communicate()[0]
         # Get number of tris
@@ -4134,7 +4136,7 @@ class TriBase(object):
 
     # Get tri indices from node indices
     def GetTrisFromNodes(self, I, skip=1):
-        """Find indices of triangles from node indices
+        r"""Find indices of triangles from node indices
 
         :Call:
             >>> K = tri.GetTrisFromNodes(I, skip=1)
@@ -4172,7 +4174,7 @@ class TriBase(object):
 
     # Get components from compIDs
     def GetFacesFromTris(self, K, nmin=10):
-        """Find components from triangles
+        r"""Find components from triangles
 
         :Call:
             >>> faces = tri.GetFacesFromTris(K, nmin=10)
@@ -4216,7 +4218,7 @@ class TriBase(object):
 
     # Get components from compIDs
     def GetFacesFromQuads(self, K, nmin=10):
-        """Find components from triangles
+        r"""Find components from triangles
 
         :Call:
             >>> faces = tri.GetFacesFromQuads(K, nmin=10)
@@ -4260,7 +4262,7 @@ class TriBase(object):
 
     # Function to get tri indices from component ID(s)
     def GetQuadsFromCompID(self, compID=None):
-        """Find indices of triangles with specified component ID(s)
+        r"""Find indices of triangles with specified component ID(s)
 
         :Call:
             >>> k = tri.GetQuadsFromCompID(comp)
@@ -4315,7 +4317,7 @@ class TriBase(object):
 
     # Get subtriangulation from CompID list
     def GetSubTri(self, i=None):
-        """
+        r"""
         Get the portion of the triangulation that contains specified component
         ID(s).
 
@@ -4348,7 +4350,7 @@ class TriBase(object):
 
     # Eliminate unused nodes
     def RemoveUnusedNodes(self, v=False):
-        """Remove any nodes that are not used in any triangles
+        r"""Remove any nodes that are not used in any triangles
 
         :Call:
             >>> tri.RemoveUnusedNodes(v=False)
@@ -4392,7 +4394,7 @@ class TriBase(object):
 
     # Eliminate small triangles
     def RemoveSmallTris(self, smalltri=1e-5, v=False, recurse=True):
-        """Remove any triangles that are below a certain size
+        r"""Remove any triangles that are below a certain size
 
         :Call:
           >>> tri.RemoveSmallTris(smalltri=1e-5, v=False, recurse=True)
@@ -4522,7 +4524,7 @@ class TriBase(object):
 
     # Map triangles to components based on another file
     def MapTriCompID(self, tri, **kw):
-        """Map component IDs of a separate triangulation
+        r"""Map component IDs of a separate triangulation
 
         :Call:
             >>> tri.MapTriCompID(tric, **kw)
@@ -4695,7 +4697,7 @@ class TriBase(object):
 
     # Extract and write subtris after mapping
     def ExtractMappedComps(self, tric, comps=None, **kw):
-        """Map component names from a template *tri* and write component files
+        r"""Map component names from a template *tri* and write component files
 
         :Call:
             >>> tris = tri.ExtractMappedComps(tric, comps=[], **kw)

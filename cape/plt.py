@@ -508,7 +508,7 @@ class Plt(object):
             line = f.readline().strip()
         # Read variable names
         varpart = line.split("=")[1]
-        varlist = re.split("[\s,]+", varpart.strip())
+        varlist = re.split(r"[\s,]+", varpart.strip())
         # Save the variable list
         self.Vars = [varname.strip('"') for varname in varlist]
         # Get number of variables (, unpacks the list)
