@@ -87,7 +87,7 @@ def ImportPointSensor():
         pointSensor
     except Exception:
         # Load the modules.
-        import pointSensor
+        from . import pointSensor
 
 
 # Dedicated function to load lineLoad only when needed.
@@ -106,7 +106,7 @@ def ImportLineLoad():
         lineLoad
     except Exception:
         # Load the modules
-        import lineLoad
+        from . import lineLoad
 
 
 # Class to interface with report generation and updating.

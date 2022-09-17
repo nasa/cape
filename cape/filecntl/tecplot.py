@@ -40,11 +40,11 @@ from .filecntl import FileCntl
 
 
 # Stand-alone function to run a Tecplot layout file
-def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):
+def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
     """Stand-alone function to open a layout and export an image
     
     :Call:
-        >>> ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None)
+        >>> ExportLayout(lay="layout.lay", fname="export.png", **kw)
     :Inputs:
         *lay*: {``"layout.lay"``} | :class:`str`
             Name of Tecplot layout file
@@ -54,9 +54,17 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):
             Valid image format for Tecplot export
         *w*: {``None``} | :class:`float`
             Image width in pixels
+        *clean*: {``True``} | ``False``
+            Clean up extra files
+        *v*, *verbose*: {``True``} | ``False``
+            Option to display information about shell command
     :Versions:
-        * 2015-03-10 ``@ddalle``: First version
+        * 2015-03-10 ``@ddalle``: Version 1.0
+        * 2022-09-01 ``@ddalle``: Version 1.1; add *clean*
     """
+    # Options
+    w = kw.get("w")
+    v = kw.get("verbose", kw.get("v", True))
     # Macro file name
     fmcr = "export-lay.mcr"
     fsrc = os.path.join(TECPLOT_TEMPLATES, fmcr)
@@ -65,16 +73,20 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):
     # Set the layout file name
     tec.SetLayout(lay)
     # Check for options
-    if fname is not None: tec.SetExportFileName(fname)
-    if fmt   is not None: tec.SetExportFormat(fmt)
-    if w     is not None: tec.SetImageWidth(w)
+    if fname is not None:
+        tec.SetExportFileName(fname)
+    if fmt is not None:
+        tec.SetExportFormat(fmt)
+    if w is not None:
+        tec.SetImageWidth(w)
     # Write the customized macro
     tec.Write(fmcr)
     # Run the macro
-    tecmcr(mcr=fmcr)
-    # Remove the macro
-    os.remove(fmcr)
-# def ExportLayout
+    tecmcr(mcr=fmcr, v=v)
+    # Clean up if requested
+    if kw.get("clean", True):
+        os.remove(fmcr)
+
 
 # Base this class off of the main file control class.
 class Tecscript(FileCntl):

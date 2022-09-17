@@ -2548,7 +2548,7 @@ class DataKit(ftypes.BaseData):
         # Number of args
         narg = self._infer_response_narg(col, vals)
         # Special column name pattern, like "CYR_x.dy"
-        regex = re.compile("%s_x.(\w+)" % col)
+        regex = re.compile(r"%s_x.(\w+)" % col)
         # Loop through current cols to see if we can find args
         xcols = []
         for xcol in self.cols:
@@ -9463,6 +9463,15 @@ class DataKit(ftypes.BaseData):
                 List of columns names to match
             *a*: :class:`tuple`\ [:class:`float`]
                 Values of the arguments
+            *gtcons*, *GreaterThanCons*: {``{}``} | :class:`dict`
+                Dictionary of greater-than cons, e.g ``{"mach": 1.0}``
+                to apply ``db["mach"] > 1.0``
+            *gtecons*, *GreaterThanEqualCons*: {``{}``} | :class:`dict`
+                Dict of greater-than-or-equal-to constraints
+            *ltcons*, *LessThanCons*: {``{}``} | :class:`dict`
+                Dict of less-than constraints
+            *ltecons*, *LessThanEqualCons*: {``{}``} | :class:`dict`
+                Dict of less-than-or-equal-to constraints
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
                 Subset of *db* to consider
             *tol*: {``1e-4``} | :class:`float` >= 0
@@ -9483,9 +9492,10 @@ class DataKit(ftypes.BaseData):
             *Imap*: :class:`list`\ [:class:`np.ndarray`]
                 List of *db* indices for each test point in *J*
         :Versions:
-            * 2019-03-11 ``@ddalle``: Version 1.0
-            * 2019-12-26 ``@ddalle``: From :func:`DBCoeff.FindMatches`
-            * 2020-02-20 ``@ddalle``: Added *mask*, *once* kwargs
+            * 2019-03-11 ``@ddalle``: Version 1.0 (:class:`DBCoeff`)
+            * 2019-12-26 ``@ddalle``: Version 1.0
+            * 2020-02-20 ``@ddalle``: Version 2.0; *mask*, *once* kwargs
+            * 2022-09-15 ``@ddalle``: Version 3.0; *gtcons*, etc.
         """
        # --- Input Checks ---
         # Find a valid argument
@@ -9510,6 +9520,11 @@ class DataKit(ftypes.BaseData):
         once = kw.pop("once", False)
         # Option for mapped matches
         mapped = kw.pop("mapped", False)
+        # Inequality constraints
+        ltcons = kw.pop("LessThanCons", kw.pop("ltcons", {}))
+        gtcons = kw.pop("GreaterThanCons", kw.pop("gtcons", {}))
+        ltecons = kw.pop("LessThanEqualCons", kw.pop("ltecons", {}))
+        gtecons = kw.pop("GreaterThanEqualCons", kw.pop("gtecons", {}))
         # Number of values
         n0 = len(V)
        # --- Mask Prep ---
@@ -9572,6 +9587,50 @@ class DataKit(ftypes.BaseData):
                 else:
                     # Use a tolerance
                     Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
+            # Loop through less-than cons
+            for k, vk in ltcons.items():
+                # Get DB values for *k*
+                Xk = self.get_all_values(k)
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Compound constraint
+                Mi = np.logical_and(Mi, Xk < vk)
+            # Loop through greater-than cons
+            for k, vk in gtcons.items():
+                # Get DB values for *k*
+                Xk = self.get_all_values(k)
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Compound constraint
+                Mi = np.logical_and(Mi, Xk > vk)
+            # Loop through less-than-equals cons
+            for k, vk in ltecons.items():
+                # Get DB values for *k*
+                Xk = self.get_all_values(k)
+                # Get tolerance for this key
+                xtol = tols.get(k, tol)
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Compound constraint
+                Mi = np.logical_and(Mi, Xk <= vk + xtol)
+            # Loop through greater-than-equals cons
+            for k, vk in gtecons.items():
+                # Get DB values for *k*
+                Xk = self.get_all_values(k)
+                # Get tolerance for this key
+                xtol = tols.get(k, tol)
+                # Check match/approx
+                if isinstance(Xk, list):
+                    # Convert to array
+                    Xk = np.asarray(Xk)
+                # Compound constraint
+                Mi = np.logical_and(Mi, Xk >= vk - xtol)
             # Check if any cases
             found = np.any(Mi)
             # Got to next test point if no match
@@ -12139,6 +12198,8 @@ class DataKit(ftypes.BaseData):
                 Universal prefix or *col*-specific prefixes
             *suffix*: :class:`str` | :class:`dict`
                 Universal suffix or *col*-specific suffixes
+            *v*, *verbose*: ``True`` | {``False``}
+                Verbosity flag
         :Versions:
             * 2020-03-10 ``@ddalle``: Version 1.0
         """
@@ -12149,6 +12210,8 @@ class DataKit(ftypes.BaseData):
         suffix = kw.get("suffix")
         # Overall mask
         mask = kw.get("mask")
+        # Verbosity option
+        verbose = kw.get("verbose", kw.get("v", False))
         # Translator args
         tr_args = (trans, prefix, suffix)
        # --- Status Checks ---
@@ -12257,12 +12320,21 @@ class DataKit(ftypes.BaseData):
         nX = X[args[0]].size
        # --- Regularization ---
         # Perform interpolations
-        for col in cols:
+        for jcol, col in enumerate(cols):
             # Translate column name
             colreg = self._translate_colname(col, *tr_args)
             # Status update
-            if kw.get("v"):
-                print("  Regularizing col '%s' -> '%s'" % (col, colreg))
+            if verbose:
+                # Format message
+                if col == colreg:
+                    msg = "  Regularizing col '%s'" % col
+                else:
+                    msg = "  Regularizing col '%s' -> '%s'" % (col, colreg)
+                # Add progress
+                msg += " (%i/%i)\n" % (jcol + 1, len(cols))
+                # Display message
+                sys.stdout.write(msg)
+                sys.stdout.flush()
             # Check for slices
             if scol is None:
                 # Create inputs
@@ -12291,7 +12363,7 @@ class DataKit(ftypes.BaseData):
                 # Loop through slices
                 for i in range(nslice):
                     # Status update
-                    if kw.get("v"):
+                    if verbose:
                         # Get main key value
                         m = slices[maincol][i]
                         # Get value in fixed number of characters
@@ -12325,7 +12397,7 @@ class DataKit(ftypes.BaseData):
                         # Linear output
                         V[:,I] = np.dot(Y, W.T)
                 # Clean up prompt
-                if kw.get("v"):
+                if verbose:
                     sys.stdout.write("%72s\r" % "")
                     sys.stdout.flush()
             # Save the values
@@ -12358,7 +12430,7 @@ class DataKit(ftypes.BaseData):
             # Initialize break points
             T = []
             # Status update
-            if kw.get("v"):
+            if verbose:
                 print("  Mapping key '%s'" % col)
             # Loop through slice values
             for m in bkpts[maincol]:
@@ -12377,8 +12449,13 @@ class DataKit(ftypes.BaseData):
             # Save break points
             bkpts[colreg] = np.array(T)
        # --- Regularized Arg Values ---
+        # Figure out which columns to regularize
+        if maincol:
+            regargs = [maincol] + subcols + args
+        else:
+            regargs = subcols + args
         # Save the lookup values
-        for arg in args:
+        for arg in regargs:
             # Translate column name
             argreg = self._translate_colname(arg, *tr_args)
             # Save values
