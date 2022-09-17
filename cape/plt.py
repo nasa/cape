@@ -365,7 +365,7 @@ class Plt(object):
             if ipass != 0:
                 np.fromfile(f, dtype='i4', count=self.nVar)
             # Check for variable sharing
-            ishare = np.fromfile(f, dtype='i4', count=1)
+            ishare, = np.fromfile(f, dtype='i4', count=1)
             if ishare != 0:
                 np.fromfile(f, dtype='i4', count=self.nVar)
             # Zone number to share with
@@ -375,19 +375,37 @@ class Plt(object):
             self.qmin[n] = qi[0::2]
             self.qmax[n] = qi[1::2]
             # Read the actual data
-            qi = np.fromfile(f, dtype='f4', count=(self.nVar*npt))
+            if self.fmt[n][0] == 2:
+                # Read doubles
+                qi = np.fromfile(f, dtype="f8", count=self.nVar*npt)
+            else:
+                # Read floats
+                qi = np.fromfile(f, dtype='f4', count=self.nVar*npt)
             # Reshape
             qi = np.transpose(np.reshape(qi, (self.nVar, npt)))
             self.q.append(qi)
-            # Read the tris
-            ii = np.fromfile(f, dtype='i4', count=(4*nelem))
-            # Reshape and save
-            if ii.size == 3*nelem:
-                # Regular triangles
-                self.Tris.append(np.reshape(ii, (nelem, 3)))
+            # Get zone type
+            zt = self.ZoneType[n]
+            # Number of nodes per face
+            if zt == FETRIANGLE:
+                # Triangles
+                melem = 3
+            elif zt == FEQUADRILATERAL:
+                # Quads (often used for tris, too, w/ repeated node)
+                melem = 4
+            elif zt == FETETRAHEDRON:
+                # Tetrahedra, 4 nodes
+                melem = 4
+            elif zt == FEBRICK:
+                # Hex; also used for pyramids and prisms
+                melem = 8
             else:
-                # Duplicate vertices
-                self.Tris.append(np.reshape(ii, (nelem, 4)))
+                raise ValueError(
+                    "Zone type %i (zone %i) is unsupported" % (zt, n + 1))
+            # Read the tris
+            ii = np.fromfile(f, dtype='i4', count=(melem*nelem))
+            # Reshape and save
+            self.Tris.append(np.reshape(ii, (nelem, melem)))
             # Read the next marker
             i = np.fromfile(f, dtype='f4', count=1)
             # Check length
@@ -741,20 +759,6 @@ class Plt(object):
             np.savetxt(f, self.Tris[n]+1, fmt="%10i")
         # Close the file
         f.close()
-        
-    # SZPLOT Boundary reader
-    def ReadSzplt(self, fname):
-        raise NotImplementedError
-        # Open the file
-        f = open(fname, 'rb')
-        # Read the opening string
-        s = np.fromfile(f, count=1, dtype='|S8')
-        # Check it
-        if len(s)==0 or s[0]!='#!SZPLT ':
-            f.close()
-            raise ValueError("File '%s' must start with '#!SZPLT '" % fname)
-        # Read a revision number string
-        self.rev = np.fromfile(f, count=1, dtype='|S34')
         
     # Create from a TRIQ
     def ConvertTriq(self, triq, **kw):
