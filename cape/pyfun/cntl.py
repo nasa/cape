@@ -116,6 +116,16 @@ class Cntl(ccntl.Cntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
     """
+  # ==================
+  # Class attributes
+  # ==================
+  # <
+    _zombie_files = [
+        "*.out",
+        "*.flow"
+    ]
+  # >
+
   # ======
   # Config
   # ======
