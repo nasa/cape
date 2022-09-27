@@ -636,7 +636,7 @@ class Plt(object):
             v = float(D.get("solutiontime", 0))
             self.t.append(v)
             # Get zone type
-            zt = D.get("f", "feblock")
+            zt = D.get("f", "feblock").lower()
             # Save zone type
             if zt.lower() == "feblock":
                 self.ZoneType.append(3)
@@ -663,7 +663,13 @@ class Plt(object):
             # Read the actual data
             qi = np.fromfile(f, count=(nVar*nPt), sep=" ")
             # Reshape
-            qi = np.reshape(qi, (nPt, nVar))
+            if zt == "feblock":
+                # List each var as a single block
+                qi = np.reshape(qi, (nVar, nPt)).T
+            else:
+                # List each point sequentially
+                qi = np.reshape(qi, (nPt, nVar))
+            # Save state for this zone
             self.q.append(qi)
             # Save mins and maxes
             qmini = np.min(qi, axis=0)
