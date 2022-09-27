@@ -41,6 +41,7 @@ only the options relevant to a particular plot function.
 
 """
 
+# Third
 # TNA toolkit modules
 import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
@@ -312,14 +313,15 @@ class MPLOpts(kwutils.KwargHandler):
 
     # Options for which a singleton is a list
     _optlist_list = {
-        "dashes",
         "ContourLevels",
         "XLim",
         "YLim",
         "XTickLabels",
         "XTicks",
         "YTickLabels",
-        "YTicks"
+        "YTicks",
+        "bins",
+        "dashes",
     }
 
     # Alternate names
@@ -746,7 +748,7 @@ class MPLOpts(kwutils.KwargHandler):
         "FontWeight": (float, int, typeutils.strlike),
         "Grid": int,
         "GridOptions": dict,
-        "HistBins": int,
+        "HistBins": (int, typeutils.ndarray),
         "HistColor": (tuple, typeutils.strlike),
         "HistDeltaOptions": dict,
         "HistDeltaLabelOptions": dict,
