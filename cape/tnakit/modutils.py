@@ -124,6 +124,9 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
     opts = {}
     # Base of module name
     modbasename = modname.split(".")[-1]
+    # Name of parent module
+    parentname = ".".join(modname.split(".")[:-1])
+    parentbasename = parentname.split(".")[-1]
     # Attempt to read metadata if not specified
     if meta is None:
         try:
@@ -229,15 +232,30 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
             elif key == "mod":
                 # Module name with reST markup
                 fmt[key] = ":mod:`%s`" % modname
+            elif key == "parentmod":
+                # Module name of parent w/ reST markup
+                fmt[key] = ":mod:`%s`" % parentname
+            elif key == "parentbasemod":
+                # Base name of parent w/ reST markup
+                fmt[key] = ":mod:`%s`" % parentbasename
             elif key == "pymod":
                 # Module name without markup
                 fmt[key] = modname
+            elif key == "pyparentmod":
+                # Parent module name
+                fmt[key] = parentname
             elif key == "pymodname":
                 # Module name without markup
                 fmt[key] = modbasename
             elif key == "pybasemod":
                 # Module name without markup
                 fmt[key] = modbasename
+            elif key == "pyparentbasemod":
+                # Parent module base name
+                fmt[key] = parentbasename
+            elif key == "pyparentmodname":
+                # Parent module base name
+                fmt[key] = parentbasename
             elif key == "file":
                 # Module file (just last part)
                 fmt[key] = os.path.split(modfile)[-1]
