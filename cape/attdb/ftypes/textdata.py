@@ -40,8 +40,8 @@ except ImportError:
 
 
 # Regular expressions
-regex_numeric = re.compile(r"\d")
-regex_alpha   = re.compile("[A-z_]")
+REGEX_ALPHA = re.compile("[A-z_]")
+REGEX_NUMERIC = re.compile(r"\d")
 
 
 # Options
@@ -491,7 +491,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Check valid names of each column
             for col in cols:
                 # If it begins with a number, it's probably a data row
-                if not regex_alpha.match(col):
+                if REGEX_NUMERIC.match(col):
                     # Marker for no header
                     self._textdata_header_complete = True
                     # Return file to previous position
@@ -511,6 +511,8 @@ class TextDataFile(BaseFile, TextInterpreter):
             self._textdata_header_complete = True
             # Exit
             return
+        # Strip single quotes
+        cols = [re.sub("'([^']+)'", r"\1", col) for col in cols]
         # Translate names if reaching this point
         cols = self.translate_colnames(cols)
         # Check for override

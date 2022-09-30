@@ -17,6 +17,7 @@ substitute strings such as ``_atol_`` with a value for *atol* taken from a
 # Regular expression tools
 import re
 
+
 # Function to take out extensive markup for help messages
 def markdown(doc):
     """Remove some extraneous markup for command-line help messages
@@ -143,9 +144,9 @@ def markdown_try(doc):
     # Reform doc string
     txt = '\n'.join(lines)
     # Replace section headers
-    txt = re.sub(":([\w _-]+):\s*\n", replsec, txt)
+    txt = re.sub(":([\w/ _-]+):\s*\n", replsec, txt)
     # Replace modifiers, such as :mod:`cape.pycart`
-    txt = re.sub(":([\w _-]+):`([^`\n]+)`", replfn, txt)
+    txt = re.sub(":([\w/ _-]+):`([^`\n]+)`", replfn, txt)
     # Simplify user names
     txt = re.sub("``(@\w+)``", repluid, txt)
     # Simplify bolds

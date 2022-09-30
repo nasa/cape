@@ -43,8 +43,8 @@ except ImportError:
 
 
 # Regular expressions
-regex_numeric = re.compile(r"\d")
-regex_alpha   = re.compile("[A-z_]")
+REGEX_NUMERIC = re.compile(r"\d")
+REGEX_ALPHA = re.compile("[A-z_]")
 
 # Options
 class CSVFileOpts(BaseFileOpts):
@@ -421,7 +421,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Check valid names of each column
             for col in cols:
                 # If it begins with a number, it's probably a data row
-                if not regex_alpha.match(col):
+                if REGEX_NUMERIC.match(col):
                     # Marker for no header
                     self._csv_header_complete = True
                     # Return file to previous position
@@ -438,6 +438,8 @@ class CSVFile(BaseFile, TextInterpreter):
             self._csv_header_complete = True
             # Exit
             return
+        # Strip single quotes
+        cols = [re.sub("'([^']+)'", r"\1", col) for col in cols]
         # Save column names if reaching this point
         self.cols = self.translate_colnames(cols)
         # Output column names for kicks
