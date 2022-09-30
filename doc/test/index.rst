@@ -11,10 +11,9 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 104
-    :time: 16.920
-    :timestamp: 2022-09-17T14:32:19.931416
-    :hostname: system76-pc
+    :tests: 112
+    :time: 176.244
+    :timestamp: 2022-09-17T01:40:09.940332
 
 .. toctree::
 

@@ -49,6 +49,7 @@ import shutil
 # Local imports
 from . import case
 from . import dataBook
+from . import manage
 from . import options
 from . import report
 from .jobxml import JobXML
@@ -223,24 +224,28 @@ class Cntl(ccntl.Cntl):
             # Check all
             print("---- Checking FM DataBook components ----")
             self.CheckFM(**kw)
-            print("---- Checking LineLoad DataBook components ----")
-            self.CheckLL(**kw)
-            print("---- Checking TriqFM DataBook components ----")
-            self.CheckTriqFM(**kw)
-            print("---- Checking TriqPoint DataBook components ----")
-            self.CheckTriqPoint(**kw)
+            #print("---- Checking LineLoad DataBook components ----")
+            #self.CheckLL(**kw)
+            #print("---- Checking TriqFM DataBook components ----")
+            #self.CheckTriqFM(**kw)
+            #print("---- Checking TriqPoint DataBook components ----")
+            #self.CheckTriqPoint(**kw)
             # Quit
             return
         elif kw.get('data', kw.get('db')):
             # Update all
             print("---- Updating FM DataBook components ----")
             self.UpdateFM(**kw)
-            print("---- Updating LineLoad DataBook components ----")
-            self.UpdateLineLoad(**kw)
-            print("---- Updating TriqFM DataBook components ----")
-            self.UpdateTriqFM(**kw)
-            print("---- Updating TriqPoint DataBook components ----")
-            self.UpdateTriqPoint(**kw)
+            #print("---- Updating LineLoad DataBook components ----")
+            #self.UpdateLineLoad(**kw)
+            #print("---- Updating TriqFM DataBook components ----")
+            #self.UpdateTriqFM(**kw)
+            #print("---- Updating TriqPoint DataBook components ----")
+            #self.UpdateTriqPoint(**kw)
+            print("---- Updating CaseProp DataBook components ----")
+            self.UpdateCaseProp(**kw)
+            print("---- Updating PyFunc DataBook components ----")
+            self.UpdateDBPyFunc(**kw)
             # Output
             return
         # Call the common interface
@@ -737,6 +742,7 @@ class Cntl(ccntl.Cntl):
         return rc
 
     # Extend a case
+    @ccntl.run_rootdir
     def ExtendCase(self, i, n=1, j=None, imax=None):
         r"""Add iterations to case *i* by repeating the last phase
 
@@ -785,6 +791,16 @@ class Cntl(ccntl.Cntl):
             N1 = max(N, N1)
         # Reset the number of steps
         rc.set_PhaseIters(N1, j)
+        # Get name of case
+        frun = self.x.GetFullFolderNames(i)
+        # Go to case folder
+        os.chdir(frun)
+        # Read the XML file for the last phae
+        xml = case.read_xml(rc, j)
+        # Set iterations there, too
+        xml.set_kcfd_iters(N1)
+        # Rewrite
+        xml.write()
         # Status update
         print("  Phase %i: %s --> %s" % (j, N, N1))
         # Write new options
@@ -1015,4 +1031,65 @@ class Cntl(ccntl.Cntl):
                 print("      %s" % fabs)
         # Output
         return meshfiles
+  # >
+
+  # =========
+  # Archiving
+  # =========
+  # <
+    # Individual case archive function
+    def ArchivePWD(self, phantom=False):
+        r"""Archive a single case in the current folder ($PWD)
+
+        :Call:
+            >>> cntl.ArchivePWD(phantom=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if
+                ``False``
+        :Versions:
+            * 2017-03-10 ``@ddalle``: First :mod:`cape.pyfun` version
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
+        """
+        # Archive using the local module
+        manage.ArchiveFolder(self.opts, phantom=phantom)
+
+    # Individual case archive function
+    def SkeletonPWD(self, phantom=False):
+        r"""Delete most files in current folder, leaving only a skeleton
+
+        :Call:
+            >>> cntl.SkeletonPWD(phantom=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if
+                ``False``
+        :Versions:
+            * 2017-12-14 ``@ddalle``: Version 1.0
+        """
+        # Archive using the local module
+        manage.SkeletonFolder(self.opts, phantom=phantom)
+
+    # Individual case archive function
+    def CleanPWD(self, phantom=False):
+        r"""Archive a single case in the current folder ($PWD)
+
+        :Call:
+            >>> cntl.CleanPWD(phantom=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if
+                ``False``
+        :Versions:
+            * 2017-03-10 ``@ddalle``: Version 1.0
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
+        """
+        # Archive using the local module
+        manage.CleanFolder(self.opts, phantom=phantom)
   # >

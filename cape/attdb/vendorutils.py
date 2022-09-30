@@ -83,6 +83,9 @@ as one of the two files:
         Only vendoroze in parent packages including regular expression
         *REGEX* (default is all packages with any vendorize file)
 
+    -f, --json FJSON
+        Search for vendorize files called *FJSON* (defaults to vendorize.json)
+
     --cwd WHERE
         Location from which to search for packages (``"."``)
 
@@ -92,6 +95,7 @@ as one of the two files:
 :Versions:
 
     * 2021-08-23 ``@ddalle``: Version 1.0
+    * 2022-09-30 ``@ddalle``: Version 1.1; add ``-f`` option
 """
 
 
@@ -123,8 +127,13 @@ def vendorize_repo(*a, **kw):
             Location from which to search for target packages
         *t*, *target*: {``None``} | :class:`str`
             Regular expression for packages in which to vendor
+        *f*, *json*: {``"vendorize.json"``} | :class:`str`
+            Name of JSON vendorize inputs file
+        *toml*: {``"vendorize.toml"``} | :class:`str`
+            Name of TOML vendorize inputs file
     :Versions:
         * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2022-09-30 ``@ddalle``: Version 1.1; add *f*, etc.
     """
     # Check for help flag
     if kw.get('h') or kw.get('help'):
@@ -140,7 +149,7 @@ def vendorize_repo(*a, **kw):
     # Get target
     target_regex = kw.pop("target", kw.pop("t", None))
     # Find all parents
-    targets = find_vendors(where, regex=target_regex)
+    targets = find_vendors(where, regex=target_regex, **kw)
     # Check for no targets
     if len(targets) == 0:
         # Primary status update
@@ -161,9 +170,12 @@ def vendorize_repo(*a, **kw):
         pkgdir = target.replace(".", os.sep)
         # Absolutize
         absdir = os.path.join(fabs, pkgdir)
+        # Name of input file
+        fjson = kw.get("f", kw.get("json", "vendorize.json"))
+        ftoml = kw.get("toml", "vendorize.toml")
         # Two file candidates
-        fjson = os.path.join(absdir, "vendorize.json")
-        ftoml = os.path.join(absdir, "vendorize.toml")
+        fjson = os.path.join(absdir, fjson)
+        ftoml = os.path.join(absdir, ftoml)
         # Check for JSON file
         if os.path.isfile(fjson):
             # Read JSON file
@@ -202,12 +214,17 @@ def find_vendors(where=".", **kw):
             List of globs to include during package search
         *re*, *regex*, {``None``} | :class:`str`
             Only include packages including regular expression *regex*
+        *f*, *json*: {``"vendorize.json"``} | :class:`str`
+            Name of JSON vendorize inputs file
+        *toml*: {``"vendorize.toml"``} | :class:`str`
+            Name of TOML vendorize inputs file
     :Outputs:
         *pkgs*: :class:`list`\ [:class:`str`]
             List of packages with vendorization inputs (the package
             ``''`` means the current folder has vendor inputs)
     :Versions:
         * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2022-09-30 ``@ddalle``: Version 1.1; add *f*, etc.
     """
     # Options for find_packages()
     o_exclude = kw.pop("exclude", DEFAULT_FIND_EXCLUDE)
@@ -241,9 +258,12 @@ def find_vendors(where=".", **kw):
         pkgdir = pkg.replace(".", os.sep)
         # Absolutize
         pkgdir = os.path.join(absdir, pkgdir)
+        # Name of input file
+        fjson = kw.get("f", kw.get("json", "vendorize.json"))
+        ftoml = kw.get("toml", "vendorize.toml")
         # Full path to vendorize input files
-        fjson = os.path.join(pkgdir, "vendorize.json")
-        ftoml = os.path.join(pkgdir, "vendorize.toml")
+        fjson = os.path.join(pkgdir, fjson)
+        ftoml = os.path.join(pkgdir, ftoml)
         # Check for either file
         if os.path.isfile(fjson):
             # Found JSON file
