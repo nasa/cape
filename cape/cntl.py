@@ -2276,7 +2276,8 @@ class Cntl(object):
         # Get the format
         fmt = self.opts.get_ArchiveAction()
         # Check for directive not to archive
-        if not fmt or not self.opts.get_ArchiveFolder(): return
+        if not fmt or not self.opts.get_ArchiveFolder():
+            return
         # Loop through folders
         for i in self.x.GetIndices(**kw):
             # Go to root folder
@@ -2296,7 +2297,7 @@ class Cntl(object):
             # Perform cleanup
             self.CleanPWD()
             # Check status
-            if sts != 'PASS':
+            if sts not in ('PASS', 'ERROR'):
                 print("  Case is not marked PASS.")
                 continue
             # Archive
@@ -2358,11 +2359,9 @@ class Cntl(object):
             sts = self.CheckCaseStatus(i)
             # Enter the case folder
             os.chdir(frun)
-            # Perform cleanup
-            self.CleanPWD()
             # Check status
-            if sts != 'PASS':
-                print("  Case is not marked PASS.")
+            if not (cntl.x.PASS[i] or cntl.x.ERROR[i]):
+                print("  Case is not marked PASS or FAIL.")
                 continue
             # Archive
             self.SkeletonPWD(phantom=kw.get("phantom",False))
