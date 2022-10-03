@@ -990,6 +990,11 @@ class Cntl(object):
         else:
             # Show all cases
             q_umark = False
+        # Check for showing errored casses
+        if kw.get("errored", False) or kw.get("failed", False):
+            q_error = True
+        else:
+            q_error = False
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
        # --------
@@ -1073,6 +1078,8 @@ class Cntl(object):
            # --- Mark check ---
             # Check for unmarked-only flag
             if q_umark and (self.x.PASS[i] or self.x.ERROR[i]):
+                continue
+            if q_error and not self.x.ERROR[i]:
                 continue
            # --- Status ---
             # Check status.
