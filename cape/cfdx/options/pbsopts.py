@@ -1,21 +1,22 @@
-"""
-:mod:`cape.cfdx.options.pbs`: PBS script options
-=================================================
+r"""
+:mod:`cape.cfdx.options.pbsopts`: PBS script options
+=====================================================
 
-This portion of the options is universal, and so it is only encoded in the
-:mod:`cape` module. The :mod:`cape.pycart` module, for example, does not have a
-modified version. It contains options for specifying which architecture to use,
-how many nodes to request, etc.
+This portion of the options is universal, and so it is only encoded in
+the :mod:`cape` module. The :mod:`cape.pycart` module, for example, does
+not have a modified version. It contains options for specifying which
+architecture to use, how many nodes to request, etc.
 
 """
 
 
 # Import options-specific utilities
-from .util import rc0, odict
+from .util import OptionsDict, ARRAY_TYPES
+
 
 # Class for PBS settings
-class PBS(odict):
-    """Dictionary-based options for PBS jobs
+class PBS(OptionsDict):
+    r"""Options class for PBS jobs
     
     :Call:
         >>> opts = PBS(**kw)
@@ -26,17 +27,19 @@ class PBS(odict):
         *opts*: :class:`cape.options.pbs.PBS`
             PBS options interface
     :Versions:
-        * 2014-12-01 ``@ddalle``: First version
+        * 2014-12-01 ``@ddalle``: Version 1.0
+        * 2022-10-12 ``@ddalle``: Version 2.0; :class:`OptionsDict`
     """
     
     # Get the number of unique PBS jobs.
-    def get_nPBS(self):
-        """Return the maximum number of unique PBS inputs
+    def get_nPBS(self) -> int:
+        r"""Return the maximum number of unique PBS inputs
         
-        For example, if a case is set up to be run in two parts, and the first
-        phase needs only one node (*select=1*) while the second phase needs 10
-        nodes (*select=10*), then the input file should have 
-        ``"select": [1, 10]``, and the output of this function will be ``2``.
+        For example, if a case is set up to be run in two parts, and the
+        first phase needs only one node (*select=1*) while the second
+        phase needs 10 nodes (*select=10*), then the input file should
+        have ``"select": [1, 10]``, and the output of this function will
+        be ``2``.
         
         :Call:
             >>> n = opts.get_nPBS()
@@ -53,8 +56,8 @@ class PBS(odict):
         n = 1
         # Loop the keys.
         for v in self.values():
-            # Test if it's a list.
-            if type(v).__name__ in ['list', 'ndarray']:
+            # Test if it's a list
+            if isinstance(v, ARRAY_TYPES):
                 # Update the length.
                 n = max(n, len(v))
         # Output
@@ -650,5 +653,4 @@ class PBS(odict):
             * 2014-12-01 ``@ddalle``: Added index
         """
         self.set_key('PBS_S', S, i)
-# class PBS
 
