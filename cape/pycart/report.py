@@ -486,14 +486,10 @@ class Report(capereport.Report):
         if not os.path.isfile(ftri):
             # Try non-intersected file.
             ftri = os.path.join(frun, 'Components.c.tri')
-        # Check for the triangulation file.
+        # Check for the triangulation file
         if os.path.isfile(ftri):
-            # Read the configuration file.
-            conf = Config(opts.get_ConfigFile())
-            # Read the triangulation file.
-            tri = Tri(ftri)
-            # Apply the configuration
-            tri.conf = conf
+            # Read the triangulation file
+            tri = Tri(ftri, c=opts.get_ConfigFile())
         else:
             # Read the standard triangulation
             self.cntl.ReadTri()
@@ -569,7 +565,7 @@ class Report(capereport.Report):
             # Check for a list
             if type(pt).__name__ in ['list']:
                 # Join them, e.g. "[P1,P2]/Cp"
-                fcpt = "[" + ",",join(pt) + "]"
+                fcpt = "[" + ",".join(pt) + "]"
             else:
                 # Use the point name
                 fcpt = pt
