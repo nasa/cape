@@ -16,7 +16,7 @@ python3 -m pytest \
 IERR=$?
 
 # Create sphinx docs of results
-python3 -m testutils write-rst
+#python3 -m testutils write-rst
 
 # Return pytest's status
 exit $IERR

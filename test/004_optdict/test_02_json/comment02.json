@@ -1,0 +1,12 @@
+{
+    // Here is a comment
+    "comment": false,
+    "name": "optdict", // in-line comment
+    "members": ["CUI//SP-EXPT", // challenging "comment"
+        "UU"
+    ],
+    "test": [
+        [ // test a surprisingly unlikely type of comment
+        ]
+    ]
+}
