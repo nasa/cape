@@ -2360,7 +2360,7 @@ class Cntl(object):
             # Enter the case folder
             os.chdir(frun)
             # Check status
-            if not (cntl.x.PASS[i] or cntl.x.ERROR[i]):
+            if not (self.x.PASS[i] or self.x.ERROR[i]):
                 print("  Case is not marked PASS or FAIL.")
                 continue
             # Archive
