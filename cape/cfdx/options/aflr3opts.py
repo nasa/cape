@@ -55,7 +55,8 @@ class AFLR3Opts(OptionsDict):
         "mdf",
         "mdsblf",
         "nqual",
-        "o"
+        "o",
+        "run"
     }
 
     _opttypes = {
@@ -74,6 +75,7 @@ class AFLR3Opts(OptionsDict):
         "keys": dict,
         "nqual": INT_TYPES,
         "o": str,
+        "run": BOOL_TYPES,
     }
 
     _optvals = {
@@ -108,7 +110,29 @@ class AFLR3Opts(OptionsDict):
         "mdsblf": "AFLR3 BL spacing thickness factor option",
         "nqual": "number of AFLR3 mesh quality passes",
         "o": "output file for AFLR3",
+        "run": "whether or not to run AFLR3",
     }
+
+    # Set default *run* option accordingly
+    def init_post(self):
+        r"""Post-init hook for AFLR3Opts
+
+        This hook sets a case-dependent default value for *run*
+
+        :Call:
+            >>> opts.init_post()
+        :Inputs:
+            *opts*: :class:`AFLR3Opts`
+                Options interface
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        # Check for any options
+        if self:
+            self.setdefault("run", True)
+        else:
+            # For empty options, no entries -> run=False
+            self.setdefault("run", False)
         
     # Get single key from AFLR3 *keys* key
     def get_aflr3_key(self, k, j=0, vdef=None):
@@ -141,7 +165,7 @@ class AFLR3Opts(OptionsDict):
         
     # Set single key from AFLR3 *keys* section
     def set_aflr3_key(self, k, v, j=None):
-        """Get AFLR3 AFLR3 option that uses *key=val* format
+        r"""Get AFLR3 AFLR3 option that uses *key=val* format
         
         :Call:
             >>> opts.get_aflr3_key(k, v, j=0)

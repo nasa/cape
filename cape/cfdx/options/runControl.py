@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.cfdx.options.runControl`: Primary case control options
 ==================================================================
 
@@ -17,12 +17,13 @@ from .util import rc0, odict, getel
 # Required submodules
 from . import Archive
 from . import ulimit
-from . import aflr3
+from . import aflr3opts
 from . import intersect
+
 
 # Environment class
 class Environ(odict):
-    """Class for environment variables
+    r"""Class for environment variables
     
     :Call:
         >>> opts = Environ(**kw)
@@ -33,12 +34,12 @@ class Environ(odict):
         *opts*: :class:`cape.options.runControl.Environ`
             System environment variable options interface
     :Versions:
-        * 2015-11-10 ``@ddalle``: First version
+        * 2015-11-10 ``@ddalle``: Version 1.0
     """
     
     # Get an environment variable by name
     def get_Environ(self, key, i=0):
-        """Get an environment variable setting by name of environment variable
+        """Get an environment variable setting by name
         
         :Call:
             >>> val = opts.get_Environ(key, i=0)
@@ -53,12 +54,12 @@ class Environ(odict):
             *val*: :class:`str`
                 Value to set the environment variable to
         :Versions:
-            * 2015-11-10 ``@ddalle``: First version
+            * 2015-11-10 ``@ddalle``: Version 1.0
         """
         # Check for the key.
         if key not in self:
-            raise KeyError("Environment variable '%s' is not set in JSON file"
-                % key)
+            raise KeyError(
+                "Environment variable '%s' is not set in JSON file" % key)
         # Get the setting or list of settings
         V = self[key]
         # Select the value for run sequence *i*
@@ -66,7 +67,7 @@ class Environ(odict):
         
     # Set an environment variable by name
     def set_Environ(self, key, val, i=None):
-        """Set an environment variable setting by name of environment variable
+        r"""Set an environment variable setting by name
         
         :Call:
             >>> val = opts.get_Environ(key, i=0)
@@ -80,7 +81,7 @@ class Environ(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2015-11-10 ``@ddalle``: First version
+            * 2015-11-10 ``@ddalle``: Version 1.0
         """
         # Initialize the key if necessary.
         self.setdefault(key, "")
@@ -91,7 +92,7 @@ class Environ(odict):
 
 # Class for iteration & mode control settings and command-line inputs
 class RunControl(odict):
-    """Dictionary-based interface for generic code run control
+    r"""Dictionary-based interface for generic code run control
     
     :Call:
         >>> opts = RunControl(**kw)
@@ -102,7 +103,7 @@ class RunControl(odict):
         *opts*: :class:`cape.options.runControl.RunControl`
             Basic control options interface
     :Versions:
-        * 2014-12-01 ``@ddalle``: First version
+        * 2014-12-01 ``@ddalle``: Version 1.0
     """
     
     # Initialization method
@@ -394,32 +395,13 @@ class RunControl(odict):
    
     # AFLR3 variable interface
     def _aflr3(self):
-        """Initialize AFLR3 settings if necessary"""
-        # Get the value and type
-        v = self.get('aflr3')
-        t = type(v).__name__
-        # Check inputs
-        if t == 'aflr3':
-            # Already initialized
-            return
-        elif v is None:
-            # Empty/default
-            self['aflr3'] = aflr3.aflr3()
-        elif t == 'dict':
-            # Convert to special class
-            self['aflr3'] = aflr3.aflr3(**v)
-        else:
-            # Initialize
-            self['aflr3'] = aflr3.aflr3()
-            # Set a flag
-            if v:
-                self['aflr3']['run'] = True
-            else:
-                self['aflr3']['run'] = False
+        r"""Initialize AFLR3 settings if necessary"""
+        # Initialize section if necessary
+        self.init_section(aflr3opts.AFLR3Opts, "aflr3")
             
     # Whether or not to use AFLR3
     def get_aflr3(self):
-        """Return whether or not to run AFLR3 to create mesh
+        r"""Return whether or not to run AFLR3 to create mesh
         
         :Call:
             >>> q = opts.get_aflr3()
@@ -430,21 +412,15 @@ class RunControl(odict):
             *q*: ``True`` | {``False``}
                 Whether or not there are nontrivial AFLR3 settings
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: Version 1.1; use :func:`bool`
         """
         # Initialize if necessary
         self._aflr3()
         # Get the value and type
         v = self.get('aflr3')
-        # Get the flag
-        q = v.get('run')
-        # Check.
-        if q is None:
-            # Check for nontrivial entries
-            return len(v.keys()) > 0
-        else:
-            # Return the 'run' flag
-            return q == True
+        # Get the flag and convert to True or False
+        return bool(v.get('run'))
         
     # Get AFLR3 *-key val* options
     def get_aflr3_flags(self):
@@ -459,7 +435,7 @@ class RunControl(odict):
     # Copy documentation
     for k in ['aflr3_flags', 'aflr3_keys']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(aflr3opts.AFLR3Opts, 'get_'+k).__doc__
     
     # Get AFLR3 input file
     def get_aflr3_i(self, j=0):
@@ -621,16 +597,6 @@ class RunControl(odict):
         self._aflr3()
         self['aflr3'].set_aflr3_angblisimx(angbli, j)
         
-    # Get surface triangle angle options
-    def get_aflr3_angqbf(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_angqbf(j)
-    
-    # Set surface triangle angle options
-    def set_aflr3_angqbf(self, angqbf, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_angqbf(angqbf, j)
-        
     # Copy documentation
     for k in [
             'i', 'o', 'BCFile', 'key',
@@ -639,9 +605,9 @@ class RunControl(odict):
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_aflr3_'+k).__doc__ = getattr(
-            aflr3.aflr3,'get_aflr3_'+k).__doc__
-        eval('set_aflr3_'+k).__doc__ = getattr(aflr3.aflr3,
-            'set_aflr3_'+k).__doc__
+            aflr3opts.AFLR3Opts, 'get_aflr3_'+k).__doc__
+        eval('set_aflr3_'+k).__doc__ = getattr(
+            aflr3opts.AFLR3Opts, 'set_aflr3_'+k).__doc__
    # >
     
    # =========
@@ -687,7 +653,7 @@ class RunControl(odict):
             *q*: ``True`` | {``False``}
                 Whether or not there are nontrivial ``intersect`` settings
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Version 1.0
         """
         # Initialize if necessary
         self._intersect()
@@ -806,7 +772,7 @@ class RunControl(odict):
             *q*: ``True`` | {``False``}
                 Whether or not there are nontrivial ``intersect`` settings
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Version 1.0
         """
         # Initialize if necessary
         self._verify()
@@ -1191,7 +1157,7 @@ class RunControl(odict):
             *nIter*: :class:`int` or :class:`list`\ [:class:`int`]
                 Number of iterations to run
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: Version 1.0
         """
         return self.get_key('nIter', i)
         
@@ -1210,7 +1176,7 @@ class RunControl(odict):
             *nIter*: :class:`int` or :class:`list`\ [:class:`int`]
                 Number of iterations to run
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: Version 1.0
         """
         self.set_key('nIter', nIter, i)
     
@@ -1230,7 +1196,7 @@ class RunControl(odict):
             *PhaseSeq*: :class:`int` or :class:`list`\ [:class:`int`]
                 Sequence of input run index(es)
         :Versions:
-            * 2014-10-02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: Version 1.0
             * 2015-11-27 ``@ddalle``: InputSeq -> PhaseSeq
         """
         return self.get_key('PhaseSequence', i)
@@ -1249,7 +1215,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-10-02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: Version 1.0
         """
         self.set_key('PhaseSequence', PhaseSeq, i)
         
@@ -1271,7 +1237,7 @@ class RunControl(odict):
             *PhaseIters*: :class:`int` or :class:`list`(:class:`int`)
                 Sequence of iteration break points
         :Versions:
-            * 2014-10-02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: Version 1.0
         """
         return self.get_key('PhaseIters', i)
         
@@ -1292,7 +1258,7 @@ class RunControl(odict):
             *PhaseIters*: :class:`int` or :class:`list`(:class:`int`)
                 Sequence of iteration break points
         :Versions:
-            * 2014-10-02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: Version 1.0
         """
         self.set_key('PhaseIters', PhaseIters, i)
         
@@ -1310,7 +1276,7 @@ class RunControl(odict):
             *nSeq*: :class:`int`
                 Number of input sets in the sequence
         :Versions:
-            * 2014-10-02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: Version 1.0
             * 2015-02-02 ``@ddalle``: Added *nPhase* override
         """
         # Check for number of phases
@@ -1340,7 +1306,7 @@ class RunControl(odict):
             *nIter*: :class:`int`
                 Number of required iterations for case
         :Versions:
-            * 2014-10-02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: Version 1.0
         """
         return self.get_PhaseIters(self.get_PhaseSequence(-1))
         
@@ -1359,7 +1325,7 @@ class RunControl(odict):
             *MPI*: :class:`bool`
                 Whether or not to use MPI
         :Versions:
-            * 2015-10-17 ``@ddalle``: First version
+            * 2015-10-17 ``@ddalle``: Version 1.0
         """
         return self.get_key('MPI', i)
         
@@ -1378,7 +1344,7 @@ class RunControl(odict):
             *MPI*: :class:`bool`
                 Whether or not to use MPI
         :Versions:
-            * 2015-10-17 ``@ddalle``: First version
+            * 2015-10-17 ``@ddalle``: Version 1.0
         """
         self.set_key('MPI', MPI, i)
         
@@ -1397,7 +1363,7 @@ class RunControl(odict):
             *nProc*: :class:`int` or :class:`list`(:class:`int`)
                 Number of threads for `flowCart`
         :Versions:
-            * 2014-08-02 ``@ddalle``: First version
+            * 2014-08-02 ``@ddalle``: Version 1.0
             * 2014-10-02 ``@ddalle``: Switched to "nProc"
         """
         return self.get_key('nProc', i)
@@ -1416,7 +1382,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-08-02 ``@ddalle``: First version
+            * 2014-08-02 ``@ddalle``: Version 1.0
             * 2014-10-02 ``@ddalle``: Switched to "nProc"
         """
         self.set_key('nProc', nProc, i)
@@ -1436,7 +1402,7 @@ class RunControl(odict):
             *mpicmd*: :class:`str`
                 System command to call MPI
         :Versions:
-            * 2014-10-02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: Version 1.0
         """
         return self.get_key('mpicmd', i)
     
@@ -1454,7 +1420,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-10-02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: Version 1.0
         """
         self.set_key('mpicmd', mpicmd, i)
     
@@ -1473,7 +1439,7 @@ class RunControl(odict):
             *qsub*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to submit case to PBS
         :Versions:
-            * 2014-10-05 ``@ddalle``: First version
+            * 2014-10-05 ``@ddalle``: Version 1.0
         """
         return self.get_key('qsub', i)
     
@@ -1491,7 +1457,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-10-05 ``@ddalle``: First version
+            * 2014-10-05 ``@ddalle``: Version 1.0
         """
         self.set_key('qsub', qsub, i)
     
@@ -1510,7 +1476,7 @@ class RunControl(odict):
             *sbatch*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to submit case to SLURM
         :Versions:
-            * 2018-10-10 ``@ddalle``: First version
+            * 2018-10-10 ``@ddalle``: Version 1.0
         """
         return self.get_key('sbatch', i)
     
@@ -1528,7 +1494,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2018-10-10 ``@ddalle``: First version
+            * 2018-10-10 ``@ddalle``: Version 1.0
         """
         self.set_key('sbatch', sbatch, i)
         
@@ -1548,7 +1514,7 @@ class RunControl(odict):
             *resub*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not to resubmit/restart a case
         :Versions:
-            * 2014-10-05 ``@ddalle``: First version
+            * 2014-10-05 ``@ddalle``: Version 1.0
         """
         return self.get_key('Resubmit', i)
     
@@ -1566,7 +1532,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-10-05 ``@ddalle``: First version
+            * 2014-10-05 ``@ddalle``: Version 1.0
         """
         self.set_key('Resubmit', resub, i)
         
@@ -1586,7 +1552,7 @@ class RunControl(odict):
                 Whether or not to continue restarts of same input sequence
                 without resubmitting
         :Versions:
-            * 2015-11-08 ``@ddalle``: First version
+            * 2015-11-08 ``@ddalle``: Version 1.0
         """
         return self.get_key('Continue', i)
         
@@ -1606,7 +1572,7 @@ class RunControl(odict):
                 Whether or not to continue restarts of same input sequence
                 without resubmitting
         :Versions:
-            * 2015-11-08 ``@ddalle``: First version
+            * 2015-11-08 ``@ddalle``: Version 1.0
         """
         self.set_key('Continue', cont, i)
         
@@ -1625,7 +1591,7 @@ class RunControl(odict):
             *preMesh*: :class:`bool`
                 Whether or not to create mesh before submitting PBS job
         :Versions:
-            * 2016-04-06 ``@ddalle``: First version
+            * 2016-04-06 ``@ddalle``: Version 1.0
         """
         return self.get_key('PreMesh', i)
     
@@ -1643,7 +1609,7 @@ class RunControl(odict):
             *i*: :class:`int` | ``None``
                 Phase number
         :Outputs:
-            * 2016-04-06 ``@ddalle``: First version
+            * 2016-04-06 ``@ddalle``: Version 1.0
         """
         self.set_key('PreMesh', preMesh, i)
     
@@ -1662,7 +1628,7 @@ class RunControl(odict):
             *v*: ``True`` | {``False``}
                 Verbosity
         :Versions:
-            * 2017-03-12 ``@ddalle``: First version
+            * 2017-03-12 ``@ddalle``: Version 1.0
         """
         return self.get_key("Verbose", i)
    # >

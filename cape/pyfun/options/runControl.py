@@ -2,36 +2,36 @@
 :mod:`cape.pyfun.options.runControl.RunControl`: Run control options
 ======================================================================
 
-Options interface for aspects of running a case of FUN3D.  The settings are
-read from the ``"RunControl"`` of a JSON file, and the contents of this section
-are written to :file:`case.json` within each run folder.
+Options interface for aspects of running a case of FUN3D.  The settings
+are read from the ``"RunControl"`` of a JSON file, and the contents of
+this section are written to ``case.json`` within each run folder.
 
 The methods of :class:`cape.cfdx.options.runControl.RunControl` are
 also present. These control options such as whether to submit as a PBS
 job, whether or not to use MPI, etc.
 
-This contains options that determine how long the solver is ran (primarily 
-via the ``"PhaseSequence"`` and ``"PhaseIters"`` options), what basic mode it
-is run in (such as a submitted or local job or serial or MPI job), and options
-for command-line options to the FUN3D binaries.  There is also an
-``"Archive"`` section that can be used for copying files and cleaning up after
-one or more cases have been completed.
+This contains options that determine how long the solver is ran
+(primarily  via the ``"PhaseSequence"`` and ``"PhaseIters"`` options),
+what basic mode it is run in (such as a submitted or local job or serial
+or MPI job), and options for command-line options to the FUN3D binaries.
+There is also an ``"Archive"`` section that can be used for copying
+files and cleaning up afterone or more cases have been completed.
 
 This module primarily provides a class
-:class:`pyFun.options.RunControl`. Many of the options that are common
+:class:`cape.pyfun.options.RunControl`. Many of the options that are common
 to all solvers are inherited from
 :class:`cape.cfdx.options.runControl.RunControl`. This class also has
 an interface for environment variables and ``ulimit`` parameters.
 
 In particular, all of the commands available to the classes listed
 below are also available to
-:class:`pyFun.options.runControl.RunControl`.
+:class:`cape.pyfun.options.runControl.RunControl`.
 
 :Classes:
-    * :class:`pyFun.options.runControl.RunControl`
-    * :class:`pyFun.options.runControl.nodet`
-    * :class:`pyFun.options.runControl.dual`
-    * :class:`pyFun.options.Archive.Archive`
+    * :class:`cape.pyfun.options.runControl.RunControl`
+    * :class:`cape.pyfun.options.runControl.nodet`
+    * :class:`cape.pyfun.options.runControl.dual`
+    * :class:`cape.pyfun.options.Archive.Archive`
     * :class:`cape.cfdx.options.aflr3.aflr3`
     * :class:`cape.cfdx.options.runControl.Environ`
     * :class:`cape.cfdx.options.ulimit.ulimit`
@@ -50,6 +50,7 @@ import cape.cfdx.options.runControl
 # Submodules
 from .Archive import Archive
 
+
 # Class for `nodet` inputs
 class nodet(odict):
     """Class for ``nodet`` command-line inputs"""
@@ -61,7 +62,7 @@ class nodet(odict):
         :Call:
             >>> f = opts.get_nodet_animation_freq(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *i*: :class:`int`
                 Run index
@@ -80,7 +81,7 @@ class nodet(odict):
         :Call:
             >>> opts.set_nodet_animation_freq(f, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *f*: :class:`int`
                 Animation frequency; when ``nodet`` outputs are written
@@ -91,6 +92,7 @@ class nodet(odict):
         """
         self.set_key('animation_freq', f, i)
 # class nodet
+
 
 # Class for ``dual`` inputs
 class dual(odict):
@@ -103,7 +105,7 @@ class dual(odict):
         :Call:
             >>> f = opts.get_dual_outer_loop_krylov(j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *j*: :class:`int` | ``None``
                 Phase number
@@ -123,7 +125,7 @@ class dual(odict):
         :Call:
             >>> opts.set_dual_outer_loop_krylov(f=True, j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *f*: {``True``} | ``False``
                 Whether or not to use this flag
@@ -141,7 +143,7 @@ class dual(odict):
         :Call:
             >>> rad = opts.get_dual_rad(j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *j*: :class:`int` | ``None``
                 Phase number
@@ -160,7 +162,7 @@ class dual(odict):
         :Call:
             >>> opts.set_dual_rad(rad=True, j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *j*: :class:`int` | ``None``
                 Phase number
@@ -179,7 +181,7 @@ class dual(odict):
         :Call:
             >>> adapt = opts.get_dual_adapt(j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *j*: :class:`int` | ``None``
                 Phase number
@@ -198,7 +200,7 @@ class dual(odict):
         :Call:
             >>> opts.set_dual_adapt(adapt=True, j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *adapt*: {``True``} | ``False``
                 Whether or not to adapt after running ``dual``
@@ -210,9 +212,10 @@ class dual(odict):
         self.set_key('adapt', adapt, j)
 # class dual
 
+
 # Class for Report settings
 class RunControl(cape.cfdx.options.runControl.RunControl):
-    """Dictionary-based interface for automated reports
+    r"""Dictionary-based interface for automated reports
     
     :Call:
         >>> opts = RunControl(**kw)
@@ -274,7 +277,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> qr = opts.get_KeepRestarts(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *i*: :class:`int` | ``None``
                 Phase number
@@ -293,7 +296,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> opts.get_KeepRestarts(qr, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *qr*: :class:`bool`
                 Whether or not to copy flow solution files
@@ -311,7 +314,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> ac = opts.get_Adaptive(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *i*: :class:`int` | ``None``
                 Phase number
@@ -330,7 +333,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> opts.set_Adaptive(ac, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *ac*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not to use `aero.csh`
@@ -350,7 +353,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> d = opts.get_Dual(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *i*: :class:`int` | ``None``
                 Phase number
@@ -371,7 +374,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> opts.get_Dual(d=False, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *d*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not to run the case with dual mode
@@ -389,7 +392,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> qa = opts.get_AdaptPhase(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *i*: :class:`int` | ``None``
                 Phase number
@@ -408,7 +411,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> opts.set_AdaptPhase(qa, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *qa*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not phase ends with an adaptation
@@ -426,7 +429,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> qd = opts.get_DualPhase(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *i*: :class:`int` | ``None``
                 Phase number
@@ -445,7 +448,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> opts.set_DualPhase(qd, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *qd*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not phase ends with an adjoint computation
@@ -463,7 +466,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> n = opts.get_nIterAdjoint(j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *j*: :class:`int` | ``None``
                 Phase number
@@ -482,7 +485,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> n = opts.get_nIterAdjoint(n=200, j=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *n*: :class:`int`
                 Number of iterations for ``dual``
@@ -501,7 +504,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> j = opts.get_AdaptationNumber(i)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.pyfun.options.Options`
                 Options interface
             *i*: :class:`int`
                 Phase number
