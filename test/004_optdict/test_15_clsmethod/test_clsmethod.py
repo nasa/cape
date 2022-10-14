@@ -36,9 +36,16 @@ class MyOpts1(MyOpts):
     }
 
 
+class MyOpts2(MyOpts):
+    _optlist = {"b", "c", "d", "e", "f", "g"}
+
+
 # Create some getters and setters
 MyOpts1.add_property("a")
-MyOpts1.add_property("b", prefix="my", name="c")
+MyOpts1.add_property("b", prefix="my_", name="c")
+MyOpts2.add_properties(["b", "c"])
+MyOpts2.add_getters(("d", "e"))
+MyOpts2.add_setters(("f", "g"))
 
 
 # Test _rc
@@ -83,3 +90,10 @@ def test_clsprop02():
     assert MyOpts1._genr8_rst_opttypes("f").endswith("`int64`")
     assert "`float`" in MyOpts1._genr8_rst_opttypes("g")
     assert MyOpts1._genr8_rst_opttypes("h") == "{``None``} | :class:`object`"
+
+
+# Test properties from list generators
+def test_clsprop03():
+    assert callable(MyOpts2.get_b)
+    assert callable(MyOpts2.get_d)
+    assert callable(MyOpts2.set_f)

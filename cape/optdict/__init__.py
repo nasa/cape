@@ -755,7 +755,7 @@ class OptionsDict(dict):
    # --- Settings ---
     _warnmode = DEFAULT_WARNMODE
 
-   # --- Documentation ---
+   # --- Auto-properties and documentation ---
     # Pre-written strings for available types/values (can be automated)
     _rst_types = {}
 
@@ -2226,6 +2226,78 @@ class OptionsDict(dict):
 
    # --- Get/Set properties ---
     @classmethod
+    def add_properties(cls, optlist, prefix=None, name=None, doc=True):
+        r"""Add list of getters and setters with common settings
+
+        :Call:
+            >>> cls.add_properties(optlist, prefix=None, name=None)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *optlist*: :class:`list`\ [:class:`str`]
+                Name of options to process
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix, e.g. ``opt="a", prefix="my"`` will add
+                functions :func:`get_my_a` and :func:`set_my_a`
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to functions
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        for opt in optlist:
+            cls.add_property(opt, prefix=prefix, name=name, doc=doc)
+
+    @classmethod
+    def add_setters(cls, optlist, prefix=None, name=None, doc=True):
+        r"""Add list of property setters with common settings
+
+        :Call:
+            >>> cls.add_setters(optlist, prefix=None, name=None)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *optlist*: :class:`list`\ [:class:`str`]
+                Name of options to process
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix, e.g. ``opt="a", prefix="my"`` will add
+                functions :func:`get_my_a` and :func:`set_my_a`
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to functions
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        for opt in optlist:
+            cls.add_setter(opt, prefix=prefix, name=name, doc=doc)
+
+    @classmethod
+    def add_getters(cls, optlist, prefix=None, name=None, doc=True):
+        r"""Add list of property getters with common settings
+
+        :Call:
+            >>> cls.add_getters(optlist, prefix=None, name=None)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *optlist*: :class:`list`\ [:class:`str`]
+                Name of options to process
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix, e.g. ``opt="a", prefix="my"`` will add
+                functions :func:`get_my_a` and :func:`set_my_a`
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to functions
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        for opt in optlist:
+            cls.add_getter(opt, prefix=prefix, name=name, doc=doc)
+
+    @classmethod
     def add_property(cls, opt: str, prefix=None, name=None, doc=True):
         r"""Add getter and setter methods for option *opt*
 
@@ -2371,9 +2443,9 @@ class OptionsDict(dict):
             name = normalize_optname(opt)
         # Name of function
         if prefix:
-            funcname = "%s_%s" % (prefix, name)
+            funcname = prefix + name
         else:
-            funcname = "%s" % name
+            funcname = name
         # Output
         return name, funcname
 

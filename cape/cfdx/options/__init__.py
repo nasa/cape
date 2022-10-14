@@ -1,56 +1,39 @@
-"""
-The :mod:`cape.cfdx.options` provides tools to read, access, modify, and write
-settings for :mod:`cape`. The class is based off of the built-int :class:`dict`
-class, so its default behavior, such as ``opts['RunControl']`` or
-``opts.get('RunControl')`` are also present. In addition, many convenience
-methods, such as ``opts.set_PhaseIters(n)``, which sets the number of iterations
-to run, are provided.
+r"""
+The :mod:`cape.cfdx.options` provides tools to read, access, modify, and
+write settings for :mod:`cape`. The class is based off of the built-in
+:class:`dict` class, so its default behaviors, such as
+``opts['RunControl']`` or ``opts.get('RunControl')`` are also present.
+In addition, many convenience methods, such as
+``opts.set_PhaseIters(n)``, which sets the number of iterations to run,
+are provided.
 
-In addition, this module controls default values of each pyCart
-parameter in a two-step process.  The precedence used to determine what the
+In addition, this module controls default values of each CAPE parameter
+in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
-    * Values directly specified in the input file, :file:`cape.json`
+    * Values directly specified in the input file, e.g. ``cape.json``
     
     * Values specified in the default control file,
-       :file:`$CAPE/settings/cape.default.json`
+      ``$CAPE/settings/cape.default.json``
     
     * Hard-coded defaults from this module
-
-The strategy for the :class:`cape.options.Options` class, or the derived
-:class:`pyCart.options.Options`, :class:`pyFun.options.Options`, or
-:class:`pyOver.options.Options` classes, is that the user may get the options
-either from the parent options class or the subclass.  For example, both of the
-following commands get the option of whether or not to submit PBS jobs.
-
-    .. code-block:: python
-    
-        opts.get_qsub()
-        opts['RunControl'].get_qsub()
-
-Furthermore, there is a control to get options specifically for phase *j*.  Each
-option can be called either with or without the phase number, for instance
-``opts.get_qsub()`` or ``opts.get_qsub(j)``.  If the option has different
-settings for each phase, this will return entry number *j* (0-based indexing) of
-the option (if *j* is greater than the length of the list, the last entry in the
-list is returned); but if the entry is a scalar, that scalar is returned
-regardless of the value of *j*.
 
 Finally, this module is very closely tied with 
 :ref:`the JSON section <cape-json>`, which often contains more useful
 descriptions.
+
+:See Also:
+    * :mod:`cape.optdict`
 """
 
-# Import options-specific utilities (loads :mod:`os`, too)
+# Local imports
 from .util import *
-
-# Import more specific modules for controlling subgroups of options
-from .pbs        import PBS
-from .slurm      import Slurm
-from .DataBook   import DataBook, DBTarget
-from .Report     import Report
-from .Mesh       import Mesh
-from .Config     import Config
+from .pbsopts import PBSOpts
+from .slurm import Slurm
+from .DataBook import DataBook, DBTarget
+from .Report import Report
+from .Mesh import Mesh
+from .Config import Config
 from .runControl import RunControl
 
 
@@ -77,7 +60,7 @@ class Options(odict):
    # <
     # Initialization method
     def __init__(self, fname=None, **kw):
-        """Initialization method with optional JSON input"""
+        r"""Initialization method with optional JSON input"""
         # Check for an input file.
         if fname:
             # Read the JSON file
@@ -385,14 +368,14 @@ class Options(odict):
         # Check status.
         if 'PBS' not in self:
             # Missing entirely
-            self['PBS'] = PBS()
+            self['PBS'] = PBSOpts()
         elif type(self['PBS']).__name__ == 'dict':
             # Add prefix to all the keys.
             tmp = {}
             for k in self['PBS']:
                 tmp["PBS_"+k] = self['PBS'][k]
             # Convert to special class.
-            self['PBS'] = PBS(**tmp)
+            self['PBS'] = PBSOpts(**tmp)
             
     # Initialize pre-processing PBS options
     def _BatchPBS(self):
@@ -407,7 +390,7 @@ class Options(odict):
             for k in self['BatchPBS']:
                 tmp["PBS_"+k] = self['BatchPBS'][k]
             # Convert to special class
-            self['BatchPBS'] = PBS(**tmp)
+            self['BatchPBS'] = PBSOpts(**tmp)
             # Copy any non-explicit settings from main "PBS" section
             for k in self['PBS']:
                 self['BatchPBS'].setdefault(k, self['PBS'][k])
@@ -425,7 +408,7 @@ class Options(odict):
             for k in self['PostPBS']:
                 tmp["PBS_"+k] = self['PostPBS'][k]
             # Convert to special class
-            self['PostPBS'] = PBS(**tmp)
+            self['PostPBS'] = PBSOpts(**tmp)
             # Copy any implicit settings from main "PBS" section
             for k in self['PBS']:
                 self['PostPBS'].setdefault(k, self['PBS'][k])
@@ -1291,7 +1274,7 @@ class Options(odict):
         else:
             self._PBS()
             return self['PBS'].get_nPBS()
-    get_nPBS.__doc__ = PBS.get_nPBS.__doc__
+    get_nPBS.__doc__ = PBSOpts.get_nPBS.__doc__
     
     # Get PBS *join* setting
     def get_PBS_j(self, i=None, typ=None):
@@ -1778,8 +1761,8 @@ class Options(odict):
             'PBS_o', 'PBS_e', 'PBS_aoe', 'PBS_ompthreads', 'PBS_p',
             'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(PBS,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(PBSOpts, 'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(PBSOpts, 'set_'+k).__doc__
    # > 
         
    # ==============
