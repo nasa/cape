@@ -51,7 +51,7 @@ Section1AOpts.add_property("beta")
 optdict.promote_subsec(Section1Opts, Section1AOpts, "A", skip=["set_beta"])
 optdict.promote_subsec(MyOpts, Section1Opts, "Section1")
 optdict.promote_subsec(MyOpts, Section1Opts, "Section1")
-optdict.promote_subsec(MyOpts, Section2Opts)
+MyOpts.promote_subsec(Section2Opts)
 
 
 # Test subsection

@@ -2224,6 +2224,36 @@ class OptionsDict(dict):
         # Output
         return clsset
 
+   # --- Subsections ---
+    @classmethod
+    def promote_subsec(cls, cls2, sec=None, skip=[], **kw):
+        r"""Promote all methods of a subsection class to parent class
+    
+        Methods of parent class will not be overwritten
+    
+        :Call:
+            >>> promote_subsec(cls1, cls2, sec=None, skip=[], **kw)
+        :Inputs:
+            *cls*: :class:`type`
+                Parent class
+            *cls2*: :class:`type`
+                Subsection class
+            *sec*: {``None``} | :class:`str`
+                Name of subsection, defaults to *cls2.__name__*
+            *skip*: {``[]``} | :class:`list`
+                List of methods from *cls2* not to add to *cls1*
+            *init*: {``True``} | ``False``
+                If ``True``, initialize subsection when *cls1* methods used
+            *parent*: {``None``} | :class:`str`
+                Name of section from which to get default settings
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        # Prevent operations on OptionsDict directly
+        cls._assert_subclass()
+        # Call module function
+        promote_subsec(cls, cls2, sec=sec, skip=skip, **kw)
+
    # --- Get/Set properties ---
     @classmethod
     def add_properties(cls, optlist, prefix=None, name=None, doc=True):
