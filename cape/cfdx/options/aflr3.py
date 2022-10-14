@@ -1,18 +1,18 @@
-"""
-:mod:`cape.cfdx.options.aflr3`: AFLR3 mesh generation options
-================================================================
+r"""
+:mod:`cape.cfdx.options.aflr3opts`: AFLR3 mesh generation options
+====================================================================
 
 This module provides a class to access command-line options to the AFLR3
-mesh-generation program.  It is specified in the ``"RunControl"`` section for
-modules that utilize the solver, which includes FUN3D.
+mesh-generation program. It is specified in the ``"RunControl"`` section
+for modules that utilize the solver, which includes FUN3D.
 
-The options in this module are among the command-line options to AFLR3.  Other
-AFLR3 options that do not have specific methods defined in the
-:class:`cape.options.aflr3.aflr3` options class can be accessed using two
-generic functions:
+The options in this module are among the command-line options to AFLR3.
+Other AFLR3 options that do not have specific methods defined in the
+:class:`AFLR3Opts` options class can be accessed using two generic
+functions:
 
-    * :func:`aflr3.get_aflr3_flags`: options using ``-blr 1.2`` format
-    * :func:`aflr3.get_aflr3_keys`: options using ``cdfs=7.5`` format
+    * :func:`AFLR3Opts.get_aflr3_flags`: options using ``-blr 1.2`` format
+    * :func:`AFLR3Opts.get_aflr3_keys`: options using ``cdfs=7.5`` format
 """
 
 # Ipmort options-specific utilities

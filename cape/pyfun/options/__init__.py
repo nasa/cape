@@ -1,4 +1,4 @@
-"""
+r"""
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pyfun`.  The class is based off of the built-in :class:`dict` class, so
@@ -25,8 +25,7 @@ from .util import *
 # Import template module
 import cape.cfdx.options
 
-# Import modules for controlling specific parts of Cart3D
-from .pbs         import PBS
+# Local imports
 from .DataBook    import DataBook
 from .Report      import Report
 from .runControl  import RunControl
@@ -35,10 +34,10 @@ from .Mesh        import Mesh
 from .Config      import Config
 from .Functional  import Functional
 
+
 # Class definition
 class Options(cape.cfdx.options.Options):
-    """
-    Options structure, subclass of :class:`dict`
+    r"""Options interface for :mod:`cape.pyfun`
     
     :Call:
         >>> opts = Options(fname=None, **kw)
@@ -48,7 +47,7 @@ class Options(cape.cfdx.options.Options):
         *kw*: :class:`dict`
             Dictionary to be transformed into :class:`pyCart.options.Options`
     :Versions:
-        * 2014.07.28 ``@ddalle``: First version
+        * 2014-07-28 ``@ddalle``: Version 1.0
     """
     
     # Initialization method
@@ -88,21 +87,6 @@ class Options(cape.cfdx.options.Options):
    # Initializers
    # ============
    # <
-    
-    # Initialization and confirmation for PBS options
-    def _PBS(self):
-        """Initialize PBS options if necessary"""
-        # Check status.
-        if 'PBS' not in self:
-            # Missing entirely
-            self['PBS'] = PBS()
-        elif type(self['PBS']).__name__ == 'dict':
-            # Add prefix to all the keys.
-            tmp = {}
-            for k in self['PBS']:
-                tmp["PBS_"+k] = self['PBS'][k]
-            # Convert to special class.
-            self['PBS'] = PBS(**tmp)
             
     # Initialization method for overall run control
     def _RunControl(self):
@@ -192,7 +176,7 @@ class Options(cape.cfdx.options.Options):
             # Convert to special class
             self['Report'] = Report(**self['Report'])
             
-    # Initialization and confirmation for PBS options
+    # Initialization and confirmation for surface config options
     def _Config(self):
         """Initialize configuration options if necessary"""
         # Check status.
@@ -648,13 +632,10 @@ class Options(cape.cfdx.options.Options):
     #    eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
    # >
    
-    
    # =============
    # Configuration
    # =============
    # <
-        
-    
         
     ## Copy over the documentation.
     #for k in ['ClicForce', 'Xslice', 'Yslice', 'Zslice',
@@ -664,7 +645,6 @@ class Options(cape.cfdx.options.Options):
     #    eval('set_'+k+'s').__doc__ = getattr(Config,'set_'+k+'s').__doc__
     #    eval('add_'+k).__doc__ = getattr(Config,'add_'+k).__doc__
    # >
-   
     
    # =========
    # Functions
@@ -746,7 +726,6 @@ class Options(cape.cfdx.options.Options):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
    # >
-   
     
    # =======
    # Reports
@@ -756,7 +735,7 @@ class Options(cape.cfdx.options.Options):
     # Copy over the documentation
     for k in []:
         # Get the documentation from the submodule
-        eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(Report, 'get_'+k).__doc__
    # >
     
 # class Options

@@ -23,6 +23,7 @@ The :mod:`cape` module
     io
     manage
     msh
+    optdict/index
     plot3d
     plt
     runmatrix
