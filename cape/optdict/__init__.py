@@ -621,6 +621,8 @@ _RST_SETOPT = r"""*j*: {``None``} | :class:`int`
                 %(_RST_WARNMODE2)s
             *listdepth*: {``0``} | :class:`int` > 0
                 Depth of list to treat as a scalar""" % _RST
+_RST_ADDOPT = r"""*mode*: {``None``} | %(_RST_WARNMODE_LIST)s
+                %(_RST_WARNMODE2)s""" % _RST
 _RST["_RST_GETOPT"] = _RST_GETOPT
 _RST["_RST_SETOPT"] = _RST_SETOPT
 
@@ -1454,6 +1456,64 @@ class OptionsDict(dict):
         # If all tests passed, set the value
         self[opt] = val
 
+   # --- Extend option ---
+    # Add to general key
+    @expand_doc
+    def extend_opt(self, opt: str, val, mode=None):
+        r"""Extend an array-like or dict-like option
+
+        This function allows for targeted additions to :class:`list` and
+        :class:`dict` values for *opt* without redefining the entire
+        entry.
+        
+        :Call:
+            >>> opts.extend_opt(opt, val, mode=None)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option to extend
+            *val*: **any**
+                Value to append to *opts[opt]*. If *opts[opt]* is a
+                :class:`dict`, *val* must also be a :class:`dict`
+            %(_RST_WARNMODE2)s
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        # Check for null extension
+        if val is None:
+            return
+        # Get Current list
+        vcur = self.get_opt(opt)
+        # Check key type
+        if isinstance(vcur, dict):
+            # Check input type
+            if not isinstance(val, dict):
+                raise OptdictTypeError(
+                    ("Cannot append type '%s' " % type(val).__name__) +
+                    ("to %s, " % self._genr8_opt_msg(opt)) +
+                    ("with type '%s'\n" % type(vcur).__name__))
+            # Append dictionary
+            for kp, vp in val.items():
+                vcur.setdefault(kp, vp)
+        elif isinstance(vcur, list):
+            # Check for scalar
+            if isinstance(val, ARRAY_TYPES):
+                for vj in val:
+                    # Check if the file is already there
+                    vcur.append(vj)
+            else:
+                # Append single value
+                vcur.append(val)
+        elif opt not in self:
+            # Set value from scratch
+            self.set_opt(opt, val, mode=mode)
+        else:
+            # Unextendable type
+            raise OptdictTypeError(
+                ("Cannot extend %s " % self._genr8_opt_msg(opt)) +
+                ("with type '%s'" % type(vcur).__name__))
+
   # *** OPTION PROPERTIES ***
    # --- Option checkers ---
     @expand_doc
@@ -2228,9 +2288,9 @@ class OptionsDict(dict):
     @classmethod
     def promote_subsec(cls, cls2, sec=None, skip=[], **kw):
         r"""Promote all methods of a subsection class to parent class
-    
+
         Methods of parent class will not be overwritten
-    
+
         :Call:
             >>> promote_subsec(cls1, cls2, sec=None, skip=[], **kw)
         :Inputs:
@@ -2280,6 +2340,30 @@ class OptionsDict(dict):
             cls.add_property(opt, prefix=prefix, name=name, doc=doc)
 
     @classmethod
+    def add_getters(cls, optlist, prefix=None, name=None, doc=True):
+        r"""Add list of property getters with common settings
+
+        :Call:
+            >>> cls.add_getters(optlist, prefix=None, name=None)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *optlist*: :class:`list`\ [:class:`str`]
+                Name of options to process
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix, e.g. ``opt="a", prefix="my"`` will add
+                functions :func:`get_my_a` and :func:`set_my_a`
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to functions
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        for opt in optlist:
+            cls.add_getter(opt, prefix=prefix, name=name, doc=doc)
+
+    @classmethod
     def add_setters(cls, optlist, prefix=None, name=None, doc=True):
         r"""Add list of property setters with common settings
 
@@ -2304,11 +2388,11 @@ class OptionsDict(dict):
             cls.add_setter(opt, prefix=prefix, name=name, doc=doc)
 
     @classmethod
-    def add_getters(cls, optlist, prefix=None, name=None, doc=True):
-        r"""Add list of property getters with common settings
+    def add_extenders(cls, optlist, prefix=None, name=None, doc=True):
+        r"""Add list of property extenders with common settings
 
         :Call:
-            >>> cls.add_getters(optlist, prefix=None, name=None)
+            >>> cls.add_extenders(optlist, prefix=None, name=None)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -2325,7 +2409,7 @@ class OptionsDict(dict):
             * 2022-10-14 ``@ddalle``: Version 1.0
         """
         for opt in optlist:
-            cls.add_getter(opt, prefix=prefix, name=name, doc=doc)
+            cls.add_extender(opt, prefix=prefix, name=name, doc=doc)
 
     @classmethod
     def add_property(cls, opt: str, prefix=None, name=None, doc=True):
@@ -2368,7 +2452,7 @@ class OptionsDict(dict):
         *opt* input.
 
         :Call:
-            >>> cls.add_property(opt, prefix=None, name=None)
+            >>> cls.add_getter(opt, prefix=None, name=None)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -2422,7 +2506,7 @@ class OptionsDict(dict):
         *opt* input.
 
         :Call:
-            >>> cls.add_property(opt, prefix=None, name=None)
+            >>> cls.add_setter(opt, prefix=None, name=None)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -2460,6 +2544,58 @@ class OptionsDict(dict):
         # Generate docstring if requrested
         if doc:
             func.__doc__ = cls.genr8_setter_docstring(opt, name, prefix)
+        # Modify metadata of *func*
+        func.__name__ = funcname
+        func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
+        # Save function
+        setattr(cls, funcname, func)
+
+    @classmethod
+    def add_extender(cls, opt: str, prefix=None, name=None, doc=True):
+        r"""Add extender method for option *opt*
+
+        For example ``cls.add_extender("a")`` will add a function
+        :func:`add_a`, which has a signatures like
+        :func:`OptionsDict.extend_opt` except that it doesn't have the
+        *opt* input.
+
+        :Call:
+            >>> cls.add_extender(opt, prefix=None, name=None)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *opt*: :class:`str`
+                Name of option
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix in method name
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to getter function
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        # Check if acting on original OptionsDict
+        cls._assert_subclass()
+        # Default name
+        name, fullname = cls._get_funcname(opt, name, prefix)
+        funcname = "add_" + fullname
+        # Check if already present
+        if funcname in cls.__dict__:
+            raise OptdictAttributeError(
+                "Method '%s' for class '%s' already exists"
+                % (funcname, cls.__name__))
+
+        # Define function
+        def func(self, val, **kw):
+            try:
+                return self.extend_opt(opt, val, **kw)
+            except Exception:
+                raise
+
+        # Generate docstring if requrested
+        if doc:
+            func.__doc__ = cls.genr8_extender_docstring(opt, name, prefix)
         # Modify metadata of *func*
         func.__name__ = funcname
         func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
@@ -2594,6 +2730,60 @@ class OptionsDict(dict):
             rst_cls +
             rst_opt +
             tab2 + _RST_SETOPT
+        )
+
+    @classmethod
+    def genr8_extender_docstring(cls, opt: str, name, prefix, indent=8, tab=4):
+        r"""Create automatic docstring for extender function
+
+        :Call:
+            >>> txt = cls.genr8_extender_docstring(opt, name, pre, **kw)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *opt*: :class:`str`
+                Name of option
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of functions
+            *pre*: ``None`` | :class:`str`
+                Optional prefix, e.g. ``opt="a", prefix="my"`` will add
+                functions :func:`get_my_a` and :func:`set_my_a`
+            *indent*: {``8``} | :class:`int` >= 0
+                Number of spaces in lowest-level indent
+            *tab*: {``4``} | :class:`int` > 0
+                Number of additional spaces in each indent
+        :Outputs:
+            *txt*: :class:`str`
+                Contents for ``set_{opt}`` function docstring
+        :Versions:
+            * 2022-10-03 ``@ddalle``: Version 1.0
+        """
+        # Expand tabs
+        tab1 = " " * indent
+        tab2 = " " * (indent + tab)
+        # Normalize option name
+        name, funcname = cls._get_funcname(opt, name, prefix)
+        # Apply aliases if anny
+        fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
+        # Create title
+        title = 'Extend value of option "%s"\n\n' % fullopt
+        # Generate signature
+        signature = (
+            "%s>>> opts.add_%s(%s, **kw)\n"
+            % (tab2, funcname, name))
+        # Generate class description
+        rst_cls = cls._genr8_rst_cls(indent=indent, tab=tab)
+        # Generate *opt* description
+        rst_opt = cls._genr8_rst_opt(opt, indent=indent, tab=tab)
+        # Form full docstring
+        return (
+            title +
+            tab1 + ":Call:\n" +
+            signature +
+            tab1 + ":Inputs:\n" +
+            rst_cls +
+            rst_opt +
+            tab2 + _RST_ADDOPT
         )
 
     @classmethod
