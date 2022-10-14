@@ -1,4 +1,4 @@
-"""
+r"""
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pyover`.  The class is based off of the built-int :class:`dict` class.
 
@@ -21,7 +21,6 @@ from .util import *
 import cape.cfdx.options
 
 # Import modules for controlling specific parts of Cart3D
-from .pbs         import PBS
 from .DataBook    import DataBook
 from .Report      import Report
 from .runControl  import RunControl
@@ -83,22 +82,6 @@ class Options(cape.cfdx.options.Options):
    # Initializers
    # ============
    # <
-    
-    # Initialization and confirmation for PBS options
-    def _PBS(self):
-        """Initialize PBS options if necessary"""
-        # Check status.
-        if 'PBS' not in self:
-            # Missing entirely
-            self['PBS'] = PBS()
-        elif type(self['PBS']).__name__ == 'dict':
-            # Add prefix to all the keys.
-            tmp = {}
-            for k in self['PBS']:
-                tmp["PBS_"+k] = self['PBS'][k]
-            # Convert to special class.
-            self['PBS'] = PBS(**tmp)
-            
     # Initialization method for overall run control
     def _RunControl(self):
         """Initialize run control options if necessary"""

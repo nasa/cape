@@ -1,4 +1,4 @@
-"""
+r"""
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pycart`.  The class is based off of the Python built-in :class:`dict`
@@ -38,7 +38,6 @@ class inherits methods from the classes in its submodules, such as
     * :mod:`cape.cfdx.options.util`
     * :mod:`cape.pycart.options.runControl`
     * :mod:`cape.pycart.options.Mesh`
-    * :mod:`cape.pycart.options.pbs`
     * :mod:`cape.pycart.options.Config`
     * :mod:`cape.pycart.options.Functional`
     * :mod:`cape.pycart.options.DataBook`
@@ -54,7 +53,6 @@ import cape.cfdx.options
 # Import modules for controlling specific parts of Cart3D
 from .runControl  import RunControl
 from .Mesh        import Mesh
-from .pbs         import PBS
 from .Config      import Config
 from .Functional  import Functional
 from .DataBook    import DataBook
@@ -150,21 +148,6 @@ class Options(cape.cfdx.options.Options):
         elif type(self['Mesh']).__name__ == 'dict':
             # Convert to special class.
             self['Mesh'] = Mesh(**self['Mesh'])
-            
-    # Initialization and confirmation for PBS options
-    def _PBS(self):
-        """Initialize PBS options if necessary"""
-        # Check status.
-        if 'PBS' not in self:
-            # Missing entirely
-            self['PBS'] = PBS()
-        elif type(self['PBS']).__name__ == 'dict':
-            # Add prefix to all the keys.
-            tmp = {}
-            for k in self['PBS']:
-                tmp["PBS_"+k] = self['PBS'][k]
-            # Convert to special class.
-            self['PBS'] = PBS(**tmp)
             
     # Initialization method for databook
     def _DataBook(self):
