@@ -17,7 +17,7 @@
     
     runControl
     ulimit
-    aflr3
+    aflr3opts
     intersect
     Archive
     pbs
