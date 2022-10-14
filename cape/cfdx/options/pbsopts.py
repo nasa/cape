@@ -1,21 +1,22 @@
-"""
-:mod:`cape.cfdx.options.pbs`: PBS script options
-=================================================
+r"""
+:mod:`cape.cfdx.options.pbsopts`: PBS script options
+=====================================================
 
-This portion of the options is universal, and so it is only encoded in the
-:mod:`cape` module. The :mod:`cape.pycart` module, for example, does not have a
-modified version. It contains options for specifying which architecture to use,
-how many nodes to request, etc.
+This portion of the options is universal, and so it is only encoded in
+the :mod:`cape` module. The :mod:`cape.pycart` module, for example, does
+not have a modified version. It contains options for specifying which
+architecture to use, how many nodes to request, etc.
 
 """
 
 
 # Import options-specific utilities
-from .util import rc0, odict
+from .util import OptionsDict, ARRAY_TYPES, INT_TYPES
+
 
 # Class for PBS settings
-class PBS(odict):
-    """Dictionary-based options for PBS jobs
+class PBSOpts(OptionsDict):
+    r"""Options class for PBS jobs
     
     :Call:
         >>> opts = PBS(**kw)
@@ -26,17 +27,80 @@ class PBS(odict):
         *opts*: :class:`cape.options.pbs.PBS`
             PBS options interface
     :Versions:
-        * 2014-12-01 ``@ddalle``: First version
+        * 2014-12-01 ``@ddalle``: Version 1.0
+        * 2022-10-13 ``@ddalle``: Version 2.0; :class:`OptionsDict`
     """
+   # --- Class attributes ---
+    # No extra attributes
+    __slots__ = tuple()
+
+    # Allowed parameters
+    _optlist = {
+        "S",
+        "W",
+        "aoe",
+        "e",
+        "j",
+        "model",
+        "mpiprocs",
+        "o",
+        "ompthreads",
+        "q",
+        "r",
+        "select",
+        "walltime"
+    }
+
+    # Types
+    _opttypes = {
+        "S": str,
+        "W": str,
+        "j": str,
+        "r": str,
+        "aoe": str,
+        "model": str,
+        "mpiprocs": INT_TYPES,
+        "ncpus": INT_TYPES,
+        "ompthreads": INT_TYPES,
+        "q": str,
+        "select": INT_TYPES,
+        "walltime": str,
+    }
+
+    # Defaults
+    _rc = {
+        "S": "/bin/bash",
+        "W": "",
+        "j": "oe",
+        "model": "rom",
+        "mpiprocs": 128,
+        "ncpus": 128,
+        "q": "normal",
+        "r": "n",
+        "select": 1,
+        "walltime": "8:00:00",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "aoe": "architecture operating environment",
+        "model": "model type/architecture",
+        "mpiprocs": "number of MPI processes per node",
+        "ncpus": "number of cores (roughly CPUs) per node",
+        "ompthreads": "number of OMP threads",
+        "p": "PBS priority",
+        "select": "number of nodes",
+    }
     
     # Get the number of unique PBS jobs.
-    def get_nPBS(self):
-        """Return the maximum number of unique PBS inputs
+    def get_nPBS(self) -> int:
+        r"""Return the maximum number of unique PBS inputs
         
-        For example, if a case is set up to be run in two parts, and the first
-        phase needs only one node (*select=1*) while the second phase needs 10
-        nodes (*select=10*), then the input file should have 
-        ``"select": [1, 10]``, and the output of this function will be ``2``.
+        For example, if a case is set up to be run in two parts, and the
+        first phase needs only one node (*select=1*) while the second
+        phase needs 10 nodes (*select=10*), then the input file should
+        have ``"select": [1, 10]``, and the output of this function will
+        be ``2``.
         
         :Call:
             >>> n = opts.get_nPBS()
@@ -53,285 +117,12 @@ class PBS(odict):
         n = 1
         # Loop the keys.
         for v in self.values():
-            # Test if it's a list.
-            if type(v).__name__ in ['list', 'ndarray']:
+            # Test if it's a list
+            if isinstance(v, ARRAY_TYPES):
                 # Update the length.
                 n = max(n, len(v))
         # Output
         return n
-        
-    
-    # Get number of nodes
-    def get_PBS_select(self, i=None):
-        """Return the number of nodes
-        
-        :Call:
-            >>> n = opts.get_PBS_select(i)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Outputs:
-            *n*: :class:`int`
-                PBS number of nodes
-        :Versions:
-            * 2014-09-29 ``@ddalle``: First version
-            * 2014-12-01 ``@ddalle``: Added index
-        """
-        return self.get_key('PBS_select', i)
-        
-    # Set number of nodes
-    def set_PBS_select(self, n=rc0('PBS_select'), i=None):
-        """Set PBS *join* setting
-        
-        :Call:
-            >>> opts.set_PBS_select(n, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *n*: :class:`int`
-                PBS number of nodes
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Versions:
-            * 2014-09-29 ``@ddalle``: First version
-            * 2014-12-01 ``@ddalle``: Added index
-        """
-        self.set_key('PBS_select', n, i)
-    
-    
-    # Get number of CPUs per node
-    def get_PBS_ncpus(self, i=None):
-        """Return the number of CPUs per node
-        
-        :Call:
-            >>> n = opts.get_PBS_ncpus(i)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Outputs:
-            *n*: :class:`int`
-                PBS number of CPUs per node
-        :Versions:
-            * 2014-09-29 ``@ddalle``: First version
-            * 2014-12-01 ``@ddalle``: Added index
-        """
-        return self.get_key('PBS_ncpus', i)
-        
-    # Set number of CPUs per node
-    def set_PBS_ncpus(self, n=rc0('PBS_ncpus'), i=None):
-        """Set PBS number of CPUs per node
-        
-        :Call:
-            >>> opts.set_PBS_ncpus(n, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *n*: :class:`int`
-                PBS number of CPUs per node
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Versions:
-            * 2014-09-29 ``@ddalle``: First version
-            * 2014-12-01 ``@ddalle``: Added index
-        """
-        self.set_key('PBS_ncpus', n, i)
-    
-    
-    # Get number of MPI processes per node
-    def get_PBS_mpiprocs(self, i=None):
-        """Return the number of CPUs per node
-        
-        :Call:
-            >>> n = opts.get_PBS_ncpus(i)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Outputs:
-            *n*: :class:`int`
-                PBS number of MPI processes per node
-        :Versions:
-            * 2014-09-29 ``@ddalle``: First version
-            * 2014-12-01 ``@ddalle``: Added index
-        """
-        return self.get_key('PBS_mpiprocs', i)
-        
-    # Set number of MPI processes per node
-    def set_PBS_mpiprocs(self, n=rc0('PBS_mpiprocs'), i=None):
-        """Set PBS number of cpus per node
-        
-        :Call:
-            >>> opts.set_PBS_ncpus(n, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *n*: :class:`int`
-                PBS number of MPI processes per node
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Versions:
-            * 2014-09-29 ``@ddalle``: First version
-            * 2014-12-01 ``@ddalle``: Added index
-        """
-        self.set_key('PBS_mpiprocs', n, i)
-    
-    
-    # Get PBS model architecture
-    def get_PBS_model(self, i=None):
-        """Return the PBS model/architecture
-        
-        :Call:
-            >>> s = opts.get_PBS_model(i)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Outputs:
-            *s*: :class:`str`
-                Name of architecture/model to use
-        :Versions:
-            * 2014-09-29 ``@ddalle``: First version
-            * 2014-12-01 ``@ddalle``: Added index
-        """
-        return self.get_key('PBS_model', i)
-        
-    # Set PBS model architecture
-    def set_PBS_model(self, s=rc0('PBS_model'), i=None):
-        """Set the PBS model/architecture
-        
-        :Call:
-            >>> opts.set_PBS_model(s, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *s*: :class:`str`
-                Name of architecture/model to use
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Versions:
-            * 2014-09-29 ``@ddalle``: First version
-            * 2014-12-01 ``@ddalle``: Added index
-        """
-        self.set_key('PBS_model', s, i)
-    
-    
-    # Get PBS priority
-    def get_PBS_p(self, i=None):
-        """Return the PBS priority
-        
-        :Call:
-            >>> p = opts.get_PBS_p(i)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Outputs:
-            *p*: :class:`int`
-                PBS priority level
-        :Versions:
-            * 2017-05-30 ``@ddalle``: First version
-        """
-        return self.get_key('PBS_p', i)
-        
-    # Set PBS priority
-    def set_PBS_p(self, p=None, i=None):
-        """Set the PBS priority
-        
-        :Call:
-            >>> opts.set_PBS_p(p, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *p*: :class:`int`
-                PBS priority level
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Versions:
-            * 2017-04-05 ``@ddalle``: First version
-        """
-        self.set_key('PBS_p', p, i)
-    
-    
-    # Get PBS model operating environment
-    def get_PBS_aoe(self, i=None):
-        """Return the PBS operating environment
-        
-        :Call:
-            >>> s = opts.get_PBS_model(i)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Outputs:
-            *s*: :class:`str`
-                Name of (alternate) operating environment to use
-        :Versions:
-            * 2017-04-05 ``@ddalle``: First version
-        """
-        return self.get_key('PBS_aoe', i)
-        
-    # Set PBS model architecture
-    def set_PBS_aoe(self, s=rc0('PBS_aoe'), i=None):
-        """Set the PBS model/architecture
-        
-        :Call:
-            >>> opts.set_PBS_aoe(s, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *s*: :class:`str`
-                Name of (alternate) operating environment to use
-            *i*: :class:`int` or ``None``
-                Index to select
-        :Versions:
-            * 2017-04-05 ``@ddalle``: First version
-        """
-        self.set_key('PBS_aoe', s, i)
-
-    # Get OMP threads parameter
-    def get_PBS_ompthreads(self, i=None):
-        """Return number of OMP threads
-
-        :Call:
-            >>> n = opts.get_PBS_ompthreads(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: {``None``} | :class:`int`
-                Phase number
-        :Outputs:
-            *n*: ``None`` | :class:`int`
-                Number of OMP threads to select
-        :Versions:
-            * 2017-05-01 ``@ddalle``: First version
-        """
-        return self.get_key("PBS_ompthreads", i)
-
-    # Set OMP threads parameter
-    def set_PBS_ompthreads(self, n=None, i=None):
-        """Set number of OMP threads
-
-        :Call:
-            >>> n = opts.get_PBS_ompthreads(n=None, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *n*: ``None`` | :class:`int`
-                Number of OMP threads to select
-            *i*: {``None``} | :class:`int`
-                Phase number
-        :Versions:
-            * 2017-05-01 ``@ddalle``: First version
-        """
-        self.set_key("PBS_ompthreads", n, i)
     
     
     # Get PBS walltime limit
@@ -650,5 +441,4 @@ class PBS(odict):
             * 2014-12-01 ``@ddalle``: Added index
         """
         self.set_key('PBS_S', S, i)
-# class PBS
 

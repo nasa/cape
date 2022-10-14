@@ -20,8 +20,15 @@ import json
 import os
 import re
 
-# Third-party modules
+# Third-party imports
 import numpy as np
+
+# Local imports
+from ...optdict import (
+    OptionsDict,
+    ARRAY_TYPES,
+    FLOAT_TYPES,
+    INT_TYPES)
 
 
 # Local folders
