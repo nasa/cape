@@ -1,23 +1,25 @@
-"""
+r"""
 :mod:`cape.cfdx.archive.Archive`: Case archiving options
 =========================================================
 
-This module provides a class to access options relating to archiving folders
-that were used to run CFD analysis.
+This module provides a class to access options relating to archiving
+folders that were used to run CFD simulations.
 
-The class provided in this module, :class:`cape.options.Archive.Archive`, is
-loaded in the ``"RunControl"`` section of the JSON file and the
-:class:`cape.options.runControl.RunControl` class.
+The class provided in this module, :class:`ArchiveOpts`, is
+loaded into the ``"RunControl"`` section of the main options interface.
 """
 
-# Ipmort options-specific utilities
-from .util import rc0, odict, getel
-# OS
+# Standard library
 import os
+
+# Local imports
+from ...optdict import ARRAY_TYPES
+from .util import OptionsDict
+
 
 # Turn dictionary into Archive options
 def auto_Archive(opts):
-    """Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
+    r"""Automatically convert :class:`dict` to :class:`ArchiveOpts`
     
     :Call:
         >>> opts = auto_Archive(opts)
@@ -25,320 +27,155 @@ def auto_Archive(opts):
         *opts*: :class:`dict`
             Dict of either global, "RunControl" or "Archive" options
     :Outputs:
-        *opts*: :class:`pyCart.options.Archive.Archive`
+        *opts*: :class:`ArchiveOpts`
             Instance of archiving options
     :Versions:
-        * 2016-02-29 ``@ddalle``: First version
+        * 2016-02-29 ``@ddalle``: Version 1.0
     """
-    # Get type
-    t = type(opts).__name__
     # Check type
-    if t == "Archive":
+    if not isinstance(opts, dict):
+        # Invalid type
+        raise TypeError(
+            "Expected input type 'dict'; got '%s'" % type(opts).__name__)
+    # Downselect if appropriate
+    opts = opts.get("RunControl", opts)
+    opts = opts.get("Archive", opts)
+    # Check if already initialized
+    if isinstance(opts, ArchiveOpts):
         # Good; quit
         return opts
-    elif t == "RunControl":
-        # Get the sub-object
-        return opts["Archive"]
-    elif t == "Options":
-        # Get the sub-sub-object
-        return opts["RunControl"]["Archive"]
-    elif t in ["dict", "odict"]:
-        # Downselect if given parent class
-        opts = opts.get("RunControl", opts)
-        opts = opts.get("Archive",    opts)
-        # Convert to class
-        return Archive(**opts)
     else:
-        # Invalid type
-        raise TypeError("Unformatted input must be type 'dict', not '%s'" % t)
-# def auto_Archive
+        # Convert to class
+        return ArchiveOpts(**opts)
 
 
 # Class for folder management and archiving
-class Archive(odict):
-    """Dictionary-based interfaced for options specific to folder management
+class ArchiveOpts(OptionsDict):
+    r"""Archive mamangement options interface
     
     :Call:
-        >>> opts = cape.options.Archive.Archive(**kw)
+        >>> opts = ArchiveOpts(**kw)
     :Inputs:
         *kw*: :class:`dict`
             Dictionary of archive options
     :Outputs:
-        *opts*: :class:`cape.options.Archive.Archive`
+        *opts*: :class:`ArchiveOpts`
             Archive options interface
     :Versions:
-        * 2016-30-02 ``@ddalle``: First version
+        * 2016-30-02 ``@ddalle``: Version 1.0 (:class:`Archive`)
+        * 2022-10-14 ``@ddalle``: Version 2.0; :class:`OptionsDict`
     """
-   
-   # -------------
-   # Basic Options
-   # -------------
-   # <
-    # Archive base folder
-    def get_ArchiveFolder(self):
-        """Return the path to the archive
-        
-        :Call:
-            >>> fdir = opts.get_ArchiveFolder()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *fdir*: :class:`str`
-                Path to root directory of archive
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        return self.get_key('ArchiveFolder')
-        
-    # Set archive base folder
-    def set_ArchiveFolder(self, fdir=rc0('ArchiveFolder')):
-        """Set the path to the archive
-        
-        :Call:
-            >>> opts.set_ArchiveFolder(fdir)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *fdir*: :class:`str`
-                Path to root directory of archive
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        self.set_key('ArchiveFolder', fdir)
-        
-    # Archive format
-    def get_ArchiveFormat(self):
-        """Return the format for folder archives
-        
-        :Call:
-            >>> fmt = opts.get_ArchiveFormat()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
-                Archive format
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        return self.get_key('ArchiveFormat')
-        
-    # Set archive format
-    def set_ArchiveFormat(self, fmt=rc0('ArchiveFormat')):
-        """Set the format for folder archives
-        
-        :Call:
-            >>> opts.set_ArchiveFormat(fmt)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
-                Archive format
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        self.set_key('ArchiveFormat', fmt)
-        
-    # Get archive type
-    def get_ArchiveType(self):
-        """Return the archive type; whether or not to save as a single tar ball
-        
-            * ``"full"``: Archives all contents of the case as one tar ball
-            * ``"sub"``: Archive case as group of tar balls/files
-        
-        :Call:
-            >>> atype = opts.get_ArchiveType()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *fcmd*: {"full"} | "sub"
-                Name of archive type
-        :Versions:
-            * 2016-02-29 ``@ddalle``: First version
-        """
-        return self.get_key('ArchiveType')
-        
-    # Set archive type
-    def set_ArchiveType(self, atype=rc0('ArchiveType')):
-        """Set the archive type; determines what is deleted before archiving
-        
-        :Call:
-            >>> opts.set_ArchiveType(atype)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *atype*: {"full"} | "sub"
-                Name of archive type
-        :Versions:
-            * 2016-02-29 ``@ddalle``: First version
-        """
-        self.set_key('ArchiveType', atype)
-        
-    # Get archive type
-    def get_ArchiveTemplate(self):
-        """Return the archive type; determines what is deleted before archiving
-        
-        Note that all types except ``"full"`` will delete files from the working
-        folder before archiving.  However, archiving actions, including the
-        preliminary deletions, only take place if the case is marked *PASS*.
-        
-            * ``"full"``: Archives all contents of run directory
-            * ``"best"``: Deletes all previous adaptation folders
-            * ``"viz"``: Deletes all :file:`Mesh*.c3d` files and check files
-            * ``"hist"``: Deletes all mesh, tri, and TecPlot files
-        
-        :Call:
-            >>> atype = opts.get_ArchiveType()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *fcmd*: {"full"} | "viz" | "best" | "hist"
-                Name of archive type
-        :Versions:
-            * 2015-02-16 ``@ddalle``: First version
-        """
-        return self.get_key('ArchiveTemplate')
-        
-    # Set archive type
-    def set_ArchiveTemplate(self, atype=rc0('ArchiveTemplate')):
-        """Set the archive type; determines what is deleted before archiving
-        
-        :Call:
-            >>> opts.set_ArchiveTemplate(atype)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *atype*: {"full"} | "viz" | "best" | "hist"
-                Name of archive template
-        :Versions:
-            * 2015-02-16 ``@ddalle``: First version
-            * 2016-02-29 ``@ddalle``: Moved from previous *ArchiveType*
-        """
-        self.set_key('ArchiveTemplate', atype)
-        
-    # Get archiving action
-    def get_ArchiveAction(self):
-        """Return the action to take after finishing a case
-        
-        :Call:
-            >>> fcmd = opts.get_ArchiveAction()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *fcmd*: {""} | "skeleton" | "rm" | "archive"
-                Type of archiving action to take
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        return self.get_key('ArchiveAction')
-        
-    # Set archiving action
-    def set_ArchiveAction(self, fcmd=rc0('ArchiveAction')):
-        """Set the action to take after finishing a case
-        
-        :Call:
-            >>> opts.set_ArchiveAction(fcmd)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *fcmd*: {""} | "skeleton" | "rm" | "archive"
-                Type of archiving action to take
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        self.set_key('ArchiveAction', fcmd)
-        
-    # Get archiving command
-    def get_RemoteCopy(self):
-        """Return the command used for remote copying
-        
-        :Call:
-            >>> fcmd = opts.get_RemoteCopy()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *fcmd*: {"scp"} | "rsync" | "shiftc --wait"
-                Command to use for archiving
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        return self.get_key('RemoteCopy')
-        
-    # Set archiving command
-    def set_RemoteCopy(self, fcmd='scp'):
-        """Set the command used for remote copying
-        
-        :Call:
-            >>> opts.set_RemoteCopy(fcmd)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *fcmd*: {"scp"} | "rsync" | "shiftc"
-                Type of archiving action to take
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        self.set_key('RemoteCopy', fcmd)
-        
-    # Get the archive format for PBS output files
-    def get_TarPBS(self):
-        """Return the archive format for adapt folders
-        
-        :Call:
-            >>> fmt = opts.get_TarPBS()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
-                Archive format
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        return self.get_key('TarPBS')
-        
-    # Set the archive format for visualization files
-    def set_TarPBS(self, fmt=rc0('TarPBS')):
-        """Set the archive format for adapt folders
-        
-        :Call:
-            >>> opts.set_TarPBS(fmt)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
-                Archive format
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        self.set_key('TarPBS', fmt)
-   # >
-    
-   # ------------
-   # Directory/OS
-   # ------------
-   # <
+    # List of recognized options
+    _optlist = {
+        "ArchiveAction",
+        "ArchiveExtension",
+        "ArchiveFolder",
+        "ArchiveFormat",
+        "ArchiveTemplate",
+        "ArchiveType",
+        "PreDeleteDirs",
+        "PreDeleteFiles",
+        "ProgressDeleteDirs",
+        "ProgressDeleteFiles",
+        "ProgressUpdateFiles",
+        "ProgressTarDirs",
+        "ProgressTarGroups",
+        "RemoteCopy",
+        "SkeletonDirs",
+        "SkeletonFiles",
+        "SkeletonTailFiles",
+        "SkeletonTarDirs",
+    }
+
+    # Types
+    _opttypes = {
+        "_default_": str,
+    }
+
+    # Limited allowed values
+    _optvals = {
+        "ArchiveAction": ("", "archive", "rm", "skeleton"),
+        "ArchiveExtension": ("tar", "tgz", "bz2", "zip"),
+        "ArchiveFormat": ("", "tar", "gzip", "bz2", "zip"),
+        "ArchiveType": ("full", "sub"),
+    }
+
+    # Parameters to avoid phasing
+    _optlistdepth = {
+        "_default_": 1,
+    }
+
+    # Default values
+    _rc = {
+        "ArchiveAction": "archive",
+        "ArchiveExtension": "tar",
+        "ArchiveFolder": "",
+        "ArchiveFormat": "tar",
+        "ArchiveProgress": True,
+        "ArchiveType": "full",
+        "ArchiveTemplate": "full",
+        "ArchiveFiles": [],
+        "ArchiveGroups": [],
+        "ProgressDeleteFiles": [],
+        "ProgressDeleteDirs": [],
+        "ProgressTarGroups": [],
+        "ProgressTarDirs": [],
+        "ProgressUpdateFiles": [],
+        "ProgressArchiveFiles": [],
+        "PreDeleteFiles": [],
+        "PreDeleteDirs": [],
+        "PreTarGroups": [],
+        "PreTarDirs": [],
+        "PreUpdateFiles": [],
+        "PostDeleteFiles": [],
+        "PostDeleteDirs": [],
+        "PostTarGroups": [],
+        "PostTarDirs": [],
+        "PostUpdateFiles": [],
+        "SkeletonFiles": ["case.json"],
+        "SkeletonTailFiles": [],
+        "SkeletonTarDirs": [],
+        "RemoteCopy": "scp",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "ArchiveAction": "action to take after finishing a case",
+        "ArchiveExtension": "archive file extension",
+        "ArchiveFolder": "path to the archive root",
+        "ArchiveFormat": "format for case archives",
+        "ArchiveTemplate": "template for default archive settings",
+        "ArchiveType":  "flag for single (full) or multi (sub) archive files",
+        "RemoteCopy": "command for archive remote copies",
+        "PreDeleteDirs": "folders to delete **before** archiving",
+        "PreDeleteFiles": "files to delete **before** archiving",
+        "ProgressDeleteDirs": "folders to delete while still running",
+        "ProgressDeleteFiles": "files to delete while still running",
+        "ProgressUpdateFiles": "files to delete old versions while running",
+        "ProgressTarDirs": "folders to tar while running",
+        "ProgressTarGroups": "list of file groups to tar while running",
+        "SkeletonDirs": "folders to **keep** during skeleton action",
+        "SkeletonFiles": "files to **keep** during skeleton action",
+        "SkeletonTailFiles": "files to tail before deletion during skeleton",
+        "SkeletonTarDirs": "folders to tar before deletion during skeleton",
+    }
+
     # Get the umask
     def get_umask(self):
-        """Get the current file permissions mask
+        r"""Get the current file permissions mask
         
         The default value is the read from the system
         
         :Call:
             >>> umask = opts.get_umask(umask=None)
         :Inputs:
-            *opts* :class:`pyCart.options.Options`
+            *opts* :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *umask*: :class:`oct`
                 File permissions mask
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Read the option.
         umask = self.get('umask')
@@ -356,18 +193,18 @@ class Archive(odict):
         
     # Set the umask
     def set_umask(self, umask):
-        """Set the current file permissions mask
+        r"""Set the current file permissions mask
         
         :Call:
             >>> umask = opts.get_umask(umask=None)
         :Inputs:
-            *opts* :class:`pyCart.options.Options`
+            *opts* :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *umask*: :class:`oct`
                 File permissions mask
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Default
         if umask is None:
@@ -384,18 +221,18 @@ class Archive(odict):
         
     # Get the directory permissions to use
     def get_dmask(self):
-        """Get the permissions to assign to new folders
+        r"""Get the permissions to assign to new folders
         
         :Call:
             >>> dmask = opts.get_dmask()
         :Inputs:
-            *opts* :class:`pyCart.options.Options`
+            *opts* :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *umask*: :class:`int`
                 File permissions mask
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Get the umask
         umask = self.get_umask()
@@ -404,21 +241,21 @@ class Archive(odict):
         
     # Apply the umask
     def apply_umask(self):
-        """Apply the permissions filter
+        r"""Apply the permissions filter
         
         :Call:
             >>> opts.apply_umask()
         :Inputs:
-            *opts* :class:`pyCart.options.Options`
+            *opts* :class:`cape.cfdx.options.Options`
                 Options interface
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         os.umask(self.get_umask())
             
     # Make a directory
     def mkdir(self, fdir):
-        """Make a directory with the correct permissions
+        r"""Make a directory with the correct permissions
         
         :Call:
             >>> opts.mkdir(fdir)
@@ -428,7 +265,7 @@ class Archive(odict):
             *fdir*: :class:`str`
                 Directory to create
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: Version 1.0
         """
         # Get umask
         umask = self.get_umask()
@@ -436,96 +273,15 @@ class Archive(odict):
         dmask = 0o777 - umask
         # Make the directory.
         os.mkdir(fdir, dmask)
-    
    # >
    
    # -----
    # Tools
    # -----
    # <
-    # Add to general key
-    def add_to_key(self, key, fpre):
-        """Add to the folders of groups to tar before archiving
-        
-        :Call:
-            >>> opts.add_to_key(key, fpre)
-            >>> opts.add_to_key(key, lpre)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *key*: :class:`str`
-                Name of the key to update
-            *fpre*: :class:`str`
-                Folder or folder glob to add to list
-            *lpre*: :class:`str`
-                List of folders or globs of folders to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: First version
-        """
-        # Check for null inputs
-        if fpre is None: return
-        # Get Current list
-        fdel = self.get_key(key)
-        # Types
-        td = type(fdel).__name__
-        tp = type(fpre).__name__
-        # Check key type
-        if td in ['odict', 'dict']:
-            # Check input type
-            if tp not in ['dict', 'odict']:
-                raise TypeError(
-                    ("Appending to key '%s', with value '%s'\n" % (key, fdel)) +
-                    ("Cannot append type '%s' to dictionary options" % tp))
-            # Append dictionary
-            for fi in fpre:
-                # Check if values is already there
-                if fi not in fdel: fdel[fi] = fpre[fi]
-        elif td in ['list', 'ndarray']:
-            # Check input type
-            if tp not in ['list', 'ndarray']:
-                # Ensure list
-                fpre = [fpre]
-            # Append each file to the list
-            for fi in fpre:
-                # Check if the file is already there
-                if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self[key] = fdel
-    
-    # Archive extension
-    def get_ArchiveExtension(self):
-        """Get archive extension
-        
-        :Call:
-            >>> ext = opts.get_ArchiveExtenstion()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *ext*: :class:`str` | {tar} | tgz | bz | bz2 | zip
-                Archive extension
-        :Versions:
-            * 2016-03-01 ``@ddalle``: First version
-        """
-        # Get the format
-        fmt = self.get_ArchiveFormat()
-        # Process
-        if fmt in ['gzip', 'tgz']:
-            # GZip
-            return 'tgz'
-        elif fmt in ['zip']:
-            # Zip
-            return 'zip'
-        elif fmt in ['bzip', 'bz', 'bzip2', 'bz2', 'tbz', 'tbz2']:
-            # bzip2
-            return 'tbz2'
-        else:
-            # Default: tar
-            return 'tar'
-            
     # Archive command
     def get_ArchiveCmd(self):
-        """Get archiving command
+        r"""Get archiving command
         
         :Call:
             >>> cmd = opts.get_ArchiveCmd()
@@ -536,10 +292,10 @@ class Archive(odict):
             *cmd*: :class:`list`\ [:class:`str`]
                 Tar command and appropriate flags
         :Versions:
-            * 2016-03-01 ``@ddalle``: First version
+            * 2016-03-01 ``@ddalle``: Version 1.0
         """
         # Get the format
-        fmt = self.get_ArchiveFormat()
+        fmt = self.get_opt("ArchiveFormat")
         # Process
         if fmt in ['gzip' ,'tgz']:
             # Gzip
@@ -556,7 +312,7 @@ class Archive(odict):
             
     # Unarchive command
     def get_UnarchiveCmd(self):
-        """Get command to unarchive
+        r"""Get command to unarchive
         
         :Call:
             >>> cmd = opts.get_UnarchiveCmd()
@@ -567,12 +323,12 @@ class Archive(odict):
             *cmd*: :class:`list`\ [:class:`str`]
                 Untar command and appropriate flags
         :Versions:
-            * 2016-03-01 ``@ddalle``: First version
+            * 2016-03-01 ``@ddalle``: Version 1.0
         """
         # Get the format
-        fmt = self.get_ArchiveFormat()
+        fmt = self.get_opt("ArchiveFormat")
         # Process
-        if fmt in ['gzip' ,'tgz']:
+        if fmt in ['gzip', 'tgz']:
             # Gzip
             return ['tar', '-xzf']
         elif fmt in ['zip']:
@@ -585,389 +341,11 @@ class Archive(odict):
             # Default: tar
             return ['tar', '-xf']
    # >
-    
-   # ----------------------------
-   # Progress Archive Definitions
-   # ----------------------------
-   # <
-    # List of files to delete
-    def get_ArchiveProgressDeleteFiles(self):
-        """Get list of files to delete at end of each run
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveProgressDeleteFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file globs to delete at the end of each run
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        return self.get_key("ProgressDeleteFiles")
-        
-    # Add to list of files to delete
-    def add_ArchiveProgressDeleteFiles(self, fpro):
-        """Add to the list of files to delete at end of each run
-        
-        :Call:
-            >>> opts.add_ArchiveProgressDeleteFiles(fpro)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
-                File glob or list of file globs to add
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        self.add_to_key("ProgressDeleteFiles", fpro)
-        
-    # List of folders to delete
-    def get_ArchiveProgressDeleteDirs(self):
-        """Get list of folders to delete at end of each run
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveProgressDeleteDirs()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of globs of folder names to delete at the end of each run
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        return self.get_key("ProgressDeleteDirs")
-        
-    # Add to list of files to delete
-    def add_ArchiveProgressDeleteDirs(self, fpro):
-        """Add to the list of folders to delete at end of each run
-        
-        :Call:
-            >>> opts.add_ArchiveProgressDeleteDirs(fpro)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
-                File glob or list of file globs to add
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        self.add_to_key("ProgressDeleteDirs", fpro)
-        
-    # List of files to update
-    def get_ArchiveProgressUpdateFiles(self):
-        """Get list of files to update at end of each run
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveProgressUpdateFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of globs of folder names to delete at the end of each run
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        return self.get_key("ProgressUpdateFiles")
-        
-    # Add to list of files to update
-    def add_ArchiveProgressUpdateFiles(self, fpro):
-        """Add to the list of files to update at end of each run
-        
-        :Call:
-            >>> opts.add_ArchiveProgressUpdateFiles(fpro)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
-                File glob or list of file globs to add
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        self.add_to_key("ProgressUpdateFiles", fpro)
-        
-    # List of file groups to tar
-    def get_ArchiveProgressTarGroups(self):
-        """Get list of file groups to tar at the end of each run
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveProgressTarGroups()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of globs of folder names to delete at the end of each run
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        return self.get_key("ProgressTarGroups")
-        
-    # Add to list of file groups to tar
-    def add_ArchiveProgressTarGroups(self, fpro):
-        """Add to the list of file groups to tar at the end of each run
-        
-        :Call:
-            >>> opts.add_ArchiveProgressTarGroups(fpro)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
-                File glob or list of file globs to add
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        self.add_to_key("ProgressTarGroups", fpro)
-        
-    # List of folders to tar
-    def get_ArchiveProgressTarDirs(self):
-        """Get list of folders to tar at the end of each run
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveProgressTarDirs()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of globs of folder names to delete at the end of each run
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        return self.get_key("ProgressTarDirs")
-        
-    # Add to list of folders to tar
-    def add_ArchiveProgressTarDirs(self, fpro):
-        """Add to the list of folders to tar at the end of each run
-        
-        :Call:
-            >>> opts.add_ArchiveProgressTarDirs(fpro)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpro*: :class:`str` | :class:`list`\ [:class:`str`]
-                File glob or list of file globs to add
-        :Versions:
-            * 2016-03-14 ``@ddalle``: First version
-        """
-        self.add_to_key("ProgressTarDirs", fpro)
-   # >
-   
-   # --------------------
-   # Skeleton Definitions
-   # --------------------
-   # <
-    # List of files to keep
-    def get_ArchiveSkeletonFiles(self):
-        """Get the list of files to keep during skeleton action
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveSkeletonFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file globs to keep around after archiving
-        :Versions:
-            * 2017-12-13 ``@ddalle``: First version
-        """
-        return self.get_key("SkeletonFiles")
 
-    # List of files to keep
-    def get_ArchiveSkeletonDirs(self):
-        """Get the list of folders to keep during skeleton action
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveSkeletonDirs()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file globs to keep around after archiving
-        :Versions:
-            * 2017-12-14 ``@ddalle``: First version
-        """
-        return self.get_key("SkeletonDirs")
-        
-    # List of files to tail before deleting
-    def get_ArchiveSkeletonTailFiles(self):
-        """Get the list of files to tail before deletion during skeleton action
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveSkeletonTailFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list` (:class:`str` | :class:`dict`)
-                List of file globs/dicts to tail before deletion
-        :Versions:
-            * 2017-12-13 ``@ddalle``: First version
-        """
-        return self.get_key("SkeletonTailFiles")
-        
-    # List of files to tar before deleting
-    def get_ArchiveSkeletonTarDirs(self):
-        """Get list of folders to tar before deletion during skeleton action
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveSkeletonTarDirs()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of folders to tar and then delete during skeleton action
-        :Versions:
-            * 2017-12-13 ``@ddalle``: First version
-        """
-        return self.get_key("SkeletonTarDirs")
-        
-    # Add to list of skeleton files
-    def add_ArchiveSkeletonFiles(self, fskel):
-        """Add to the list of files to keep after skeleton action
-        
-        :Call:
-            >>> opts.add_ArchiveSkeletonKeepFiles(fskel)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fskel*: :class:`str` | :class:`list`\ [:class:`str`]
-                File glob or list of file globs to add
-        :Versions:
-            * 2017-12-13 ``@ddalle``: First version
-        """
-        self.add_to_key("SkeletonFiles", fskel)
-        
-    # Add to list of skeleton files
-    def add_ArchiveSkeletonDirs(self, fskel):
-        """Add to the list of folders to keep after skeleton action
-        
-        :Call:
-            >>> opts.add_ArchiveSkeletonKeepFiles(fskel)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fskel*: :class:`str` | :class:`list`\ [:class:`str`]
-                File glob or list of file globs to add
-        :Versions:
-            * 2017-12-14 ``@ddalle``: First version
-        """
-        self.add_to_key("SkeletonDirs", fskel)
-        
-    # Add to list of files to tail
-    def add_ArchiveSkeletonTailFiles(self, fskel):
-        """Add to the list of file-tailing instructions for skeleton action
-        
-        :Call:
-            >>> opts.add_ArchiveSkeletonTailFiles(fskel)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fskel*: :class:`dict` | :class:`list` (:class:`dict`)
-                Additional file tail instructions
-        :Versions:
-            * 2017-12-13 ``@ddalle``: First version
-        """
-        self.add_to_key("SkeletonTailFiles", fskel)
-        
-    # Add to list of folders to tar before deleting
-    def add_ArchiveSkeletonTarDirs(self, fskel):
-        """Add to the list of folder-tarring instructions for skeleton action
-        
-        :Call:
-            >>> opts.add_ArchiveSkeletonTarDirs(fskel)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fskel*: :class:`dict` | :class:`list` (:class:`dict`)
-                Additional folders to tar
-        :Versions:
-            * 2017-12-13 ``@ddalle``: First version
-        """
-        self.add_to_key("SkeletonTarDirs", fskel)
-   # >
-   
    # ------------------------
    # Pre-Archiving Processing
    # ------------------------
    # <
-    # List of files to delete
-    def get_ArchivePreDeleteFiles(self):
-        """Get list of files to delete **before** archiving
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePreDeleteFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete before archiving
-        :Versions:
-            * 2016-02-29 ``@ddalle``: First version
-        """
-        return self.get_key("PreDeleteFiles")
-        
-    # Add to list of files to delete
-    def add_ArchivePreDeleteFiles(self, fpre):
-        """Add to the list of files to delete before archiving
-        
-        :Call:
-            >>> opts.add_ArchivePreDeleteFiles(fpre)
-            >>> opts.add_ArchivePreDeleteFiles(lpre)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpre*: :class:`str`
-                File or file glob to add to list
-            *lpre*: :class:`list`\ [:class:`str`]
-                List of files or file globs to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: First version
-        """
-        self.add_to_key("PreDeleteFiles", fpre)
-            
-    # List of folders to delete
-    def get_ArchivePreDeleteDirs(self):
-        """Get list of folders to delete **before** archiving
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePreDeleteDirs()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete before archiving
-        :Versions:
-            * 2016-02-29 ``@ddalle``: First version
-        """
-        return self.get_key("PreDeleteDirs")
-        
-    # Add to list of folders to delete
-    def add_ArchivePreDeleteDirs(self, fpre):
-        """Add to the list of folders to delete before archiving
-        
-        :Call:
-            >>> opts.add_ArchivePreDeleteDirs(fpre)
-            >>> opts.add_ArchivePreDeleteDirs(lpre)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpre*: :class:`str`
-                Folder or file glob to add to list
-            *lpre*: :class:`str`
-                List of folders or globs of folders to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: First version
-        """
-        self.add_to_key("PreDeleteDirs", fpre)
     
     # List of files to tar before archiving
     def get_ArchivePreTarGroups(self):
@@ -982,7 +360,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
-            * 2016-02-029 ``@ddalle``: First version
+            * 2016-02-029 ``@ddalle``: Version 1.0
         """
         return self.get_key("PreTarGroups")
         
@@ -1001,7 +379,7 @@ class Archive(odict):
             *lpre*: :class:`str`
                 List of globs of files to add to list
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         self.add_to_key("PreTarGroups", fpre)
     
@@ -1018,7 +396,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
-            * 2016-02-029 ``@ddalle``: First version
+            * 2016-02-029 ``@ddalle``: Version 1.0
         """
         return self.get_key("PreTarDirs")
         
@@ -1037,7 +415,7 @@ class Archive(odict):
             *lpre*: :class:`str`
                 List of folders or globs of folders to add to list
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         self.add_to_key("PreTarDirs", fpre)
         
@@ -1054,7 +432,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
-            * 2016-02-029 ``@ddalle``: First version
+            * 2016-02-029 ``@ddalle``: Version 1.0
         """
         return self.get_key("PreUpdateFiles")
         
@@ -1073,7 +451,7 @@ class Archive(odict):
             *lpre*: :class:`str`
                 List of folders or globs of folders to add to list
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         self.add_to_key("PreUpdateFiles", fpre)
    # >
@@ -1095,7 +473,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete after archiving
         :Versions:
-            * 2016-12-09 ``@ddalle``: First version
+            * 2016-12-09 ``@ddalle``: Version 1.0
         """
         return self.get_key("ArchiveFiles")
         
@@ -1114,7 +492,7 @@ class Archive(odict):
             *larch*: :class:`list`\ [:class:`str`]
                 List of file or file globs to add to list
         :Versions:
-            * 2016-12-09 ``@ddalle``: First version
+            * 2016-12-09 ``@ddalle``: Version 1.0
         """
         self.add_to_key("ArchiveFiles", farch)
    # >
@@ -1136,7 +514,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete after archiving
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         return self.get_key("PostDeleteFiles")
         
@@ -1155,7 +533,7 @@ class Archive(odict):
             *lpost*: :class:`list`\ [:class:`str`]
                 List of files or file globs to add to list
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         self.add_to_key("PostDeleteFiles", fpost)
             
@@ -1172,7 +550,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of globs of folders to delete after archiving
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         return self.get_key("PostDeleteDirs")
         
@@ -1191,7 +569,7 @@ class Archive(odict):
             *lpost*: :class:`str`
                 List of folders or globs of folders to add to list
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         self.add_to_key("PostDeleteDirs", fpost)
             
@@ -1208,7 +586,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
-            * 2016-02-029 ``@ddalle``: First version
+            * 2016-02-029 ``@ddalle``: Version 1.0
         """
         return self.get_key("PostTarGroups")
         
@@ -1227,7 +605,7 @@ class Archive(odict):
             *lpost*: :class:`str`
                 List of globs of files to add to list
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         self.add_to_key("PostTarGroups", fpost)
     
@@ -1244,7 +622,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of globs of folders to delete fter archiving
         :Versions:
-            * 2016-02-029 ``@ddalle``: First version
+            * 2016-02-029 ``@ddalle``: Version 1.0
         """
         return self.get_key("PostTarDirs")
         
@@ -1263,7 +641,7 @@ class Archive(odict):
             *lpost*: :class:`str`
                 List of folders or globs of folders to add to list
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         self.add_to_key("PostTarDirs", fpost)
         
@@ -1280,7 +658,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         return self.get_key("PostUpdateFiles")
         
@@ -1299,7 +677,7 @@ class Archive(odict):
             *lpost*: :class:`str`
                 List of folders or globs of folders to add to list
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
         self.add_to_key("PostUpdateFiles", fpost)
         
@@ -1316,7 +694,7 @@ class Archive(odict):
             *fglob*: :class:`list`\ [:class:`str`]
                 List of file wild cards to delete before archiving
         :Versions:
-            * 2016-03-14 ``@ddalle``: First version
+            * 2016-03-14 ``@ddalle``: Version 1.0
         """
         return self.get_key("ProgressArchiveFiles")
         
@@ -1335,11 +713,39 @@ class Archive(odict):
             *lpo*: :class:`str`
                 List of folders or globs of folders to add to list
         :Versions:
-            * 2016-03-14 ``@ddalle``: First version
+            * 2016-03-14 ``@ddalle``: Version 1.0
         """
         self.add_to_key("ProgressArchiveFiles", fpro)
    # >
-            
-# class Archive
 
 
+# Normal get/set options
+_ARCHIVE_PROPS = (
+    "ArchiveAction",
+    "ArchiveExtension",
+    "ArchiveFolder",
+    "ArchiveFormat",
+    "ArchiveTemplate",
+    "ArchiveType",
+    "RemoteCopy",
+)
+# Getters and extenders only
+_GETTER_OPTS = (
+    "PreDeleteDirs",
+    "PreDeleteFiles",
+    "ProgressDeleteDirs",
+    "ProgressDeleteFiles",
+    "ProgressUpdateFiles",
+    "ProgressTarDirs",
+    "ProgressTarGroups",
+    "SkeletonFiles",
+    "SkeletonDirs",
+    "SkeletonTailFiles",
+    "SkeletonTarDirs",
+)
+
+# Add full options
+ArchiveOpts.add_properties(_ARCHIVE_PROPS)
+# Add getters only
+ArchiveOpts.add_getters(_GETTER_OPTS, prefix="Archive")
+ArchiveOpts.add_extenders(_GETTER_OPTS, prefix="Archive")

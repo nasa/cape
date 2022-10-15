@@ -149,7 +149,6 @@ rc = {
     "PreUpdateFiles": [],
     "PostDeleteFiles": [],
     "PostDeleteDirs": [],
-    "PostUpdateFiles": [],
     "PostTarGroups": [],
     "PostTarDirs": [],
     "PostUpdateFiles": [],
