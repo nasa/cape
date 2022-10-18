@@ -2156,7 +2156,7 @@ class Cntl(object):
         """
         # Process inputs
         j = kw.get('j')
-        n = kw.get('apply')
+        n = kw.get('apply', True)
         # Handle raw ``-apply`` inputs vs. ``--apply $n``
         if n == True:
             # Use ``None`` to inherit phase count from *cntl*
