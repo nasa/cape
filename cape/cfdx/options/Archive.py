@@ -149,6 +149,9 @@ class ArchiveOpts(OptionsDict):
         "RemoteCopy": "command for archive remote copies",
         "PreDeleteDirs": "folders to delete **before** archiving",
         "PreDeleteFiles": "files to delete **before** archiving",
+        "PreTarGroups": "file groups to tar before archiving",
+        "PreTarDirs": "folders to tar before archiving",
+        "PreUpdateFiles": "files to keep *n* and delete older, b4 archiving",
         "ProgressDeleteDirs": "folders to delete while still running",
         "ProgressDeleteFiles": "files to delete while still running",
         "ProgressUpdateFiles": "files to delete old versions while running",
@@ -340,120 +343,6 @@ class ArchiveOpts(OptionsDict):
         else:
             # Default: tar
             return ['tar', '-xf']
-   # >
-
-   # ------------------------
-   # Pre-Archiving Processing
-   # ------------------------
-   # <
-    
-    # List of files to tar before archiving
-    def get_ArchivePreTarGroups(self):
-        """Get list of files to tar prior to archiving
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePreTarGroups()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete before archiving
-        :Versions:
-            * 2016-02-029 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("PreTarGroups")
-        
-    # Add to list of folders to delete
-    def add_ArchivePreTarGroups(self, fpre):
-        """Add to the list of groups to tar before archiving
-        
-        :Call:
-            >>> opts.add_ArchivePreTarGroups(fpre)
-            >>> opts.add_ArchivePreTarGroups(lpre)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpre*: :class:`str`
-                File glob to add to list
-            *lpre*: :class:`str`
-                List of globs of files to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("PreTarGroups", fpre)
-    
-    # List of folders to tar before archiving
-    def get_ArchivePreTarDirs(self):
-        """Get list of folders to tar prior to archiving
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePreTarDirs()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete before archiving
-        :Versions:
-            * 2016-02-029 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("PreTarDirs")
-        
-    # Add to list of folders to delete
-    def add_ArchivePreTarDirs(self, fpre):
-        """Add to the folders of groups to tar before archiving
-        
-        :Call:
-            >>> opts.add_ArchivePreTarDirs(fpre)
-            >>> opts.add_ArchivePreTarDirs(lpre)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpre*: :class:`str`
-                Folder or folder glob to add to list
-            *lpre*: :class:`str`
-                List of folders or globs of folders to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("PreTarDirs", fpre)
-        
-    # List of files to update before archiving
-    def get_ArchivePreUpdateFiles(self):
-        """Get :class:`dict` of files of which to keep only *n*
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePreUpdateFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete before archiving
-        :Versions:
-            * 2016-02-029 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("PreUpdateFiles")
-        
-    # Add to list of files to update before archiving
-    def add_ArchivePreUpdateFiles(self, fpre):
-        """Add to :class:`dict` of files of which to keep only *n*
-        
-        :Call:
-            >>> opts.add_ArchivePreUpdateFiles(fpre)
-            >>> opts.add_ArchivePreUpdateFiles(lpre)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpre*: :class:`str`
-                Folder or folder glob to add to list
-            *lpre*: :class:`str`
-                List of folders or globs of folders to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("PreUpdateFiles", fpre)
    # >
     
    # ---------
@@ -733,6 +622,8 @@ _ARCHIVE_PROPS = (
 _GETTER_OPTS = (
     "PreDeleteDirs",
     "PreDeleteFiles",
+    "PreTarGroups",
+    "PreTarDirs",
     "ProgressDeleteDirs",
     "ProgressDeleteFiles",
     "ProgressUpdateFiles",
