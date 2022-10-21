@@ -14,12 +14,12 @@ section is written to the file ``case.json`` within each run folder.
 
 # Ipmort options-specific utilities
 from .util import rc0, odict, getel
+from . import util
 # Required submodules
 from . import Archive
+from . import ulimit
 from . import aflr3opts
 from . import intersect
-from . import ulimit
-from . import util
 
 
 # Environment class
@@ -115,17 +115,15 @@ class RunControl(odict):
         # Upgrade important groups to their own classes.
         self._Environ()
         self._ulimit()
+        self._Archive()
+        self._aflr3()
         self._intersect()
         self._verify()
-        self.init_section(aflr3opts.AFLR3Opts, "aflr3")
-        self.init_section(Archive.ArchiveOpts, "Archive")
-        # Initializers
     
    # ===========
    # Environment
    # ===========
    # <
-    
     # Environment variable interface
     def _Environ(self):
         """Initialize environment variables if necessary"""
@@ -152,7 +150,7 @@ class RunControl(odict):
         eval('get_'+k).__doc__ = getattr(Environ,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Environ,'set_'+k).__doc__
    # >
-   
+
    # ===============
    # Resource Limits
    # ===============
@@ -389,7 +387,41 @@ class RunControl(odict):
     set_virtual_memory_limit = set_ulimit_v
     set_file_locks_limit     = set_ulimit_x
    # >
-
+   
+   # =====
+   # AFLR3
+   # =====
+   # <
+    # AFLR3 variable interface
+    def _aflr3(self):
+        r"""Initialize AFLR3 settings if necessary"""
+        # Initialize section if necessary
+        self.init_section(aflr3opts.AFLR3Opts, "aflr3")
+            
+    # Whether or not to use AFLR3
+    def get_aflr3(self):
+        r"""Return whether or not to run AFLR3 to create mesh
+        
+        :Call:
+            >>> q = opts.get_aflr3()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | {``False``}
+                Whether or not there are nontrivial AFLR3 settings
+        :Versions:
+            * 2016-04-05 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: Version 1.1; use :func:`bool`
+        """
+        # Initialize if necessary
+        self._aflr3()
+        # Get the value and type
+        v = self.get('aflr3')
+        # Get the flag and convert to True or False
+        return bool(v.get('run'))
+   # >
+    
    # =========
    # intersect
    # =========
@@ -418,7 +450,7 @@ class RunControl(odict):
                 self['intersect']['run'] = True
             else:
                 self['intersect']['run'] = False
-
+            
     # Whether or not to use intersect
     def get_intersect(self):
         """Return whether or not to run ``intersect`` on triangulations
@@ -447,22 +479,22 @@ class RunControl(odict):
         else:
             # Return the 'run' flag
             return q == True
-
+    
     # Get intersect input file
     def get_intersect_i(self, j=0):
         self._intersect()
         return self['intersect'].get_intersect_i(j)
-
+        
     # Set intersect input file
     def set_intersect_i(self, fname, j=None):
         self._intersect()
         self['intersect'].set_intersect_i(fname, j)
-
+    
     # Get intersect output file
     def get_intersect_o(self, j=0):
         self._intersect()
         return self['intersect'].get_intersect_o(j)
-
+        
     # Set intersect output file
     def set_intersect_o(self, fname, j=None):
         self._intersect()
@@ -512,7 +544,6 @@ class RunControl(odict):
    # verify
    # ======
    # <
-   
     # ``verify`` interface
     def _verify(self):
         """Initialize ``verify`` settings if necessary"""
@@ -583,8 +614,17 @@ class RunControl(odict):
         eval('get_'+k).__doc__ = getattr(intersect.verify,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(intersect.verify,'set_'+k).__doc__
    # >
+   
+   # =================
+   # Folder management
+   # =================
+   # <
+    # Initialization method for folder management optoins
+    def _Archive(self):
+        self.init_section(Archive.ArchiveOpts, "Archive")
+   # >
     
-   # ===============
+   # =============== 
    # Local Functions
    # ===============
    # <
@@ -626,6 +666,7 @@ class RunControl(odict):
         """
         self.set_key('nIter', nIter, i)
     
+
     # Run input sequence
     def get_PhaseSequence(self, i=None):
         """Return the input sequence for `flowCart`
@@ -664,6 +705,7 @@ class RunControl(odict):
         """
         self.set_key('PhaseSequence', PhaseSeq, i)
         
+    
     # Get minimum cumulative iteration count
     def get_PhaseIters(self, i=None):
         """
@@ -706,6 +748,7 @@ class RunControl(odict):
         """
         self.set_key('PhaseIters', PhaseIters, i)
         
+    
     # Number of phases
     def get_nSeq(self):
         """Return the number of input sets in the sequence
@@ -941,6 +984,7 @@ class RunControl(odict):
         """
         self.set_key('sbatch', sbatch, i)
         
+    
     # Get the resubmittable-job status
     def get_Resubmit(self, i=None):
         """Determine whether or not a job should restart or resubmit itself
@@ -1077,5 +1121,5 @@ class RunControl(odict):
 
 
 # Upgrade subsections
-util.promote_subsec(RunControl, aflr3opts.AFLR3Opts, "aflr3")
-util.promote_subsec(RunControl, Archive.ArchiveOpts, "Archive")
+util.promote_subsec(aflr3opts.AFLR3Opts, "aflr3")
+util.promote_subsec(Archive.ArchiveOpts, "Archive")
