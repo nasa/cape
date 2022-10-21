@@ -85,7 +85,7 @@ using the following code.  This is the *SkeletonFiles* setting.  Note that
 """
 
 # Base module
-from ...cfdx.options import Archive as archiveopts
+from ...cfdx.options import archiveopts
 
 
 # Tecplot files

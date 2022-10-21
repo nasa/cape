@@ -19,8 +19,8 @@
     ulimit
     aflr3opts
     intersect
-    Archive
-    pbs
+    archiveopts
+    pbsopts
     slurm
     Config
     Mesh

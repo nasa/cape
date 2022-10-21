@@ -16,10 +16,10 @@ section is written to the file ``case.json`` within each run folder.
 from .util import rc0, odict, getel
 from . import util
 # Required submodules
-from . import Archive
-from . import ulimit
-from . import aflr3opts
 from . import intersect
+from . import ulimit
+from .aflr3opts import AFLR3Opts
+from .archiveopts import ArchiveOpts
 
 
 # Environment class
@@ -396,7 +396,7 @@ class RunControl(odict):
     def _aflr3(self):
         r"""Initialize AFLR3 settings if necessary"""
         # Initialize section if necessary
-        self.init_section(aflr3opts.AFLR3Opts, "aflr3")
+        self.init_section(AFLR3Opts, "aflr3")
             
     # Whether or not to use AFLR3
     def get_aflr3(self):
@@ -621,7 +621,7 @@ class RunControl(odict):
    # <
     # Initialization method for folder management optoins
     def _Archive(self):
-        self.init_section(Archive.ArchiveOpts, "Archive")
+        self.init_section(ArchiveOpts, "Archive")
    # >
     
    # =============== 
@@ -1121,5 +1121,5 @@ class RunControl(odict):
 
 
 # Upgrade subsections
-util.promote_subsec(RunControl, aflr3opts.AFLR3Opts, "aflr3")
-util.promote_subsec(RunControl, Archive.ArchiveOpts, "Archive")
+util.promote_subsec(RunControl, AFLR3Opts, "aflr3")
+util.promote_subsec(RunControl, ArchiveOpts, "Archive")

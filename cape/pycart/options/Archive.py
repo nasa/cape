@@ -35,14 +35,14 @@ are all available to this command.
         
 
 :See Also:
-    * :mod:`cape.cfdx.options.Archive`
+    * :mod:`archiveopts`
     * :mod:`cape.pycart.options.runControl`
 """
 
-# Import options-specific utilities
+# Local imports
 from .util import rc0
-# Base module
-import cape.cfdx.options.Archive
+from ...cfdx.options import archiveopts
+
 
 # Globs and tarballs to tar most of the time
 VizGlob = [
@@ -79,6 +79,7 @@ RunFiles = [
     'results.dat', 'user_time.dat', 'forces.dat', 'moments.dat',
     'functional.dat', 'loadsCC.dat', 'loadsTRI.dat'
 ]
+
 
 # Turn dictionary into Archive options
 def auto_Archive(opts):
@@ -120,10 +121,10 @@ def auto_Archive(opts):
     else:
         # Invalid type
         raise TypeError("Unformatted input must be type 'dict', not '%s'" % t)
-# def auto_Archive
+
 
 # Class for case management
-class Archive(cape.cfdx.options.Archive.Archive):
+class Archive(archiveopts.ArchiveOpts):
     """
     Dictionary-based interfaced for options specific to folder management
     
@@ -357,5 +358,4 @@ class Archive(cape.cfdx.options.Archive.Archive):
             * 2015-01-10 ``@ddalle``: First version
         """
         self.set_key('TarAdapt', fmt)
-# class Archive
 

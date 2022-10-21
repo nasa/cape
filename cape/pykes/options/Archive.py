@@ -3,7 +3,7 @@ r"""
 ============================================================
 
 This module provides Kestrel-specific modifications to the base
-archiving options module in :mod:`cape.cfdx.options.Archive`.  Default
+archiving options module in :mod:`archiveopts`.  Default
 options for which files to delete or tar are specific to each solver,
 and thus a few modifications are necessary for each solver in order to
 define good default values for archiving.
@@ -52,10 +52,9 @@ using the following code.  This is the *SkeletonFiles* setting.  Note that
 
 """
 
-# Import options-specific utilities
-from .util import rc0
-# Base module
-import cape.cfdx.options.Archive
+# Local immports
+from ...cfdx.options import archiveopts
+
 
 # Tecplot files
 PltDict = [
@@ -73,9 +72,10 @@ RunDict = [
 SkeletonFiles = [
 ]
 
+
 # Turn dictionary into Archive options
 def auto_Archive(opts):
-    """Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
+    r"""Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
     
     :Call:
         >>> opts = auto_Archive(opts)
@@ -117,7 +117,7 @@ def auto_Archive(opts):
 
 
 # Class for case management
-class Archive(cape.cfdx.options.Archive.Archive):
+class Archive(archiveopts.ArchiveOpts):
     """
     Dictionary-based interfaced for options specific to folder management
     

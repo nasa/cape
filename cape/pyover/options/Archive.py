@@ -1,9 +1,9 @@
-"""
+r"""
 :mod:`cape.pyover.options.Archive`: OVERFLOW archiving options
 ===============================================================
 
 This module provides OVERFLOW-specific modifications to the base archiving
-options module in :mod:`cape.cfdx.options.Archive`. Default options for which files
+options module in :mod:`archiveopts`. Default options for which files
 to delete or tar are specific to each solver, and thus a few modifications are
 necessary for each solver in order to define good default values for archiving.
 
@@ -91,10 +91,9 @@ The *TailFiles* settings causes pyOver to run the command
 
 """
 
-# Import options-specific utilities
-from .util import rc0
-# Base module
-import cape.cfdx.options.Archive
+# Local imports
+from ...cfdx.options import archiveopts
+
 
 # Files to archive
 CopyFiles = [
@@ -145,9 +144,10 @@ TailFiles = [
     {"run.resid": [1, "run.tail.resid"]},
 ]
 
+
 # Turn dictionary into Archive options
 def auto_Archive(opts):
-    """Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
+    r"""Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
     
     :Call:
         >>> opts = auto_Archive(opts)
@@ -185,11 +185,11 @@ def auto_Archive(opts):
     else:
         # Invalid type
         raise TypeError("Unformatted input must be type 'dict', not '%s'" % t)
-# def auto_Archive
+
 
 # Class for case management
-class Archive(cape.cfdx.options.Archive.Archive):
-    """
+class Archive(archiveopts.ArchiveOpts):
+    r"""
     Dictionary-based interfaced for options specific to folder management
     
     :Call:

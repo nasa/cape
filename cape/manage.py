@@ -144,8 +144,8 @@ from datetime import datetime
 import numpy as np
 
 # Local modules, partial imports
-from .cfdx.options import Archive
-from .cfdx.bin     import check_output, tail
+from .cfdx.options import archiveopts
+from .cfdx.bin import check_output, tail
 
 
 # Type helpers
@@ -168,7 +168,8 @@ def write_log_date(fname='archive.log'):
     # Open the file
     f = open(fname, 'a')
     # Write the date
-    f.write("# --- %s ---\n" %
+    f.write(
+        "# --- %s ---\n" %
         datetime.now().strftime('%Y-%m-%d %H: %M:%S %Z'))
     # Close the file
     f.close()
@@ -1001,7 +1002,7 @@ def ManageFilesProgress(opts=None, fsub=None, phantom=False):
         * 2017-03-06 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Convert options
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Perform actions
     ProgressDeleteFiles(opts, fsub=fsub, phantom=phantom)
     ProgressUpdateFiles(opts, fsub=fsub, phantom=phantom)
@@ -1028,7 +1029,7 @@ def ManageFilesPre(opts=None, fsub=None, phantom=False):
         * 2017-03-06 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Convert options
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Perform actions
     PreDeleteFiles(opts, fsub=fsub, phantom=phantom)
     PreUpdateFiles(opts, fsub=fsub, phantom=phantom)
@@ -1055,7 +1056,7 @@ def ManageFilesPost(opts=None, fsub=None, phantom=False):
         * 2017-03-06 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Convert options
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Perform actions
     PostDeleteFiles(opts, fsub=fsub, phantom=phantom)
     PostUpdateFiles(opts, fsub=fsub, phantom=phantom)
@@ -1086,7 +1087,7 @@ def CleanFolder(opts, fsub=[], phantom=False):
         * 2017-12-15 ``@ddalle``: Added *phantom* option
     """
     # Restrict options to correct class
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Perform deletions
     ManageFilesProgress(opts, phantom=phantom)
 
@@ -1109,7 +1110,7 @@ def ArchiveFolder(opts, fsub=[], phantom=False):
         * 2017-12-15 ``@ddalle``: Version 1.1, add *phantom* option
     """
     # Restrict options to correct class
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Get archive type
     ftyp = opts.get_ArchiveType()
     # Get the archive root directory
@@ -1179,7 +1180,7 @@ def UnarchiveFolder(opts):
         * 2017-03-13 ``@ddalle``: Version 1.0
     """
     # Restrict options to correct (sub)class
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Get archive type
     ftyp = opts.get_ArchiveType()
     # Get the archive root directory
