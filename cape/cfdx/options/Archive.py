@@ -13,7 +13,6 @@ loaded into the ``"RunControl"`` section of the main options interface.
 import os
 
 # Local imports
-from ...optdict import ARRAY_TYPES
 from .util import OptionsDict
 
 
@@ -69,12 +68,21 @@ class ArchiveOpts(OptionsDict):
     _optlist = {
         "ArchiveAction",
         "ArchiveExtension",
+        "ArchiveFiles",
         "ArchiveFolder",
         "ArchiveFormat",
         "ArchiveTemplate",
         "ArchiveType",
+        "PostDeleteDirs",
+        "PostDeleteFiles",
+        "PostTarDirs",
+        "PostTarGroups",
         "PreDeleteDirs",
         "PreDeleteFiles",
+        "PreTarDirs",
+        "PreTarGroups",
+        "PreUpdateFiles",
+        "ProgressArchiveFiles",
         "ProgressDeleteDirs",
         "ProgressDeleteFiles",
         "ProgressUpdateFiles",
@@ -116,6 +124,10 @@ class ArchiveOpts(OptionsDict):
         "ArchiveTemplate": "full",
         "ArchiveFiles": [],
         "ArchiveGroups": [],
+        "PostDeleteDirs": [],
+        "PostDeleteFiles": [],
+        "PostTarDirs": [],
+        "PostTarGroups": [],
         "ProgressDeleteFiles": [],
         "ProgressDeleteDirs": [],
         "ProgressTarGroups": [],
@@ -124,13 +136,9 @@ class ArchiveOpts(OptionsDict):
         "ProgressArchiveFiles": [],
         "PreDeleteFiles": [],
         "PreDeleteDirs": [],
-        "PreTarGroups": [],
         "PreTarDirs": [],
+        "PreTarGroups": [],
         "PreUpdateFiles": [],
-        "PostDeleteFiles": [],
-        "PostDeleteDirs": [],
-        "PostTarGroups": [],
-        "PostTarDirs": [],
         "PostUpdateFiles": [],
         "SkeletonFiles": ["case.json"],
         "SkeletonTailFiles": [],
@@ -142,16 +150,23 @@ class ArchiveOpts(OptionsDict):
     _rst_descriptions = {
         "ArchiveAction": "action to take after finishing a case",
         "ArchiveExtension": "archive file extension",
+        "ArchiveFiles": "files to copy to archive",
         "ArchiveFolder": "path to the archive root",
         "ArchiveFormat": "format for case archives",
         "ArchiveTemplate": "template for default archive settings",
         "ArchiveType":  "flag for single (full) or multi (sub) archive files",
         "RemoteCopy": "command for archive remote copies",
+        "PostDeleteDirs": "list of folders to delete after archiving",
+        "PostDeleteFiles": "list of files to delete after archiving",
+        "PostTarDirs": "folders to tar after archiving",
+        "PostTarGroups": "groups of files to tar after archiving",
+        "PostUpdateFiles": "globs: keep *n* and rm older, after archiving",
         "PreDeleteDirs": "folders to delete **before** archiving",
         "PreDeleteFiles": "files to delete **before** archiving",
         "PreTarGroups": "file groups to tar before archiving",
         "PreTarDirs": "folders to tar before archiving",
         "PreUpdateFiles": "files to keep *n* and delete older, b4 archiving",
+        "ProgressArchiveFiles": "files to archive at any time",
         "ProgressDeleteDirs": "folders to delete while still running",
         "ProgressDeleteFiles": "files to delete while still running",
         "ProgressUpdateFiles": "files to delete old versions while running",
@@ -300,7 +315,7 @@ class ArchiveOpts(OptionsDict):
         # Get the format
         fmt = self.get_opt("ArchiveFormat")
         # Process
-        if fmt in ['gzip' ,'tgz']:
+        if fmt in ['gzip', 'tgz']:
             # Gzip
             return ['tar', '-czf']
         elif fmt in ['zip']:
@@ -344,268 +359,6 @@ class ArchiveOpts(OptionsDict):
             # Default: tar
             return ['tar', '-xf']
    # >
-    
-   # ---------
-   # Archiving
-   # ---------
-   # <
-    # List of files to archive
-    def get_ArchiveArchiveFiles(self):
-        """Get list of files to copy to archive, in addition to tar balls
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveArchiveFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete after archiving
-        :Versions:
-            * 2016-12-09 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("ArchiveFiles")
-        
-    # Add to list of files to archive
-    def add_ArchiveArchiveFiles(self, farch):
-        """Add to the list of files to copy to archive
-        
-        :Call:
-            >>> opts.add_ArchiveArchiveFiles(farch)
-            >>> opts.add_ArchiveArchiveFiles(larch)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *farch*: :class:`str`
-                File or file glob to archive
-            *larch*: :class:`list`\ [:class:`str`]
-                List of file or file globs to add to list
-        :Versions:
-            * 2016-12-09 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("ArchiveFiles", farch)
-   # >
-    
-   # -------------------------
-   # Post-Archiving Processing
-   # -------------------------
-   # <
-    # List of files to delete
-    def get_ArchivePostDeleteFiles(self):
-        """Get list of files to delete after archiving
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePreDeleteFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete after archiving
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("PostDeleteFiles")
-        
-    # Add to list of files to delete
-    def add_ArchivePostDeleteFiles(self, fpost):
-        """Add to the list of files to delete after archiving
-        
-        :Call:
-            >>> opts.add_ArchivePostDeleteFiles(fpost)
-            >>> opts.add_ArchivePostDeleteFiles(lpost)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpost*: :class:`str`
-                File or file glob to add to list
-            *lpost*: :class:`list`\ [:class:`str`]
-                List of files or file globs to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("PostDeleteFiles", fpost)
-            
-    # List of folders to delete
-    def get_ArchivePostDeleteDirs(self):
-        """Get list of folders to delete after archiving
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePostDeleteDirs()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of globs of folders to delete after archiving
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("PostDeleteDirs")
-        
-    # Add to list of folders to delete
-    def add_ArchivePostDeleteDirs(self, fpost):
-        """Add to the list of folders to delete after archiving
-        
-        :Call:
-            >>> opts.add_ArchivePostDeleteDirs(fpost)
-            >>> opts.add_ArchivePostDeleteDirs(lpost)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpost*: :class:`str`
-                Folder or file glob to add to list
-            *lpost*: :class:`str`
-                List of folders or globs of folders to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("PostDeleteDirs", fpost)
-            
-    # List of files to tar after archiving
-    def get_ArchivePostTarGroups(self):
-        """Get list of files to tar prior to archiving
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePostTarGroups()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete before archiving
-        :Versions:
-            * 2016-02-029 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("PostTarGroups")
-        
-    # Add to list of folders to delete
-    def add_ArchivePostTarGroups(self, fpost):
-        """Add to the list of groups to tar before archiving
-        
-        :Call:
-            >>> opts.add_ArchivePostTarGroups(fpost)
-            >>> opts.add_ArchivePostTarGroups(lpost)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpost*: :class:`str`
-                File glob to add to list
-            *lpost*: :class:`str`
-                List of globs of files to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("PostTarGroups", fpost)
-    
-    # List of folders to tar before archiving
-    def get_ArchivePostTarDirs(self):
-        """Get list of folders to tar after archiving
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePostTarDirs()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of globs of folders to delete fter archiving
-        :Versions:
-            * 2016-02-029 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("PostTarDirs")
-        
-    # Add to list of folders to delete
-    def add_ArchivePostTarDirs(self, fpost):
-        """Add to the folders of groups to tar after archiving
-        
-        :Call:
-            >>> opts.add_ArchivePostTarDirs(fpost)
-            >>> opts.add_ArchivePostTarDirs(lpost)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpost*: :class:`str`
-                Folder or folder glob to add to list
-            *lpost*: :class:`str`
-                List of folders or globs of folders to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("PostTarDirs", fpost)
-        
-    # List of files to update before archiving
-    def get_ArchivePostUpdateFiles(self):
-        """Get :class:`dict` of files of which to keep only *n*
-        
-        :Call:
-            >>> fglob = opts.get_ArchivePostUpdateFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete before archiving
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("PostUpdateFiles")
-        
-    # Add to list of files to update before archiving
-    def add_ArchivePostUpdateFiles(self, fpost):
-        """Add to :class:`dict` of files of which to keep only *n*
-        
-        :Call:
-            >>> opts.add_ArchivePostUpdateFiles(fpost)
-            >>> opts.add_ArchivePostUpdateFiles(lpost)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpost*: :class:`str`
-                Folder or folder glob to add to list
-            *lpost*: :class:`str`
-                List of folders or globs of folders to add to list
-        :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("PostUpdateFiles", fpost)
-        
-    # List of files to archive at end of each run
-    def get_ArchiveProgressArchiveFiles(self):
-        """Get :class:`dict` of files to archive at end of each run
-        
-        :Call:
-            >>> fglob = opts.get_ArchiveProgressArchiveFiles()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *fglob*: :class:`list`\ [:class:`str`]
-                List of file wild cards to delete before archiving
-        :Versions:
-            * 2016-03-14 ``@ddalle``: Version 1.0
-        """
-        return self.get_key("ProgressArchiveFiles")
-        
-    # Add to list of files to archive at end of each run
-    def add_ArchiveProgressArchiveFiles(self, fpro):
-        """Add to :class:`dict` of files of which to keep only *n*
-        
-        :Call:
-            >>> opts.add_ArchiveProgressArchiveFiles(fpro)
-            >>> opts.add_ArchiveProgressArchiveFiles(lpro)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fpro*: :class:`str`
-                Folder or folder glob to add to list
-            *lpo*: :class:`str`
-                List of folders or globs of folders to add to list
-        :Versions:
-            * 2016-03-14 ``@ddalle``: Version 1.0
-        """
-        self.add_to_key("ProgressArchiveFiles", fpro)
-   # >
 
 
 # Normal get/set options
@@ -620,10 +373,17 @@ _ARCHIVE_PROPS = (
 )
 # Getters and extenders only
 _GETTER_OPTS = (
+    "ArchiveFiles",
+    "PostDeleteDirs",
+    "PostDeleteFiles",
+    "PostTarDirs",
+    "PostTarGroups",
+    "PostUpdateFiles",
     "PreDeleteDirs",
     "PreDeleteFiles",
     "PreTarGroups",
     "PreTarDirs",
+    "ProgressArchiveFiles",
     "ProgressDeleteDirs",
     "ProgressDeleteFiles",
     "ProgressUpdateFiles",

@@ -84,10 +84,9 @@ using the following code.  This is the *SkeletonFiles* setting.  Note that
 
 """
 
-# Import options-specific utilities
-from .util import rc0
 # Base module
-import cape.cfdx.options.Archive
+from ...cfdx.options import Archive as archiveopts
+
 
 # Tecplot files
 PltDict = [
@@ -139,6 +138,7 @@ SkeletonFiles = [
     {"*_tec_boundary_timestep*.triq": 1},
 ]
 
+
 # Turn dictionary into Archive options
 def auto_Archive(opts):
     """Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
@@ -179,10 +179,10 @@ def auto_Archive(opts):
     else:
         # Invalid type
         raise TypeError("Unformatted input must be type 'dict', not '%s'" % t)
-# def auto_Archive
+
 
 # Class for case management
-class Archive(cape.cfdx.options.Archive.Archive):
+class Archive(archiveopts.ArchiveOpts):
     """
     Dictionary-based interfaced for options specific to folder management
     

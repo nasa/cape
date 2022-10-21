@@ -16,9 +16,10 @@ section is written to the file ``case.json`` within each run folder.
 from .util import rc0, odict, getel
 # Required submodules
 from . import Archive
-from . import ulimit
 from . import aflr3opts
 from . import intersect
+from . import ulimit
+from . import util
 
 
 # Environment class
@@ -114,10 +115,11 @@ class RunControl(odict):
         # Upgrade important groups to their own classes.
         self._Environ()
         self._ulimit()
-        self._Archive()
-        self._aflr3()
         self._intersect()
         self._verify()
+        self.init_section(aflr3opts.AFLR3Opts, "aflr3")
+        self.init_section(Archive.ArchiveOpts, "Archive")
+        # Initializers
     
    # ===========
    # Environment
@@ -387,234 +389,11 @@ class RunControl(odict):
     set_virtual_memory_limit = set_ulimit_v
     set_file_locks_limit     = set_ulimit_x
    # >
-   
-   # =====
-   # AFLR3
-   # =====
-   # <
-   
-    # AFLR3 variable interface
-    def _aflr3(self):
-        r"""Initialize AFLR3 settings if necessary"""
-        # Initialize section if necessary
-        self.init_section(aflr3opts.AFLR3Opts, "aflr3")
-            
-    # Whether or not to use AFLR3
-    def get_aflr3(self):
-        r"""Return whether or not to run AFLR3 to create mesh
-        
-        :Call:
-            >>> q = opts.get_aflr3()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *q*: ``True`` | {``False``}
-                Whether or not there are nontrivial AFLR3 settings
-        :Versions:
-            * 2016-04-05 ``@ddalle``: Version 1.0
-            * 2022-10-14 ``@ddalle``: Version 1.1; use :func:`bool`
-        """
-        # Initialize if necessary
-        self._aflr3()
-        # Get the value and type
-        v = self.get('aflr3')
-        # Get the flag and convert to True or False
-        return bool(v.get('run'))
-        
-    # Get AFLR3 *-key val* options
-    def get_aflr3_flags(self):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_flags()
-        
-    # Get AFLR3 *key=val* options
-    def get_aflr3_keys(self):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_keys()
-        
-    # Copy documentation
-    for k in ['aflr3_flags', 'aflr3_keys']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(aflr3opts.AFLR3Opts, 'get_'+k).__doc__
-    
-    # Get AFLR3 input file
-    def get_aflr3_i(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_i(j)
-        
-    # Set AFLR3 input file
-    def set_aflr3_i(self, fname, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_i(fname, j)
-    
-    # Get AFLR3 output file
-    def get_aflr3_o(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_o(j)
-        
-    # Set AFLR3 output file
-    def set_aflr3_o(self, fname, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_o(fname, j)
-        
-    # AFLR3 general *keys*
-    def get_aflr3_key(self, k, j=0, vdef=None):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_key(k, j=j, vdef=vdef)
-        
-    # AFLR3 general *keys*
-    def set_aflr3_key(self, k, v, j=None):
-        self._aflr3()
-        self['aflr3'].set_aflr3_key(k, v, j=j)
-    
-    # Get AFLR3 boundary condition file
-    def get_aflr3_BCFile(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_BCFile(j)
-        
-    # Set AFLR3 boundary condition file
-    def set_aflr3_BCFile(self, fname, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_BCFile(fname, j)
 
-    # Growth parameter
-    def get_aflr3_grow(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_grow(j)
-
-    # Grwoth parameter
-    def set_aflr3_grow(self, grow, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_grow(grow, j)
-    
-    # Get stretching ratio
-    def get_aflr3_blr(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_blr(j)
-        
-    # Set stretching ratio
-    def set_aflr3_blr(self, blr, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_blr(blr, j)
-    
-    # Get stretching ratio
-    def get_aflr3_bli(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_bli(j)
-        
-    # Set stretching ratio
-    def set_aflr3_bli(self, bli, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_bli(bli, j)
-    
-    # Get BL prism layer option
-    def get_aflr3_blc(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_blc(j)
-        
-    # Set BL prism layer option
-    def set_aflr3_blc(self, blr, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_blr(blc, j)
-    
-    # Get wall spacing
-    def get_aflr3_blds(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_blds(j)
-        
-    # Set wall spacing
-    def set_aflr3_blds(self, blds, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_blds(blds, j)
-        
-    # Max geometric growth ratio
-    def get_aflr3_cdfr(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_cdfr(j)
-        
-    # Max geometric growth ratio
-    def set_aflr3_cdfr(self, cdfr, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_cdfr(cdfr, j)
-        
-    # Max geometric growth ratio
-    def get_aflr3_cdfs(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_cdfs(j)
-        
-    # Max geometric growth ratio
-    def set_aflr3_cdfs(self, cdfs, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_cdfs(cdfs, j)
-        
-    # Number of quality improvement passes
-    def get_aflr3_nqual(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_nqual(j)
-        
-    # Number of quality improvement passes
-    def set_aflr3_nqual(self, nqual, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_nqual(nqual, j)
-        
-    # Distribution function
-    def get_aflr3_mdf(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_mdf(j)
-        
-    # Distribution function
-    def set_aflr3_mdf(self, mdf, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_mdf(mdf, j)
-        
-    # Prism smoothing option
-    def get_aflr3_mdsblf(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_mdsblf(j)
-        
-    # Prism smoothing option
-    def set_aflr3_mdsblf(self, mdsblf, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_mdsblf(mdsblf, j)
-    
-    # Get max wall angle setting
-    def get_aflr3_angqbf(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_angqbf(j)
-        
-    # Set max wall angle setting
-    def set_aflr3_angqbf(self, angqbf, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_angqbf(angqbf, j)
-    
-    # Get max wall angle setting
-    def get_aflr3_angblisimx(self, j=0):
-        self._aflr3()
-        return self['aflr3'].get_aflr3_angblisimx(j)
-        
-    # Set max wall angle setting
-    def set_aflr3_angblisimx(self, angbli, j=0):
-        self._aflr3()
-        self['aflr3'].set_aflr3_angblisimx(angbli, j)
-        
-    # Copy documentation
-    for k in [
-            'i', 'o', 'BCFile', 'key',
-            'blc', 'blr', 'blds', 'bli', 'grow',
-            'cdfr', 'cdfs', 'nqual', 'mdf', 'mdsblf', 'angblisimx', 'angqbf'
-    ]:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_aflr3_'+k).__doc__ = getattr(
-            aflr3opts.AFLR3Opts, 'get_aflr3_'+k).__doc__
-        eval('set_aflr3_'+k).__doc__ = getattr(
-            aflr3opts.AFLR3Opts, 'set_aflr3_'+k).__doc__
-   # >
-    
    # =========
    # intersect
    # =========
    # <
-   
     # ``itnersect`` variable interface
     def _intersect(self):
         """Initialize ``intersect`` settings if necessary"""
@@ -639,7 +418,7 @@ class RunControl(odict):
                 self['intersect']['run'] = True
             else:
                 self['intersect']['run'] = False
-            
+
     # Whether or not to use intersect
     def get_intersect(self):
         """Return whether or not to run ``intersect`` on triangulations
@@ -668,22 +447,22 @@ class RunControl(odict):
         else:
             # Return the 'run' flag
             return q == True
-    
+
     # Get intersect input file
     def get_intersect_i(self, j=0):
         self._intersect()
         return self['intersect'].get_intersect_i(j)
-        
+
     # Set intersect input file
     def set_intersect_i(self, fname, j=None):
         self._intersect()
         self['intersect'].set_intersect_i(fname, j)
-    
+
     # Get intersect output file
     def get_intersect_o(self, j=0):
         self._intersect()
         return self['intersect'].get_intersect_o(j)
-        
+
     # Set intersect output file
     def set_intersect_o(self, fname, j=None):
         self._intersect()
@@ -804,341 +583,8 @@ class RunControl(odict):
         eval('get_'+k).__doc__ = getattr(intersect.verify,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(intersect.verify,'set_'+k).__doc__
    # >
-   
-   # =================
-   # Folder management
-   # =================
-   # <
     
-    # Initialization method for folder management optoins
-    def _Archive(self):
-        """Initialize folder management options if necessary"""
-        # Check status.
-        if 'Archive' not in self:
-            # Missing entirely.
-            self['Archive'] = Archive.Archive()
-        elif type(self['Archive']).__name__ == 'dict':
-            # Convert to special class
-            self['Archive'] = Archive.Archive(**self['Archive'])
-      
-    # Get the archive folder
-    def get_ArchiveFolder(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveFolder()
-        
-    # Set the archive folder
-    def set_ArchiveFolder(self, fdir=rc0('ArchiveFolder')):
-        self._Archive()
-        self['Archive'].set_ArchiveFolder(fdir)
-        
-    # Get the archive format
-    def get_ArchiveFormat(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveFormat()
-        
-    # Set the archive format
-    def set_ArchiveFormat(self, fmt=rc0('ArchiveFormat')):
-        self._Archive()
-        self['Archive'].set_ArchiveFormat(fmt)
-        
-    # Get the archive type
-    def get_ArchiveType(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveType()
-        
-    # Set the archive type
-    def set_ArchiveType(self, atype=rc0('ArchiveType')):
-        self._Archive()
-        self['Archive'].set_ArchiveType(atype)
-        
-    # Get the archive template
-    def get_ArchiveTemplate(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveTemplate()
-        
-    # Set archive template
-    def set_ArchiveTemplate(self, atype=rc0('ArchiveTemplate')):
-        self._Archive()
-        self['Archive'].set_ArchiveTemplate(atype)
-        
-    # Get the archive action
-    def get_ArchiveAction(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveAction()
-        
-    # Set the archive action
-    def set_ArchiveAction(self, fcmd=rc0('ArchiveAction')):
-        self._Archive()
-        self['Archive'].set_ArchiveAction(fcmd)
-        
-    # Get the remote copy command
-    def get_RemoteCopy(self):
-        self._Archive()
-        return self['Archive'].get_RemoteCopy()
-        
-    # Set the remote copy command
-    def set_RemoteCopy(self, fcmd=rc0('RemoteCopy')):
-        self._Archive()
-        self['Archive'].set_RemoteCopy(fcmd)
-        
-    # Copy over the documentation.
-    for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction', 'ArchiveType',
-            'RemoteCopy', 'ArchiveTemplate']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(Archive.Archive,'set_'+k).__doc__
-        
-    # Get the extension
-    def get_ArchiveExtension(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveExtension()
-        
-    # Get the archive command
-    def get_ArchiveCmd(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveCmd()
-        
-    # Get the unarchive command
-    def get_UnarchiveCmd(self):
-        self._Archive()
-        return self['Archive'].get_UnarchiveCmd()
-        
-    # One-way commands
-    for k in ['ArchiveExtension', 'ArchiveCmd', 'UnarchiveCmd']:
-        # Copy documentation
-        eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__
-        
-    # Get the list of files to delete at end of run 
-    def get_ArchiveProgressDeleteFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveProgressDeleteFiles()
-    
-    # Add to list of files to delete at end of run
-    def add_ArchiveProgressDeleteFiles(self, fpro):
-        self._Archive()
-        self['Archive'].add_ArchiveProgressDeleteFiles(fpro)
-        
-    # Get the list of files to archive at end of run 
-    def get_ArchiveProgressArchiveFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveProgressArchiveFiles()
-    
-    # Add to list of files to archive at end of run
-    def add_ArchiveProgressArchiveFiles(self, fpro):
-        self._Archive()
-        self['Archive'].add_ArchiveProgressArchiveFiles(fpro)
-        
-    # Get the list of folders to delete at end of run
-    def get_ArchiveProgressDeleteDirs(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveProgressDeleteDirs()
-    
-    # Add to list of folders to delete at end of run
-    def add_ArchiveProgressDeleteDirs(self, fpro):
-        self._Archive()
-        self['Archive'].add_ArchiveProgressDeleteDirs(fpro)
-        
-    # Get the list of groups to tar at end of run
-    def get_ArchiveProgressTarGroups(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveProgressTarGroups()
-        
-    # Add to list of groups to tar at end of run
-    def add_ArchiveProgressTarGroups(self, fpro):
-        self._Archive()
-        self['Archive'].add_ArchiveProgressTarGroups(fpro)
-        
-    # Get the list of folders to tar at end of run
-    def get_ArchiveProgressTarDirs(self):
-        self._Archive()
-        return self['Archive'].get_ProgressTarDirs()
-        
-    # Add to list of folders to tar apriori
-    def add_ArchiveProgressTarDirs(self, fpro):
-        self._Archive()
-        self['Archive'].add_ArchiveProgressTarDirs(fpro)
-    
-    # Files to keep only *n*
-    def get_ArchiveProgressUpdateFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveProgressUpdateFiles()
-        
-    # Files to keep only *n*
-    def add_ArchiveProgressUpdateFiles(self, fpro):
-        self._Archive()
-        self['Archive'].add_ArchiveProgressUpdateFiles(fpro)
-        
-    # Get the list of files to delete a priori 
-    def get_ArchivePreDeleteFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePreDeleteFiles()
-    
-    # Add to list of files to delete a priori
-    def add_ArchivePreDeleteFiles(self, fpre):
-        self._Archive()
-        self['Archive'].add_ArchivePreDeleteFiles(fpre)
-        
-    # Get the list of folders to delete a priori
-    def get_ArchivePreDeleteDirs(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePreDeleteDirs()
-    
-    # Add to list of folders to delete a priori
-    def add_ArchivePreDeleteDirs(self, fpre):
-        self._Archive()
-        self['Archive'].add_ArchivePreDeleteDirs(fpre)
-        
-    # Get the list of groups to tar a priori
-    def get_ArchivePreTarGroups(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePreTarGroups()
-        
-    # Add to list of groups to tar a priori
-    def add_ArchivePreTarGroups(self, fpre):
-        self._Archive()
-        self['Archive'].add_ArchivePreTarGroups(fpre)
-        
-    # Get the list of folders to tar a priori
-    def get_ArchivePreTarDirs(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePreTarDirs()
-        
-    # Add to list of folders to tar apriori
-    def add_ArchivePreTarDirs(self, fpre):
-        self._Archive()
-        self['Archive'].add_ArchivePreTarDirs(fpre)
-    
-    # Files to keep only *n*
-    def get_ArchivePreUpdateFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePreUpdateFiles()
-        
-    # Files to keep only *n*
-    def add_ArchivePreUpdateFiles(self, fpre):
-        self._Archive()
-        self['Archive'].add_ArchivePreUpdateFiles(fpre)
-        
-    # Get the list of files to delete a posteriori 
-    def get_ArchivePostDeleteFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePostDeleteFiles()
-    
-    # Add to list of files to delete a posteriori
-    def add_ArchivePostDeleteFiles(self, fpost):
-        self._Archive()
-        self['Archive'].add_ArchivePostDeleteFiles(fpost)
-        
-    # Get the list of folders to delete a posteriori
-    def get_ArchivePostDeleteDirs(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePostDeleteDirs()
-    
-    # Add to list of folders to delete a posteriori
-    def add_ArchivePostDeleteDirs(self, fpost):
-        self._Archive()
-        self['Archive'].add_ArchivePostDeleteDirs(fpost)
-        
-    # Get the list of groups to tar a posteriori
-    def get_ArchivePostTarGroups(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePostTarGroups()
-        
-    # Add to list of groups to tar a posteriori
-    def add_ArchivePostTarGroups(self, fpost):
-        self._Archive()
-        self['Archive'].add_ArchivePostTarGroups(fpost)
-        
-    # Get the list of folders to tar a posteriori
-    def get_ArchivePostTarDirs(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePostTarDirs()
-        
-    # Add to list of folders to tar aposteriori
-    def add_ArchivePostTarDirs(self, fpost):
-        self._Archive()
-        self['Archive'].add_ArchivePostTarDirs(fpost)
-    
-    # Files to keep only *n*
-    def get_ArchivePostUpdateFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePreUpdateFiles()
-        
-    # Files to keep only *n*
-    def add_ArchivePostUpdateFiles(self, fpost):
-        self._Archive()
-        self['Archive'].add_ArchivePreUpdateFiles(fpost)
-        
-    # Files to copy to archive
-    def get_ArchiveArchiveFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveArchiveFiles()
-    
-    # Files to copy to archive
-    def add_ArchiveArchiveFiles(self, farch):
-        self._Archive()
-        self['Archive'].add_ArchiveArchiveFiles(farch)
-        
-    # Files to keep after skeleton
-    def get_ArchiveSkeletonFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveSkeletonFiles()
-        
-    # Files to keep after skeleton
-    def add_ArchiveSkeletonFiles(self, fskel):
-        self._Archive()
-        self['Archive'].add_ArchiveSkeletonFiles(fskel)
-        
-    # Folders to keep after skeleton
-    def get_ArchiveSkeletonDirs(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveSkeletonDirs()
-        
-    # Folders to keep after skeleton
-    def add_ArchiveSkeletonDirs(self, fskel):
-        self._Archive()
-        self['Archive'].add_ArchiveSkeletonDirs(fskel)
-        
-    # Files to tail during skeleton
-    def get_ArchiveSkeletonTailFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveSkeletonTailFiles()
-        
-    # Files to tail during skeleton
-    def add_ArchiveSkeletonTailFiles(self, fskel):
-        self._Archive()
-        self['Archive'].add_ArchiveSkeletonTailFiles(fskel)
-        
-    # Folders to tar during skeleton
-    def get_ArchiveSkeletonTarDirs(self):
-        self._Archive()
-        return self['Archive'].get_ArchiveSkeletonTarDirs()
-        
-    # Folders to tar during skeleton
-    def add_ArchiveSkeletonTarDirs(self, fskel):
-        self._Archive()
-        self['Archive'].add_ArchiveSkeletonTarDirs(fskel)
-        
-    # Copy over the documentation.
-    for k in [
-            'ArchiveProgressDeleteFiles', 'ArchiveProgressDeleteDirs',
-            'ArchiveProgressTarGroups',   'ArchiveProgressTarDirs',
-            'ArchiveProgressUpdateFiles', 'ArchiveProgressArchiveFiles',
-            'ArchivePreDeleteFiles',      'ArchivePreDeleteDirs',
-            'ArchivePreTarGroups',        'ArchivePreTarDirs',
-            'ArchivePreUpdateFiles',
-            'ArchiveArchiveFiles',
-            'ArchivePostDeleteFiles',     'ArchivePostDeleteDirs',
-            'ArchivePostTarGroups',       'ArchivePostTarDirs',
-            'ArchivePostUpdateFiles',
-            'ArchiveSkeletonFiles',       'ArchiveSkeletonTailFiles',
-            'ArchiveSkeletonTarDirs',     'ArchiveSkeletonDirs'
-        ]:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__
-        eval('add_'+k).__doc__ = getattr(Archive.Archive,'add_'+k).__doc__
-   # >
-    
-   # =============== 
+   # ===============
    # Local Functions
    # ===============
    # <
@@ -1180,7 +626,6 @@ class RunControl(odict):
         """
         self.set_key('nIter', nIter, i)
     
-
     # Run input sequence
     def get_PhaseSequence(self, i=None):
         """Return the input sequence for `flowCart`
@@ -1219,7 +664,6 @@ class RunControl(odict):
         """
         self.set_key('PhaseSequence', PhaseSeq, i)
         
-    
     # Get minimum cumulative iteration count
     def get_PhaseIters(self, i=None):
         """
@@ -1262,7 +706,6 @@ class RunControl(odict):
         """
         self.set_key('PhaseIters', PhaseIters, i)
         
-    
     # Number of phases
     def get_nSeq(self):
         """Return the number of input sets in the sequence
@@ -1498,7 +941,6 @@ class RunControl(odict):
         """
         self.set_key('sbatch', sbatch, i)
         
-    
     # Get the resubmittable-job status
     def get_Resubmit(self, i=None):
         """Determine whether or not a job should restart or resubmit itself
@@ -1632,5 +1074,8 @@ class RunControl(odict):
         """
         return self.get_key("Verbose", i)
    # >
-   
-# class RunControl
+
+
+# Upgrade subsections
+util.promote_subsec(RunControl, aflr3opts.AFLR3Opts, "aflr3")
+util.promote_subsec(RunControl, Archive.ArchiveOpts, "Archive")
