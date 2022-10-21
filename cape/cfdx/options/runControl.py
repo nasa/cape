@@ -1121,5 +1121,5 @@ class RunControl(odict):
 
 
 # Upgrade subsections
-util.promote_subsec(aflr3opts.AFLR3Opts, "aflr3")
-util.promote_subsec(Archive.ArchiveOpts, "Archive")
+util.promote_subsec(RunControl, aflr3opts.AFLR3Opts, "aflr3")
+util.promote_subsec(RunControl, Archive.ArchiveOpts, "Archive")
