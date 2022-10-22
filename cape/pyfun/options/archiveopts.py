@@ -139,69 +139,31 @@ SkeletonFiles = [
 ]
 
 
-# Turn dictionary into Archive options
-def auto_Archive(opts):
-    """Automatically convert dict to :mod:`cape.pycart.options.Archive.Archive`
-    
-    :Call:
-        >>> opts = auto_Archive(opts)
-    :Inputs:
-        *opts*: :class:`dict`
-            Dict of either global, "RunControl" or "Archive" options
-    :Outputs:
-        *opts*: :class:`pyCart.options.Archive.Archive`
-            Instance of archiving options
-    :Versions:
-        * 2016-02-29 ``@ddalle``: First version
-    """
-    # Get type
-    t = type(opts).__name__
-    # Check type
-    if t == "Archive":
-        # Good; quit
-        return opts
-    elif t == "RunControl":
-        # Get the sub-object
-        return opts["Archive"]
-    elif t == "Options":
-        # Get the sub-sub-object
-        aopts = opts["RunControl"]["Archive"]
-        # Set the umask
-        aopts.set_umask(opts.get_umask())
-        # Output
-        return aopts
-    elif t in ["dict", "odict"]:
-        # Downselect if given parent class
-        opts = opts.get("RunControl", opts)
-        opts = opts.get("Archive",    opts)
-        # Convert to class
-        return Archive(**opts)
-    else:
-        # Invalid type
-        raise TypeError("Unformatted input must be type 'dict', not '%s'" % t)
-
-
 # Class for case management
-class Archive(archiveopts.ArchiveOpts):
-    """
-    Dictionary-based interfaced for options specific to folder management
+class ArchiveOpts(archiveopts.ArchiveOpts):
+    r"""Archiving options for :mod:`cape.pyfun`
     
     :Call:
-        >>> opts = Archive(**kw)
+        >>> opts = ArchiveOpts(**kw)
+    :Outputs:
+        *opts*: :class:`ArchiveOpts`
+            Options interface
     :Versions:
-        * 2015-09-28 ``@ddalle``: Subclassed to CAPE
-        * 2016-03-01 ``@ddalle``: Upgraded custom settings
+        * 2015-09-28 ``@ddalle``: Version 1.0
+        * 2022-10-21 ``@ddalle``: Version 2.0; use :mod:`cape.optdict`
     """
-    # Initialization method
-    def __init__(self, **kw):
-        """Initialization method
-        
+    # Initialization hook
+    def init_post(self):
+        """Initialization hook for FUN3D archiving options
+
+        :Call:
+            >>> opts.init_post()
+        :Inputs:
+            *opts*: :class:`ArchiveOpts`
+                Archiving options interface
         :Versions:
-            * 2016-03-01 ``@ddalle``: First version
+            * 2022-10-21 ``@ddalle``: Version 1.0
         """
-        # Copy from dict
-        for k in kw:
-            self[k] = kw[k]
         # Apply the template
         self.apply_ArchiveTemplate()
     
@@ -212,15 +174,11 @@ class Archive(archiveopts.ArchiveOpts):
         :Call:
             >>> opts.apply_ArchiveTemplate()
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`Options`
                 Options interface
         :Versions:
-            * 2016-02-29 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: Version 1.0
         """
-        # Get the template
-        tmp = self.get_ArchiveTemplate().lower()
-        # Extension
-        ext = self.get_ArchiveExtension()
         # Files/folders to delete prior to archiving
         self.add_ArchivePreDeleteFiles("*.bomb")
         self.add_ArchivePreDeleteFiles("core.*")
@@ -245,5 +203,22 @@ class Archive(archiveopts.ArchiveOpts):
         self.add_ArchivePostDeleteDirs([])
         # Folders to *keep* during ``--skeleton``
         self.add_ArchiveSkeletonFiles(SkeletonFiles)
-# class Archive
 
+
+# Turn dictionary into Archive options
+def auto_Archive(opts):
+    r"""Ensure instance of :class:`ArchiveOpts`
+    
+    :Call:
+        >>> opts = auto_Archive(opts)
+    :Inputs:
+        *opts*: :class:`dict`
+            Dict of either global, "RunControl" or "Archive" options
+    :Outputs:
+        *opts*: :class:`ArchiveOpts`
+            Instance of archiving options
+    :Versions:
+        * 2016-02-29 ``@ddalle``: Version 1.0
+        * 2022-10-21 ``@ddalle``: Version 2.0; solver-agnostic
+    """
+    return archiveopts.auto_Archive(opts, cls=ArchiveOpts)

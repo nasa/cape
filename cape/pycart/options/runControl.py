@@ -13,28 +13,28 @@ for command-line options to the Cart3D binaries.  There is also an
 ``"Archive"`` section that can be used for copying files and cleaning up after
 one or more cases have been completed.
 
-This module primarily provides a class :class:`pyCart.options.RunControl`.
+This module primarily provides a class :class:`cape.pycart.options.RunControl`.
 Many of the options that are common to all solvers are inherited from 
 :class:`cape.cfdx.options.RunControl`.  This class also has an interface for
 environment variables and ``ulimit`` parameters.
 
 For pyCart, the relevant pyCart binaries, which become sections of the
-:class:`pyCart.options.RunControl` class, are ``intersect``, ``verify``,
+:class:`cape.pycart.options.RunControl` class, are ``intersect``, ``verify``,
 ``autoInputs``, ``cubes``, ``mgPrep``, and ``flowCart``.  There is an
 additional section ``"Adaptation"`` used to define Cart3D adaptation inputs and
 settings for ``aero.csh``.
 
 In particular, all of the commands available to the classes listed below are
-also available to :class:`pyCart.options.runControl.RunControl`.
+also available to :class:`cape.pycart.options.runControl.RunControl`.
 
 :Classes:
-    * :class:`pyCart.options.runControl.RunControl`
-    * :class:`pyCart.options.runControl.Adaptation`
-    * :class:`pyCart.options.runControl.flowCart`
-    * :class:`pyCart.options.runControl.adjointCart`
-    * :class:`pyCart.options.runControl.autoInputs`
-    * :class:`pyCart.options.runControl.cubes`
-    * :class:`pyCart.options.Archive.Archive`
+    * :class:`cape.pycart.options.runControl.RunControl`
+    * :class:`cape.pycart.options.runControl.Adaptation`
+    * :class:`cape.pycart.options.runControl.flowCart`
+    * :class:`cape.pycart.options.runControl.adjointCart`
+    * :class:`cape.pycart.options.runControl.autoInputs`
+    * :class:`cape.pycart.options.runControl.cubes`
+    * :class:`cape.pycart.options.Archive.Archive`
     * :class:`cape.cfdx.options.runControl.Environ`
     * :class:`cape.cfdx.options.ulimit.ulimit`
 :See Also:
@@ -44,13 +44,12 @@ also available to :class:`pyCart.options.runControl.RunControl`.
 """
 
 
-# Import options-specific utilities
+# Local imports
+from .archiveopts import ArchiveOpts
 from .util import rc0, odict, isArray, getel
-# Run control class
-import cape.cfdx.options.runControl
-import cape.cfdx.options.ulimit
-# Submodules
-from .Archive import Archive
+from ...cfdx.options import runControl
+from ...cfdx.options import ulimit as ulimitopts
+
 
 # Function to test if something is an acceptable Runge-Kutta object
 def isRK(RK):
@@ -82,7 +81,6 @@ def isRK(RK):
     else:
         # The above case is the only type of acceptable list.
         return False
-# def isRK
 
         
 # Class for flowCart inputs
@@ -96,7 +94,7 @@ class flowCart(odict):
         :Call:
             >>> RK = opts.get_RKScheme(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -105,7 +103,7 @@ class flowCart(odict):
                 Named Runge-Kutta scheme or list of coefficients and gradient
                 evaluation flags
         :See also:
-            * :func:`pyCart.inputCntl.InputCntl.SetRungeKutta`
+            * :func:`cape.pycart.inputCntl.InputCntl.SetRungeKutta`
         :Versions:
             * 2014-12-17 ``@ddalle``: First version
         """
@@ -142,7 +140,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_RKScheme(RK, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *RK*: :class:`str` or :class:`list` ([:class:`float`,:class:`int`])
                 Named Runge-Kutta scheme or list of coefficients and gradient
@@ -150,7 +148,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :See also:
-            * :func:`pyCart.inputCntl.InputCntl.SetRungeKutta`
+            * :func:`cape.pycart.inputCntl.InputCntl.SetRungeKutta`
         :Versions:
             * 2014-12-17 ``@ddalle``: First version
         """
@@ -190,7 +188,7 @@ class flowCart(odict):
         :Call:
             >>> fo = opts.get_first_order(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -210,7 +208,7 @@ class flowCart(odict):
             >>> opts.set_first_order(fo)
             >>> opts.set_first_order(fo, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *fo*: :class:`int` or :class:`list`(:class:`int`)
                 Switch for running `flowCart` in first-order mode
@@ -229,7 +227,7 @@ class flowCart(odict):
         :Call:
             >>> rm = opts.get_robust_mode(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -248,7 +246,7 @@ class flowCart(odict):
         :Call:
             >>> opts.get_robust_mode(rm, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *rm*: :class:`int` or :class:`list`(:class:`int`)
                 Switch for running `flowCart` in robust mode
@@ -267,7 +265,7 @@ class flowCart(odict):
         :Call:
             >>> it_fc = opts.get_it_fc(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -287,7 +285,7 @@ class flowCart(odict):
             >>> opts.set_it_fc(it_fc)
             >>> opts.set_it_fc(it_fc, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *it_fc*: :class:`int` or :class:`list`(:class:`int`)
                 Number of iterations for run *i* or all runs if ``i==None``
@@ -310,7 +308,7 @@ class flowCart(odict):
         :Call:
             >>> it_avg = opts.get_it_avg(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -334,7 +332,7 @@ class flowCart(odict):
             >>> opts.set_it_avg(it_avg)
             >>> opts.set_it_avg(it_avg, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *it_avg*: :class:`int` or :class:`list`(:class:`int`)
                 Stopping interval between averaging for run *i*
@@ -357,7 +355,7 @@ class flowCart(odict):
         :Call:
             >>> it_start = opts.get_it_start(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -381,7 +379,7 @@ class flowCart(odict):
             >>> opts.set_it_start(it_start)
             >>> opts.set_it_start(it_start, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *it_start*: :class:`int` or :class:`list`(:class:`int`)
                 Startup iterations before averaging for phase *i*
@@ -400,7 +398,7 @@ class flowCart(odict):
         :Call:
             >>> clic = opts.get_clic(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -419,7 +417,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_clic(clic, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *clic*: :class:`bool`
                 Whether or not to write ``Components.i.triq`` on exit
@@ -438,7 +436,7 @@ class flowCart(odict):
         :Call:
             >>> nOrders = opts.get_nOrders(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -457,7 +455,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_nOrders(nOrders, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *nOrders*: :class:`int`
                 Number of orders for convergence
@@ -476,7 +474,7 @@ class flowCart(odict):
         :Call:
             >>> mg_fc = opts.get_mg_fc(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -495,7 +493,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_mg_fc(mg_fc, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
                 Multigrid levels for run *i* or all runs if ``i==None``
@@ -514,7 +512,7 @@ class flowCart(odict):
         :Call:
             >>> td_fc = opts.get_unsteady(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -533,7 +531,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_unsteady(td_fc, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -553,7 +551,7 @@ class flowCart(odict):
         :Call:
             >>> cfl = opts.get_cfl(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -572,7 +570,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_mg_fc(mg_fc, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *cfl*: :class:`float` or :class:`list`(:class:`float`)
                 Nominal CFL number for run *i*
@@ -591,7 +589,7 @@ class flowCart(odict):
         :Call:
             >>> cflmin = opts.get_cflmin(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -610,7 +608,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_cflmin(cflmin, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *cflmin*: :class:`float` or :class:`list`(:class:`float`)
                 Minimum CFL number for run *i*
@@ -629,7 +627,7 @@ class flowCart(odict):
         :Call:
             >>> dt = opts.get_dt(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -648,7 +646,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_dt(dt, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *dt*: :class:`float` | :class:`list`\ [:class:`float`]
                 Nondimensional physical time step
@@ -667,7 +665,7 @@ class flowCart(odict):
         :Call:
             >>> it_sub = opts.get_it_sub(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -687,7 +685,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_it_sub(it_sub, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -707,7 +705,7 @@ class flowCart(odict):
         :Call:
             >>> checkptTD = opts.get_checkptTD(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -726,7 +724,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_checkptTD(checkptTD, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *checkptTD*: :class:`int` or :class:`list`(:class:`int`)
                 Number of unsteady time steps between checkpoints
@@ -745,7 +743,7 @@ class flowCart(odict):
         :Call:
             >>> vizTD = opts.get_vizTD(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -764,7 +762,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_vizTD(vizTD, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *vizTD*: :class:`int` or :class:`list`(:class:`int`)
                 Number of unsteady time steps between visualization outputs
@@ -785,7 +783,7 @@ class flowCart(odict):
         :Call:
             >>> fc_clean = opts.get_fc_clean(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -806,7 +804,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_fc_clean(fc_clean, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *fc_clean*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to run relaxation step
@@ -825,7 +823,7 @@ class flowCart(odict):
         :Call:
             >>> nstats = opts.get_fc_stats(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -844,7 +842,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_fc_stats(nstats, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *nstats*: :class:`int` or :class:`list`(:class:`int`)
                 Number of iterations to use for averaging (off if ``0``)
@@ -863,7 +861,7 @@ class flowCart(odict):
         :Call:
             >>> limiter = opts.get_limiter(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -882,7 +880,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_limiter(limiter, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *limiter*: :class:`int` or :class:`list`(:class:`int`)
                 Limiter ID for `flowCart`
@@ -901,7 +899,7 @@ class flowCart(odict):
         :Call:
             >>> y_is_spanwise = opts.get_y_is_spanwise(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -920,7 +918,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_y_is_spanwise(y_is_spanwise, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *y_is_spanwise*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not *y* is the spanwise index `flowCart`
@@ -939,7 +937,7 @@ class flowCart(odict):
         :Call:
             >>> fmg = opts.get_fmg(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -958,7 +956,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_fmg(fmg, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *fmg*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` is set to run full multigrid
@@ -977,7 +975,7 @@ class flowCart(odict):
         :Call:
             >>> fmg = opts.get_pmg(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -996,7 +994,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_pmg(pmg, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *pmg*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` is set to run poly multigrid
@@ -1015,7 +1013,7 @@ class flowCart(odict):
         :Call:
             >>> binaryIO = opts.get_binaryIO(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1034,7 +1032,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_binaryIO(binaryIO, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *binaryIO*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` is set for binary I/O
@@ -1053,7 +1051,7 @@ class flowCart(odict):
         :Call:
             >>> tecO = opts.get_tecO(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1072,7 +1070,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_tecO(tecO, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *tecO*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` dumps Tecplot triangulations
@@ -1091,7 +1089,7 @@ class flowCart(odict):
         :Call:
             >>> buffLim = opts.get_buffLim(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1110,7 +1108,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_buffLim(buffLim, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *buffLim*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to use `flowCart` buffer limits
@@ -1129,7 +1127,7 @@ class flowCart(odict):
         :Call:
             >>> tm = opts.get_tm(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1148,7 +1146,7 @@ class flowCart(odict):
         :Call:
             >>> opts.set_tm(tm, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *tm*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` is set for cut cell gradient
@@ -1158,15 +1156,11 @@ class flowCart(odict):
             * 2014.08.02 ``@ddalle``: First version
         """
         self.set_key('tm', tm, i)
-        
-    
-# class flowCart
+
 
 # Class for flowCart settings
 class adjointCart(odict):
     """Dictionary-based interfaced for options specific to ``adjointCart``"""
-    
-    
     # Number of iterations for adjointCart
     def get_it_ad(self, i=None):
         """Return the number of iterations for `adjointCart`
@@ -1174,7 +1168,7 @@ class adjointCart(odict):
         :Call:
             >>> it_fc = opts.get_it_fc(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1194,7 +1188,7 @@ class adjointCart(odict):
             >>> opts.set_it_ad(it_ad)
             >>> opts.set_it_ad(it_ad, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *it_ad*: :class:`int` or :class:`list`(:class:`int`)
                 Number of iterations for run *i* or all runs if ``i==None``
@@ -1213,7 +1207,7 @@ class adjointCart(odict):
         :Call:
             >>> mg_fc = opts.get_mg_ad(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1232,7 +1226,7 @@ class adjointCart(odict):
         :Call:
             >>> opts.set_mg_ad(mg_ad, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *mg_ad*: :class:`int` or :class:`list`(:class:`int`)
                 Multigrid levels for run *i* or all runs if ``i==None``
@@ -1251,7 +1245,7 @@ class adjointCart(odict):
         :Call:
             >>> adj = opts.set_adj_first_order(i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1270,7 +1264,7 @@ class adjointCart(odict):
         :Call:
             >>> opts.set_adj_first_order(adj, i)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *adj*: :class:`bool` or :class:`list`(:class:`int`)
                 Whether or not to always run `adjointCart` first-order
@@ -1280,13 +1274,11 @@ class adjointCart(odict):
             * 2014-11-17 ``@ddalle``: First version
         """
         self.set_key('adj_first_order', adj, i)
-# class adjointCart
+
 
 # Class for flowCart settings
 class Adaptation(odict):
-    """Dictionary-based interfaced for options for Cart3D adaptation"""
-    
-    
+    r"""Dictionary-based interfaced for options for Cart3D adaptation"""
     # Get number of adaptation cycles
     def get_n_adapt_cycles(self, i=None):
         """Return the number of Cart3D number of adaptation cycles
@@ -1294,7 +1286,7 @@ class Adaptation(odict):
         :Call:
             >>> nAdapt = opts.get_n_adapt_cycles(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1313,7 +1305,7 @@ class Adaptation(odict):
         :Call:
             >>> opts.set_n_adaptation_cycles(nAdapt, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *nAdapt*: :class:`int` or :class:`list`(:class:`int`)
                 Number of iterations for run *i* or all runs if ``i==None``
@@ -1333,7 +1325,7 @@ class Adaptation(odict):
         :Call:
             >>> js = opts.get_jumpstart()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
         :Outputs:
             *js*: :class:`bool`
@@ -1352,7 +1344,7 @@ class Adaptation(odict):
         :Call:
             >>> opts.get_jumpstart(js)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *js*: :class:`bool`
                 Whether or not to jumpstart
@@ -1369,7 +1361,7 @@ class Adaptation(odict):
         :Call:
             >>> etol = opts.get_etol(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1388,7 +1380,7 @@ class Adaptation(odict):
         :Call:
             >>> opts.set_etol(etol, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *etol*: :class:`float` or :class:`list`(:class:`float`)
                 Output error tolerance
@@ -1407,7 +1399,7 @@ class Adaptation(odict):
         :Call:
             >>> max_nCells = opts.get_max_nCells(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1426,7 +1418,7 @@ class Adaptation(odict):
         :Call:
             >>> max_nCells = opts.get_max_nCells(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1446,7 +1438,7 @@ class Adaptation(odict):
         :Call:
             >>> ws_it = opts.get_ws_it(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1465,7 +1457,7 @@ class Adaptation(odict):
         :Call:
             >>> opts.set_ws_it(ws_it, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *ws_it*: :class:`int` or :class:`list`(:class:`int`)
                 Number of `flowCart` iterations
@@ -1484,7 +1476,7 @@ class Adaptation(odict):
         :Call:
             >>> mesh_growth = opts.get_mesh_growth(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1503,7 +1495,7 @@ class Adaptation(odict):
         :Call:
             >>> opts.set_mesh_growth(mesh_growth, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *mesh_growth*: :class:`float` or :class:`list`(:class:`float`)
                 Refinement mesh growth ratio
@@ -1522,7 +1514,7 @@ class Adaptation(odict):
         :Call:
             >>> apc = opts.get_apc(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1541,7 +1533,7 @@ class Adaptation(odict):
         :Call:
             >>> opts.set_apc(apc, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *apc*: :class:`str` or :class:`list`(:class:`str`)
                 Adaptation cycle type, ``"a"`` or ``"p"``
@@ -1560,7 +1552,7 @@ class Adaptation(odict):
         :Call:
             >>> buf = opts.get_abuff(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1579,7 +1571,7 @@ class Adaptation(odict):
         :Call:
             >>> opts.set_abuff(buf, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *buf*: :class:`int` or :class:`list`(:class:`int`)
                 Number of buffer layers
@@ -1598,7 +1590,7 @@ class Adaptation(odict):
         :Call:
             >>> xref = opts.get_final_mesh_xref(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1617,7 +1609,7 @@ class Adaptation(odict):
         :Call:
             >>> opts.set_final_mesh_xref(xref, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *xref*: :class:`int` or :class:`list`(:class:`int`)
                 Number of additional adaptations
@@ -1627,11 +1619,11 @@ class Adaptation(odict):
             * 2014-11-19 ``@ddalle``: First version
         """
         self.set_key('final_mesh_xref', xref, i)
-# class Adaptation
+
 
 # Class for autoInputs
 class autoInputs(odict):
-    """Dictionary-based interface for ``autoInputs`` options"""
+    r"""Dictionary-based interface for ``autoInputs`` options"""
     
     # Get the nominal mesh radius
     def get_r(self, i=None):
@@ -1640,7 +1632,7 @@ class autoInputs(odict):
         :Call:
             >>> r = opts.get_r(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1659,7 +1651,7 @@ class autoInputs(odict):
         :Call:
             >>> opts.set_r(r, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *r*: :class:`float` or :class:`list`(:class:`float`)
                 Nominal mesh radius
@@ -1677,7 +1669,7 @@ class autoInputs(odict):
         :Call:
             >>> nDiv = opts.get_nDiv(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1696,7 +1688,7 @@ class autoInputs(odict):
         :Call:
             >>> opts.set_nDiv(nDiv, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *nDiv*: :class:`int` or :class:`list`(:class:`int`)
                 Number of background mesh divisions
@@ -1706,11 +1698,11 @@ class autoInputs(odict):
             * 2014-12-02 ``@ddalle``: First version
         """
         self.set_key('nDiv', nDiv, i)
-# class autoInputs
+
 
 # Class for cubes
 class cubes(odict):
-    """Dictionary-based interface for ``cubes`` options"""
+    r"""Dictionary-based interface for ``cubes`` options"""
     
     # Get the maximum number of refinements
     def get_maxR(self, i=None):
@@ -1719,7 +1711,7 @@ class cubes(odict):
         :Call:
             >>> maxR = opts.get_maxR(i=None):
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1738,7 +1730,7 @@ class cubes(odict):
         :Call:
             >>> opts.set_maxR(maxR, i=None):
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *maxR*: :class:`int` or :class:`list`(:class:`int`)
                 (Maximum) number of refinements for initial mesh
@@ -1756,7 +1748,7 @@ class cubes(odict):
         :Call:
             >>> cubes_a = opts.get_cubes_a(i=None):
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1775,7 +1767,7 @@ class cubes(odict):
         :Call:
             >>> opts.set_cubes_a(cubes_a, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *cubes_a*: :class:`int` or :class:`list`(:class:`int`)
                 Customizable parameter for `cubes`
@@ -1793,7 +1785,7 @@ class cubes(odict):
         :Call:
             >>> cubes_b = opts.get_cubes_b(i=None):
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1812,7 +1804,7 @@ class cubes(odict):
         :Call:
             >>> opts.set_cubes_b(cubes_b, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *cubes_b*: :class:`int` or :class:`list`(:class:`int`)
                 Customizable parameter for `cubes`
@@ -1830,7 +1822,7 @@ class cubes(odict):
         :Call:
             >>> reorder = opts.get_reorder(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1849,7 +1841,7 @@ class cubes(odict):
         :Call:
             >>> opts.set_reorder(reorder, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *reorder*: :class:`bool` or :class:`list`(:class:`bool`)
                 Reorder status
@@ -1867,7 +1859,7 @@ class cubes(odict):
         :Call:
             >>> sf = opts.get_sf(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -1886,7 +1878,7 @@ class cubes(odict):
         :Call:
             >>> opts.set_sf(sf, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *sf*: :class:`int` or :class:`list`\ [:class:`int`]
                 Number of additional refinements at sharp edges
@@ -1904,7 +1896,7 @@ class cubes(odict):
         :Call:
             >>> fpre = opts.get_preSpecCntl(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
         :Outputs:
             *fpre*: :class:`str`
@@ -1929,7 +1921,7 @@ class cubes(odict):
         :Call:
             >>> opts.set_preSpecCntl(fpre)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *fpre*: :class:`str`
                 Mesh prespecification file
@@ -1937,21 +1929,20 @@ class cubes(odict):
             * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('pre', fpre)
-# class cubes
+
 
 # Class for environment variables
-class Environ(cape.cfdx.options.runControl.Environ):
+class Environ(runControl.Environ):
     pass
-# class Environ
+
 
 # Class for resource limits
-class ulimit(cape.cfdx.options.ulimit.ulimit):
+class ulimit(ulimitopts.ulimit):
     pass
-# class ulimit
 
 
 # Class for flowCart settings
-class RunControl(cape.cfdx.options.runControl.RunControl):
+class RunControl(runControl.RunControl):
     """Dictionary-based interface for options for running Cart3D"""
     
     # Initialization method
@@ -2088,7 +2079,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> ac = opts.get_Adaptive(i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -2108,7 +2099,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> opts.set_Adaptive(ac, i=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Phase number
@@ -2556,7 +2547,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> q = opts.get_autoInputs(j=0)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *j*: :class:`int`
                 Phase number
@@ -2619,7 +2610,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         :Call:
             >>> q = opts.get_cubes(j=0)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.pycart.options.Options`
                 Options interface
             *j*: :class:`int`
                 Phase number
@@ -2718,14 +2709,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
     
     # Initialization method for folder management optoins
     def _Archive(self):
-        """Initialize folder management options if necessary"""
-        # Check status.
-        if 'Archive' not in self:
-            # Missing entirely.
-            self['Archive'] = Archive()
-        elif type(self['Archive']).__name__ == 'dict':
-            # Convert to special class
-            self['Archive'] = Archive(**self['Archive'])
+        self.init_section(ArchiveOpts, "Archive")
     
     # Get the number of check point files to keep around
     def get_nCheckPoint(self, i=None):
@@ -2760,10 +2744,8 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
     # Copy over the documentation.
     for k in ['nCheckPoint', 'TarViz', 'TarAdapt']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Archive,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(Archive,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(ArchiveOpts,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(ArchiveOpts,'set_'+k).__doc__
    # >
-   
 # class RunControl
-        
 

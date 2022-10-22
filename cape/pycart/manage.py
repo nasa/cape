@@ -15,8 +15,8 @@ top-level functions, which each correspond to a primary command-line option.
     =======================   ==================
     
 The Cart3D-specific versions of these commands use the function
-:func:`pyCart.options.Archive.auto_Archive`, which apply the default settings
-appropriate to pyCart. Because this module was the first folder management
+:func:`cape.pycart.options.archiveopts.auto_Archive`, which apply the default settings
+appropriate to cape.pycart. Because this module was the first folder management
 version created, it does not rely heavily on :mod:`cape.manage`. This module
 sets
 
@@ -29,7 +29,7 @@ which tells the management functions to also look inside the adaptation
 solutions while archiving if they are present.
 
 The ``--unarchive`` command does not require any specific customizations for
-Cart3D, and the generic version of :func:`cape.manage.UnarchiveFolder` is
+Cart3D, and the generic version of :func:`manage.UnarchiveFolder` is
 just called directly.
 
 :See also:
@@ -38,89 +38,93 @@ just called directly.
     * :mod:`cape.options.Archive`
 """
 
-# File management modules
-import os, shutil, glob
-# Command-line interface
+# Standard library
+import glob
+import os
+import shutil
 import subprocess as sp
-# Options module
-from .options import Archive
-# Basis module
-import cape.manage
+
+# Local imports
+from .options import archiveopts
+from .. import manage
+
 
 # Subdirectories
 fsub = ['adapt??']
 # Auto archive function
-aa = Archive.auto_Archive
+aa = archiveopts.auto_Archive
+
 
 # Perform in-progress file management after each run
 def ManageFilesProgress(opts=None):
-    """Delete or group files and folders at end of each run
+    r"""Delete or group files and folders at end of each run
     
     :Call:
-        >>> pyCart.manage.ManageFilesProgress(opts=None)
+        >>> cape.pycart.manage.ManageFilesProgress(opts=None)
     :Inputs:
-        *opts*: :class:`pyCart.options.Options` | :class:`dict`
+        *opts*: :class:`Options`
             Options interface for archiving
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Perform actions
-    cape.manage.ProgressDeleteFiles(opts, fsub=fsub)
-    cape.manage.ProgressUpdateFiles(opts, fsub=fsub)
-    cape.manage.ProgressDeleteDirs(opts)
-    cape.manage.ProgressTarGroups(opts)
-    cape.manage.ProgressTarDirs(opts)
-# def ManageFilesProgress
+    manage.ProgressDeleteFiles(opts, fsub=fsub)
+    manage.ProgressUpdateFiles(opts, fsub=fsub)
+    manage.ProgressDeleteDirs(opts)
+    manage.ProgressTarGroups(opts)
+    manage.ProgressTarDirs(opts)
+
     
 # Perform pre-archive management
 def ManageFilesPre(opts=None):
-    """Delete or group files and folders before creating archive
+    r"""Delete or group files and folders before creating archive
     
     :Call:
-        >>> pyCart.manage.ManageFilesPre(opts=None)
+        >>> ManageFilesPre(opts=None)
     :Inputs:
-        *opts*: :class:`pyCart.options.Options` | :class:`dict`
+        *opts*: :class:`Options`
             Options interface for archiving
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: Version 1.0
     """
     # Convert options
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Perform actions
-    cape.manage.PreDeleteFiles(opts, fsub=fsub)
-    cape.manage.PreUpdateFiles(opts, fsub=fsub)
-    cape.manage.PreDeleteDirs(opts)
-    cape.manage.PreTarGroups(opts)
-    cape.manage.PreTarDirs(opts)
-# def ManageFilesPre
+    manage.PreDeleteFiles(opts, fsub=fsub)
+    manage.PreUpdateFiles(opts, fsub=fsub)
+    manage.PreDeleteDirs(opts)
+    manage.PreTarGroups(opts)
+    manage.PreTarDirs(opts)
     
+
 # Perform post-archive management
 def ManageFilesPost(opts=None):
     """Delete or group files and folders after creating archive
     
     :Call:
-        >>> pyCart.manage.ManageFilesPost(opts=None)
+        >>> cape.pycart.manage.ManageFilesPost(opts=None)
     :Inputs:
-        *opts*: :class:`pyCart.options.Options` | :class:`dict`
+        *opts*: :class:`cape.pycart.options.Options` | :class:`dict`
             Options interface for archiving
     :Versions:
-        * 2016-03-14 ``@ddalle``: First version
+        *opts*: :class:`Options`
+            Options interface for archiving
     """
     # Convert options
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Perform actions
-    cape.manage.PostDeleteFiles(opts, fsub=fsub)
-    cape.manage.PostUpdateFiles(opts, fsub=fsub)
-    cape.manage.PostDeleteDirs(opts)
-    cape.manage.PostTarGroups(opts)
-    cape.manage.PostTarDirs(opts)
-# def ManageFilesPost
-    
+    manage.PostDeleteFiles(opts, fsub=fsub)
+    manage.PostUpdateFiles(opts, fsub=fsub)
+    manage.PostDeleteDirs(opts)
+    manage.PostTarGroups(opts)
+    manage.PostTarDirs(opts)
+
+
 # Function to compress extra folders
 def TarAdapt(opts):
-    """Replace ``adaptXX`` folders with a tarball except for most recent
+    r"""Replace ``adaptXX`` folders with a tarball except most recent
     
     For example, if there are 3 adaptations in the current folder, the
     following substitutions will be made.
@@ -130,22 +134,22 @@ def TarAdapt(opts):
         * ``adapt02/`` --> :file:`adapt02.tar`
         * ``adapt03/``
         
-    The most recent adaptation is left untouched, and the old folders are
-    deleted.
+    The most recent adaptation is left untouched, and the old folders
+    are deleted.
     
     :Call:
-        >>> pyCart.manage.TarAdapt(opts)
+        >>> TarAdapt(opts)
     :Inputs:
-        *opts*: :class:`pyCart.options.Options`
+        *opts*: :class:`cape.pycart.options.Options`
             Options interface
         *opts.get_TarAdapt()*: {``"restart"``} | ``"full"`` | ``"none"``
             Archiving action to take
         *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
-        * 2014-11-12 ``@ddalle``: First version
-        * 2015-01-10 ``@ddalle``: Added format as an option
-        * 2015-12-02 ``@ddalle``: Options
+        * 2014-11-12 ``@ddalle``: Version 1.0
+        * 2015-01-10 ``@ddalle``: Version 1l1; format as an option
+        * 2015-12-02 ``@ddalle``: Version 1.2; Options
     """
     # Check for a BEST/ foldoer.
     if not os.path.islink('BEST'):
@@ -234,24 +238,23 @@ def TarAdapt(opts):
         sp.call(['tar', '-xf', 'adapt00.tar', 'adapt00/Mesh.c3d.Info'])
         # Set the time to something old
         os.utime('adapt00', (t, t))
-        os.utime('adapt00.tar', (t,t))
-    
-# def TarAdapt
-        
+        os.utime('adapt00.tar', (t, t))
+
+
 # Function to undo the above
 def ExpandAdapt(opts):
-    """Expand :file:`adaptXX.tar`` files
+    r"""Expand :file:`adaptXX.tar`` files
     
     :Call:
-        >>> pyCart.manage.ExpandAdapt(fmt="tar")
+        >>> ExpandAdapt(fmt="tar")
     :Inputs:
-        *opts*: :class:`pyCart.options.Options`
+        *opts*: :class:`cape.pycart.options.Options`
             Options interface
         *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
-        * 2014-11-12 ``@ddalle``: First version
-        * 2015-01-10 ``@ddalle``: Added format as an option
+        * 2014-11-12 ``@ddalle``: Version 1.0
+        * 2015-01-10 ``@ddalle``: Version 1.1; format as an option
     """
     # Get format
     fmt = opts.get_ArchiveFormat()
@@ -284,27 +287,27 @@ def ExpandAdapt(opts):
         if ierr: continue
         # Remove the tarball.
         os.remove(ftar)
-# def ExpandAdapt
+
         
 # Function to tar up visualization checkpoints
 def TarViz(opts):
-    """Add all visualization surface and cut plane TecPlot files to tar balls
+    r"""Move visualization surface and cut plane files to tar balls
     
     This reduces file count by tarring :file:`Components.i.*.plt` and
     :file:`cutPlanes.*.plt`.
     
     :Call:
-        >>> pyCart.manage.TarViz(opts)
+        >>> TarViz(opts)
     :Inputs:
-        *opts*: :class:`pyCart.options.Options`
+        *opts*: :class:`cape.pycart.options.Options`
             Options interface
         *opts.get_TarViz()*: ``"restart"`` | {``"full"``} | ``"none"``
             Archiving action to take
         *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
-        * 2014-12-18 ``@ddalle``: First version
-        * 2015-01-10 ``@ddalle``: Added format as an option
+        * 2014-12-18 ``@ddalle``: Version 1.0
+        * 2015-01-10 ``@ddalle``: Version 1.1; add format option
     """
     # Check format
     fmt = opts.get_ArchiveFormat()
@@ -367,20 +370,20 @@ def TarViz(opts):
         if ierr: continue
         # Delete files
         ierr = sp.call(['rm'] + fnames[:-1])
-# def TarViz
+
 
 # Clear old check files.
 def ClearCheck(n=1):
-    """Clear old :file:`check.?????` and :file:`check.??????.td`
+    r"""Clear old :file:`check.?????` and :file:`check.??????.td`
     
     :Call:
-        >>> pyCart.manage.ClearCheck(n=1)
+        >>> ClearCheck(n=1)
     :Inputs:
         *n*: :class:`int`
             Keep the last *n* check points.
     :Versions:
-        * 2014-12-31 ``@ddalle``: First version
-        * 2015-01-10 ``@ddalle``: Added *n* setting
+        * 2014-12-31 ``@ddalle``: Version 1.0
+        * 2015-01-10 ``@ddalle``: Version 1.1; Added *n* setting
     """
     # Exit if *n* is not positive.
     if n <= 0: return
@@ -406,21 +409,21 @@ def ClearCheck(n=1):
         for f in fglob[:-n]:
             # Remove it.
             os.remove(f)
-# def ClearCheck
+
 
 # Clear check files created during start/stop running
 def ClearCheck_iStart(nkeep=1, istart=0):
-    """Clear check files that were created since iteration *istart*
+    r"""Clear check files that were created since iteration *istart*
     
     :Call:
-        >>> pyCart.manage.ClearCheck_iStart(nkeep=1, istart=0)
+        >>> ClearCheck_iStart(nkeep=1, istart=0)
     :Inputs:
         *nkeep*: :class:`int`
             Number of most recent check files to keep
         *istart*: :class:`int`
             Do not delete check files prior to iteration *istart*
     :Versions:
-        * 2016-03-04 ``@ddalle``: First version
+        * 2016-03-04 ``@ddalle``: Version 1.0
     """
     # Exit if non-positive
     if nkeep is None or nkeep < 0: return
@@ -464,32 +467,29 @@ def ClearCheck_iStart(nkeep=1, istart=0):
             if i <= istart: continue
             # Delete the file.
             os.remove(fc)
-# def CleaCheck_iStart
+
 
 # Archive folder.
 def ArchiveFolder(opts):
-    """
-    Archive a folder to a backup location and clean up the folder if requested
+    r"""Archive a folder to a backup location and clean up if requested
     
     :Call:
-        >>> pyCart.manage.ArchiveFolder(opts)
+        >>> ArchiveFolder(opts)
     :Inputs:
-        *opts*: :class:`pyCart.options.Options`
+        *opts*: :class:`cape.pycart.options.Options`
             Options interface of pyCart management interface
     :Versions:
-        * 2015-01-11 ``@ddalle``: First version
+        * 2015-01-11 ``@ddalle``: Version 1.0
     """
     # Restrict options to correct class
-    opts = Archive.auto_Archive(opts)
+    opts = archiveopts.auto_Archive(opts)
     # Get archive type
     ftyp = opts.get_ArchiveType()
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
-    # Get the remote copy command
-    fscp = opts.get_RemoteCopy()
     # If no action, do not backup
-    if not ftyp or not flfe: return
-            
+    if not ftyp or not flfe:
+        return
     # Get the current folder.
     fdir = os.path.split(os.getcwd())[-1]
     # Go up a folder.
@@ -500,51 +500,45 @@ def ArchiveFolder(opts):
     frun = os.path.join(fgrp, fdir)
     # Reenter case folder
     os.chdir(fdir)
-    
     # Ensure folder exists.
-    cape.manage.CreateArchiveFolder(opts)
-    cape.manage.CreateArchiveCaseFolder(opts)
-    
+    manage.CreateArchiveFolder(opts)
+    manage.CreateArchiveCaseFolder(opts)
     # Get the archive format, extension, and command
-    fmt  = opts.get_ArchiveFormat()
-    cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
     # Write date
-    cape.manage.write_log_date()
+    manage.write_log_date()
     # Pre-archiving file management
     ManageFilesPre(opts)
     # Perform remote copy
     if ftyp.lower() == "full":
         # Archive entire folder
-        cape.manage.ArchiveCaseWhole(opts)
+        manage.ArchiveCaseWhole(opts)
         # Post-archiving file management
         ManageFilesPost(opts)
     else:
         # Partial archive; create folder containing several files
         # Form destination folder name
-        ftar = os.path.join(flfe, fgrp, fdir)
         # Archive end-of-run files
-        cape.manage.ProgressArchiveFiles(opts, fsub=fsub)
+        manage.ProgressArchiveFiles(opts, fsub=fsub)
         # Create tar balls as appropriate before archiving
-        cape.manage.PostTarGroups(opts, frun=frun)
-        cape.manage.PostTarDirs(opts, frun=frun)
+        manage.PostTarGroups(opts, frun=frun)
+        manage.PostTarDirs(opts, frun=frun)
         # Archive existing tar balls
-        cape.manage.ArchiveFiles(opts, ['*.%s'%ext, '*.tar', '*.zip'])
+        manage.ArchiveFiles(opts, ['*.%s'%ext, '*.tar', '*.zip'])
         # After archiving, perform clean-up
-        cape.manage.PostDeleteFiles(opts, fsub=fsub)
-        cape.manage.PostUpdateFiles(opts, fsub=fsub)
-        cape.manage.PostDeleteDirs(opts)
-        
-# def ArchiveFolder
+        manage.PostDeleteFiles(opts, fsub=fsub)
+        manage.PostUpdateFiles(opts, fsub=fsub)
+        manage.PostDeleteDirs(opts)
+
         
 # Clean up a folder but don't delete it.
 def SkeletonFolder():
-    """Clean up a folder of everything but the essentials
+    r"""Clean up a folder of everything but the essentials
     
     :Call:
-        >>> pyCart.manage.SkeletonFolder()
+        >>> cape.pycart.manage.SkeletonFolder()
     :Versions:
-        * 2015-01-11 ``@ddalle``: First version
+        * 2015-01-11 ``@ddalle``: Version 1.0
     """
     # Get list of adapt?? folders.
     fglob = glob.glob('adapt??')
@@ -562,14 +556,14 @@ def SkeletonFolder():
     for f in glob.glob('*.tbz'): os.remove(f)
     # Remove Mesh.* files
     for f in glob.glob('Mesh.*'): os.remove(f)
-# def SkeletonFolder
+
     
 # Check if an archive already exists
 def CheckArchive(ftar):
-    """Check if an archive already exists
+    r"""Check if an archive already exists
     
     :Call:
-        >>> q = pyCart.manage.CheckArchive(ftar)
+        >>> q = cape.pycart.manage.CheckArchive(ftar)
     :Inputs:
         *ftar*: :class:`str`
             Full path to archive folder
@@ -577,7 +571,7 @@ def CheckArchive(ftar):
         *q*: :class:`bool`
             Returns ``True`` if *ftar* exists
     :Versions:
-        * 2015-01-11 ``@ddalle``: First version
+        * 2015-01-11 ``@ddalle``: Version 1.0
     """
     # Check for a remote folder.
     if ':' in ftar:
@@ -590,5 +584,4 @@ def CheckArchive(ftar):
     else:
         # Local
         return os.path.isfile(ftar)
-# def CheckArchive
 

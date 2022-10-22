@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pyfun.options.runControl.RunControl`: Run control options
 ======================================================================
 
@@ -18,8 +18,8 @@ There is also an ``"Archive"`` section that can be used for copying
 files and cleaning up afterone or more cases have been completed.
 
 This module primarily provides a class
-:class:`cape.pyfun.options.RunControl`. Many of the options that are common
-to all solvers are inherited from
+:class:`cape.pyfun.options.RunControl`. Many of the options that are
+common to all solvers are inherited from
 :class:`cape.cfdx.options.runControl.RunControl`. This class also has
 an interface for environment variables and ``ulimit`` parameters.
 
@@ -42,18 +42,15 @@ below are also available to
     * :mod:`cape.pyfun.options.Archive`
 """
 
-# Import options-specific utilities
-from .util import rc0, getel, odict
-
-# Import template module
-import cape.cfdx.options.runControl
-# Submodules
-from .Archive import Archive
+# Local imports
+from .archiveopts import ArchiveOpts
+from .util import rc0, odict
+from ...cfdx.options import runControl
 
 
 # Class for `nodet` inputs
 class nodet(odict):
-    """Class for ``nodet`` command-line inputs"""
+    r"""Class for ``nodet`` command-line inputs"""
     
     # Animation frequency
     def get_nodet_animation_freq(self, i=None):
@@ -96,7 +93,7 @@ class nodet(odict):
 
 # Class for ``dual`` inputs
 class dual(odict):
-    """Class for ``dual`` command-line inputs"""
+    r"""Class for ``dual`` command-line inputs"""
     
     # Helpful convergence flag
     def get_dual_outer_loop_krylov(self, j=None):
@@ -214,7 +211,7 @@ class dual(odict):
 
 
 # Class for Report settings
-class RunControl(cape.cfdx.options.runControl.RunControl):
+class RunControl(runControl.RunControl):
     r"""Dictionary-based interface for automated reports
     
     :Call:
@@ -262,14 +259,12 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
         elif type(self['dual']).__name__ == 'dict':
             # Convert to special class
             self['dual'] = dual(**self['dual'])
-            
    # >
    
-   # ============== 
+   # ==============
    # Local settings
    # ==============
    # <
-   
     # Keep Restart files?
     def get_KeepRestarts(self, i=None):
         """Return whether or not to keep restart files
@@ -529,7 +524,6 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
                 j += 1
         # Output
         return j
-        
    # >
     
    # =================
@@ -538,16 +532,5 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
    # <
     # Initialization method for folder management options
     def _Archive(self):
-        """Initialize folder management options if necessary"""
-        # Check status
-        if 'Archive' not in self:
-            # Missing entirely.
-            self['Archive'] = Archive()
-        elif type(self['Archive']).__name__ == 'dict':
-            # Convert to special class
-            self['Archive'] = Archive(**self['Archive'])
-    
+        self.init_section(ArchiveOpts, "Archive")
    # >
-# class RunControl
-
-
