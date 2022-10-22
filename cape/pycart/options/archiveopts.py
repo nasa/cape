@@ -105,6 +105,114 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         """
         # Apply the template
         self.apply_ArchiveTemplate()
+    
+    # Apply template
+    def apply_ArchiveTemplate(self):
+        r"""Apply named template to set default files to delete/archive
+        
+        :Call:
+            >>> opts.apply_ArchiveTemplate()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Versions:
+            * 2016-02-29 ``@ddalle``: Version 1.0
+        """
+        # Get the template
+        tmp = self.get_ArchiveTemplate().lower()
+        # Extension
+        ext = self.get_ArchiveExtension()
+        # Check it
+        if tmp in ["full"]:
+            # Archive almost everything and then clean up slightly
+            # Files/folders to delete prior to archiving
+            self.add_ArchivePreDeleteFiles([])
+            self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
+            # Pre-archiving
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
+            # Files to delete before saving
+            self.add_ArchivePreUpdateFiles([])
+            # Files/folders to delete after archiving
+            self.add_ArchivePostDeleteFiles(
+                ['adapt??.'+ext, 'checkDT*'])
+            self.add_ArchivePostDeleteDirs([])
+            # Post-archiving
+            self.add_ArchivePostTarGroups([])
+            self.add_ArchivePostTarDirs([])
+            # Files to keep only *n*
+            self.add_ArchivePostUpdateFiles(CheckDict)
+        elif tmp in ["restart"]:
+            # Keep everything needed to restart
+            # Pre-archiving
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
+            # Files/folders to delete after archiving
+            self.add_ArchivePostDeleteFiles(
+                ['adapt??.'+ext, 'checkDT*', 'Components.i.triq'])
+            self.add_ArchivePostDeleteDirs(["ADAPT", "EMBED"])
+            # Files to keep only *n*
+            self.add_ArchivePostUpdateFiles(CheckDict)
+            self.add_ArchivePostUpdateFiles(VizDict)
+        elif tmp in ["viz"]:
+            # Keep visualization stuff only
+            # Pre-archiving
+            self.add_ArchivePreDeleteFiles(["Mesh*", "checkDT*"])
+            self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
+            # Pre-archiving
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
+            self.add_ArchivePreUpdateFiles(CheckDict)
+            # Files/folders to delete after archiving
+            self.add_ArchivePostDeleteFiles([
+                'adapt??.'+ext, 'checkDT*',
+                'Components.i.tri', '*.lay', '*.out'
+            ])
+            self.add_ArchivePostDeleteFiles(RunFiles)
+            # Files to keep only *n*
+            self.add_ArchivePostUpdateFiles(RunDict)
+        elif tmp in ["hist"]:
+            # Keep history only
+            # Pre-archiving
+            self.add_ArchivePreDeleteFiles(["Mesh*"])
+            self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
+            # Pre-archiving
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
+            self.add_ArchivePreUpdateFiles(CheckDict)
+            # Files/folders to delete after archiving
+            self.add_ArchivePostDeleteFiles([
+                'adapt??.'+ext, 'checkDT*', 'check*', 
+                'Components.*.tri', '*.lay', '*.out'
+            ])
+            self.add_ArchivePostDeleteFiles(RunFiles)
+            # Files to keep only *n*
+            self.add_ArchivePostUpdateFiles(VizDict)
+            self.add_ArchivePostUpdateFiles(RunDict)
+        elif tmp in ["skeleton"]:
+            # Keep only basic info
+            # Pre-archiving
+            self.add_ArchivePreDeleteFiles(["Mesh*", "checkDT*"])
+            self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
+            self.add_ArchivePreUpdateFiles(CheckDict)
+            # Files/folders to delete after archiving
+            self.add_ArchivePostDeleteFiles([
+                'adapt??.'+ext, 'checkDT*', 'check*', '*.pbs', 
+                'Components*triq', 'Components*tri', '*.lay', '*.out'
+            ])
+            self.add_ArchivePostDeleteFiles(RunFiles)
+        elif tmp in ["none"]:
+            # Do nothing at all
+            pass
+        else:
+            # Basic templates
+            self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
+            self.add_ArchivePostDeleteFiles(['checkDT*', '*.lay', '*.out'])
+            self.add_ArchivePostUpdateFiles(CheckDict)
 
 
 # Add full options

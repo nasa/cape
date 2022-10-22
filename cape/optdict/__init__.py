@@ -1302,7 +1302,7 @@ class OptionsDict(dict):
             v = self._xrc[opt]
         else:
             # Attempt to get from default, search bases if necessary
-            v = self.__class__.get_cls_key("_rc", opt)
+            v = copy.deepcopy(self.__class__.get_cls_key("_rc", opt))
         # Set values
         kw.setdefault("x", self.x)
         # Check option
@@ -1485,6 +1485,11 @@ class OptionsDict(dict):
             return
         # Get Current list
         vcur = self.get_opt(opt)
+        # Get full name
+        fullopt = self.apply_optmap(opt)
+        # Save value if new
+        if fullopt not in self:
+            self[fullopt] = vcur
         # Check key type
         if isinstance(vcur, dict):
             # Check input type

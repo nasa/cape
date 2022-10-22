@@ -45,6 +45,7 @@ class ArchiveOpts(OptionsDict):
         "PostDeleteFiles",
         "PostTarDirs",
         "PostTarGroups",
+        "PostUpdateFiles",
         "PreDeleteDirs",
         "PreDeleteFiles",
         "PreTarDirs",
@@ -65,7 +66,10 @@ class ArchiveOpts(OptionsDict):
 
     # Types
     _opttypes = {
-        "_default_": str,
+        "ArchiveFolder": str,
+        "ArchiveTemplate": str,
+        "RemoteCopy": str,
+        "_default_": (str, dict),
     }
 
     # Limited allowed values
@@ -78,7 +82,7 @@ class ArchiveOpts(OptionsDict):
 
     # Parameters to avoid phasing
     _optlistdepth = {
-        "_default_": 1,
+        "_default_": 0,
     }
 
     # Default values
@@ -351,6 +355,7 @@ _GETTER_OPTS = (
     "PreDeleteFiles",
     "PreTarGroups",
     "PreTarDirs",
+    "PreUpdateFiles",
     "ProgressArchiveFiles",
     "ProgressDeleteDirs",
     "ProgressDeleteFiles",
