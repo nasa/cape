@@ -16,38 +16,6 @@ import os
 from .util import OptionsDict
 
 
-# Turn dictionary into Archive options
-def auto_Archive(opts):
-    r"""Automatically convert :class:`dict` to :class:`ArchiveOpts`
-    
-    :Call:
-        >>> opts = auto_Archive(opts)
-    :Inputs:
-        *opts*: :class:`dict`
-            Dict of either global, "RunControl" or "Archive" options
-    :Outputs:
-        *opts*: :class:`ArchiveOpts`
-            Instance of archiving options
-    :Versions:
-        * 2016-02-29 ``@ddalle``: Version 1.0
-    """
-    # Check type
-    if not isinstance(opts, dict):
-        # Invalid type
-        raise TypeError(
-            "Expected input type 'dict'; got '%s'" % type(opts).__name__)
-    # Downselect if appropriate
-    opts = opts.get("RunControl", opts)
-    opts = opts.get("Archive", opts)
-    # Check if already initialized
-    if isinstance(opts, ArchiveOpts):
-        # Good; quit
-        return opts
-    else:
-        # Convert to class
-        return ArchiveOpts(**opts)
-
-
 # Class for folder management and archiving
 class ArchiveOpts(OptionsDict):
     r"""Archive mamangement options interface
@@ -400,3 +368,36 @@ ArchiveOpts.add_properties(_ARCHIVE_PROPS)
 # Add getters only
 ArchiveOpts.add_getters(_GETTER_OPTS, prefix="Archive")
 ArchiveOpts.add_extenders(_GETTER_OPTS, prefix="Archive")
+
+
+# Turn dictionary into Archive options
+def auto_Archive(opts, cls=ArchiveOpts):
+    r"""Automatically convert :class:`dict` to :class:`ArchiveOpts`
+    
+    :Call:
+        >>> opts = auto_Archive(opts)
+    :Inputs:
+        *opts*: :class:`dict`
+            Dict of either global, "RunControl" or "Archive" options
+    :Outputs:
+        *opts*: :class:`ArchiveOpts`
+            Instance of archiving options
+    :Versions:
+        * 2016-02-29 ``@ddalle``: Version 1.0
+        * 2022-10-21 ``@ddalle``: Version 2.0, add *cls* input
+    """
+    # Check type
+    if not isinstance(opts, dict):
+        # Invalid type
+        raise TypeError(
+            "Expected input type 'dict'; got '%s'" % type(opts).__name__)
+    # Downselect if appropriate
+    opts = opts.get("RunControl", opts)
+    opts = opts.get("Archive", opts)
+    # Check if already initialized
+    if isinstance(opts, cls):
+        # Good; quit
+        return opts
+    else:
+        # Convert to class
+        return cls(**opts)

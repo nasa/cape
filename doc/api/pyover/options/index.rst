@@ -12,7 +12,7 @@
 .. toctree::
     
     runControl
-    Archive
+    archiveopts
     Config
     Mesh
     overnml

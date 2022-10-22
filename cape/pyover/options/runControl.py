@@ -43,7 +43,8 @@ from .util import rc0, getel, odict
 # Import template module
 import cape.cfdx.options.runControl
 # Submodules
-from .Archive import Archive
+from .archiveopts import ArchiveOpts
+
 
 # Class for OVERFLOW command-line interface
 class overrun(odict):
@@ -153,11 +154,11 @@ class overrun(odict):
             * 2016-02-02 ``@ddalle``: First version
         """
         return self.get_key('args', i, rck='overrun_args')
-# class overrun
+
 
 # Class for Report settings
 class RunControl(cape.cfdx.options.runControl.RunControl):
-    """Dictionary-based interface for automated reports
+    r"""Dictionary-based interface for automated reports
     
     :Call:
         >>> opts = RunControl(**kw)
@@ -229,7 +230,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
     
    # >
    
-   # ============== 
+   # ==============
    # Local settings
    # ==============
    # <
@@ -259,15 +260,7 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
    # <
     # Initialization method for folder management options
     def _Archive(self):
-        """Initialize folder management options if necessary"""
-        # Check status
-        if 'Archive' not in self:
-            # Missing entirely.
-            self['Archive'] = Archive()
-        elif type(self['Archive']).__name__ == 'dict':
-            # Convert to special class
-            self['Archive'] = Archive(**self['Archive'])
-    
+        self.init_section(ArchiveOpts, "Archive")
    # >
 # class RunControl
 
