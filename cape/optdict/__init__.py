@@ -1309,6 +1309,9 @@ class OptionsDict(dict):
         mode = kw.pop("mode", None)
         # Apply getel() for details
         val = optitem.getel(v, j=j, i=i, **kw)
+        # Don't check if ``None``
+        if val is None:
+            return
         # Check *val*
         valid = self.check_opt(opt, val, mode, out=True)
         # Test validity of *val*

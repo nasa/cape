@@ -38,7 +38,7 @@ from .Report import Report
 from .Mesh import Mesh
 from .Config import Config
 from .runControl import RunControl
-from ...optdict import OptionsDict
+from ...optdict import OptionsDict, INT_TYPES
 
 
 # Class definition
@@ -62,6 +62,31 @@ class Options(OptionsDict):
    # Class attributes
    # ================
    # <
+    # Known option types
+    _opttypes = {
+        "BatchShellCmds": str,
+        "PythonExec": str,
+        "nSubmit": INT_TYPES,
+    }
+
+    # Option default list depth
+    _optlistdepth = {
+        "BatchShellCmds": 1,
+        "ShellCmds": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "nSubmit": 10,
+    }
+
+    # Descriptions for methods
+    _rst_descriptions = {
+        "BatchShellCmds": "additional shell commands for batch jobs",
+        "PythonExec": "specific Python executable to use for jobs",
+        "nSubmit": "maximum number of jobs to submit at one time",
+    }
+
     # Section classes
     _sec_cls = {
         "BatchPBS": PBSOpts,
@@ -102,7 +127,17 @@ class Options(OptionsDict):
    # <
     # Initialization hook
     def init_post(self):
-        # Read the defaults.
+        r"""Initialization hook for :class:`Options`
+
+        :Call:
+            >>> opts.init_post()
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+        :Versions:
+            * 2022-10-23 ``@ddalle``: Version 1.0
+        """
+        # Read the defaults
         defs = util.getCapeDefaults()
         # Apply the defaults.
         self = util.applyDefaults(self, defs)
@@ -359,49 +394,9 @@ class Options(OptionsDict):
    # Global Options
    # ==============
    # <
-
-    # Get Python version to execute cases
-    def get_PythonExec(self, j=0):
-        r"""Get specific Python executable to use for jobs
-
-        :Call:
-            >>> pyexec = opts.get_PythonExec(j=0)
-        :Inputs:
-            *opts*: :class:`Options`
-                CAPE options interface
-            *j*: {``0``} | ``None`` | :class:`int`
-                Phase number
-        :Outputs:
-            *pyexec*: ``None`` | :class:`str`
-                Name of specific Python executable, if any
-        :Versions:
-            * 2021-08-05 ``@ddalle``: Version 1.0
-        """
-        return getel(self.get("PythonExec"), j)
-
-
-    # Set specific python executable
-    def set_PythonExec(self, pyexec, j=None):
-        r"""Set specific Python executable to use for jobs
-
-        :Call:
-            >>> opts.set_PythonExec(pyexec, j=0)
-        :Inputs:
-            *opts*: :class:`Options`
-                CAPE options interface
-            *pyexec*: ``None`` | :class:`str`
-                Name of specific Python executable, if any
-            *j*: {``0``} | ``None`` | :class:`int`
-                Phase number
-        :Versions:
-            * 2021-08-06 ``@ddalle``: Version 1.0
-        """
-        # Set the value by run sequence.
-        self.set_key("PythonExec", pyexec, i=j)
-   
     # Function to get the shell commands
     def get_ShellCmds(self, typ=None):
-        """Get shell commands, if any
+        r"""Get shell commands, if any
         
         :Call:
             >>> cmds = opts.get_ShellCmds(typ=None)
@@ -454,65 +449,9 @@ class Options(OptionsDict):
         # Set them.
         self['ShellCmds'] = cmds
     
-    # Get shell commands for batch jobs
-    def get_BatchShellCmds(self):
-        """Get additional shell commands for batch jobs
-        
-        :Call:
-            >>> cmds = opts.get_BatchShellCmds()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *cmds*: :class:`list`\ [:class:`str`]
-                List of initialization commands
-        :Versions:
-            * 2017-01-10 ``@ddalle``: Version 1.0
-        """
-        # Get the commands
-        cmds = self.get('BatchShellCmds', [])
-        # Turn to a list if not
-        if type(cmds).__name__ != 'list':
-            cmds = cmds.split(';')
-        # Output
-        return cmds
-    
-    # Method to get the max number of jobs to submit.
-    def get_nSubmit(self):
-        """Return the maximum number of jobs to submit at one time
-        
-        :Call:
-            >>> nSub = opts.get_nSubmit()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *nSub*: :class:`int`
-                Maximum number of jobs to submit
-        :Versions:
-            * 2015-01-24 ``@ddalle``: Version 1.0
-        """
-        return self.get('nSubmit', rc0('nSubmit'))
-        
-    # Set the max number of jobs to submit.
-    def set_nSubmit(self, nSub=rc0('nSubmit')):
-        """Set the maximum number of jobs to submit at one time
-        
-        :Call:
-            >>> opts.set_nSubmit(nSub)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *nSub*: :class:`int`
-                Maximum number of jobs to submit
-        :Versions:
-            * 2015-01-24 ``@ddalle``: Version 1.0
-        """
-        self['nSubmit'] = nSub
-    
     # Method to determine if groups have common meshes.
     def get_GroupMesh(self):
-        """Determine whether or not groups have common meshes
+        r"""Determine whether or not groups have common meshes
         
         :Call:
             >>> qGM = opts.get_GroupMesh()
@@ -521,27 +460,29 @@ class Options(OptionsDict):
                 Options interface
         :Outputs:
             *qGM*: :class:`bool`
-                True all cases in a group use the same (starting) mesh
+                Whether cases in a group use the same (starting) mesh
         :Versions:
             * 2014-10-06 ``@ddalle``: Version 1.0
+            * 2022-10-23 ``@ddalle``: Version 1.1; hard-code default
         """
         # Safely get the trajectory.
         x = self.get('RunMatrix', {})
-        return x.get('GroupMesh', rc0('GroupMesh'))
+        return x.get('GroupMesh', False)
         
     # Method to specify that meshes do or do not use the same mesh
-    def set_GroupMesh(self, qGM=rc0('GroupMesh')):
-        """Specify that groups do or do not use common meshes
+    def set_GroupMesh(self, qGM=False):
+        r"""Specify that groups do or do not use common meshes
         
         :Call:
             >>> opts.get_GroupMesh(qGM)
         :Inputs:
             *opts* :class:`pyCart.options.Options`
                 Options interface
-            *qGM*: :class:`bool`
-                True all cases in a group use the same (starting) mesh
+            *qGM*: ``True`` | {``False``}
+                Whether cases in a group use the same (starting) mesh
         :Versions:
             * 2014-10-06 ``@ddalle``: Version 1.0
+            * 2022-10-23 ``@ddalle``: Version 1.1; hard-code default
         """
         self['RunMatrix']['GroupMesh'] = qGM
         
@@ -585,7 +526,7 @@ class Options(OptionsDict):
         
     # Get the directory permissions to use
     def get_dmask(self, sys=True):
-        """Get the permissions to assign to new folders
+        r"""Get the permissions to assign to new folders
         
         :Call:
             >>> dmask = opts.get_dmask(sys=True)
@@ -609,7 +550,7 @@ class Options(OptionsDict):
         
     # Apply the umask
     def apply_umask(self, sys=True):
-        """Apply the permissions filter
+        r"""Apply the permissions filter
         
         :Call:
             >>> opts.apply_umask(sys=True)
@@ -620,16 +561,16 @@ class Options(OptionsDict):
                 Whether or not to use system setting as default
         :Versions:
             * 2015-09-27 ``@ddalle``: Version 1.0
-            * 2017-09-05 ``@ddalle``: Added *sys* input variable
+            * 2017-09-05 ``@ddalle``: Version 1.1; add *sys* kwarg
         """
         # Get umask
         umask = self.get_umask()
         # Apply if possible
         if umask is not None:
             os.umask(umask)
-   # >
 
 
+# Add global properties
+Options.add_properties(("BatchShellCmds", "PythonExec", "nSubmit"))
 # Add methods from subsections
-Options.promote_subsec(RunControl, "RunControl")
-
+Options.promote_sections()
