@@ -2864,7 +2864,6 @@ def promote_subsec(cls1, cls2, sec=None, skip=[], **kw):
         * 2019-01-10 ``@ddalle``: Version 1.0
     """
     # Get property dictionaries
-    dict1 = cls1.__dict__
     dict2 = cls2.__dict__
     # Create the decorator to promote each method (function)
     f_deco = subsec_func(cls2, sec, **kw)
@@ -2879,7 +2878,7 @@ def promote_subsec(cls1, cls2, sec=None, skip=[], **kw):
         if not callable(func):
             continue
         # Check if already present
-        if fn in dict1:
+        if hasattr(cls1, fn):
             continue
         # Set attribute to decorated function
         setattr(cls1, fn, f_deco(func))
