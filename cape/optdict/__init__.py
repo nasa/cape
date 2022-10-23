@@ -1479,7 +1479,8 @@ class OptionsDict(dict):
             *val*: **any**
                 Value to append to *opts[opt]*. If *opts[opt]* is a
                 :class:`dict`, *val* must also be a :class:`dict`
-            %(_RST_WARNMODE2)s
+            *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
+                %(_RST_WARNMODE2)s
         :Versions:
             * 2022-10-14 ``@ddalle``: Version 1.0
         """

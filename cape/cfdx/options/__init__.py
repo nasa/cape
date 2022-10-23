@@ -30,7 +30,6 @@ import os
 
 # Local imports
 from . import util
-from .util import *
 from .pbsopts import PBSOpts
 from .slurm import Slurm
 from .DataBook import DataBook, DBTarget
@@ -434,7 +433,7 @@ class Options(OptionsDict):
         
     # Function to set the shell commands
     def set_ShellCmds(self, cmds):
-        """Set shell commands
+        r"""Set shell commands
         
         :Call:
             >>> opts.set_ChellCmds(cmds=[])

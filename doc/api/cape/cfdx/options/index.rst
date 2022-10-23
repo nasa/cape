@@ -1,16 +1,13 @@
 .. Documentation for the overall cape module.
 
 ==========================================
-:mod:`cape.cfdx.options`: Options module 
+:mod:`cape.cfdx.options`: Options package
 ==========================================
 
 .. automodule:: cape.cfdx.options
     
     .. autoclass:: cape.cfdx.options.Options
-        :members: AddPythonPath, WritePBSHeader,
-            mkdir, get_umask, get_dmask,
-            get_ShellCmds, get_nSubmit
-    
+        :members:     
 
 .. toctree::
     :maxdepth: 2
