@@ -3,13 +3,18 @@
 import numpy as np
 
 # Local imports
-from cape import optdict
+from cape.optdict import (
+    OptionsDict,
+    FLOAT_TYPES,
+    INT_TYPES,
+    WARNMODE_NONE
+)
 
 
 # Options class
-class MyOpts(optdict.OptionsDict):
+class MyOpts(OptionsDict):
     _opttypes = {
-        "v": optdict.FLOAT_TYPES,
+        "v": FLOAT_TYPES,
     }
     _rc = {
         "v": 1.0,
@@ -35,7 +40,7 @@ X = {
 # Access condition
 def test_01_getoptx():
     # Initialize
-    opts = optdict.OptionsDict(MYOPTS)
+    opts = OptionsDict(MYOPTS)
     # Set conditions
     opts.set_x(X)
     # Get normal component of Mach
@@ -49,7 +54,7 @@ def test_01_getoptx():
 # Access to run matrix
 def test_02_getx():
     # Initialize
-    opts = optdict.OptionsDict()
+    opts = OptionsDict()
     # Test w/o opts.x
     mach = opts.get_xvals("mach")
     # Test
@@ -65,7 +70,7 @@ def test_02_getx():
 # Test phase/index compound
 def test_03_getoptj():
     # Initialize
-    opts = optdict.OptionsDict(
+    opts = OptionsDict(
         a=[
             {"@expr": "$mach"},
             {"@expr": "10*$mach"}
@@ -82,14 +87,14 @@ def test_03_getoptj():
 # Get an invalid value that couldn't be checked at assign
 def test_04_getopt_invalid():
     # Initialize
-    opts = optdict.OptionsDict(a={"@expr": "(4*$mach) // 2"})
+    opts = OptionsDict(a={"@expr": "(4*$mach) // 2"})
     opts.set_x(X)
     # Set types
-    opts.add_xopttype("a", optdict.INT_TYPES)
+    opts.add_xopttype("a", INT_TYPES)
     # Try to evaluate
     assert opts.get_opt("a", i=1) is None
     # Without checks, should get 1.0
-    assert opts.get_opt("a", i=1, mode=optdict.WARNMODE_NONE) == 1.0
+    assert opts.get_opt("a", i=1, mode=WARNMODE_NONE) == 1.0
 
 
 # Test defaults

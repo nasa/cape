@@ -4,10 +4,10 @@
 import pytest
 
 # Local
-from cape import optdict
+from cape.optdict import OptionsDict, OptdictTypeError
 
 
 def test_bad_arg0():
-    with pytest.raises(TypeError):
-        opts = optdict.OptionsDict(1)
+    with pytest.raises(OptdictTypeError):
+        OptionsDict(1)
 

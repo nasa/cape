@@ -1,19 +1,16 @@
 
-# Third-party
-import numpy as np
-
 # Local imports
-from cape import optdict
+from cape.optdict import OptionsDict
 
 
 # Options class
-class MyOpts(optdict.OptionsDict):
+class MyOpts(OptionsDict):
     def init_post(self):
         for sec in self:
             self.init_section(MySecOpts, sec)
 
 
-class MySecOpts(optdict.OptionsDict):
+class MySecOpts(OptionsDict):
     _rc = {
         "color": "b",
     }
@@ -38,7 +35,7 @@ MYOPTS = {
 # Cascading options
 def test_01_getsubopt():
     # Initialize
-    opts = optdict.OptionsDict(MYOPTS)
+    opts = OptionsDict(MYOPTS)
     # Test cascading options
     assert opts.get_subopt("STACK_CA", "n") == MYOPTS["IterFM"]["n"]
     assert opts.get_subopt("STACK_CA", "Comp") == MYOPTS["STACK"]["Comp"]
@@ -57,6 +54,6 @@ def test_02_getsubopt():
 # Bad type
 def test_03_getsubopt():
     # Initialize
-    opts = optdict.OptionsDict({"STACK": True})
+    opts = OptionsDict({"STACK": True})
     # Attempt to get option from broken subsection
     assert opts.get_subopt("STACK", "n") is None

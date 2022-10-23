@@ -1,9 +1,9 @@
 
 # Local imports
-from cape import optdict
+from cape.optdict import OptionsDict
 
 
-class MyOpts(optdict.OptionsDict):
+class MyOpts(OptionsDict):
     _optlistdepth = {
         "a": 0,
         "b": 2,
@@ -11,7 +11,7 @@ class MyOpts(optdict.OptionsDict):
     }
 
 
-class MyOpts2(optdict.OptionsDict):
+class MyOpts2(OptionsDict):
     _optlistdepth = {
         "a": 0,
         "b": 2,

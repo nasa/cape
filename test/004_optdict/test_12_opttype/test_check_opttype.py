@@ -1,10 +1,10 @@
 
 # Local imports
-from cape import optdict
+from cape.optdict import OptionsDict
 
 
 # Customized class
-class MyOpts(optdict.OptionsDict):
+class MyOpts(OptionsDict):
     _optlist = {
         "a",
         "b",

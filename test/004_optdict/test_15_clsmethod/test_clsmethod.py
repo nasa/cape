@@ -3,11 +3,16 @@
 import pytest
 
 # Local imports
-from cape import optdict
+from cape.optdict import (
+    OptionsDict,
+    OptdictAttributeError,
+    OptdictTypeError,
+    FLOAT_TYPES,
+    INT_TYPES)
 
 
 # Create some classes
-class MyOpts(optdict.OptionsDict):
+class MyOpts(OptionsDict):
     _optlist = {"a"}
     _rc = {
         "a": 3,
@@ -25,8 +30,8 @@ class MyOpts1(MyOpts):
     _opttypes = {
         "a": (int, float),
         "e": str,
-        "f": optdict.INT_TYPES,
-        "g": optdict.FLOAT_TYPES
+        "f": INT_TYPES,
+        "g": FLOAT_TYPES
     }
     _rst_descriptions = {
         "a": "Number of apps"
@@ -71,15 +76,15 @@ def test_clsattr01():
 # Test @property errors
 def test_clsprop01():
     # Attempt to set getter for OptionsDict
-    with pytest.raises(optdict.OptdictTypeError):
-        optdict.OptionsDict.add_getter("a")
+    with pytest.raises(OptdictTypeError):
+        OptionsDict.add_getter("a")
     # Attempt to set setter for OptionsDict
-    with pytest.raises(optdict.OptdictTypeError):
-        optdict.OptionsDict.add_setter("a")
+    with pytest.raises(OptdictTypeError):
+        OptionsDict.add_setter("a")
     # Add duplicates
-    with pytest.raises(optdict.OptdictAttributeError):
+    with pytest.raises(OptdictAttributeError):
         MyOpts1.add_getter("a")
-    with pytest.raises(optdict.OptdictAttributeError):
+    with pytest.raises(OptdictAttributeError):
         MyOpts1.add_setter("a")
 
 

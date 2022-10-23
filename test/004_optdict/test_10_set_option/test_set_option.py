@@ -1,7 +1,9 @@
 
 # Local imports
-from cape import optdict
 from cape.optdict import (
+    OptionsDict,
+    DEFAULT_WARNMODE,
+    INDEX_ONAME,
     WARNMODE_NONE,
     WARNMODE_QUIET,
     WARNMODE_WARN,
@@ -10,7 +12,7 @@ from cape.optdict.opterror import OptdictNameError
 
 
 # Create a class with some option limitations
-class MyOpts(optdict.OptionsDict):
+class MyOpts(OptionsDict):
     __slots__ = ()
     _optlist = {
         "opt1",
@@ -138,8 +140,8 @@ def test_warnmode01():
     # Empty
     opts = MyOpts()
     # Get warning mode from class
-    i = optdict.INDEX_ONAME
+    i = INDEX_ONAME
     assert opts._get_warnmode(None, i) == MyOpts._warnmode[i]
     # Get global default as fallback
     MyOpts._warnmode = None
-    assert opts._get_warnmode(None, 0) == optdict.DEFAULT_WARNMODE
+    assert opts._get_warnmode(None, 0) == DEFAULT_WARNMODE

@@ -1,11 +1,10 @@
 
 # Local imports
-from cape import optdict
-from cape.optdict.opterror import OptdictValueError
+from cape.optdict import OptionsDict, WARNMODE_WARN
 
 
 # Custom options
-class MyOptions(optdict.OptionsDict):
+class MyOptions(OptionsDict):
     _optvals = {
         "a": {"on", "off"},
         "b": {1, 2, 3},
@@ -48,11 +47,11 @@ def test_03_invalid():
 # Test close-matches thing
 def test_04_close():
     # Create empty instance
-    opts = optdict.OptionsDict()
+    opts = OptionsDict()
     # Set some extra allowed values
     opts._xoptvals = dict(a={"blue", "brown", "green", "orange", "red"})
     # Strict checking
-    opts._xwarnmode = optdict.WARNMODE_WARN
+    opts._xwarnmode = WARNMODE_WARN
     # Try a misspelled color
     opts.set_opt("a", "greeb")
     # Get error message

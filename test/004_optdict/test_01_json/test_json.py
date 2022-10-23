@@ -3,7 +3,7 @@
 import os
 
 # Local
-from cape import optdict
+from cape.optdict import OptionsDict
 
 
 # Globals
@@ -14,7 +14,7 @@ def test_json01_simple():
     # Reliable path
     fjson = os.path.join(THIS_DIR, "simple01.json")
     # Read file
-    opts = optdict.OptionsDict(fjson)
+    opts = OptionsDict(fjson)
     # Test types
     assert isinstance(opts["i"], int)
     assert isinstance(opts["x"], float)

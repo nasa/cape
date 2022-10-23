@@ -1465,7 +1465,7 @@ class OptionsDict(dict):
         This function allows for targeted additions to :class:`list` and
         :class:`dict` values for *opt* without redefining the entire
         entry.
-        
+
         :Call:
             >>> opts.extend_opt(opt, val, mode=None)
         :Inputs:
@@ -1485,11 +1485,6 @@ class OptionsDict(dict):
             return
         # Get Current list
         vcur = self.get_opt(opt)
-        # Get full name
-        fullopt = self.apply_optmap(opt)
-        # Save value if new
-        if fullopt not in self:
-            self[fullopt] = vcur
         # Check key type
         if isinstance(vcur, dict):
             # Check input type
@@ -1512,12 +1507,17 @@ class OptionsDict(dict):
                 vcur.append(val)
         elif opt not in self:
             # Set value from scratch
-            self.set_opt(opt, val, mode=mode)
+            vcur = val
         else:
             # Unextendable type
             raise OptdictTypeError(
                 ("Cannot extend %s " % self._genr8_opt_msg(opt)) +
                 ("with type '%s'" % type(vcur).__name__))
+        # Get full name
+        fullopt = self.apply_optmap(opt)
+        # Save value if new
+        if fullopt not in self:
+            self.set_opt(opt, vcur, mode=mode)
 
   # *** OPTION PROPERTIES ***
    # --- Option checkers ---
@@ -2290,6 +2290,28 @@ class OptionsDict(dict):
         return clsset
 
    # --- Subsections ---
+    @classmethod
+    def promote_sections(cls, skip=[]):
+        r"""Promote all sections based on class attribute *_sec_cls*
+
+        :Call:
+            >>> cls.promote_sections(skip=[])
+        :Inputs:
+            *cls*: :class:`type`
+                Parent class
+            *skip*: {``[]``} | :class:`list`
+                List of sections to skip
+        :Versions:
+            * 2022-10-23 ``@ddalle``: Version 1.0
+        """
+        # Loop through sections
+        for secj, clsj in cls._sec_cls.items():
+            # Check if skipped
+            if secj in skip:
+                continue
+            # Promote
+            cls.promote_subsec(clsj, secj)
+
     @classmethod
     def promote_subsec(cls, cls2, sec=None, skip=[], **kw):
         r"""Promote all methods of a subsection class to parent class

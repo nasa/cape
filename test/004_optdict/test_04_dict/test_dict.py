@@ -1,6 +1,6 @@
 
 # Local
-from cape import optdict
+from cape.optdict import OptionsDict
 
 
 def test_dict01_simple():
@@ -19,7 +19,7 @@ def test_dict01_simple():
         }
     }
     # Read file
-    opts = optdict.OptionsDict(d)
+    opts = OptionsDict(d)
     # Test types
     assert isinstance(opts["i"], int)
     assert isinstance(opts["x"], float)

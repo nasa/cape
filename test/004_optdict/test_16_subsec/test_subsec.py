@@ -3,11 +3,17 @@
 import pytest
 
 # Local imports
-from cape import optdict
+from cape.optdict import (
+    OptionsDict,
+    promote_subsec,
+    OptdictTypeError,
+    WARNMODE_ERROR,
+    WARNMODE_NONE
+)
 
 
 # Create class for the subsection
-class Section1AOpts(optdict.OptionsDict):
+class Section1AOpts(OptionsDict):
     _optlist = {
         "alfa",
         "beta"
@@ -18,12 +24,12 @@ class Section1AOpts(optdict.OptionsDict):
 
 
 # Another section
-class Section2Opts(optdict.OptionsDict):
+class Section2Opts(OptionsDict):
     pass
 
 
 # Create c;ass fpr a sectom
-class Section1Opts(optdict.OptionsDict):
+class Section1Opts(OptionsDict):
     _optlist = {
         "A",
     }
@@ -33,7 +39,7 @@ class Section1Opts(optdict.OptionsDict):
 
 
 # Create class with a subsection
-class MyOpts(optdict.OptionsDict):
+class MyOpts(OptionsDict):
     _optlist = {
         "Section1"
     }
@@ -48,9 +54,9 @@ Section1AOpts.add_property("alfa")
 Section1AOpts.add_property("beta")
 
 # Promote mehtods of Section1A
-optdict.promote_subsec(Section1Opts, Section1AOpts, "A", skip=["set_beta"])
-optdict.promote_subsec(MyOpts, Section1Opts, "Section1")
-optdict.promote_subsec(MyOpts, Section1Opts, "Section1")
+promote_subsec(Section1Opts, Section1AOpts, "A", skip=["set_beta"])
+MyOpts.promote_sections(skip="Section2")
+MyOpts.promote_subsec(Section1Opts, "Section1")
 MyOpts.promote_subsec(Section2Opts)
 
 
@@ -79,10 +85,10 @@ def test_subsec02():
     subsec.set_opt("alpha", 2)
     assert "Section1 > A" in subsec._lastwarnmsg
     # Test failure in setter
-    with pytest.raises(optdict.OptdictTypeError):
-        subsec.set_beta(3.1, mode=optdict.WARNMODE_ERROR)
+    with pytest.raises(OptdictTypeError):
+        subsec.set_beta(3.1, mode=WARNMODE_ERROR)
     # Set it anyway
-    subsec.set_beta(3.1, mode=optdict.WARNMODE_NONE)
+    subsec.set_beta(3.1, mode=WARNMODE_NONE)
     # Test failure in getter
-    with pytest.raises(optdict.OptdictTypeError):
-        subsec.get_beta(mode=optdict.WARNMODE_ERROR)
+    with pytest.raises(OptdictTypeError):
+        subsec.get_beta(mode=WARNMODE_ERROR)

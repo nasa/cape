@@ -1,6 +1,6 @@
 
 # Local imports
-from cape import optdict
+from cape.optdict import OptionsDict
 
 
 SECTION_OPTS = {
@@ -19,11 +19,11 @@ SECTION_OPTS = {
 }
 
 
-class PBSOpts(optdict.OptionsDict):
+class PBSOpts(OptionsDict):
     pass
 
 
-class RunControl(optdict.OptionsDict):
+class RunControl(OptionsDict):
     pass
 
 
@@ -31,7 +31,7 @@ class RunControl(optdict.OptionsDict):
 def test_init01():
     try:
         # Initialize w/ 3 positional args
-        optdict.OptionsDict({}, {"a": 2}, 2)
+        OptionsDict({}, {"a": 2}, 2)
     except TypeError as err:
         # Get message
         msg = str(err)
@@ -45,7 +45,7 @@ def test_init01():
 # Test too many args
 def test_init02():
     # Initialize w/ 2 positional args
-    opts = optdict.OptionsDict({}, _x={"a": 2})
+    opts = OptionsDict({}, _x={"a": 2})
     # Test *x*
     assert opts.x == {"a": 2}
 
@@ -53,7 +53,7 @@ def test_init02():
 # Test sections
 def test_init03():
     # Initialize
-    opts = optdict.OptionsDict(SECTION_OPTS)
+    opts = OptionsDict(SECTION_OPTS)
     # Create sections
     # ... basic with prefix
     opts.init_section(PBSOpts, "PBS", prefix="PBS_")
