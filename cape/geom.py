@@ -17,7 +17,7 @@ The main categories are:
 
 # Third-party modules
 import numpy as np
- 
+
 
 # Function to rotate a triangulation about an arbitrary vector
 def RotatePoints(X, v1, v2, theta):
@@ -393,6 +393,7 @@ def tris_have_pt(X, Y, x, y, **kw):
         y = np.transpose(np.vstack((y,y,y)))
     # Construct test point to the left of all triangles
     x0 = np.min(X) - 1.0
+    y0 = Y
     # Construct test point below all the triangles
     x1 = x
     y1 = np.min(Y) - 1.0
