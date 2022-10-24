@@ -2019,7 +2019,15 @@ class DataBook(dict):
                 DBc[k] = np.append(DBc[k], self.x[k][i])
             # Append values
             for j1, c in enumerate(DBc.DataCols):
-                DBc[c] = np.append(DBc[c], v[j1])
+                # Check output type from function
+                if isinstance(v, dict):
+                    # Get columns by name
+                    vj = v[c]
+                else:
+                    # Get values by index
+                    vj = v[j1]
+                # Append to existing array
+                DBc[c] = np.append(DBc[c], vj)
             # Append iteration counts
             if 'nIter' in DBc:
                 DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
@@ -6664,7 +6672,7 @@ class DBPyFunc(DBBase):
             # Return to original location
             os.chdir(fpwd)
         # Ensure tuple (for unpacking later)
-        if v is not None and not isinstance(v, tuple):
+        if v is not None and not isinstance(v, (tuple, dict)):
             v = v,
         # Output
         return v
@@ -10176,7 +10184,7 @@ class CaseFM(CaseData):
         """Get mean, min, max, and standard deviation for all coefficients
 
         :Call:
-            >>> s = FM.GetStatsN(nStats, nFirst=None, nLast=None)
+            >>> s = FM.GetStatsN(nStats, nLast=None)
         :Inputs:
             *FM*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
