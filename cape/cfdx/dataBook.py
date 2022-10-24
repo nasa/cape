@@ -2030,7 +2030,13 @@ class DataBook(dict):
                 DBc[k][j] = self.x[k][i]
             # Update data values.
             for j1, c in enumerate(DBc.DataCols):
-                DBc[c][j] = v[j1]
+                # Check output type from function
+                if isinstance(v, dict):
+                    # Get columns by name
+                    DBc[c][j] = v[c]
+                else:
+                    # Get values by index
+                    DBc[c][j] = v[j1]
             # Update the other statistics.
             if 'nIter' in DBc:
                 DBc['nIter'][j] = nIter
