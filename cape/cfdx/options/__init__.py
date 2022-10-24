@@ -40,6 +40,11 @@ from .runControl import RunControl
 from ...optdict import OptionsDict, INT_TYPES
 
 
+# Other imports
+odict = util.odict
+rc = util.rc
+
+
 # Class definition
 class Options(OptionsDict):
     r"""Options structure, subclass of :class:`dict`
