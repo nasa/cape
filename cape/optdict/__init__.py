@@ -884,8 +884,10 @@ class OptionsDict(dict):
         """
         # Class handle
         cls = self.__class__
+        # Get compound dictionary of section names and classes
+        sec_cls = cls.get_cls_dict("_sec_cls")
         # Loop through sections
-        for sec, seccls in cls._sec_cls.items():
+        for sec, seccls in sec_cls.items():
             # Get prefix and parent
             prefix = cls._sec_prefix.get(sec)
             parent = cls._sec_parent.get(sec)
@@ -2292,6 +2294,45 @@ class OptionsDict(dict):
                 clsset.update(clsj.get_cls_set(attr))
         # Output
         return clsset
+
+    @classmethod
+    def get_cls_dict(cls, attr: str):
+        r"""Get combined :class:`dict` for *cls* and its bases
+
+        This allows a subclass of :class:`OptionsDict` to only add to
+        the ``_opttypes`` or ``_sec_cls`` attribute rather than manually
+        include contents of all the bases.
+
+        :Call:
+            >>> clsdict = cls.get_cls_dict(attr)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *attr*: :class:`str`
+                Name of class attribute to search
+        :Outputs:
+            *clsdict*: :class:`dict`
+                Combination of ``getattr(cls, attr)`` and
+                ``getattr(cls.__bases__[0], attr)``, etc.
+        :Versions:
+            * 2022-10-24 ``@ddalle``: Version 1.0
+        """
+        # Get attribute
+        clsdict = cls.__dict__.get(attr)
+        # Initialize if necessary
+        if not isinstance(clsdict, dict):
+            clsdict = {}
+        # Loop through bases
+        for clsj in cls.__bases__:
+            # Only process if OptionsDict
+            if issubclass(clsj, OptionsDict):
+                # Recurse
+                clsdictj = clsj.get_cls_dict(attr)
+                # Update, but don't overwrite
+                for kj, vj in clsdictj.items():
+                    clsdict.setdefault(kj, vj)
+        # Output
+        return clsdict
 
    # --- Subsections ---
     @classmethod

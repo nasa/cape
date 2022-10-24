@@ -23,12 +23,7 @@ class Section1AOpts(OptionsDict):
     }
 
 
-# Another section
-class Section2Opts(OptionsDict):
-    pass
-
-
-# Create c;ass fpr a sectom
+# Create class for a section
 class Section1Opts(OptionsDict):
     _optlist = {
         "A",
@@ -36,6 +31,15 @@ class Section1Opts(OptionsDict):
     _sec_cls = {
         "A": Section1AOpts,
     }
+
+
+# Another section
+class Section2Opts(OptionsDict):
+    pass
+
+
+class Section3Opts(OptionsDict):
+    pass
 
 
 # Create class with a subsection
@@ -46,6 +50,12 @@ class MyOpts(OptionsDict):
     _sec_cls = {
         "Section1": Section1Opts,
         "Section2": Section2Opts,
+    }
+
+
+class MyOpts2(MyOpts):
+    _sec_cls = {
+        "Section3": Section3Opts,
     }
 
 
@@ -92,3 +102,12 @@ def test_subsec02():
     # Test failure in getter
     with pytest.raises(OptdictTypeError):
         subsec.get_beta(mode=WARNMODE_ERROR)
+
+
+# Test compound _sec_cls
+def test_subsec03():
+    # Create empty instance
+    opts = MyOpts2()
+    # Assert all sections present
+    assert "Section1" in opts
+    assert "Section3" in opts
