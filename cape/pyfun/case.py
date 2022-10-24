@@ -38,7 +38,7 @@ from .. import argread
 from .. import text as textutils
 from ..cfdx import case as cc
 from ..cfdx import queue
-from .options.runControl import RunControl
+from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 
 
@@ -135,7 +135,7 @@ def PrepareFiles(rc, i=None):
     :Call:
         >>> PrepareFiles(rc, i=None)
     :Inputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -173,7 +173,7 @@ def RunPhase(rc, i):
     :Call:
         >>> RunPhase(rc, i)
     :Inputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -304,7 +304,7 @@ def CheckSuccess(rc=None, i=None):
     :Call:
         >>> CheckSuccess(rc=None, i=None)
     :Inputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -340,7 +340,7 @@ def FinalizeFiles(rc, i=None):
     :Call:
         >>> FinalizeFiles(rc, i=None)
     :Inputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -482,7 +482,7 @@ def WriteStartTime(tic, rc, i, fname="pyfun_start.dat"):
     :Inputs:
         *tic*: :class:`datetime.datetime`
             Time to write into data file
-        *rc*: :class:`pyOver.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface
         *i*: :class:`int`
             Phase number
@@ -504,7 +504,7 @@ def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
     :Inputs:
         *tic*: :class:`datetime.datetime`
             Time from which timer will be measured
-        *rc*: :class:`pyCart.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface
         *i*: :class:`int`
             Phase number
@@ -562,7 +562,7 @@ def GetPhaseNumber(rc):
     :Call:
         >>> i = case.GetPhaseNumber(rc)
     :Inputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface for run control
     :Outputs:
         *i*: :class:`int`
@@ -626,7 +626,7 @@ def GetNamelist(rc=None, i=None):
     :Call:
         >>> nml = case.GetNamelist(rc=None, i=None)
     :Inputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Run control options
         *i*: :class:`int`
             Phase number
@@ -687,7 +687,7 @@ def GetProjectRootname(rc=None, i=None, nml=None):
         >>> rname = case.GetProjectRootname(rc=None, i=None,
                         nml=None)
     :Inputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Run control options
         *i*: :class:`int`
             Phase number
@@ -707,12 +707,12 @@ def GetProjectRootname(rc=None, i=None, nml=None):
     
 # Function to read the local settings file.
 def ReadCaseJSON():
-    r"""Read `RunControl` settings for local case
+    r"""Read "RunControl" settings for local case
     
     :Call:
         >>> rc = case.ReadCaseJSON()
     :Outputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface for run control settings
     :Versions:
         * 2014-10-02 ``@ddalle``: Version 1.0
@@ -725,7 +725,7 @@ def ReadCaseJSON():
     # Close the file.
     f.close()
     # Convert to a flowCart object.
-    rc = RunControl(**opts)
+    rc = RunControlOpts(**opts)
     # Output
     return rc
     
@@ -1066,7 +1066,7 @@ def SetRestartIter(rc, n=None):
     :Call:
         >>> case.SetRestartIter(rc, n=None)
     :Inputs:
-        *rc*: :class:`cape.pyfun.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Run control options
         *n*: :class:`int`
             Restart iteration number, defaults to most recent available

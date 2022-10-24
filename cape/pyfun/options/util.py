@@ -26,8 +26,11 @@ what the value of a given parameter should be is below.
     * :mod:`cape.pyfun.options`
 """
 
-# Import CAPE options utilities
-from cape.cfdx.options.util import *
+# Standard library
+import os
+
+# Local imports
+from ...cfdx.options.util import rc, getel, setel, loadJSONFile, odict
 
 
 # Local folders
@@ -35,8 +38,8 @@ PYFUN_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PYFUN_FOLDER = os.path.dirname(PYFUN_OPTS_FOLDER)
 
 # Backup default settings
-rc["project_rootname"]     ="pyfun"
-rc["grid_format"]          = "aflr3"
+rc["project_rootname"] = "pyfun"
+rc["grid_format"] = "aflr3"
 rc["nodet_animation_freq"] = -1
 # Solution mode settings
 rc["KeepRestarts"] = False

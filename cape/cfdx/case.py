@@ -1,33 +1,30 @@
-"""
+r"""
 :mod:`cape.cfdx.case`: Case Control Module
 ==========================================
+This module contains templates for interacting with and executing
+individual cases. Since this is one of the most highly customized
+modules of the CAPE system, there are few functions here, and the
+functions that are present are mostly templates.
 
-This module contains templates for interacting with individual cases.  Since
-this is one of the most highly customized modules of the Cape system, there are
-few functions here, and the functions that are present are mostly templates.
-
-In general, the :mod:`case` module is used for actually running the CFD solver
-(and any additional binaries that may be required as part of the run process),
-and it contains other capabilities for renaming files and determining the
-settings for a particular case.  Cape saves many settings for the CFD solver and
-archiving in a file called :file:`case.json` within each case folder, which
-prevents changes to the master JSON file from unpredictably affecting cases that
-have already been initialized or are already running.
+In general, the :mod:`case` module is used for actually running the CFD
+solver (and any additional binaries that may be required as part of the
+run process), and it contains other capabilities for renaming files and
+determining the settings for a particular case. CAPE saves many settings
+for the CFD solver and archiving in a file called ``case.json` within
+each case folder, which allows for the settings of one case to diverge
+from the other cases in the same run matrix.
 
 Actual functionality is left to individual modules listed below.
 
     * :mod:`cape.pycart.case`
     * :mod:`cape.pyfun.case`
     * :mod:`cape.pyover.case`
-
-Several of the key methods for this API module are described below.
 """
 
 # Standard library modules
 import os
 import glob
 import json
-import shutil
 from datetime import datetime
 
 # System-dependent standard library
@@ -36,14 +33,10 @@ if os.name == "nt":
 else:
     import resource
 
-# Third-party modules
-import numpy as np
-from numpy import nan, isnan, argmax
-
 # Local imports
 from . import queue
 from . import bin
-from .options.runControl import RunControl
+from .options import RunControlOpts
 from ..tri import Tri, Triq
 
 
@@ -75,7 +68,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     :Call:
         >>> CaseIntersect(rc, proj='Components', n=0, fpre='run')
     :Inputs:
-        *rc*: :class:`cape.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Case options interface from ``case.json``
         *proj*: {``'Components'``} | :class:`str`
             Project root name
@@ -202,7 +195,7 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     :Call:
         >>> CaseVerify(rc, proj='Components', n=0, fpre='run')
     :Inputs:
-        *rc*: :class:`cape.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Case options interface from ``case.json``
         *proj*: {``'Components'``} | :class:`str`
             Project root name
@@ -256,7 +249,7 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     :Call:
         >>> CaseAFLR3(rc, proj="Components", fmt='lb8.ugrid', n=0)
     :Inputs:
-        *rc*: :class:`cape.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Case options interface from ``case.json``
         *proj*: {``"Components"``} | :class:`str`
             Project root name
@@ -410,7 +403,7 @@ def ReadCaseJSON(fjson='case.json'):
         *fjson*: {``"case.json"``} | :class:`str`
             Name of JSON settings file
     :Outputs:
-        *rc*: :class:`cape.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface for run control and command-line inputs
     :Versions:
         * 2014-10-02 ``@ddalle``: Version 1.0
@@ -422,7 +415,7 @@ def ReadCaseJSON(fjson='case.json'):
     # Close the file.
     f.close()
     # Convert to a Cape options object.
-    fc = RunControl(**opts)
+    fc = RunControlOpts(**opts)
     # Output
     return fc
 
@@ -473,7 +466,7 @@ def PrepareEnvironment(rc, i=0):
     :Call:
         >>> case.PrepareEnvironment(rc, i=0)
     :Inputs:
-        *rc*: :class:`cape.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface for run control and command-line inputs
         *i*: :class:`int`
             Phase number
@@ -563,7 +556,7 @@ def GetPhaseNumber(rc, n=None, fpre='run'):
     :Call:
         >>> j = GetPhaseNumber(rc, n=None, fpre='run')
     :Inputs:
-        *rc*: :class:`cape.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface for run control
         *n*: :class:`int`
             Iteration number
@@ -617,7 +610,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
     :Inputs:
         *tic*: :class:`datetime.datetime`
             Time from which timer will be measured
-        *rc*: :class:`pyCart.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface
         *i*: :class:`int`
             Phase number
@@ -675,7 +668,7 @@ def WriteStartTimeProg(tic, rc, i, fname, prog):
     :Inputs:
         *tic*: :class:`datetime.datetime`
             Time from which timer will be measured
-        *rc*: :class:`pyCart.options.runControl.RunControl`
+        *rc*: :class:`RunControlOpts`
             Options interface
         *i*: :class:`int`
             Phase number
@@ -821,14 +814,14 @@ def init_timer():
 
 
 # Function to read the local settings file
-def read_case_json(cls=RunControl):
+def read_case_json(cls=RunControlOpts):
     r"""Read *RunControl* settings from ``case.json``
     
     :Call:
         >>> rc = read_case_json()
         >>> rc = read_case_json(cls)
     :Inputs:
-        *cls*: {:mod:`RunControl`} | :class:`type`
+        *cls*: {:mod:`RunControlOpts`} | :class:`type`
             Class to use for output file
     :Outputs:
         *rc*: *cls*

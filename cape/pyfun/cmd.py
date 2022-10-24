@@ -27,12 +27,13 @@ the command returned by :func:`nodet` could be
     * :mod:`cape.cfdx.cmd`
     * :mod:`cape.cfdx.bin`
     * :mod:`cape.pyfun.bin`
-    * :mod:`cape.pyfun.options.runControl`
+    * :mod:`cape.pyfun.options.runctlopts`
 
 """
 
 # Options for the binaries
-from .options import runControl, getel
+from .options import runctlopts
+from .options.util import getel
 
 
 # Function to create ``nodet`` or ``nodet_mpi`` command
@@ -63,7 +64,7 @@ def nodet(opts=None, i=0, **kw):
         mpicmd = opts.get_mpicmd(i)
         # Get dictionary of command-line inputs
         if "nodet" in opts:
-            # pyFun.options.runControl.RunControl instance
+            # pyFun.options.runctlopts.RunControl instance
             cli_nodet = opts["nodet"]
         elif "RunControl" in opts and "nodet" in opts["RunControl"]:
             # pyFun.options.Options instance
@@ -99,10 +100,10 @@ def nodet(opts=None, i=0, **kw):
         # Get the value
         v = cli_nodet[k]
         # Check the type
-        if v == True:
+        if v is True:
             # Just an option with no value
             cmdi.append('--'+k)
-        elif v == False or v is None:
+        elif v is False or v is None:
             # Do not use.
             pass
         else:
@@ -154,16 +155,16 @@ def dual(opts=None, i=0, **kw):
             opts = opts["dual"]
         else:
             # Use defaults
-            n_mpi  = runControl.rc0('MPI')
-            nProc  = runControl.rc0('nProc')
-            mpicmd = runControl.rc0('mpicmd')
+            n_mpi  = runctlopts.rc0('MPI')
+            nProc  = runctlopts.rc0('nProc')
+            mpicmd = runctlopts.rc0('mpicmd')
     else:
         # Use defaults
-        n_mpi  = runControl.rc0('MPI')
-        nProc  = runControl.rc0('nProc')
-        mpicmd = runControl.rc0('mpicmd')
+        n_mpi  = runctlopts.rc0('MPI')
+        nProc  = runctlopts.rc0('nProc')
+        mpicmd = runctlopts.rc0('mpicmd')
         # Default
-        opts = runControl.dual()
+        opts = runctlopts.dual()
     # Process keyword overrides
     n_mpi  = kw.get('MPI',    n_mpi)
     nProc  = kw.get('nProc',  nProc)
@@ -204,10 +205,10 @@ def dual(opts=None, i=0, **kw):
         # Get the value.
         v = cli_dual[k]
         # Check the type
-        if v == True:
+        if v is True:
             # Just an option with no value
             cmdi.append('--'+k)
-        elif v == False or v is None:
+        elif v is False or v is None:
             # Do not use.
             pass
         else:
@@ -218,5 +219,4 @@ def dual(opts=None, i=0, **kw):
             cmdi.append(str(vi))
     # Output
     return cmdi
-        
         

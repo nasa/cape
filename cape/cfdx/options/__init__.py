@@ -36,7 +36,7 @@ from .DataBook import DataBook, DBTarget
 from .Report import Report
 from .Mesh import Mesh
 from .Config import Config
-from .runControl import RunControl
+from .runctlopts import RunControlOpts
 from ...optdict import OptionsDict, INT_TYPES
 
 
@@ -102,7 +102,7 @@ class Options(OptionsDict):
         "PostPBS": PBSOpts,
         "PostSlurm": Slurm,
         "Report": Report,
-        "RunControl": RunControl,
+        "RunControl": RunControlOpts,
         "Slurm": Slurm,
     }
 
@@ -572,6 +572,7 @@ class Options(OptionsDict):
         # Apply if possible
         if umask is not None:
             os.umask(umask)
+   # >
 
 
 # Add global properties

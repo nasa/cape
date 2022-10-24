@@ -1,16 +1,22 @@
 r"""
-:mod:`cape.cfdx.options.runControl`: Primary case control options
+:mod:`cape.cfdx.options.rctlopts`: Primary case control options
 ==================================================================
 
-This module provides a class to access (or set) options pertaining to
-the basic execution of the code. For example, it specifies how many
-iterations to run, whether or not to use an MPI version of a solver, and
-whether or not to submit the job to a PBS queue.
+This module provides a class :class:`RunControlOpts` that defines a CAPE
+job's basic phasing and submittal settings. For example, it contains
+settings for whether a case is submitted as a PBS job, Slurm job, or run
+in the current shell.
 
-It also contains command-line options that are given to each binary that
-is utilized for a a solver, and it also contains archiving options.
-This entire section is written to the file ``case.json`` within each run
-folder.
+It contains the critical options *PhaseSequence* and *PhaseIters*, which
+define the number of times number of iterations for each phase for which
+the CFD solver will be run.
+
+This portion of the settings interface also includes command-line
+options for the various executables that are used in the execution
+sequence. It specifies command-line options to grid generation tools
+like ``aflr3`` or other preprocessing tools like ``intersect``. The
+solver-specific subclasses of :class:`RunControlOpts` also contain the
+command-line options to solver commands such as ``flowCart`` for Cart3D.
 """
 
 # Local imports
@@ -92,16 +98,16 @@ class Environ(odict):
 
 
 # Class for iteration & mode control settings and command-line inputs
-class RunControl(OptionsDict):
+class RunControlOpts(OptionsDict):
     r"""Dictionary-based interface for generic code run control
     
     :Call:
-        >>> opts = RunControl(**kw)
+        >>> opts = RunControlOpts(**kw)
     :Inputs:
         *kw*: :class:`dict`
             Dictionary of run control options
     :Outputs:
-        *opts*: :class:`cape.options.runControl.RunControl`
+        *opts*: :class:`RunControlOpts`
             Basic control options interface
     :Versions:
         * 2014-12-01 ``@ddalle``: Version 1.0
@@ -325,6 +331,6 @@ class RunControl(OptionsDict):
 
 
 # Create properties
-RunControl.add_properties(RunControl._rst_descriptions)
+RunControlOpts.add_properties(RunControlOpts._rst_descriptions)
 # Upgrade subsections
-RunControl.promote_sections()
+RunControlOpts.promote_sections()
