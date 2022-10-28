@@ -1537,13 +1537,20 @@ class Cntl(object):
         nSeq = len(PhaseSeq)
         # Get option values for *PhaseIters* and *nIter*
         PI = [self.opts.get_PhaseIters(j) for j in PhaseSeq]
-        NI = [self.opts.get_nIter(j)      for j in PhaseSeq]
-        # Ensure phase break for first phase
-        PI[0] = max(PI[0], NI[0])
+        NI = [self.opts.get_nIter(j) for j in PhaseSeq]
+        # Initialize total
+        ni = 0
         # Loop through phases
-        for i in range(1, nSeq):
-            # Ensure at least *nIter* iterations beyond previous phase
-            PI[i] = max(PI[i], PI[i-1]+NI[i])
+        for j, (phj, nj) in enumerate(zip(PI, NI)):
+            # Check for specified cutoff
+            if phj:
+                # Use max of defined cutoff and *nj1*
+                mj = max(phj, ni + nj)
+            else:
+                # Min value for next phase: last total + *nj*
+                mj = ni + nj
+            # Save new cutoff
+            PI[j] = mj
         # Output
         return PI
 
