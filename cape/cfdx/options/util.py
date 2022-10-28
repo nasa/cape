@@ -26,6 +26,7 @@ import numpy as np
 # Local imports
 from ...optdict import (
     OptionsDict,
+    BOOL_TYPES,
     ARRAY_TYPES,
     FLOAT_TYPES,
     INT_TYPES)
@@ -183,6 +184,60 @@ rc['aflr3_nqual']  = 2
 
 
 ARRAY_TYPE_NAMES = {'list', 'tuple', 'array', 'ndarray'}
+
+
+# Special class for CLI options
+class ExecOpts(OptionsDict):
+    r"""Special options class for CLI arguments to an executable
+
+    This allows a JSON setting like
+
+    .. code-block:: javascript
+
+        "aflr3": false
+
+    to be interpreted as
+
+    .. code-block:: javascript
+
+        "aflr3": {
+            "run": false
+        }
+
+    :Call:
+        >>> opts = ExecOpts(q, **kw)
+        >>> opts = ExecOpts(d, **kw)
+        >>> opts = ExecOpts(fjson, **kw)
+    :Ipnuts:
+        *q*: ``True`` | ``False``
+            Positional input interpreted as ``run=q``
+        *d*: :class:`dict`
+            Dictionary of other CLI options
+        *fjson*: :class:`str`
+            Name of JSON file to read
+        *kw*: :class:`dict`
+            Dictionary of other CLI options
+    :Outputs:
+        *opts*: :class:`ExecOpts`
+            Options interface for CLI options
+    :Versions:
+        * 2022-10-28 ``@ddalle``: Version 1.0
+    """
+    # Class attributes
+    __slots__ = tuple()
+
+    # Initialization method
+    def __init__(self, *args, **kw):
+        # Test for input like ExecOpts(False)
+        if len(args) > 0:
+            # Get first argument
+            a = args[0]
+            # Test if it's false-like
+            if isinstance(a, BOOL_TYPES):
+                # Reset ExecOpts(False) -> ExecOpts(run=False)
+                args = {"run": a},
+        # Pass to parent initializer
+        OptionsDict.__init__(self, *args, **kw)
 
 
 # Utility function to get elements sanely

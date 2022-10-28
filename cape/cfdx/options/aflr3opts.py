@@ -17,13 +17,13 @@ functions:
 
 # Local imports
 from ...optdict import BOOL_TYPES, FLOAT_TYPES, INT_TYPES
-from .util import OptionsDict, getel, setel
+from .util import ExecOpts, getel, setel
 
 
 # Resource limits class
-class AFLR3Opts(OptionsDict):
+class AFLR3Opts(ExecOpts):
     r"""Class for AFLR3 command-line settings
-    
+
     :Call:
         >>> opts = AFLR3Opts(**kw)
     :Inputs:
@@ -133,11 +133,11 @@ class AFLR3Opts(OptionsDict):
         else:
             # For empty options, no entries -> run=False
             self.setdefault("run", False)
-        
+
     # Get single key from AFLR3 *keys* key
     def get_aflr3_key(self, k, j=0, vdef=None):
         r"""Get AFLR3 AFLR3 option that uses *key=val* format
-        
+
         :Call:
             >>> v = opts.get_aflr3_key(k, j=0, vdef=None)
         :Inputs:
@@ -162,11 +162,11 @@ class AFLR3Opts(OptionsDict):
         v = d.get(k, vdef)
         # Apply phase input
         return getel(v, j)
-        
+
     # Set single key from AFLR3 *keys* section
     def set_aflr3_key(self, k, v, j=None):
         r"""Get AFLR3 AFLR3 option that uses *key=val* format
-        
+
         :Call:
             >>> opts.get_aflr3_key(k, v, j=0)
         :Inputs:

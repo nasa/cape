@@ -15,7 +15,7 @@ in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
     * Values directly specified in the input file, e.g. ``cape.json``
-    
+
     * Values specified in the default control file,
       ``$CAPE/settings/cape.default.json``
 
@@ -48,7 +48,7 @@ rc = util.rc
 # Class definition
 class Options(OptionsDict):
     r"""Options structure, subclass of :class:`dict`
-    
+
     :Call:
         >>> opts = Options(fname=None, **kw)
     :Inputs:
@@ -147,11 +147,11 @@ class Options(OptionsDict):
         self = util.applyDefaults(self, defs)
         # Add extra folders to path.
         self.AddPythonPath()
-        
+
     # Function to add to the path.
     def AddPythonPath(self):
         r"""Add requested locations to the Python path
-        
+
         :Call:
             >>> opts.AddPythonPath()
         :Inputs:
@@ -171,11 +171,11 @@ class Options(OptionsDict):
         for fdir in lpath:
             # Add absolute path, not relative.
             os.sys.path.append(os.path.abspath(fdir))
-            
+
     # Make a directory
     def mkdir(self, fdir, sys=False):
         r"""Make a directory with the correct permissions
-        
+
         :Call:
             >>> opts.mkdir(fdir, sys=False)
         :Inputs:
@@ -220,7 +220,7 @@ class Options(OptionsDict):
                     # Other error; valid
                     raise e
    # >
-    
+
    # =====
    # Tools
    # =====
@@ -228,7 +228,7 @@ class Options(OptionsDict):
     # Write a PBS header
     def WritePBSHeader(self, f, lbl, j=0, typ=None, wd=None):
         r"""Write common part of PBS script
-        
+
         :Call:
             >>> opts.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
         :Inputs:
@@ -316,18 +316,18 @@ class Options(OptionsDict):
         if umask > 0:
             f.write('# Set umask.\n')
             f.write('umask %04o\n\n' % umask)
-        
+
         # Write a header for the shell commands.
         f.write('# Additional shell commands\n')
         # Loop through the shell commands.
         for line in self.get_ShellCmds(typ=typ):
             # Write it.
             f.write('%s\n' % line)
-    
+
     # Write a Slurm header
     def WriteSlurmHeader(self, f, lbl, j=0, typ=None, wd=None):
         r"""Write common part of Slurm script
-        
+
         :Call:
             >>> opts.WriteSlurmHeader(f, i=None, j=0, typ=None, wd=None)
         :Inputs:
@@ -385,7 +385,7 @@ class Options(OptionsDict):
         if umask > 0:
             f.write('# Set umask.\n')
             f.write('umask %04o\n\n' % umask)
-        
+
         # Write a header for the shell commands.
         f.write('# Additional shell commands\n')
         # Loop through the shell commands.
@@ -393,7 +393,7 @@ class Options(OptionsDict):
             # Write it.
             f.write('%s\n' % line)
    # >
-    
+
    # ==============
    # Global Options
    # ==============
@@ -401,7 +401,7 @@ class Options(OptionsDict):
     # Function to get the shell commands
     def get_ShellCmds(self, typ=None):
         r"""Get shell commands, if any
-        
+
         :Call:
             >>> cmds = opts.get_ShellCmds(typ=None)
         :Inputs:
@@ -435,11 +435,11 @@ class Options(OptionsDict):
             cmds_a = cmds_a.split(';')
         # Output
         return cmds + cmds_a
-        
+
     # Function to set the shell commands
     def set_ShellCmds(self, cmds):
         r"""Set shell commands
-        
+
         :Call:
             >>> opts.set_ChellCmds(cmds=[])
         :Inputs:
@@ -452,11 +452,11 @@ class Options(OptionsDict):
         """
         # Set them.
         self['ShellCmds'] = cmds
-    
+
     # Method to determine if groups have common meshes.
     def get_GroupMesh(self):
         r"""Determine whether or not groups have common meshes
-        
+
         :Call:
             >>> qGM = opts.get_GroupMesh()
         :Inputs:
@@ -472,11 +472,11 @@ class Options(OptionsDict):
         # Safely get the trajectory.
         x = self.get('RunMatrix', {})
         return x.get('GroupMesh', False)
-        
+
     # Method to specify that meshes do or do not use the same mesh
     def set_GroupMesh(self, qGM=False):
         r"""Specify that groups do or do not use common meshes
-        
+
         :Call:
             >>> opts.get_GroupMesh(qGM)
         :Inputs:
@@ -489,13 +489,13 @@ class Options(OptionsDict):
             * 2022-10-23 ``@ddalle``: Version 1.1; hard-code default
         """
         self['RunMatrix']['GroupMesh'] = qGM
-        
+
     # Get the umask
     def get_umask(self, sys=True):
         r"""Get the current file permissions mask
-        
+
         The default value is the read from the system
-        
+
         :Call:
             >>> umask = opts.get_umask(sys=True)
         :Inputs:
@@ -527,11 +527,11 @@ class Options(OptionsDict):
             umask = eval('0o' + str(umask).strip().lstrip('0o'))
         # Output
         return umask
-        
+
     # Get the directory permissions to use
     def get_dmask(self, sys=True):
         r"""Get the permissions to assign to new folders
-        
+
         :Call:
             >>> dmask = opts.get_dmask(sys=True)
         :Inputs:
@@ -551,11 +551,11 @@ class Options(OptionsDict):
         if umask is not None:
             # Subtract UMASK from full open permissions
             return 0o0777 - umask
-        
+
     # Apply the umask
     def apply_umask(self, sys=True):
         r"""Apply the permissions filter
-        
+
         :Call:
             >>> opts.apply_umask(sys=True)
         :Inputs:

@@ -31,7 +31,7 @@ from ...optdict import ARRAY_TYPES, BOOL_TYPES, INT_TYPES, OptionsDict
 # Environment class
 class Environ(odict):
     r"""Class for environment variables
-    
+
     :Call:
         >>> opts = Environ(**kw)
     :Inputs:
@@ -43,11 +43,11 @@ class Environ(odict):
     :Versions:
         * 2015-11-10 ``@ddalle``: Version 1.0
     """
-    
+
     # Get an environment variable by name
     def get_Environ(self, key, i=0):
         """Get an environment variable setting by name
-        
+
         :Call:
             >>> val = opts.get_Environ(key, i=0)
         :Inputs:
@@ -71,11 +71,11 @@ class Environ(odict):
         V = self[key]
         # Select the value for run sequence *i*
         return str(getel(V, i))
-        
+
     # Set an environment variable by name
     def set_Environ(self, key, val, i=None):
         r"""Set an environment variable setting by name
-        
+
         :Call:
             >>> val = opts.get_Environ(key, i=0)
         :Inputs:
@@ -100,7 +100,7 @@ class Environ(odict):
 # Class for iteration & mode control settings and command-line inputs
 class RunControlOpts(OptionsDict):
     r"""Dictionary-based interface for generic code run control
-    
+
     :Call:
         >>> opts = RunControlOpts(**kw)
     :Inputs:
@@ -136,7 +136,7 @@ class RunControlOpts(OptionsDict):
         "ulimit",
         "verify",
     }
-    
+
     # Option types
     _opttypes = {
         "Continue": BOOL_TYPES,
@@ -195,7 +195,7 @@ class RunControlOpts(OptionsDict):
         "verify": intersect.verify,
     }
    # >
-   
+
    # =====
    # AFLR3
    # =====
@@ -203,7 +203,7 @@ class RunControlOpts(OptionsDict):
     # Whether or not to use AFLR3
     def get_aflr3(self):
         r"""Return whether or not to run AFLR3 to create mesh
-        
+
         :Call:
             >>> q = opts.get_aflr3()
         :Inputs:
@@ -223,7 +223,7 @@ class RunControlOpts(OptionsDict):
         # Get the flag and convert to True or False
         return bool(v.get('run'))
    # >
-    
+
    # =========
    # intersect
    # =========
@@ -231,7 +231,7 @@ class RunControlOpts(OptionsDict):
     # Whether or not to use intersect
     def get_intersect(self):
         r"""Return whether or not to run ``intersect`` on triangulations
-        
+
         :Call:
             >>> q = opts.get_intersect()
         :Inputs:
@@ -251,7 +251,7 @@ class RunControlOpts(OptionsDict):
         # Get the flag and convert to True or False
         return bool(v.get('run'))
    # >
-   
+
    # ======
    # verify
    # ======
@@ -259,7 +259,7 @@ class RunControlOpts(OptionsDict):
     # Whether or not to use verify
     def get_verify(self):
         r"""Return whether or not to run ``verify`` on triangulations
-        
+
         :Call:
             >>> q = opts.get_verify()
         :Inputs:
@@ -279,7 +279,7 @@ class RunControlOpts(OptionsDict):
         # Get the flag and convert to True or False
         return bool(v.get('run'))
    # >
-    
+
    # ===============
    # Local Functions
    # ===============
@@ -287,7 +287,7 @@ class RunControlOpts(OptionsDict):
     # Number of phases
     def get_nSeq(self):
         r"""Return the number of phases in the sequence
-        
+
         :Call:
             >>> nSeq = opts.get_nSeq()
         :Inputs:
@@ -310,11 +310,11 @@ class RunControlOpts(OptionsDict):
         else:
             # Something is messed up.
             return 1
-            
+
     # Minimum required number of iterations
     def get_LastIter(self):
         r"""Return the minimum number of iterations for case to be done
-        
+
         :Call:
             >>> nIter = opts.get_LastIter()
         :Inputs:
