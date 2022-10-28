@@ -76,6 +76,7 @@ setup(
         "cape.cfdx",
         "cape.cfdx.options",
         "cape.filecntl",
+        "cape.optdict",
         "cape.pycart",
         "cape.pycart.options",
         "cape.pyfun",
@@ -133,6 +134,6 @@ setup(
             "pyfun-plt2triq=cape.pyfun.tricli:main_plt2triq",
         ],
     },
-    version="1.1.0-prelim2",
+    version="1.1.0-prelim3",
     description="CAPE computational aerosciences package",
     ext_modules=exts)

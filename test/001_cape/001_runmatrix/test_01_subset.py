@@ -26,7 +26,3 @@ def test_01_subset():
     cases = list(cntl.x.GetIndices(I=range(15, 20), cons=["Mach%1==0.5"]))
     assert cases == [15, 16, 17, 18, 19]
 
-
-if __name__ == "__main__":
-    test_01_subset()
-
