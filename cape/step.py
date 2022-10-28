@@ -18,6 +18,7 @@ See also:
 
 # File checking
 import os
+import sys
 # Basic numerics
 import numpy as np
 # B-spline interpolation
@@ -678,7 +679,7 @@ class STEP(object):
         bo = kw.get('endian')
         if bo is None:
             # This checks system byte order and environment variable flags
-            bo = io.sbo
+            bo = sys.byteorder
         # Check which version to write
         if bo == 'big':
             # Big-endian
