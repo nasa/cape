@@ -23,10 +23,10 @@ a method like :func:`TriBase.WriteFast` for the compiled version and
 
 """
 
-# Standard modules
+# Standard library
 import os
-import sys
 import subprocess as sp
+import sys
 from shutil import copy
 from collections import OrderedDict
 
@@ -43,6 +43,9 @@ from .tnakit import plot_mpl as pmpl
 from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from .cgns import CGNS
 
+
+# Constants
+INT_TYPES = (int, np.int64, np.int32)
 
 # Default tolerances for mapping triangulations
 atoldef = options.rc.get("atoldef", 1e-2)
@@ -3926,13 +3929,10 @@ class TriBase(object):
                 # Get value
                 v = self.Conf[comp]
                 # Append if appropriate
-                if isinstance(v, int):
-                    Comps.append(comp)
-                    CompIDs.append(v)
-            # Check if CompID is present
-            if compID in CompIDs:
-                # Get the component name
-                return Comps[CompIDs.index(compID)]
+                if isinstance(v, INT_TYPES):
+                    # Check for match
+                    if v == compID:
+                        return comp
         except AttributeError:
             # There's no *tri.Conf*
             pass
@@ -4029,18 +4029,22 @@ class TriBase(object):
                 Dictionary of face names coped from *tri.config.faces*
         :Versions:
             * 2017-02-10 ``@ddalle``: Version 1.0
+            * 2022-10-27 ``@ddalle``: Version 2.0; only single-component
         """
         # Check for existing *Conf*
-        try:
-            self.Conf
+        if hasattr(self, "Conf"):
             return
-        except Exception:
-            pass
         # Initialize dictionary
-        try:
-            self.Conf = self.config.faces.copy()
-        except Exception:
-            pass
+        self.Conf = {}
+        # Get key attributes
+        faces = self.config.faces
+        # Loop through "components" (non-groups)
+        for comp in self.config.comps:
+            # Get compID if any
+            compID = faces.get(comp)
+            # Save single face ID
+            if compID is not None:
+                self.Conf[comp] = faces[comp]
 
     # Function to get node indices from component ID(s)
     def GetNodesFromCompID(self, compID=None):
@@ -4547,8 +4551,6 @@ class TriBase(object):
         if tri.nTri == 0: return
         # Only consider triangles in this component
         compID = kw.get('compID')
-        # Get candidate triangles
-        K = self.GetTrisFromCompID(compID)
         # Process primary tolerances
         atol  = kw.get("atol",  kw.get("AbsTol",  atoldef))
         rtol  = kw.get("rtol",  kw.get("RelTol",  rtoldef))
@@ -4564,17 +4566,15 @@ class TriBase(object):
         # Put together absolute and relative tols
         tol  = atol   + rtol*L
         ntol = antol  + rntol*L
-        # Bet bounding box from *tri*
-        bbox = tri.GetCompBBox(pad=tol)
-        # Get triangles with at least one node in that *BBox*
-        K0 = self.FilterTrisBBox(bbox)
         # Filter the triangles that have a chance of intersecting
         if compID is None:
-            # Just use the *bbox* filter
-            K = K0
+            # Bet bounding box from *tri*
+            bbox = tri.GetCompBBox(pad=tol)
+            # Get triangles with at least one node in that *BBox*
+            K = self.FilterTrisBBox(bbox)
         else:
-            # Apply both constraints
-            K = np.intersect1d(K, K0)
+            # Get candidate triangles directly
+            K = self.GetTrisFromCompID(compID)
         # Verbose flag
         v = kw.get("v", False)
         # Ensure the centers are present
@@ -4585,7 +4585,7 @@ class TriBase(object):
         compmap = {}
         facemap = {}
         # Loop through columns
-        for i in range(len(K)):
+        for i, k in enumerate(K):
             # Get triangle number
             k = K[i]
             # Status update if verbose
