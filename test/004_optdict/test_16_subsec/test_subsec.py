@@ -111,3 +111,16 @@ def test_subsec03():
     # Assert all sections present
     assert "Section1" in opts
     assert "Section3" in opts
+
+
+# Test recursive set_x()
+def test_subsec04x():
+    # Create empty instance
+    opts = MyOpts()
+    # Some conditions
+    x = {"mach": 0.5}
+    # Apply (recursively?)
+    opts.set_x(x)
+    # Test
+    assert opts["Section1"].x is x
+

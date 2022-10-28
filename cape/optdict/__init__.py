@@ -1231,23 +1231,34 @@ class OptionsDict(dict):
 
   # *** CONDITIONS INTERFACE ***
    # --- Set ---
-    def set_x(self, x: dict):
+    def set_x(self, x: dict, recursive=True):
         r"""Set full conditions dict
 
         :Call:
-            >>> opts.set_x(x)
+            >>> opts.set_x(x, recursive=True)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
             *x*: :class:`dict`
                 Supporting conditions or run matrix
+            *recursive*: {``True``} | ``False``
+                Option ro apply *x* to subsections of *opts*
         :Versions:
             * 2022-09-20 ``@ddalle``: Version 1.0
+            * 2022-10-28 ``@ddalle``: Version 1.1; *recursive*
         """
         # Check input type
         assert_isinstance(x, dict, desc="supporting values, *x*")
         # Save
         self.x = x
+        # Recurse if appropriate
+        if recursive:
+            # Loop through items
+            for sec, v in self.items():
+                # Check for subsection
+                if isinstance(v, OptionsDict):
+                    # Apply
+                    v.set_x(x, True)
 
    # --- Get ---
     def get_xvals(self, col: str, i=None):
