@@ -188,7 +188,7 @@ ARRAY_TYPE_NAMES = {'list', 'tuple', 'array', 'ndarray'}
 # Utility function to get elements sanely
 def getel(x, i=None):
     r""" Return element *i* of an array if possible
-    
+
     :Call:
         >>> x = getel(x)
         >>> xi = getel(x, i)
@@ -244,10 +244,10 @@ def getel(x, i=None):
 # Utility function to set elements sanely
 def setel(x, i, xi):
     r"""Return element *i* of an array if possible
-    
+
     :Call:
         >>> y = setel(x, i, xi)
-        
+
     :Inputs:
         *x*: number-like or list-like
             A number or list or NumPy vector
@@ -301,12 +301,12 @@ def setel(x, i, xi):
         y[i] = xi
     # Output
     return y
-    
+
 
 # Function to ensure scalar from above
 def rc0(p):
     r"""Return default setting for named parameter
-    
+
     :Call:
         >>> v = rc0(p)
     :Inputs:
@@ -332,7 +332,7 @@ regex = re.compile(
 # Function to expand CSV file inputs
 def expandJSONFile(fname):
     r"""Expand contents of other JSON files
-    
+
     :Call:
         >>> txt, fnames, linenos = expandJSONFile(fname)
     :Inputs:
@@ -359,8 +359,8 @@ def expandJSONFile(fname):
     # Number of lines
     n = len(lines)
     # Initialize line numbers
-    linenos = np.zeros((n,1), dtype="int")
-    linenos[:,0] = 1 + np.arange(n)
+    linenos = np.zeros((n, 1), dtype="int")
+    linenos[:, 0] = 1 + np.arange(n)
     # Initialize list of file names
     fnames = [fname]
     # Number of JSON files read (can read same file more than once)
@@ -401,12 +401,12 @@ def expandJSONFile(fname):
         if n_j > 1:
             # Split current line and insert n_j-1 zeros
             linenos = np.vstack((
-                linenos[:i+1,:], np.zeros((n_j-2,nf), dtype="int"),
-                linenos[i:,:]))
+                linenos[:i+1, :], np.zeros((n_j-2, nf), dtype="int"),
+                linenos[i:, :]))
         # Create line counts for new file
         linenos_json = np.vstack((
-            np.zeros((i,nf_j), dtype="int"), ln_j,
-            np.zeros((n-i-1,nf_j), dtype="int")))
+            np.zeros((i, nf_j), dtype="int"), ln_j,
+            np.zeros((n-i-1, nf_j), dtype="int")))
         # Accumulate line numbers and file list
         fnames += F_j
         linenos = np.hstack((linenos, linenos_json))
@@ -440,7 +440,7 @@ def expandJSONFile(fname):
 # Function to read JSON file with all the works
 def loadJSONFile(fname):
     r"""Read JSON file w/ helpful error handling and comment stripping
-    
+
     :Call:
         >>> d = loadJSONFile(fname)
     :Inputs:
@@ -470,14 +470,14 @@ def loadJSONFile(fname):
             # Start and end line number
             n0 = max(n-3, 0)
             n1 = min(n+2, len(lines))
-            # Initialize message with 
+            # Initialize message with
             msg = "Error while reading JSON file '%s':\n" % fname
             # Add the exception's message
             msg += "\n".join(list(e.args)) + "\n"
             # Loop through individual files
             for i, fn in enumerate(fnames):
-                # Get line number 
-                lni = linenos[n-1,i]
+                # Get line number
+                lni = linenos[n-1, i]
                 # Skip if ``0``
                 if lni == 0: continue
                 # Add to report
@@ -508,7 +508,7 @@ def loadJSONFile(fname):
 # Function to get the default settings.
 def getDefaults(fname):
     r"""Read default settings configuration file
-    
+
     :Call:
         >>> defs = getDefaults(fname)
     :Inputs:
@@ -528,7 +528,7 @@ def getDefaults(fname):
 # Function to get the default CAPE settings
 def getCapeDefaults():
     r"""Read default CAPE settings configuration file
-    
+
     :Call:
         >>> defs = getCapeDefaults()
     :Outputs:
@@ -547,7 +547,7 @@ def getCapeDefaults():
 # Function to get template
 def getTemplateFile(fname):
     r"""Get the absolute path to a template file by name
-    
+
     :Call:
         >>> fabs = getTemplateFile(fname)
     :Inputs:
@@ -565,7 +565,7 @@ def getTemplateFile(fname):
 # Get the keys of the default dict.
 def applyDefaults(opts, defs):
     r"""Recursively apply defaults for any missing options
-    
+
     :Call:
         >>> opts = applyDefaults(opts, defs)
     :Inputs:
@@ -596,7 +596,7 @@ def applyDefaults(opts, defs):
 # Test if a variable is "list-like"
 def isArray(x):
     r"""Test if a variable is "list-like."
-    
+
     :Call:
         >>> q = isArray(x)
     :Inputs:
@@ -614,7 +614,7 @@ def isArray(x):
 # Test if a variable is "string-like"
 def isStr(x):
     r"""Test if a variable is "string-like"
-    
+
     :Call:
         >>> q = isArray(x)
     :Inputs:
@@ -635,7 +635,7 @@ def isStr(x):
 # Dictionary derivative specific to options
 class odict(dict):
     r"""Dictionary-based options module
-    
+
     :Call:
         >>> opts = odict(**kw)
     :Inputs:
@@ -687,7 +687,7 @@ class odict(dict):
         v = self.get(k, rc.get(rck))
         # Apply intelligent indexing.
         return getel(v, i)
-        
+
     # General "set" function
     def set_key(self, k, v=None, i=None, rck=None):
         r"""Set option for key *k*
@@ -724,11 +724,11 @@ class odict(dict):
         V = self.get(k, rc.get(rck))
         # Assign the input value .
         self[k] = setel(V, i, v)
-    
+
     # Copy
     def copy(self):
         r"""Create a copy of an options interface
-        
+
         :Call:
             >>> opts1 = opts.copy()
         :Inputs:
@@ -821,7 +821,7 @@ class odict(dict):
 # Decorator to get function from subclass
 def subsec_func(cls, sec=None, parent=None, init=True):
     r"""Decorator (w/ args) to apply a function from a subsection class
-    
+
     :Call:
         >>> f = subsec_func(cls, sec=None, parent=None, init=True)
     :Inputs:
@@ -838,11 +838,11 @@ def subsec_func(cls, sec=None, parent=None, init=True):
             Decorator with arguments expanded
     :Examples:
         .. code-block:: python
-        
+
             @subsec_func("RunControl", RunControl)
             def get_PhaseSequence(self, *a, **kw):
                 pass
-                
+
     :Versions:
         * 2019-01-10 ``@ddalle``: Version 1.0
         * 2021-10-18 ``@ddalle``: Version 1.1; default *sec*
@@ -850,6 +850,7 @@ def subsec_func(cls, sec=None, parent=None, init=True):
     # Default *sec*
     if sec is None:
         sec = cls.__name__
+
     # Decorator for the function
     def decorator_subsec(func):
         # Inherit metadata from func
@@ -867,7 +868,7 @@ def subsec_func(cls, sec=None, parent=None, init=True):
             return v
         # Copy the docstring
         if cls is not None:
-            wrapper.__doc__ = getattr(cls,func.__name__).__doc__
+            wrapper.__doc__ = getattr(cls, func.__name__).__doc__
         # Output
         return wrapper
     # Return decorator
