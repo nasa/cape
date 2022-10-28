@@ -19,7 +19,7 @@ from .util import OptionsDict
 # Class for folder management and archiving
 class ArchiveOpts(OptionsDict):
     r"""Archive mamangement options interface
-    
+
     :Call:
         >>> opts = ArchiveOpts(**kw)
     :Inputs:
@@ -153,9 +153,9 @@ class ArchiveOpts(OptionsDict):
     # Get the umask
     def get_umask(self):
         r"""Get the current file permissions mask
-        
+
         The default value is the read from the system
-        
+
         :Call:
             >>> umask = opts.get_umask(umask=None)
         :Inputs:
@@ -180,11 +180,11 @@ class ArchiveOpts(OptionsDict):
             umask = eval('0o' + str(umask).strip().lstrip('0o'))
         # Output
         return umask
-        
+
     # Set the umask
     def set_umask(self, umask):
         r"""Set the current file permissions mask
-        
+
         :Call:
             >>> umask = opts.get_umask(umask=None)
         :Inputs:
@@ -208,11 +208,11 @@ class ArchiveOpts(OptionsDict):
         else:
             # Convert to octal
             self['umask'] = '0o' + oct(umask)
-        
+
     # Get the directory permissions to use
     def get_dmask(self):
         r"""Get the permissions to assign to new folders
-        
+
         :Call:
             >>> dmask = opts.get_dmask()
         :Inputs:
@@ -228,11 +228,11 @@ class ArchiveOpts(OptionsDict):
         umask = self.get_umask()
         # Subtract UMASK from full open permissions
         return 0o0777 - umask
-        
+
     # Apply the umask
     def apply_umask(self):
         r"""Apply the permissions filter
-        
+
         :Call:
             >>> opts.apply_umask()
         :Inputs:
@@ -242,11 +242,11 @@ class ArchiveOpts(OptionsDict):
             * 2015-09-27 ``@ddalle``: Version 1.0
         """
         os.umask(self.get_umask())
-            
+
     # Make a directory
     def mkdir(self, fdir):
         r"""Make a directory with the correct permissions
-        
+
         :Call:
             >>> opts.mkdir(fdir)
         :Inputs:
@@ -264,7 +264,7 @@ class ArchiveOpts(OptionsDict):
         # Make the directory.
         os.mkdir(fdir, dmask)
    # >
-   
+
    # -----
    # Tools
    # -----
@@ -272,7 +272,7 @@ class ArchiveOpts(OptionsDict):
     # Archive command
     def get_ArchiveCmd(self):
         r"""Get archiving command
-        
+
         :Call:
             >>> cmd = opts.get_ArchiveCmd()
         :Inputs:
@@ -299,11 +299,11 @@ class ArchiveOpts(OptionsDict):
         else:
             # Default: tar
             return ['tar', '-cf']
-            
+
     # Unarchive command
     def get_UnarchiveCmd(self):
         r"""Get command to unarchive
-        
+
         :Call:
             >>> cmd = opts.get_UnarchiveCmd()
         :Inputs:
@@ -378,7 +378,7 @@ ArchiveOpts.add_extenders(_GETTER_OPTS, prefix="Archive")
 # Turn dictionary into Archive options
 def auto_Archive(opts, cls=ArchiveOpts):
     r"""Automatically convert :class:`dict` to :class:`ArchiveOpts`
-    
+
     :Call:
         >>> opts = auto_Archive(opts)
     :Inputs:
