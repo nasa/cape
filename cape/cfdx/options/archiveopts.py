@@ -16,6 +16,21 @@ import os
 from .util import OptionsDict
 
 
+# Constants
+TAR_CMDS = {
+    "bz2": ["tar", "-cjf"],
+    "tar": ["tar", "-cf"],
+    "tgz": ["tar", "-czf"],
+    "zip": ["zip", "-r"],
+}
+UNTAR_CMDS = {
+    "bz2": ["tar", "-xjf"],
+    "tar": ["tar", "-xf"],
+    "tgz": ["tar", "-xzf"],
+    "zip": ["unzip", "-r"],
+}
+
+
 # Class for folder management and archiving
 class ArchiveOpts(OptionsDict):
     r"""Archive mamangement options interface
@@ -76,7 +91,7 @@ class ArchiveOpts(OptionsDict):
     _optvals = {
         "ArchiveAction": ("", "archive", "rm", "skeleton"),
         "ArchiveExtension": ("tar", "tgz", "bz2", "zip"),
-        "ArchiveFormat": ("", "tar", "gzip", "bz2", "zip"),
+        "ArchiveFormat": ("", "tar", "tgz", "bz2", "zip"),
         "ArchiveType": ("full", "sub"),
     }
 
@@ -286,19 +301,8 @@ class ArchiveOpts(OptionsDict):
         """
         # Get the format
         fmt = self.get_opt("ArchiveFormat")
-        # Process
-        if fmt in ['gzip', 'tgz']:
-            # Gzip
-            return ['tar', '-czf']
-        elif fmt in ['zip']:
-            # Zip
-            return ['zip', '-r']
-        elif fmt in ['bzip', 'bz', 'bzip2', 'bz2', 'tbz', 'tbz2']:
-            # Bzip2
-            return ['tar', '-cjf']
-        else:
-            # Default: tar
-            return ['tar', '-cf']
+        # Get command
+        return TAR_CMDS.get(fmt, ["tar", "-cf"])
 
     # Unarchive command
     def get_UnarchiveCmd(self):
@@ -317,19 +321,8 @@ class ArchiveOpts(OptionsDict):
         """
         # Get the format
         fmt = self.get_opt("ArchiveFormat")
-        # Process
-        if fmt in ['gzip', 'tgz']:
-            # Gzip
-            return ['tar', '-xzf']
-        elif fmt in ['zip']:
-            # Zip
-            return ['unzip']
-        elif fmt in ['bzip', 'bz', 'bzip2', 'bz2', 'tbz', 'tbz2']:
-            # Bzip2
-            return ['tar', '-xjf']
-        else:
-            # Default: tar
-            return ['tar', '-xf']
+        # Get command
+        return UNTAR_CMDS.get(fmt, ["tar", "-xf"])
    # >
 
 
