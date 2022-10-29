@@ -16,8 +16,8 @@ functions:
 """
 
 # Local imports
-from ...optdict import BOOL_TYPES, FLOAT_TYPES, INT_TYPES
-from .util import ExecOpts, getel, setel
+from ...optdict import BOOL_TYPES, FLOAT_TYPES, INT_TYPES, setel
+from .util import ExecOpts
 
 
 # Resource limits class
@@ -135,7 +135,7 @@ class AFLR3Opts(ExecOpts):
             self.setdefault("run", False)
 
     # Get single key from AFLR3 *keys* key
-    def get_aflr3_key(self, k, j=0, vdef=None):
+    def get_aflr3_key(self, k, j=0, i=None, vdef=None):
         r"""Get AFLR3 AFLR3 option that uses *key=val* format
 
         :Call:
@@ -155,13 +155,11 @@ class AFLR3Opts(ExecOpts):
         :Versions:
             * 2019-05-11 ``@ddalle``: Version 1.0
             * 2022-10-14 ``@ddalle``: Version 1.1; use :mod:`optdict`
+            * 2022-10-29 ``@ddalle``: Version 2.0
+                - add *i*
+                - use :func:`get_subopt`
         """
-        # Get "eys" key
-        d = self.get_opt("keys")
-        # Get option from dictionary
-        v = d.get(k, vdef)
-        # Apply phase input
-        return getel(v, j)
+        return self.get_subopt("keys", k, i=i, j=j, vdef=vdef)
 
     # Set single key from AFLR3 *keys* section
     def set_aflr3_key(self, k, v, j=None):

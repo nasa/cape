@@ -606,6 +606,8 @@ _RST_GETOPT = r"""*j*: {``None``} | :class:`int`
                 Phase index; use ``None`` to just return *v*
             *i*: {``None``} | :class:`int` | :class:`np.ndarray`
                 *opts.x* index(es) to use with ``@expr``, ``@map``, etc.
+            *vdef*: {``None``} | :class:`object`
+                Manual default
             *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
                 %(_RST_WARNMODE2)s
             *ring*: {*opts._optring[key]*} | ``True`` | ``False``
@@ -1310,6 +1312,9 @@ class OptionsDict(dict):
         if opt in self:
             # Get directly-specified option, even if ``None``
             v = self[opt]
+        elif "vdef" in kw:
+            # Use manual default
+            v = kw["vdef"]
         elif isinstance(self._xrc, dict) and opt in self._xrc:
             # Get default from this instance
             v = self._xrc[opt]

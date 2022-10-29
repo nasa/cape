@@ -285,14 +285,16 @@ class RunControlOpts(OptionsDict):
    # ===============
    # <
     # Number of phases
-    def get_nSeq(self):
+    def get_nSeq(self, i=None):
         r"""Return the number of phases in the sequence
 
         :Call:
-            >>> nSeq = opts.get_nSeq()
+            >>> nSeq = opts.get_nSeq(i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
+            *i*: {``None``} | :class:`int`
+                Case index
         :Outputs:
             *nSeq*: :class:`int`
                 Number of input sets in the sequence
@@ -300,9 +302,10 @@ class RunControlOpts(OptionsDict):
             * 2014-10-02 ``@ddalle``: Version 1.0
             * 2015-02-02 ``@ddalle``: Version 1.1; add *nPhase* override
             * 2022-10-23 ``@ddalle``: Version 2.0; ``OptionsDict``
+            * 2022-10-28 ``@ddalle``: Version 2.1; add *i*
         """
         # Get the input sequence.
-        PhaseSeq = self.get_PhaseSequence()
+        PhaseSeq = self.get_PhaseSequence(i=i)
         # Check if it's a list.
         if isinstance(PhaseSeq, ARRAY_TYPES):
             # Use the length.
@@ -312,21 +315,26 @@ class RunControlOpts(OptionsDict):
             return 1
 
     # Minimum required number of iterations
-    def get_LastIter(self):
+    def get_LastIter(self, i=None):
         r"""Return the minimum number of iterations for case to be done
 
         :Call:
-            >>> nIter = opts.get_LastIter()
+            >>> nIter = opts.get_LastIter(i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
+            *i*: {``None``} | :class:`int`
+                Case index
         :Outputs:
             *nIter*: :class:`int`
                 Number of required iterations for case
         :Versions:
             * 2014-10-02 ``@ddalle``: Version 1.0
         """
-        return self.get_PhaseIters(self.get_PhaseSequence(-1))
+        # Get last phase
+        phase = self.get_PhaseSequence(j=-1, i=i)
+        # Get cutoff for that phase
+        return self.get_PhaseIters(j=phase, i=i)
    # >
 
 
