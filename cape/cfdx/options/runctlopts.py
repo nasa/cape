@@ -29,11 +29,11 @@ from ...optdict import ARRAY_TYPES, BOOL_TYPES, INT_TYPES, OptionsDict
 
 
 # Environment class
-class Environ(odict):
+class EnvironOpts(OptionsDict):
     r"""Class for environment variables
 
     :Call:
-        >>> opts = Environ(**kw)
+        >>> opts = EnvironOpts(**kw)
     :Inputs:
         *kw*: :class:`dict`
             Dictionary of environment variables
@@ -41,21 +41,24 @@ class Environ(odict):
         *opts*: :class:`cape.options.runControl.Environ`
             System environment variable options interface
     :Versions:
-        * 2015-11-10 ``@ddalle``: Version 1.0
+        * 2015-11-10 ``@ddalle``: Version 1.0 (Environ)
+        * 2022-10-28 ``@ddalle``: Version 2.0; OptionsDict
     """
 
     # Get an environment variable by name
-    def get_Environ(self, key, i=0):
-        """Get an environment variable setting by name
+    def get_Environ(self, opt, j=0, i=None):
+        r"""Get an environment variable setting by name
 
         :Call:
-            >>> val = opts.get_Environ(key, i=0)
+            >>> val = opts.get_Environ(opt, j=0)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *key*: :class:`str`
+            *opt*: :class:`str`
                 Name of the environment variable
-            *i*: :class:`int` or ``None``
+            *i*: {``None``} | :class:`int`
+                Case index
+            *j*: {``None``} | :class:`int`
                 Phase number
         :Outputs:
             *val*: :class:`str`
@@ -63,38 +66,30 @@ class Environ(odict):
         :Versions:
             * 2015-11-10 ``@ddalle``: Version 1.0
         """
-        # Check for the key.
-        if key not in self:
-            raise KeyError(
-                "Environment variable '%s' is not set in JSON file" % key)
-        # Get the setting or list of settings
-        V = self[key]
-        # Select the value for run sequence *i*
-        return str(getel(V, i))
+        # Get value
+        val = self.get_opt(opt, j, i=i)
+        # Return a string
+        return str(val)
 
     # Set an environment variable by name
-    def set_Environ(self, key, val, i=None):
+    def set_Environ(self, opt, val, j=None):
         r"""Set an environment variable setting by name
 
         :Call:
-            >>> val = opts.get_Environ(key, i=0)
+            >>> val = opts.get_Environ(opts, j=0)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *key*: :class:`str`
+            *opt*: :class:`str`
                 Name of the environment variable
             *val*: :class:`str`
                 Value to set the environment variable to
-            *i*: :class:`int` or ``None``
-                Phase number
+            *j*: {``None``} | :class:`int`
+                Phase index
         :Versions:
             * 2015-11-10 ``@ddalle``: Version 1.0
         """
-        # Initialize the key if necessary.
-        self.setdefault(key, "")
-        # Set the value by run sequence.
-        self[key] = setel(self[key], str(val), i)
-# class Environ
+        self.set_opt(opt, val, j)
 
 
 # Class for iteration & mode control settings and command-line inputs
@@ -188,7 +183,7 @@ class RunControlOpts(OptionsDict):
     # Sections
     _sec_cls = {
         "Archive": ArchiveOpts,
-        "Environ": Environ,
+        "Environ": EnvironOpts,
         "aflr3": AFLR3Opts,
         "intersect": intersect.intersect,
         "ulimit": ulimit.ulimit,
