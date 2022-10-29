@@ -24,8 +24,12 @@ from . import intersect
 from . import ulimit
 from .aflr3opts import AFLR3Opts
 from .archiveopts import ArchiveOpts
-from .util import odict, getel, setel
-from ...optdict import ARRAY_TYPES, BOOL_TYPES, INT_TYPES, OptionsDict
+from ...optdict import (
+    ARRAY_TYPES,
+    BOOL_TYPES,
+    INT_TYPES,
+    WARNMODE_ERROR,
+    OptionsDict)
 
 
 # Environment class
@@ -44,6 +48,10 @@ class EnvironOpts(OptionsDict):
         * 2015-11-10 ``@ddalle``: Version 1.0 (Environ)
         * 2022-10-28 ``@ddalle``: Version 2.0; OptionsDict
     """
+    # Class attributes
+    _opttypes = {
+        "_default_": str,
+    }
 
     # Get an environment variable by name
     def get_Environ(self, opt, j=0, i=None):
@@ -58,16 +66,17 @@ class EnvironOpts(OptionsDict):
                 Name of the environment variable
             *i*: {``None``} | :class:`int`
                 Case index
-            *j*: {``None``} | :class:`int`
+            *j*: {``0``} | ``None`` | :class:`int`
                 Phase number
         :Outputs:
             *val*: :class:`str`
                 Value to set the environment variable to
         :Versions:
             * 2015-11-10 ``@ddalle``: Version 1.0
+            * 2022-10-29 ``@ddalle``: Version 2.0; OptionsDict methods
         """
         # Get value
-        val = self.get_opt(opt, j, i=i)
+        val = self.get_opt(opt, j, i=i, mode=WARNMODE_ERROR)
         # Return a string
         return str(val)
 
@@ -88,8 +97,9 @@ class EnvironOpts(OptionsDict):
                 Phase index
         :Versions:
             * 2015-11-10 ``@ddalle``: Version 1.0
+            * 2022-10-29 ``@ddalle``: Version 2.0; OptionsDict methods
         """
-        self.set_opt(opt, val, j)
+        self.set_opt(opt, val, j, mode=WARNMODE_ERROR)
 
 
 # Class for iteration & mode control settings and command-line inputs
