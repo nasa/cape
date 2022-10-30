@@ -20,10 +20,10 @@ command-line options to solver commands such as ``flowCart`` for Cart3D.
 """
 
 # Local imports
-from . import intersect
 from . import ulimit
 from .aflr3opts import AFLR3Opts
 from .archiveopts import ArchiveOpts
+from .isectopts import IntersectOpts, VerifyOpts
 from ...optdict import (
     ARRAY_TYPES,
     BOOL_TYPES,
@@ -195,9 +195,9 @@ class RunControlOpts(OptionsDict):
         "Archive": ArchiveOpts,
         "Environ": EnvironOpts,
         "aflr3": AFLR3Opts,
-        "intersect": intersect.intersect,
+        "intersect": IntersectOpts,
         "ulimit": ulimit.ulimit,
-        "verify": intersect.verify,
+        "verify": VerifyOpts,
     }
    # >
 
@@ -250,7 +250,7 @@ class RunControlOpts(OptionsDict):
             * 2022-10-23 ``@ddalle``: Version 1.1; use :func:`bool`
         """
         # Initialize if necessary
-        self.init_section(intersect.intersect, "intersect")
+        self.init_section(IntersectOpts, "intersect")
         # Get the value and type
         v = self.get("intersect")
         # Get the flag and convert to True or False
@@ -278,7 +278,7 @@ class RunControlOpts(OptionsDict):
             * 2022-10-23 ``@ddalle``: Version 1.1; use :func:`bool`
         """
         # Initialize if necessary
-        self.init_section(intersect.verify, "verify")
+        self.init_section(VerifyOpts, "verify")
         # Get the value and type
         v = self.get("verify")
         # Get the flag and convert to True or False

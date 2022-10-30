@@ -110,7 +110,7 @@ class IntersectOpts(ExecOpts):
 
 
 # Add all properties
-IntersectOpts.add_properties(IntersectOpts._opt.ist, prefix="intersect_")
+IntersectOpts.add_properties(IntersectOpts._optlist, prefix="intersect_")
 
 
 # Resource limits class
@@ -154,5 +154,5 @@ class VerifyOpts(ExecOpts):
 
 
 # Add all properties
-VerifyOpts.add_properties(VerifyOpts._opt.ist, prefix="verify_")
+VerifyOpts.add_properties(VerifyOpts._optlist, prefix="verify_")
 
