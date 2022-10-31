@@ -1315,12 +1315,9 @@ class OptionsDict(dict):
         elif "vdef" in kw:
             # Use manual default
             v = kw["vdef"]
-        elif isinstance(self._xrc, dict) and opt in self._xrc:
-            # Get default from this instance
-            v = self._xrc[opt]
         else:
-            # Attempt to get from default, search bases if necessary
-            v = copy.deepcopy(self.__class__.get_cls_key("_rc", opt))
+            # Get default, search _xrc, then _rc, then _rc of __bases__
+            v = self.get_opt_default(opt)
         # Set values
         kw.setdefault("x", self.x)
         # Check option
@@ -1340,6 +1337,31 @@ class OptionsDict(dict):
             return
         # Output
         return val
+
+    def get_opt_default(self, opt: str):
+        r"""Get default value for named option
+
+        :Call:
+            >>> vdef = opts.get_opt_default(self, opt)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option to access
+        :Outputs:
+            *vdef*: :class:`object`
+                Default value if any, else ``None``
+        :Versions:
+            * 2022-10-30 ``@ddalle``: Version 1.0
+        """
+        if isinstance(self._xrc, dict) and opt in self._xrc:
+            # Get default from this instance
+            v = copy.deepcopy(self._xrc[opt])
+        else:
+            # Attempt to get from default, search bases if necessary
+            v = copy.deepcopy(self.__class__.get_cls_key("_rc", opt))
+        # Output
+        return v
 
     @expand_doc
     def get_subopt(self, sec: str, opt: str, key="Type", **kw):

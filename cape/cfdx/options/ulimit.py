@@ -13,741 +13,167 @@ loaded in the ``"RunControl"`` section of the JSON file and the
 """
 
 # Ipmort options-specific utilities
-from .util import rc0, odict, getel
+from ...optdict import INT_TYPES, OptionsDict, WARNMODE_ERROR
 
 
 # Resource limits class
-class ulimit(odict):
-    """Class for resource limits
-    
+class ULimitOpts(OptionsDict):
+    r"""Class for resource limit options
+
     :Call:
-        >>> opts = ulimit(**kw)
+        >>> opts = ULimitOpts(**kw)
     :Inputs:
         *kw*: :class:`dict`
             Dictionary of system resource options
     :Outputs:
-        *opts*: :class:`cape.options.ulimit.ulimit`
+        *opts*: :class:`ULimitOpts`
             System resource options interface
     :Versions:
-        * 2015-11-10 ``@ddalle``: First version
+        * 2015-11-10 ``@ddalle``: Version 1.0 (``ulimit``)
+        * 2022-10-31 ``@ddalle``: Version 2.0; use :class:`OptionsDict`
     """
-    
+    # List of recognized options
+    _optlist = {
+        "c",
+        "d",
+        "e",
+        "f",
+        "i",
+        "l",
+        "m",
+        "n",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "x",
+    }
+
+    # Aliases
+    _optmap = {
+        "core_file_size": "c",
+        "data_segment": "d",
+        "file_locks": "x",
+        "file_size": "f",
+        "locked_memory": "l",
+        "max_processes": "u",
+        "message_queue_size": "q",
+        "open_files": "n",
+        "pending_signals": "i",
+        "pipe_size": "p",
+        "processes": "u",
+        "real_time_priority": "r",
+        "scheduling_priority": "e",
+        "set_size": "m",
+        "stack_size": "s",
+        "time_limit": "t",
+        "user_processes": "u",
+        "virtual_memory": "v",
+    }
+
+    # Types (all int or "unlimited")
+    _opttypes = {
+        "_default_": INT_TYPES + (str,),
+    }
+
+    # Defaults
+    _rc = {
+        "c": 0,
+        "d": "unlimited",
+        "e": 0,
+        "f": "unlimited",
+        "i": 127556,
+        "l": 64,
+        "m": "unlimited",
+        "n": 1024,
+        "p": 8,
+        "q": 819200,
+        "r": 0,
+        "s": 4194304,
+        "t": "unlimited",
+        "u": 127812,
+        "v": "unlimited",
+        "x": "unlimited",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "T": "max number of threads, ``ulimit -T``",
+        "b": "max socket buffer size, ``ulimit -b``",
+        "c": "core file size limit, ``ulimit -c``",
+        "d": "process data segment limit, ``ulimit -d``",
+        "e": "max scheduling priority, ``ulimit -e``",
+        "f": "max size of files written by shell, ``ulimit -f``",
+        "i": "max number of pending signals, ``ulimit -i``",
+        "l": "max size that may be locked into memory, ``ulimit -l``",
+        "m": "max resident set size, ``ulimit -m``",
+        "n": "max number of open files, ``ulimit -n``",
+        "p": "pipe size in 512-byte blocks, ``ulimit -p``",
+        "q": "max bytes in POSIX message queues, ``ulimit -q``",
+        "r": "max real-time scheduling priority, ``ulimit -r``",
+        "s": "stack size limit, ``ulimit -s``",
+        "t": "max amount of cpu time in s, ``ulimit -t``",
+        "u": "max number of procs avail to one user, ``ulimit -u``",
+        "v": "max virtual memory avail to shell, ``ulimit -v``",
+        "x": "max number of file locks, ``ulimit -x``",
+    }
+
     # Get a ulimit setting
-    def get_ulimit(self, u, i=0):
-        """Get a resource limit (``ulimit``) setting by its command-line flag
-        
+    def get_ulimit(self, u, j=0, i=None):
+        r"""Get a resource limit (``ulimit``) setting by name
+
         :Call:
             >>> l = opts.get_ulimit(u, i=0)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *u*: :class:`str`
                 Name of the ``ulimit`` flag
-            *i*: :class:`int` or ``None``
-                Phase number
+            *j*: ``None`` | {``0``} | :class:`int`
+                Phase index
+            *i*: {``None``} | :class:`int`
+                Case number
         :Outputs:
             *l*: :class:`int`
                 Value of the resource limit
         :Versions:
-            * 2015-11-10 ``@ddalle``: First version
+            * 2015-11-10 ``@ddalle``: Version 1.0
+            * 2022-10-30 ``@ddalle``: Version 2.0; use :mod:`optdict`
         """
-        # Check for setting
-        if u not in self:
-            # Default flag name
-            rcu = 'ulimit_' + u
-            # Check for default
-            if rcu in rc0:
-                # Use the default setting
-                return rc0[rcu]
-            else:
-                # No setting found
-                raise KeyError("Found no setting for 'ulimit -%s'" % u)
-        # Process the setting
-        V = self[u]
-        # Select the value for run sequence *i*
-        return getel(V, i)
-        
+        # Get setting with strict warings
+        return self.get_opt(u, j=j, i=i, mode=WARNMODE_ERROR)
+
     # Set a ulimit setting
-    def set_ulimit(self, u, l=None, i=None):
-        """Set a resource limit (``ulimit``) setting by its command-line flag
-        
+    def set_ulimit(self, u, l=None, j=None, i=None):
+        r"""Set a resource limit (``ulimit``) by name and value
+
         :Call:
             >>> opts.set_ulimit(u, l=None, i=None)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *u*: :class:`str`
                 Name of the ``ulimit`` flag
             *l*: :class:`int`
                 Value of the limit
-            *i*: :class:`int` or ``None``
-                Phase number
+            *j*: {``None``} | :class:`int`
+                Phase index
+            *i*: {``None``} | :class:`int`
+                Case number
         :Versions:
-            * 2015-11-10 ``@ddalle``: First version
+            * 2015-11-10 ``@ddalle``: Version 1.0
+            * 2022-10-30 ``@ddalle``: Version 2.0; use :mod:`optdict`
         """
-        # Get default
-        if l is None: udef = rc0["ulimit_%s"%u]
-        # Initialize if necessary.
-        self.setdefault(u, None)
-        # Set the value.
-        self[key] = setel(self[u], l, i)
-        
-    # Stack size
-    def get_s(self, i=0):
-        """Get the stack size limit, ``ulimit -s``
-        
-        :Call:
-            >>> s = opts.get_s(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *s*: :class:`int`
-                Value of the stack size limit (kbytes)
-        :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-        """
-        return self.get_ulimit('s', i)
-        
-    # Stack size
-    def set_s(self, s, i=0):
-        """Get the stack size limit, ``ulimit -s``
-        
-        :Call:
-            >>> opts.set_s(s, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *s*: :class:`int`
-                Value of the stack size limit (kbytes)
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-        """
-        self.set_ulimit('s', s, i)
-    
-    # Aliases
-    get_stack_size = get_s
-    set_stack_size = set_s
-    
-    # Core file size
-    def get_c(self, i=0):
-        """Get the core file size limit, ``ulimit -c``
-        
-        :Call:
-            >>> c = opts.get_c(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *c*: :class:`int`
-                Value of the core file size limit
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version (blocks)
-        """
-        return self.get_ulimit('c', i)
-        
-    # Core file size
-    def set_c(self, c, i=0):
-        """Get the core file size limit, ``ulimit -c``
-        
-        :Call:
-            >>> opts.set_c(c, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *c*: :class:`int`
-                Value of the core file size limit (blocks)
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        self.set_ulimit('c', c, i)
-        
-    # Aliases
-    get_core_file_size = get_c
-    set_core_file_size = set_c
-    
-    # Data segment
-    def get_d(self, i=0):
-        """Get the data segment limit
-        
-        :Call:
-            >>> d = opts.get_d(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *d*: :class:`int`
-                Data segment limit (kbytes)
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('d', i)
-        
-    # Data segment
-    def set_d(self, d, i=0):
-        """Set the data segment limit
-        
-        :Call:
-            >>> opts.set_d(d, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *d*: :class:`int`
-                Data segment limit (kbytes)
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('d', d, i)
-        
-    # Aliases
-    get_data_seg_limit = get_d
-    set_data_seg_limit = set_d
-    
-    # Scheduling priority
-    def get_e(self, i=0):
-        """Get the scheduling priority
-        
-        :Call:
-            >>> e = opts.get_e(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *e*: :class:`int`
-                Scheduling priority
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('e', i)
-        
-    # Scheduling priority
-    def set_e(self, e, i=0):
-        """Set the data segment limit
-        
-        :Call:
-            >>> opts.set_e(e, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *e*: :class:`int`
-                Scheduling priority 
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('e', e, i)
-        
-    # Aliases
-    get_scheduling_priority = get_e
-    set_scheduling_priority = set_e
-        
-    # File size
-    def get_f(self, i=0):
-        """Get the file size limit, ``ulimit -f``
-        
-        :Call:
-            >>> f = opts.get_f(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *f*: :class:`int`
-                Value of the file size limit (blocks)
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('f', i)
-        
-    # Core file size
-    def set_f(self, f, i=0):
-        """Get the file size limit, ``ulimit -f``
-        
-        :Call:
-            >>> opts.set_f(f, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *f*: :class:`int`
-                Value of the file size limit (blocks)
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        self.set_ulimit('f', f, i)
-        
-    # Aliases
-    get_file_size = get_f
-    set_file_size = set_f
-    
-    # Pending signals
-    def get_i(self, i=0):
-        """Get the pending signal limit
-        
-        :Call:
-            >>> e = opts.get_i(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *e*: :class:`int`
-                Pending signal limit 
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('e', i)
-        
-    # Pending signals
-    def set_i(self, e, i=0):
-        """Set the data segment limit
-        
-        :Call:
-            >>> opts.set_i(e, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *e*: :class:`int`
-                Pending signal limit
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('i', e, i)
-        
-    # Aliases
-    get_pending_signal_limit = get_i
-    set_pending_signal_limit = set_i
-        
-    # Locked memory
-    def get_l(self, i=0):
-        """Get the maximum locked memory
-        
-        :Call:
-            >>> l = opts.get_l(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *l*: :class:`int`
-                Maximum locked memory 
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('l', i)
-        
-    # Pending signals
-    def set_l(self, l, i=0):
-        """Set the maximum locked memory
-        
-        :Call:
-            >>> opts.set_l(l, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *l*: :class:`int`
-                Maximum locked memory
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('l', l, i)
-        
-    # Aliases
-    get_max_locked_memory = get_l
-    set_max_locked_memory = set_l
-    
-    # Max memory size
-    def get_m(self, i=0):
-        """Get the maximum memory size
-        
-        :Call:
-            >>> m = opts.get_m(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *m*: :class:`int`
-                Maximum locked memory (kbytes)
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('l', i)
-        
-    # Maximum memory size
-    def set_m(self, l, i=0):
-        """Set the maximum memory size
-        
-        :Call:
-            >>> opts.set_m(m, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *m*: :class:`int`
-                Maximum locked memory (kbytes)
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('l', l, i)
-        
-    # Aliases
-    get_max_memory_size = get_m
-    set_max_memory_size = set_m
-    
-    # Open files
-    def get_n(self, i=0):
-        """Get the maximum number of open files
-        
-        :Call:
-            >>> n = opts.get_n(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *n*: :class:`int`
-                Open file number limit 
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('n', i)
-        
-    # Open files
-    def set_n(self, n, i=0):
-        """Set the maximum number of open files
-        
-        :Call:
-            >>> opts.set_n(n, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *n*: :class:`int`
-                Open file number limit
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('n', n, i)
-        
-    # Aliases
-    get_open_file_limit = get_n
-    set_open_file_limit = set_n
-    
-    # Pipe size
-    def get_p(self, i=0):
-        """Get the pipe buffer limit
-        
-        :Call:
-            >>> p = opts.get_p(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *p*: :class:`int`
-                Pipe buffer size limit (512 bytes)
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('p', i)
-        
-    # Pipe size
-    def set_p(self, p, i=0):
-        """Set the pipe buffer limit
-        
-        :Call:
-            >>> opts.set_p(p, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *p*: :class:`int`
-                Pipe buffer size limit (512 bytes)
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('p', p, i)
-        
-    # Aliases
-    get_pipe_size = get_p
-    set_pipe_size = set_p
-    
-    # POSIX message queu
-    def get_q(self, i=0):
-        """Get the POSIX message queue limit
-        
-        :Call:
-            >>> q = opts.get_q(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *q*: :class:`int`
-                POSIX message queue limit (bytes)
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('q', i)
-        
-    # Maximum memory size
-    def set_q(self, q, i=0):
-        """Set the maximum memory size
-        
-        :Call:
-            >>> opts.set_q(q, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *q*: :class:`int`
-                POSIX message queue limit (bytes)
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('q', q, i)
-        
-    # Aliases
-    get_messague_queues = get_q
-    set_messague_queues = set_q
-    
-    # Real-time priority
-    def get_r(self, i=0):
-        """Get the real-time priority
-        
-        :Call:
-            >>> r = opts.get_r(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *r*: :class:`int`
-                Real-time priority 
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('r', i)
-        
-    # Real-time priority
-    def set_r(self, r, i=0):
-        """Set the maximum memory size
-        
-        :Call:
-            >>> opts.set_r(r, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *r*: :class:`int`
-                Real-time priority 
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('r', r, i)
-        
-    # Aliases
-    get_real_time_priority = get_r
-    set_real_time_priority = set_r
-    
-    # CPU time
-    def get_t(self, i=0):
-        """Get the maximum CPU time
-        
-        :Call:
-            >>> n = opts.get_t(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *t*: :class:`int`
-                CPU time limit (seconds)
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('t', i)
-        
-    # Open files
-    def set_t(self, t, i=0):
-        """Set the maximum CPU time
-        
-        :Call:
-            >>> opts.set_t(t, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *t*: :class:`int`
-                CPU time limit (seconds)
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('t', t, i)
-        
-    # Aliases
-    get_time_limit = get_t
-    set_time_limit = set_t
-    
-    # User processes
-    def get_u(self, i=0):
-        """Get the maximum number of user processes
-        
-        :Call:
-            >>> u = opts.get_u(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *u*: :class:`int`
-                Maximum number of user processes
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('u', i)
-        
-    # User processes
-    def set_u(self, u, i=0):
-        """Set the maximum number of user processes
-        
-        :Call:
-            >>> opts.set_u(u, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *u*: :class:`int`
-                Maximum number of user processes
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('u', u, i)
-        
-    # Aliases
-    get_max_processes = get_u
-    set_max_processes = set_u
-        
-    # Virtual memory
-    def get_v(self, i=0):
-        """Get the virtual memory limit
-        
-        :Call:
-            >>> v = opts.get_v(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *v*: :class:`int`
-                Virtual memory limit (kbytes)
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('v', i)
-        
-    # Virtual memory
-    def set_v(self, v, i=0):
-        """Set the virtual memory limit
-        
-        :Call:
-            >>> opts.set_r(r, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *v*: :class:`int`
-                Virtual memory limit (kbytes)
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('v', v, i)
-        
-    # Aliases
-    get_virtual_memory_limit = get_v
-    set_virtual_memory_limit = set_v
-    
-    # File locks
-    def get_x(self, i=0):
-        """Get the file lock limit
-        
-        :Call:
-            >>> x = opts.get_x(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Outputs:
-            *x*: :class:`int`
-                File lock limit
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.get_ulimit('v', i)
-        
-    # Virtual memory
-    def set_x(self, x, i=0):
-        """Set the file lock limit
-        
-        :Call:
-            >>> opts.set_x(x, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *x*: :class:`int`
-                File lock limit
-            *i*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2016-03-13 ``@ddalle``: First version
-        """
-        return self.set_ulimit('x', x, i)
-        
-    # Aliases
-    get_file_locks_limit = get_x
-    set_file_locks_limit = set_x
-    
-    
-# class ulimit
+        # Get default if appropriate
+        if l is None:
+            l = self.get_opt_default(u)
+        # Set option
+        self.set_opt(u, l, j=j, i=i)
 
+
+# Add properties
+ULimitOpts.add_properties(ULimitOpts._optlist)
+ULimitOpts.add_properties(ULimitOpts._optmap)
