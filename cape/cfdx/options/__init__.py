@@ -31,7 +31,7 @@ import os
 # Local imports
 from . import util
 from .pbsopts import PBSOpts
-from .slurm import Slurm
+from .slurmopts import SlurmOpts
 from .DataBook import DataBook, DBTarget
 from .Report import Report
 from .Mesh import Mesh
@@ -94,16 +94,16 @@ class Options(OptionsDict):
     # Section classes
     _sec_cls = {
         "BatchPBS": PBSOpts,
-        "BatchSlurm": Slurm,
+        "BatchSlurm": SlurmOpts,
         "Config": Config,
         "DataBook": DataBook,
         "Mesh": Mesh,
         "PBS": PBSOpts,
         "PostPBS": PBSOpts,
-        "PostSlurm": Slurm,
+        "PostSlurm": SlurmOpts,
         "Report": Report,
         "RunControl": RunControlOpts,
-        "Slurm": Slurm,
+        "Slurm": SlurmOpts,
     }
 
     # Prefixes for section opts
