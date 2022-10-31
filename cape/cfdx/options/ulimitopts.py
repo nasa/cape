@@ -1,15 +1,14 @@
 """
-:mod:`cape.cfdx.options.ulimit`: System resource options
-=========================================================
+:mod:`cape.cfdx.options.ulimitopts`: System resource options
+================================================================
 
-This module provides a class to access options relating to system resources.
-Specifically, this pertains to options usually set by ``ulimit`` from the
-command line.
+This module provides a class to access options relating to system
+resources. Specifically, this pertains to options usually set by
+``ulimit`` from the command line.
 
-The class provided in this module, :class:`cape.options.ulimit.ulimit`, is
-loaded in the ``"RunControl"`` section of the JSON file and the
-:class:`cape.options.runControl.RunControl` class.
-
+The class provided in this module, :class:`ULimitOpts`, is
+loaded in the ``"RunControl"`` section of the JSON file or main options
+interface.
 """
 
 # Ipmort options-specific utilities
