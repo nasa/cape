@@ -27,6 +27,7 @@ a method like :func:`TriBase.WriteFast` for the compiled version and
 import os
 import subprocess as sp
 import sys
+from datetime import datetime
 from shutil import copy
 from collections import OrderedDict
 
@@ -56,6 +57,9 @@ antoldef = options.rc.get("antoldef", 2e-2)
 rntoldef = options.rc.get("rntoldef", 1e-4)
 cntoldef = options.rc.get("cntoldef", 1e-4)
 rztoldef = options.rc.get("rztoldef", 1e-5)
+
+import getpass
+IS_DEREK = getpass.getuser() == "ddalle"
 
 
 # Attempt to load the compiled helper module.
@@ -592,7 +596,7 @@ class TriBase(object):
             bo = self.byteorder
             ni = self.bytecount
         except AttributeError:
-            bo = os.sys.byteorder
+            bo = sys.byteorder
             ni = 4
         # Read flags
         if bo == 'big':
@@ -4584,13 +4588,19 @@ class TriBase(object):
         # Mapping *tri.CompID* to *self.CompID*
         compmap = {}
         facemap = {}
+        if IS_DEREK:
+            tic = datetime.now()
+            nk = len(K)
         # Loop through columns
         for i, k in enumerate(K):
             # Get triangle number
             k = K[i]
             # Status update if verbose
             if v and ((i+1) % (1000*v) == 0):
-                print("  Mapping triangle %i/%i" % (i+1,len(K)))
+                sys.stdout.write("  Mapping triangle %i/%i\r" % (i+1, len(K)))
+                sys.stdout.flush()
+            if IS_DEREK:
+                tici = datetime.now()
             # Perform search
             T = tri.GetNearestTri(self.Centers[k,:])
             # Get components
@@ -4611,11 +4621,34 @@ class TriBase(object):
             # Get overall tolerances
             toli  = tol + ctol*LC[c1]
             ntoli = ntol + cntol*LC[c1]
+            if IS_DEREK:
+                toc = datetime.now()
+                dt = toc - tic
+                dti = toc - tici
+                tt = (dt.seconds + dt.microseconds / 1e6) / (i + 1)
+                ti = dti.seconds + dti.microseconds / 1e6
+                if i == 0:
+                    print("  Tri %i/%i: %.2e s" % (i+1, nk, ti))
+                elif (i + 1) % 1000 == 0 or i == 99:
+                    print(
+                        "  tri %i/%i: %.2e s, %.2e s/tri"
+                        % (i+1, nk, ti, tt))
             # Filter results
             if (T["t1"] > toli) or (T["z1"] > ntoli):
                 continue
             # Save new component ID
             self.CompID[k] = compmap[c1]
+        # Clean up prompt
+        if v:
+            sys.stdout.write("%72s\r" % "")
+            sys.stdout.flush()
+        if IS_DEREK:
+            toc = datetime.now()
+            dt = toc - tic
+            tt = dt.seconds + dt.microseconds / 1e6
+            print("  total: %.2e s (%.2e s/tri)" % (tt, tt/nk))
+            sys.tracebacklimit = 0
+            raise SystemError
         # Update *self.config* if applicable
         try:
             # Loop through faces in the target map
@@ -5262,7 +5295,7 @@ class TriBase(object):
             np.sqrt(np.sum(x20**2, 0))))
 
     # Get nearest triangle to a point
-    def GetNearestTri(self, x, **kw):
+    def GetNearestTri(self, x, n=4, **kw):
         """Get the triangle that is nearest to a point, and the distance
 
         :Call:
@@ -5272,6 +5305,8 @@ class TriBase(object):
                 Triangulation instance
             *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
                 Array of *x*, *y*, and *z* coordinates of test point
+            *n*: {``4``} | :class:`int`
+                Number of *tri* components to search
             *ztol*: {_ztol_} | positive :class:`float`
                 Maximum extra projection distance
             *rztol*: {_antol_} | positive :class:`float`
@@ -5298,13 +5333,13 @@ class TriBase(object):
             *T["z2"]*: :class:`float`
                 Projection distance of point to triangle *k2*
             *T["k3"]*: ``None`` | :class:`int`
-                Index of nearest triangle outside components *c1* and *c2*
+                Index of nearest trioutside components *c1* and *c2*
             *T["k4"]*: ``None`` | :class:`int`
-                Index of nearest triangle outside components *c1*, *c2*, *c3*
+                Index of nearest trioutside components *c1*, *c2*, *c3*
         :Versions:
             * 2017-02-06 ``@ddalle``: Version 1.0
-            * 2017-02-07 ``@ddalle``: Added search for second point
-            * 2017-02-08 ``@ddalle``: Added third and fourth families
+            * 2017-02-07 ``@ddalle``: Version 1.1; search for 2nd comp
+            * 2017-02-08 ``@ddalle``: Version 1.2; 3rd and 4th comp
         """
         # Get coordinates
         self.GetBasisVectors()
@@ -5374,14 +5409,21 @@ class TriBase(object):
         # Find the component ID
         c1 = self.CompID[k1]
         # Initialize output
-        T = {"k1": k1, "c1": c1, "d1": D[i1],
-            "t1": DI[i1], "z1": abs(zi[i1])}
+        T = {
+            "k1": k1,
+            "c1": c1,
+            "d1": D[i1],
+            "t1": DI[i1],
+            "z1": abs(zi[i1]),
+        }
         # Initialize submask
         I1 = K > -1
         C1 = self.CompID[I]
         # Loop through until we find up to four components
         c = c1
-        for n in ['2', '3', '4']:
+        for nj in range(n-1):
+            # Tag
+            sj = str(nj + 2)
             # Find the triangles that are not in any previous component
             I1 = np.logical_and(I1, C1 != c)
             # Downselect available triangle indices
@@ -5395,11 +5437,11 @@ class TriBase(object):
             k = K[j]
             c = self.CompID[k]
             # Save parameters
-            T["k"+n] = k
-            T["c"+n] = c
-            T["d"+n] = D[j]
-            T["z"+n] = zi[j]
-            T["t"+n] = DI[j]
+            T["k"+sj] = k
+            T["c"+sj] = c
+            T["d"+sj] = D[j]
+            T["z"+sj] = zi[j]
+            T["t"+sj] = DI[j]
         # Output (if 4 components)
         return T
     # Edit default tolerances
