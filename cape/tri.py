@@ -5393,9 +5393,10 @@ class TriBase(object):
         XI = np.zeros_like(XI)
         YI = np.zeros_like(XI)
         # Convert the second and third vertices
+        # The commented line should be all zeros
         XI[:,1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
         XI[:,2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
-        YI[:,1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
+        # YI[:,1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
         YI[:,2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
         # Get distance to each triangle within the plane of each triangle
         DI = geom.dist_tris_to_pt(XI, YI, xi, yi)
