@@ -506,10 +506,10 @@ def dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
 
 
 # Get distance from a point
-def dist_tris_to_pt(X, Y, x, y, **kw):
-    r"""Get distance from a point to a collection of triangles
+def dist2_tris_to_pt(X, Y, x, y, **kw):
+    r"""Get square of distance from a point to a collection of triangles
 
-    Points that are inside the triangle return a distance of 0.
+    Points that are inside the triangle return a distance of 0
 
     :Call:
         >>> D = dist_tris_to_pt(X, Y, x, y)
@@ -524,9 +524,10 @@ def dist_tris_to_pt(X, Y, x, y, **kw):
             *y*-coordinate of test point
     :Outputs:
         *D*: :class:`np.ndarray`\ [:class:`float`]
-            Matrix of minimum distance from each tri to point
+            Matrix of minimum distance squared from each tri to point
     :Versions:
         * 2017-02-06 ``@ddalle``: Version 1.0
+        * 2022-11-01 ``@ddalle``: Version 2.0; faster
     """
     # Check for membership of each triangle
     Q = tris_have_pt(X, Y, x, y, **kw)
@@ -555,7 +556,34 @@ def dist_tris_to_pt(X, Y, x, y, **kw):
     # Get dist to each segment of each tri that does not contain the pt
     D2 = dist2_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw)
     # Save the minimum pt-to-edge distance
-    D[Q0] = np.sqrt(np.min(D2, axis=1))
+    D[Q0] = np.min(D2, axis=1)
     # Output
     return D
+
+
+# Get distance from a point
+def dist_tris_to_pt(X, Y, x, y, **kw):
+    r"""Get distance from a point to a collection of triangles
+
+    Points that are inside the triangle return a distance of 0.
+
+    :Call:
+        >>> D = dist_tris_to_pt(X, Y, x, y)
+    :Inputs:
+        *X*: :class:`np.ndarray`\ [:class:`float`]
+            *x*-coords of vertices of *n* tris, *shape*: (n,3)
+        *Y*: :class:`np.ndarray`\ [:class:`float`], shape=(n,3))
+            *y*-coords of vertices of *n* tris, *shape*: (n,3)
+        *x*: :class:`float`
+            *x*-coordinate of test point
+        *y*: :class:`float`
+            *y*-coordinate of test point
+    :Outputs:
+        *D*: :class:`np.ndarray`\ [:class:`float`]
+            Matrix of minimum distance from each tri to point
+    :Versions:
+        * 2017-02-06 ``@ddalle``: Version 1.0
+        * 2022-11-01 ``@ddalle``: Version 2.0; faster
+    """
+    return np.sqrt(dist2_tris_to_pt(X, Y, x, y, **kw))
 

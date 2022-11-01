@@ -5375,33 +5375,48 @@ class TriBase(object):
         I = zi <= zmin + ztol
         K = np.where(I)[0]
         # Preselect subsets
-        XI = X[I,:]
-        YI = Y[I,:]
-        ZI = Z[I,:]
+        XI = X[I, :]
+        YI = Y[I, :]
+        ZI = Z[I, :]
+        # Filter best 25 candidates
+        if K.size > 25:
+            # Centers
+            XC = np.mean(XI, axis=1)
+            YC = np.mean(YI, axis=1)
+            ZC = np.mean(ZI, axis=1)
+            # L1 distance to each center
+            L1 = np.abs(XC - x) + np.abs(YC - y) + np.abs(ZC - z)
+            # Sort closest 25
+            J = np.argsort(L1)[:25]
+            K = K[J]
+            # Redo subsets
+            XI = XI[J, :]
+            YI = YI[J, :]
+            ZI = ZI[J, :]
         # These operations are tested to run as fast as possible
         XI0, XI1, XI2 = XI.T
         YI0, YI1, YI2 = YI.T
         ZI0, ZI1, ZI2 = ZI.T
         # Downselect the basis vectors
-        e10, e11, e12 = e1[I,:].T
-        e20, e21, e22 = e2[I,:].T
+        e10, e11, e12 = e1[K, :].T
+        e20, e21, e22 = e2[K, :].T
         # Convert the test point into coordinates aligned with first edge
         xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
         yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
-        zi = zi[I]
+        zi = zi[K]
         # Initialize transformed triangles
         XI = np.zeros_like(XI)
         YI = np.zeros_like(XI)
         # Convert the second and third vertices
         # The commented line should be all zeros
-        XI[:,1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
-        XI[:,2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
-        # YI[:,1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
-        YI[:,2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
+        XI[:, 1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
+        XI[:, 2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
+        # YI[:, 1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
+        YI[:, 2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
         # Get distance to each triangle within the plane of each triangle
-        DI = geom.dist_tris_to_pt(XI, YI, xi, yi)
+        DI = geom.dist2_tris_to_pt(XI, YI, xi, yi)
         # Get total distance from point to each triangle
-        D = zi*zi + DI**2
+        D = zi*zi + DI
         # Get index of minimum distance
         i1 = np.nanargmin(D)
         k1 = K[i1]
