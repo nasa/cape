@@ -58,9 +58,6 @@ rntoldef = options.rc.get("rntoldef", 1e-4)
 cntoldef = options.rc.get("cntoldef", 1e-4)
 rztoldef = options.rc.get("rztoldef", 1e-5)
 
-import getpass
-IS_DEREK = getpass.getuser() == "ddalle"
-
 
 # Attempt to load the compiled helper module.
 try:
@@ -4588,9 +4585,6 @@ class TriBase(object):
         # Mapping *tri.CompID* to *self.CompID*
         compmap = {}
         facemap = {}
-        if IS_DEREK:
-            tic = datetime.now()
-            nk = len(K)
         # Loop through columns
         for i, k in enumerate(K):
             # Get triangle number
@@ -4599,8 +4593,6 @@ class TriBase(object):
             if v and ((i+1) % (1000*v) == 0):
                 sys.stdout.write("  Mapping triangle %i/%i\r" % (i+1, len(K)))
                 sys.stdout.flush()
-            if IS_DEREK:
-                tici = datetime.now()
             # Perform search
             T = tri.GetNearestTri(self.Centers[k,:], n=1)
             # Get components
@@ -4621,18 +4613,6 @@ class TriBase(object):
             # Get overall tolerances
             toli  = tol + ctol*LC[c1]
             ntoli = ntol + cntol*LC[c1]
-            if IS_DEREK:
-                toc = datetime.now()
-                dt = toc - tic
-                dti = toc - tici
-                tt = (dt.seconds + dt.microseconds / 1e6) / (i + 1)
-                ti = dti.seconds + dti.microseconds / 1e6
-                if i == 0:
-                    print("  Tri %i/%i: %.2e s" % (i+1, nk, ti))
-                elif (i + 1) % 1000 == 0 or i == 99:
-                    print(
-                        "  tri %i/%i: %.2e s, %.2e s/tri"
-                        % (i+1, nk, ti, tt))
             # Filter results
             if (T["t1"] > toli) or (T["z1"] > ntoli):
                 continue
@@ -4642,13 +4622,6 @@ class TriBase(object):
         if v:
             sys.stdout.write("%72s\r" % "")
             sys.stdout.flush()
-        if IS_DEREK:
-            toc = datetime.now()
-            dt = toc - tic
-            tt = dt.seconds + dt.microseconds / 1e6
-            print("  total: %.2e s (%.2e s/tri)" % (tt, tt/nk))
-            sys.tracebacklimit = 0
-            raise SystemError
         # Update *self.config* if applicable
         try:
             # Loop through faces in the target map
