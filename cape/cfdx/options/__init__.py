@@ -35,7 +35,7 @@ from .slurmopts import SlurmOpts
 from .DataBook import DataBook, DBTarget
 from .Report import Report
 from .Mesh import Mesh
-from .Config import Config
+from .configopts import ConfigOpts
 from .runctlopts import RunControlOpts
 from ...optdict import OptionsDict, INT_TYPES
 
@@ -95,7 +95,7 @@ class Options(OptionsDict):
     _sec_cls = {
         "BatchPBS": PBSOpts,
         "BatchSlurm": SlurmOpts,
-        "Config": Config,
+        "Config": ConfigOpts,
         "DataBook": DataBook,
         "Mesh": Mesh,
         "PBS": PBSOpts,

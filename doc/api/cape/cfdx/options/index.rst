@@ -14,12 +14,12 @@
     
     aflr3opts
     archiveopts
-    intersect
+    configopts
+    isectopts
     pbsopts
     runctlopts
-    slurm
-    ulimit
-    Config
+    slurmopts
+    ulimitopts
     Mesh
     DataBook
     Report
