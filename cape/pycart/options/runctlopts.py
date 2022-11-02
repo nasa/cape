@@ -56,19 +56,31 @@ class FlowCartOpts(ExecOpts):
     # Accepted options
     _optlist = {
         "RKScheme",
+        "binaryIO",
+        "buffLim",
         "cfl",
         "cflmin",
+        "checkptTD",
         "clic",
         "dt",
+        "fc_clean",
+        "fc_stats",
         "first_order",
+        "fmg",
         "it_avg",
         "it_fc",
         "it_start",
         "it_sub",
+        "limiter",
         "mg_fc",
         "nOrders",
+        "pmg",
         "robust_mode",
+        "tecO",
+        "tm",
         "unsteady",
+        "vizTD",
+        "y_is_spanwise",
     }
 
     # Aliases
@@ -79,519 +91,97 @@ class FlowCartOpts(ExecOpts):
     # Types
     _opttypes = {
         "RKScheme": (str, list),
+        "buffLim": BOOL_TYPES,
+        "binaryIO": BOOL_TYPES,
         "cfl": FLOAT_TYPES,
         "cflmin": FLOAT_TYPES,
+        "checkptTD": BOOL_TYPES,
         "clic": BOOL_TYPES,
         "dt": FLOAT_TYPES,
+        "fc_clean": BOOL_TYPES,
+        "fc_stats": INT_TYPES,
         "first_order": BOOL_TYPES,
+        "fmg": BOOL_TYPES,
         "it_avg": INT_TYPES,
         "it_fc": INT_TYPES,
         "it_start": INT_TYPES,
         "it_sub": INT_TYPES,
+        "limiter": INT_TYPES,
         "mg_fc": INT_TYPES,
         "nOrders": INT_TYPES,
+        "pmg": BOOL_TYPES,
         "robust_mode": BOOL_TYPES,
+        "tecO": BOOL_TYPES,
+        "tm": BOOL_TYPES,
         "unsteady": BOOL_TYPES,
+        "vizTD": BOOL_TYPES,
+        "y_is_spanwise": BOOL_TYPES,
     }
 
     # Defaults
     _rc = {
+        "binaryIO": True,
+        "buffLim": False,
         "cfl": 1.1,
         "cflmin": 0.8,
         "clic": True,
         "dt": 0.1,
+        "fc_clean": False,
+        "fc_stats": 0,
         "first_order": False,
+        "fmg": True,
         "it_avg": 0,
         "it_fc": 200,
         "it_start": 100,
         "it_sub": 10,
+        "limiter": 2,
         "mg_fc": 3,
         "nOrders": 12,
+        "pmg": False,
         "robust_mode": False,
+        "tecO": True,
+        "tm": False,
         "unsteady": False,
+        "y_is_spanwise": True,
     }
 
     # Descriptions
     _rst_descriptions = {
         "RKScheme": "the Runge-Kutta scheme for a phase",
+        "binaryIO": "whether ``flowCart`` is set for binary I/O",
+        "buffLim": "whether ``flowCart`` will use buffer limits",
         "cfl": "nominal CFL number for ``flowCart``",
         "cflmin": "min CFL number for ``flowCart``",
+        "checkptTD": "steps between unsteady ``flowCart`` checkpoints",
         "clic": "whether to write ``Components.i.triq``",
         "dt": "nondimensional physical time step",
         "first_order": "whether ``flowCart`` should be run first-order",
+        "fc_clean": "whether to run relaxation step before time-accurate step",
+        "fc_stats": "number of iters for iterative or time averaging",
+        "fmg": "whether to run ``flowCart`` w/ full multigrid",
+        "pmg": "whether to run ``flowCart`` w/ poly multigrid",
         "it_avg": "number of ``flowCart`` iters b/w ``.triq`` outputs",
         "it_fc": "number of ``flowCart`` iterations",
         "it_start": "number of ``flowCart`` iters b4 ``.triq`` outputs",
         "it_sub": "number of subiters for each ``flowCart`` time step",
+        "limiter": "limiter for ``flowCart``",
         "mg_fc": "multigrid levels for ``flowCart``",
         "nOrders": "convergence drop orders of magnitude for early exit",
         "robust_mode": "whether ``flowCart`` should be run in robust mode",
+        "tecO": "whether ``flowCart`` dumps Tecplot triangulations",
+        "tm": "whether ``flowCart`` is set for cut cell gradient",
         "unsteady": "whether to run time-accurate ``flowCart``",
+        "vizTD": "steps between ``flowCart`` visualization outputs",
+        "y_is_spanwise": "whether *y* is spanwise axis for ``flowCart``",
     }
-        
     
-    # Get the unsteady checkpoint interval
-    def get_checkptTD(self, i=None):
-        """Return the number of steps between unsteady checkpoints
-        
-        :Call:
-            >>> checkptTD = opts.get_checkptTD(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *checkptTD*: :class:`int` or :class:`list`(:class:`int`)
-                Number of unsteady time steps between checkpoints
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('checkptTD', i)
-        
-    # Set the unsteady checkpoint interval
-    def set_checkptTD(self, checkptTD=rc0('checkptTD'), i=None):
-        """Set the number of steps between unsteady checkpoints
-        
-        :Call:
-            >>> opts.set_checkptTD(checkptTD, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *checkptTD*: :class:`int` or :class:`list`(:class:`int`)
-                Number of unsteady time steps between checkpoints
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-        """
-        self.set_key('checkptTD', checkptTD, i)
-        
-    
-    # Get the unsteady checkpoint interval
-    def get_vizTD(self, i=None):
-        """Return the number of steps between visualization outputs
-        
-        :Call:
-            >>> vizTD = opts.get_vizTD(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *vizTD*: :class:`int` or :class:`list`(:class:`int`)
-                Number of unsteady time steps between visualization outputs
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('vizTD', i)
-        
-    # Set the unsteady checkpoint interval
-    def set_vizTD(self, vizTD=rc0('vizTD'), i=None):
-        """Set the number of steps between unsteady checkpoints
-        
-        :Call:
-            >>> opts.set_vizTD(vizTD, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *vizTD*: :class:`int` or :class:`list`(:class:`int`)
-                Number of unsteady time steps between visualization outputs
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-        """
-        self.set_key('vizTD', vizTD, i)
-        
-    
-    # Get the time-accurate initial relaxation status
-    def get_fc_clean(self, i=None):
-        """
-        Return whether or not to run an initial relaxation step before starting
-        time-accurate solution
-        
-        :Call:
-            >>> fc_clean = opts.get_fc_clean(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *fc_clean*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to run relaxation step
-        :Versions:
-            * 2014-12-01 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('fc_clean', i)
-        
-    # Set the time-accurate initial relaxation status
-    def set_fc_clean(self, fc_clean=rc0('fc_clean'), i=None):
-        """
-        Set whether or not to run an initial relaxation step before starting
-        time-accurate solution
-        
-        :Call:
-            >>> opts.set_fc_clean(fc_clean, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *fc_clean*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to run relaxation step
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-12-01 ``@ddalle``: Version 1.0
-        """
-        self.set_key('fc_clean', fc_clean, i)
-        
-    
-    # Get the number of iterations to use for iterative or time averaging
-    def get_fc_stats(self, i=None):
-        """Get number of iterations to use for iterative or time averaging
-        
-        :Call:
-            >>> nstats = opts.get_fc_stats(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *nstats*: :class:`int` or :class:`list`(:class:`int`)
-                Number of iterations to use for averaging (off if ``0``)
-        :Versions:
-            * 2014-12-01 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('fc_stats', i)
-        
-    # Set the number of iterations to use for iterative or time averaging
-    def set_fc_stats(self, nstats=rc0('fc_stats'), i=None):
-        """Get number of iterations to use for iterative or time averaging
-        
-        :Call:
-            >>> opts.set_fc_stats(nstats, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *nstats*: :class:`int` or :class:`list`(:class:`int`)
-                Number of iterations to use for averaging (off if ``0``)
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-12-01 ``@ddalle``: Version 1.0
-        """
-        self.set_key('fc_stats', nstats, i)
-        
-        
-    # Get the flowCart limiter
-    def get_limiter(self, i=None):
-        """Return the limiter `flowCart`
-        
-        :Call:
-            >>> limiter = opts.get_limiter(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *limiter*: :class:`int` or :class:`list`(:class:`int`)
-                Limiter ID for `flowCart`
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('limiter', i)
-    
-    # Set the flowCart limiter
-    def set_limiter(self, limiter=rc0('limiter'), i=None):
-        """Set limiter for `flowCart`
-        
-        :Call:
-            >>> opts.set_limiter(limiter, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *limiter*: :class:`int` or :class:`list`(:class:`int`)
-                Limiter ID for `flowCart`
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('limiter', limiter, i)
-        
-        
-    # Get the y-spanwise status
-    def get_y_is_spanwise(self, i=None):
-        """Return whether or not *y* is the spanwise axis for `flowCart`
-        
-        :Call:
-            >>> y_is_spanwise = opts.get_y_is_spanwise(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *y_is_spanwise*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not *y* is the spanwise index `flowCart`
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('y_is_spanwise', i)
-    
-    # Set the y-spanwise status
-    def set_y_is_spanwise(self, y_is_spanwise=rc0('y_is_spanwise'), i=None):
-        """Set limiter for `flowCart`
-        
-        :Call:
-            >>> opts.set_y_is_spanwise(y_is_spanwise, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *y_is_spanwise*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not *y* is the spanwise index `flowCart`
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('y_is_spanwise', y_is_spanwise, i)
-        
-        
-    # Get the full multigrid status
-    def get_fmg(self, i=None):
-        """Return whether or not `flowCart` is set to run full multigrid
-        
-        :Call:
-            >>> fmg = opts.get_fmg(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *fmg*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` is set to run full multigrid
-        :Versions:
-            * 2014-11-14 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('fmg', i)
-    
-    # Set the full multigrid status
-    def set_fmg(self, fmg=rc0('fmg'), i=None):
-        """Set full multigrid status for `flowCart`
-        
-        :Call:
-            >>> opts.set_fmg(fmg, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *fmg*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` is set to run full multigrid
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-14 ``@ddalle``: Version 1.0
-        """
-        self.set_key('fmg', fmg, i)
-        
-        
-    # Get the poly multigrid status
-    def get_pmg(self, i=None):
-        """Return whether or not `flowCart` is set to run poly multigrid
-        
-        :Call:
-            >>> fmg = opts.get_pmg(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *pmg*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` is set to run poly multigrid
-        :Versions:
-            * 2014-11-14 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('pmg', i)
-    
-    # Set the full multigrid status
-    def set_pmg(self, pmg=rc0('pmg'), i=None):
-        """Set poly multigrid status for `flowCart`
-        
-        :Call:
-            >>> opts.set_pmg(pmg, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *pmg*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` is set to run poly multigrid
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-14 ``@ddalle``: Version 1.0
-        """
-        self.set_key('pmg', pmg, i)
-        
-        
-    # Get the y-spanwise status
-    def get_binaryIO(self, i=None):
-        """Return whether or not `flowCart` is set for binary I/O
-        
-        :Call:
-            >>> binaryIO = opts.get_binaryIO(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *binaryIO*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` is for binary I/O
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('binaryIO', i)
-    
-    # Set the y-spanwise status
-    def set_binaryIO(self, binaryIO=rc0('binaryIO'), i=None):
-        """Set limiter for `flowCart`
-        
-        :Call:
-            >>> opts.set_binaryIO(binaryIO, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *binaryIO*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` is set for binary I/O
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('binaryIO', binaryIO, i)
-        
-        
-    # Get the y-spanwise status
-    def get_tecO(self, i=None):
-        """Return whether or not `flowCart` dumps Tecplot triangulations
-        
-        :Call:
-            >>> tecO = opts.get_tecO(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *tecO*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` dumps Tecplot triangulations
-        :Versions:
-            * 2014.09.07 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('tecO', i)
-    
-    # Set the y-spanwise status
-    def set_tecO(self, tecO=rc0('tecO'), i=None):
-        """Set whether `flowCart` dumps Tecplot triangulations
-        
-        :Call:
-            >>> opts.set_tecO(tecO, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *tecO*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` dumps Tecplot triangulations
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.09.07 ``@ddalle``: Version 1.0
-        """
-        self.set_key('tecO', tecO, i)
-        
-        
-    # Get the buffer limit setting
-    def get_buffLim(self, i=None):
-        """Return whether or not to use buffer limits
-        
-        :Call:
-            >>> buffLim = opts.get_buffLim(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *buffLim*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use `flowCart` buffer limits
-        :Versions:
-            * 2014-11-21 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('buffLim', i)
-    
-    # Set the buffer limit setting
-    def set_buffLim(self, buffLim=rc0('buffLim'), i=None):
-        """Set `flowCart` buffer limit setting
-        
-        :Call:
-            >>> opts.set_buffLim(buffLim, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *buffLim*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use `flowCart` buffer limits
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-21 ``@ddalle``: Version 1.0
-        """
-        self.set_key('buffLim', buffLim, i)
-        
-        
-    # Get the cut cell gradient status
-    def get_tm(self, i=None):
-        """Return whether or not `flowCart` is set for cut cell gradient
-        
-        :Call:
-            >>> tm = opts.get_tm(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *tm*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` is set for cut cell gradient
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('tm', i)
-    
-    # Set the y-spanwise status
-    def set_tm(self, tm=rc0('tm'), i=None):
-        """Set cut cell gradient status for `flowCart`
-        
-        :Call:
-            >>> opts.set_tm(tm, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *tm*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not `flowCart` is set for cut cell gradient
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('tm', tm, i)
+
+# Add properties
+FlowCartOpts.add_properties(FlowCartOpts._optlist)
 
 
 # Class for flowCart settings
-class adjointCart(odict):
+class AdjointCartOpts(ExecOpts):
     """Dictionary-based interfaced for options specific to ``adjointCart``"""
     # Number of iterations for adjointCart
     def get_it_ad(self, i=None):
