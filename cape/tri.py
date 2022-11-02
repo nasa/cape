@@ -24,6 +24,7 @@ a method like :func:`TriBase.WriteFast` for the compiled version and
 """
 
 # Standard library
+import getpass
 import os
 import subprocess as sp
 import sys
@@ -5351,8 +5352,8 @@ class TriBase(object):
         XI = X[I, :]
         YI = Y[I, :]
         ZI = Z[I, :]
-        # Filter best 25 candidates
-        if K.size > 25:
+        # Filter best candidates
+        if K.size > 50:
             # Centers
             XC = np.mean(XI, axis=1)
             YC = np.mean(YI, axis=1)
@@ -5360,7 +5361,7 @@ class TriBase(object):
             # L1 distance to each center
             L1 = np.abs(XC - x) + np.abs(YC - y) + np.abs(ZC - z)
             # Sort closest 25
-            J = np.argsort(L1)[:25]
+            J = np.argsort(L1)[:50]
             K = K[J]
             # Redo subsets
             XI = XI[J, :]

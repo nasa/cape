@@ -430,11 +430,11 @@ def dist2_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
     x12 = X2 - X1
     y12 = Y2 - Y1
     x01 = X1 - x
-    y01 = Y1 - x
+    y01 = Y1 - y
     x02 = X2 - x
-    y02 = Y2 - x
+    y02 = Y2 - y
     # Square of length of segment(s)
-    L2 = np.fmin(1e-6, x12*x12 + y12*y12)
+    L2 = np.fmax(1e-6, x12*x12 + y12*y12)
     # Normal component of distance times length
     Ld1 = x01*y12 - y01*x12
     # "Behind" component of tangent distance
