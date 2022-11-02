@@ -352,16 +352,20 @@ def tris_have_pt(X, Y, x, y, **kw):
     :Versions:
         * 2017-02-06 ``@ddalle``: Version 1.0
     """
+    # Get types
+    tX = type(X).__name__
+    tY = type(Y).__name__
     # Check input type
-    if isinstance(X, list):
+    if tX == "list":
+        # Convert to array
         X = np.array(X)
-    elif not isinstance(X, np.ndarray):
+    elif tX != "ndarray":
         # Convert to array
         raise TypeError("Triangles must be arrays")
-    if isinstance(Y, list):
+    if tY == "list":
         # Convert to array
         Y = np.array(Y)
-    elif not isinstance(Y, np.ndarray):
+    elif tY != "ndarray":
         # Convert to array
         raise TypeError("Triangles must be arrays")
     # Test for single triangle
@@ -372,30 +376,49 @@ def tris_have_pt(X, Y, x, y, **kw):
     # Check dimensions
     if X.shape[1] != 3:
         # Not triangles
-        raise IndexError("Triangle arrays must have at least two columns")
+        raise IndexError("Triangle arrays must have three columns")
     elif Y.shape[1] != 3:
         # Not triangles (Y)
-        raise IndexError("Triangle arrays must have at least two columns")
+        raise IndexError("Triangle arrays must have three columns")
     elif X.shape[0] != Y.shape[0]:
         # Not matching
         raise ValueError(
             "X and Y coordinate arrays have different number of triangles")
-    # Unpack
-    x0, x1, x2 = X.T
-    y0, y1, y2 = Y.T
-    # Store deltas
-    x01 = x1 - x0
-    x02 = x2 - x0
-    y01 = y1 - y0
-    y02 = y2 - y0
-    # Total area
-    A = np.abs(x02*y01 - x01*y02)
-    # Three component areas
-    A0 = np.abs((x-x0)*y01 - (y-y0)*x01)
-    A1 = np.abs((x-x1)*(y2-y1) - (y-y1)*(x2-x1))
-    A2 = np.abs((x2-x)*y02 - (y-y2)*x02)
-    # Test sum of areas
-    return A0 + A1 + A2 <= A * (1 + 1e-6)
+    # Check inputs
+    if type(x).__name__ == "ndarray":
+        # Repeat test point *x* coordinate
+        x = np.transpose(np.vstack((x,x,x)))
+    if type(y).__name__ == "ndarray":
+        # Repeat test point *y* coordinate
+        y = np.transpose(np.vstack((y,y,y)))
+    # Construct test point to the left of all triangles
+    x0 = np.min(X) - 1.0
+    y0 = y
+    # Construct test point below all the triangles
+    x1 = x
+    y1 = np.min(Y) - 1.0
+    # Construct test point above all the triangles
+    x2 = x
+    y2 = np.max(Y) + 1.0
+    # Construct list of segments that consists of each triangle edge
+    # Use inputs as start points; rotate vertices to get end points
+    X2 = np.transpose([X[:,1], X[:,2], X[:,0]])
+    Y2 = np.transpose([Y[:,1], Y[:,2], Y[:,0]])
+    # Draw three lines starting with (x,y)
+    #   Line 0: (x,y) to a point directly left of and outside tris
+    #   Line 1: (x,y) to a point directly below and outside tris
+    #   Line 2: (x,y) to a point directly above and outside tris
+    Q0 = edges_int_line(X, Y, X2, Y2, x, y, x0, y0)
+    Q1 = edges_int_line(X, Y, X2, Y2, x, y, x1, y1)
+    Q2 = edges_int_line(X, Y, X2, Y2, x, y, x2, y2)
+    # Count up intersections; each line must intersect odd # of edges
+    n0 = np.sum(Q0, axis=1)
+    n1 = np.sum(Q1, axis=1)
+    n2 = np.sum(Q2, axis=1)
+    # Check for odd number of intersections with all three test lines
+    Q = np.logical_and(n0%2==1, np.logical_and(n1%2==1, n2%2==1))
+    # Output
+    return Q
 
 
 # Get distance from point to a line segment
