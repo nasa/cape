@@ -477,6 +477,14 @@ def dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
     """
     # Calculate lengths of each segment
     L = np.sqrt((X2-X1)**2 + (Y2-Y1)**2)
+    # Check test point types
+    tx = type(x).__name__
+    ty = type(y).__name__
+    # Check for scalar points
+    if tx not in ['ndarray', 'list']:
+        x = x*np.ones_like(X1)
+    if ty not in ['ndarray', 'list']:
+        y = y*np.ones_like(Y1)
     # Tangent/normal vector components
     TX = (X2 - X1) / L
     TY = (Y2 - Y1) / L
@@ -493,14 +501,10 @@ def dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
     # Check for segments where that nearest point is outside the segment
     I = np.logical_or(T < 0, T > L)
     # Distance from (x,y) to segment end points
-    if isinstance(x, np.ndarray):
-        W1 = (x[I]-X1[I])**2 + (y[I]-Y1[I])**2
-        W2 = (x[I]-X2[I])**2 + (y[I]-Y2[I])**2
-    else:
-        W1 = (x-X1[I])**2 + (y-Y1[I])**2
-        W2 = (x-X2[I])**2 + (y-Y2[I])**2
+    W1 = np.sqrt((x[I]-X1[I])**2 + (y[I]-Y1[I])**2)
+    W2 = np.sqrt((x[I]-X2[I])**2 + (y[I]-Y2[I])**2)
     # For such segments, use the distance to closest vertex
-    D[I] = np.sqrt(np.fmin(W1, W2))
+    D[I] = np.fmin(W1, W2)
     # Output
     return D
 
@@ -583,7 +587,33 @@ def dist_tris_to_pt(X, Y, x, y, **kw):
             Matrix of minimum distance from each tri to point
     :Versions:
         * 2017-02-06 ``@ddalle``: Version 1.0
-        * 2022-11-01 ``@ddalle``: Version 2.0; faster
     """
-    return np.sqrt(dist2_tris_to_pt(X, Y, x, y, **kw))
+    # Check for membership of each triangle
+    Q = tris_have_pt(X, Y, x, y, **kw)
+    # Get the complementary list
+    Q0 = np.logical_not(Q)
+    # Number of triangles
+    n = Q.size
+    # Initialize distance
+    D = np.zeros(n)
+    # For tris that do not contain (x,y), get distance to each segment
+    X1 = X[Q0,:]; X2 = X1[:,[1,2,0]]
+    Y1 = Y[Q0,:]; Y2 = Y1[:,[1,2,0]]
+    # Check for list of points
+    if type(x).__name__ == "ndarray":
+        # Repeat for each vertex of the triangle
+        x = np.transpose(np.vstack((x,x,x)))
+        # Deselect points inside triangles
+        x = x[Q0,:]
+    if type(y).__name__ == "ndarray":
+        # Repeat for each vertex of the triangle
+        y = np.transpose(np.vstack((y,y,y)))
+        # Deselect points inside triangles
+        y = y[Q0,:]
+    # Get dist to each segment of each tri that does not contain the pt
+    D0 = dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw)
+    # Save the minimum pt-to-edge distance
+    D[Q0] = np.min(D0, axis=1)
+    # Output
+    return D
 
