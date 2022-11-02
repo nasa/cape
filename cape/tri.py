@@ -5351,20 +5351,20 @@ class TriBase(object):
         YI = Y[I, :]
         ZI = Z[I, :]
         # Filter best candidates
-        #if K.size > 100:
-        #    # Centers
-        #    XC = np.mean(XI, axis=1)
-        #    YC = np.mean(YI, axis=1)
-        #    ZC = np.mean(ZI, axis=1)
-        #    # L1 distance to each center
-        #    L1 = np.abs(XC - x) + np.abs(YC - y) + np.abs(ZC - z)
-        #    # Sort closest 25
-        #    J = np.argsort(L1)[:100]
-        #    K = K[J]
-        #    # Redo subsets
-        #    XI = XI[J, :]
-        #    YI = YI[J, :]
-        #    ZI = ZI[J, :]
+        if K.size > 100:
+            # Centers
+            XC = np.mean(XI, axis=1)
+            YC = np.mean(YI, axis=1)
+            ZC = np.mean(ZI, axis=1)
+            # L1 distance to each center
+            L1 = np.abs(XC - x) + np.abs(YC - y) + np.abs(ZC - z)
+            # Sort closest 25
+            J = np.argsort(L1)[:100]
+            K = K[J]
+            # Redo subsets
+            XI = XI[J, :]
+            YI = YI[J, :]
+            ZI = ZI[J, :]
         # These operations are tested to run as fast as possible
         XI0, XI1, XI2 = XI.T
         YI0, YI1, YI2 = YI.T
