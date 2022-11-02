@@ -32,7 +32,7 @@ from .archiveopts import ArchiveOpts
 from .util import rc0, odict, isArray, getel
 from ...cfdx.options import runctlopts
 from ...cfdx.options.util import ExecOpts
-from ...optdict import ARRAY_TYPES, BOOL_TYPES, INT_TYPES
+from ...optdict import BOOL_TYPES, FLOAT_TYPES, INT_TYPES
 
 
 # Class for flowCart inputs
@@ -56,9 +56,19 @@ class FlowCartOpts(ExecOpts):
     # Accepted options
     _optlist = {
         "RKScheme",
+        "cfl",
+        "cflmin",
+        "clic",
+        "dt",
         "first_order",
+        "it_avg",
         "it_fc",
+        "it_start",
+        "it_sub",
+        "mg_fc",
+        "nOrders",
         "robust_mode",
+        "unsteady",
     }
 
     # Aliases
@@ -68,426 +78,56 @@ class FlowCartOpts(ExecOpts):
 
     # Types
     _opttypes = {
+        "RKScheme": (str, list),
+        "cfl": FLOAT_TYPES,
+        "cflmin": FLOAT_TYPES,
+        "clic": BOOL_TYPES,
+        "dt": FLOAT_TYPES,
         "first_order": BOOL_TYPES,
+        "it_avg": INT_TYPES,
         "it_fc": INT_TYPES,
+        "it_start": INT_TYPES,
+        "it_sub": INT_TYPES,
+        "mg_fc": INT_TYPES,
+        "nOrders": INT_TYPES,
         "robust_mode": BOOL_TYPES,
+        "unsteady": BOOL_TYPES,
     }
 
     # Defaults
     _rc = {
+        "cfl": 1.1,
+        "cflmin": 0.8,
+        "clic": True,
+        "dt": 0.1,
         "first_order": False,
+        "it_avg": 0,
         "it_fc": 200,
+        "it_start": 100,
+        "it_sub": 10,
+        "mg_fc": 3,
+        "nOrders": 12,
         "robust_mode": False,
+        "unsteady": False,
     }
 
     # Descriptions
     _rst_descriptions = {
         "RKScheme": "the Runge-Kutta scheme for a phase",
+        "cfl": "nominal CFL number for ``flowCart``",
+        "cflmin": "min CFL number for ``flowCart``",
+        "clic": "whether to write ``Components.i.triq``",
+        "dt": "nondimensional physical time step",
         "first_order": "whether ``flowCart`` should be run first-order",
+        "it_avg": "number of ``flowCart`` iters b/w ``.triq`` outputs",
         "it_fc": "number of ``flowCart`` iterations",
+        "it_start": "number of ``flowCart`` iters b4 ``.triq`` outputs",
+        "it_sub": "number of subiters for each ``flowCart`` time step",
+        "mg_fc": "multigrid levels for ``flowCart``",
+        "nOrders": "convergence drop orders of magnitude for early exit",
         "robust_mode": "whether ``flowCart`` should be run in robust mode",
+        "unsteady": "whether to run time-accurate ``flowCart``",
     }
-        
-    
-    # Number of iterations between averaging operation
-    def get_it_avg(self, i=None):
-        """
-        Return the number of iterations between writing ``triq`` file for
-        cumulative averaging.  If ``0``, do not perform averaging.
-        
-        Not available during ``aero.csh`` runs.
-        
-        :Call:
-            >>> it_avg = opts.get_it_avg(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *it_avg*: :class:`int` or :class:`list`(:class:`int`)
-                Stopping interval between averaging for run *i*
-        :Versions:
-            * 2015-09-14 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('it_avg', i)
-        
-    # Set flowCart iteration averaging interval count
-    def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
-        """
-        Set the number of iterations between writing ``triq`` file for
-        cumulative averaging.  If ``0``, do not perform averaging.
-        
-        Not available during ``aero.csh`` runs.
-        
-        :Call:
-            >>> opts.set_it_avg(it_avg)
-            >>> opts.set_it_avg(it_avg, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *it_avg*: :class:`int` or :class:`list`(:class:`int`)
-                Stopping interval between averaging for run *i*
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2015-09-14 ``@ddalle``: Version 1.0
-        """
-        self.set_key('it_avg', it_avg, i)
-        
-        
-    # Number of startup iterations
-    def get_it_start(self, i=None):
-        """
-        Return the number of iterations before writing ``triq`` file for
-        cumulative averaging.  If ``0``, do not perform averaging.
-        
-        Not available during ``aero.csh`` runs.
-        
-        :Call:
-            >>> it_start = opts.get_it_start(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *it_start*: :class:`int` or :class:`list`(:class:`int`)
-                Startup iterations before averaging for phase *i*
-        :Versions:
-            * 2015-12-02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('it_start', i)
-        
-    # Set flowCart startup iterations
-    def set_it_start(self, it_start=rc0('it_start'), i=None):
-        """
-        Set the number of iterations before writing ``triq`` file for
-        cumulative averaging.  If ``0``, do not perform averaging.
-        
-        Not available during ``aero.csh`` runs.
-        
-        :Call:
-            >>> opts.set_it_start(it_start)
-            >>> opts.set_it_start(it_start, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *it_start*: :class:`int` or :class:`list`(:class:`int`)
-                Startup iterations before averaging for phase *i*
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2015-12-02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('it_start', it_start, i)
-        
-    
-    # Get setting for ``Components.i.triq``
-    def get_clic(self, i=None):
-        """Get setting for whether or not to write ``Components.i.triq`` file
-        
-        :Call:
-            >>> clic = opts.get_clic(i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *clic*: :class:`bool`
-                Whether or not to write ``Components.i.triq`` on exit
-        :Versions:
-            * 2015-09-14 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('clic', i)
-        
-    # Set setting for ``Components.i.triq``
-    def set_clic(self, clic=rc0('clic'), i=None):
-        """Get setting for whether or not to write ``Components.i.triq`` file
-        
-        :Call:
-            >>> opts.set_clic(clic, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *clic*: :class:`bool`
-                Whether or not to write ``Components.i.triq`` on exit
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2015-09-14 ``@ddalle``: Version 1.0
-        """
-        self.set_key('clic', clic, i)
-        
-        
-    # Number orders of convergence to terminate early at
-    def get_nOrders(self, i=None):
-        """Get the number of orders of convergence for early termination
-        
-        :Call:
-            >>> nOrders = opts.get_nOrders(i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *nOrders*: :class:`int`
-                Number of orders for convergence
-        :Versions:
-            * 2014-12-12 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('nOrders', i)
-        
-    # Set number orders of convergence to terminate early at
-    def set_nOrders(self, nOrders=rc0('nOrders'), i=None):
-        """Set the number of orders of convergence for early termination
-        
-        :Call:
-            >>> opts.set_nOrders(nOrders, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *nOrders*: :class:`int`
-                Number of orders for convergence
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-12-12 ``@ddalle``: Version 1.0
-        """
-        self.set_key('nOrders', nOrders, i)
-        
-        
-    # Get flowCart multigrd levels
-    def get_mg_fc(self, i=None):
-        """Return the number of multigrid levels for `flowCart`
-        
-        :Call:
-            >>> mg_fc = opts.get_mg_fc(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
-                Multigrid levels for run *i* or all runs if ``i==None``
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('mg_fc', i)
-    
-    # Set flowCart iteration levels
-    def set_mg_fc(self, mg_fc=rc0('mg_fc'), i=None):
-        """Set number of multigrid levels for `flowCart`
-        
-        :Call:
-            >>> opts.set_mg_fc(mg_fc, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
-                Multigrid levels for run *i* or all runs if ``i==None``
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('mg_fc', mg_fc, i)
-        
-        
-    # Get unsteady status
-    def get_unsteady(self, i=None):
-        """Return whether or not to use time-domain `td_flowCart`
-        
-        :Call:
-            >>> td_fc = opts.get_unsteady(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *td_fc*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use ``td_flowCart -unsteady``
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('unsteady', i)
-    
-    # Set unsteady status
-    def set_unsteady(self, td_fc=rc0('unsteady'), i=None):
-        """Set whether or not to use time-domain `td_flowCart`
-        
-        :Call:
-            >>> opts.set_unsteady(td_fc, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *td_fc*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use ``td_flowCart -unsteady``
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-        """
-        self.set_key('unsteady', td_fc, i)
-        
-    
-    # Get the CFL number
-    def get_cfl(self, i=None):
-        """Return the nominal CFL number for `flowCart`
-        
-        :Call:
-            >>> cfl = opts.get_cfl(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *cfl*: :class:`float` or :class:`list`(:class:`float`)
-                Nominal CFL number for run *i*
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('cfl', i)
-    
-    # Set CFL number
-    def set_cfl(self, cfl=rc0('cfl'), i=None):
-        """Set nominal CFL number `flowCart`
-        
-        :Call:
-            >>> opts.set_mg_fc(mg_fc, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *cfl*: :class:`float` or :class:`list`(:class:`float`)
-                Nominal CFL number for run *i*
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('cfl', cfl, i)
-        
-    
-    # Get the minimum CFL number
-    def get_cflmin(self, i=None):
-        """Return the minimum CFL number for `flowCart`
-        
-        :Call:
-            >>> cflmin = opts.get_cflmin(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *cfl*: :class:`float` or :class:`list`(:class:`float`)
-                Minimum CFL number for run *i*
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('cflmin', i)
-    
-    # Set minimum CFL number
-    def set_cflmin(self, cflmin=rc0('cflmin'), i=None):
-        """Set minimum CFL number for `flowCart`
-        
-        :Call:
-            >>> opts.set_cflmin(cflmin, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *cflmin*: :class:`float` or :class:`list`(:class:`float`)
-                Minimum CFL number for run *i*
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('cflmin', cflmin, i)
-        
-    
-    # Get the time step
-    def get_dt(self, i=None):
-        """Return the time-accurate nondimensional physical time step
-        
-        :Call:
-            >>> dt = opts.get_dt(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *dt*: :class:`float` or :class:`list`(:class:`float`)
-                Nondimensional physical time step
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('dt', i)
-        
-    # Set the physical time step
-    def set_dt(self, dt=rc0('dt'), i=None):
-        """Set the time-accurate nondimensional physical time step
-        
-        :Call:
-            >>> opts.set_dt(dt, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *dt*: :class:`float` | :class:`list`\ [:class:`float`]
-                Nondimensional physical time step
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-        """
-        self.set_key('dt', dt, i)
-        
-    
-    # Get the number of subiterations for time-accurate inputs
-    def get_it_sub(self, i=None):
-        """Return the number of subiterations to perform at each time step
-        
-        :Call:
-            >>> it_sub = opts.get_it_sub(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *it_sub*: :class:`int` | :class:`list`\ [:class:`int`]
-                Number of subiterations
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-            * 2015-11-09 ``@ddalle``: ``nSteps`` --> ``it_sub``
-        """
-        return self.get_key('it_sub', i)
-        
-    # Set the number of subiterations for time-accurate inputs
-    def set_it_sub(self, it_sub=rc0('it_sub'), i=None):
-        """Set the number of subiterations to perform at each time step
-        
-        :Call:
-            >>> opts.set_it_sub(it_sub, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-            *it_sub*: :class:`int` | :class:`list`\ [:class:`int`]
-                Number of subiterations
-        :Versions:
-            * 2014-11-28 ``@ddalle``: Version 1.0
-            * 2015-11-09 ``@ddalle``: ``nSteps`` --> ``it_sub``
-        """
-        self.set_key('it_sub', it_sub, i)
         
     
     # Get the unsteady checkpoint interval
