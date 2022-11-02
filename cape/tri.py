@@ -5327,9 +5327,7 @@ class TriBase(object):
         Y = self.TriY
         Z = self.TriZ
         # Extract test point coordinates
-        y = x[1]
-        z = x[2]
-        x = x[0]
+        x, y, z = x
         # Get the projection distance
         zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
         zi = np.abs(zi)
@@ -5353,20 +5351,20 @@ class TriBase(object):
         YI = Y[I, :]
         ZI = Z[I, :]
         # Filter best candidates
-        if K.size > 50:
-            # Centers
-            XC = np.mean(XI, axis=1)
-            YC = np.mean(YI, axis=1)
-            ZC = np.mean(ZI, axis=1)
-            # L1 distance to each center
-            L1 = np.abs(XC - x) + np.abs(YC - y) + np.abs(ZC - z)
-            # Sort closest 25
-            J = np.argsort(L1)[:50]
-            K = K[J]
-            # Redo subsets
-            XI = XI[J, :]
-            YI = YI[J, :]
-            ZI = ZI[J, :]
+        #if K.size > 100:
+        #    # Centers
+        #    XC = np.mean(XI, axis=1)
+        #    YC = np.mean(YI, axis=1)
+        #    ZC = np.mean(ZI, axis=1)
+        #    # L1 distance to each center
+        #    L1 = np.abs(XC - x) + np.abs(YC - y) + np.abs(ZC - z)
+        #    # Sort closest 25
+        #    J = np.argsort(L1)[:100]
+        #    K = K[J]
+        #    # Redo subsets
+        #    XI = XI[J, :]
+        #    YI = YI[J, :]
+        #    ZI = ZI[J, :]
         # These operations are tested to run as fast as possible
         XI0, XI1, XI2 = XI.T
         YI0, YI1, YI2 = YI.T
@@ -5395,13 +5393,13 @@ class TriBase(object):
         i1 = np.nanargmin(D)
         k1 = K[i1]
         # Find the component ID
-        c1 = self.CompID[k1]
+        c1 = self.CompID[k1 - 1]
         # Initialize output
         T = {
             "k1": k1,
             "c1": c1,
             "d1": np.sqrt(D[i1]),
-            "t1": DI[i1],
+            "t1": np.sqrt(DI[i1]),
             "z1": abs(zi[i1]),
         }
         # Initialize submask
