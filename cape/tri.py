@@ -5393,7 +5393,7 @@ class TriBase(object):
         i1 = np.nanargmin(D)
         k1 = K[i1]
         # Find the component ID
-        c1 = self.CompID[k1 - 1]
+        c1 = self.CompID[k1]
         # Initialize output
         T = {
             "k1": k1,
