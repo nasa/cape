@@ -53,7 +53,7 @@ from ..util import GetTecplotCommand
 # Function to run tecplot
 def tecmcr(mcr="export-lay.mcr", **kw):
     r"""Run a Tecplot macro
-    
+
     :Call:
         >>> cmd = tecmcr(mcr="export-lay.mcr")
     :Inputs:
@@ -76,7 +76,7 @@ def tecmcr(mcr="export-lay.mcr", **kw):
 # Function get aflr3 commands
 def aflr3(opts=None, j=0, **kw):
     r"""Create AFLR3 system command as a list of strings
-    
+
     :Call:
         >>> cmdi = aflr3(opts=None, j=0, **kw)
     :Inputs:
@@ -159,13 +159,19 @@ def aflr3(opts=None, j=0, **kw):
     if blds:   cmdi += ['-blds', str(blds)]
     if grow:   cmdi += ['-grow', '%i' % grow]
     # Process options that come with an equal sign
-    if cdfs       is not None: cmdi += ['cdfs=%s' % cdfs]
-    if cdfr       is not None: cmdi += ['cdfr=%s' % cdfr]
-    if angqbf     is not None: cmdi += ['angqbf=%s' % angqbf]
-    if angblisimx is not None: cmdi += ['angblisimx=%s' % angblisimx]
+    if cdfs is not None:
+        cmdi += ['cdfs=%s' % cdfs]
+    if cdfr is not None:
+        cmdi += ['cdfr=%s' % cdfr]
+    if angqbf is not None:
+        cmdi += ['angqbf=%s' % angqbf]
+    if angblisimx is not None:
+        cmdi += ['angblisimx=%s' % angblisimx]
     # Options that can be None
-    if mdsblf is not None: cmdi += ['-mdsblf', str(mdsblf)]
-    if nqual  is not None: cmdi += ['nqual=%i' % nqual]
+    if mdsblf is not None:
+        cmdi += ['-mdsblf', str(mdsblf)]
+    if nqual is not None:
+        cmdi += ['nqual=%i' % nqual]
     # Loop through flags
     for k, v in flags.items():
         # Check type
@@ -191,7 +197,7 @@ def aflr3(opts=None, j=0, **kw):
 # Function to call verify
 def intersect(opts=None, j=0, **kw):
     r"""Interface to Cart3D binary ``intersect``
-    
+
     :Call:
         >>> cmd = cape.cmd.intesect(opts=None, **kw)
     :Inputs:
@@ -213,21 +219,21 @@ def intersect(opts=None, j=0, **kw):
         opts = opts.get("RunControl", opts)
         opts = opts.get("intersect",  opts)
         # Get settings
-        fin    = opts.get_key('i', j)
-        fout   = opts.get_key('o', j)
-        cutout = opts.get_key('cutout', j)
-        ascii  = opts.get_key('ascii', j)
-        v      = opts.get_key('v', j)
-        T      = opts.get_key('T', j)
-        iout   = opts.get_key('intersect', j)
+        fin = opts.get_opt('i', j)
+        fout = opts.get_opt('o', j)
+        cutout = opts.get_opt('cutout', j)
+        ascii = opts.get_opt('ascii', j)
+        v = opts.get_opt('v', j)
+        T = opts.get_opt('T', j)
+        iout = opts.get_opt('intersect', j)
         # Defaults
-        if fin    is None: fin    = 'Components.tri'
-        if fout   is None: fout   = 'Components.i.tri'
+        if fin is None: fin    = 'Components.tri'
+        if fout is None: fout   = 'Components.i.tri'
         if cutout is None: cutout = None
-        if ascii  is None: ascii  = True
-        if v      is None: v      = False
-        if T      is None: T      = False
-        if iout   is None: iout   = False
+        if ascii is None: ascii  = True
+        if v is None: v      = False
+        if T is None: T      = False
+        if iout is None: iout   = False
     else:
         # Get settings from inputs
         fin    = kw.get('i', 'Components.tri')
@@ -252,7 +258,7 @@ def intersect(opts=None, j=0, **kw):
 # Function to call verify
 def verify(opts=None, **kw):
     r"""Generate command for Cart3D executable ``verify``
-    
+
     :Call:
         >>> cmdi = cape.cmd.verify(opts=None, **kw)
     :Inputs:

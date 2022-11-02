@@ -17,7 +17,8 @@ functions:
 
 # Local imports
 from ...optdict import BOOL_TYPES, FLOAT_TYPES, INT_TYPES
-from .util import ExecOpts, getel, setel
+from ...optdict.optitem import setel
+from .util import ExecOpts
 
 
 # Resource limits class
@@ -113,29 +114,8 @@ class AFLR3Opts(ExecOpts):
         "run": "whether or not to run AFLR3",
     }
 
-    # Set default *run* option accordingly
-    def init_post(self):
-        r"""Post-init hook for AFLR3Opts
-
-        This hook sets a case-dependent default value for *run*
-
-        :Call:
-            >>> opts.init_post()
-        :Inputs:
-            *opts*: :class:`AFLR3Opts`
-                Options interface
-        :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
-        """
-        # Check for any options
-        if self:
-            self.setdefault("run", True)
-        else:
-            # For empty options, no entries -> run=False
-            self.setdefault("run", False)
-
     # Get single key from AFLR3 *keys* key
-    def get_aflr3_key(self, k, j=0, vdef=None):
+    def get_aflr3_key(self, k, j=0, i=None, vdef=None):
         r"""Get AFLR3 AFLR3 option that uses *key=val* format
 
         :Call:
@@ -155,13 +135,11 @@ class AFLR3Opts(ExecOpts):
         :Versions:
             * 2019-05-11 ``@ddalle``: Version 1.0
             * 2022-10-14 ``@ddalle``: Version 1.1; use :mod:`optdict`
+            * 2022-10-29 ``@ddalle``: Version 2.0
+                - add *i*
+                - use :func:`get_subopt`
         """
-        # Get "eys" key
-        d = self.get_opt("keys")
-        # Get option from dictionary
-        v = d.get(k, vdef)
-        # Apply phase input
-        return getel(v, j)
+        return self.get_subopt("keys", k, i=i, j=j, vdef=vdef)
 
     # Set single key from AFLR3 *keys* section
     def set_aflr3_key(self, k, v, j=None):
@@ -185,7 +163,7 @@ class AFLR3Opts(ExecOpts):
         # Get or create "keys" key
         d = self.setdefault("keys", {})
         # Set value
-        d[k] = setel(d.get(k), j, v)
+        d[k] = setel(d.get(k), v, j=j)
 
 
 # Add all properties

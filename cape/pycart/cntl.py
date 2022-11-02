@@ -894,12 +894,17 @@ class Cntl(capecntl.Cntl):
         b = x.GetBeta(i)
         if b is not None: self.InputCntl.SetBeta(b)
         
+        # List of components requrested
+        comps = self.opts.get_ConfigComponents()
+        # Handle
+        icntl = self.InputCntl
         # Specify list of forces to track with `clic`
-        self.InputCntl.RequestForce(self.opts.get_ClicForces())
-        # Set reference values.
-        self.InputCntl.SetReferenceArea(self.opts.get_RefArea())
-        self.InputCntl.SetReferenceLength(self.opts.get_RefLength())
-        self.InputCntl.SetMomentPoint(self.opts.get_RefPoint())
+        self.InputCntl.RequestForce(comps)
+        # Set reference values
+        for comp in comps:
+            icntl.SetReferenceArea(self.opts.get_RefArea(comp))
+            icntl.SetReferenceLength(self.opts.get_RefLength(comp))
+            icntl.SetMomentPoint(self.opts.get_RefPoint(comp))
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
@@ -915,9 +920,14 @@ class Cntl(capecntl.Cntl):
         # Get the sensors
         PS = self.opts.get_PointSensors()
         LS = self.opts.get_LineSensors()
+        # Expand points if appropriate
+        PS = self.opts.expand_Points(PS)
+        LS = self.opts.expand_Points(LS)
         # Process sensors
-        if PS: self.InputCntl.SetPointSensors(PS)
-        if LS: self.InputCntl.SetLineSensors(LS)
+        if PS:
+            self.InputCntl.SetPointSensors(PS)
+        if LS:
+            self.InputCntl.SetLineSensors(LS)
         # Loop through the output functional 'optForce's
         for Name, kw in self.opts.get_optForces().items():
             # Set the force.

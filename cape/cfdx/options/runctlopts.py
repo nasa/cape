@@ -20,12 +20,16 @@ command-line options to solver commands such as ``flowCart`` for Cart3D.
 """
 
 # Local imports
-from . import intersect
-from . import ulimit
+from .ulimitopts import ULimitOpts
 from .aflr3opts import AFLR3Opts
 from .archiveopts import ArchiveOpts
-from .util import odict, getel, setel
-from ...optdict import ARRAY_TYPES, BOOL_TYPES, INT_TYPES, OptionsDict
+from .isectopts import IntersectOpts, VerifyOpts
+from ...optdict import (
+    ARRAY_TYPES,
+    BOOL_TYPES,
+    INT_TYPES,
+    WARNMODE_ERROR,
+    OptionsDict)
 
 
 # Environment class
@@ -44,6 +48,10 @@ class EnvironOpts(OptionsDict):
         * 2015-11-10 ``@ddalle``: Version 1.0 (Environ)
         * 2022-10-28 ``@ddalle``: Version 2.0; OptionsDict
     """
+    # Class attributes
+    _opttypes = {
+        "_default_": str,
+    }
 
     # Get an environment variable by name
     def get_Environ(self, opt, j=0, i=None):
@@ -58,16 +66,17 @@ class EnvironOpts(OptionsDict):
                 Name of the environment variable
             *i*: {``None``} | :class:`int`
                 Case index
-            *j*: {``None``} | :class:`int`
+            *j*: {``0``} | ``None`` | :class:`int`
                 Phase number
         :Outputs:
             *val*: :class:`str`
                 Value to set the environment variable to
         :Versions:
             * 2015-11-10 ``@ddalle``: Version 1.0
+            * 2022-10-29 ``@ddalle``: Version 2.0; OptionsDict methods
         """
         # Get value
-        val = self.get_opt(opt, j, i=i)
+        val = self.get_opt(opt, j, i=i, mode=WARNMODE_ERROR)
         # Return a string
         return str(val)
 
@@ -88,8 +97,9 @@ class EnvironOpts(OptionsDict):
                 Phase index
         :Versions:
             * 2015-11-10 ``@ddalle``: Version 1.0
+            * 2022-10-29 ``@ddalle``: Version 2.0; OptionsDict methods
         """
-        self.set_opt(opt, val, j)
+        self.set_opt(opt, val, j, mode=WARNMODE_ERROR)
 
 
 # Class for iteration & mode control settings and command-line inputs
@@ -185,9 +195,9 @@ class RunControlOpts(OptionsDict):
         "Archive": ArchiveOpts,
         "Environ": EnvironOpts,
         "aflr3": AFLR3Opts,
-        "intersect": intersect.intersect,
-        "ulimit": ulimit.ulimit,
-        "verify": intersect.verify,
+        "intersect": IntersectOpts,
+        "ulimit": ULimitOpts,
+        "verify": VerifyOpts,
     }
    # >
 
@@ -240,7 +250,7 @@ class RunControlOpts(OptionsDict):
             * 2022-10-23 ``@ddalle``: Version 1.1; use :func:`bool`
         """
         # Initialize if necessary
-        self.init_section(intersect.intersect, "intersect")
+        self.init_section(IntersectOpts, "intersect")
         # Get the value and type
         v = self.get("intersect")
         # Get the flag and convert to True or False
@@ -268,7 +278,7 @@ class RunControlOpts(OptionsDict):
             * 2022-10-23 ``@ddalle``: Version 1.1; use :func:`bool`
         """
         # Initialize if necessary
-        self.init_section(intersect.verify, "verify")
+        self.init_section(VerifyOpts, "verify")
         # Get the value and type
         v = self.get("verify")
         # Get the flag and convert to True or False
@@ -280,14 +290,16 @@ class RunControlOpts(OptionsDict):
    # ===============
    # <
     # Number of phases
-    def get_nSeq(self):
+    def get_nSeq(self, i=None):
         r"""Return the number of phases in the sequence
 
         :Call:
-            >>> nSeq = opts.get_nSeq()
+            >>> nSeq = opts.get_nSeq(i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
+            *i*: {``None``} | :class:`int`
+                Case index
         :Outputs:
             *nSeq*: :class:`int`
                 Number of input sets in the sequence
@@ -295,9 +307,10 @@ class RunControlOpts(OptionsDict):
             * 2014-10-02 ``@ddalle``: Version 1.0
             * 2015-02-02 ``@ddalle``: Version 1.1; add *nPhase* override
             * 2022-10-23 ``@ddalle``: Version 2.0; ``OptionsDict``
+            * 2022-10-28 ``@ddalle``: Version 2.1; add *i*
         """
         # Get the input sequence.
-        PhaseSeq = self.get_PhaseSequence()
+        PhaseSeq = self.get_PhaseSequence(i=i)
         # Check if it's a list.
         if isinstance(PhaseSeq, ARRAY_TYPES):
             # Use the length.
@@ -307,21 +320,26 @@ class RunControlOpts(OptionsDict):
             return 1
 
     # Minimum required number of iterations
-    def get_LastIter(self):
+    def get_LastIter(self, i=None):
         r"""Return the minimum number of iterations for case to be done
 
         :Call:
-            >>> nIter = opts.get_LastIter()
+            >>> nIter = opts.get_LastIter(i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
+            *i*: {``None``} | :class:`int`
+                Case index
         :Outputs:
             *nIter*: :class:`int`
                 Number of required iterations for case
         :Versions:
             * 2014-10-02 ``@ddalle``: Version 1.0
         """
-        return self.get_PhaseIters(self.get_PhaseSequence(-1))
+        # Get last phase
+        phase = self.get_PhaseSequence(j=-1, i=i)
+        # Get cutoff for that phase
+        return self.get_PhaseIters(j=phase, i=i)
    # >
 
 

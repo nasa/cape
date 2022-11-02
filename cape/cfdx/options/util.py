@@ -239,6 +239,27 @@ class ExecOpts(OptionsDict):
         # Pass to parent initializer
         OptionsDict.__init__(self, *args, **kw)
 
+    # Set default *run* option accordingly
+    def init_post(self):
+        r"""Post-init hook for AFLR3Opts
+
+        This hook sets a case-dependent default value for *run*
+
+        :Call:
+            >>> opts.init_post()
+        :Inputs:
+            *opts*: :class:`AFLR3Opts`
+                Options interface
+        :Versions:
+            * 2022-10-14 ``@ddalle``: Version 1.0
+        """
+        # Check for any options
+        if self:
+            self.setdefault("run", True)
+        else:
+            # For empty options, no entries -> run=False
+            self.setdefault("run", False)
+
 
 # Utility function to get elements sanely
 def getel(x, i=None):

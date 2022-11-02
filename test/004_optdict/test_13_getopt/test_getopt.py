@@ -103,7 +103,11 @@ def test_05_getopt_rc():
     opts = MyOpts()
     # Get a default value for *v*
     assert opts.get_opt("v") == opts._rc["v"]
+    # Override with *vdef*
+    assert opts.get_opt("v", vdef=2.0) == 2.0
     # Set an instance-specific default
     w = -5.
     opts._xrc = dict(w=w)
     assert opts.get_opt("w") == w
+    # Override with *vdef*
+    assert opts.get_opt("w", vdef=1) == 1
