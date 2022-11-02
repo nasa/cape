@@ -5327,9 +5327,7 @@ class TriBase(object):
         Y = self.TriY
         Z = self.TriZ
         # Extract test point coordinates
-        y = x[1]
-        z = x[2]
-        x = x[0]
+        x, y, z = x
         # Get the projection distance
         zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
         zi = np.abs(zi)
@@ -5349,54 +5347,72 @@ class TriBase(object):
         I = zi <= zmin + ztol
         K = np.where(I)[0]
         # Preselect subsets
-        XI = X[I,:]
-        YI = Y[I,:]
-        ZI = Z[I,:]
+        XI = X[I, :]
+        YI = Y[I, :]
+        ZI = Z[I, :]
+        # Filter best candidates
+        #if K.size > 100:
+        #    # Centers
+        #    XC = np.mean(XI, axis=1)
+        #    YC = np.mean(YI, axis=1)
+        #    ZC = np.mean(ZI, axis=1)
+        #    # L1 distance to each center
+        #    L1 = np.abs(XC - x) + np.abs(YC - y) + np.abs(ZC - z)
+        #    # Sort closest 25
+        #    J = np.argsort(L1)[:100]
+        #    K = K[J]
+        #    # Redo subsets
+        #    XI = XI[J, :]
+        #    YI = YI[J, :]
+        #    ZI = ZI[J, :]
         # These operations are tested to run as fast as possible
-        XI0 = XI[:,0]; XI1 = XI[:,1]; XI2 = XI[:,2]
-        YI0 = YI[:,0]; YI1 = YI[:,1]; YI2 = YI[:,2]
-        ZI0 = ZI[:,0]; ZI1 = ZI[:,1]; ZI2 = ZI[:,2]
+        XI0, XI1, XI2 = XI.T
+        YI0, YI1, YI2 = YI.T
+        ZI0, ZI1, ZI2 = ZI.T
         # Downselect the basis vectors
-        e1I = e1[I,:]
-        e2I = e2[I,:]
-        e10 = e1I[:,0]; e11 = e1I[:,1]; e12 = e1I[:,2]
-        e20 = e2I[:,0]; e21 = e2I[:,1]; e22 = e2I[:,2]
+        e10, e11, e12 = e1[K, :].T
+        e20, e21, e22 = e2[K, :].T
         # Convert the test point into coordinates aligned with first edge
         xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
         yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
-        zi = zi[I]
+        zi = zi[K]
         # Initialize transformed triangles
         XI = np.zeros_like(XI)
         YI = np.zeros_like(XI)
         # Convert the second and third vertices
-        XI[:,1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
-        XI[:,2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
-        YI[:,1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
-        YI[:,2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
+        # The commented line should be all zeros
+        XI[:, 1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
+        XI[:, 2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
+        # YI[:, 1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
+        YI[:, 2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
         # Get distance to each triangle within the plane of each triangle
-        DI = geom.dist_tris_to_pt(XI, YI, xi, yi)
+        DI = geom.dist2_tris_to_pt(XI, YI, xi, yi)
         # Get total distance from point to each triangle
-        D = np.sqrt(zi**2 + DI**2)
+        D = zi*zi + DI
         # Get index of minimum distance
         i1 = np.nanargmin(D)
         k1 = K[i1]
         # Find the component ID
-        c1 = self.CompID[k1]
+        c1 = self.CompID[k1 - 1]
         # Initialize output
-        T = {"k1": k1, "c1": c1, "d1": D[i1],
-            "t1": DI[i1], "z1": abs(zi[i1])}
+        T = {
+            "k1": k1,
+            "c1": c1,
+            "d1": np.sqrt(D[i1]),
+            "t1": np.sqrt(DI[i1]),
+            "z1": abs(zi[i1]),
+        }
         # Initialize submask
-        I1 = K > -1
+        I1 = K != c1
         C1 = self.CompID[I]
         # Loop through until we find up to four components
-        c = c1
-        for n in ['2', '3', '4']:
-            # Find the triangles that are not in any previous component
-            I1 = np.logical_and(I1, C1 != c)
+        for nj in range(n-1):
+            # Tag
+            sj = str(nj + 2)
             # Downselect available triangle indices
             J = np.where(I1)[0]
             # Check for no remaining triangles
-            if len(J) == 0:
+            if J.size == 0:
                 return T
             # Find nearest match from remaining triangles
             i = np.nanargmin(D[J])
@@ -5404,11 +5420,13 @@ class TriBase(object):
             k = K[j]
             c = self.CompID[k]
             # Save parameters
-            T["k"+n] = k
-            T["c"+n] = c
-            T["d"+n] = D[j]
-            T["z"+n] = zi[j]
-            T["t"+n] = DI[j]
+            T["k"+sj] = k
+            T["c"+sj] = c
+            T["d"+sj] = np.sqrt(D[j])
+            T["z"+sj] = zi[j]
+            T["t"+sj] = DI[j]
+            # Update mask
+            I1[C1 == c] = False
         # Output (if 4 components)
         return T
     # Edit default tolerances
