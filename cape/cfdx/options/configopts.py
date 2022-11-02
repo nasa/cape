@@ -87,6 +87,7 @@ class ConfigOpts(OptionsDict):
         "Points": {},
         "RefArea": 1.0,
         "RefLength": 1.0,
+        "RefPoint": [0.0, 0.0, 0.0],
     }
 
     # Descriptions

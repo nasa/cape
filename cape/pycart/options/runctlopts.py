@@ -1,31 +1,14 @@
 """
-:mod:`cape.pycart.options.runControl.RunControl`: Run control options
+:mod:`cape.pycart.options.rctlopts`: Cart3D run control options
 ======================================================================
 
-Options interface for aspects of running a case of Cart3D.  The settings are
-read from the ``"RunControl"`` of a JSON file, and the contents of this section
-are written to :file:`case.json` within each run folder.
+Options interface for case control for pycart runs of Cart3D. This is
+mostly a fork of
 
-This contains options that determine how long the solver is ran (primarily 
-via the ``"PhaseSequence"`` and ``"PhaseIters"`` options), what basic mode it
-is run in (such as a submitted or local job or serial or MPI job), and options
-for command-line options to the Cart3D binaries.  There is also an
-``"Archive"`` section that can be used for copying files and cleaning up after
-one or more cases have been completed.
+    :mod:`cape.cfdx.options.runctlopts`
 
-This module primarily provides a class :class:`cape.pycart.options.RunControl`.
-Many of the options that are common to all solvers are inherited from 
-:class:`cape.cfdx.options.RunControl`.  This class also has an interface for
-environment variables and ``ulimit`` parameters.
-
-For pyCart, the relevant pyCart binaries, which become sections of the
-:class:`cape.pycart.options.RunControl` class, are ``intersect``, ``verify``,
-``autoInputs``, ``cubes``, ``mgPrep``, and ``flowCart``.  There is an
-additional section ``"Adaptation"`` used to define Cart3D adaptation inputs and
-settings for ``aero.csh``.
-
-In particular, all of the commands available to the classes listed below are
-also available to :class:`cape.pycart.options.runControl.RunControl`.
+but with several special methods, including command-line options to
+``autoInputs``, ``cubes``, ``flowCart``, and ``adjointCart``.
 
 :Classes:
     * :class:`cape.pycart.options.runControl.RunControl`
@@ -47,254 +30,63 @@ also available to :class:`cape.pycart.options.runControl.RunControl`.
 # Local imports
 from .archiveopts import ArchiveOpts
 from .util import rc0, odict, isArray, getel
-from ...cfdx.options import runControl
-from ...cfdx.options import ulimit as ulimitopts
+from ...cfdx.options import runctlopts
+from ...cfdx.options.util import ExecOpts
+from ...optdict import ARRAY_TYPES, BOOL_TYPES, INT_TYPES
 
 
-# Function to test if something is an acceptable Runge-Kutta object
-def isRK(RK):
-    """
-    Determine if a variable has a value that can be interpreted as a single set
-    of Runge-Kutta stage inputs
-    
-    :Call:
-        >>> q = isRK(RK)
-    :Inputs:
-        *RK*: any
-            Any variable
-    :Outputs:
-        *q*: :class:`bool`
-            ``True`` unless *RK* is a list with depth not equal to 2
-    :Versions:
-        * 2014-12-17 ``@ddalle``: First version
-    """
-    # Check if the input is an array.
-    if not isArray(RK): return True
-    # Check the the first element.
-    if (len(RK)<1) or (not isArray(RK[0])): return False
-    # The first element is now a list
-    RK0 = RK[0]
-    # Check the first element of RK0
-    if (len(RK0)==2) and (not isArray(RK0[0])):
-        # This looks like an Nx2 input.
-        return True
-    else:
-        # The above case is the only type of acceptable list.
-        return False
-
-        
 # Class for flowCart inputs
-class flowCart(odict):
-    """Class for ``flowCart`` settings"""
-    
-    # Get the Runge-Kutta scheme
-    def get_RKScheme(self, i=None):
-        """Return the Runge-Kutta scheme for a run
-        
-        :Call:
-            >>> RK = opts.get_RKScheme(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *RK*: :class:`str` or :class:`list` ([:class:`float`,:class:`int`])
-                Named Runge-Kutta scheme or list of coefficients and gradient
-                evaluation flags
-        :See also:
-            * :func:`cape.pycart.inputCntl.InputCntl.SetRungeKutta`
-        :Versions:
-            * 2014-12-17 ``@ddalle``: First version
-        """
-        # Get the value.
-        RK = self.get('RKScheme', rc0('RKScheme'))
-        # Check the type.
-        if i is None:
-            # Just output
-            return RK
-        if isRK(RK):
-            # No list.
-            return RK
-        else:
-            # Check for empty input.
-            if len(RK) == 0:
-                return None
-            # Array-like
-            if i:
-                # Check the length.
-                if i >= len(RK):
-                    # Take the last element.
-                    return RK[-1]
-                else:
-                    # Take the *i*th element.
-                    return RK[i]
-            else:
-                # Use the first element.
-                return RK[0]
-                
-    # Set the Runge-Kutta scheme for a certain run
-    def set_RKScheme(self, RK=rc0('RKScheme'), i=None):
-        """Set the Runge-Kutta scheme for a run
-        
-        :Call:
-            >>> opts.set_RKScheme(RK, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *RK*: :class:`str` or :class:`list` ([:class:`float`,:class:`int`])
-                Named Runge-Kutta scheme or list of coefficients and gradient
-                evaluation flags
-            *i*: :class:`int` or ``None``
-                Phase number
-        :See also:
-            * :func:`cape.pycart.inputCntl.InputCntl.SetRungeKutta`
-        :Versions:
-            * 2014-12-17 ``@ddalle``: First version
-        """
-        # Get the current value.
-        x = self.get('RKScheme', rc0('RKScheme'))
-        # Check the index input.
-        if i is None:
-            # Scalar output
-            self['RKScheme'] = RK
-        else:
-            # Ensure list.
-            if isRK(x):
-                # Make a list.
-                y = [x]
-            else:
-                # Already a list.
-                y = list(x)
-            # Make sure *y* is long enough.
-            for j in range(len(y), i):
-                y.append(y[-1])
-            # Check if we are setting an element or appending it.
-            if i >= len(y):
-                # Append
-                y.append(RK)
-            else:
-                # Set the value.
-                y[i] = RK
-            # Output
-            self['RKScheme'] = y
-            
-        
-        
-    # Get first-order status
-    def get_first_order(self, i=None):
-        """Return whether or not `flowCart` should be run first-order
-        
-        :Call:
-            >>> fo = opts.get_first_order(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *fo*: :class:`int` or :class:`list`(:class:`int`)
-                Switch for running `flowCart` in first-order mode
-        :Versions:
-            * 2014-10-02 ``@ddalle``: First version
-        """
-        return self.get_key('first_order', i)
-        
-    # Set first-order status
-    def set_first_order(self, i=None):
-        """Set whether or not `flowCart` should be run first-order
-        
-        :Call:
-            >>> opts.set_first_order(fo)
-            >>> opts.set_first_order(fo, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *fo*: :class:`int` or :class:`list`(:class:`int`)
-                Switch for running `flowCart` in first-order mode
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-10-02 ``@ddalle``: First version
-        """
-        self.set_key('first_order', fo, i)
-            
-        
-    # Get first-order status
-    def get_robust_mode(self, i=None):
-        """Return whether or not `flowCart` should be run in robust mode
-        
-        :Call:
-            >>> rm = opts.get_robust_mode(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *rm*: :class:`int` or :class:`list`(:class:`int`)
-                Switch for running `flowCart` in robust mode
-        :Versions:
-            * 2014-11-21 ``@ddalle``: First version
-        """
-        return self.get_key('robust_mode', i)
-    
-    # Set robust-mode status
-    def set_robust_mode(self, i=None):
-        """Return whether or not `flowCart` should be run in robust mode
-        
-        :Call:
-            >>> opts.get_robust_mode(rm, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *rm*: :class:`int` or :class:`list`(:class:`int`)
-                Switch for running `flowCart` in robust mode
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-21 ``@ddalle``: First version
-        """
-        self.set_key('robust_mode', rm, i)
-        
-        
-    # Number of iterations
-    def get_it_fc(self, i=None):
-        """Return the number of iterations for `flowCart`
-        
-        :Call:
-            >>> it_fc = opts.get_it_fc(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *it_fc*: :class:`int` or :class:`list`(:class:`int`)
-                Number of iterations for run *i* or all runs if ``i==None``
-        :Versions:
-            * 2014-08-01 ``@ddalle``: First version
-        """
-        return self.get_key('it_fc', i)
-        
-    # Set flowCart iteration count
-    def set_it_fc(self, it_fc=rc0('it_fc'), i=None):
-        """Set the number of iterations for `flowCart`
-        
-        :Call:
-            >>> opts.set_it_fc(it_fc)
-            >>> opts.set_it_fc(it_fc, i)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *it_fc*: :class:`int` or :class:`list`(:class:`int`)
-                Number of iterations for run *i* or all runs if ``i==None``
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-08-01 ``@ddalle``: First version
-        """
-        self.set_key('it_fc', it_fc, i)
+class FlowCartOpts(ExecOpts):
+    """Class for ``flowCart`` settings
+
+    :Call:
+        >>> opts = FlowCartOpts(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Raw options
+    :Outputs:
+        *opts*: :class:`FlowCartOpts`
+            CLI options for ``flowCart`` or ``mpi_flowCart``
+    :Versions:
+        * 2014-12-17 ``@ddalle``: Version 1.0 (``flowCart``)
+        * 2022-11-01 ``@ddalle``: Version 2.0; use ``optdict``
+    """
+    __slots__ = ()
+
+    # Accepted options
+    _optlist = {
+        "RKScheme",
+        "first_order",
+        "it_fc",
+        "robust_mode",
+    }
+
+    # Aliases
+    _optmap = {
+        "RKscheme": "RKScheme",
+    }
+
+    # Types
+    _opttypes = {
+        "first_order": BOOL_TYPES,
+        "it_fc": INT_TYPES,
+        "robust_mode": BOOL_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+        "first_order": False,
+        "it_fc": 200,
+        "robust_mode": False,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "RKScheme": "the Runge-Kutta scheme for a phase",
+        "first_order": "whether ``flowCart`` should be run first-order",
+        "it_fc": "number of ``flowCart`` iterations",
+        "robust_mode": "whether ``flowCart`` should be run in robust mode",
+    }
         
     
     # Number of iterations between averaging operation
@@ -316,7 +108,7 @@ class flowCart(odict):
             *it_avg*: :class:`int` or :class:`list`(:class:`int`)
                 Stopping interval between averaging for run *i*
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         return self.get_key('it_avg', i)
         
@@ -339,7 +131,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         self.set_key('it_avg', it_avg, i)
         
@@ -363,7 +155,7 @@ class flowCart(odict):
             *it_start*: :class:`int` or :class:`list`(:class:`int`)
                 Startup iterations before averaging for phase *i*
         :Versions:
-            * 2015-12-02 ``@ddalle``: First version
+            * 2015-12-02 ``@ddalle``: Version 1.0
         """
         return self.get_key('it_start', i)
         
@@ -386,7 +178,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2015-12-02 ``@ddalle``: First version
+            * 2015-12-02 ``@ddalle``: Version 1.0
         """
         self.set_key('it_start', it_start, i)
         
@@ -406,7 +198,7 @@ class flowCart(odict):
             *clic*: :class:`bool`
                 Whether or not to write ``Components.i.triq`` on exit
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         return self.get_key('clic', i)
         
@@ -424,7 +216,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2015-09-14 ``@ddalle``: First version
+            * 2015-09-14 ``@ddalle``: Version 1.0
         """
         self.set_key('clic', clic, i)
         
@@ -444,7 +236,7 @@ class flowCart(odict):
             *nOrders*: :class:`int`
                 Number of orders for convergence
         :Versions:
-            * 2014-12-12 ``@ddalle``: First version
+            * 2014-12-12 ``@ddalle``: Version 1.0
         """
         return self.get_key('nOrders', i)
         
@@ -462,7 +254,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-12-12 ``@ddalle``: First version
+            * 2014-12-12 ``@ddalle``: Version 1.0
         """
         self.set_key('nOrders', nOrders, i)
         
@@ -482,7 +274,7 @@ class flowCart(odict):
             *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
                 Multigrid levels for run *i* or all runs if ``i==None``
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('mg_fc', i)
     
@@ -500,7 +292,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('mg_fc', mg_fc, i)
         
@@ -520,7 +312,7 @@ class flowCart(odict):
             *td_fc*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to use ``td_flowCart -unsteady``
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
         """
         return self.get_key('unsteady', i)
     
@@ -539,7 +331,7 @@ class flowCart(odict):
             *td_fc*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to use ``td_flowCart -unsteady``
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
         """
         self.set_key('unsteady', td_fc, i)
         
@@ -559,7 +351,7 @@ class flowCart(odict):
             *cfl*: :class:`float` or :class:`list`(:class:`float`)
                 Nominal CFL number for run *i*
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('cfl', i)
     
@@ -577,7 +369,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('cfl', cfl, i)
         
@@ -597,7 +389,7 @@ class flowCart(odict):
             *cfl*: :class:`float` or :class:`list`(:class:`float`)
                 Minimum CFL number for run *i*
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('cflmin', i)
     
@@ -615,7 +407,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('cflmin', cflmin, i)
         
@@ -635,7 +427,7 @@ class flowCart(odict):
             *dt*: :class:`float` or :class:`list`(:class:`float`)
                 Nondimensional physical time step
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
         """
         return self.get_key('dt', i)
         
@@ -653,7 +445,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
         """
         self.set_key('dt', dt, i)
         
@@ -673,7 +465,7 @@ class flowCart(odict):
             *it_sub*: :class:`int` | :class:`list`\ [:class:`int`]
                 Number of subiterations
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
             * 2015-11-09 ``@ddalle``: ``nSteps`` --> ``it_sub``
         """
         return self.get_key('it_sub', i)
@@ -692,7 +484,7 @@ class flowCart(odict):
             *it_sub*: :class:`int` | :class:`list`\ [:class:`int`]
                 Number of subiterations
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
             * 2015-11-09 ``@ddalle``: ``nSteps`` --> ``it_sub``
         """
         self.set_key('it_sub', it_sub, i)
@@ -713,7 +505,7 @@ class flowCart(odict):
             *checkptTD*: :class:`int` or :class:`list`(:class:`int`)
                 Number of unsteady time steps between checkpoints
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
         """
         return self.get_key('checkptTD', i)
         
@@ -731,7 +523,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
         """
         self.set_key('checkptTD', checkptTD, i)
         
@@ -751,7 +543,7 @@ class flowCart(odict):
             *vizTD*: :class:`int` or :class:`list`(:class:`int`)
                 Number of unsteady time steps between visualization outputs
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
         """
         return self.get_key('vizTD', i)
         
@@ -769,7 +561,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-28 ``@ddalle``: First version
+            * 2014-11-28 ``@ddalle``: Version 1.0
         """
         self.set_key('vizTD', vizTD, i)
         
@@ -791,7 +583,7 @@ class flowCart(odict):
             *fc_clean*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to run relaxation step
         :Versions:
-            * 2014-12-01 ``@ddalle``: First version
+            * 2014-12-01 ``@ddalle``: Version 1.0
         """
         return self.get_key('fc_clean', i)
         
@@ -811,7 +603,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-12-01 ``@ddalle``: First version
+            * 2014-12-01 ``@ddalle``: Version 1.0
         """
         self.set_key('fc_clean', fc_clean, i)
         
@@ -831,7 +623,7 @@ class flowCart(odict):
             *nstats*: :class:`int` or :class:`list`(:class:`int`)
                 Number of iterations to use for averaging (off if ``0``)
         :Versions:
-            * 2014-12-01 ``@ddalle``: First version
+            * 2014-12-01 ``@ddalle``: Version 1.0
         """
         return self.get_key('fc_stats', i)
         
@@ -849,7 +641,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-12-01 ``@ddalle``: First version
+            * 2014-12-01 ``@ddalle``: Version 1.0
         """
         self.set_key('fc_stats', nstats, i)
         
@@ -869,7 +661,7 @@ class flowCart(odict):
             *limiter*: :class:`int` or :class:`list`(:class:`int`)
                 Limiter ID for `flowCart`
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('limiter', i)
     
@@ -887,7 +679,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('limiter', limiter, i)
         
@@ -907,7 +699,7 @@ class flowCart(odict):
             *y_is_spanwise*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not *y* is the spanwise index `flowCart`
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('y_is_spanwise', i)
     
@@ -925,7 +717,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('y_is_spanwise', y_is_spanwise, i)
         
@@ -945,7 +737,7 @@ class flowCart(odict):
             *fmg*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` is set to run full multigrid
         :Versions:
-            * 2014-11-14 ``@ddalle``: First version
+            * 2014-11-14 ``@ddalle``: Version 1.0
         """
         return self.get_key('fmg', i)
     
@@ -963,7 +755,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-14 ``@ddalle``: First version
+            * 2014-11-14 ``@ddalle``: Version 1.0
         """
         self.set_key('fmg', fmg, i)
         
@@ -983,7 +775,7 @@ class flowCart(odict):
             *pmg*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` is set to run poly multigrid
         :Versions:
-            * 2014-11-14 ``@ddalle``: First version
+            * 2014-11-14 ``@ddalle``: Version 1.0
         """
         return self.get_key('pmg', i)
     
@@ -1001,7 +793,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-14 ``@ddalle``: First version
+            * 2014-11-14 ``@ddalle``: Version 1.0
         """
         self.set_key('pmg', pmg, i)
         
@@ -1021,7 +813,7 @@ class flowCart(odict):
             *binaryIO*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` is for binary I/O
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('binaryIO', i)
     
@@ -1039,7 +831,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('binaryIO', binaryIO, i)
         
@@ -1059,7 +851,7 @@ class flowCart(odict):
             *tecO*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` dumps Tecplot triangulations
         :Versions:
-            * 2014.09.07 ``@ddalle``: First version
+            * 2014.09.07 ``@ddalle``: Version 1.0
         """
         return self.get_key('tecO', i)
     
@@ -1077,7 +869,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.09.07 ``@ddalle``: First version
+            * 2014.09.07 ``@ddalle``: Version 1.0
         """
         self.set_key('tecO', tecO, i)
         
@@ -1097,7 +889,7 @@ class flowCart(odict):
             *buffLim*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to use `flowCart` buffer limits
         :Versions:
-            * 2014-11-21 ``@ddalle``: First version
+            * 2014-11-21 ``@ddalle``: Version 1.0
         """
         return self.get_key('buffLim', i)
     
@@ -1115,7 +907,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-21 ``@ddalle``: First version
+            * 2014-11-21 ``@ddalle``: Version 1.0
         """
         self.set_key('buffLim', buffLim, i)
         
@@ -1135,7 +927,7 @@ class flowCart(odict):
             *tm*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not `flowCart` is set for cut cell gradient
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('tm', i)
     
@@ -1153,7 +945,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('tm', tm, i)
 
@@ -1176,7 +968,7 @@ class adjointCart(odict):
             *it_ad*: :class:`int` or :class:`list`(:class:`int`)
                 Number of iterations for run *i* or all runs if ``i==None``
         :Versions:
-            * 2014.08.01 ``@ddalle``: First version
+            * 2014.08.01 ``@ddalle``: Version 1.0
         """
         return self.get_key('it_ad', i)
         
@@ -1195,7 +987,7 @@ class adjointCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.01 ``@ddalle``: First version
+            * 2014.08.01 ``@ddalle``: Version 1.0
         """
         self.set_key('it_ad', it_ad, i)
         
@@ -1215,7 +1007,7 @@ class adjointCart(odict):
             *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
                 Multigrid levels for run *i* or all runs if ``i==None``
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('mg_ad', i)
     
@@ -1233,7 +1025,7 @@ class adjointCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('mg_ad', mg_ad, i)
         
@@ -1253,7 +1045,7 @@ class adjointCart(odict):
             *adj*: :class:`bool` or :class:`list`(:class:`int`)
                 Whether or not to always run `adjointCart` first-order
         :Versions:
-            * 2014-11-17 ``@ddalle``: First version
+            * 2014-11-17 ``@ddalle``: Version 1.0
         """
         return self.get_key('adj_first_order', i)
         
@@ -1271,7 +1063,7 @@ class adjointCart(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-17 ``@ddalle``: First version
+            * 2014-11-17 ``@ddalle``: Version 1.0
         """
         self.set_key('adj_first_order', adj, i)
 
@@ -1294,7 +1086,7 @@ class Adaptation(odict):
             *nAdapt*: :class:`int` or :class:`list`(:class:`int`)
                 Number of adaptation cycles
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('n_adapt_cycles', i)
         
@@ -1312,7 +1104,7 @@ class Adaptation(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('n_adapt_cycles', nAdapt, i)
     
@@ -1331,7 +1123,7 @@ class Adaptation(odict):
             *js*: :class:`bool`
                 Whether or not to jumpstart
         :Versions:
-            * 2014-12-04 ``@ddalle``: First version
+            * 2014-12-04 ``@ddalle``: Version 1.0
         """
         return self.get_key('jumpstart', i)
         
@@ -1349,7 +1141,7 @@ class Adaptation(odict):
             *js*: :class:`bool`
                 Whether or not to jumpstart
         :Versions:
-            * 2014-12-04 ``@ddalle``: First version
+            * 2014-12-04 ``@ddalle``: Version 1.0
         """
         self.set_key('jumpstart', js, i)
         
@@ -1369,7 +1161,7 @@ class Adaptation(odict):
             *etol*: :class:`float` or :class:`list`(:class:`float`)
                 Output error tolerance
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('etol', i)
         
@@ -1387,7 +1179,7 @@ class Adaptation(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('etol', etol, i)
         
@@ -1407,7 +1199,7 @@ class Adaptation(odict):
             *etol*: :class:`float` or :class:`list`(:class:`float`)
                 Output error tolerance
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('etol', i)
     
@@ -1426,7 +1218,7 @@ class Adaptation(odict):
             *etol*: :class:`float` or :class:`list`(:class:`float`)
                 Output error tolerance
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('max_nCells', max_nCells)
         
@@ -1446,7 +1238,7 @@ class Adaptation(odict):
             *ws_it*: :class:`int` or :class:`list`(:class:`int`)
                 Number of `flowCart` iterations
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('ws_it', i)
     
@@ -1464,7 +1256,7 @@ class Adaptation(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('ws_it', ws_it, i)
         
@@ -1484,7 +1276,7 @@ class Adaptation(odict):
             *mesh_growth*: :class:`float` or :class:`list`(:class:`float`)
                 Refinement mesh growth ratio
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('mesh_growth', i)
     
@@ -1502,7 +1294,7 @@ class Adaptation(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('mesh_growth', mesh_growth, i)
     
@@ -1522,7 +1314,7 @@ class Adaptation(odict):
             *apc*: :class:`str` or :class:`list`(:class:`str`)
                 Adaptation cycle type, ``"a"`` or ``"p"``
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         return self.get_key('apc', i)
     
@@ -1540,7 +1332,7 @@ class Adaptation(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.08.02 ``@ddalle``: Version 1.0
         """
         self.set_key('apc', apc, i)
 
@@ -1560,7 +1352,7 @@ class Adaptation(odict):
             *buf*: :class:`int` or :class:`list`(:class:`int`)
                 Number of buffer layers
         :Versions:
-            * 2014-11-14 ``@ddalle``: First version
+            * 2014-11-14 ``@ddalle``: Version 1.0
         """
         return self.get_key('buf', i)
         
@@ -1578,7 +1370,7 @@ class Adaptation(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-14 ``@ddalle``: First version
+            * 2014-11-14 ``@ddalle``: Version 1.0
         """
         self.set_key('buf', buf, i)
 
@@ -1598,7 +1390,7 @@ class Adaptation(odict):
             *xref*: :class:`int` or :class:`list`(:class:`int`)
                 Number of additional adaptations
         :Versions:
-            * 2014-11-19 ``@ddalle``: First version
+            * 2014-11-19 ``@ddalle``: Version 1.0
         """
         return self.get_key('final_mesh_xref', i)
 
@@ -1616,7 +1408,7 @@ class Adaptation(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-11-19 ``@ddalle``: First version
+            * 2014-11-19 ``@ddalle``: Version 1.0
         """
         self.set_key('final_mesh_xref', xref, i)
 
@@ -1640,7 +1432,7 @@ class autoInputs(odict):
             *r*: :class:`float` or :class:`list`(:class:`float`)
                 Nominal mesh radius
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         return self.get_key('r', i)
         
@@ -1658,7 +1450,7 @@ class autoInputs(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         self.set_key('r', r, i)
         
@@ -1677,7 +1469,7 @@ class autoInputs(odict):
             *nDiv*: :class:`int` or :class:`list`(:class:`int`)
                 Number of background mesh divisions
         :Versions:
-            * 2014-12-02 ``@ddalle``: First version
+            * 2014-12-02 ``@ddalle``: Version 1.0
         """
         return self.get_key('nDiv', i)
         
@@ -1695,7 +1487,7 @@ class autoInputs(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-12-02 ``@ddalle``: First version
+            * 2014-12-02 ``@ddalle``: Version 1.0
         """
         self.set_key('nDiv', nDiv, i)
 
@@ -1719,7 +1511,7 @@ class cubes(odict):
             *maxR*: :class:`int` or :class:`list`(:class:`int`)
                 (Maximum) number of refinements for initial mesh
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         return self.get_key('maxR', i)
         
@@ -1737,7 +1529,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         self.set_key('maxR', maxR, i)
         
@@ -1756,7 +1548,7 @@ class cubes(odict):
             *cubes_a*: :class:`int` or :class:`list`(:class:`int`)
                 Customizable parameter for `cubes`
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         return self.get_key('cubes_a', i)
         
@@ -1774,7 +1566,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         self.set_key('cubes_a', cubes_a, i)
         
@@ -1793,7 +1585,7 @@ class cubes(odict):
             *cubes_b*: :class:`int` or :class:`list`(:class:`int`)
                 Customizable parameter for `cubes`
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         return self.get_key('cubes_b', i)
         
@@ -1811,7 +1603,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         self.set_key('cubes_b', cubes_b, i)
         
@@ -1830,7 +1622,7 @@ class cubes(odict):
             *reorder*: :class:`bool` or :class:`list`(:class:`bool`)
                 Reorder status
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         return self.get_key('reorder', i)
         
@@ -1848,7 +1640,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-08-03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Version 1.0
         """
         self.set_key('reorder', reorder, i)
         
@@ -1867,7 +1659,7 @@ class cubes(odict):
             *sf*: :class:`int` or :class:`list`\ [:class:`int`]
                 Number of additional refinements at sharp edges
         :Versions:
-            * 2014-12-02 ``@ddalle``: First version
+            * 2014-12-02 ``@ddalle``: Version 1.0
         """
         return self.get_key('sf', i)
         
@@ -1885,7 +1677,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2014-12-02 ``@ddalle``: First version
+            * 2014-12-02 ``@ddalle``: Version 1.0
         """
         self.set_key('sf', sf, i)
     
@@ -1902,7 +1694,7 @@ class cubes(odict):
             *fpre*: :class:`str`
                 Mesh prespecification file
         :Versions:
-            * 2014-10-08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: Version 1.0
         """
         # Get the value
         fpre = self.get_key('pre', 0)
@@ -1926,7 +1718,7 @@ class cubes(odict):
             *fpre*: :class:`str`
                 Mesh prespecification file
         :Versions:
-            * 2014-10-08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: Version 1.0
         """
         self.set_key('pre', fpre)
 
@@ -2087,7 +1879,7 @@ class RunControl(runControl.RunControl):
             *ac*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to use `aero.csh`
         :Versions:
-            * 2014-10-03 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: Version 1.0
             * 2015-11-13 ``@ddalle``: ``use_aero_csh`` -> ``Adaptive``
         """
         return self.get_key('Adaptive', i)
@@ -2107,7 +1899,7 @@ class RunControl(runControl.RunControl):
             *ac*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to use `aero.csh`
         :Versions:
-            * 2014-10-03 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: Version 1.0
             * 2015-11-13 ``@ddalle``: ``use_aero_csh`` -> ``Adaptive``
         """
         self.set_key('Adaptive', ac, i)
@@ -2555,7 +2347,7 @@ class RunControl(runControl.RunControl):
             *q*: :class:`bool`
                 Whether or not there are nontrivial ``autoInputs`` settings
         :Versions:
-            * 2016-04-06 ``@ddalle``: First version
+            * 2016-04-06 ``@ddalle``: Version 1.0
         """
         # Initialize if necessary
         self._autoInputs()
@@ -2618,7 +2410,7 @@ class RunControl(runControl.RunControl):
             *q*: :class:`bool`
                 Whether or not there are nontrivial ``cubes`` settings
         :Versions:
-            * 2016-04-06 ``@ddalle``: First version
+            * 2016-04-06 ``@ddalle``: Version 1.0
         """
         # Initialize if necessary
         self._cubes()
