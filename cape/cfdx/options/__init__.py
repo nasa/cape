@@ -70,12 +70,16 @@ class Options(OptionsDict):
     _optlist = {
         "BatchPBS",
         "BatchSlurm",
+        "CaseFunction",
         "Config",
         "DataBook",
+        "InitFunction",
         "Mesh",
+        "Modules",
         "PBS",
         "PostPBS",
         "PostSlurm",
+        "PythonExec",
         "PythonPath",
         "Report",
         "RunControl",
@@ -94,6 +98,9 @@ class Options(OptionsDict):
     # Known option types
     _opttypes = {
         "BatchShellCmds": str,
+        "CaseFunction": str,
+        "InitFunction": str,
+        "Modules": str,
         "PythonExec": str,
         "PythonPath": str,
         "RunMatrix": dict,
@@ -105,7 +112,10 @@ class Options(OptionsDict):
     # Option default list depth
     _optlistdepth = {
         "BatchShellCmds": 1,
+        "CaseFunction": 1,
+        "InitFunction": 1,
         "PythonPath": 1,
+        "Modules": 1,
         "ShellCmds": 1,
         "ZombieFiles": 1,
     }
@@ -120,8 +130,12 @@ class Options(OptionsDict):
 
     # Descriptions for methods
     _rst_descriptions = {
+        "CaseFunction": "function(s) to execute in case right before starting",
         "BatchShellCmds": "additional shell commands for batch jobs",
+        "InitFunction": "function(s) to run immediately after parsing JSON",
+        "Modules": "list of Python modules to import",
         "PythonExec": "specific Python executable to use for jobs",
+        "PythonPath": "folder(s) to add to Python path for custom modules",
         "ZombieFiles": "file name flobs to check mod time for zombie status",
         "nSubmit": "maximum number of jobs to submit at one time",
     }
