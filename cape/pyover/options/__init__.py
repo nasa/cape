@@ -1,23 +1,14 @@
 r"""
-This module provides tools to read, access, modify, and write settings for
-:mod:`cape.pyover`.  The class is based off of the built-int :class:`dict` class.
+:mod:`cape.pyover.options`: Options interface for :mod:`cape,pyover`
+====================================================================
 
-In addition, this module controls default values of each pyOver
-parameter in a two-step process.  The precedence used to determine what the
-value of a given parameter should be is below.
+This is the OVERFLOW-specific implementation of the CAPE options
+package, based on
 
-    1. Values directly specified in the input file, :file:`pyOver.json`
-    
-    2. Values specified in the default control file,
-       :file:`$PYOVER/settings/pyOver.default.json`
-    
-    3. Hard-coded defaults from this module
+    :mod:`cape.cfdx.options`
 """
 
-# Import template module
-import cape.cfdx.options
-
-# Import modules for controlling specific parts of Cart3D
+# Local imports
 from .util import getPyOverDefaults, applyDefaults
 from .runctlopts import RunControlOpts
 from .overnml import OverNml
