@@ -26,7 +26,7 @@ from ...cfdx import options
 # Class definition
 class Options(options.Options):
     r"""Options interface for :mod:`cape.pyfun`
-    
+
     :Call:
         >>> opts = Options(fname=None, **kw)
     :Inputs:
