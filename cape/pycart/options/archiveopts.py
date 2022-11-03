@@ -12,7 +12,7 @@ archiving options module.
 """
 
 # Local imports
-from .util import rc0, INT_TYPES
+from .util import INT_TYPES
 from ...cfdx.options import archiveopts
 
 
@@ -56,7 +56,7 @@ RunFiles = [
 # Class for case management
 class ArchiveOpts(archiveopts.ArchiveOpts):
     r"""Archiving options interface
-    
+
     :Call:
         >>> opts = ArchiveOpts(**kw)
     :Versions:
@@ -105,11 +105,11 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         """
         # Apply the template
         self.apply_ArchiveTemplate()
-    
+
     # Apply template
     def apply_ArchiveTemplate(self):
         r"""Apply named template to set default files to delete/archive
-        
+
         :Call:
             >>> opts.apply_ArchiveTemplate()
         :Inputs:
@@ -182,7 +182,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
             self.add_ArchivePreUpdateFiles(CheckDict)
             # Files/folders to delete after archiving
             self.add_ArchivePostDeleteFiles([
-                'adapt??.'+ext, 'checkDT*', 'check*', 
+                'adapt??.'+ext, 'checkDT*', 'check*',
                 'Components.*.tri', '*.lay', '*.out'
             ])
             self.add_ArchivePostDeleteFiles(RunFiles)
@@ -199,7 +199,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
             self.add_ArchivePreUpdateFiles(CheckDict)
             # Files/folders to delete after archiving
             self.add_ArchivePostDeleteFiles([
-                'adapt??.'+ext, 'checkDT*', 'check*', '*.pbs', 
+                'adapt??.'+ext, 'checkDT*', 'check*', '*.pbs',
                 'Components*triq', 'Components*tri', '*.lay', '*.out'
             ])
             self.add_ArchivePostDeleteFiles(RunFiles)
@@ -222,7 +222,7 @@ ArchiveOpts.add_properties(ArchiveOpts._optlist)
 # Turn dictionary into Archive options
 def auto_Archive(opts):
     r"""Automatically convert dict to pyover :class:`ArchiveOpts`
-    
+
     :Call:
         >>> opts = auto_Archive(opts)
     :Inputs:

@@ -336,7 +336,7 @@ class Cntl(ccntl.Cntl):
             * 2015-12-31 ``@ddalle``: Added *Namelist0*
         """
         # Namelist file
-        fnml = self.opts.get_FUN3DNamelist(j)
+        fnml = self.opts.get_Fun3DNamelist(j)
         # Check for empty value
         if fnml is None:
             return

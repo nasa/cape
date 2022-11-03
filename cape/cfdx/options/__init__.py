@@ -66,21 +66,55 @@ class Options(OptionsDict):
    # Class attributes
    # ================
    # <
+    # Accepted options/sections
+    _optlist = {
+        "BatchPBS",
+        "BatchSlurm",
+        "Config",
+        "DataBook",
+        "Mesh",
+        "PBS",
+        "PostPBS",
+        "PostSlurm",
+        "PythonPath",
+        "Report",
+        "RunControl",
+        "RunMatrix",
+        "Slurm",
+        "ZombieFiles",
+        "nSubmit",
+        "umask",
+    }
+
+    # Aliases
+    _optmap = {
+        "Trajectory": "RunMatrix",
+    }
+
     # Known option types
     _opttypes = {
         "BatchShellCmds": str,
         "PythonExec": str,
+        "PythonPath": str,
+        "RunMatrix": dict,
+        "ZombieFiles": str,
         "nSubmit": INT_TYPES,
+        "umask": INT_TYPES + (str,),
     }
 
     # Option default list depth
     _optlistdepth = {
         "BatchShellCmds": 1,
+        "PythonPath": 1,
         "ShellCmds": 1,
+        "ZombieFiles": 1,
     }
 
     # Defaults
     _rc = {
+        "ZombieFiles": [
+            "*.out"
+        ],
         "nSubmit": 10,
     }
 
@@ -88,6 +122,7 @@ class Options(OptionsDict):
     _rst_descriptions = {
         "BatchShellCmds": "additional shell commands for batch jobs",
         "PythonExec": "specific Python executable to use for jobs",
+        "ZombieFiles": "file name flobs to check mod time for zombie status",
         "nSubmit": "maximum number of jobs to submit at one time",
     }
 

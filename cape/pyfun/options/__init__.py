@@ -11,19 +11,15 @@ some additional options specific to FUN3D for pyfun.
 
 """
 
-# Import options-specific utilities (loads :mod:`os`, too)
-from .util import rc0
-
-
 # Local imports
 from . import util
 from .runctlopts import RunControlOpts
-from .DataBook    import DataBook
-from .Report      import Report
-from .fun3dnml    import Fun3DNml
-from .Mesh        import Mesh
-from .Config      import Config
-from .Functional  import Functional
+from .DataBook import DataBook
+from .Report import Report
+from .fun3dnml import Fun3DNml
+from .Mesh import Mesh
+from .Config import Config
+from .Functional import Functional
 from ...cfdx import options
 
 
@@ -45,8 +41,26 @@ class Options(options.Options):
    # Class attributes
    # ================
    # <
+    # Additional attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = {
+        "DualFun3D",
+        "Fun3D",
+        "Fun3DNamelist",
+        "Functional",
+        "MovingBodyInput",
+    }
+
+    # Aliases
+    _optmap = {
+        "Namelist": "Fun3DNamelist",
+    }
+
     # Known option types
     _opttypes = {
+        "Fun3DNamelist": str,
     }
 
     # Option default list depth
@@ -55,13 +69,15 @@ class Options(options.Options):
 
     # Defaults
     _rc = {
+        "Fun3DNamelist": "fun3d.nml",
     }
 
     # Descriptions for methods
     _rst_descriptions = {
+        "Fun3DNamelist": "template ``fun3d.nml`` file",
     }
 
-    # Section classes
+    # New or replaced sections
     _sec_cls = {
         "Config": Config,
         "DataBook": DataBook,
@@ -99,81 +115,11 @@ class Options(options.Options):
         self.AddPythonPath()
    # >
 
-   # ==============
-   # Global Options
-   # ==============
-   # <
-    # Method to get the namelist template
-    def get_FUN3DNamelist(self, j=None):
-        """Return the name of the master :file:`fun3d.nml` file
-        
-        :Call:
-            >>> fname = opts.get_FUN3DNamelist(j=None)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *j*: :class:`int` or ``None``
-                Run sequence index
-        :Outputs:
-            *fname*: :class:`str`
-                Name of FUN3D namelist template file
-        :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-        """
-        return self.get_key('Namelist', j)
-        
-    # Method to set the namelist template
-    def set_FUN3DNamelist(self, fname):
-        """Set the name of the master :file:`fun3d.nml` file
-        
-        :Call:
-            >>> opts.set_FUN3DNamelist(fname)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *fname*: :class:`str`
-                Name of FUN3D namelist template file
-        :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-        """
-        self['Namelist'] = fname
-    
-    # Method to determine if groups have common meshes.
-    def get_GroupMesh(self):
-        """Determine whether or not groups have common meshes
-        
-        :Call:
-            >>> qGM = opts.get_GroupMesh()
-        :Inputs:
-            *opts* :class:`pyFun.options.Options`
-                Options interface
-        :Outputs:
-            *qGM*: :class:`bool`
-                True all cases in a group use the same (starting) mesh
-        :Versions:
-            * 2014-10-06 ``@ddalle``: First version
-        """
-        # Safely get the trajectory.
-        x = self.get('RunMatrix', {})
-        return x.get('GroupMesh', rc0('GroupMesh'))
-        
-    # Method to specify that meshes do or do not use the same mesh
-    def set_GroupMesh(self, qGM=rc0('GroupMesh')):
-        """Specify that groups do or do not use common meshes
-        
-        :Call:
-            >>> opts.get_GroupMesh(qGM)
-        :Inputs:
-            *opts* :class:`pyFun.options.Options`
-                Options interface
-            *qGM*: :class:`bool`
-                True all cases in a group use the same (starting) mesh
-        :Versions:
-            * 2014-10-06 ``@ddalle``: First version
-        """
-        self['RunMatrix']['GroupMesh'] = qGM
-   # >
 
-
+# Add properties
+Options.add_properties(
+    (
+        "Fun3DNamelist",
+    ))
 # Add methods from subsections
 Options.promote_sections()
