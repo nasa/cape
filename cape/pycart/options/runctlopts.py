@@ -249,666 +249,196 @@ class AdaptationOpts(OptionsDict):
         * 2014-12-17 ``@ddalle``: Version 1.0 (``Adaptation``)
         * 2022-11-02 ``@ddalle``: Version 2.0; use ``optdict``
     """
-    # Get number of adaptation cycles
-    def get_n_adapt_cycles(self, i=None):
-        """Return the number of Cart3D number of adaptation cycles
-        
-        :Call:
-            >>> nAdapt = opts.get_n_adapt_cycles(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *nAdapt*: :class:`int` or :class:`list`(:class:`int`)
-                Number of adaptation cycles
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('n_adapt_cycles', i)
-        
-    # Set adjointCart iteration count
-    def set_n_adapt_cycles(self, nAdapt=rc0('n_adapt_cycles'), i=None):
-        """Set the number of Cart3D adaptation cycles
-        
-        :Call:
-            >>> opts.set_n_adaptation_cycles(nAdapt, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *nAdapt*: :class:`int` or :class:`list`(:class:`int`)
-                Number of iterations for run *i* or all runs if ``i==None``
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('n_adapt_cycles', nAdapt, i)
-    
-    # Get jumpstart status
-    def get_jumpstart(self, i=None):
-        """
-        Return whether or not to "jump start", i.e. create meshes before running
-        :file:`aero.csh`.
-        
-        :Call:
-            >>> js = opts.get_jumpstart()
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-        :Outputs:
-            *js*: :class:`bool`
-                Whether or not to jumpstart
-        :Versions:
-            * 2014-12-04 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('jumpstart', i)
-        
-    # Set jumpstart status
-    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
-        """
-        Set whether or not to "jump start", i.e. create meshes before running
-        :file:`aero.csh`.
-        
-        :Call:
-            >>> opts.get_jumpstart(js)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *js*: :class:`bool`
-                Whether or not to jumpstart
-        :Versions:
-            * 2014-12-04 ``@ddalle``: Version 1.0
-        """
-        self.set_key('jumpstart', js, i)
-        
-        
-    # Get the adaptation tolerance
-    def get_etol(self, i=None):
-        """Return the target output error tolerance
-        
-        :Call:
-            >>> etol = opts.get_etol(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *etol*: :class:`float` or :class:`list`(:class:`float`)
-                Output error tolerance
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('etol', i)
-        
-    # Set the adaptation tolerance
-    def set_etol(self, etol=rc0('etol'), i=None):
-        """Set the output error tolerance
-        
-        :Call:
-            >>> opts.set_etol(etol, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *etol*: :class:`float` or :class:`list`(:class:`float`)
-                Output error tolerance
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('etol', etol, i)
-        
-        
-    # Get the maximum cell count
-    def get_max_nCells(self, i=None):
-        """Return the maximum cell count
-        
-        :Call:
-            >>> max_nCells = opts.get_max_nCells(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *etol*: :class:`float` or :class:`list`(:class:`float`)
-                Output error tolerance
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('etol', i)
-    
-    # Set the maximum cell count
-    def set_max_nCells(self, max_nCells=rc0('max_nCells'), i=None):
-        """Return the maximum cell count
-        
-        :Call:
-            >>> max_nCells = opts.get_max_nCells(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *etol*: :class:`float` or :class:`list`(:class:`float`)
-                Output error tolerance
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('max_nCells', max_nCells)
-        
-        
-    # Get the number of flowCart iterations for refined meshes
-    def get_ws_it(self, i=None):
-        """Get number of `flowCart` iterations on refined mesh *i*
-        
-        :Call:
-            >>> ws_it = opts.get_ws_it(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *ws_it*: :class:`int` or :class:`list`(:class:`int`)
-                Number of `flowCart` iterations
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('ws_it', i)
-    
-    # Set the number of flowcart iterations fore refined meshes
-    def set_ws_it(self, ws_it=rc0('ws_it'), i=None):
-        """Set number of `flowCart` iterations on refined mesh *i*
-        
-        :Call:
-            >>> opts.set_ws_it(ws_it, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *ws_it*: :class:`int` or :class:`list`(:class:`int`)
-                Number of `flowCart` iterations
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('ws_it', ws_it, i)
-        
-    
-    # Get the mesh growth ratio for refinement i
-    def get_mesh_growth(self, i=None):
-        """Get the refinement cell count ratio
-        
-        :Call:
-            >>> mesh_growth = opts.get_mesh_growth(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *mesh_growth*: :class:`float` or :class:`list`(:class:`float`)
-                Refinement mesh growth ratio
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('mesh_growth', i)
-    
-    # Set the number of flowcart iterations fore refined meshes
-    def set_mesh_growth(self, mesh_growth=rc0('mesh_growth'), i=None):
-        """Set the refinement cell count ratio
-        
-        :Call:
-            >>> opts.set_mesh_growth(mesh_growth, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *mesh_growth*: :class:`float` or :class:`list`(:class:`float`)
-                Refinement mesh growth ratio
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('mesh_growth', mesh_growth, i)
-    
-    
-    # Get the adaptation type
-    def get_apc(self, i=None):
-        """Get the adaptation type
-        
-        :Call:
-            >>> apc = opts.get_apc(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *apc*: :class:`str` or :class:`list`(:class:`str`)
-                Adaptation cycle type, ``"a"`` or ``"p"``
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('apc', i)
-    
-    # Set the adaptation type
-    def set_apc(self, apc=rc0('apc'), i=None):
-        """Set the adaptation type
-        
-        :Call:
-            >>> opts.set_apc(apc, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *apc*: :class:`str` or :class:`list`(:class:`str`)
-                Adaptation cycle type, ``"a"`` or ``"p"``
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014.08.02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('apc', apc, i)
+    # Additional attributes
+    __slots__ = ()
+
+    # Accepted options
+    _optlist = {
+        "apc",
+        "buf",
+        "etol",
+        "final_mesh_xref",
+        "jumpstart",
+        "max_nCells",
+        "mesh_growth",
+        "n_adapt_cycles",
+        "ws_it",
+    }
+
+    # Types
+    _opttypes = {
+        "apc": set,
+        "buf": INT_TYPES,
+        "etol": FLOAT_TYPES,
+        "final_mesh_xref": INT_TYPES,
+        "jumpstart": BOOL_TYPES,
+        "max_nCells": INT_TYPES,
+        "mesh_growth": FLOAT_TYPES,
+        "n_adapt_cycles": INT_TYPES,
+        "ws_it": INT_TYPES,
+    }
+
+    # Allowed values
+    _optvals = {
+        "apc": ("a", "p"),
+    }
+
+    # List parameters
+    _optlistdepth = {
+        "apc": 1,
+        "mesh_growth": 1,
+        "ws_it": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "apc": "a",
+        "buf": 1,
+        "etol": 1e-6,
+        "final_mesh_xref": 0,
+        "jumpstart": False,
+        "max_nCells": 5e6,
+        "mesh_growth": 1.5,
+        "n_adapt_cycles": 0,
+        "ws_it": 50,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "buf": "number of buffer layers",
+        "apc": "adaptation cycle type (adapt/propagate)",
+        "etol": "target output error tolerance",
+        "final_mesh_xref": "num. of additional adapts using final error map",
+        "jumpstart": "whether to create meshes b4 running ``aero.csh``",
+        "max_nCells": "maximum cell count",
+        "mesh_growth": "mesh growth ratio between cycles of ``aero.csh``",
+        "n_adapt_cycles": "number of Cart3D adaptation cycles in phase",
+        "ws_it": "number of ``flowCart`` iters for ``aero.csh`` cycles",
+    }
 
 
-    # Get the number of buffer layers
-    def get_abuff(self, i=None):
-        """Get the number of buffer layers
-        
-        :Call:
-            >>> buf = opts.get_abuff(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *buf*: :class:`int` or :class:`list`(:class:`int`)
-                Number of buffer layers
-        :Versions:
-            * 2014-11-14 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('buf', i)
-        
-    # Set the number of buffer layers.
-    def set_abuff(self, buf=rc0('buf'), i=None):
-        """Set the number of buffer layers
-        
-        :Call:
-            >>> opts.set_abuff(buf, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *buf*: :class:`int` or :class:`list`(:class:`int`)
-                Number of buffer layers
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-14 ``@ddalle``: Version 1.0
-        """
-        self.set_key('buf', buf, i)
-
-
-    # Get the number of additional adaptations using same error map
-    def get_final_mesh_xref(self, i=None):
-        """Get the number additional adaptations to perform on final error map
-        
-        :Call:
-            >>> xref = opts.get_final_mesh_xref(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *xref*: :class:`int` or :class:`list`(:class:`int`)
-                Number of additional adaptations
-        :Versions:
-            * 2014-11-19 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('final_mesh_xref', i)
-
-    # Set the number of additional adaptations using same error map
-    def set_final_mesh_xref(self, xref=rc0('final_mesh_xref'), i=None):
-        """Set the number additional adaptations to perform on final error map
-        
-        :Call:
-            >>> opts.set_final_mesh_xref(xref, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *xref*: :class:`int` or :class:`list`(:class:`int`)
-                Number of additional adaptations
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-11-19 ``@ddalle``: Version 1.0
-        """
-        self.set_key('final_mesh_xref', xref, i)
+AdaptationOpts.add_property("buf", name="abuff")
+AdaptationOpts.add_properties(AdaptationOpts._optlist)
 
 
 # Class for autoInputs
-class autoInputs(odict):
-    r"""Dictionary-based interface for ``autoInputs`` options"""
+class AutoInputsOpts(ExecOpts):
+    r"""Class for cart3D ``autoInputs`` settings
+
+    :Call:
+        >>> opts = AdjointCartOpts(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Raw options
+    :Outputs:
+        *opts*: :class:`AutoInputsOpts`
+            CLI options for ``autoInputs``
+    :Versions:
+        * 2014-12-17 ``@ddalle``: Version 1.0 (``autoInputs``)
+        * 2022-11-03 ``@ddalle``: Version 2.0; use ``optdict``
+    """
+    __slots__ = ()
+
+    # Accepted options
+    _optlist = {
+        "nDiv",
+        "r",
+    }
+
+    # Types
+    _opttypes = {
+        "nDiv": INT_TYPES,
+        "r": FLOAT_TYPES + INT_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+        "nDiv": 4,
+        "r": 30.0,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "nDiv": "number of divisions in background mesh",
+        "r": "nominal ``autoInputs`` mesh radius",
+    }
     
-    # Get the nominal mesh radius
-    def get_r(self, i=None):
-        """Get the nominal mesh radius
-        
-        :Call:
-            >>> r = opts.get_r(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *r*: :class:`float` or :class:`list`(:class:`float`)
-                Nominal mesh radius
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('r', i)
-        
-    # Set the nominal mesh radius
-    def set_r(self, r=rc0('r'), i=None):
-        """Set the nominal mesh radius
-        
-        :Call:
-            >>> opts.set_r(r, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *r*: :class:`float` or :class:`list`(:class:`float`)
-                Nominal mesh radius
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        self.set_key('r', r, i)
-        
-    # Get the number of initial divisions
-    def get_nDiv(self, i=None):
-        """Get the number of divisions in background mesh
-        
-        :Call:
-            >>> nDiv = opts.get_nDiv(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *nDiv*: :class:`int` or :class:`list`(:class:`int`)
-                Number of background mesh divisions
-        :Versions:
-            * 2014-12-02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('nDiv', i)
-        
-    # Set the number of initial mesh divisions
-    def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
-        """Set the number of divisions in background mesh
-        
-        :Call:
-            >>> opts.set_nDiv(nDiv, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *nDiv*: :class:`int` or :class:`list`(:class:`int`)
-                Number of background mesh divisions
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-12-02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('nDiv', nDiv, i)
+
+# Add properties
+AutoInputsOpts.add_properties(AutoInputsOpts._optlist)
 
 
 # Class for cubes
-class cubes(odict):
-    r"""Dictionary-based interface for ``cubes`` options"""
-    
-    # Get the maximum number of refinements
-    def get_maxR(self, i=None):
-        """Get the number of refinements
-        
-        :Call:
-            >>> maxR = opts.get_maxR(i=None):
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *maxR*: :class:`int` or :class:`list`(:class:`int`)
-                (Maximum) number of refinements for initial mesh
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('maxR', i)
-        
-    # Set the maximum number of refinements
-    def set_maxR(self, maxR=rc0('maxR'), i=None):
-        """Get the number of refinements
-        
-        :Call:
-            >>> opts.set_maxR(maxR, i=None):
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *maxR*: :class:`int` or :class:`list`(:class:`int`)
-                (Maximum) number of refinements for initial mesh
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        self.set_key('maxR', maxR, i)
-        
-    # Get the 'cubes_a' parameter
-    def get_cubes_a(self, i=None):
-        """Get the "cubes_a" parameter
-        
-        :Call:
-            >>> cubes_a = opts.get_cubes_a(i=None):
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *cubes_a*: :class:`int` or :class:`list`(:class:`int`)
-                Customizable parameter for `cubes`
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('cubes_a', i)
-        
-    # Set the 'cubes_a' parameter
-    def set_cubes_a(self, cubes_a=rc0('cubes_a'), i=None):
-        """Set the "cubes_a" parameter
-        
-        :Call:
-            >>> opts.set_cubes_a(cubes_a, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *cubes_a*: :class:`int` or :class:`list`(:class:`int`)
-                Customizable parameter for `cubes`
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        self.set_key('cubes_a', cubes_a, i)
-        
-    # Get the 'cubes_b' parameter
-    def get_cubes_b(self, i=None):
-        """Get the "cubes_b" parameter
-        
-        :Call:
-            >>> cubes_b = opts.get_cubes_b(i=None):
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *cubes_b*: :class:`int` or :class:`list`(:class:`int`)
-                Customizable parameter for `cubes`
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('cubes_b', i)
-        
-    # Set the 'cubes_b' parameter
-    def set_cubes_b(self, cubes_b=rc0('cubes_b'), i=None):
-        """Set the "cubes_b" parameter
-        
-        :Call:
-            >>> opts.set_cubes_b(cubes_b, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *cubes_b*: :class:`int` or :class:`list`(:class:`int`)
-                Customizable parameter for `cubes`
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        self.set_key('cubes_b', cubes_b, i)
-        
-    # Get the reorder setting
-    def get_reorder(self, i=None):
-        """Get the `cubes` reordering status
-        
-        :Call:
-            >>> reorder = opts.get_reorder(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *reorder*: :class:`bool` or :class:`list`(:class:`bool`)
-                Reorder status
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('reorder', i)
-        
-    # Set the reorder setting
-    def set_reorder(self, reorder=rc0('reorder'), i=None):
-        """Set the `cubes` reordering status
-        
-        :Call:
-            >>> opts.set_reorder(reorder, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *reorder*: :class:`bool` or :class:`list`(:class:`bool`)
-                Reorder status
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        self.set_key('reorder', reorder, i)
-        
-    # Get the number of initial refinements at sharp edges
-    def get_sf(self, i=None):
-        """Get the number of additional refinements around sharp edges
-        
-        :Call:
-            >>> sf = opts.get_sf(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *sf*: :class:`int` or :class:`list`\ [:class:`int`]
-                Number of additional refinements at sharp edges
-        :Versions:
-            * 2014-12-02 ``@ddalle``: Version 1.0
-        """
-        return self.get_key('sf', i)
-        
-    # Set the number of additional refinements at sharp edges
-    def set_sf(self, sf=rc0('sf'), i=None):
-        """Set the number of additional refinements around sharp edges
-        
-        :Call:
-            >>> opts.set_sf(sf, i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *sf*: :class:`int` or :class:`list`\ [:class:`int`]
-                Number of additional refinements at sharp edges
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2014-12-02 ``@ddalle``: Version 1.0
-        """
-        self.set_key('sf', sf, i)
-    
-    # Get the mesh prespecification file
-    def get_preSpecCntl(self):
-        """Return the template :file:`preSpec.c3d.cntl` file
-        
-        :Call:
-            >>> fpre = opts.get_preSpecCntl(i=None)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-        :Outputs:
-            *fpre*: :class:`str`
-                Mesh prespecification file
-        :Versions:
-            * 2014-10-08 ``@ddalle``: Version 1.0
-        """
-        # Get the value
-        fpre = self.get_key('pre', 0)
-        # Check for ``None``
-        if fpre is None:
-            # Use default
-            return rc0('pre')
-        else:
-            # Specified value
-            return fpre
+class CubesOpts(ExecOpts):
+    r"""Class for Cart3D ``cubes`` settings
 
-    # Set the mesh prespecification file
-    def set_preSpecCntl(self, fpre=rc0('pre')):
-        """Set the template :file:`preSpec.c3d.cntl` file
-        
-        :Call:
-            >>> opts.set_preSpecCntl(fpre)
-        :Inputs:
-            *opts*: :class:`cape.pycart.options.Options`
-                Options interface
-            *fpre*: :class:`str`
-                Mesh prespecification file
-        :Versions:
-            * 2014-10-08 ``@ddalle``: Version 1.0
-        """
-        self.set_key('pre', fpre)
+    :Call:
+        >>> opts = CubesOpts(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Raw options
+    :Outputs:
+        *opts*: :class:`CubesOpts`
+            CLI options for ``cubes``
+    :Versions:
+        * 2014-12-17 ``@ddalle``: Version 1.0 (``cubes``)
+        * 2022-11-03 ``@ddalle``: Version 2.0; use ``optdict``
+    """
+    __slots__ = ()
+
+    # Accepted options
+    _optlist = {
+        "a",
+        "b",
+        "maxR",
+        "pre",
+        "reorder"
+        "sf",
+    }
+
+    # Aliases
+    _optmap = {
+        "cubes_a": "a",
+        "cubes_b": "b",
+    }
+
+    # Types
+    _opttypes = {
+        "a": INT_TYPES + FLOAT_TYPES,
+        "b": INT_TYPES,
+        "maxR": INT_TYPES,
+        "pre": str,
+        "reorder": BOOL_TYPES,
+        "sf": INT_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+        "a": 10.0,
+        "b": 2,
+        "maxR": 11,
+        "pre": "preSpec.c3d.cntl",
+        "reorder": True,
+        "sf": 0,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "a": "angle threshold [deg] for geom refinement",
+        "b": "number of layers of buffer cells",
+        "maxR": "maximum number of refinements in ``cubes`` mesh",
+        "reorder": "whether to reorder output mesh",
+        "sf": "additional levels at sharp edges",
+    }
 
 
-# Class for environment variables
-class Environ(runControl.Environ):
-    pass
-
-
-# Class for resource limits
-class ulimit(ulimitopts.ulimit):
-    pass
+# Property lists
+_CUBES_PREFIX = ("a", "b")
+_CUBES_PROPS = ("maxR", "reorder", "sf")
+# Add properties
+CubesOpts.add_property("pre", name="preSpecCntl")
+CubesOpts.add_properties(_CUBES_PREFIX, prefix="cubes_")
+CubesOpts.add_properties(_CUBES_PROPS)
 
 
 # Class for flowCart settings
