@@ -3,17 +3,17 @@
 :mod:`cape.pyover.options`: OVERFLOW and pyOver Settings 
 ==========================================================
 
+==================================================================
+:mod:`cape.pyover.options`: Options interface for pyOver/OVERFLOW
+==================================================================
+
 .. automodule:: cape.pyover.options
-    
-    .. autoclass:: cape.pyover.options.Options
-        :members: get_OverNamelist,
-            get_GroupMesh, set_GroupMesh
+    :members:
     
 .. toctree::
     
-    runControl
     archiveopts
-    Config
+    runctlopts
     Mesh
     overnml
     gridSystem

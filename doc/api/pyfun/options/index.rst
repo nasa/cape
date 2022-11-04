@@ -9,10 +9,10 @@
 .. toctree::
     
     archiveopts
-    fun3dnm
-    runctloptsl
+    configopts
+    fun3dnml
+    runctlopts
     util
-    Config
     Mesh
     DataBook
     Report

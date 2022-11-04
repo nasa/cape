@@ -4,17 +4,14 @@
 ========================================================
 
 .. automodule:: cape.pycart.options
-    
-    .. autoclass:: cape.pycart.options.Options
-        :members: get_InputCntl, set_InputCntl, get_AeroCsh, set_AeroCsh,
-            get_mg, set_mg
-    
+    :members:
+
 .. toctree::
     
-    runControl
     archiveopts
+    configopts
+    runctlopts
     Mesh
-    Config
     Functional
     DataBook
     Report
