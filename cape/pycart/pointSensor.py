@@ -5,9 +5,9 @@
 This module contains several classes for reading and averaging point sensors.
 The database classes, :class:`DBPointSensorGroup` and :class:`DBPointSensor`,
 are based on versions from the generic point sensor module
-:mod:`cape.cfdx.pointSensor`, while the iterative history class
+:mod:`pointSensor`, while the iterative history class
 :class:`CasePointSensor` is based off of the generic
-:class:`cape.cfdx.dataBook.CaseData` module.
+:class:`dataBook.CaseData` module.
 
 Tracking the iterative history of a point sensor requires declaring a point
 sensor in the Cart3D ``input.cntl`` file and requesting information about it at
@@ -17,38 +17,36 @@ At present, there is no support for extracting point sensors from a surface
 solution file (``"TriqPoint"`` data book type).
 
 :See also:
-    * :mod:`cape.cfdx.pointSensor`
+    * :mod:`pointSensor`
     * :mod:`cape.pycart.dataBook`
     * :mod:`cape.pycart.cntl`
     * :mod:`cape.pycart.inputCntl`
-    * :mod:`cape.cfdx.dataBook`
+    * :mod:`dataBook`
 """
 
-# File interface
-import os, glob
-# Basic numerics
-import numpy as np
-# Date processing
-from datetime import datetime
-# Local function
-from .util      import readline, GetTotalHistIter, GetWorkingFolder
-from .bin       import tail
-from .inputCntl import InputCntl
-from .options   import odict
-# Utilities and advanced statistics
-from . import util
+# Standard library
+import os
+import glob
 
-# Basis module
-import cape.cfdx.dataBook
-import cape.cfdx.pointSensor
+# Third party
+import numpy as np
+
+# Local imports
+from .util import readline, GetTotalHistIter, GetWorkingFolder
+from .bin import tail
+from .inputCntl import InputCntl
+from ..cfdx import dataBook
+from ..cfdx import pointSensor
+
 
 # Placeholder variables for plotting functions.
 plt = 0
 
+
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
-    
+
     :Call:
         >>> pyCart.dataBook.ImportPyPlot()
     :Versions:
@@ -71,7 +69,7 @@ def ImportPyPlot():
 # Read best input.cntl file.
 def get_InputCntl():
     """Read the best ``input.cntl`` or ``input.??.cntl`` file
-    
+
     :Call:
         >>> IC = get_InputCntl()
     :Outputs:
@@ -176,7 +174,7 @@ def get_nStatsPS():
 # end functions
 
 # Data book for group of point sensors
-class DBPointSensorGroup(cape.cfdx.pointSensor.DBPointSensorGroup):
+class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
     """
     Point sensor group data book
     
@@ -282,7 +280,7 @@ class DBPointSensorGroup(cape.cfdx.pointSensor.DBPointSensorGroup):
 
 
 # Data book of point sensors
-class DBPointSensor(cape.cfdx.pointSensor.DBPointSensor):
+class DBPointSensor(pointSensor.DBPointSensor):
     """
     Point sensor data book
     
@@ -500,7 +498,7 @@ class DBPointSensor(cape.cfdx.pointSensor.DBPointSensor):
 
 
 # Individual point sensor
-class CasePointSensor(cape.cfdx.dataBook.CaseData):
+class CasePointSensor(dataBook.CaseData):
     """Individual case point sensor history
     
     :Call:

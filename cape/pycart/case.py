@@ -2,16 +2,17 @@
 :mod:`cape.pycart.case`: Case Control Module
 =============================================
 
-This module contains the important function :func:`case.run_flowCart`, which
-actually runs ``flowCart`` or ``aero.csh``, along with the utilities that
-support it.
+This module contains the important function :func:`case.run_flowCart`,
+which actually runs ``flowCart`` or ``aero.csh``, along with the
+utilities that support it.
 
-For instance, it contains function to determine how many iterations have been
-run, what the working folder is (e.g. ``.``, ``adapt00``, etc.), and what
-command-line options to run.
+For instance, it contains function to determine how many iterations have
+been run, what the working folder is (e.g. ``.``, ``adapt00``, etc.),
+and what command-line options to run.
 
-It also contains Cart3D-specific versions of some of the generic methods from
-:mod:`cape.case`.  All of the functions in that module are also available here.
+It also contains Cart3D-specific versions of some of the generic methods
+from :mod:`cape.case`.  All of the functions in that module are also
+available here.
 
 """
 
@@ -19,8 +20,6 @@ It also contains Cart3D-specific versions of some of the generic methods from
 import glob
 import json
 import os
-import re
-import resource
 import shutil
 import sys
 
@@ -38,7 +37,7 @@ from cape.cfdx.case import CaseIntersect, CaseVerify
 
 # Direct local imports
 from .tri import Tri, Triq
-from .options.runControl import RunControl
+from .options.runctlopts import RunControlOpts
 
 # Local modules
 from . import cmd
@@ -763,7 +762,7 @@ def ReadCaseJSON():
     # Close the file.
     f.close()
     # Convert to a RunControl object.
-    rc = RunControl(**opts)
+    rc = RunControlOpts(**opts)
     # Output
     return rc
     

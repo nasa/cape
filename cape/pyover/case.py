@@ -24,8 +24,6 @@ are available unless specifically overwritten by specific
 import glob
 import json
 import os
-import re
-import resource
 import shutil
 import sys
 from datetime import datetime
@@ -40,7 +38,7 @@ from .. import argread
 from .. import text as textutils
 from ..cfdx import queue
 from ..cfdx import case as cc
-from .options.runControl import RunControl
+from .options.runctlopts import RunControlOpts
 from .overNamelist import OverNamelist
 
 
@@ -571,11 +569,12 @@ def GetPrefix(rc=None, i=None):
         rc = ReadCaseJSON()
     # Read the prefix
     return rc.get_Prefix(i)
-    
+
+
 # Function to read the local settings file.
 def ReadCaseJSON():
     """Read `RunControl` settings for local case
-    
+
     :Call:
         >>> rc = ReadCaseJSON()
     :Outputs:
@@ -592,14 +591,15 @@ def ReadCaseJSON():
     # Close the file.
     f.close()
     # Convert to a flowCart object.
-    rc = RunControl(**opts)
+    rc = RunControlOpts(**opts)
     # Output
     return rc
-    
+
+
 # (Re)write the local settings file.
 def WriteCaseJSON(rc):
     """Write or rewrite ``RunControl`` settings to ``case.json``
-    
+
     :Call:
         >>> WriteCaseJSON(rc)
     :Inputs:
@@ -614,7 +614,7 @@ def WriteCaseJSON(rc):
     json.dump(rc, f, indent=1)
     # Close the file
     f.close()
-    
+
 
 # Get last line of 'history.dat'
 def GetCurrentIter():

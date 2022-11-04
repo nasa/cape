@@ -16,7 +16,6 @@ from .gridSystem import GridSystemNml
 from .Mesh import Mesh
 from .DataBook import DataBook
 from .Report import Report
-from .Config import Config
 from ...cfdx import options
 
 
@@ -70,7 +69,6 @@ class Options(options.Options):
     # Replaced or renewed sections
     _sec_cls = {
         "RunControl": RunControlOpts,
-        "Config": Config,
         "Mesh": Mesh,
         "DataBook": DataBook,
         "Report": Report,

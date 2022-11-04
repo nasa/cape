@@ -18,7 +18,7 @@ from .DataBook import DataBook
 from .Report import Report
 from .fun3dnml import Fun3DNml
 from .Mesh import Mesh
-from .Config import Config
+from .configopts import ConfigOpts
 from .Functional import Functional
 from ...cfdx import options
 
@@ -79,7 +79,7 @@ class Options(options.Options):
 
     # New or replaced sections
     _sec_cls = {
-        "Config": Config,
+        "Config": ConfigOpts,
         "DataBook": DataBook,
         "DualFun3D": Fun3DNml,
         "Fun3D": Fun3DNml,
