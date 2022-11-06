@@ -449,6 +449,15 @@ allowed in such :class:`MyOpts2` instances.
         * :func:`OptionsDict.get_opt`
         * :func:`OptionsDict.get_cls_key`
 
+``OptionsDict._xoptkey``: :class:`str`
+    Name of option (including its aliases) for which the value (which
+    must be a :class:`list`, :class:`set`, or :class:`tuple`) is
+    appended to an instance's ``_xoptlist``.
+
+    In other words, if ``_xoptkey`` is ``"Components"``, and
+    ``opts["Components"]`` is ``["a", "b", "c"]``, then *a*, *b*, and
+    *c* will be allowed as option names for *opts*.
+
 ``OptionsDict.__slots__``: :class:`tuple`\ [:class:`str`]
     Tuple of attributes allowed in instances of :class:`OptionsDict`.
     This prevents users from setting arbitrary attributes of
@@ -733,6 +742,9 @@ class OptionsDict(dict):
     # Converters (before value checking)
     _optval_converters = {}
 
+    # Key used to add to instance's _xoptlist
+    _xoptkey = None
+
     # Defaults
     _rc = {}
 
@@ -758,13 +770,6 @@ class OptionsDict(dict):
 
    # --- Settings ---
     _warnmode = DEFAULT_WARNMODE
-
-   # --- Auto-properties and documentation ---
-    # Pre-written strings for available types/values (can be automated)
-    _rst_types = {}
-
-    # Verbal descriptions of options
-    _rst_descriptions = {}
 
   # *** CONFIG ***
    # --- __dunder__ ---
@@ -818,8 +823,8 @@ class OptionsDict(dict):
             self.set_opts(a)
         elif a is not None:
             # Bad type
-            raise OptdictTypeError(
-                "Expected file name or dict, got '%s'" % type(a).__name__)
+            assert_isinstance(
+                a, (str, dict), "positional input to %s" % type(self).__name__)
         # Merge in *kw*
         self.set_opts(kw)
         # Process sections
@@ -1458,6 +1463,8 @@ class OptionsDict(dict):
         """
         # Check types
         assert_isinstance(opts, dict)
+        # Add to _xoptlist if appropriate
+        self._process_xoptkey(opts)
         # Loop through option/value pairs
         for opt, val in opts.items():
             self.set_opt(opt, val, mode=mode)
@@ -2031,6 +2038,36 @@ class OptionsDict(dict):
             # Just the class's
             return optlist
 
+    def get_aliases(self, opt: str) -> set:
+        r"""Get list of aliases for an option
+
+        :Call:
+            >>> aliases = opts.get_aliases(opt)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                (Final) option name
+        :Outputs:
+            *aliases*: :class:`set`\ [:class:`str`]
+                Set of unique aliases for *opt*, including *opt*
+        :Versions:
+            * 2022-11-04 ``@ddalle``: Version 1.0
+        """
+        # Class
+        cls = self.__class__
+        # Get full optmap
+        optmap = cls.get_cls_dict("_optmap")
+        # Initialize alias list
+        aliases = {opt}
+        # Loop through optmap
+        for alias, optj in optmap.items():
+            # Check for match
+            if opt == optj:
+                aliases.add(alias)
+        # Output
+        return aliases
+
     def get_opttype(self, opt: str):
         r"""Get allowed type(s) for *opt*
 
@@ -2121,6 +2158,60 @@ class OptionsDict(dict):
             return xoptvals.get(opt, optvals.get(opt))
 
    # --- Option list modifiers ---
+    def _process_xoptkey(self, a):
+        r"""Add to allowed options by processing ``_xoptkey``
+
+        :Call:
+            >>> opts._process_xoptkey(a)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *a*: :class:`dict`
+                Raw (unvalidated) options to process
+        :Versions:
+            * 2022-11-05 ``@ddalle``: Version 1.0
+        """
+        # Get key
+        key = self._xoptkey
+        # Check if missing
+        if key is None:
+            return
+        # Get aliases
+        aliases = self.get_aliases(key)
+        # Loop through aliases to see if any are present
+        for opt in aliases:
+            # Check if present
+            if opt not in a:
+                continue
+            # Add to _xoptlist all the values from *opt*
+            self.add_xopts(a[opt])
+
+    def add_xopts(self, optlist):
+        r"""Add several instance-specific allowed option names
+
+        :Call:
+            >>> opts.add_xopts(optlist)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *optlist*: :class:`list` | :class:`set` | :class:`tuple`
+                List of options to combine
+        :Versions:
+            * 2022-09-19 ``@ddalle``: Version 1.0
+        """
+        # Check input
+        assert_isinstance(
+            optlist, (set, list, tuple), "option name list, *opts*")
+        # Check each entry (str)
+        for j, opt in enumerate(optlist):
+            assert_isinstance(opt, str, "option list entry %i" % j)
+        # Initialize if needed
+        if self._xoptlist is None:
+            self._xoptlist = set(optlist)
+        else:
+            # Append
+            self._xoptlist.update(optlist)
+
     def add_xopt(self, opt: str):
         r"""Add an additional instance-specific allowed option name
 
@@ -2767,7 +2858,7 @@ class OptionsDict(dict):
         # Apply aliases if anny
         fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
         # Create title
-        title = 'Get value of option "%s"\n\n' % fullopt
+        title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
         # Generate signature
         signature = (
             "%s>>> %s = opts.get_%s(j=None, i=None, **kw)\n"
@@ -2822,7 +2913,7 @@ class OptionsDict(dict):
         # Apply aliases if anny
         fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
         # Create title
-        title = 'Get value of option "%s"\n\n' % fullopt
+        title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
         # Generate signature
         signature = (
             "%s>>> opts.set_%s(%s, j=None, i=None, **kw)\n"
@@ -2876,7 +2967,7 @@ class OptionsDict(dict):
         # Apply aliases if anny
         fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
         # Create title
-        title = 'Extend value of option "%s"\n\n' % fullopt
+        title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
         # Generate signature
         signature = (
             "%s>>> opts.add_%s(%s, **kw)\n"

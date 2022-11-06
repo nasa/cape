@@ -1,15 +1,17 @@
-"""
-:mod:`cape.cfdx.options.DataBook`: Data book options 
-=====================================================
+r"""
+:mod:`cape.cfdx.options.databookopts`: Databook definition options
+===================================================================
 
-This module contains the basic interface for data book options generic to all
-solvers.  Some options are not generic, and so the derivative options classes
-such as :class:`pyCart.options.DataBook.DataBook` have additional methods.
+This module contains the basic interface that define the ``"DataBook"``
+of a CAPE configuration, which controls which information from the CFD
+runs are extracted and collected elsewhere.
 
-Each data book component type has its options controlled by this options
-method.  Despite the fact that line load data books have their own data module,
-:class:`cape.cfdx.lineLoad`, which is separate from the main :class:`cape.cfdx.dataBook`,
-all options are controlled within one module.
+The :class:`DataBookOpts` class defined here defines the list of
+databook components in the option *Components*, and each component has
+its own entry in the ``"DataBook"`` section. A component that has no
+further definitions is usually interpreted as a force & moment
+component (*Type* is ``"FM"``), but other databook component types can
+also be used.
 
 """
 
@@ -17,21 +19,22 @@ all options are controlled within one module.
 import fnmatch
 import os
 
-# Import options-specific utilities
+# Local imports
+from ...optdict import OptionsDict
 from .util import rc0, odict
 
 
 # Class for data book
-class DataBook(odict):
-    """Dictionary-based interface for DataBook specifications
-    
+class DataBookOpts(OptionsDict):
+    r"""Dictionary-based interface for DataBook specifications
+
     :Call:
-        >>> opts = DataBook(**kw)
+        >>> opts = DataBookOpts(**kw)
     :Inputs:
         *kw*: :class:`dict`
             Dictionary of options
     :Outputs:
-        *opts*: :class:`cape.options.DataBook.DataBook`
+        *opts*: :class:`cape.cfdx.options.databookopts.DataBookOpts`
             Data book options interface
     :Versions:
         * 2014-12-20 ``@ddalle``: Version 1.0
@@ -43,7 +46,7 @@ class DataBook(odict):
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Data book options initialization method
-        
+
         :Versions:
             * 2014-12-21 ``@ddalle``: Version 1.0
         """
@@ -52,7 +55,7 @@ class DataBook(odict):
             self[k] = kw[k]
         # Upgrade important groups to their own classes.
         self._DBTarget()
-    
+
     # Initialization and confirmation for autoInputs options
     def _DBTarget(self):
         """Initialize data book target options if necessary"""
