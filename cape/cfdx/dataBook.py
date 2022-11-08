@@ -285,7 +285,7 @@ class DataBook(dict):
             * 2017-09-05 ``@ddalle``: Version 1.0
         """
         # Call databook method
-        self.opts["DataBook"].mkdir(fdir)
+        os.mkdir(fdir)
   # >
 
   # ===

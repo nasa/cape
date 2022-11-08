@@ -17,10 +17,9 @@ also be used.
 
 # Standard library
 import fnmatch
-import os
 
 # Local imports
-from ...optdict import OptionsDict
+from ...optdict import OptionsDict, INT_TYPES
 from .util import rc0, odict
 
 
@@ -39,6 +38,54 @@ class DataBookOpts(OptionsDict):
     :Versions:
         * 2014-12-20 ``@ddalle``: Version 1.0
     """
+  # ================
+  # Class Attributes
+  # ================
+  # <
+    # Recognized options
+    _optlist = {
+        "Components",
+        "nMin",
+        "nStats",
+    }
+
+    # Aliases
+    _optmap = {
+        "NAvg": "nStats",
+        "NFirst": "nFirst",
+        "NMin": "nMin",
+        "NStats": "nStats",
+        "nAvg": "nStats",
+        "nFirst": "nMin",
+    }
+
+    # Types
+    _opttypes = {
+        "Components": str,
+        "nStats": INT_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+        "nMin": 0,
+        "nStats": 0,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Components": "list of databook components",
+        "nMin": "first iter to consider for use in databook [for a comp]",
+        "nStats": "iterations to use in averaging window [for a comp]",
+    }
+
+    # Key defining additional *_xoptlist*
+    _xoptkey = "Components"
+
+    # Section map
+    _sec_cls_opt = "Type"
+    _sec_cls_optmap = {}
+  # >
+
   # ======
   # Config
   # ======
@@ -76,186 +123,20 @@ class DataBookOpts(OptionsDict):
         for targ in targs:
             # Convert to special class.
             self['Targets'][targ] = DBTarget(**targs[targ])
-            
-    # Make a directory
-    def mkdir(self, fdir, sys=False):
-        """Make a directory with the correct permissions
-        
-        :Call:
-            >>> opts.mkdir(fdir, sys=False)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fdir*: :class:`str`
-                Directory to create
-            *sys*: ``True`` | {``False``}
-                Whether or not to replace ``None`` with system setting
-        :Versions:
-            * 2015-09-27 ``@ddalle``: Version 1.0
-            * 2017-09-05 ``@ddalle``: Added *sys* input
-        """
-        # Get umask
-        umask = self.get_umask(sys=sys)
-        # Test for NULL umask
-        if umask is None:
-            # Make directory with default permissions
-            try:
-                # Attempt to make directory
-                os.mkdir(fdir)
-            except Exception as e:
-                # Check for making directory that exists
-                if e.errno == 17:
-                    # No problem; go on
-                    pass
-                else:
-                    # Other error; valid
-                    raise e
-        else:
-            # Apply umask
-            dmask = 0o777 - umask
-            # Make the directory.
-            try:
-                # Attempt to make directory
-                os.mkdir(fdir, dmask)
-            except Exception as e:
-                # Check for making directory that exists
-                if e.errno == 17:
-                    # No problem; go on
-                    pass
-                else:
-                    # Other error; valid
-                    raise e
-        
-    # Get the umask
-    def get_umask(self, sys=True):
-        """Get the current file permissions mask
-        
-        The default value is the read from the system
-        
-        :Call:
-            >>> umask = opts.get_umask(sys=True)
-        :Inputs:
-            *opts* :class:`cape.options.Options`
-                Options interface
-            *sys*: {``True``} | ``False``
-                Whether or not to use system setting as default
-        :Outputs:
-            *umask*: ``None`` | :class:`oct`
-                File permissions mask (``None`` only if *sys* is ``False``)
-        :Versions:
-            * 2015-09-27 ``@ddalle``: Version 1.0
-        """
-        # Read the option.
-        umask = self.get('umask')
-        # Check if we need to use the default.
-        if umask is None:
-            # Check for system defaults
-            if sys:
-                # Get the value.
-                umask = os.popen('umask', 'r').read()
-                # Convert to value.
-                umask = eval('0o' + umask.strip())
-            else:
-                # No setting
-                return None
-        elif type(umask).__name__ in ['str', 'unicode']:
-            # Convert to octal
-            umask = eval('0o' + str(umask).strip().lstrip('0o'))
-        # Output
-        return umask
-        
-    # Get the directory permissions to use
-    def get_dmask(self, sys=True):
-        """Get the permissions to assign to new folders
-        
-        :Call:
-            >>> dmask = opts.get_dmask(sys=True)
-        :Inputs:
-            *opts* :class:`cape.options.Options`
-                Options interface
-            *sys*: {``True``} | ``False``
-                Whether or not to use system setting as default
-        :Outputs:
-            *dmask*: :class:`int` | ``None``
-                New folder permissions mask
-        :Versions:
-            * 2015-09-27 ``@ddalle``: Version 1.0
-        """
-        # Get the umask
-        umask = self.get_umask()
-        # Check for null umask
-        if umask is not None:
-            # Subtract UMASK from full open permissions
-            return 0o0777 - umask
-        
-    # Apply the umask
-    def apply_umask(self, sys=True):
-        """Apply the permissions filter
-        
-        :Call:
-            >>> opts.apply_umask(sys=True)
-        :Inputs:
-            *opts* :class:`cape.options.Options`
-                Options interface
-            *sys*: {``True``} | ``False``
-                Whether or not to use system setting as default
-        :Versions:
-            * 2015-09-27 ``@ddalle``: Version 1.0
-            * 2017-09-05 ``@ddalle``: Added *sys* input variable
-        """
-        # Get umask
-        umask = self.get_umask()
-        # Apply if possible
-        if umask is not None:
-            os.umask(umask)
   # >
-  
+
   # =================
   # Global Components
   # =================
   # <
-    # Get the list of components.
-    def get_DataBookComponents(self, targ=None):
-        """Get the list of components to be used for the data book
-        
-        :Call:
-            >>> comps = opts.get_DataBookComponents(targ=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *targ*: {``None``} | :class:`str`
-                Name of target to use non-global component list
-        :Outputs:
-            *comps*: :class:`list`
-                List of components
-        :Versions:
-            * 2014-12-20 ``@ddalle``: Version 1.0
-            * 2017-01-17 ``@ddalle``: Added *targ* input
-        """
-        # Get the value from the dictionary.
-        comps = self.get('Components', ['entire'])
-        # Check for target
-        if (targ is not None) and targ in self.get("Targets",[]):
-            # Get component list from "Targets" specification
-            comps = self["Targets"][targ].get("Components", comps)
-        # Make sure it's a list.
-        if type(comps).__name__ not in ['list']:
-            comps = [comps]
-        # Check contents.
-        for comp in comps:
-            if (type(comp).__name__ not in ['str', 'int', 'unicode']):
-                raise IOError("Component '%s' is not a str or int." % comp)
-        # Output
-        return comps
-        
     # Get the targets for a specific component
     def get_CompTargets(self, comp):
-        """Get the list of targets for a specific data book component
-        
+        r"""Get the list of targets for a specific data book component
+
         :Call:
             >>> targs = opts.get_CompTargets(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -274,17 +155,18 @@ class DataBookOpts(OptionsDict):
             raise TypeError("Targets for component '%s' are not a dict" % comp)
         # Output
         return targs
-        
+
     # Get list of point in a point sensor group
     def get_DBGroupPoints(self, name):
-        """Get the list of points in a group
-        
-        For example, get the list of point sensors in a point sensor group
-        
+        r"""Get the list of points in a group
+
+        For example, get the list of point sensors in a point sensor
+        group
+
         :Call:
             >>> pts = opts.get_DBGroupPoints(name)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *name*: :class:`str`
                 Name of data book group
@@ -293,7 +175,7 @@ class DataBookOpts(OptionsDict):
                 List of points (by name) in the group
         :Versions:
             * 2015-12-04 ``@ddalle``: Version 1.0
-            * 2016-02-17 ``@ddalle``: Moved to CAPE
+            * 2016-02-17 ``@ddalle``: Version 1.1; generic version
         """
         # Check.
         if name not in self:
@@ -307,127 +189,70 @@ class DataBookOpts(OptionsDict):
         else:
             # Singleton list
             return [pts]
-        
-    # Get the list of line load entries
-    def get_DataBookLineLoads(self):
-        """Get the list of sectional loads components in the data book
-        
-        :Call:
-            >>> comps = opts.get_DataBookLineLoads()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Outputs:
-            *comps*: :class:`list`
-                List of components or line load groups
-        :Versions:
-            * 2015-09-15 ``@ddalle``: Version 1.0
-        """
-        # Get the value from the dictionary.
-        comps = self.get('LineLoads', [])
-        # Make sure it's a list
-        if type(comps).__name__ not in ['str', 'int', 'unicode']:
-            comps = [comps]
-        # Check contents.
-        for comp in comps:
-            if (type(comp).__name__ not in ['str', 'int', 'unicode']):
-                raise IOError("Component '%s' is not a str or int." % comp)
-        # Output
-        return comps
   # >
-  
+
   # =================
   # Common Properties
   # =================
   # <
     # Get the number of initial divisions
-    def get_nStats(self, comp=None):
-        """Get the number of iterations to be used for collecting statistics
-        
+    def get_nStats(self, comp=None, **kw):
+        r"""Get the iterations to use in averaging window [for a comp]
+
         :Call:
-            >>> nStats = opts.get_nStats()
-            >>> nStats = opts.get_nStats(comp)
+            >>> nStats = opts.get_nStats(comp=None, **kw)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
-            *comp*: :class:`str`
-                Name of specific data book component to query
+            *comp*: {``None``} | :class:`str`
+                Name of specific databook component
         :Outputs:
             *nStats*: :class:`int`
                 Number of iterations to be used for statistics
         :Versions:
             * 2014-12-20 ``@ddalle``: Version 1.0
         """
+        # No phases
+        kw["j"] = 0
         # Global data book setting
-        db_stats = self.get_key('nStats', 0)
+        db_stats = self.get_opt('nStats', **kw)
         # Process
         if comp is None:
             return db_stats
         else:
             # Return specific setting; default to global
             return self[comp].get('nStats', db_stats)
-        
-    # Set the number of initial mesh divisions
-    def set_nStats(self, nStats=rc0('db_stats')):
-        """Set the number of iterations to be used for collecting statistics
-        
-        :Call:
-            >>> opts.set_nStats(nStats)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *nStats*: :class:`int`
-                Number of iterations to be used for statistics
-        :Versions:
-            * 2014-12-20 ``@ddalle``: Version 1.0
-        """
-        self['nStats'] = nStats
-        
+
     # Get the earliest iteration to consider
-    def get_nMin(self, comp=None):
-        """Get the minimum iteration number to consider for statistics
-        
+    def get_nMin(self, comp=None, **kw):
+        r"""Get first iter to consider for use in databook [for a comp]
+
         :Call:
-            >>> nMin = opts.get_nMin()
-            >>> nMin = opts.get_nMin(comp)
+            >>> nMin = opts.get_nMin(comp=None, **kw)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
+            *comp*: {``None``} | :class:`str`
+                Name of specific databook component
         :Outputs:
             *nMin*: :class:`int`
                 Minimum iteration index to consider for statistics
         :Versions:
             * 2015-02-28 ``@ddalle``: Version 1.0
         """
-        # Check for a value.
-        db_nMin = self.get_key('nMin', 0)
+        # No phases
+        kw["j"] = 0
+        # Check for a value
+        db_nmin = self.get_opt("nMin", **kw)
         # Check inputs
         if comp is None:
             # Global setting
-            nMin = db_nMin
+            nmin = db_nmin
         else:
             # Specific setting; default to global
-            nMin = self[comp].get('nMin', db_nMin)
-        # Make nontrivial
-        if nMin is None: nMin = 0
+            nmin = self[comp].get('nMin', db_nmin)
         # Output
-        return nMin
-        
-    # Set the number of initial mesh divisions
-    def set_nMin(self, nMin=rc0('db_min')):
-        """Set the minimum iteration number to consider for statistics
-        
-        :Call:
-            >>> opts.set_nMin(nMin)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *nMin*: :class:`int`
-                Minimum iteration index to consider for statistics
-        :Versions:
-            * 2015-02-28 ``@ddalle``: Version 1.0
-        """
-        self['nMin'] = nStats
+        return nmin
         
     # Get the number of initial divisions
     def get_nMaxStats(self, comp=None):
@@ -436,7 +261,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> nMax = opts.get_nMaxStats()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of specific data book to query
@@ -463,7 +288,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> opts.set_nMaxStats(nMax)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *nMax*: :class:`int`
                 Number of iterations to be used for statistics
@@ -479,7 +304,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> dn = opts.get_dnStats(comp=None)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of specific data book to query
@@ -506,7 +331,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> opts.set_dnStats(dn)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *dn*: :class:`int`
                 Increment in candidate window sizes
@@ -523,7 +348,7 @@ class DataBookOpts(OptionsDict):
             >>> nLast = opts.get_nLastStats()
             >>> nLast = opts.get_nLastStats(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of specific data book to query
@@ -550,7 +375,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> opts.get_nLastStats(nLast)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *nLast*: :class:`int`
                 Maximum iteration to use for statistics
@@ -566,7 +391,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fdir = opts.get_DataBookDir()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *fdir*: :class:`str`
@@ -583,7 +408,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fdir = opts.get_DataBookDir()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *fdir*: :class:`str`
                 Relative path to data book folder
@@ -599,7 +424,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> delim = opts.get_Delimiter()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *delim*: :class:`str`
@@ -616,7 +441,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> opts.set_Delimiter(delim)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *delim*: :class:`str`
                 Delimiter to use in data book files
@@ -632,7 +457,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> key = opts.get_SortKey()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *key*: :class:`str` | ``None`` | :class:`list`\ [:class:`str`]
@@ -649,7 +474,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> opts.set_SortKey(key)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *key*: :class:`str` | ``None`` | :class:`list`\ [:class:`str`]
                 Name of key to sort with
@@ -665,7 +490,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fpre = opts.get_DataBookPrefix(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -689,7 +514,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> ext = opts.get_DataBookExtension(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -718,7 +543,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fmt = opts.get_DataBookOutputFormat(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -744,7 +569,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fmt = opts.get_DataBookTriqFormat(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -774,7 +599,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> funcname = opts.get_DataBookFunction(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -805,7 +630,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> atol = opts.get_DataBookAbsTol(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -829,7 +654,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> rtol = opts.get_DataBookRelTol(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -853,7 +678,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> rtol = opts.get_DataBookCompTol(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -877,7 +702,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> antol = opts.get_DataBookAbsProjTol(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -902,7 +727,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> rntol = opts.get_DataBookRelProjTol(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -926,7 +751,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> cntol = opts.get_DataBookCompProjTol(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -950,7 +775,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> tols = opts.get_DataBookMapTriTol(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -986,7 +811,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fcfg = opts.get_DataBookConfigFile(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -1010,7 +835,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> compID = opts.get_DataBookConfigCompID(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Data book component name
@@ -1039,7 +864,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> targets = opts.get_DataBookTargets()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *targets*: :class:`dict`\ [:class:`dict`]
@@ -1057,7 +882,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> topts = opts.get_DataBookTargetByName(targ)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *targ*: :class:`str`
                 Name of the data book target
@@ -1082,7 +907,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> typ = opts.get_DataBookTargetType(targ)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *targ*: :class:`str`
                 Name of the data book target
@@ -1107,7 +932,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fdir = opts.get_DataBookTargetDir(targ)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *targ*: :class:`str`
                 Name of the data book target
@@ -1137,7 +962,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> comps = opts.get_DataBookByType(typ)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *typ*: ``"Force"`` | ``"FM"`` | ``"LineLoad"`` | :class:`str`
                 Data book type
@@ -1165,7 +990,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> comps = opts.get_DataBookByGlob(typ, comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *typ*: FM | Force | Moment | LineLoad | TriqFM
                 Data book type
@@ -1219,7 +1044,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> ctype = opts.get_DataBookType(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1241,7 +1066,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> compID = opts.get_DataBookCompID(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of data book component/field
@@ -1263,7 +1088,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> coeffs = opts.get_DataBookCoeffs(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1317,7 +1142,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> sts = opts.get_DataBookCoeffStats(comp, coeff)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of data book component
@@ -1372,7 +1197,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fcols = opts.get_DataBookFloatCols(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of data book component
@@ -1406,7 +1231,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fcols = opts.get_DataBookFloatCols(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of data book component
@@ -1449,7 +1274,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> cols = opts.get_DataBookCols(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1474,7 +1299,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> cols = opts.get_DataBookDataCols(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1512,7 +1337,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> cols = opts.get_DataBookDataCols(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1548,7 +1373,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> pts = opts.get_DataBookPoints(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of data book component
@@ -1585,7 +1410,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> tlist = opts.get_DataBookTransformations(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1615,7 +1440,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> ftri = opts.get_DataBookMapTri(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component file
@@ -1643,7 +1468,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fcfg = opts.get_DataBookMapConfig(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component file
@@ -1670,7 +1495,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> fpatches = opts.get_DataBookPatches(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component file
@@ -1698,7 +1523,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> nCut = opts.get_DataBook_nCut(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of line load group
@@ -1722,7 +1547,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> qm = opts.get_DataBookMomentum(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1746,7 +1571,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> qg = opts.get_DataBookGauge(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1770,7 +1595,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> iTrim = opts.get_DataBookTrim(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1794,7 +1619,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> typ = opts.get_DataBookSectionType(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -1836,7 +1661,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> comps = opts.get_PlotComponents()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *comps*: :class:`list`\ [:class:`str` | :class:`int`]
@@ -1863,7 +1688,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> opts.set_PlotComponents(comps)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comps*: :class:`list`\ [:class:`str` | :class:`int`]
                 List of components (names or numbers) to plot
@@ -1887,7 +1712,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> opts.add_PlotComponents(comps)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comps*: :class:`list`\ [:class:`str` | :class:`int`]
                 List of components (names or numbers) to plot
@@ -1920,7 +1745,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> coeffs = opts.get_PlotCoeffs(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -1959,7 +1784,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> nPlot = opts.get_nPlotIter(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -1985,7 +1810,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> nLast = opts.get_nPlotLast(comp)
         :Inptus:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -2011,7 +1836,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> nFirst = opts.get_nPlotFirst(comp)
         :Inptus:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -2041,7 +1866,7 @@ class DataBookOpts(OptionsDict):
             >>> nAvg = opts.get_nAverage()
             >>> nAvg = opts.get_nAverage(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -2067,7 +1892,7 @@ class DataBookOpts(OptionsDict):
             >>> nRow = opts.get_nPlotRows()
             >>> nRow = opts.get_nPlotRows(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -2093,7 +1918,7 @@ class DataBookOpts(OptionsDict):
             >>> nCol = opts.get_nPlotCols()
             >>> nCol = opts.get_nPlotCols(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -2119,7 +1944,7 @@ class DataBookOpts(OptionsDict):
             >>> sTag = opts.get_nPlotRestriction()
             >>> sTag = opts.get_nPlotRestriction(comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -2146,7 +1971,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> dC = opts.get_PlotDelta(coeff, comp)
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -2186,7 +2011,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> w = opts.get_PlotFigWidth()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *w*: :class:`float`
@@ -2204,7 +2029,7 @@ class DataBookOpts(OptionsDict):
         :Call:
             >>> h = opts.get_PlotFigHeight()
         :Inputs:
-            *opts*: :class:`cape.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
         :Outputs:
             *h*: :class:`float`
