@@ -24,6 +24,7 @@ a method like :func:`TriBase.WriteFast` for the compiled version and
 """
 
 # Standard library
+import getpass
 import os
 import subprocess as sp
 import sys
@@ -57,9 +58,6 @@ antoldef = options.rc.get("antoldef", 2e-2)
 rntoldef = options.rc.get("rntoldef", 1e-4)
 cntoldef = options.rc.get("cntoldef", 1e-4)
 rztoldef = options.rc.get("rztoldef", 1e-5)
-
-import getpass
-IS_DEREK = getpass.getuser() == "ddalle"
 
 
 # Attempt to load the compiled helper module.
@@ -4588,9 +4586,6 @@ class TriBase(object):
         # Mapping *tri.CompID* to *self.CompID*
         compmap = {}
         facemap = {}
-        if IS_DEREK:
-            tic = datetime.now()
-            nk = len(K)
         # Loop through columns
         for i, k in enumerate(K):
             # Get triangle number
@@ -4599,8 +4594,6 @@ class TriBase(object):
             if v and ((i+1) % (1000*v) == 0):
                 sys.stdout.write("  Mapping triangle %i/%i\r" % (i+1, len(K)))
                 sys.stdout.flush()
-            if IS_DEREK:
-                tici = datetime.now()
             # Perform search
             T = tri.GetNearestTri(self.Centers[k,:], n=1)
             # Get components
@@ -4621,18 +4614,6 @@ class TriBase(object):
             # Get overall tolerances
             toli  = tol + ctol*LC[c1]
             ntoli = ntol + cntol*LC[c1]
-            if IS_DEREK:
-                toc = datetime.now()
-                dt = toc - tic
-                dti = toc - tici
-                tt = (dt.seconds + dt.microseconds / 1e6) / (i + 1)
-                ti = dti.seconds + dti.microseconds / 1e6
-                if i == 0:
-                    print("  Tri %i/%i: %.2e s" % (i+1, nk, ti))
-                elif (i + 1) % 1000 == 0 or i == 99:
-                    print(
-                        "  tri %i/%i: %.2e s, %.2e s/tri"
-                        % (i+1, nk, ti, tt))
             # Filter results
             if (T["t1"] > toli) or (T["z1"] > ntoli):
                 continue
@@ -4642,13 +4623,6 @@ class TriBase(object):
         if v:
             sys.stdout.write("%72s\r" % "")
             sys.stdout.flush()
-        if IS_DEREK:
-            toc = datetime.now()
-            dt = toc - tic
-            tt = dt.seconds + dt.microseconds / 1e6
-            print("  total: %.2e s (%.2e s/tri)" % (tt, tt/nk))
-            sys.tracebacklimit = 0
-            raise SystemError
         # Update *self.config* if applicable
         try:
             # Loop through faces in the target map
@@ -5353,9 +5327,7 @@ class TriBase(object):
         Y = self.TriY
         Z = self.TriZ
         # Extract test point coordinates
-        y = x[1]
-        z = x[2]
-        x = x[0]
+        x, y, z = x
         # Get the projection distance
         zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
         zi = np.abs(zi)
@@ -5375,33 +5347,48 @@ class TriBase(object):
         I = zi <= zmin + ztol
         K = np.where(I)[0]
         # Preselect subsets
-        XI = X[I,:]
-        YI = Y[I,:]
-        ZI = Z[I,:]
+        XI = X[I, :]
+        YI = Y[I, :]
+        ZI = Z[I, :]
+        # Filter best candidates
+        if K.size > 100:
+            # Centers
+            XC = np.mean(XI, axis=1)
+            YC = np.mean(YI, axis=1)
+            ZC = np.mean(ZI, axis=1)
+            # L1 distance to each center
+            L1 = np.abs(XC - x) + np.abs(YC - y) + np.abs(ZC - z)
+            # Sort closest 25
+            J = np.argsort(L1)[:100]
+            K = K[J]
+            # Redo subsets
+            XI = XI[J, :]
+            YI = YI[J, :]
+            ZI = ZI[J, :]
         # These operations are tested to run as fast as possible
         XI0, XI1, XI2 = XI.T
         YI0, YI1, YI2 = YI.T
         ZI0, ZI1, ZI2 = ZI.T
         # Downselect the basis vectors
-        e10, e11, e12 = e1[I,:].T
-        e20, e21, e22 = e2[I,:].T
+        e10, e11, e12 = e1[K, :].T
+        e20, e21, e22 = e2[K, :].T
         # Convert the test point into coordinates aligned with first edge
         xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
         yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
-        zi = zi[I]
+        zi = zi[K]
         # Initialize transformed triangles
         XI = np.zeros_like(XI)
         YI = np.zeros_like(XI)
         # Convert the second and third vertices
         # The commented line should be all zeros
-        XI[:,1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
-        XI[:,2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
-        # YI[:,1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
-        YI[:,2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
+        XI[:, 1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
+        XI[:, 2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
+        # YI[:, 1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
+        YI[:, 2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
         # Get distance to each triangle within the plane of each triangle
-        DI = geom.dist_tris_to_pt(XI, YI, xi, yi)
+        DI = geom.dist2_tris_to_pt(XI, YI, xi, yi)
         # Get total distance from point to each triangle
-        D = zi*zi + DI**2
+        D = zi*zi + DI
         # Get index of minimum distance
         i1 = np.nanargmin(D)
         k1 = K[i1]
@@ -5412,7 +5399,7 @@ class TriBase(object):
             "k1": k1,
             "c1": c1,
             "d1": np.sqrt(D[i1]),
-            "t1": DI[i1],
+            "t1": np.sqrt(DI[i1]),
             "z1": abs(zi[i1]),
         }
         # Initialize submask
