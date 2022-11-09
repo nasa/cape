@@ -1205,7 +1205,7 @@ class DataBook(dict):
             # Apply the mask
             DBc[c] = DBc[c][mask]
         # Update the number of entries.
-        DBc.n = len(DBc[DBc.keys()[0]])
+        DBc.n = len(DBc[list(DBc.keys())[0]])
         # Output
         return nj
    # ]
@@ -1510,7 +1510,7 @@ class DataBook(dict):
             # Apply the mask
             DBc[c] = DBc[c][mask]
         # Update the number of entries.
-        DBc.n = len(DBc[DBc.keys()[0]])
+        DBc.n = len(DBc[list(DBc.keys())[0]])
         # Output
         return nj
    # ]
@@ -1827,7 +1827,7 @@ class DataBook(dict):
             # Get the component
             DBc = DBF[pt]
             # Number of cases in current data book.
-            nCase = len(DBc[DBc.keys()[0]])
+            nCase = len(DBc[list(DBc.keys())[0]])
             # Initialize data book index array.
             J = []
             # Loop though indices to delete.
@@ -1852,7 +1852,7 @@ class DataBook(dict):
                 # Apply the mask
                 DBc[c] = DBc[c][mask]
             # Update the number of entries.
-            DBc.n = len(DBc[DBc.keys()[0]])
+            DBc.n = len(DBc[list(DBc.keys())[0]])
             # Update deletion count
             n += nj
         # Output
@@ -2149,7 +2149,7 @@ class DataBook(dict):
             # Apply the mask
             DBc[c] = DBc[c][mask]
         # Update the number of entries.
-        DBc.n = len(DBc[DBc.keys()[0]])
+        DBc.n = len(DBc[list(DBc.keys())[0]])
         # Output
         return nj
    # ]
@@ -4084,7 +4084,7 @@ class DBBase(dict):
             DB1 = self
             DB2 = DBT
         # Initialize indices (assume all are matches)
-        n = len(DB2[DB2.keys()[0]])
+        n = len(DB2[list(DB2.keys())[0]])
         J = np.arange(n) > -1
         # Interpret trajectory options for both databooks
         try:
