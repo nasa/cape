@@ -420,6 +420,7 @@ def tris_have_pt(X, Y, x, y, **kw):
     # Output
     return Q
 
+
 # Get distance from point to a line segment
 def dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
     r"""Get distance from a point to a collection of line segments
