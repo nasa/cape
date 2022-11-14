@@ -5404,7 +5404,7 @@ class TriBase(object):
         }
         # Initialize submask
         I1 = K != c1
-        C1 = self.CompID[I]
+        C1 = self.CompID[K]
         # Loop through until we find up to four components
         for nj in range(n-1):
             # Tag
