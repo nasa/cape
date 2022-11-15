@@ -2436,7 +2436,12 @@ class RunMatrix(dict):
         # Loop through equality constraints.
         for c in EqCons:
             # Get the key (for instance if matching ``k%10``)
-            k = re.split('[^a-zA-Z_]', c)[0]
+            match = re.match("[A-Za-z_]\w+", c)
+            # Check if valid
+            if match is None:
+                raise ValueError("Invalid run matrix key expression '%s'" % c)
+            # Get first group, keeping in mind ``alpha%1`` is valid
+            k = match.group(0)
             # Check for the key.
             if k in self.cols:
                 # Get the target value.
@@ -2488,8 +2493,13 @@ class RunMatrix(dict):
             m = np.logical_and(m, qk)
         # Loop through tolerance-based constraints.
         for c in TolCons:
-            # Get the key (for instance if matching 'i%10', key is 'i')
-            k = re.split('[^a-zA-Z_]', c)[0]
+            # Get the key (for instance if matching ``k%10``)
+            match = re.match("[A-Za-z_]\w+", c)
+            # Check if valid
+            if match is None:
+                raise ValueError("Invalid run matrix key expression '%s'" % c)
+            # Get first group, keeping in mind ``alpha%1`` is valid
+            k = match.group(0)
             # Get tolerance.
             tol = TolCons[c]
             # Check for the key.
