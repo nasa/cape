@@ -749,7 +749,7 @@ class TriBase(object):
         # Go to beginning of file again
         fid.seek(0)
         # Read the first bit as a double-precision big-endian int
-        r = np.fromfile(fid, count=1, dtype='>i4')
+        r, = np.fromfile(fid, count=1, dtype='>i4')
         # Check for success
         if r >= 8 and r <= 12:
             # Success
