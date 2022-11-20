@@ -738,7 +738,7 @@ def expand_pkg1(pkg, opts=None, **kw):
         # Use *kw*
         target = kw_target
     # Check if *pkg* starts with *target*
-    if pkg.startswith(target):
+    if target is None or pkg.startswith(target):
         # Already good
         return pkg
     else:
