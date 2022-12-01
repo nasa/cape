@@ -12,15 +12,15 @@ Command-line options are interpreted by :func:`cape.argread.readkeys`. Multiple
 letters following a single hyphen, such as ``pycart -cf``, is interpreted as
 two options, equivalent to ``pycart -c -f``. Multiple characters following two
 hyphens, such as ``pycart --help`` are interpreted as a single option with a
-longer name. 
-        
+longer name.
+
 The master input file for one of these scripts is a JSON file that is usually
 identified with the ``-f`` flag.  For example
 
     .. code-block:: console
-    
+
         $ pycart -f run/poweroff.json
-        
+
 will use the file :file:`run/poweroff.json` for its settings.  Each call to one
 of these scripts interprets the current directory, i.e. ``$PWD``, as the home
 directory for the analysis.  In the example above, the home directory is
@@ -105,7 +105,7 @@ taken, and that order of precedence is demonstrated in the table below.
     | ``pycart``               | Running with no command is equivalent to |
     |                          | ``pycart -n 10``                         |
     +--------------------------+------------------------------------------+
-    
+
 .. _cli-h:
 
 Help Message
@@ -114,39 +114,39 @@ To see of the options from the command line, just run ``pycart
 -h`` or ``pycart --help``.
 
     .. code-block:: console
-    
+
         $ pycart -h
-        
+
         Python interface for Cart3D: pycart
 
         This function provides a master interface for pyCart. The functionality from
         this script is also accessible from the 'pyCart' module using relatively
         simple commands.
-        
+
         USAGE
-        
+
             $ pycart [options]
-            
+
         EXAMPLES
-        
+
             The basic call submits all jobs prescribed in the file 'pyCart.json'
-                    
+
                 $ pycart
-                
+
             This command uses the inputs from 'poweron.json' and only displays
             statuses.  No jobs are submitted.
-                
+
                 $ pycart -f poweron.json -c
-                
+
          ...
 
-        
+
 The help messages are printed as raw text on the command line in such a format
-that is interpreted as 
+that is interpreted as
 `reStructuredText <http://docutils.sourceforge.net/rst.html>`_  at
 :mod:`cape.pycart.cli` (for ``pycart``), :mod:`cape.pyfun.cli` (for
 ``pyfun``), and :mod:`cape.pyover.cli` (for ``pyover``).
-        
+
 
 .. _cli-c:
 
@@ -157,17 +157,17 @@ second command is to check the status, which may show something like the
 following.
 
     .. code-block:: console
-    
+
         $ pycart -c
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
         0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   5.0
         1    poweroff/m2.0a0.0b0.0 INCOMP  100/200     .   2.2
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-        3    poweroff/m2.0a2.0b2.0 ---     /           .   
-                
+        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         ---=1, INCOMP=1, RUN=1, DONE=1,
-        
+
 The status check will show one of eight statuses for each case in the run
 matrix or :ref:`subset <cli-subset>`, and these are explained in the table
 below.
@@ -204,7 +204,7 @@ as another column in the status message.  This can be written shorthand as
 ``pycart -cj``.  Also, the ``-j`` modifier extends to any other command that
 shows the status message above as part of its process (e.g. submitting jobs).
 
-    
+
 .. _cli-batch:
 
 Batch Commands
@@ -213,7 +213,7 @@ The ``--batch`` option is a special command that creates a PBS job that runs
 what is otherwise the same command.  This creates a simple PBS job in the
 folder ``batch-pbs``.  As an exception, the ``-h`` and ``-c`` options do not
 require much work, and so they can not be submitted as batch jobs.
-    
+
 
 .. _cli-aero:
 
@@ -221,13 +221,13 @@ Data Book Updates
 *****************
 The ``--fm`` flag creates or updates the force and moment database.  The list
 of components included in the database, along with other defining options, are
-specified in the ``"DataBook"`` section of the input JSON file.  When a user 
+specified in the ``"DataBook"`` section of the input JSON file.  When a user
 runs this command, each case (:ref:`subsetting commands <cli-subset>` still
 apply) is shown along with a brief message of the status of the database and
 action of this update.
 
     .. code-block:: console
-    
+
         $ pycart --aero
         poweroff/m0.84a0.0b0.0
           Adding new databook entry at iteration 300.
@@ -245,9 +245,9 @@ can be commanded to update only one component of the data book.  Suppose there
 is a setup with a center, left, and right component.  Then
 
     .. code-block:: console
-    
+
         $ pycart --ll LL_C
-        
+
 only updates the data book for line loads on the center component (assuming
 there is a line load component called ``LL_C`` for the center body defined in
 the ``"DataBook"`` section of the JSON file).  Meanwhile, the command ``pycart
@@ -269,7 +269,7 @@ command can be issued to perform several tasks.
     #. Archive folders or other groups into tar balls to reduce file count
     #. Copy reduced set of files to external location for backup
     #. Clean up the working folder
-    
+
 All of these steps can be heavily customized using the options in the
 ``"Archive"`` subsection of the ``"RunControl"`` section of the JSON file.
 There are two main modes of archive generation.  The first mode is to archive
@@ -285,17 +285,17 @@ In both modes, there are three different opportunities to delete files:
     #. Delete files as the cases is running, using *ProgressDeleteFiles*
     #. Delete files after completion but before archiving, *PreDeleteFiles*
     #. Delete files after creating archive, *PostDeleteFiles*
-    
+
 These options can be set to keep around the *n* most recent files meeting a
 particular file glob; for example
 
     .. code-block:: javascript
-    
+
         "ProgressDeleteFiles": [
             {"q.[0-9]*": 2},
             {"x.[0-9]*": 2}
         ]
-        
+
 This tells pyOver to keep the 2 most recent ``q.$N`` and the two most recent
 ``x.$N`` files; this can be very useful in keeping down hard drive usage for
 large runs.
@@ -323,7 +323,7 @@ Creating :ref:`automated reports <report>` is done using the command ``pycart
 can be defined.  A sample section of the JSON file looks like the following:
 
     .. code-block:: javascript
-    
+
         "Report": {
             // List of reports
             "Reports": ["case", "sweep", "flow"],
@@ -350,12 +350,12 @@ can be defined.  A sample section of the JSON file looks like the following:
 In this case, the following commands are possible.
 
     .. code-block:: console
-    
+
         $ pycart --report
         $ pycart --report case
         $ pycart --report sweep
         $ pycart --report flow
-        
+
 The first two of these commands are equivalent since not naming the report
 explicitly in the command defaults to the first report in the ``"Reports"``
 list.
@@ -378,7 +378,7 @@ to delete PBS jobs for an arbitrarily-sized subset of the run matrix.  The
 following two commands are equivalent.
 
     .. code-block:: console
-    
+
         $ pycart --qdel
 
 
@@ -390,7 +390,7 @@ The CAPE CLI also provides a convenient method to delete the entire folder of
 one or more case using
 
     .. code-block:: console
-    
+
         $ pycart --rm
 
 By default this will interactively ask for confirmation for each individual
@@ -413,11 +413,11 @@ in a run matrix.  This can be something simple, such as ``pycart -e ls`` to
 list the files in each folder.
 
     .. code-block:: console
-    
+
         $ pycart -e ls
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
+        Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
-        0    poweroff/m1.5a0.0b0.0 RUN     130/200     .        0.0 
+        0    poweroff/m1.5a0.0b0.0 RUN     130/200     .        0.0
           Executing system command:
             ls
         body.dat	    Components.i.tri  forces.dat      input.cntl     preSpec.c3d.cntl
@@ -426,7 +426,7 @@ list the files in each folder.
         cap.dat		    entire.dat	      input.00.cntl   Mesh.R.c3d
         case.json	    flowCart.out      input.c3d       moments.dat
             exit(0)
-        1    poweroff/m2.0a0.0b0.0 DONE    200/200     .            
+        1    poweroff/m2.0a0.0b0.0 DONE    200/200     .
           Executing system command:
             ls
         body.dat	    clic.dat		cutPlanes.dat	input.cntl	  run.00.200
@@ -439,17 +439,17 @@ list the files in each folder.
         clic		    conditions.json	input.00.cntl	moments.dat
         clic.cntl	    Config.xml		input.c3d	preSpec.c3d.cntl
             exit(0)
-        2    poweroff/m2.0a2.0b0.0 ---     /           .            
-        3    poweroff/m2.0a2.0b2.0 ---     /           .            
-        
+        2    poweroff/m2.0a2.0b0.0 ---     /           .
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         ---=2, RUN=1, DONE=1,
-    
+
 It can also be used to execute a specific script, for example
 
     .. code-block:: console
-    
+
         $ pycart -e tools/fixProblem.py
-        
+
 This command copies the script ``tools/fixProblem.py`` to each case folder and
 then executes ``./fixProblem.py`` in each folder.  The commands ``pycart -e``
 and ``pycart --exec`` are equivalent.
@@ -463,9 +463,9 @@ Often a case does not look like it has fully converged after inspecting the
 report.  The command
 
     .. code-block:: console
-    
+
         $ pycart --extend [OPTIONS]
-        
+
 goes into each folder, determines the last phase number and how many iterations
 it normally runs for, and extends the case by that many iterations.  The
 primary effect of this command is to edit the last entry of *PhaseIters* in the
@@ -497,10 +497,10 @@ current JSON file to each case that meets the subsetting criteria associated
 with the command.  There are usually three steps to this process:
 
     * Rewrite all input files, such as :file:`input.cntl` for Cart3D or
-      namelist files for OVERFLOW and FUN3D. 
+      namelist files for OVERFLOW and FUN3D.
     * Rewrite the PBS scripts
     * Rewrite ``case.json`` with new *RunControl* settings
-    
+
 Each of these steps may be affected by the presence of additional phases in the
 JSON file.  For example, if the case in its present setup has three phases, but
 :file:`pyOver.json` has five phases, the ``pyover --extend`` command will write
@@ -550,9 +550,9 @@ commands.  The most important of these is the ``-f`` flag, which tells
 ``pycart``, ``pyfun``, or ``pyover`` to use a specific JSON input file.
 
     .. code-block:: console
-    
+
         $ pycart -f run/poweroff.json -c
-        
+
 If the ``-f`` flag is not used, a default file name of either
 :file:`pyCart.json`, :file:`pyFun.json`, or :file:`pyOver.json` is assumed.
 Pointing to specific JSON files using the ``-f`` flag is useful for run
@@ -568,7 +568,7 @@ the user to override the queue setting in the JSON file and submit new jobs to
 a specific queue.
 
 The ``--qsub`` option modifies some post-processing commands to be submitted as
-PBS jobs in each folder (instead of being run in the current terminal). 
+PBS jobs in each folder (instead of being run in the current terminal).
 Arguably a command in its own right, the ``--batch`` modifier creates a PBS job
 that runs the same command (except with the ``--batch`` flag removed).
 
@@ -601,7 +601,7 @@ them.
     +---------------+---------------------------------+-------------------+
     | ``--batch``   | Rerun command as a PBS job      | All except ``-h`` |
     +---------------+---------------------------------+-------------------+
-          
+
 .. _cli-subset:
 
 Run Matrix Subsetting
@@ -623,18 +623,18 @@ subsetting options.  The subsections will use a :ref:`simple example
 <pycart-ex-bullet>` from ``$PYCART/examples/pycart/bullet``.
 
     .. code-block:: console
-    
+
         $ pycart -c
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
         0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   5.0
         1    poweroff/m2.0a0.0b0.0 INCOMP  100/200     .   2.2
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-        3    poweroff/m2.0a2.0b2.0 ---     /           .   
-                
+        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         ---=1, INCOMP=1, RUN=1, DONE=1,
 
-    
+
 .. _cli-subset-I:
 
 Specific Indices
@@ -644,39 +644,39 @@ following examples using the ``pycart -I`` option.  The first version is to
 identify an individual case.
 
     .. code-block:: console
-    
+
         $ pycart -c -I 1
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
         1    poweroff/m2.0a0.0b0.0 INCOMP  100/200     .   2.2
-                
+
         INCOMP=1,
 
 It is also possible to get a specific list of cases.
 
     .. code-block:: console
-    
+
         $ pycart -c -I 0,2,3
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
         0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   5.0
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-        3    poweroff/m2.0a2.0b2.0 ---     /           .   
-                
+        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         ---=1, RUN=1, DONE=1,
-        
+
 Finally, a range of cases can be identified using a ``:`` character.  Note that
 this relies on Python's zero-based indexing, which is something of an acquired
 taste.
 
     .. code-block:: console
-    
+
         $ pycart -cI 1:3
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
         1    poweroff/m2.0a0.0b0.0 INCOMP  100/200     .   2.2
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-                
+        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1
+
         INCOMP=1, RUN=1,
 
 
@@ -687,26 +687,26 @@ Using Constraints
 Perhaps the most useful subsetting command is to give explicit constraints.
 
     .. code-block:: console
-    
+
         $ pycart -c --cons "alpha==2"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-        3    poweroff/m2.0a2.0b2.0 ---     /           .   
-                
+        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         ---=1, RUN=1,
 
 Multiple constraints can be separated with commas.
 
     .. code-block:: console
-    
+
         $ pycart -c --cons "alpha==2,beta==2"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-                
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         RUN=1,
-        
+
 The variables included in the constraint list must be run matrix variables
 listed in the ``"Keys"`` option of the ``"RunMatrix"`` section of the JSON
 file.  The *key* must be the first thing in each constraint, so for example
@@ -717,12 +717,12 @@ Finally, the Python relational operators ``==``, ``<``, ``<=``, ``>``, and
 command isolates cases with Mach number ending in 0.5.
 
     .. code-block:: console
-    
+
         $ pycart -c --cons "Mach%1==0.5"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
         0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   5.0
-                
+
         DONE=1,
 
 
@@ -734,15 +734,15 @@ The ``--filter`` option allows a user to restrict the command to cases that
 include raw text in their full folder name.
 
     .. code-block:: console
-    
+
         $ pycart -c --filter "a2"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-        3    poweroff/m2.0a2.0b2.0 ---     /           .   
-                
+        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         ---=1, RUN=1,
-        
+
 
 .. _cli-subset-glob:
 
@@ -755,15 +755,15 @@ glob, so the user may need to add ``'*'`` to the beginning and end of the
 command.
 
     .. code-block:: console
-    
+
         $ pycart -c --glob "*a[1-3]*"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-        3    poweroff/m2.0a2.0b2.0 ---     /           .   
-                
+        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         ---=1, RUN=1,
-        
+
 
 .. _cli-subset-regex:
 
@@ -774,12 +774,12 @@ Python's standard :mod:`re` module and only reports cases that contain at least
 one match for the regular expression.
 
     .. code-block:: console
-    
+
         $ pycart -c --re "a[1-3]"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
-        3    poweroff/m2.0a2.0b2.0 ---     /           .   
-                
+        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1
+        3    poweroff/m2.0a2.0b2.0 ---     /           .
+
         ---=1, RUN=1,
-    
+
