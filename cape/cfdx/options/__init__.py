@@ -1,4 +1,4 @@
-"""
+r"""
 The :mod:`cape.cfdx.options` provides tools to read, access, modify, and write
 settings for :mod:`cape`. The class is based off of the built-int :class:`dict`
 class, so its default behavior, such as ``opts['RunControl']`` or
@@ -41,10 +41,11 @@ Finally, this module is very closely tied with
 descriptions.
 """
 
-# Import options-specific utilities (loads :mod:`os`, too)
-from .util import *
+# Standard library
+import os
 
-# Import more specific modules for controlling subgroups of options
+# Local imports
+from .util import *
 from .pbs        import PBS
 from .slurm      import Slurm
 from .DataBook   import DataBook, DBTarget
@@ -281,8 +282,7 @@ class Options(odict):
         for line in self.get_ShellCmds(typ=typ):
             # Write it.
             f.write('%s\n' % line)
-    
-    
+
     # Write a Slurm header
     def WriteSlurmHeader(self, f, lbl, j=0, typ=None, wd=None):
         r"""Write common part of Slurm script
@@ -304,6 +304,7 @@ class Options(odict):
                 Folder to enter when starting the job
         :Versions:
             * 2018-10-10 ``@ddalle``: Forked from :func:`WritePBSHeader`
+            * 2022-12-02 ``@ddalle``: Add *C*
         """
         # Get the shell path (must be bash)
         sh = self.get_Slurm_shell(j, typ=typ)
@@ -313,12 +314,14 @@ class Options(odict):
         f.write('#SBATCH --job-name %s\n' % lbl)
         # Get the number of nodes, etc.
         acct  = self.get_Slurm_A(j, typ=typ)
+        cons  = self.get_Slurm_C(j, typ=typ)
         nnode = self.get_Slurm_N(j, typ=typ)
         ncpus = self.get_Slurm_n(j, typ=typ)
         que   = self.get_Slurm_p(j, typ=typ)
         gid   = self.get_Slurm_gid(j, typ=typ)
         # Write commands
         if acct:  f.write("#SBATCH -A %s\n" % acct)
+        if cons:  f.write("#SBATCH -C %s\n" % cons)
         if nnode: f.write("#SBATCH -N %s\n" % nnode)
         if ncpus: f.write("#SBATCH -n %s\n" % ncpus)
         if que:   f.write("#SBATCH -p %s\n" % que)
@@ -1853,7 +1856,39 @@ class Options(odict):
             return self['Slurm'].get_Slurm_N(i)
         
     # Set Slurm nNodes setting
-    def set_Slurm_N(self, N=rc0('Slurm_N'), i=None, typ=None):
+    def set_Slurm_C(self, c=rc0('Slurm_C'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            self['BatchSlurm'].set_Slurm_C(c, i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].set_Slurm_C(c, i)
+        else:
+            self._Slurm()
+            self['Slurm'].set_Slurm_C(c, i)
+    
+    # Get Slurm nNodes setting
+    def get_Slurm_C(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_C(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            self['PostSlurm'].get_Slurm_C(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_C(i)
+        
+    # Set Slurm nNodes setting
+    def set_Slurm_N(self, n=rc0('Slurm_N'), i=None, typ=None):
         # Get lower-case type
         if typ is None: typ = ''
         typ = typ.lower()

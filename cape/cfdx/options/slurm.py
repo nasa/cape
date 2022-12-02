@@ -13,6 +13,7 @@ how many nodes to request, etc.
 # Import options-specific utilities
 from .util import rc0, odict
 
+
 # Class for Slurm settings
 class Slurm(odict):
     """Dictionary-based options for Slurm jobs submitted via ``sbatch``
@@ -59,6 +60,44 @@ class Slurm(odict):
                 n = max(n, len(v))
         # Output
         return n
+        
+    
+    # Get Slurm constraints
+    def get_Slurm_C(self, i=None):
+        """Return the "constraints" option for Slurm
+        
+        :Call:
+            >>> n = opts.get_Slurm_C(i)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Index to select
+        :Outputs:
+            *C*: :class:`str`
+                Slurm constraints text
+        :Versions:
+            * 2022-12-02 ``@ddalle``: First version
+        """
+        return self.get_key('Slurm_C', i)
+        
+    # Set number of nodes
+    def set_Slurm_C(self, C=rc0('Slurm_C'), i=None):
+        """Set "constraints" option for Slurm
+        
+        :Call:
+            >>> opts.set_Slurm_C(C, i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *C*: :class:`str`
+                Slurm constraints text
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Versions:
+            * 2022-12-02 ``@ddalle``: First version
+        """
+        self.set_key('Slurm_C', C, i)
         
     
     # Get number of nodes

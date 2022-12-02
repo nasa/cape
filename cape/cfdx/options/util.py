@@ -99,6 +99,7 @@ rc = {
     "PBS_q": "normal",
     "PBS_walltime": "8:00:00",
     "Slurm_A": "",
+    "Slurm_C": "",
     "Slurm_gid": "",
     "Slurm_N": 1,
     "Slurm_n": 20,
