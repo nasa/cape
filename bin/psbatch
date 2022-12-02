@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+"""
+Submit a job and update the PBS ID: :file:`pqsub`
+=================================================
+
+This script submits a job or starts it, depending on whether or not the case is
+marked as submittable in :file:`case.json`.  It is mostly intended as a wrapper
+for the built-in `qsub`, with the additional action of saving the PBS job number
+to a file called :file:`jobID.dat` or the value of *FOUT* (see below).
+
+:Usage:
+    .. code-block:: bash
+    
+        $ pqsub FPBS [OPTIONS]
+        
+:Inputs:
+    
+    *FPBS*
+        Name of PBS script to submit, defaults to 'run_cart3d.pbs'
+    
+:Options:
+
+    -h, --help
+        Display this help message and quit
+        
+    -f FOUT
+        Save job number to file *FOUT* (default 'jobID.dat')
+
+:Versions:
+    * 2014-10-06 ``@ddalle``: First version
+"""
+
+# System modules
+import sys
+
+# Full CAPE modules
+import cape.cfdx.queue as queue
+
+# CAPE module partial imports
+from cape.argread import readflagstar
+    
+# Check if run as a script.
+if __name__ == "__main__":
+    # Parse inputs.
+    a, kw = readflagstar(sys.argv)
+    
+    # Check for a help flag.
+    if kw.get('h') or kw.get('help'):
+        print(__doc__)
+        sys.exit()
+        
+    # Get PBS script name.
+    if a:
+        # User-specified PBS script
+        fname = a[0]
+    else:
+        # Default PBS script.
+        fname = 'run_cart3d.pbs'
+    
+    # Get output file name.
+    fout = kw.get('f', 'jobID.dat')
+    
+    # Submit the job.
+    jobID = queue.psbatch(fname, fout)
+    
+    # Display status.
+    if jobID:
+        print("Submitted job successfully.")
+        print(jobID)
+
