@@ -703,7 +703,7 @@ Multiple constraints can be separated with commas.
         $ pycart -c --cons "alpha==2,beta==2"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
         ---- --------------------- ------- ----------- --- --------
-        2    poweroff/m2.0a2.0b0.0 RUN     157/200     Q   3.1   
+        3    poweroff/m2.0a2.0b2.0 ---     /           .   
                 
         RUN=1,
         
