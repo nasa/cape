@@ -4586,6 +4586,8 @@ class TriBase(object):
         # Mapping *tri.CompID* to *self.CompID*
         compmap = {}
         facemap = {}
+        # Save timer
+        tic = datetime.now()
         # Loop through columns
         for i, k in enumerate(K):
             # Get triangle number
@@ -4594,6 +4596,12 @@ class TriBase(object):
             if v and ((i+1) % (1000*v) == 0):
                 sys.stdout.write("  Mapping triangle %i/%i\r" % (i+1, len(K)))
                 sys.stdout.flush()
+                dt = datetime.now() - tic
+                ti = dt.seconds + dt.microseconds / 1e6
+                tavg = ti / (i + 1)
+                #print(
+                #    "Tri %i/%i, %.2e s (%.2e s per tri)" % 
+                #    (i + 1, len(K), ti, tavg))
             # Perform search
             T = tri.GetNearestTri(self.Centers[k,:], n=1)
             # Get components
@@ -5329,11 +5337,13 @@ class TriBase(object):
         # Extract test point coordinates
         x, y, z = x
         # Get the projection distance
-        zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
-        zi = np.abs(zi)
+        zj = np.abs(
+            (x - X[:,0])*e3[:,0] + 
+            (y - Y[:,0])*e3[:,1] +
+            (z - Z[:,0])*e3[:,2])
         # Get minimum projection distance
-        kmin = np.nanargmin(zi)
-        zmin = zi[kmin]
+        kmin = np.nanargmin(zj)
+        zmin = zj[kmin]
         # Process max tol
         ztol = kw.get("ztol", ztoldef)
         rztol = kw.get("rztol", rztoldef)
@@ -5344,7 +5354,7 @@ class TriBase(object):
         # Relative tolerance
         ztol = ztol + rztol*Lref
         # Get indices of points within *zmin* and *ztol*
-        I = zi <= zmin + ztol
+        I = zj <= zmin + ztol
         K = np.where(I)[0]
         # Preselect subsets
         XI = X[I, :]
@@ -5375,7 +5385,7 @@ class TriBase(object):
         # Convert the test point into coordinates aligned with first edge
         xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
         yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
-        zi = zi[K]
+        zi = zj[K]
         # Initialize transformed triangles
         XI = np.zeros_like(XI)
         YI = np.zeros_like(XI)

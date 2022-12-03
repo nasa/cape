@@ -432,10 +432,30 @@ def dist2_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
     # Deltas
     x12 = X2 - X1
     y12 = Y2 - Y1
-    x01 = X1 - x
-    y01 = Y1 - y
-    x02 = X2 - x
-    y02 = Y2 - y
+    if isinstance(x, np.ndarray) and x.size > 1:
+        x01 = X1
+        x02 = X2
+        x01[:, 0] -= x
+        x01[:, 1] -= x
+        x01[:, 2] -= x
+        x02[:, 0] -= x
+        x02[:, 1] -= x
+        x02[:, 2] -= x
+    else:
+        x01 = X1 - x
+        x02 = X2 - x
+    if isinstance(y, np.ndarray) and y.size > 1:
+        y01 = Y1
+        y02 = Y2
+        y01[:, 0] -= y
+        y01[:, 1] -= y
+        y01[:, 2] -= y
+        y02[:, 0] -= y
+        y02[:, 1] -= y
+        y02[:, 2] -= y
+    else:
+        y01 = Y1 - y
+        y02 = Y2 - y
     # Square of length of segment(s)
     L2 = np.fmax(1e-6, x12*x12 + y12*y12)
     # Normal component of distance times length
@@ -547,16 +567,12 @@ def dist2_tris_to_pt(X, Y, x, y, **kw):
     X2 = X1[:, [1, 2, 0]] 
     Y2 = Y1[:, [1, 2, 0]]
     # Check for list of points
-    if isinstance(x, np.ndarray):
-        # Repeat for each vertex of the triangle
-        x = np.transpose(np.vstack((x, x, x)))
-        # Deselect points inside triangles
-        x = x[Q0, :]
-    if isinstance(y, np.ndarray):
-        # Repeat for each vertex of the triangle
-        y = np.transpose(np.vstack((y, y, y)))
-        # Deselect points inside triangles
-        y = y[Q0, :]
+    if isinstance(x, np.ndarray) and x.size > 1:
+        # Points outside triangles
+        x = x[Q0]
+    if isinstance(y, np.ndarray) and y.size > 1:
+        # Points outside triangles
+        y = y[Q0]
     # Get dist to each segment of each tri that does not contain the pt
     D2 = dist2_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw)
     # Save the minimum pt-to-edge distance
