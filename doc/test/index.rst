@@ -13,8 +13,8 @@ Test report for :mod:`cape`
     :name: pytest
     :skipped: 0
     :tests: 112
-    :time: 176.618
-    :timestamp: 2022-12-02T01:40:05.934886
+    :time: 174.889
+    :timestamp: 2022-12-03T01:40:45.463814
 
 .. toctree::
 
