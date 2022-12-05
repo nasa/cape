@@ -480,7 +480,7 @@ class STEP(object):
             * 2016-05-10 ``@ddalle``: First version
         """
         # Default list of curves
-        J = range(self.ncrv)
+        J = list(range(self.ncrv))
         # Check if the curves have been sampled.
         for j in J:
             if self.crvs[j] is None:
