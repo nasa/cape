@@ -444,6 +444,12 @@ def step2crv(*a, **kw):
     xtol = kw.get("xtol")
     ytol = kw.get("ytol")
     ztol = kw.get("ztol")
+    if isinstance(xtol, str):
+        xtol = float(xtol)
+    if isinstance(ytol, str):
+        ytol = float(ytol)
+    if isinstance(ztol, str):
+        ztol = float(ztol)
     # Read in the STEP file
     stp = STEP(fstp, xtol=xtol, ytol=ytol, ztol=ztol)
     # Sampling options
