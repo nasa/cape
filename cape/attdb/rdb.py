@@ -10852,7 +10852,7 @@ class DataKit(ftypes.BaseData):
        # --- Seam Curve ---
         # Plot the seam curve if appropriate
         if kw.get("ShowSeam", True):
-            h = self.plot_seam(col, fig=h.fig, h=h)
+            h = self.plot_seam(col, fig=h.fig, h=h, **kw)
        # --- Output ---
         # Return plot handle
         return h
@@ -11168,6 +11168,14 @@ class DataKit(ftypes.BaseData):
         xcol, ycol = self.get_seam_col(seam)
         # Get plot kwargs
         kw_seam = self.get_seam_kwargs(seam)
+        # Get plot options for seam
+        popts = kw.get("PlotOptions", {})
+        sopts = kw.get("SeamOptions", {})
+        popts.update(sopts)
+        popts.pop("label", None)
+        # Merge into *kw_seam*
+        kw_seam.setdefault("PlotOptions", {})
+        kw_seam["PlotOptions"].update(popts)
         # Get seam offset kwarg
         dy = kw_seam.pop("SeamDY", 0.0)
         # Plot the image
